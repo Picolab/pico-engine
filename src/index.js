@@ -65,8 +65,22 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
 });
 
 router.set('/sky/cloud/:rid/:function', function(req, res, route){
-  console.log(route.params);
-  res.end('OK');
+  var rid = route.params.rid;
+  if(!_.has(rulesets, rid)){
+    return errResp(res, new Error('Not found: rid'));
+  }
+  var fn_name = route.params['function'];
+  if(!_.has(rulesets[rid].provided_query_fns, fn_name)){
+    return errResp(res, new Error('Not found: function'));
+  }
+  var fn = rulesets[rid].provided_query_fns[fn_name];
+  if(!_.isFunction(fn)){
+    return errResp(res, new Error('Not a function'));
+  }
+  fn(route.data, function(err, resp){
+    if(err) return errResp(res, err);
+    res.end(JSON.stringify(resp, undefined, 2));
+  });
 });
 
 var server = http.createServer(function handler(req, res) {
