@@ -6,7 +6,7 @@ module.exports = {
       },
       action: function(event, callback){
         callback(undefined, {
-          action: 'say',
+          name: 'say',
           data: {
             something: 'Hello World'
           }
