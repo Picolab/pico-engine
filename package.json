@@ -5,6 +5,7 @@
   "description": "A prototype implementation of the pico-engine written in node.js",
   "main": "src/index.js",
   "scripts": {
+    "start": "onchange -i src/ -- node src/index.js",
     "test": "node tests.js"
   },
   "repository": {
@@ -23,9 +24,12 @@
   },
   "homepage": "https://github.com/farskipper/pico-engine-node-prototype#readme",
   "devDependencies": {
+    "onchange": "^2.4.0",
     "tape": "^4.5.1"
   },
   "dependencies": {
-    "http-hash-router": "^1.1.0"
+    "contra": "^1.9.1",
+    "http-hash-router": "^1.1.0",
+    "lodash": "^4.11.2"
   }
 }
