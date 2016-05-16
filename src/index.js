@@ -65,7 +65,9 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
 });
 
 router.set('/sky/cloud/:rid/:function', function(req, res, route){
+  var eci = route.data['_eci'];//TODO channels
   var rid = route.params.rid;
+  var args = _.omit(route.data, '_eci');
   if(!_.has(rulesets, rid)){
     return errResp(res, new Error('Not found: rid'));
   }
@@ -77,13 +79,13 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
   if(!_.isFunction(fn)){
     return errResp(res, new Error('Not a function'));
   }
-  fn(route.data, function(err, resp){
+  fn(args, function(err, resp){
     if(err) return errResp(res, err);
     res.end(JSON.stringify(resp, undefined, 2));
   });
 });
 
-var server = http.createServer(function handler(req, res) {
+var server = http.createServer(function(req, res){
   router(req, res, {
     data: url.parse(req.url, true).query
   }, function(err){
