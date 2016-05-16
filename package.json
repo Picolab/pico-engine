@@ -3,7 +3,7 @@
   "name": "pico-engine-node-prototype",
   "version": "0.0.0",
   "description": "A prototype implementation of the pico-engine written in node.js",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "node tests.js"
   },
@@ -24,5 +24,8 @@
   "homepage": "https://github.com/farskipper/pico-engine-node-prototype#readme",
   "devDependencies": {
     "tape": "^4.5.1"
+  },
+  "dependencies": {
+    "http-hash-router": "^1.1.0"
   }
 }
