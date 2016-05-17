@@ -22,6 +22,13 @@ var rulesets = {
   'rid2x0': require('./rulesets/store_name')
 };
 
+var picos = {
+  'pico1': {
+    rulesets: ['rid1x0', 'rid2x0'],
+    channels: ['chan0']
+  }
+};
+
 var errResp = function(res, err){
   res.statusCode = err.statusCode || 500;
   res.end(err.message);
@@ -37,7 +44,7 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
     attrs: route.data
   };
 
-  selectRulesToEval(rulesets, event, function(err, to_eval){
+  selectRulesToEval(picos, rulesets, event, function(err, to_eval){
     if(err) return errResp(res, err);
 
     λ.map(to_eval, function(e, callback){
