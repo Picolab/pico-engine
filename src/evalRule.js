@@ -1,8 +1,18 @@
 var _ = require('lodash');
 
+var pre_noop = function(ctx, callback){
+  callback(undefined, {});
+};
+
 module.exports = function(rule, ctx, callback){
 
-  var runAction = function(){
+  var pre = _.isFunction(rule.pre) ? rule.pre : pre_noop;
+
+  pre(ctx, function(err, new_vars){
+    if(err) return callback(err);
+
+    ctx.vars = _.assign({}, ctx.vars, new_vars);
+
     rule.action(ctx, function(err, response){
       if(err) return callback(err);
 
@@ -21,17 +31,5 @@ module.exports = function(rule, ctx, callback){
         });
       }
     });
-  };
-
-  if(_.isFunction(rule.pre)){
-    rule.pre(ctx, function(err, new_vars){
-      if(err) return callback(err);
-
-      ctx.vars = _.assign({}, ctx.vars, new_vars);
-
-      runAction();
-    });
-  }else{
-    runAction();
-  }
+  });
 };
