@@ -6,7 +6,7 @@ module.exports = function(pico, rulesets, event, callback){
 
   var all_rules = [];
   _.each(rulesets, function(rs, rid){
-    if(!_.includes(pico && pico.rulesets, rid)){
+    if(!_.has(pico && pico.ruleset, rid)){
       return;
     }
     _.each(rs.rules, function(rule, rule_name){

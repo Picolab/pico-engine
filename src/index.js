@@ -24,19 +24,24 @@ var rulesets = {
   'rid2x0': require('./rulesets/store_name')
 };
 
-var picos = {
-  'pico1': {
-    id: 'pico1',
-    rulesets: ['rid1x0', 'rid2x0'],
-    channels: ['chan0']
-  }
-};
-
 var getPicoByECI = function(eci, callback){
-  var pico = _.find(picos, function(pico){
-    return _.includes(pico.channels, eci);
-  });
-  callback(undefined, pico);
+  var db_data = {};
+  db.createReadStream()
+    .on('data', function(data){
+      if(!_.isArray(data.key)){
+        return;
+      }
+      _.set(db_data, data.key, data.value);
+    })
+    .on('end', function(){
+      var da_pico = undefined;
+      _.each(db_data.pico, function(pico, pico_id){
+        if(_.has(pico.channel, eci)){
+          da_pico = pico;
+        }
+      });
+      callback(undefined, da_pico);
+    });
 };
 
 var jsonResp = function(res, data){
@@ -100,7 +105,7 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
     if(!pico){
       return errResp(res, new Error('Bad eci'));
     }
-    if(!_.includes(pico.rulesets, rid)){
+    if(!_.has(pico.ruleset, rid)){
       return errResp(res, new Error('Pico does not have that rid'));
     }
 
