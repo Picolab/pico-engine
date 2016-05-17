@@ -6,8 +6,9 @@ module.exports = {
   },
   rules: {
     store_name: {
-      select: function(event){
-        return event.domain === 'hello' && event.type === 'name';
+      select: function(ctx, callback){
+        callback(undefined,
+            ctx.event.domain === 'store' && ctx.event.type === 'name');
       },
       pre: function(ctx, callback){
         callback(undefined, {

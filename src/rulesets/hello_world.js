@@ -6,8 +6,9 @@ module.exports = {
   },
   rules: {
     hello_world: {
-      select: function(event){
-        return event.domain === 'echo' && event.type === 'hello';
+      select: function(ctx, callback){
+        callback(undefined,
+            ctx.event.domain === 'echo' && ctx.event.type === 'hello');
       },
       action: function(ctx, callback){
         callback(undefined, {
