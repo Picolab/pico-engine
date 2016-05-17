@@ -136,6 +136,13 @@ var putThenResp = function(key, val, res, data){
   });
 };
 
+var delThenResp = function(key, res){
+  db.del(key, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+};
+
 router.set('/api/new-pico', function(req, res, route){
   var id = cuid();
   putThenResp(['pico', id], {id: id}, res, {id: id});
@@ -153,6 +160,20 @@ router.set('/api/pico/:id/new-channel', function(req, res, route){
     name: name,
     type: type
   }, res, {id: chan_id});
+});
+
+router.set('/api/pico/:id/rm-channel/:eci', function(req, res, route){
+  var pico_id = route.params.id;
+  var chan_id = route.params.eci;
+
+  delThenResp(['pico', pico_id, 'channel', chan_id], res);
+});
+
+router.set('/api/pico/:id/rm-ruleset/:rid', function(req, res, route){
+  var pico_id = route.params.id;
+  var rid = route.params.rid;
+
+  delThenResp(['pico', pico_id, 'ruleset', rid], res);
 });
 
 router.set('/api/pico/:id/add-ruleset/:rid', function(req, res, route){
