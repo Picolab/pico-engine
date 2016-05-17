@@ -25,9 +25,16 @@ var rulesets = {
 
 var picos = {
   'pico1': {
+    id: 'pico1',
     rulesets: ['rid1x0', 'rid2x0'],
     channels: ['chan0']
   }
+};
+
+var getPicoByECI = function(eci){
+  return _.find(picos, function(pico){
+    return _.includes(pico.channels, eci);
+  });
 };
 
 var errResp = function(res, err){
@@ -44,6 +51,7 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
     type: route.params.type,
     attrs: route.data
   };
+  var pico = getPicoByECI(event.eci);
 
   selectRulesToEval(picos, rulesets, event, function(err, to_eval){
     if(err) return errResp(res, err);
@@ -51,6 +59,7 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
     λ.map(to_eval, function(e, callback){
 
       var ctx = {
+        pico: pico,
         db: db,
         vars: {},
         event: event,
@@ -79,14 +88,23 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
   var args = _.omit(route.data, '_eci');
   var fn_name = route.params['function'];
 
-  var pico = _.find(picos, function(pico){
-    return _.includes(pico.channels, eci) && _.includes(pico.rulesets, rid);
-  });
+  var pico = getPicoByECI(eci);
   if(!pico){
-    return errResp(res, new Error('Bad eci or rid'));
+    return errResp(res, new Error('Bad eci'));
+  }
+  if(!_.includes(pico.rulesets, rid)){
+    return errResp(res, new Error('Pico does not have that rid'));
   }
 
-  queryRulesetFn(db, rulesets, rid, fn_name, args, function(err, data){
+  var ctx = {
+    pico: pico,
+    db: db,
+    rid: rid,
+    fn_name: fn_name,
+    args: args
+  };
+
+  queryRulesetFn(ctx, rulesets, function(err, data){
     if(err) return errResp(res, err);
     res.end(JSON.stringify(data, undefined, 2));
   });

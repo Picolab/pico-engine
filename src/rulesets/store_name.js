@@ -1,7 +1,11 @@
+var keyForPicoVar = function(pico_id, var_name){
+  return ['pico', pico_id, 'vars', var_name];
+};
+
 module.exports = {
   provided_query_fns: {
     getName: function(ctx, callback){
-      ctx.db.get(['vars', 'app', 'name'], callback);
+      ctx.db.get(keyForPicoVar(ctx.pico.id, 'name'), callback);
     }
   },
   rules: {
@@ -24,9 +28,8 @@ module.exports = {
         });
       },
       always: function(ctx, callback){
-        //TODO key on ruleset id?
-        //TODO store as `ent` not `app`
-        ctx.db.put(['vars', 'app', 'name'], ctx.vars.passed_name, callback);
+        var key = keyForPicoVar(ctx.pico.id, 'name');
+        ctx.db.put(key, ctx.vars.passed_name, callback);
       }
     }
   }
