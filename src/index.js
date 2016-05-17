@@ -69,6 +69,7 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
   var eci = route.data['_eci'];//TODO channels
   var rid = route.params.rid;
   var args = _.omit(route.data, '_eci');
+
   if(!_.has(rulesets, rid)){
     return errResp(res, new Error('Not found: rid'));
   }
@@ -80,6 +81,7 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
   if(!_.isFunction(fn)){
     return errResp(res, new Error('Not a function'));
   }
+
   var ctx = {args: args, db: db};
   fn(ctx, function(err, resp){
     if(err) return errResp(res, err);
