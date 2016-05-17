@@ -6,6 +6,7 @@ var http = require('http');
 var levelup = require('levelup');
 var evalRule = require('./evalRule');
 var HttpHashRouter = require('http-hash-router');
+var queryRulesetFn = require('./queryRulesetFn');
 var selectRulesToEval = require('./selectRulesToEval');
 
 var db = levelup(path.resolve(__dirname, '../db'), {
@@ -76,6 +77,7 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
   var eci = route.data['_eci'];
   var rid = route.params.rid;
   var args = _.omit(route.data, '_eci');
+  var fn_name = route.params['function'];
 
   var pico = _.find(picos, function(pico){
     return _.includes(pico.channels, eci) && _.includes(pico.rulesets, rid);
@@ -84,22 +86,9 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
     return errResp(res, new Error('Bad eci or rid'));
   }
 
-  if(!_.has(rulesets, rid)){
-    return errResp(res, new Error('Not found: rid'));
-  }
-  var fn_name = route.params['function'];
-  if(!_.has(rulesets[rid].provided_query_fns, fn_name)){
-    return errResp(res, new Error('Not found: function'));
-  }
-  var fn = rulesets[rid].provided_query_fns[fn_name];
-  if(!_.isFunction(fn)){
-    return errResp(res, new Error('Not a function'));
-  }
-
-  var ctx = {args: args, db: db};
-  fn(ctx, function(err, resp){
+  queryRulesetFn(db, rulesets, rid, fn_name, args, function(err, data){
     if(err) return errResp(res, err);
-    res.end(JSON.stringify(resp, undefined, 2));
+    res.end(JSON.stringify(data, undefined, 2));
   });
 });
 
