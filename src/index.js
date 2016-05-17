@@ -37,30 +37,31 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
     attrs: route.data
   };
 
-  //TODO channels
-  var to_eval = selectRulesToEval(rulesets, event);
-
-  λ.map(to_eval, function(e, callback){
-
-    var ctx = {
-      db: db,
-      vars: {},
-      event: event,
-      meta: {
-        rule_name: e.rule_name,
-        txn_id: 'TODO',//TODO transactions
-        rid: e.rid,
-        eid: event.eid
-      }
-    };
-
-    evalRule(e.rule, ctx, callback);
-
-  }, function(err, directives){
+  selectRulesToEval(rulesets, event, function(err, to_eval){
     if(err) return errResp(res, err);
-    res.end(JSON.stringify({
-      directives: directives
-    }, undefined, 2));
+
+    λ.map(to_eval, function(e, callback){
+
+      var ctx = {
+        db: db,
+        vars: {},
+        event: event,
+        meta: {
+          rule_name: e.rule_name,
+          txn_id: 'TODO',//TODO transactions
+          rid: e.rid,
+          eid: event.eid
+        }
+      };
+
+      evalRule(e.rule, ctx, callback);
+
+    }, function(err, directives){
+      if(err) return errResp(res, err);
+      res.end(JSON.stringify({
+        directives: directives
+      }, undefined, 2));
+    });
   });
 });
 

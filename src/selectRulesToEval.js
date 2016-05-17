@@ -1,6 +1,6 @@
 var _ = require('lodash');
 
-module.exports = function(rulesets, event){
+module.exports = function(rulesets, event, callback){
   //TODO channels
   //TODO optimize using the salience graph
   var to_eval = [];
@@ -15,5 +15,5 @@ module.exports = function(rulesets, event){
       }
     });
   });
-  return to_eval;
+  callback(undefined, to_eval);
 };
