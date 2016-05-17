@@ -110,6 +110,20 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
   });
 });
 
+router.set('/', function(req, res, route){
+  var html = '';
+  html += '<pre>';
+  db.createReadStream()
+    .on('data', function (data) {
+      html += JSON.stringify(data.key) + ' ->\n';
+      html += '    ' + JSON.stringify(data.value) + '\n\n';
+    })
+    .on('end', function () {
+      html += '</pre>';
+      res.end(html);
+    });
+});
+
 var server = http.createServer(function(req, res){
   router(req, res, {
     data: url.parse(req.url, true).query
