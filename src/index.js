@@ -58,7 +58,7 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
   };
   var pico = getPicoByECI(event.eci);
 
-  selectRulesToEval(picos, rulesets, event, function(err, to_eval){
+  selectRulesToEval(pico, rulesets, event, function(err, to_eval){
     if(err) return errResp(res, err);
 
     λ.map(to_eval, function(e, callback){

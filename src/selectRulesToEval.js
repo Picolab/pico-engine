@@ -1,22 +1,12 @@
 var _ = require('lodash');
 var λ = require('contra');
 
-module.exports = function(picos, rulesets, event, callback){
+module.exports = function(pico, rulesets, event, callback){
   //TODO optimize using the salience graph
-
-  var rulesets_we_care_about = {};
-  _.each(picos, function(pico){
-    if(_.includes(pico.channels, event.eci)){
-      _.each(pico.rulesets, function(rid){
-        rulesets_we_care_about[rid] = true;
-      });
-    }
-  });
-
 
   var all_rules = [];
   _.each(rulesets, function(rs, rid){
-    if(rulesets_we_care_about[rid] !== true){
+    if(!_.includes(pico && pico.rulesets, rid)){
       return;
     }
     _.each(rs.rules, function(rule, rule_name){
