@@ -125,15 +125,52 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
 });
 
 router.set('/', function(req, res, route){
-  var html = '';
-  html += '<pre>';
+  var raw_dump = '';
+  var db_data = {};
   db.createReadStream()
-    .on('data', function (data) {
-      html += JSON.stringify(data.key) + ' ->\n';
-      html += '    ' + JSON.stringify(data.value) + '\n\n';
+    .on('data', function(data){
+      raw_dump += JSON.stringify(data.key) + ' ->\n';
+      raw_dump += '    ' + JSON.stringify(data.value) + '\n\n';
+      if(!_.isArray(data.key)){
+        return;
+      }
+      _.set(db_data, data.key, data.value);
     })
     .on('end', function () {
-      html += '</pre>';
+      var html = '';
+      html += '<html><body>';
+      html += '<h1>Picos</h1>';
+      _.each(db_data.pico, function(pico){
+        html += '<div style="margin-left:2em">';
+        html += '<h2>'+pico.id+'</h1>';
+        html += '<div style="margin-left:2em">';
+
+        html += '<h4>Channels</h4>';
+        html += '<ul>';
+        _.each(pico.channel, function(chan){
+          var rm_link = '/api/pico/'+pico.id+'/rm-channel/'+chan.id;
+          html += '<li>'+JSON.stringify(chan)+' <a href="'+rm_link+'">del</a></li>';
+        })
+        html += '</ul>';
+
+        html += '<h4>Rulesets</h4>';
+        html += '<ul>';
+        _.each(pico.ruleset, function(d, rid){
+          var rm_link = '/api/pico/'+pico.id+'/rm-ruleset/'+rid;
+          html += '<li>'+rid+' <a href="'+rm_link+'">del</a></li>';
+        })
+        html += '</ul>';
+
+        html += '</div>';
+        html += '</div>';
+      });
+      html += '<div style="margin-left:2em">';
+      html += '<a href="/api/new-pico">add pico</a>';
+      html += '</div>';
+      html += '<hr/>';
+      html += '<pre>' + JSON.stringify(db_data, undefined, 2) + '</pre>';
+      html += '<hr/>';
+      html += '<pre>' + raw_dump + '</pre>';
       res.end(html);
     });
 });
