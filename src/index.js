@@ -9,7 +9,8 @@ var port = process.env.PORT || 8080;
 var router = HttpHashRouter();
 
 var rulesets = {
-  'rid1x0': require('./rulesets/hello_world')
+  'rid1x0': require('./rulesets/hello_world'),
+  'rid2x0': require('./rulesets/store_name')
 };
 
 var errResp = function(res, err){
@@ -22,7 +23,7 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
   var event = {
     domain: route.params.domain,
     type: route.params.type,
-    attrs: router.data
+    attrs: route.data
   };
 
   //TODO channels
@@ -42,7 +43,11 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
   });
 
   λ.map(to_eval, function(e, callback){
-    e.rule.action(event, function(err, response){
+    var context = _.isFunction(e.rule.pre)
+      ? e.rule.pre(event)
+      : {};
+
+    e.rule.action(event, context, function(err, response){
       if(err) return callback(err);
 
       callback(undefined, {
@@ -55,6 +60,15 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
           eid: e.eid
         }
       });
+
+      if(_.isFunction(e.rule.always)){
+        e.rule.always(event, context, function(err){
+          if(err){
+            //TODO better error handling
+            console.error('rule_name: ' + e.rule_name, err);
+          }
+        });
+      }
     });
   }, function(err, directives){
     if(err) return errResp(res, err);

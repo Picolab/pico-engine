@@ -9,7 +9,7 @@ module.exports = {
       select: function(event){
         return event.domain === 'echo' && event.type === 'hello';
       },
-      action: function(event, callback){
+      action: function(event, context, callback){
         callback(undefined, {
           name: 'say',
           data: {

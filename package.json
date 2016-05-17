@@ -30,6 +30,8 @@
   "dependencies": {
     "contra": "^1.9.1",
     "http-hash-router": "^1.1.0",
+    "leveldown": "^1.4.6",
+    "levelup": "^1.3.2",
     "lodash": "^4.11.2"
   }
 }
