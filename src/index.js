@@ -5,6 +5,7 @@ var path = require('path');
 var http = require('http');
 var levelup = require('levelup');
 var HttpHashRouter = require('http-hash-router');
+var selectRulesToEval = require('./selectRulesToEval');
 
 var db = levelup(path.resolve(__dirname, '../db'), {
   keyEncoding: 'string',
@@ -28,26 +29,15 @@ var errResp = function(res, err){
 
 router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
   var event = {
+    eci: route.params.eci,
+    eid: route.params.eid,
     domain: route.params.domain,
     type: route.params.type,
     attrs: route.data
   };
 
   //TODO channels
-  //TODO optimize using the salience graph
-  var to_eval = [];
-  _.each(rulesets, function(rs, rid){
-    _.each(rs.rules, function(rule, rule_name){
-      if(rule.select(event)){
-        to_eval.push({
-          eid: route.params.eid,
-          rid: rid,
-          rule_name: rule_name,
-          rule: rule
-        });
-      }
-    });
-  });
+  var to_eval = selectRulesToEval(rulesets, event);
 
   λ.map(to_eval, function(e, callback){
 
