@@ -28,6 +28,7 @@
     "tape": "^4.5.1"
   },
   "dependencies": {
+    "bytewise": "^1.1.0",
     "contra": "^1.9.1",
     "http-hash-router": "^1.1.0",
     "leveldown": "^1.4.6",

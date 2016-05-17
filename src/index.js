@@ -9,7 +9,7 @@ var HttpHashRouter = require('http-hash-router');
 var selectRulesToEval = require('./selectRulesToEval');
 
 var db = levelup(path.resolve(__dirname, '../db'), {
-  keyEncoding: 'string',
+  keyEncoding: require('bytewise'),
   valueEncoding: 'json'
 });
 
