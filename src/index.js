@@ -73,9 +73,16 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
 });
 
 router.set('/sky/cloud/:rid/:function', function(req, res, route){
-  var eci = route.data['_eci'];//TODO channels
+  var eci = route.data['_eci'];
   var rid = route.params.rid;
   var args = _.omit(route.data, '_eci');
+
+  var pico = _.find(picos, function(pico){
+    return _.includes(pico.channels, eci) && _.includes(pico.rulesets, rid);
+  });
+  if(!pico){
+    return errResp(res, new Error('Bad eci or rid'));
+  }
 
   if(!_.has(rulesets, rid)){
     return errResp(res, new Error('Not found: rid'));
