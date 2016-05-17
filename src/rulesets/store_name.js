@@ -1,7 +1,7 @@
 module.exports = {
   provided_query_fns: {
-    getName: function(args, callback){
-      callback(undefined, 'TODO read name from db');//TODO
+    getName: function(args, context, callback){
+      context.db.get('vars!app!name', callback);
     }
   },
   rules: {
@@ -23,8 +23,9 @@ module.exports = {
         });
       },
       always: function(event, context, callback){
-        //TODO store name = passed_name
-        callback();
+        //TODO key on ruleset id?
+        //TODO store as `ent` not `app`
+        context.db.put('vars!app!name', context.passed_name, callback);
       }
     }
   }

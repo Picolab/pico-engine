@@ -1,6 +1,6 @@
 module.exports = {
   provided_query_fns: {
-    hello: function(args, callback){
+    hello: function(args, context, callback){
       callback(undefined, 'Hello ' + args.obj);
     }
   },

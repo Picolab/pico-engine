@@ -1,8 +1,15 @@
 var _ = require('lodash');
 var λ = require('contra');
 var url = require('url');
+var path = require('path');
 var http = require('http');
+var levelup = require('levelup');
 var HttpHashRouter = require('http-hash-router');
+
+var db = levelup(path.resolve(__dirname, '../db'), {
+  keyEncoding: 'string',
+  valueEncoding: 'json'
+});
 
 var port = process.env.PORT || 8080;
 
@@ -46,6 +53,8 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
     var context = _.isFunction(e.rule.pre)
       ? e.rule.pre(event)
       : {};
+
+    context.db = db;
 
     e.rule.action(event, context, function(err, response){
       if(err) return callback(err);
@@ -93,7 +102,8 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
   if(!_.isFunction(fn)){
     return errResp(res, new Error('Not a function'));
   }
-  fn(args, function(err, resp){
+  var context = {db: db};
+  fn(args, context, function(err, resp){
     if(err) return errResp(res, err);
     res.end(JSON.stringify(resp, undefined, 2));
   });
