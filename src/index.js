@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var λ = require('contra');
 var url = require('url');
+var cuid = require('cuid');
 var path = require('path');
 var http = require('http');
 var levelup = require('levelup');
@@ -122,6 +123,43 @@ router.set('/', function(req, res, route){
       html += '</pre>';
       res.end(html);
     });
+});
+
+router.set('/api/new-pico', function(req, res, route){
+  var id = cuid();
+  db.put(['pico', id], {id: id}, function(err){
+    if(err) return errResp(res, err);
+    res.end(JSON.stringify({id: id}, undefined, 2));
+  });
+});
+
+router.set('/api/pico/:id/new-channel', function(req, res, route){
+  var pico_id = route.params.id;
+  var name = route.data.name;
+  var type = route.data.type;
+
+  var chan_id = cuid();
+
+  db.put(['pico', pico_id, 'channel', chan_id], {
+    id: chan_id,
+    name: name,
+    type: type
+  }, function(err){
+    if(err) return errResp(res, err);
+    res.end(JSON.stringify({id: chan_id}, undefined, 2));
+  });
+});
+
+router.set('/api/pico/:id/add-ruleset/:rid', function(req, res, route){
+  var pico_id = route.params.id;
+  var rid = route.params.rid;
+
+  db.put(['pico', pico_id, 'ruleset', rid], {
+    on: true
+  }, function(err){
+    if(err) return errResp(res, err);
+    res.end(JSON.stringify({id: rid}, undefined, 2));
+  });
 });
 
 var server = http.createServer(function(req, res){
