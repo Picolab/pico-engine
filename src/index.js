@@ -153,11 +153,29 @@ router.set('/', function(req, res, route){
         })
         html += '</ul>';
 
+        html += '<form action="/api/pico/'+pico.id+'/new-channel" method="GET">';
+        html += '<input type="text" name="name" placeholder="name...">';
+        html += '<input type="text" name="type" placeholder="type...">';
+        html += '<button type="submit">add channel</button>';
+        html += '</form>';
+
         html += '<h4>Rulesets</h4>';
         html += '<ul>';
         _.each(pico.ruleset, function(d, rid){
           var rm_link = '/api/pico/'+pico.id+'/rm-ruleset/'+rid;
           html += '<li>'+rid+' <a href="'+rm_link+'">del</a></li>';
+        })
+        html += '</ul>';
+
+        html += '<form action="/api/pico/'+pico.id+'/add-ruleset" method="GET">';
+        html += '<input type="text" name="rid" placeholder="Ruleset id...">';
+        html += '<button type="submit">add ruleset</button>';
+        html += '</form>';
+
+        html += '<h4>`ent` Variables</h4>';
+        html += '<ul>';
+        _.each(pico.vars, function(v, k){
+          html += '<li>'+k+' = '+v+'</li>';
         })
         html += '</ul>';
 
@@ -222,9 +240,9 @@ router.set('/api/pico/:id/rm-ruleset/:rid', function(req, res, route){
   delThenResp(['pico', pico_id, 'ruleset', rid], res);
 });
 
-router.set('/api/pico/:id/add-ruleset/:rid', function(req, res, route){
+router.set('/api/pico/:id/add-ruleset', function(req, res, route){
   var pico_id = route.params.id;
-  var rid = route.params.rid;
+  var rid = route.data.rid;
 
   putThenResp(['pico', pico_id, 'ruleset', rid], {on: true}, res, {id: rid});
 });
