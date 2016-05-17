@@ -38,6 +38,10 @@ var getPicoByECI = function(eci){
   });
 };
 
+var jsonResp = function(res, data){
+  res.end(JSON.stringify(data, undefined, 2));
+};
+
 var errResp = function(res, err){
   res.statusCode = err.statusCode || 500;
   res.end(err.message);
@@ -76,9 +80,9 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
 
     }, function(err, directives){
       if(err) return errResp(res, err);
-      res.end(JSON.stringify({
+      jsonResp(res, {
         directives: directives
-      }, undefined, 2));
+      });
     });
   });
 });
@@ -107,7 +111,7 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
 
   queryRulesetFn(ctx, rulesets, function(err, data){
     if(err) return errResp(res, err);
-    res.end(JSON.stringify(data, undefined, 2));
+    jsonResp(res, data);
   });
 });
 
@@ -125,12 +129,16 @@ router.set('/', function(req, res, route){
     });
 });
 
+var putThenResp = function(key, val, res, data){
+  db.put(key, val, function(err){
+    if(err) return errResp(res, err);
+    res.end(JSON.stringify(data, undefined, 2));
+  });
+};
+
 router.set('/api/new-pico', function(req, res, route){
   var id = cuid();
-  db.put(['pico', id], {id: id}, function(err){
-    if(err) return errResp(res, err);
-    res.end(JSON.stringify({id: id}, undefined, 2));
-  });
+  putThenResp(['pico', id], {id: id}, res, {id: id});
 });
 
 router.set('/api/pico/:id/new-channel', function(req, res, route){
@@ -140,26 +148,18 @@ router.set('/api/pico/:id/new-channel', function(req, res, route){
 
   var chan_id = cuid();
 
-  db.put(['pico', pico_id, 'channel', chan_id], {
+  putThenResp(['pico', pico_id, 'channel', chan_id], {
     id: chan_id,
     name: name,
     type: type
-  }, function(err){
-    if(err) return errResp(res, err);
-    res.end(JSON.stringify({id: chan_id}, undefined, 2));
-  });
+  }, res, {id: chan_id});
 });
 
 router.set('/api/pico/:id/add-ruleset/:rid', function(req, res, route){
   var pico_id = route.params.id;
   var rid = route.params.rid;
 
-  db.put(['pico', pico_id, 'ruleset', rid], {
-    on: true
-  }, function(err){
-    if(err) return errResp(res, err);
-    res.end(JSON.stringify({id: rid}, undefined, 2));
-  });
+  putThenResp(['pico', pico_id, 'ruleset', rid], {on: true}, res, {id: rid});
 });
 
 var server = http.createServer(function(req, res){
