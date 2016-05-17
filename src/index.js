@@ -32,10 +32,11 @@ var picos = {
   }
 };
 
-var getPicoByECI = function(eci){
-  return _.find(picos, function(pico){
+var getPicoByECI = function(eci, callback){
+  var pico = _.find(picos, function(pico){
     return _.includes(pico.channels, eci);
   });
+  callback(undefined, pico);
 };
 
 var jsonResp = function(res, data){
@@ -56,32 +57,33 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
     type: route.params.type,
     attrs: route.data
   };
-  var pico = getPicoByECI(event.eci);
-
-  selectRulesToEval(pico, rulesets, event, function(err, to_eval){
+  getPicoByECI(event.eci, function(err, pico){
     if(err) return errResp(res, err);
-
-    λ.map(to_eval, function(e, callback){
-
-      var ctx = {
-        pico: pico,
-        db: db,
-        vars: {},
-        event: event,
-        meta: {
-          rule_name: e.rule_name,
-          txn_id: 'TODO',//TODO transactions
-          rid: e.rid,
-          eid: event.eid
-        }
-      };
-
-      evalRule(e.rule, ctx, callback);
-
-    }, function(err, directives){
+    selectRulesToEval(pico, rulesets, event, function(err, to_eval){
       if(err) return errResp(res, err);
-      jsonResp(res, {
-        directives: directives
+
+      λ.map(to_eval, function(e, callback){
+
+        var ctx = {
+          pico: pico,
+          db: db,
+          vars: {},
+          event: event,
+          meta: {
+            rule_name: e.rule_name,
+            txn_id: 'TODO',//TODO transactions
+            rid: e.rid,
+            eid: event.eid
+          }
+        };
+
+        evalRule(e.rule, ctx, callback);
+
+      }, function(err, directives){
+        if(err) return errResp(res, err);
+        jsonResp(res, {
+          directives: directives
+        });
       });
     });
   });
@@ -93,25 +95,27 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
   var args = _.omit(route.data, '_eci');
   var fn_name = route.params['function'];
 
-  var pico = getPicoByECI(eci);
-  if(!pico){
-    return errResp(res, new Error('Bad eci'));
-  }
-  if(!_.includes(pico.rulesets, rid)){
-    return errResp(res, new Error('Pico does not have that rid'));
-  }
-
-  var ctx = {
-    pico: pico,
-    db: db,
-    rid: rid,
-    fn_name: fn_name,
-    args: args
-  };
-
-  queryRulesetFn(ctx, rulesets, function(err, data){
+  getPicoByECI(eci, function(err, pico){
     if(err) return errResp(res, err);
-    jsonResp(res, data);
+    if(!pico){
+      return errResp(res, new Error('Bad eci'));
+    }
+    if(!_.includes(pico.rulesets, rid)){
+      return errResp(res, new Error('Pico does not have that rid'));
+    }
+
+    var ctx = {
+      pico: pico,
+      db: db,
+      rid: rid,
+      fn_name: fn_name,
+      args: args
+    };
+
+    queryRulesetFn(ctx, rulesets, function(err, data){
+      if(err) return errResp(res, err);
+      jsonResp(res, data);
+    });
   });
 });
 
