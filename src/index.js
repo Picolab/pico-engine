@@ -4,6 +4,7 @@ var url = require('url');
 var path = require('path');
 var http = require('http');
 var levelup = require('levelup');
+var evalRule = require('./evalRule');
 var HttpHashRouter = require('http-hash-router');
 var selectRulesToEval = require('./selectRulesToEval');
 
@@ -44,46 +45,17 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
     var ctx = {
       db: db,
       vars: {},
-      event: event
+      event: event,
+      meta: {
+        rule_name: e.rule_name,
+        txn_id: 'TODO',//TODO transactions
+        rid: e.rid,
+        eid: event.eid
+      }
     };
 
-    var runAction = function(){
-      e.rule.action(ctx, function(err, response){
-        if(err) return callback(err);
+    evalRule(e.rule, ctx, callback);
 
-        callback(undefined, {
-          options: response.data,
-          name: response.name,
-          meta: {
-            rule_name: e.rule_name,
-            txn_id: 'TODO',//TODO transactions
-            rid: e.rid,
-            eid: e.eid
-          }
-        });
-
-        if(_.isFunction(e.rule.always)){
-          e.rule.always(ctx, function(err){
-            if(err){
-              //TODO better error handling
-              console.error('rule_name: ' + e.rule_name, err);
-            }
-          });
-        }
-      });
-    };
-
-    if(_.isFunction(e.rule.pre)){
-      e.rule.pre(ctx, function(err, new_vars){
-        if(err) return callback(err);
-
-        ctx.vars = _.assign({}, ctx.vars, new_vars);
-
-        runAction();
-      });
-    }else{
-      runAction();
-    }
   }, function(err, directives){
     if(err) return errResp(res, err);
     res.end(JSON.stringify({

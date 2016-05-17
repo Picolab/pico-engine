@@ -8,7 +8,6 @@ module.exports = function(rulesets, event){
     _.each(rs.rules, function(rule, rule_name){
       if(rule.select(event)){
         to_eval.push({
-          eid: event.eid,
           rid: rid,
           rule_name: rule_name,
           rule: rule
