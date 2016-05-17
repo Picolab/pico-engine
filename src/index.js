@@ -50,35 +50,50 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
   });
 
   λ.map(to_eval, function(e, callback){
-    var context = _.isFunction(e.rule.pre)
-      ? e.rule.pre(event)
-      : {};
 
-    context.db = db;
+    var ctx = {
+      db: db,
+      vars: {},
+      event: event
+    };
 
-    e.rule.action(event, context, function(err, response){
-      if(err) return callback(err);
+    var runAction = function(){
+      e.rule.action(ctx, function(err, response){
+        if(err) return callback(err);
 
-      callback(undefined, {
-        options: response.data,
-        name: response.name,
-        meta: {
-          rule_name: e.rule_name,
-          txn_id: 'TODO',//TODO transactions
-          rid: e.rid,
-          eid: e.eid
-        }
-      });
-
-      if(_.isFunction(e.rule.always)){
-        e.rule.always(event, context, function(err){
-          if(err){
-            //TODO better error handling
-            console.error('rule_name: ' + e.rule_name, err);
+        callback(undefined, {
+          options: response.data,
+          name: response.name,
+          meta: {
+            rule_name: e.rule_name,
+            txn_id: 'TODO',//TODO transactions
+            rid: e.rid,
+            eid: e.eid
           }
         });
-      }
-    });
+
+        if(_.isFunction(e.rule.always)){
+          e.rule.always(ctx, function(err){
+            if(err){
+              //TODO better error handling
+              console.error('rule_name: ' + e.rule_name, err);
+            }
+          });
+        }
+      });
+    };
+
+    if(_.isFunction(e.rule.pre)){
+      e.rule.pre(ctx, function(err, new_vars){
+        if(err) return callback(err);
+
+        ctx.vars = _.assign({}, ctx.vars, new_vars);
+
+        runAction();
+      });
+    }else{
+      runAction();
+    }
   }, function(err, directives){
     if(err) return errResp(res, err);
     res.end(JSON.stringify({
@@ -102,8 +117,8 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
   if(!_.isFunction(fn)){
     return errResp(res, new Error('Not a function'));
   }
-  var context = {db: db};
-  fn(args, context, function(err, resp){
+  var ctx = {args: args, db: db};
+  fn(ctx, function(err, resp){
     if(err) return errResp(res, err);
     res.end(JSON.stringify(resp, undefined, 2));
   });

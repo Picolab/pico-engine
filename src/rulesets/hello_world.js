@@ -1,7 +1,7 @@
 module.exports = {
   provided_query_fns: {
-    hello: function(args, context, callback){
-      callback(undefined, 'Hello ' + args.obj);
+    hello: function(ctx, callback){
+      callback(undefined, 'Hello ' + ctx.args.obj);
     }
   },
   rules: {
@@ -9,7 +9,7 @@ module.exports = {
       select: function(event){
         return event.domain === 'echo' && event.type === 'hello';
       },
-      action: function(event, context, callback){
+      action: function(ctx, callback){
         callback(undefined, {
           name: 'say',
           data: {

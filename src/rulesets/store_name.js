@@ -1,7 +1,7 @@
 module.exports = {
   provided_query_fns: {
-    getName: function(args, context, callback){
-      context.db.get('vars!app!name', callback);
+    getName: function(ctx, callback){
+      ctx.db.get('vars!app!name', callback);
     }
   },
   rules: {
@@ -9,23 +9,23 @@ module.exports = {
       select: function(event){
         return event.domain === 'hello' && event.type === 'name';
       },
-      pre: function(event){
-        return {
-          passed_name: event.attrs['name']
-        };
+      pre: function(ctx, callback){
+        callback(undefined, {
+          passed_name: ctx.event.attrs['name']
+        });
       },
-      action: function(event, context, callback){
+      action: function(ctx, callback){
         callback(undefined, {
           name: 'store_name',
           data: {
-            name: context.passed_name
+            name: ctx.vars.passed_name
           }
         });
       },
-      always: function(event, context, callback){
+      always: function(ctx, callback){
         //TODO key on ruleset id?
         //TODO store as `ent` not `app`
-        context.db.put('vars!app!name', context.passed_name, callback);
+        ctx.db.put('vars!app!name', ctx.vars.passed_name, callback);
       }
     }
   }
