@@ -17,10 +17,6 @@ var dbToObj = function(ldb, callback){
     });
 };
 
-var keyForPicoVar = function(pico_id, var_name){
-  return ['pico', pico_id, 'vars', var_name];
-};
-
 module.exports = function(opts){
 
   var ldb = opts.path
@@ -90,10 +86,16 @@ module.exports = function(opts){
       ldb.del(['pico', pico_id, 'channel', eci], callback);
     },
     putEntVar: function(pico_id, var_name, val, callback){
-      ldb.put(keyForPicoVar(pico_id, var_name), val, callback);
+      ldb.put(['pico', pico_id, 'vars', var_name], val, callback);
     },
     getEntVar: function(pico_id, var_name, callback){
-      ldb.get(keyForPicoVar(pico_id, var_name), callback);
+      ldb.get(['pico', pico_id, 'vars', var_name], callback);
+    },
+    putAppVar: function(rid, var_name, val, callback){
+      ldb.put(['resultset', rid, 'vars', var_name], val, callback);
+    },
+    getAppVar: function(rid, var_name, callback){
+      ldb.get(['resultset', rid, 'vars', var_name], callback);
     }
   };
 };
