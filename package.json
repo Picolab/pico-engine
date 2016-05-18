@@ -5,7 +5,7 @@
   "description": "A prototype implementation of the pico-engine written in node.js",
   "main": "src/index.js",
   "scripts": {
-    "start": "onchange -i src/ -- node src/index.js",
+    "start": "onchange -i src/ -- node src/server.js",
     "test": "node tests.js"
   },
   "repository": {
