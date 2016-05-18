@@ -1,20 +1,9 @@
 var λ = require('contra');
 var test = require('tape');
-var memdown = require('memdown');
-var PicoEngine = require('./');
+var mkTestPicoEngine = require('./mkTestPicoEngine');
 
 test('DB - write and read', function(t){
-  var pe = PicoEngine({
-    db: {
-      db: memdown,
-      newID: (function(){
-        var i = 0;
-        return function(){
-          return 'id' + i++;
-        };
-      }())
-    }
-  });
+  var pe = mkTestPicoEngine();
 
   λ.series({
     start_db: λ.curry(pe.db.toObj),
@@ -22,11 +11,13 @@ test('DB - write and read', function(t){
     chan1: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
     rule0: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'rs0'}),
     chan2: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'two', type: 't'}),
-    db_data: λ.curry(pe.db.toObj)
+    end_db: λ.curry(pe.db.toObj)
   }, function(err, data){
     if(err) return t.end(err);
 
-    t.deepEquals(data.db_data, {
+    t.deepEquals(data.start_db, {});
+
+    t.deepEquals(data.end_db, {
       pico: {
         'id0': {
           id: 'id0',
