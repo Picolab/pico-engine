@@ -30,6 +30,8 @@ module.exports = function(opts){
       valueEncoding: 'json'
     });
 
+  var newID = _.isFunction(opts.newID) ? opts.newID : cuid;
+
   return {
     dbToObj: function(callback){
       dbToObj(ldb, callback);
@@ -55,7 +57,7 @@ module.exports = function(opts){
     },
     newPico: function(opts, callback){
       var new_pico = {
-        id: cuid()
+        id: newID()
       };
       ldb.put(['pico', new_pico.id], new_pico, function(err){
         if(err) return callback(err);
@@ -64,7 +66,7 @@ module.exports = function(opts){
     },
     newChannel: function(opts, callback){
       var new_channel = {
-        id: cuid(),
+        id: newID(),
         name: opts.name,
         type: opts.type
       };
