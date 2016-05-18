@@ -5,7 +5,11 @@ var http = require('http');
 var PicoEngine = require('./');
 var HttpHashRouter = require('http-hash-router');
 
-var pe = PicoEngine({db_path: path.resolve(__dirname, '../db')});
+var pe = PicoEngine({
+  db: {
+    path: path.resolve(__dirname, '../db')
+  }
+});
 
 var port = process.env.PORT || 8080;
 
@@ -108,14 +112,14 @@ router.set('/', function(req, res, route){
 });
 
 router.set('/api/new-pico', function(req, res, route){
-  pe.newPico({}, function(err, new_pico){
+  pe.db.newPico({}, function(err, new_pico){
     if(err) return errResp(res, err);
     res.end(JSON.stringify(new_pico, undefined, 2));
   });
 });
 
 router.set('/api/pico/:id/new-channel', function(req, res, route){
-  pe.newChannel({
+  pe.db.newChannel({
     pico_id: route.params.id,
     name: route.data.name,
     type: route.data.type
@@ -126,21 +130,21 @@ router.set('/api/pico/:id/new-channel', function(req, res, route){
 });
 
 router.set('/api/pico/:id/rm-channel/:eci', function(req, res, route){
-  pe.removeChannel(route.params.id, route.params.eci, function(err){
+  pe.db.removeChannel(route.params.id, route.params.eci, function(err){
     if(err) return errResp(res, err);
     jsonResp(res, {ok: true});
   });
 });
 
 router.set('/api/pico/:id/rm-ruleset/:rid', function(req, res, route){
-  pe.removeRuleset(route.params.id, route.params.rid, function(err){
+  pe.db.removeRuleset(route.params.id, route.params.rid, function(err){
     if(err) return errResp(res, err);
     jsonResp(res, {ok: true});
   });
 });
 
 router.set('/api/pico/:id/add-ruleset', function(req, res, route){
-  pe.addRuleset({pico_id: route.params.id, rid: route.data.rid}, function(err){
+  pe.db.addRuleset({pico_id: route.params.id, rid: route.data.rid}, function(err){
     if(err) return errResp(res, err);
     jsonResp(res, {ok: true});
   });

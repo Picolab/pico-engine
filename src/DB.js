@@ -1,4 +1,5 @@
 var _ = require('lodash');
+var cuid = require('cuid');
 var levelup = require('levelup');
 var bytewise = require('bytewise');
 
@@ -18,20 +19,20 @@ var dbToObj = function(ldb, callback){
 
 module.exports = function(opts){
 
-  var ldb = levelup(opts.path, {
-    keyEncoding: bytewise,
-    valueEncoding: 'json'
-  });
+  var ldb = opts.path
+    ? levelup(opts.path, {
+      keyEncoding: bytewise,
+      valueEncoding: 'json'
+    })
+    : levelup({
+      db: opts.db,
+      keyEncoding: bytewise,
+      valueEncoding: 'json'
+    });
 
   return {
     dbToObj: function(callback){
       dbToObj(ldb, callback);
-    },
-    put: function(key, val, callback){
-      ldb.put(key, val, callback);
-    },
-    del: function(key, callback){
-      ldb.del(key, callback);
     },
     getPicoByECI: function(eci, callback){
       var db_data = {};
@@ -51,6 +52,36 @@ module.exports = function(opts){
         });
         callback(undefined, da_pico);
       });
+    },
+    newPico: function(opts, callback){
+      var new_pico = {
+        id: cuid()
+      };
+      ldb.put(['pico', new_pico.id], new_pico, function(err){
+        if(err) return callback(err);
+        callback(undefined, new_pico);
+      });
+    },
+    newChannel: function(opts, callback){
+      var new_channel = {
+        id: cuid(),
+        name: opts.name,
+        type: opts.type
+      };
+      var key = ['pico', opts.pico_id, 'channel', new_channel.id];
+      ldb.put(key, new_channel, function(err){
+        if(err) return callback(err);
+        callback(undefined, new_channel);
+      });
+    },
+    addRuleset: function(opts, callback){
+      ldb.put(['pico', opts.pico_id, 'ruleset', opts.rid], {on: true}, callback);
+    },
+    removeRuleset: function(pico_id, rid, callback){
+      ldb.del(['pico', pico_id, 'ruleset', rid], callback);
+    },
+    removeChannel: function(pico_id, eci, callback){
+      ldb.del(['pico', pico_id, 'channel', eci], callback);
     }
   };
 };

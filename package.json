@@ -28,6 +28,7 @@
   "homepage": "https://github.com/farskipper/pico-engine-node-prototype#readme",
   "devDependencies": {
     "eslint": "^2.10.2",
+    "memdown": "^1.1.2",
     "onchange": "^2.4.0",
     "scriptsp": "^0.3.0",
     "tape": "^4.5.1"
