@@ -15,27 +15,6 @@ module.exports = function(conf){
 
   return {
     db: db,
-    queryFn: function(eci, rid, fn_name, args, callback){
-      db.getPicoByECI(eci, function(err, pico){
-        if(err) return callback(err);
-        if(!pico){
-          return callback(new Error('Bad eci'));
-        }
-        if(!_.has(pico.ruleset, rid)){
-          return callback(new Error('Pico does not have that rid'));
-        }
-
-        var ctx = {
-          pico: pico,
-          db: db,
-          rid: rid,
-          fn_name: fn_name,
-          args: args
-        };
-
-        queryRulesetFn(ctx, rulesets, callback);
-      });
-    },
     signalEvent: function(event, callback){
       db.getPicoByECI(event.eci, function(err, pico){
         if(err) return callback(err);
@@ -61,6 +40,27 @@ module.exports = function(conf){
             evalRule(e.rule, ctx, callback);
           }, callback);
         });
+      });
+    },
+    queryFn: function(eci, rid, fn_name, args, callback){
+      db.getPicoByECI(eci, function(err, pico){
+        if(err) return callback(err);
+        if(!pico){
+          return callback(new Error('Bad eci'));
+        }
+        if(!_.has(pico.ruleset, rid)){
+          return callback(new Error('Pico does not have that rid'));
+        }
+
+        var ctx = {
+          pico: pico,
+          db: db,
+          rid: rid,
+          fn_name: fn_name,
+          args: args
+        };
+
+        queryRulesetFn(ctx, rulesets, callback);
       });
     }
   };
