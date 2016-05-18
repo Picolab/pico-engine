@@ -33,7 +33,7 @@ module.exports = function(opts){
   var newID = _.isFunction(opts.newID) ? opts.newID : cuid;
 
   return {
-    dbToObj: function(callback){
+    toObj: function(callback){
       dbToObj(ldb, callback);
     },
     getPicoByECI: function(eci, callback){

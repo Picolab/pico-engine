@@ -5,14 +5,14 @@ var PicoEngine = require('./');
 test('something', function(t){
   var pe = PicoEngine({db: {db: memdown}});
 
-  pe.dbToObj(function(err, db_data){
+  pe.db.toObj(function(err, db_data){
     if(err) return t.end(err);
     t.deepEquals(db_data, {});
 
     pe.db.newPico({}, function(err, new_pico){
       if(err) return t.end(err);
 
-      pe.dbToObj(function(err, db_data){
+      pe.db.toObj(function(err, db_data){
         if(err) return t.end(err);
         var exp = {};
         exp.pico = {};

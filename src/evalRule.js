@@ -14,12 +14,13 @@ module.exports = function(rule, ctx, callback){
     ctx.vars = _.assign({}, ctx.vars, new_vars);
 
     rule.action(ctx, function(err, response){
+      //TODO collect errors and respond individually to the client
       if(err) return callback(err);
 
       callback(undefined, {
         options: response.data,
         name: response.name,
-        meta: ctx.meta 
+        meta: ctx.meta
       });
 
       if(_.isFunction(rule.always)){

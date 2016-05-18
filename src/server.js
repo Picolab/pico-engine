@@ -54,7 +54,7 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
 });
 
 router.set('/', function(req, res, route){
-  pe.dbToObj(function(err, db_data){
+  pe.db.toObj(function(err, db_data){
     if(err) return errResp(res, err);
 
     var html = '';

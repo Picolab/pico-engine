@@ -17,12 +17,12 @@ test('DB - write and read', function(t){
   });
 
   λ.series({
-    start_db: λ.curry(pe.db.dbToObj),
+    start_db: λ.curry(pe.db.toObj),
     pico0: λ.curry(pe.db.newPico, {}),
     chan1: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
     rule0: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'rs0'}),
     chan2: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'two', type: 't'}),
-    db_data: λ.curry(pe.db.dbToObj)
+    db_data: λ.curry(pe.db.toObj)
   }, function(err, data){
     if(err) return t.end(err);
 

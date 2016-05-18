@@ -62,7 +62,6 @@ module.exports = function(conf){
           }, callback);
         });
       });
-    },
-    dbToObj: db.dbToObj
+    }
   };
 };
