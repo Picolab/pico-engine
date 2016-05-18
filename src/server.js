@@ -1,13 +1,11 @@
 var _ = require('lodash');
 var url = require('url');
-var cuid = require('cuid');
 var path = require('path');
 var http = require('http');
 var PicoEngine = require('./');
 var HttpHashRouter = require('http-hash-router');
 
 var pe = PicoEngine({db_path: path.resolve(__dirname, '../db')});
-var db = pe.db;
 
 var port = process.env.PORT || 8080;
 
@@ -109,58 +107,43 @@ router.set('/', function(req, res, route){
   });
 });
 
-var putThenResp = function(key, val, res, data){
-  db.put(key, val, function(err){
-    if(err) return errResp(res, err);
-    res.end(JSON.stringify(data, undefined, 2));
-  });
-};
-
-var delThenResp = function(key, res){
-  db.del(key, function(err){
-    if(err) return errResp(res, err);
-    jsonResp(res, {ok: true});
-  });
-};
-
 router.set('/api/new-pico', function(req, res, route){
-  var id = cuid();
-  putThenResp(['pico', id], {id: id}, res, {id: id});
+  pe.newPico({}, function(err, new_pico){
+    if(err) return errResp(res, err);
+    res.end(JSON.stringify(new_pico, undefined, 2));
+  });
 });
 
 router.set('/api/pico/:id/new-channel', function(req, res, route){
-  var pico_id = route.params.id;
-  var name = route.data.name;
-  var type = route.data.type;
-
-  var chan_id = cuid();
-
-  putThenResp(['pico', pico_id, 'channel', chan_id], {
-    id: chan_id,
-    name: name,
-    type: type
-  }, res, {id: chan_id});
+  pe.newChannel({
+    pico_id: route.params.id,
+    name: route.data.name,
+    type: route.data.type
+  }, function(err, new_channel){
+    if(err) return errResp(res, err);
+    res.end(JSON.stringify(new_channel, undefined, 2));
+  });
 });
 
 router.set('/api/pico/:id/rm-channel/:eci', function(req, res, route){
-  var pico_id = route.params.id;
-  var chan_id = route.params.eci;
-
-  delThenResp(['pico', pico_id, 'channel', chan_id], res);
+  pe.removeChannel(route.params.id, route.params.eci, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
 });
 
 router.set('/api/pico/:id/rm-ruleset/:rid', function(req, res, route){
-  var pico_id = route.params.id;
-  var rid = route.params.rid;
-
-  delThenResp(['pico', pico_id, 'ruleset', rid], res);
+  pe.removeRuleset(route.params.id, route.params.rid, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
 });
 
 router.set('/api/pico/:id/add-ruleset', function(req, res, route){
-  var pico_id = route.params.id;
-  var rid = route.data.rid;
-
-  putThenResp(['pico', pico_id, 'ruleset', rid], {on: true}, res, {id: rid});
+  pe.addRuleset({pico_id: route.params.id, rid: route.data.rid}, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
 });
 
 var server = http.createServer(function(req, res){
