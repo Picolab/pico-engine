@@ -1,16 +1,10 @@
 var _ = require('lodash');
-var λ = require('contra');
-var DB = require('./DB');
 var url = require('url');
 var cuid = require('cuid');
 var path = require('path');
 var http = require('http');
-var levelup = require('levelup');
-var evalRule = require('./evalRule');
 var PicoEngine = require('./');
 var HttpHashRouter = require('http-hash-router');
-var queryRulesetFn = require('./queryRulesetFn');
-var selectRulesToEval = require('./selectRulesToEval');
 
 var pe = PicoEngine({db_path: path.resolve(__dirname, '../db')});
 var db = pe.db;
@@ -18,11 +12,6 @@ var db = pe.db;
 var port = process.env.PORT || 8080;
 
 var router = HttpHashRouter();
-
-var rulesets = {
-  'rid1x0': require('./rulesets/hello_world'),
-  'rid2x0': require('./rulesets/store_name')
-};
 
 var jsonResp = function(res, data){
   res.end(JSON.stringify(data, undefined, 2));
@@ -42,34 +31,10 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
     type: route.params.type,
     attrs: route.data
   };
-  db.getPicoByECI(event.eci, function(err, pico){
+  pe.signalEvent(event, function(err, directives){
     if(err) return errResp(res, err);
-    selectRulesToEval(pico, rulesets, event, function(err, to_eval){
-      if(err) return errResp(res, err);
-
-      λ.map(to_eval, function(e, callback){
-
-        var ctx = {
-          pico: pico,
-          db: db,
-          vars: {},
-          event: event,
-          meta: {
-            rule_name: e.rule_name,
-            txn_id: 'TODO',//TODO transactions
-            rid: e.rid,
-            eid: event.eid
-          }
-        };
-
-        evalRule(e.rule, ctx, callback);
-
-      }, function(err, directives){
-        if(err) return errResp(res, err);
-        jsonResp(res, {
-          directives: directives
-        });
-      });
+    jsonResp(res, {
+      directives: directives
     });
   });
 });
@@ -80,32 +45,14 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
   var args = _.omit(route.data, '_eci');
   var fn_name = route.params['function'];
 
-  db.getPicoByECI(eci, function(err, pico){
+  pe.queryFn(eci, rid, fn_name, args, function(err, data){
     if(err) return errResp(res, err);
-    if(!pico){
-      return errResp(res, new Error('Bad eci'));
-    }
-    if(!_.has(pico.ruleset, rid)){
-      return errResp(res, new Error('Pico does not have that rid'));
-    }
-
-    var ctx = {
-      pico: pico,
-      db: db,
-      rid: rid,
-      fn_name: fn_name,
-      args: args
-    };
-
-    queryRulesetFn(ctx, rulesets, function(err, data){
-      if(err) return errResp(res, err);
-      jsonResp(res, data);
-    });
+    jsonResp(res, data);
   });
 });
 
 router.set('/', function(req, res, route){
-  db.dbToObj(function(err, db_data){
+  pe.dbToObj(function(err, db_data){
     if(err) return errResp(res, err);
 
     var html = '';
@@ -121,7 +68,7 @@ router.set('/', function(req, res, route){
       _.each(pico.channel, function(chan){
         var rm_link = '/api/pico/'+pico.id+'/rm-channel/'+chan.id;
         html += '<li>'+JSON.stringify(chan)+' <a href="'+rm_link+'">del</a></li>';
-      })
+      });
       html += '</ul>';
 
       html += '<form action="/api/pico/'+pico.id+'/new-channel" method="GET">';
@@ -135,7 +82,7 @@ router.set('/', function(req, res, route){
       _.each(pico.ruleset, function(d, rid){
         var rm_link = '/api/pico/'+pico.id+'/rm-ruleset/'+rid;
         html += '<li>'+rid+' <a href="'+rm_link+'">del</a></li>';
-      })
+      });
       html += '</ul>';
 
       html += '<form action="/api/pico/'+pico.id+'/add-ruleset" method="GET">';
@@ -147,7 +94,7 @@ router.set('/', function(req, res, route){
       html += '<ul>';
       _.each(pico.vars, function(v, k){
         html += '<li>'+k+' = '+v+'</li>';
-      })
+      });
       html += '</ul>';
 
       html += '</div>';

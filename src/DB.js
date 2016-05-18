@@ -1,5 +1,4 @@
 var _ = require('lodash');
-var λ = require('contra');
 var levelup = require('levelup');
 var bytewise = require('bytewise');
 
