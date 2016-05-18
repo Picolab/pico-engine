@@ -63,7 +63,7 @@ test('PicoEngine - store_name ruleset', function(t){
 
     store_bob1: λ.curry(pe.signalEvent, {
       eci: 'id1',
-      eid: '1234',
+      eid: '12345',
       domain: 'store',
       type: 'name',
       attrs: {name: 'jim'}
@@ -75,13 +75,13 @@ test('PicoEngine - store_name ruleset', function(t){
   }, function(err, data){
     if(err) return t.end(err);
 
-    t.deepEquals(_.map(data.store_bob, function(d){
+    t.deepEquals(_.map(data.store_bob0, function(d){
       return _.omit(d, 'meta');
     }), [{name: 'store_name', options: {name: 'bob'}}]);
 
     t.deepEquals(data.query0, 'bob');
 
-    t.deepEquals(_.map(data.store_bob, function(d){
+    t.deepEquals(_.map(data.store_bob1, function(d){
       return _.omit(d, 'meta');
     }), [{name: 'store_name', options: {name: 'jim'}}]);
 
