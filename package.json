@@ -5,9 +5,11 @@
   "description": "A prototype implementation of the pico-engine written in node.js",
   "main": "src/index.js",
   "scripts": {
-    "start": "onchange -i src/ -- npm run lint -s && node src/server.js",
+    "start": "scriptsp watch:http watch:test",
+    "watch:http": "onchange -i src/ -- node src/server.js",
+    "watch:test": "onchange -i src/ -- npm run test -s",
     "lint": "eslint src/ && echo lint-ok",
-    "test": "node tests.js"
+    "test": "npm run lint && node src/tests.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +29,7 @@
   "devDependencies": {
     "eslint": "^2.10.2",
     "onchange": "^2.4.0",
+    "scriptsp": "^0.3.0",
     "tape": "^4.5.1"
   },
   "dependencies": {
