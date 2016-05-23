@@ -38,7 +38,17 @@ module.exports = function(conf){
             };
 
             evalRule(e.rule, ctx, callback);
-          }, callback);
+          }, function(err, responses){
+            if(err) return callback(err);
+
+            //TODO handle other types
+            callback(undefined, {
+              type: 'json',
+              data: {
+                directives: responses
+              }
+            });
+          });
         });
       });
     },

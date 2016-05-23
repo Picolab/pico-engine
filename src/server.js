@@ -33,11 +33,13 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
     type: route.params.type,
     attrs: route.data
   };
-  pe.signalEvent(event, function(err, directives){
+  pe.signalEvent(event, function(err, response){
     if(err) return errResp(res, err);
-    jsonResp(res, {
-      directives: directives
-    });
+    if(response.type === 'json'){
+      jsonResp(res, response.data);
+    }else{
+      errResp(res, new Error('TODO other response types'));
+    }
   });
 });
 

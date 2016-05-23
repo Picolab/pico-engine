@@ -20,8 +20,9 @@ module.exports = {
       },
       action: function(ctx, callback){
         callback(undefined, {
+          type: 'directive',
           name: 'store_name',
-          data: {
+          options: {
             name: ctx.vars.passed_name
           }
         });
@@ -43,8 +44,9 @@ module.exports = {
       },
       action: function(ctx, callback){
         callback(undefined, {
+          type: 'directive',
           name: 'store_appvar',
-          data: {
+          options: {
             name: ctx.vars.appvar
           }
         });

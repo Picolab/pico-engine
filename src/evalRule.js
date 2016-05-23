@@ -17,11 +17,16 @@ module.exports = function(rule, ctx, callback){
       //TODO collect errors and respond individually to the client
       if(err) return callback(err);
 
-      callback(undefined, {
-        options: response.data,
-        name: response.name,
-        meta: ctx.meta
-      });
+      if(response.type === 'directive'){
+        callback(undefined, {
+          options: response.options,
+          name: response.name,
+          meta: ctx.meta
+        });
+      }else{
+        //TODO collect errors and respond individually to the client
+        return callback(new Error('Invalid response type: ' + response.type));
+      }
 
       if(_.isFunction(rule.always)){
         rule.always(ctx, function(err){

@@ -12,8 +12,9 @@ module.exports = {
       },
       action: function(ctx, callback){
         callback(undefined, {
+          type: 'directive',
           name: 'say',
-          data: {
+          options: {
             something: 'Hello World'
           }
         });
