@@ -31,23 +31,25 @@ module.exports = function(conf){
       db.getPicoByECI(event.eci, function(err, pico){
         if(err) return callback(err);
 
-        selectRulesToEval(pico, rulesets, event, function(err, to_eval){
+        var ctx_orig = {
+          pico: pico,
+          db: db,
+          vars: {},
+          event: event,
+          meta: {
+            txn_id: 'TODO',//TODO transactions
+            eid: event.eid
+          }
+        };
+
+        selectRulesToEval(ctx_orig, rulesets, function(err, to_eval){
           if(err) return callback(err);
 
           λ.map(to_eval, function(rule, callback){
 
-            var ctx = {
-              pico: pico,
-              db: db,
-              vars: {},
-              event: event,
-              meta: {
-                rule_name: rule.rule_name,
-                txn_id: 'TODO',//TODO transactions
-                rid: rule.rid,
-                eid: event.eid
-              }
-            };
+            var ctx = _.cloneDeep(ctx_orig);
+            ctx.meta.rule_name = rule.rule_name;
+            ctx.meta.rid = rule.rid;
 
             evalRule(rule, ctx, callback);
           }, function(err, responses){
@@ -90,9 +92,11 @@ module.exports = function(conf){
         var ctx = {
           pico: pico,
           db: db,
-          rid: rid,
           fn_name: fn_name,
-          args: args
+          args: args,
+          meta: {
+            rid: rid
+          }
         };
 
         queryRulesetFn(ctx, rulesets, callback);

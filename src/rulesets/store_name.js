@@ -4,7 +4,7 @@ module.exports = {
       ctx.db.getEntVar(ctx.pico.id, 'name', callback);
     },
     getAppVar: function(ctx, callback){
-      ctx.db.getAppVar(ctx.rid, 'appvar', callback);
+      ctx.db.getAppVar(ctx.meta.rid, 'appvar', callback);
     }
   },
   rules: {
