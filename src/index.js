@@ -7,7 +7,8 @@ var selectRulesToEval = require('./selectRulesToEval');
 
 var rulesets = {
   'rid1x0': require('./rulesets/hello_world'),
-  'rid2x0': require('./rulesets/store_name')
+  'rid2x0': require('./rulesets/store_name'),
+  'rid3x0': require('./rulesets/raw')
 };
 
 module.exports = function(conf){
@@ -55,7 +56,9 @@ module.exports = function(conf){
               callback(undefined, {
                 type: 'json',
                 data: {
-                  directives: responses
+                  directives:  _.map(res_by_type.directive, function(d){
+                    return _.omit(d, 'type');
+                  })
                 }
               });
             }

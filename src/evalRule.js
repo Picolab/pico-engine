@@ -19,10 +19,13 @@ module.exports = function(rule, ctx, callback){
 
       if(response.type === 'directive'){
         callback(undefined, {
+          type: 'directive',
           options: response.options,
           name: response.name,
           meta: ctx.meta
         });
+      }else if(response.type === 'raw'){
+        callback(undefined, response);
       }else{
         //TODO collect errors and respond individually to the client
         return callback(new Error('Invalid response type: ' + response.type));
