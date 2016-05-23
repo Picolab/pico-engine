@@ -5,12 +5,21 @@ var evalRule = require('./evalRule');
 var queryRulesetFn = require('./queryRulesetFn');
 var selectRulesToEval = require('./selectRulesToEval');
 
-var rulesets = {
-  'rid1x0': require('./rulesets/hello_world'),
-  'rid2x0': require('./rulesets/store_name'),
-  'rid3x0': require('./rulesets/raw'),
-  'rid4x0': require('./rulesets/event_ops')
+var rulesets = {};
+var installRuleset = function(rid, path){
+  var rs = require('./rulesets/' + path);
+  rs.rid = rid;
+  _.each(rs.rules, function(rule, rule_name){
+    rule.rid = rid;
+    rule.rule_name = rule_name;
+  });
+  rulesets[rid] = rs;
 };
+
+installRuleset('rid1x0', 'hello_world');
+installRuleset('rid2x0', 'store_name');
+installRuleset('rid3x0', 'raw');
+installRuleset('rid4x0', 'event_ops');
 
 module.exports = function(conf){
   var db = DB(conf.db);
@@ -25,7 +34,7 @@ module.exports = function(conf){
         selectRulesToEval(pico, rulesets, event, function(err, to_eval){
           if(err) return callback(err);
 
-          λ.map(to_eval, function(e, callback){
+          λ.map(to_eval, function(rule, callback){
 
             var ctx = {
               pico: pico,
@@ -33,14 +42,14 @@ module.exports = function(conf){
               vars: {},
               event: event,
               meta: {
-                rule_name: e.rule_name,
+                rule_name: rule.rule_name,
                 txn_id: 'TODO',//TODO transactions
-                rid: e.rid,
+                rid: rule.rid,
                 eid: event.eid
               }
             };
 
-            evalRule(e.rule, ctx, callback);
+            evalRule(rule, ctx, callback);
           }, function(err, responses){
             if(err) return callback(err);
 
