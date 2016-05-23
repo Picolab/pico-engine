@@ -41,13 +41,24 @@ module.exports = function(conf){
           }, function(err, responses){
             if(err) return callback(err);
 
-            //TODO handle other types
-            callback(undefined, {
-              type: 'json',
-              data: {
-                directives: responses
+            var res_by_type = _.groupBy(responses, 'type');
+            if(_.has(res_by_type, 'raw')){
+              if(_.size(res_by_type) !== 1 || _.size(res_by_type.raw) !== 1){
+                return callback(new Error('raw response must be sent alone'));
               }
-            });
+              callback(undefined, {
+                type: 'raw',
+                resFn: _.head(res_by_type.raw).resFn
+              });
+            }else{
+              //TODO other types
+              callback(undefined, {
+                type: 'json',
+                data: {
+                  directives: responses
+                }
+              });
+            }
           });
         });
       });
