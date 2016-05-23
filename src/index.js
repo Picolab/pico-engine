@@ -8,7 +8,8 @@ var selectRulesToEval = require('./selectRulesToEval');
 var rulesets = {
   'rid1x0': require('./rulesets/hello_world'),
   'rid2x0': require('./rulesets/store_name'),
-  'rid3x0': require('./rulesets/raw')
+  'rid3x0': require('./rulesets/raw'),
+  'rid4x0': require('./rulesets/event_ops')
 };
 
 module.exports = function(conf){
@@ -17,6 +18,7 @@ module.exports = function(conf){
   return {
     db: db,
     signalEvent: function(event, callback){
+      event.timestamp = new Date();
       db.getPicoByECI(event.eci, function(err, pico){
         if(err) return callback(err);
 
