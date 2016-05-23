@@ -35,11 +35,7 @@ module.exports = function(conf){
           pico: pico,
           db: db,
           vars: {},
-          event: event,
-          meta: {
-            txn_id: 'TODO',//TODO transactions
-            eid: event.eid
-          }
+          event: event
         };
 
         selectRulesToEval(ctx_orig, rulesets, function(err, to_eval){
@@ -48,8 +44,7 @@ module.exports = function(conf){
           λ.map(to_eval, function(rule, callback){
 
             var ctx = _.cloneDeep(ctx_orig);
-            ctx.meta.rule_name = rule.rule_name;
-            ctx.meta.rid = rule.rid;
+            ctx.rule = rule;
 
             evalRule(rule, ctx, callback);
           }, function(err, responses){
@@ -94,9 +89,7 @@ module.exports = function(conf){
           db: db,
           fn_name: fn_name,
           args: args,
-          meta: {
-            rid: rid
-          }
+          rid: rid
         };
 
         queryRulesetFn(ctx, rulesets, callback);

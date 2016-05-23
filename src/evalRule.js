@@ -22,7 +22,12 @@ module.exports = function(rule, ctx, callback){
           type: 'directive',
           options: response.options,
           name: response.name,
-          meta: ctx.meta
+          meta: {
+            rid: rule.rid,
+            rule_name: rule.rule_name,
+            txn_id: 'TODO',//TODO transactions
+            eid: ctx.event.eid
+          }
         });
       }else if(response.type === 'raw'){
         callback(undefined, response);
@@ -35,7 +40,7 @@ module.exports = function(rule, ctx, callback){
         rule.always(ctx, function(err){
           if(err){
             //TODO better error handling
-            console.error('rule_name: ' + ctx.meta.rule_name, err);
+            console.error('rule_name: ' + rule.rule_name, err);
           }
         });
       }
