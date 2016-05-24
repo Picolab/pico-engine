@@ -25,7 +25,12 @@ test('PicoEngine - hello_world ruleset', function(t){
       type: 'hello',
       attrs: {}
     }),
-    hello_query: λ.curry(pe.queryFn, 'id1', 'rid1x0', 'hello', {obj: 'Bob'})
+    hello_query: λ.curry(pe.callFunction, {
+      eci: 'id1',
+      rid: 'rid1x0',
+      fn_name: 'hello',
+      args: {obj: 'Bob'}
+    })
 
   }, function(err, data){
     if(err) return t.end(err);
@@ -75,7 +80,12 @@ test('PicoEngine - store_name ruleset', function(t){
       attrs: {name: 'bob'}
     }),
 
-    query0: λ.curry(pe.queryFn, 'id1', 'rid2x0', 'getName', {}),
+    query0: λ.curry(pe.callFunction, {
+      eci: 'id1',
+      rid: 'rid2x0',
+      fn_name: 'getName',
+      args: {}
+    }),
 
     store_bob1: λ.curry(pe.signalEvent, {
       eci: 'id1',
@@ -85,8 +95,18 @@ test('PicoEngine - store_name ruleset', function(t){
       attrs: {name: 'jim'}
     }),
 
-    query1: λ.curry(pe.queryFn, 'id1', 'rid2x0', 'getName', {}),
-    query2: λ.curry(pe.queryFn, 'id1', 'rid2x0', 'getName', {}),
+    query1: λ.curry(pe.callFunction, {
+      eci: 'id1',
+      rid: 'rid2x0',
+      fn_name: 'getName',
+      args: {}
+    }),
+    query2: λ.curry(pe.callFunction, {
+      eci: 'id1',
+      rid: 'rid2x0',
+      fn_name: 'getName',
+      args: {}
+    }),
 
     store_appvar0: λ.curry(pe.signalEvent, {
       eci: 'id1',
@@ -95,8 +115,18 @@ test('PicoEngine - store_name ruleset', function(t){
       type: 'appvar',
       attrs: {appvar: 'global thing'}
     }),
-    query3: λ.curry(pe.queryFn, 'id1', 'rid2x0', 'getAppVar', {}),
-    query4: λ.curry(pe.queryFn, 'id3', 'rid2x0', 'getAppVar', {})
+    query3: λ.curry(pe.callFunction, {
+      eci: 'id1',
+      rid: 'rid2x0',
+      fn_name: 'getAppVar',
+      args: {}
+    }),
+    query4: λ.curry(pe.callFunction, {
+      eci: 'id3',
+      rid: 'rid2x0',
+      fn_name: 'getAppVar',
+      args: {}
+    })
 
   }, function(err, data){
     if(err) return t.end(err);

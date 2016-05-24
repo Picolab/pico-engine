@@ -74,25 +74,20 @@ module.exports = function(conf){
         });
       });
     },
-    queryFn: function(eci, rid, fn_name, args, callback){
-      db.getPicoByECI(eci, function(err, pico){
+    callFunction: function(ctx, callback){
+      db.getPicoByECI(ctx.eci, function(err, pico){
         if(err) return callback(err);
         if(!pico){
           return callback(new Error('Bad eci'));
         }
-        if(!_.has(pico.ruleset, rid)){
+        if(!_.has(pico.ruleset, ctx.rid)){
           return callback(new Error('Pico does not have that rid'));
         }
 
-        var ctx = {
+        queryRulesetFn(_.assign({}, ctx, {
           pico: pico,
-          db: db,
-          fn_name: fn_name,
-          args: args,
-          rid: rid
-        };
-
-        queryRulesetFn(ctx, rulesets, callback);
+          db: db
+        }), rulesets, callback);
       });
     }
   };
