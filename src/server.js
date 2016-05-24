@@ -55,7 +55,11 @@ router.set('/sky/cloud/:rid/:function', function(req, res, route){
 
   pe.callFunction(ctx, function(err, data){
     if(err) return errResp(res, err);
-    jsonResp(res, data);
+    if(_.isFunction(data)){
+      data(res);
+    }else{
+      jsonResp(res, data);
+    }
   });
 });
 

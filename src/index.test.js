@@ -162,21 +162,19 @@ test('PicoEngine - raw ruleset', function(t){
     chan: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
     rid3: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'rid3x0'}),
 
-    signal: λ.curry(pe.signalEvent, {
+    signal: λ.curry(pe.callFunction, {
       eci: 'id1',
-      eid: '1234',
-      domain: 'raw',
-      type: 'hello',
-      attrs: {}
+      rid: 'rid3x0',
+      fn_name: 'sayRawHello',
+      args: {}
     })
 
   }, function(err, data){
     if(err) return t.end(err);
 
-    t.equals(data.signal.type, 'raw');
-    t.ok(_.isFunction(data.signal.resFn));
+    t.ok(_.isFunction(data.signal));
 
-    data.signal.resFn({
+    data.signal({
       end: function(txt){
         t.equals(txt, 'raw hello!');
         t.end();

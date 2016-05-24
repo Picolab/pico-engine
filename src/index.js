@@ -96,6 +96,10 @@ module.exports = function(conf){
 
         if(fun.type === 'query'){
           fun.fn(ctx, callback);
+        }else if(fun.type === 'raw'){
+          callback(undefined, function(res){
+            fun.fn(ctx, res);
+          });
         }else{
           callback(new Error('invalid provided_function type: ' + fun.type));
         }
