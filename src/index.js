@@ -2,7 +2,6 @@ var _ = require('lodash');
 var λ = require('contra');
 var DB = require('./DB');
 var evalRule = require('./evalRule');
-var queryRulesetFn = require('./queryRulesetFn');
 var selectRulesToEval = require('./selectRulesToEval');
 
 var rulesets = {};
@@ -74,20 +73,32 @@ module.exports = function(conf){
         });
       });
     },
-    callFunction: function(ctx, callback){
-      db.getPicoByECI(ctx.eci, function(err, pico){
+    callFunction: function(ctx_orig, callback){
+      db.getPicoByECI(ctx_orig.eci, function(err, pico){
         if(err) return callback(err);
-        if(!pico){
+        var ctx = _.assign({}, ctx_orig, {
+          db: db,
+          pico: pico
+        });
+        if(!ctx.pico){
           return callback(new Error('Bad eci'));
         }
-        if(!_.has(pico.ruleset, ctx.rid)){
+        if(!_.has(ctx.pico.ruleset, ctx.rid)){
           return callback(new Error('Pico does not have that rid'));
         }
+        if(!_.has(rulesets, ctx.rid)){
+          return callback(new Error('Not found: rid'));
+        }
+        if(!_.has(rulesets[ctx.rid].provided_functions, ctx.fn_name)){
+          return callback(new Error('Not found: function'));
+        }
+        var fun = rulesets[ctx.rid].provided_functions[ctx.fn_name];
 
-        queryRulesetFn(_.assign({}, ctx, {
-          pico: pico,
-          db: db
-        }), rulesets, callback);
+        if(fun.type === 'query'){
+          fun.fn(ctx, callback);
+        }else{
+          callback(new Error('invalid provided_function type: ' + fun.type));
+        }
       });
     }
   };
