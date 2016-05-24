@@ -1,7 +1,10 @@
 module.exports = {
-  provided_query_fns: {
-    hello: function(ctx, callback){
-      callback(undefined, 'Hello ' + ctx.args.obj);
+  provided_functions: {
+    hello: {
+      type: 'query',
+      fn: function(ctx, callback){
+        callback(undefined, 'Hello ' + ctx.args.obj);
+      }
     }
   },
   rules: {

@@ -1,10 +1,16 @@
 module.exports = {
-  provided_query_fns: {
-    getName: function(ctx, callback){
-      ctx.db.getEntVar(ctx.pico.id, 'name', callback);
+  provided_functions: {
+    getName: {
+      type: 'query',
+      fn: function(ctx, callback){
+        ctx.db.getEntVar(ctx.pico.id, 'name', callback);
+      }
     },
-    getAppVar: function(ctx, callback){
-      ctx.db.getAppVar(ctx.rid, 'appvar', callback);
+    getAppVar: {
+      type: 'query',
+      fn: function(ctx, callback){
+        ctx.db.getAppVar(ctx.rid, 'appvar', callback);
+      }
     }
   },
   rules: {
