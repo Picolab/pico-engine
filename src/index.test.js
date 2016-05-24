@@ -4,7 +4,7 @@ var test = require('tape');
 var mkTestPicoEngine = require('./mkTestPicoEngine');
 
 var omitMeta = function(resp){
-  return _.map(resp.data.directives, function(d){
+  return _.map(resp.directives, function(d){
     return _.omit(d, 'meta');
   });
 };
@@ -36,23 +36,20 @@ test('PicoEngine - hello_world ruleset', function(t){
     if(err) return t.end(err);
 
     t.deepEquals(data.hello_event, {
-      type: 'json',
-      data: {
-        directives: [
-          {
-            name: 'say',
-            options: {
-              something: 'Hello World'
-            },
-            meta: {
-              eid: '1234',
-              rid: 'rid1x0',
-              rule_name: 'hello_world',
-              txn_id: 'TODO'
-            }
+      directives: [
+        {
+          name: 'say',
+          options: {
+            something: 'Hello World'
+          },
+          meta: {
+            eid: '1234',
+            rid: 'rid1x0',
+            rule_name: 'hello_world',
+            txn_id: 'TODO'
           }
-        ]
-      }
+        }
+      ]
     });
     t.deepEquals(data.hello_query, 'Hello Bob');
 

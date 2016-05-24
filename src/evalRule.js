@@ -29,8 +29,6 @@ module.exports = function(rule, ctx, callback){
             eid: ctx.event.eid
           }
         });
-      }else if(response.type === 'raw'){
-        callback(undefined, response);
       }else{
         //TODO collect errors and respond individually to the client
         return callback(new Error('Invalid response type: ' + response.type));

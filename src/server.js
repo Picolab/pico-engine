@@ -35,13 +35,7 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
   };
   pe.signalEvent(event, function(err, response){
     if(err) return errResp(res, err);
-    if(response.type === 'json'){
-      jsonResp(res, response.data);
-    }else if(response.type === 'raw'){
-      response.resFn(res);
-    }else{
-      errResp(res, new Error('Invalid response type: ' + response.type));
-    }
+    jsonResp(res, response);
   });
 });
 
