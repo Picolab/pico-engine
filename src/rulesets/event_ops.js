@@ -4,7 +4,7 @@ module.exports = {
       select: {
         eventexprs: {
           a: function(ctx){
-            //TODO bound_name here, not in pre
+            ctx.vars.bound_name = ctx.event.attrs['name'];
             return ctx.event.domain === 'event_ops' && ctx.event.type === 'bind';
           }
         },
@@ -14,11 +14,6 @@ module.exports = {
             [['not', 'a'], 'start']
           ]
         }
-      },
-      pre: function(ctx, callback){
-        callback(undefined, {
-          bound_name: ctx.event.attrs['name']
-        });
       },
       action: function(ctx, callback){
         callback(undefined, {

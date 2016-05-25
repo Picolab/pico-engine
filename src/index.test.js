@@ -183,24 +183,28 @@ test('PicoEngine - raw ruleset', function(t){
 test('PicoEngine - event_ops ruleset', function(t){
   var pe = mkTestPicoEngine();
 
+  var signal = function(type, attrs){
+    return λ.curry(pe.signalEvent, {
+      eci: 'id1',
+      eid: '1234',
+      domain: 'event_ops',
+      type: type,
+      attrs: attrs
+    });
+  };
+
   λ.series({
     pico: λ.curry(pe.db.newPico, {}),
     chan: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
     rid4: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'rid4x0'}),
 
-    bind: λ.curry(pe.signalEvent, {
-      eci: 'id1',
-      eid: '1234',
-      domain: 'event_ops',
-      type: 'bind',
-      attrs: {name: 'blah?'}
-    })
+    bind: signal('bind', {name: 'blah?!'})
 
   }, function(err, data){
     if(err) return t.end(err);
 
     t.deepEquals(omitMeta(data.bind), [
-      {name: 'bound', options: {name: 'blah?'}}
+      {name: 'bound', options: {name: 'blah?!'}}
     ]);
 
     t.end();
