@@ -1,10 +1,19 @@
 module.exports = {
   rules: {
     bind: {
-      select: function(ctx, callback){
-        //TODO bound_name here, not in pre
-        callback(undefined,
-            ctx.event.domain === 'event_ops' && ctx.event.type === 'bind');
+      select: {
+        eventexprs: {
+          a: function(ctx){
+            //TODO bound_name here, not in pre
+            return ctx.event.domain === 'event_ops' && ctx.event.type === 'bind';
+          }
+        },
+        state_machine: {
+          start: [
+            ['a', 'end'],
+            [['not', 'a'], 'start']
+          ]
+        }
       },
       pre: function(ctx, callback){
         callback(undefined, {

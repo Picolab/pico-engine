@@ -9,9 +9,18 @@ module.exports = {
   },
   rules: {
     hello_world: {
-      select: function(ctx, callback){
-        callback(undefined,
-            ctx.event.domain === 'echo' && ctx.event.type === 'hello');
+      select: {
+        eventexprs: {
+          a: function(ctx){
+            return ctx.event.domain === 'echo' && ctx.event.type === 'hello';
+          }
+        },
+        state_machine: {
+          start: [
+            ['a', 'end'],
+            [['not', 'a'], 'start']
+          ]
+        }
       },
       action: function(ctx, callback){
         callback(undefined, {

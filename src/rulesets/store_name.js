@@ -15,9 +15,18 @@ module.exports = {
   },
   rules: {
     store_name: {
-      select: function(ctx, callback){
-        callback(undefined,
-            ctx.event.domain === 'store' && ctx.event.type === 'name');
+      select: {
+        eventexprs: {
+          a: function(ctx, callback){
+            return ctx.event.domain === 'store' && ctx.event.type === 'name';
+          }
+        },
+        state_machine: {
+          start: [
+            ['a', 'end'],
+            [['not', 'a'], 'start']
+          ]
+        }
       },
       pre: function(ctx, callback){
         callback(undefined, {
@@ -39,9 +48,18 @@ module.exports = {
       }
     },
     store_appvar: {
-      select: function(ctx, callback){
-        callback(undefined,
-            ctx.event.domain === 'store' && ctx.event.type === 'appvar');
+      select: {
+        eventexprs: {
+          a: function(ctx, callback){
+            return ctx.event.domain === 'store' && ctx.event.type === 'appvar';
+          }
+        },
+        state_machine: {
+          start: [
+            ['a', 'end'],
+            [['not', 'a'], 'start']
+          ]
+        }
       },
       pre: function(ctx, callback){
         callback(undefined, {
