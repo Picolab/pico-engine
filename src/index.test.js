@@ -202,7 +202,17 @@ test('PicoEngine - event_ops ruleset', function(t){
 
     or_a: signal('or', {val: 'a'}),
     or_b: signal('or', {val: 'b'}),
-    or_c: signal('or', {val: 'c'})
+    or_c: signal('or', {val: 'c'}),
+
+    and0: signal('and', {val: 'a'}),
+    and1: signal('and', {val: 'c'}),
+    and2: signal('and', {val: 'b'}),
+    and3: signal('and', {val: 'b'}),
+    and4: signal('and', {val: 'a'}),
+    and5: signal('and', {val: 'b'}),
+    and6: signal('and', {val: 'b'}),
+    and7: signal('and', {val: 'b'}),
+    and8: signal('and', {val: 'a'})
 
   }, function(err, data){
     if(err) return t.end(err);
@@ -214,6 +224,16 @@ test('PicoEngine - event_ops ruleset', function(t){
     t.deepEquals(omitMeta(data.or_a), [{name: 'or', options: {}}]);
     t.deepEquals(omitMeta(data.or_b), [{name: 'or', options: {}}]);
     t.deepEquals(omitMeta(data.or_c), []);
+
+    t.deepEquals(omitMeta(data.and0), []);
+    t.deepEquals(omitMeta(data.and1), []);
+    t.deepEquals(omitMeta(data.and2), [{name: 'and', options: {}}]);
+    t.deepEquals(omitMeta(data.and3), []);
+    t.deepEquals(omitMeta(data.and4), [{name: 'and', options: {}}]);
+    t.deepEquals(omitMeta(data.and5), []);
+    t.deepEquals(omitMeta(data.and6), []);
+    t.deepEquals(omitMeta(data.and7), []);
+    t.deepEquals(omitMeta(data.and8), [{name: 'and', options: {}}]);
 
     t.end();
   });

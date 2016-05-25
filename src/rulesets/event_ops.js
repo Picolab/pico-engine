@@ -55,6 +55,36 @@ module.exports = {
           options: {}
         });
       }
+    },
+    and: {
+      select: {
+        eventexprs: {
+          a: mkExpTypeVal('and', 'a'),
+          b: mkExpTypeVal('and', 'b')
+        },
+        state_machine: {
+          start: [
+            ['a', 's1'],
+            ['b', 's2'],
+            [['not', ['or', 'a', 'b']], 'start']
+          ],
+          s1: [
+            ['b', 'end'],
+            [['not', 'b'], 's1']
+          ],
+          s2: [
+            ['a', 'end'],
+            [['not', 'b'], 's2']
+          ]
+        }
+      },
+      action: function(ctx, callback){
+        callback(undefined, {
+          type: 'directive',
+          name: 'and',
+          options: {}
+        });
+      }
     }
   }
 };
