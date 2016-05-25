@@ -198,7 +198,11 @@ test('PicoEngine - event_ops ruleset', function(t){
     chan: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
     rid4: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'rid4x0'}),
 
-    bind: signal('bind', {name: 'blah?!'})
+    bind: signal('bind', {name: 'blah?!'}),
+
+    or_a: signal('or', {val: 'a'}),
+    or_b: signal('or', {val: 'b'}),
+    or_c: signal('or', {val: 'c'})
 
   }, function(err, data){
     if(err) return t.end(err);
@@ -206,6 +210,10 @@ test('PicoEngine - event_ops ruleset', function(t){
     t.deepEquals(omitMeta(data.bind), [
       {name: 'bound', options: {name: 'blah?!'}}
     ]);
+
+    t.deepEquals(omitMeta(data.or_a), [{name: 'or', options: {}}]);
+    t.deepEquals(omitMeta(data.or_b), [{name: 'or', options: {}}]);
+    t.deepEquals(omitMeta(data.or_c), []);
 
     t.end();
   });
