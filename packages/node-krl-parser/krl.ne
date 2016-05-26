@@ -14,20 +14,19 @@ var getN = function(n){
 
 main -> _ ruleset _ {% getN(1) %}
 
-ruleset -> "ruleset" __ symbol _ "{" rules "}" {%
+ruleset -> "ruleset" __ symbol _ "{" _ (rule _):* "}" {%
   function(data, loc){
     return {
       type: 'ruleset',
       loc: loc,
 
       name: data[2].src,
-      rules: [data[5]]
+      rules: data[6].map(function(pair){
+        return pair[0];
+      })
     };
   }
 %}
-
-rules ->
-    _ rule _ {% getN(1) %}
 
 rule -> "rule" __ symbol _ "{}" {%
   function(data, loc){
