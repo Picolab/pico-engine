@@ -44,7 +44,7 @@ module.exports = function(conf){
           event: event
         };
 
-        selectRulesToEval(ctx_orig, rulesets, function(err, to_eval){
+        selectRulesToEval(ctx_orig, salience_graph, rulesets, function(err, to_eval){
           if(err) return callback(err);
 
           λ.map(to_eval, function(rule, callback){

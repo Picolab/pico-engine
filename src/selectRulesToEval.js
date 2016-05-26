@@ -17,18 +17,34 @@ var evalExpr = function(fns, ctx, exp){
 //TODO should this be persisted in db so it's not tied to this process?
 var last_state_machine_state = {};
 
-module.exports = function(ctx, rulesets, callback){
-  //TODO optimize by using the salience graph
+module.exports = function(ctx, salience_graph, rulesets, callback){
 
-  var all_rules = _.flatten(_.map(rulesets, function(rs){
-    return _.values(rs.rules);
-  }));
+  //NOTE: defaultsDeep mutates the first arg (we don't want to mutate salience_graph)
+  var to_run = {};
+  _.defaultsDeep(
+    to_run,
+    _.get(salience_graph, [ctx.event.domain, ctx.event.type], {}),
+    _.get(salience_graph, ['', ctx.event.type], {}),
+    _.get(salience_graph, [ctx.event.domain, ''], {}),
+    _.get(salience_graph, ['', ''], {})
+  );
 
-  λ.filter(all_rules, function(rule, next){
-    if(!_.has(ctx.pico && ctx.pico.ruleset, rule.rid)){
-      next(undefined, false);
+  var rules_to_select = [];
+  _.each(to_run, function(rules, rid){
+    if(!_.has(ctx.pico.ruleset, rid)){
       return;
     }
+    _.each(rules, function(is_on, rule_name){
+      if(is_on){
+        var rule = _.get(rulesets, [rid, 'rules', rule_name]);
+        if(rule){
+          rules_to_select.push(rule);
+        }
+      }
+    });
+  });
+
+  λ.filter(rules_to_select, function(rule, next){
     var key = [ctx.pico.id, rule.rid, rule.rule_name].join('-');
     var curr_state = last_state_machine_state[key];
     if(!_.has(rule.select.state_machine, curr_state)){
