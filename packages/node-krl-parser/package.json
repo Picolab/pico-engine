@@ -1,0 +1,27 @@
+{
+  "name": "krl-parser",
+  "version": "0.0.0",
+  "description": "Parse KRL sourse code into an AST",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/farskipper/node-krl-parser.git"
+  },
+  "keywords": [
+    "krl",
+    "parser"
+  ],
+  "author": "farskipper",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/farskipper/node-krl-parser/issues"
+  },
+  "homepage": "https://github.com/farskipper/node-krl-parser#readme",
+  "devDependencies": {
+    "nearley": "^2.5.0",
+    "tape": "^4.5.1"
+  }
+}
