@@ -13,7 +13,5 @@ test('parser', function(t){
     {type: 'ruleset', loc: 0, name: 'blah', value: []}
   ]);
 
-
-
   t.end();
 });

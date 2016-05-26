@@ -4,6 +4,7 @@
   "description": "Parse KRL sourse code into an AST",
   "main": "index.js",
   "scripts": {
+    "start": "onchange '*.js' '*.ne' -e 'grammar.js' -i -- npm test -s",
     "build": "nearleyc krl.ne > grammar.js",
     "test": "npm run build -s && node tests.js"
   },
@@ -22,6 +23,7 @@
   },
   "homepage": "https://github.com/farskipper/node-krl-parser#readme",
   "devDependencies": {
+    "onchange": "^2.4.0",
     "tape": "^4.5.1"
   },
   "dependencies": {
