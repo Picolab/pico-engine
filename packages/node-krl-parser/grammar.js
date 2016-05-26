@@ -18,15 +18,26 @@ var grammar = {
     ParserRules: [
     {"name": "main", "symbols": ["_", "ruleset", "_"], "postprocess": getN(1)},
     {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset$string$2", "symbols": [{"literal":"{"}, {"literal":"}"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "symbol", "_", "ruleset$string$2"], "postprocess": 
+    {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "symbol", "_", {"literal":"{"}, "rules", {"literal":"}"}], "postprocess": 
         function(data, loc){
           return {
             type: 'ruleset',
             loc: loc,
         
             name: data[2].src,
-            value: []
+            rules: [data[5]]
+          };
+        }
+        },
+    {"name": "rules", "symbols": ["_", "rule", "_"], "postprocess": getN(1)},
+    {"name": "rule$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "rule$string$2", "symbols": [{"literal":"{"}, {"literal":"}"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "rule", "symbols": ["rule$string$1", "__", "symbol", "_", "rule$string$2"], "postprocess": 
+        function(data, loc){
+          return {
+            type: 'rule',
+            loc: loc,
+            name: data[2].src
           };
         }
         },
