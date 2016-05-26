@@ -21,7 +21,9 @@
   },
   "homepage": "https://github.com/farskipper/node-krl-parser#readme",
   "devDependencies": {
-    "nearley": "^2.5.0",
     "tape": "^4.5.1"
+  },
+  "dependencies": {
+    "nearley": "^2.5.0"
   }
 }
