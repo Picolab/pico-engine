@@ -18,18 +18,22 @@ var grammar = {
     ParserRules: [
     {"name": "main", "symbols": ["_", "ruleset", "_"], "postprocess": getN(1)},
     {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "symbol", "_", {"literal":"{"}, "rules", {"literal":"}"}], "postprocess": 
+    {"name": "ruleset$ebnf$1", "symbols": []},
+    {"name": "ruleset$ebnf$1$subexpression$1", "symbols": ["rule", "_"]},
+    {"name": "ruleset$ebnf$1", "symbols": ["ruleset$ebnf$1$subexpression$1", "ruleset$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "symbol", "_", {"literal":"{"}, "_", "ruleset$ebnf$1", {"literal":"}"}], "postprocess": 
         function(data, loc){
           return {
             type: 'ruleset',
             loc: loc,
         
             name: data[2].src,
-            rules: [data[5]]
+            rules: data[6].map(function(pair){
+              return pair[0];
+            })
           };
         }
         },
-    {"name": "rules", "symbols": ["_", "rule", "_"], "postprocess": getN(1)},
     {"name": "rule$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "rule$string$2", "symbols": [{"literal":"{"}, {"literal":"}"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "rule", "symbols": ["rule$string$1", "__", "symbol", "_", "rule$string$2"], "postprocess": 
