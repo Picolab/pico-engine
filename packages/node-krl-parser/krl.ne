@@ -12,12 +12,29 @@ var getN = function(n){
 
 %}
 
-main -> _ expression _ {% getN(1) %}
+main -> _ ruleset _ {% getN(1) %}
 
-expression ->
-    expression _ "+" _ int  {% echo %}
-    | int                   {% id %}
+ruleset -> "ruleset" __ symbol _ "{}" {%
+  function(data, loc){
+    return {
+      type: 'ruleset',
+      loc: loc,
 
+      name: data[2].src,
+      value: []
+    };
+  }
+%}
+
+symbol -> [\w]:+  {%
+  function(data, loc){
+    return {
+      type: 'symbol',
+      loc: loc,
+      src: data[0].join('')
+    };
+  }
+%}
 
 int -> [0-9]:+ {%
   function(data, loc){
@@ -31,4 +48,5 @@ int -> [0-9]:+ {%
 
 # Whitespace. The important thing here is that the postprocessor
 # is a null-returning function. This is a memory efficiency trick.
-_ -> [\s]:* {% function(){return null;} %}
+_  -> [\s]:* {% function(){return null;} %}
+__ -> [\s]:+ {% function(){return null;} %}

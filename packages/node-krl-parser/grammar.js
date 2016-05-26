@@ -16,9 +16,31 @@ var getN = function(n){
 
 var grammar = {
     ParserRules: [
-    {"name": "main", "symbols": ["_", "expression", "_"], "postprocess": getN(1)},
-    {"name": "expression", "symbols": ["expression", "_", {"literal":"+"}, "_", "int"], "postprocess": echo},
-    {"name": "expression", "symbols": ["int"], "postprocess": id},
+    {"name": "main", "symbols": ["_", "ruleset", "_"], "postprocess": getN(1)},
+    {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset$string$2", "symbols": [{"literal":"{"}, {"literal":"}"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "symbol", "_", "ruleset$string$2"], "postprocess": 
+        function(data, loc){
+          return {
+            type: 'ruleset',
+            loc: loc,
+        
+            name: data[2].src,
+            value: []
+          };
+        }
+        },
+    {"name": "symbol$ebnf$1", "symbols": [/[\w]/]},
+    {"name": "symbol$ebnf$1", "symbols": [/[\w]/, "symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "symbol", "symbols": ["symbol$ebnf$1"], "postprocess": 
+        function(data, loc){
+          return {
+            type: 'symbol',
+            loc: loc,
+            src: data[0].join('')
+          };
+        }
+        },
     {"name": "int$ebnf$1", "symbols": [/[0-9]/]},
     {"name": "int$ebnf$1", "symbols": [/[0-9]/, "int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "int", "symbols": ["int$ebnf$1"], "postprocess": 
@@ -32,7 +54,10 @@ var grammar = {
         },
     {"name": "_$ebnf$1", "symbols": []},
     {"name": "_$ebnf$1", "symbols": [/[\s]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(){return null;}}
+    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(){return null;}},
+    {"name": "__$ebnf$1", "symbols": [/[\s]/]},
+    {"name": "__$ebnf$1", "symbols": [/[\s]/, "__$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "__", "symbols": ["__$ebnf$1"], "postprocess": function(){return null;}}
 ]
   , ParserStart: "main"
 }
