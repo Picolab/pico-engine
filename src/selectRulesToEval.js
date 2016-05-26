@@ -14,9 +14,6 @@ var evalExpr = function(fns, ctx, exp){
   return fns[exp](ctx);
 };
 
-//TODO should this be persisted in db so it's not tied to this process?
-var last_state_machine_state = {};
-
 module.exports = function(ctx, salience_graph, rulesets, callback){
 
   //NOTE: defaultsDeep mutates the first arg (we don't want to mutate salience_graph)
@@ -45,23 +42,19 @@ module.exports = function(ctx, salience_graph, rulesets, callback){
   });
 
   λ.filter(rules_to_select, function(rule, next){
-    var key = [ctx.pico.id, rule.rid, rule.rule_name].join('-');
-    var curr_state = last_state_machine_state[key];
-    if(!_.has(rule.select.state_machine, curr_state)){
-      curr_state = 'start';
-    }
-    var stm = rule.select.state_machine[curr_state];
+    ctx.db.getStateMachineState(ctx.pico.id, rule, function(err, curr_state){
+      if(err) return next(err);
 
-    var matching_pair = _.find(stm, function(s){
-      return evalExpr(rule.select.eventexprs, ctx, s[0]);
+      var stm = rule.select.state_machine[curr_state];
+
+      var matching_pair = _.find(stm, function(s){
+        return evalExpr(rule.select.eventexprs, ctx, s[0]);
+      });
+      var next_state = matching_pair ? matching_pair[1] : undefined;
+
+      ctx.db.putStateMachineState(ctx.pico.id, rule, next_state, function(err){
+        next(err, next_state === 'end');
+      });
     });
-    var next_state = matching_pair ? matching_pair[1] : undefined;
-    if(next_state === 'end'){
-      last_state_machine_state[key] = 'start';//start from the begining next time
-      next(undefined, true);
-    }else{
-      last_state_machine_state[key] = next_state;
-      next(undefined, false);
-    }
   }, callback);
 };

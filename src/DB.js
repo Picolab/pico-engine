@@ -96,6 +96,25 @@ module.exports = function(opts){
     },
     getAppVar: function(rid, var_name, callback){
       ldb.get(['resultset', rid, 'vars', var_name], callback);
+    },
+    getStateMachineState: function(pico_id, rule, callback){
+      var key = ['state_machine', pico_id, rule.rid, rule.rule_name];
+      ldb.get(key, function(err, curr_state){
+        if(err){
+          if(err.notFound){
+            curr_state = undefined;
+          }else{
+            return callback(err);
+          }
+        }
+        callback(undefined, _.has(rule.select.state_machine, curr_state)
+            ? curr_state
+            : 'start');
+      });
+    },
+    putStateMachineState: function(pico_id, rule, state, callback){
+      var key = ['state_machine', pico_id, rule.rid, rule.rule_name];
+      ldb.put(key, state || 'start', callback);
     }
   };
 };
