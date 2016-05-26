@@ -1,8 +1,8 @@
 var nearley = require('nearley');
 var grammar = require('./grammar.js');
 
-var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
-
-p.feed(' 1+ 2');
-
-console.log(JSON.stringify(p.results, null, 2));
+module.exports = function(src){
+  var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
+  p.feed(src);
+  return p.results;
+};

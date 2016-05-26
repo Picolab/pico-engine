@@ -4,7 +4,8 @@
   "description": "Parse KRL sourse code into an AST",
   "main": "index.js",
   "scripts": {
-    "test": "node tests.js"
+    "build": "nearleyc krl.ne > grammar.js",
+    "test": "npm run build -s && node tests.js"
   },
   "repository": {
     "type": "git",
