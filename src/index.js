@@ -5,12 +5,19 @@ var evalRule = require('./evalRule');
 var selectRulesToEval = require('./selectRulesToEval');
 
 var rulesets = {};
+var salience_graph = {};
 var installRuleset = function(rid, path){
   var rs = require('./rulesets/' + path);
   rs.rid = rid;
   _.each(rs.rules, function(rule, rule_name){
     rule.rid = rid;
     rule.rule_name = rule_name;
+
+    _.each(rule.select && rule.select.graph, function(g, domain){
+      _.each(g, function(exprs, type){
+        _.set(salience_graph, [domain, type, rule.rid, rule.rule_name], true);
+      });
+    });
   });
   rulesets[rid] = rs;
 };

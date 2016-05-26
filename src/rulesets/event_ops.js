@@ -11,6 +11,11 @@ module.exports = {
   rules: {
     bind: {
       select: {
+        graph: {
+          'event_ops': {
+            'bind': {'a': true}
+          }
+        },
         eventexprs: {
           a: function(ctx){
             ctx.vars.bound_name = ctx.event.attrs['name'];
@@ -36,6 +41,11 @@ module.exports = {
     },
     or: {
       select: {
+        graph: {
+          'event_ops': {
+            'or': {'or_a': true, 'or_b': true}
+          }
+        },
         eventexprs: {
           or_a: mkExpTypeVal('or', 'a'),
           or_b: mkExpTypeVal('or', 'b')
@@ -58,6 +68,11 @@ module.exports = {
     },
     and: {
       select: {
+        graph: {
+          'event_ops': {
+            'and': {'a': true, 'b': true}
+          }
+        },
         eventexprs: {
           a: mkExpTypeVal('and', 'a'),
           b: mkExpTypeVal('and', 'b')

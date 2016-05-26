@@ -10,6 +10,11 @@ module.exports = {
   rules: {
     hello_world: {
       select: {
+        graph: {
+          'echo': {
+            'hello': {'a': true}
+          }
+        },
         eventexprs: {
           a: function(ctx){
             return ctx.event.domain === 'echo' && ctx.event.type === 'hello';

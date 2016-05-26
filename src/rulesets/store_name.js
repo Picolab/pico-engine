@@ -16,6 +16,11 @@ module.exports = {
   rules: {
     store_name: {
       select: {
+        graph: {
+          'store': {
+            'name': {'a': true}
+          }
+        },
         eventexprs: {
           a: function(ctx, callback){
             return ctx.event.domain === 'store' && ctx.event.type === 'name';
@@ -49,6 +54,11 @@ module.exports = {
     },
     store_appvar: {
       select: {
+        graph: {
+          'store': {
+            'appvar': {'a': true}
+          }
+        },
         eventexprs: {
           a: function(ctx, callback){
             return ctx.event.domain === 'store' && ctx.event.type === 'appvar';
