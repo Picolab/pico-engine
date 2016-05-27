@@ -2,25 +2,44 @@ var _ = require('lodash');
 var λ = require('contra');
 var asyncFind = require('./asyncFind');
 
-var evalExpr = function(fns, ctx, exp){
+var evalExpr = function(fns, ctx, exp, callback){
   if(_.isArray(exp)){
     if(exp[0] === 'not'){
-      return !evalExpr(fns, ctx, exp[1]);
+      evalExpr(fns, ctx, exp[1], function(err, is_match){
+        if(err) return callback(err);
+        callback(undefined, !is_match);
+      });
+      return;
     }else if(exp[0] === 'and'){
-      return evalExpr(fns, ctx, exp[1]) && evalExpr(fns, ctx, exp[2]);
+      evalExpr(fns, ctx, exp[1], function(err, is_a){
+        if(err) return callback(err);
+        if(!is_a){
+          callback(undefined, false);
+          return;
+        }
+        evalExpr(fns, ctx, exp[2], callback);
+      });
+      return;
     }else if(exp[0] === 'or'){
-      return evalExpr(fns, ctx, exp[1]) || evalExpr(fns, ctx, exp[2]);
+      evalExpr(fns, ctx, exp[1], function(err, is_a){
+        if(err) return callback(err);
+        if(is_a){
+          callback(undefined, true);
+          return;
+        }
+        evalExpr(fns, ctx, exp[2], callback);
+      });
+      return;
     }
   }
-  return fns[exp](ctx);
+  callback(undefined, fns[exp](ctx));
 };
 
 var getNextState = function(ctx, rule, curr_state, callback){
   var stm = rule.select.state_machine[curr_state];
 
   asyncFind(stm, function(s, next){
-    var is_match = evalExpr(rule.select.eventexprs, ctx, s[0]);
-    next(undefined, is_match);
+    evalExpr(rule.select.eventexprs, ctx, s[0], next);
   }, function(err, matching_pair){
     if(err) return callback(err);
 
