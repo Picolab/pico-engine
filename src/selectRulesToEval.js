@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var λ = require('contra');
+var asyncFind = require('./asyncFind');
 
 var evalExpr = function(fns, ctx, exp){
   if(_.isArray(exp)){
@@ -12,6 +13,21 @@ var evalExpr = function(fns, ctx, exp){
     }
   }
   return fns[exp](ctx);
+};
+
+var getNextState = function(ctx, rule, curr_state, callback){
+  var stm = rule.select.state_machine[curr_state];
+
+  asyncFind(stm, function(s, next){
+    var is_match = evalExpr(rule.select.eventexprs, ctx, s[0]);
+    next(undefined, is_match);
+  }, function(err, matching_pair){
+    if(err) return callback(err);
+
+    var next_state = matching_pair ? matching_pair[1] : undefined;
+
+    callback(undefined, next_state);
+  });
 };
 
 module.exports = function(ctx, salience_graph, rulesets, callback){
@@ -45,15 +61,12 @@ module.exports = function(ctx, salience_graph, rulesets, callback){
     ctx.db.getStateMachineState(ctx.pico.id, rule, function(err, curr_state){
       if(err) return next(err);
 
-      var stm = rule.select.state_machine[curr_state];
+      getNextState(ctx, rule, curr_state, function(err, next_state){
+        if(err) return next(err);
 
-      var matching_pair = _.find(stm, function(s){
-        return evalExpr(rule.select.eventexprs, ctx, s[0]);
-      });
-      var next_state = matching_pair ? matching_pair[1] : undefined;
-
-      ctx.db.putStateMachineState(ctx.pico.id, rule, next_state, function(err){
-        next(err, next_state === 'end');
+        ctx.db.putStateMachineState(ctx.pico.id, rule, next_state, function(err){
+          next(err, next_state === 'end');
+        });
       });
     });
   }, callback);
