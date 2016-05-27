@@ -16,8 +16,8 @@ module.exports = {
           }
         },
         eventexprs: {
-          a: function(ctx){
-            return ctx.event.domain === 'echo' && ctx.event.type === 'hello';
+          a: function(ctx, callback){
+            callback(undefined, ctx.event.domain === 'echo' && ctx.event.type === 'hello');
           }
         },
         state_machine: {

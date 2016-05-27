@@ -23,7 +23,7 @@ module.exports = {
         },
         eventexprs: {
           a: function(ctx, callback){
-            return ctx.event.domain === 'store' && ctx.event.type === 'name';
+            callback(undefined, ctx.event.domain === 'store' && ctx.event.type === 'name');
           }
         },
         state_machine: {
@@ -61,7 +61,7 @@ module.exports = {
         },
         eventexprs: {
           a: function(ctx, callback){
-            return ctx.event.domain === 'store' && ctx.event.type === 'appvar';
+            callback(undefined, ctx.event.domain === 'store' && ctx.event.type === 'appvar');
           }
         },
         state_machine: {

@@ -1,9 +1,10 @@
 //shorthand for this test-ruleset
 var mkExpTypeVal = function(type, val){
-  return function(ctx){
-    return ctx.event.domain === 'event_ops'
+  return function(ctx, callback){
+    var is = ctx.event.domain === 'event_ops'
       && ctx.event.type === type
       && ctx.event.attrs['val'] === val;
+    callback(undefined, is);
   };
 };
 
@@ -17,9 +18,9 @@ module.exports = {
           }
         },
         eventexprs: {
-          a: function(ctx){
+          a: function(ctx, callback){
             ctx.vars.bound_name = ctx.event.attrs['name'];
-            return ctx.event.domain === 'event_ops' && ctx.event.type === 'bind';
+            callback(undefined, ctx.event.domain === 'event_ops' && ctx.event.type === 'bind');
           }
         },
         state_machine: {

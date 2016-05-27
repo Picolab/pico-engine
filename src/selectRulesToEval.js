@@ -32,7 +32,7 @@ var evalExpr = function(fns, ctx, exp, callback){
       return;
     }
   }
-  callback(undefined, fns[exp](ctx));
+  fns[exp](ctx, callback);
 };
 
 var getNextState = function(ctx, rule, curr_state, callback){
