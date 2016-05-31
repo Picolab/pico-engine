@@ -28,16 +28,42 @@ ruleset -> "ruleset" __ symbol _ "{" _ (rule _):* "}" {%
   }
 %}
 
-rule -> "rule" __ symbol _ "{}" {%
+rule -> "rule" __ symbol _ "{" _ rule_body _ "}" {%
   function(data, loc){
-    return {
+    var ast = {
       type: 'rule',
       loc: loc,
       name: data[2].src
     };
+    if(data[6] !== null){
+      ast.body = data[6];
+    }
+    return ast;
   }
 %}
 
+rule_body ->
+    _ {% id %}
+    | select_when
+
+
+select_when ->
+    "select" __ "when" __ event_domain __ event_type {%
+  function(data, loc){
+    return {
+      type: 'select_when',
+      loc: loc,
+      body: [data[4], data[6]]
+    };
+  }
+%}
+
+
+event_domain ->
+    symbol {% id %}
+
+event_type ->
+    symbol {% id %}
 
 symbol -> [\w]:+  {%
   function(data, loc){

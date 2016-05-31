@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/farskipper/node-krl-parser#readme",
   "devDependencies": {
+    "lodash": "^4.13.1",
     "onchange": "^2.4.0",
     "tape": "^4.5.1"
   },

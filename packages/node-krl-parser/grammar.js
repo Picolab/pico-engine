@@ -35,16 +35,34 @@ var grammar = {
         }
         },
     {"name": "rule$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule$string$2", "symbols": [{"literal":"{"}, {"literal":"}"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule", "symbols": ["rule$string$1", "__", "symbol", "_", "rule$string$2"], "postprocess": 
+    {"name": "rule", "symbols": ["rule$string$1", "__", "symbol", "_", {"literal":"{"}, "_", "rule_body", "_", {"literal":"}"}], "postprocess": 
         function(data, loc){
-          return {
+          var ast = {
             type: 'rule',
             loc: loc,
             name: data[2].src
           };
+          if(data[6] !== null){
+            ast.body = data[6];
+          }
+          return ast;
         }
         },
+    {"name": "rule_body", "symbols": ["_"], "postprocess": id},
+    {"name": "rule_body", "symbols": ["select_when"]},
+    {"name": "select_when$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"l"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "select_when$string$2", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "select_when", "symbols": ["select_when$string$1", "__", "select_when$string$2", "__", "event_domain", "__", "event_type"], "postprocess": 
+        function(data, loc){
+          return {
+            type: 'select_when',
+            loc: loc,
+            body: [data[4], data[6]]
+          };
+        }
+        },
+    {"name": "event_domain", "symbols": ["symbol"], "postprocess": id},
+    {"name": "event_type", "symbols": ["symbol"], "postprocess": id},
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/]},
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/, "symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "symbol", "symbols": ["symbol$ebnf$1"], "postprocess": 
