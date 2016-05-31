@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var parser = require('krl-parser');
 var escodegen = require('escodegen');
+var compileRuleset = require('./compileRuleset');
 
 module.exports = function(src){
   var ast = parser(src);
@@ -8,7 +9,6 @@ module.exports = function(src){
   if(!_.isArray(ast) || ast.length !== 1 || ast[0].type !== 'ruleset'){
     throw new Error('one ruleset per file');
   }
-  var ruleset = ast[0];
 
   var estree = {
     "type": "Program",
@@ -30,11 +30,7 @@ module.exports = function(src){
               "name": "exports"
             }
           },
-          "right": {
-            "type": "ObjectExpression",
-            "properties": [
-            ]
-          }
+          "right": compileRuleset(ast[0])
         }
       }
     ]
