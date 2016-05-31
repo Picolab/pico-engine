@@ -48,16 +48,30 @@ rule_body ->
 
 
 select_when ->
-    "select" __ "when" __ event_domain __ event_type {%
+    "select" __ "when" __ event_expressions {%
   function(data, loc){
     return {
       type: 'select_when',
       loc: loc,
-      body: [data[4], data[6]]
+      event_expressions: data[4]
     };
   }
 %}
 
+event_expressions ->
+    event_expression
+
+event_expression ->
+  event_domain __ event_type {%
+  function(data, loc){
+    return {
+      type: 'event_expression',
+      loc: loc,
+      event_domain: data[0],
+      event_type: data[2]
+    };
+  }
+%}
 
 event_domain ->
     symbol {% id %}

@@ -86,9 +86,12 @@ test('parser - rule body', function(t){
 
   src = 'select when d t';
   asertRuleAST(src, {type: 'rule', name: 'r1', body: [
-    {type: 'select_when', body: [
-      {type: 'symbol', src: 'd'},
-      {type: 'symbol', src: 't'}
+    {type: 'select_when', event_expressions: [
+      {
+        type: 'event_expression',
+        event_domain: {type: 'symbol', src: 'd'},
+        event_type: {type: 'symbol', src: 't'}
+      }
     ]}
   ]});
 

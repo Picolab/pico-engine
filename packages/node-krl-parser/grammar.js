@@ -52,12 +52,23 @@ var grammar = {
     {"name": "rule_body", "symbols": ["select_when"]},
     {"name": "select_when$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"l"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "select_when$string$2", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "select_when", "symbols": ["select_when$string$1", "__", "select_when$string$2", "__", "event_domain", "__", "event_type"], "postprocess": 
+    {"name": "select_when", "symbols": ["select_when$string$1", "__", "select_when$string$2", "__", "event_expressions"], "postprocess": 
         function(data, loc){
           return {
             type: 'select_when',
             loc: loc,
-            body: [data[4], data[6]]
+            event_expressions: data[4]
+          };
+        }
+        },
+    {"name": "event_expressions", "symbols": ["event_expression"]},
+    {"name": "event_expression", "symbols": ["event_domain", "__", "event_type"], "postprocess": 
+        function(data, loc){
+          return {
+            type: 'event_expression',
+            loc: loc,
+            event_domain: data[0],
+            event_type: data[2]
           };
         }
         },
