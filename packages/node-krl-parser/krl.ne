@@ -125,7 +125,7 @@ with_expression ->
 
 symbol_value_pairs ->
     symbol_value_pair {% function(d){return [d[0]]} %}
-    | symbol_value_pairs __ symbol_value_pair {% function(d){return d[0].concat([d[2]])} %}
+    | symbol_value_pairs __ "and" __ symbol_value_pair {% function(d){return d[0].concat([d[4]])} %}
 
 symbol_value_pair ->
     symbol _ "=" _ expression {%

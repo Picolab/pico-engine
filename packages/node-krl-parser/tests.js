@@ -186,7 +186,9 @@ test('parser - action', function(t){
   };
   src  = 'send_directive("say") with\n';
   src += '  one = 1\n';
+  src += '  and\n';
   src += '  two = 2\n';
+  src += '  and\n';
   src += '  three = 3\n';
   asertRuleAST(src, {
     type: 'send_directive',
