@@ -98,15 +98,41 @@ event_type ->
     symbol {% id %}
 
 event_action ->
-    "send_directive" _ "(" _ string _ ")" {%
+    "send_directive" _ "(" _ expression _ ")" _ with_expression:? {%
   function(data, loc){
-    return {
+    var ast = {
       type: 'send_directive',
       loc: loc,
       args: [data[4]]
     };
+    if(data[8]){
+      ast.with = data[8];
+    }
+    return ast;
   }
 %}
+
+with_expression ->
+    "with" __ symbol_value_pair {%
+  function(data, loc){
+    return {
+      type: 'with_expression',
+      loc: loc,
+      pairs: [data[2]]
+    };
+  }
+%}
+
+symbol_value_pair ->
+    symbol _ "=" _ expression {%
+  function(data, loc){
+    return [data[0], data[4]];
+  }
+%}
+
+expression ->
+    string {% id %}
+    | int {% id %}
 
 symbol -> [\w]:+  {%
   function(data, loc){

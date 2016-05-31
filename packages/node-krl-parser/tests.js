@@ -159,5 +159,23 @@ test('parser - action', function(t){
     ]
   });
 
+  src  = 'send_directive("say") with\n';
+  src += '  something = "hello world"\n';
+  asertRuleAST(src, {
+    type: 'send_directive',
+    args: [
+      {type: 'string', value: 'say'}
+    ],
+    "with": {
+      type: "with_expression",
+      pairs: [
+        [
+          {type: 'symbol', src: 'something'},
+          {type: 'string', value: 'hello world'}
+        ]
+      ]
+    }
+  });
+
   t.end();
 });

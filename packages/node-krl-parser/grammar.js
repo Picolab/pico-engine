@@ -95,15 +95,38 @@ var grammar = {
     {"name": "event_domain", "symbols": ["symbol"], "postprocess": id},
     {"name": "event_type", "symbols": ["symbol"], "postprocess": id},
     {"name": "event_action$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"n"}, {"literal":"d"}, {"literal":"_"}, {"literal":"d"}, {"literal":"i"}, {"literal":"r"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_action", "symbols": ["event_action$string$1", "_", {"literal":"("}, "_", "string", "_", {"literal":")"}], "postprocess": 
+    {"name": "event_action$ebnf$1", "symbols": ["with_expression"], "postprocess": id},
+    {"name": "event_action$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "event_action", "symbols": ["event_action$string$1", "_", {"literal":"("}, "_", "expression", "_", {"literal":")"}, "_", "event_action$ebnf$1"], "postprocess": 
         function(data, loc){
-          return {
+          var ast = {
             type: 'send_directive',
             loc: loc,
             args: [data[4]]
           };
+          if(data[8]){
+            ast.with = data[8];
+          }
+          return ast;
         }
         },
+    {"name": "with_expression$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "with_expression", "symbols": ["with_expression$string$1", "__", "symbol_value_pair"], "postprocess": 
+        function(data, loc){
+          return {
+            type: 'with_expression',
+            loc: loc,
+            pairs: [data[2]]
+          };
+        }
+        },
+    {"name": "symbol_value_pair", "symbols": ["symbol", "_", {"literal":"="}, "_", "expression"], "postprocess": 
+        function(data, loc){
+          return [data[0], data[4]];
+        }
+        },
+    {"name": "expression", "symbols": ["string"], "postprocess": id},
+    {"name": "expression", "symbols": ["int"], "postprocess": id},
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/]},
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/, "symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "symbol", "symbols": ["symbol$ebnf$1"], "postprocess": 
