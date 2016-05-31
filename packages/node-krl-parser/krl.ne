@@ -113,15 +113,19 @@ event_action ->
 %}
 
 with_expression ->
-    "with" __ symbol_value_pair {%
+    "with" __ symbol_value_pairs {%
   function(data, loc){
     return {
       type: 'with_expression',
       loc: loc,
-      pairs: [data[2]]
+      pairs: data[2]
     };
   }
 %}
+
+symbol_value_pairs ->
+    symbol_value_pair {% function(d){return [d[0]]} %}
+    | symbol_value_pairs __ symbol_value_pair {% function(d){return d[0].concat([d[2]])} %}
 
 symbol_value_pair ->
     symbol _ "=" _ expression {%

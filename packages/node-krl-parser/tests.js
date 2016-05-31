@@ -177,5 +177,31 @@ test('parser - action', function(t){
     }
   });
 
+
+  var mkPair = function(key, val){
+    return [
+      {type: 'symbol', src: key},
+      {type: 'int', src: val}
+    ];
+  };
+  src  = 'send_directive("say") with\n';
+  src += '  one = 1\n';
+  src += '  two = 2\n';
+  src += '  three = 3\n';
+  asertRuleAST(src, {
+    type: 'send_directive',
+    args: [
+      {type: 'string', value: 'say'}
+    ],
+    "with": {
+      type: "with_expression",
+      pairs: [
+        mkPair('one', '1'),
+        mkPair('two', '2'),
+        mkPair('three', '3')
+      ]
+    }
+  });
+
   t.end();
 });

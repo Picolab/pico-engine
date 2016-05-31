@@ -111,15 +111,17 @@ var grammar = {
         }
         },
     {"name": "with_expression$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "with_expression", "symbols": ["with_expression$string$1", "__", "symbol_value_pair"], "postprocess": 
+    {"name": "with_expression", "symbols": ["with_expression$string$1", "__", "symbol_value_pairs"], "postprocess": 
         function(data, loc){
           return {
             type: 'with_expression',
             loc: loc,
-            pairs: [data[2]]
+            pairs: data[2]
           };
         }
         },
+    {"name": "symbol_value_pairs", "symbols": ["symbol_value_pair"], "postprocess": function(d){return [d[0]]}},
+    {"name": "symbol_value_pairs", "symbols": ["symbol_value_pairs", "__", "symbol_value_pair"], "postprocess": function(d){return d[0].concat([d[2]])}},
     {"name": "symbol_value_pair", "symbols": ["symbol", "_", {"literal":"="}, "_", "expression"], "postprocess": 
         function(data, loc){
           return [data[0], data[4]];
