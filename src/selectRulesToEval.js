@@ -51,15 +51,7 @@ var getNextState = function(ctx, rule, curr_state, callback){
 
 module.exports = function(ctx, salience_graph, rulesets, callback){
 
-  //NOTE: defaultsDeep mutates the first arg (we don't want to mutate salience_graph)
-  var to_run = {};
-  _.defaultsDeep(
-    to_run,
-    _.get(salience_graph, [ctx.event.domain, ctx.event.type], {}),
-    _.get(salience_graph, ['', ctx.event.type], {}),
-    _.get(salience_graph, [ctx.event.domain, ''], {}),
-    _.get(salience_graph, ['', ''], {})
-  );
+  var to_run = _.get(salience_graph, [ctx.event.domain, ctx.event.type], {});
 
   var rules_to_select = [];
   _.each(to_run, function(rules, rid){
