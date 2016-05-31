@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "KRL compiler",
   "main": "index.js",
+  "bin": {
+    "krl-compiler": "bin/krl-compiler"
+  },
   "scripts": {
     "test": "node tests.js"
   },

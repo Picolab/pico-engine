@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+
+var compiler = require('../');
+
+var src = '';
+process.stdin.on('data', function(data){
+  src += data.toString();
+});
+
+process.stdin.on('end', function(){
+  process.stdout.write(compiler(src));
+});
