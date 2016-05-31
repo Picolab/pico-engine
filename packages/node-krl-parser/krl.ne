@@ -49,7 +49,7 @@ rule -> "rule" __ symbol _ "{" _ rule_body _ "}" {%
       loc: loc,
       name: data[2].src
     };
-    if(data[6] !== null){
+    if(data[6]){
       ast.body = data[6];
     }
     return ast;

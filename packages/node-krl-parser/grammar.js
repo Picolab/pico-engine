@@ -56,7 +56,7 @@ var grammar = {
             loc: loc,
             name: data[2].src
           };
-          if(data[6] !== null){
+          if(data[6]){
             ast.body = data[6];
           }
           return ast;
