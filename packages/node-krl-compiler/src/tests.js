@@ -5,7 +5,7 @@ var path = require('path');
 var test = require('tape');
 var compiler = require('./');
 
-var files_dir = './test-files';
+var files_dir = path.resolve(__dirname, '../test-files');
 
 test('compiler', function(t){
   fs.readdir(files_dir, function(err, files){

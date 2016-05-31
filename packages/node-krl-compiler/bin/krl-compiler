@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-var compiler = require('../');
+var compiler = require('../src');
 
 var src = '';
 process.stdin.on('data', function(data){

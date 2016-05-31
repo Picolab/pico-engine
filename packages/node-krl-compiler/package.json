@@ -2,12 +2,16 @@
   "name": "krl-compiler",
   "version": "0.0.0",
   "description": "KRL compiler",
-  "main": "index.js",
+  "main": "src/index.js",
   "bin": {
     "krl-compiler": "bin/krl-compiler"
   },
+  "files": [
+    "bin",
+    "src"
+  ],
   "scripts": {
-    "test": "node tests.js"
+    "test": "node src/tests.js"
   },
   "repository": {
     "type": "git",
