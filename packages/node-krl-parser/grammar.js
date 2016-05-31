@@ -20,7 +20,7 @@ var infixEventOp = function(op){
       type: 'event_op',
       loc: loc,
       op: op,
-      args: undefined,
+      args: [],
       expressions: [data[0], data[4]]
     };
   };

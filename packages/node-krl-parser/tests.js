@@ -94,7 +94,7 @@ test('parser - select when', function(t){
   asertRuleAST(src, {
     type: 'event_op',
     op: 'or',
-    args: undefined,
+    args: [],
     expressions: [
       {
         type: 'event_expression',
@@ -109,24 +109,31 @@ test('parser - select when', function(t){
     ]
   });
 
+  var mkEventExp = function(domain, type){
+    return {
+      type: 'event_expression',
+      event_domain: {type: 'symbol', src: domain},
+      event_type: {type: 'symbol', src: type}
+    };
+  };
+
+  var mkEventOp = function(op, exprs, args){
+    return {
+      type: 'event_op',
+      op: op,
+      args: args || [],
+      expressions: exprs
+    };
+  };
+
   src = 'select when d a and d b';
-  asertRuleAST(src, {
-    type: 'event_op',
-    op: 'and',
-    args: undefined,
-    expressions: [
-      {
-        type: 'event_expression',
-        event_domain: {type: 'symbol', src: 'd'},
-        event_type: {type: 'symbol', src: 'a'}
-      },
-      {
-        type: 'event_expression',
-        event_domain: {type: 'symbol', src: 'd'},
-        event_type: {type: 'symbol', src: 'b'}
-      }
-    ]
-  });
+  asertRuleAST(src, mkEventOp('and', [mkEventExp('d', 'a'), mkEventExp('d', 'b')]));
+
+  src = 'select when d a and (d b or d c)';
+  asertRuleAST(src, mkEventOp('and', [
+    mkEventExp('d', 'a'),
+    mkEventOp('or', [mkEventExp('d', 'b'), mkEventExp('d', 'c')])
+  ]));
 
   t.end();
 });
