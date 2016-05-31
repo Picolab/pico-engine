@@ -1,7 +1,7 @@
 {
   "name": "krl-parser",
   "version": "0.0.0",
-  "description": "Parse KRL sourse code into an AST",
+  "description": "Parse KRL source code into an AST",
   "main": "index.js",
   "scripts": {
     "start": "onchange '*.js' '*.ne' -e 'grammar.js' -i -- npm test -s",
