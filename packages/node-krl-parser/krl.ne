@@ -10,6 +10,18 @@ var getN = function(n){
   };
 };
 
+var infixEventOp = function(op){
+  return function(data, loc){
+    return {
+      type: 'event_op',
+      loc: loc,
+      op: op,
+      args: undefined,
+      expressions: [data[0], data[4]]
+    };
+  };
+};
+
 %}
 
 main -> _ ruleset _ {% getN(1) %}
@@ -59,7 +71,9 @@ select_when ->
 %}
 
 event_expressions ->
-    event_expression
+    event_expression {% id %}
+    | event_expression __ "or" __ event_expression {% infixEventOp('or') %}
+    | event_expression __ "and" __ event_expression {% infixEventOp('and') %}
 
 event_expression ->
   event_domain __ event_type {%

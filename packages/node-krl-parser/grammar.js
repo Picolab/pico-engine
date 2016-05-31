@@ -14,6 +14,18 @@ var getN = function(n){
   };
 };
 
+var infixEventOp = function(op){
+  return function(data, loc){
+    return {
+      type: 'event_op',
+      loc: loc,
+      op: op,
+      args: undefined,
+      expressions: [data[0], data[4]]
+    };
+  };
+};
+
 var grammar = {
     ParserRules: [
     {"name": "main", "symbols": ["_", "ruleset", "_"], "postprocess": getN(1)},
@@ -61,7 +73,11 @@ var grammar = {
           };
         }
         },
-    {"name": "event_expressions", "symbols": ["event_expression"]},
+    {"name": "event_expressions", "symbols": ["event_expression"], "postprocess": id},
+    {"name": "event_expressions$string$1", "symbols": [{"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_expressions", "symbols": ["event_expression", "__", "event_expressions$string$1", "__", "event_expression"], "postprocess": infixEventOp('or')},
+    {"name": "event_expressions$string$2", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_expressions", "symbols": ["event_expression", "__", "event_expressions$string$2", "__", "event_expression"], "postprocess": infixEventOp('and')},
     {"name": "event_expression", "symbols": ["event_domain", "__", "event_type"], "postprocess": 
         function(data, loc){
           return {

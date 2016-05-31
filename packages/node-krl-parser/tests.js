@@ -86,13 +86,62 @@ test('parser - rule body', function(t){
 
   src = 'select when d t';
   asertRuleAST(src, {type: 'rule', name: 'r1', body: [
-    {type: 'select_when', event_expressions: [
-      {
+    {
+      type: 'select_when',
+      event_expressions: {
         type: 'event_expression',
         event_domain: {type: 'symbol', src: 'd'},
         event_type: {type: 'symbol', src: 't'}
       }
-    ]}
+    }
+  ]});
+
+  src = 'select when d a or d b';
+  asertRuleAST(src, {type: 'rule', name: 'r1', body: [
+    {
+      type: 'select_when',
+      event_expressions: {
+        type: 'event_op',
+        op: 'or',
+        args: undefined,
+        expressions: [
+          {
+            type: 'event_expression',
+            event_domain: {type: 'symbol', src: 'd'},
+            event_type: {type: 'symbol', src: 'a'}
+          },
+          {
+            type: 'event_expression',
+            event_domain: {type: 'symbol', src: 'd'},
+            event_type: {type: 'symbol', src: 'b'}
+          }
+        ]
+      }
+    }
+  ]});
+
+  src = 'select when d a and d b';
+  asertRuleAST(src, {type: 'rule', name: 'r1', body: [
+    {
+      type: 'select_when',
+      event_expressions: {
+        type: 'event_op',
+        op: 'and',
+        args: undefined,
+        expressions: [
+          {
+            type: 'event_expression',
+            event_domain: {type: 'symbol', src: 'd'},
+            event_type: {type: 'symbol', src: 'a'}
+          },
+          {
+            type: 'event_expression',
+            event_domain: {type: 'symbol', src: 'd'},
+            event_type: {type: 'symbol', src: 'b'}
+          }
+        ]
+      }
+    }
   ]});
 
   t.end();
