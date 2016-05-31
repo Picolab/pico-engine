@@ -1,0 +1,29 @@
+{
+  "name": "krl-compiler",
+  "version": "0.0.0",
+  "description": "KRL compiler",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/farskipper/node-krl-compiler.git"
+  },
+  "keywords": [
+    "krl",
+    "compiler"
+  ],
+  "author": "farskipper",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/farskipper/node-krl-compiler/issues"
+  },
+  "homepage": "https://github.com/farskipper/node-krl-compiler#readme",
+  "devDependencies": {
+    "tape": "^4.5.1"
+  },
+  "dependencies": {
+    "krl-parser": "0.0.1"
+  }
+}
