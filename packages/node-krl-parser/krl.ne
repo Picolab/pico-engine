@@ -98,19 +98,26 @@ event_type ->
     symbol {% id %}
 
 event_action ->
-    "send_directive" _ "(" _ expression _ ")" _ with_expression:? {%
+    "send_directive" _ function_call_args _ with_expression:? {%
   function(data, loc){
     var ast = {
       type: 'send_directive',
       loc: loc,
-      args: [data[4]]
+      args: data[2]
     };
-    if(data[8]){
-      ast.with = data[8];
+    if(data[4]){
+      ast.with = data[4];
     }
     return ast;
   }
 %}
+
+function_call_args ->
+    "(" _ comma_separated_expressions _ ")" {% getN(2) %}
+
+comma_separated_expressions ->
+    expression {% function(d){return [d[0]]} %}
+    | comma_separated_expressions _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
 
 with_expression ->
     "with" __ symbol_value_pairs {%

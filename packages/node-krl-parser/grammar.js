@@ -97,19 +97,22 @@ var grammar = {
     {"name": "event_action$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"n"}, {"literal":"d"}, {"literal":"_"}, {"literal":"d"}, {"literal":"i"}, {"literal":"r"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_action$ebnf$1", "symbols": ["with_expression"], "postprocess": id},
     {"name": "event_action$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "event_action", "symbols": ["event_action$string$1", "_", {"literal":"("}, "_", "expression", "_", {"literal":")"}, "_", "event_action$ebnf$1"], "postprocess": 
+    {"name": "event_action", "symbols": ["event_action$string$1", "_", "function_call_args", "_", "event_action$ebnf$1"], "postprocess": 
         function(data, loc){
           var ast = {
             type: 'send_directive',
             loc: loc,
-            args: [data[4]]
+            args: data[2]
           };
-          if(data[8]){
-            ast.with = data[8];
+          if(data[4]){
+            ast.with = data[4];
           }
           return ast;
         }
         },
+    {"name": "function_call_args", "symbols": [{"literal":"("}, "_", "comma_separated_expressions", "_", {"literal":")"}], "postprocess": getN(2)},
+    {"name": "comma_separated_expressions", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
+    {"name": "comma_separated_expressions", "symbols": ["comma_separated_expressions", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
     {"name": "with_expression$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "with_expression", "symbols": ["with_expression$string$1", "__", "symbol_value_pairs"], "postprocess": 
         function(data, loc){
