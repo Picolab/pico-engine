@@ -64,7 +64,7 @@ var grammar = {
     {"name": "rule_body", "symbols": ["select_when"]},
     {"name": "select_when$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"l"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "select_when$string$2", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "select_when", "symbols": ["select_when$string$1", "__", "select_when$string$2", "__", "event_expressions"], "postprocess": 
+    {"name": "select_when", "symbols": ["select_when$string$1", "__", "select_when$string$2", "__", "event_exprs"], "postprocess": 
         function(data, loc){
           return {
             type: 'select_when',
@@ -73,11 +73,12 @@ var grammar = {
           };
         }
         },
-    {"name": "event_expressions", "symbols": ["event_expression"], "postprocess": id},
-    {"name": "event_expressions$string$1", "symbols": [{"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_expressions", "symbols": ["event_expression", "__", "event_expressions$string$1", "__", "event_expression"], "postprocess": infixEventOp('or')},
-    {"name": "event_expressions$string$2", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_expressions", "symbols": ["event_expression", "__", "event_expressions$string$2", "__", "event_expression"], "postprocess": infixEventOp('and')},
+    {"name": "event_exprs", "symbols": ["event_expression"], "postprocess": id},
+    {"name": "event_exprs", "symbols": [{"literal":"("}, "_", "event_exprs", "_", {"literal":")"}], "postprocess": getN(2)},
+    {"name": "event_exprs$string$1", "symbols": [{"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$1", "__", "event_exprs"], "postprocess": infixEventOp('or')},
+    {"name": "event_exprs$string$2", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$2", "__", "event_exprs"], "postprocess": infixEventOp('and')},
     {"name": "event_expression", "symbols": ["event_domain", "__", "event_type"], "postprocess": 
         function(data, loc){
           return {

@@ -60,7 +60,7 @@ rule_body ->
 
 
 select_when ->
-    "select" __ "when" __ event_expressions {%
+    "select" __ "when" __ event_exprs {%
   function(data, loc){
     return {
       type: 'select_when',
@@ -70,10 +70,11 @@ select_when ->
   }
 %}
 
-event_expressions ->
+event_exprs ->
     event_expression {% id %}
-    | event_expression __ "or" __ event_expression {% infixEventOp('or') %}
-    | event_expression __ "and" __ event_expression {% infixEventOp('and') %}
+    | "(" _ event_exprs _ ")" {% getN(2) %}
+    | event_exprs __ "or" __ event_exprs {% infixEventOp('or') %}
+    | event_exprs __ "and" __ event_exprs {% infixEventOp('and') %}
 
 event_expression ->
   event_domain __ event_type {%
