@@ -22,6 +22,8 @@ var infixEventOp = function(op){
   };
 };
 
+var noop = function(){};
+
 %}
 
 main -> _ ruleset _ {% getN(1) %}
@@ -57,6 +59,7 @@ rule -> "rule" __ symbol _ "{" _ rule_body _ "}" {%
 rule_body ->
     _ {% id %}
     | select_when
+    | select_when __ event_action
 
 
 select_when ->
@@ -94,6 +97,17 @@ event_domain ->
 event_type ->
     symbol {% id %}
 
+event_action ->
+    "send_directive" _ "(" _ string _ ")" {%
+  function(data, loc){
+    return {
+      type: 'send_directive',
+      loc: loc,
+      args: [data[4]]
+    };
+  }
+%}
+
 symbol -> [\w]:+  {%
   function(data, loc){
     return {
@@ -114,7 +128,24 @@ int -> [0-9]:+ {%
   }
 %}
 
-# Whitespace. The important thing here is that the postprocessor
-# is a null-returning function. This is a memory efficiency trick.
-_  -> [\s]:* {% function(){return null;} %}
-__ -> [\s]:+ {% function(){return null;} %}
+string -> "\"" _string "\"" {%
+  function(data, loc){
+    return {
+      type: 'string',
+      loc: loc,
+      value: data[1]
+    };
+  }
+%}
+
+_string ->
+  null {% function(){return ""} %}
+  | _string _stringchar {% function(d){return d[0] + d[1]} %}
+
+_stringchar ->
+  [^\\"] {% id %}
+  | "\\" [^] {% function(d){return JSON.parse("\"" + d[0] + d[1] + "\"")} %}
+
+# Whitespace
+_  -> [\s]:* {% noop %}
+__ -> [\s]:+ {% noop %}

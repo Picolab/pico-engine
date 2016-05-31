@@ -12,6 +12,33 @@ var rmLoc = function(ast){
   return ast;
 };
 
+var parseRuleBody = function(rule_body, expected){
+  var src = '';
+  src += 'ruleset rs {\n';
+  src += '  rule r1 {\n';
+  src += '    ' + rule_body + '\n';
+  src += '  }\n';
+  src += '}';
+  return parser(src)[0].rules[0].body;
+};
+
+var mkEventExp = function(domain, type){
+  return {
+    type: 'event_expression',
+    event_domain: {type: 'symbol', src: domain},
+    event_type: {type: 'symbol', src: type}
+  };
+};
+
+var mkEventOp = function(op, exprs, args){
+  return {
+    type: 'event_op',
+    op: op,
+    args: args || [],
+    expressions: exprs
+  };
+};
+
 var assertAST = function(t, src, ast){
   t.deepEquals(parser(src), ast);
 };
@@ -72,13 +99,7 @@ test('parser', function(t){
 
 test('parser - select when', function(t){
   var asertRuleAST = function(rule_body, expected){
-    var src = '';
-    src += 'ruleset rs {\n';
-    src += '  rule r1 {\n';
-    src += '    ' + rule_body + '\n';
-    src += '  }\n';
-    src += '}';
-    var ast = parser(src)[0].rules[0].body[0];
+    var ast = parseRuleBody(rule_body)[0];
     t.equals(ast.type, 'select_when');
     t.deepEquals(rmLoc(ast.event_expressions), expected);
   }; 
@@ -109,23 +130,6 @@ test('parser - select when', function(t){
     ]
   });
 
-  var mkEventExp = function(domain, type){
-    return {
-      type: 'event_expression',
-      event_domain: {type: 'symbol', src: domain},
-      event_type: {type: 'symbol', src: type}
-    };
-  };
-
-  var mkEventOp = function(op, exprs, args){
-    return {
-      type: 'event_op',
-      op: op,
-      args: args || [],
-      expressions: exprs
-    };
-  };
-
   src = 'select when d a and d b';
   asertRuleAST(src, mkEventOp('and', [mkEventExp('d', 'a'), mkEventExp('d', 'b')]));
 
@@ -134,6 +138,26 @@ test('parser - select when', function(t){
     mkEventExp('d', 'a'),
     mkEventOp('or', [mkEventExp('d', 'b'), mkEventExp('d', 'c')])
   ]));
+
+  t.end();
+});
+
+test('parser - action', function(t){
+  var asertRuleAST = function(rule_body, expected){
+    var ast = parseRuleBody('select when d a\n' + rule_body);
+    t.deepEquals(rmLoc(ast), [
+      {type: 'select_when', event_expressions: mkEventExp('d', 'a')},
+      expected
+    ]);
+  };
+
+  var src ='send_directive("say")';
+  asertRuleAST(src, {
+    type: 'send_directive',
+    args: [
+      {type: 'string', value: 'say'}
+    ]
+  });
 
   t.end();
 });
