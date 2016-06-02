@@ -11,6 +11,7 @@
     "src"
   ],
   "scripts": {
+    "start": "onchange -i src/ -- npm test -s",
     "test": "node src/tests.js"
   },
   "repository": {
@@ -29,11 +30,12 @@
   "homepage": "https://github.com/farskipper/node-krl-compiler#readme",
   "devDependencies": {
     "contra": "^1.9.4",
+    "onchange": "^2.4.0",
     "tape": "^4.5.1"
   },
   "dependencies": {
     "escodegen": "^1.8.0",
-    "krl-parser": "0.0.1",
+    "krl-parser": "0.0.2",
     "lodash": "^4.13.1"
   }
 }
