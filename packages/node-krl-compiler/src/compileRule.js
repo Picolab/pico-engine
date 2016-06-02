@@ -5,7 +5,7 @@ var compileRuleAction = require('./compileRuleAction');
 
 module.exports = function(ast){
   return toEstreeObject({
-    select: compileRuleSelect(ast.actions),
+    select: compileRuleSelect(ast.select),
     action: compileRuleAction(ast.actions)
   });
 };

@@ -1,32 +1,35 @@
 module.exports = {
-    name: 'hello_world'
+    name: 'hello_world',
     rules: {
         say_hello: {
             select: {
-                graph: {
-                    'echo': {
-                        'hello': {'a': true}
-                    }
-                },
+                graph: { echo: { hello: { expr_0: true } } },
                 eventexprs: {
-                    a: function(ctx, callback){
-                        callback(undefined, ctx.event.domain === 'echo' && ctx.event.type === 'hello');
+                    expr_0: function (ctx, callback) {
+                      callback(undefined, ctx.event.domain === 'echo' && ctx.event.type === 'hello');
                     }
                 },
                 state_machine: {
                     start: [
-                        ['a', 'end'],
-                        [['not', 'a'], 'start']
+                        [
+                            'expr_0',
+                            'end'
+                        ],
+                        [
+                            [
+                                'not',
+                                'expr_0'
+                            ],
+                            'start'
+                        ]
                     ]
                 }
             },
-            action: function(ctx, callback){
+            action: function (ctx, callback) {
                 callback(undefined, {
                     type: 'directive',
                     name: 'say',
-                    options: {
-                        something: 'Hello World'
-                    }
+                    options: { something: 'Hello World' }
                 });
             }
         }
