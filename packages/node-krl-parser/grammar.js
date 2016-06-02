@@ -51,20 +51,29 @@ var grammar = {
     {"name": "rule$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "rule", "symbols": ["rule$string$1", "__", "symbol", "_", {"literal":"{"}, "_", "rule_body", "_", {"literal":"}"}], "postprocess": 
         function(data, loc){
-          var ast = {
-            type: 'rule',
-            loc: loc,
-            name: data[2].src
-          };
-          if(data[6]){
-            ast.body = data[6];
-          }
+          var ast = data[6] || {};
+          ast.type = 'rule';
+          ast.loc = loc;
+          ast.name = data[2].src;
           return ast;
         }
         },
-    {"name": "rule_body", "symbols": ["_"], "postprocess": id},
-    {"name": "rule_body", "symbols": ["select_when"]},
-    {"name": "rule_body", "symbols": ["select_when", "__", "event_action"]},
+    {"name": "rule_body", "symbols": ["_"], "postprocess": noop},
+    {"name": "rule_body", "symbols": ["select_when"], "postprocess": 
+        function(data, loc){
+          return {
+            select: data[0]
+          };
+        }
+        },
+    {"name": "rule_body", "symbols": ["select_when", "__", "event_action"], "postprocess": 
+        function(data, loc){
+          return {
+            select: data[0],
+            actions: [data[2]]
+          };
+        }
+        },
     {"name": "select_when$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"l"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "select_when$string$2", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "select_when", "symbols": ["select_when$string$1", "__", "select_when$string$2", "__", "event_exprs"], "postprocess": 

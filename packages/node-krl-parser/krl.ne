@@ -44,22 +44,31 @@ ruleset -> "ruleset" __ symbol _ "{" _ (rule _):* "}" {%
 
 rule -> "rule" __ symbol _ "{" _ rule_body _ "}" {%
   function(data, loc){
-    var ast = {
-      type: 'rule',
-      loc: loc,
-      name: data[2].src
-    };
-    if(data[6]){
-      ast.body = data[6];
-    }
+    var ast = data[6] || {};
+    ast.type = 'rule';
+    ast.loc = loc;
+    ast.name = data[2].src;
     return ast;
   }
 %}
 
 rule_body ->
-    _ {% id %}
-    | select_when
-    | select_when __ event_action
+    _ {% noop %}
+    | select_when {%
+  function(data, loc){
+    return {
+      select: data[0]
+    };
+  }
+%}
+    | select_when __ event_action {%
+  function(data, loc){
+    return {
+      select: data[0],
+      actions: [data[2]]
+    };
+  }
+%}
 
 
 select_when ->

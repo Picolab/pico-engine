@@ -4,7 +4,7 @@ var parser = require('./');
 
 var rmLoc = function(ast){
   if(_.isArray(ast)){
-    return _.map(_.compact(ast), rmLoc);
+    return _.map(ast, rmLoc);
   }
   if(_.isObject(ast)){
     return _.mapValues(_.omit(ast, 'loc'), rmLoc);
@@ -19,7 +19,7 @@ var parseRuleBody = function(rule_body, expected){
   src += '    ' + rule_body + '\n';
   src += '  }\n';
   src += '}';
-  return parser(src)[0].rules[0].body;
+  return parser(src)[0].rules[0];
 };
 
 var mkEventExp = function(domain, type){
@@ -99,7 +99,7 @@ test('parser', function(t){
 
 test('parser - select when', function(t){
   var asertRuleAST = function(rule_body, expected){
-    var ast = parseRuleBody(rule_body)[0];
+    var ast = parseRuleBody(rule_body).select;
     t.equals(ast.type, 'select_when');
     t.deepEquals(rmLoc(ast.event_expressions), expected);
   }; 
@@ -145,10 +145,15 @@ test('parser - select when', function(t){
 test('parser - action', function(t){
   var asertRuleAST = function(rule_body, expected){
     var ast = parseRuleBody('select when d a\n' + rule_body);
-    t.deepEquals(rmLoc(ast), [
-      {type: 'select_when', event_expressions: mkEventExp('d', 'a')},
-      expected
-    ]);
+    var exp_ast = {
+      name: ast.name,
+      type: ast.type,
+      select: {type: 'select_when', event_expressions: mkEventExp('d', 'a')},
+    };
+    if(_.size(expected) > 0){
+      exp_ast.actions = [expected];
+    }
+    t.deepEquals(rmLoc(ast), exp_ast);
   };
 
   var src ='send_directive("say")';
