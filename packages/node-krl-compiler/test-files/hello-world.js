@@ -6,7 +6,7 @@ module.exports = {
                 graph: { echo: { hello: { expr_0: true } } },
                 eventexprs: {
                     expr_0: function (ctx, callback) {
-                      callback(undefined, ctx.event.domain === 'echo' && ctx.event.type === 'hello');
+                        callback(undefined, ctx.event.domain === 'echo' && ctx.event.type === 'hello');
                     }
                 },
                 state_machine: {

@@ -3,8 +3,78 @@ var toEstreeJSON = require('./toEstreeJSON');
 var toEstreeObject = require('./toEstreeObject');
 var toEstreeFnCtxCallback = require('./toEstreeFnCtxCallback');
 
+var estCTXEventProp = function(prop){
+  return {
+    "type": "MemberExpression",
+    "computed": false,
+    "object": {
+      "type": "MemberExpression",
+      "computed": false,
+      "object": {
+        "type": "Identifier",
+        "name": "ctx"
+      },
+      "property": {
+        "type": "Identifier",
+        "name": "event"
+      }
+    },
+    "property": {
+      "type": "Identifier",
+      "name": prop
+    }
+  };
+};
+
+var estTriEq = function(left, right){
+  return {
+    "type": "BinaryExpression",
+    "operator": "===",
+    "left": left,
+    "right": right
+  };
+};
+
+var estString = function(str){
+  return {
+    "type": "Literal",
+    "value": str,
+    "raw": JSON.stringify(str)
+  };
+};
+
+var estAnd = function(left, right){
+  return {
+    "type": "LogicalExpression",
+    "operator": "&&",
+    "left": left,
+    "right": right
+  };
+};
+
 var eventExprToEstree = function(expr){
-  return toEstreeFnCtxCallback([]);
+  var fn_body = [];
+  fn_body.push({
+    'type': 'ExpressionStatement',
+    'expression': {
+      'type': 'CallExpression',
+      'callee': {
+        'type': 'Identifier',
+        'name': 'callback'
+      },
+      'arguments': [
+        {
+          "type": "Identifier",
+          "name": "undefined"
+        },
+        estAnd(
+          estTriEq(estCTXEventProp('domain'), estString('echo')),
+          estTriEq(estCTXEventProp('type'), estString('hello'))
+        )
+      ]
+    }
+  });
+  return toEstreeFnCtxCallback(fn_body);
 };
 
 module.exports = function(ast){
