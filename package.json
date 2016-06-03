@@ -1,8 +1,7 @@
 {
-  "private": true,
-  "name": "pico-engine-node-prototype",
+  "name": "pico-engine",
   "version": "0.0.0",
-  "description": "A prototype implementation of the pico-engine written in node.js",
+  "description": "An implementation of the pico-engine targetting node.js",
   "main": "src/index.js",
   "scripts": {
     "start": "scriptsp watch:http watch:test",
@@ -13,19 +12,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/farskipper/pico-engine-node-prototype.git"
+    "url": "git+https://github.com/farskipper/node-pico-engine.git"
   },
   "keywords": [
-    "pico",
+    "pico-engine",
+    "krl",
     "KRE",
     "IoT"
   ],
   "author": "farskipper",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/farskipper/pico-engine-node-prototype/issues"
+    "url": "https://github.com/farskipper/node-pico-engine/issues"
   },
-  "homepage": "https://github.com/farskipper/pico-engine-node-prototype#readme",
+  "homepage": "https://github.com/farskipper/node-pico-engine#readme",
   "devDependencies": {
     "eslint": "^2.10.2",
     "memdown": "^1.1.2",
