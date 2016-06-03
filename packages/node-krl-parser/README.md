@@ -1,4 +1,4 @@
-# node-krl-parser
+# krl-parser
 
 [![build status](https://secure.travis-ci.org/farskipper/node-krl-parser.svg)](https://travis-ci.org/farskipper/node-krl-parser)
 

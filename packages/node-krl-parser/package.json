@@ -13,6 +13,7 @@
     "url": "git+https://github.com/farskipper/node-krl-parser.git"
   },
   "keywords": [
+    "pico-engine",
     "krl",
     "parser"
   ],
