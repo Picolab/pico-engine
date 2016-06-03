@@ -19,6 +19,7 @@
     "url": "git+https://github.com/farskipper/node-krl-compiler.git"
   },
   "keywords": [
+    "pico-engine",
     "krl",
     "compiler"
   ],
