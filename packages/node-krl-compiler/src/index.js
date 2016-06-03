@@ -4,8 +4,10 @@ var parser = require('krl-parser');
 var escodegen = require('escodegen');
 var compileRuleset = require('./compileRuleset');
 
-module.exports = function(src){
-  var ast = parser(src);
+module.exports = function(ast){
+  if(_.isString(ast)){
+    ast = parser(ast);
+  }
 
   if(!_.isArray(ast) || ast.length !== 1 || ast[0].type !== 'ruleset'){
     throw new Error('one ruleset per file');
