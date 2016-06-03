@@ -11,5 +11,11 @@ $ npm install -g pico-engine
 $ pico-engine
 ```
 
+### Configuration
+The server is configured via some environment variables.
+
+ * `PORT` - what port the http server should listen on. By default it's `8080`
+ * `PICO_ENGINE_HOME` - where the database and other configuration files should be stored. By default it's `~/.pico-engine/`
+
 ## License
 MIT

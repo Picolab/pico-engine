@@ -1,3 +1,11 @@
 #!/usr/bin/env node
 
+var mkdirp = require('mkdirp');
+
+if(!process.env.PICO_ENGINE_HOME){
+  process.env.PICO_ENGINE_HOME = require('home-dir')('.pico-engine');
+}
+
+mkdirp.sync(process.env.PICO_ENGINE_HOME);
+
 require('../src/server');
