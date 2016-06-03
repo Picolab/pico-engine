@@ -5,13 +5,16 @@ var http = require('http');
 var PicoEngine = require('./');
 var HttpHashRouter = require('http-hash-router');
 
+////////////////////////////////////////////////////////////////////////////////
+var port = process.env.PORT || 8080;
+var pico_engine_home = process.env.PICO_ENGINE_HOME || path.resolve(__dirname, '..');
+////////////////////////////////////////////////////////////////////////////////
+
 var pe = PicoEngine({
   db: {
-    path: path.resolve(__dirname, '../db')
+    path: path.join(pico_engine_home, 'db')
   }
 });
-
-var port = process.env.PORT || 8080;
 
 var router = HttpHashRouter();
 
