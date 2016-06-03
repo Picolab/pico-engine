@@ -11,10 +11,7 @@ module.exports = function(ast){
   });
 
   return e.obj({
-    name: {
-      "type": "Literal",
-      "value": ast.name
-    },
+    name: e.str(ast.name),
     rules: e.obj(rules_obj)
   });
 };

@@ -2,76 +2,18 @@ var _ = require('lodash');
 var e = require('estree-builder');
 
 var estCTXEventProp = function(prop){
-  return {
-    "type": "MemberExpression",
-    "computed": false,
-    "object": {
-      "type": "MemberExpression",
-      "computed": false,
-      "object": {
-        "type": "Identifier",
-        "name": "ctx"
-      },
-      "property": {
-        "type": "Identifier",
-        "name": "event"
-      }
-    },
-    "property": {
-      "type": "Identifier",
-      "name": prop
-    }
-  };
-};
-
-var estTriEq = function(left, right){
-  return {
-    "type": "BinaryExpression",
-    "operator": "===",
-    "left": left,
-    "right": right
-  };
-};
-
-var estString = function(str){
-  return {
-    "type": "Literal",
-    "value": str,
-    "raw": JSON.stringify(str)
-  };
-};
-
-var estAnd = function(left, right){
-  return {
-    "type": "LogicalExpression",
-    "operator": "&&",
-    "left": left,
-    "right": right
-  };
+  return e('.', e('.', e.id('ctx'), e.id('event')), e.id(prop));
 };
 
 var eventExprToEstree = function(expr){
   var fn_body = [];
-  fn_body.push({
-    'type': 'ExpressionStatement',
-    'expression': {
-      'type': 'CallExpression',
-      'callee': {
-        'type': 'Identifier',
-        'name': 'callback'
-      },
-      'arguments': [
-        {
-          "type": "Identifier",
-          "name": "undefined"
-        },
-        estAnd(
-          estTriEq(estCTXEventProp('domain'), estString('echo')),
-          estTriEq(estCTXEventProp('type'), estString('hello'))
-        )
-      ]
-    }
-  });
+  fn_body.push(e(';', e('call', e.id('callback'), [
+    e.nil(),
+    e('&&',
+      e('===', estCTXEventProp('domain'), e.str('echo')),
+      e('===', estCTXEventProp('type'), e.str('hello'))
+    )
+  ])));
   return e.fn(['ctx', 'callback'], fn_body);
 };
 

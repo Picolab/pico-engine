@@ -1,4 +1,5 @@
 var _ = require('lodash');
+var e = require('estree-builder');
 var parser = require('krl-parser');
 var escodegen = require('escodegen');
 var compileRuleset = require('./compileRuleset');
@@ -11,28 +12,9 @@ module.exports = function(src){
   }
 
   var estree = {
-    "type": "Program",
-    "body": [
-      {
-        "type": "ExpressionStatement",
-        "expression": {
-          "type": "AssignmentExpression",
-          "operator": "=",
-          "left": {
-            "type": "MemberExpression",
-            "computed": false,
-            "object": {
-              "type": "Identifier",
-              "name": "module"
-            },
-            "property": {
-              "type": "Identifier",
-              "name": "exports"
-            }
-          },
-          "right": compileRuleset(ast[0])
-        }
-      }
+    'type': 'Program',
+    'body': [
+      e(';', e('=', e('.', e.id('module'), e.id('exports')), compileRuleset(ast[0])))
     ]
   };
   return escodegen.generate(estree);
