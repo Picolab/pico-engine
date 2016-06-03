@@ -1,16 +1,16 @@
 module.exports = {
-    name: 'hello_world',
-    rules: {
-        say_hello: {
-            select: {
-                graph: { echo: { hello: { expr_0: true } } },
-                eventexprs: {
-                    expr_0: function (ctx, callback) {
+    'name': 'hello_world',
+    'rules': {
+        'say_hello': {
+            'select': {
+                'graph': { 'echo': { 'hello': { 'expr_0': true } } },
+                'eventexprs': {
+                    'expr_0': function (ctx, callback) {
                         callback(undefined, ctx.event.domain === 'echo' && ctx.event.type === 'hello');
                     }
                 },
-                state_machine: {
-                    start: [
+                'state_machine': {
+                    'start': [
                         [
                             'expr_0',
                             'end'
@@ -25,11 +25,11 @@ module.exports = {
                     ]
                 }
             },
-            action: function (ctx, callback) {
+            'action': function (ctx, callback) {
                 callback(undefined, {
-                    type: 'directive',
-                    name: 'say',
-                    options: { something: 'Hello World' }
+                    'type': 'directive',
+                    'name': 'say',
+                    'options': { 'something': 'Hello World' }
                 });
             }
         }
