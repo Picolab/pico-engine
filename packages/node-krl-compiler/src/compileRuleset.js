@@ -1,6 +1,6 @@
 var _ = require('lodash');
+var e = require('estree-builder');
 var compileRule = require('./compileRule');
-var toEstreeObject = require('./toEstreeObject');
 
 module.exports = function(ast){
 
@@ -10,11 +10,11 @@ module.exports = function(ast){
     rules_obj[rule.name] = compileRule(rule);
   });
 
-  return toEstreeObject({
+  return e.obj({
     name: {
       "type": "Literal",
       "value": ast.name
     },
-    rules: toEstreeObject(rules_obj)
+    rules: e.obj(rules_obj)
   });
 };

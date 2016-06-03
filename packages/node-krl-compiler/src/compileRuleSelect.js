@@ -1,7 +1,5 @@
 var _ = require('lodash');
-var toEstreeJSON = require('./toEstreeJSON');
-var toEstreeObject = require('./toEstreeObject');
-var toEstreeFnCtxCallback = require('./toEstreeFnCtxCallback');
+var e = require('estree-builder');
 
 var estCTXEventProp = function(prop){
   return {
@@ -74,7 +72,7 @@ var eventExprToEstree = function(expr){
       ]
     }
   });
-  return toEstreeFnCtxCallback(fn_body);
+  return e.fn(['ctx', 'callback'], fn_body);
 };
 
 module.exports = function(ast){
@@ -108,9 +106,9 @@ module.exports = function(ast){
     state_machine.start.push([['not', id], 'start']);
   });
 
-  return toEstreeObject({
-    graph: toEstreeJSON(graph),
-    eventexprs: toEstreeObject(eventexprs),
-    state_machine: toEstreeJSON(state_machine)
+  return e.obj({
+    graph: e.json(graph),
+    eventexprs: e.obj(eventexprs),
+    state_machine: e.json(state_machine)
   });
 };

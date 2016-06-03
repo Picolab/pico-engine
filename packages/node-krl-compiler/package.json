@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "escodegen": "^1.8.0",
+    "estree-builder": "^1.0.0",
     "krl-parser": "0.0.2",
     "lodash": "^4.13.1"
   }

@@ -1,6 +1,5 @@
 var _ = require('lodash');
-var toEstreeObject = require('./toEstreeObject');
-var toEstreeFnCtxCallback = require('./toEstreeFnCtxCallback');
+var e = require('estree-builder');
 
 module.exports = function(actions_ast){
 
@@ -21,7 +20,7 @@ module.exports = function(actions_ast){
               'type': 'Identifier',
               'name': 'undefined'
             },
-            toEstreeObject({
+            e.obj({
               type: {
                 'type': 'Literal',
                 'value': 'directive'
@@ -30,7 +29,7 @@ module.exports = function(actions_ast){
                 'type': 'Literal',
                 'value': ast.args[0].value
               },
-              options: toEstreeObject(_.fromPairs(_.map(ast['with'].pairs, function(pair){
+              options: e.obj(_.fromPairs(_.map(ast['with'].pairs, function(pair){
                 return [pair[0].src, {
                   'type': 'Literal',
                   'value': pair[1].value
@@ -45,5 +44,5 @@ module.exports = function(actions_ast){
     }
   });
 
-  return toEstreeFnCtxCallback(fn_body);
+  return e.fn(['ctx', 'callback'], fn_body);
 };

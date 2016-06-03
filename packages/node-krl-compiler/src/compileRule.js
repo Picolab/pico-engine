@@ -1,10 +1,10 @@
 var _ = require('lodash');
-var toEstreeObject = require('./toEstreeObject');
+var e = require('estree-builder');
 var compileRuleSelect = require('./compileRuleSelect');
 var compileRuleAction = require('./compileRuleAction');
 
 module.exports = function(ast){
-  return toEstreeObject({
+  return e.obj({
     select: compileRuleSelect(ast.select),
     action: compileRuleAction(ast.actions)
   });
