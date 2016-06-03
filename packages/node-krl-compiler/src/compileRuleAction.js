@@ -7,38 +7,16 @@ module.exports = function(actions_ast){
 
   _.each(actions_ast, function(ast){
     if(ast.type === 'send_directive'){
-      fn_body.push({
-        'type': 'ExpressionStatement',
-        'expression': {
-          'type': 'CallExpression',
-          'callee': {
-            'type': 'Identifier',
-            'name': 'callback'
-          },
-          'arguments': [
-            {
-              'type': 'Identifier',
-              'name': 'undefined'
-            },
-            e.obj({
-              type: {
-                'type': 'Literal',
-                'value': 'directive'
-              },
-              name: {
-                'type': 'Literal',
-                'value': ast.args[0].value
-              },
-              options: e.obj(_.fromPairs(_.map(ast['with'].pairs, function(pair){
-                return [pair[0].src, {
-                  'type': 'Literal',
-                  'value': pair[1].value
-                }];
-              })))
-            })
-          ]
-        }
-      });
+      fn_body.push(e(';', e('call', e.id('callback'), [
+        e.nil(),
+        e.obj({
+          type: e.str('directive'),
+          name: e.str(ast.args[0].value),
+          options: e.obj(_.fromPairs(_.map(ast['with'].pairs, function(pair){
+            return [pair[0].src, e.json(pair[1].value)];
+          })))
+        })
+      ])));
     }else{
       throw new Error('Unknown action type: ' + ast.type);
     }
