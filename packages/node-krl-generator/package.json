@@ -28,5 +28,8 @@
     "krl-parser": "0.0.2",
     "onchange": "^2.5.0",
     "tape": "^4.5.1"
+  },
+  "dependencies": {
+    "lodash": "^4.13.1"
   }
 }
