@@ -1,0 +1,25 @@
+{
+  "name": "krl-generator",
+  "version": "0.0.0",
+  "description": "Generate KRL code given krl-ast as input. (pretty printer)",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/farskipper/node-krl-generator.git"
+  },
+  "keywords": [
+    "krl",
+    "generator",
+    "pretty-printer",
+    "pico-engine"
+  ],
+  "author": "farskipper",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/farskipper/node-krl-generator/issues"
+  },
+  "homepage": "https://github.com/farskipper/node-krl-generator#readme"
+}
