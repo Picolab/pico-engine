@@ -4,6 +4,7 @@
   "description": "Generate KRL code given krl-ast as input. (pretty printer)",
   "main": "index.js",
   "scripts": {
+    "start": "onchange '*.js' -i -- npm test -s",
     "test": "node tests.js"
   },
   "repository": {
@@ -21,5 +22,11 @@
   "bugs": {
     "url": "https://github.com/farskipper/node-krl-generator/issues"
   },
-  "homepage": "https://github.com/farskipper/node-krl-generator#readme"
+  "homepage": "https://github.com/farskipper/node-krl-generator#readme",
+  "devDependencies": {
+    "contra": "^1.9.4",
+    "krl-parser": "0.0.2",
+    "onchange": "^2.5.0",
+    "tape": "^4.5.1"
+  }
 }
