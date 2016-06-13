@@ -212,3 +212,53 @@ test('parser - action', function(t){
 
   t.end();
 });
+
+test('parser - locations', function(t){
+  var src = '';
+  src += 'ruleset one {\n';
+  src += '  rule two {\n';
+  src += '  }\n';
+  src += '}\n';
+
+  t.deepEquals(parser(src)[0], {
+    type: 'ruleset',
+    loc: {start: 0, end: 32},
+    name: 'one',
+    rules: [
+      {
+        loc: {start: 16, end: 30},
+        type: 'rule',
+        name: 'two'
+      }
+    ]
+  });
+
+  var testSelect = function(src, expected){
+    src = 'ruleset one {rule two {' + src + '}}';
+    t.deepEquals(parser(src)[0].rules[0].select, expected);
+  };
+
+  src = 'select when a b';
+  testSelect(src, {
+    loc: {start: 23, end: 38},
+    type: 'select_when',
+    event_expressions: {
+      loc: {start: 35, end: 38},
+      type: 'event_expression',
+      event_domain: {
+        loc: {start: 35, end: 36},
+        type: 'symbol',
+        src: 'a'
+      },
+      event_type: {
+        loc: {start: 37, end: 38},
+        type: 'symbol',
+        src: 'b'
+      }
+    }
+  });
+
+
+
+  t.end();
+});
