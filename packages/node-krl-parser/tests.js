@@ -233,13 +233,8 @@ test('parser - locations', function(t){
     ]
   });
 
-  var testSelect = function(src, expected){
-    src = 'ruleset one {rule two {' + src + '}}';
-    t.deepEquals(parser(src)[0].rules[0].select, expected);
-  };
-
   src = 'select when a b';
-  testSelect(src, {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select, {
     loc: {start: 23, end: 38},
     type: 'select_when',
     event_expressions: {
@@ -258,7 +253,43 @@ test('parser - locations', function(t){
     }
   });
 
-
+  src = 'select when a b or c d';
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select.event_expressions, {
+    loc: {start: 35, end: 45},
+    type: 'event_op',
+    op: 'or',
+    args: [],
+    expressions: [
+      {
+        loc: {start: 35, end: 38},
+        type: 'event_expression',
+        event_domain: {
+          loc: {start: 35, end: 36},
+          type: 'symbol',
+          src: 'a'
+        },
+        event_type: {
+          loc: {start: 37, end: 38},
+          type: 'symbol',
+          src: 'b'
+        }
+      },
+      {
+        loc: {start: 42, end: 45},
+        type: 'event_expression',
+        event_domain: {
+          loc: {start: 42, end: 43},
+          type: 'symbol',
+          src: 'c'
+        },
+        event_type: {
+          loc: {start: 44, end: 45},
+          type: 'symbol',
+          src: 'd'
+        }
+      }
+    ]
+  });
 
   t.end();
 });

@@ -18,7 +18,7 @@ var infixEventOp = function(op){
   return function(data, loc){
     return {
       type: 'event_op',
-      loc: loc,
+      loc: {start: data[0].loc.start, end: data[4].loc.end},
       op: op,
       args: [],
       expressions: [data[0], data[4]]
