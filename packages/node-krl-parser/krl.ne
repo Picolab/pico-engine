@@ -17,7 +17,7 @@ var flatten = function(toFlatten){
   }
 };
 
-var reserved_symbols = {
+var reserved_identifiers = {
   "true": true,
   "false": true
 };
@@ -72,7 +72,7 @@ var infixOp = function(data, start){
 
 main -> _ statement_list _ {% getN(1) %}
 
-ruleset -> "ruleset" __ Symbol _ "{" _ (rule _):* loc_close_curly {%
+ruleset -> "ruleset" __ Identifier _ "{" _ (rule _):* loc_close_curly {%
   function(data, loc){
     return {
       type: 'ruleset',
@@ -86,7 +86,7 @@ ruleset -> "ruleset" __ Symbol _ "{" _ (rule _):* loc_close_curly {%
   }
 %}
 
-rule -> "rule" __ Symbol _ "{" _ rule_body _ loc_close_curly {%
+rule -> "rule" __ Identifier _ "{" _ rule_body _ loc_close_curly {%
   function(data, loc){
     var ast = data[6] || {};
     ast.type = 'rule';
@@ -145,10 +145,10 @@ event_expression ->
 %}
 
 event_domain ->
-    Symbol {% id %}
+    Identifier {% id %}
 
 event_type ->
-    Symbol {% id %}
+    Identifier {% id %}
 
 event_action ->
     "send_directive" _ function_call_args _ with_expression:? {%
@@ -174,7 +174,7 @@ function_call_args ->
     "(" _ expression_list _ ")" {% getN(2) %}
 
 with_expression ->
-    "with" __ symbol_value_pairs {%
+    "with" __ identifier_value_pairs {%
   function(data, loc){
     var pairs = data[2];
     var last_pair = last(pairs);
@@ -186,12 +186,12 @@ with_expression ->
   }
 %}
 
-symbol_value_pairs ->
-    symbol_value_pair {% function(d){return [d[0]]} %}
-    | symbol_value_pairs __ "and" __ symbol_value_pair {% function(d){return d[0].concat([d[4]])} %}
+identifier_value_pairs ->
+    identifier_value_pair {% function(d){return [d[0]]} %}
+    | identifier_value_pairs __ "and" __ identifier_value_pair {% function(d){return d[0].concat([d[4]])} %}
 
-symbol_value_pair ->
-    Symbol _ "=" _ expression {%
+identifier_value_pair ->
+    Identifier _ "=" _ expression {%
   function(data, loc){
     return [data[0], data[4]];
   }
@@ -259,7 +259,7 @@ expression_atom ->
       String {% id %}
     | Number {% id %}
     | Boolean {% id %}
-    | Symbol {% id %}
+    | Identifier {% id %}
     | Array {% id %}
     | Object {% id %}
     | RegExp {% id %}
@@ -289,10 +289,10 @@ Function -> "function" _ "(" _ function_params _ ")" _ "{" _ statement_list _ lo
 
 function_params ->
     null {% function(d){return []} %}
-    | Symbol {% function(d){return [d[0]]} %}
-    | function_params _ "," _ Symbol {% function(d){return d[0].concat([d[4]])} %}
+    | Identifier {% function(d){return [d[0]]} %}
+    | function_params _ "," _ Identifier {% function(d){return d[0].concat([d[4]])} %}
 
-CallExpression -> Symbol _ "(" _ expression_list _ loc_close_paren {%
+CallExpression -> Identifier _ "(" _ expression_list _ loc_close_paren {%
   function(data, start){
     return {
       loc: {start: start, end: data[6]},
@@ -336,14 +336,14 @@ _object_kv_pair -> String _ ":" _ expression {% function(d){return [[d[0], d[4]]
 ################################################################################
 # Literals
 
-Symbol -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
+Identifier -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
   function(data, loc, reject){
     var src = flatten(data).join('');
-    if(reserved_symbols.hasOwnProperty(src)){
+    if(reserved_identifiers.hasOwnProperty(src)){
       return reject;
     }
     return {
-      type: 'Symbol',
+      type: 'Identifier',
       loc: {start: loc, end: loc + src.length},
       value: src
     };

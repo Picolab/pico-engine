@@ -43,8 +43,8 @@ var parseRuleBody = function(rule_body, expected){
 var mkEventExp = function(domain, type){
   return {
     type: 'event_expression',
-    event_domain: {type: 'Symbol', value: domain},
-    event_type: {type: 'Symbol', value: type}
+    event_domain: {type: 'Identifier', value: domain},
+    event_type: {type: 'Identifier', value: type}
   };
 };
 
@@ -71,7 +71,7 @@ test('parser', function(t){
       type: 'ruleset',
       loc: {start: 0, end: 14},
 
-      name: {type: 'Symbol', value: 'rs', loc: {start: 8, end: 10}},
+      name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
       rules: []
     }
   ]);
@@ -86,12 +86,12 @@ test('parser', function(t){
       type: 'ruleset',
       loc: {start: 0, end: 27},
 
-      name: {type: 'Symbol', value: 'rs', loc: {start: 8, end: 10}},
+      name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
       rules: [
         {
           type: 'rule',
           loc: {start: 15, end: 25},
-          name: {type: 'Symbol', value: 'r1', loc: {start: 20, end: 22}},
+          name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
         }
       ]
     }
@@ -108,17 +108,17 @@ test('parser', function(t){
       type: 'ruleset',
       loc: {start: 0, end: 40},
 
-      name: {type: 'Symbol', value: 'rs', loc: {start: 8, end: 10}},
+      name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
       rules: [
         {
           type: 'rule',
           loc: {start: 15, end: 25},
-          name: {type: 'Symbol', value: 'r1', loc: {start: 20, end: 22}},
+          name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
         },
         {
           type: 'rule',
           loc: {start: 28, end: 38},
-          name: {type: 'Symbol', value: 'r2', loc: {start: 33, end: 35}},
+          name: {type: 'Identifier', value: 'r2', loc: {start: 33, end: 35}},
         }
       ]
     }
@@ -137,8 +137,8 @@ test('parser - select when', function(t){
   var src = 'select when d t';
   asertRuleAST(src, {
     type: 'event_expression',
-    event_domain: {type: 'Symbol', value: 'd'},
-    event_type: {type: 'Symbol', value: 't'}
+    event_domain: {type: 'Identifier', value: 'd'},
+    event_type: {type: 'Identifier', value: 't'}
   });
 
   src = 'select when d a or d b';
@@ -149,13 +149,13 @@ test('parser - select when', function(t){
     expressions: [
       {
         type: 'event_expression',
-        event_domain: {type: 'Symbol', value: 'd'},
-        event_type: {type: 'Symbol', value: 'a'}
+        event_domain: {type: 'Identifier', value: 'd'},
+        event_type: {type: 'Identifier', value: 'a'}
       },
       {
         type: 'event_expression',
-        event_domain: {type: 'Symbol', value: 'd'},
-        event_type: {type: 'Symbol', value: 'b'}
+        event_domain: {type: 'Identifier', value: 'd'},
+        event_type: {type: 'Identifier', value: 'b'}
       }
     ]
   });
@@ -205,7 +205,7 @@ test('parser - action', function(t){
       type: "with_expression",
       pairs: [
         [
-          {type: 'Symbol', value: 'something'},
+          {type: 'Identifier', value: 'something'},
           {type: 'String', value: 'hello world'}
         ]
       ]
@@ -215,7 +215,7 @@ test('parser - action', function(t){
 
   var mkPair = function(key, val){
     return [
-      {type: 'Symbol', value: key},
+      {type: 'Identifier', value: key},
       {type: 'Number', value: parseFloat(val)}
     ];
   };
@@ -255,7 +255,7 @@ test('parser - locations', function(t){
     loc: {start: 0, end: 32},
     name: {
       loc: {start: 8, end: 11},
-      type: 'Symbol',
+      type: 'Identifier',
       value: 'one'
     },
     rules: [
@@ -264,7 +264,7 @@ test('parser - locations', function(t){
         type: 'rule',
         name: {
           loc: {start: 21, end: 24},
-          type: 'Symbol',
+          type: 'Identifier',
           value: 'two'
         }
       }
@@ -280,12 +280,12 @@ test('parser - locations', function(t){
       type: 'event_expression',
       event_domain: {
         loc: {start: 35, end: 36},
-        type: 'Symbol',
+        type: 'Identifier',
         value: 'a'
       },
       event_type: {
         loc: {start: 37, end: 38},
-        type: 'Symbol',
+        type: 'Identifier',
         value: 'b'
       }
     }
@@ -303,12 +303,12 @@ test('parser - locations', function(t){
         type: 'event_expression',
         event_domain: {
           loc: {start: 35, end: 36},
-          type: 'Symbol',
+          type: 'Identifier',
           value: 'a'
         },
         event_type: {
           loc: {start: 37, end: 38},
-          type: 'Symbol',
+          type: 'Identifier',
           value: 'b'
         }
       },
@@ -317,12 +317,12 @@ test('parser - locations', function(t){
         type: 'event_expression',
         event_domain: {
           loc: {start: 42, end: 43},
-          type: 'Symbol',
+          type: 'Identifier',
           value: 'c'
         },
         event_type: {
           loc: {start: 44, end: 45},
-          type: 'Symbol',
+          type: 'Identifier',
           value: 'd'
         }
       }
@@ -358,7 +358,7 @@ test('parser - locations', function(t){
         [
           {
             loc: {start: 66, end: 70},
-            type: 'Symbol',
+            type: 'Identifier',
             value: 'blah',
           },
           {
@@ -374,16 +374,16 @@ test('parser - locations', function(t){
   t.deepEquals(parser('a => b | c')[0], {
     loc: {start: 0, end: 10},
     type: 'ConditionalExpression',
-    test:       {type: 'Symbol', value: 'a', loc: {start: 0, end: 1}},
-    consequent: {type: 'Symbol', value: 'b', loc: {start: 5, end: 6}},
-    alternate:  {type: 'Symbol', value: 'c', loc: {start: 9, end: 10}}
+    test:       {type: 'Identifier', value: 'a', loc: {start: 0, end: 1}},
+    consequent: {type: 'Identifier', value: 'b', loc: {start: 5, end: 6}},
+    alternate:  {type: 'Identifier', value: 'c', loc: {start: 9, end: 10}}
   });
 
   t.deepEquals(parser('function(a){b}')[0], {
     loc: {start: 0, end: 14},
     type: 'Function',
-    params: [{type: 'Symbol', value: 'a', loc: {start: 9, end: 10}}],
-    body: [{type: 'Symbol', value: 'b', loc: {start: 12, end: 13}}]
+    params: [{type: 'Identifier', value: 'a', loc: {start: 9, end: 10}}],
+    body: [{type: 'Identifier', value: 'b', loc: {start: 12, end: 13}}]
   });
 
   t.end();
@@ -484,17 +484,17 @@ test('parser - expressions', function(t){
 
   testExp('one()', {
     type: 'CallExpression',
-    callee: {type: 'Symbol', value: 'one'},
+    callee: {type: 'Identifier', value: 'one'},
     args: []
   });
   testExp('one ( 1 , 2 )', {
     type: 'CallExpression',
-    callee: {type: 'Symbol', value: 'one'},
+    callee: {type: 'Identifier', value: 'one'},
     args: [{type: 'Number', value: 1}, {type: 'Number', value: 2}]
   });
   testExp('one(1,2)', {
     type: 'CallExpression',
-    callee: {type: 'Symbol', value: 'one'},
+    callee: {type: 'Identifier', value: 'one'},
     args: [{type: 'Number', value: 1}, {type: 'Number', value: 2}]
   });
 
@@ -514,32 +514,32 @@ test('parser - expressions', function(t){
 
   testExp('a => b | c', {
     type: 'ConditionalExpression',
-    test:       {type: 'Symbol', value: 'a'},
-    consequent: {type: 'Symbol', value: 'b'},
-    alternate:  {type: 'Symbol', value: 'c'}
+    test:       {type: 'Identifier', value: 'a'},
+    consequent: {type: 'Identifier', value: 'b'},
+    alternate:  {type: 'Identifier', value: 'c'}
   });
 
   testExp('a => b | c => d | e', {
     type: 'ConditionalExpression',
-    test:       {type: 'Symbol', value: 'a'},
-    consequent: {type: 'Symbol', value: 'b'},
+    test:       {type: 'Identifier', value: 'a'},
+    consequent: {type: 'Identifier', value: 'b'},
     alternate:  {
       type: 'ConditionalExpression',
-      test:       {type: 'Symbol', value: 'c'},
-      consequent: {type: 'Symbol', value: 'd'},
-      alternate:  {type: 'Symbol', value: 'e'}
+      test:       {type: 'Identifier', value: 'c'},
+      consequent: {type: 'Identifier', value: 'd'},
+      alternate:  {type: 'Identifier', value: 'e'}
     }
   });
 
   testExp('a=>b|c=>d|e', {
     type: 'ConditionalExpression',
-    test:       {type: 'Symbol', value: 'a'},
-    consequent: {type: 'Symbol', value: 'b'},
+    test:       {type: 'Identifier', value: 'a'},
+    consequent: {type: 'Identifier', value: 'b'},
     alternate:  {
       type: 'ConditionalExpression',
-      test:       {type: 'Symbol', value: 'c'},
-      consequent: {type: 'Symbol', value: 'd'},
-      alternate:  {type: 'Symbol', value: 'e'}
+      test:       {type: 'Identifier', value: 'c'},
+      consequent: {type: 'Identifier', value: 'd'},
+      alternate:  {type: 'Identifier', value: 'e'}
     }
   });
 
@@ -550,8 +550,8 @@ test('parser - expressions', function(t){
   });
   testExp('function(a){b}', {
     type: 'Function',
-    params: [{type: 'Symbol', value: 'a'}],
-    body: [{type: 'Symbol', value: 'b'}]
+    params: [{type: 'Identifier', value: 'a'}],
+    body: [{type: 'Identifier', value: 'b'}]
   });
 
   t.end();
