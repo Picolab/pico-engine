@@ -204,7 +204,7 @@ test('parser - action', function(t){
   var mkPair = function(key, val){
     return [
       {type: 'symbol', src: key},
-      {type: 'number', src: val, value: parseFloat(val)}
+      {type: 'number', value: parseFloat(val)}
     ];
   };
   src  = 'send_directive("say") with\n';
@@ -310,11 +310,11 @@ test('parser - locations', function(t){
   });
   src = 'select when a b\nsend_directive("say")';
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].actions[0], {
-    loc: {start: 39, end: 57},
+    loc: {start: 39, end: 58},
     type: 'send_directive',
     args: [
       {
-        loc: {start: 54, end: 57},
+        loc: {start: 53, end: 58},
         type: 'string',
         value: 'say'
       }
@@ -326,7 +326,7 @@ test('parser - locations', function(t){
     type: 'send_directive',
     args: [
       {
-        loc: {start: 54, end: 57},
+        loc: {start: 53, end: 58},
         type: 'string',
         value: 'say'
       }
@@ -344,8 +344,7 @@ test('parser - locations', function(t){
           {
             loc: {start: 73, end: 74},
             type: 'number',
-            value: 1,
-            src: '1'
+            value: 1
           }
         ]
       ]
@@ -370,21 +369,21 @@ test('parser - literals', function(t){
   testLiteral('"one\ntwo"', {type: 'string', value: 'one\ntwo'});
   testLiteral('"one\\"two"', {type: 'string', value: 'one"two'});
 
-  testLiteral('123', {type: 'number', value: 123, src: '123'});
-  testLiteral('-1', {type: 'number', value: -1, src: '-1'});
-  testLiteral('1.5', {type: 'number', value: 1.5, src: '1.5'});
-  testLiteral('+1.5', {type: 'number', value: 1.5, src: '+1.5'});
-  testLiteral('-.50', {type: 'number', value: -0.5, src: '-.50'});
-  testLiteral('-0.0', {type: 'number', value: 0, src: '-0.0'});
+  testLiteral('123', {type: 'number', value: 123});
+  testLiteral('-1', {type: 'number', value: -1});
+  testLiteral('1.5', {type: 'number', value: 1.5});
+  testLiteral('+1.5', {type: 'number', value: 1.5});
+  testLiteral('-.50', {type: 'number', value: -0.5});
+  testLiteral('-0.0', {type: 'number', value: 0});
 
-  testLiteral('true', {type: 'boolean', value: true, src: 'true'});
-  testLiteral('false', {type: 'boolean', value: false, src: 'false'});
+  testLiteral('true', {type: 'boolean', value: true});
+  testLiteral('false', {type: 'boolean', value: false});
 
   testLiteral('[]', {type: 'array', value: []});
   testLiteral('["one"]', {type: 'array', value: [{type: 'string', value: 'one'}]});
   testLiteral('[  1,  false ]', {type: 'array', value: [
-    {type: 'number', value: 1, src: '1'},
-    {type: 'boolean', value: false, src: 'false'}
+    {type: 'number', value: 1},
+    {type: 'boolean', value: false}
   ]});
 
   testLiteral('{}', {type: 'object', value: []});
@@ -392,8 +391,8 @@ test('parser - literals', function(t){
     [{type:'string',value:'one'},{type:'string',value:'two'}]
   ]});
   testLiteral('{"1":2,"3":true,"5":[]}', {type: 'object', value: [
-    [{type:'string',value:'1'},{type:'number',value:2,src:'2'}],
-    [{type:'string',value:'3'},{type:'boolean',value:true,src:'true'}],
+    [{type:'string',value:'1'},{type:'number',value:2}],
+    [{type:'string',value:'3'},{type:'boolean',value:true}],
     [{type:'string',value:'5'},{type:'array',value:[]}]
   ]});
 

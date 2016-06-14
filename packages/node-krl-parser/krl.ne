@@ -22,10 +22,9 @@ var booleanAST = function(value){
   return function(data, loc){
     var src = data[0];
     return {
-      type: 'boolean',
       loc: {start: loc, end: loc + src.length},
-      value: value,
-      src: src
+      type: 'boolean',
+      value: value
     };
   };
 };
@@ -246,8 +245,7 @@ number -> _number {%
     return {
       loc: {start: loc, end: loc + src.length},
       type: 'number',
-      value: parseFloat(src) || 0,// or 0 to avoid NaN
-      src: src
+      value: parseFloat(src) || 0// or 0 to avoid NaN
     };
   }
 %}
@@ -298,7 +296,7 @@ string -> "\"" _string "\"" {%
   function(data, loc){
     var src = data[1];
     return {
-      loc: {start: loc, end: loc + src.length},
+      loc: {start: loc - 1, end: loc + src.length + 1},
       type: 'string',
       value: src
     };
