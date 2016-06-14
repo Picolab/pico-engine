@@ -182,6 +182,7 @@ var grammar = {
     {"name": "expression", "symbols": ["array"], "postprocess": id},
     {"name": "expression", "symbols": ["object"], "postprocess": id},
     {"name": "expression", "symbols": ["regex"], "postprocess": id},
+    {"name": "expression", "symbols": ["double_quote"], "postprocess": id},
     {"name": "expression_list", "symbols": ["_"], "postprocess": function(d){return []}},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
@@ -271,6 +272,23 @@ var grammar = {
     {"name": "_regex_modifiers_chars", "symbols": ["_regex_modifiers_chars$string$1"]},
     {"name": "_regex_modifiers_chars$string$2", "symbols": [{"literal":"g"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "_regex_modifiers_chars", "symbols": ["_regex_modifiers_chars$string$2"]},
+    {"name": "double_quote$string$1", "symbols": [{"literal":"<"}, {"literal":"<"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "double_quote$string$2", "symbols": [{"literal":">"}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "double_quote", "symbols": ["double_quote$string$1", "_double_quote", "double_quote$string$2"], "postprocess": 
+        function(data, loc){
+          var src = data[1];
+          //TODO handle beestings
+          return {
+            loc: {start: loc - 2, end: loc + src.length + 2},
+            type: 'string',
+            value: src
+          };
+        }
+        },
+    {"name": "_double_quote", "symbols": [], "postprocess": noopStr},
+    {"name": "_double_quote", "symbols": ["_double_quote", "_double_quote_char"], "postprocess": function(d){return d[0] + d[1]}},
+    {"name": "_double_quote_char", "symbols": [/[^>]/], "postprocess": id},
+    {"name": "_double_quote_char", "symbols": [{"literal":">"}, /[^>]/], "postprocess": idAll},
     {"name": "string", "symbols": [{"literal":"\""}, "_string", {"literal":"\""}], "postprocess": 
         function(data, loc){
           var src = data[1];

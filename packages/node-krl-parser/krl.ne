@@ -192,6 +192,7 @@ expression ->
     | array {% id %}
     | object {% id %}
     | regex {% id %}
+    | double_quote {% id %}
 
 expression_list ->
     _ {% function(d){return []} %}
@@ -291,6 +292,26 @@ _regex_modifiers -> _regex_modifiers_chars {%
 
 _regex_modifiers_chars -> null {% noopStr %}
     | "i" | "g" | "ig" | "gi"
+
+double_quote -> "<<" _double_quote ">>" {%
+  function(data, loc){
+    var src = data[1];
+    //TODO handle beestings
+    return {
+      loc: {start: loc - 2, end: loc + src.length + 2},
+      type: 'string',
+      value: src
+    };
+  }
+%}
+
+_double_quote ->
+    null {% noopStr %}
+    | _double_quote _double_quote_char {% function(d){return d[0] + d[1]} %}
+
+_double_quote_char ->
+    [^>] {% id %}
+    | ">" [^>] {% idAll %}
 
 string -> "\"" _string "\"" {%
   function(data, loc){

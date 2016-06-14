@@ -423,5 +423,7 @@ test('parser - literals', function(t){
   testLiteral('re#\\# else\\\\#ig', {type: 'regex', value: /# else\\/ig});
   testLiteral('re#/ok/g#ig', {type: 'regex', value: /\/ok\/g/ig});
 
+  testLiteral('<<\n  hello\n  >>', {type: 'string', value: '\n  hello\n  '});
+
   t.end();
 });
