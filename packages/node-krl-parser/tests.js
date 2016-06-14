@@ -2,11 +2,23 @@ var _ = require('lodash');
 var test = require('tape');
 var parser = require('./');
 
+var normalizeAST = function(ast){
+  if(_.isArray(ast)){
+    return _.map(ast, normalizeAST);
+  }
+  if(_.isPlainObject(ast)){
+    if(ast.type === 'regex'){
+      ast.value = ast.value.toString();
+    }
+  }
+  return ast;
+};
+
 var rmLoc = function(ast){
   if(_.isArray(ast)){
     return _.map(ast, rmLoc);
   }
-  if(_.isObject(ast)){
+  if(_.isPlainObject(ast)){
     return _.mapValues(_.omit(ast, 'loc'), rmLoc);
   }
   return ast;
@@ -344,7 +356,8 @@ test('parser - literals', function(t){
     if(ast.length !== 1){
       t.fail('testLiteral -> ast.length !== 1');
     }
-    ast = ast[0];
+    ast = normalizeAST(ast[0]);
+    expected = normalizeAST(expected);
     t.deepEquals(ast, expected);
   };
   testLiteral('"one"', {type: 'string', value: 'one'});
@@ -378,7 +391,11 @@ test('parser - literals', function(t){
     [{type:'string',value:'5'},{type:'array',value:[]}]
   ]});
 
-  testLiteral('re#one#i', {type: 'regex', value: /one/i, pattern: 'one', modifiers: 'i'});
+  testLiteral('re#one#', {type: 'regex', value: /one/});
+  testLiteral('re#one#i', {type: 'regex', value: /one/i});
+  testLiteral('re#one#ig', {type: 'regex', value: /one/ig});
+  testLiteral('re#^one(/two)? .* $#ig', {type: 'regex', value: /^one(\/two)? .* $/ig});
+  testLiteral('re#\\# else\\\\#ig', {type: 'regex', value: /# else\\/ig});
 
   t.end();
 });

@@ -251,29 +251,29 @@ var grammar = {
           var pattern = data[1];
           var modifiers = data[3][0];
           return {
-            loc: {start: loc, end: data[3][1]},//TODO end loc
+            loc: {start: loc, end: data[3][1]},
             type: 'regex',
-            value: new RegExp(pattern, modifiers),
-            pattern: pattern,
-            modifiers: modifiers
+            value: new RegExp(pattern, modifiers)
           };
         }
         },
-    {"name": "_regex_pattern$ebnf$1", "symbols": []},
-    {"name": "_regex_pattern$ebnf$1", "symbols": [/[\w]/, "_regex_pattern$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "_regex_pattern", "symbols": ["_regex_pattern$ebnf$1"], "postprocess": 
+    {"name": "_regex_pattern", "symbols": [], "postprocess": function(){return ""}},
+    {"name": "_regex_pattern", "symbols": ["_regex_pattern", "_regex_pattern_char"], "postprocess": function(d){return d[0] + d[1]}},
+    {"name": "_regex_pattern_char", "symbols": [/[^\\#]/], "postprocess": id},
+    {"name": "_regex_pattern_char", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return d[1] === '#' ? '#' : '\\\\'}},
+    {"name": "_regex_modifiers", "symbols": ["_regex_modifiers_chars"], "postprocess": 
         function(data, loc){
-          return data[0].join('');
-        }
-        },
-    {"name": "_regex_modifiers$ebnf$1", "symbols": []},
-    {"name": "_regex_modifiers$ebnf$1", "symbols": [/[ig]/, "_regex_modifiers$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "_regex_modifiers", "symbols": ["_regex_modifiers$ebnf$1"], "postprocess": 
-        function(data, loc){
-          var src = data[0].join('');
+          var src = flatten(data).join('');
           return [src, loc + src.length];
         }
         },
+    {"name": "_regex_modifiers_chars", "symbols": [], "postprocess": function(){return ""}},
+    {"name": "_regex_modifiers_chars", "symbols": [{"literal":"i"}]},
+    {"name": "_regex_modifiers_chars", "symbols": [{"literal":"g"}]},
+    {"name": "_regex_modifiers_chars$string$1", "symbols": [{"literal":"i"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "_regex_modifiers_chars", "symbols": ["_regex_modifiers_chars$string$1"]},
+    {"name": "_regex_modifiers_chars$string$2", "symbols": [{"literal":"g"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "_regex_modifiers_chars", "symbols": ["_regex_modifiers_chars$string$2"]},
     {"name": "string", "symbols": [{"literal":"\""}, "_string", {"literal":"\""}], "postprocess": 
         function(data, loc){
           var src = data[1];

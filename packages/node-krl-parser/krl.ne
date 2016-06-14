@@ -270,27 +270,30 @@ regex -> "re#" _regex_pattern "#" _regex_modifiers {%
     var pattern = data[1];
     var modifiers = data[3][0];
     return {
-      loc: {start: loc, end: data[3][1]},//TODO end loc
+      loc: {start: loc, end: data[3][1]},
       type: 'regex',
-      value: new RegExp(pattern, modifiers),
-      pattern: pattern,
-      modifiers: modifiers
+      value: new RegExp(pattern, modifiers)
     };
   }
 %}
 
-_regex_pattern -> [\w]:* {%
-  function(data, loc){
-    return data[0].join('');
-  }
-%}
+_regex_pattern ->
+    null {% function(){return ""} %}
+    | _regex_pattern _regex_pattern_char {% function(d){return d[0] + d[1]} %}
 
-_regex_modifiers -> [ig]:* {%
+_regex_pattern_char ->
+  [^\\#] {% id %}
+  | "\\" [^] {% function(d){return d[1] === '#' ? '#' : '\\\\'} %}
+
+_regex_modifiers -> _regex_modifiers_chars {%
   function(data, loc){
-    var src = data[0].join('');
+    var src = flatten(data).join('');
     return [src, loc + src.length];
   }
 %}
+
+_regex_modifiers_chars -> null {% function(){return ""} %}
+    | "i" | "g" | "ig" | "gi"
 
 string -> "\"" _string "\"" {%
   function(data, loc){
