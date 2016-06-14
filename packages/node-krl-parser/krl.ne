@@ -70,8 +70,7 @@ var infixOp = function(data, start){
 
 %}
 
-main -> _ ruleset _ {% getN(1) %}
-    | expression {% id %}
+main -> _ statement_list _ {% getN(1) %}
 
 ruleset -> "ruleset" __ Symbol _ "{" _ (rule _):* loc_close_curly {%
   function(data, loc){
@@ -201,7 +200,9 @@ symbol_value_pair ->
 ################################################################################
 # Statements
 
-statement -> expression {% id %}
+statement ->
+      expression {% id %}
+    | ruleset {% id %}
 
 statement_list -> null {% function(){return [];} %}
     | statement {% function(d){return [d[0]];} %}
@@ -289,7 +290,7 @@ Function -> "function" _ "(" _ function_params _ ")" _ "{" _ statement_list _ lo
 function_params ->
     null {% function(d){return []} %}
     | Symbol {% function(d){return [d[0]]} %}
-    | _function_params _ "," _ Symbol {% function(d){return d[0].concat([d[4]])} %}
+    | function_params _ "," _ Symbol {% function(d){return d[0].concat([d[4]])} %}
 
 CallExpression -> Symbol _ "(" _ expression_list _ loc_close_paren {%
   function(data, start){

@@ -74,8 +74,7 @@ var infixOp = function(data, start){
 
 var grammar = {
     ParserRules: [
-    {"name": "main", "symbols": ["_", "ruleset", "_"], "postprocess": getN(1)},
-    {"name": "main", "symbols": ["expression"], "postprocess": id},
+    {"name": "main", "symbols": ["_", "statement_list", "_"], "postprocess": getN(1)},
     {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset$ebnf$1", "symbols": []},
     {"name": "ruleset$ebnf$1$subexpression$1", "symbols": ["rule", "_"]},
@@ -191,6 +190,7 @@ var grammar = {
         }
         },
     {"name": "statement", "symbols": ["expression"], "postprocess": id},
+    {"name": "statement", "symbols": ["ruleset"], "postprocess": id},
     {"name": "statement_list", "symbols": [], "postprocess": function(){return [];}},
     {"name": "statement_list", "symbols": ["statement"], "postprocess": function(d){return [d[0]];}},
     {"name": "statement_list", "symbols": ["statement_list", "_", {"literal":";"}, "_", "statement"], "postprocess": function(d){return d[0].concat(d[4])}},
@@ -271,7 +271,7 @@ var grammar = {
         },
     {"name": "function_params", "symbols": [], "postprocess": function(d){return []}},
     {"name": "function_params", "symbols": ["Symbol"], "postprocess": function(d){return [d[0]]}},
-    {"name": "function_params", "symbols": ["_function_params", "_", {"literal":","}, "_", "Symbol"], "postprocess": function(d){return d[0].concat([d[4]])}},
+    {"name": "function_params", "symbols": ["function_params", "_", {"literal":","}, "_", "Symbol"], "postprocess": function(d){return d[0].concat([d[4]])}},
     {"name": "CallExpression", "symbols": ["Symbol", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren"], "postprocess": 
         function(data, start){
           return {
