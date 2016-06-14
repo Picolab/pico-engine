@@ -8,7 +8,13 @@ var normalizeAST = function(ast){
   }
   if(_.isPlainObject(ast)){
     if(ast.type === 'regex'){
-      ast.value = ast.value.toString();
+      if((new RegExp('/')).toString() === '///'){//old versions of v8 botch this
+        ast.value = '/' + ast.value.source.split('\\').join('') + '/'
+          + (ast.value.global ? 'g' : '')
+          + (ast.value.ignoreCase ? 'i' : '');
+      }else{
+        ast.value = ast.value.toString();
+      }
     }
   }
   return ast;
@@ -396,6 +402,7 @@ test('parser - literals', function(t){
   testLiteral('re#one#ig', {type: 'regex', value: /one/ig});
   testLiteral('re#^one(/two)? .* $#ig', {type: 'regex', value: /^one(\/two)? .* $/ig});
   testLiteral('re#\\# else\\\\#ig', {type: 'regex', value: /# else\\/ig});
+  testLiteral('re#/ok/g#ig', {type: 'regex', value: /\/ok\/g/ig});
 
   t.end();
 });
