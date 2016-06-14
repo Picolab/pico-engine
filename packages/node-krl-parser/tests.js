@@ -71,7 +71,7 @@ test('parser', function(t){
       type: 'ruleset',
       loc: {start: 0, end: 14},
 
-      name: 'rs',
+      name: {type: 'symbol', value: 'rs', loc: {start: 8, end: 10}},
       rules: []
     }
   ]);
@@ -86,9 +86,13 @@ test('parser', function(t){
       type: 'ruleset',
       loc: {start: 0, end: 27},
 
-      name: 'rs',
+      name: {type: 'symbol', value: 'rs', loc: {start: 8, end: 10}},
       rules: [
-        {type: 'rule', loc: {start: 15, end: 25}, name: 'r1'}
+        {
+          type: 'rule',
+          loc: {start: 15, end: 25},
+          name: {type: 'symbol', value: 'r1', loc: {start: 20, end: 22}},
+        }
       ]
     }
   ]);
@@ -104,10 +108,18 @@ test('parser', function(t){
       type: 'ruleset',
       loc: {start: 0, end: 40},
 
-      name: 'rs',
+      name: {type: 'symbol', value: 'rs', loc: {start: 8, end: 10}},
       rules: [
-        {type: 'rule', loc: {start: 15, end: 25}, name: 'r1'},
-        {type: 'rule', loc: {start: 28, end: 38}, name: 'r2'}
+        {
+          type: 'rule',
+          loc: {start: 15, end: 25},
+          name: {type: 'symbol', value: 'r1', loc: {start: 20, end: 22}},
+        },
+        {
+          type: 'rule',
+          loc: {start: 28, end: 38},
+          name: {type: 'symbol', value: 'r2', loc: {start: 33, end: 35}},
+        }
       ]
     }
   ]);
@@ -164,7 +176,7 @@ test('parser - action', function(t){
   var asertRuleAST = function(rule_body, expected){
     var ast = parseRuleBody('select when d a\n' + rule_body);
     var exp_ast = {
-      name: ast.name,
+      name: rmLoc(ast.name),
       type: ast.type,
       select: {type: 'select_when', event_expressions: mkEventExp('d', 'a')},
     };
@@ -241,12 +253,20 @@ test('parser - locations', function(t){
   t.deepEquals(parser(src)[0], {
     type: 'ruleset',
     loc: {start: 0, end: 32},
-    name: 'one',
+    name: {
+      loc: {start: 8, end: 11},
+      type: 'symbol',
+      value: 'one'
+    },
     rules: [
       {
         loc: {start: 16, end: 30},
         type: 'rule',
-        name: 'two'
+        name: {
+          loc: {start: 21, end: 24},
+          type: 'symbol',
+          value: 'two'
+        }
       }
     ]
   });
