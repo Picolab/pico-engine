@@ -127,28 +127,22 @@ select_when ->
 %}
 
 event_exprs ->
-    event_expression {% id %}
+    EventExpression {% id %}
     | "(" _ event_exprs _ ")" {% getN(2) %}
     | event_exprs __ "or" __ event_exprs {% infixEventOp('or') %}
     | event_exprs __ "and" __ event_exprs {% infixEventOp('and') %}
 
-event_expression ->
-  event_domain __ event_type {%
+EventExpression ->
+  Identifier __ Identifier {%
   function(data, loc){
     return {
-      type: 'event_expression',
+      type: 'EventExpression',
       loc: {start: loc, end: data[2].loc.end},
-      event_domain: data[0],
-      event_type: data[2]
+      domain: data[0],
+      type: data[2]
     };
   }
 %}
-
-event_domain ->
-    Identifier {% id %}
-
-event_type ->
-    Identifier {% id %}
 
 event_action ->
     "send_directive" _ function_call_args _ with_expression:? {%

@@ -42,9 +42,9 @@ var parseRuleBody = function(rule_body, expected){
 
 var mkEventExp = function(domain, type){
   return {
-    type: 'event_expression',
-    event_domain: {type: 'Identifier', value: domain},
-    event_type: {type: 'Identifier', value: type}
+    type: 'EventExpression',
+    domain: {type: 'Identifier', value: domain},
+    type: {type: 'Identifier', value: type}
   };
 };
 
@@ -136,9 +136,9 @@ test('parser - select when', function(t){
 
   var src = 'select when d t';
   asertRuleAST(src, {
-    type: 'event_expression',
-    event_domain: {type: 'Identifier', value: 'd'},
-    event_type: {type: 'Identifier', value: 't'}
+    type: 'EventExpression',
+    domain: {type: 'Identifier', value: 'd'},
+    type: {type: 'Identifier', value: 't'}
   });
 
   src = 'select when d a or d b';
@@ -148,14 +148,14 @@ test('parser - select when', function(t){
     args: [],
     expressions: [
       {
-        type: 'event_expression',
-        event_domain: {type: 'Identifier', value: 'd'},
-        event_type: {type: 'Identifier', value: 'a'}
+        type: 'EventExpression',
+        domain: {type: 'Identifier', value: 'd'},
+        type: {type: 'Identifier', value: 'a'}
       },
       {
-        type: 'event_expression',
-        event_domain: {type: 'Identifier', value: 'd'},
-        event_type: {type: 'Identifier', value: 'b'}
+        type: 'EventExpression',
+        domain: {type: 'Identifier', value: 'd'},
+        type: {type: 'Identifier', value: 'b'}
       }
     ]
   });
@@ -277,13 +277,13 @@ test('parser - locations', function(t){
     type: 'select_when',
     event_expressions: {
       loc: {start: 35, end: 38},
-      type: 'event_expression',
-      event_domain: {
+      type: 'EventExpression',
+      domain: {
         loc: {start: 35, end: 36},
         type: 'Identifier',
         value: 'a'
       },
-      event_type: {
+      type: {
         loc: {start: 37, end: 38},
         type: 'Identifier',
         value: 'b'
@@ -300,13 +300,13 @@ test('parser - locations', function(t){
     expressions: [
       {
         loc: {start: 35, end: 38},
-        type: 'event_expression',
-        event_domain: {
+        type: 'EventExpression',
+        domain: {
           loc: {start: 35, end: 36},
           type: 'Identifier',
           value: 'a'
         },
-        event_type: {
+        type: {
           loc: {start: 37, end: 38},
           type: 'Identifier',
           value: 'b'
@@ -314,13 +314,13 @@ test('parser - locations', function(t){
       },
       {
         loc: {start: 42, end: 45},
-        type: 'event_expression',
-        event_domain: {
+        type: 'EventExpression',
+        domain: {
           loc: {start: 42, end: 43},
           type: 'Identifier',
           value: 'c'
         },
-        event_type: {
+        type: {
           loc: {start: 44, end: 45},
           type: 'Identifier',
           value: 'd'

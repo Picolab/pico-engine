@@ -129,24 +129,22 @@ var grammar = {
           };
         }
         },
-    {"name": "event_exprs", "symbols": ["event_expression"], "postprocess": id},
+    {"name": "event_exprs", "symbols": ["EventExpression"], "postprocess": id},
     {"name": "event_exprs", "symbols": [{"literal":"("}, "_", "event_exprs", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "event_exprs$string$1", "symbols": [{"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$1", "__", "event_exprs"], "postprocess": infixEventOp('or')},
     {"name": "event_exprs$string$2", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$2", "__", "event_exprs"], "postprocess": infixEventOp('and')},
-    {"name": "event_expression", "symbols": ["event_domain", "__", "event_type"], "postprocess": 
+    {"name": "EventExpression", "symbols": ["Identifier", "__", "Identifier"], "postprocess": 
         function(data, loc){
           return {
-            type: 'event_expression',
+            type: 'EventExpression',
             loc: {start: loc, end: data[2].loc.end},
-            event_domain: data[0],
-            event_type: data[2]
+            domain: data[0],
+            type: data[2]
           };
         }
         },
-    {"name": "event_domain", "symbols": ["Identifier"], "postprocess": id},
-    {"name": "event_type", "symbols": ["Identifier"], "postprocess": id},
     {"name": "event_action$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"n"}, {"literal":"d"}, {"literal":"_"}, {"literal":"d"}, {"literal":"i"}, {"literal":"r"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_action$ebnf$1", "symbols": ["with_expression"], "postprocess": id},
     {"name": "event_action$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
