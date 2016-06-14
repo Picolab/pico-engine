@@ -32,6 +32,19 @@ var last = function(arr){
   return arr[arr.length - 1];
 };
 
+var flatten = function(toFlatten){
+  var isArray = Object.prototype.toString.call(toFlatten) === '[object Array]';
+
+  if (isArray && toFlatten.length > 0) {
+    var head = toFlatten[0];
+    var tail = toFlatten.slice(1);
+
+    return flatten(head).concat(flatten(tail));
+  } else {
+    return [].concat(toFlatten);
+  }
+};
+
 var grammar = {
     ParserRules: [
     {"name": "main", "symbols": ["_", "ruleset", "_"], "postprocess": getN(1)},
@@ -167,11 +180,9 @@ var grammar = {
           };
         }
         },
-    {"name": "number$ebnf$1", "symbols": [/[0-9]/]},
-    {"name": "number$ebnf$1", "symbols": [/[0-9]/, "number$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "number", "symbols": ["number$ebnf$1"], "postprocess": 
+    {"name": "number", "symbols": ["_number"], "postprocess": 
         function(data, loc){
-          var src = data[0].join('');
+          var src = flatten(data).join('');
           return {
             loc: {start: loc, end: loc + src.length},
             type: 'number',
@@ -180,6 +191,15 @@ var grammar = {
           };
         }
         },
+    {"name": "_number", "symbols": ["_float"]},
+    {"name": "_number", "symbols": [{"literal":"+"}, "_float"]},
+    {"name": "_number", "symbols": [{"literal":"-"}, "_float"]},
+    {"name": "_float", "symbols": ["_int"]},
+    {"name": "_float", "symbols": [{"literal":"."}, "_int"]},
+    {"name": "_float", "symbols": ["_int", {"literal":"."}, "_int"]},
+    {"name": "_int$ebnf$1", "symbols": [/[0-9]/]},
+    {"name": "_int$ebnf$1", "symbols": [/[0-9]/, "_int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "_int", "symbols": ["_int$ebnf$1"], "postprocess": function(d){return d[0].join('');}},
     {"name": "string", "symbols": [{"literal":"\""}, "_string", {"literal":"\""}], "postprocess": 
         function(data, loc){
           var src = data[1];

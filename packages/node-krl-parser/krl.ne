@@ -28,6 +28,19 @@ var last = function(arr){
   return arr[arr.length - 1];
 };
 
+var flatten = function(toFlatten){
+  var isArray = Object.prototype.toString.call(toFlatten) === '[object Array]';
+
+  if (isArray && toFlatten.length > 0) {
+    var head = toFlatten[0];
+    var tail = toFlatten.slice(1);
+
+    return flatten(head).concat(flatten(tail));
+  } else {
+    return [].concat(toFlatten);
+  }
+};
+
 %}
 
 main -> _ ruleset _ {% getN(1) %}
@@ -179,9 +192,9 @@ symbol -> [\w]:+  {%
   }
 %}
 
-number -> [0-9]:+ {%
+number -> _number {%
   function(data, loc){
-    var src = data[0].join('');
+    var src = flatten(data).join('');
     return {
       loc: {start: loc, end: loc + src.length},
       type: 'number',
@@ -190,6 +203,18 @@ number -> [0-9]:+ {%
     };
   }
 %}
+
+_number ->
+    _float
+    | "+" _float
+    | "-" _float
+
+_float ->
+    _int
+    | "." _int
+    | _int "." _int
+
+_int -> [0-9]:+ {% function(d){return d[0].join('');} %}
 
 string -> "\"" _string "\"" {%
   function(data, loc){

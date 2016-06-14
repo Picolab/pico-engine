@@ -345,7 +345,11 @@ test('parser - literals', function(t){
   testLiteral('"one\\"two"', {type: 'string', value: 'one"two'});
 
   testLiteral('123', {type: 'number', value: 123, src: '123'});
-  //testLiteral('1.5', {type: 'number', value: 1.5, src: '1.5'});
+  testLiteral('-1', {type: 'number', value: -1, src: '-1'});
+  testLiteral('1.5', {type: 'number', value: 1.5, src: '1.5'});
+  testLiteral('+1.5', {type: 'number', value: 1.5, src: '+1.5'});
+  testLiteral('-.50', {type: 'number', value: -0.5, src: '-.50'});
+  testLiteral('-0.0', {type: 'number', value: 0, src: '-0.0'});
 
   t.end();
 });
