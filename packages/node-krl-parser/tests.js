@@ -7,7 +7,7 @@ var normalizeAST = function(ast){
     return _.map(ast, normalizeAST);
   }
   if(_.isPlainObject(ast)){
-    if(ast.type === 'regex'){
+    if(ast.type === 'RegExp'){
       if((new RegExp('/')).toString() === '///'){//old versions of v8 botch this
         ast.value = '/' + ast.value.source.split('\\').join('') + '/'
           + (ast.value.global ? 'g' : '')
@@ -43,8 +43,8 @@ var parseRuleBody = function(rule_body, expected){
 var mkEventExp = function(domain, type){
   return {
     type: 'event_expression',
-    event_domain: {type: 'symbol', value: domain},
-    event_type: {type: 'symbol', value: type}
+    event_domain: {type: 'Symbol', value: domain},
+    event_type: {type: 'Symbol', value: type}
   };
 };
 
@@ -71,7 +71,7 @@ test('parser', function(t){
       type: 'ruleset',
       loc: {start: 0, end: 14},
 
-      name: {type: 'symbol', value: 'rs', loc: {start: 8, end: 10}},
+      name: {type: 'Symbol', value: 'rs', loc: {start: 8, end: 10}},
       rules: []
     }
   ]);
@@ -86,12 +86,12 @@ test('parser', function(t){
       type: 'ruleset',
       loc: {start: 0, end: 27},
 
-      name: {type: 'symbol', value: 'rs', loc: {start: 8, end: 10}},
+      name: {type: 'Symbol', value: 'rs', loc: {start: 8, end: 10}},
       rules: [
         {
           type: 'rule',
           loc: {start: 15, end: 25},
-          name: {type: 'symbol', value: 'r1', loc: {start: 20, end: 22}},
+          name: {type: 'Symbol', value: 'r1', loc: {start: 20, end: 22}},
         }
       ]
     }
@@ -108,17 +108,17 @@ test('parser', function(t){
       type: 'ruleset',
       loc: {start: 0, end: 40},
 
-      name: {type: 'symbol', value: 'rs', loc: {start: 8, end: 10}},
+      name: {type: 'Symbol', value: 'rs', loc: {start: 8, end: 10}},
       rules: [
         {
           type: 'rule',
           loc: {start: 15, end: 25},
-          name: {type: 'symbol', value: 'r1', loc: {start: 20, end: 22}},
+          name: {type: 'Symbol', value: 'r1', loc: {start: 20, end: 22}},
         },
         {
           type: 'rule',
           loc: {start: 28, end: 38},
-          name: {type: 'symbol', value: 'r2', loc: {start: 33, end: 35}},
+          name: {type: 'Symbol', value: 'r2', loc: {start: 33, end: 35}},
         }
       ]
     }
@@ -137,8 +137,8 @@ test('parser - select when', function(t){
   var src = 'select when d t';
   asertRuleAST(src, {
     type: 'event_expression',
-    event_domain: {type: 'symbol', value: 'd'},
-    event_type: {type: 'symbol', value: 't'}
+    event_domain: {type: 'Symbol', value: 'd'},
+    event_type: {type: 'Symbol', value: 't'}
   });
 
   src = 'select when d a or d b';
@@ -149,13 +149,13 @@ test('parser - select when', function(t){
     expressions: [
       {
         type: 'event_expression',
-        event_domain: {type: 'symbol', value: 'd'},
-        event_type: {type: 'symbol', value: 'a'}
+        event_domain: {type: 'Symbol', value: 'd'},
+        event_type: {type: 'Symbol', value: 'a'}
       },
       {
         type: 'event_expression',
-        event_domain: {type: 'symbol', value: 'd'},
-        event_type: {type: 'symbol', value: 'b'}
+        event_domain: {type: 'Symbol', value: 'd'},
+        event_type: {type: 'Symbol', value: 'b'}
       }
     ]
   });
@@ -190,7 +190,7 @@ test('parser - action', function(t){
   asertRuleAST(src, {
     type: 'send_directive',
     args: [
-      {type: 'string', value: 'say'}
+      {type: 'String', value: 'say'}
     ]
   });
 
@@ -199,14 +199,14 @@ test('parser - action', function(t){
   asertRuleAST(src, {
     type: 'send_directive',
     args: [
-      {type: 'string', value: 'say'}
+      {type: 'String', value: 'say'}
     ],
     "with": {
       type: "with_expression",
       pairs: [
         [
-          {type: 'symbol', value: 'something'},
-          {type: 'string', value: 'hello world'}
+          {type: 'Symbol', value: 'something'},
+          {type: 'String', value: 'hello world'}
         ]
       ]
     }
@@ -215,8 +215,8 @@ test('parser - action', function(t){
 
   var mkPair = function(key, val){
     return [
-      {type: 'symbol', value: key},
-      {type: 'number', value: parseFloat(val)}
+      {type: 'Symbol', value: key},
+      {type: 'Number', value: parseFloat(val)}
     ];
   };
   src  = 'send_directive("say") with\n';
@@ -228,7 +228,7 @@ test('parser - action', function(t){
   asertRuleAST(src, {
     type: 'send_directive',
     args: [
-      {type: 'string', value: 'say'}
+      {type: 'String', value: 'say'}
     ],
     "with": {
       type: "with_expression",
@@ -255,7 +255,7 @@ test('parser - locations', function(t){
     loc: {start: 0, end: 32},
     name: {
       loc: {start: 8, end: 11},
-      type: 'symbol',
+      type: 'Symbol',
       value: 'one'
     },
     rules: [
@@ -264,7 +264,7 @@ test('parser - locations', function(t){
         type: 'rule',
         name: {
           loc: {start: 21, end: 24},
-          type: 'symbol',
+          type: 'Symbol',
           value: 'two'
         }
       }
@@ -280,12 +280,12 @@ test('parser - locations', function(t){
       type: 'event_expression',
       event_domain: {
         loc: {start: 35, end: 36},
-        type: 'symbol',
+        type: 'Symbol',
         value: 'a'
       },
       event_type: {
         loc: {start: 37, end: 38},
-        type: 'symbol',
+        type: 'Symbol',
         value: 'b'
       }
     }
@@ -303,12 +303,12 @@ test('parser - locations', function(t){
         type: 'event_expression',
         event_domain: {
           loc: {start: 35, end: 36},
-          type: 'symbol',
+          type: 'Symbol',
           value: 'a'
         },
         event_type: {
           loc: {start: 37, end: 38},
-          type: 'symbol',
+          type: 'Symbol',
           value: 'b'
         }
       },
@@ -317,12 +317,12 @@ test('parser - locations', function(t){
         type: 'event_expression',
         event_domain: {
           loc: {start: 42, end: 43},
-          type: 'symbol',
+          type: 'Symbol',
           value: 'c'
         },
         event_type: {
           loc: {start: 44, end: 45},
-          type: 'symbol',
+          type: 'Symbol',
           value: 'd'
         }
       }
@@ -335,7 +335,7 @@ test('parser - locations', function(t){
     args: [
       {
         loc: {start: 53, end: 58},
-        type: 'string',
+        type: 'String',
         value: 'say'
       }
     ]
@@ -347,7 +347,7 @@ test('parser - locations', function(t){
     args: [
       {
         loc: {start: 53, end: 58},
-        type: 'string',
+        type: 'String',
         value: 'say'
       }
     ],
@@ -358,12 +358,12 @@ test('parser - locations', function(t){
         [
           {
             loc: {start: 66, end: 70},
-            type: 'symbol',
+            type: 'Symbol',
             value: 'blah',
           },
           {
             loc: {start: 73, end: 74},
-            type: 'number',
+            type: 'Number',
             value: 1
           }
         ]
@@ -374,9 +374,9 @@ test('parser - locations', function(t){
   t.deepEquals(parser('a => b | c')[0], {
     loc: {start: 0, end: 10},
     type: 'conditional-expression',
-    test:       {type: 'symbol', value: 'a', loc: {start: 0, end: 1}},
-    consequent: {type: 'symbol', value: 'b', loc: {start: 5, end: 6}},
-    alternate:  {type: 'symbol', value: 'c', loc: {start: 9, end: 10}}
+    test:       {type: 'Symbol', value: 'a', loc: {start: 0, end: 1}},
+    consequent: {type: 'Symbol', value: 'b', loc: {start: 5, end: 6}},
+    alternate:  {type: 'Symbol', value: 'c', loc: {start: 9, end: 10}}
   });
 
   t.end();
@@ -388,80 +388,80 @@ test('parser - literals', function(t){
     expected = normalizeAST(expected);
     t.deepEquals(ast, [expected]);
   };
-  testLiteral('"one"', {type: 'string', value: 'one'});
-  testLiteral('"one\ntwo"', {type: 'string', value: 'one\ntwo'});
-  testLiteral('"one\\"two"', {type: 'string', value: 'one"two'});
+  testLiteral('"one"', {type: 'String', value: 'one'});
+  testLiteral('"one\ntwo"', {type: 'String', value: 'one\ntwo'});
+  testLiteral('"one\\"two"', {type: 'String', value: 'one"two'});
 
-  testLiteral('123', {type: 'number', value: 123});
-  testLiteral('-1', {type: 'number', value: -1});
-  testLiteral('1.5', {type: 'number', value: 1.5});
-  testLiteral('+1.5', {type: 'number', value: 1.5});
-  testLiteral('-.50', {type: 'number', value: -0.5});
-  testLiteral('-0.0', {type: 'number', value: 0});
+  testLiteral('123', {type: 'Number', value: 123});
+  testLiteral('-1', {type: 'Number', value: -1});
+  testLiteral('1.5', {type: 'Number', value: 1.5});
+  testLiteral('+1.5', {type: 'Number', value: 1.5});
+  testLiteral('-.50', {type: 'Number', value: -0.5});
+  testLiteral('-0.0', {type: 'Number', value: 0});
 
-  testLiteral('true', {type: 'boolean', value: true});
-  testLiteral('false', {type: 'boolean', value: false});
+  testLiteral('true', {type: 'Boolean', value: true});
+  testLiteral('false', {type: 'Boolean', value: false});
 
-  testLiteral('[]', {type: 'array', value: []});
-  testLiteral('["one"]', {type: 'array', value: [{type: 'string', value: 'one'}]});
-  testLiteral('[  1,  false ]', {type: 'array', value: [
-    {type: 'number', value: 1},
-    {type: 'boolean', value: false}
+  testLiteral('[]', {type: 'Array', value: []});
+  testLiteral('["one"]', {type: 'Array', value: [{type: 'String', value: 'one'}]});
+  testLiteral('[  1,  false ]', {type: 'Array', value: [
+    {type: 'Number', value: 1},
+    {type: 'Boolean', value: false}
   ]});
 
-  testLiteral('{}', {type: 'object', value: []});
-  testLiteral('{ "one" : "two" }', {type: 'object', value: [
-    [{type:'string',value:'one'},{type:'string',value:'two'}]
+  testLiteral('{}', {type: 'Object', value: []});
+  testLiteral('{ "one" : "two" }', {type: 'Object', value: [
+    [{type:'String',value:'one'},{type:'String',value:'two'}]
   ]});
-  testLiteral('{"1":2,"3":true,"5":[]}', {type: 'object', value: [
-    [{type:'string',value:'1'},{type:'number',value:2}],
-    [{type:'string',value:'3'},{type:'boolean',value:true}],
-    [{type:'string',value:'5'},{type:'array',value:[]}]
+  testLiteral('{"1":2,"3":true,"5":[]}', {type: 'Object', value: [
+    [{type:'String',value:'1'},{type:'Number',value:2}],
+    [{type:'String',value:'3'},{type:'Boolean',value:true}],
+    [{type:'String',value:'5'},{type:'Array',value:[]}]
   ]});
 
-  testLiteral('re#one#', {type: 'regex', value: /one/});
-  testLiteral('re#one#i', {type: 'regex', value: /one/i});
-  testLiteral('re#one#ig', {type: 'regex', value: /one/ig});
-  testLiteral('re#^one(/two)? .* $#ig', {type: 'regex', value: /^one(\/two)? .* $/ig});
-  testLiteral('re#\\# else\\\\#ig', {type: 'regex', value: /# else\\/ig});
-  testLiteral('re#/ok/g#ig', {type: 'regex', value: /\/ok\/g/ig});
+  testLiteral('re#one#', {type: 'RegExp', value: /one/});
+  testLiteral('re#one#i', {type: 'RegExp', value: /one/i});
+  testLiteral('re#one#ig', {type: 'RegExp', value: /one/ig});
+  testLiteral('re#^one(/two)? .* $#ig', {type: 'RegExp', value: /^one(\/two)? .* $/ig});
+  testLiteral('re#\\# else\\\\#ig', {type: 'RegExp', value: /# else\\/ig});
+  testLiteral('re#/ok/g#ig', {type: 'RegExp', value: /\/ok\/g/ig});
 
   testLiteral('<<>>', {
-    type: 'double_quote',
+    type: 'DoubleQuote',
     value: [
-      {type: 'string', value: ''}
+      {type: 'String', value: ''}
     ]
   });
   testLiteral('<<\n  hello\n  >>', {
-    type: 'double_quote',
+    type: 'DoubleQuote',
     value: [
-      {type: 'string', value: '\n  hello\n  '}
+      {type: 'String', value: '\n  hello\n  '}
     ]
   });
   testLiteral('<<#{1}>>', {
-    type: 'double_quote',
+    type: 'DoubleQuote',
     value: [
-      {type: 'string', value: ''},
-      {type: 'number', value: 1},
-      {type: 'string', value: ''}
+      {type: 'String', value: ''},
+      {type: 'Number', value: 1},
+      {type: 'String', value: ''}
     ]
   });
 
   testLiteral('<<one#{2}three>>', {
-    type: 'double_quote',
+    type: 'DoubleQuote',
     value: [
-      {type: 'string', value: 'one'},
-      {type: 'number', value: 2},
-      {type: 'string', value: 'three'}
+      {type: 'String', value: 'one'},
+      {type: 'Number', value: 2},
+      {type: 'String', value: 'three'}
     ]
   });
 
   testLiteral('<<one#{{"one":2}}three>>', {
-    type: 'double_quote',
+    type: 'DoubleQuote',
     value: [
-      {type: 'string', value: 'one'},
-      {type: 'object', value: [[{type:'string',value:'one'},{type:'number',value:2}]]},
-      {type: 'string', value: 'three'}
+      {type: 'String', value: 'one'},
+      {type: 'Object', value: [[{type:'String',value:'one'},{type:'Number',value:2}]]},
+      {type: 'String', value: 'three'}
     ]
   });
 
@@ -476,63 +476,63 @@ test('parser - expressions', function(t){
   };
 
   testExp('one()', {
-    type: 'call-expression',
-    callee: {type: 'symbol', value: 'one'},
+    type: 'CallExpression',
+    callee: {type: 'Symbol', value: 'one'},
     args: []
   });
   testExp('one ( 1 , 2 )', {
-    type: 'call-expression',
-    callee: {type: 'symbol', value: 'one'},
-    args: [{type: 'number', value: 1}, {type: 'number', value: 2}]
+    type: 'CallExpression',
+    callee: {type: 'Symbol', value: 'one'},
+    args: [{type: 'Number', value: 1}, {type: 'Number', value: 2}]
   });
   testExp('one(1,2)', {
-    type: 'call-expression',
-    callee: {type: 'symbol', value: 'one'},
-    args: [{type: 'number', value: 1}, {type: 'number', value: 2}]
+    type: 'CallExpression',
+    callee: {type: 'Symbol', value: 'one'},
+    args: [{type: 'Number', value: 1}, {type: 'Number', value: 2}]
   });
 
   testExp('1 + "two"', {
     type: 'infix',
     op: '+',
-    left: {type: 'number', value: 1},
-    right: {type: 'string', value: 'two'}
+    left: {type: 'Number', value: 1},
+    right: {type: 'String', value: 'two'}
   });
 
   testExp('1 like re#one#i', {
     type: 'infix',
     op: 'like',
-    left: {type: 'number', value: 1},
-    right: {type: 'regex', value: /one/i}
+    left: {type: 'Number', value: 1},
+    right: {type: 'RegExp', value: /one/i}
   });
 
   testExp('a => b | c', {
     type: 'conditional-expression',
-    test:       {type: 'symbol', value: 'a'},
-    consequent: {type: 'symbol', value: 'b'},
-    alternate:  {type: 'symbol', value: 'c'}
+    test:       {type: 'Symbol', value: 'a'},
+    consequent: {type: 'Symbol', value: 'b'},
+    alternate:  {type: 'Symbol', value: 'c'}
   });
 
   testExp('a => b | c => d | e', {
     type: 'conditional-expression',
-    test:       {type: 'symbol', value: 'a'},
-    consequent: {type: 'symbol', value: 'b'},
+    test:       {type: 'Symbol', value: 'a'},
+    consequent: {type: 'Symbol', value: 'b'},
     alternate:  {
       type: 'conditional-expression',
-      test:       {type: 'symbol', value: 'c'},
-      consequent: {type: 'symbol', value: 'd'},
-      alternate:  {type: 'symbol', value: 'e'}
+      test:       {type: 'Symbol', value: 'c'},
+      consequent: {type: 'Symbol', value: 'd'},
+      alternate:  {type: 'Symbol', value: 'e'}
     }
   });
 
   testExp('a=>b|c=>d|e', {
     type: 'conditional-expression',
-    test:       {type: 'symbol', value: 'a'},
-    consequent: {type: 'symbol', value: 'b'},
+    test:       {type: 'Symbol', value: 'a'},
+    consequent: {type: 'Symbol', value: 'b'},
     alternate:  {
       type: 'conditional-expression',
-      test:       {type: 'symbol', value: 'c'},
-      consequent: {type: 'symbol', value: 'd'},
-      alternate:  {type: 'symbol', value: 'e'}
+      test:       {type: 'Symbol', value: 'c'},
+      consequent: {type: 'Symbol', value: 'd'},
+      alternate:  {type: 'Symbol', value: 'e'}
     }
   });
 

@@ -56,7 +56,7 @@ var booleanAST = function(value){
     var src = data[0];
     return {
       loc: {start: loc, end: loc + src.length},
-      type: 'boolean',
+      type: 'Boolean',
       value: value
     };
   };
@@ -80,7 +80,7 @@ var grammar = {
     {"name": "ruleset$ebnf$1", "symbols": []},
     {"name": "ruleset$ebnf$1$subexpression$1", "symbols": ["rule", "_"]},
     {"name": "ruleset$ebnf$1", "symbols": ["ruleset$ebnf$1$subexpression$1", "ruleset$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "symbol", "_", {"literal":"{"}, "_", "ruleset$ebnf$1", "loc_close_curly"], "postprocess": 
+    {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "Symbol", "_", {"literal":"{"}, "_", "ruleset$ebnf$1", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
             type: 'ruleset',
@@ -94,7 +94,7 @@ var grammar = {
         }
         },
     {"name": "rule$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule", "symbols": ["rule$string$1", "__", "symbol", "_", {"literal":"{"}, "_", "rule_body", "_", "loc_close_curly"], "postprocess": 
+    {"name": "rule", "symbols": ["rule$string$1", "__", "Symbol", "_", {"literal":"{"}, "_", "rule_body", "_", "loc_close_curly"], "postprocess": 
         function(data, loc){
           var ast = data[6] || {};
           ast.type = 'rule';
@@ -146,8 +146,8 @@ var grammar = {
           };
         }
         },
-    {"name": "event_domain", "symbols": ["symbol"], "postprocess": id},
-    {"name": "event_type", "symbols": ["symbol"], "postprocess": id},
+    {"name": "event_domain", "symbols": ["Symbol"], "postprocess": id},
+    {"name": "event_type", "symbols": ["Symbol"], "postprocess": id},
     {"name": "event_action$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"n"}, {"literal":"d"}, {"literal":"_"}, {"literal":"d"}, {"literal":"i"}, {"literal":"r"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_action$ebnf$1", "symbols": ["with_expression"], "postprocess": id},
     {"name": "event_action$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
@@ -185,7 +185,7 @@ var grammar = {
     {"name": "symbol_value_pairs", "symbols": ["symbol_value_pair"], "postprocess": function(d){return [d[0]]}},
     {"name": "symbol_value_pairs$string$1", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "symbol_value_pairs", "symbols": ["symbol_value_pairs", "__", "symbol_value_pairs$string$1", "__", "symbol_value_pair"], "postprocess": function(d){return d[0].concat([d[4]])}},
-    {"name": "symbol_value_pair", "symbols": ["symbol", "_", {"literal":"="}, "_", "expression"], "postprocess": 
+    {"name": "symbol_value_pair", "symbols": ["Symbol", "_", {"literal":"="}, "_", "expression"], "postprocess": 
         function(data, loc){
           return [data[0], data[4]];
         }
@@ -240,43 +240,43 @@ var grammar = {
     {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"*"}, "_", "expression_atom"], "postprocess": infixOp},
     {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"/"}, "_", "expression_atom"], "postprocess": infixOp},
     {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"%"}, "_", "expression_atom"], "postprocess": infixOp},
-    {"name": "expression_atom", "symbols": ["string"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["number"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["boolean"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["symbol"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["array"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["object"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["regex"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["double_quote"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["call_expression"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["String"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["Number"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["Boolean"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["Symbol"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["Array"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["Object"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["RegExp"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["DoubleQuote"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["CallExpression"], "postprocess": id},
     {"name": "expression_atom", "symbols": [{"literal":"("}, "_", "expression", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "expression_list", "symbols": ["_"], "postprocess": function(d){return []}},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
-    {"name": "call_expression", "symbols": ["symbol", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren"], "postprocess": 
+    {"name": "CallExpression", "symbols": ["Symbol", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: data[6]},
-            type: 'call-expression',
+            type: 'CallExpression',
             callee: data[0],
             args: data[4]
           };
         }
         },
-    {"name": "array", "symbols": [{"literal":"["}, "_", "expression_list", "_", "loc_close_square"], "postprocess": 
+    {"name": "Array", "symbols": [{"literal":"["}, "_", "expression_list", "_", "loc_close_square"], "postprocess": 
         function(data, loc){
           return {
-            type: 'array',
+            type: 'Array',
             loc: {start: loc, end: data[4]},
             value: data[2]
           };
         }
         },
-    {"name": "object", "symbols": [{"literal":"{"}, "_", "_object_kv_pairs", "_", "loc_close_curly"], "postprocess": 
+    {"name": "Object", "symbols": [{"literal":"{"}, "_", "_object_kv_pairs", "_", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
             loc: {start: loc, end: data[4]},
-            type: 'object',
+            type: 'Object',
             value: data[2]
           };
         }
@@ -284,32 +284,32 @@ var grammar = {
     {"name": "_object_kv_pairs", "symbols": ["_"], "postprocess": function(d){return []}},
     {"name": "_object_kv_pairs", "symbols": ["_object_kv_pair"], "postprocess": id},
     {"name": "_object_kv_pairs", "symbols": ["_object_kv_pairs", "_", {"literal":","}, "_", "_object_kv_pair"], "postprocess": function(d){return d[0].concat(d[4])}},
-    {"name": "_object_kv_pair", "symbols": ["string", "_", {"literal":":"}, "_", "expression"], "postprocess": function(d){return [[d[0], d[4]]]}},
-    {"name": "symbol$ebnf$1", "symbols": []},
-    {"name": "symbol$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "symbol", "symbols": [/[a-zA-Z_$]/, "symbol$ebnf$1"], "postprocess": 
+    {"name": "_object_kv_pair", "symbols": ["String", "_", {"literal":":"}, "_", "expression"], "postprocess": function(d){return [[d[0], d[4]]]}},
+    {"name": "Symbol$ebnf$1", "symbols": []},
+    {"name": "Symbol$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "Symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "Symbol", "symbols": [/[a-zA-Z_$]/, "Symbol$ebnf$1"], "postprocess": 
         function(data, loc, reject){
           var src = flatten(data).join('');
           if(reserved_symbols.hasOwnProperty(src)){
             return reject;
           }
           return {
-            type: 'symbol',
+            type: 'Symbol',
             loc: {start: loc, end: loc + src.length},
             value: src
           };
         }
         },
-    {"name": "boolean$string$1", "symbols": [{"literal":"t"}, {"literal":"r"}, {"literal":"u"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "boolean", "symbols": ["boolean$string$1"], "postprocess": booleanAST(true )},
-    {"name": "boolean$string$2", "symbols": [{"literal":"f"}, {"literal":"a"}, {"literal":"l"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "boolean", "symbols": ["boolean$string$2"], "postprocess": booleanAST(false)},
-    {"name": "number", "symbols": ["_number"], "postprocess": 
+    {"name": "Boolean$string$1", "symbols": [{"literal":"t"}, {"literal":"r"}, {"literal":"u"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "Boolean", "symbols": ["Boolean$string$1"], "postprocess": booleanAST(true )},
+    {"name": "Boolean$string$2", "symbols": [{"literal":"f"}, {"literal":"a"}, {"literal":"l"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "Boolean", "symbols": ["Boolean$string$2"], "postprocess": booleanAST(false)},
+    {"name": "Number", "symbols": ["_number"], "postprocess": 
         function(data, loc){
           var src = flatten(data).join('');
           return {
             loc: {start: loc, end: loc + src.length},
-            type: 'number',
+            type: 'Number',
             value: parseFloat(src) || 0// or 0 to avoid NaN
           };
         }
@@ -323,41 +323,41 @@ var grammar = {
     {"name": "_int$ebnf$1", "symbols": [/[0-9]/]},
     {"name": "_int$ebnf$1", "symbols": [/[0-9]/, "_int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_int", "symbols": ["_int$ebnf$1"], "postprocess": idAll},
-    {"name": "regex$string$1", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "regex", "symbols": ["regex$string$1", "_regex_pattern", {"literal":"#"}, "_regex_modifiers"], "postprocess": 
+    {"name": "RegExp$string$1", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RegExp", "symbols": ["RegExp$string$1", "_regexp_pattern", {"literal":"#"}, "_regexp_modifiers"], "postprocess": 
         function(data, loc){
           var pattern = data[1];
           var modifiers = data[3][0];
           return {
             loc: {start: loc, end: data[3][1]},
-            type: 'regex',
+            type: 'RegExp',
             value: new RegExp(pattern, modifiers)
           };
         }
         },
-    {"name": "_regex_pattern", "symbols": [], "postprocess": noopStr},
-    {"name": "_regex_pattern", "symbols": ["_regex_pattern", "_regex_pattern_char"], "postprocess": function(d){return d[0] + d[1]}},
-    {"name": "_regex_pattern_char", "symbols": [/[^\\#]/], "postprocess": id},
-    {"name": "_regex_pattern_char", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return d[1] === '#' ? '#' : '\\\\'}},
-    {"name": "_regex_modifiers", "symbols": ["_regex_modifiers_chars"], "postprocess": 
+    {"name": "_regexp_pattern", "symbols": [], "postprocess": noopStr},
+    {"name": "_regexp_pattern", "symbols": ["_regexp_pattern", "_regexp_pattern_char"], "postprocess": function(d){return d[0] + d[1]}},
+    {"name": "_regexp_pattern_char", "symbols": [/[^\\#]/], "postprocess": id},
+    {"name": "_regexp_pattern_char", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return d[1] === '#' ? '#' : '\\\\'}},
+    {"name": "_regexp_modifiers", "symbols": ["_regexp_modifiers_chars"], "postprocess": 
         function(data, loc){
           var src = flatten(data).join('');
           return [src, loc + src.length];
         }
         },
-    {"name": "_regex_modifiers_chars", "symbols": [], "postprocess": noopStr},
-    {"name": "_regex_modifiers_chars", "symbols": [{"literal":"i"}]},
-    {"name": "_regex_modifiers_chars", "symbols": [{"literal":"g"}]},
-    {"name": "_regex_modifiers_chars$string$1", "symbols": [{"literal":"i"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "_regex_modifiers_chars", "symbols": ["_regex_modifiers_chars$string$1"]},
-    {"name": "_regex_modifiers_chars$string$2", "symbols": [{"literal":"g"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "_regex_modifiers_chars", "symbols": ["_regex_modifiers_chars$string$2"]},
-    {"name": "double_quote$string$1", "symbols": [{"literal":"<"}, {"literal":"<"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "double_quote", "symbols": ["double_quote$string$1", "_double_quote_body", "loc_close_double_quote"], "postprocess": 
+    {"name": "_regexp_modifiers_chars", "symbols": [], "postprocess": noopStr},
+    {"name": "_regexp_modifiers_chars", "symbols": [{"literal":"i"}]},
+    {"name": "_regexp_modifiers_chars", "symbols": [{"literal":"g"}]},
+    {"name": "_regexp_modifiers_chars$string$1", "symbols": [{"literal":"i"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "_regexp_modifiers_chars", "symbols": ["_regexp_modifiers_chars$string$1"]},
+    {"name": "_regexp_modifiers_chars$string$2", "symbols": [{"literal":"g"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "_regexp_modifiers_chars", "symbols": ["_regexp_modifiers_chars$string$2"]},
+    {"name": "DoubleQuote$string$1", "symbols": [{"literal":"<"}, {"literal":"<"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "DoubleQuote", "symbols": ["DoubleQuote$string$1", "_double_quote_body", "loc_close_double_quote"], "postprocess": 
         function(data, loc){
           return {
             loc: {start: loc - 2, end: data[2]},
-            type: 'double_quote',
+            type: 'DoubleQuote',
             value: data[1]
           };
         }
@@ -371,7 +371,7 @@ var grammar = {
           var src = data[0];
           return {
             loc: {start: loc, end: loc + src.length},
-            type: 'string',
+            type: 'String',
             value: src
           };
         }
@@ -381,12 +381,12 @@ var grammar = {
     {"name": "_double_quote_char", "symbols": [/[^>#]/], "postprocess": id},
     {"name": "_double_quote_char", "symbols": [{"literal":"#"}, /[^{]/], "postprocess": idAll},
     {"name": "_double_quote_char", "symbols": [{"literal":">"}, /[^>]/], "postprocess": idAll},
-    {"name": "string", "symbols": [{"literal":"\""}, "_string", {"literal":"\""}], "postprocess": 
+    {"name": "String", "symbols": [{"literal":"\""}, "_string", {"literal":"\""}], "postprocess": 
         function(data, loc){
           var src = data[1];
           return {
             loc: {start: loc - 1, end: loc + src.length + 1},
-            type: 'string',
+            type: 'String',
             value: src
           };
         }

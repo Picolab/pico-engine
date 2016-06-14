@@ -52,7 +52,7 @@ var booleanAST = function(value){
     var src = data[0];
     return {
       loc: {start: loc, end: loc + src.length},
-      type: 'boolean',
+      type: 'Boolean',
       value: value
     };
   };
@@ -73,7 +73,7 @@ var infixOp = function(data, start){
 main -> _ ruleset _ {% getN(1) %}
     | expression {% id %}
 
-ruleset -> "ruleset" __ symbol _ "{" _ (rule _):* loc_close_curly {%
+ruleset -> "ruleset" __ Symbol _ "{" _ (rule _):* loc_close_curly {%
   function(data, loc){
     return {
       type: 'ruleset',
@@ -87,7 +87,7 @@ ruleset -> "ruleset" __ symbol _ "{" _ (rule _):* loc_close_curly {%
   }
 %}
 
-rule -> "rule" __ symbol _ "{" _ rule_body _ loc_close_curly {%
+rule -> "rule" __ Symbol _ "{" _ rule_body _ loc_close_curly {%
   function(data, loc){
     var ast = data[6] || {};
     ast.type = 'rule';
@@ -146,10 +146,10 @@ event_expression ->
 %}
 
 event_domain ->
-    symbol {% id %}
+    Symbol {% id %}
 
 event_type ->
-    symbol {% id %}
+    Symbol {% id %}
 
 event_action ->
     "send_directive" _ function_call_args _ with_expression:? {%
@@ -192,7 +192,7 @@ symbol_value_pairs ->
     | symbol_value_pairs __ "and" __ symbol_value_pair {% function(d){return d[0].concat([d[4]])} %}
 
 symbol_value_pair ->
-    symbol _ "=" _ expression {%
+    Symbol _ "=" _ expression {%
   function(data, loc){
     return [data[0], data[4]];
   }
@@ -246,15 +246,15 @@ exp_product -> expression_atom {% id %}
     | exp_product _ "%" _ expression_atom {% infixOp %}
 
 expression_atom ->
-      string {% id %}
-    | number {% id %}
-    | boolean {% id %}
-    | symbol {% id %}
-    | array {% id %}
-    | object {% id %}
-    | regex {% id %}
-    | double_quote {% id %}
-    | call_expression {% id %}
+      String {% id %}
+    | Number {% id %}
+    | Boolean {% id %}
+    | Symbol {% id %}
+    | Array {% id %}
+    | Object {% id %}
+    | RegExp {% id %}
+    | DoubleQuote {% id %}
+    | CallExpression {% id %}
     | "(" _ expression _ ")" {% getN(2) %}
 
 expression_list ->
@@ -262,11 +262,11 @@ expression_list ->
     | expression {% function(d){return [d[0]]} %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
 
-call_expression -> symbol _ "(" _ expression_list _ loc_close_paren {%
+CallExpression -> Symbol _ "(" _ expression_list _ loc_close_paren {%
   function(data, start){
     return {
       loc: {start: start, end: data[6]},
-      type: 'call-expression',
+      type: 'CallExpression',
       callee: data[0],
       args: data[4]
     };
@@ -276,21 +276,21 @@ call_expression -> symbol _ "(" _ expression_list _ loc_close_paren {%
 ################################################################################
 # Literal Datastructures
 
-array -> "[" _ expression_list _ loc_close_square {%
+Array -> "[" _ expression_list _ loc_close_square {%
   function(data, loc){
     return {
-      type: 'array',
+      type: 'Array',
       loc: {start: loc, end: data[4]},
       value: data[2]
     };
   }
 %}
 
-object -> "{" _ _object_kv_pairs _ loc_close_curly {%
+Object -> "{" _ _object_kv_pairs _ loc_close_curly {%
   function(data, loc){
     return {
       loc: {start: loc, end: data[4]},
-      type: 'object',
+      type: 'Object',
       value: data[2]
     };
   }
@@ -301,34 +301,34 @@ _object_kv_pairs ->
     | _object_kv_pair {% id %}
     | _object_kv_pairs _ "," _ _object_kv_pair {% function(d){return d[0].concat(d[4])} %}
 
-_object_kv_pair -> string _ ":" _ expression {% function(d){return [[d[0], d[4]]]} %}
+_object_kv_pair -> String _ ":" _ expression {% function(d){return [[d[0], d[4]]]} %}
 
 ################################################################################
 # Literals
 
-symbol -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
+Symbol -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
   function(data, loc, reject){
     var src = flatten(data).join('');
     if(reserved_symbols.hasOwnProperty(src)){
       return reject;
     }
     return {
-      type: 'symbol',
+      type: 'Symbol',
       loc: {start: loc, end: loc + src.length},
       value: src
     };
   }
 %}
 
-boolean -> "true"  {% booleanAST(true ) %}
+Boolean -> "true"  {% booleanAST(true ) %}
          | "false" {% booleanAST(false) %}
 
-number -> _number {%
+Number -> _number {%
   function(data, loc){
     var src = flatten(data).join('');
     return {
       loc: {start: loc, end: loc + src.length},
-      type: 'number',
+      type: 'Number',
       value: parseFloat(src) || 0// or 0 to avoid NaN
     };
   }
@@ -346,41 +346,41 @@ _float ->
 
 _int -> [0-9]:+ {% idAll %}
 
-regex -> "re#" _regex_pattern "#" _regex_modifiers {%
+RegExp -> "re#" _regexp_pattern "#" _regexp_modifiers {%
   function(data, loc){
     var pattern = data[1];
     var modifiers = data[3][0];
     return {
       loc: {start: loc, end: data[3][1]},
-      type: 'regex',
+      type: 'RegExp',
       value: new RegExp(pattern, modifiers)
     };
   }
 %}
 
-_regex_pattern ->
+_regexp_pattern ->
     null {% noopStr %}
-    | _regex_pattern _regex_pattern_char {% function(d){return d[0] + d[1]} %}
+    | _regexp_pattern _regexp_pattern_char {% function(d){return d[0] + d[1]} %}
 
-_regex_pattern_char ->
+_regexp_pattern_char ->
   [^\\#] {% id %}
   | "\\" [^] {% function(d){return d[1] === '#' ? '#' : '\\\\'} %}
 
-_regex_modifiers -> _regex_modifiers_chars {%
+_regexp_modifiers -> _regexp_modifiers_chars {%
   function(data, loc){
     var src = flatten(data).join('');
     return [src, loc + src.length];
   }
 %}
 
-_regex_modifiers_chars -> null {% noopStr %}
+_regexp_modifiers_chars -> null {% noopStr %}
     | "i" | "g" | "ig" | "gi"
 
-double_quote -> "<<" _double_quote_body loc_close_double_quote {%
+DoubleQuote -> "<<" _double_quote_body loc_close_double_quote {%
   function(data, loc){
     return {
       loc: {start: loc - 2, end: data[2]},
-      type: 'double_quote',
+      type: 'DoubleQuote',
       value: data[1]
     };
   }
@@ -397,7 +397,7 @@ _double_quote_string_node -> _double_quote_string {%
     var src = data[0];
     return {
       loc: {start: loc, end: loc + src.length},
-      type: 'string',
+      type: 'String',
       value: src
     };
   }
@@ -412,12 +412,12 @@ _double_quote_char ->
     | "#" [^{] {% idAll %}
     | ">" [^>] {% idAll %}
 
-string -> "\"" _string "\"" {%
+String -> "\"" _string "\"" {%
   function(data, loc){
     var src = data[1];
     return {
       loc: {start: loc - 1, end: loc + src.length + 1},
-      type: 'string',
+      type: 'String',
       value: src
     };
   }
