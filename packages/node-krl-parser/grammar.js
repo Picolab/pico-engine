@@ -58,6 +58,11 @@ var noopStr = function(){return ""};
 var idAll = function(d){return flatten(d).join('')};
 var idEndLoc = function(data, loc){return loc + flatten(data).join('').length};
 
+var reserved_symbols = {
+  "true": true,
+  "false": true
+};
+
 var grammar = {
     ParserRules: [
     {"name": "main", "symbols": ["_", "ruleset", "_"], "postprocess": getN(1)},
@@ -179,6 +184,7 @@ var grammar = {
     {"name": "expression", "symbols": ["string"], "postprocess": id},
     {"name": "expression", "symbols": ["number"], "postprocess": id},
     {"name": "expression", "symbols": ["boolean"], "postprocess": id},
+    {"name": "expression", "symbols": ["symbol"], "postprocess": id},
     {"name": "expression", "symbols": ["array"], "postprocess": id},
     {"name": "expression", "symbols": ["object"], "postprocess": id},
     {"name": "expression", "symbols": ["regex"], "postprocess": id},
@@ -234,8 +240,11 @@ var grammar = {
     {"name": "symbol$ebnf$1", "symbols": []},
     {"name": "symbol$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "symbol", "symbols": [/[a-zA-Z_$]/, "symbol$ebnf$1"], "postprocess": 
-        function(data, loc){
+        function(data, loc, reject){
           var src = flatten(data).join('');
+          if(reserved_symbols.hasOwnProperty(src)){
+            return reject;
+          }
           return {
             type: 'symbol',
             loc: {start: loc, end: loc + src.length},

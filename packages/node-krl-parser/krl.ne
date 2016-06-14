@@ -54,6 +54,11 @@ var noopStr = function(){return ""};
 var idAll = function(d){return flatten(d).join('')};
 var idEndLoc = function(data, loc){return loc + flatten(data).join('').length};
 
+var reserved_symbols = {
+  "true": true,
+  "false": true
+};
+
 %}
 
 main -> _ ruleset _ {% getN(1) %}
@@ -188,6 +193,7 @@ expression ->
     string {% id %}
     | number {% id %}
     | boolean {% id %}
+    | symbol {% id %}
     | array {% id %}
     | object {% id %}
     | regex {% id %}
@@ -257,8 +263,11 @@ _object_kv_pair -> string _ ":" _ expression {% function(d){return [[d[0], d[4]]
 # Literals
 
 symbol -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
-  function(data, loc){
+  function(data, loc, reject){
     var src = flatten(data).join('');
+    if(reserved_symbols.hasOwnProperty(src)){
+      return reject;
+    }
     return {
       type: 'symbol',
       loc: {start: loc, end: loc + src.length},
