@@ -62,6 +62,7 @@ var grammar = {
     {"name": "main", "symbols": ["expression"], "postprocess": id},
     {"name": "curly_close_loc", "symbols": [{"literal":"}"}], "postprocess": function(data, loc){return loc + 1;}},
     {"name": "square_close_loc", "symbols": [{"literal":"]"}], "postprocess": function(data, loc){return loc + 1;}},
+    {"name": "paren_close_loc", "symbols": [{"literal":")"}], "postprocess": function(data, loc){return loc + 1;}},
     {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset$ebnf$1", "symbols": []},
     {"name": "ruleset$ebnf$1$subexpression$1", "symbols": ["rule", "_"]},
@@ -183,9 +184,20 @@ var grammar = {
     {"name": "expression", "symbols": ["object"], "postprocess": id},
     {"name": "expression", "symbols": ["regex"], "postprocess": id},
     {"name": "expression", "symbols": ["double_quote"], "postprocess": id},
+    {"name": "expression", "symbols": ["call_expression"], "postprocess": id},
     {"name": "expression_list", "symbols": ["_"], "postprocess": function(d){return []}},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
+    {"name": "call_expression", "symbols": ["symbol", "_", {"literal":"("}, "_", "expression_list", "_", "paren_close_loc"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: data[6]},
+            type: 'call-expression',
+            callee: data[0],
+            args: data[4]
+          };
+        }
+        },
     {"name": "array", "symbols": [{"literal":"["}, "_", "expression_list", "_", "square_close_loc"], "postprocess": 
         function(data, loc){
           return {

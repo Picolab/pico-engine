@@ -376,14 +376,9 @@ test('parser - locations', function(t){
 
 test('parser - literals', function(t){
   var testLiteral = function(src, expected){
-    var ast = parser(src);
-    ast = rmLoc(ast);
-    if(ast.length !== 1){
-      t.fail('testLiteral -> ast.length !== 1');
-    }
-    ast = normalizeAST(ast[0]);
+    var ast = normalizeAST(rmLoc(parser(src)));
     expected = normalizeAST(expected);
-    t.deepEquals(ast, expected);
+    t.deepEquals(ast, [expected]);
   };
   testLiteral('"one"', {type: 'string', value: 'one'});
   testLiteral('"one\ntwo"', {type: 'string', value: 'one\ntwo'});
@@ -424,6 +419,32 @@ test('parser - literals', function(t){
   testLiteral('re#/ok/g#ig', {type: 'regex', value: /\/ok\/g/ig});
 
   testLiteral('<<\n  hello\n  >>', {type: 'string', value: '\n  hello\n  '});
+
+  t.end();
+});
+
+test('parser - expressions', function(t){
+  var testExp = function(src, expected){
+    var ast = normalizeAST(rmLoc(parser(src)));
+    expected = normalizeAST(expected);
+    t.deepEquals(ast, [expected]);
+  };
+
+  testExp('one()', {
+    type: 'call-expression',
+    callee: {type: 'symbol', value: 'one'},
+    args: []
+  });
+  testExp('one ( 1 , 2 )', {
+    type: 'call-expression',
+    callee: {type: 'symbol', value: 'one'},
+    args: [{type: 'number', value: 1}, {type: 'number', value: 2}]
+  });
+  testExp('one(1,2)', {
+    type: 'call-expression',
+    callee: {type: 'symbol', value: 'one'},
+    args: [{type: 'number', value: 1}, {type: 'number', value: 2}]
+  });
 
   t.end();
 });

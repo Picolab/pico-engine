@@ -59,6 +59,7 @@ main -> _ ruleset _ {% getN(1) %}
 
 curly_close_loc -> "}" {% function(data, loc){return loc + 1;} %}
 square_close_loc -> "]" {% function(data, loc){return loc + 1;} %}
+paren_close_loc -> ")" {% function(data, loc){return loc + 1;} %}
 
 ruleset -> "ruleset" __ symbol _ "{" _ (rule _):* curly_close_loc {%
   function(data, loc){
@@ -193,11 +194,23 @@ expression ->
     | object {% id %}
     | regex {% id %}
     | double_quote {% id %}
+    | call_expression {% id %}
 
 expression_list ->
     _ {% function(d){return []} %}
     | expression {% function(d){return [d[0]]} %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
+
+call_expression -> symbol _ "(" _ expression_list _ paren_close_loc {%
+  function(data, start){
+    return {
+      loc: {start: start, end: data[6]},
+      type: 'call-expression',
+      callee: data[0],
+      args: data[4]
+    };
+  }
+%}
 
 array -> "[" _ expression_list _ square_close_loc {%
   function(data, loc){
