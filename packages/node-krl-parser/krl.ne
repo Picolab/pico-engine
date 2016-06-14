@@ -319,9 +319,8 @@ _regex_modifiers_chars -> null {% noopStr %}
 
 double_quote -> "<<" _double_quote_body loc_close_double_quote {%
   function(data, loc){
-    //TODO handle beestings
     return {
-      loc: {start: loc - 2, end: 0},//TODO end
+      loc: {start: loc - 2, end: data[2]},
       type: 'double_quote',
       value: data[1]
     };
@@ -329,11 +328,8 @@ double_quote -> "<<" _double_quote_body loc_close_double_quote {%
 %}
 
 _double_quote_body ->
-    _double_quote_part {% function(d){return [d[0]]} %}
-
-_double_quote_part ->
-    _double_quote_string_node {% id %}
-    | _beesting {% id %}
+    _double_quote_string_node {% function(d){return [d[0]]} %}
+    | _double_quote_body _beesting _double_quote_string_node {% function(d){return d[0].concat([d[1], d[2]])} %}
 
 _beesting -> "#{" _ expression _ "}" {% getN(2) %}
 

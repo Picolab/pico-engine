@@ -298,17 +298,15 @@ var grammar = {
     {"name": "double_quote$string$1", "symbols": [{"literal":"<"}, {"literal":"<"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "double_quote", "symbols": ["double_quote$string$1", "_double_quote_body", "loc_close_double_quote"], "postprocess": 
         function(data, loc){
-          //TODO handle beestings
           return {
-            loc: {start: loc - 2, end: 0},//TODO end
+            loc: {start: loc - 2, end: data[2]},
             type: 'double_quote',
             value: data[1]
           };
         }
         },
-    {"name": "_double_quote_body", "symbols": ["_double_quote_part"], "postprocess": function(d){return [d[0]]}},
-    {"name": "_double_quote_part", "symbols": ["_double_quote_string_node"], "postprocess": id},
-    {"name": "_double_quote_part", "symbols": ["_beesting"], "postprocess": id},
+    {"name": "_double_quote_body", "symbols": ["_double_quote_string_node"], "postprocess": function(d){return [d[0]]}},
+    {"name": "_double_quote_body", "symbols": ["_double_quote_body", "_beesting", "_double_quote_string_node"], "postprocess": function(d){return d[0].concat([d[1], d[2]])}},
     {"name": "_beesting$string$1", "symbols": [{"literal":"#"}, {"literal":"{"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "_beesting", "symbols": ["_beesting$string$1", "_", "expression", "_", {"literal":"}"}], "postprocess": getN(2)},
     {"name": "_double_quote_string_node", "symbols": ["_double_quote_string"], "postprocess": 

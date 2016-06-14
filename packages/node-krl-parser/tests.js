@@ -433,10 +433,12 @@ test('parser - literals', function(t){
   testLiteral('<<#{1}>>', {
     type: 'double_quote',
     value: [
-      {type: 'number', value: 1}
+      {type: 'string', value: ''},
+      {type: 'number', value: 1},
+      {type: 'string', value: ''}
     ]
   });
-/*
+
   testLiteral('<<one#{2}three>>', {
     type: 'double_quote',
     value: [
@@ -445,7 +447,15 @@ test('parser - literals', function(t){
       {type: 'string', value: 'three'}
     ]
   });
-  */
+
+  testLiteral('<<one#{{"one":2}}three>>', {
+    type: 'double_quote',
+    value: [
+      {type: 'string', value: 'one'},
+      {type: 'object', value: [[{type:'string',value:'one'},{type:'number',value:2}]]},
+      {type: 'string', value: 'three'}
+    ]
+  });
 
   t.end();
 });
