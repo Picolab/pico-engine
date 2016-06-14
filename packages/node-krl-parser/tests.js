@@ -51,7 +51,7 @@ test('parser', function(t){
   assertAST(t, src, [
     {
       type: 'ruleset',
-      loc: 0,
+      loc: {start: 0, end: 14},
 
       name: 'rs',
       rules: []
@@ -66,11 +66,11 @@ test('parser', function(t){
   assertAST(t, src, [
     {
       type: 'ruleset',
-      loc: 0,
+      loc: {start: 0, end: 27},
 
       name: 'rs',
       rules: [
-        {type: 'rule', loc: 15, name: 'r1'}
+        {type: 'rule', loc: {start: 15, end: 25}, name: 'r1'}
       ]
     }
   ]);
@@ -84,12 +84,12 @@ test('parser', function(t){
   assertAST(t, src, [
     {
       type: 'ruleset',
-      loc: 0,
+      loc: {start: 0, end: 40},
 
       name: 'rs',
       rules: [
-        {type: 'rule', loc: 15, name: 'r1'},
-        {type: 'rule', loc: 28, name: 'r2'}
+        {type: 'rule', loc: {start: 15, end: 25}, name: 'r1'},
+        {type: 'rule', loc: {start: 28, end: 38}, name: 'r2'}
       ]
     }
   ]);
