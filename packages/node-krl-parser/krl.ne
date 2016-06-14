@@ -201,10 +201,31 @@ symbol_value_pair ->
 ################################################################################
 # Expressions
 
-expression -> plus_infix {% id %}
+expression -> exp_or {% id %}
+ 
+exp_or -> exp_and {% id %}
+    | exp_or _ "||" _ exp_and {% infixOp %}
+ 
+exp_and -> exp_comp {% id %}
+    | exp_and _ "&&" _ exp_comp {% infixOp %}
 
-plus_infix -> plus_infix _ "+" _ expression_atom {% infixOp %}
-            | expression_atom {% id %}
+exp_comp -> exp_sum {% id %}
+    | exp_comp _ "<"    _ exp_sum {% infixOp %}
+    | exp_comp _ ">"    _ exp_sum {% infixOp %}
+    | exp_comp _ "<="   _ exp_sum {% infixOp %}
+    | exp_comp _ ">="   _ exp_sum {% infixOp %}
+    | exp_comp _ "=="   _ exp_sum {% infixOp %}
+    | exp_comp _ "!="   _ exp_sum {% infixOp %}
+    | exp_comp _ "eq"   _ exp_sum {% infixOp %}
+    | exp_comp _ "neq"  _ exp_sum {% infixOp %}
+    | exp_comp _ "like" _ exp_sum {% infixOp %}
+    | exp_comp _ "><"   _ exp_sum {% infixOp %}
+    | exp_comp _ "<=>"  _ exp_sum {% infixOp %}
+    | exp_comp _ "cmp"  _ exp_sum {% infixOp %}
+
+exp_sum -> expression_atom {% id %}
+    | exp_sum _ "+" _ expression_atom {% infixOp %}
+    | exp_sum _ "-" _ expression_atom {% infixOp %}
 
 expression_atom ->
       string {% id %}
@@ -216,6 +237,7 @@ expression_atom ->
     | regex {% id %}
     | double_quote {% id %}
     | call_expression {% id %}
+    | "(" _ expression _ ")" {% getN(2) %}
 
 expression_list ->
     _ {% function(d){return []} %}
