@@ -63,6 +63,7 @@ var grammar = {
     {"name": "main", "symbols": ["_", "ruleset", "_"], "postprocess": getN(1)},
     {"name": "main", "symbols": ["expression"], "postprocess": id},
     {"name": "curly_close_loc", "symbols": [{"literal":"}"}], "postprocess": function(data, loc){return loc + 1;}},
+    {"name": "square_close_loc", "symbols": [{"literal":"]"}], "postprocess": function(data, loc){return loc + 1;}},
     {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset$ebnf$1", "symbols": []},
     {"name": "ruleset$ebnf$1$subexpression$1", "symbols": ["rule", "_"]},
@@ -156,9 +157,7 @@ var grammar = {
           return ast;
         }
         },
-    {"name": "function_call_args", "symbols": [{"literal":"("}, "_", "comma_separated_expressions", "_", {"literal":")"}], "postprocess": getN(2)},
-    {"name": "comma_separated_expressions", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
-    {"name": "comma_separated_expressions", "symbols": ["comma_separated_expressions", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
+    {"name": "function_call_args", "symbols": [{"literal":"("}, "_", "expression_list", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "with_expression$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "with_expression", "symbols": ["with_expression$string$1", "__", "symbol_value_pairs"], "postprocess": 
         function(data, loc){
@@ -182,6 +181,19 @@ var grammar = {
     {"name": "expression", "symbols": ["string"], "postprocess": id},
     {"name": "expression", "symbols": ["number"], "postprocess": id},
     {"name": "expression", "symbols": ["boolean"], "postprocess": id},
+    {"name": "expression", "symbols": ["array"], "postprocess": id},
+    {"name": "expression_list", "symbols": ["_"], "postprocess": function(d){return []}},
+    {"name": "expression_list", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
+    {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
+    {"name": "array", "symbols": [{"literal":"["}, "_", "expression_list", "_", "square_close_loc"], "postprocess": 
+        function(data, loc){
+          return {
+            type: 'array',
+            loc: {start: loc, end: data[4]},
+            value: data[2]
+          };
+        }
+        },
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/]},
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/, "symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "symbol", "symbols": ["symbol$ebnf$1"], "postprocess": 

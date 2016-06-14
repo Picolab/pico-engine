@@ -60,6 +60,7 @@ main -> _ ruleset _ {% getN(1) %}
     | expression {% id %}
 
 curly_close_loc -> "}" {% function(data, loc){return loc + 1;} %}
+square_close_loc -> "]" {% function(data, loc){return loc + 1;} %}
 
 ruleset -> "ruleset" __ symbol _ "{" _ (rule _):* curly_close_loc {%
   function(data, loc){
@@ -160,11 +161,7 @@ event_action ->
 %}
 
 function_call_args ->
-    "(" _ comma_separated_expressions _ ")" {% getN(2) %}
-
-comma_separated_expressions ->
-    expression {% function(d){return [d[0]]} %}
-    | comma_separated_expressions _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
+    "(" _ expression_list _ ")" {% getN(2) %}
 
 with_expression ->
     "with" __ symbol_value_pairs {%
@@ -194,6 +191,22 @@ expression ->
     string {% id %}
     | number {% id %}
     | boolean {% id %}
+    | array {% id %}
+
+expression_list ->
+    _ {% function(d){return []} %}
+    | expression {% function(d){return [d[0]]} %}
+    | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
+
+array -> "[" _ expression_list _ square_close_loc {%
+  function(data, loc){
+    return {
+      type: 'array',
+      loc: {start: loc, end: data[4]},
+      value: data[2]
+    };
+  }
+%}
 
 symbol -> [\w]:+  {%
   function(data, loc){

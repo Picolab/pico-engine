@@ -354,5 +354,12 @@ test('parser - literals', function(t){
   testLiteral('true', {type: 'boolean', value: true, src: 'true'});
   testLiteral('false', {type: 'boolean', value: false, src: 'false'});
 
+  testLiteral('[]', {type: 'array', value: []});
+  testLiteral('["one"]', {type: 'array', value: [{type: 'string', value: 'one'}]});
+  testLiteral('[  1,  false ]', {type: 'array', value: [
+    {type: 'number', value: 1, src: '1'},
+    {type: 'boolean', value: false, src: 'false'}
+  ]});
+
   t.end();
 });
