@@ -512,6 +512,30 @@ test('parser - expressions', function(t){
     alternate:  {type: 'symbol', value: 'c'}
   });
 
+  testExp('a => b | c => d | e', {
+    type: 'conditional-expression',
+    test:       {type: 'symbol', value: 'a'},
+    consequent: {type: 'symbol', value: 'b'},
+    alternate:  {
+      type: 'conditional-expression',
+      test:       {type: 'symbol', value: 'c'},
+      consequent: {type: 'symbol', value: 'd'},
+      alternate:  {type: 'symbol', value: 'e'}
+    }
+  });
+
+  testExp('a=>b|c=>d|e', {
+    type: 'conditional-expression',
+    test:       {type: 'symbol', value: 'a'},
+    consequent: {type: 'symbol', value: 'b'},
+    alternate:  {
+      type: 'conditional-expression',
+      test:       {type: 'symbol', value: 'c'},
+      consequent: {type: 'symbol', value: 'd'},
+      alternate:  {type: 'symbol', value: 'e'}
+    }
+  });
+
   t.end();
 });
 
