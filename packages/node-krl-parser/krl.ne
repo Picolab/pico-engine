@@ -1,9 +1,5 @@
 @{%
 
-var echo = function(data, location, reject){
-  return {data: data, location: location};
-};
-
 var getN = function(n){
   return function(data){
     return data[n];
@@ -36,6 +32,7 @@ var booleanAST = function(value){
 
 
 var noop = function(){};
+var noopStr = function(){return ""};
 
 var last = function(arr){
   return arr[arr.length - 1];
@@ -53,6 +50,8 @@ var flatten = function(toFlatten){
     return [].concat(toFlatten);
   }
 };
+
+var idAll = function(d){return flatten(d).join('')};
 
 %}
 
@@ -263,7 +262,7 @@ _float ->
     | "." _int
     | _int "." _int
 
-_int -> [0-9]:+ {% function(d){return d[0].join('');} %}
+_int -> [0-9]:+ {% idAll %}
 
 regex -> "re#" _regex_pattern "#" _regex_modifiers {%
   function(data, loc){
@@ -278,7 +277,7 @@ regex -> "re#" _regex_pattern "#" _regex_modifiers {%
 %}
 
 _regex_pattern ->
-    null {% function(){return ""} %}
+    null {% noopStr %}
     | _regex_pattern _regex_pattern_char {% function(d){return d[0] + d[1]} %}
 
 _regex_pattern_char ->
@@ -292,7 +291,7 @@ _regex_modifiers -> _regex_modifiers_chars {%
   }
 %}
 
-_regex_modifiers_chars -> null {% function(){return ""} %}
+_regex_modifiers_chars -> null {% noopStr %}
     | "i" | "g" | "ig" | "gi"
 
 string -> "\"" _string "\"" {%
@@ -307,12 +306,12 @@ string -> "\"" _string "\"" {%
 %}
 
 _string ->
-  null {% function(){return ""} %}
-  | _string _stringchar {% function(d){return d[0] + d[1]} %}
+    null {% noopStr %}
+    | _string _stringchar {% function(d){return d[0] + d[1]} %}
 
 _stringchar ->
-  [^\\"] {% id %}
-  | "\\" [^] {% function(d){return JSON.parse("\"" + d[0] + d[1] + "\"")} %}
+    [^\\"] {% id %}
+    | "\\" [^] {% function(d){return JSON.parse('"' + d[0] + d[1] + '"')} %}
 
 # Whitespace
 _  -> [\s]:* {% noop %}

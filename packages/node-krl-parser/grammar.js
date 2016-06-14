@@ -4,10 +4,6 @@
 function id(x) {return x[0]; }
 
 
-var echo = function(data, location, reject){
-  return {data: data, location: location};
-};
-
 var getN = function(n){
   return function(data){
     return data[n];
@@ -40,6 +36,7 @@ var booleanAST = function(value){
 
 
 var noop = function(){};
+var noopStr = function(){return ""};
 
 var last = function(arr){
   return arr[arr.length - 1];
@@ -57,6 +54,8 @@ var flatten = function(toFlatten){
     return [].concat(toFlatten);
   }
 };
+
+var idAll = function(d){return flatten(d).join('')};
 
 var grammar = {
     ParserRules: [
@@ -244,7 +243,7 @@ var grammar = {
     {"name": "_float", "symbols": ["_int", {"literal":"."}, "_int"]},
     {"name": "_int$ebnf$1", "symbols": [/[0-9]/]},
     {"name": "_int$ebnf$1", "symbols": [/[0-9]/, "_int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "_int", "symbols": ["_int$ebnf$1"], "postprocess": function(d){return d[0].join('');}},
+    {"name": "_int", "symbols": ["_int$ebnf$1"], "postprocess": idAll},
     {"name": "regex$string$1", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "regex", "symbols": ["regex$string$1", "_regex_pattern", {"literal":"#"}, "_regex_modifiers"], "postprocess": 
         function(data, loc){
@@ -257,7 +256,7 @@ var grammar = {
           };
         }
         },
-    {"name": "_regex_pattern", "symbols": [], "postprocess": function(){return ""}},
+    {"name": "_regex_pattern", "symbols": [], "postprocess": noopStr},
     {"name": "_regex_pattern", "symbols": ["_regex_pattern", "_regex_pattern_char"], "postprocess": function(d){return d[0] + d[1]}},
     {"name": "_regex_pattern_char", "symbols": [/[^\\#]/], "postprocess": id},
     {"name": "_regex_pattern_char", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return d[1] === '#' ? '#' : '\\\\'}},
@@ -267,7 +266,7 @@ var grammar = {
           return [src, loc + src.length];
         }
         },
-    {"name": "_regex_modifiers_chars", "symbols": [], "postprocess": function(){return ""}},
+    {"name": "_regex_modifiers_chars", "symbols": [], "postprocess": noopStr},
     {"name": "_regex_modifiers_chars", "symbols": [{"literal":"i"}]},
     {"name": "_regex_modifiers_chars", "symbols": [{"literal":"g"}]},
     {"name": "_regex_modifiers_chars$string$1", "symbols": [{"literal":"i"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -284,10 +283,10 @@ var grammar = {
           };
         }
         },
-    {"name": "_string", "symbols": [], "postprocess": function(){return ""}},
+    {"name": "_string", "symbols": [], "postprocess": noopStr},
     {"name": "_string", "symbols": ["_string", "_stringchar"], "postprocess": function(d){return d[0] + d[1]}},
     {"name": "_stringchar", "symbols": [/[^\\"]/], "postprocess": id},
-    {"name": "_stringchar", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return JSON.parse("\"" + d[0] + d[1] + "\"")}},
+    {"name": "_stringchar", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return JSON.parse('"' + d[0] + d[1] + '"')}},
     {"name": "_$ebnf$1", "symbols": []},
     {"name": "_$ebnf$1", "symbols": [/[\s]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": noop},
