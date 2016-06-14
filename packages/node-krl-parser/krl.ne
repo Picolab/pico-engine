@@ -193,6 +193,7 @@ expression ->
     | boolean {% id %}
     | array {% id %}
     | object {% id %}
+    | regex {% id %}
 
 expression_list ->
     _ {% function(d){return []} %}
@@ -263,6 +264,33 @@ _float ->
     | _int "." _int
 
 _int -> [0-9]:+ {% function(d){return d[0].join('');} %}
+
+regex -> "re#" _regex_pattern "#" _regex_modifiers {%
+  function(data, loc){
+    var pattern = data[1];
+    var modifiers = data[3][0];
+    return {
+      loc: {start: loc, end: data[3][1]},//TODO end loc
+      type: 'regex',
+      value: new RegExp(pattern, modifiers),
+      pattern: pattern,
+      modifiers: modifiers
+    };
+  }
+%}
+
+_regex_pattern -> [\w]:* {%
+  function(data, loc){
+    return data[0].join('');
+  }
+%}
+
+_regex_modifiers -> [ig]:* {%
+  function(data, loc){
+    var src = data[0].join('');
+    return [src, loc + src.length];
+  }
+%}
 
 string -> "\"" _string "\"" {%
   function(data, loc){

@@ -340,8 +340,15 @@ test('parser - locations', function(t){
 test('parser - literals', function(t){
   var testLiteral = function(src, expected){
     var ast = parser(src);
-    t.deepEquals(rmLoc(ast), [expected]);
+    ast = rmLoc(ast);
+    if(ast.length !== 1){
+      t.fail('testLiteral -> ast.length !== 1');
+    }
+    ast = ast[0];
+    t.deepEquals(ast, expected);
   };
+  testLiteral('"one"', {type: 'string', value: 'one'});
+  testLiteral('"one\ntwo"', {type: 'string', value: 'one\ntwo'});
   testLiteral('"one\\"two"', {type: 'string', value: 'one"two'});
 
   testLiteral('123', {type: 'number', value: 123, src: '123'});
@@ -370,6 +377,8 @@ test('parser - literals', function(t){
     [{type:'string',value:'3'},{type:'boolean',value:true,src:'true'}],
     [{type:'string',value:'5'},{type:'array',value:[]}]
   ]});
+
+  testLiteral('re#one#i', {type: 'regex', value: /one/i, pattern: 'one', modifiers: 'i'});
 
   t.end();
 });

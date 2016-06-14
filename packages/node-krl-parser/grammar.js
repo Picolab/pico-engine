@@ -183,6 +183,7 @@ var grammar = {
     {"name": "expression", "symbols": ["boolean"], "postprocess": id},
     {"name": "expression", "symbols": ["array"], "postprocess": id},
     {"name": "expression", "symbols": ["object"], "postprocess": id},
+    {"name": "expression", "symbols": ["regex"], "postprocess": id},
     {"name": "expression_list", "symbols": ["_"], "postprocess": function(d){return []}},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
@@ -244,6 +245,35 @@ var grammar = {
     {"name": "_int$ebnf$1", "symbols": [/[0-9]/]},
     {"name": "_int$ebnf$1", "symbols": [/[0-9]/, "_int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_int", "symbols": ["_int$ebnf$1"], "postprocess": function(d){return d[0].join('');}},
+    {"name": "regex$string$1", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "regex", "symbols": ["regex$string$1", "_regex_pattern", {"literal":"#"}, "_regex_modifiers"], "postprocess": 
+        function(data, loc){
+          var pattern = data[1];
+          var modifiers = data[3][0];
+          return {
+            loc: {start: loc, end: data[3][1]},//TODO end loc
+            type: 'regex',
+            value: new RegExp(pattern, modifiers),
+            pattern: pattern,
+            modifiers: modifiers
+          };
+        }
+        },
+    {"name": "_regex_pattern$ebnf$1", "symbols": []},
+    {"name": "_regex_pattern$ebnf$1", "symbols": [/[\w]/, "_regex_pattern$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "_regex_pattern", "symbols": ["_regex_pattern$ebnf$1"], "postprocess": 
+        function(data, loc){
+          return data[0].join('');
+        }
+        },
+    {"name": "_regex_modifiers$ebnf$1", "symbols": []},
+    {"name": "_regex_modifiers$ebnf$1", "symbols": [/[ig]/, "_regex_modifiers$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "_regex_modifiers", "symbols": ["_regex_modifiers$ebnf$1"], "postprocess": 
+        function(data, loc){
+          var src = data[0].join('');
+          return [src, loc + src.length];
+        }
+        },
     {"name": "string", "symbols": [{"literal":"\""}, "_string", {"literal":"\""}], "postprocess": 
         function(data, loc){
           var src = data[1];
