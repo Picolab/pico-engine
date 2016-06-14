@@ -371,6 +371,14 @@ test('parser - locations', function(t){
     }
   });
 
+  t.deepEquals(parser('a => b | c')[0], {
+    loc: {start: 0, end: 10},
+    type: 'conditional-expression',
+    test:       {type: 'symbol', value: 'a', loc: {start: 0, end: 1}},
+    consequent: {type: 'symbol', value: 'b', loc: {start: 5, end: 6}},
+    alternate:  {type: 'symbol', value: 'c', loc: {start: 9, end: 10}}
+  });
+
   t.end();
 });
 
@@ -495,6 +503,13 @@ test('parser - expressions', function(t){
     op: 'like',
     left: {type: 'number', value: 1},
     right: {type: 'regex', value: /one/i}
+  });
+
+  testExp('a => b | c', {
+    type: 'conditional-expression',
+    test:       {type: 'symbol', value: 'a'},
+    consequent: {type: 'symbol', value: 'b'},
+    alternate:  {type: 'symbol', value: 'c'}
   });
 
   t.end();

@@ -190,7 +190,20 @@ var grammar = {
           return [data[0], data[4]];
         }
         },
-    {"name": "expression", "symbols": ["exp_or"], "postprocess": id},
+    {"name": "expression", "symbols": ["exp_conditional"], "postprocess": id},
+    {"name": "exp_conditional", "symbols": ["exp_or"], "postprocess": id},
+    {"name": "exp_conditional$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "exp_conditional", "symbols": ["exp_or", "_", "exp_conditional$string$1", "_", "exp_or", "_", {"literal":"|"}, "_", "exp_conditional"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: data[0].loc.start, end: data[8].loc.end},
+            type: 'conditional-expression',
+            test: data[0],
+            consequent: data[4],
+            alternate: data[8]
+          };
+        }
+        },
     {"name": "exp_or", "symbols": ["exp_and"], "postprocess": id},
     {"name": "exp_or$string$1", "symbols": [{"literal":"|"}, {"literal":"|"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "exp_or", "symbols": ["exp_or", "_", "exp_or$string$1", "_", "exp_and"], "postprocess": infixOp},

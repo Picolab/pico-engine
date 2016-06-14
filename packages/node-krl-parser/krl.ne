@@ -201,7 +201,20 @@ symbol_value_pair ->
 ################################################################################
 # Expressions
 
-expression -> exp_or {% id %}
+expression -> exp_conditional {% id %}
+
+exp_conditional -> exp_or {% id %}
+    | exp_or _ "=>" _ exp_or _ "|" _ exp_conditional {%
+  function(data, start){
+    return {
+      loc: {start: data[0].loc.start, end: data[8].loc.end},
+      type: 'conditional-expression',
+      test: data[0],
+      consequent: data[4],
+      alternate: data[8]
+    };
+  }
+%}
  
 exp_or -> exp_and {% id %}
     | exp_or _ "||" _ exp_and {% infixOp %}
