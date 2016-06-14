@@ -223,6 +223,9 @@ call_expression -> symbol _ "(" _ expression_list _ loc_close_paren {%
   }
 %}
 
+################################################################################
+# Literal Datastructures
+
 array -> "[" _ expression_list _ loc_close_square {%
   function(data, loc){
     return {
@@ -250,9 +253,12 @@ _object_kv_pairs ->
 
 _object_kv_pair -> string _ ":" _ expression {% function(d){return [[d[0], d[4]]]} %}
 
-symbol -> [\w]:+  {%
+################################################################################
+# Literals
+
+symbol -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
   function(data, loc){
-    var src = data[0].join('');
+    var src = flatten(data).join('');
     return {
       type: 'symbol',
       loc: {start: loc, end: loc + src.length},
@@ -371,6 +377,9 @@ _string ->
 _stringchar ->
     [^\\"] {% id %}
     | "\\" [^] {% function(d){return JSON.parse('"' + d[0] + d[1] + '"')} %}
+
+################################################################################
+# Utils
 
 # Chars that return their end location
 loc_close_curly -> "}" {% idEndLoc %}

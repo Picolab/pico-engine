@@ -231,11 +231,11 @@ var grammar = {
     {"name": "_object_kv_pairs", "symbols": ["_object_kv_pair"], "postprocess": id},
     {"name": "_object_kv_pairs", "symbols": ["_object_kv_pairs", "_", {"literal":","}, "_", "_object_kv_pair"], "postprocess": function(d){return d[0].concat(d[4])}},
     {"name": "_object_kv_pair", "symbols": ["string", "_", {"literal":":"}, "_", "expression"], "postprocess": function(d){return [[d[0], d[4]]]}},
-    {"name": "symbol$ebnf$1", "symbols": [/[\w]/]},
-    {"name": "symbol$ebnf$1", "symbols": [/[\w]/, "symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "symbol", "symbols": ["symbol$ebnf$1"], "postprocess": 
+    {"name": "symbol$ebnf$1", "symbols": []},
+    {"name": "symbol$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "symbol", "symbols": [/[a-zA-Z_$]/, "symbol$ebnf$1"], "postprocess": 
         function(data, loc){
-          var src = data[0].join('');
+          var src = flatten(data).join('');
           return {
             type: 'symbol',
             loc: {start: loc, end: loc + src.length},
