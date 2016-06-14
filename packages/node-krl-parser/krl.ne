@@ -66,7 +66,7 @@ ruleset -> "ruleset" __ symbol _ "{" _ (rule _):* curly_close_loc {%
       type: 'ruleset',
       loc: {start: loc, end: last(data)},
 
-      name: data[2].src,
+      name: data[2].value,
       rules: data[6].map(function(pair){
         return pair[0];
       })
@@ -79,7 +79,7 @@ rule -> "rule" __ symbol _ "{" _ rule_body _ curly_close_loc {%
     var ast = data[6] || {};
     ast.type = 'rule';
     ast.loc = {start: loc, end: last(data)};
-    ast.name = data[2].src;
+    ast.name = data[2].value;
     return ast;
   }
 %}
@@ -231,7 +231,7 @@ symbol -> [\w]:+  {%
     return {
       type: 'symbol',
       loc: {start: loc, end: loc + src.length},
-      src: src
+      value: src
     };
   }
 %}

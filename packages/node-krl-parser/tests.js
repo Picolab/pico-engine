@@ -43,8 +43,8 @@ var parseRuleBody = function(rule_body, expected){
 var mkEventExp = function(domain, type){
   return {
     type: 'event_expression',
-    event_domain: {type: 'symbol', src: domain},
-    event_type: {type: 'symbol', src: type}
+    event_domain: {type: 'symbol', value: domain},
+    event_type: {type: 'symbol', value: type}
   };
 };
 
@@ -125,8 +125,8 @@ test('parser - select when', function(t){
   var src = 'select when d t';
   asertRuleAST(src, {
     type: 'event_expression',
-    event_domain: {type: 'symbol', src: 'd'},
-    event_type: {type: 'symbol', src: 't'}
+    event_domain: {type: 'symbol', value: 'd'},
+    event_type: {type: 'symbol', value: 't'}
   });
 
   src = 'select when d a or d b';
@@ -137,13 +137,13 @@ test('parser - select when', function(t){
     expressions: [
       {
         type: 'event_expression',
-        event_domain: {type: 'symbol', src: 'd'},
-        event_type: {type: 'symbol', src: 'a'}
+        event_domain: {type: 'symbol', value: 'd'},
+        event_type: {type: 'symbol', value: 'a'}
       },
       {
         type: 'event_expression',
-        event_domain: {type: 'symbol', src: 'd'},
-        event_type: {type: 'symbol', src: 'b'}
+        event_domain: {type: 'symbol', value: 'd'},
+        event_type: {type: 'symbol', value: 'b'}
       }
     ]
   });
@@ -193,7 +193,7 @@ test('parser - action', function(t){
       type: "with_expression",
       pairs: [
         [
-          {type: 'symbol', src: 'something'},
+          {type: 'symbol', value: 'something'},
           {type: 'string', value: 'hello world'}
         ]
       ]
@@ -203,7 +203,7 @@ test('parser - action', function(t){
 
   var mkPair = function(key, val){
     return [
-      {type: 'symbol', src: key},
+      {type: 'symbol', value: key},
       {type: 'number', value: parseFloat(val)}
     ];
   };
@@ -261,12 +261,12 @@ test('parser - locations', function(t){
       event_domain: {
         loc: {start: 35, end: 36},
         type: 'symbol',
-        src: 'a'
+        value: 'a'
       },
       event_type: {
         loc: {start: 37, end: 38},
         type: 'symbol',
-        src: 'b'
+        value: 'b'
       }
     }
   });
@@ -284,12 +284,12 @@ test('parser - locations', function(t){
         event_domain: {
           loc: {start: 35, end: 36},
           type: 'symbol',
-          src: 'a'
+          value: 'a'
         },
         event_type: {
           loc: {start: 37, end: 38},
           type: 'symbol',
-          src: 'b'
+          value: 'b'
         }
       },
       {
@@ -298,12 +298,12 @@ test('parser - locations', function(t){
         event_domain: {
           loc: {start: 42, end: 43},
           type: 'symbol',
-          src: 'c'
+          value: 'c'
         },
         event_type: {
           loc: {start: 44, end: 45},
           type: 'symbol',
-          src: 'd'
+          value: 'd'
         }
       }
     ]
@@ -339,7 +339,7 @@ test('parser - locations', function(t){
           {
             loc: {start: 66, end: 70},
             type: 'symbol',
-            src: 'blah',
+            value: 'blah',
           },
           {
             loc: {start: 73, end: 74},
