@@ -373,7 +373,7 @@ test('parser - locations', function(t){
 
   t.deepEquals(parser('a => b | c')[0], {
     loc: {start: 0, end: 10},
-    type: 'conditional-expression',
+    type: 'ConditionalExpression',
     test:       {type: 'Symbol', value: 'a', loc: {start: 0, end: 1}},
     consequent: {type: 'Symbol', value: 'b', loc: {start: 5, end: 6}},
     alternate:  {type: 'Symbol', value: 'c', loc: {start: 9, end: 10}}
@@ -492,32 +492,32 @@ test('parser - expressions', function(t){
   });
 
   testExp('1 + "two"', {
-    type: 'infix',
+    type: 'InfixOperator',
     op: '+',
     left: {type: 'Number', value: 1},
     right: {type: 'String', value: 'two'}
   });
 
   testExp('1 like re#one#i', {
-    type: 'infix',
+    type: 'InfixOperator',
     op: 'like',
     left: {type: 'Number', value: 1},
     right: {type: 'RegExp', value: /one/i}
   });
 
   testExp('a => b | c', {
-    type: 'conditional-expression',
+    type: 'ConditionalExpression',
     test:       {type: 'Symbol', value: 'a'},
     consequent: {type: 'Symbol', value: 'b'},
     alternate:  {type: 'Symbol', value: 'c'}
   });
 
   testExp('a => b | c => d | e', {
-    type: 'conditional-expression',
+    type: 'ConditionalExpression',
     test:       {type: 'Symbol', value: 'a'},
     consequent: {type: 'Symbol', value: 'b'},
     alternate:  {
-      type: 'conditional-expression',
+      type: 'ConditionalExpression',
       test:       {type: 'Symbol', value: 'c'},
       consequent: {type: 'Symbol', value: 'd'},
       alternate:  {type: 'Symbol', value: 'e'}
@@ -525,11 +525,11 @@ test('parser - expressions', function(t){
   });
 
   testExp('a=>b|c=>d|e', {
-    type: 'conditional-expression',
+    type: 'ConditionalExpression',
     test:       {type: 'Symbol', value: 'a'},
     consequent: {type: 'Symbol', value: 'b'},
     alternate:  {
-      type: 'conditional-expression',
+      type: 'ConditionalExpression',
       test:       {type: 'Symbol', value: 'c'},
       consequent: {type: 'Symbol', value: 'd'},
       alternate:  {type: 'Symbol', value: 'e'}
@@ -545,7 +545,7 @@ test('parser - operator precedence', function(t){
     var s = function(ast){
       if(_.isArray(ast)){
         return _.map(ast, s).join(' ');
-      }else if(ast.type === 'infix'){
+      }else if(ast.type === 'InfixOperator'){
         return '(' + ast.op + ' ' + s(ast.left) + ' ' + s(ast.right) + ')';
       }
       return ast.value;

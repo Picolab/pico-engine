@@ -65,7 +65,7 @@ var booleanAST = function(value){
 var infixOp = function(data, start){
   return {
     loc: {start: start, end: data[4].loc.end},
-    type: 'infix',
+    type: 'InfixOperator',
     op: data[2],
     left: data[0],
     right: data[4]
@@ -197,7 +197,7 @@ var grammar = {
         function(data, start){
           return {
             loc: {start: data[0].loc.start, end: data[8].loc.end},
-            type: 'conditional-expression',
+            type: 'ConditionalExpression',
             test: data[0],
             consequent: data[4],
             alternate: data[8]
