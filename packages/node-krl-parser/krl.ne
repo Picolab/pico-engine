@@ -30,9 +30,6 @@ var booleanAST = function(value){
 };
 
 
-var noop = function(){};
-var noopStr = function(){return ""};
-
 var last = function(arr){
   return arr[arr.length - 1];
 };
@@ -50,18 +47,19 @@ var flatten = function(toFlatten){
   }
 };
 
+////////////////
+// ast functions
+var noop = function(){};
+var noopStr = function(){return ""};
 var idAll = function(d){return flatten(d).join('')};
+var idEndLoc = function(data, loc){return loc + flatten(data).join('').length};
 
 %}
 
 main -> _ ruleset _ {% getN(1) %}
     | expression {% id %}
 
-curly_close_loc -> "}" {% function(data, loc){return loc + 1;} %}
-square_close_loc -> "]" {% function(data, loc){return loc + 1;} %}
-paren_close_loc -> ")" {% function(data, loc){return loc + 1;} %}
-
-ruleset -> "ruleset" __ symbol _ "{" _ (rule _):* curly_close_loc {%
+ruleset -> "ruleset" __ symbol _ "{" _ (rule _):* loc_close_curly {%
   function(data, loc){
     return {
       type: 'ruleset',
@@ -75,7 +73,7 @@ ruleset -> "ruleset" __ symbol _ "{" _ (rule _):* curly_close_loc {%
   }
 %}
 
-rule -> "rule" __ symbol _ "{" _ rule_body _ curly_close_loc {%
+rule -> "rule" __ symbol _ "{" _ rule_body _ loc_close_curly {%
   function(data, loc){
     var ast = data[6] || {};
     ast.type = 'rule';
@@ -214,7 +212,7 @@ expression_list ->
     | expression {% function(d){return [d[0]]} %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
 
-call_expression -> symbol _ "(" _ expression_list _ paren_close_loc {%
+call_expression -> symbol _ "(" _ expression_list _ loc_close_paren {%
   function(data, start){
     return {
       loc: {start: start, end: data[6]},
@@ -225,7 +223,7 @@ call_expression -> symbol _ "(" _ expression_list _ paren_close_loc {%
   }
 %}
 
-array -> "[" _ expression_list _ square_close_loc {%
+array -> "[" _ expression_list _ loc_close_square {%
   function(data, loc){
     return {
       type: 'array',
@@ -235,7 +233,7 @@ array -> "[" _ expression_list _ square_close_loc {%
   }
 %}
 
-object -> "{" _ _object_kv_pairs _ curly_close_loc {%
+object -> "{" _ _object_kv_pairs _ loc_close_curly {%
   function(data, loc){
     return {
       loc: {start: loc, end: data[4]},
@@ -357,6 +355,11 @@ _string ->
 _stringchar ->
     [^\\"] {% id %}
     | "\\" [^] {% function(d){return JSON.parse('"' + d[0] + d[1] + '"')} %}
+
+# Chars that return their end location
+loc_close_curly -> "}" {% idEndLoc %}
+loc_close_square -> "]" {% idEndLoc %}
+loc_close_paren -> ")" {% idEndLoc %}
 
 # Whitespace
 _  -> [\s]:* {% noop %}
