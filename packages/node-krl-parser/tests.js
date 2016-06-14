@@ -446,5 +446,12 @@ test('parser - expressions', function(t){
     args: [{type: 'number', value: 1}, {type: 'number', value: 2}]
   });
 
+  testExp('1 + "two"', {
+    type: 'infix',
+    op: '+',
+    left: {type: 'number', value: 1},
+    right: {type: 'string', value: 'two'}
+  });
+
   t.end();
 });

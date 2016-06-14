@@ -195,6 +195,19 @@ expression ->
     | regex {% id %}
     | double_quote {% id %}
     | call_expression {% id %}
+    | plus_infix {% id %}
+
+plus_infix -> expression _ "+" _ expression {%
+  function(data, start){
+    return {
+      loc: {start: start, end: data[4].loc.end},
+      type: 'infix',
+      op: '+',
+      left: data[0],
+      right: data[4]
+    };
+  }
+%}
 
 expression_list ->
     _ {% function(d){return []} %}

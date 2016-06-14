@@ -185,6 +185,18 @@ var grammar = {
     {"name": "expression", "symbols": ["regex"], "postprocess": id},
     {"name": "expression", "symbols": ["double_quote"], "postprocess": id},
     {"name": "expression", "symbols": ["call_expression"], "postprocess": id},
+    {"name": "expression", "symbols": ["plus_infix"], "postprocess": id},
+    {"name": "plus_infix", "symbols": ["expression", "_", {"literal":"+"}, "_", "expression"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: data[4].loc.end},
+            type: 'infix',
+            op: '+',
+            left: data[0],
+            right: data[4]
+          };
+        }
+        },
     {"name": "expression_list", "symbols": ["_"], "postprocess": function(d){return []}},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
