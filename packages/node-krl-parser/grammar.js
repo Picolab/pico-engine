@@ -248,11 +248,26 @@ var grammar = {
     {"name": "expression_atom", "symbols": ["Object"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["RegExp"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["DoubleQuote"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["Function"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["CallExpression"], "postprocess": id},
     {"name": "expression_atom", "symbols": [{"literal":"("}, "_", "expression", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "expression_list", "symbols": ["_"], "postprocess": function(d){return []}},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
+    {"name": "Function$string$1", "symbols": [{"literal":"f"}, {"literal":"u"}, {"literal":"n"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "_", "function_params", "_", {"literal":")"}, "_", {"literal":"{"}, "_", "expression", "_", "loc_close_curly"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: data[12]},
+            type: 'Function',
+            params: data[4],
+            body: [data[10]]
+          };
+        }
+        },
+    {"name": "function_params", "symbols": [], "postprocess": function(d){return []}},
+    {"name": "function_params", "symbols": ["Symbol"], "postprocess": function(d){return [d[0]]}},
+    {"name": "function_params", "symbols": ["_function_params", "_", {"literal":","}, "_", "Symbol"], "postprocess": function(d){return d[0].concat([d[4]])}},
     {"name": "CallExpression", "symbols": ["Symbol", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren"], "postprocess": 
         function(data, start){
           return {

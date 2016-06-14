@@ -379,6 +379,13 @@ test('parser - locations', function(t){
     alternate:  {type: 'Symbol', value: 'c', loc: {start: 9, end: 10}}
   });
 
+  t.deepEquals(parser('function(a){b}')[0], {
+    loc: {start: 0, end: 14},
+    type: 'Function',
+    params: [{type: 'Symbol', value: 'a', loc: {start: 9, end: 10}}],
+    body: [{type: 'Symbol', value: 'b', loc: {start: 12, end: 13}}]
+  });
+
   t.end();
 });
 

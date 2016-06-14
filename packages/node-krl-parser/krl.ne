@@ -254,6 +254,7 @@ expression_atom ->
     | Object {% id %}
     | RegExp {% id %}
     | DoubleQuote {% id %}
+    | Function {% id %}
     | CallExpression {% id %}
     | "(" _ expression _ ")" {% getN(2) %}
 
@@ -261,6 +262,25 @@ expression_list ->
     _ {% function(d){return []} %}
     | expression {% function(d){return [d[0]]} %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
+
+################################################################################
+# Functions
+
+Function -> "function" _ "(" _ function_params _ ")" _ "{" _ expression _ loc_close_curly {%
+  function(data, start){
+    return {
+      loc: {start: start, end: data[12]},
+      type: 'Function',
+      params: data[4],
+      body: [data[10]]
+    };
+  }
+%}
+
+function_params ->
+    null {% function(d){return []} %}
+    | Symbol {% function(d){return [d[0]]} %}
+    | _function_params _ "," _ Symbol {% function(d){return d[0].concat([d[4]])} %}
 
 CallExpression -> Symbol _ "(" _ expression_list _ loc_close_paren {%
   function(data, start){
