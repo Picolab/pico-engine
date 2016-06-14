@@ -490,5 +490,40 @@ test('parser - expressions', function(t){
     right: {type: 'string', value: 'two'}
   });
 
+  testExp('1 like re#one#i', {
+    type: 'infix',
+    op: 'like',
+    left: {type: 'number', value: 1},
+    right: {type: 'regex', value: /one/i}
+  });
+
+  t.end();
+});
+
+test('parser - operator precedence', function(t){
+  var testPrec = function(src, expected){
+    var ast = normalizeAST(rmLoc(parser(src)));
+    var s = function(ast){
+      if(_.isArray(ast)){
+        return _.map(ast, s).join(' ');
+      }else if(ast.type === 'infix'){
+        return '(' + ast.op + ' ' + s(ast.left) + ' ' + s(ast.right) + ')';
+      }
+      return ast.value;
+    };
+    t.equals(s(ast), expected);
+  };
+
+  testPrec('a + b', '(+ a b)');
+  testPrec('a+b+c', '(+ (+ a b) c)');
+  testPrec('a+b*c', '(+ a (* b c))');
+
+  testPrec('a || b && c', '(|| a (&& b c))');
+  testPrec('(a || b) && c', '(&& (|| a b) c)');
+
+  testPrec('a && b cmp c', '(&& a (cmp b c))');
+
+  testPrec('a * b < c && d', '(&& (< (* a b) c) d)');
+
   t.end();
 });
