@@ -296,21 +296,35 @@ var grammar = {
     {"name": "_regex_modifiers_chars$string$2", "symbols": [{"literal":"g"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "_regex_modifiers_chars", "symbols": ["_regex_modifiers_chars$string$2"]},
     {"name": "double_quote$string$1", "symbols": [{"literal":"<"}, {"literal":"<"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "double_quote$string$2", "symbols": [{"literal":">"}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "double_quote", "symbols": ["double_quote$string$1", "_double_quote", "double_quote$string$2"], "postprocess": 
+    {"name": "double_quote", "symbols": ["double_quote$string$1", "_double_quote_body", "loc_close_double_quote"], "postprocess": 
         function(data, loc){
-          var src = data[1];
           //TODO handle beestings
           return {
-            loc: {start: loc - 2, end: loc + src.length + 2},
+            loc: {start: loc - 2, end: 0},//TODO end
+            type: 'double_quote',
+            value: data[1]
+          };
+        }
+        },
+    {"name": "_double_quote_body", "symbols": ["_double_quote_part"], "postprocess": function(d){return [d[0]]}},
+    {"name": "_double_quote_part", "symbols": ["_double_quote_string_node"], "postprocess": id},
+    {"name": "_double_quote_part", "symbols": ["_beesting"], "postprocess": id},
+    {"name": "_beesting$string$1", "symbols": [{"literal":"#"}, {"literal":"{"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "_beesting", "symbols": ["_beesting$string$1", "_", "expression", "_", {"literal":"}"}], "postprocess": getN(2)},
+    {"name": "_double_quote_string_node", "symbols": ["_double_quote_string"], "postprocess": 
+        function(data, loc){
+          var src = data[0];
+          return {
+            loc: {start: loc, end: loc + src.length},
             type: 'string',
             value: src
           };
         }
         },
-    {"name": "_double_quote", "symbols": [], "postprocess": noopStr},
-    {"name": "_double_quote", "symbols": ["_double_quote", "_double_quote_char"], "postprocess": function(d){return d[0] + d[1]}},
-    {"name": "_double_quote_char", "symbols": [/[^>]/], "postprocess": id},
+    {"name": "_double_quote_string", "symbols": [], "postprocess": noopStr},
+    {"name": "_double_quote_string", "symbols": ["_double_quote_string", "_double_quote_char"], "postprocess": function(d){return d[0] + d[1]}},
+    {"name": "_double_quote_char", "symbols": [/[^>#]/], "postprocess": id},
+    {"name": "_double_quote_char", "symbols": [{"literal":"#"}, /[^{]/], "postprocess": idAll},
     {"name": "_double_quote_char", "symbols": [{"literal":">"}, /[^>]/], "postprocess": idAll},
     {"name": "string", "symbols": [{"literal":"\""}, "_string", {"literal":"\""}], "postprocess": 
         function(data, loc){
@@ -329,6 +343,8 @@ var grammar = {
     {"name": "loc_close_curly", "symbols": [{"literal":"}"}], "postprocess": idEndLoc},
     {"name": "loc_close_square", "symbols": [{"literal":"]"}], "postprocess": idEndLoc},
     {"name": "loc_close_paren", "symbols": [{"literal":")"}], "postprocess": idEndLoc},
+    {"name": "loc_close_double_quote$string$1", "symbols": [{"literal":">"}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "loc_close_double_quote", "symbols": ["loc_close_double_quote$string$1"], "postprocess": idEndLoc},
     {"name": "_$ebnf$1", "symbols": []},
     {"name": "_$ebnf$1", "symbols": [/[\s]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": noop},

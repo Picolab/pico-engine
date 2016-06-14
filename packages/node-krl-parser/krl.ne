@@ -317,24 +317,44 @@ _regex_modifiers -> _regex_modifiers_chars {%
 _regex_modifiers_chars -> null {% noopStr %}
     | "i" | "g" | "ig" | "gi"
 
-double_quote -> "<<" _double_quote ">>" {%
+double_quote -> "<<" _double_quote_body loc_close_double_quote {%
   function(data, loc){
-    var src = data[1];
     //TODO handle beestings
     return {
-      loc: {start: loc - 2, end: loc + src.length + 2},
+      loc: {start: loc - 2, end: 0},//TODO end
+      type: 'double_quote',
+      value: data[1]
+    };
+  }
+%}
+
+_double_quote_body ->
+    _double_quote_part {% function(d){return [d[0]]} %}
+
+_double_quote_part ->
+    _double_quote_string_node {% id %}
+    | _beesting {% id %}
+
+_beesting -> "#{" _ expression _ "}" {% getN(2) %}
+
+_double_quote_string_node -> _double_quote_string {%
+  function(data, loc){
+    var src = data[0];
+    return {
+      loc: {start: loc, end: loc + src.length},
       type: 'string',
       value: src
     };
   }
 %}
 
-_double_quote ->
+_double_quote_string ->
     null {% noopStr %}
-    | _double_quote _double_quote_char {% function(d){return d[0] + d[1]} %}
+    | _double_quote_string _double_quote_char {% function(d){return d[0] + d[1]} %}
 
 _double_quote_char ->
-    [^>] {% id %}
+    [^>#] {% id %}
+    | "#" [^{] {% idAll %}
     | ">" [^>] {% idAll %}
 
 string -> "\"" _string "\"" {%
@@ -360,6 +380,7 @@ _stringchar ->
 loc_close_curly -> "}" {% idEndLoc %}
 loc_close_square -> "]" {% idEndLoc %}
 loc_close_paren -> ")" {% idEndLoc %}
+loc_close_double_quote -> ">>" {% idEndLoc %}
 
 # Whitespace
 _  -> [\s]:* {% noop %}

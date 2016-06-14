@@ -418,7 +418,34 @@ test('parser - literals', function(t){
   testLiteral('re#\\# else\\\\#ig', {type: 'regex', value: /# else\\/ig});
   testLiteral('re#/ok/g#ig', {type: 'regex', value: /\/ok\/g/ig});
 
-  testLiteral('<<\n  hello\n  >>', {type: 'string', value: '\n  hello\n  '});
+  testLiteral('<<>>', {
+    type: 'double_quote',
+    value: [
+      {type: 'string', value: ''}
+    ]
+  });
+  testLiteral('<<\n  hello\n  >>', {
+    type: 'double_quote',
+    value: [
+      {type: 'string', value: '\n  hello\n  '}
+    ]
+  });
+  testLiteral('<<#{1}>>', {
+    type: 'double_quote',
+    value: [
+      {type: 'number', value: 1}
+    ]
+  });
+/*
+  testLiteral('<<one#{2}three>>', {
+    type: 'double_quote',
+    value: [
+      {type: 'string', value: 'one'},
+      {type: 'number', value: 2},
+      {type: 'string', value: 'three'}
+    ]
+  });
+  */
 
   t.end();
 });
