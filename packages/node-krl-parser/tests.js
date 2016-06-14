@@ -361,5 +361,15 @@ test('parser - literals', function(t){
     {type: 'boolean', value: false, src: 'false'}
   ]});
 
+  testLiteral('{}', {type: 'object', value: []});
+  testLiteral('{ "one" : "two" }', {type: 'object', value: [
+    [{type:'string',value:'one'},{type:'string',value:'two'}]
+  ]});
+  testLiteral('{"1":2,"3":true,"5":[]}', {type: 'object', value: [
+    [{type:'string',value:'1'},{type:'number',value:2,src:'2'}],
+    [{type:'string',value:'3'},{type:'boolean',value:true,src:'true'}],
+    [{type:'string',value:'5'},{type:'array',value:[]}]
+  ]});
+
   t.end();
 });

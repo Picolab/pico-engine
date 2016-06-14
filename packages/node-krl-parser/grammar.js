@@ -182,6 +182,7 @@ var grammar = {
     {"name": "expression", "symbols": ["number"], "postprocess": id},
     {"name": "expression", "symbols": ["boolean"], "postprocess": id},
     {"name": "expression", "symbols": ["array"], "postprocess": id},
+    {"name": "expression", "symbols": ["object"], "postprocess": id},
     {"name": "expression_list", "symbols": ["_"], "postprocess": function(d){return []}},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
@@ -194,6 +195,19 @@ var grammar = {
           };
         }
         },
+    {"name": "object", "symbols": [{"literal":"{"}, "_", "_object_kv_pairs", "_", "curly_close_loc"], "postprocess": 
+        function(data, loc){
+          return {
+            loc: {start: loc, end: data[4]},
+            type: 'object',
+            value: data[2]
+          };
+        }
+        },
+    {"name": "_object_kv_pairs", "symbols": ["_"], "postprocess": function(d){return []}},
+    {"name": "_object_kv_pairs", "symbols": ["_object_kv_pair"], "postprocess": id},
+    {"name": "_object_kv_pairs", "symbols": ["_object_kv_pairs", "_", {"literal":","}, "_", "_object_kv_pair"], "postprocess": function(d){return d[0].concat(d[4])}},
+    {"name": "_object_kv_pair", "symbols": ["string", "_", {"literal":":"}, "_", "expression"], "postprocess": function(d){return [[d[0], d[4]]]}},
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/]},
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/, "symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "symbol", "symbols": ["symbol$ebnf$1"], "postprocess": 

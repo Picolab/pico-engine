@@ -192,6 +192,7 @@ expression ->
     | number {% id %}
     | boolean {% id %}
     | array {% id %}
+    | object {% id %}
 
 expression_list ->
     _ {% function(d){return []} %}
@@ -207,6 +208,23 @@ array -> "[" _ expression_list _ square_close_loc {%
     };
   }
 %}
+
+object -> "{" _ _object_kv_pairs _ curly_close_loc {%
+  function(data, loc){
+    return {
+      loc: {start: loc, end: data[4]},
+      type: 'object',
+      value: data[2]
+    };
+  }
+%}
+
+_object_kv_pairs ->
+    _ {% function(d){return []} %}
+    | _object_kv_pair {% id %}
+    | _object_kv_pairs _ "," _ _object_kv_pair {% function(d){return d[0].concat(d[4])} %}
+
+_object_kv_pair -> string _ ":" _ expression {% function(d){return [[d[0], d[4]]]} %}
 
 symbol -> [\w]:+  {%
   function(data, loc){
