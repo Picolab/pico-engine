@@ -31,6 +31,7 @@ var last = function(arr){
 %}
 
 main -> _ ruleset _ {% getN(1) %}
+    | expression {% id %}
 
 curly_close_loc -> "}" {% function(data, loc){return loc + 1;} %}
 
@@ -165,7 +166,7 @@ symbol_value_pair ->
 
 expression ->
     string {% id %}
-    | int {% id %}
+    | number {% id %}
 
 symbol -> [\w]:+  {%
   function(data, loc){
@@ -178,12 +179,13 @@ symbol -> [\w]:+  {%
   }
 %}
 
-int -> [0-9]:+ {%
+number -> [0-9]:+ {%
   function(data, loc){
     var src = data[0].join('');
     return {
       loc: {start: loc, end: loc + src.length},
-      type: 'int',
+      type: 'number',
+      value: parseFloat(src) || 0,// or 0 to avoid NaN
       src: src
     };
   }

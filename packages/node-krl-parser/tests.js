@@ -186,7 +186,7 @@ test('parser - action', function(t){
   var mkPair = function(key, val){
     return [
       {type: 'symbol', src: key},
-      {type: 'int', src: val}
+      {type: 'number', src: val, value: parseFloat(val)}
     ];
   };
   src  = 'send_directive("say") with\n';
@@ -325,13 +325,27 @@ test('parser - locations', function(t){
           },
           {
             loc: {start: 73, end: 74},
-            type: 'int',
-            src: '1',
+            type: 'number',
+            value: 1,
+            src: '1'
           }
         ]
       ]
     }
   });
+
+  t.end();
+});
+
+test('parser - literals', function(t){
+  var testLiteral = function(src, expected){
+    var ast = parser(src);
+    t.deepEquals(rmLoc(ast), [expected]);
+  };
+  testLiteral('"one\\"two"', {type: 'string', value: 'one"two'});
+
+  testLiteral('123', {type: 'number', value: 123, src: '123'});
+  //testLiteral('1.5', {type: 'number', value: 1.5, src: '1.5'});
 
   t.end();
 });

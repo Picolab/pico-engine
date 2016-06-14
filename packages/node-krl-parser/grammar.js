@@ -35,6 +35,7 @@ var last = function(arr){
 var grammar = {
     ParserRules: [
     {"name": "main", "symbols": ["_", "ruleset", "_"], "postprocess": getN(1)},
+    {"name": "main", "symbols": ["expression"], "postprocess": id},
     {"name": "curly_close_loc", "symbols": [{"literal":"}"}], "postprocess": function(data, loc){return loc + 1;}},
     {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset$ebnf$1", "symbols": []},
@@ -153,7 +154,7 @@ var grammar = {
         }
         },
     {"name": "expression", "symbols": ["string"], "postprocess": id},
-    {"name": "expression", "symbols": ["int"], "postprocess": id},
+    {"name": "expression", "symbols": ["number"], "postprocess": id},
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/]},
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/, "symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "symbol", "symbols": ["symbol$ebnf$1"], "postprocess": 
@@ -166,14 +167,15 @@ var grammar = {
           };
         }
         },
-    {"name": "int$ebnf$1", "symbols": [/[0-9]/]},
-    {"name": "int$ebnf$1", "symbols": [/[0-9]/, "int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "int", "symbols": ["int$ebnf$1"], "postprocess": 
+    {"name": "number$ebnf$1", "symbols": [/[0-9]/]},
+    {"name": "number$ebnf$1", "symbols": [/[0-9]/, "number$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "number", "symbols": ["number$ebnf$1"], "postprocess": 
         function(data, loc){
           var src = data[0].join('');
           return {
             loc: {start: loc, end: loc + src.length},
-            type: 'int',
+            type: 'number',
+            value: parseFloat(src) || 0,// or 0 to avoid NaN
             src: src
           };
         }
