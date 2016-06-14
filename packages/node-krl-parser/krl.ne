@@ -223,9 +223,14 @@ exp_comp -> exp_sum {% id %}
     | exp_comp _ "<=>"  _ exp_sum {% infixOp %}
     | exp_comp _ "cmp"  _ exp_sum {% infixOp %}
 
-exp_sum -> expression_atom {% id %}
-    | exp_sum _ "+" _ expression_atom {% infixOp %}
-    | exp_sum _ "-" _ expression_atom {% infixOp %}
+exp_sum -> exp_product {% id %}
+    | exp_sum _ "+" _ exp_product {% infixOp %}
+    | exp_sum _ "-" _ exp_product {% infixOp %}
+
+exp_product -> expression_atom {% id %}
+    | exp_product _ "*" _ expression_atom {% infixOp %}
+    | exp_product _ "/" _ expression_atom {% infixOp %}
+    | exp_product _ "%" _ expression_atom {% infixOp %}
 
 expression_atom ->
       string {% id %}
