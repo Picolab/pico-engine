@@ -4,6 +4,35 @@
 function id(x) {return x[0]; }
 
 
+var last = function(arr){
+  return arr[arr.length - 1];
+};
+
+var flatten = function(toFlatten){
+  var isArray = Object.prototype.toString.call(toFlatten) === '[object Array]';
+
+  if (isArray && toFlatten.length > 0) {
+    var head = toFlatten[0];
+    var tail = toFlatten.slice(1);
+
+    return flatten(head).concat(flatten(tail));
+  } else {
+    return [].concat(toFlatten);
+  }
+};
+
+var reserved_symbols = {
+  "true": true,
+  "false": true
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// ast functions
+var noop = function(){};
+var noopStr = function(){return ""};
+var idAll = function(d){return flatten(d).join('')};
+var idEndLoc = function(data, loc){return loc + flatten(data).join('').length};
+
 var getN = function(n){
   return function(data){
     return data[n];
@@ -33,34 +62,14 @@ var booleanAST = function(value){
   };
 };
 
-
-var last = function(arr){
-  return arr[arr.length - 1];
-};
-
-var flatten = function(toFlatten){
-  var isArray = Object.prototype.toString.call(toFlatten) === '[object Array]';
-
-  if (isArray && toFlatten.length > 0) {
-    var head = toFlatten[0];
-    var tail = toFlatten.slice(1);
-
-    return flatten(head).concat(flatten(tail));
-  } else {
-    return [].concat(toFlatten);
-  }
-};
-
-////////////////
-// ast functions
-var noop = function(){};
-var noopStr = function(){return ""};
-var idAll = function(d){return flatten(d).join('')};
-var idEndLoc = function(data, loc){return loc + flatten(data).join('').length};
-
-var reserved_symbols = {
-  "true": true,
-  "false": true
+var infixOp = function(data, start){
+  return {
+    loc: {start: start, end: data[4].loc.end},
+    type: 'infix',
+    op: data[2],
+    left: data[0],
+    right: data[4]
+  };
 };
 
 var grammar = {
@@ -191,17 +200,6 @@ var grammar = {
     {"name": "expression", "symbols": ["double_quote"], "postprocess": id},
     {"name": "expression", "symbols": ["call_expression"], "postprocess": id},
     {"name": "expression", "symbols": ["plus_infix"], "postprocess": id},
-    {"name": "plus_infix", "symbols": ["expression", "_", {"literal":"+"}, "_", "expression"], "postprocess": 
-        function(data, start){
-          return {
-            loc: {start: start, end: data[4].loc.end},
-            type: 'infix',
-            op: '+',
-            left: data[0],
-            right: data[4]
-          };
-        }
-        },
     {"name": "expression_list", "symbols": ["_"], "postprocess": function(d){return []}},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
@@ -215,6 +213,7 @@ var grammar = {
           };
         }
         },
+    {"name": "plus_infix", "symbols": ["expression", "_", {"literal":"+"}, "_", "expression"], "postprocess": infixOp},
     {"name": "array", "symbols": [{"literal":"["}, "_", "expression_list", "_", "loc_close_square"], "postprocess": 
         function(data, loc){
           return {

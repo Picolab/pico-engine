@@ -1,5 +1,34 @@
 @{%
 
+var last = function(arr){
+  return arr[arr.length - 1];
+};
+
+var flatten = function(toFlatten){
+  var isArray = Object.prototype.toString.call(toFlatten) === '[object Array]';
+
+  if (isArray && toFlatten.length > 0) {
+    var head = toFlatten[0];
+    var tail = toFlatten.slice(1);
+
+    return flatten(head).concat(flatten(tail));
+  } else {
+    return [].concat(toFlatten);
+  }
+};
+
+var reserved_symbols = {
+  "true": true,
+  "false": true
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// ast functions
+var noop = function(){};
+var noopStr = function(){return ""};
+var idAll = function(d){return flatten(d).join('')};
+var idEndLoc = function(data, loc){return loc + flatten(data).join('').length};
+
 var getN = function(n){
   return function(data){
     return data[n];
@@ -29,34 +58,14 @@ var booleanAST = function(value){
   };
 };
 
-
-var last = function(arr){
-  return arr[arr.length - 1];
-};
-
-var flatten = function(toFlatten){
-  var isArray = Object.prototype.toString.call(toFlatten) === '[object Array]';
-
-  if (isArray && toFlatten.length > 0) {
-    var head = toFlatten[0];
-    var tail = toFlatten.slice(1);
-
-    return flatten(head).concat(flatten(tail));
-  } else {
-    return [].concat(toFlatten);
-  }
-};
-
-////////////////
-// ast functions
-var noop = function(){};
-var noopStr = function(){return ""};
-var idAll = function(d){return flatten(d).join('')};
-var idEndLoc = function(data, loc){return loc + flatten(data).join('').length};
-
-var reserved_symbols = {
-  "true": true,
-  "false": true
+var infixOp = function(data, start){
+  return {
+    loc: {start: start, end: data[4].loc.end},
+    type: 'infix',
+    op: data[2],
+    left: data[0],
+    right: data[4]
+  };
 };
 
 %}
@@ -201,18 +210,6 @@ expression ->
     | call_expression {% id %}
     | plus_infix {% id %}
 
-plus_infix -> expression _ "+" _ expression {%
-  function(data, start){
-    return {
-      loc: {start: start, end: data[4].loc.end},
-      type: 'infix',
-      op: '+',
-      left: data[0],
-      right: data[4]
-    };
-  }
-%}
-
 expression_list ->
     _ {% function(d){return []} %}
     | expression {% function(d){return [d[0]]} %}
@@ -228,6 +225,12 @@ call_expression -> symbol _ "(" _ expression_list _ loc_close_paren {%
     };
   }
 %}
+
+################################################################################
+# Infix Operators
+
+plus_infix -> expression _ "+" _ expression {% infixOp %}
+
 
 ################################################################################
 # Literal Datastructures
