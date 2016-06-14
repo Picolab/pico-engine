@@ -351,5 +351,8 @@ test('parser - literals', function(t){
   testLiteral('-.50', {type: 'number', value: -0.5, src: '-.50'});
   testLiteral('-0.0', {type: 'number', value: 0, src: '-0.0'});
 
+  testLiteral('true', {type: 'boolean', value: true, src: 'true'});
+  testLiteral('false', {type: 'boolean', value: false, src: 'false'});
+
   t.end();
 });

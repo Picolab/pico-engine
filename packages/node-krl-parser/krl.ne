@@ -22,6 +22,19 @@ var infixEventOp = function(op){
   };
 };
 
+var booleanAST = function(value){
+  return function(data, loc){
+    var src = data[0];
+    return {
+      type: 'boolean',
+      loc: {start: loc, end: loc + src.length},
+      value: value,
+      src: src
+    };
+  };
+};
+
+
 var noop = function(){};
 
 var last = function(arr){
@@ -180,6 +193,7 @@ symbol_value_pair ->
 expression ->
     string {% id %}
     | number {% id %}
+    | boolean {% id %}
 
 symbol -> [\w]:+  {%
   function(data, loc){
@@ -191,6 +205,9 @@ symbol -> [\w]:+  {%
     };
   }
 %}
+
+boolean -> "true"  {% booleanAST(true ) %}
+         | "false" {% booleanAST(false) %}
 
 number -> _number {%
   function(data, loc){

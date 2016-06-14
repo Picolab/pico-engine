@@ -26,6 +26,19 @@ var infixEventOp = function(op){
   };
 };
 
+var booleanAST = function(value){
+  return function(data, loc){
+    var src = data[0];
+    return {
+      type: 'boolean',
+      loc: {start: loc, end: loc + src.length},
+      value: value,
+      src: src
+    };
+  };
+};
+
+
 var noop = function(){};
 
 var last = function(arr){
@@ -168,6 +181,7 @@ var grammar = {
         },
     {"name": "expression", "symbols": ["string"], "postprocess": id},
     {"name": "expression", "symbols": ["number"], "postprocess": id},
+    {"name": "expression", "symbols": ["boolean"], "postprocess": id},
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/]},
     {"name": "symbol$ebnf$1", "symbols": [/[\w]/, "symbol$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "symbol", "symbols": ["symbol$ebnf$1"], "postprocess": 
@@ -180,6 +194,10 @@ var grammar = {
           };
         }
         },
+    {"name": "boolean$string$1", "symbols": [{"literal":"t"}, {"literal":"r"}, {"literal":"u"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "boolean", "symbols": ["boolean$string$1"], "postprocess": booleanAST(true )},
+    {"name": "boolean$string$2", "symbols": [{"literal":"f"}, {"literal":"a"}, {"literal":"l"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "boolean", "symbols": ["boolean$string$2"], "postprocess": booleanAST(false)},
     {"name": "number", "symbols": ["_number"], "postprocess": 
         function(data, loc){
           var src = flatten(data).join('');
