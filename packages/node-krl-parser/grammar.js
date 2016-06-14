@@ -190,16 +190,18 @@ var grammar = {
           return [data[0], data[4]];
         }
         },
-    {"name": "expression", "symbols": ["string"], "postprocess": id},
-    {"name": "expression", "symbols": ["number"], "postprocess": id},
-    {"name": "expression", "symbols": ["boolean"], "postprocess": id},
-    {"name": "expression", "symbols": ["symbol"], "postprocess": id},
-    {"name": "expression", "symbols": ["array"], "postprocess": id},
-    {"name": "expression", "symbols": ["object"], "postprocess": id},
-    {"name": "expression", "symbols": ["regex"], "postprocess": id},
-    {"name": "expression", "symbols": ["double_quote"], "postprocess": id},
-    {"name": "expression", "symbols": ["call_expression"], "postprocess": id},
     {"name": "expression", "symbols": ["plus_infix"], "postprocess": id},
+    {"name": "plus_infix", "symbols": ["plus_infix", "_", {"literal":"+"}, "_", "expression_atom"], "postprocess": infixOp},
+    {"name": "plus_infix", "symbols": ["expression_atom"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["string"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["number"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["boolean"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["symbol"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["array"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["object"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["regex"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["double_quote"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["call_expression"], "postprocess": id},
     {"name": "expression_list", "symbols": ["_"], "postprocess": function(d){return []}},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
@@ -213,7 +215,6 @@ var grammar = {
           };
         }
         },
-    {"name": "plus_infix", "symbols": ["expression", "_", {"literal":"+"}, "_", "expression"], "postprocess": infixOp},
     {"name": "array", "symbols": [{"literal":"["}, "_", "expression_list", "_", "loc_close_square"], "postprocess": 
         function(data, loc){
           return {

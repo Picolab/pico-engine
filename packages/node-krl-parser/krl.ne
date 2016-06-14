@@ -198,8 +198,16 @@ symbol_value_pair ->
   }
 %}
 
-expression ->
-    string {% id %}
+################################################################################
+# Expressions
+
+expression -> plus_infix {% id %}
+
+plus_infix -> plus_infix _ "+" _ expression_atom {% infixOp %}
+            | expression_atom {% id %}
+
+expression_atom ->
+      string {% id %}
     | number {% id %}
     | boolean {% id %}
     | symbol {% id %}
@@ -208,7 +216,6 @@ expression ->
     | regex {% id %}
     | double_quote {% id %}
     | call_expression {% id %}
-    | plus_infix {% id %}
 
 expression_list ->
     _ {% function(d){return []} %}
@@ -225,12 +232,6 @@ call_expression -> symbol _ "(" _ expression_list _ loc_close_paren {%
     };
   }
 %}
-
-################################################################################
-# Infix Operators
-
-plus_infix -> expression _ "+" _ expression {% infixOp %}
-
 
 ################################################################################
 # Literal Datastructures
