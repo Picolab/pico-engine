@@ -543,6 +543,17 @@ test('parser - expressions', function(t){
     }
   });
 
+  testExp('function (){}', {
+    type: 'Function',
+    params: [],
+    body: []
+  });
+  testExp('function(a){b}', {
+    type: 'Function',
+    params: [{type: 'Symbol', value: 'a'}],
+    body: [{type: 'Symbol', value: 'b'}]
+  });
+
   t.end();
 });
 

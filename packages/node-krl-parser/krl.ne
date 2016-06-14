@@ -199,6 +199,15 @@ symbol_value_pair ->
 %}
 
 ################################################################################
+# Statements
+
+statement -> expression {% id %}
+
+statement_list -> null {% function(){return [];} %}
+    | statement {% function(d){return [d[0]];} %}
+    | statement_list _ ";" _ statement {% function(d){return d[0].concat(d[4])} %}
+
+################################################################################
 # Expressions
 
 expression -> exp_conditional {% id %}
@@ -266,13 +275,13 @@ expression_list ->
 ################################################################################
 # Functions
 
-Function -> "function" _ "(" _ function_params _ ")" _ "{" _ expression _ loc_close_curly {%
+Function -> "function" _ "(" _ function_params _ ")" _ "{" _ statement_list _ loc_close_curly {%
   function(data, start){
     return {
       loc: {start: start, end: data[12]},
       type: 'Function',
       params: data[4],
-      body: [data[10]]
+      body: data[10]
     };
   }
 %}

@@ -190,6 +190,10 @@ var grammar = {
           return [data[0], data[4]];
         }
         },
+    {"name": "statement", "symbols": ["expression"], "postprocess": id},
+    {"name": "statement_list", "symbols": [], "postprocess": function(){return [];}},
+    {"name": "statement_list", "symbols": ["statement"], "postprocess": function(d){return [d[0]];}},
+    {"name": "statement_list", "symbols": ["statement_list", "_", {"literal":";"}, "_", "statement"], "postprocess": function(d){return d[0].concat(d[4])}},
     {"name": "expression", "symbols": ["exp_conditional"], "postprocess": id},
     {"name": "exp_conditional", "symbols": ["exp_or"], "postprocess": id},
     {"name": "exp_conditional$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -255,13 +259,13 @@ var grammar = {
     {"name": "expression_list", "symbols": ["expression"], "postprocess": function(d){return [d[0]]}},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
     {"name": "Function$string$1", "symbols": [{"literal":"f"}, {"literal":"u"}, {"literal":"n"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "_", "function_params", "_", {"literal":")"}, "_", {"literal":"{"}, "_", "expression", "_", "loc_close_curly"], "postprocess": 
+    {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "_", "function_params", "_", {"literal":")"}, "_", {"literal":"{"}, "_", "statement_list", "_", "loc_close_curly"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: data[12]},
             type: 'Function',
             params: data[4],
-            body: [data[10]]
+            body: data[10]
           };
         }
         },
