@@ -290,6 +290,48 @@ test('parser - locations', function(t){
       }
     ]
   });
+  src = 'select when a b\nsend_directive("say")';
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].actions[0], {
+    loc: {start: 39, end: 57},
+    type: 'send_directive',
+    args: [
+      {
+        loc: {start: 54, end: 57},
+        type: 'string',
+        value: 'say'
+      }
+    ]
+  });
+  src = 'select when a b\nsend_directive("say") with\nblah = 1';
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].actions[0], {
+    loc: {start: 39, end: 74},
+    type: 'send_directive',
+    args: [
+      {
+        loc: {start: 54, end: 57},
+        type: 'string',
+        value: 'say'
+      }
+    ],
+    'with': {
+      loc: {start: 61, end: 74},
+      type: 'with_expression',
+      pairs: [
+        [
+          {
+            loc: {start: 66, end: 70},
+            type: 'symbol',
+            src: 'blah',
+          },
+          {
+            loc: {start: 73, end: 74},
+            type: 'int',
+            src: '1',
+          }
+        ]
+      ]
+    }
+  });
 
   t.end();
 });

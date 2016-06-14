@@ -117,7 +117,12 @@ event_action ->
   function(data, loc){
     var ast = {
       type: 'send_directive',
-      loc: loc,
+      loc: {
+        start: loc,
+        end: data[4]
+          ? data[4].loc.end
+          : (last(data[2]) ? last(data[2]).loc.end : 0)
+      },
       args: data[2]
     };
     if(data[4]){
@@ -137,10 +142,12 @@ comma_separated_expressions ->
 with_expression ->
     "with" __ symbol_value_pairs {%
   function(data, loc){
+    var pairs = data[2];
+    var last_pair = last(pairs);
     return {
+      loc: {start: loc, end: (last_pair ? last_pair[1].loc.end : 0)},
       type: 'with_expression',
-      loc: loc,
-      pairs: data[2]
+      pairs: pairs
     };
   }
 %}
@@ -173,20 +180,22 @@ symbol -> [\w]:+  {%
 
 int -> [0-9]:+ {%
   function(data, loc){
+    var src = data[0].join('');
     return {
+      loc: {start: loc, end: loc + src.length},
       type: 'int',
-      loc: loc,
-      src: data[0].join('')
+      src: src
     };
   }
 %}
 
 string -> "\"" _string "\"" {%
   function(data, loc){
+    var src = data[1];
     return {
+      loc: {start: loc, end: loc + src.length},
       type: 'string',
-      loc: loc,
-      value: data[1]
+      value: src
     };
   }
 %}

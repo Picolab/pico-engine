@@ -115,7 +115,12 @@ var grammar = {
         function(data, loc){
           var ast = {
             type: 'send_directive',
-            loc: loc,
+            loc: {
+              start: loc,
+              end: data[4]
+                ? data[4].loc.end
+                : (last(data[2]) ? last(data[2]).loc.end : 0)
+            },
             args: data[2]
           };
           if(data[4]){
@@ -130,10 +135,12 @@ var grammar = {
     {"name": "with_expression$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "with_expression", "symbols": ["with_expression$string$1", "__", "symbol_value_pairs"], "postprocess": 
         function(data, loc){
+          var pairs = data[2];
+          var last_pair = last(pairs);
           return {
+            loc: {start: loc, end: (last_pair ? last_pair[1].loc.end : 0)},
             type: 'with_expression',
-            loc: loc,
-            pairs: data[2]
+            pairs: pairs
           };
         }
         },
@@ -163,19 +170,21 @@ var grammar = {
     {"name": "int$ebnf$1", "symbols": [/[0-9]/, "int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "int", "symbols": ["int$ebnf$1"], "postprocess": 
         function(data, loc){
+          var src = data[0].join('');
           return {
+            loc: {start: loc, end: loc + src.length},
             type: 'int',
-            loc: loc,
-            src: data[0].join('')
+            src: src
           };
         }
         },
     {"name": "string", "symbols": [{"literal":"\""}, "_string", {"literal":"\""}], "postprocess": 
         function(data, loc){
+          var src = data[1];
           return {
+            loc: {start: loc, end: loc + src.length},
             type: 'string',
-            loc: loc,
-            value: data[1]
+            value: src
           };
         }
         },
