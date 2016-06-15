@@ -65,9 +65,9 @@ var complexEventOp = function(op){
       loc: {start: start, end: lastEndLoc(data)},
       type: 'EventOperator',
       op: op,
-      args: arg_indices.map(function(i){
+      args: flatten(arg_indices.map(function(i){
         return data[i];
-      })
+      }))
     };
   };
 };
@@ -144,6 +144,8 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("between", 0, 6, 10) %}
     | event_exp_fns __ "not" __ "between" _ "(" _ EventExpression _ "," _ EventExpression _ loc_close_paren
       {% complexEventOp("not between", 0, 8, 12) %}
+    | "any" __ PositiveInteger _ "(" _ EventExpression_list _ loc_close_paren
+      {% complexEventOp("any", 2, 6) %}
     | "count" __ PositiveInteger _ "(" _ EventExpression _ loc_close_paren
       {% complexEventOp("count", 2, 6) %}
     | "repeat" __ PositiveInteger _ "(" _ EventExpression _ loc_close_paren
@@ -183,6 +185,11 @@ event_exp_attrs ->
 %}
     | RegExp {% id %}
     | String {% id %}
+
+EventExpression_list ->
+    null {% function(d){return []} %}
+    | EventExpression {% function(d){return [d[0]]} %}
+    | EventExpression_list _ "," _ EventExpression {% function(d){return d[0].concat([d[4]])} %}
 
 event_action ->
     "send_directive" _ function_call_args _ with_expression:? {%

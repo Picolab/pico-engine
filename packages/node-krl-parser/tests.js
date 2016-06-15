@@ -740,6 +740,17 @@ test('parser - EventExpression', function(t){
     ]
   });
 
+  testEE('any 2 (a b, c d, e f)', {
+    type: 'EventOperator',
+    op: 'any',
+    args: [
+      mk(2),
+      mk.ee('a', 'b'),
+      mk.ee('c', 'd'),
+      mk.ee('e', 'f')
+    ]
+  });
+
   testEE('count 2 (a b)', {
     type: 'EventOperator',
     op: 'count',

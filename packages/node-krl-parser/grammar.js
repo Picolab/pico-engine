@@ -69,9 +69,9 @@ var complexEventOp = function(op){
       loc: {start: start, end: lastEndLoc(data)},
       type: 'EventOperator',
       op: op,
-      args: arg_indices.map(function(i){
+      args: flatten(arg_indices.map(function(i){
         return data[i];
-      })
+      }))
     };
   };
 };
@@ -157,10 +157,12 @@ var grammar = {
     {"name": "event_exp_fns$string$2", "symbols": [{"literal":"n"}, {"literal":"o"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exp_fns$string$3", "symbols": [{"literal":"b"}, {"literal":"e"}, {"literal":"t"}, {"literal":"w"}, {"literal":"e"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$2", "__", "event_exp_fns$string$3", "_", {"literal":"("}, "_", "EventExpression", "_", {"literal":","}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("not between", 0, 8, 12)},
-    {"name": "event_exp_fns$string$4", "symbols": [{"literal":"c"}, {"literal":"o"}, {"literal":"u"}, {"literal":"n"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$4", "__", "PositiveInteger", "_", {"literal":"("}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("count", 2, 6)},
-    {"name": "event_exp_fns$string$5", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"p"}, {"literal":"e"}, {"literal":"a"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$5", "__", "PositiveInteger", "_", {"literal":"("}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("repeat", 2, 6)},
+    {"name": "event_exp_fns$string$4", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"y"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$4", "__", "PositiveInteger", "_", {"literal":"("}, "_", "EventExpression_list", "_", "loc_close_paren"], "postprocess": complexEventOp("any", 2, 6)},
+    {"name": "event_exp_fns$string$5", "symbols": [{"literal":"c"}, {"literal":"o"}, {"literal":"u"}, {"literal":"n"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$5", "__", "PositiveInteger", "_", {"literal":"("}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("count", 2, 6)},
+    {"name": "event_exp_fns$string$6", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"p"}, {"literal":"e"}, {"literal":"a"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$6", "__", "PositiveInteger", "_", {"literal":"("}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("repeat", 2, 6)},
     {"name": "event_exp_base", "symbols": [{"literal":"("}, "_", "EventExpression", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "event_exp_base$ebnf$1", "symbols": []},
     {"name": "event_exp_base$ebnf$1$subexpression$1", "symbols": ["__", "event_exp_attrs"]},
@@ -201,6 +203,9 @@ var grammar = {
         },
     {"name": "event_exp_attrs", "symbols": ["RegExp"], "postprocess": id},
     {"name": "event_exp_attrs", "symbols": ["String"], "postprocess": id},
+    {"name": "EventExpression_list", "symbols": [], "postprocess": function(d){return []}},
+    {"name": "EventExpression_list", "symbols": ["EventExpression"], "postprocess": function(d){return [d[0]]}},
+    {"name": "EventExpression_list", "symbols": ["EventExpression_list", "_", {"literal":","}, "_", "EventExpression"], "postprocess": function(d){return d[0].concat([d[4]])}},
     {"name": "event_action$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"n"}, {"literal":"d"}, {"literal":"_"}, {"literal":"d"}, {"literal":"i"}, {"literal":"r"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_action$ebnf$1", "symbols": ["with_expression"], "postprocess": id},
     {"name": "event_action$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
