@@ -9,15 +9,18 @@ var examples = {
     '-12.3',
     'thing',
     'true',
+    're#^My name is (.*)#i',
     '[a, b, c]',
-    '{"one": a}'
+    '{"one": a}',
+    '<<\n  hello #{name}!\n  >>'
   ],
   '### Conditionals': [
     'a => b | c',
     'a => b |\nc => d |\n     e'
   ],
   '### Functions': [
-    'function(a){\n  b\n}'
+    'function(a){\n  b\n}',
+    'a(b,c)'
   ]
 };
 
@@ -54,6 +57,9 @@ var printAST = function(ast, i, indent_size){
       + _.map(ast, function(value, key){
         var k = JSON.stringify(key);
         var v = printAST(value, i + indent_size, indent_size);
+        if(key === 'value' && ast.type === 'RegExp'){
+          v = ast.value;
+        }
         return ind(i + indent_size) + k + ': ' + v;
       }).join('\n')
       + '\n' + ind(i) + '}';
