@@ -471,6 +471,34 @@ test('parser - literals', function(t){
   t.end();
 });
 
+test('parser - operator precedence', function(t){
+  var testPrec = function(src, expected){
+    var ast = normalizeAST(rmLoc(parser(src)));
+    var s = function(ast){
+      if(_.isArray(ast)){
+        return _.map(ast, s).join(' ');
+      }else if(ast.type === 'InfixOperator'){
+        return '(' + ast.op + ' ' + s(ast.left) + ' ' + s(ast.right) + ')';
+      }
+      return ast.value;
+    };
+    t.equals(s(ast), expected);
+  };
+
+  testPrec('a + b', '(+ a b)');
+  testPrec('a+b+c', '(+ (+ a b) c)');
+  testPrec('a+b*c', '(+ a (* b c))');
+
+  testPrec('a || b && c', '(|| a (&& b c))');
+  testPrec('(a || b) && c', '(&& (|| a b) c)');
+
+  testPrec('a && b cmp c', '(&& a (cmp b c))');
+
+  testPrec('a * b < c && d', '(&& (< (* a b) c) d)');
+
+  t.end();
+});
+
 test('parser - expressions', function(t){
   var testExp = function(src, expected){
     var ast = normalizeAST(rmLoc(parser(src)));
@@ -550,33 +578,12 @@ test('parser - expressions', function(t){
     body: [{type: 'Identifier', value: 'b'}]
   });
 
-  t.end();
-});
-
-test('parser - operator precedence', function(t){
-  var testPrec = function(src, expected){
-    var ast = normalizeAST(rmLoc(parser(src)));
-    var s = function(ast){
-      if(_.isArray(ast)){
-        return _.map(ast, s).join(' ');
-      }else if(ast.type === 'InfixOperator'){
-        return '(' + ast.op + ' ' + s(ast.left) + ' ' + s(ast.right) + ')';
-      }
-      return ast.value;
-    };
-    t.equals(s(ast), expected);
-  };
-
-  testPrec('a + b', '(+ a b)');
-  testPrec('a+b+c', '(+ (+ a b) c)');
-  testPrec('a+b*c', '(+ a (* b c))');
-
-  testPrec('a || b && c', '(|| a (&& b c))');
-  testPrec('(a || b) && c', '(&& (|| a b) c)');
-
-  testPrec('a && b cmp c', '(&& a (cmp b c))');
-
-  testPrec('a * b < c && d', '(&& (< (* a b) c) d)');
+  testExp('a = "one"', {
+    type: 'AssignmentExpression',
+    op: '=',
+    left: {type: 'Identifier', value: 'a'},
+    right: {type: 'String', value: 'one'}
+  });
 
   t.end();
 });

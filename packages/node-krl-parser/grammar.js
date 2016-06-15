@@ -192,7 +192,19 @@ var grammar = {
     {"name": "statement_list", "symbols": [], "postprocess": function(){return [];}},
     {"name": "statement_list", "symbols": ["statement"], "postprocess": function(d){return [d[0]];}},
     {"name": "statement_list", "symbols": ["statement_list", "_", {"literal":";"}, "_", "statement"], "postprocess": function(d){return d[0].concat(d[4])}},
-    {"name": "expression", "symbols": ["exp_conditional"], "postprocess": id},
+    {"name": "expression", "symbols": ["exp_assignment"], "postprocess": id},
+    {"name": "exp_assignment", "symbols": ["exp_conditional"], "postprocess": id},
+    {"name": "exp_assignment", "symbols": ["Identifier", "_", {"literal":"="}, "_", "exp_conditional"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: data[0].loc.start, end: data[4].loc.end},
+            type: 'AssignmentExpression',
+            op: data[2],
+            left: data[0],
+            right: data[4]
+          };
+        }
+        },
     {"name": "exp_conditional", "symbols": ["exp_or"], "postprocess": id},
     {"name": "exp_conditional$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "exp_conditional", "symbols": ["exp_or", "_", "exp_conditional$string$1", "_", "exp_or", "_", {"literal":"|"}, "_", "exp_conditional"], "postprocess": 

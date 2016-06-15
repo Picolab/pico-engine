@@ -205,7 +205,20 @@ statement_list -> null {% function(){return [];} %}
 ################################################################################
 # Expressions
 
-expression -> exp_conditional {% id %}
+expression -> exp_assignment {% id %}
+
+exp_assignment -> exp_conditional {% id %}
+    | Identifier _ "=" _ exp_conditional {%
+  function(data, start){
+    return {
+      loc: {start: data[0].loc.start, end: data[4].loc.end},
+      type: 'AssignmentExpression',
+      op: data[2],
+      left: data[0],
+      right: data[4]
+    };
+  }
+%}
 
 exp_conditional -> exp_or {% id %}
     | exp_or _ "=>" _ exp_or _ "|" _ exp_conditional {%
