@@ -108,13 +108,14 @@ event_exprs ->
     | event_exprs __ "and" __ event_exprs {% infixEventOp('and') %}
 
 EventExpression ->
-  Identifier __ Identifier {%
+  Identifier __ Identifier (__ "where" __ expression):? {%
   function(data, loc){
     return {
       type: 'EventExpression',
       loc: {start: loc, end: data[2].loc.end},
       event_domain: data[0],
-      event_type: data[2]
+      event_type: data[2],
+      where: data[3] && data[3][3]
     };
   }
 %}

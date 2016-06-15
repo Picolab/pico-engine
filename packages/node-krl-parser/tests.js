@@ -29,12 +29,21 @@ var mk = function(v){
 mk.id = function(value){
   return {type: 'Identifier', value: value};
 };
+mk.op = function(op, left, right){
+  return {
+    type: 'InfixOperator',
+    op: op,
+    left: left,
+    right: right
+  };
+};
 
 var mkEventExp = function(domain, type){
   return {
     type: 'EventExpression',
     event_domain: mk.id(domain),
-    event_type: mk.id(type)
+    event_type: mk.id(type),
+    where: null
   };
 };
 
@@ -134,7 +143,8 @@ test('parser - select when', function(t){
   asertRuleAST(src, {
     type: 'EventExpression',
     event_domain: {type: 'Identifier', value: 'd'},
-    event_type: {type: 'Identifier', value: 't'}
+    event_type: {type: 'Identifier', value: 't'},
+    where: null
   });
 
   src = 'select when d a or d b';
@@ -146,12 +156,14 @@ test('parser - select when', function(t){
       {
         type: 'EventExpression',
         event_domain: {type: 'Identifier', value: 'd'},
-        event_type: {type: 'Identifier', value: 'a'}
+        event_type: {type: 'Identifier', value: 'a'},
+        where: null
       },
       {
         type: 'EventExpression',
         event_domain: {type: 'Identifier', value: 'd'},
-        event_type: {type: 'Identifier', value: 'b'}
+        event_type: {type: 'Identifier', value: 'b'},
+        where: null
       }
     ]
   });
@@ -282,7 +294,8 @@ test('parser - locations', function(t){
       loc: {start: 37, end: 38},
       type: 'Identifier',
       value: 'b'
-    }
+    },
+    where: null
   });
 
   src = 'select when a b or c d';
@@ -304,7 +317,8 @@ test('parser - locations', function(t){
           loc: {start: 37, end: 38},
           type: 'Identifier',
           value: 'b'
-        }
+        },
+        where: null
       },
       {
         loc: {start: 42, end: 45},
@@ -318,7 +332,8 @@ test('parser - locations', function(t){
           loc: {start: 44, end: 45},
           type: 'Identifier',
           value: 'd'
-        }
+        },
+        where: null
       }
     ]
   });
@@ -617,7 +632,22 @@ test('parser - EventExpression', function(t){
   testEE('a b', {
     type: 'EventExpression',
     event_domain: mk.id('a'),
-    event_type: mk.id('b')
+    event_type: mk.id('b'),
+    where: null
+  });
+
+  testEE('a b where c', {
+    type: 'EventExpression',
+    event_domain: mk.id('a'),
+    event_type: mk.id('b'),
+    where: mk.id('c')
+  });
+
+  testEE('a b where 1 / (c - 2)', {
+    type: 'EventExpression',
+    event_domain: mk.id('a'),
+    event_type: mk.id('b'),
+    where: mk.op('/', mk(1), mk.op('-', mk.id('c'), mk(2)))
   });
 
   //TODO

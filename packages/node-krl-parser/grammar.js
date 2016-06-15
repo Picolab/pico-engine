@@ -118,13 +118,18 @@ var grammar = {
     {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$1", "__", "event_exprs"], "postprocess": infixEventOp('or')},
     {"name": "event_exprs$string$2", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$2", "__", "event_exprs"], "postprocess": infixEventOp('and')},
-    {"name": "EventExpression", "symbols": ["Identifier", "__", "Identifier"], "postprocess": 
+    {"name": "EventExpression$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "EventExpression$ebnf$1$subexpression$1", "symbols": ["__", "EventExpression$ebnf$1$subexpression$1$string$1", "__", "expression"]},
+    {"name": "EventExpression$ebnf$1", "symbols": ["EventExpression$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "EventExpression$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "EventExpression", "symbols": ["Identifier", "__", "Identifier", "EventExpression$ebnf$1"], "postprocess": 
         function(data, loc){
           return {
             type: 'EventExpression',
             loc: {start: loc, end: data[2].loc.end},
             event_domain: data[0],
-            event_type: data[2]
+            event_type: data[2],
+            where: data[3] && data[3][3]
           };
         }
         },
