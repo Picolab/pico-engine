@@ -150,6 +150,16 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("count", 2, 6) %}
     | "repeat" __ PositiveInteger _ "(" _ EventExpression _ loc_close_paren
       {% complexEventOp("repeat", 2, 6) %}
+    | "and" _ "(" _ EventExpression_list _ loc_close_paren
+      {% complexEventOp("and", 4) %}
+    | "or" _ "(" _ EventExpression_list _ loc_close_paren
+      {% complexEventOp("or", 4) %}
+    | "before" _ "(" _ EventExpression_list _ loc_close_paren
+      {% complexEventOp("before", 4) %}
+    | "then" _ "(" _ EventExpression_list _ loc_close_paren
+      {% complexEventOp("then", 4) %}
+    | "after" _ "(" _ EventExpression_list _ loc_close_paren
+      {% complexEventOp("after", 4) %}
 
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier

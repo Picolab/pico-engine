@@ -769,6 +769,32 @@ test('parser - EventExpression', function(t){
     ]
   });
 
+  testEE('and(a b, c d, e f)', {
+    type: 'EventOperator',
+    op: 'and',
+    args: [
+      mk.ee('a', 'b'),
+      mk.ee('c', 'd'),
+      mk.ee('e', 'f')
+    ]
+  });
+
+  testEE('a b or and(c d, e f)', {
+    type: 'EventOperator',
+    op: 'or',
+    args: [
+      mk.ee('a', 'b'),
+      {
+        type: 'EventOperator',
+        op: 'and',
+        args: [
+          mk.ee('c', 'd'),
+          mk.ee('e', 'f')
+        ]
+      }
+    ]
+  });
+
   //TODO
   //TODO
   //https://picolabs.atlassian.net/wiki/display/docs/Group+Operators
