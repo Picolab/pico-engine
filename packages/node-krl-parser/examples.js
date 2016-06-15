@@ -9,8 +9,8 @@ var examples = {
     '-12.3',
     'thing',
     'true',
-    '[1, true, false]',
-    '{"one": 1}'
+    '[a, b, c]',
+    '{"one": a}'
   ],
   '### Conditionals': [
     'a => b | c',
@@ -21,6 +21,39 @@ var examples = {
   ]
 };
 
+var ind = function(n){                                                          
+  var s = '';                                                                   
+  var i;                                                                        
+  for(i = 0; i < n; i++){                                                       
+    s += ' ';                                                                   
+  }                                                                             
+  return s;                                                                     
+};   
+
+var printAST = function(ast, i, indent_size){
+  indent_size = indent_size || 2;
+  if(_.isArray(ast)){
+    return '[\n'
+      + _.map(ast, function(ast){
+        return ind(i + indent_size) + printAST(ast, i + indent_size, indent_size);
+      }).join(',\n')
+      + '\n' + ind(i) + ']';
+  }
+  if(_.isPlainObject(ast)){
+    if(ast.type === 'Identifier' && ast.value !== 'thing'){
+      return ast.value;
+    }
+    return '{\n'
+      + _.map(ast, function(value, key){
+        var k = JSON.stringify(key);
+        var v = printAST(value, i + indent_size, indent_size);
+        return ind(i + indent_size) + k + ': ' + v;
+      }).join('\n')
+      + '\n' + ind(i) + '}';
+  }
+  return JSON.stringify(ast);
+};
+
 _.each(examples, function(srcs, head){
   console.log();
   console.log(head);
@@ -29,6 +62,6 @@ _.each(examples, function(srcs, head){
     var ast = normalizeAST(rmLoc(parser(src)));
     ast = _.isArray(ast) && _.size(ast) === 1 ? _.head(ast) : ast;
 
-    return src + '\n' + JSON.stringify(ast, undefined, 2);
+    return src + '\n' + printAST(ast, 0, 2);
   }).join('\n\n') + '\n```');
 })
