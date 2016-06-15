@@ -113,8 +113,8 @@ EventExpression ->
     return {
       type: 'EventExpression',
       loc: {start: loc, end: data[2].loc.end},
-      domain: data[0],
-      type: data[2]
+      event_domain: data[0],
+      event_type: data[2]
     };
   }
 %}

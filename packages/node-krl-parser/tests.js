@@ -17,8 +17,8 @@ var parseRuleBody = function(rule_body, expected){
 var mkEventExp = function(domain, type){
   return {
     type: 'EventExpression',
-    domain: {type: 'Identifier', value: domain},
-    type: {type: 'Identifier', value: type}
+    event_domain: {type: 'Identifier', value: domain},
+    event_type: {type: 'Identifier', value: type}
   };
 };
 
@@ -117,8 +117,8 @@ test('parser - select when', function(t){
   var src = 'select when d t';
   asertRuleAST(src, {
     type: 'EventExpression',
-    domain: {type: 'Identifier', value: 'd'},
-    type: {type: 'Identifier', value: 't'}
+    event_domain: {type: 'Identifier', value: 'd'},
+    event_type: {type: 'Identifier', value: 't'}
   });
 
   src = 'select when d a or d b';
@@ -129,13 +129,13 @@ test('parser - select when', function(t){
     expressions: [
       {
         type: 'EventExpression',
-        domain: {type: 'Identifier', value: 'd'},
-        type: {type: 'Identifier', value: 'a'}
+        event_domain: {type: 'Identifier', value: 'd'},
+        event_type: {type: 'Identifier', value: 'a'}
       },
       {
         type: 'EventExpression',
-        domain: {type: 'Identifier', value: 'd'},
-        type: {type: 'Identifier', value: 'b'}
+        event_domain: {type: 'Identifier', value: 'd'},
+        event_type: {type: 'Identifier', value: 'b'}
       }
     ]
   });
@@ -257,12 +257,12 @@ test('parser - locations', function(t){
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select_when, {
     loc: {start: 35, end: 38},
     type: 'EventExpression',
-    domain: {
+    event_domain: {
       loc: {start: 35, end: 36},
       type: 'Identifier',
       value: 'a'
     },
-    type: {
+    event_type: {
       loc: {start: 37, end: 38},
       type: 'Identifier',
       value: 'b'
@@ -279,12 +279,12 @@ test('parser - locations', function(t){
       {
         loc: {start: 35, end: 38},
         type: 'EventExpression',
-        domain: {
+        event_domain: {
           loc: {start: 35, end: 36},
           type: 'Identifier',
           value: 'a'
         },
-        type: {
+        event_type: {
           loc: {start: 37, end: 38},
           type: 'Identifier',
           value: 'b'
@@ -293,12 +293,12 @@ test('parser - locations', function(t){
       {
         loc: {start: 42, end: 45},
         type: 'EventExpression',
-        domain: {
+        event_domain: {
           loc: {start: 42, end: 43},
           type: 'Identifier',
           value: 'c'
         },
-        type: {
+        event_type: {
           loc: {start: 44, end: 45},
           type: 'Identifier',
           value: 'd'
@@ -589,5 +589,43 @@ test('parser - expressions', function(t){
     right: {type: 'String', value: 'one'}
   });
 
+  t.end();
+});
+
+test('parser - EventExpression', function(t){
+  var testEE = function(rule_body, expected){
+    var ast = normalizeAST(rmLoc(parseRuleBody('select when ' + rule_body)));
+    t.deepEquals(ast.select_when, normalizeAST(expected));
+  }; 
+
+  testEE('a b', {
+    type: 'EventExpression',
+    event_domain: {type: 'Identifier', value: 'a'},
+    event_type: {type: 'Identifier', value: 'b'}
+  });
+
+  //TODO
+  //TODO
+  //select when mail sent from re#gmail.com# subject "Hello" setting(x)
+  //
+  //select when web  pageview "/2009/04/" setting(a)
+  //            or
+  //            web  pageview "/2009/05/" setting(b)
+  //            before
+  //            web pageview "/2009/06/"
+  //                foreach [0,1,2] setting(x)
+  //
+  //(these mean the same thing)
+  //select when pageview where url.match(re#/archives/\d{4}/#)
+  //select when pageview url re#/archives/\d{4}/#
+  //
+  //operators precedence
+  //https://picolabs.atlassian.net/wiki/display/docs/Event+Operators
+  //TODO operator precedence
+  //
+  //https://picolabs.atlassian.net/wiki/display/docs/Group+Operators
+  //
+  //TODO
+  //TODO
   t.end();
 });
