@@ -1,34 +1,8 @@
 var _ = require('lodash');
 var test = require('tape');
+var rmLoc = require('./rmLoc');
 var parser = require('./');
-
-var normalizeAST = function(ast){
-  if(_.isArray(ast)){
-    return _.map(ast, normalizeAST);
-  }
-  if(_.isPlainObject(ast)){
-    if(ast.type === 'RegExp'){
-      if((new RegExp('/')).toString() === '///'){//old versions of v8 botch this
-        ast.value = '/' + ast.value.source.split('\\').join('') + '/'
-          + (ast.value.global ? 'g' : '')
-          + (ast.value.ignoreCase ? 'i' : '');
-      }else{
-        ast.value = ast.value.toString();
-      }
-    }
-  }
-  return ast;
-};
-
-var rmLoc = function(ast){
-  if(_.isArray(ast)){
-    return _.map(ast, rmLoc);
-  }
-  if(_.isPlainObject(ast)){
-    return _.mapValues(_.omit(ast, 'loc'), rmLoc);
-  }
-  return ast;
-};
+var normalizeAST = require('./normalizeASTForTestCompare');
 
 var parseRuleBody = function(rule_body, expected){
   var src = '';
