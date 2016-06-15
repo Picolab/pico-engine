@@ -98,7 +98,7 @@ ruleset -> "ruleset" __ Identifier _ "{" _ (rule _):* loc_close_curly {%
 %}
 
 rule -> "rule" __ Identifier _ "{" _
-  ("select" __ "when" __ event_exprs _):?
+  ("select" __ "when" __ EventExpression _):?
   (event_action _):?
 loc_close_curly {%
   function(data, loc){
@@ -112,17 +112,19 @@ loc_close_curly {%
   }
 %}
 
-event_exprs ->
-    EventExpression {% id %}
-    | "(" _ event_exprs _ ")" {% getN(2) %}
-    | event_exprs __ "or" __ event_exprs {% infixEventOp %}
-    | event_exprs __ "and" __ event_exprs {% infixEventOp %}
+EventExpression -> event_exp_or {% id %}
 
-EventExpression ->
-  Identifier __ Identifier
-  (__ _event_exp_attrs):*
-  (__ "where" __ expression):?
-  (__ "setting" _ "(" _ function_params _ loc_close_paren):? {%
+event_exp_or -> event_exp_and {% id %}
+    | event_exp_or _ "or" _ event_exp_and {% infixEventOp %}
+
+event_exp_and -> event_exp_base {% id %}
+    | event_exp_and _ "and" _ event_exp_base {% infixEventOp %}
+
+event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
+  | Identifier __ Identifier
+    (__ event_exp_attrs):*
+    (__ "where" __ expression):?
+    (__ "setting" _ "(" _ function_params _ loc_close_paren):? {%
   function(data, start){
     return {
       type: 'EventExpression',
@@ -138,7 +140,7 @@ EventExpression ->
   }
 %}
 
-_event_exp_attrs ->
+event_exp_attrs ->
       Identifier {%
   function(data,loc,reject){
     if(data[0].value === 'where'){
