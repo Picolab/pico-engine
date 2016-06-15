@@ -128,21 +128,30 @@ var grammar = {
     {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$1", "__", "event_exprs"], "postprocess": infixEventOp('or')},
     {"name": "event_exprs$string$2", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$2", "__", "event_exprs"], "postprocess": infixEventOp('and')},
-    {"name": "EventExpression$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "EventExpression$ebnf$1$subexpression$1", "symbols": ["__", "EventExpression$ebnf$1$subexpression$1$string$1", "__", "expression"]},
-    {"name": "EventExpression$ebnf$1", "symbols": ["EventExpression$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "EventExpression$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "EventExpression", "symbols": ["Identifier", "__", "Identifier", "EventExpression$ebnf$1"], "postprocess": 
+    {"name": "EventExpression$ebnf$1", "symbols": []},
+    {"name": "EventExpression$ebnf$1$subexpression$1", "symbols": ["__", "_event_exp_attrs"]},
+    {"name": "EventExpression$ebnf$1", "symbols": ["EventExpression$ebnf$1$subexpression$1", "EventExpression$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "EventExpression$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "EventExpression$ebnf$2$subexpression$1", "symbols": ["__", "EventExpression$ebnf$2$subexpression$1$string$1", "__", "expression"]},
+    {"name": "EventExpression$ebnf$2", "symbols": ["EventExpression$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "EventExpression$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "EventExpression", "symbols": ["Identifier", "__", "Identifier", "EventExpression$ebnf$1", "EventExpression$ebnf$2"], "postprocess": 
         function(data, loc){
           return {
             type: 'EventExpression',
             loc: {start: loc, end: lastEndLoc(data)},
             event_domain: data[0],
             event_type: data[2],
-            where: data[3] && data[3][3]
+            attributes: data[3].map(function(p){
+              return p[1];
+            }),
+            where: data[4] && data[4][3]
           };
         }
         },
+    {"name": "_event_exp_attrs", "symbols": ["Identifier"], "postprocess": function(d,loc,reject){return d[0].value === 'where' ? reject : d[0]}},
+    {"name": "_event_exp_attrs", "symbols": ["RegExp"], "postprocess": id},
+    {"name": "_event_exp_attrs", "symbols": ["String"], "postprocess": id},
     {"name": "event_action$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"n"}, {"literal":"d"}, {"literal":"_"}, {"literal":"d"}, {"literal":"i"}, {"literal":"r"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_action$ebnf$1", "symbols": ["with_expression"], "postprocess": id},
     {"name": "event_action$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},

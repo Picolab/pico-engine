@@ -118,17 +118,25 @@ event_exprs ->
     | event_exprs __ "and" __ event_exprs {% infixEventOp('and') %}
 
 EventExpression ->
-  Identifier __ Identifier (__ "where" __ expression):? {%
+  Identifier __ Identifier (__ _event_exp_attrs):* (__ "where" __ expression):? {%
   function(data, loc){
     return {
       type: 'EventExpression',
       loc: {start: loc, end: lastEndLoc(data)},
       event_domain: data[0],
       event_type: data[2],
-      where: data[3] && data[3][3]
+      attributes: data[3].map(function(p){
+        return p[1];
+      }),
+      where: data[4] && data[4][3]
     };
   }
 %}
+
+_event_exp_attrs ->
+      Identifier {% function(d,loc,reject){return d[0].value === 'where' ? reject : d[0]} %}
+    | RegExp {% id %}
+    | String {% id %}
 
 event_action ->
     "send_directive" _ function_call_args _ with_expression:? {%

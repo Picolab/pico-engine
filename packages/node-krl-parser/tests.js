@@ -43,6 +43,7 @@ var mkEventExp = function(domain, type){
     type: 'EventExpression',
     event_domain: mk.id(domain),
     event_type: mk.id(type),
+    attributes: [],
     where: null
   };
 };
@@ -144,6 +145,7 @@ test('parser - select when', function(t){
     type: 'EventExpression',
     event_domain: {type: 'Identifier', value: 'd'},
     event_type: {type: 'Identifier', value: 't'},
+    attributes: [],
     where: null
   });
 
@@ -157,12 +159,14 @@ test('parser - select when', function(t){
         type: 'EventExpression',
         event_domain: {type: 'Identifier', value: 'd'},
         event_type: {type: 'Identifier', value: 'a'},
+        attributes: [],
         where: null
       },
       {
         type: 'EventExpression',
         event_domain: {type: 'Identifier', value: 'd'},
         event_type: {type: 'Identifier', value: 'b'},
+        attributes: [],
         where: null
       }
     ]
@@ -295,6 +299,7 @@ test('parser - locations', function(t){
       type: 'Identifier',
       value: 'b'
     },
+    attributes: [],
     where: null
   });
 
@@ -318,6 +323,7 @@ test('parser - locations', function(t){
           type: 'Identifier',
           value: 'b'
         },
+        attributes: [],
         where: null
       },
       {
@@ -333,6 +339,7 @@ test('parser - locations', function(t){
           type: 'Identifier',
           value: 'd'
         },
+        attributes: [],
         where: null
       }
     ]
@@ -633,6 +640,7 @@ test('parser - EventExpression', function(t){
     type: 'EventExpression',
     event_domain: mk.id('a'),
     event_type: mk.id('b'),
+    attributes: [],
     where: null
   });
 
@@ -640,6 +648,7 @@ test('parser - EventExpression', function(t){
     type: 'EventExpression',
     event_domain: mk.id('a'),
     event_type: mk.id('b'),
+    attributes: [],
     where: mk.id('c')
   });
 
@@ -647,17 +656,17 @@ test('parser - EventExpression', function(t){
     type: 'EventExpression',
     event_domain: mk.id('a'),
     event_type: mk.id('b'),
+    attributes: [],
     where: mk.op('/', mk(1), mk.op('-', mk.id('c'), mk(2)))
   });
 
-  /*
-  testEE('a b amt re#\\d{4}#', {
+  testEE('a b amt re#[0-9]{4}#', {
     type: 'EventExpression',
     event_domain: mk.id('a'),
     event_type: mk.id('b'),
-    where: mk.op('/', mk(1), mk.op('-', mk.id('c'), mk(2)))
+    attributes: [mk.id('amt'), mk(/[0-9]{4}/)],
+    where: null
   });
-  */
 
   //TODO
   //TODO
