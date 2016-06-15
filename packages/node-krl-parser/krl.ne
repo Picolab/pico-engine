@@ -75,7 +75,7 @@ main -> _ statement_list _ {% getN(1) %}
 ruleset -> "ruleset" __ Identifier _ "{" _ (rule _):* loc_close_curly {%
   function(data, loc){
     return {
-      type: 'ruleset',
+      type: 'Ruleset',
       loc: {start: loc, end: last(data)},
 
       name: data[2],
@@ -86,34 +86,24 @@ ruleset -> "ruleset" __ Identifier _ "{" _ (rule _):* loc_close_curly {%
   }
 %}
 
-rule -> "rule" __ Identifier _ "{" _ rule_body _ loc_close_curly {%
+rule -> "rule" __ Identifier _ "{" _
+  (select_when _):?
+  (event_action _):?
+loc_close_curly {%
   function(data, loc){
-    var ast = data[6] || {};
-    ast.type = 'rule';
+    var ast = {};
+    ast.type = 'Rule';
     ast.loc = {start: loc, end: last(data)};
     ast.name = data[2];
+    if(data[6]){
+      ast.select = data[6][0];
+    }
+    if(data[7]){
+      ast.actions = [data[7][0]];
+    }
     return ast;
   }
 %}
-
-rule_body ->
-    _ {% noop %}
-    | select_when {%
-  function(data, loc){
-    return {
-      select: data[0]
-    };
-  }
-%}
-    | select_when __ event_action {%
-  function(data, loc){
-    return {
-      select: data[0],
-      actions: [data[2]]
-    };
-  }
-%}
-
 
 select_when ->
     "select" __ "when" __ event_exprs {%

@@ -42,7 +42,7 @@ test('parser', function(t){
 
   assertAST(t, src, [
     {
-      type: 'ruleset',
+      type: 'Ruleset',
       loc: {start: 0, end: 14},
 
       name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
@@ -57,13 +57,13 @@ test('parser', function(t){
 
   assertAST(t, src, [
     {
-      type: 'ruleset',
+      type: 'Ruleset',
       loc: {start: 0, end: 27},
 
       name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
       rules: [
         {
-          type: 'rule',
+          type: 'Rule',
           loc: {start: 15, end: 25},
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
         }
@@ -79,18 +79,18 @@ test('parser', function(t){
 
   assertAST(t, src, [
     {
-      type: 'ruleset',
+      type: 'Ruleset',
       loc: {start: 0, end: 40},
 
       name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
       rules: [
         {
-          type: 'rule',
+          type: 'Rule',
           loc: {start: 15, end: 25},
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
         },
         {
-          type: 'rule',
+          type: 'Rule',
           loc: {start: 28, end: 38},
           name: {type: 'Identifier', value: 'r2', loc: {start: 33, end: 35}},
         }
@@ -225,7 +225,7 @@ test('parser - locations', function(t){
   src += '}\n';
 
   t.deepEquals(parser(src)[0], {
-    type: 'ruleset',
+    type: 'Ruleset',
     loc: {start: 0, end: 32},
     name: {
       loc: {start: 8, end: 11},
@@ -235,7 +235,7 @@ test('parser - locations', function(t){
     rules: [
       {
         loc: {start: 16, end: 30},
-        type: 'rule',
+        type: 'Rule',
         name: {
           loc: {start: 21, end: 24},
           type: 'Identifier',

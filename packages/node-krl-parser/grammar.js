@@ -82,7 +82,7 @@ var grammar = {
     {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "Identifier", "_", {"literal":"{"}, "_", "ruleset$ebnf$1", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
-            type: 'ruleset',
+            type: 'Ruleset',
             loc: {start: loc, end: last(data)},
         
             name: data[2],
@@ -93,29 +93,25 @@ var grammar = {
         }
         },
     {"name": "rule$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule", "symbols": ["rule$string$1", "__", "Identifier", "_", {"literal":"{"}, "_", "rule_body", "_", "loc_close_curly"], "postprocess": 
+    {"name": "rule$ebnf$1$subexpression$1", "symbols": ["select_when", "_"]},
+    {"name": "rule$ebnf$1", "symbols": ["rule$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "rule$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "rule$ebnf$2$subexpression$1", "symbols": ["event_action", "_"]},
+    {"name": "rule$ebnf$2", "symbols": ["rule$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "rule$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "rule", "symbols": ["rule$string$1", "__", "Identifier", "_", {"literal":"{"}, "_", "rule$ebnf$1", "rule$ebnf$2", "loc_close_curly"], "postprocess": 
         function(data, loc){
-          var ast = data[6] || {};
-          ast.type = 'rule';
+          var ast = {};
+          ast.type = 'Rule';
           ast.loc = {start: loc, end: last(data)};
           ast.name = data[2];
+          if(data[6]){
+            ast.select = data[6][0];
+          }
+          if(data[7]){
+            ast.actions = [data[7][0]];
+          }
           return ast;
-        }
-        },
-    {"name": "rule_body", "symbols": ["_"], "postprocess": noop},
-    {"name": "rule_body", "symbols": ["select_when"], "postprocess": 
-        function(data, loc){
-          return {
-            select: data[0]
-          };
-        }
-        },
-    {"name": "rule_body", "symbols": ["select_when", "__", "event_action"], "postprocess": 
-        function(data, loc){
-          return {
-            select: data[0],
-            actions: [data[2]]
-          };
         }
         },
     {"name": "select_when$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"l"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
