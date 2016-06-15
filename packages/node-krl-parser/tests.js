@@ -49,12 +49,11 @@ var mkEventExp = function(domain, type){
   };
 };
 
-var mkEventOp = function(op, exprs, args){
+var mkEventOp = function(op, args){
   return {
     type: 'EventOperator',
     op: op,
-    args: args || [],
-    expressions: exprs
+    args: args
   };
 };
 
@@ -155,8 +154,7 @@ test('parser - select when', function(t){
   asertRuleAST(src, {
     type: 'EventOperator',
     op: 'or',
-    args: [],
-    expressions: [
+    args: [
       {
         type: 'EventExpression',
         event_domain: {type: 'Identifier', value: 'd'},
@@ -313,8 +311,7 @@ test('parser - locations', function(t){
     loc: {start: 35, end: 45},
     type: 'EventOperator',
     op: 'or',
-    args: [],
-    expressions: [
+    args: [
       {
         loc: {start: 35, end: 38},
         type: 'EventExpression',

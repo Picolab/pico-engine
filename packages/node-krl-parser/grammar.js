@@ -53,15 +53,12 @@ var getN = function(n){
   };
 };
 
-var infixEventOp = function(op){
-  return function(data, loc){
-    return {
-      type: 'EventOperator',
-      loc: {start: data[0].loc.start, end: data[4].loc.end},
-      op: op,
-      args: [],
-      expressions: [data[0], data[4]]
-    };
+var infixEventOp = function(data, start){
+  return {
+    loc: {start: start, end: data[4].loc.end},
+    type: 'EventOperator',
+    op: data[2],
+    args: [data[0], data[4]]//not all event ops have left/right
   };
 };
 
@@ -129,9 +126,9 @@ var grammar = {
     {"name": "event_exprs", "symbols": ["EventExpression"], "postprocess": id},
     {"name": "event_exprs", "symbols": [{"literal":"("}, "_", "event_exprs", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "event_exprs$string$1", "symbols": [{"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$1", "__", "event_exprs"], "postprocess": infixEventOp('or')},
+    {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$1", "__", "event_exprs"], "postprocess": infixEventOp},
     {"name": "event_exprs$string$2", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$2", "__", "event_exprs"], "postprocess": infixEventOp('and')},
+    {"name": "event_exprs", "symbols": ["event_exprs", "__", "event_exprs$string$2", "__", "event_exprs"], "postprocess": infixEventOp},
     {"name": "EventExpression$ebnf$1", "symbols": []},
     {"name": "EventExpression$ebnf$1$subexpression$1", "symbols": ["__", "_event_exp_attrs"]},
     {"name": "EventExpression$ebnf$1", "symbols": ["EventExpression$ebnf$1$subexpression$1", "EventExpression$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},

@@ -49,15 +49,12 @@ var getN = function(n){
   };
 };
 
-var infixEventOp = function(op){
-  return function(data, loc){
-    return {
-      type: 'EventOperator',
-      loc: {start: data[0].loc.start, end: data[4].loc.end},
-      op: op,
-      args: [],
-      expressions: [data[0], data[4]]
-    };
+var infixEventOp = function(data, start){
+  return {
+    loc: {start: start, end: data[4].loc.end},
+    type: 'EventOperator',
+    op: data[2],
+    args: [data[0], data[4]]//not all event ops have left/right
   };
 };
 
@@ -118,8 +115,8 @@ loc_close_curly {%
 event_exprs ->
     EventExpression {% id %}
     | "(" _ event_exprs _ ")" {% getN(2) %}
-    | event_exprs __ "or" __ event_exprs {% infixEventOp('or') %}
-    | event_exprs __ "and" __ event_exprs {% infixEventOp('and') %}
+    | event_exprs __ "or" __ event_exprs {% infixEventOp %}
+    | event_exprs __ "and" __ event_exprs {% infixEventOp %}
 
 EventExpression ->
   Identifier __ Identifier
