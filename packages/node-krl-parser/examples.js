@@ -33,14 +33,21 @@ var ind = function(n){
 var printAST = function(ast, i, indent_size){
   indent_size = indent_size || 2;
   if(_.isArray(ast)){
+    var arr_strs = _.map(ast, function(ast){
+      return printAST(ast, i + indent_size, indent_size);
+    });
+    var flat_array = '[ ' + arr_strs.join(' , ') + ' ]';
+    if((flat_array.indexOf('\n') < 0) && (flat_array.length < 20)){
+      return flat_array;
+    }
     return '[\n'
-      + _.map(ast, function(ast){
-        return ind(i + indent_size) + printAST(ast, i + indent_size, indent_size);
+      + _.map(arr_strs, function(str){
+        return ind(i + indent_size) + str;
       }).join(',\n')
       + '\n' + ind(i) + ']';
   }
   if(_.isPlainObject(ast)){
-    if(ast.type === 'Identifier' && ast.value !== 'thing'){
+    if(ast.type === 'Identifier' && i !== 0){
       return ast.value;
     }
     return '{\n'
