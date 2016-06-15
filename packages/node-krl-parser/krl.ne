@@ -286,7 +286,7 @@ expression_list ->
 Function -> "function" _ "(" _ function_params _ ")" _ "{" _ statement_list _ loc_close_curly {%
   function(data, start){
     return {
-      loc: {start: start, end: data[12]},
+      loc: {start: start, end: last(data)},
       type: 'Function',
       params: data[4],
       body: data[10]
@@ -302,7 +302,7 @@ function_params ->
 CallExpression -> Identifier _ "(" _ expression_list _ loc_close_paren {%
   function(data, start){
     return {
-      loc: {start: start, end: data[6]},
+      loc: {start: start, end: last(data)},
       type: 'CallExpression',
       callee: data[0],
       args: data[4]
@@ -317,7 +317,7 @@ Array -> "[" _ expression_list _ loc_close_square {%
   function(data, loc){
     return {
       type: 'Array',
-      loc: {start: loc, end: data[4]},
+      loc: {start: loc, end: last(data)},
       value: data[2]
     };
   }
@@ -326,7 +326,7 @@ Array -> "[" _ expression_list _ loc_close_square {%
 Object -> "{" _ _object_kv_pairs _ loc_close_curly {%
   function(data, loc){
     return {
-      loc: {start: loc, end: data[4]},
+      loc: {start: loc, end: last(data)},
       type: 'Object',
       value: data[2]
     };
@@ -425,7 +425,7 @@ _regexp_modifiers_chars -> null {% noopStr %}
 DoubleQuote -> "<<" _double_quote_body loc_close_double_quote {%
   function(data, loc){
     return {
-      loc: {start: loc - 2, end: data[2]},
+      loc: {start: loc - 2, end: last(data)},
       type: 'DoubleQuote',
       value: data[1]
     };
