@@ -62,6 +62,20 @@ var infixEventOp = function(data, start){
   };
 };
 
+var complexEventOp = function(op){
+  var arg_indices = Array.prototype.slice.call(arguments, 1);
+  return function(data, start){
+    return {
+      loc: {start: start, end: lastEndLoc(data)},
+      type: 'EventOperator',
+      op: op,
+      args: arg_indices.map(function(i){
+        return data[i];
+      })
+    };
+  };
+};
+
 var booleanAST = function(value){
   return function(data, loc){
     var src = data[0];
@@ -130,13 +144,19 @@ var grammar = {
     {"name": "event_exp_and", "symbols": ["event_exp_infix_op"], "postprocess": id},
     {"name": "event_exp_and$string$1", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exp_and", "symbols": ["event_exp_and", "__", "event_exp_and$string$1", "__", "event_exp_infix_op"], "postprocess": infixEventOp},
-    {"name": "event_exp_infix_op", "symbols": ["event_exp_base"], "postprocess": id},
+    {"name": "event_exp_infix_op", "symbols": ["event_exp_fns"], "postprocess": id},
     {"name": "event_exp_infix_op$string$1", "symbols": [{"literal":"b"}, {"literal":"e"}, {"literal":"f"}, {"literal":"o"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", "__", "event_exp_infix_op$string$1", "__", "event_exp_base"], "postprocess": infixEventOp},
+    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", "__", "event_exp_infix_op$string$1", "__", "event_exp_fns"], "postprocess": infixEventOp},
     {"name": "event_exp_infix_op$string$2", "symbols": [{"literal":"t"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", "__", "event_exp_infix_op$string$2", "__", "event_exp_base"], "postprocess": infixEventOp},
+    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", "__", "event_exp_infix_op$string$2", "__", "event_exp_fns"], "postprocess": infixEventOp},
     {"name": "event_exp_infix_op$string$3", "symbols": [{"literal":"a"}, {"literal":"f"}, {"literal":"t"}, {"literal":"e"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", "__", "event_exp_infix_op$string$3", "__", "event_exp_base"], "postprocess": infixEventOp},
+    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", "__", "event_exp_infix_op$string$3", "__", "event_exp_fns"], "postprocess": infixEventOp},
+    {"name": "event_exp_fns", "symbols": ["event_exp_base"], "postprocess": id},
+    {"name": "event_exp_fns$string$1", "symbols": [{"literal":"b"}, {"literal":"e"}, {"literal":"t"}, {"literal":"w"}, {"literal":"e"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$1", "_", {"literal":"("}, "_", "EventExpression", "_", {"literal":","}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("between", 0, 6, 10)},
+    {"name": "event_exp_fns$string$2", "symbols": [{"literal":"n"}, {"literal":"o"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exp_fns$string$3", "symbols": [{"literal":"b"}, {"literal":"e"}, {"literal":"t"}, {"literal":"w"}, {"literal":"e"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$2", "__", "event_exp_fns$string$3", "_", {"literal":"("}, "_", "EventExpression", "_", {"literal":","}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("not between", 0, 8, 12)},
     {"name": "event_exp_base", "symbols": [{"literal":"("}, "_", "EventExpression", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "event_exp_base$ebnf$1", "symbols": []},
     {"name": "event_exp_base$ebnf$1$subexpression$1", "symbols": ["__", "event_exp_attrs"]},

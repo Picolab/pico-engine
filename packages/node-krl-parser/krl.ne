@@ -58,6 +58,20 @@ var infixEventOp = function(data, start){
   };
 };
 
+var complexEventOp = function(op){
+  var arg_indices = Array.prototype.slice.call(arguments, 1);
+  return function(data, start){
+    return {
+      loc: {start: start, end: lastEndLoc(data)},
+      type: 'EventOperator',
+      op: op,
+      args: arg_indices.map(function(i){
+        return data[i];
+      })
+    };
+  };
+};
+
 var booleanAST = function(value){
   return function(data, loc){
     var src = data[0];
@@ -120,10 +134,16 @@ event_exp_or -> event_exp_and {% id %}
 event_exp_and -> event_exp_infix_op {% id %}
     | event_exp_and __ "and" __ event_exp_infix_op {% infixEventOp %}
 
-event_exp_infix_op -> event_exp_base {% id %}
-    | event_exp_infix_op __ "before" __ event_exp_base {% infixEventOp %}
-    | event_exp_infix_op __ "then"   __ event_exp_base {% infixEventOp %}
-    | event_exp_infix_op __ "after"  __ event_exp_base {% infixEventOp %}
+event_exp_infix_op -> event_exp_fns {% id %}
+    | event_exp_infix_op __ "before" __ event_exp_fns {% infixEventOp %}
+    | event_exp_infix_op __ "then"   __ event_exp_fns {% infixEventOp %}
+    | event_exp_infix_op __ "after"  __ event_exp_fns {% infixEventOp %}
+
+event_exp_fns -> event_exp_base {% id %}
+    | event_exp_fns __ "between" _ "(" _ EventExpression _ "," _ EventExpression _ loc_close_paren
+      {% complexEventOp("between", 0, 6, 10) %}
+    | event_exp_fns __ "not" __ "between" _ "(" _ EventExpression _ "," _ EventExpression _ loc_close_paren
+      {% complexEventOp("not between", 0, 8, 12) %}
 
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier

@@ -720,9 +720,28 @@ test('parser - EventExpression', function(t){
     ]
   });
 
+  testEE('a b between(c d, e f)', {
+    type: 'EventOperator',
+    op: 'between',
+    args: [
+      mk.ee('a', 'b'),
+      mk.ee('c', 'd'),
+      mk.ee('e', 'f')
+    ]
+  });
+
+  testEE('a b not\n  between ( c d,e f )', {
+    type: 'EventOperator',
+    op: 'not between',
+    args: [
+      mk.ee('a', 'b'),
+      mk.ee('c', 'd'),
+      mk.ee('e', 'f')
+    ]
+  });
+
   //TODO
   //TODO
-  //https://picolabs.atlassian.net/wiki/display/docs/Event+Operators
   //https://picolabs.atlassian.net/wiki/display/docs/Group+Operators
   //TODO
   //TODO
