@@ -96,7 +96,7 @@ loc_close_curly {%
     ast.loc = {start: loc, end: last(data)};
     ast.name = data[2];
     if(data[6]){
-      ast.select = data[6][0];
+      ast.select_when = data[6][0].event_expressions;
     }
     if(data[7]){
       ast.actions = [data[7][0]];

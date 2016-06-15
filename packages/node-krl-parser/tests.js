@@ -103,9 +103,9 @@ test('parser', function(t){
 
 test('parser - select when', function(t){
   var asertRuleAST = function(rule_body, expected){
-    var ast = parseRuleBody(rule_body).select;
-    t.equals(ast.type, 'select_when');
-    t.deepEquals(rmLoc(ast.event_expressions), expected);
+    var ast = parseRuleBody(rule_body);
+    t.ok(_.has(ast, 'select_when'));
+    t.deepEquals(rmLoc(ast.select_when), expected);
   }; 
 
   var src = 'select when d t';
@@ -152,7 +152,7 @@ test('parser - action', function(t){
     var exp_ast = {
       name: rmLoc(ast.name),
       type: ast.type,
-      select: {type: 'select_when', event_expressions: mkEventExp('d', 'a')},
+      select_when: mkEventExp('d', 'a'),
     };
     if(_.size(expected) > 0){
       exp_ast.actions = [expected];
@@ -246,27 +246,23 @@ test('parser - locations', function(t){
   });
 
   src = 'select when a b';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select, {
-    loc: {start: 23, end: 38},
-    type: 'select_when',
-    event_expressions: {
-      loc: {start: 35, end: 38},
-      type: 'EventExpression',
-      domain: {
-        loc: {start: 35, end: 36},
-        type: 'Identifier',
-        value: 'a'
-      },
-      type: {
-        loc: {start: 37, end: 38},
-        type: 'Identifier',
-        value: 'b'
-      }
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select_when, {
+    loc: {start: 35, end: 38},
+    type: 'EventExpression',
+    domain: {
+      loc: {start: 35, end: 36},
+      type: 'Identifier',
+      value: 'a'
+    },
+    type: {
+      loc: {start: 37, end: 38},
+      type: 'Identifier',
+      value: 'b'
     }
   });
 
   src = 'select when a b or c d';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select.event_expressions, {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select_when, {
     loc: {start: 35, end: 45},
     type: 'event_op',
     op: 'or',
