@@ -115,10 +115,15 @@ loc_close_curly {%
 EventExpression -> event_exp_or {% id %}
 
 event_exp_or -> event_exp_and {% id %}
-    | event_exp_or _ "or" _ event_exp_and {% infixEventOp %}
+    | event_exp_or __ "or" __ event_exp_and {% infixEventOp %}
 
-event_exp_and -> event_exp_base {% id %}
-    | event_exp_and _ "and" _ event_exp_base {% infixEventOp %}
+event_exp_and -> event_exp_infix_op {% id %}
+    | event_exp_and __ "and" __ event_exp_infix_op {% infixEventOp %}
+
+event_exp_infix_op -> event_exp_base {% id %}
+    | event_exp_infix_op __ "before" __ event_exp_base {% infixEventOp %}
+    | event_exp_infix_op __ "then"   __ event_exp_base {% infixEventOp %}
+    | event_exp_infix_op __ "after"  __ event_exp_base {% infixEventOp %}
 
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier

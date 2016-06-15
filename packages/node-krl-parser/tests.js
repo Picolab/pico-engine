@@ -37,6 +37,16 @@ mk.op = function(op, left, right){
     right: right
   };
 };
+mk.ee = function(domain, type, attrs, where, setting){
+  return {
+    type: 'EventExpression',
+    event_domain: mk.id(domain),
+    event_type: mk.id(type),
+    attributes: attrs || [],
+    where: where || null,
+    setting: setting ? setting.map(mk.id) : []
+  };
+};
 
 var mkEventExp = function(domain, type){
   return {
@@ -694,19 +704,26 @@ test('parser - EventExpression', function(t){
     setting: [mk.id('e'), mk.id('f')]
   });
 
+  testEE('a b setting(c) or d e setting(f) before g h', {
+    type: 'EventOperator',
+    op: 'or',
+    args: [
+      mk.ee('a', 'b', [], null, ['c']),
+      {
+        type: 'EventOperator',
+        op: 'before',
+        args: [
+          mk.ee('d', 'e', [], null, ['f']),
+          mk.ee('g', 'h')
+        ]
+      }
+    ]
+  });
+
   //TODO
   //TODO
-  //select when web  pageview "/2009/04/" setting(a)
-  //            or
-  //            web  pageview "/2009/05/" setting(b)
-  //            before
-  //            web pageview "/2009/06/"
-  //                foreach [0,1,2] setting(x)
-  //
-  //TODO operator precedence
   //https://picolabs.atlassian.net/wiki/display/docs/Event+Operators
   //https://picolabs.atlassian.net/wiki/display/docs/Group+Operators
-  //
   //TODO
   //TODO
   t.end();
