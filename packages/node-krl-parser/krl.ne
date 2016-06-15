@@ -322,10 +322,19 @@ Object -> "{" _ _object_kv_pairs _ loc_close_curly {%
 
 _object_kv_pairs ->
     _ {% function(d){return []} %}
-    | _object_kv_pair {% id %}
+    | _object_kv_pair {% function(d){return [d[0]]} %}
     | _object_kv_pairs _ "," _ _object_kv_pair {% function(d){return d[0].concat(d[4])} %}
 
-_object_kv_pair -> String _ ":" _ expression {% function(d){return [[d[0], d[4]]]} %}
+_object_kv_pair -> String _ ":" _ expression {%
+  function(data, start){
+    return {
+      loc: {start: start, end: data[4].loc.end},
+      type: 'ObjectProperty',
+      key: data[0],
+      value: data[4]
+    };
+  }
+%}
 
 ################################################################################
 # Literals

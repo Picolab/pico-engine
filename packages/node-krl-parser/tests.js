@@ -392,12 +392,28 @@ test('parser - literals', function(t){
 
   testLiteral('{}', {type: 'Object', value: []});
   testLiteral('{ "one" : "two" }', {type: 'Object', value: [
-    [{type:'String',value:'one'},{type:'String',value:'two'}]
+    {
+      type: 'ObjectProperty',
+      key: {type:'String',value:'one'},
+      value: {type:'String',value:'two'}
+    }
   ]});
   testLiteral('{"1":2,"3":true,"5":[]}', {type: 'Object', value: [
-    [{type:'String',value:'1'},{type:'Number',value:2}],
-    [{type:'String',value:'3'},{type:'Boolean',value:true}],
-    [{type:'String',value:'5'},{type:'Array',value:[]}]
+    {
+      type: 'ObjectProperty',
+      key: {type:'String',value:'1'},
+      value: {type:'Number',value:2}
+    },
+    {
+      type: 'ObjectProperty',
+      key: {type:'String',value:'3'},
+      value: {type:'Boolean',value:true}
+    },
+    {
+      type: 'ObjectProperty',
+      key: {type:'String',value:'5'},
+      value: {type:'Array',value:[]}
+    }
   ]});
 
   testLiteral('re#one#', {type: 'RegExp', value: /one/});
@@ -441,7 +457,13 @@ test('parser - literals', function(t){
     type: 'DoubleQuote',
     value: [
       {type: 'String', value: 'one'},
-      {type: 'Object', value: [[{type:'String',value:'one'},{type:'Number',value:2}]]},
+      {type: 'Object', value: [
+        {
+          type: 'ObjectProperty',
+          key: {type:'String',value:'one'},
+          value: {type:'Number',value:2}
+        }
+      ]},
       {type: 'String', value: 'three'}
     ]
   });

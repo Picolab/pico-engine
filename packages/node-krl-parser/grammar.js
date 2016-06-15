@@ -299,9 +299,18 @@ var grammar = {
         }
         },
     {"name": "_object_kv_pairs", "symbols": ["_"], "postprocess": function(d){return []}},
-    {"name": "_object_kv_pairs", "symbols": ["_object_kv_pair"], "postprocess": id},
+    {"name": "_object_kv_pairs", "symbols": ["_object_kv_pair"], "postprocess": function(d){return [d[0]]}},
     {"name": "_object_kv_pairs", "symbols": ["_object_kv_pairs", "_", {"literal":","}, "_", "_object_kv_pair"], "postprocess": function(d){return d[0].concat(d[4])}},
-    {"name": "_object_kv_pair", "symbols": ["String", "_", {"literal":":"}, "_", "expression"], "postprocess": function(d){return [[d[0], d[4]]]}},
+    {"name": "_object_kv_pair", "symbols": ["String", "_", {"literal":":"}, "_", "expression"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: data[4].loc.end},
+            type: 'ObjectProperty',
+            key: data[0],
+            value: data[4]
+          };
+        }
+        },
     {"name": "Identifier$ebnf$1", "symbols": []},
     {"name": "Identifier$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "Identifier$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "Identifier", "symbols": [/[a-zA-Z_$]/, "Identifier$ebnf$1"], "postprocess": 
