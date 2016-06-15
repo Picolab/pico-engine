@@ -272,7 +272,7 @@ var grammar = {
     {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "_", "function_params", "_", {"literal":")"}, "_", {"literal":"{"}, "_", "statement_list", "_", "loc_close_curly"], "postprocess": 
         function(data, start){
           return {
-            loc: {start: start, end: data[12]},
+            loc: {start: start, end: last(data)},
             type: 'Function',
             params: data[4],
             body: data[10]
@@ -285,7 +285,7 @@ var grammar = {
     {"name": "CallExpression", "symbols": ["Identifier", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren"], "postprocess": 
         function(data, start){
           return {
-            loc: {start: start, end: data[6]},
+            loc: {start: start, end: last(data)},
             type: 'CallExpression',
             callee: data[0],
             args: data[4]
@@ -296,7 +296,7 @@ var grammar = {
         function(data, loc){
           return {
             type: 'Array',
-            loc: {start: loc, end: data[4]},
+            loc: {start: loc, end: last(data)},
             value: data[2]
           };
         }
@@ -304,7 +304,7 @@ var grammar = {
     {"name": "Object", "symbols": [{"literal":"{"}, "_", "_object_kv_pairs", "_", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
-            loc: {start: loc, end: data[4]},
+            loc: {start: loc, end: last(data)},
             type: 'Object',
             value: data[2]
           };
@@ -394,7 +394,7 @@ var grammar = {
     {"name": "DoubleQuote", "symbols": ["DoubleQuote$string$1", "_double_quote_body", "loc_close_double_quote"], "postprocess": 
         function(data, loc){
           return {
-            loc: {start: loc - 2, end: data[2]},
+            loc: {start: loc - 2, end: last(data)},
             type: 'DoubleQuote',
             value: data[1]
           };

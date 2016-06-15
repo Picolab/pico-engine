@@ -14,6 +14,9 @@ var examples = {
     '{"one": a}',
     '<<\n  hello #{name}!\n  >>'
   ],
+  '### Assignment': [
+    'a = b'
+  ],
   '### Infix Operators': [
     'a && b',
     'a + b + c',
