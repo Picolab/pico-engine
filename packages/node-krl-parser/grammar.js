@@ -8,6 +8,16 @@ var last = function(arr){
   return arr[arr.length - 1];
 };
 
+var lastEndLoc = function(data){
+  var i;
+  for(i = data.length - 1; i >= 0; i--){
+    if(data[i] && data[i].loc){
+      return data[i].loc.end;
+    }
+  }
+  return -1;
+};
+
 var flatten = function(toFlatten){
   var isArray = Object.prototype.toString.call(toFlatten) === '[object Array]';
 
@@ -126,7 +136,7 @@ var grammar = {
         function(data, loc){
           return {
             type: 'EventExpression',
-            loc: {start: loc, end: data[2].loc.end},
+            loc: {start: loc, end: lastEndLoc(data)},
             event_domain: data[0],
             event_type: data[2],
             where: data[3] && data[3][3]

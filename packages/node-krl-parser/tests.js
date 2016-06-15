@@ -650,6 +650,15 @@ test('parser - EventExpression', function(t){
     where: mk.op('/', mk(1), mk.op('-', mk.id('c'), mk(2)))
   });
 
+  /*
+  testEE('a b amt re#\\d{4}#', {
+    type: 'EventExpression',
+    event_domain: mk.id('a'),
+    event_type: mk.id('b'),
+    where: mk.op('/', mk(1), mk.op('-', mk.id('c'), mk(2)))
+  });
+  */
+
   //TODO
   //TODO
   //select when mail sent from re#gmail.com# subject "Hello" setting(x)
