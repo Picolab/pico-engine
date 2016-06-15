@@ -5,10 +5,14 @@ var last = function(arr){
 };
 
 var lastEndLoc = function(data){
-  var i;
-  for(i = data.length - 1; i >= 0; i--){
-    if(data[i] && data[i].loc){
-      return data[i].loc.end;
+  var nodes = flatten([data]);
+  var i, node;
+  for(i = nodes.length - 1; i >= 0; i--){
+    node = nodes[i];
+    if(node && node.loc){
+      return node.loc.end;
+    }else if(typeof node === "number"){
+      return node;
     }
   }
   return -1;
@@ -118,23 +122,37 @@ event_exprs ->
     | event_exprs __ "and" __ event_exprs {% infixEventOp('and') %}
 
 EventExpression ->
-  Identifier __ Identifier (__ _event_exp_attrs):* (__ "where" __ expression):? {%
-  function(data, loc){
+  Identifier __ Identifier
+  (__ _event_exp_attrs):*
+  (__ "where" __ expression):?
+  (__ "setting" _ "(" _ function_params _ loc_close_paren):? {%
+  function(data, start){
     return {
       type: 'EventExpression',
-      loc: {start: loc, end: lastEndLoc(data)},
+      loc: {start: start, end: lastEndLoc(data)},
       event_domain: data[0],
       event_type: data[2],
       attributes: data[3].map(function(p){
         return p[1];
       }),
-      where: data[4] && data[4][3]
+      where: data[4] && data[4][3],
+      setting: (data[5] && data[5][5]) || []
     };
   }
 %}
 
 _event_exp_attrs ->
-      Identifier {% function(d,loc,reject){return d[0].value === 'where' ? reject : d[0]} %}
+      Identifier {%
+  function(data,loc,reject){
+    if(data[0].value === 'where'){
+      return reject;
+    }
+    if(data[0].value === 'setting'){
+      return reject;
+    }
+    return data[0];
+  }
+%}
     | RegExp {% id %}
     | String {% id %}
 

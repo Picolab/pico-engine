@@ -9,10 +9,14 @@ var last = function(arr){
 };
 
 var lastEndLoc = function(data){
-  var i;
-  for(i = data.length - 1; i >= 0; i--){
-    if(data[i] && data[i].loc){
-      return data[i].loc.end;
+  var nodes = flatten([data]);
+  var i, node;
+  for(i = nodes.length - 1; i >= 0; i--){
+    node = nodes[i];
+    if(node && node.loc){
+      return node.loc.end;
+    }else if(typeof node === "number"){
+      return node;
     }
   }
   return -1;
@@ -135,21 +139,36 @@ var grammar = {
     {"name": "EventExpression$ebnf$2$subexpression$1", "symbols": ["__", "EventExpression$ebnf$2$subexpression$1$string$1", "__", "expression"]},
     {"name": "EventExpression$ebnf$2", "symbols": ["EventExpression$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "EventExpression$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "EventExpression", "symbols": ["Identifier", "__", "Identifier", "EventExpression$ebnf$1", "EventExpression$ebnf$2"], "postprocess": 
-        function(data, loc){
+    {"name": "EventExpression$ebnf$3$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"t"}, {"literal":"t"}, {"literal":"i"}, {"literal":"n"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "EventExpression$ebnf$3$subexpression$1", "symbols": ["__", "EventExpression$ebnf$3$subexpression$1$string$1", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"]},
+    {"name": "EventExpression$ebnf$3", "symbols": ["EventExpression$ebnf$3$subexpression$1"], "postprocess": id},
+    {"name": "EventExpression$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "EventExpression", "symbols": ["Identifier", "__", "Identifier", "EventExpression$ebnf$1", "EventExpression$ebnf$2", "EventExpression$ebnf$3"], "postprocess": 
+        function(data, start){
           return {
             type: 'EventExpression',
-            loc: {start: loc, end: lastEndLoc(data)},
+            loc: {start: start, end: lastEndLoc(data)},
             event_domain: data[0],
             event_type: data[2],
             attributes: data[3].map(function(p){
               return p[1];
             }),
-            where: data[4] && data[4][3]
+            where: data[4] && data[4][3],
+            setting: (data[5] && data[5][5]) || []
           };
         }
         },
-    {"name": "_event_exp_attrs", "symbols": ["Identifier"], "postprocess": function(d,loc,reject){return d[0].value === 'where' ? reject : d[0]}},
+    {"name": "_event_exp_attrs", "symbols": ["Identifier"], "postprocess": 
+        function(data,loc,reject){
+          if(data[0].value === 'where'){
+            return reject;
+          }
+          if(data[0].value === 'setting'){
+            return reject;
+          }
+          return data[0];
+        }
+        },
     {"name": "_event_exp_attrs", "symbols": ["RegExp"], "postprocess": id},
     {"name": "_event_exp_attrs", "symbols": ["String"], "postprocess": id},
     {"name": "event_action$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"n"}, {"literal":"d"}, {"literal":"_"}, {"literal":"d"}, {"literal":"i"}, {"literal":"r"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},

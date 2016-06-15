@@ -44,7 +44,8 @@ var mkEventExp = function(domain, type){
     event_domain: mk.id(domain),
     event_type: mk.id(type),
     attributes: [],
-    where: null
+    where: null,
+    setting: []
   };
 };
 
@@ -146,7 +147,8 @@ test('parser - select when', function(t){
     event_domain: {type: 'Identifier', value: 'd'},
     event_type: {type: 'Identifier', value: 't'},
     attributes: [],
-    where: null
+    where: null,
+    setting: []
   });
 
   src = 'select when d a or d b';
@@ -160,14 +162,16 @@ test('parser - select when', function(t){
         event_domain: {type: 'Identifier', value: 'd'},
         event_type: {type: 'Identifier', value: 'a'},
         attributes: [],
-        where: null
+        where: null,
+        setting: []
       },
       {
         type: 'EventExpression',
         event_domain: {type: 'Identifier', value: 'd'},
         event_type: {type: 'Identifier', value: 'b'},
         attributes: [],
-        where: null
+        where: null,
+        setting: []
       }
     ]
   });
@@ -300,7 +304,8 @@ test('parser - locations', function(t){
       value: 'b'
     },
     attributes: [],
-    where: null
+    where: null,
+    setting: []
   });
 
   src = 'select when a b or c d';
@@ -324,7 +329,8 @@ test('parser - locations', function(t){
           value: 'b'
         },
         attributes: [],
-        where: null
+        where: null,
+        setting: []
       },
       {
         loc: {start: 42, end: 45},
@@ -340,7 +346,8 @@ test('parser - locations', function(t){
           value: 'd'
         },
         attributes: [],
-        where: null
+        where: null,
+        setting: []
       }
     ]
   });
@@ -641,7 +648,8 @@ test('parser - EventExpression', function(t){
     event_domain: mk.id('a'),
     event_type: mk.id('b'),
     attributes: [],
-    where: null
+    where: null,
+    setting: []
   });
 
   testEE('a b where c', {
@@ -649,7 +657,8 @@ test('parser - EventExpression', function(t){
     event_domain: mk.id('a'),
     event_type: mk.id('b'),
     attributes: [],
-    where: mk.id('c')
+    where: mk.id('c'),
+    setting: []
   });
 
   testEE('a b where 1 / (c - 2)', {
@@ -657,7 +666,8 @@ test('parser - EventExpression', function(t){
     event_domain: mk.id('a'),
     event_type: mk.id('b'),
     attributes: [],
-    where: mk.op('/', mk(1), mk.op('-', mk.id('c'), mk(2)))
+    where: mk.op('/', mk(1), mk.op('-', mk.id('c'), mk(2))),
+    setting: []
   });
 
   testEE('a b amt re#[0-9]{4}#', {
@@ -665,23 +675,36 @@ test('parser - EventExpression', function(t){
     event_domain: mk.id('a'),
     event_type: mk.id('b'),
     attributes: [mk.id('amt'), mk(/[0-9]{4}/)],
-    where: null
+    where: null,
+    setting: []
+  });
+
+  testEE('a b amt re#([0-9]+)# setting(amt_n)', {
+    type: 'EventExpression',
+    event_domain: mk.id('a'),
+    event_type: mk.id('b'),
+    attributes: [mk.id('amt'), mk(/[0-9]{4}/)],
+    where: null,
+    setting: [mk.id('amt_n')]
+  });
+
+  testEE('a b c re#(.*)# d re#(.*)# setting(e,f)', {
+    type: 'EventExpression',
+    event_domain: mk.id('a'),
+    event_type: mk.id('b'),
+    attributes: [mk.id('c'), mk(/(.*)/), mk.id('d'), mk(/(.*)/)],
+    where: null,
+    setting: [mk.id('e'), mk.id('f')]
   });
 
   //TODO
   //TODO
-  //select when mail sent from re#gmail.com# subject "Hello" setting(x)
-  //
   //select when web  pageview "/2009/04/" setting(a)
   //            or
   //            web  pageview "/2009/05/" setting(b)
   //            before
   //            web pageview "/2009/06/"
   //                foreach [0,1,2] setting(x)
-  //
-  //(these mean the same thing)
-  //select when pageview where url.match(re#/archives/\d{4}/#)
-  //select when pageview url re#/archives/\d{4}/#
   //
   //TODO operator precedence
   //https://picolabs.atlassian.net/wiki/display/docs/Event+Operators
