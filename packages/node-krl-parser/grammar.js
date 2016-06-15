@@ -42,7 +42,7 @@ var getN = function(n){
 var infixEventOp = function(op){
   return function(data, loc){
     return {
-      type: 'event_op',
+      type: 'EventOperator',
       loc: {start: data[0].loc.start, end: data[4].loc.end},
       op: op,
       args: [],

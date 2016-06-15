@@ -24,7 +24,7 @@ var mkEventExp = function(domain, type){
 
 var mkEventOp = function(op, exprs, args){
   return {
-    type: 'event_op',
+    type: 'EventOperator',
     op: op,
     args: args || [],
     expressions: exprs
@@ -123,7 +123,7 @@ test('parser - select when', function(t){
 
   src = 'select when d a or d b';
   asertRuleAST(src, {
-    type: 'event_op',
+    type: 'EventOperator',
     op: 'or',
     args: [],
     expressions: [
@@ -272,7 +272,7 @@ test('parser - locations', function(t){
   src = 'select when a b or c d';
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select_when, {
     loc: {start: 35, end: 45},
-    type: 'event_op',
+    type: 'EventOperator',
     op: 'or',
     args: [],
     expressions: [
