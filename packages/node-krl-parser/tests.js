@@ -66,6 +66,8 @@ test('parser', function(t){
           type: 'Rule',
           loc: {start: 15, end: 25},
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
+          select_when: null,
+          actions: []
         }
       ]
     }
@@ -88,11 +90,15 @@ test('parser', function(t){
           type: 'Rule',
           loc: {start: 15, end: 25},
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
+          select_when: null,
+          actions: []
         },
         {
           type: 'Rule',
           loc: {start: 28, end: 38},
           name: {type: 'Identifier', value: 'r2', loc: {start: 33, end: 35}},
+          select_when: null,
+          actions: []
         }
       ]
     }
@@ -240,7 +246,9 @@ test('parser - locations', function(t){
           loc: {start: 21, end: 24},
           type: 'Identifier',
           value: 'two'
-        }
+        },
+        select_when: null,
+        actions: []
       }
     ]
   });

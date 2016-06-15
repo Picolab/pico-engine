@@ -87,31 +87,16 @@ ruleset -> "ruleset" __ Identifier _ "{" _ (rule _):* loc_close_curly {%
 %}
 
 rule -> "rule" __ Identifier _ "{" _
-  (select_when _):?
+  ("select" __ "when" __ event_exprs _):?
   (event_action _):?
 loc_close_curly {%
   function(data, loc){
-    var ast = {};
-    ast.type = 'Rule';
-    ast.loc = {start: loc, end: last(data)};
-    ast.name = data[2];
-    if(data[6]){
-      ast.select_when = data[6][0].event_expressions;
-    }
-    if(data[7]){
-      ast.actions = [data[7][0]];
-    }
-    return ast;
-  }
-%}
-
-select_when ->
-    "select" __ "when" __ event_exprs {%
-  function(data, loc){
     return {
-      type: 'select_when',
-      loc: {start: loc, end: data[4].loc.end},
-      event_expressions: data[4]
+      loc: {start: loc, end: last(data)},
+      type: 'Rule',
+      name: data[2],
+      select_when: data[6] && data[6][4],
+      actions: data[7] ? [data[7][0]] : []
     };
   }
 %}
