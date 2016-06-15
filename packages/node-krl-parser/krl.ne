@@ -144,6 +144,10 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("between", 0, 6, 10) %}
     | event_exp_fns __ "not" __ "between" _ "(" _ EventExpression _ "," _ EventExpression _ loc_close_paren
       {% complexEventOp("not between", 0, 8, 12) %}
+    | "count" __ PositiveInteger _ "(" _ EventExpression _ loc_close_paren
+      {% complexEventOp("count", 2, 6) %}
+    | "repeat" __ PositiveInteger _ "(" _ EventExpression _ loc_close_paren
+      {% complexEventOp("repeat", 2, 6) %}
 
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier
@@ -404,6 +408,17 @@ Identifier -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
 
 Boolean -> "true"  {% booleanAST(true ) %}
          | "false" {% booleanAST(false) %}
+
+PositiveInteger -> [0-9]:+ {%
+  function(data, loc){
+    var src = flatten(data).join('');
+    return {
+      loc: {start: loc, end: loc + src.length},
+      type: 'Number',
+      value: parseInt(src, 10) || 0// or 0 to avoid NaN
+    };
+  }
+%}
 
 Number -> _number {%
   function(data, loc){

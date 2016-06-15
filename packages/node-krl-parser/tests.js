@@ -740,6 +740,24 @@ test('parser - EventExpression', function(t){
     ]
   });
 
+  testEE('count 2 (a b)', {
+    type: 'EventOperator',
+    op: 'count',
+    args: [
+      mk(2),
+      mk.ee('a', 'b')
+    ]
+  });
+
+  testEE('repeat 2(a b)', {
+    type: 'EventOperator',
+    op: 'repeat',
+    args: [
+      mk(2),
+      mk.ee('a', 'b')
+    ]
+  });
+
   //TODO
   //TODO
   //https://picolabs.atlassian.net/wiki/display/docs/Group+Operators

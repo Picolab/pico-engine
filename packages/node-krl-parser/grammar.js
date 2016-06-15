@@ -157,6 +157,10 @@ var grammar = {
     {"name": "event_exp_fns$string$2", "symbols": [{"literal":"n"}, {"literal":"o"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exp_fns$string$3", "symbols": [{"literal":"b"}, {"literal":"e"}, {"literal":"t"}, {"literal":"w"}, {"literal":"e"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$2", "__", "event_exp_fns$string$3", "_", {"literal":"("}, "_", "EventExpression", "_", {"literal":","}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("not between", 0, 8, 12)},
+    {"name": "event_exp_fns$string$4", "symbols": [{"literal":"c"}, {"literal":"o"}, {"literal":"u"}, {"literal":"n"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$4", "__", "PositiveInteger", "_", {"literal":"("}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("count", 2, 6)},
+    {"name": "event_exp_fns$string$5", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"p"}, {"literal":"e"}, {"literal":"a"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$5", "__", "PositiveInteger", "_", {"literal":"("}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("repeat", 2, 6)},
     {"name": "event_exp_base", "symbols": [{"literal":"("}, "_", "EventExpression", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "event_exp_base$ebnf$1", "symbols": []},
     {"name": "event_exp_base$ebnf$1$subexpression$1", "symbols": ["__", "event_exp_attrs"]},
@@ -394,6 +398,18 @@ var grammar = {
     {"name": "Boolean", "symbols": ["Boolean$string$1"], "postprocess": booleanAST(true )},
     {"name": "Boolean$string$2", "symbols": [{"literal":"f"}, {"literal":"a"}, {"literal":"l"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "Boolean", "symbols": ["Boolean$string$2"], "postprocess": booleanAST(false)},
+    {"name": "PositiveInteger$ebnf$1", "symbols": [/[0-9]/]},
+    {"name": "PositiveInteger$ebnf$1", "symbols": [/[0-9]/, "PositiveInteger$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "PositiveInteger", "symbols": ["PositiveInteger$ebnf$1"], "postprocess": 
+        function(data, loc){
+          var src = flatten(data).join('');
+          return {
+            loc: {start: loc, end: loc + src.length},
+            type: 'Number',
+            value: parseInt(src, 10) || 0// or 0 to avoid NaN
+          };
+        }
+        },
     {"name": "Number", "symbols": ["_number"], "postprocess": 
         function(data, loc){
           var src = flatten(data).join('');
