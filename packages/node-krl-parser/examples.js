@@ -14,6 +14,14 @@ var examples = {
     '{"one": a}',
     '<<\n  hello #{name}!\n  >>'
   ],
+  '### Infix Operators': [
+    'a && b',
+    'a + b + c',
+    'a + b * c',
+    'a < b',
+    'a cmp b',
+    'a <=> b'
+  ],
   '### Conditionals': [
     'a => b | c',
     'a => b |\nc => d |\n     e'
