@@ -14,11 +14,27 @@ var parseRuleBody = function(rule_body, expected){
   return parser(src)[0].rules[0];
 };
 
+var mk = function(v){
+  if(_.isNumber(v)){
+    return {type: 'Number', value: v};
+  }else if(v === true || v === false){
+    return {type: 'Boolean', value: v};
+  }else if(_.isString(v)){
+    return {type: 'String', value: v};
+  }else if(_.isRegExp(v)){
+    return {type: 'RegExp', value: v};
+  }
+  return v;
+};
+mk.id = function(value){
+  return {type: 'Identifier', value: value};
+};
+
 var mkEventExp = function(domain, type){
   return {
     type: 'EventExpression',
-    event_domain: {type: 'Identifier', value: domain},
-    event_type: {type: 'Identifier', value: type}
+    event_domain: mk.id(domain),
+    event_type: mk.id(type)
   };
 };
 
@@ -578,15 +594,15 @@ test('parser - expressions', function(t){
   });
   testExp('function(a){b}', {
     type: 'Function',
-    params: [{type: 'Identifier', value: 'a'}],
-    body: [{type: 'Identifier', value: 'b'}]
+    params: [mk.id('a')],
+    body: [mk.id('b')]
   });
 
   testExp('a = "one"', {
     type: 'AssignmentExpression',
     op: '=',
-    left: {type: 'Identifier', value: 'a'},
-    right: {type: 'String', value: 'one'}
+    left: mk.id('a'),
+    right: mk('one')
   });
 
   t.end();
@@ -600,8 +616,8 @@ test('parser - EventExpression', function(t){
 
   testEE('a b', {
     type: 'EventExpression',
-    event_domain: {type: 'Identifier', value: 'a'},
-    event_type: {type: 'Identifier', value: 'b'}
+    event_domain: mk.id('a'),
+    event_type: mk.id('b')
   });
 
   //TODO
@@ -619,10 +635,8 @@ test('parser - EventExpression', function(t){
   //select when pageview where url.match(re#/archives/\d{4}/#)
   //select when pageview url re#/archives/\d{4}/#
   //
-  //operators precedence
-  //https://picolabs.atlassian.net/wiki/display/docs/Event+Operators
   //TODO operator precedence
-  //
+  //https://picolabs.atlassian.net/wiki/display/docs/Event+Operators
   //https://picolabs.atlassian.net/wiki/display/docs/Group+Operators
   //
   //TODO
