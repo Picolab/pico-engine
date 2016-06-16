@@ -290,26 +290,31 @@ time_period_enum ->
 # RuleActionBlock
 #
 
-RuleActionBlock -> ("if" __ expression __ "then" __):? RuleAction {%
+RuleActionBlock -> ("if" __ expression __ "then" __):? RuleActions {%
   function(data, start){
     return {
       loc: {start: start, end: lastEndLoc(data)},
       type: 'RuleActionBlock',
       condition: data[0] && data[0][2],
-      actions: [data[1]]
+      actions: data[1]
     };
   }
 %}
 
+RuleActions -> RuleAction {% idArr %}
+
 RuleAction ->
-    Identifier _ "(" _ expression_list _ loc_close_paren _ ("with" __ assignment_list):? {%
+    (Identifier _ "=>" _):?
+    Identifier _ "(" _ expression_list _ loc_close_paren
+    (_ "with" __ assignment_list):? {%
   function(data, start){
     return {
       loc: {start: start, end: lastEndLoc(data)},
       type: 'RuleAction',
-      callee: data[0],
-      args: data[4],
-      "with": data[8] ? data[8][2] : []
+      label: data[0] && label[0][0],
+      callee: data[1],
+      args: data[5],
+      "with": data[8] ? data[8][3] : []
     };
   }
 %}

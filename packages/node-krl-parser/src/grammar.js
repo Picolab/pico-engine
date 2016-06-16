@@ -296,28 +296,34 @@ var grammar = {
     {"name": "RuleActionBlock$ebnf$1$subexpression$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1$string$1", "__", "expression", "__", "RuleActionBlock$ebnf$1$subexpression$1$string$2", "__"]},
     {"name": "RuleActionBlock$ebnf$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleActionBlock$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleActionBlock", "symbols": ["RuleActionBlock$ebnf$1", "RuleAction"], "postprocess": 
+    {"name": "RuleActionBlock", "symbols": ["RuleActionBlock$ebnf$1", "RuleActions"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: lastEndLoc(data)},
             type: 'RuleActionBlock',
             condition: data[0] && data[0][2],
-            actions: [data[1]]
+            actions: data[1]
           };
         }
         },
-    {"name": "RuleAction$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RuleAction$ebnf$1$subexpression$1", "symbols": ["RuleAction$ebnf$1$subexpression$1$string$1", "__", "assignment_list"]},
+    {"name": "RuleActions", "symbols": ["RuleAction"], "postprocess": idArr},
+    {"name": "RuleAction$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RuleAction$ebnf$1$subexpression$1", "symbols": ["Identifier", "_", "RuleAction$ebnf$1$subexpression$1$string$1", "_"]},
     {"name": "RuleAction$ebnf$1", "symbols": ["RuleAction$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction", "symbols": ["Identifier", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren", "_", "RuleAction$ebnf$1"], "postprocess": 
+    {"name": "RuleAction$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RuleAction$ebnf$2$subexpression$1", "symbols": ["_", "RuleAction$ebnf$2$subexpression$1$string$1", "__", "assignment_list"]},
+    {"name": "RuleAction$ebnf$2", "symbols": ["RuleAction$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "RuleAction$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren", "RuleAction$ebnf$2"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: lastEndLoc(data)},
             type: 'RuleAction',
-            callee: data[0],
-            args: data[4],
-            "with": data[8] ? data[8][2] : []
+            label: data[0] && label[0][0],
+            callee: data[1],
+            args: data[5],
+            "with": data[8] ? data[8][3] : []
           };
         }
         },

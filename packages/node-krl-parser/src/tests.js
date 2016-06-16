@@ -219,6 +219,7 @@ test('parser - action', function(t){
     actions: [
       {
         type: 'RuleAction',
+        label: null,
         callee: mk.id('send_directive'),
         args: [mk('say')],
         "with": []
@@ -234,6 +235,7 @@ test('parser - action', function(t){
     actions: [
       {
         type: 'RuleAction',
+        label: null,
         callee: mk.id('send_directive'),
         args: [mk('say')],
         "with": [
@@ -254,6 +256,7 @@ test('parser - action', function(t){
     actions: [
       {
         type: 'RuleAction',
+        label: null,
         callee: mk.id('send_directive'),
         args: [mk('say')],
         "with": [
@@ -272,6 +275,7 @@ test('parser - action', function(t){
     actions: [
       {
         type: 'RuleAction',
+        label: null,
         callee: mk.id('blah'),
         args: [],
         "with": []
@@ -379,6 +383,7 @@ test('parser - locations', function(t){
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].action_block.actions[0], {
     loc: {start: 39, end: 60},
     type: 'RuleAction',
+    label: null,
     callee: {
       loc: {start: 39, end: 53},
       type: 'Identifier',
@@ -397,6 +402,7 @@ test('parser - locations', function(t){
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].action_block.actions[0], {
     loc: {start: 39, end: 74},
     type: 'RuleAction',
+    label: null,
     callee: {
       loc: {start: 39, end: 53},
       type: 'Identifier',
