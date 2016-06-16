@@ -337,22 +337,10 @@ var grammar = {
     {"name": "statement_list", "symbols": ["statement"], "postprocess": idArr},
     {"name": "statement_list", "symbols": ["statement_list", "_", {"literal":";"}, "_", "statement"], "postprocess": function(d){return d[0].concat(d[4])}},
     {"name": "assignment_list", "symbols": [], "postprocess": noopArr},
-    {"name": "assignment_list", "symbols": ["assignment"], "postprocess": idArr},
-    {"name": "assignment_list", "symbols": ["assignment_list", "__", "assignment"], "postprocess": function(d){return d[0].concat(d[2])}},
-    {"name": "assignment", "symbols": ["left_side_of_assignment", "_", {"literal":"="}, "_", "expression"], "postprocess": 
-        function(data, start){
-          return {
-            loc: {start: data[0].loc.start, end: data[4].loc.end},
-            type: 'AssignmentExpression',
-            op: data[2],
-            left: data[0],
-            right: data[4]
-          };
-        }
-        },
-    {"name": "expression", "symbols": ["exp_assignment"], "postprocess": id},
-    {"name": "exp_assignment", "symbols": ["exp_conditional"], "postprocess": id},
-    {"name": "exp_assignment", "symbols": ["assignment"], "postprocess": id},
+    {"name": "assignment_list", "symbols": ["AssignmentExpression"], "postprocess": idArr},
+    {"name": "assignment_list", "symbols": ["assignment_list", "__", "AssignmentExpression"], "postprocess": function(d){return d[0].concat(d[2])}},
+    {"name": "expression", "symbols": ["exp_conditional"], "postprocess": id},
+    {"name": "expression", "symbols": ["AssignmentExpression"], "postprocess": id},
     {"name": "exp_conditional", "symbols": ["exp_or"], "postprocess": id},
     {"name": "exp_conditional$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "exp_conditional", "symbols": ["exp_or", "_", "exp_conditional$string$1", "_", "exp_or", "_", {"literal":"|"}, "_", "exp_conditional"], "postprocess": 
@@ -416,6 +404,17 @@ var grammar = {
     {"name": "expression_list", "symbols": ["_"], "postprocess": noopArr},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": idArr},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
+    {"name": "AssignmentExpression", "symbols": ["left_side_of_assignment", "_", {"literal":"="}, "_", "expression"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: data[0].loc.start, end: data[4].loc.end},
+            type: 'AssignmentExpression',
+            op: data[2],
+            left: data[0],
+            right: data[4]
+          };
+        }
+        },
     {"name": "left_side_of_assignment", "symbols": ["Identifier"], "postprocess": id},
     {"name": "Function$string$1", "symbols": [{"literal":"f"}, {"literal":"u"}, {"literal":"n"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "_", "function_params", "_", {"literal":")"}, "_", {"literal":"{"}, "_", "statement_list", "_", "loc_close_curly"], "postprocess": 

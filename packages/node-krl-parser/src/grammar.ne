@@ -349,30 +349,16 @@ statement_list -> null {% noopArr %}
     | statement_list _ ";" _ statement {% function(d){return d[0].concat(d[4])} %}
 
 assignment_list -> null {% noopArr %}
-    | assignment {% idArr %}
-    | assignment_list __ assignment {% function(d){return d[0].concat(d[2])} %}
-
-assignment -> left_side_of_assignment _ "=" _ expression {%
-  function(data, start){
-    return {
-      loc: {start: data[0].loc.start, end: data[4].loc.end},
-      type: 'AssignmentExpression',
-      op: data[2],
-      left: data[0],
-      right: data[4]
-    };
-  }
-%}
+    | AssignmentExpression {% idArr %}
+    | assignment_list __ AssignmentExpression {% function(d){return d[0].concat(d[2])} %}
 
 ################################################################################
 #
 # Expressions
 #
 
-expression -> exp_assignment {% id %}
-
-exp_assignment -> exp_conditional {% id %}
-    | assignment {% id %}
+expression -> exp_conditional {% id %}
+    | AssignmentExpression {% id %}
 
 exp_conditional -> exp_or {% id %}
     | exp_or _ "=>" _ exp_or _ "|" _ exp_conditional {%
@@ -434,6 +420,18 @@ expression_list ->
     | expression {% idArr %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
 
+
+AssignmentExpression -> left_side_of_assignment _ "=" _ expression {%
+  function(data, start){
+    return {
+      loc: {start: data[0].loc.start, end: data[4].loc.end},
+      type: 'AssignmentExpression',
+      op: data[2],
+      left: data[0],
+      right: data[4]
+    };
+  }
+%}
 
 # Later we may add destructuring
 left_side_of_assignment -> Identifier {% id %}
