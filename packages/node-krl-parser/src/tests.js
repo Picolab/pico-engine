@@ -107,6 +107,7 @@ test('parser', function(t){
           type: 'Rule',
           loc: {start: 15, end: 25},
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
+          rule_state: "active",
           select_when: null,
           prelude: [],
           action_block: null
@@ -133,6 +134,7 @@ test('parser', function(t){
           type: 'Rule',
           loc: {start: 15, end: 25},
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
+          rule_state: "active",
           select_when: null,
           prelude: [],
           action_block: null
@@ -141,6 +143,7 @@ test('parser', function(t){
           type: 'Rule',
           loc: {start: 28, end: 38},
           name: {type: 'Identifier', value: 'r2', loc: {start: 33, end: 35}},
+          rule_state: "active",
           select_when: null,
           prelude: [],
           action_block: null
@@ -393,6 +396,7 @@ test('parser - locations', function(t){
           type: 'Identifier',
           value: 'two'
         },
+        rule_state: "active",
         select_when: null,
         prelude: [],
         action_block: null
@@ -1061,6 +1065,21 @@ test('parser - Rule prelude', function(t){
       right: mk(2)
     }
   ]);
+
+  t.end();
+});
+
+test('parser - Rule state', function(t){
+  var testRuleState = function(rule, expected){
+    var src = 'ruleset rs{' + rule + '}';
+    var ast = normalizeAST(rmLoc(parser(src)));
+    t.deepEquals(ast[0].rules[0].rule_state, normalizeAST(expected));
+  };
+
+  testRuleState('rule r1{}', "active");
+  testRuleState('rule r1 is active{}', "active");
+  testRuleState('rule r1 is inactive{}', "inactive");
+  testRuleState('rule r1   is    inactive   {}', "inactive");
 
   t.end();
 });

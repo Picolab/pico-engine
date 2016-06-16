@@ -144,7 +144,7 @@ ruleset_meta_prop -> Identifier __ expression {%
 # Rule
 #
 
-rule -> "rule" __ Identifier _ "{" _
+rule -> "rule" __ Identifier (__ "is" __ rule_state):? _ "{" _
   ("select" __ "when" __ EventExpression _ ";":? _ ):?
 
   ("pre" _ "{" _ assignment_list _ "}" _ ):?
@@ -159,12 +159,15 @@ loc_close_curly {%
       loc: {start: loc, end: last(data)},
       type: 'Rule',
       name: data[2],
-      select_when: data[6] && data[6][4],
-      prelude: data[7] ? data[7][4] : [],
-      action_block: data[8] && data[8][0]
+      rule_state: data[3] ? data[3][3] : "active",
+      select_when: data[7] && data[7][4],
+      prelude: data[8] ? data[8][4] : [],
+      action_block: data[9] && data[9][0]
     };
   }
 %}
+
+rule_state -> "active" {% id %} | "inactive" {% id %}
 
 ################################################################################
 #

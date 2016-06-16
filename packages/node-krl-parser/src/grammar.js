@@ -140,32 +140,41 @@ var grammar = {
         }
         },
     {"name": "rule$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"l"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule$ebnf$1$subexpression$1$string$2", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule$ebnf$1$subexpression$1$ebnf$1", "symbols": [{"literal":";"}], "postprocess": id},
-    {"name": "rule$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$1$subexpression$1", "symbols": ["rule$ebnf$1$subexpression$1$string$1", "__", "rule$ebnf$1$subexpression$1$string$2", "__", "EventExpression", "_", "rule$ebnf$1$subexpression$1$ebnf$1", "_"]},
+    {"name": "rule$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"i"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "rule$ebnf$1$subexpression$1", "symbols": ["__", "rule$ebnf$1$subexpression$1$string$1", "__", "rule_state"]},
     {"name": "rule$ebnf$1", "symbols": ["rule$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule$ebnf$2$subexpression$1", "symbols": ["rule$ebnf$2$subexpression$1$string$1", "_", {"literal":"{"}, "_", "assignment_list", "_", {"literal":"}"}, "_"]},
+    {"name": "rule$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"l"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "rule$ebnf$2$subexpression$1$string$2", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "rule$ebnf$2$subexpression$1$ebnf$1", "symbols": [{"literal":";"}], "postprocess": id},
+    {"name": "rule$ebnf$2$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "rule$ebnf$2$subexpression$1", "symbols": ["rule$ebnf$2$subexpression$1$string$1", "__", "rule$ebnf$2$subexpression$1$string$2", "__", "EventExpression", "_", "rule$ebnf$2$subexpression$1$ebnf$1", "_"]},
     {"name": "rule$ebnf$2", "symbols": ["rule$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$3$subexpression$1", "symbols": ["RuleActionBlock", "_"]},
+    {"name": "rule$ebnf$3$subexpression$1$string$1", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "rule$ebnf$3$subexpression$1", "symbols": ["rule$ebnf$3$subexpression$1$string$1", "_", {"literal":"{"}, "_", "assignment_list", "_", {"literal":"}"}, "_"]},
     {"name": "rule$ebnf$3", "symbols": ["rule$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule", "symbols": ["rule$string$1", "__", "Identifier", "_", {"literal":"{"}, "_", "rule$ebnf$1", "rule$ebnf$2", "rule$ebnf$3", "loc_close_curly"], "postprocess": 
+    {"name": "rule$ebnf$4$subexpression$1", "symbols": ["RuleActionBlock", "_"]},
+    {"name": "rule$ebnf$4", "symbols": ["rule$ebnf$4$subexpression$1"], "postprocess": id},
+    {"name": "rule$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "rule", "symbols": ["rule$string$1", "__", "Identifier", "rule$ebnf$1", "_", {"literal":"{"}, "_", "rule$ebnf$2", "rule$ebnf$3", "rule$ebnf$4", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
             loc: {start: loc, end: last(data)},
             type: 'Rule',
             name: data[2],
-            select_when: data[6] && data[6][4],
-            prelude: data[7] ? data[7][4] : [],
-            action_block: data[8] && data[8][0]
+            rule_state: data[3] ? data[3][3] : "active",
+            select_when: data[7] && data[7][4],
+            prelude: data[8] ? data[8][4] : [],
+            action_block: data[9] && data[9][0]
           };
         }
         },
+    {"name": "rule_state$string$1", "symbols": [{"literal":"a"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "rule_state", "symbols": ["rule_state$string$1"], "postprocess": id},
+    {"name": "rule_state$string$2", "symbols": [{"literal":"i"}, {"literal":"n"}, {"literal":"a"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "rule_state", "symbols": ["rule_state$string$2"], "postprocess": id},
     {"name": "EventExpression", "symbols": ["event_exp_within"], "postprocess": id},
     {"name": "event_exp_within", "symbols": ["event_exp_or"], "postprocess": id},
     {"name": "event_exp_within$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}, {"literal":"i"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
