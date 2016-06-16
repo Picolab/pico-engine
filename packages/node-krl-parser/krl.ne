@@ -97,6 +97,11 @@ var infixOp = function(data, start){
 
 main -> _ statement_list _ {% getN(1) %}
 
+################################################################################
+#
+# Ruleset
+#
+
 ruleset -> "ruleset" __ Identifier _ "{" _ (rule _):* loc_close_curly {%
   function(data, loc){
     return {
@@ -110,6 +115,11 @@ ruleset -> "ruleset" __ Identifier _ "{" _ (rule _):* loc_close_curly {%
     };
   }
 %}
+
+################################################################################
+#
+# Rule
+#
 
 rule -> "rule" __ Identifier _ "{" _
   ("select" __ "when" __ EventExpression _):?
@@ -125,6 +135,11 @@ loc_close_curly {%
     };
   }
 %}
+
+################################################################################
+#
+# EventExpression
+#
 
 EventExpression -> event_exp_or {% id %}
 
@@ -173,33 +188,6 @@ event_exp_fns -> event_exp_base {% id %}
     | event_exp_fns __  "within" __ PositiveInteger __ time_period
       {% complexEventOp("within", 0, 4, 6) %}
 
-time_period -> time_period_enum {%
-  function(data, start){
-    var src = data[0][0];
-    return {
-      loc: {start: start, end: start + src.length},
-      type: 'String',
-      value: src
-    };
-  }
-%}
-
-time_period_enum ->
-      "years"
-    | "months"
-    | "weeks"
-    | "days"
-    | "hours"
-    | "minutes"
-    | "seconds"
-    | "year"
-    | "month"
-    | "week"
-    | "day"
-    | "hour"
-    | "minute"
-    | "second"
-
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier
     (__ event_exp_attrs):*
@@ -239,6 +227,35 @@ EventExpression_list ->
     null {% function(d){return []} %}
     | EventExpression {% function(d){return [d[0]]} %}
     | EventExpression_list _ "," _ EventExpression {% function(d){return d[0].concat([d[4]])} %}
+
+time_period -> time_period_enum {%
+  function(data, start){
+    var src = data[0][0];
+    return {
+      loc: {start: start, end: start + src.length},
+      type: 'String',
+      value: src
+    };
+  }
+%}
+
+time_period_enum ->
+      "years"
+    | "months"
+    | "weeks"
+    | "days"
+    | "hours"
+    | "minutes"
+    | "seconds"
+    | "year"
+    | "month"
+    | "week"
+    | "day"
+    | "hour"
+    | "minute"
+    | "second"
+
+################################################################################
 
 event_action ->
     "send_directive" _ function_call_args _ with_expression:? {%
