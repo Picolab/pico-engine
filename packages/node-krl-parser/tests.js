@@ -821,5 +821,15 @@ test('parser - EventExpression', function(t){
     ]
   });
 
+  testEE('a b within 5 minutes', {
+    type: 'EventOperator',
+    op: 'within',
+    args: [
+      mk.ee('a', 'b'),
+      mk(5),
+      mk('minutes')
+    ]
+  });
+
   t.end();
 });
