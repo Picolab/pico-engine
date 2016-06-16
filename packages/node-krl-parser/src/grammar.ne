@@ -149,8 +149,7 @@ rule -> "rule" __ Identifier _ "{" _
 
   ("pre" _ "{" _ assignment_list _ "}" _ ):?
 
-  #statement_list _
-  (RuleAction _):?
+  (RuleActionBlock _):?
 
   #postb=post_block? SEMI?
 
@@ -162,7 +161,7 @@ loc_close_curly {%
       name: data[2],
       select_when: data[6] && data[6][4],
       prelude: data[7] ? data[7][4] : [],
-      actions: data[8] ? [data[8][0]] : []
+      action_block: data[8] && data[8][0]
     };
   }
 %}
@@ -288,8 +287,18 @@ time_period_enum ->
 
 ################################################################################
 #
-# RuleAction
+# RuleActionBlock
 #
+
+RuleActionBlock -> RuleAction {%
+  function(data, start){
+    return {
+      loc: {start: start, end: lastEndLoc(data)},
+      type: 'RuleActionBlock',
+      actions: [data[0]]
+    };
+  }
+%}
 
 RuleAction ->
     Identifier _ "(" _ expression_list _ loc_close_paren _ ("with" __ assignment_list):? {%

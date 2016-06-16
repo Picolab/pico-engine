@@ -109,7 +109,7 @@ test('parser', function(t){
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
           select_when: null,
           prelude: [],
-          actions: []
+          action_block: null
         }
       ]
     }
@@ -135,7 +135,7 @@ test('parser', function(t){
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
           select_when: null,
           prelude: [],
-          actions: []
+          action_block: null
         },
         {
           type: 'Rule',
@@ -143,7 +143,7 @@ test('parser', function(t){
           name: {type: 'Identifier', value: 'r2', loc: {start: 33, end: 35}},
           select_when: null,
           prelude: [],
-          actions: []
+          action_block: null
         }
       ]
     }
@@ -209,7 +209,7 @@ test('parser - action', function(t){
   var testAction = function(action_body, expected){
     var src = 'ruleset rs{rule r1{select when a b '+action_body+'}}';
     var ast = normalizeAST(rmLoc(parser(src)));
-    t.deepEquals(ast[0].rules[0].actions, normalizeAST(expected));
+    t.deepEquals(ast[0].rules[0].action_block.actions, normalizeAST(expected));
   };
 
   var src ='send_directive("say")';
@@ -277,7 +277,7 @@ test('parser - locations', function(t){
         },
         select_when: null,
         prelude: [],
-        actions: []
+        action_block: null
       }
     ]
   });
@@ -344,7 +344,7 @@ test('parser - locations', function(t){
     ]
   });
   src = 'select when a b\nsend_directive("say")';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].actions[0], {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].action_block.actions[0], {
     loc: {start: 39, end: 60},
     type: 'RuleAction',
     callee: {
@@ -362,7 +362,7 @@ test('parser - locations', function(t){
     "with": []
   });
   src = 'select when a b\nsend_directive("say") with\nblah = 1';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].actions[0], {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].action_block.actions[0], {
     loc: {start: 39, end: 74},
     type: 'RuleAction',
     callee: {
