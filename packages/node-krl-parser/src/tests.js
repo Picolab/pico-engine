@@ -283,6 +283,52 @@ test('parser - action', function(t){
     ]
   });
 
+  src  = 'lbl=>blah()';
+  testAction(src, {
+    type: 'RuleActionBlock',
+    condition: null,
+    actions: [
+      {
+        type: 'RuleAction',
+        label: mk.id('lbl'),
+        callee: mk.id('blah'),
+        args: [],
+        "with": []
+      }
+    ]
+  });
+
+  src  = 'one=>blah(1) ';
+  src += 'two => blah(2)';
+  src += ' noop()';
+  testAction(src, {
+    type: 'RuleActionBlock',
+    condition: null,
+    actions: [
+      {
+        type: 'RuleAction',
+        label: mk.id('one'),
+        callee: mk.id('blah'),
+        args: [mk(1)],
+        "with": []
+      },
+      {
+        type: 'RuleAction',
+        label: mk.id('two'),
+        callee: mk.id('blah'),
+        args: [mk(2)],
+        "with": []
+      },
+      {
+        type: 'RuleAction',
+        label: null,
+        callee: mk.id('noop'),
+        args: [],
+        "with": []
+      }
+    ]
+  });
+
   t.end();
 });
 

@@ -307,6 +307,7 @@ var grammar = {
         }
         },
     {"name": "RuleActions", "symbols": ["RuleAction"], "postprocess": idArr},
+    {"name": "RuleActions", "symbols": ["RuleActions", "__", "RuleAction"], "postprocess": function(d){return d[0].concat(d[2])}},
     {"name": "RuleAction$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "RuleAction$ebnf$1$subexpression$1", "symbols": ["Identifier", "_", "RuleAction$ebnf$1$subexpression$1$string$1", "_"]},
     {"name": "RuleAction$ebnf$1", "symbols": ["RuleAction$ebnf$1$subexpression$1"], "postprocess": id},
@@ -320,7 +321,7 @@ var grammar = {
           return {
             loc: {start: start, end: lastEndLoc(data)},
             type: 'RuleAction',
-            label: data[0] && label[0][0],
+            label: data[0] && data[0][0],
             callee: data[1],
             args: data[5],
             "with": data[8] ? data[8][3] : []

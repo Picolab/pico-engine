@@ -301,7 +301,9 @@ RuleActionBlock -> ("if" __ expression __ "then" __):? RuleActions {%
   }
 %}
 
+#NOTE - there must be at least one action
 RuleActions -> RuleAction {% idArr %}
+    | RuleActions __ RuleAction {% function(d){return d[0].concat(d[2])} %}
 
 RuleAction ->
     (Identifier _ "=>" _):?
@@ -311,7 +313,7 @@ RuleAction ->
     return {
       loc: {start: start, end: lastEndLoc(data)},
       type: 'RuleAction',
-      label: data[0] && label[0][0],
+      label: data[0] && data[0][0],
       callee: data[1],
       args: data[5],
       "with": data[8] ? data[8][3] : []
