@@ -147,7 +147,7 @@ ruleset_meta_prop -> Identifier __ expression {%
 rule -> "rule" __ Identifier _ "{" _
   ("select" __ "when" __ EventExpression _):?
 
-  #("pre" _ "{" _ statement_list _ "}" _ ):?
+  ("pre" _ "{" _ assignment_list _ "}" _ ):?
 
   #statement_list _
   (event_action _):?
@@ -161,7 +161,8 @@ loc_close_curly {%
       type: 'Rule',
       name: data[2],
       select_when: data[6] && data[6][4],
-      actions: data[7] ? [data[7][0]] : []
+      prelude: data[7] ? data[7][4] : [],
+      actions: data[8] ? [data[8][0]] : []
     };
   }
 %}
@@ -347,15 +348,11 @@ statement_list -> null {% noopArr %}
     | statement {% idArr %}
     | statement_list _ ";" _ statement {% function(d){return d[0].concat(d[4])} %}
 
-################################################################################
-#
-# Expressions
-#
+assignment_list -> null {% noopArr %}
+    | assignment {% idArr %}
+    | assignment_list __ assignment {% function(d){return d[0].concat(d[2])} %}
 
-expression -> exp_assignment {% id %}
-
-exp_assignment -> exp_conditional {% id %}
-    | Identifier _ "=" _ exp_conditional {%
+assignment -> left_side_of_assignment _ "=" _ expression {%
   function(data, start){
     return {
       loc: {start: data[0].loc.start, end: data[4].loc.end},
@@ -366,6 +363,16 @@ exp_assignment -> exp_conditional {% id %}
     };
   }
 %}
+
+################################################################################
+#
+# Expressions
+#
+
+expression -> exp_assignment {% id %}
+
+exp_assignment -> exp_conditional {% id %}
+    | assignment {% id %}
 
 exp_conditional -> exp_or {% id %}
     | exp_or _ "=>" _ exp_or _ "|" _ exp_conditional {%
@@ -426,6 +433,10 @@ expression_list ->
     _ {% noopArr %}
     | expression {% idArr %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
+
+
+# Later we may add destructuring
+left_side_of_assignment -> Identifier {% id %}
 
 ################################################################################
 # Functions

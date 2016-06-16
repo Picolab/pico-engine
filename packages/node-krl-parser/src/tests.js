@@ -105,6 +105,7 @@ test('parser', function(t){
           loc: {start: 15, end: 25},
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
           select_when: null,
+          prelude: [],
           actions: []
         }
       ]
@@ -130,6 +131,7 @@ test('parser', function(t){
           loc: {start: 15, end: 25},
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
           select_when: null,
+          prelude: [],
           actions: []
         },
         {
@@ -137,6 +139,7 @@ test('parser', function(t){
           loc: {start: 28, end: 38},
           name: {type: 'Identifier', value: 'r2', loc: {start: 33, end: 35}},
           select_when: null,
+          prelude: [],
           actions: []
         }
       ]
@@ -206,6 +209,7 @@ test('parser - action', function(t){
       name: rmLoc(ast.name),
       type: ast.type,
       select_when: mkEventExp('d', 'a'),
+      prelude: []
     };
     if(_.size(expected) > 0){
       exp_ast.actions = [expected];
@@ -296,6 +300,7 @@ test('parser - locations', function(t){
           value: 'two'
         },
         select_when: null,
+        prelude: [],
         actions: []
       }
     ]
@@ -913,6 +918,31 @@ test('parser - Ruleset meta', function(t){
       type: 'RulesetMetaProperty',
       key: mk.id('author'),
       value: mk('bob')
+    }
+  ]);
+
+  t.end();
+});
+
+test('parser - Rule prelude', function(t){
+  var testPre = function(pre_body, expected){
+    var src = 'ruleset rs{rule r1{pre{' + pre_body + '}}}';
+    var ast = normalizeAST(rmLoc(parser(src)));
+    t.deepEquals(ast[0].rules[0].prelude, normalizeAST(expected));
+  };
+
+  testPre('a = 1 b = 2', [
+    {
+      type: 'AssignmentExpression',
+      op: '=',
+      left: mk.id('a'),
+      right: mk(1)
+    },
+    {
+      type: 'AssignmentExpression',
+      op: '=',
+      left: mk.id('b'),
+      right: mk(2)
     }
   ]);
 
