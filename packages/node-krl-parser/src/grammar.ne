@@ -124,7 +124,9 @@ loc_close_curly {%
   }
 %}
 
-ruleset_meta_body -> ruleset_meta_prop
+ruleset_meta_body -> null {% noopArr %}
+    | ruleset_meta_prop {% idArr %}
+    | ruleset_meta_body __ ruleset_meta_prop {% function(d){return d[0].concat([d[2]])} %}
 
 ruleset_meta_prop -> Identifier __ expression {%
   function(data, start){

@@ -126,7 +126,9 @@ var grammar = {
           };
         }
         },
-    {"name": "ruleset_meta_body", "symbols": ["ruleset_meta_prop"]},
+    {"name": "ruleset_meta_body", "symbols": [], "postprocess": noopArr},
+    {"name": "ruleset_meta_body", "symbols": ["ruleset_meta_prop"], "postprocess": idArr},
+    {"name": "ruleset_meta_body", "symbols": ["ruleset_meta_body", "__", "ruleset_meta_prop"], "postprocess": function(d){return d[0].concat([d[2]])}},
     {"name": "ruleset_meta_prop", "symbols": ["Identifier", "__", "expression"], "postprocess": 
         function(data, start){
           return {

@@ -870,5 +870,28 @@ test('parser - Ruleset meta', function(t){
     }
   ]);
 
+  testMeta('name "blah" description <<\n  wat? ok\n  >>\nauthor "bob"', [
+    {
+      type: 'RulesetMetaProperty',
+      key: mk.id('name'),
+      value: mk('blah')
+    },
+    {
+      type: 'RulesetMetaProperty',
+      key: mk.id('description'),
+      value: {
+        type: 'DoubleQuote',
+        value: [
+          {type: 'String', value: '\n  wat? ok\n  '}
+        ]
+      }
+    },
+    {
+      type: 'RulesetMetaProperty',
+      key: mk.id('author'),
+      value: mk('bob')
+    }
+  ]);
+
   t.end();
 });
