@@ -160,6 +160,16 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("then", 4) %}
     | "after" _ "(" _ EventExpression_list _ loc_close_paren
       {% complexEventOp("after", 4) %}
+    | event_exp_fns __  "max" _ "(" _ function_params _ loc_close_paren
+      {% complexEventOp("max", 0, 6) %}
+    | event_exp_fns __  "min" _ "(" _ function_params _ loc_close_paren
+      {% complexEventOp("min", 0, 6) %}
+    | event_exp_fns __  "sum" _ "(" _ function_params _ loc_close_paren
+      {% complexEventOp("sum", 0, 6) %}
+    | event_exp_fns __  "avg" _ "(" _ function_params _ loc_close_paren
+      {% complexEventOp("avg", 0, 6) %}
+    | event_exp_fns __  "push" _ "(" _ function_params _ loc_close_paren
+      {% complexEventOp("push", 0, 6) %}
 
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier

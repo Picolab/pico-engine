@@ -795,10 +795,31 @@ test('parser - EventExpression', function(t){
     ]
   });
 
-  //TODO
-  //TODO
-  //https://picolabs.atlassian.net/wiki/display/docs/Group+Operators
-  //TODO
-  //TODO
+  //TODO only after count and repeat??
+  testEE('a b max(d)', {
+    type: 'EventOperator',
+    op: 'max',
+    args: [
+      mk.ee('a', 'b'),
+      mk.id('d')
+    ]
+  });
+
+  testEE('repeat 5 (a b) max(d)', {
+    type: 'EventOperator',
+    op: 'max',
+    args: [
+      {
+        type: 'EventOperator',
+        op: 'repeat',
+        args: [
+          mk(5),
+          mk.ee('a', 'b')
+        ]
+      },
+      mk.id('d')
+    ]
+  });
+
   t.end();
 });
