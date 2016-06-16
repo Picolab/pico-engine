@@ -47,6 +47,9 @@ mk.ee = function(domain, type, attrs, where, setting){
     setting: setting ? setting.map(mk.id) : []
   };
 };
+mk.assign = function(op, left, right){
+  return {type: 'AssignmentExpression', op: op, left: left, right: right};
+};
 
 var mkEventExp = function(domain, type){
   return {
@@ -223,42 +226,25 @@ test('parser - action', function(t){
     type: 'RuleAction',
     callee: mk.id('send_directive'),
     args: [mk('say')],
-    "with": {
-      type: "with_expression",
-      pairs: [
-        [
-          {type: 'Identifier', value: 'something'},
-          {type: 'String', value: 'hello world'}
-        ]
-      ]
-    }
+    "with": [
+      mk.assign('=', mk.id('something'), mk('hello world'))
+    ]
   }]);
 
 
-  var mkPair = function(key, val){
-    return [
-      {type: 'Identifier', value: key},
-      {type: 'Number', value: parseFloat(val)}
-    ];
-  };
   src  = 'send_directive("say") with\n';
   src += '  one = 1\n';
-  src += '  and\n';
   src += '  two = 2\n';
-  src += '  and\n';
   src += '  three = 3\n';
   testAction(src, [{
     type: 'RuleAction',
     callee: mk.id('send_directive'),
     args: [mk('say')],
-    "with": {
-      type: "with_expression",
-      pairs: [
-        mkPair('one', '1'),
-        mkPair('two', '2'),
-        mkPair('three', '3')
-      ]
-    }
+    "with": [
+      mk.assign('=', mk.id('one'), mk(1)),
+      mk.assign('=', mk.id('two'), mk(2)),
+      mk.assign('=', mk.id('three'), mk(3))
+    ]
   }]);
 
   t.end();
@@ -391,24 +377,23 @@ test('parser - locations', function(t){
         value: 'say'
       }
     ],
-    'with': {
-      loc: {start: 61, end: 74},
-      type: 'with_expression',
-      pairs: [
-        [
-          {
-            loc: {start: 66, end: 70},
-            type: 'Identifier',
-            value: 'blah',
-          },
-          {
-            loc: {start: 73, end: 74},
-            type: 'Number',
-            value: 1
-          }
-        ]
-      ]
-    }
+    'with': [
+      {
+        loc: {start: 66, end: 74},
+        type: 'AssignmentExpression',
+        op: '=',
+        left: {
+          loc: {start: 66, end: 70},
+          type: 'Identifier',
+          value: 'blah',
+        },
+        right: {
+          loc: {start: 73, end: 74},
+          type: 'Number',
+          value: 1
+        }
+      }
+    ]
   });
 
   t.deepEquals(parser('a => b | c')[0], {

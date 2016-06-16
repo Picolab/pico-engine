@@ -292,39 +292,15 @@ time_period_enum ->
 #
 
 RuleAction ->
-    Identifier _ "(" _ expression_list _ loc_close_paren _ with_expression:? {%
+    Identifier _ "(" _ expression_list _ loc_close_paren _ ("with" __ assignment_list):? {%
   function(data, start){
     return {
       loc: {start: start, end: lastEndLoc(data)},
       type: 'RuleAction',
       callee: data[0],
       args: data[4],
-      "with": data[8] || []
+      "with": data[8] ? data[8][2] : []
     };
-  }
-%}
-
-with_expression ->
-    "with" __ identifier_value_pairs {%
-  function(data, loc){
-    var pairs = data[2];
-    var last_pair = last(pairs);
-    return {
-      loc: {start: loc, end: (last_pair ? last_pair[1].loc.end : 0)},
-      type: 'with_expression',
-      pairs: pairs
-    };
-  }
-%}
-
-identifier_value_pairs ->
-    identifier_value_pair {% idArr %}
-    | identifier_value_pairs __ "and" __ identifier_value_pair {% function(d){return d[0].concat([d[4]])} %}
-
-identifier_value_pair ->
-    Identifier _ "=" _ expression {%
-  function(data, loc){
-    return [data[0], data[4]];
   }
 %}
 

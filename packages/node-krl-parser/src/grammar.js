@@ -291,7 +291,9 @@ var grammar = {
     {"name": "time_period_enum", "symbols": ["time_period_enum$string$13"]},
     {"name": "time_period_enum$string$14", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"c"}, {"literal":"o"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "time_period_enum", "symbols": ["time_period_enum$string$14"]},
-    {"name": "RuleAction$ebnf$1", "symbols": ["with_expression"], "postprocess": id},
+    {"name": "RuleAction$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RuleAction$ebnf$1$subexpression$1", "symbols": ["RuleAction$ebnf$1$subexpression$1$string$1", "__", "assignment_list"]},
+    {"name": "RuleAction$ebnf$1", "symbols": ["RuleAction$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RuleAction", "symbols": ["Identifier", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren", "_", "RuleAction$ebnf$1"], "postprocess": 
         function(data, start){
@@ -300,28 +302,8 @@ var grammar = {
             type: 'RuleAction',
             callee: data[0],
             args: data[4],
-            "with": data[8] || []
+            "with": data[8] ? data[8][2] : []
           };
-        }
-        },
-    {"name": "with_expression$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "with_expression", "symbols": ["with_expression$string$1", "__", "identifier_value_pairs"], "postprocess": 
-        function(data, loc){
-          var pairs = data[2];
-          var last_pair = last(pairs);
-          return {
-            loc: {start: loc, end: (last_pair ? last_pair[1].loc.end : 0)},
-            type: 'with_expression',
-            pairs: pairs
-          };
-        }
-        },
-    {"name": "identifier_value_pairs", "symbols": ["identifier_value_pair"], "postprocess": idArr},
-    {"name": "identifier_value_pairs$string$1", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "identifier_value_pairs", "symbols": ["identifier_value_pairs", "__", "identifier_value_pairs$string$1", "__", "identifier_value_pair"], "postprocess": function(d){return d[0].concat([d[4]])}},
-    {"name": "identifier_value_pair", "symbols": ["Identifier", "_", {"literal":"="}, "_", "expression"], "postprocess": 
-        function(data, loc){
-          return [data[0], data[4]];
         }
         },
     {"name": "statement", "symbols": ["expression"], "postprocess": id},
