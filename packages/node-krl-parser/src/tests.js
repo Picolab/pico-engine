@@ -212,18 +212,15 @@ test('parser - action', function(t){
   var src ='send_directive("say")';
   testAction(src, [{
     type: 'send_directive',
-    args: [
-      {type: 'String', value: 'say'}
-    ]
+    args: [mk('say')],
+    "with": []
   }]);
 
   src  = 'send_directive("say") with\n';
   src += '  something = "hello world"\n';
   testAction(src, [{
     type: 'send_directive',
-    args: [
-      {type: 'String', value: 'say'}
-    ],
+    args: [mk('say')],
     "with": {
       type: "with_expression",
       pairs: [
@@ -250,9 +247,7 @@ test('parser - action', function(t){
   src += '  three = 3\n';
   testAction(src, [{
     type: 'send_directive',
-    args: [
-      {type: 'String', value: 'say'}
-    ],
+    args: [mk('say')],
     "with": {
       type: "with_expression",
       pairs: [
@@ -361,7 +356,7 @@ test('parser - locations', function(t){
   });
   src = 'select when a b\nsend_directive("say")';
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].actions[0], {
-    loc: {start: 39, end: 58},
+    loc: {start: 39, end: 60},
     type: 'send_directive',
     args: [
       {
@@ -369,7 +364,8 @@ test('parser - locations', function(t){
         type: 'String',
         value: 'say'
       }
-    ]
+    ],
+    "with": []
   });
   src = 'select when a b\nsend_directive("say") with\nblah = 1';
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].actions[0], {

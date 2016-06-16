@@ -150,7 +150,7 @@ rule -> "rule" __ Identifier _ "{" _
   ("pre" _ "{" _ assignment_list _ "}" _ ):?
 
   #statement_list _
-  (event_action _):?
+  (RuleAction _):?
 
   #postb=post_block? SEMI?
 
@@ -287,29 +287,21 @@ time_period_enum ->
     | "second"
 
 ################################################################################
+#
+# RuleAction
+#
 
-event_action ->
-    "send_directive" _ function_call_args _ with_expression:? {%
-  function(data, loc){
-    var ast = {
+RuleAction ->
+    "send_directive" _ "(" _ expression_list _ loc_close_paren _ with_expression:? {%
+  function(data, start){
+    return {
+      loc: {start: start, end: lastEndLoc(data)},
       type: 'send_directive',
-      loc: {
-        start: loc,
-        end: data[4]
-          ? data[4].loc.end
-          : (last(data[2]) ? last(data[2]).loc.end : 0)
-      },
-      args: data[2]
+      args: data[4],
+      "with": data[8] || []
     };
-    if(data[4]){
-      ast.with = data[4];
-    }
-    return ast;
   }
 %}
-
-function_call_args ->
-    "(" _ expression_list _ ")" {% getN(2) %}
 
 with_expression ->
     "with" __ identifier_value_pairs {%
