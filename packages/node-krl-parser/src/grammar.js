@@ -296,13 +296,18 @@ var grammar = {
     {"name": "RuleActionBlock$ebnf$1$subexpression$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1$string$1", "__", "expression", "__", "RuleActionBlock$ebnf$1$subexpression$1$string$2", "__"]},
     {"name": "RuleActionBlock$ebnf$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleActionBlock$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleActionBlock", "symbols": ["RuleActionBlock$ebnf$1", "RuleActions"], "postprocess": 
+    {"name": "RuleActionBlock$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"c"}, {"literal":"h"}, {"literal":"o"}, {"literal":"o"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RuleActionBlock$ebnf$2$subexpression$1", "symbols": ["RuleActionBlock$ebnf$2$subexpression$1$string$1", "__"]},
+    {"name": "RuleActionBlock$ebnf$2", "symbols": ["RuleActionBlock$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "RuleActionBlock$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RuleActionBlock", "symbols": ["RuleActionBlock$ebnf$1", "RuleActionBlock$ebnf$2", "RuleActions"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: lastEndLoc(data)},
             type: 'RuleActionBlock',
             condition: data[0] && data[0][2],
-            actions: data[1]
+            is_choose: !!data[1],
+            actions: data[2]
           };
         }
         },

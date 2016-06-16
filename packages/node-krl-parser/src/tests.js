@@ -216,6 +216,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: null,
+    is_choose: false,
     actions: [
       {
         type: 'RuleAction',
@@ -232,6 +233,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: null,
+    is_choose: false,
     actions: [
       {
         type: 'RuleAction',
@@ -253,6 +255,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: null,
+    is_choose: false,
     actions: [
       {
         type: 'RuleAction',
@@ -272,6 +275,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: mk(true),
+    is_choose: false,
     actions: [
       {
         type: 'RuleAction',
@@ -287,6 +291,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: null,
+    is_choose: false,
     actions: [
       {
         type: 'RuleAction',
@@ -304,6 +309,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: null,
+    is_choose: false,
     actions: [
       {
         type: 'RuleAction',
@@ -324,6 +330,36 @@ test('parser - action', function(t){
         label: null,
         callee: mk.id('noop'),
         args: [],
+        "with": []
+      }
+    ]
+  });
+
+  src  = 'if exp() then\n';
+  src += 'choose\n';
+  src += 'one => blah(1)\n';
+  src += 'two => blah(2)';
+  testAction(src, {
+    type: 'RuleActionBlock',
+    condition: {
+      type: 'CallExpression',
+      callee: mk.id('exp'),
+      args: []
+    },
+    is_choose: true,
+    actions: [
+      {
+        type: 'RuleAction',
+        label: mk.id('one'),
+        callee: mk.id('blah'),
+        args: [mk(1)],
+        "with": []
+      },
+      {
+        type: 'RuleAction',
+        label: mk.id('two'),
+        callee: mk.id('blah'),
+        args: [mk(2)],
         "with": []
       }
     ]
