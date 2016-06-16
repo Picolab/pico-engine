@@ -203,31 +203,23 @@ test('parser - select when', function(t){
 });
 
 test('parser - action', function(t){
-  var asertRuleAST = function(rule_body, expected){
-    var ast = parseRuleBody('select when d a\n' + rule_body);
-    var exp_ast = {
-      name: rmLoc(ast.name),
-      type: ast.type,
-      select_when: mkEventExp('d', 'a'),
-      prelude: []
-    };
-    if(_.size(expected) > 0){
-      exp_ast.actions = [expected];
-    }
-    t.deepEquals(rmLoc(ast), exp_ast);
+  var testAction = function(action_body, expected){
+    var src = 'ruleset rs{rule r1{select when a b '+action_body+'}}';
+    var ast = normalizeAST(rmLoc(parser(src)));
+    t.deepEquals(ast[0].rules[0].actions, normalizeAST(expected));
   };
 
   var src ='send_directive("say")';
-  asertRuleAST(src, {
+  testAction(src, [{
     type: 'send_directive',
     args: [
       {type: 'String', value: 'say'}
     ]
-  });
+  }]);
 
   src  = 'send_directive("say") with\n';
   src += '  something = "hello world"\n';
-  asertRuleAST(src, {
+  testAction(src, [{
     type: 'send_directive',
     args: [
       {type: 'String', value: 'say'}
@@ -241,7 +233,7 @@ test('parser - action', function(t){
         ]
       ]
     }
-  });
+  }]);
 
 
   var mkPair = function(key, val){
@@ -256,7 +248,7 @@ test('parser - action', function(t){
   src += '  two = 2\n';
   src += '  and\n';
   src += '  three = 3\n';
-  asertRuleAST(src, {
+  testAction(src, [{
     type: 'send_directive',
     args: [
       {type: 'String', value: 'say'}
@@ -269,7 +261,7 @@ test('parser - action', function(t){
         mkPair('three', '3')
       ]
     }
-  });
+  }]);
 
   t.end();
 });
