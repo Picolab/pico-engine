@@ -123,7 +123,14 @@ ruleset -> "ruleset" __ Identifier _ "{" _ (rule _):* loc_close_curly {%
 
 rule -> "rule" __ Identifier _ "{" _
   ("select" __ "when" __ EventExpression _):?
+
+  #("pre" _ "{" _ statement_list _ "}" _ ):?
+
+  #statement_list _
   (event_action _):?
+
+  #postb=post_block? SEMI?
+
 loc_close_curly {%
   function(data, loc){
     return {
@@ -307,7 +314,9 @@ identifier_value_pair ->
 %}
 
 ################################################################################
+#
 # Statements
+#
 
 statement ->
       expression {% id %}
@@ -318,7 +327,9 @@ statement_list -> null {% function(){return [];} %}
     | statement_list _ ";" _ statement {% function(d){return d[0].concat(d[4])} %}
 
 ################################################################################
+#
 # Expressions
+#
 
 expression -> exp_assignment {% id %}
 
