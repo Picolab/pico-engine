@@ -361,7 +361,11 @@ test('parser - locations', function(t){
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].actions[0], {
     loc: {start: 39, end: 60},
     type: 'RuleAction',
-    callee: mk.id('send_directive'),
+    callee: {
+      loc: {start: 39, end: 53},
+      type: 'Identifier',
+      value: 'send_directive'
+    },
     args: [
       {
         loc: {start: 53, end: 58},
@@ -375,7 +379,11 @@ test('parser - locations', function(t){
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].actions[0], {
     loc: {start: 39, end: 74},
     type: 'RuleAction',
-    callee: mk.id('send_directive'),
+    callee: {
+      loc: {start: 39, end: 53},
+      type: 'Identifier',
+      value: 'send_directive'
+    },
     args: [
       {
         loc: {start: 53, end: 58},
@@ -655,6 +663,9 @@ test('parser - expressions', function(t){
 
 test('parser - EventExpression', function(t){
   var testEE = function(rule_body, expected){
+    if(/\)\s*$/.test(rule_body)){
+      rule_body += ';';//TODO can remove this?
+    }
     var ast = normalizeAST(rmLoc(parseRuleBody('select when ' + rule_body)));
     t.deepEquals(ast.select_when, normalizeAST(expected));
   }; 

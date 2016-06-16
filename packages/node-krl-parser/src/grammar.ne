@@ -145,7 +145,7 @@ ruleset_meta_prop -> Identifier __ expression {%
 #
 
 rule -> "rule" __ Identifier _ "{" _
-  ("select" __ "when" __ EventExpression _):?
+  ("select" __ "when" __ EventExpression _ ";":? _ ):?
 
   ("pre" _ "{" _ assignment_list _ "}" _ ):?
 
@@ -292,12 +292,12 @@ time_period_enum ->
 #
 
 RuleAction ->
-    "send_directive" _ "(" _ expression_list _ loc_close_paren _ with_expression:? {%
+    Identifier _ "(" _ expression_list _ loc_close_paren _ with_expression:? {%
   function(data, start){
     return {
       loc: {start: start, end: lastEndLoc(data)},
       type: 'RuleAction',
-      callee: {type: 'Identifier', value: 'send_directive'},//TODO fix this
+      callee: data[0],
       args: data[4],
       "with": data[8] || []
     };
