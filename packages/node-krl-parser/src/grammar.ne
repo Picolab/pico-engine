@@ -611,7 +611,7 @@ _double_quote_string_node -> _double_quote_string {%
     return {
       loc: {start: loc, end: loc + src.length},
       type: 'String',
-      value: src
+      value: src.replace(/>\\>/g, '>>')
     };
   }
 %}

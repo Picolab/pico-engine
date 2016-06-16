@@ -570,7 +570,7 @@ var grammar = {
           return {
             loc: {start: loc, end: loc + src.length},
             type: 'String',
-            value: src
+            value: src.replace(/>\\>/g, '>>')
           };
         }
         },

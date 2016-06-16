@@ -533,6 +533,13 @@ test('parser - literals', function(t){
     ]
   });
 
+  testLiteral('<< double <<with>\\>in >>', {
+    type: 'DoubleQuote',
+    value: [
+      {type: 'String', value: ' double <<with>>in '},
+    ]
+  });
+
   t.end();
 });
 
