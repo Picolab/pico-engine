@@ -40,7 +40,9 @@ var reserved_identifiers = {
 // ast functions
 var noop = function(){};
 var noopStr = function(){return ""};
+var noopArr = function(){return []};
 var idAll = function(d){return flatten(d).join('')};
+var idArr = function(d){return [d[0]]};
 var idEndLoc = function(data, loc){return loc + flatten(data).join('').length};
 
 var getN = function(n){
@@ -252,8 +254,8 @@ event_exp_attrs ->
     | String {% id %}
 
 EventExpression_list ->
-    null {% function(d){return []} %}
-    | EventExpression {% function(d){return [d[0]]} %}
+    null {% noopArr %}
+    | EventExpression {% idArr %}
     | EventExpression_list _ "," _ EventExpression {% function(d){return d[0].concat([d[4]])} %}
 
 time_period -> time_period_enum {%
@@ -322,7 +324,7 @@ with_expression ->
 %}
 
 identifier_value_pairs ->
-    identifier_value_pair {% function(d){return [d[0]]} %}
+    identifier_value_pair {% idArr %}
     | identifier_value_pairs __ "and" __ identifier_value_pair {% function(d){return d[0].concat([d[4]])} %}
 
 identifier_value_pair ->
@@ -341,8 +343,8 @@ statement ->
       expression {% id %}
     | ruleset {% id %}
 
-statement_list -> null {% function(){return [];} %}
-    | statement {% function(d){return [d[0]];} %}
+statement_list -> null {% noopArr %}
+    | statement {% idArr %}
     | statement_list _ ";" _ statement {% function(d){return d[0].concat(d[4])} %}
 
 ################################################################################
@@ -421,8 +423,8 @@ expression_atom ->
     | "(" _ expression _ ")" {% getN(2) %}
 
 expression_list ->
-    _ {% function(d){return []} %}
-    | expression {% function(d){return [d[0]]} %}
+    _ {% noopArr %}
+    | expression {% idArr %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
 
 ################################################################################
@@ -440,8 +442,8 @@ Function -> "function" _ "(" _ function_params _ ")" _ "{" _ statement_list _ lo
 %}
 
 function_params ->
-    null {% function(d){return []} %}
-    | Identifier {% function(d){return [d[0]]} %}
+    null {% noopArr %}
+    | Identifier {% idArr %}
     | function_params _ "," _ Identifier {% function(d){return d[0].concat([d[4]])} %}
 
 CallExpression -> Identifier _ "(" _ expression_list _ loc_close_paren {%
@@ -479,8 +481,8 @@ Object -> "{" _ _object_kv_pairs _ loc_close_curly {%
 %}
 
 _object_kv_pairs ->
-    _ {% function(d){return []} %}
-    | _object_kv_pair {% function(d){return [d[0]]} %}
+    _ {% noopArr %}
+    | _object_kv_pair {% idArr %}
     | _object_kv_pairs _ "," _ _object_kv_pair {% function(d){return d[0].concat(d[4])} %}
 
 _object_kv_pair -> String _ ":" _ expression {%
@@ -589,7 +591,7 @@ DoubleQuote -> "<<" _double_quote_body loc_close_double_quote {%
 %}
 
 _double_quote_body ->
-    _double_quote_string_node {% function(d){return [d[0]]} %}
+    _double_quote_string_node {% idArr %}
     | _double_quote_body _beesting _double_quote_string_node {% function(d){return d[0].concat([d[1], d[2]])} %}
 
 _beesting -> "#{" _ expression _ "}" {% getN(2) %}
