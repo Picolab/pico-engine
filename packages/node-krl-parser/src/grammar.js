@@ -296,7 +296,8 @@ var grammar = {
         function(data, start){
           return {
             loc: {start: start, end: lastEndLoc(data)},
-            type: 'send_directive',
+            type: 'RuleAction',
+            callee: {type: 'Identifier', value: 'send_directive'},//TODO fix this
             args: data[4],
             "with": data[8] || []
           };
