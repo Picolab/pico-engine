@@ -2,11 +2,15 @@
   "name": "krl-parser",
   "version": "0.0.2",
   "description": "Parse KRL source code into an AST",
-  "main": "index.js",
+  "main": "src/index.js",
+  "files": [
+    "src/grammar.js",
+    "src/index.js"
+  ],
   "scripts": {
-    "start": "onchange '*.js' '*.ne' -e 'grammar.js' -i -- npm test -s",
-    "build": "nearleyc krl.ne > grammar.js",
-    "test": "npm run build -s && node tests.js"
+    "start": "onchange 'src/' -e 'src/grammar.js' -i -- npm test -s",
+    "build": "nearleyc src/grammar.ne > src/grammar.js",
+    "test": "npm run build -s && node src/tests.js"
   },
   "repository": {
     "type": "git",
