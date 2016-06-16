@@ -170,6 +170,35 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("avg", 0, 6) %}
     | event_exp_fns __  "push" _ "(" _ function_params _ loc_close_paren
       {% complexEventOp("push", 0, 6) %}
+    | event_exp_fns __  "within" __ PositiveInteger __ time_period
+      {% complexEventOp("within", 0, 4, 6) %}
+
+time_period -> time_period_enum {%
+  function(data, start){
+    var src = data[0][0];
+    return {
+      loc: {start: start, end: start + src.length},
+      type: 'String',
+      value: src
+    };
+  }
+%}
+
+time_period_enum ->
+      "years"
+    | "months"
+    | "weeks"
+    | "days"
+    | "hours"
+    | "minutes"
+    | "seconds"
+    | "year"
+    | "month"
+    | "week"
+    | "day"
+    | "hour"
+    | "minute"
+    | "second"
 
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier
