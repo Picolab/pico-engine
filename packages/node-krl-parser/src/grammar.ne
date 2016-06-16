@@ -290,12 +290,13 @@ time_period_enum ->
 # RuleActionBlock
 #
 
-RuleActionBlock -> RuleAction {%
+RuleActionBlock -> ("if" __ expression __ "then" __):? RuleAction {%
   function(data, start){
     return {
       loc: {start: start, end: lastEndLoc(data)},
       type: 'RuleActionBlock',
-      actions: [data[0]]
+      condition: data[0] && data[0][2],
+      actions: [data[1]]
     };
   }
 %}

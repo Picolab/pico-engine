@@ -215,6 +215,7 @@ test('parser - action', function(t){
   var src ='send_directive("say")';
   testAction(src, {
     type: 'RuleActionBlock',
+    condition: null,
     actions: [
       {
         type: 'RuleAction',
@@ -229,6 +230,7 @@ test('parser - action', function(t){
   src += '  something = "hello world"\n';
   testAction(src, {
     type: 'RuleActionBlock',
+    condition: null,
     actions: [
       {
         type: 'RuleAction',
@@ -248,6 +250,7 @@ test('parser - action', function(t){
   src += '  three = 3\n';
   testAction(src, {
     type: 'RuleActionBlock',
+    condition: null,
     actions: [
       {
         type: 'RuleAction',
@@ -258,6 +261,20 @@ test('parser - action', function(t){
           mk.assign('=', mk.id('two'), mk(2)),
           mk.assign('=', mk.id('three'), mk(3))
         ]
+      }
+    ]
+  });
+
+  src  = 'if true then blah()';
+  testAction(src, {
+    type: 'RuleActionBlock',
+    condition: mk(true),
+    actions: [
+      {
+        type: 'RuleAction',
+        callee: mk.id('blah'),
+        args: [],
+        "with": []
       }
     ]
   });
