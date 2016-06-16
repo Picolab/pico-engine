@@ -82,6 +82,7 @@ test('parser', function(t){
       loc: {start: 0, end: 14},
 
       name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
+      meta: [],
       rules: []
     }
   ]);
@@ -97,6 +98,7 @@ test('parser', function(t){
       loc: {start: 0, end: 27},
 
       name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
+      meta: [],
       rules: [
         {
           type: 'Rule',
@@ -121,6 +123,7 @@ test('parser', function(t){
       loc: {start: 0, end: 40},
 
       name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
+      meta: [],
       rules: [
         {
           type: 'Rule',
@@ -282,6 +285,7 @@ test('parser - locations', function(t){
       type: 'Identifier',
       value: 'one'
     },
+    meta: [],
     rules: [
       {
         loc: {start: 16, end: 30},
@@ -847,6 +851,24 @@ test('parser - EventExpression', function(t){
       mk('minutes')
     ]
   });
+
+  t.end();
+});
+
+test('parser - Ruleset meta', function(t){
+  var testMeta = function(meta_body, expected){
+    var src = 'ruleset rs{meta{' + meta_body + '}}';
+    var ast = normalizeAST(rmLoc(parser(src)));
+    t.deepEquals(ast[0].meta, normalizeAST(expected));
+  };
+
+  testMeta('one two', [
+    {
+      type: 'RulesetMetaProperty',
+      key: mk.id('one'),
+      value: mk.id('two')
+    }
+  ]);
 
   t.end();
 });

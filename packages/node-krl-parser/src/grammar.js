@@ -101,19 +101,37 @@ var grammar = {
     ParserRules: [
     {"name": "main", "symbols": ["_", "statement_list", "_"], "postprocess": getN(1)},
     {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset$ebnf$1", "symbols": []},
-    {"name": "ruleset$ebnf$1$subexpression$1", "symbols": ["rule", "_"]},
-    {"name": "ruleset$ebnf$1", "symbols": ["ruleset$ebnf$1$subexpression$1", "ruleset$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "Identifier", "_", {"literal":"{"}, "_", "ruleset$ebnf$1", "loc_close_curly"], "postprocess": 
+    {"name": "ruleset$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"m"}, {"literal":"e"}, {"literal":"t"}, {"literal":"a"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset$ebnf$1$subexpression$1", "symbols": ["ruleset$ebnf$1$subexpression$1$string$1", "_", {"literal":"{"}, "_", "ruleset_meta_body", "_", {"literal":"}"}, "_"]},
+    {"name": "ruleset$ebnf$1", "symbols": ["ruleset$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "ruleset$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ruleset$ebnf$2", "symbols": []},
+    {"name": "ruleset$ebnf$2$subexpression$1", "symbols": ["rule", "_"]},
+    {"name": "ruleset$ebnf$2", "symbols": ["ruleset$ebnf$2$subexpression$1", "ruleset$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "Identifier", "_", {"literal":"{"}, "_", "ruleset$ebnf$1", "ruleset$ebnf$2", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
             type: 'Ruleset',
             loc: {start: loc, end: last(data)},
         
             name: data[2],
-            rules: data[6].map(function(pair){
+        
+            meta: data[6] ? data[6][4] : [],
+        
+            rules: data[7].map(function(pair){
               return pair[0];
             })
+          };
+        }
+        },
+    {"name": "ruleset_meta_body", "symbols": ["ruleset_meta_prop"]},
+    {"name": "ruleset_meta_prop", "symbols": ["Identifier", "__", "expression"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: data[2].loc.end},
+            type: 'RulesetMetaProperty',
+            key: data[0],
+            value: data[2]
           };
         }
         },

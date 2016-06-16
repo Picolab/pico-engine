@@ -102,16 +102,35 @@ main -> _ statement_list _ {% getN(1) %}
 # Ruleset
 #
 
-ruleset -> "ruleset" __ Identifier _ "{" _ (rule _):* loc_close_curly {%
+ruleset -> "ruleset" __ Identifier _ "{" _
+  ("meta" _ "{" _ ruleset_meta_body _ "}" _):?
+  (rule _):*
+loc_close_curly {%
   function(data, loc){
     return {
       type: 'Ruleset',
       loc: {start: loc, end: last(data)},
 
       name: data[2],
-      rules: data[6].map(function(pair){
+
+      meta: data[6] ? data[6][4] : [],
+
+      rules: data[7].map(function(pair){
         return pair[0];
       })
+    };
+  }
+%}
+
+ruleset_meta_body -> ruleset_meta_prop
+
+ruleset_meta_prop -> Identifier __ expression {%
+  function(data, start){
+    return {
+      loc: {start: start, end: data[2].loc.end},
+      type: 'RulesetMetaProperty',
+      key: data[0],
+      value: data[2]
     };
   }
 %}
