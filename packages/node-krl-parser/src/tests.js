@@ -209,43 +209,58 @@ test('parser - action', function(t){
   var testAction = function(action_body, expected){
     var src = 'ruleset rs{rule r1{select when a b '+action_body+'}}';
     var ast = normalizeAST(rmLoc(parser(src)));
-    t.deepEquals(ast[0].rules[0].action_block.actions, normalizeAST(expected));
+    t.deepEquals(ast[0].rules[0].action_block, normalizeAST(expected));
   };
 
   var src ='send_directive("say")';
-  testAction(src, [{
-    type: 'RuleAction',
-    callee: mk.id('send_directive'),
-    args: [mk('say')],
-    "with": []
-  }]);
+  testAction(src, {
+    type: 'RuleActionBlock',
+    actions: [
+      {
+        type: 'RuleAction',
+        callee: mk.id('send_directive'),
+        args: [mk('say')],
+        "with": []
+      }
+    ]
+  });
 
   src  = 'send_directive("say") with\n';
   src += '  something = "hello world"\n';
-  testAction(src, [{
-    type: 'RuleAction',
-    callee: mk.id('send_directive'),
-    args: [mk('say')],
-    "with": [
-      mk.assign('=', mk.id('something'), mk('hello world'))
+  testAction(src, {
+    type: 'RuleActionBlock',
+    actions: [
+      {
+        type: 'RuleAction',
+        callee: mk.id('send_directive'),
+        args: [mk('say')],
+        "with": [
+          mk.assign('=', mk.id('something'), mk('hello world'))
+        ]
+      }
     ]
-  }]);
+  });
 
 
   src  = 'send_directive("say") with\n';
   src += '  one = 1\n';
   src += '  two = 2\n';
   src += '  three = 3\n';
-  testAction(src, [{
-    type: 'RuleAction',
-    callee: mk.id('send_directive'),
-    args: [mk('say')],
-    "with": [
-      mk.assign('=', mk.id('one'), mk(1)),
-      mk.assign('=', mk.id('two'), mk(2)),
-      mk.assign('=', mk.id('three'), mk(3))
+  testAction(src, {
+    type: 'RuleActionBlock',
+    actions: [
+      {
+        type: 'RuleAction',
+        callee: mk.id('send_directive'),
+        args: [mk('say')],
+        "with": [
+          mk.assign('=', mk.id('one'), mk(1)),
+          mk.assign('=', mk.id('two'), mk(2)),
+          mk.assign('=', mk.id('three'), mk(3))
+        ]
+      }
     ]
-  }]);
+  });
 
   t.end();
 });
