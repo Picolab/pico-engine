@@ -222,7 +222,7 @@ event_exp_fns -> event_exp_base {% id %}
 
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier
-    (__ event_exp_attrs):*
+    event_exp_attribute_pairs
     (__ "where" __ expression):?
     (__ "setting" _ "(" _ function_params _ loc_close_paren):? {%
   function(data, start){
@@ -231,29 +231,27 @@ event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
       loc: {start: start, end: lastEndLoc(data)},
       event_domain: data[0],
       event_type: data[2],
-      attributes: data[3].map(function(p){
-        return p[1];
-      }),
+      attributes: data[3],
       where: data[4] && data[4][3],
       setting: (data[5] && data[5][5]) || []
     };
   }
 %}
 
-event_exp_attrs ->
-      Identifier {%
-  function(data,loc,reject){
-    if(data[0].value === 'where'){
-      return reject;
-    }
-    if(data[0].value === 'setting'){
-      return reject;
-    }
-    return data[0];
+event_exp_attribute_pairs -> null {% noopArr %}
+    | event_exp_attribute_pair {% idArr %}
+    | event_exp_attribute_pairs __ event_exp_attribute_pair {% function(d){return d[0].concat([d[2]])} %}
+
+event_exp_attribute_pair -> Identifier __ RegExp {%
+  function(data, start){
+    return {
+      loc: {start: start, end: data[2].loc.end},
+      type: 'EventAttributePair',
+      key: data[0],
+      value: data[2]
+    };
   }
 %}
-    | RegExp {% id %}
-    | String {% id %}
 
 EventExpression_list ->
     null {% noopArr %}

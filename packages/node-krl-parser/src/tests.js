@@ -685,7 +685,13 @@ test('parser - EventExpression', function(t){
     type: 'EventExpression',
     event_domain: mk.id('a'),
     event_type: mk.id('b'),
-    attributes: [mk.id('amt'), mk(/[0-9]{4}/)],
+    attributes: [
+      {
+        type: 'EventAttributePair',
+        key: mk.id('amt'),
+        value: mk(/[0-9]{4}/)
+      }
+    ],
     where: null,
     setting: []
   });
@@ -694,7 +700,13 @@ test('parser - EventExpression', function(t){
     type: 'EventExpression',
     event_domain: mk.id('a'),
     event_type: mk.id('b'),
-    attributes: [mk.id('amt'), mk(/[0-9]{4}/)],
+    attributes: [
+      {
+        type: 'EventAttributePair',
+        key: mk.id('amt'),
+        value: mk(/[0-9]{4}/)
+      }
+    ],
     where: null,
     setting: [mk.id('amt_n')]
   });
@@ -703,7 +715,18 @@ test('parser - EventExpression', function(t){
     type: 'EventExpression',
     event_domain: mk.id('a'),
     event_type: mk.id('b'),
-    attributes: [mk.id('c'), mk(/(.*)/), mk.id('d'), mk(/(.*)/)],
+    attributes: [
+      {
+        type: 'EventAttributePair',
+        key: mk.id('c'),
+        value: mk(/(.*)/)
+      },
+      {
+        type: 'EventAttributePair',
+        key: mk.id('d'),
+        value: mk(/(.*)/)
+      }
+    ],
     where: null,
     setting: [mk.id('e'), mk.id('f')]
   });
