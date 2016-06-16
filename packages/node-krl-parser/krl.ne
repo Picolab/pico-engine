@@ -141,7 +141,11 @@ loc_close_curly {%
 # EventExpression
 #
 
-EventExpression -> event_exp_or {% id %}
+EventExpression -> event_exp_within {% id %}
+
+event_exp_within -> event_exp_or {% id %}
+    | event_exp_within __ "within" __ PositiveInteger __ time_period
+      {% complexEventOp("within", 0, 4, 6) %}
 
 event_exp_or -> event_exp_and {% id %}
     | event_exp_or __ "or" __ event_exp_and {% infixEventOp %}
@@ -185,8 +189,6 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("avg", 0, 6) %}
     | event_exp_fns __  "push" _ "(" _ function_params _ loc_close_paren
       {% complexEventOp("push", 0, 6) %}
-    | event_exp_fns __  "within" __ PositiveInteger __ time_period
-      {% complexEventOp("within", 0, 4, 6) %}
 
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier

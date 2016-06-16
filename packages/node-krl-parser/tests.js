@@ -831,7 +831,7 @@ test('parser - EventExpression', function(t){
     ]
   });
 
-  testEE('(a b before c d) within 5 minutes', {
+  testEE('a b before c d within 5 minutes', {
     type: 'EventOperator',
     op: 'within',
     args: [
@@ -847,15 +847,6 @@ test('parser - EventExpression', function(t){
       mk('minutes')
     ]
   });
-
-  //var ast = parser('ruleset rs{rule r1{select when a b within 5 minutes}}');
-  //console.log(JSON.stringify(rmLoc(ast)[0].rules[0].select_when, false, 2));
-
-
-  //TODO "at"
-  //TODO A <eventop> B within n <period>
-  //TODO (A <eventop> B) within n <period>
-  //TODO period -> "minutes" | "hours"
 
   t.end();
 });

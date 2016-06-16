@@ -137,7 +137,10 @@ var grammar = {
           };
         }
         },
-    {"name": "EventExpression", "symbols": ["event_exp_or"], "postprocess": id},
+    {"name": "EventExpression", "symbols": ["event_exp_within"], "postprocess": id},
+    {"name": "event_exp_within", "symbols": ["event_exp_or"], "postprocess": id},
+    {"name": "event_exp_within$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}, {"literal":"i"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exp_within", "symbols": ["event_exp_within", "__", "event_exp_within$string$1", "__", "PositiveInteger", "__", "time_period"], "postprocess": complexEventOp("within", 0, 4, 6)},
     {"name": "event_exp_or", "symbols": ["event_exp_and"], "postprocess": id},
     {"name": "event_exp_or$string$1", "symbols": [{"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exp_or", "symbols": ["event_exp_or", "__", "event_exp_or$string$1", "__", "event_exp_and"], "postprocess": infixEventOp},
@@ -183,8 +186,6 @@ var grammar = {
     {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$15", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"], "postprocess": complexEventOp("avg", 0, 6)},
     {"name": "event_exp_fns$string$16", "symbols": [{"literal":"p"}, {"literal":"u"}, {"literal":"s"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$16", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"], "postprocess": complexEventOp("push", 0, 6)},
-    {"name": "event_exp_fns$string$17", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}, {"literal":"i"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$17", "__", "PositiveInteger", "__", "time_period"], "postprocess": complexEventOp("within", 0, 4, 6)},
     {"name": "event_exp_base", "symbols": [{"literal":"("}, "_", "EventExpression", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "event_exp_base$ebnf$1", "symbols": []},
     {"name": "event_exp_base$ebnf$1$subexpression$1", "symbols": ["__", "event_exp_attrs"]},
