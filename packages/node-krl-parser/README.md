@@ -172,7 +172,12 @@ rule hello {
   },
   "postlude": {
     "type": "RulePostlude",
-    "fired": [ FIRED ],
+    "fired": [
+      {
+        "type": "ExpressionStatement",
+        "expression": FIRED
+      }
+    ],
     "notfired": null,
     "always": null
   }
@@ -457,7 +462,12 @@ function(A){
 {
   "type": "Function",
   "params": [ A ],
-  "body": [ B ]
+  "body": [
+    {
+      "type": "ExpressionStatement",
+      "expression": B
+    }
+  ]
 }
 
 A(B,C)

@@ -168,7 +168,9 @@ _.each(examples, function(srcs, head){
     }
     ast = normalizeAST(rmLoc(ast));
     ast = _.isArray(ast) && _.size(ast) === 1 ? _.head(ast) : ast;
-
+    if(ast.type === 'ExpressionStatement'){
+      ast = ast.expression;
+    }
     return src + '\n' + printAST(ast, 0, 2);
   }).join('\n\n') + '\n```');
 })
