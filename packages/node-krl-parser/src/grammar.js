@@ -99,6 +99,18 @@ var infixOp = function(data, start){
   };
 };
 
+var RulePostlude_by_indices = function(fired_i, notfired_i, always_i){
+  return function(data, start){
+    return {
+      loc: {start: start, end: lastEndLoc(data)},
+      type: 'RulePostlude',
+      fired: (data[fired_i] && data[fired_i][0]) || null,
+      notfired: (data[notfired_i] && data[notfired_i][0]) || null,
+      always: (data[always_i] && data[always_i][0]) || null
+    };
+  };
+};
+
 var grammar = {
     ParserRules: [
     {"name": "main", "symbols": ["_", "statement_list", "_"], "postprocess": getN(1)},
@@ -347,18 +359,15 @@ var grammar = {
         }
         },
     {"name": "RulePostlude$string$1", "symbols": [{"literal":"a"}, {"literal":"l"}, {"literal":"w"}, {"literal":"a"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RulePostlude", "symbols": ["RulePostlude$string$1", "_", "postlude_clause"], "postprocess": 
-        function(data, start){
-          return {
-            loc: {start: start, end: lastEndLoc(data)},
-            type: 'RulePostlude',
-            fired: null,
-            notfired: null,
-            always: data[2][0]
-          };
+    {"name": "RulePostlude", "symbols": ["RulePostlude$string$1", "_", "postlude_clause"], "postprocess": RulePostlude_by_indices(-1, -1, 2)},
+    {"name": "RulePostlude$string$2", "symbols": [{"literal":"f"}, {"literal":"i"}, {"literal":"r"}, {"literal":"e"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RulePostlude", "symbols": ["RulePostlude$string$2", "_", "postlude_clause"], "postprocess": RulePostlude_by_indices(2, -1, -1)},
+    {"name": "postlude_clause", "symbols": [{"literal":"{"}, "_", "statement_list", "_", "loc_close_curly"], "postprocess": 
+        function(d){
+          //we need to keep the location of the close curly
+          return [d[2],d[4]];
         }
         },
-    {"name": "postlude_clause", "symbols": [{"literal":"{"}, "_", "statement_list", "_", "loc_close_curly"], "postprocess": function(d){return [d[2],d[4]]}},
     {"name": "statement", "symbols": ["expression"], "postprocess": id},
     {"name": "statement", "symbols": ["ruleset"], "postprocess": id},
     {"name": "statement_list", "symbols": [], "postprocess": noopArr},

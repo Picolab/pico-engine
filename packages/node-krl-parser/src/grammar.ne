@@ -95,6 +95,18 @@ var infixOp = function(data, start){
   };
 };
 
+var RulePostlude_by_indices = function(fired_i, notfired_i, always_i){
+  return function(data, start){
+    return {
+      loc: {start: start, end: lastEndLoc(data)},
+      type: 'RulePostlude',
+      fired: (data[fired_i] && data[fired_i][0]) || null,
+      notfired: (data[notfired_i] && data[notfired_i][0]) || null,
+      always: (data[always_i] && data[always_i][0]) || null
+    };
+  };
+};
+
 %}
 
 main -> _ statement_list _ {% getN(1) %}
@@ -331,19 +343,16 @@ RuleAction ->
 # RulePostlude
 #
 
-RulePostlude -> "always" _ postlude_clause {%
-  function(data, start){
-    return {
-      loc: {start: start, end: lastEndLoc(data)},
-      type: 'RulePostlude',
-      fired: null,
-      notfired: null,
-      always: data[2][0]
-    };
+RulePostlude ->
+      "always" _ postlude_clause {% RulePostlude_by_indices(-1, -1, 2) %}
+    | "fired" _ postlude_clause {% RulePostlude_by_indices(2, -1, -1) %}
+
+postlude_clause -> "{" _ statement_list _ loc_close_curly {%
+  function(d){
+    //we need to keep the location of the close curly
+    return [d[2],d[4]];
   }
 %}
-
-postlude_clause -> "{" _ statement_list _ loc_close_curly {% function(d){return [d[2],d[4]]} %}
 
 ################################################################################
 #
