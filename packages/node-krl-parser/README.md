@@ -22,7 +22,7 @@ interface SourceLocation {
 ```
 `start` and `end` are character indexes (starting at 0) from the source string.
 
-The following examples remove the `loc` property for brevity.
+The following examples omit the `loc` property for brevity.
 
 ### Ruleset
 
@@ -50,35 +50,20 @@ Hello parser!
 }
 {
   "type": "Ruleset",
-  "name": {
-    "type": "Identifier",
-    "value": "hello"
-  },
+  "name": {value: "hello" ,type:"Identifier"},
   "meta": [
     {
       "type": "RulesetMetaProperty",
-      "key": {
-        "type": "Identifier",
-        "value": "name"
-      },
-      "value": {
-        "type": "String",
-        "value": "Hello World"
-      }
+      "key": {value: "name" ,type:"Identifier"},
+      "value": {value: "Hello World" ,type:"String"}
     },
     {
       "type": "RulesetMetaProperty",
-      "key": {
-        "type": "Identifier",
-        "value": "description"
-      },
+      "key": {value: "description" ,type:"Identifier"},
       "value": {
         "type": "DoubleQuote",
         "value": [
-          {
-            "type": "String",
-            "value": "\nHello parser!\n"
-          }
+          {value: "\nHello parser!\n" ,type:"String"}
         ]
       }
     }
@@ -87,14 +72,8 @@ Hello parser!
     {
       "type": "Assignment",
       "op": "=",
-      "left": {
-        "type": "Identifier",
-        "value": "a"
-      },
-      "right": {
-        "type": "Number",
-        "value": 1
-      }
+      "left": {value: "a" ,type:"Identifier"},
+      "right": {value: 1 ,type:"Number"}
     }
   ],
   "rules": [  ]
@@ -146,24 +125,15 @@ rule hello {
 }
 {
   "type": "Rule",
-  "name": {
-    "type": "Identifier",
-    "value": "hello"
-  },
+  "name": {value: "hello" ,type:"Identifier"},
   "rule_state": "active",
   "select_when": null,
   "prelude": [
     {
       "type": "Assignment",
       "op": "=",
-      "left": {
-        "type": "Identifier",
-        "value": "a"
-      },
-      "right": {
-        "type": "Number",
-        "value": 1
-      }
+      "left": {value: "a" ,type:"Identifier"},
+      "right": {value: 1 ,type:"Number"}
     }
   ],
   "action_block": {
@@ -173,37 +143,19 @@ rule hello {
     "actions": [
       {
         "type": "RuleAction",
-        "label": {
-          "type": "Identifier",
-          "value": "one"
-        },
-        "callee": {
-          "type": "Identifier",
-          "value": "action"
-        },
+        "label": {value: "one" ,type:"Identifier"},
+        "callee": {value: "action" ,type:"Identifier"},
         "args": [
-          {
-            "type": "Number",
-            "value": 1
-          }
+          {value: 1 ,type:"Number"}
         ],
         "with": [  ]
       },
       {
         "type": "RuleAction",
-        "label": {
-          "type": "Identifier",
-          "value": "two"
-        },
-        "callee": {
-          "type": "Identifier",
-          "value": "action"
-        },
+        "label": {value: "two" ,type:"Identifier"},
+        "callee": {value: "action" ,type:"Identifier"},
         "args": [
-          {
-            "type": "Number",
-            "value": 2
-          }
+          {value: 2 ,type:"Number"}
         ],
         "with": [  ]
       }
@@ -260,10 +212,7 @@ select when any 2 (A A, B B, C C)
   "type": "EventOperator",
   "op": "any",
   "args": [
-    {
-      "type": "Number",
-      "value": 2
-    },
+    {value: 2 ,type:"Number"},
     {
       "type": "EventExpression",
       "event_domain": A,
@@ -339,10 +288,7 @@ re#^My name is (.*)#i
   "value": [
     {
       "type": "ObjectProperty",
-      "key": {
-        "type": "String",
-        "value": "one"
-      },
+      "key": {value: "one" ,type:"String"},
       "value": A
     }
   ]
@@ -354,18 +300,9 @@ re#^My name is (.*)#i
 {
   "type": "DoubleQuote",
   "value": [
-    {
-      "type": "String",
-      "value": "\n  hello "
-    },
-    {
-      "type": "Identifier",
-      "value": "name"
-    },
-    {
-      "type": "String",
-      "value": "!\n  "
-    }
+    {value: "\n  hello " ,type:"String"},
+    {value: "name" ,type:"Identifier"},
+    {value: "!\n  " ,type:"String"}
   ]
 }
 ```

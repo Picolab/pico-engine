@@ -119,8 +119,11 @@ var printAST = function(ast, i, indent_size){
       + '\n' + ind(i) + ']';
   }
   if(_.isPlainObject(ast)){
-    if(ast.type === 'Identifier' && i !== 0 && /^[A-Z]+$/.test(ast.value)){
+    if(ast.type === 'Identifier' && /^[A-Z]+$/.test(ast.value)){
       return ast.value;
+    }
+    if(i !== 0 && _.includes(['String', 'Number', 'Boolean', 'Identifier', 'RegExp'], ast.type)){
+      return '{value: '+JSON.stringify(ast.value)+' ,type:"' + ast.type + '"}';
     }
     return '{\n'
       + _.map(ast, function(value, key){
