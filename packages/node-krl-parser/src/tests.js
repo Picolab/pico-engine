@@ -47,8 +47,8 @@ mk.ee = function(domain, type, attrs, where, setting){
     setting: setting ? setting.map(mk.id) : []
   };
 };
-mk.assign = function(op, left, right){
-  return {type: 'Assignment', op: op, left: left, right: right};
+mk.declare = function(op, left, right){
+  return {type: 'Declaration', op: op, left: left, right: right};
 };
 
 var mkEventExp = function(domain, type){
@@ -250,7 +250,7 @@ test('parser - action', function(t){
         callee: mk.id('send_directive'),
         args: [mk('say')],
         "with": [
-          mk.assign('=', mk.id('something'), mk('hello world'))
+          mk.declare('=', mk.id('something'), mk('hello world'))
         ]
       }
     ]
@@ -272,9 +272,9 @@ test('parser - action', function(t){
         callee: mk.id('send_directive'),
         args: [mk('say')],
         "with": [
-          mk.assign('=', mk.id('one'), mk(1)),
-          mk.assign('=', mk.id('two'), mk(2)),
-          mk.assign('=', mk.id('three'), mk(3))
+          mk.declare('=', mk.id('one'), mk(1)),
+          mk.declare('=', mk.id('two'), mk(2)),
+          mk.declare('=', mk.id('three'), mk(3))
         ]
       }
     ]
@@ -512,7 +512,7 @@ test('parser - locations', function(t){
     'with': [
       {
         loc: {start: 66, end: 74},
-        type: 'Assignment',
+        type: 'Declaration',
         op: '=',
         left: {
           loc: {start: 66, end: 70},
@@ -769,7 +769,7 @@ test('parser - expressions', function(t){
   });
 
   testExp('a = "one"', {
-    type: 'Assignment',
+    type: 'Declaration',
     op: '=',
     left: mk.id('a'),
     right: mk('one')
@@ -1074,13 +1074,13 @@ test('parser - Rule prelude', function(t){
 
   testPre('a = 1 b = 2', [
     {
-      type: 'Assignment',
+      type: 'Declaration',
       op: '=',
       left: mk.id('a'),
       right: mk(1)
     },
     {
-      type: 'Assignment',
+      type: 'Declaration',
       op: '=',
       left: mk.id('b'),
       right: mk(2)
@@ -1206,12 +1206,12 @@ test('parser - ruleset global declarations', function(t){
   testGlobal('', []);
 
   testGlobal('a = 1', [
-    mk.assign('=', mk.id('a'), mk(1))
+    mk.declare('=', mk.id('a'), mk(1))
   ]);
 
   testGlobal('a = 1 b = 2', [
-    mk.assign('=', mk.id('a'), mk(1)),
-    mk.assign('=', mk.id('b'), mk(2))
+    mk.declare('=', mk.id('a'), mk(1)),
+    mk.declare('=', mk.id('b'), mk(2))
   ]);
 
   t.end();

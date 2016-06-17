@@ -346,7 +346,7 @@ RuleActions -> RuleAction {% idArr %}
 RuleAction ->
     (Identifier _ "=>" _):?
     Identifier _ "(" _ expression_list _ loc_close_paren
-    (_ "with" __ assignment_list):? {%
+    (_ "with" __ declaration_list):? {%
   function(data, start){
     return {
       loc: {start: start, end: lastEndLoc(data)},
@@ -384,13 +384,13 @@ postlude_clause -> "{" _ statement_list _ loc_close_curly {%
 #
 
 statement -> expression {% id %}
-    | Assignment {% id %}
+    | Declaration {% id %}
 
-Assignment -> left_side_of_assignment _ "=" _ expression {%
+Declaration -> left_side_of_declaration _ "=" _ expression {%
   function(data, start){
     return {
       loc: {start: data[0].loc.start, end: data[4].loc.end},
-      type: 'Assignment',
+      type: 'Declaration',
       op: data[2],
       left: data[0],
       right: data[4]
@@ -403,10 +403,10 @@ statement_list -> null {% noopArr %}
     | statement_list _ ";" _ statement {% function(d){return d[0].concat(d[4])} %}
 
 declaration_block -> "{" _ "}" {% noopArr %}
-    | "{" _ assignment_list _ "}" {% getN(2) %}
+    | "{" _ declaration_list _ "}" {% getN(2) %}
 
-assignment_list -> Assignment {% idArr %}
-    | assignment_list __ Assignment {% function(d){return d[0].concat(d[2])} %}
+declaration_list -> Declaration {% idArr %}
+    | declaration_list __ Declaration {% function(d){return d[0].concat(d[2])} %}
 
 ################################################################################
 #
@@ -475,7 +475,7 @@ expression_list -> null {% noopArr %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
 
 # Later we may add destructuring
-left_side_of_assignment -> Identifier {% id %}
+left_side_of_declaration -> Identifier {% id %}
 
 ################################################################################
 # Functions

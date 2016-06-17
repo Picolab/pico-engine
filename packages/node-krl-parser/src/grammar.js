@@ -367,7 +367,7 @@ var grammar = {
     {"name": "RuleAction$ebnf$1", "symbols": ["RuleAction$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RuleAction$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RuleAction$ebnf$2$subexpression$1", "symbols": ["_", "RuleAction$ebnf$2$subexpression$1$string$1", "__", "assignment_list"]},
+    {"name": "RuleAction$ebnf$2$subexpression$1", "symbols": ["_", "RuleAction$ebnf$2$subexpression$1$string$1", "__", "declaration_list"]},
     {"name": "RuleAction$ebnf$2", "symbols": ["RuleAction$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren", "RuleAction$ebnf$2"], "postprocess": 
@@ -401,12 +401,12 @@ var grammar = {
         }
         },
     {"name": "statement", "symbols": ["expression"], "postprocess": id},
-    {"name": "statement", "symbols": ["Assignment"], "postprocess": id},
-    {"name": "Assignment", "symbols": ["left_side_of_assignment", "_", {"literal":"="}, "_", "expression"], "postprocess": 
+    {"name": "statement", "symbols": ["Declaration"], "postprocess": id},
+    {"name": "Declaration", "symbols": ["left_side_of_declaration", "_", {"literal":"="}, "_", "expression"], "postprocess": 
         function(data, start){
           return {
             loc: {start: data[0].loc.start, end: data[4].loc.end},
-            type: 'Assignment',
+            type: 'Declaration',
             op: data[2],
             left: data[0],
             right: data[4]
@@ -417,9 +417,9 @@ var grammar = {
     {"name": "statement_list", "symbols": ["statement"], "postprocess": idArr},
     {"name": "statement_list", "symbols": ["statement_list", "_", {"literal":";"}, "_", "statement"], "postprocess": function(d){return d[0].concat(d[4])}},
     {"name": "declaration_block", "symbols": [{"literal":"{"}, "_", {"literal":"}"}], "postprocess": noopArr},
-    {"name": "declaration_block", "symbols": [{"literal":"{"}, "_", "assignment_list", "_", {"literal":"}"}], "postprocess": getN(2)},
-    {"name": "assignment_list", "symbols": ["Assignment"], "postprocess": idArr},
-    {"name": "assignment_list", "symbols": ["assignment_list", "__", "Assignment"], "postprocess": function(d){return d[0].concat(d[2])}},
+    {"name": "declaration_block", "symbols": [{"literal":"{"}, "_", "declaration_list", "_", {"literal":"}"}], "postprocess": getN(2)},
+    {"name": "declaration_list", "symbols": ["Declaration"], "postprocess": idArr},
+    {"name": "declaration_list", "symbols": ["declaration_list", "__", "Declaration"], "postprocess": function(d){return d[0].concat(d[2])}},
     {"name": "expression", "symbols": ["exp_conditional"], "postprocess": id},
     {"name": "exp_conditional", "symbols": ["exp_or"], "postprocess": id},
     {"name": "exp_conditional$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -484,7 +484,7 @@ var grammar = {
     {"name": "expression_list", "symbols": [], "postprocess": noopArr},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": idArr},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
-    {"name": "left_side_of_assignment", "symbols": ["Identifier"], "postprocess": id},
+    {"name": "left_side_of_declaration", "symbols": ["Identifier"], "postprocess": id},
     {"name": "Function$string$1", "symbols": [{"literal":"f"}, {"literal":"u"}, {"literal":"n"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "_", "function_params", "_", {"literal":")"}, "_", {"literal":"{"}, "_", "statement_list", "_", "loc_close_curly"], "postprocess": 
         function(data, start){
