@@ -12,7 +12,7 @@ A first ruleset for the Quickstart
   global {
     hello = function(obj){
       msg = "Hello " + obj;
-msg
+      msg
     }
   }
   rule hello_world {

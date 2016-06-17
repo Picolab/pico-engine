@@ -7,7 +7,10 @@ var gen_by_type = {
   'Identifier': function(ast, ind, gen){
     return ast.value;
   },
-  'DoubleQuote': function(ast, ind, gen){
+  'Keyword': function(ast, ind, gen){
+    return ast.value;
+  },
+  'Chevron': function(ast, ind, gen){
     return '<<' + _.map(ast.value, function(v){
       return v.type === 'String'
         ? v.value.replace(/>>/g, '>\\>')
@@ -22,7 +25,10 @@ var gen_by_type = {
       return gen(stmt, 1);
     }).join(';\n') + '\n' + ind() + '}';
   },
-  'Assignment': function(ast, ind, gen){
+  'ExpressionStatement': function(ast, ind, gen){
+    return ind() + gen(ast.expression);
+  },
+  'Declaration': function(ast, ind, gen){
     return ind() + gen(ast.left) + ' ' + ast.op + ' ' + gen(ast.right);
   },
   'Ruleset': function(ast, ind, gen){
@@ -63,7 +69,7 @@ var gen_by_type = {
   },
   'RuleAction': function(ast, ind, gen){
     var src = '';
-    src += ind() + gen(ast.callee) + '(' + gen(ast.args) + ')';
+    src += ind() + gen(ast.action) + '(' + gen(ast.args) + ')';
     if(!_.isEmpty(ast['with'])){
       src += ' with\n' + gen(ast['with'], 1);
     }
