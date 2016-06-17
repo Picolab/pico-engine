@@ -140,7 +140,7 @@ var grammar = {
     {"name": "ruleset$ebnf$1", "symbols": ["ruleset$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "ruleset$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "ruleset$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"g"}, {"literal":"l"}, {"literal":"o"}, {"literal":"b"}, {"literal":"a"}, {"literal":"l"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset$ebnf$2$subexpression$1", "symbols": ["ruleset$ebnf$2$subexpression$1$string$1", "_", {"literal":"{"}, "_", "assignment_list", {"literal":"}"}, "_"]},
+    {"name": "ruleset$ebnf$2$subexpression$1", "symbols": ["ruleset$ebnf$2$subexpression$1$string$1", "_", "declaration_block", "_"]},
     {"name": "ruleset$ebnf$2", "symbols": ["ruleset$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "ruleset$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "ruleset$ebnf$3", "symbols": []},
@@ -156,7 +156,7 @@ var grammar = {
         
             meta: data[6] ? data[6][4] : [],
         
-            global: data[7] ? data[7][4] : [],
+            global: data[7] ? data[7][2] : [],
         
             rules: data[8].map(function(pair){
               return pair[0];
@@ -191,7 +191,7 @@ var grammar = {
     {"name": "rule$ebnf$2", "symbols": ["rule$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "rule$ebnf$3$subexpression$1$string$1", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule$ebnf$3$subexpression$1", "symbols": ["rule$ebnf$3$subexpression$1$string$1", "_", {"literal":"{"}, "_", "assignment_list", "_", {"literal":"}"}, "_"]},
+    {"name": "rule$ebnf$3$subexpression$1", "symbols": ["rule$ebnf$3$subexpression$1$string$1", "_", "declaration_block", "_"]},
     {"name": "rule$ebnf$3", "symbols": ["rule$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "rule$ebnf$4$subexpression$1", "symbols": ["RuleActionBlock", "_"]},
@@ -208,7 +208,7 @@ var grammar = {
             name: data[2],
             rule_state: data[3] ? data[3][3] : "active",
             select_when: data[7] && data[7][4],
-            prelude: data[8] ? data[8][4] : [],
+            prelude: data[8] ? data[8][2] : [],
             action_block: data[9] && data[9][0],
             postlude: data[10] && data[10][0]
           };
@@ -419,7 +419,8 @@ var grammar = {
     {"name": "statement_list", "symbols": [], "postprocess": noopArr},
     {"name": "statement_list", "symbols": ["statement"], "postprocess": idArr},
     {"name": "statement_list", "symbols": ["statement_list", "_", {"literal":";"}, "_", "statement"], "postprocess": function(d){return d[0].concat(d[4])}},
-    {"name": "assignment_list", "symbols": [], "postprocess": noopArr},
+    {"name": "declaration_block", "symbols": [{"literal":"{"}, "_", {"literal":"}"}], "postprocess": noopArr},
+    {"name": "declaration_block", "symbols": [{"literal":"{"}, "_", "assignment_list", "_", {"literal":"}"}], "postprocess": getN(2)},
     {"name": "assignment_list", "symbols": ["Assignment"], "postprocess": idArr},
     {"name": "assignment_list", "symbols": ["assignment_list", "__", "Assignment"], "postprocess": function(d){return d[0].concat(d[2])}},
     {"name": "expression", "symbols": ["exp_conditional"], "postprocess": id},

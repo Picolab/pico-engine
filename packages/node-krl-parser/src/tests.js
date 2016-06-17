@@ -1192,12 +1192,14 @@ test('parser - ruleset global declarations', function(t){
 
   testGlobal('', []);
 
-  /*
+  testGlobal('a = 1', [
+    mk.assign('=', mk.id('a'), mk(1))
+  ]);
+
   testGlobal('a = 1 b = 2', [
     mk.assign('=', mk.id('a'), mk(1)),
     mk.assign('=', mk.id('b'), mk(2))
   ]);
-  */
 
   t.end();
 });

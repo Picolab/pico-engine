@@ -138,7 +138,7 @@ main -> _ ruleset _ {% getN(1) %}
 
 ruleset -> "ruleset" __ Identifier _ "{" _
   ("meta" _ "{" _ ruleset_meta_body _ "}" _):?
-  ("global" _ "{" _ assignment_list "}" _):?
+  ("global" _ declaration_block _):?
   (rule _):*
 loc_close_curly {%
   function(data, loc){
@@ -150,7 +150,7 @@ loc_close_curly {%
 
       meta: data[6] ? data[6][4] : [],
 
-      global: data[7] ? data[7][4] : [],
+      global: data[7] ? data[7][2] : [],
 
       rules: data[8].map(function(pair){
         return pair[0];
@@ -182,7 +182,7 @@ ruleset_meta_prop -> Identifier __ expression {%
 rule -> "rule" __ Identifier (__ "is" __ rule_state):? _ "{" _
   ("select" __ "when" __ EventExpression _ (";" _):?):?
 
-  ("pre" _ "{" _ assignment_list _ "}" _ ):?
+  ("pre" _ declaration_block _ ):?
 
   (RuleActionBlock _):?
 
@@ -196,7 +196,7 @@ loc_close_curly {%
       name: data[2],
       rule_state: data[3] ? data[3][3] : "active",
       select_when: data[7] && data[7][4],
-      prelude: data[8] ? data[8][4] : [],
+      prelude: data[8] ? data[8][2] : [],
       action_block: data[9] && data[9][0],
       postlude: data[10] && data[10][0]
     };
@@ -404,8 +404,10 @@ statement_list -> null {% noopArr %}
     | statement {% idArr %}
     | statement_list _ ";" _ statement {% function(d){return d[0].concat(d[4])} %}
 
-assignment_list -> null {% noopArr %}
-    | Assignment {% idArr %}
+declaration_block -> "{" _ "}" {% noopArr %}
+    | "{" _ assignment_list _ "}" {% getN(2) %}
+
+assignment_list -> Assignment {% idArr %}
     | assignment_list __ Assignment {% function(d){return d[0].concat(d[2])} %}
 
 ################################################################################
