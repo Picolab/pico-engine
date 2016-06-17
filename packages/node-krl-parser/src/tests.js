@@ -110,7 +110,8 @@ test('parser', function(t){
           rule_state: "active",
           select_when: null,
           prelude: [],
-          action_block: null
+          action_block: null,
+          postlude: null
         }
       ]
     }
@@ -137,7 +138,8 @@ test('parser', function(t){
           rule_state: "active",
           select_when: null,
           prelude: [],
-          action_block: null
+          action_block: null,
+          postlude: null
         },
         {
           type: 'Rule',
@@ -146,7 +148,8 @@ test('parser', function(t){
           rule_state: "active",
           select_when: null,
           prelude: [],
-          action_block: null
+          action_block: null,
+          postlude: null
         }
       ]
     }
@@ -399,7 +402,8 @@ test('parser - locations', function(t){
         rule_state: "active",
         select_when: null,
         prelude: [],
-        action_block: null
+        action_block: null,
+        postlude: null
       }
     ]
   });
@@ -1080,6 +1084,41 @@ test('parser - Rule state', function(t){
   testRuleState('rule r1 is active{}', "active");
   testRuleState('rule r1 is inactive{}', "inactive");
   testRuleState('rule r1   is    inactive   {}', "inactive");
+
+  t.end();
+});
+
+test('parser - RulePostlude', function(t){
+  //test location
+  var src = 'ruleset rs{rule r1{always{one();two()}}}';
+  t.deepEquals(parser(src)[0].rules[0].postlude, {
+    loc: {start: 19, end: 38},
+    type: 'RulePostlude',
+    fired: null,
+    notfired: null,
+    always: [
+      {
+        loc: {start: 26, end: 31},
+        type: 'CallExpression',
+        callee: {
+          loc: {start: 26, end: 29},
+          type: 'Identifier',
+          value: 'one'
+        },
+        args: []
+      },
+      {
+        loc: {start: 32, end: 37},
+        type: 'CallExpression',
+        callee: {
+          loc: {start: 32, end: 35},
+          type: 'Identifier',
+          value: 'two'
+        },
+        args: []
+      }
+    ]
+  });
 
   t.end();
 });

@@ -151,7 +151,7 @@ rule -> "rule" __ Identifier (__ "is" __ rule_state):? _ "{" _
 
   (RuleActionBlock _):?
 
-  #postb=post_block? SEMI?
+  (RulePostlude _):?
 
 loc_close_curly {%
   function(data, loc){
@@ -162,7 +162,8 @@ loc_close_curly {%
       rule_state: data[3] ? data[3][3] : "active",
       select_when: data[7] && data[7][4],
       prelude: data[8] ? data[8][4] : [],
-      action_block: data[9] && data[9][0]
+      action_block: data[9] && data[9][0],
+      postlude: data[10] && data[10][0]
     };
   }
 %}
@@ -324,6 +325,25 @@ RuleAction ->
     };
   }
 %}
+
+################################################################################
+#
+# RulePostlude
+#
+
+RulePostlude -> "always" _ postlude_clause {%
+  function(data, start){
+    return {
+      loc: {start: start, end: lastEndLoc(data)},
+      type: 'RulePostlude',
+      fired: null,
+      notfired: null,
+      always: data[2][0]
+    };
+  }
+%}
+
+postlude_clause -> "{" _ statement_list _ loc_close_curly {% function(d){return [d[2],d[4]]} %}
 
 ################################################################################
 #

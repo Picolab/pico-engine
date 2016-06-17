@@ -158,7 +158,10 @@ var grammar = {
     {"name": "rule$ebnf$4$subexpression$1", "symbols": ["RuleActionBlock", "_"]},
     {"name": "rule$ebnf$4", "symbols": ["rule$ebnf$4$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule", "symbols": ["rule$string$1", "__", "Identifier", "rule$ebnf$1", "_", {"literal":"{"}, "_", "rule$ebnf$2", "rule$ebnf$3", "rule$ebnf$4", "loc_close_curly"], "postprocess": 
+    {"name": "rule$ebnf$5$subexpression$1", "symbols": ["RulePostlude", "_"]},
+    {"name": "rule$ebnf$5", "symbols": ["rule$ebnf$5$subexpression$1"], "postprocess": id},
+    {"name": "rule$ebnf$5", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "rule", "symbols": ["rule$string$1", "__", "Identifier", "rule$ebnf$1", "_", {"literal":"{"}, "_", "rule$ebnf$2", "rule$ebnf$3", "rule$ebnf$4", "rule$ebnf$5", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
             loc: {start: loc, end: last(data)},
@@ -167,7 +170,8 @@ var grammar = {
             rule_state: data[3] ? data[3][3] : "active",
             select_when: data[7] && data[7][4],
             prelude: data[8] ? data[8][4] : [],
-            action_block: data[9] && data[9][0]
+            action_block: data[9] && data[9][0],
+            postlude: data[10] && data[10][0]
           };
         }
         },
@@ -342,6 +346,19 @@ var grammar = {
           };
         }
         },
+    {"name": "RulePostlude$string$1", "symbols": [{"literal":"a"}, {"literal":"l"}, {"literal":"w"}, {"literal":"a"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RulePostlude", "symbols": ["RulePostlude$string$1", "_", "postlude_clause"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: lastEndLoc(data)},
+            type: 'RulePostlude',
+            fired: null,
+            notfired: null,
+            always: data[2][0]
+          };
+        }
+        },
+    {"name": "postlude_clause", "symbols": [{"literal":"{"}, "_", "statement_list", "_", "loc_close_curly"], "postprocess": function(d){return [d[2],d[4]]}},
     {"name": "statement", "symbols": ["expression"], "postprocess": id},
     {"name": "statement", "symbols": ["ruleset"], "postprocess": id},
     {"name": "statement_list", "symbols": [], "postprocess": noopArr},
