@@ -153,7 +153,7 @@ rule hello {
       {
         "type": "RuleAction",
         "label": {value: "one", type:"Identifier"},
-        "callee": {value: "action", type:"Identifier"},
+        "action": {value: "action", type:"Identifier"},
         "args": [
           {value: 1, type:"Number"}
         ],
@@ -162,7 +162,7 @@ rule hello {
       {
         "type": "RuleAction",
         "label": {value: "two", type:"Identifier"},
-        "callee": {value: "action", type:"Identifier"},
+        "action": {value: "action", type:"Identifier"},
         "args": [
           {value: 2, type:"Number"}
         ],
