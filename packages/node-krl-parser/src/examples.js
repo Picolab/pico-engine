@@ -73,7 +73,8 @@ var examples = {
     're#^My name is (.*)#i',
     '[A, B, C]',
     '{"one": A}',
-    '<<\n  hello #{name}!\n  >>'
+    '<<\n  hello #{name}!\n  >>',
+    '<< This #{ x{"flip"} } that >>'
   ],
   '#### Assignment': [
     'A = B'
@@ -95,7 +96,8 @@ var examples = {
     'A(B,C)'
   ],
   '#### Accessing data': [
-    'matrix[i][j]'
+    'matrix[i][j]',
+    'some_hash{["some", "path"]}'
   ]
 };
 

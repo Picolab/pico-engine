@@ -330,6 +330,21 @@ re#^My name is (.*)#i
     {value: "!\n  ", type:"String"}
   ]
 }
+
+<< This #{ x{"flip"} } that >>
+{
+  "type": "Chevron",
+  "value": [
+    {value: " This ", type:"String"},
+    {
+      "type": "MemberExpression",
+      "object": {value: "x", type:"Identifier"},
+      "property": {value: "flip", type:"String"},
+      "method": "path"
+    },
+    {value: " that ", type:"String"}
+  ]
+}
 ```
 
 #### Assignment
@@ -450,6 +465,37 @@ A(B,C)
   "type": "Application",
   "callee": A,
   "args": [ B , C ]
+}
+```
+
+#### Accessing data
+
+```js
+matrix[i][j]
+{
+  "type": "MemberExpression",
+  "object": {
+    "type": "MemberExpression",
+    "object": {value: "matrix", type:"Identifier"},
+    "property": {value: "i", type:"Identifier"},
+    "method": "index"
+  },
+  "property": {value: "j", type:"Identifier"},
+  "method": "index"
+}
+
+some_hash{["some", "path"]}
+{
+  "type": "MemberExpression",
+  "object": {value: "some_hash", type:"Identifier"},
+  "property": {
+    "type": "Array",
+    "value": [
+      {value: "some", type:"String"},
+      {value: "path", type:"String"}
+    ]
+  },
+  "method": "path"
 }
 ```
 

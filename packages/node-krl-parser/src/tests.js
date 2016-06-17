@@ -658,6 +658,20 @@ test('parser - literals', function(t){
     ]
   });
 
+  testLiteral('<< This #{ x{"flip"} } that >>', {
+    type: 'Chevron',
+    value: [
+      {type: 'String', value: ' This '},
+      {
+        type: 'MemberExpression',
+        object: mk.id('x'),
+        property: mk('flip'),
+        method: 'path'
+      },
+      {type: 'String', value: ' that '}
+    ]
+  });
+
   testLiteral('<< double <<with>\\>in >>', {
     type: 'Chevron',
     value: [
