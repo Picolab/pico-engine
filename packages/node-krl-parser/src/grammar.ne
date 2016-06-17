@@ -283,7 +283,7 @@ event_exp_attribute_pair -> Identifier __ RegExp {%
   function(data, start){
     return {
       loc: {start: start, end: data[2].loc.end},
-      type: 'EventAttributePair',
+      type: 'AttributeMatch',
       key: data[0],
       value: data[2]
     };

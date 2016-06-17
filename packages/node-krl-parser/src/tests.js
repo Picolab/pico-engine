@@ -820,7 +820,7 @@ test('parser - EventExpression', function(t){
     event_type: mk.id('b'),
     attributes: [
       {
-        type: 'EventAttributePair',
+        type: 'AttributeMatch',
         key: mk.id('amt'),
         value: mk(/[0-9]{4}/)
       }
@@ -835,7 +835,7 @@ test('parser - EventExpression', function(t){
     event_type: mk.id('b'),
     attributes: [
       {
-        type: 'EventAttributePair',
+        type: 'AttributeMatch',
         key: mk.id('amt'),
         value: mk(/[0-9]{4}/)
       }
@@ -850,12 +850,12 @@ test('parser - EventExpression', function(t){
     event_type: mk.id('b'),
     attributes: [
       {
-        type: 'EventAttributePair',
+        type: 'AttributeMatch',
         key: mk.id('c'),
         value: mk(/(.*)/)
       },
       {
-        type: 'EventAttributePair',
+        type: 'AttributeMatch',
         key: mk.id('d'),
         value: mk(/(.*)/)
       }
