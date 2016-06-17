@@ -55,13 +55,13 @@ re#^My name is (.*)#i
   "value": /^My name is (.*)/i
 }
 
-[a, b, c]
+[A, B, C]
 {
   "type": "Array"
-  "value": [ a , b , c ]
+  "value": [ A , B , C ]
 }
 
-{"one": a}
+{"one": A}
 {
   "type": "Object"
   "value": [
@@ -71,7 +71,7 @@ re#^My name is (.*)#i
         "type": "String"
         "value": "one"
       }
-      "value": a
+      "value": A
     }
   ]
 }
@@ -86,7 +86,10 @@ re#^My name is (.*)#i
       "type": "String"
       "value": "\n  hello "
     },
-    name,
+    {
+      "type": "Identifier"
+      "value": "name"
+    },
     {
       "type": "String"
       "value": "!\n  "
@@ -98,100 +101,100 @@ re#^My name is (.*)#i
 ### Assignment
 
 ```js
-a = b
+A = B
 {
   "type": "AssignmentExpression"
   "op": "="
-  "left": a
-  "right": b
+  "left": A
+  "right": B
 }
 ```
 
 ### Infix Operators
 
 ```js
-a && b
+A && B
 {
   "type": "InfixOperator"
   "op": "&&"
-  "left": a
-  "right": b
+  "left": A
+  "right": B
 }
 
-a + b + c
+A + B + C
 {
   "type": "InfixOperator"
   "op": "+"
   "left": {
     "type": "InfixOperator"
     "op": "+"
-    "left": a
-    "right": b
+    "left": A
+    "right": B
   }
-  "right": c
+  "right": C
 }
 
-a + b * c
+A + B * C
 {
   "type": "InfixOperator"
   "op": "+"
-  "left": a
+  "left": A
   "right": {
     "type": "InfixOperator"
     "op": "*"
-    "left": b
-    "right": c
+    "left": B
+    "right": C
   }
 }
 
-a < b
+A < B
 {
   "type": "InfixOperator"
   "op": "<"
-  "left": a
-  "right": b
+  "left": A
+  "right": B
 }
 
-a cmp b
+A cmp B
 {
   "type": "InfixOperator"
   "op": "cmp"
-  "left": a
-  "right": b
+  "left": A
+  "right": B
 }
 
-a <=> b
+A <=> B
 {
   "type": "InfixOperator"
   "op": "<=>"
-  "left": a
-  "right": b
+  "left": A
+  "right": B
 }
 ```
 
 ### Conditionals
 
 ```js
-a => b | c
+A => B | C
 {
   "type": "ConditionalExpression"
-  "test": a
-  "consequent": b
-  "alternate": c
+  "test": A
+  "consequent": B
+  "alternate": C
 }
 
-a => b |
-c => d |
-     e
+A => B |
+C => D |
+     E
 {
   "type": "ConditionalExpression"
-  "test": a
-  "consequent": b
+  "test": A
+  "consequent": B
   "alternate": {
     "type": "ConditionalExpression"
-    "test": c
-    "consequent": d
-    "alternate": e
+    "test": C
+    "consequent": D
+    "alternate": E
   }
 }
 ```
@@ -199,20 +202,20 @@ c => d |
 ### Functions
 
 ```js
-function(a){
-  b
+function(A){
+  B
 }
 {
   "type": "Function"
-  "params": [ a ]
-  "body": [ b ]
+  "params": [ A ]
+  "body": [ B ]
 }
 
-a(b,c)
+A(B,C)
 {
   "type": "CallExpression"
-  "callee": a
-  "args": [ b , c ]
+  "callee": A
+  "args": [ B , C ]
 }
 ```
 

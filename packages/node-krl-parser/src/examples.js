@@ -10,28 +10,28 @@ var examples = {
     'thing',
     'true',
     're#^My name is (.*)#i',
-    '[a, b, c]',
-    '{"one": a}',
+    '[A, B, C]',
+    '{"one": A}',
     '<<\n  hello #{name}!\n  >>'
   ],
   '### Assignment': [
-    'a = b'
+    'A = B'
   ],
   '### Infix Operators': [
-    'a && b',
-    'a + b + c',
-    'a + b * c',
-    'a < b',
-    'a cmp b',
-    'a <=> b'
+    'A && B',
+    'A + B + C',
+    'A + B * C',
+    'A < B',
+    'A cmp B',
+    'A <=> B'
   ],
   '### Conditionals': [
-    'a => b | c',
-    'a => b |\nc => d |\n     e'
+    'A => B | C',
+    'A => B |\nC => D |\n     E'
   ],
   '### Functions': [
-    'function(a){\n  b\n}',
-    'a(b,c)'
+    'function(A){\n  B\n}',
+    'A(B,C)'
   ]
 };
 
@@ -61,7 +61,7 @@ var printAST = function(ast, i, indent_size){
       + '\n' + ind(i) + ']';
   }
   if(_.isPlainObject(ast)){
-    if(ast.type === 'Identifier' && i !== 0){
+    if(ast.type === 'Identifier' && i !== 0 && /^[A-Z]+$/.test(ast.value)){
       return ast.value;
     }
     return '{\n'
