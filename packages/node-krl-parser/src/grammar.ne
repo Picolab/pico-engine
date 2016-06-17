@@ -613,7 +613,7 @@ PositiveInteger -> [0-9]:+ {%
   }
 %}
 
-Number -> _number {%
+Number -> number {%
   function(data, loc){
     var src = flatten(data).join('');
     return {
@@ -624,17 +624,17 @@ Number -> _number {%
   }
 %}
 
-_number ->
-    _float
-    | "+" _float
-    | "-" _float
+number ->
+    float
+    | "+" float
+    | "-" float
 
-_float ->
-    _int
-    | "." _int
-    | _int "." _int
+float ->
+    int
+    | "." int
+    | int "." int
 
-_int -> [0-9]:+ {% idAll %}
+int -> [0-9]:+ {% idAll %}
 
 RegExp -> "re#" regexp_pattern "#" regexp_modifiers {%
   function(data, loc){

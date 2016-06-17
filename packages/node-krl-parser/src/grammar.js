@@ -603,7 +603,7 @@ var grammar = {
           };
         }
         },
-    {"name": "Number", "symbols": ["_number"], "postprocess": 
+    {"name": "Number", "symbols": ["number"], "postprocess": 
         function(data, loc){
           var src = flatten(data).join('');
           return {
@@ -613,15 +613,15 @@ var grammar = {
           };
         }
         },
-    {"name": "_number", "symbols": ["_float"]},
-    {"name": "_number", "symbols": [{"literal":"+"}, "_float"]},
-    {"name": "_number", "symbols": [{"literal":"-"}, "_float"]},
-    {"name": "_float", "symbols": ["_int"]},
-    {"name": "_float", "symbols": [{"literal":"."}, "_int"]},
-    {"name": "_float", "symbols": ["_int", {"literal":"."}, "_int"]},
-    {"name": "_int$ebnf$1", "symbols": [/[0-9]/]},
-    {"name": "_int$ebnf$1", "symbols": [/[0-9]/, "_int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "_int", "symbols": ["_int$ebnf$1"], "postprocess": idAll},
+    {"name": "number", "symbols": ["float"]},
+    {"name": "number", "symbols": [{"literal":"+"}, "float"]},
+    {"name": "number", "symbols": [{"literal":"-"}, "float"]},
+    {"name": "float", "symbols": ["int"]},
+    {"name": "float", "symbols": [{"literal":"."}, "int"]},
+    {"name": "float", "symbols": ["int", {"literal":"."}, "int"]},
+    {"name": "int$ebnf$1", "symbols": [/[0-9]/]},
+    {"name": "int$ebnf$1", "symbols": [/[0-9]/, "int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "int", "symbols": ["int$ebnf$1"], "postprocess": idAll},
     {"name": "RegExp$string$1", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "RegExp", "symbols": ["RegExp$string$1", "regexp_pattern", {"literal":"#"}, "regexp_modifiers"], "postprocess": 
         function(data, loc){
