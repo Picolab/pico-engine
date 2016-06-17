@@ -351,7 +351,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: {
-      type: 'CallExpression',
+      type: 'Application',
       callee: mk.id('exp'),
       args: []
     },
@@ -697,17 +697,17 @@ test('parser - expressions', function(t){
   };
 
   testExp('one()', {
-    type: 'CallExpression',
+    type: 'Application',
     callee: {type: 'Identifier', value: 'one'},
     args: []
   });
   testExp('one ( 1 , 2 )', {
-    type: 'CallExpression',
+    type: 'Application',
     callee: {type: 'Identifier', value: 'one'},
     args: [{type: 'Number', value: 1}, {type: 'Number', value: 2}]
   });
   testExp('one(1,2)', {
-    type: 'CallExpression',
+    type: 'Application',
     callee: {type: 'Identifier', value: 'one'},
     args: [{type: 'Number', value: 1}, {type: 'Number', value: 2}]
   });
@@ -1122,7 +1122,7 @@ test('parser - RulePostlude', function(t){
     always: [
       {
         loc: {start: 26, end: 31},
-        type: 'CallExpression',
+        type: 'Application',
         callee: {
           loc: {start: 26, end: 29},
           type: 'Identifier',
@@ -1132,7 +1132,7 @@ test('parser - RulePostlude', function(t){
       },
       {
         loc: {start: 32, end: 37},
-        type: 'CallExpression',
+        type: 'Application',
         callee: {
           loc: {start: 32, end: 35},
           type: 'Identifier',

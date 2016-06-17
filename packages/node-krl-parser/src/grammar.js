@@ -482,7 +482,7 @@ var grammar = {
     {"name": "expression_atom", "symbols": ["RegExp"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Chevron"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Function"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["CallExpression"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["Application"], "postprocess": id},
     {"name": "expression_atom", "symbols": [{"literal":"("}, "_", "expression", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "expression_list", "symbols": [], "postprocess": noopArr},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": idArr},
@@ -502,11 +502,11 @@ var grammar = {
     {"name": "function_params", "symbols": [], "postprocess": noopArr},
     {"name": "function_params", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "function_params", "symbols": ["function_params", "_", {"literal":","}, "_", "Identifier"], "postprocess": function(d){return d[0].concat([d[4]])}},
-    {"name": "CallExpression", "symbols": ["Identifier", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren"], "postprocess": 
+    {"name": "Application", "symbols": ["Identifier", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: last(data)},
-            type: 'CallExpression',
+            type: 'Application',
             callee: data[0],
             args: data[4]
           };

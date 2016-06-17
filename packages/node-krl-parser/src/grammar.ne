@@ -470,7 +470,7 @@ expression_atom ->
     | RegExp {% id %}
     | Chevron {% id %}
     | Function {% id %}
-    | CallExpression {% id %}
+    | Application {% id %}
     | "(" _ expression _ ")" {% getN(2) %}
 
 expression_list -> null {% noopArr %}
@@ -499,11 +499,11 @@ function_params ->
     | Identifier {% idArr %}
     | function_params _ "," _ Identifier {% function(d){return d[0].concat([d[4]])} %}
 
-CallExpression -> Identifier _ "(" _ expression_list _ loc_close_paren {%
+Application -> Identifier _ "(" _ expression_list _ loc_close_paren {%
   function(data, start){
     return {
       loc: {start: start, end: last(data)},
-      type: 'CallExpression',
+      type: 'Application',
       callee: data[0],
       args: data[4]
     };
