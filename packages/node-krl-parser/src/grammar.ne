@@ -177,7 +177,7 @@ ruleset_meta_prop -> Identifier __ expression {%
 #
 
 rule -> "rule" __ Identifier (__ "is" __ rule_state):? _ "{" _
-  ("select" __ "when" __ EventExpression _ ";":? _ ):?
+  ("select" __ "when" __ EventExpression _ (";" _):?):?
 
   ("pre" _ "{" _ assignment_list _ "}" _ ):?
 
