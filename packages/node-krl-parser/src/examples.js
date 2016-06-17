@@ -39,6 +39,8 @@ var examples = {
     ruleExample('rule NAME is inactive {\n}'),
     ruleExample([
       'rule hello {',
+      '  select when DOMAIN TYPE',
+      '',
       '  pre {',
       '    a = 1',
       '  }',
