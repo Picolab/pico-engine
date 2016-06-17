@@ -142,7 +142,7 @@ var MemberExpression_method = function(method){
 %}
 
 main -> _ ruleset _ {% getN(1) %}
-    | _ list_Statement _ {% getN(1) %}
+    | _ Statement_list _ {% getN(1) %}
 
 ################################################################################
 #
@@ -254,21 +254,21 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("between", 0, 6, 10) %}
     | event_exp_fns __ "not" __ "between" _ "(" _ EventExpression _ "," _ EventExpression _ loc_close_paren
       {% complexEventOp("not between", 0, 8, 12) %}
-    | "any" __ PositiveInteger _ "(" _ list_EventExpression _ loc_close_paren
+    | "any" __ PositiveInteger _ "(" _ EventExpression_list _ loc_close_paren
       {% complexEventOp("any", 2, 6) %}
     | "count" __ PositiveInteger _ "(" _ EventExpression _ loc_close_paren
       {% complexEventOp("count", 2, 6) %}
     | "repeat" __ PositiveInteger _ "(" _ EventExpression _ loc_close_paren
       {% complexEventOp("repeat", 2, 6) %}
-    | "and" _ "(" _ list_EventExpression _ loc_close_paren
+    | "and" _ "(" _ EventExpression_list _ loc_close_paren
       {% complexEventOp("and", 4) %}
-    | "or" _ "(" _ list_EventExpression _ loc_close_paren
+    | "or" _ "(" _ EventExpression_list _ loc_close_paren
       {% complexEventOp("or", 4) %}
-    | "before" _ "(" _ list_EventExpression _ loc_close_paren
+    | "before" _ "(" _ EventExpression_list _ loc_close_paren
       {% complexEventOp("before", 4) %}
-    | "then" _ "(" _ list_EventExpression _ loc_close_paren
+    | "then" _ "(" _ EventExpression_list _ loc_close_paren
       {% complexEventOp("then", 4) %}
-    | "after" _ "(" _ list_EventExpression _ loc_close_paren
+    | "after" _ "(" _ EventExpression_list _ loc_close_paren
       {% complexEventOp("after", 4) %}
     | event_exp_fns __  "max" _ "(" _ function_params _ loc_close_paren
       {% complexEventOp("max", 0, 6) %}
@@ -314,8 +314,8 @@ event_exp_attribute_pair -> Identifier __ RegExp {%
   }
 %}
 
-list_EventExpression -> EventExpression {% idArr %}
-    | list_EventExpression _ "," _ EventExpression
+EventExpression_list -> EventExpression {% idArr %}
+    | EventExpression_list _ "," _ EventExpression
       {% function(d){return d[0].concat([d[4]])} %}
 
 time_period -> time_period_enum {%
@@ -371,7 +371,7 @@ RuleActions -> RuleAction {% idArr %}
 
 RuleAction ->
     (Identifier _ "=>" _):?
-    Identifier _ "(" _ list_Expression _ loc_close_paren
+    Identifier _ "(" _ Expression_list _ loc_close_paren
     (_ "with" __ declaration_list):? {%
   function(data, start){
     return {
@@ -397,7 +397,7 @@ RulePostlude ->
       (_ "finally" _ postlude_clause):?
       {% RulePostlude_by_paths([2, 0], [3, 3, 0], [4, 3, 0]) %}
 
-postlude_clause -> "{" _ list_Statement _ loc_close_curly {%
+postlude_clause -> "{" _ Statement_list _ loc_close_curly {%
   function(d){
     //we need to keep the location of the close curly
     return [d[2],d[4]];
@@ -438,9 +438,9 @@ Declaration -> left_side_of_declaration _ "=" _ Expression {%
 # Later we may add destructuring
 left_side_of_declaration -> Identifier {% id %}
 
-list_Statement -> null {% noopArr %}
+Statement_list -> null {% noopArr %}
     | Statement {% idArr %}
-    | list_Statement _ ";" _ Statement {% function(d){return d[0].concat(d[4])} %}
+    | Statement_list _ ";" _ Statement {% function(d){return d[0].concat(d[4])} %}
 
 declaration_block -> "{" _ "}" {% noopArr %}
     | "{" _ declaration_list _ "}" {% getN(2) %}
@@ -521,14 +521,14 @@ Literal ->
     | Array {% id %}
     | Map {% id %}
 
-list_Expression -> null {% noopArr %}
+Expression_list -> null {% noopArr %}
     | Expression {% idArr %}
-    | list_Expression _ "," _ Expression {% function(d){return d[0].concat([d[4]])} %}
+    | Expression_list _ "," _ Expression {% function(d){return d[0].concat([d[4]])} %}
 
 ################################################################################
 # Functions
 
-Function -> "function" _ "(" _ function_params _ ")" _ "{" _ list_Statement _ loc_close_curly {%
+Function -> "function" _ "(" _ function_params _ ")" _ "{" _ Statement_list _ loc_close_curly {%
   function(data, start){
     return {
       loc: {start: start, end: last(data)},
@@ -544,7 +544,7 @@ function_params ->
     | Identifier {% idArr %}
     | function_params _ "," _ Identifier {% function(d){return d[0].concat([d[4]])} %}
 
-Application -> MemberExpression _ "(" _ list_Expression _ loc_close_paren {%
+Application -> MemberExpression _ "(" _ Expression_list _ loc_close_paren {%
   function(data, start){
     return {
       loc: {start: start, end: last(data)},
@@ -558,7 +558,7 @@ Application -> MemberExpression _ "(" _ list_Expression _ loc_close_paren {%
 ################################################################################
 # Literal Datastructures
 
-Array -> "[" _ list_Expression _ loc_close_square {%
+Array -> "[" _ Expression_list _ loc_close_square {%
   function(data, loc){
     return {
       type: 'Array',
