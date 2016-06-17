@@ -488,7 +488,7 @@ test('parser - locations', function(t){
     },
     args: [
       {
-        loc: {start: 53, end: 58},
+        loc: {start: 54, end: 59},
         type: 'String',
         value: 'say'
       }
@@ -507,7 +507,7 @@ test('parser - locations', function(t){
     },
     args: [
       {
-        loc: {start: 53, end: 58},
+        loc: {start: 54, end: 59},
         type: 'String',
         value: 'say'
       }
@@ -543,7 +543,7 @@ test('parser - locations', function(t){
   };
 
   testTopLoc('name');
-  //testTopLoc('"some string"');
+  testTopLoc('"some string"');
   testTopLoc('-1.2');
   testTopLoc('a => b | c');
   testTopLoc('function(a){b}');

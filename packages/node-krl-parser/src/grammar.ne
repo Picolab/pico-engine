@@ -704,7 +704,7 @@ String -> "\"" _string "\"" {%
   function(data, loc){
     var src = data[1];
     return {
-      loc: {start: loc - 1, end: loc + src.length + 1},
+      loc: {start: loc, end: loc + src.length + 2},
       type: 'String',
       value: src
     };
