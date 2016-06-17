@@ -92,7 +92,7 @@ var printAST = function(ast, i, indent_size){
           v = ast.value;
         }
         return ind(i + indent_size) + k + ': ' + v;
-      }).join('\n')
+      }).join(',\n')
       + '\n' + ind(i) + '}';
   }
   return JSON.stringify(ast);

@@ -22,103 +22,112 @@ interface SourceLocation {
 ```
 `start` and `end` are character indexes (starting at 0) from the source string.
 
-### Rulesets
+### Ruleset
 
 ```js
-ruleset hello_world {
-  rule echo_hello {
-    select when echo hello
-  }
+ruleset NAME {
 }
 {
-  "type": "Ruleset"
+  "type": "Ruleset",
+  "name": NAME,
+  "meta": [  ],
+  "global": [  ],
+  "rules": [  ]
+}
+```
+
+### Rule
+
+```js
+rule NAME {
+}
+{
+  "type": "Rule",
+  "name": NAME,
+  "rule_state": "active",
+  "select_when": null,
+  "prelude": [  ],
+  "action_block": null,
+  "postlude": null
+}
+```
+
+### EventExpression
+
+```js
+select when A B
+{
+  "type": "Rule",
   "name": {
-    "type": "Identifier"
-    "value": "hello_world"
-  }
-  "meta": [  ]
-  "rules": [
-    {
-      "type": "Rule"
-      "name": {
-        "type": "Identifier"
-        "value": "echo_hello"
-      }
-      "rule_state": "active"
-      "select_when": {
-        "type": "EventExpression"
-        "event_domain": {
-          "type": "Identifier"
-          "value": "echo"
-        }
-        "event_type": {
-          "type": "Identifier"
-          "value": "hello"
-        }
-        "attributes": [  ]
-        "where": null
-        "setting": [  ]
-      }
-      "prelude": [  ]
-      "action_block": null
-      "postlude": null
-    }
-  ]
+    "type": "Identifier",
+    "value": "r0"
+  },
+  "rule_state": "active",
+  "select_when": {
+    "type": "EventExpression",
+    "event_domain": A,
+    "event_type": B,
+    "attributes": [  ],
+    "where": null,
+    "setting": [  ]
+  },
+  "prelude": [  ],
+  "action_block": null,
+  "postlude": null
 }
 ```
 
 ### KRL Expression language
-
 
 #### Literals
 
 ```js
 "hello world"
 {
-  "type": "String"
+  "type": "String",
   "value": "hello world"
 }
 
 -12.3
 {
-  "type": "Number"
+  "type": "Number",
   "value": -12.3
 }
 
 thing
 {
-  "type": "Identifier"
+  "type": "Identifier",
   "value": "thing"
 }
 
 true
 {
-  "type": "Boolean"
+  "type": "Boolean",
   "value": true
 }
 
 re#^My name is (.*)#i
 {
-  "type": "RegExp"
+  "type": "RegExp",
   "value": /^My name is (.*)/i
 }
 
 [A, B, C]
 {
-  "type": "Array"
+  "type": "Array",
   "value": [ A , B , C ]
 }
 
 {"one": A}
 {
-  "type": "Object"
+  "type": "Object",
   "value": [
     {
-      "type": "ObjectProperty"
+      "type": "ObjectProperty",
       "key": {
-        "type": "String"
+        "type": "String",
         "value": "one"
-      }
+      },
       "value": A
     }
   ]
@@ -128,18 +137,18 @@ re#^My name is (.*)#i
   hello #{name}!
   >>
 {
-  "type": "DoubleQuote"
+  "type": "DoubleQuote",
   "value": [
     {
-      "type": "String"
+      "type": "String",
       "value": "\n  hello "
     },
     {
-      "type": "Identifier"
+      "type": "Identifier",
       "value": "name"
     },
     {
-      "type": "String"
+      "type": "String",
       "value": "!\n  "
     }
   ]
@@ -151,9 +160,9 @@ re#^My name is (.*)#i
 ```js
 A = B
 {
-  "type": "AssignmentExpression"
-  "op": "="
-  "left": A
+  "type": "Assignment",
+  "op": "=",
+  "left": A,
   "right": B
 }
 ```
@@ -163,59 +172,59 @@ A = B
 ```js
 A && B
 {
-  "type": "InfixOperator"
-  "op": "&&"
-  "left": A
+  "type": "InfixOperator",
+  "op": "&&",
+  "left": A,
   "right": B
 }
 
 A + B + C
 {
-  "type": "InfixOperator"
-  "op": "+"
+  "type": "InfixOperator",
+  "op": "+",
   "left": {
-    "type": "InfixOperator"
-    "op": "+"
-    "left": A
+    "type": "InfixOperator",
+    "op": "+",
+    "left": A,
     "right": B
-  }
+  },
   "right": C
 }
 
 A + B * C
 {
-  "type": "InfixOperator"
-  "op": "+"
-  "left": A
+  "type": "InfixOperator",
+  "op": "+",
+  "left": A,
   "right": {
-    "type": "InfixOperator"
-    "op": "*"
-    "left": B
+    "type": "InfixOperator",
+    "op": "*",
+    "left": B,
     "right": C
   }
 }
 
 A < B
 {
-  "type": "InfixOperator"
-  "op": "<"
-  "left": A
+  "type": "InfixOperator",
+  "op": "<",
+  "left": A,
   "right": B
 }
 
 A cmp B
 {
-  "type": "InfixOperator"
-  "op": "cmp"
-  "left": A
+  "type": "InfixOperator",
+  "op": "cmp",
+  "left": A,
   "right": B
 }
 
 A <=> B
 {
-  "type": "InfixOperator"
-  "op": "<=>"
-  "left": A
+  "type": "InfixOperator",
+  "op": "<=>",
+  "left": A,
   "right": B
 }
 ```
@@ -225,9 +234,9 @@ A <=> B
 ```js
 A => B | C
 {
-  "type": "ConditionalExpression"
-  "test": A
-  "consequent": B
+  "type": "ConditionalExpression",
+  "test": A,
+  "consequent": B,
   "alternate": C
 }
 
@@ -235,13 +244,13 @@ A => B |
 C => D |
      E
 {
-  "type": "ConditionalExpression"
-  "test": A
-  "consequent": B
+  "type": "ConditionalExpression",
+  "test": A,
+  "consequent": B,
   "alternate": {
-    "type": "ConditionalExpression"
-    "test": C
-    "consequent": D
+    "type": "ConditionalExpression",
+    "test": C,
+    "consequent": D,
     "alternate": E
   }
 }
@@ -254,15 +263,15 @@ function(A){
   B
 }
 {
-  "type": "Function"
-  "params": [ A ]
+  "type": "Function",
+  "params": [ A ],
   "body": [ B ]
 }
 
 A(B,C)
 {
-  "type": "CallExpression"
-  "callee": A
+  "type": "CallExpression",
+  "callee": A,
   "args": [ B , C ]
 }
 ```
