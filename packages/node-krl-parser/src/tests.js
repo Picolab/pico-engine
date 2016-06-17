@@ -1089,6 +1089,12 @@ test('parser - Rule state', function(t){
 });
 
 test('parser - RulePostlude', function(t){
+  var testPost = function(postlude, expected){
+    var src = 'ruleset rs{rule r1{' + postlude + '}}';
+    var ast = normalizeAST(rmLoc(parser(src)));
+    t.deepEquals(ast[0].rules[0].postlude, normalizeAST(expected));
+  };
+
   //test location
   var src = 'ruleset rs{rule r1{always{one();two()}}}';
   t.deepEquals(parser(src)[0].rules[0].postlude, {
@@ -1118,6 +1124,34 @@ test('parser - RulePostlude', function(t){
         args: []
       }
     ]
+  });
+
+  testPost('fired{}', {
+    type: 'RulePostlude',
+    fired: [],
+    notfired: null,
+    always: null
+  });
+
+  testPost('fired{}else{}', {
+    type: 'RulePostlude',
+    fired: [],
+    notfired: [],
+    always: null
+  });
+
+  testPost('fired{}else{}finally{}', {
+    type: 'RulePostlude',
+    fired: [],
+    notfired: [],
+    always: []
+  });
+
+  testPost('fired{}finally{}', {
+    type: 'RulePostlude',
+    fired: [],
+    notfired: null,
+    always: []
   });
 
   t.end();

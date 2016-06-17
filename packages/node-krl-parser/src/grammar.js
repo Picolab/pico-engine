@@ -35,6 +35,25 @@ var flatten = function(toFlatten){
   }
 };
 
+var get = function(o, path, dflt){
+  if(!path || !path.length){
+    return dflt;
+  }
+  var cur = o;
+  var i;
+  for(i = 0; i < path.length; i++){
+    if(!cur){
+      return dflt;
+    }
+    if(cur.hasOwnProperty(path[i])){
+      cur = cur[path[i]];
+    }else{
+      return dflt;
+    }
+  }
+  return cur;
+};
+
 var reserved_identifiers = {
   "true": true,
   "false": true
@@ -99,14 +118,14 @@ var infixOp = function(data, start){
   };
 };
 
-var RulePostlude_by_indices = function(fired_i, notfired_i, always_i){
+var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
   return function(data, start){
     return {
       loc: {start: start, end: lastEndLoc(data)},
       type: 'RulePostlude',
-      fired: (data[fired_i] && data[fired_i][0]) || null,
-      notfired: (data[notfired_i] && data[notfired_i][0]) || null,
-      always: (data[always_i] && data[always_i][0]) || null
+      fired: get(data, fired_i, null),
+      notfired: get(data, notfired_i, null),
+      always: get(data, always_i, null),
     };
   };
 };
@@ -359,9 +378,17 @@ var grammar = {
         }
         },
     {"name": "RulePostlude$string$1", "symbols": [{"literal":"a"}, {"literal":"l"}, {"literal":"w"}, {"literal":"a"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RulePostlude", "symbols": ["RulePostlude$string$1", "_", "postlude_clause"], "postprocess": RulePostlude_by_indices(-1, -1, 2)},
+    {"name": "RulePostlude", "symbols": ["RulePostlude$string$1", "_", "postlude_clause"], "postprocess": RulePostlude_by_paths(null, null, [2, 0])},
     {"name": "RulePostlude$string$2", "symbols": [{"literal":"f"}, {"literal":"i"}, {"literal":"r"}, {"literal":"e"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RulePostlude", "symbols": ["RulePostlude$string$2", "_", "postlude_clause"], "postprocess": RulePostlude_by_indices(2, -1, -1)},
+    {"name": "RulePostlude$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"e"}, {"literal":"l"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RulePostlude$ebnf$1$subexpression$1", "symbols": ["_", "RulePostlude$ebnf$1$subexpression$1$string$1", "_", "postlude_clause"]},
+    {"name": "RulePostlude$ebnf$1", "symbols": ["RulePostlude$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "RulePostlude$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RulePostlude$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"f"}, {"literal":"i"}, {"literal":"n"}, {"literal":"a"}, {"literal":"l"}, {"literal":"l"}, {"literal":"y"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RulePostlude$ebnf$2$subexpression$1", "symbols": ["_", "RulePostlude$ebnf$2$subexpression$1$string$1", "_", "postlude_clause"]},
+    {"name": "RulePostlude$ebnf$2", "symbols": ["RulePostlude$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "RulePostlude$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RulePostlude", "symbols": ["RulePostlude$string$2", "_", "postlude_clause", "RulePostlude$ebnf$1", "RulePostlude$ebnf$2"], "postprocess": RulePostlude_by_paths([2, 0], [3, 3, 0], [4, 3, 0])},
     {"name": "postlude_clause", "symbols": [{"literal":"{"}, "_", "statement_list", "_", "loc_close_curly"], "postprocess": 
         function(d){
           //we need to keep the location of the close curly

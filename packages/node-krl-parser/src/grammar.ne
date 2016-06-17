@@ -31,6 +31,25 @@ var flatten = function(toFlatten){
   }
 };
 
+var get = function(o, path, dflt){
+  if(!path || !path.length){
+    return dflt;
+  }
+  var cur = o;
+  var i;
+  for(i = 0; i < path.length; i++){
+    if(!cur){
+      return dflt;
+    }
+    if(cur.hasOwnProperty(path[i])){
+      cur = cur[path[i]];
+    }else{
+      return dflt;
+    }
+  }
+  return cur;
+};
+
 var reserved_identifiers = {
   "true": true,
   "false": true
@@ -95,14 +114,14 @@ var infixOp = function(data, start){
   };
 };
 
-var RulePostlude_by_indices = function(fired_i, notfired_i, always_i){
+var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
   return function(data, start){
     return {
       loc: {start: start, end: lastEndLoc(data)},
       type: 'RulePostlude',
-      fired: (data[fired_i] && data[fired_i][0]) || null,
-      notfired: (data[notfired_i] && data[notfired_i][0]) || null,
-      always: (data[always_i] && data[always_i][0]) || null
+      fired: get(data, fired_i, null),
+      notfired: get(data, notfired_i, null),
+      always: get(data, always_i, null),
     };
   };
 };
@@ -344,8 +363,11 @@ RuleAction ->
 #
 
 RulePostlude ->
-      "always" _ postlude_clause {% RulePostlude_by_indices(-1, -1, 2) %}
-    | "fired" _ postlude_clause {% RulePostlude_by_indices(2, -1, -1) %}
+      "always" _ postlude_clause {% RulePostlude_by_paths(null, null, [2, 0]) %}
+    | "fired" _ postlude_clause
+      (_ "else" _ postlude_clause):?
+      (_ "finally" _ postlude_clause):?
+      {% RulePostlude_by_paths([2, 0], [3, 3, 0], [4, 3, 0]) %}
 
 postlude_clause -> "{" _ statement_list _ loc_close_curly {%
   function(d){
