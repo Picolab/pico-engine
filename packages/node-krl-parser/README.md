@@ -108,6 +108,8 @@ rule NAME is inactive {
 }
 
 rule hello {
+  select when DOMAIN TYPE
+
   pre {
     a = 1
   }
@@ -127,7 +129,14 @@ rule hello {
   "type": "Rule",
   "name": {value: "hello", type:"Identifier"},
   "rule_state": "active",
-  "select_when": null,
+  "select_when": {
+    "type": "EventExpression",
+    "event_domain": DOMAIN,
+    "event_type": TYPE,
+    "attributes": [  ],
+    "where": null,
+    "setting": [  ]
+  },
   "prelude": [
     {
       "type": "Assignment",
