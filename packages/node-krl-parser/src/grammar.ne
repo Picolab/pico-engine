@@ -161,13 +161,24 @@ ruleset_meta_block -> "{" _ "}" {% noopArr %}
 ruleset_meta_prop_list -> ruleset_meta_prop {% idArr %}
     | ruleset_meta_prop_list __ ruleset_meta_prop {% function(d){return d[0].concat([d[2]])} %}
 
-ruleset_meta_prop -> Identifier __ expression {%
+ruleset_meta_prop -> Keyword __ expression {%
   function(data, start){
     return {
       loc: {start: start, end: data[2].loc.end},
       type: 'RulesetMetaProperty',
       key: data[0],
       value: data[2]
+    };
+  }
+%}
+
+Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
+  function(data, loc, reject){
+    var src = flatten(data).join('');
+    return {
+      loc: {start: loc, end: loc + src.length},
+      type: 'Keyword',
+      value: src
     };
   }
 %}

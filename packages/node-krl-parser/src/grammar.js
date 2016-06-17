@@ -164,13 +164,25 @@ var grammar = {
     {"name": "ruleset_meta_block", "symbols": [{"literal":"{"}, "_", "ruleset_meta_prop_list", "_", {"literal":"}"}], "postprocess": getN(2)},
     {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop"], "postprocess": idArr},
     {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop_list", "__", "ruleset_meta_prop"], "postprocess": function(d){return d[0].concat([d[2]])}},
-    {"name": "ruleset_meta_prop", "symbols": ["Identifier", "__", "expression"], "postprocess": 
+    {"name": "ruleset_meta_prop", "symbols": ["Keyword", "__", "expression"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: data[2].loc.end},
             type: 'RulesetMetaProperty',
             key: data[0],
             value: data[2]
+          };
+        }
+        },
+    {"name": "Keyword$ebnf$1", "symbols": []},
+    {"name": "Keyword$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "Keyword$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "Keyword", "symbols": [/[a-zA-Z_$]/, "Keyword$ebnf$1"], "postprocess": 
+        function(data, loc, reject){
+          var src = flatten(data).join('');
+          return {
+            loc: {start: loc, end: loc + src.length},
+            type: 'Keyword',
+            value: src
           };
         }
         },

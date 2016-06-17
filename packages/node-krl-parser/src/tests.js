@@ -29,6 +29,9 @@ var mk = function(v){
 mk.id = function(value){
   return {type: 'Identifier', value: value};
 };
+mk.key = function(value){
+  return {type: 'Keyword', value: value};
+};
 mk.op = function(op, left, right){
   return {
     type: 'InfixOperator',
@@ -1025,7 +1028,7 @@ test('parser - Ruleset meta', function(t){
   testMeta('one two', [
     {
       type: 'RulesetMetaProperty',
-      key: mk.id('one'),
+      key: mk.key('one'),
       value: mk.id('two')
     }
   ]);
@@ -1034,7 +1037,7 @@ test('parser - Ruleset meta', function(t){
   testMeta('\n  one two\n  ', [
     {
       type: 'RulesetMetaProperty',
-      key: mk.id('one'),
+      key: mk.key('one'),
       value: mk.id('two')
     }
   ]);
@@ -1042,12 +1045,12 @@ test('parser - Ruleset meta', function(t){
   testMeta('name "blah" description <<\n  wat? ok\n  >>\nauthor "bob"', [
     {
       type: 'RulesetMetaProperty',
-      key: mk.id('name'),
+      key: mk.key('name'),
       value: mk('blah')
     },
     {
       type: 'RulesetMetaProperty',
-      key: mk.id('description'),
+      key: mk.key('description'),
       value: {
         type: 'Chevron',
         value: [
@@ -1057,7 +1060,7 @@ test('parser - Ruleset meta', function(t){
     },
     {
       type: 'RulesetMetaProperty',
-      key: mk.id('author'),
+      key: mk.key('author'),
       value: mk('bob')
     }
   ]);
