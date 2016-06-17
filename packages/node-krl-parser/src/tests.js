@@ -778,6 +778,25 @@ test('parser - expressions', function(t){
     right: mk('one')
   });
 
+  testExp('a[1]', {
+    type: 'MemberExpression',
+    object: mk.id('a'),
+    property: mk(1),
+    method: 'index'
+  });
+
+  testExp('matrix[i][j]', {
+    type: 'MemberExpression',
+    object: {
+      type: 'MemberExpression',
+      object: mk.id('matrix'),
+      property: mk.id('i'),
+      method: 'index'
+    },
+    property: mk.id('j'),
+    method: 'index'
+  });
+
   t.end();
 });
 

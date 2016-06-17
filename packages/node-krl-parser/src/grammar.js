@@ -491,13 +491,24 @@ var grammar = {
     {"name": "expression_atom", "symbols": ["Boolean"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["RegExp"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Chevron"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["Function"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Application"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["MemberExpression"], "postprocess": id},
     {"name": "expression_list", "symbols": [], "postprocess": noopArr},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": idArr},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
     {"name": "MemberExpression", "symbols": ["PrimaryExpression"], "postprocess": id},
+    {"name": "MemberExpression", "symbols": ["Function"], "postprocess": id},
+    {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"["}, "_", "expression", "_", "loc_close_square"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: last(data)},
+            type: 'MemberExpression',
+            object: data[0],
+            property: data[4],
+            method: 'index'
+          };
+        }
+        },
     {"name": "PrimaryExpression", "symbols": ["Identifier"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["Array"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["Map"], "postprocess": id},

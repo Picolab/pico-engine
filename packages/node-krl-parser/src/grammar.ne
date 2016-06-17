@@ -480,7 +480,6 @@ expression_atom ->
     | Boolean {% id %}
     | RegExp {% id %}
     | Chevron {% id %}
-    | Function {% id %}
     | Application {% id %}
     | MemberExpression {% id %}
 
@@ -489,6 +488,18 @@ expression_list -> null {% noopArr %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
 
 MemberExpression -> PrimaryExpression {% id %}
+    | Function {% id %}
+    | MemberExpression _ "[" _ expression _ loc_close_square {%
+  function(data, start){
+    return {
+      loc: {start: start, end: last(data)},
+      type: 'MemberExpression',
+      object: data[0],
+      property: data[4],
+      method: 'index'
+    };
+  }
+%}
 
 PrimaryExpression ->
       Identifier {% id %}

@@ -93,6 +93,9 @@ var examples = {
   '#### Functions': [
     'function(A){\n  B\n}',
     'A(B,C)'
+  ],
+  '#### Accessing data': [
+    'matrix[i][j]'
   ]
 };
 
