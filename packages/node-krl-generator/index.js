@@ -7,15 +7,43 @@ var gen_by_type = {
   'Identifier': function(ast, ind, gen){
     return ast.value;
   },
+  'DoubleQuote': function(ast, ind, gen){
+    return '<<' + _.map(ast.value, function(v){
+      return v.type === 'String'
+        ? v.value.replace(/>>/g, '>\\>')
+        : '#{' + gen(v) + '}';
+    }).join('') + '>>';
+  },
+  'InfixOperator': function(ast, ind, gen){
+    return gen(ast.left) + ' ' + ast.op + ' ' + gen(ast.right);
+  },
+  'Function': function(ast, ind, gen){
+    return 'function(' + gen(ast.params) + '){\n' + _.map(ast.body, function(stmt){
+      return gen(stmt, 1);
+    }).join(';\n') + '\n' + ind() + '}';
+  },
+  'Assignment': function(ast, ind, gen){
+    return ind() + gen(ast.left) + ' ' + ast.op + ' ' + gen(ast.right);
+  },
   'Ruleset': function(ast, ind, gen){
     var src = '';
     src += ind() + 'ruleset ' + gen(ast.name) + ' {\n';
+    if(!_.isEmpty(ast.meta)){
+      src += ind(1) + 'meta {\n';
+      src += gen(ast.meta, 2) + '\n';
+      src += ind(1) + '}\n';
+    }
+    if(!_.isEmpty(ast.global)){
+      src += ind(1) + 'global {\n';
+      src += gen(ast.global, 2) + '\n';
+      src += ind(1) + '}\n';
+    }
     src += gen(ast.rules, 1) + '\n';
     src += ind() + '}';
     return src;
   },
-  'Assignment': function(ast, ind, gen){
-    return ind() + gen(ast.left) + ' ' + ast.op + ' ' + gen(ast.right);
+  'RulesetMetaProperty': function(ast, ind, gen){
+    return ind() + gen(ast.key) + ' ' + gen(ast.value);
   },
   'Rule': function(ast, ind, gen){
     var src = '';
