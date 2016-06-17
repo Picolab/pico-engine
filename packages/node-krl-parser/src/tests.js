@@ -225,7 +225,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: null,
-    is_choose: false,
+    block_type: "every",
     actions: [
       {
         type: 'RuleAction',
@@ -242,7 +242,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: null,
-    is_choose: false,
+    block_type: "every",
     actions: [
       {
         type: 'RuleAction',
@@ -264,7 +264,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: null,
-    is_choose: false,
+    block_type: "every",
     actions: [
       {
         type: 'RuleAction',
@@ -284,7 +284,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: mk(true),
-    is_choose: false,
+    block_type: "every",
     actions: [
       {
         type: 'RuleAction',
@@ -300,7 +300,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: null,
-    is_choose: false,
+    block_type: "every",
     actions: [
       {
         type: 'RuleAction',
@@ -318,7 +318,7 @@ test('parser - action', function(t){
   testAction(src, {
     type: 'RuleActionBlock',
     condition: null,
-    is_choose: false,
+    block_type: "every",
     actions: [
       {
         type: 'RuleAction',
@@ -355,7 +355,7 @@ test('parser - action', function(t){
       callee: mk.id('exp'),
       args: []
     },
-    is_choose: true,
+    block_type: "choose",
     actions: [
       {
         type: 'RuleAction',

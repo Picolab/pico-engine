@@ -342,8 +342,7 @@ var grammar = {
     {"name": "time_period_enum", "symbols": ["time_period_enum$string$14"]},
     {"name": "RuleActionBlock$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"i"}, {"literal":"f"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "RuleActionBlock$ebnf$1$subexpression$1$string$2", "symbols": [{"literal":"t"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"c"}, {"literal":"h"}, {"literal":"o"}, {"literal":"o"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1$subexpression$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1$ebnf$1$subexpression$1$string$1", "__"]},
+    {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1$subexpression$1", "symbols": ["action_block_type", "__"]},
     {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RuleActionBlock$ebnf$1$subexpression$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1$string$1", "__", "expression", "__", "RuleActionBlock$ebnf$1$subexpression$1$string$2", "__", "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1"]},
@@ -355,11 +354,15 @@ var grammar = {
             loc: {start: start, end: lastEndLoc(data)},
             type: 'RuleActionBlock',
             condition: data[0] && data[0][2],
-            is_choose: !!(data[0] && data[0][6]),
+            block_type: get(data, [0, 6, 0], "every"),
             actions: data[1]
           };
         }
         },
+    {"name": "action_block_type$string$1", "symbols": [{"literal":"c"}, {"literal":"h"}, {"literal":"o"}, {"literal":"o"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "action_block_type", "symbols": ["action_block_type$string$1"], "postprocess": id},
+    {"name": "action_block_type$string$2", "symbols": [{"literal":"e"}, {"literal":"v"}, {"literal":"e"}, {"literal":"r"}, {"literal":"y"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "action_block_type", "symbols": ["action_block_type$string$2"], "postprocess": id},
     {"name": "RuleActions", "symbols": ["RuleAction"], "postprocess": idArr},
     {"name": "RuleActions", "symbols": ["RuleActions", "__", "RuleAction"], "postprocess": function(d){return d[0].concat(d[2])}},
     {"name": "RuleAction$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},

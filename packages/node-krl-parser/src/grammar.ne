@@ -327,17 +327,20 @@ time_period_enum ->
 # RuleActionBlock
 #
 
-RuleActionBlock -> ("if" __ expression __ "then" __ ("choose" __):?):? RuleActions {%
+RuleActionBlock -> ("if" __ expression __ "then" __ (action_block_type __):?):? RuleActions {%
   function(data, start){
     return {
       loc: {start: start, end: lastEndLoc(data)},
       type: 'RuleActionBlock',
       condition: data[0] && data[0][2],
-      is_choose: !!(data[0] && data[0][6]),
+      block_type: get(data, [0, 6, 0], "every"),
       actions: data[1]
     };
   }
 %}
+
+action_block_type -> "choose" {% id %}
+    | "every" {% id %}
 
 #NOTE - there must be at least one action
 RuleActions -> RuleAction {% idArr %}
