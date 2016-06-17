@@ -62,7 +62,7 @@ var noopStr = function(){return ""};
 var noopArr = function(){return []};
 var idAll = function(d){return flatten(d).join('')};
 var idArr = function(d){return [d[0]]};
-var idEndLoc = function(data, loc){return loc + flatten(data).join('').length};
+var idEndLoc = function(data, start){return start + flatten(data).join('').length};
 
 var getN = function(n){
   return function(data){
@@ -122,6 +122,18 @@ var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
       fired: get(data, fired_i, null),
       notfired: get(data, notfired_i, null),
       always: get(data, always_i, null),
+    };
+  };
+};
+
+var MemberExpression_method = function(method){
+  return function(data, start){
+    return {
+      loc: {start: start, end: last(data)},
+      type: 'MemberExpression',
+      object: data[0],
+      property: data[4],
+      method: method
     };
   };
 };
@@ -489,17 +501,10 @@ expression_list -> null {% noopArr %}
 
 MemberExpression -> PrimaryExpression {% id %}
     | Function {% id %}
-    | MemberExpression _ "[" _ expression _ loc_close_square {%
-  function(data, start){
-    return {
-      loc: {start: start, end: last(data)},
-      type: 'MemberExpression',
-      object: data[0],
-      property: data[4],
-      method: 'index'
-    };
-  }
-%}
+    | MemberExpression _ "[" _ expression _ loc_close_square
+      {% MemberExpression_method('index') %}
+    | MemberExpression _ "{" _ expression _ loc_close_curly
+      {% MemberExpression_method('path') %}
 
 PrimaryExpression ->
       Identifier {% id %}

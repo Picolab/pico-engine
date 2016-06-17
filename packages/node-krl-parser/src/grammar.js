@@ -66,7 +66,7 @@ var noopStr = function(){return ""};
 var noopArr = function(){return []};
 var idAll = function(d){return flatten(d).join('')};
 var idArr = function(d){return [d[0]]};
-var idEndLoc = function(data, loc){return loc + flatten(data).join('').length};
+var idEndLoc = function(data, start){return start + flatten(data).join('').length};
 
 var getN = function(n){
   return function(data){
@@ -126,6 +126,18 @@ var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
       fired: get(data, fired_i, null),
       notfired: get(data, notfired_i, null),
       always: get(data, always_i, null),
+    };
+  };
+};
+
+var MemberExpression_method = function(method){
+  return function(data, start){
+    return {
+      loc: {start: start, end: last(data)},
+      type: 'MemberExpression',
+      object: data[0],
+      property: data[4],
+      method: method
     };
   };
 };
@@ -498,17 +510,8 @@ var grammar = {
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
     {"name": "MemberExpression", "symbols": ["PrimaryExpression"], "postprocess": id},
     {"name": "MemberExpression", "symbols": ["Function"], "postprocess": id},
-    {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"["}, "_", "expression", "_", "loc_close_square"], "postprocess": 
-        function(data, start){
-          return {
-            loc: {start: start, end: last(data)},
-            type: 'MemberExpression',
-            object: data[0],
-            property: data[4],
-            method: 'index'
-          };
-        }
-        },
+    {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"["}, "_", "expression", "_", "loc_close_square"], "postprocess": MemberExpression_method('index')},
+    {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"{"}, "_", "expression", "_", "loc_close_curly"], "postprocess": MemberExpression_method('path')},
     {"name": "PrimaryExpression", "symbols": ["Identifier"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["Array"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["Map"], "postprocess": id},

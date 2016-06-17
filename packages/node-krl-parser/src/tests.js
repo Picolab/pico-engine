@@ -531,20 +531,24 @@ test('parser - locations', function(t){
     ]
   });
 
-  t.deepEquals(parser('a => b | c')[0], {
-    loc: {start: 0, end: 10},
-    type: 'ConditionalExpression',
-    test:       {type: 'Identifier', value: 'a', loc: {start: 0, end: 1}},
-    consequent: {type: 'Identifier', value: 'b', loc: {start: 5, end: 6}},
-    alternate:  {type: 'Identifier', value: 'c', loc: {start: 9, end: 10}}
-  });
+  var testTopLoc = function(src){
+    var src2 = '\n  ' + src + '  \n ';
+    var ast = parser(src2);
+    t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
+    t.equals(
+      src2.substring(ast[0].loc.start, ast[0].loc.end),
+      src,
+      'if loc is correct, it will match the original input'
+    );
+  };
 
-  t.deepEquals(parser('function(a){b}')[0], {
-    loc: {start: 0, end: 14},
-    type: 'Function',
-    params: [{type: 'Identifier', value: 'a', loc: {start: 9, end: 10}}],
-    body: [{type: 'Identifier', value: 'b', loc: {start: 12, end: 13}}]
-  });
+  testTopLoc('name');
+  //testTopLoc('"some string"');
+  testTopLoc('-1.2');
+  testTopLoc('a => b | c');
+  testTopLoc('function(a){b}');
+  testTopLoc('a [ 1  ]');
+  testTopLoc('a {[ "a", "b"] }');
 
   t.end();
 });
@@ -795,6 +799,13 @@ test('parser - expressions', function(t){
     },
     property: mk.id('j'),
     method: 'index'
+  });
+
+  testExp('foo{"bar"}', {
+    type: 'MemberExpression',
+    object: mk.id('foo'),
+    property: mk('bar'),
+    method: 'path'
   });
 
   t.end();
