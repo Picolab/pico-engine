@@ -136,7 +136,7 @@ var grammar = {
     {"name": "main", "symbols": ["_", "statement_list", "_"], "postprocess": getN(1)},
     {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"m"}, {"literal":"e"}, {"literal":"t"}, {"literal":"a"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset$ebnf$1$subexpression$1", "symbols": ["ruleset$ebnf$1$subexpression$1$string$1", "_", {"literal":"{"}, "_", "ruleset_meta_body", "_", {"literal":"}"}, "_"]},
+    {"name": "ruleset$ebnf$1$subexpression$1", "symbols": ["ruleset$ebnf$1$subexpression$1$string$1", "_", "ruleset_meta_block", "_"]},
     {"name": "ruleset$ebnf$1", "symbols": ["ruleset$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "ruleset$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "ruleset$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"g"}, {"literal":"l"}, {"literal":"o"}, {"literal":"b"}, {"literal":"a"}, {"literal":"l"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -149,24 +149,21 @@ var grammar = {
     {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "Identifier", "_", {"literal":"{"}, "_", "ruleset$ebnf$1", "ruleset$ebnf$2", "ruleset$ebnf$3", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
-            type: 'Ruleset',
             loc: {start: loc, end: last(data)},
-        
+            type: 'Ruleset',
             name: data[2],
-        
-            meta: data[6] ? data[6][4] : [],
-        
+            meta: data[6] ? data[6][2] : [],
             global: data[7] ? data[7][2] : [],
-        
             rules: data[8].map(function(pair){
               return pair[0];
             })
           };
         }
         },
-    {"name": "ruleset_meta_body", "symbols": [], "postprocess": noopArr},
-    {"name": "ruleset_meta_body", "symbols": ["ruleset_meta_prop"], "postprocess": idArr},
-    {"name": "ruleset_meta_body", "symbols": ["ruleset_meta_body", "__", "ruleset_meta_prop"], "postprocess": function(d){return d[0].concat([d[2]])}},
+    {"name": "ruleset_meta_block", "symbols": [{"literal":"{"}, "_", {"literal":"}"}], "postprocess": noopArr},
+    {"name": "ruleset_meta_block", "symbols": [{"literal":"{"}, "_", "ruleset_meta_prop_list", "_", {"literal":"}"}], "postprocess": getN(2)},
+    {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop"], "postprocess": idArr},
+    {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop_list", "__", "ruleset_meta_prop"], "postprocess": function(d){return d[0].concat([d[2]])}},
     {"name": "ruleset_meta_prop", "symbols": ["Identifier", "__", "expression"], "postprocess": 
         function(data, start){
           return {

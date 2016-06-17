@@ -137,21 +137,17 @@ main -> _ ruleset _ {% getN(1) %}
 #
 
 ruleset -> "ruleset" __ Identifier _ "{" _
-  ("meta" _ "{" _ ruleset_meta_body _ "}" _):?
+  ("meta" _ ruleset_meta_block _):?
   ("global" _ declaration_block _):?
   (rule _):*
 loc_close_curly {%
   function(data, loc){
     return {
-      type: 'Ruleset',
       loc: {start: loc, end: last(data)},
-
+      type: 'Ruleset',
       name: data[2],
-
-      meta: data[6] ? data[6][4] : [],
-
+      meta: data[6] ? data[6][2] : [],
       global: data[7] ? data[7][2] : [],
-
       rules: data[8].map(function(pair){
         return pair[0];
       })
@@ -159,9 +155,11 @@ loc_close_curly {%
   }
 %}
 
-ruleset_meta_body -> null {% noopArr %}
-    | ruleset_meta_prop {% idArr %}
-    | ruleset_meta_body __ ruleset_meta_prop {% function(d){return d[0].concat([d[2]])} %}
+ruleset_meta_block -> "{" _ "}" {% noopArr %}
+    | "{" _ ruleset_meta_prop_list _ "}" {% getN(2) %}
+
+ruleset_meta_prop_list -> ruleset_meta_prop {% idArr %}
+    | ruleset_meta_prop_list __ ruleset_meta_prop {% function(d){return d[0].concat([d[2]])} %}
 
 ruleset_meta_prop -> Identifier __ expression {%
   function(data, start){

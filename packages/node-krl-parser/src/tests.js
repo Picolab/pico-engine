@@ -1015,10 +1015,23 @@ test('parser - Ruleset meta', function(t){
   var testMeta = function(meta_body, expected){
     var src = 'ruleset rs{meta{' + meta_body + '}}';
     var ast = normalizeAST(rmLoc(parser(src)));
+    t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
     t.deepEquals(ast[0].meta, normalizeAST(expected));
   };
 
+  testMeta('', []);
+  testMeta('   ', []);//testing for whitespace parsing ambiguity
+
   testMeta('one two', [
+    {
+      type: 'RulesetMetaProperty',
+      key: mk.id('one'),
+      value: mk.id('two')
+    }
+  ]);
+
+  //testing for whitespace parsing ambiguity
+  testMeta('\n  one two\n  ', [
     {
       type: 'RulesetMetaProperty',
       key: mk.id('one'),
