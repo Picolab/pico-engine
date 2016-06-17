@@ -486,14 +486,8 @@ exp_product -> expression_atom {% id %}
     | exp_product _ "/" _ expression_atom {% infixOp %}
     | exp_product _ "%" _ expression_atom {% infixOp %}
 
-expression_atom ->
-      String {% id %}
-    | Number {% id %}
-    | Boolean {% id %}
-    | RegExp {% id %}
-    | Chevron {% id %}
+expression_atom -> MemberExpression {% id %}
     | Application {% id %}
-    | MemberExpression {% id %}
 
 expression_list -> null {% noopArr %}
     | expression {% idArr %}
@@ -508,9 +502,17 @@ MemberExpression -> PrimaryExpression {% id %}
 
 PrimaryExpression ->
       Identifier {% id %}
+    | Literal {% id %}
+    | "(" _ expression _ ")" {% getN(2) %}
+
+Literal ->
+      String {% id %}
+    | Number {% id %}
+    | Boolean {% id %}
+    | RegExp {% id %}
+    | Chevron {% id %}
     | Array {% id %}
     | Map {% id %}
-    | "(" _ expression _ ")" {% getN(2) %}
 
 ################################################################################
 # Functions
@@ -531,7 +533,7 @@ function_params ->
     | Identifier {% idArr %}
     | function_params _ "," _ Identifier {% function(d){return d[0].concat([d[4]])} %}
 
-Application -> Identifier _ "(" _ expression_list _ loc_close_paren {%
+Application -> MemberExpression _ "(" _ expression_list _ loc_close_paren {%
   function(data, start){
     return {
       loc: {start: start, end: last(data)},

@@ -822,6 +822,17 @@ test('parser - expressions', function(t){
     method: 'path'
   });
 
+  testExp('foo{"bar"}()', {
+    type: 'Application',
+    callee: {
+      type: 'MemberExpression',
+      object: mk.id('foo'),
+      property: mk('bar'),
+      method: 'path'
+    },
+    args: []
+  });
+
   t.end();
 });
 

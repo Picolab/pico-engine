@@ -498,13 +498,8 @@ var grammar = {
     {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"*"}, "_", "expression_atom"], "postprocess": infixOp},
     {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"/"}, "_", "expression_atom"], "postprocess": infixOp},
     {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"%"}, "_", "expression_atom"], "postprocess": infixOp},
-    {"name": "expression_atom", "symbols": ["String"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["Number"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["Boolean"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["RegExp"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["Chevron"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["Application"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["MemberExpression"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["Application"], "postprocess": id},
     {"name": "expression_list", "symbols": [], "postprocess": noopArr},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": idArr},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
@@ -513,9 +508,15 @@ var grammar = {
     {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"["}, "_", "expression", "_", "loc_close_square"], "postprocess": MemberExpression_method('index')},
     {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"{"}, "_", "expression", "_", "loc_close_curly"], "postprocess": MemberExpression_method('path')},
     {"name": "PrimaryExpression", "symbols": ["Identifier"], "postprocess": id},
-    {"name": "PrimaryExpression", "symbols": ["Array"], "postprocess": id},
-    {"name": "PrimaryExpression", "symbols": ["Map"], "postprocess": id},
+    {"name": "PrimaryExpression", "symbols": ["Literal"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": [{"literal":"("}, "_", "expression", "_", {"literal":")"}], "postprocess": getN(2)},
+    {"name": "Literal", "symbols": ["String"], "postprocess": id},
+    {"name": "Literal", "symbols": ["Number"], "postprocess": id},
+    {"name": "Literal", "symbols": ["Boolean"], "postprocess": id},
+    {"name": "Literal", "symbols": ["RegExp"], "postprocess": id},
+    {"name": "Literal", "symbols": ["Chevron"], "postprocess": id},
+    {"name": "Literal", "symbols": ["Array"], "postprocess": id},
+    {"name": "Literal", "symbols": ["Map"], "postprocess": id},
     {"name": "Function$string$1", "symbols": [{"literal":"f"}, {"literal":"u"}, {"literal":"n"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "_", "function_params", "_", {"literal":")"}, "_", {"literal":"{"}, "_", "statement_list", "_", "loc_close_curly"], "postprocess": 
         function(data, start){
@@ -530,7 +531,7 @@ var grammar = {
     {"name": "function_params", "symbols": [], "postprocess": noopArr},
     {"name": "function_params", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "function_params", "symbols": ["function_params", "_", {"literal":","}, "_", "Identifier"], "postprocess": function(d){return d[0].concat([d[4]])}},
-    {"name": "Application", "symbols": ["Identifier", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren"], "postprocess": 
+    {"name": "Application", "symbols": ["MemberExpression", "_", {"literal":"("}, "_", "expression_list", "_", "loc_close_paren"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: last(data)},
