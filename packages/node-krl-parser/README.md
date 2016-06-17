@@ -50,20 +50,20 @@ Hello parser!
 }
 {
   "type": "Ruleset",
-  "name": {value: "hello" ,type:"Identifier"},
+  "name": {value: "hello", type:"Identifier"},
   "meta": [
     {
       "type": "RulesetMetaProperty",
-      "key": {value: "name" ,type:"Identifier"},
-      "value": {value: "Hello World" ,type:"String"}
+      "key": {value: "name", type:"Identifier"},
+      "value": {value: "Hello World", type:"String"}
     },
     {
       "type": "RulesetMetaProperty",
-      "key": {value: "description" ,type:"Identifier"},
+      "key": {value: "description", type:"Identifier"},
       "value": {
         "type": "DoubleQuote",
         "value": [
-          {value: "\nHello parser!\n" ,type:"String"}
+          {value: "\nHello parser!\n", type:"String"}
         ]
       }
     }
@@ -72,8 +72,8 @@ Hello parser!
     {
       "type": "Assignment",
       "op": "=",
-      "left": {value: "a" ,type:"Identifier"},
-      "right": {value: 1 ,type:"Number"}
+      "left": {value: "a", type:"Identifier"},
+      "right": {value: 1, type:"Number"}
     }
   ],
   "rules": [  ]
@@ -125,15 +125,15 @@ rule hello {
 }
 {
   "type": "Rule",
-  "name": {value: "hello" ,type:"Identifier"},
+  "name": {value: "hello", type:"Identifier"},
   "rule_state": "active",
   "select_when": null,
   "prelude": [
     {
       "type": "Assignment",
       "op": "=",
-      "left": {value: "a" ,type:"Identifier"},
-      "right": {value: 1 ,type:"Number"}
+      "left": {value: "a", type:"Identifier"},
+      "right": {value: 1, type:"Number"}
     }
   ],
   "action_block": {
@@ -143,19 +143,19 @@ rule hello {
     "actions": [
       {
         "type": "RuleAction",
-        "label": {value: "one" ,type:"Identifier"},
-        "callee": {value: "action" ,type:"Identifier"},
+        "label": {value: "one", type:"Identifier"},
+        "callee": {value: "action", type:"Identifier"},
         "args": [
-          {value: 1 ,type:"Number"}
+          {value: 1, type:"Number"}
         ],
         "with": [  ]
       },
       {
         "type": "RuleAction",
-        "label": {value: "two" ,type:"Identifier"},
-        "callee": {value: "action" ,type:"Identifier"},
+        "label": {value: "two", type:"Identifier"},
+        "callee": {value: "action", type:"Identifier"},
         "args": [
-          {value: 2 ,type:"Number"}
+          {value: 2, type:"Number"}
         ],
         "with": [  ]
       }
@@ -179,6 +179,22 @@ select when A B
   "event_domain": A,
   "event_type": B,
   "attributes": [  ],
+  "where": null,
+  "setting": [  ]
+}
+
+select when A B attr re#^(.*)$# setting(val)
+{
+  "type": "EventExpression",
+  "event_domain": A,
+  "event_type": B,
+  "attributes": [
+    {
+      "type": "EventAttributePair",
+      "key": {value: "attr", type:"Identifier"},
+      "value": {value: /^(.*)$/, type:"RegExp"}
+    }
+  ],
   "where": null,
   "setting": [  ]
 }
@@ -212,7 +228,7 @@ select when any 2 (A A, B B, C C)
   "type": "EventOperator",
   "op": "any",
   "args": [
-    {value: 2 ,type:"Number"},
+    {value: 2, type:"Number"},
     {
       "type": "EventExpression",
       "event_domain": A,
@@ -288,7 +304,7 @@ re#^My name is (.*)#i
   "value": [
     {
       "type": "ObjectProperty",
-      "key": {value: "one" ,type:"String"},
+      "key": {value: "one", type:"String"},
       "value": A
     }
   ]
@@ -300,9 +316,9 @@ re#^My name is (.*)#i
 {
   "type": "DoubleQuote",
   "value": [
-    {value: "\n  hello " ,type:"String"},
-    {value: "name" ,type:"Identifier"},
-    {value: "!\n  " ,type:"String"}
+    {value: "\n  hello ", type:"String"},
+    {value: "name", type:"Identifier"},
+    {value: "!\n  ", type:"String"}
   ]
 }
 ```

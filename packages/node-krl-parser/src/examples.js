@@ -58,6 +58,7 @@ var examples = {
   ],
   '### EventExpression': [
     select_whenExample('select when A B'),
+    select_whenExample('select when A B attr re#^(.*)$# setting(val)'),
     select_whenExample('select when A A or B B'),
     select_whenExample('select when any 2 (A A, B B, C C)')
   ],
@@ -123,7 +124,10 @@ var printAST = function(ast, i, indent_size){
       return ast.value;
     }
     if(i !== 0 && _.includes(['String', 'Number', 'Boolean', 'Identifier', 'RegExp'], ast.type)){
-      return '{value: '+JSON.stringify(ast.value)+' ,type:"' + ast.type + '"}';
+      var v = ast.type === 'RegExp'
+        ? ast.value
+        : JSON.stringify(ast.value);
+      return '{value: ' + v + ', type:"' + ast.type + '"}';
     }
     return '{\n'
       + _.map(ast, function(value, key){
