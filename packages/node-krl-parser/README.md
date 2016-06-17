@@ -61,7 +61,7 @@ Hello parser!
       "type": "RulesetMetaProperty",
       "key": {value: "description", type:"Identifier"},
       "value": {
-        "type": "DoubleQuote",
+        "type": "Chevron",
         "value": [
           {value: "\nHello parser!\n", type:"String"}
         ]
@@ -70,7 +70,7 @@ Hello parser!
   ],
   "global": [
     {
-      "type": "Assignment",
+      "type": "Declaration",
       "op": "=",
       "left": {value: "a", type:"Identifier"},
       "right": {value: 1, type:"Number"}
@@ -139,7 +139,7 @@ rule hello {
   },
   "prelude": [
     {
-      "type": "Assignment",
+      "type": "Declaration",
       "op": "=",
       "left": {value: "a", type:"Identifier"},
       "right": {value: 1, type:"Number"}
@@ -148,7 +148,7 @@ rule hello {
   "action_block": {
     "type": "RuleActionBlock",
     "condition": COND,
-    "is_choose": true,
+    "block_type": "choose",
     "actions": [
       {
         "type": "RuleAction",
@@ -199,7 +199,7 @@ select when A B attr re#^(.*)$# setting(val)
   "event_type": B,
   "attributes": [
     {
-      "type": "EventAttributePair",
+      "type": "AttributeMatch",
       "key": {value: "attr", type:"Identifier"},
       "value": {value: /^(.*)$/, type:"RegExp"}
     }
@@ -309,10 +309,10 @@ re#^My name is (.*)#i
 
 {"one": A}
 {
-  "type": "Object",
+  "type": "Map",
   "value": [
     {
-      "type": "ObjectProperty",
+      "type": "MapKeyValuePair",
       "key": {value: "one", type:"String"},
       "value": A
     }
@@ -323,7 +323,7 @@ re#^My name is (.*)#i
   hello #{name}!
   >>
 {
-  "type": "DoubleQuote",
+  "type": "Chevron",
   "value": [
     {value: "\n  hello ", type:"String"},
     {value: "name", type:"Identifier"},
@@ -337,7 +337,7 @@ re#^My name is (.*)#i
 ```js
 A = B
 {
-  "type": "Assignment",
+  "type": "Declaration",
   "op": "=",
   "left": A,
   "right": B
@@ -447,7 +447,7 @@ function(A){
 
 A(B,C)
 {
-  "type": "CallExpression",
+  "type": "Application",
   "callee": A,
   "args": [ B , C ]
 }
