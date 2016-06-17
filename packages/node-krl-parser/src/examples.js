@@ -3,25 +3,63 @@ var rmLoc = require('./rmLoc');
 var parser = require('./');
 var normalizeAST = require('./normalizeASTForTestCompare');
 
+var ruleExample = function(src){
+  return function(){
+    var ast = parser('ruleset rs{' + src + '}');
+    return [src, ast[0].rules[0]];
+  };
+};
+
+var select_whenExample = function(src){
+  return function(){
+    var ast = parser('ruleset rs{rule r0{' + src + '}}');
+    return [src, ast[0].rules[0].select_when];
+  };
+};
+
 var examples = {
   '### Ruleset': [
-    'ruleset NAME {\n}'
+    'ruleset NAME {\n}',
+      [
+        'ruleset hello {',
+        '  meta {',
+        '    name "Hello World"',
+        '    description <<',
+        'Hello parser!',
+        '>>',
+        '  }',
+        '  global {',
+        '    a = 1',
+        '  }',
+        '}'
+      ].join('\n')
   ],
   '### Rule': [
-    function(){
-      var src = '';
-      src += 'rule NAME {\n';
-      src += '}';
-      var ast = parser('ruleset rs{' + src + '}');
-      return [src, ast[0].rules];
-    }
+    ruleExample('rule NAME {\n}'),
+    ruleExample('rule NAME is inactive {\n}'),
+    ruleExample([
+      'rule hello {',
+      '  pre {',
+      '    a = 1',
+      '  }',
+      '',
+      '  if COND then',
+      '    choose',
+      '      one =>',
+      '         action(1)',
+      '      two =>',
+      '         action(2)',
+      '',
+      '  fired {',
+      '    FIRED',
+      '  }',
+      '}'
+    ].join('\n'))
   ],
   '### EventExpression': [
-    function(){
-      var src = 'select when A B';
-      var ast = parser('ruleset rs{rule r0{' + src + '}}');
-      return [src, ast[0].rules];
-    }
+    select_whenExample('select when A B'),
+    select_whenExample('select when A A or B B'),
+    select_whenExample('select when any 2 (A A, B B, C C)')
   ],
   '### KRL Expression language': [],
   '#### Literals': [

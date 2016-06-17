@@ -22,6 +22,8 @@ interface SourceLocation {
 ```
 `start` and `end` are character indexes (starting at 0) from the source string.
 
+The following examples remove the `loc` property for brevity.
+
 ### Ruleset
 
 ```js
@@ -32,6 +34,69 @@ ruleset NAME {
   "name": NAME,
   "meta": [  ],
   "global": [  ],
+  "rules": [  ]
+}
+
+ruleset hello {
+  meta {
+    name "Hello World"
+    description <<
+Hello parser!
+>>
+  }
+  global {
+    a = 1
+  }
+}
+{
+  "type": "Ruleset",
+  "name": {
+    "type": "Identifier",
+    "value": "hello"
+  },
+  "meta": [
+    {
+      "type": "RulesetMetaProperty",
+      "key": {
+        "type": "Identifier",
+        "value": "name"
+      },
+      "value": {
+        "type": "String",
+        "value": "Hello World"
+      }
+    },
+    {
+      "type": "RulesetMetaProperty",
+      "key": {
+        "type": "Identifier",
+        "value": "description"
+      },
+      "value": {
+        "type": "DoubleQuote",
+        "value": [
+          {
+            "type": "String",
+            "value": "\nHello parser!\n"
+          }
+        ]
+      }
+    }
+  ],
+  "global": [
+    {
+      "type": "Assignment",
+      "op": "=",
+      "left": {
+        "type": "Identifier",
+        "value": "a"
+      },
+      "right": {
+        "type": "Number",
+        "value": 1
+      }
+    }
+  ],
   "rules": [  ]
 }
 ```
@@ -50,6 +115,107 @@ rule NAME {
   "action_block": null,
   "postlude": null
 }
+
+rule NAME is inactive {
+}
+{
+  "type": "Rule",
+  "name": NAME,
+  "rule_state": "inactive",
+  "select_when": null,
+  "prelude": [  ],
+  "action_block": null,
+  "postlude": null
+}
+
+rule hello {
+  pre {
+    a = 1
+  }
+
+  if COND then
+    choose
+      one =>
+         action(1)
+      two =>
+         action(2)
+
+  fired {
+    FIRED
+  }
+}
+{
+  "type": "Rule",
+  "name": {
+    "type": "Identifier",
+    "value": "hello"
+  },
+  "rule_state": "active",
+  "select_when": null,
+  "prelude": [
+    {
+      "type": "Assignment",
+      "op": "=",
+      "left": {
+        "type": "Identifier",
+        "value": "a"
+      },
+      "right": {
+        "type": "Number",
+        "value": 1
+      }
+    }
+  ],
+  "action_block": {
+    "type": "RuleActionBlock",
+    "condition": COND,
+    "is_choose": true,
+    "actions": [
+      {
+        "type": "RuleAction",
+        "label": {
+          "type": "Identifier",
+          "value": "one"
+        },
+        "callee": {
+          "type": "Identifier",
+          "value": "action"
+        },
+        "args": [
+          {
+            "type": "Number",
+            "value": 1
+          }
+        ],
+        "with": [  ]
+      },
+      {
+        "type": "RuleAction",
+        "label": {
+          "type": "Identifier",
+          "value": "two"
+        },
+        "callee": {
+          "type": "Identifier",
+          "value": "action"
+        },
+        "args": [
+          {
+            "type": "Number",
+            "value": 2
+          }
+        ],
+        "with": [  ]
+      }
+    ]
+  },
+  "postlude": {
+    "type": "RulePostlude",
+    "fired": [ FIRED ],
+    "notfired": null,
+    "always": null
+  }
+}
 ```
 
 ### EventExpression
@@ -57,23 +223,72 @@ rule NAME {
 ```js
 select when A B
 {
-  "type": "Rule",
-  "name": {
-    "type": "Identifier",
-    "value": "r0"
-  },
-  "rule_state": "active",
-  "select_when": {
-    "type": "EventExpression",
-    "event_domain": A,
-    "event_type": B,
-    "attributes": [  ],
-    "where": null,
-    "setting": [  ]
-  },
-  "prelude": [  ],
-  "action_block": null,
-  "postlude": null
+  "type": "EventExpression",
+  "event_domain": A,
+  "event_type": B,
+  "attributes": [  ],
+  "where": null,
+  "setting": [  ]
+}
+
+select when A A or B B
+{
+  "type": "EventOperator",
+  "op": "or",
+  "args": [
+    {
+      "type": "EventExpression",
+      "event_domain": A,
+      "event_type": A,
+      "attributes": [  ],
+      "where": null,
+      "setting": [  ]
+    },
+    {
+      "type": "EventExpression",
+      "event_domain": B,
+      "event_type": B,
+      "attributes": [  ],
+      "where": null,
+      "setting": [  ]
+    }
+  ]
+}
+
+select when any 2 (A A, B B, C C)
+{
+  "type": "EventOperator",
+  "op": "any",
+  "args": [
+    {
+      "type": "Number",
+      "value": 2
+    },
+    {
+      "type": "EventExpression",
+      "event_domain": A,
+      "event_type": A,
+      "attributes": [  ],
+      "where": null,
+      "setting": [  ]
+    },
+    {
+      "type": "EventExpression",
+      "event_domain": B,
+      "event_type": B,
+      "attributes": [  ],
+      "where": null,
+      "setting": [  ]
+    },
+    {
+      "type": "EventExpression",
+      "event_domain": C,
+      "event_type": C,
+      "attributes": [  ],
+      "where": null,
+      "setting": [  ]
+    }
+  ]
 }
 ```
 
