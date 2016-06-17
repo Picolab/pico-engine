@@ -1,68 +1,74 @@
 var _ = require('lodash');
 
-var ind = function(n){
-  var s = '';
-  var i;
-  for(i = 0; i < n; i++){
-    s += ' ';
-  }
-  return s;
-};
-
-var gen = function gen(ast, indent){
-  indent = indent || 0;
-  if(!ast){
-    return '';
-  }
-  if(_.isArray(ast)){
-    return _.map(ast, function(a){
-      return gen(a, indent);
-    }).join('\n');
-  }
-  if(_.has(gen_by_type, ast.type)){
-    return gen_by_type[ast.type](ast, indent);
-  }
-  throw new Error('Unsupported ast node type: ' + ast.type);
-};
-
 var gen_by_type = {
-  'string': function(ast, indent){
+  'String': function(ast, ind, gen){
     return JSON.stringify(ast.value);
   },
-  'symbol': function(ast, indent){
-    return ast.src;
+  'Identifier': function(ast, ind, gen){
+    return ast.value;
   },
-  'ruleset': function(ast, indent){
-    return ind(indent) + 'ruleset ' + ast.name + ' {\n'
-      + gen(ast.rules, indent + 2)
-      + ind(indent) + '}\n';
-  },
-  'rule': function(ast, indent){
-    return ind(indent) + 'rule ' + ast.name + ' {\n'
-      + gen(ast.select, indent + 2)
-      + gen(ast.actions, indent + 2)
-      + ind(indent) + '}\n';
-  },
-  'select_when': function(ast, indent){
-    return ind(indent) + 'select when ' + gen(ast.event_expressions, indent) + '\n';
-  },
-  'event_expression': function(ast, indent){
-    return gen(ast.event_domain, indent) + ' ' +  gen(ast.event_type, indent);
-  },
-  'send_directive': function(ast, indent){
-    var src = ind(indent) + 'send_directive(' + gen(ast.args, indent) + ')';
-    if(_.size(_.get(ast, ['with', 'pairs'])) > 0){
-      src += ' with\n' + gen(ast['with'], indent + 2) + '\n';
-    }
+  'Ruleset': function(ast, ind, gen){
+    var src = '';
+    src += ind() + 'ruleset ' + gen(ast.name) + ' {\n';
+    src += gen(ast.rules, 1) + '\n';
+    src += ind() + '}';
     return src;
   },
-  'with_expression': function(ast, indent){
-    return _.map(ast.pairs, function(pair){
-      var sym = pair[0];
-      var val = pair[1];
-      return ind(indent) + gen(sym, indent) + ' = ' + gen(val, indent);
-    }).join('\n');
+  'Assignment': function(ast, ind, gen){
+    return ind() + gen(ast.left) + ' ' + ast.op + ' ' + gen(ast.right);
+  },
+  'Rule': function(ast, ind, gen){
+    var src = '';
+    src += ind() + 'rule ' + gen(ast.name) + ' {\n';
+    src += ind(1) + 'select when ' + gen(ast.select_when) + '\n';
+    src += gen(ast.action_block, 1) + '\n';
+    src += ind() + '}';
+    return src;
+  },
+  'EventExpression': function(ast, ind, gen){
+    return gen(ast.event_domain) + ' ' + gen(ast.event_type);
+  },
+  'RuleActionBlock': function(ast, ind, gen){
+    var src = '';
+    src += gen(ast.actions);
+    return src;
+  },
+  'RuleAction': function(ast, ind, gen){
+    var src = '';
+    src += ind() + gen(ast.callee) + '(' + gen(ast.args) + ')';
+    if(!_.isEmpty(ast['with'])){
+      src += ' with\n' + gen(ast['with'], 1);
+    }
+    return src;
   }
 };
 
-module.exports = gen;
+module.exports = function(ast, options){
+  options = options || {};
+  var indent_str = _.isString(options.indent) ? options.indent : '  ';
+
+  var generate = function generate(ast, indent_level){
+    indent_level = indent_level || 0;
+    if(!ast){
+      return '';
+    }
+    if(_.isArray(ast)){
+      return _.map(ast, function(a){
+        return generate(a, indent_level);
+      }).join('\n');
+    }
+    if(_.has(gen_by_type, ast.type)){
+      var ind = function(n){
+        return _.repeat(indent_str, indent_level + (n || 0));
+      };
+      var gen = function(ast, increase_indent_by){
+        increase_indent_by = _.parseInt(increase_indent_by, 10) || 0;
+        return generate(ast, indent_level + increase_indent_by);
+      };
+      return gen_by_type[ast.type](ast, ind, gen);
+    }
+    throw new Error('Unsupported ast node type: ' + ast.type);
+  };
+
+  return generate(ast, 0);
+};

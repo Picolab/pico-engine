@@ -16,7 +16,7 @@ test('compiler', function(t){
 
         var out = generator(parser(src));
 
-        t.equals(out, src);
+        t.equals(out, src.trim());
 
         next();
       });
