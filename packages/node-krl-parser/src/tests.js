@@ -555,9 +555,10 @@ test('parser - locations', function(t){
 
 test('parser - literals', function(t){
   var testLiteral = function(src, expected){
-    var ast = normalizeAST(rmLoc(parser(src)));
-    expected = normalizeAST(expected);
-    t.deepEquals(ast, [expected]);
+    var ast = parser(src);
+    t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
+    ast = ast[0].expression;
+    t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
   };
   testLiteral('"one"', {type: 'String', value: 'one'});
   testLiteral('"one\ntwo"', {type: 'String', value: 'one\ntwo'});
@@ -685,6 +686,8 @@ test('parser - literals', function(t){
 test('parser - operator precedence', function(t){
   var testPrec = function(src, expected){
     var ast = normalizeAST(rmLoc(parser(src)));
+    t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
+    ast = ast[0].expression;
     var s = function(ast){
       if(_.isArray(ast)){
         return _.map(ast, s).join(' ');
@@ -712,9 +715,13 @@ test('parser - operator precedence', function(t){
 
 test('parser - expressions', function(t){
   var testExp = function(src, expected){
-    var ast = normalizeAST(rmLoc(parser(src)));
-    expected = normalizeAST(expected);
-    t.deepEquals(ast, [expected]);
+    var ast = parser(src);
+    t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
+    ast = ast[0];
+    if(ast.type === 'ExpressionStatement'){
+      ast = ast.expression;
+    }
+    t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
   };
 
   testExp('one()', {
@@ -786,7 +793,12 @@ test('parser - expressions', function(t){
   testExp('function(a){b}', {
     type: 'Function',
     params: [mk.id('a')],
-    body: [mk.id('b')]
+    body: [
+      {
+        type: 'ExpressionStatement',
+        expression: mk.id('b')
+      }
+    ]
   });
 
   testExp('a = "one"', {
@@ -1224,23 +1236,31 @@ test('parser - RulePostlude', function(t){
     always: [
       {
         loc: {start: 26, end: 31},
-        type: 'Application',
-        callee: {
-          loc: {start: 26, end: 29},
-          type: 'Identifier',
-          value: 'one'
-        },
-        args: []
+        type: 'ExpressionStatement',
+        expression: {
+          loc: {start: 26, end: 31},
+          type: 'Application',
+          callee: {
+            loc: {start: 26, end: 29},
+            type: 'Identifier',
+            value: 'one'
+          },
+          args: []
+        }
       },
       {
         loc: {start: 32, end: 37},
-        type: 'Application',
-        callee: {
-          loc: {start: 32, end: 35},
-          type: 'Identifier',
-          value: 'two'
-        },
-        args: []
+        type: 'ExpressionStatement',
+        expression: {
+          loc: {start: 32, end: 37},
+          type: 'Application',
+          callee: {
+            loc: {start: 32, end: 35},
+            type: 'Identifier',
+            value: 'two'
+          },
+          args: []
+        }
       }
     ]
   });

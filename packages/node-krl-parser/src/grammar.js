@@ -427,8 +427,17 @@ var grammar = {
           return [d[2],d[4]];
         }
         },
-    {"name": "Statement", "symbols": ["Expression"], "postprocess": id},
+    {"name": "Statement", "symbols": ["ExpressionStatement"], "postprocess": id},
     {"name": "Statement", "symbols": ["Declaration"], "postprocess": id},
+    {"name": "ExpressionStatement", "symbols": ["Expression"], "postprocess": 
+        function(data){
+          return {
+            loc: data[0].loc,
+            type: 'ExpressionStatement',
+            expression: data[0]
+          };
+        }
+        },
     {"name": "Declaration", "symbols": ["left_side_of_declaration", "_", {"literal":"="}, "_", "Expression"], "postprocess": 
         function(data, start){
           return {

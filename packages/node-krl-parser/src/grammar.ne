@@ -409,8 +409,19 @@ postlude_clause -> "{" _ list_Statement _ loc_close_curly {%
 # Statements
 #
 
-Statement -> Expression {% id %}
+Statement ->
+      ExpressionStatement {% id %}
     | Declaration {% id %}
+
+ExpressionStatement -> Expression {%
+  function(data){
+    return {
+      loc: data[0].loc,
+      type: 'ExpressionStatement',
+      expression: data[0]
+    };
+  }
+%}
 
 Declaration -> left_side_of_declaration _ "=" _ Expression {%
   function(data, start){
