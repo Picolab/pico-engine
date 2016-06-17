@@ -54,12 +54,12 @@ Hello parser!
   "meta": [
     {
       "type": "RulesetMetaProperty",
-      "key": {value: "name", type:"Identifier"},
+      "key": {value: "name", type:"Keyword"},
       "value": {value: "Hello World", type:"String"}
     },
     {
       "type": "RulesetMetaProperty",
-      "key": {value: "description", type:"Identifier"},
+      "key": {value: "description", type:"Keyword"},
       "value": {
         "type": "Chevron",
         "value": [

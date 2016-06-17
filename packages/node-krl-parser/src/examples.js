@@ -125,7 +125,7 @@ var printAST = function(ast, i, indent_size){
     if(ast.type === 'Identifier' && /^[A-Z]+$/.test(ast.value)){
       return ast.value;
     }
-    if(i !== 0 && _.includes(['String', 'Number', 'Boolean', 'Identifier', 'RegExp'], ast.type)){
+    if(i !== 0 && _.includes(['String', 'Number', 'Boolean', 'Identifier', 'RegExp', 'Keyword'], ast.type)){
       var v = ast.type === 'RegExp'
         ? ast.value
         : JSON.stringify(ast.value);
