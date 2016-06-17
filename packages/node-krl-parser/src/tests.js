@@ -851,6 +851,32 @@ test('parser - expressions', function(t){
     args: []
   });
 
+  testExp('one().two', {
+    type: 'MemberExpression',
+    object: {
+      type: 'Application',
+      callee: mk.id('one'),
+      args: []
+    },
+    property: mk.id('two'),
+    method: 'dot'
+  });
+
+  testExp('one().two()', {
+    type: 'Application',
+    callee: {
+      type: 'MemberExpression',
+      object: {
+        type: 'Application',
+        callee: mk.id('one'),
+        args: []
+      },
+      property: mk.id('two'),
+      method: 'dot'
+    },
+    args: []
+  });
+
   t.end();
 });
 

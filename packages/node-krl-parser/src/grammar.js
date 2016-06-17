@@ -55,6 +55,7 @@ var get = function(o, path, dflt){
 };
 
 var reserved_identifiers = {
+  "function": true,
   "true": true,
   "false": true
 };
@@ -493,14 +494,13 @@ var grammar = {
     {"name": "exp_sum", "symbols": ["exp_product"], "postprocess": id},
     {"name": "exp_sum", "symbols": ["exp_sum", "_", {"literal":"+"}, "_", "exp_product"], "postprocess": infixOp},
     {"name": "exp_sum", "symbols": ["exp_sum", "_", {"literal":"-"}, "_", "exp_product"], "postprocess": infixOp},
-    {"name": "exp_product", "symbols": ["expression_atom"], "postprocess": id},
-    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"*"}, "_", "expression_atom"], "postprocess": infixOp},
-    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"/"}, "_", "expression_atom"], "postprocess": infixOp},
-    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"%"}, "_", "expression_atom"], "postprocess": infixOp},
-    {"name": "expression_atom", "symbols": ["MemberExpression"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["Application"], "postprocess": id},
+    {"name": "exp_product", "symbols": ["MemberExpression"], "postprocess": id},
+    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"*"}, "_", "MemberExpression"], "postprocess": infixOp},
+    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"/"}, "_", "MemberExpression"], "postprocess": infixOp},
+    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"%"}, "_", "MemberExpression"], "postprocess": infixOp},
     {"name": "MemberExpression", "symbols": ["PrimaryExpression"], "postprocess": id},
     {"name": "MemberExpression", "symbols": ["Function"], "postprocess": id},
+    {"name": "MemberExpression", "symbols": ["Application"], "postprocess": id},
     {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"["}, "_", "Expression", "_", "loc_close_square"], "postprocess": MemberExpression_method('index')},
     {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"{"}, "_", "Expression", "_", "loc_close_curly"], "postprocess": MemberExpression_method('path')},
     {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"."}, "_", "Identifier"], "postprocess": MemberExpression_method('dot')},

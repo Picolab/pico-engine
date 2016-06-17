@@ -51,6 +51,7 @@ var get = function(o, path, dflt){
 };
 
 var reserved_identifiers = {
+  "function": true,
   "true": true,
   "false": true
 };
@@ -480,16 +481,14 @@ exp_sum -> exp_product {% id %}
     | exp_sum _ "+" _ exp_product {% infixOp %}
     | exp_sum _ "-" _ exp_product {% infixOp %}
 
-exp_product -> expression_atom {% id %}
-    | exp_product _ "*" _ expression_atom {% infixOp %}
-    | exp_product _ "/" _ expression_atom {% infixOp %}
-    | exp_product _ "%" _ expression_atom {% infixOp %}
-
-expression_atom -> MemberExpression {% id %}
-    | Application {% id %}
+exp_product -> MemberExpression {% id %}
+    | exp_product _ "*" _ MemberExpression {% infixOp %}
+    | exp_product _ "/" _ MemberExpression {% infixOp %}
+    | exp_product _ "%" _ MemberExpression {% infixOp %}
 
 MemberExpression -> PrimaryExpression {% id %}
     | Function {% id %}
+    | Application {% id %}
     | MemberExpression _ "[" _ Expression _ loc_close_square
       {% MemberExpression_method('index') %}
     | MemberExpression _ "{" _ Expression _ loc_close_curly
