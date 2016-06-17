@@ -138,6 +138,7 @@ main -> _ ruleset _ {% getN(1) %}
 
 ruleset -> "ruleset" __ Identifier _ "{" _
   ("meta" _ "{" _ ruleset_meta_body _ "}" _):?
+  ("global" _ "{" _ "}" _):?
   (rule _):*
 loc_close_curly {%
   function(data, loc){
@@ -149,7 +150,9 @@ loc_close_curly {%
 
       meta: data[6] ? data[6][4] : [],
 
-      rules: data[7].map(function(pair){
+      global: [],
+
+      rules: data[8].map(function(pair){
         return pair[0];
       })
     };

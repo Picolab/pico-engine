@@ -86,6 +86,7 @@ test('parser', function(t){
 
       name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
       meta: [],
+      global: [],
       rules: []
     }
   ]);
@@ -102,6 +103,7 @@ test('parser', function(t){
 
       name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
       meta: [],
+      global: [],
       rules: [
         {
           type: 'Rule',
@@ -130,6 +132,7 @@ test('parser', function(t){
 
       name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
       meta: [],
+      global: [],
       rules: [
         {
           type: 'Rule',
@@ -390,6 +393,7 @@ test('parser - locations', function(t){
       value: 'one'
     },
     meta: [],
+    global: [],
     rules: [
       {
         loc: {start: 16, end: 30},
@@ -1168,31 +1172,32 @@ test('parser - Parser should only return one ast', function(t){
   ].join('\n')
   var ast = rmLoc(parser(src));
   t.equals(ast.length, 1);
-  t.deepEquals(ast, [
-    {
-      type: "Ruleset",
-      name: mk.id('hello_world'),
-      meta: [],
-      rules: [
-        {
-          type: "Rule",
-          name: mk.id('echo_hello'),
-          rule_state: "active",
-          select_when: {
-            type: "EventExpression",
-            event_domain: mk.id('echo'),
-            event_type: mk.id('hello'),
-            attributes: [],
-            where: null,
-            setting: []
-          },
-          prelude: [],
-          action_block: null,
-          postlude: null
-        }
-      ]
-    }
+
+  t.end();
+});
+
+test('parser - ruleset global declarations', function(t){
+  var testGlobal = function(global_body, expected){
+    var src = [
+      'ruleset rs {',
+      '  global {',
+      '    ' + global_body,
+      '  }',
+      '}'
+    ].join('\n')
+    var ast = rmLoc(parser(src));
+    t.equals(ast.length, 1);
+    t.deepEquals(ast[0].global, expected);
+  };
+
+  testGlobal('', []);
+
+  /*
+  testGlobal('a = 1 b = 2', [
+    mk.assign('=', mk.id('a'), mk(1)),
+    mk.assign('=', mk.id('b'), mk(2))
   ]);
+  */
 
   t.end();
 });
