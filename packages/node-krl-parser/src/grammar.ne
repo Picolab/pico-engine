@@ -458,8 +458,7 @@ expression_atom ->
     | CallExpression {% id %}
     | "(" _ expression _ ")" {% getN(2) %}
 
-expression_list ->
-    _ {% noopArr %}
+expression_list -> null {% noopArr %}
     | expression {% idArr %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
 
@@ -532,8 +531,7 @@ Object -> "{" _ _object_kv_pairs _ loc_close_curly {%
   }
 %}
 
-_object_kv_pairs ->
-    _ {% noopArr %}
+_object_kv_pairs -> null {% noopArr %}
     | _object_kv_pair {% idArr %}
     | _object_kv_pairs _ "," _ _object_kv_pair {% function(d){return d[0].concat(d[4])} %}
 
