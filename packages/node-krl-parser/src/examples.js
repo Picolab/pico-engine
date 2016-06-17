@@ -4,14 +4,24 @@ var parser = require('./');
 var normalizeAST = require('./normalizeASTForTestCompare');
 
 var examples = {
-  '### Rulesets': [
-    [
-      'ruleset hello_world {',
-      '  rule echo_hello {',
-      '    select when echo hello',
-      '  }',
-      '}'
-    ].join('\n')
+  '### Ruleset': [
+    'ruleset NAME {\n}'
+  ],
+  '### Rule': [
+    function(){
+      var src = '';
+      src += 'rule NAME {\n';
+      src += '}';
+      var ast = parser('ruleset rs{' + src + '}');
+      return [src, ast[0].rules];
+    }
+  ],
+  '### EventExpression': [
+    function(){
+      var src = 'select when A B';
+      var ast = parser('ruleset rs{rule r0{' + src + '}}');
+      return [src, ast[0].rules];
+    }
   ],
   '### KRL Expression language': [],
   '#### Literals': [
@@ -91,12 +101,20 @@ var printAST = function(ast, i, indent_size){
 _.each(examples, function(srcs, head){
   console.log();
   console.log(head);
-  console.log();
   if(_.isEmpty(srcs)){
     return;
   }
+  console.log();
   console.log('```js\n' + _.map(srcs, function(src){
-    var ast = normalizeAST(rmLoc(parser(src)));
+    var ast;
+    if(_.isFunction(src)){
+      var src_ast = src();
+      src = src_ast[0];
+      ast = src_ast[1];
+    }else{
+      ast = parser(src);
+    }
+    ast = normalizeAST(rmLoc(ast));
     ast = _.isArray(ast) && _.size(ast) === 1 ? _.head(ast) : ast;
 
     return src + '\n' + printAST(ast, 0, 2);
