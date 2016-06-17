@@ -132,6 +132,7 @@ var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
 
 var grammar = {
     ParserRules: [
+    {"name": "main", "symbols": ["_", "ruleset", "_"], "postprocess": getN(1)},
     {"name": "main", "symbols": ["_", "statement_list", "_"], "postprocess": getN(1)},
     {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"m"}, {"literal":"e"}, {"literal":"t"}, {"literal":"a"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -396,7 +397,6 @@ var grammar = {
         }
         },
     {"name": "statement", "symbols": ["expression"], "postprocess": id},
-    {"name": "statement", "symbols": ["ruleset"], "postprocess": id},
     {"name": "statement_list", "symbols": [], "postprocess": noopArr},
     {"name": "statement_list", "symbols": ["statement"], "postprocess": idArr},
     {"name": "statement_list", "symbols": ["statement_list", "_", {"literal":";"}, "_", "statement"], "postprocess": function(d){return d[0].concat(d[4])}},

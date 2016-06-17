@@ -128,7 +128,8 @@ var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
 
 %}
 
-main -> _ statement_list _ {% getN(1) %}
+main -> _ ruleset _ {% getN(1) %}
+    | _ statement_list _ {% getN(1) %}
 
 ################################################################################
 #
@@ -381,9 +382,7 @@ postlude_clause -> "{" _ statement_list _ loc_close_curly {%
 # Statements
 #
 
-statement ->
-      expression {% id %}
-    | ruleset {% id %}
+statement -> expression {% id %}
 
 statement_list -> null {% noopArr %}
     | statement {% idArr %}

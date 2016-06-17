@@ -1156,3 +1156,43 @@ test('parser - RulePostlude', function(t){
 
   t.end();
 });
+
+test('parser - Parser should only return one ast', function(t){
+
+  var src = [
+    'ruleset hello_world {',
+    '  rule echo_hello {',
+    '    select when echo hello',
+    '  }',
+    '}'
+  ].join('\n')
+  var ast = rmLoc(parser(src));
+  t.equals(ast.length, 1);
+  t.deepEquals(ast, [
+    {
+      type: "Ruleset",
+      name: mk.id('hello_world'),
+      meta: [],
+      rules: [
+        {
+          type: "Rule",
+          name: mk.id('echo_hello'),
+          rule_state: "active",
+          select_when: {
+            type: "EventExpression",
+            event_domain: mk.id('echo'),
+            event_type: mk.id('hello'),
+            attributes: [],
+            where: null,
+            setting: []
+          },
+          prelude: [],
+          action_block: null,
+          postlude: null
+        }
+      ]
+    }
+  ]);
+
+  t.end();
+});
