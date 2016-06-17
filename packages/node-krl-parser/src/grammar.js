@@ -480,7 +480,7 @@ var grammar = {
     {"name": "expression_atom", "symbols": ["Array"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Map"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["RegExp"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["DoubleQuote"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["Chevron"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Function"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["CallExpression"], "postprocess": id},
     {"name": "expression_atom", "symbols": [{"literal":"("}, "_", "expression", "_", {"literal":")"}], "postprocess": getN(2)},
@@ -622,21 +622,21 @@ var grammar = {
     {"name": "_regexp_modifiers_chars", "symbols": ["_regexp_modifiers_chars$string$1"]},
     {"name": "_regexp_modifiers_chars$string$2", "symbols": [{"literal":"g"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "_regexp_modifiers_chars", "symbols": ["_regexp_modifiers_chars$string$2"]},
-    {"name": "DoubleQuote$string$1", "symbols": [{"literal":"<"}, {"literal":"<"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "DoubleQuote", "symbols": ["DoubleQuote$string$1", "_double_quote_body", "loc_close_double_quote"], "postprocess": 
+    {"name": "Chevron$string$1", "symbols": [{"literal":"<"}, {"literal":"<"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "Chevron", "symbols": ["Chevron$string$1", "chevron_body", "loc_close_chevron"], "postprocess": 
         function(data, loc){
           return {
             loc: {start: loc - 2, end: last(data)},
-            type: 'DoubleQuote',
+            type: 'Chevron',
             value: data[1]
           };
         }
         },
-    {"name": "_double_quote_body", "symbols": ["_double_quote_string_node"], "postprocess": idArr},
-    {"name": "_double_quote_body", "symbols": ["_double_quote_body", "_beesting", "_double_quote_string_node"], "postprocess": function(d){return d[0].concat([d[1], d[2]])}},
+    {"name": "chevron_body", "symbols": ["chevron_string_node"], "postprocess": idArr},
+    {"name": "chevron_body", "symbols": ["chevron_body", "_beesting", "chevron_string_node"], "postprocess": function(d){return d[0].concat([d[1], d[2]])}},
     {"name": "_beesting$string$1", "symbols": [{"literal":"#"}, {"literal":"{"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "_beesting", "symbols": ["_beesting$string$1", "_", "expression", "_", {"literal":"}"}], "postprocess": getN(2)},
-    {"name": "_double_quote_string_node", "symbols": ["_double_quote_string"], "postprocess": 
+    {"name": "chevron_string_node", "symbols": ["chevron_string"], "postprocess": 
         function(data, loc){
           var src = data[0];
           return {
@@ -646,11 +646,11 @@ var grammar = {
           };
         }
         },
-    {"name": "_double_quote_string", "symbols": [], "postprocess": noopStr},
-    {"name": "_double_quote_string", "symbols": ["_double_quote_string", "_double_quote_char"], "postprocess": function(d){return d[0] + d[1]}},
-    {"name": "_double_quote_char", "symbols": [/[^>#]/], "postprocess": id},
-    {"name": "_double_quote_char", "symbols": [{"literal":"#"}, /[^{]/], "postprocess": idAll},
-    {"name": "_double_quote_char", "symbols": [{"literal":">"}, /[^>]/], "postprocess": idAll},
+    {"name": "chevron_string", "symbols": [], "postprocess": noopStr},
+    {"name": "chevron_string", "symbols": ["chevron_string", "chevron_char"], "postprocess": function(d){return d[0] + d[1]}},
+    {"name": "chevron_char", "symbols": [/[^>#]/], "postprocess": id},
+    {"name": "chevron_char", "symbols": [{"literal":"#"}, /[^{]/], "postprocess": idAll},
+    {"name": "chevron_char", "symbols": [{"literal":">"}, /[^>]/], "postprocess": idAll},
     {"name": "String", "symbols": [{"literal":"\""}, "_string", {"literal":"\""}], "postprocess": 
         function(data, loc){
           var src = data[1];
@@ -668,8 +668,8 @@ var grammar = {
     {"name": "loc_close_curly", "symbols": [{"literal":"}"}], "postprocess": idEndLoc},
     {"name": "loc_close_square", "symbols": [{"literal":"]"}], "postprocess": idEndLoc},
     {"name": "loc_close_paren", "symbols": [{"literal":")"}], "postprocess": idEndLoc},
-    {"name": "loc_close_double_quote$string$1", "symbols": [{"literal":">"}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "loc_close_double_quote", "symbols": ["loc_close_double_quote$string$1"], "postprocess": idEndLoc},
+    {"name": "loc_close_chevron$string$1", "symbols": [{"literal":">"}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "loc_close_chevron", "symbols": ["loc_close_chevron$string$1"], "postprocess": idEndLoc},
     {"name": "_$ebnf$1", "symbols": []},
     {"name": "_$ebnf$1", "symbols": [/[\s]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": noop},

@@ -607,19 +607,19 @@ test('parser - literals', function(t){
   testLiteral('re#/ok/g#ig', {type: 'RegExp', value: /\/ok\/g/ig});
 
   testLiteral('<<>>', {
-    type: 'DoubleQuote',
+    type: 'Chevron',
     value: [
       {type: 'String', value: ''}
     ]
   });
   testLiteral('<<\n  hello\n  >>', {
-    type: 'DoubleQuote',
+    type: 'Chevron',
     value: [
       {type: 'String', value: '\n  hello\n  '}
     ]
   });
   testLiteral('<<#{1}>>', {
-    type: 'DoubleQuote',
+    type: 'Chevron',
     value: [
       {type: 'String', value: ''},
       {type: 'Number', value: 1},
@@ -628,7 +628,7 @@ test('parser - literals', function(t){
   });
 
   testLiteral('<<one#{2}three>>', {
-    type: 'DoubleQuote',
+    type: 'Chevron',
     value: [
       {type: 'String', value: 'one'},
       {type: 'Number', value: 2},
@@ -637,7 +637,7 @@ test('parser - literals', function(t){
   });
 
   testLiteral('<<one#{{"one":2}}three>>', {
-    type: 'DoubleQuote',
+    type: 'Chevron',
     value: [
       {type: 'String', value: 'one'},
       {type: 'Map', value: [
@@ -652,7 +652,7 @@ test('parser - literals', function(t){
   });
 
   testLiteral('<< double <<with>\\>in >>', {
-    type: 'DoubleQuote',
+    type: 'Chevron',
     value: [
       {type: 'String', value: ' double <<with>>in '},
     ]
@@ -1049,7 +1049,7 @@ test('parser - Ruleset meta', function(t){
       type: 'RulesetMetaProperty',
       key: mk.id('description'),
       value: {
-        type: 'DoubleQuote',
+        type: 'Chevron',
         value: [
           {type: 'String', value: '\n  wat? ok\n  '}
         ]

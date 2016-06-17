@@ -468,7 +468,7 @@ expression_atom ->
     | Array {% id %}
     | Map {% id %}
     | RegExp {% id %}
-    | DoubleQuote {% id %}
+    | Chevron {% id %}
     | Function {% id %}
     | CallExpression {% id %}
     | "(" _ expression _ ")" {% getN(2) %}
@@ -632,23 +632,23 @@ _regexp_modifiers -> _regexp_modifiers_chars {%
 _regexp_modifiers_chars -> null {% noopStr %}
     | "i" | "g" | "ig" | "gi"
 
-DoubleQuote -> "<<" _double_quote_body loc_close_double_quote {%
+Chevron -> "<<" chevron_body loc_close_chevron {%
   function(data, loc){
     return {
       loc: {start: loc - 2, end: last(data)},
-      type: 'DoubleQuote',
+      type: 'Chevron',
       value: data[1]
     };
   }
 %}
 
-_double_quote_body ->
-    _double_quote_string_node {% idArr %}
-    | _double_quote_body _beesting _double_quote_string_node {% function(d){return d[0].concat([d[1], d[2]])} %}
+chevron_body ->
+    chevron_string_node {% idArr %}
+    | chevron_body _beesting chevron_string_node {% function(d){return d[0].concat([d[1], d[2]])} %}
 
 _beesting -> "#{" _ expression _ "}" {% getN(2) %}
 
-_double_quote_string_node -> _double_quote_string {%
+chevron_string_node -> chevron_string {%
   function(data, loc){
     var src = data[0];
     return {
@@ -659,11 +659,11 @@ _double_quote_string_node -> _double_quote_string {%
   }
 %}
 
-_double_quote_string ->
+chevron_string ->
     null {% noopStr %}
-    | _double_quote_string _double_quote_char {% function(d){return d[0] + d[1]} %}
+    | chevron_string chevron_char {% function(d){return d[0] + d[1]} %}
 
-_double_quote_char ->
+chevron_char ->
     [^>#] {% id %}
     | "#" [^{] {% idAll %}
     | ">" [^>] {% idAll %}
@@ -694,7 +694,7 @@ _stringchar ->
 loc_close_curly -> "}" {% idEndLoc %}
 loc_close_square -> "]" {% idEndLoc %}
 loc_close_paren -> ")" {% idEndLoc %}
-loc_close_double_quote -> ">>" {% idEndLoc %}
+loc_close_chevron -> ">>" {% idEndLoc %}
 
 # Whitespace
 _  -> [\s]:* {% noop %}
