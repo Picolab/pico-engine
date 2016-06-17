@@ -129,7 +129,7 @@ var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
 var MemberExpression_method = function(method){
   return function(data, start){
     return {
-      loc: {start: start, end: last(data)},
+      loc: {start: start, end: lastEndLoc(data)},
       type: 'MemberExpression',
       object: data[0],
       property: data[4],
@@ -494,6 +494,8 @@ MemberExpression -> PrimaryExpression {% id %}
       {% MemberExpression_method('index') %}
     | MemberExpression _ "{" _ Expression _ loc_close_curly
       {% MemberExpression_method('path') %}
+    | MemberExpression _ "." _ Identifier
+      {% MemberExpression_method('dot') %}
 
 PrimaryExpression ->
       Identifier {% id %}

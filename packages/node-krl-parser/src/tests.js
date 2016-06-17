@@ -833,6 +833,24 @@ test('parser - expressions', function(t){
     args: []
   });
 
+  testExp('one.two', {
+    type: 'MemberExpression',
+    object: mk.id('one'),
+    property: mk.id('two'),
+    method: 'dot'
+  });
+
+  testExp('one.two()', {
+    type: 'Application',
+    callee: {
+      type: 'MemberExpression',
+      object: mk.id('one'),
+      property: mk.id('two'),
+      method: 'dot'
+    },
+    args: []
+  });
+
   t.end();
 });
 

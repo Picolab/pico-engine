@@ -133,7 +133,7 @@ var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
 var MemberExpression_method = function(method){
   return function(data, start){
     return {
-      loc: {start: start, end: last(data)},
+      loc: {start: start, end: lastEndLoc(data)},
       type: 'MemberExpression',
       object: data[0],
       property: data[4],
@@ -503,6 +503,7 @@ var grammar = {
     {"name": "MemberExpression", "symbols": ["Function"], "postprocess": id},
     {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"["}, "_", "Expression", "_", "loc_close_square"], "postprocess": MemberExpression_method('index')},
     {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"{"}, "_", "Expression", "_", "loc_close_curly"], "postprocess": MemberExpression_method('path')},
+    {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"."}, "_", "Identifier"], "postprocess": MemberExpression_method('dot')},
     {"name": "PrimaryExpression", "symbols": ["Identifier"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["Literal"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": [{"literal":"("}, "_", "Expression", "_", {"literal":")"}], "postprocess": getN(2)},
