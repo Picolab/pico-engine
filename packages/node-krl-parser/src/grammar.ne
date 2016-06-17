@@ -141,7 +141,7 @@ var MemberExpression_method = function(method){
 %}
 
 main -> _ ruleset _ {% getN(1) %}
-    | _ statement_list _ {% getN(1) %}
+    | _ list_Statement _ {% getN(1) %}
 
 ################################################################################
 #
@@ -173,7 +173,7 @@ ruleset_meta_block -> "{" _ "}" {% noopArr %}
 ruleset_meta_prop_list -> ruleset_meta_prop {% idArr %}
     | ruleset_meta_prop_list __ ruleset_meta_prop {% function(d){return d[0].concat([d[2]])} %}
 
-ruleset_meta_prop -> Keyword __ expression {%
+ruleset_meta_prop -> Keyword __ Expression {%
   function(data, start){
     return {
       loc: {start: start, end: data[2].loc.end},
@@ -283,7 +283,7 @@ event_exp_fns -> event_exp_base {% id %}
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier
     event_exp_attribute_pairs
-    (__ "where" __ expression):?
+    (__ "where" __ Expression):?
     (__ "setting" _ "(" _ function_params _ loc_close_paren):? {%
   function(data, start){
     return {
@@ -350,7 +350,7 @@ time_period_enum ->
 # RuleActionBlock
 #
 
-RuleActionBlock -> ("if" __ expression __ "then" __ (action_block_type __):?):? RuleActions {%
+RuleActionBlock -> ("if" __ Expression __ "then" __ (action_block_type __):?):? RuleActions {%
   function(data, start){
     return {
       loc: {start: start, end: lastEndLoc(data)},
@@ -397,7 +397,7 @@ RulePostlude ->
       (_ "finally" _ postlude_clause):?
       {% RulePostlude_by_paths([2, 0], [3, 3, 0], [4, 3, 0]) %}
 
-postlude_clause -> "{" _ statement_list _ loc_close_curly {%
+postlude_clause -> "{" _ list_Statement _ loc_close_curly {%
   function(d){
     //we need to keep the location of the close curly
     return [d[2],d[4]];
@@ -409,10 +409,10 @@ postlude_clause -> "{" _ statement_list _ loc_close_curly {%
 # Statements
 #
 
-statement -> expression {% id %}
+Statement -> Expression {% id %}
     | Declaration {% id %}
 
-Declaration -> left_side_of_declaration _ "=" _ expression {%
+Declaration -> left_side_of_declaration _ "=" _ Expression {%
   function(data, start){
     return {
       loc: {start: data[0].loc.start, end: data[4].loc.end},
@@ -427,9 +427,9 @@ Declaration -> left_side_of_declaration _ "=" _ expression {%
 # Later we may add destructuring
 left_side_of_declaration -> Identifier {% id %}
 
-statement_list -> null {% noopArr %}
-    | statement {% idArr %}
-    | statement_list _ ";" _ statement {% function(d){return d[0].concat(d[4])} %}
+list_Statement -> null {% noopArr %}
+    | Statement {% idArr %}
+    | list_Statement _ ";" _ Statement {% function(d){return d[0].concat(d[4])} %}
 
 declaration_block -> "{" _ "}" {% noopArr %}
     | "{" _ declaration_list _ "}" {% getN(2) %}
@@ -442,7 +442,7 @@ declaration_list -> Declaration {% idArr %}
 # Expressions
 #
 
-expression -> exp_conditional {% id %}
+Expression -> exp_conditional {% id %}
 
 exp_conditional -> exp_or {% id %}
     | exp_or _ "=>" _ exp_or _ "|" _ exp_conditional {%
@@ -490,20 +490,20 @@ expression_atom -> MemberExpression {% id %}
     | Application {% id %}
 
 expression_list -> null {% noopArr %}
-    | expression {% idArr %}
-    | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
+    | Expression {% idArr %}
+    | expression_list _ "," _ Expression {% function(d){return d[0].concat([d[4]])} %}
 
 MemberExpression -> PrimaryExpression {% id %}
     | Function {% id %}
-    | MemberExpression _ "[" _ expression _ loc_close_square
+    | MemberExpression _ "[" _ Expression _ loc_close_square
       {% MemberExpression_method('index') %}
-    | MemberExpression _ "{" _ expression _ loc_close_curly
+    | MemberExpression _ "{" _ Expression _ loc_close_curly
       {% MemberExpression_method('path') %}
 
 PrimaryExpression ->
       Identifier {% id %}
     | Literal {% id %}
-    | "(" _ expression _ ")" {% getN(2) %}
+    | "(" _ Expression _ ")" {% getN(2) %}
 
 Literal ->
       String {% id %}
@@ -517,7 +517,7 @@ Literal ->
 ################################################################################
 # Functions
 
-Function -> "function" _ "(" _ function_params _ ")" _ "{" _ statement_list _ loc_close_curly {%
+Function -> "function" _ "(" _ function_params _ ")" _ "{" _ list_Statement _ loc_close_curly {%
   function(data, start){
     return {
       loc: {start: start, end: last(data)},
@@ -571,7 +571,7 @@ map_kv_pairs -> null {% noopArr %}
     | map_kv_pair {% idArr %}
     | map_kv_pairs _ "," _ map_kv_pair {% function(d){return d[0].concat(d[4])} %}
 
-map_kv_pair -> String _ ":" _ expression {%
+map_kv_pair -> String _ ":" _ Expression {%
   function(data, start){
     return {
       loc: {start: start, end: data[4].loc.end},
@@ -680,7 +680,7 @@ chevron_body ->
     chevron_string_node {% idArr %}
     | chevron_body _beesting chevron_string_node {% function(d){return d[0].concat([d[1], d[2]])} %}
 
-_beesting -> "#{" _ expression _ "}" {% getN(2) %}
+_beesting -> "#{" _ Expression _ "}" {% getN(2) %}
 
 chevron_string_node -> chevron_string {%
   function(data, loc){
