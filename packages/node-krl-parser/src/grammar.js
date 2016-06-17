@@ -623,7 +623,7 @@ var grammar = {
     {"name": "_int$ebnf$1", "symbols": [/[0-9]/, "_int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_int", "symbols": ["_int$ebnf$1"], "postprocess": idAll},
     {"name": "RegExp$string$1", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RegExp", "symbols": ["RegExp$string$1", "_regexp_pattern", {"literal":"#"}, "_regexp_modifiers"], "postprocess": 
+    {"name": "RegExp", "symbols": ["RegExp$string$1", "regexp_pattern", {"literal":"#"}, "regexp_modifiers"], "postprocess": 
         function(data, loc){
           var pattern = data[1];
           var modifiers = data[3][0];
@@ -634,23 +634,23 @@ var grammar = {
           };
         }
         },
-    {"name": "_regexp_pattern", "symbols": [], "postprocess": noopStr},
-    {"name": "_regexp_pattern", "symbols": ["_regexp_pattern", "_regexp_pattern_char"], "postprocess": function(d){return d[0] + d[1]}},
-    {"name": "_regexp_pattern_char", "symbols": [/[^\\#]/], "postprocess": id},
-    {"name": "_regexp_pattern_char", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return d[1] === '#' ? '#' : '\\\\'}},
-    {"name": "_regexp_modifiers", "symbols": ["_regexp_modifiers_chars"], "postprocess": 
+    {"name": "regexp_pattern", "symbols": [], "postprocess": noopStr},
+    {"name": "regexp_pattern", "symbols": ["regexp_pattern", "regexp_pattern_char"], "postprocess": function(d){return d[0] + d[1]}},
+    {"name": "regexp_pattern_char", "symbols": [/[^\\#]/], "postprocess": id},
+    {"name": "regexp_pattern_char", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return d[1] === '#' ? '#' : '\\\\'}},
+    {"name": "regexp_modifiers", "symbols": ["regexp_modifiers_chars"], "postprocess": 
         function(data, loc){
           var src = flatten(data).join('');
           return [src, loc + src.length];
         }
         },
-    {"name": "_regexp_modifiers_chars", "symbols": [], "postprocess": noopStr},
-    {"name": "_regexp_modifiers_chars", "symbols": [{"literal":"i"}]},
-    {"name": "_regexp_modifiers_chars", "symbols": [{"literal":"g"}]},
-    {"name": "_regexp_modifiers_chars$string$1", "symbols": [{"literal":"i"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "_regexp_modifiers_chars", "symbols": ["_regexp_modifiers_chars$string$1"]},
-    {"name": "_regexp_modifiers_chars$string$2", "symbols": [{"literal":"g"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "_regexp_modifiers_chars", "symbols": ["_regexp_modifiers_chars$string$2"]},
+    {"name": "regexp_modifiers_chars", "symbols": [], "postprocess": noopStr},
+    {"name": "regexp_modifiers_chars", "symbols": [{"literal":"i"}]},
+    {"name": "regexp_modifiers_chars", "symbols": [{"literal":"g"}]},
+    {"name": "regexp_modifiers_chars$string$1", "symbols": [{"literal":"i"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "regexp_modifiers_chars", "symbols": ["regexp_modifiers_chars$string$1"]},
+    {"name": "regexp_modifiers_chars$string$2", "symbols": [{"literal":"g"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "regexp_modifiers_chars", "symbols": ["regexp_modifiers_chars$string$2"]},
     {"name": "Chevron$string$1", "symbols": [{"literal":"<"}, {"literal":"<"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "Chevron", "symbols": ["Chevron$string$1", "chevron_body", "loc_close_chevron"], "postprocess": 
         function(data, loc){
@@ -662,9 +662,9 @@ var grammar = {
         }
         },
     {"name": "chevron_body", "symbols": ["chevron_string_node"], "postprocess": idArr},
-    {"name": "chevron_body", "symbols": ["chevron_body", "_beesting", "chevron_string_node"], "postprocess": function(d){return d[0].concat([d[1], d[2]])}},
-    {"name": "_beesting$string$1", "symbols": [{"literal":"#"}, {"literal":"{"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "_beesting", "symbols": ["_beesting$string$1", "_", "Expression", "_", {"literal":"}"}], "postprocess": getN(2)},
+    {"name": "chevron_body", "symbols": ["chevron_body", "beesting", "chevron_string_node"], "postprocess": function(d){return d[0].concat([d[1], d[2]])}},
+    {"name": "beesting$string$1", "symbols": [{"literal":"#"}, {"literal":"{"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "beesting", "symbols": ["beesting$string$1", "_", "Expression", "_", {"literal":"}"}], "postprocess": getN(2)},
     {"name": "chevron_string_node", "symbols": ["chevron_string"], "postprocess": 
         function(data, loc){
           var src = data[0];
@@ -680,7 +680,7 @@ var grammar = {
     {"name": "chevron_char", "symbols": [/[^>#]/], "postprocess": id},
     {"name": "chevron_char", "symbols": [{"literal":"#"}, /[^{]/], "postprocess": idAll},
     {"name": "chevron_char", "symbols": [{"literal":">"}, /[^>]/], "postprocess": idAll},
-    {"name": "String", "symbols": [{"literal":"\""}, "_string", {"literal":"\""}], "postprocess": 
+    {"name": "String", "symbols": [{"literal":"\""}, "string", {"literal":"\""}], "postprocess": 
         function(data, loc){
           var src = data[1];
           return {
@@ -690,10 +690,10 @@ var grammar = {
           };
         }
         },
-    {"name": "_string", "symbols": [], "postprocess": noopStr},
-    {"name": "_string", "symbols": ["_string", "_stringchar"], "postprocess": function(d){return d[0] + d[1]}},
-    {"name": "_stringchar", "symbols": [/[^\\"]/], "postprocess": id},
-    {"name": "_stringchar", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return JSON.parse('"' + d[0] + d[1] + '"')}},
+    {"name": "string", "symbols": [], "postprocess": noopStr},
+    {"name": "string", "symbols": ["string", "stringchar"], "postprocess": function(d){return d[0] + d[1]}},
+    {"name": "stringchar", "symbols": [/[^\\"]/], "postprocess": id},
+    {"name": "stringchar", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return JSON.parse('"' + d[0] + d[1] + '"')}},
     {"name": "loc_close_curly", "symbols": [{"literal":"}"}], "postprocess": idEndLoc},
     {"name": "loc_close_square", "symbols": [{"literal":"]"}], "postprocess": idEndLoc},
     {"name": "loc_close_paren", "symbols": [{"literal":")"}], "postprocess": idEndLoc},

@@ -636,7 +636,7 @@ _float ->
 
 _int -> [0-9]:+ {% idAll %}
 
-RegExp -> "re#" _regexp_pattern "#" _regexp_modifiers {%
+RegExp -> "re#" regexp_pattern "#" regexp_modifiers {%
   function(data, loc){
     var pattern = data[1];
     var modifiers = data[3][0];
@@ -648,22 +648,22 @@ RegExp -> "re#" _regexp_pattern "#" _regexp_modifiers {%
   }
 %}
 
-_regexp_pattern ->
+regexp_pattern ->
     null {% noopStr %}
-    | _regexp_pattern _regexp_pattern_char {% function(d){return d[0] + d[1]} %}
+    | regexp_pattern regexp_pattern_char {% function(d){return d[0] + d[1]} %}
 
-_regexp_pattern_char ->
+regexp_pattern_char ->
   [^\\#] {% id %}
   | "\\" [^] {% function(d){return d[1] === '#' ? '#' : '\\\\'} %}
 
-_regexp_modifiers -> _regexp_modifiers_chars {%
+regexp_modifiers -> regexp_modifiers_chars {%
   function(data, loc){
     var src = flatten(data).join('');
     return [src, loc + src.length];
   }
 %}
 
-_regexp_modifiers_chars -> null {% noopStr %}
+regexp_modifiers_chars -> null {% noopStr %}
     | "i" | "g" | "ig" | "gi"
 
 Chevron -> "<<" chevron_body loc_close_chevron {%
@@ -678,9 +678,9 @@ Chevron -> "<<" chevron_body loc_close_chevron {%
 
 chevron_body ->
     chevron_string_node {% idArr %}
-    | chevron_body _beesting chevron_string_node {% function(d){return d[0].concat([d[1], d[2]])} %}
+    | chevron_body beesting chevron_string_node {% function(d){return d[0].concat([d[1], d[2]])} %}
 
-_beesting -> "#{" _ Expression _ "}" {% getN(2) %}
+beesting -> "#{" _ Expression _ "}" {% getN(2) %}
 
 chevron_string_node -> chevron_string {%
   function(data, loc){
@@ -702,7 +702,7 @@ chevron_char ->
     | "#" [^{] {% idAll %}
     | ">" [^>] {% idAll %}
 
-String -> "\"" _string "\"" {%
+String -> "\"" string "\"" {%
   function(data, loc){
     var src = data[1];
     return {
@@ -713,12 +713,11 @@ String -> "\"" _string "\"" {%
   }
 %}
 
-_string ->
-    null {% noopStr %}
-    | _string _stringchar {% function(d){return d[0] + d[1]} %}
+string -> null {% noopStr %}
+    | string stringchar {% function(d){return d[0] + d[1]} %}
 
-_stringchar ->
-    [^\\"] {% id %}
+stringchar ->
+      [^\\"] {% id %}
     | "\\" [^] {% function(d){return JSON.parse('"' + d[0] + d[1] + '"')} %}
 
 ################################################################################
