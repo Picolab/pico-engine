@@ -22,7 +22,55 @@ interface SourceLocation {
 ```
 `start` and `end` are character indexes (starting at 0) from the source string.
 
-### Literals
+### Rulesets
+
+```js
+ruleset hello_world {
+  rule echo_hello {
+    select when echo hello
+  }
+}
+{
+  "type": "Ruleset"
+  "name": {
+    "type": "Identifier"
+    "value": "hello_world"
+  }
+  "meta": [  ]
+  "rules": [
+    {
+      "type": "Rule"
+      "name": {
+        "type": "Identifier"
+        "value": "echo_hello"
+      }
+      "rule_state": "active"
+      "select_when": {
+        "type": "EventExpression"
+        "event_domain": {
+          "type": "Identifier"
+          "value": "echo"
+        }
+        "event_type": {
+          "type": "Identifier"
+          "value": "hello"
+        }
+        "attributes": [  ]
+        "where": null
+        "setting": [  ]
+      }
+      "prelude": [  ]
+      "action_block": null
+      "postlude": null
+    }
+  ]
+}
+```
+
+### KRL Expression language
+
+
+#### Literals
 
 ```js
 "hello world"
@@ -98,7 +146,7 @@ re#^My name is (.*)#i
 }
 ```
 
-### Assignment
+#### Assignment
 
 ```js
 A = B
@@ -110,7 +158,7 @@ A = B
 }
 ```
 
-### Infix Operators
+#### Infix Operators
 
 ```js
 A && B
@@ -172,7 +220,7 @@ A <=> B
 }
 ```
 
-### Conditionals
+#### Conditionals
 
 ```js
 A => B | C
@@ -199,7 +247,7 @@ C => D |
 }
 ```
 
-### Functions
+#### Functions
 
 ```js
 function(A){

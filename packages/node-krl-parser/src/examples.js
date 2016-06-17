@@ -4,7 +4,17 @@ var parser = require('./');
 var normalizeAST = require('./normalizeASTForTestCompare');
 
 var examples = {
-  '### Literals': [
+  '### Rulesets': [
+    [
+      'ruleset hello_world {',
+      '  rule echo_hello {',
+      '    select when echo hello',
+      '  }',
+      '}'
+    ].join('\n')
+  ],
+  '### KRL Expression language': [],
+  '#### Literals': [
     '"hello world"',
     '-12.3',
     'thing',
@@ -14,10 +24,10 @@ var examples = {
     '{"one": A}',
     '<<\n  hello #{name}!\n  >>'
   ],
-  '### Assignment': [
+  '#### Assignment': [
     'A = B'
   ],
-  '### Infix Operators': [
+  '#### Infix Operators': [
     'A && B',
     'A + B + C',
     'A + B * C',
@@ -25,11 +35,11 @@ var examples = {
     'A cmp B',
     'A <=> B'
   ],
-  '### Conditionals': [
+  '#### Conditionals': [
     'A => B | C',
     'A => B |\nC => D |\n     E'
   ],
-  '### Functions': [
+  '#### Functions': [
     'function(A){\n  B\n}',
     'A(B,C)'
   ]
@@ -82,6 +92,9 @@ _.each(examples, function(srcs, head){
   console.log();
   console.log(head);
   console.log();
+  if(_.isEmpty(srcs)){
+    return;
+  }
   console.log('```js\n' + _.map(srcs, function(src){
     var ast = normalizeAST(rmLoc(parser(src)));
     ast = _.isArray(ast) && _.size(ast) === 1 ? _.head(ast) : ast;
