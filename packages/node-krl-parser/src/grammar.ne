@@ -65,6 +65,12 @@ var idAll = function(d){return flatten(d).join('')};
 var idArr = function(d){return [d[0]]};
 var idEndLoc = function(data, start){return start + flatten(data).join('').length};
 
+var concatArr = function(index){
+  return function(data){
+    return data[0].concat(data[index]);
+  };
+};
+
 var getN = function(n){
   return function(data){
     return data[n];
@@ -172,7 +178,7 @@ ruleset_meta_block -> "{" _ "}" {% noopArr %}
     | "{" _ ruleset_meta_prop_list _ "}" {% getN(2) %}
 
 ruleset_meta_prop_list -> ruleset_meta_prop {% idArr %}
-    | ruleset_meta_prop_list __ ruleset_meta_prop {% function(d){return d[0].concat([d[2]])} %}
+    | ruleset_meta_prop_list __ ruleset_meta_prop {% concatArr(2) %}
 
 ruleset_meta_prop -> Keyword __ Expression {%
   function(data, start){
@@ -301,7 +307,7 @@ event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
 
 event_exp_attribute_pairs -> null {% noopArr %}
     | event_exp_attribute_pair {% idArr %}
-    | event_exp_attribute_pairs __ event_exp_attribute_pair {% function(d){return d[0].concat([d[2]])} %}
+    | event_exp_attribute_pairs __ event_exp_attribute_pair {% concatArr(2) %}
 
 event_exp_attribute_pair -> Identifier __ RegExp {%
   function(data, start){
@@ -315,8 +321,7 @@ event_exp_attribute_pair -> Identifier __ RegExp {%
 %}
 
 EventExpression_list -> EventExpression {% idArr %}
-    | EventExpression_list _ "," _ EventExpression
-      {% function(d){return d[0].concat([d[4]])} %}
+    | EventExpression_list _ "," _ EventExpression {% concatArr(4) %}
 
 time_period -> time_period_enum {%
   function(data, start){
@@ -367,7 +372,7 @@ action_block_type -> "choose" {% id %}
 
 #NOTE - there must be at least one action
 RuleActions -> RuleAction {% idArr %}
-    | RuleActions __ RuleAction {% function(d){return d[0].concat(d[2])} %}
+    | RuleActions __ RuleAction {% concatArr(2) %}
 
 RuleAction ->
     (Identifier _ "=>" _):?
@@ -440,13 +445,13 @@ left_side_of_declaration -> Identifier {% id %}
 
 Statement_list -> null {% noopArr %}
     | Statement {% idArr %}
-    | Statement_list _ ";" _ Statement {% function(d){return d[0].concat(d[4])} %}
+    | Statement_list _ ";" _ Statement {% concatArr(4) %}
 
 declaration_block -> "{" _ "}" {% noopArr %}
     | "{" _ declaration_list _ "}" {% getN(2) %}
 
 declaration_list -> Declaration {% idArr %}
-    | declaration_list __ Declaration {% function(d){return d[0].concat(d[2])} %}
+    | declaration_list __ Declaration {% concatArr(2) %}
 
 ################################################################################
 #
@@ -523,7 +528,7 @@ Literal ->
 
 Expression_list -> null {% noopArr %}
     | Expression {% idArr %}
-    | Expression_list _ "," _ Expression {% function(d){return d[0].concat([d[4]])} %}
+    | Expression_list _ "," _ Expression {% concatArr(4) %}
 
 ################################################################################
 # Functions
@@ -542,7 +547,7 @@ Function -> "function" _ "(" _ function_params _ ")" _ "{" _ Statement_list _ lo
 function_params ->
     null {% noopArr %}
     | Identifier {% idArr %}
-    | function_params _ "," _ Identifier {% function(d){return d[0].concat([d[4]])} %}
+    | function_params _ "," _ Identifier {% concatArr(4) %}
 
 Application -> MemberExpression _ "(" _ Expression_list _ loc_close_paren {%
   function(data, start){
@@ -580,7 +585,7 @@ Map -> "{" _ map_kv_pairs _ loc_close_curly {%
 
 map_kv_pairs -> null {% noopArr %}
     | map_kv_pair {% idArr %}
-    | map_kv_pairs _ "," _ map_kv_pair {% function(d){return d[0].concat(d[4])} %}
+    | map_kv_pairs _ "," _ map_kv_pair {% concatArr(4) %}
 
 map_kv_pair -> String _ ":" _ Expression {%
   function(data, start){

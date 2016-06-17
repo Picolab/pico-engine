@@ -69,6 +69,12 @@ var idAll = function(d){return flatten(d).join('')};
 var idArr = function(d){return [d[0]]};
 var idEndLoc = function(data, start){return start + flatten(data).join('').length};
 
+var concatArr = function(index){
+  return function(data){
+    return data[0].concat(data[index]);
+  };
+};
+
 var getN = function(n){
   return function(data){
     return data[n];
@@ -176,7 +182,7 @@ var grammar = {
     {"name": "ruleset_meta_block", "symbols": [{"literal":"{"}, "_", {"literal":"}"}], "postprocess": noopArr},
     {"name": "ruleset_meta_block", "symbols": [{"literal":"{"}, "_", "ruleset_meta_prop_list", "_", {"literal":"}"}], "postprocess": getN(2)},
     {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop"], "postprocess": idArr},
-    {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop_list", "__", "ruleset_meta_prop"], "postprocess": function(d){return d[0].concat([d[2]])}},
+    {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop_list", "__", "ruleset_meta_prop"], "postprocess": concatArr(2)},
     {"name": "ruleset_meta_prop", "symbols": ["Keyword", "__", "Expression"], "postprocess": 
         function(data, start){
           return {
@@ -313,7 +319,7 @@ var grammar = {
         },
     {"name": "event_exp_attribute_pairs", "symbols": [], "postprocess": noopArr},
     {"name": "event_exp_attribute_pairs", "symbols": ["event_exp_attribute_pair"], "postprocess": idArr},
-    {"name": "event_exp_attribute_pairs", "symbols": ["event_exp_attribute_pairs", "__", "event_exp_attribute_pair"], "postprocess": function(d){return d[0].concat([d[2]])}},
+    {"name": "event_exp_attribute_pairs", "symbols": ["event_exp_attribute_pairs", "__", "event_exp_attribute_pair"], "postprocess": concatArr(2)},
     {"name": "event_exp_attribute_pair", "symbols": ["Identifier", "__", "RegExp"], "postprocess": 
         function(data, start){
           return {
@@ -325,7 +331,7 @@ var grammar = {
         }
         },
     {"name": "EventExpression_list", "symbols": ["EventExpression"], "postprocess": idArr},
-    {"name": "EventExpression_list", "symbols": ["EventExpression_list", "_", {"literal":","}, "_", "EventExpression"], "postprocess": function(d){return d[0].concat([d[4]])}},
+    {"name": "EventExpression_list", "symbols": ["EventExpression_list", "_", {"literal":","}, "_", "EventExpression"], "postprocess": concatArr(4)},
     {"name": "time_period", "symbols": ["time_period_enum"], "postprocess": 
         function(data, start){
           var src = data[0][0];
@@ -388,7 +394,7 @@ var grammar = {
     {"name": "action_block_type$string$2", "symbols": [{"literal":"e"}, {"literal":"v"}, {"literal":"e"}, {"literal":"r"}, {"literal":"y"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "action_block_type", "symbols": ["action_block_type$string$2"], "postprocess": id},
     {"name": "RuleActions", "symbols": ["RuleAction"], "postprocess": idArr},
-    {"name": "RuleActions", "symbols": ["RuleActions", "__", "RuleAction"], "postprocess": function(d){return d[0].concat(d[2])}},
+    {"name": "RuleActions", "symbols": ["RuleActions", "__", "RuleAction"], "postprocess": concatArr(2)},
     {"name": "RuleAction$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "RuleAction$ebnf$1$subexpression$1", "symbols": ["Identifier", "_", "RuleAction$ebnf$1$subexpression$1$string$1", "_"]},
     {"name": "RuleAction$ebnf$1", "symbols": ["RuleAction$ebnf$1$subexpression$1"], "postprocess": id},
@@ -452,11 +458,11 @@ var grammar = {
     {"name": "left_side_of_declaration", "symbols": ["Identifier"], "postprocess": id},
     {"name": "Statement_list", "symbols": [], "postprocess": noopArr},
     {"name": "Statement_list", "symbols": ["Statement"], "postprocess": idArr},
-    {"name": "Statement_list", "symbols": ["Statement_list", "_", {"literal":";"}, "_", "Statement"], "postprocess": function(d){return d[0].concat(d[4])}},
+    {"name": "Statement_list", "symbols": ["Statement_list", "_", {"literal":";"}, "_", "Statement"], "postprocess": concatArr(4)},
     {"name": "declaration_block", "symbols": [{"literal":"{"}, "_", {"literal":"}"}], "postprocess": noopArr},
     {"name": "declaration_block", "symbols": [{"literal":"{"}, "_", "declaration_list", "_", {"literal":"}"}], "postprocess": getN(2)},
     {"name": "declaration_list", "symbols": ["Declaration"], "postprocess": idArr},
-    {"name": "declaration_list", "symbols": ["declaration_list", "__", "Declaration"], "postprocess": function(d){return d[0].concat(d[2])}},
+    {"name": "declaration_list", "symbols": ["declaration_list", "__", "Declaration"], "postprocess": concatArr(2)},
     {"name": "Expression", "symbols": ["exp_conditional"], "postprocess": id},
     {"name": "exp_conditional", "symbols": ["exp_or"], "postprocess": id},
     {"name": "exp_conditional$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -525,7 +531,7 @@ var grammar = {
     {"name": "Literal", "symbols": ["Map"], "postprocess": id},
     {"name": "Expression_list", "symbols": [], "postprocess": noopArr},
     {"name": "Expression_list", "symbols": ["Expression"], "postprocess": idArr},
-    {"name": "Expression_list", "symbols": ["Expression_list", "_", {"literal":","}, "_", "Expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
+    {"name": "Expression_list", "symbols": ["Expression_list", "_", {"literal":","}, "_", "Expression"], "postprocess": concatArr(4)},
     {"name": "Function$string$1", "symbols": [{"literal":"f"}, {"literal":"u"}, {"literal":"n"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "_", "function_params", "_", {"literal":")"}, "_", {"literal":"{"}, "_", "Statement_list", "_", "loc_close_curly"], "postprocess": 
         function(data, start){
@@ -539,7 +545,7 @@ var grammar = {
         },
     {"name": "function_params", "symbols": [], "postprocess": noopArr},
     {"name": "function_params", "symbols": ["Identifier"], "postprocess": idArr},
-    {"name": "function_params", "symbols": ["function_params", "_", {"literal":","}, "_", "Identifier"], "postprocess": function(d){return d[0].concat([d[4]])}},
+    {"name": "function_params", "symbols": ["function_params", "_", {"literal":","}, "_", "Identifier"], "postprocess": concatArr(4)},
     {"name": "Application", "symbols": ["MemberExpression", "_", {"literal":"("}, "_", "Expression_list", "_", "loc_close_paren"], "postprocess": 
         function(data, start){
           return {
@@ -570,7 +576,7 @@ var grammar = {
         },
     {"name": "map_kv_pairs", "symbols": [], "postprocess": noopArr},
     {"name": "map_kv_pairs", "symbols": ["map_kv_pair"], "postprocess": idArr},
-    {"name": "map_kv_pairs", "symbols": ["map_kv_pairs", "_", {"literal":","}, "_", "map_kv_pair"], "postprocess": function(d){return d[0].concat(d[4])}},
+    {"name": "map_kv_pairs", "symbols": ["map_kv_pairs", "_", {"literal":","}, "_", "map_kv_pair"], "postprocess": concatArr(4)},
     {"name": "map_kv_pair", "symbols": ["String", "_", {"literal":":"}, "_", "Expression"], "postprocess": 
         function(data, start){
           return {
