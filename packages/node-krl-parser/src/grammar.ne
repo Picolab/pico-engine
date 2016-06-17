@@ -498,8 +498,6 @@ exp_product -> MemberExpression {% id %}
     | exp_product _ "%" _ MemberExpression {% infixOp %}
 
 MemberExpression -> PrimaryExpression {% id %}
-    | Function {% id %}
-    | Application {% id %}
     | MemberExpression _ "[" _ Expression _ loc_close_square
       {% MemberExpression_method('index') %}
     | MemberExpression _ "{" _ Expression _ loc_close_curly
@@ -511,6 +509,8 @@ PrimaryExpression ->
       Identifier {% id %}
     | Literal {% id %}
     | "(" _ Expression _ ")" {% getN(2) %}
+    | Function {% id %}
+    | Application {% id %}
 
 Literal ->
       String {% id %}
