@@ -4,6 +4,15 @@
 
 Parse KRL source code into an AST
 
+## Usage
+```js
+var parser = require('krl-parser');
+
+var src = ...//somehow get your krl string
+
+var ast = parser(src);
+```
+
 ## AST Specification
 
 ### Node
