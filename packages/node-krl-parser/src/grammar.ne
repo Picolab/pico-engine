@@ -371,7 +371,7 @@ RuleActions -> RuleAction {% idArr %}
 
 RuleAction ->
     (Identifier _ "=>" _):?
-    Identifier _ "(" _ expression_list _ loc_close_paren
+    Identifier _ "(" _ list_Expression _ loc_close_paren
     (_ "with" __ declaration_list):? {%
   function(data, start){
     return {
@@ -489,10 +489,6 @@ exp_product -> expression_atom {% id %}
 expression_atom -> MemberExpression {% id %}
     | Application {% id %}
 
-expression_list -> null {% noopArr %}
-    | Expression {% idArr %}
-    | expression_list _ "," _ Expression {% function(d){return d[0].concat([d[4]])} %}
-
 MemberExpression -> PrimaryExpression {% id %}
     | Function {% id %}
     | MemberExpression _ "[" _ Expression _ loc_close_square
@@ -514,6 +510,10 @@ Literal ->
     | Array {% id %}
     | Map {% id %}
 
+list_Expression -> null {% noopArr %}
+    | Expression {% idArr %}
+    | list_Expression _ "," _ Expression {% function(d){return d[0].concat([d[4]])} %}
+
 ################################################################################
 # Functions
 
@@ -533,7 +533,7 @@ function_params ->
     | Identifier {% idArr %}
     | function_params _ "," _ Identifier {% function(d){return d[0].concat([d[4]])} %}
 
-Application -> MemberExpression _ "(" _ expression_list _ loc_close_paren {%
+Application -> MemberExpression _ "(" _ list_Expression _ loc_close_paren {%
   function(data, start){
     return {
       loc: {start: start, end: last(data)},
@@ -547,7 +547,7 @@ Application -> MemberExpression _ "(" _ expression_list _ loc_close_paren {%
 ################################################################################
 # Literal Datastructures
 
-Array -> "[" _ expression_list _ loc_close_square {%
+Array -> "[" _ list_Expression _ loc_close_square {%
   function(data, loc){
     return {
       type: 'Array',
