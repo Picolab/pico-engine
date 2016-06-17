@@ -478,7 +478,7 @@ var grammar = {
     {"name": "expression_atom", "symbols": ["Boolean"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Identifier"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Array"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["Object"], "postprocess": id},
+    {"name": "expression_atom", "symbols": ["Map"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["RegExp"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["DoubleQuote"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Function"], "postprocess": id},
@@ -521,23 +521,23 @@ var grammar = {
           };
         }
         },
-    {"name": "Object", "symbols": [{"literal":"{"}, "_", "_object_kv_pairs", "_", "loc_close_curly"], "postprocess": 
+    {"name": "Map", "symbols": [{"literal":"{"}, "_", "map_kv_pairs", "_", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
             loc: {start: loc, end: last(data)},
-            type: 'Object',
+            type: 'Map',
             value: data[2]
           };
         }
         },
-    {"name": "_object_kv_pairs", "symbols": [], "postprocess": noopArr},
-    {"name": "_object_kv_pairs", "symbols": ["_object_kv_pair"], "postprocess": idArr},
-    {"name": "_object_kv_pairs", "symbols": ["_object_kv_pairs", "_", {"literal":","}, "_", "_object_kv_pair"], "postprocess": function(d){return d[0].concat(d[4])}},
-    {"name": "_object_kv_pair", "symbols": ["String", "_", {"literal":":"}, "_", "expression"], "postprocess": 
+    {"name": "map_kv_pairs", "symbols": [], "postprocess": noopArr},
+    {"name": "map_kv_pairs", "symbols": ["map_kv_pair"], "postprocess": idArr},
+    {"name": "map_kv_pairs", "symbols": ["map_kv_pairs", "_", {"literal":","}, "_", "map_kv_pair"], "postprocess": function(d){return d[0].concat(d[4])}},
+    {"name": "map_kv_pair", "symbols": ["String", "_", {"literal":":"}, "_", "expression"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: data[4].loc.end},
-            type: 'ObjectProperty',
+            type: 'MapKeyValuePair',
             key: data[0],
             value: data[4]
           };

@@ -573,27 +573,27 @@ test('parser - literals', function(t){
     {type: 'Boolean', value: false}
   ]});
 
-  testLiteral('{}', {type: 'Object', value: []});
-  testLiteral('{ "one" : "two" }', {type: 'Object', value: [
+  testLiteral('{}', {type: 'Map', value: []});
+  testLiteral('{ "one" : "two" }', {type: 'Map', value: [
     {
-      type: 'ObjectProperty',
+      type: 'MapKeyValuePair',
       key: {type:'String',value:'one'},
       value: {type:'String',value:'two'}
     }
   ]});
-  testLiteral('{"1":2,"3":true,"5":[]}', {type: 'Object', value: [
+  testLiteral('{"1":2,"3":true,"5":[]}', {type: 'Map', value: [
     {
-      type: 'ObjectProperty',
+      type: 'MapKeyValuePair',
       key: {type:'String',value:'1'},
       value: {type:'Number',value:2}
     },
     {
-      type: 'ObjectProperty',
+      type: 'MapKeyValuePair',
       key: {type:'String',value:'3'},
       value: {type:'Boolean',value:true}
     },
     {
-      type: 'ObjectProperty',
+      type: 'MapKeyValuePair',
       key: {type:'String',value:'5'},
       value: {type:'Array',value:[]}
     }
@@ -640,9 +640,9 @@ test('parser - literals', function(t){
     type: 'DoubleQuote',
     value: [
       {type: 'String', value: 'one'},
-      {type: 'Object', value: [
+      {type: 'Map', value: [
         {
-          type: 'ObjectProperty',
+          type: 'MapKeyValuePair',
           key: {type:'String',value:'one'},
           value: {type:'Number',value:2}
         }

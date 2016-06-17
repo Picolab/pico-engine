@@ -466,7 +466,7 @@ expression_atom ->
     | Boolean {% id %}
     | Identifier {% id %}
     | Array {% id %}
-    | Object {% id %}
+    | Map {% id %}
     | RegExp {% id %}
     | DoubleQuote {% id %}
     | Function {% id %}
@@ -523,25 +523,25 @@ Array -> "[" _ expression_list _ loc_close_square {%
   }
 %}
 
-Object -> "{" _ _object_kv_pairs _ loc_close_curly {%
+Map -> "{" _ map_kv_pairs _ loc_close_curly {%
   function(data, loc){
     return {
       loc: {start: loc, end: last(data)},
-      type: 'Object',
+      type: 'Map',
       value: data[2]
     };
   }
 %}
 
-_object_kv_pairs -> null {% noopArr %}
-    | _object_kv_pair {% idArr %}
-    | _object_kv_pairs _ "," _ _object_kv_pair {% function(d){return d[0].concat(d[4])} %}
+map_kv_pairs -> null {% noopArr %}
+    | map_kv_pair {% idArr %}
+    | map_kv_pairs _ "," _ map_kv_pair {% function(d){return d[0].concat(d[4])} %}
 
-_object_kv_pair -> String _ ":" _ expression {%
+map_kv_pair -> String _ ":" _ expression {%
   function(data, start){
     return {
       loc: {start: start, end: data[4].loc.end},
-      type: 'ObjectProperty',
+      type: 'MapKeyValuePair',
       key: data[0],
       value: data[4]
     };
