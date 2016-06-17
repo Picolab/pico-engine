@@ -253,21 +253,21 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("between", 0, 6, 10) %}
     | event_exp_fns __ "not" __ "between" _ "(" _ EventExpression _ "," _ EventExpression _ loc_close_paren
       {% complexEventOp("not between", 0, 8, 12) %}
-    | "any" __ PositiveInteger _ "(" _ EventExpression_list _ loc_close_paren
+    | "any" __ PositiveInteger _ "(" _ list_EventExpression _ loc_close_paren
       {% complexEventOp("any", 2, 6) %}
     | "count" __ PositiveInteger _ "(" _ EventExpression _ loc_close_paren
       {% complexEventOp("count", 2, 6) %}
     | "repeat" __ PositiveInteger _ "(" _ EventExpression _ loc_close_paren
       {% complexEventOp("repeat", 2, 6) %}
-    | "and" _ "(" _ EventExpression_list _ loc_close_paren
+    | "and" _ "(" _ list_EventExpression _ loc_close_paren
       {% complexEventOp("and", 4) %}
-    | "or" _ "(" _ EventExpression_list _ loc_close_paren
+    | "or" _ "(" _ list_EventExpression _ loc_close_paren
       {% complexEventOp("or", 4) %}
-    | "before" _ "(" _ EventExpression_list _ loc_close_paren
+    | "before" _ "(" _ list_EventExpression _ loc_close_paren
       {% complexEventOp("before", 4) %}
-    | "then" _ "(" _ EventExpression_list _ loc_close_paren
+    | "then" _ "(" _ list_EventExpression _ loc_close_paren
       {% complexEventOp("then", 4) %}
-    | "after" _ "(" _ EventExpression_list _ loc_close_paren
+    | "after" _ "(" _ list_EventExpression _ loc_close_paren
       {% complexEventOp("after", 4) %}
     | event_exp_fns __  "max" _ "(" _ function_params _ loc_close_paren
       {% complexEventOp("max", 0, 6) %}
@@ -313,10 +313,9 @@ event_exp_attribute_pair -> Identifier __ RegExp {%
   }
 %}
 
-EventExpression_list ->
-    null {% noopArr %}
-    | EventExpression {% idArr %}
-    | EventExpression_list _ "," _ EventExpression {% function(d){return d[0].concat([d[4]])} %}
+list_EventExpression -> EventExpression {% idArr %}
+    | list_EventExpression _ "," _ EventExpression
+      {% function(d){return d[0].concat([d[4]])} %}
 
 time_period -> time_period_enum {%
   function(data, start){
