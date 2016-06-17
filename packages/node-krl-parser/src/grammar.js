@@ -379,7 +379,7 @@ var grammar = {
             loc: {start: start, end: lastEndLoc(data)},
             type: 'RuleAction',
             label: data[0] && data[0][0],
-            callee: data[1],
+            action: data[1],
             args: data[5],
             "with": data[8] ? data[8][3] : []
           };

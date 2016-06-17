@@ -230,7 +230,7 @@ test('parser - action', function(t){
       {
         type: 'RuleAction',
         label: null,
-        callee: mk.id('send_directive'),
+        action: mk.id('send_directive'),
         args: [mk('say')],
         "with": []
       }
@@ -247,7 +247,7 @@ test('parser - action', function(t){
       {
         type: 'RuleAction',
         label: null,
-        callee: mk.id('send_directive'),
+        action: mk.id('send_directive'),
         args: [mk('say')],
         "with": [
           mk.declare('=', mk.id('something'), mk('hello world'))
@@ -269,7 +269,7 @@ test('parser - action', function(t){
       {
         type: 'RuleAction',
         label: null,
-        callee: mk.id('send_directive'),
+        action: mk.id('send_directive'),
         args: [mk('say')],
         "with": [
           mk.declare('=', mk.id('one'), mk(1)),
@@ -289,7 +289,7 @@ test('parser - action', function(t){
       {
         type: 'RuleAction',
         label: null,
-        callee: mk.id('blah'),
+        action: mk.id('blah'),
         args: [],
         "with": []
       }
@@ -305,7 +305,7 @@ test('parser - action', function(t){
       {
         type: 'RuleAction',
         label: mk.id('lbl'),
-        callee: mk.id('blah'),
+        action: mk.id('blah'),
         args: [],
         "with": []
       }
@@ -323,21 +323,21 @@ test('parser - action', function(t){
       {
         type: 'RuleAction',
         label: mk.id('one'),
-        callee: mk.id('blah'),
+        action: mk.id('blah'),
         args: [mk(1)],
         "with": []
       },
       {
         type: 'RuleAction',
         label: mk.id('two'),
-        callee: mk.id('blah'),
+        action: mk.id('blah'),
         args: [mk(2)],
         "with": []
       },
       {
         type: 'RuleAction',
         label: null,
-        callee: mk.id('noop'),
+        action: mk.id('noop'),
         args: [],
         "with": []
       }
@@ -360,14 +360,14 @@ test('parser - action', function(t){
       {
         type: 'RuleAction',
         label: mk.id('one'),
-        callee: mk.id('blah'),
+        action: mk.id('blah'),
         args: [mk(1)],
         "with": []
       },
       {
         type: 'RuleAction',
         label: mk.id('two'),
-        callee: mk.id('blah'),
+        action: mk.id('blah'),
         args: [mk(2)],
         "with": []
       }
@@ -478,7 +478,7 @@ test('parser - locations', function(t){
     loc: {start: 39, end: 60},
     type: 'RuleAction',
     label: null,
-    callee: {
+    action: {
       loc: {start: 39, end: 53},
       type: 'Identifier',
       value: 'send_directive'
@@ -497,7 +497,7 @@ test('parser - locations', function(t){
     loc: {start: 39, end: 74},
     type: 'RuleAction',
     label: null,
-    callee: {
+    action: {
       loc: {start: 39, end: 53},
       type: 'Identifier',
       value: 'send_directive'
