@@ -48,7 +48,7 @@ mk.ee = function(domain, type, attrs, where, setting){
   };
 };
 mk.assign = function(op, left, right){
-  return {type: 'AssignmentExpression', op: op, left: left, right: right};
+  return {type: 'Assignment', op: op, left: left, right: right};
 };
 
 var mkEventExp = function(domain, type){
@@ -512,7 +512,7 @@ test('parser - locations', function(t){
     'with': [
       {
         loc: {start: 66, end: 74},
-        type: 'AssignmentExpression',
+        type: 'Assignment',
         op: '=',
         left: {
           loc: {start: 66, end: 70},
@@ -769,7 +769,7 @@ test('parser - expressions', function(t){
   });
 
   testExp('a = "one"', {
-    type: 'AssignmentExpression',
+    type: 'Assignment',
     op: '=',
     left: mk.id('a'),
     right: mk('one')
@@ -1061,13 +1061,13 @@ test('parser - Rule prelude', function(t){
 
   testPre('a = 1 b = 2', [
     {
-      type: 'AssignmentExpression',
+      type: 'Assignment',
       op: '=',
       left: mk.id('a'),
       right: mk(1)
     },
     {
-      type: 'AssignmentExpression',
+      type: 'Assignment',
       op: '=',
       left: mk.id('b'),
       right: mk(2)

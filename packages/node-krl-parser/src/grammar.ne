@@ -138,7 +138,7 @@ main -> _ ruleset _ {% getN(1) %}
 
 ruleset -> "ruleset" __ Identifier _ "{" _
   ("meta" _ "{" _ ruleset_meta_body _ "}" _):?
-  ("global" _ "{" _ "}" _):?
+  ("global" _ "{" _ assignment_list "}" _):?
   (rule _):*
 loc_close_curly {%
   function(data, loc){
@@ -150,7 +150,7 @@ loc_close_curly {%
 
       meta: data[6] ? data[6][4] : [],
 
-      global: [],
+      global: data[7] ? data[7][4] : [],
 
       rules: data[8].map(function(pair){
         return pair[0];
@@ -386,14 +386,27 @@ postlude_clause -> "{" _ statement_list _ loc_close_curly {%
 #
 
 statement -> expression {% id %}
+    | Assignment {% id %}
+
+Assignment -> left_side_of_assignment _ "=" _ expression {%
+  function(data, start){
+    return {
+      loc: {start: data[0].loc.start, end: data[4].loc.end},
+      type: 'Assignment',
+      op: data[2],
+      left: data[0],
+      right: data[4]
+    };
+  }
+%}
 
 statement_list -> null {% noopArr %}
     | statement {% idArr %}
     | statement_list _ ";" _ statement {% function(d){return d[0].concat(d[4])} %}
 
 assignment_list -> null {% noopArr %}
-    | AssignmentExpression {% idArr %}
-    | assignment_list __ AssignmentExpression {% function(d){return d[0].concat(d[2])} %}
+    | Assignment {% idArr %}
+    | assignment_list __ Assignment {% function(d){return d[0].concat(d[2])} %}
 
 ################################################################################
 #
@@ -401,7 +414,6 @@ assignment_list -> null {% noopArr %}
 #
 
 expression -> exp_conditional {% id %}
-    | AssignmentExpression {% id %}
 
 exp_conditional -> exp_or {% id %}
     | exp_or _ "=>" _ exp_or _ "|" _ exp_conditional {%
@@ -461,19 +473,6 @@ expression_atom ->
 expression_list -> null {% noopArr %}
     | expression {% idArr %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
-
-
-AssignmentExpression -> left_side_of_assignment _ "=" _ expression {%
-  function(data, start){
-    return {
-      loc: {start: data[0].loc.start, end: data[4].loc.end},
-      type: 'AssignmentExpression',
-      op: data[2],
-      left: data[0],
-      right: data[4]
-    };
-  }
-%}
 
 # Later we may add destructuring
 left_side_of_assignment -> Identifier {% id %}
