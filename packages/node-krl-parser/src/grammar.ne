@@ -412,6 +412,9 @@ Declaration -> left_side_of_declaration _ "=" _ expression {%
   }
 %}
 
+# Later we may add destructuring
+left_side_of_declaration -> Identifier {% id %}
+
 statement_list -> null {% noopArr %}
     | statement {% idArr %}
     | statement_list _ ";" _ statement {% function(d){return d[0].concat(d[4])} %}
@@ -475,21 +478,23 @@ expression_atom ->
       String {% id %}
     | Number {% id %}
     | Boolean {% id %}
-    | Identifier {% id %}
-    | Array {% id %}
-    | Map {% id %}
     | RegExp {% id %}
     | Chevron {% id %}
     | Function {% id %}
     | Application {% id %}
-    | "(" _ expression _ ")" {% getN(2) %}
+    | MemberExpression {% id %}
 
 expression_list -> null {% noopArr %}
     | expression {% idArr %}
     | expression_list _ "," _ expression {% function(d){return d[0].concat([d[4]])} %}
 
-# Later we may add destructuring
-left_side_of_declaration -> Identifier {% id %}
+MemberExpression -> PrimaryExpression {% id %}
+
+PrimaryExpression ->
+      Identifier {% id %}
+    | Array {% id %}
+    | Map {% id %}
+    | "(" _ expression _ ")" {% getN(2) %}
 
 ################################################################################
 # Functions

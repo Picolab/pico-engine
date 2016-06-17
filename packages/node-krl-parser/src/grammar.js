@@ -428,6 +428,7 @@ var grammar = {
           };
         }
         },
+    {"name": "left_side_of_declaration", "symbols": ["Identifier"], "postprocess": id},
     {"name": "statement_list", "symbols": [], "postprocess": noopArr},
     {"name": "statement_list", "symbols": ["statement"], "postprocess": idArr},
     {"name": "statement_list", "symbols": ["statement_list", "_", {"literal":";"}, "_", "statement"], "postprocess": function(d){return d[0].concat(d[4])}},
@@ -488,18 +489,19 @@ var grammar = {
     {"name": "expression_atom", "symbols": ["String"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Number"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Boolean"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["Identifier"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["Array"], "postprocess": id},
-    {"name": "expression_atom", "symbols": ["Map"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["RegExp"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Chevron"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Function"], "postprocess": id},
     {"name": "expression_atom", "symbols": ["Application"], "postprocess": id},
-    {"name": "expression_atom", "symbols": [{"literal":"("}, "_", "expression", "_", {"literal":")"}], "postprocess": getN(2)},
+    {"name": "expression_atom", "symbols": ["MemberExpression"], "postprocess": id},
     {"name": "expression_list", "symbols": [], "postprocess": noopArr},
     {"name": "expression_list", "symbols": ["expression"], "postprocess": idArr},
     {"name": "expression_list", "symbols": ["expression_list", "_", {"literal":","}, "_", "expression"], "postprocess": function(d){return d[0].concat([d[4]])}},
-    {"name": "left_side_of_declaration", "symbols": ["Identifier"], "postprocess": id},
+    {"name": "MemberExpression", "symbols": ["PrimaryExpression"], "postprocess": id},
+    {"name": "PrimaryExpression", "symbols": ["Identifier"], "postprocess": id},
+    {"name": "PrimaryExpression", "symbols": ["Array"], "postprocess": id},
+    {"name": "PrimaryExpression", "symbols": ["Map"], "postprocess": id},
+    {"name": "PrimaryExpression", "symbols": [{"literal":"("}, "_", "expression", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "Function$string$1", "symbols": [{"literal":"f"}, {"literal":"u"}, {"literal":"n"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "_", "function_params", "_", {"literal":")"}, "_", {"literal":"{"}, "_", "statement_list", "_", "loc_close_curly"], "postprocess": 
         function(data, start){
