@@ -23,7 +23,7 @@ var src_pretty = generator(ast);
 ## API
 
 ### src = generator(ast[, options])
- * `options.indent` - the string to be used for 1 level of indentation (default `"  "`).
+ * `options.indent` - the string to be used for 1 level of indentation (default `"  "` - 2 spaces).
 
 ## License
 MIT
