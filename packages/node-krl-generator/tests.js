@@ -4,6 +4,7 @@ var path = require('path');
 var test = require('tape');
 var parser = require('krl-parser');
 var generator = require('./');
+var commentsRegExp = require('krl-parser/src/commentsRegExp');
 
 var files_dir = path.resolve(__dirname, './test-files');
 
@@ -14,9 +15,10 @@ test('compiler', function(t){
       fs.readFile(path.resolve(files_dir, file), 'utf-8', function(err, src){
         if(err) return next(err);
 
-        var out = generator(parser(src));
+        src = src.replace(commentsRegExp, '').trim();
 
-        t.equals(out, src.trim());
+        var out = generator(parser(src));
+        t.equals(out, src, path.basename(file));
 
         next();
       });
