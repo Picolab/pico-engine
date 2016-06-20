@@ -208,7 +208,7 @@ Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
 #
 
 rule -> "rule" __ Identifier (__ "is" __ rule_state):? _ "{" _
-  ("select" __ "when" __ EventExpression _ (";" _):?):?
+  ("select" __ "when" __ EventExpression _semi):?
 
   ("pre" _ declaration_block _ ):?
 
@@ -748,3 +748,10 @@ loc_close_chevron -> ">>" {% idEndLoc %}
 # Whitespace
 _  -> [\s]:* {% noop %}
 __ -> [\s]:+ {% noop %}
+
+##optional space and/or semi-colon
+_semi -> [\s;]:* {% noop %}
+
+##required space and/or semi-colon
+__semi -> [\s;]:+ {% noop %}
+#if you must have semi-colon, use ";" directly

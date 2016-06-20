@@ -212,10 +212,7 @@ var grammar = {
     {"name": "rule$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "rule$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"l"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "rule$ebnf$2$subexpression$1$string$2", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule$ebnf$2$subexpression$1$ebnf$1$subexpression$1", "symbols": [{"literal":";"}, "_"]},
-    {"name": "rule$ebnf$2$subexpression$1$ebnf$1", "symbols": ["rule$ebnf$2$subexpression$1$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "rule$ebnf$2$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$2$subexpression$1", "symbols": ["rule$ebnf$2$subexpression$1$string$1", "__", "rule$ebnf$2$subexpression$1$string$2", "__", "EventExpression", "_", "rule$ebnf$2$subexpression$1$ebnf$1"]},
+    {"name": "rule$ebnf$2$subexpression$1", "symbols": ["rule$ebnf$2$subexpression$1$string$1", "__", "rule$ebnf$2$subexpression$1$string$2", "__", "EventExpression", "_semi"]},
     {"name": "rule$ebnf$2", "symbols": ["rule$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "rule$ebnf$3$subexpression$1$string$1", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -719,7 +716,13 @@ var grammar = {
     {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": noop},
     {"name": "__$ebnf$1", "symbols": [/[\s]/]},
     {"name": "__$ebnf$1", "symbols": [/[\s]/, "__$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "__", "symbols": ["__$ebnf$1"], "postprocess": noop}
+    {"name": "__", "symbols": ["__$ebnf$1"], "postprocess": noop},
+    {"name": "_semi$ebnf$1", "symbols": []},
+    {"name": "_semi$ebnf$1", "symbols": [/[\s;]/, "_semi$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "_semi", "symbols": ["_semi$ebnf$1"], "postprocess": noop},
+    {"name": "__semi$ebnf$1", "symbols": [/[\s;]/]},
+    {"name": "__semi$ebnf$1", "symbols": [/[\s;]/, "__semi$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "__semi", "symbols": ["__semi$ebnf$1"], "postprocess": noop}
 ]
   , ParserStart: "main"
 }

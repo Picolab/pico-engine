@@ -164,7 +164,7 @@ test('parser', function(t){
   t.end();
 });
 
-test('parser - select when', function(t){
+test('select when', function(t){
   var asertRuleAST = function(rule_body, expected){
     var ast = parseRuleBody(rule_body);
     t.ok(_.has(ast, 'select_when'));
@@ -217,7 +217,7 @@ test('parser - select when', function(t){
   t.end();
 });
 
-test('parser - action', function(t){
+test('action', function(t){
   var testAction = function(action_body, expected){
     var src = 'ruleset rs{rule r1{select when a b '+action_body+'}}';
     var ast = normalizeAST(rmLoc(parser(src)));
@@ -380,7 +380,7 @@ test('parser - action', function(t){
   t.end();
 });
 
-test('parser - locations', function(t){
+test('locations', function(t){
   var src = '';
   src += 'ruleset one {\n';
   src += '  rule two {\n';
@@ -553,7 +553,7 @@ test('parser - locations', function(t){
   t.end();
 });
 
-test('parser - literals', function(t){
+test('literals', function(t){
   var testLiteral = function(src, expected){
     var ast = parser(src);
     t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
@@ -683,7 +683,7 @@ test('parser - literals', function(t){
   t.end();
 });
 
-test('parser - operator precedence', function(t){
+test('operator precedence', function(t){
   var testPrec = function(src, expected){
     var ast = normalizeAST(rmLoc(parser(src)));
     t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
@@ -713,7 +713,7 @@ test('parser - operator precedence', function(t){
   t.end();
 });
 
-test('parser - expressions', function(t){
+test('expressions', function(t){
   var testExp = function(src, expected){
     var ast = parser(src);
     t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
@@ -892,7 +892,7 @@ test('parser - expressions', function(t){
   t.end();
 });
 
-test('parser - EventExpression', function(t){
+test('EventExpression', function(t){
   var testEE = function(rule_body, expected){
     if(/\)\s*$/.test(rule_body)){
       rule_body += ';';//TODO can remove this?
@@ -1125,7 +1125,7 @@ test('parser - EventExpression', function(t){
   t.end();
 });
 
-test('parser - Ruleset meta', function(t){
+test('Ruleset meta', function(t){
   var testMeta = function(meta_body, expected){
     var src = 'ruleset rs{meta{' + meta_body + '}}';
     var ast = normalizeAST(rmLoc(parser(src)));
@@ -1179,7 +1179,7 @@ test('parser - Ruleset meta', function(t){
   t.end();
 });
 
-test('parser - Rule prelude', function(t){
+test('Rule prelude', function(t){
   var testPre = function(pre_body, expected){
     var src = 'ruleset rs{rule r1{pre{' + pre_body + '}}}';
     var ast = normalizeAST(rmLoc(parser(src)));
@@ -1204,7 +1204,7 @@ test('parser - Rule prelude', function(t){
   t.end();
 });
 
-test('parser - Rule state', function(t){
+test('Rule state', function(t){
   var testRuleState = function(rule, expected){
     var src = 'ruleset rs{' + rule + '}';
     var ast = normalizeAST(rmLoc(parser(src)));
@@ -1219,7 +1219,7 @@ test('parser - Rule state', function(t){
   t.end();
 });
 
-test('parser - RulePostlude', function(t){
+test('RulePostlude', function(t){
   var testPost = function(postlude, expected){
     var src = 'ruleset rs{rule r1{' + postlude + '}}';
     var ast = normalizeAST(rmLoc(parser(src)));
@@ -1296,7 +1296,7 @@ test('parser - RulePostlude', function(t){
   t.end();
 });
 
-test('parser - Parser should only return one ast', function(t){
+test('Parser should only return one ast', function(t){
 
   var src = [
     'ruleset hello_world {',
@@ -1311,7 +1311,7 @@ test('parser - Parser should only return one ast', function(t){
   t.end();
 });
 
-test('parser - ruleset global declarations', function(t){
+test('ruleset global declarations', function(t){
   var testGlobal = function(global_body, expected){
     var src = [
       'ruleset rs {',
@@ -1336,5 +1336,9 @@ test('parser - ruleset global declarations', function(t){
     mk.declare('=', mk.id('b'), mk(2))
   ]);
 
+  t.end();
+});
+
+test('comments', function(t){
   t.end();
 });
