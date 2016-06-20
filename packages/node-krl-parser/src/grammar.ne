@@ -745,7 +745,7 @@ loc_close_square -> "]" {% idEndLoc %}
 loc_close_paren -> ")" {% idEndLoc %}
 loc_close_chevron -> ">>" {% idEndLoc %}
 
-# Whitespace
+# Whitespace and Semi-colons
 _  -> [\s]:* {% noop %}
 __ -> [\s]:+ {% noop %}
 
