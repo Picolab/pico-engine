@@ -1350,3 +1350,26 @@ test('comments preserver locations', function(t){
   }));
   t.end();
 });
+
+test('parse errors', function(t){
+  var src = '';
+  src += '//test parse error reporting\n';
+  src += 'ruleset rs {\n';
+  src += '  rule r0 {\n';
+  src += '    select blah\n';
+  src += '  }\n';
+  src += '}';
+  try{
+    parser(src, {filename: 'select-blah.krl'});
+    t.fail();
+  }catch(e){
+    var emsg = '';
+    emsg += 'No possible parsings\n';
+    emsg += 'select-blah.krl:4:12\n';
+    emsg += ' \n';//the space is a hack b/c errors usually collapse blank lines
+    emsg += '    select blah\n';
+    emsg += '           ^';
+    t.equals(e.message, emsg);
+  }
+  t.end();
+});
