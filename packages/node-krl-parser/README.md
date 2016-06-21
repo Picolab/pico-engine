@@ -361,7 +361,7 @@ re#^My name is (.*)#i
 }
 ```
 
-#### Assignment
+#### Declaration
 
 ```js
 A = B

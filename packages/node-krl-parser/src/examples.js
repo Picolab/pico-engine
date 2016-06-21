@@ -76,7 +76,7 @@ var examples = {
     '<<\n  hello #{name}!\n  >>',
     '<< This #{ x{"flip"} } that >>'
   ],
-  '#### Assignment': [
+  '#### Declaration': [
     'A = B'
   ],
   '#### Infix Operators': [
