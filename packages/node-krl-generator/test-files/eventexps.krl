@@ -61,4 +61,16 @@ ruleset eventexps {
       within 3 hours
     noop()
   }
+  rule test10 {
+    select when repeat 3 (
+      web aaa
+    );
+    noop()
+  }
+  rule test11 {
+    select when repeat 5 (
+      bank withdrawal amount re#(.*)#
+    ) max(m);
+    noop()
+  }
 }
