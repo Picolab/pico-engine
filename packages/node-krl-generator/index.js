@@ -26,11 +26,27 @@ var gen_by_type = {
       + (r.global ? 'g' : '')
       + (r.ignoreCase ? 'i' : '');
   },
+  'Array': function(ast, ind, gen){
+    return '[' + _.map(ast.value, function(ast){
+      return gen(ast);
+    }).join(', ') + ']';
+  },
+  'Map': function(ast, ind, gen){
+    return '{' + _.map(ast.value, function(ast){
+      return gen(ast);
+    }).join(', ') + '}';
+  },
+  'MapKeyValuePair': function(ast, ind, gen){
+    return gen(ast.key) + ': ' + gen(ast.value);
+  },
   'InfixOperator': function(ast, ind, gen){
     return gen(ast.left) + ' ' + ast.op + ' ' + gen(ast.right);
   },
   'MemberExpression': function(ast, ind, gen){
-    if(ast.method === ''){
+    if(ast.method === 'path'){
+      return gen(ast.object) + '{' + gen(ast.property) + '}';
+    }else if(ast.method === 'index'){
+      return gen(ast.object) + '[' + gen(ast.property) + ']';
     }
     return gen(ast.object) + '.' + gen(ast.property);
   },
