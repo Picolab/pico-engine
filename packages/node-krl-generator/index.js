@@ -67,7 +67,9 @@ var gen_by_type = {
     return src;
   },
   'Function': function(ast, ind, gen){
-    return 'function(' + gen(ast.params) + '){\n' + _.map(ast.body, function(stmt){
+    return 'function(' + _.map(ast.params, function(param){
+      return gen(param);
+    }).join(', ') + '){\n' + _.map(ast.body, function(stmt){
       return gen(stmt, 1);
     }).join(';\n') + '\n' + ind() + '}';
   },

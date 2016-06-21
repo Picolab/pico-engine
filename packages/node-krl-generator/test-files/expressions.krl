@@ -33,4 +33,14 @@ escape close: >\>
         g
     }
   }
+  rule Functions {
+    select when a b
+    always {
+      add = function(a, b){
+        other = b;
+        a + other
+      };
+      add(1, 2)
+    }
+  }
 }
