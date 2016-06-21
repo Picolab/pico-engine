@@ -25,9 +25,9 @@
   "homepage": "https://github.com/farskipper/node-krl-generator#readme",
   "devDependencies": {
     "contra": "^1.9.4",
+    "diff": "^2.2.3",
     "krl-parser": "^0.3.0",
-    "onchange": "^2.5.0",
-    "tape": "^4.5.1"
+    "onchange": "^2.5.0"
   },
   "dependencies": {
     "lodash": "^4.13.1"
