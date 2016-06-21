@@ -4,6 +4,9 @@ var gen_by_type = {
   'String': function(ast, ind, gen){
     return JSON.stringify(ast.value);
   },
+  'Number': function(ast, ind, gen){
+    return JSON.stringify(ast.value);
+  },
   'Identifier': function(ast, ind, gen){
     return ast.value;
   },
@@ -92,6 +95,14 @@ var gen_by_type = {
     return gen(ast.key) + ' ' + gen(ast.value);
   },
   'EventOperator': function(ast, ind, gen){
+    if(ast.op === 'any'){
+      var src = ast.op + ' ' + gen(ast.args[0]) + ' (\n';
+      src += ind(1) + _.map(_.tail(ast.args), function(arg){
+        return gen(arg, 1);
+      }).join(',\n' + ind(1));
+      src += '\n' + ind() + ')';
+      return src;
+    }
     return '\n' + ind(1) + _.map(ast.args, function(arg){
       return gen(arg, 1);
     }).join('\n' + ind(1) + ast.op + '\n' + ind(1));
