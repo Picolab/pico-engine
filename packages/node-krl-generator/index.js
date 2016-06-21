@@ -61,11 +61,13 @@ var gen_by_type = {
     var src = '';
     src += ind() + 'rule ' + gen(ast.name) + ' {\n';
     if(ast.select_when){
-      var select_when = gen(ast.select_when);
+      var select_when = gen(ast.select_when, 1);
       if(/\)/.test(select_when)){
         select_when += ';';
       }
-      src += ind(1) + 'select when ' + select_when + '\n';
+      src += ind(1) + 'select when';
+      src += select_when[0] === '\n' ? '' : ' ';
+      src += select_when + '\n';
     }
     src += gen(ast.action_block, 1) + '\n';
     src += ind() + '}';
@@ -90,9 +92,9 @@ var gen_by_type = {
     return gen(ast.key) + ' ' + gen(ast.value);
   },
   'EventOperator': function(ast, ind, gen){
-    return _.map(ast.args, function(arg){
+    return '\n' + ind(1) + _.map(ast.args, function(arg){
       return gen(arg, 1);
-    }).join(' ' + ast.op + ' ');
+    }).join('\n' + ind(1) + ast.op + '\n' + ind(1));
   },
   'RuleActionBlock': function(ast, ind, gen){
     var src = '';
