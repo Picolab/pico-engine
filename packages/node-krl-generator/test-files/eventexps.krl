@@ -31,4 +31,12 @@ ruleset eventexps {
     );
     noop()
   }
+  rule test6 {
+    select when and(
+      web aaa,
+      web bbb,
+      web ccc
+    );
+    noop()
+  }
 }
