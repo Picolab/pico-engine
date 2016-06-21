@@ -39,4 +39,26 @@ ruleset eventexps {
     );
     noop()
   }
+  rule test7 {
+    select when web aaa between(
+      web bbb,
+      web ccc
+    );
+    noop()
+  }
+  rule test8 {
+    select when web aaa not between(
+      web bbb,
+      web ccc
+    );
+    noop()
+  }
+  rule test9 {
+    select when
+      web aaa
+      before
+      web bbb
+      within 3 hours
+    noop()
+  }
 }
