@@ -43,7 +43,15 @@ var gen_by_type = {
     return gen(ast.key) + ': ' + gen(ast.value);
   },
   'InfixOperator': function(ast, ind, gen){
-    return gen(ast.left) + ' ' + ast.op + ' ' + gen(ast.right);
+    var src = '';
+    src += ast.left.type === 'InfixOperator'
+      ? '(' + gen(ast.left) + ')'
+      : gen(ast.left);
+    src += ' ' + ast.op + ' ';
+    src += ast.right.type === 'InfixOperator'
+      ? '(' + gen(ast.right) + ')'
+      : gen(ast.right);
+    return src;
   },
   'MemberExpression': function(ast, ind, gen){
     if(ast.method === 'path'){

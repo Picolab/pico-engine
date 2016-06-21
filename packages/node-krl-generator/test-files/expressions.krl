@@ -43,4 +43,13 @@ escape close: >\>
       add(1, 2)
     }
   }
+  rule OperatorPrecedence {
+    select when a b
+    always {
+      a + (b * c);
+      (a * b) + c;
+      a * (b + c);
+      (a + b) * c
+    }
+  }
 }
