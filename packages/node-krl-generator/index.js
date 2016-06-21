@@ -10,6 +10,9 @@ var gen_by_type = {
   'Identifier': function(ast, ind, gen){
     return ast.value;
   },
+  'Boolean': function(ast, ind, gen){
+    return ast.value ? 'true' : 'false';
+  },
   'Keyword': function(ast, ind, gen){
     return ast.value;
   },
@@ -49,6 +52,19 @@ var gen_by_type = {
       return gen(ast.object) + '[' + gen(ast.property) + ']';
     }
     return gen(ast.object) + '.' + gen(ast.property);
+  },
+  'ConditionalExpression': function(ast, ind, gen){
+    var src = '';
+    src += gen(ast.test);
+    src += ' => ';
+    src += gen(ast.consequent);
+    src += ' |\n';
+    if(ast.alternate.type === 'ConditionalExpression'){
+      src += ind() + gen(ast.alternate);
+    }else{
+      src += ind(1) + gen(ast.alternate);
+    }
+    return src;
   },
   'Function': function(ast, ind, gen){
     return 'function(' + gen(ast.params) + '){\n' + _.map(ast.body, function(stmt){

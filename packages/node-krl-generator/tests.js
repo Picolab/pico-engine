@@ -37,7 +37,7 @@ console.log('');
 console.log('Starting tests...');
 fs.readdir(files_dir, function(err, files){
   if(err) return allDone(err);
-  λ.each(files, function(file, next){
+  λ.each.series(files, function(file, next){
     fs.readFile(path.resolve(files_dir, file), 'utf-8', function(err, src){
       if(err) return next(err);
 
