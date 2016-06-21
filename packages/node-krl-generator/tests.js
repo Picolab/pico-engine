@@ -15,10 +15,8 @@ test('compiler', function(t){
       fs.readFile(path.resolve(files_dir, file), 'utf-8', function(err, src){
         if(err) return next(err);
 
-        src = src.replace(commentsRegExp, '').trim();
-
-        var out = generator(parser(src));
-        t.equals(out, src, path.basename(file));
+        var out = generator(parser(src, {filename: file}));
+        t.equals(out, src.replace(commentsRegExp, '').trim(), path.basename(file));
 
         next();
       });

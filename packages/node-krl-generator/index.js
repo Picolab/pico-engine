@@ -17,6 +17,12 @@ var gen_by_type = {
         : '#{' + gen(v) + '}';
     }).join('') + '>>';
   },
+  'RegExp': function(ast, ind, gen){
+    var r = ast.value;
+    return 're#' + r.source + '#'
+      + (r.global ? 'g' : '')
+      + (r.ignoreCase ? 'i' : '');
+  },
   'InfixOperator': function(ast, ind, gen){
     return gen(ast.left) + ' ' + ast.op + ' ' + gen(ast.right);
   },
@@ -60,7 +66,27 @@ var gen_by_type = {
     return src;
   },
   'EventExpression': function(ast, ind, gen){
-    return gen(ast.event_domain) + ' ' + gen(ast.event_type);
+    var needs_semi = false;
+    var src = '';
+    src += gen(ast.event_domain) + ' ' + gen(ast.event_type);
+    if(!_.isEmpty(ast.attributes)){
+      src += ' ' + _.map(ast.attributes, function(a){
+        return gen(a, 1);
+      }).join(' ');
+    }
+    if(!_.isEmpty(ast.setting)){
+      needs_semi = true;
+      src += ' setting(' + _.map(ast.setting, function(a){
+        return gen(a, 1);
+      }).join(', ') + ')';
+    }
+    if(needs_semi){
+      src += ';';
+    }
+    return src;
+  },
+  'AttributeMatch': function(ast, ind, gen){
+    return gen(ast.key) + ' ' + gen(ast.value);
   },
   'RuleActionBlock': function(ast, ind, gen){
     var src = '';
