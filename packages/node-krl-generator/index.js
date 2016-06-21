@@ -60,13 +60,18 @@ var gen_by_type = {
   'Rule': function(ast, ind, gen){
     var src = '';
     src += ind() + 'rule ' + gen(ast.name) + ' {\n';
-    src += ind(1) + 'select when ' + gen(ast.select_when) + '\n';
+    if(ast.select_when){
+      var select_when = gen(ast.select_when);
+      if(/\)/.test(select_when)){
+        select_when += ';';
+      }
+      src += ind(1) + 'select when ' + select_when + '\n';
+    }
     src += gen(ast.action_block, 1) + '\n';
     src += ind() + '}';
     return src;
   },
   'EventExpression': function(ast, ind, gen){
-    var needs_semi = false;
     var src = '';
     src += gen(ast.event_domain) + ' ' + gen(ast.event_type);
     if(!_.isEmpty(ast.attributes)){
@@ -75,18 +80,19 @@ var gen_by_type = {
       }).join(' ');
     }
     if(!_.isEmpty(ast.setting)){
-      needs_semi = true;
       src += ' setting(' + _.map(ast.setting, function(a){
         return gen(a, 1);
       }).join(', ') + ')';
-    }
-    if(needs_semi){
-      src += ';';
     }
     return src;
   },
   'AttributeMatch': function(ast, ind, gen){
     return gen(ast.key) + ' ' + gen(ast.value);
+  },
+  'EventOperator': function(ast, ind, gen){
+    return _.map(ast.args, function(arg){
+      return gen(arg, 1);
+    }).join(' ' + ast.op + ' ');
   },
   'RuleActionBlock': function(ast, ind, gen){
     var src = '';
