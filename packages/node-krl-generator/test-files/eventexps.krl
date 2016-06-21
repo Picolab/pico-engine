@@ -17,8 +17,7 @@ ruleset eventexps {
     noop()
   }
   rule test4 {
-    select when
-      web pageview aaa re#(.*)# setting(a)
+    select when web pageview aaa re#(.*)# setting(a)
       and
       web pageview bbb re#(.*)# setting(b);
     noop()
@@ -54,8 +53,7 @@ ruleset eventexps {
     noop()
   }
   rule test9 {
-    select when
-      web aaa
+    select when web aaa
       before
       web bbb
       within 3 hours
@@ -71,6 +69,24 @@ ruleset eventexps {
     select when repeat 5 (
       bank withdrawal amount re#(.*)#
     ) max(m);
+    noop()
+  }
+  rule test12 {
+    select when web aaa
+      and
+      web bbb
+      and
+      web ccc
+    noop()
+  }
+  rule test13 {
+    select when web aaa
+      or
+      web bbb
+      and
+      web ccc
+      before
+      web ddd
     noop()
   }
 }

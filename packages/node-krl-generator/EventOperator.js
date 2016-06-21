@@ -48,8 +48,8 @@ module.exports = function(ast, ind, gen){
     return gen(ast.args[0]) + ' ' + ast.op + fmtArgs(_.tail(ast.args), ind, gen);
   }
   if(infix_ops[ast.op] === true && _.size(ast.args) === 2){
-    return '\n' + ind(1) + _.map(ast.args, function(arg){
-      return gen(arg, 1);
+    return _.map(ast.args, function(arg){
+      return gen(arg);
     }).join('\n' + ind(1) + ast.op + '\n' + ind(1));
   }
   return ast.op + fmtArgs(ast.args, ind, gen);
