@@ -83,7 +83,12 @@ var gen_by_type = {
       src += select_when[0] === '\n' ? '' : ' ';
       src += select_when + '\n';
     }
-    src += gen(ast.action_block, 1) + '\n';
+    if(ast.action_block){
+      src += gen(ast.action_block, 1) + '\n';
+    }
+    if(ast.postlude){
+      src += gen(ast.postlude, 1) + '\n';
+    }
     src += ind() + '}';
     return src;
   },
@@ -119,6 +124,15 @@ var gen_by_type = {
     src += ind() + gen(ast.action) + '(' + gen(ast.args) + ')';
     if(!_.isEmpty(ast['with'])){
       src += ' with\n' + gen(ast['with'], 1);
+    }
+    return src;
+  },
+  'RulePostlude': function(ast, ind, gen){
+    var src = '';
+    if(ast.fired){
+    }else if(ast.always){
+      src += ind() + 'always {\n' + gen(ast.always, 1) + '\n' + ind() + '}';
+    }else if(ast.notfired){
     }
     return src;
   }
