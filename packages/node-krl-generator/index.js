@@ -1,5 +1,4 @@
 var _ = require('lodash');
-var EventOperator = require('./EventOperator');
 
 var gen_by_type = {
   'String': function(ast, ind, gen){
@@ -113,7 +112,7 @@ var gen_by_type = {
   'AttributeMatch': function(ast, ind, gen){
     return gen(ast.key) + ' ' + gen(ast.value);
   },
-  'EventOperator': EventOperator,
+  'EventOperator': require('./EventOperator'),
   'RuleActionBlock': function(ast, ind, gen){
     var src = '';
     src += gen(ast.actions);
@@ -127,15 +126,7 @@ var gen_by_type = {
     }
     return src;
   },
-  'RulePostlude': function(ast, ind, gen){
-    var src = '';
-    if(ast.fired){
-    }else if(ast.always){
-      src += ind() + 'always {\n' + gen(ast.always, 1) + '\n' + ind() + '}';
-    }else if(ast.notfired){
-    }
-    return src;
-  }
+  'RulePostlude': require('./RulePostlude')
 };
 
 module.exports = function(ast, options){
