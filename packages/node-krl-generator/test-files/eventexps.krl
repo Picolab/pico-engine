@@ -89,4 +89,8 @@ ruleset eventexps {
       web ddd
     noop()
   }
+  rule test14 {
+    select when web aaa attr1 re#(.*)# where attr2.match(re#(.*)#) setting(a, b);
+    noop()
+  }
 }

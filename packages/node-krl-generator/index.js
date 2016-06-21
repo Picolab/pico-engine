@@ -30,10 +30,20 @@ var gen_by_type = {
   'InfixOperator': function(ast, ind, gen){
     return gen(ast.left) + ' ' + ast.op + ' ' + gen(ast.right);
   },
+  'MemberExpression': function(ast, ind, gen){
+    if(ast.method === ''){
+    }
+    return gen(ast.object) + '.' + gen(ast.property);
+  },
   'Function': function(ast, ind, gen){
     return 'function(' + gen(ast.params) + '){\n' + _.map(ast.body, function(stmt){
       return gen(stmt, 1);
     }).join(';\n') + '\n' + ind() + '}';
+  },
+  'Application': function(ast, ind, gen){
+    return gen(ast.callee) + '(' + _.map(ast.args, function(arg){
+      return gen(arg);
+    }).join(', ') + ')';
   },
   'ExpressionStatement': function(ast, ind, gen){
     return ind() + gen(ast.expression);
@@ -84,6 +94,9 @@ var gen_by_type = {
       src += ' ' + _.map(ast.attributes, function(a){
         return gen(a, 1);
       }).join(' ');
+    }
+    if(ast.where){
+      src += ' where ' + gen(ast.where)
     }
     if(!_.isEmpty(ast.setting)){
       src += ' setting(' + _.map(ast.setting, function(a){
