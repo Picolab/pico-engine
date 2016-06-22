@@ -18,7 +18,9 @@ var onAmbiguousProgram = function(src){
 
   console.log(p.results.length, ' parsings found. Here is the diff for the first two');
 
-  console.log(diff(generator(p.results[0]), generator(p.results[1])));
+  console.log(diff(generator(p.results[0]), generator(p.results[1]), {
+    n_surrounding: 3
+  }));
 };
 
 var n = 0;
