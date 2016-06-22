@@ -1,28 +1,13 @@
 var _ = require('lodash');
 var λ = require('contra');
 var fs = require('fs');
+var diff = require('diff-lines');
 var path = require('path');
 var parser = require('krl-parser');
-var JsDiff = require('diff');
 var generator = require('./');
 var commentsRegExp = require('krl-parser/src/commentsRegExp');
 
 var files_dir = path.resolve(__dirname, './test-files');
-
-var diff = function(out, expected){
-  var diffs = JsDiff.diffLines(expected, out, {ignoreWhitespace: false});
-
-  return _.flattenDeep(_.map(diffs, function(d){
-    var mod = d.removed && d.added ? '!' : (d.removed ? '-' : (d.added ? '+' : ' '));
-    var lines = d.value.split('\n');
-    if(lines.length > 0 && lines[lines.length - 1] === ''){
-      lines = lines.slice(0, lines.length - 1);
-    }
-    return _.map(lines, function(line){
-      return mod + ' ' + line;
-    });
-  })).join('\n');
-};
 
 var allDone = function(err){
   if(err){
@@ -51,7 +36,7 @@ fs.readdir(files_dir, function(err, files){
         next();
       }else{
         console.log('');
-        console.log(diff(out, expected));
+        console.log(diff(expected, out));
         console.log('');
         next(new Error('see diff'));
       }
