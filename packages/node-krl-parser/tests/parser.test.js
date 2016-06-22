@@ -1389,6 +1389,7 @@ test('parse errors', function(t){
 });
 
 test('no ambiguity!', function(t){
+  //run $ node tests/ambiguityFinder.js to help you find them
   var testAmb = function(src){
     parser(src);
     t.ok(true);
@@ -1396,6 +1397,9 @@ test('no ambiguity!', function(t){
 
   testAmb('one_eq_two');
   testAmb('somelikethis');
+
+  //map_always{} -or- map_ always { getPath();
+  //testAmb('ruleset a{rule b{c() with d = map_always{getPath()}}}');
 
   t.end();
 });

@@ -211,9 +211,9 @@ Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
 #
 
 rule -> "rule" __ Identifier (__ "is" __ rule_state):? _ "{" _
-  ("select" __ "when" __ EventExpression _semi):?
+  (RuleSelect _semi):?
 
-  ("pre" _ declaration_block _ ):?
+  (RulePrelude _ ):?
 
   (RuleActionBlock _):?
 
@@ -226,8 +226,8 @@ loc_close_curly {%
       type: 'Rule',
       name: data[2],
       rule_state: data[3] ? data[3][3] : "active",
-      select_when: data[7] && data[7][4],
-      prelude: data[8] ? data[8][2] : [],
+      select_when: data[7] && data[7][0],
+      prelude: data[8] ? data[8][0] : [],
       action_block: data[9] && data[9][0],
       postlude: data[10] && data[10][0]
     };
@@ -235,6 +235,10 @@ loc_close_curly {%
 %}
 
 rule_state -> "active" {% id %} | "inactive" {% id %}
+
+RuleSelect -> "select" __ "when" __ EventExpression {% getN(4) %}
+
+RulePrelude -> "pre" _ declaration_block {% getN(2) %}
 
 ################################################################################
 #

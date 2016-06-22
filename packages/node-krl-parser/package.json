@@ -7,7 +7,7 @@
     "src/"
   ],
   "scripts": {
-    "start": "onchange 'src/' -e 'src/grammar.js' -i -- npm test -s",
+    "start": "onchange 'src/' 'tests/' -e 'src/grammar.js' -i -- npm test -s",
     "build": "nearleyc src/grammar.ne > src/grammar.js",
     "test": "npm run build -s && node tests | tap-min"
   },
