@@ -1391,8 +1391,17 @@ test('parse errors', function(t){
 test('no ambiguity!', function(t){
   //run $ node tests/ambiguityFinder.js to help you find them
   var testAmb = function(src){
-    parser(src);
-    t.ok(true);
+    try{
+      parser(src);
+      t.ok(true);
+    }catch(e){
+      if(/No possible parsings/i.test(e + '')){
+        //this is ok b/c it is not ambiguous
+        t.ok(true);
+      }else{
+        throw e
+      }
+    }
   };
 
   testAmb('one_eq_two');
@@ -1400,6 +1409,8 @@ test('no ambiguity!', function(t){
 
   //map_always{} -or- map_ always { getPath();
   testAmb('ruleset a{rule b{c() with d = map_always{getPath()}}}');
+
+  testAmb('ruleset a{rule b{select when Domain TypeAttrib re#(.*)#}}');
 
   t.end();
 });

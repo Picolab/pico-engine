@@ -321,7 +321,7 @@ event_exp_fns -> event_exp_base {% id %}
 
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier
-    event_exp_attribute_pairs
+    (__ event_exp_attribute_pairs):?
     (__ "where" __ Expression):?
     (__ "setting" _ "(" _ function_params _ loc_close_paren):? {%
   function(data, start){
@@ -330,15 +330,14 @@ event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
       loc: {start: start, end: lastEndLoc(data)},
       event_domain: data[0],
       event_type: data[2],
-      attributes: data[3],
+      attributes: (data[3] && data[3][1]) || [],
       where: data[4] && data[4][3],
       setting: (data[5] && data[5][5]) || []
     };
   }
 %}
 
-event_exp_attribute_pairs -> null {% noopArr %}
-    | event_exp_attribute_pair {% idArr %}
+event_exp_attribute_pairs -> event_exp_attribute_pair {% idArr %}
     | event_exp_attribute_pairs __ event_exp_attribute_pair {% concatArr(2) %}
 
 event_exp_attribute_pair -> Identifier __ RegExp {%

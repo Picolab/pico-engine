@@ -309,28 +309,30 @@ var grammar = {
     {"name": "event_exp_fns$string$16", "symbols": [{"literal":"p"}, {"literal":"u"}, {"literal":"s"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$16", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"], "postprocess": complexEventOp("push", 0, 6)},
     {"name": "event_exp_base", "symbols": [{"literal":"("}, "_", "EventExpression", "_", {"literal":")"}], "postprocess": getN(2)},
-    {"name": "event_exp_base$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_base$ebnf$1$subexpression$1", "symbols": ["__", "event_exp_base$ebnf$1$subexpression$1$string$1", "__", "Expression"]},
+    {"name": "event_exp_base$ebnf$1$subexpression$1", "symbols": ["__", "event_exp_attribute_pairs"]},
     {"name": "event_exp_base$ebnf$1", "symbols": ["event_exp_base$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "event_exp_base$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "event_exp_base$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"t"}, {"literal":"t"}, {"literal":"i"}, {"literal":"n"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_base$ebnf$2$subexpression$1", "symbols": ["__", "event_exp_base$ebnf$2$subexpression$1$string$1", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"]},
+    {"name": "event_exp_base$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exp_base$ebnf$2$subexpression$1", "symbols": ["__", "event_exp_base$ebnf$2$subexpression$1$string$1", "__", "Expression"]},
     {"name": "event_exp_base$ebnf$2", "symbols": ["event_exp_base$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "event_exp_base$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "event_exp_base", "symbols": ["Identifier", "__", "Identifier", "event_exp_attribute_pairs", "event_exp_base$ebnf$1", "event_exp_base$ebnf$2"], "postprocess": 
+    {"name": "event_exp_base$ebnf$3$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"t"}, {"literal":"t"}, {"literal":"i"}, {"literal":"n"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "event_exp_base$ebnf$3$subexpression$1", "symbols": ["__", "event_exp_base$ebnf$3$subexpression$1$string$1", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"]},
+    {"name": "event_exp_base$ebnf$3", "symbols": ["event_exp_base$ebnf$3$subexpression$1"], "postprocess": id},
+    {"name": "event_exp_base$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "event_exp_base", "symbols": ["Identifier", "__", "Identifier", "event_exp_base$ebnf$1", "event_exp_base$ebnf$2", "event_exp_base$ebnf$3"], "postprocess": 
         function(data, start){
           return {
             type: 'EventExpression',
             loc: {start: start, end: lastEndLoc(data)},
             event_domain: data[0],
             event_type: data[2],
-            attributes: data[3],
+            attributes: (data[3] && data[3][1]) || [],
             where: data[4] && data[4][3],
             setting: (data[5] && data[5][5]) || []
           };
         }
         },
-    {"name": "event_exp_attribute_pairs", "symbols": [], "postprocess": noopArr},
     {"name": "event_exp_attribute_pairs", "symbols": ["event_exp_attribute_pair"], "postprocess": idArr},
     {"name": "event_exp_attribute_pairs", "symbols": ["event_exp_attribute_pairs", "__", "event_exp_attribute_pair"], "postprocess": concatArr(2)},
     {"name": "event_exp_attribute_pair", "symbols": ["Identifier", "__", "RegExp"], "postprocess": 
