@@ -1,2 +1,2 @@
 require('./commentsToSpaces.test');
-require('./index.test');
+require('./parser.test');

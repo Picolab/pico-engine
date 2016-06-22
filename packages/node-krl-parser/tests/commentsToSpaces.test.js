@@ -1,4 +1,4 @@
-var fn = require('./commentsToSpaces');
+var fn = require('../src/commentsToSpaces');
 var test = require('tape');
 
 test('commentsToSpaces', function(t){

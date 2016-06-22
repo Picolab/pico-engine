@@ -1,7 +1,7 @@
 var _ = require('lodash');
 var test = require('tape');
 var rmLoc = require('./rmLoc');
-var parser = require('./');
+var parser = require('../');
 var normalizeAST = require('./normalizeASTForTestCompare');
 
 var parseRuleBody = function(rule_body, expected){
