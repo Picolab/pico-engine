@@ -196,7 +196,7 @@ ruleset_meta_block -> "{" _ "}" {% noopArr %}
 ruleset_meta_prop_list -> ruleset_meta_prop {% idArr %}
     | ruleset_meta_prop_list __ ruleset_meta_prop {% concatArr(2) %}
 
-ruleset_meta_prop -> Keyword __ Expression {%
+ruleset_meta_prop -> Keyword __ PrimaryExpression {%
   function(data, start){
     return {
       loc: {start: start, end: data[2].loc.end},

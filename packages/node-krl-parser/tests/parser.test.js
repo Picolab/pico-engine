@@ -1438,5 +1438,8 @@ test('no ambiguity!', function(t){
   testAmb('{   }');
   testAmb('{ "one"  :   2  , "  three  "   : 4  }');
 
+  //one:2, cmp:4 -or- one: (2 cmp 4) - fixed by meta is Keyword -> PrimaryExpression
+  testAmb('ruleset a{meta{one 2 cmp 4}}');
+
   t.end();
 });

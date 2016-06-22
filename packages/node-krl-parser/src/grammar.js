@@ -198,7 +198,7 @@ var grammar = {
     {"name": "ruleset_meta_block", "symbols": [{"literal":"{"}, "_", "ruleset_meta_prop_list", "_", {"literal":"}"}], "postprocess": getN(2)},
     {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop"], "postprocess": idArr},
     {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop_list", "__", "ruleset_meta_prop"], "postprocess": concatArr(2)},
-    {"name": "ruleset_meta_prop", "symbols": ["Keyword", "__", "Expression"], "postprocess": 
+    {"name": "ruleset_meta_prop", "symbols": ["Keyword", "__", "PrimaryExpression"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: data[2].loc.end},
