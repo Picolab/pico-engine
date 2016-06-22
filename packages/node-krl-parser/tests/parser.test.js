@@ -1408,7 +1408,7 @@ test('no ambiguity!', function(t){
   testAmb('somelikethis');
 
   //map_always{} -or- map_ always { getPath();
-  testAmb('ruleset a{rule b{c() with d = map_always{getPath()}}}');
+  testAmb('ruleset a{rule b{select when a b;c() with d = map_always{getPath()}}}');
 
   testAmb('ruleset a{rule b{select when Domain TypeAttrib re#(.*)#}}');
 
@@ -1417,7 +1417,12 @@ test('no ambiguity!', function(t){
   testAmb('<<blah>>><a');
 
   //in this case where should be an attribute
-  testAmb('ruleset a{rule b{select when Domain Type where re#(.*)#}}');
+  testAmb('ruleset a{rule b{select when a b where re#(.*)#}}');
+
+  //whitespace ambeguity in expresion lists
+  testAmb('[  ]');
+  testAmb('hello(    )');
+  testAmb('ruleset a{rule b{select when a b;noop(     )}}');
 
   t.end();
 });

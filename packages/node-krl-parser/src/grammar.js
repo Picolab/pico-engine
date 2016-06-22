@@ -425,15 +425,15 @@ var grammar = {
     {"name": "RuleAction$ebnf$2$subexpression$1", "symbols": ["_", "RuleAction$ebnf$2$subexpression$1$string$1", "__", "declaration_list"]},
     {"name": "RuleAction$ebnf$2", "symbols": ["RuleAction$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier", "_", {"literal":"("}, "_", "Expression_list", "_", "loc_close_paren", "RuleAction$ebnf$2"], "postprocess": 
+    {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier", "_", {"literal":"("}, "Expression_list", "loc_close_paren", "RuleAction$ebnf$2"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: lastEndLoc(data)},
             type: 'RuleAction',
             label: data[0] && data[0][0],
             action: data[1],
-            args: data[5],
-            "with": data[8] ? data[8][3] : []
+            args: data[4],
+            "with": data[6] ? data[6][3] : []
           };
         }
         },
@@ -551,9 +551,10 @@ var grammar = {
     {"name": "Literal", "symbols": ["Chevron"], "postprocess": id},
     {"name": "Literal", "symbols": ["Array"], "postprocess": id},
     {"name": "Literal", "symbols": ["Map"], "postprocess": id},
-    {"name": "Expression_list", "symbols": [], "postprocess": noopArr},
-    {"name": "Expression_list", "symbols": ["Expression"], "postprocess": idArr},
-    {"name": "Expression_list", "symbols": ["Expression_list", "_", {"literal":","}, "_", "Expression"], "postprocess": concatArr(4)},
+    {"name": "Expression_list", "symbols": ["_"], "postprocess": noopArr},
+    {"name": "Expression_list", "symbols": ["_", "Expression_list_body", "_"], "postprocess": getN(1)},
+    {"name": "Expression_list_body", "symbols": ["Expression"], "postprocess": idArr},
+    {"name": "Expression_list_body", "symbols": ["Expression_list_body", "_", {"literal":","}, "_", "Expression"], "postprocess": concatArr(4)},
     {"name": "Function$string$1", "symbols": [{"literal":"f"}, {"literal":"u"}, {"literal":"n"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "_", "function_params", "_", {"literal":")"}, "_", {"literal":"{"}, "_", "Statement_list", "_", "loc_close_curly"], "postprocess": 
         function(data, start){
@@ -568,22 +569,22 @@ var grammar = {
     {"name": "function_params", "symbols": [], "postprocess": noopArr},
     {"name": "function_params", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "function_params", "symbols": ["function_params", "_", {"literal":","}, "_", "Identifier"], "postprocess": concatArr(4)},
-    {"name": "Application", "symbols": ["MemberExpression", "_", {"literal":"("}, "_", "Expression_list", "_", "loc_close_paren"], "postprocess": 
+    {"name": "Application", "symbols": ["MemberExpression", "_", {"literal":"("}, "Expression_list", "loc_close_paren"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: last(data)},
             type: 'Application',
             callee: data[0],
-            args: data[4]
+            args: data[3]
           };
         }
         },
-    {"name": "Array", "symbols": [{"literal":"["}, "_", "Expression_list", "_", "loc_close_square"], "postprocess": 
+    {"name": "Array", "symbols": [{"literal":"["}, "Expression_list", "loc_close_square"], "postprocess": 
         function(data, loc){
           return {
             type: 'Array',
             loc: {start: loc, end: last(data)},
-            value: data[2]
+            value: data[1]
           };
         }
         },

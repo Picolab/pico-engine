@@ -415,7 +415,7 @@ RuleActions -> RuleAction {% idArr %}
 
 RuleAction ->
     (Identifier _ "=>" _):?
-    Identifier _ "(" _ Expression_list _ loc_close_paren
+    Identifier _ "(" Expression_list loc_close_paren
     (_ "with" __ declaration_list):? {%
   function(data, start){
     return {
@@ -423,8 +423,8 @@ RuleAction ->
       type: 'RuleAction',
       label: data[0] && data[0][0],
       action: data[1],
-      args: data[5],
-      "with": data[8] ? data[8][3] : []
+      args: data[4],
+      "with": data[6] ? data[6][3] : []
     };
   }
 %}
@@ -565,9 +565,12 @@ Literal ->
     | Array {% id %}
     | Map {% id %}
 
-Expression_list -> null {% noopArr %}
-    | Expression {% idArr %}
-    | Expression_list _ "," _ Expression {% concatArr(4) %}
+Expression_list -> _ {% noopArr %}
+    | _ Expression_list_body _ {% getN(1) %}
+
+Expression_list_body ->
+      Expression {% idArr %}
+    | Expression_list_body _ "," _ Expression {% concatArr(4) %}
 
 ################################################################################
 # Functions
@@ -588,13 +591,13 @@ function_params ->
     | Identifier {% idArr %}
     | function_params _ "," _ Identifier {% concatArr(4) %}
 
-Application -> MemberExpression _ "(" _ Expression_list _ loc_close_paren {%
+Application -> MemberExpression _ "(" Expression_list loc_close_paren {%
   function(data, start){
     return {
       loc: {start: start, end: last(data)},
       type: 'Application',
       callee: data[0],
-      args: data[4]
+      args: data[3]
     };
   }
 %}
@@ -602,12 +605,12 @@ Application -> MemberExpression _ "(" _ Expression_list _ loc_close_paren {%
 ################################################################################
 # Literal Datastructures
 
-Array -> "[" _ Expression_list _ loc_close_square {%
+Array -> "[" Expression_list loc_close_square {%
   function(data, loc){
     return {
       type: 'Array',
       loc: {start: loc, end: last(data)},
-      value: data[2]
+      value: data[1]
     };
   }
 %}
