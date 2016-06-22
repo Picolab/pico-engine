@@ -1382,7 +1382,7 @@ test('parse errors', function(t){
     t.fail();
   }catch(e){
     var emsg = '';
-    emsg += 'Parsing Ambiguity: 2 Try adding a semi-colon.';
+    emsg += 'Parsing Ambiguity: 2 parsings found';
     t.equals(e.message, emsg);
   }
   t.end();

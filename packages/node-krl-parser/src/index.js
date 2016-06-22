@@ -39,7 +39,7 @@ module.exports = function(src, opts){
   }
   if(p.results.length !== 1){
     throw new Error(
-      'Parsing Ambiguity: ' + p.results.length + ' Try adding a semi-colon.'
+      'Parsing Ambiguity: ' + p.results.length + ' parsings found'
     );
   }
   return p.results[0];
