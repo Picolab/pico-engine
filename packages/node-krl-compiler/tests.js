@@ -1,11 +1,12 @@
 var _ = require('lodash');
 var λ = require('contra');
 var fs = require('fs');
+var diff = require('diff-lines');
 var path = require('path');
 var test = require('tape');
-var compiler = require('./');
+var compiler = require('./src/');
 
-var files_dir = path.resolve(__dirname, '../test-files');
+var files_dir = path.resolve(__dirname, './test-files');
 
 test('compiler', function(t){
   fs.readdir(files_dir, function(err, files){
@@ -33,7 +34,14 @@ test('compiler', function(t){
         compiled = compiled.trim();
         var expected = srcs.js.trim();
 
-        t.equals(compiled, expected);
+        if(compiled === expected){
+          t.ok(true);
+          next();
+        }else{
+          console.log('');
+          console.log(diff(expected, compiled));
+          process.exit(1);//end asap, so they can easily see the diff
+        }
 
         next();
       });
