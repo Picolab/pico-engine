@@ -26,7 +26,7 @@
   "devDependencies": {
     "contra": "^1.9.4",
     "diff": "^2.2.3",
-    "krl-parser": "^0.3.0",
+    "krl-parser": "^0.3.1",
     "onchange": "^2.5.0"
   },
   "dependencies": {
