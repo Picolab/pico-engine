@@ -1412,5 +1412,9 @@ test('no ambiguity!', function(t){
 
   testAmb('ruleset a{rule b{select when Domain TypeAttrib re#(.*)#}}');
 
+  //a >< "blah" -or- a > "<blah"
+  testAmb('a><<<blah>>');
+  testAmb('<<blah>>><a');
+
   t.end();
 });

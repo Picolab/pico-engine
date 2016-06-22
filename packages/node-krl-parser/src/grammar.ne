@@ -520,8 +520,8 @@ exp_comp -> exp_sum {% id %}
     | exp_comp __ "eq"   __ exp_sum {% infixOp %}
     | exp_comp __ "neq"  __ exp_sum {% infixOp %}
     | exp_comp __ "like" __ exp_sum {% infixOp %}
-    | exp_comp _  "><"   _  exp_sum {% infixOp %}
-    | exp_comp _  "<=>"  _  exp_sum {% infixOp %}
+    | exp_comp __ "><"   __ exp_sum {% infixOp %}
+    | exp_comp __ "<=>"  __ exp_sum {% infixOp %}
     | exp_comp __ "cmp"  __ exp_sum {% infixOp %}
 
 exp_sum -> exp_product {% id %}
