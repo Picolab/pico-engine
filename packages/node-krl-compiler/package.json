@@ -31,13 +31,13 @@
   "homepage": "https://github.com/farskipper/node-krl-compiler#readme",
   "devDependencies": {
     "contra": "^1.9.4",
-    "onchange": "^2.4.0",
-    "tape": "^4.5.1"
+    "onchange": "^2.5.0",
+    "tape": "^4.6.0"
   },
   "dependencies": {
     "escodegen": "^1.8.0",
-    "estree-builder": "^1.0.0",
-    "krl-parser": "0.0.2",
+    "estree-builder": "^1.1.0",
+    "krl-parser": "0.5.0",
     "lodash": "^4.13.1"
   }
 }
