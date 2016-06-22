@@ -1430,5 +1430,9 @@ test('no ambiguity!', function(t){
   testAmb('ruleset a{rule b{select when repeat 5 (c d) max(  e  );}}');
   testAmb('ruleset a{rule b{select when repeat 5 (c d) push(  e  );}}');
 
+  //whitespace ambiguity in statement list
+  testAmb('function(){   }');
+  testAmb('  one  (  ) ;  two  (  )  ');
+
   t.end();
 });

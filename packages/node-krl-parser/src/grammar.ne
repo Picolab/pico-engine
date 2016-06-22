@@ -161,7 +161,7 @@ var MemberExpression_method = function(method){
 %}
 
 main -> _ ruleset_list _ {% getN(1) %}
-    | _ Statement_list _ {% getN(1) %}
+    | Statement_list {% id %}
 
 ################################################################################
 #
@@ -441,10 +441,10 @@ RulePostlude ->
       (_ "finally" _ postlude_clause):?
       {% RulePostlude_by_paths([2, 0], [3, 3, 0], [4, 3, 0]) %}
 
-postlude_clause -> "{" _ Statement_list _ loc_close_curly {%
+postlude_clause -> "{" Statement_list loc_close_curly {%
   function(d){
     //we need to keep the location of the close curly
-    return [d[2],d[4]];
+    return [d[1],d[2]];
   }
 %}
 
@@ -482,9 +482,12 @@ Declaration -> left_side_of_declaration _ "=" _ Expression {%
 # Later we may add destructuring
 left_side_of_declaration -> Identifier {% id %}
 
-Statement_list -> null {% noopArr %}
-    | Statement {% idArr %}
-    | Statement_list _ ";" _ Statement {% concatArr(4) %}
+Statement_list -> _ {% noopArr %}
+    | _ Statement_list_body _ {% getN(1) %}
+
+Statement_list_body ->
+      Statement {% idArr %}
+    | Statement_list_body _ ";" _ Statement {% concatArr(4) %}
 
 declaration_block -> "{" _ "}" {% noopArr %}
     | "{" _ declaration_list _ "}" {% getN(2) %}
@@ -575,13 +578,13 @@ Expression_list_body ->
 ################################################################################
 # Functions
 
-Function -> "function" _ "(" function_params ")" _ "{" _ Statement_list _ loc_close_curly {%
+Function -> "function" _ "(" function_params ")" _ "{" Statement_list loc_close_curly {%
   function(data, start){
     return {
       loc: {start: start, end: last(data)},
       type: 'Function',
       params: data[3],
-      body: data[8]
+      body: data[7]
     };
   }
 %}

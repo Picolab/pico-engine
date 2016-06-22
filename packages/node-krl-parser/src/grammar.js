@@ -165,7 +165,7 @@ var MemberExpression_method = function(method){
 var grammar = {
     ParserRules: [
     {"name": "main", "symbols": ["_", "ruleset_list", "_"], "postprocess": getN(1)},
-    {"name": "main", "symbols": ["_", "Statement_list", "_"], "postprocess": getN(1)},
+    {"name": "main", "symbols": ["Statement_list"], "postprocess": id},
     {"name": "ruleset_list", "symbols": ["ruleset"], "postprocess": idArr},
     {"name": "ruleset_list", "symbols": ["ruleset_list", "_", {"literal":";"}, "_", "ruleset"], "postprocess": concatArr(4)},
     {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -449,10 +449,10 @@ var grammar = {
     {"name": "RulePostlude$ebnf$2", "symbols": ["RulePostlude$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "RulePostlude$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RulePostlude", "symbols": ["RulePostlude$string$2", "_", "postlude_clause", "RulePostlude$ebnf$1", "RulePostlude$ebnf$2"], "postprocess": RulePostlude_by_paths([2, 0], [3, 3, 0], [4, 3, 0])},
-    {"name": "postlude_clause", "symbols": [{"literal":"{"}, "_", "Statement_list", "_", "loc_close_curly"], "postprocess": 
+    {"name": "postlude_clause", "symbols": [{"literal":"{"}, "Statement_list", "loc_close_curly"], "postprocess": 
         function(d){
           //we need to keep the location of the close curly
-          return [d[2],d[4]];
+          return [d[1],d[2]];
         }
         },
     {"name": "Statement", "symbols": ["ExpressionStatement"], "postprocess": id},
@@ -478,9 +478,10 @@ var grammar = {
         }
         },
     {"name": "left_side_of_declaration", "symbols": ["Identifier"], "postprocess": id},
-    {"name": "Statement_list", "symbols": [], "postprocess": noopArr},
-    {"name": "Statement_list", "symbols": ["Statement"], "postprocess": idArr},
-    {"name": "Statement_list", "symbols": ["Statement_list", "_", {"literal":";"}, "_", "Statement"], "postprocess": concatArr(4)},
+    {"name": "Statement_list", "symbols": ["_"], "postprocess": noopArr},
+    {"name": "Statement_list", "symbols": ["_", "Statement_list_body", "_"], "postprocess": getN(1)},
+    {"name": "Statement_list_body", "symbols": ["Statement"], "postprocess": idArr},
+    {"name": "Statement_list_body", "symbols": ["Statement_list_body", "_", {"literal":";"}, "_", "Statement"], "postprocess": concatArr(4)},
     {"name": "declaration_block", "symbols": [{"literal":"{"}, "_", {"literal":"}"}], "postprocess": noopArr},
     {"name": "declaration_block", "symbols": [{"literal":"{"}, "_", "declaration_list", "_", {"literal":"}"}], "postprocess": getN(2)},
     {"name": "declaration_list", "symbols": ["Declaration"], "postprocess": idArr},
@@ -556,13 +557,13 @@ var grammar = {
     {"name": "Expression_list_body", "symbols": ["Expression"], "postprocess": idArr},
     {"name": "Expression_list_body", "symbols": ["Expression_list_body", "_", {"literal":","}, "_", "Expression"], "postprocess": concatArr(4)},
     {"name": "Function$string$1", "symbols": [{"literal":"f"}, {"literal":"u"}, {"literal":"n"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "function_params", {"literal":")"}, "_", {"literal":"{"}, "_", "Statement_list", "_", "loc_close_curly"], "postprocess": 
+    {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "function_params", {"literal":")"}, "_", {"literal":"{"}, "Statement_list", "loc_close_curly"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: last(data)},
             type: 'Function',
             params: data[3],
-            body: data[8]
+            body: data[7]
           };
         }
         },
