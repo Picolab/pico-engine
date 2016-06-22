@@ -226,8 +226,6 @@ Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
 rule -> "rule" __ Identifier (__ "is" __ rule_state):? _ "{" _
   (RuleSelect _semi):?
 
-  (RulePrelude _ ):?
-
   RuleBody
 
 loc_close_curly {%
@@ -238,9 +236,9 @@ loc_close_curly {%
       name: data[2],
       rule_state: data[3] ? data[3][3] : "active",
       select_when: data[7] && data[7][0],
-      prelude: data[8] ? data[8][0] : [],
-      action_block: data[9][2],
-      postlude: data[9][3]
+      prelude: data[8][1] || [],
+      action_block: data[8][2],
+      postlude: data[8][3]
     };
   }
 %}
@@ -248,12 +246,20 @@ loc_close_curly {%
 rule_state -> "active" {% id %} | "inactive" {% id %}
 
 RuleBody -> null {% idIndecies(-1, -1, -1, -1) %}
+    | RulePrelude _
+      {% idIndecies(-1, 0, -1, -1) %}
     | RuleActionBlock _
       {% idIndecies(-1, -1, 0, -1) %}
+    | RulePrelude _ RuleActionBlock _
+      {% idIndecies(-1, 0, 2, -1) %}
     | RulePostlude _
       {% idIndecies(-1, -1, -1, 0) %}
+    | RulePrelude _ RulePostlude _
+      {% idIndecies(-1, 0, -1, 2) %}
     | RuleActionBlock __ RulePostlude _
       {% idIndecies(-1, -1, 0, 2) %}
+    | RulePrelude _ RuleActionBlock __ RulePostlude _
+      {% idIndecies(-1, 0, 2, 4) %}
 
 RuleSelect -> "select" __ "when" __ EventExpression {% getN(4) %}
 
