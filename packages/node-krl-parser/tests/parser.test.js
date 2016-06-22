@@ -1387,3 +1387,15 @@ test('parse errors', function(t){
   }
   t.end();
 });
+
+test('no ambiguity!', function(t){
+  var testAmb = function(src){
+    parser(src);
+    t.ok(true);
+  };
+
+  testAmb('one_eq_two');
+  testAmb('somelikethis');
+
+  t.end();
+});
