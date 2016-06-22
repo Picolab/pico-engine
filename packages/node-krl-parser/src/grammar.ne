@@ -620,18 +620,20 @@ Array -> "[" Expression_list loc_close_square {%
   }
 %}
 
-Map -> "{" _ map_kv_pairs _ loc_close_curly {%
+Map -> "{" Map_body loc_close_curly {%
   function(data, loc){
     return {
       loc: {start: loc, end: last(data)},
       type: 'Map',
-      value: data[2]
+      value: data[1]
     };
   }
 %}
 
-map_kv_pairs -> null {% noopArr %}
-    | map_kv_pair {% idArr %}
+Map_body -> _ {% noopArr %}
+    | _ map_kv_pairs _ {% getN(1) %}
+
+map_kv_pairs -> map_kv_pair {% idArr %}
     | map_kv_pairs _ "," _ map_kv_pair {% concatArr(4) %}
 
 map_kv_pair -> String _ ":" _ Expression {%

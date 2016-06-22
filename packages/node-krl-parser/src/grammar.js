@@ -590,16 +590,17 @@ var grammar = {
           };
         }
         },
-    {"name": "Map", "symbols": [{"literal":"{"}, "_", "map_kv_pairs", "_", "loc_close_curly"], "postprocess": 
+    {"name": "Map", "symbols": [{"literal":"{"}, "Map_body", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
             loc: {start: loc, end: last(data)},
             type: 'Map',
-            value: data[2]
+            value: data[1]
           };
         }
         },
-    {"name": "map_kv_pairs", "symbols": [], "postprocess": noopArr},
+    {"name": "Map_body", "symbols": ["_"], "postprocess": noopArr},
+    {"name": "Map_body", "symbols": ["_", "map_kv_pairs", "_"], "postprocess": getN(1)},
     {"name": "map_kv_pairs", "symbols": ["map_kv_pair"], "postprocess": idArr},
     {"name": "map_kv_pairs", "symbols": ["map_kv_pairs", "_", {"literal":","}, "_", "map_kv_pair"], "postprocess": concatArr(4)},
     {"name": "map_kv_pair", "symbols": ["String", "_", {"literal":":"}, "_", "Expression"], "postprocess": 

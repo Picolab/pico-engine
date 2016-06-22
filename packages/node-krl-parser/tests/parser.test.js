@@ -1434,5 +1434,9 @@ test('no ambiguity!', function(t){
   testAmb('function(){   }');
   testAmb('  one  (  ) ;  two  (  )  ');
 
+  //whitespace ambiguity in Map
+  testAmb('{   }');
+  testAmb('{ "one"  :   2  , "  three  "   : 4  }');
+
   t.end();
 });
