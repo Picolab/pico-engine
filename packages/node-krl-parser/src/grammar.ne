@@ -65,6 +65,19 @@ var idAll = function(d){return flatten(d).join('')};
 var idArr = function(d){return [d[0]]};
 var idEndLoc = function(data, start){return start + flatten(data).join('').length};
 
+var idIndecies = function(){
+  var indices = Array.prototype.slice.call(arguments, 0);
+  return function(data){
+    var r = [];
+    var i, j;
+    for(i = 0; i < indices.length; i++){
+      j = indices[i];
+      r.push(j >= 0 ? data[j] : null);
+    }
+    return r;
+  };
+};
+
 var concatArr = function(index){
   return function(data){
     return data[0].concat(data[index]);
@@ -215,9 +228,7 @@ rule -> "rule" __ Identifier (__ "is" __ rule_state):? _ "{" _
 
   (RulePrelude _ ):?
 
-  (RuleActionBlock _):?
-
-  (RulePostlude _):?
+  RuleBody
 
 loc_close_curly {%
   function(data, loc){
@@ -228,13 +239,21 @@ loc_close_curly {%
       rule_state: data[3] ? data[3][3] : "active",
       select_when: data[7] && data[7][0],
       prelude: data[8] ? data[8][0] : [],
-      action_block: data[9] && data[9][0],
-      postlude: data[10] && data[10][0]
+      action_block: data[9][2],
+      postlude: data[9][3]
     };
   }
 %}
 
 rule_state -> "active" {% id %} | "inactive" {% id %}
+
+RuleBody -> null {% idIndecies(-1, -1, -1, -1) %}
+    | RuleActionBlock _
+      {% idIndecies(-1, -1, 0, -1) %}
+    | RulePostlude _
+      {% idIndecies(-1, -1, -1, 0) %}
+    | RuleActionBlock __ RulePostlude _
+      {% idIndecies(-1, -1, 0, 2) %}
 
 RuleSelect -> "select" __ "when" __ EventExpression {% getN(4) %}
 

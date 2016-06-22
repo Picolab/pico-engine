@@ -1399,7 +1399,7 @@ test('no ambiguity!', function(t){
   testAmb('somelikethis');
 
   //map_always{} -or- map_ always { getPath();
-  //testAmb('ruleset a{rule b{c() with d = map_always{getPath()}}}');
+  testAmb('ruleset a{rule b{c() with d = map_always{getPath()}}}');
 
   t.end();
 });

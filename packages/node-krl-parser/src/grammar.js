@@ -69,6 +69,19 @@ var idAll = function(d){return flatten(d).join('')};
 var idArr = function(d){return [d[0]]};
 var idEndLoc = function(data, start){return start + flatten(data).join('').length};
 
+var idIndecies = function(){
+  var indices = Array.prototype.slice.call(arguments, 0);
+  return function(data){
+    var r = [];
+    var i, j;
+    for(i = 0; i < indices.length; i++){
+      j = indices[i];
+      r.push(j >= 0 ? data[j] : null);
+    }
+    return r;
+  };
+};
+
 var concatArr = function(index){
   return function(data){
     return data[0].concat(data[index]);
@@ -218,13 +231,7 @@ var grammar = {
     {"name": "rule$ebnf$3$subexpression$1", "symbols": ["RulePrelude", "_"]},
     {"name": "rule$ebnf$3", "symbols": ["rule$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$4$subexpression$1", "symbols": ["RuleActionBlock", "_"]},
-    {"name": "rule$ebnf$4", "symbols": ["rule$ebnf$4$subexpression$1"], "postprocess": id},
-    {"name": "rule$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$5$subexpression$1", "symbols": ["RulePostlude", "_"]},
-    {"name": "rule$ebnf$5", "symbols": ["rule$ebnf$5$subexpression$1"], "postprocess": id},
-    {"name": "rule$ebnf$5", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule", "symbols": ["rule$string$1", "__", "Identifier", "rule$ebnf$1", "_", {"literal":"{"}, "_", "rule$ebnf$2", "rule$ebnf$3", "rule$ebnf$4", "rule$ebnf$5", "loc_close_curly"], "postprocess": 
+    {"name": "rule", "symbols": ["rule$string$1", "__", "Identifier", "rule$ebnf$1", "_", {"literal":"{"}, "_", "rule$ebnf$2", "rule$ebnf$3", "RuleBody", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
             loc: {start: loc, end: last(data)},
@@ -233,8 +240,8 @@ var grammar = {
             rule_state: data[3] ? data[3][3] : "active",
             select_when: data[7] && data[7][0],
             prelude: data[8] ? data[8][0] : [],
-            action_block: data[9] && data[9][0],
-            postlude: data[10] && data[10][0]
+            action_block: data[9][2],
+            postlude: data[9][3]
           };
         }
         },
@@ -242,6 +249,10 @@ var grammar = {
     {"name": "rule_state", "symbols": ["rule_state$string$1"], "postprocess": id},
     {"name": "rule_state$string$2", "symbols": [{"literal":"i"}, {"literal":"n"}, {"literal":"a"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "rule_state", "symbols": ["rule_state$string$2"], "postprocess": id},
+    {"name": "RuleBody", "symbols": [], "postprocess": idIndecies(-1, -1, -1, -1)},
+    {"name": "RuleBody", "symbols": ["RuleActionBlock", "_"], "postprocess": idIndecies(-1, -1, 0, -1)},
+    {"name": "RuleBody", "symbols": ["RulePostlude", "_"], "postprocess": idIndecies(-1, -1, -1, 0)},
+    {"name": "RuleBody", "symbols": ["RuleActionBlock", "__", "RulePostlude", "_"], "postprocess": idIndecies(-1, -1, 0, 2)},
     {"name": "RuleSelect$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"l"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "RuleSelect$string$2", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "RuleSelect", "symbols": ["RuleSelect$string$1", "__", "RuleSelect$string$2", "__", "EventExpression"], "postprocess": getN(4)},
