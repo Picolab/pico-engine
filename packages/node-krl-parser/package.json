@@ -27,6 +27,8 @@
   },
   "homepage": "https://github.com/farskipper/node-krl-parser#readme",
   "devDependencies": {
+    "karl42": "^1.0.0",
+    "krl-generator": "^0.1.0",
     "lodash": "^4.13.1",
     "onchange": "^2.4.0",
     "tap-min": "^1.1.0",
