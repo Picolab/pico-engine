@@ -322,7 +322,7 @@ event_exp_fns -> event_exp_base {% id %}
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier
     (__ event_exp_attribute_pairs):?
-    (__ "where" __ Expression):?
+    (__ "where" __ event_exp_where):?
     (__ "setting" _ "(" _ function_params _ loc_close_paren):? {%
   function(data, start){
     return {
@@ -348,6 +348,14 @@ event_exp_attribute_pair -> Identifier __ RegExp {%
       key: data[0],
       value: data[2]
     };
+  }
+%}
+
+event_exp_where -> Expression {%
+  function(data, start, reject){
+    return data[0].type === 'RegExp'
+      ? reject//it must be an attribute pair, not a where expression
+      : data[0];
   }
 %}
 

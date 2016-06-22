@@ -313,7 +313,7 @@ var grammar = {
     {"name": "event_exp_base$ebnf$1", "symbols": ["event_exp_base$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "event_exp_base$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "event_exp_base$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_base$ebnf$2$subexpression$1", "symbols": ["__", "event_exp_base$ebnf$2$subexpression$1$string$1", "__", "Expression"]},
+    {"name": "event_exp_base$ebnf$2$subexpression$1", "symbols": ["__", "event_exp_base$ebnf$2$subexpression$1$string$1", "__", "event_exp_where"]},
     {"name": "event_exp_base$ebnf$2", "symbols": ["event_exp_base$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "event_exp_base$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "event_exp_base$ebnf$3$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"t"}, {"literal":"t"}, {"literal":"i"}, {"literal":"n"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -343,6 +343,13 @@ var grammar = {
             key: data[0],
             value: data[2]
           };
+        }
+        },
+    {"name": "event_exp_where", "symbols": ["Expression"], "postprocess": 
+        function(data, start, reject){
+          return data[0].type === 'RegExp'
+            ? reject//it must be an attribute pair, not a where expression
+            : data[0];
         }
         },
     {"name": "EventExpression_list", "symbols": ["EventExpression"], "postprocess": idArr},

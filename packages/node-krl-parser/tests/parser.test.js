@@ -1416,5 +1416,8 @@ test('no ambiguity!', function(t){
   testAmb('a><<<blah>>');
   testAmb('<<blah>>><a');
 
+  //in this case where should be an attribute
+  testAmb('ruleset a{rule b{select when Domain Type where re#(.*)#}}');
+
   t.end();
 });
