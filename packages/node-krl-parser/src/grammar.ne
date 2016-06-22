@@ -147,13 +147,16 @@ var MemberExpression_method = function(method){
 
 %}
 
-main -> _ ruleset _ {% getN(1) %}
+main -> _ ruleset_list _ {% getN(1) %}
     | _ Statement_list _ {% getN(1) %}
 
 ################################################################################
 #
 # Ruleset
 #
+
+ruleset_list -> ruleset {% idArr %}
+    | ruleset_list _ ";" _ ruleset {% concatArr(4) %}
 
 ruleset -> "ruleset" __ Identifier _ "{" _
   ("meta" _ ruleset_meta_block _):?

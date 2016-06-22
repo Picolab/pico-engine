@@ -1371,5 +1371,19 @@ test('parse errors', function(t){
     emsg += '           ^';
     t.equals(e.message, emsg);
   }
+  src = '';
+  src += 'ruleset rs {\n';
+  src += '  rule r0 {\n';
+  src += '    select when a b setting(c)\n';
+  src += '  }\n';
+  src += '}';
+  try{
+    parser(src, {filename: 'ruleset-ambiguity.krl'});
+    t.fail();
+  }catch(e){
+    var emsg = '';
+    emsg += 'Parsing Ambiguity: 2 Try adding a semi-colon.';
+    t.equals(e.message, emsg);
+  }
   t.end();
 });

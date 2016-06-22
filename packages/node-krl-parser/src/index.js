@@ -37,5 +37,10 @@ module.exports = function(src, opts){
     }
     throw e;
   }
-  return [].concat.apply([], p.results);
+  if(p.results.length !== 1){
+    throw new Error(
+      'Parsing Ambiguity: ' + p.results.length + ' Try adding a semi-colon.'
+    );
+  }
+  return p.results[0];
 };

@@ -151,8 +151,10 @@ var MemberExpression_method = function(method){
 
 var grammar = {
     ParserRules: [
-    {"name": "main", "symbols": ["_", "ruleset", "_"], "postprocess": getN(1)},
+    {"name": "main", "symbols": ["_", "ruleset_list", "_"], "postprocess": getN(1)},
     {"name": "main", "symbols": ["_", "Statement_list", "_"], "postprocess": getN(1)},
+    {"name": "ruleset_list", "symbols": ["ruleset"], "postprocess": idArr},
+    {"name": "ruleset_list", "symbols": ["ruleset_list", "_", {"literal":";"}, "_", "ruleset"], "postprocess": concatArr(4)},
     {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"m"}, {"literal":"e"}, {"literal":"t"}, {"literal":"a"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset$ebnf$1$subexpression$1", "symbols": ["ruleset$ebnf$1$subexpression$1$string$1", "_", "ruleset_meta_block", "_"]},
