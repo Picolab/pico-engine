@@ -299,15 +299,15 @@ var grammar = {
     {"name": "event_exp_fns$string$11", "symbols": [{"literal":"a"}, {"literal":"f"}, {"literal":"t"}, {"literal":"e"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$11", "_", {"literal":"("}, "_", "EventExpression_list", "_", "loc_close_paren"], "postprocess": complexEventOp("after", 4)},
     {"name": "event_exp_fns$string$12", "symbols": [{"literal":"m"}, {"literal":"a"}, {"literal":"x"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$12", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"], "postprocess": complexEventOp("max", 0, 6)},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$12", "_", {"literal":"("}, "function_params", "loc_close_paren"], "postprocess": complexEventOp("max", 0, 5)},
     {"name": "event_exp_fns$string$13", "symbols": [{"literal":"m"}, {"literal":"i"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$13", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"], "postprocess": complexEventOp("min", 0, 6)},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$13", "_", {"literal":"("}, "function_params", "loc_close_paren"], "postprocess": complexEventOp("min", 0, 5)},
     {"name": "event_exp_fns$string$14", "symbols": [{"literal":"s"}, {"literal":"u"}, {"literal":"m"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$14", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"], "postprocess": complexEventOp("sum", 0, 6)},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$14", "_", {"literal":"("}, "function_params", "loc_close_paren"], "postprocess": complexEventOp("sum", 0, 5)},
     {"name": "event_exp_fns$string$15", "symbols": [{"literal":"a"}, {"literal":"v"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$15", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"], "postprocess": complexEventOp("avg", 0, 6)},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$15", "_", {"literal":"("}, "function_params", "loc_close_paren"], "postprocess": complexEventOp("avg", 0, 5)},
     {"name": "event_exp_fns$string$16", "symbols": [{"literal":"p"}, {"literal":"u"}, {"literal":"s"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$16", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"], "postprocess": complexEventOp("push", 0, 6)},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$16", "_", {"literal":"("}, "function_params", "loc_close_paren"], "postprocess": complexEventOp("push", 0, 5)},
     {"name": "event_exp_base", "symbols": [{"literal":"("}, "_", "EventExpression", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "event_exp_base$ebnf$1$subexpression$1", "symbols": ["__", "event_exp_attribute_pairs"]},
     {"name": "event_exp_base$ebnf$1", "symbols": ["event_exp_base$ebnf$1$subexpression$1"], "postprocess": id},
@@ -317,7 +317,7 @@ var grammar = {
     {"name": "event_exp_base$ebnf$2", "symbols": ["event_exp_base$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "event_exp_base$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "event_exp_base$ebnf$3$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"t"}, {"literal":"t"}, {"literal":"i"}, {"literal":"n"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_base$ebnf$3$subexpression$1", "symbols": ["__", "event_exp_base$ebnf$3$subexpression$1$string$1", "_", {"literal":"("}, "_", "function_params", "_", "loc_close_paren"]},
+    {"name": "event_exp_base$ebnf$3$subexpression$1", "symbols": ["__", "event_exp_base$ebnf$3$subexpression$1$string$1", "_", {"literal":"("}, "function_params", "loc_close_paren"]},
     {"name": "event_exp_base$ebnf$3", "symbols": ["event_exp_base$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "event_exp_base$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "event_exp_base", "symbols": ["Identifier", "__", "Identifier", "event_exp_base$ebnf$1", "event_exp_base$ebnf$2", "event_exp_base$ebnf$3"], "postprocess": 
@@ -329,7 +329,7 @@ var grammar = {
             event_type: data[2],
             attributes: (data[3] && data[3][1]) || [],
             where: data[4] && data[4][3],
-            setting: (data[5] && data[5][5]) || []
+            setting: (data[5] && data[5][4]) || []
           };
         }
         },
@@ -556,19 +556,20 @@ var grammar = {
     {"name": "Expression_list_body", "symbols": ["Expression"], "postprocess": idArr},
     {"name": "Expression_list_body", "symbols": ["Expression_list_body", "_", {"literal":","}, "_", "Expression"], "postprocess": concatArr(4)},
     {"name": "Function$string$1", "symbols": [{"literal":"f"}, {"literal":"u"}, {"literal":"n"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "_", "function_params", "_", {"literal":")"}, "_", {"literal":"{"}, "_", "Statement_list", "_", "loc_close_curly"], "postprocess": 
+    {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "function_params", {"literal":")"}, "_", {"literal":"{"}, "_", "Statement_list", "_", "loc_close_curly"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: last(data)},
             type: 'Function',
-            params: data[4],
-            body: data[10]
+            params: data[3],
+            body: data[8]
           };
         }
         },
-    {"name": "function_params", "symbols": [], "postprocess": noopArr},
-    {"name": "function_params", "symbols": ["Identifier"], "postprocess": idArr},
-    {"name": "function_params", "symbols": ["function_params", "_", {"literal":","}, "_", "Identifier"], "postprocess": concatArr(4)},
+    {"name": "function_params", "symbols": ["_"], "postprocess": noopArr},
+    {"name": "function_params", "symbols": ["_", "function_params_body", "_"], "postprocess": getN(1)},
+    {"name": "function_params_body", "symbols": ["Identifier"], "postprocess": idArr},
+    {"name": "function_params_body", "symbols": ["function_params_body", "_", {"literal":","}, "_", "Identifier"], "postprocess": concatArr(4)},
     {"name": "Application", "symbols": ["MemberExpression", "_", {"literal":"("}, "Expression_list", "loc_close_paren"], "postprocess": 
         function(data, start){
           return {

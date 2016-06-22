@@ -308,22 +308,22 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("then", 4) %}
     | "after" _ "(" _ EventExpression_list _ loc_close_paren
       {% complexEventOp("after", 4) %}
-    | event_exp_fns __  "max" _ "(" _ function_params _ loc_close_paren
-      {% complexEventOp("max", 0, 6) %}
-    | event_exp_fns __  "min" _ "(" _ function_params _ loc_close_paren
-      {% complexEventOp("min", 0, 6) %}
-    | event_exp_fns __  "sum" _ "(" _ function_params _ loc_close_paren
-      {% complexEventOp("sum", 0, 6) %}
-    | event_exp_fns __  "avg" _ "(" _ function_params _ loc_close_paren
-      {% complexEventOp("avg", 0, 6) %}
-    | event_exp_fns __  "push" _ "(" _ function_params _ loc_close_paren
-      {% complexEventOp("push", 0, 6) %}
+    | event_exp_fns __  "max" _ "(" function_params loc_close_paren
+      {% complexEventOp("max", 0, 5) %}
+    | event_exp_fns __  "min" _ "(" function_params loc_close_paren
+      {% complexEventOp("min", 0, 5) %}
+    | event_exp_fns __  "sum" _ "(" function_params loc_close_paren
+      {% complexEventOp("sum", 0, 5) %}
+    | event_exp_fns __  "avg" _ "(" function_params loc_close_paren
+      {% complexEventOp("avg", 0, 5) %}
+    | event_exp_fns __  "push" _ "(" function_params loc_close_paren
+      {% complexEventOp("push", 0, 5) %}
 
 event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
   | Identifier __ Identifier
     (__ event_exp_attribute_pairs):?
     (__ "where" __ event_exp_where):?
-    (__ "setting" _ "(" _ function_params _ loc_close_paren):? {%
+    (__ "setting" _ "(" function_params loc_close_paren):? {%
   function(data, start){
     return {
       type: 'EventExpression',
@@ -332,7 +332,7 @@ event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
       event_type: data[2],
       attributes: (data[3] && data[3][1]) || [],
       where: data[4] && data[4][3],
-      setting: (data[5] && data[5][5]) || []
+      setting: (data[5] && data[5][4]) || []
     };
   }
 %}
@@ -575,21 +575,23 @@ Expression_list_body ->
 ################################################################################
 # Functions
 
-Function -> "function" _ "(" _ function_params _ ")" _ "{" _ Statement_list _ loc_close_curly {%
+Function -> "function" _ "(" function_params ")" _ "{" _ Statement_list _ loc_close_curly {%
   function(data, start){
     return {
       loc: {start: start, end: last(data)},
       type: 'Function',
-      params: data[4],
-      body: data[10]
+      params: data[3],
+      body: data[8]
     };
   }
 %}
 
-function_params ->
-    null {% noopArr %}
-    | Identifier {% idArr %}
-    | function_params _ "," _ Identifier {% concatArr(4) %}
+function_params -> _ {% noopArr %}
+    | _ function_params_body _ {% getN(1) %}
+
+function_params_body ->
+      Identifier {% idArr %}
+    | function_params_body _ "," _ Identifier {% concatArr(4) %}
 
 Application -> MemberExpression _ "(" Expression_list loc_close_paren {%
   function(data, start){

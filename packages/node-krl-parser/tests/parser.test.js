@@ -1419,10 +1419,16 @@ test('no ambiguity!', function(t){
   //in this case where should be an attribute
   testAmb('ruleset a{rule b{select when a b where re#(.*)#}}');
 
-  //whitespace ambeguity in expresion lists
+  //whitespace ambiguity in expresion lists
   testAmb('[  ]');
   testAmb('hello(    )');
   testAmb('ruleset a{rule b{select when a b;noop(     )}}');
+
+  //whitespace ambiguity in function params
+  testAmb('function(   ){}');
+  testAmb('ruleset a{rule b{select when c d setting(  e  );}}');
+  testAmb('ruleset a{rule b{select when repeat 5 (c d) max(  e  );}}');
+  testAmb('ruleset a{rule b{select when repeat 5 (c d) push(  e  );}}');
 
   t.end();
 });
