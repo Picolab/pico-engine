@@ -1,4 +1,5 @@
 var _ = require('lodash');
+var diff = require('diff-lines');
 var KaRL42 = require('karl42');
 var parser = require('../src/');
 var nearley = require('nearley');
@@ -15,10 +16,9 @@ var onAmbiguousProgram = function(src){
   var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
   p.feed(commentsToSpaces(src));
 
-  var alternate_src = _.map(p.results, function(ast){
-    return generator(ast);
-  });
-  console.log(alternate_src.join('\n\n----------\n\n'));
+  console.log(p.results.length, ' parsings found. Here is the diff for the first two');
+
+  console.log(diff(generator(p.results[0]), generator(p.results[1])));
 };
 
 var n = 0;
