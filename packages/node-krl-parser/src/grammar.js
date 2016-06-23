@@ -255,7 +255,7 @@ var grammar = {
             loc: {start: start, end: ee.loc.end},
             type: 'RuleSelect',
             kind: 'when',
-            event_expression: ee
+            event: ee
           };
         }
         },

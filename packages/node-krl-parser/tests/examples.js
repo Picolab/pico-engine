@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var rmLoc = require('./rmLoc');
-var parser = require('./');
+var parser = require('../src/');
 var normalizeAST = require('./normalizeASTForTestCompare');
 
 var ruleExample = function(src){
@@ -10,10 +10,10 @@ var ruleExample = function(src){
   };
 };
 
-var select_whenExample = function(src){
+var EventExpExample = function(src){
   return function(){
-    var ast = parser('ruleset rs{rule r0{' + src + '}}');
-    return [src, ast[0].rules[0].select_when];
+    var ast = parser('ruleset rs{rule r0{' + src + ';}}');
+    return [src, ast[0].rules[0].select.event];
   };
 };
 
@@ -59,10 +59,10 @@ var examples = {
     ].join('\n'))
   ],
   '### EventExpression': [
-    select_whenExample('select when A B'),
-    select_whenExample('select when A B attr re#^(.*)$# setting(val)'),
-    select_whenExample('select when A A or B B'),
-    select_whenExample('select when any 2 (A A, B B, C C)')
+    EventExpExample('select when A B'),
+    EventExpExample('select when A B attr re#^(.*)$# setting(val)'),
+    EventExpExample('select when A A or B B'),
+    EventExpExample('select when any 2 (A A, B B, C C)')
   ],
   '### KRL Expression language': [],
   '#### Literals': [
@@ -150,6 +150,26 @@ var printAST = function(ast, i, indent_size){
   return JSON.stringify(ast);
 };
 
+////////////////////////////////////////////////////////////////////////////////
+console.log('# KRL AST Specification');
+console.log();
+console.log('### Node');
+console.log('All AST nodes implement `Node`');
+console.log('```js');
+console.log('interface Node {');
+console.log('  type: string;');
+console.log('  loc: SourceLocation | null;');
+console.log('}');
+console.log('```');
+console.log('```js');
+console.log('interface SourceLocation {');
+console.log('  start: integer;');
+console.log('  end: integer;');
+console.log('}');
+console.log('```');
+console.log('`start` and `end` are character indexes (starting at 0) from the source string.');
+console.log();
+console.log('The following examples omit the `loc` property for brevity.');
 _.each(examples, function(srcs, head){
   console.log();
   console.log(head);

@@ -168,7 +168,7 @@ test('select when', function(t){
   var asertRuleAST = function(rule_body, expected){
     var ast = parseRuleBody(rule_body);
     t.ok(ast.select.kind === 'when');
-    t.deepEquals(rmLoc(ast.select.event_expression), expected);
+    t.deepEquals(rmLoc(ast.select.event), expected);
   }; 
 
   var src = 'select when d t';
@@ -416,7 +416,7 @@ test('locations', function(t){
   });
 
   src = 'select when a b';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select.event_expression, {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select.event, {
     loc: {start: 35, end: 38},
     type: 'EventExpression',
     event_domain: {
@@ -435,7 +435,7 @@ test('locations', function(t){
   });
 
   src = 'select when a b or c d';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select.event_expression, {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select.event, {
     loc: {start: 35, end: 45},
     type: 'EventOperator',
     op: 'or',
@@ -898,7 +898,7 @@ test('EventExpression', function(t){
       rule_body += ';';//TODO can remove this?
     }
     var ast = normalizeAST(rmLoc(parseRuleBody('select when ' + rule_body)));
-    t.deepEquals(ast.select.event_expression, normalizeAST(expected));
+    t.deepEquals(ast.select.event, normalizeAST(expected));
   }; 
 
   testEE('a b', {

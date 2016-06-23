@@ -98,7 +98,7 @@ rule NAME {
   "type": "Rule",
   "name": NAME,
   "rule_state": "active",
-  "select_when": null,
+  "select": null,
   "prelude": [  ],
   "action_block": null,
   "postlude": null
@@ -110,7 +110,7 @@ rule NAME is inactive {
   "type": "Rule",
   "name": NAME,
   "rule_state": "inactive",
-  "select_when": null,
+  "select": null,
   "prelude": [  ],
   "action_block": null,
   "postlude": null
@@ -138,13 +138,17 @@ rule hello {
   "type": "Rule",
   "name": {value: "hello", type:"Identifier"},
   "rule_state": "active",
-  "select_when": {
-    "type": "EventExpression",
-    "event_domain": DOMAIN,
-    "event_type": TYPE,
-    "attributes": [  ],
-    "where": null,
-    "setting": [  ]
+  "select": {
+    "type": "RuleSelect",
+    "kind": "when",
+    "event": {
+      "type": "EventExpression",
+      "event_domain": DOMAIN,
+      "event_type": TYPE,
+      "attributes": [  ],
+      "where": null,
+      "setting": [  ]
+    }
   },
   "prelude": [
     {
@@ -219,7 +223,9 @@ select when A B attr re#^(.*)$# setting(val)
     }
   ],
   "where": null,
-  "setting": [  ]
+  "setting": [
+    {value: "val", type:"Identifier"}
+  ]
 }
 
 select when A A or B B

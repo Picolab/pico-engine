@@ -252,7 +252,7 @@ RuleSelect -> "select" __ "when" __ EventExpression {%
       loc: {start: start, end: ee.loc.end},
       type: 'RuleSelect',
       kind: 'when',
-      event_expression: ee
+      event: ee
     };
   }
 %}
