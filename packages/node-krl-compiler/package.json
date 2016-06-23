@@ -12,7 +12,8 @@
   ],
   "scripts": {
     "start": "onchange -i src/ tests.js -- npm test -s",
-    "test": "node tests.js"
+    "lint": "eslint src/ && echo lint-ok",
+    "test": "npm run lint -s && node tests.js"
   },
   "repository": {
     "type": "git",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "contra": "^1.9.4",
     "diff-lines": "^1.1.0",
+    "eslint": "^2.13.1",
     "onchange": "^2.5.0",
     "tape": "^4.6.0"
   },
