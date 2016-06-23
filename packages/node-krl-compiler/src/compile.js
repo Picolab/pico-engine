@@ -21,11 +21,13 @@ var comp_by_type = {
   },
   'Rule': function(ast, comp){
     return e.obj({
-      select: comp(ast.select_when),
+      select: comp(ast.select),
       action: comp(ast.action_block)
     });
   },
-  'EventExpression': function(ast, comp){
+  'RuleSelect': function(ast, comp){
+    ast = ast.event;//TODO remove this Hack
+
     var estCTXEventProp = function(prop){
       return e('.', e('.', e.id('ctx'), e.id('event')), e.id(prop));
     };
