@@ -21,17 +21,20 @@ The following examples omit the `loc` property for brevity.
 ### Ruleset
 
 ```js
-ruleset NAME {
+ruleset io.picolabs.hello {
 }
 {
   "type": "Ruleset",
-  "name": NAME,
+  "name": {
+    "type": "RulesetName",
+    "value": "io.picolabs.hello"
+  },
   "meta": [  ],
   "global": [  ],
   "rules": [  ]
 }
 
-ruleset hello {
+ruleset io.picolabs.hello {
   meta {
     name "Hello World"
     description <<
@@ -44,7 +47,10 @@ Hello parser!
 }
 {
   "type": "Ruleset",
-  "name": {value: "hello", type:"Identifier"},
+  "name": {
+    "type": "RulesetName",
+    "value": "io.picolabs.hello"
+  },
   "meta": [
     {
       "type": "RulesetMetaProperty",

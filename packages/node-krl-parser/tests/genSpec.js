@@ -19,9 +19,9 @@ var EventExpExample = function(src){
 
 var examples = {
   '### Ruleset': [
-    'ruleset NAME {\n}',
+    'ruleset io.picolabs.hello {\n}',
       [
-        'ruleset hello {',
+        'ruleset io.picolabs.hello {',
         '  meta {',
         '    name "Hello World"',
         '    description <<',

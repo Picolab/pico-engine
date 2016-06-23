@@ -86,7 +86,7 @@ test('parser', function(t){
     type: 'Ruleset',
     loc: {start: 0, end: 14},
 
-    name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
+    name: {type: 'RulesetName', value: 'rs', loc: {start: 8, end: 10}},
     meta: [],
     global: [],
     rules: []
@@ -101,7 +101,7 @@ test('parser', function(t){
     type: 'Ruleset',
     loc: {start: 0, end: 27},
 
-    name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
+    name: {type: 'RulesetName', value: 'rs', loc: {start: 8, end: 10}},
     meta: [],
     global: [],
     rules: [
@@ -128,7 +128,7 @@ test('parser', function(t){
     type: 'Ruleset',
     loc: {start: 0, end: 40},
 
-    name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
+    name: {type: 'RulesetName', value: 'rs', loc: {start: 8, end: 10}},
     meta: [],
     global: [],
     rules: [
@@ -386,7 +386,7 @@ test('locations', function(t){
     loc: {start: 0, end: 32},
     name: {
       loc: {start: 8, end: 11},
-      type: 'Identifier',
+      type: 'RulesetName',
       value: 'one'
     },
     meta: [],

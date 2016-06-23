@@ -178,7 +178,7 @@ var grammar = {
     {"name": "Ruleset$ebnf$3", "symbols": []},
     {"name": "Ruleset$ebnf$3$subexpression$1", "symbols": ["rule", "_"]},
     {"name": "Ruleset$ebnf$3", "symbols": ["Ruleset$ebnf$3$subexpression$1", "Ruleset$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "Ruleset", "symbols": ["Ruleset$string$1", "__", "Identifier", "_", {"literal":"{"}, "_", "Ruleset$ebnf$1", "Ruleset$ebnf$2", "Ruleset$ebnf$3", "loc_close_curly"], "postprocess": 
+    {"name": "Ruleset", "symbols": ["Ruleset$string$1", "__", "RulesetName", "_", {"literal":"{"}, "_", "Ruleset$ebnf$1", "Ruleset$ebnf$2", "Ruleset$ebnf$3", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
             loc: {start: loc, end: last(data)},
@@ -189,6 +189,18 @@ var grammar = {
             rules: data[8].map(function(pair){
               return pair[0];
             })
+          };
+        }
+        },
+    {"name": "RulesetName$ebnf$1", "symbols": []},
+    {"name": "RulesetName$ebnf$1", "symbols": [/[a-z_.]/, "RulesetName$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "RulesetName", "symbols": [/[a-z]/, "RulesetName$ebnf$1"], "postprocess": 
+        function(data, start){
+          var src = flatten(data).join('');
+          return {
+            loc: {start: start, end: start + src.length},
+            type: 'RulesetName',
+            value: src
           };
         }
         },

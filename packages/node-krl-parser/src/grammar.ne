@@ -168,7 +168,7 @@ main -> _ Ruleset _ {% getN(1) %}
 # Ruleset
 #
 
-Ruleset -> "ruleset" __ Identifier _ "{" _
+Ruleset -> "ruleset" __ RulesetName _ "{" _
   ("meta" _ ruleset_meta_block _):?
   ("global" _ declaration_block _):?
   (rule _):*
@@ -183,6 +183,17 @@ loc_close_curly {%
       rules: data[8].map(function(pair){
         return pair[0];
       })
+    };
+  }
+%}
+
+RulesetName -> [a-z] [a-z_.]:* {%
+  function(data, start){
+    var src = flatten(data).join('');
+    return {
+      loc: {start: start, end: start + src.length},
+      type: 'RulesetName',
+      value: src
     };
   }
 %}
