@@ -11,7 +11,7 @@ var parseRuleBody = function(rule_body, expected){
   src += '    ' + rule_body + '\n';
   src += '  }\n';
   src += '}';
-  return parser(src)[0].rules[0];
+  return parser(src).rules[0];
 };
 
 var mk = function(v){
@@ -82,45 +82,41 @@ test('parser', function(t){
   src += 'ruleset rs {\n';
   src += '}';
 
-  assertAST(t, src, [
-    {
-      type: 'Ruleset',
-      loc: {start: 0, end: 14},
+  assertAST(t, src, {
+    type: 'Ruleset',
+    loc: {start: 0, end: 14},
 
-      name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
-      meta: [],
-      global: [],
-      rules: []
-    }
-  ]);
+    name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
+    meta: [],
+    global: [],
+    rules: []
+  });
 
   src = '';
   src += 'ruleset rs {\n';
   src += '  rule r1 {}\n';
   src += '}';
 
-  assertAST(t, src, [
-    {
-      type: 'Ruleset',
-      loc: {start: 0, end: 27},
+  assertAST(t, src, {
+    type: 'Ruleset',
+    loc: {start: 0, end: 27},
 
-      name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
-      meta: [],
-      global: [],
-      rules: [
-        {
-          type: 'Rule',
-          loc: {start: 15, end: 25},
-          name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
-          rule_state: "active",
-          select: null,
-          prelude: [],
-          action_block: null,
-          postlude: null
-        }
-      ]
-    }
-  ]);
+    name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
+    meta: [],
+    global: [],
+    rules: [
+      {
+        type: 'Rule',
+        loc: {start: 15, end: 25},
+        name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
+        rule_state: "active",
+        select: null,
+        prelude: [],
+        action_block: null,
+        postlude: null
+      }
+    ]
+  });
 
   src = '';
   src += 'ruleset rs {\n';
@@ -128,38 +124,36 @@ test('parser', function(t){
   src += '  rule r2 {}\n';
   src += '}';
 
-  assertAST(t, src, [
-    {
-      type: 'Ruleset',
-      loc: {start: 0, end: 40},
+  assertAST(t, src, {
+    type: 'Ruleset',
+    loc: {start: 0, end: 40},
 
-      name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
-      meta: [],
-      global: [],
-      rules: [
-        {
-          type: 'Rule',
-          loc: {start: 15, end: 25},
-          name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
-          rule_state: "active",
-          select: null,
-          prelude: [],
-          action_block: null,
-          postlude: null
-        },
-        {
-          type: 'Rule',
-          loc: {start: 28, end: 38},
-          name: {type: 'Identifier', value: 'r2', loc: {start: 33, end: 35}},
-          rule_state: "active",
-          select: null,
-          prelude: [],
-          action_block: null,
-          postlude: null
-        }
-      ]
-    }
-  ]);
+    name: {type: 'Identifier', value: 'rs', loc: {start: 8, end: 10}},
+    meta: [],
+    global: [],
+    rules: [
+      {
+        type: 'Rule',
+        loc: {start: 15, end: 25},
+        name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
+        rule_state: "active",
+        select: null,
+        prelude: [],
+        action_block: null,
+        postlude: null
+      },
+      {
+        type: 'Rule',
+        loc: {start: 28, end: 38},
+        name: {type: 'Identifier', value: 'r2', loc: {start: 33, end: 35}},
+        rule_state: "active",
+        select: null,
+        prelude: [],
+        action_block: null,
+        postlude: null
+      }
+    ]
+  });
 
   t.end();
 });
@@ -221,7 +215,7 @@ test('action', function(t){
   var testAction = function(action_body, expected){
     var src = 'ruleset rs{rule r1{select when a b '+action_body+'}}';
     var ast = normalizeAST(rmLoc(parser(src)));
-    t.deepEquals(ast[0].rules[0].action_block, normalizeAST(expected));
+    t.deepEquals(ast.rules[0].action_block, normalizeAST(expected));
   };
 
   var src ='send_directive("say")';
@@ -387,7 +381,7 @@ test('locations', function(t){
   src += '  }\n';
   src += '}\n';
 
-  t.deepEquals(parser(src)[0], {
+  t.deepEquals(parser(src), {
     type: 'Ruleset',
     loc: {start: 0, end: 32},
     name: {
@@ -416,7 +410,7 @@ test('locations', function(t){
   });
 
   src = 'select when a b';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select.event, {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}').rules[0].select.event, {
     loc: {start: 35, end: 38},
     type: 'EventExpression',
     event_domain: {
@@ -435,7 +429,7 @@ test('locations', function(t){
   });
 
   src = 'select when a b or c d';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select.event, {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}').rules[0].select.event, {
     loc: {start: 35, end: 45},
     type: 'EventOperator',
     op: 'or',
@@ -477,7 +471,7 @@ test('locations', function(t){
     ]
   });
   src = 'select when a b\nsend_directive("say")';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].action_block.actions[0], {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}').rules[0].action_block.actions[0], {
     loc: {start: 39, end: 60},
     type: 'RuleAction',
     label: null,
@@ -496,7 +490,7 @@ test('locations', function(t){
     "with": []
   });
   src = 'select when a b\nsend_directive("say") with\nblah = 1';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].action_block.actions[0], {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}').rules[0].action_block.actions[0], {
     loc: {start: 39, end: 74},
     type: 'RuleAction',
     label: null,
@@ -534,7 +528,6 @@ test('locations', function(t){
   var testTopLoc = function(src){
     var src2 = '\n  ' + src + '  \n ';
     var ast = parser(src2);
-    t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
     t.equals(
       src2.substring(ast[0].loc.start, ast[0].loc.end),
       src,
@@ -556,7 +549,6 @@ test('locations', function(t){
 test('literals', function(t){
   var testLiteral = function(src, expected){
     var ast = parser(src);
-    t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
     ast = ast[0].expression;
     t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
   };
@@ -686,7 +678,6 @@ test('literals', function(t){
 test('operator precedence', function(t){
   var testPrec = function(src, expected){
     var ast = normalizeAST(rmLoc(parser(src)));
-    t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
     ast = ast[0].expression;
     var s = function(ast){
       if(_.isArray(ast)){
@@ -716,7 +707,6 @@ test('operator precedence', function(t){
 test('expressions', function(t){
   var testExp = function(src, expected){
     var ast = parser(src);
-    t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
     ast = ast[0];
     if(ast.type === 'ExpressionStatement'){
       ast = ast.expression;
@@ -1129,8 +1119,7 @@ test('Ruleset meta', function(t){
   var testMeta = function(meta_body, expected){
     var src = 'ruleset rs{meta{' + meta_body + '}}';
     var ast = normalizeAST(rmLoc(parser(src)));
-    t.equals(ast.length, 1, 'ensure there is no parsing ambiguity');
-    t.deepEquals(ast[0].meta, normalizeAST(expected));
+    t.deepEquals(ast.meta, normalizeAST(expected));
   };
 
   testMeta('', []);
@@ -1183,7 +1172,7 @@ test('Rule prelude', function(t){
   var testPre = function(pre_body, expected){
     var src = 'ruleset rs{rule r1{pre{' + pre_body + '}}}';
     var ast = normalizeAST(rmLoc(parser(src)));
-    t.deepEquals(ast[0].rules[0].prelude, normalizeAST(expected));
+    t.deepEquals(ast.rules[0].prelude, normalizeAST(expected));
   };
 
   testPre('a = 1 b = 2', [
@@ -1208,7 +1197,7 @@ test('Rule state', function(t){
   var testRuleState = function(rule, expected){
     var src = 'ruleset rs{' + rule + '}';
     var ast = normalizeAST(rmLoc(parser(src)));
-    t.deepEquals(ast[0].rules[0].rule_state, normalizeAST(expected));
+    t.deepEquals(ast.rules[0].rule_state, normalizeAST(expected));
   };
 
   testRuleState('rule r1{}', "active");
@@ -1223,12 +1212,12 @@ test('RulePostlude', function(t){
   var testPost = function(postlude, expected){
     var src = 'ruleset rs{rule r1{' + postlude + '}}';
     var ast = normalizeAST(rmLoc(parser(src)));
-    t.deepEquals(ast[0].rules[0].postlude, normalizeAST(expected));
+    t.deepEquals(ast.rules[0].postlude, normalizeAST(expected));
   };
 
   //test location
   var src = 'ruleset rs{rule r1{always{one();two()}}}';
-  t.deepEquals(parser(src)[0].rules[0].postlude, {
+  t.deepEquals(parser(src).rules[0].postlude, {
     loc: {start: 19, end: 38},
     type: 'RulePostlude',
     fired: null,
@@ -1296,21 +1285,6 @@ test('RulePostlude', function(t){
   t.end();
 });
 
-test('Parser should only return one ast', function(t){
-
-  var src = [
-    'ruleset hello_world {',
-    '  rule echo_hello {',
-    '    select when echo hello',
-    '  }',
-    '}'
-  ].join('\n')
-  var ast = rmLoc(parser(src));
-  t.equals(ast.length, 1);
-
-  t.end();
-});
-
 test('ruleset global declarations', function(t){
   var testGlobal = function(global_body, expected){
     var src = [
@@ -1321,8 +1295,7 @@ test('ruleset global declarations', function(t){
       '}'
     ].join('\n')
     var ast = rmLoc(parser(src));
-    t.equals(ast.length, 1);
-    t.deepEquals(ast[0].global, expected);
+    t.deepEquals(ast.global, expected);
   };
 
   testGlobal('', []);

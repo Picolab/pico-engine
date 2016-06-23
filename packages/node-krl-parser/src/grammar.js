@@ -164,23 +164,21 @@ var MemberExpression_method = function(method){
 
 var grammar = {
     ParserRules: [
-    {"name": "main", "symbols": ["_", "ruleset_list", "_"], "postprocess": getN(1)},
+    {"name": "main", "symbols": ["_", "Ruleset", "_"], "postprocess": getN(1)},
     {"name": "main", "symbols": ["Statement_list"], "postprocess": id},
-    {"name": "ruleset_list", "symbols": ["ruleset"], "postprocess": idArr},
-    {"name": "ruleset_list", "symbols": ["ruleset_list", "_", {"literal":";"}, "_", "ruleset"], "postprocess": concatArr(4)},
-    {"name": "ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"m"}, {"literal":"e"}, {"literal":"t"}, {"literal":"a"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset$ebnf$1$subexpression$1", "symbols": ["ruleset$ebnf$1$subexpression$1$string$1", "_", "ruleset_meta_block", "_"]},
-    {"name": "ruleset$ebnf$1", "symbols": ["ruleset$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "ruleset$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ruleset$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"g"}, {"literal":"l"}, {"literal":"o"}, {"literal":"b"}, {"literal":"a"}, {"literal":"l"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset$ebnf$2$subexpression$1", "symbols": ["ruleset$ebnf$2$subexpression$1$string$1", "_", "declaration_block", "_"]},
-    {"name": "ruleset$ebnf$2", "symbols": ["ruleset$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "ruleset$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ruleset$ebnf$3", "symbols": []},
-    {"name": "ruleset$ebnf$3$subexpression$1", "symbols": ["rule", "_"]},
-    {"name": "ruleset$ebnf$3", "symbols": ["ruleset$ebnf$3$subexpression$1", "ruleset$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "ruleset", "symbols": ["ruleset$string$1", "__", "Identifier", "_", {"literal":"{"}, "_", "ruleset$ebnf$1", "ruleset$ebnf$2", "ruleset$ebnf$3", "loc_close_curly"], "postprocess": 
+    {"name": "Ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "Ruleset$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"m"}, {"literal":"e"}, {"literal":"t"}, {"literal":"a"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "Ruleset$ebnf$1$subexpression$1", "symbols": ["Ruleset$ebnf$1$subexpression$1$string$1", "_", "ruleset_meta_block", "_"]},
+    {"name": "Ruleset$ebnf$1", "symbols": ["Ruleset$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "Ruleset$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Ruleset$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"g"}, {"literal":"l"}, {"literal":"o"}, {"literal":"b"}, {"literal":"a"}, {"literal":"l"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "Ruleset$ebnf$2$subexpression$1", "symbols": ["Ruleset$ebnf$2$subexpression$1$string$1", "_", "declaration_block", "_"]},
+    {"name": "Ruleset$ebnf$2", "symbols": ["Ruleset$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "Ruleset$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Ruleset$ebnf$3", "symbols": []},
+    {"name": "Ruleset$ebnf$3$subexpression$1", "symbols": ["rule", "_"]},
+    {"name": "Ruleset$ebnf$3", "symbols": ["Ruleset$ebnf$3$subexpression$1", "Ruleset$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "Ruleset", "symbols": ["Ruleset$string$1", "__", "Identifier", "_", {"literal":"{"}, "_", "Ruleset$ebnf$1", "Ruleset$ebnf$2", "Ruleset$ebnf$3", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
             loc: {start: loc, end: last(data)},

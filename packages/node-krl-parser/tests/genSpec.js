@@ -6,14 +6,14 @@ var normalizeAST = require('./normalizeASTForTestCompare');
 var ruleExample = function(src){
   return function(){
     var ast = parser('ruleset rs{' + src + '}');
-    return [src, ast[0].rules[0]];
+    return [src, ast.rules[0]];
   };
 };
 
 var EventExpExample = function(src){
   return function(){
     var ast = parser('ruleset rs{rule r0{' + src + ';}}');
-    return [src, ast[0].rules[0].select.event];
+    return [src, ast.rules[0].select.event];
   };
 };
 
