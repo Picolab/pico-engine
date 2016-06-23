@@ -37,7 +37,9 @@ var n = 0;
 while(true){
   n++;
   console.log('attempt', n);
-  var src = KaRL42();
+  var src = KaRL42({
+    grammar: grammar
+  });
   try{
     parser(src);
   }catch(e){
