@@ -39,7 +39,9 @@ test('compiler', function(t){
           next();
         }else{
           console.log('');
-          console.log(diff(expected, compiled));
+          console.log(diff(expected, compiled, {
+            n_surrounding: 3
+          }));
           process.exit(1);//end asap, so they can easily see the diff
         }
 
