@@ -8,8 +8,10 @@
   ],
   "scripts": {
     "start": "onchange 'src/' 'tests/' -e 'src/grammar.js' -i -- npm test -s",
-    "build": "nearleyc src/grammar.ne > src/grammar.js",
-    "test": "npm run build -s && node tests | tap-min"
+    "test": "npm run build -s && node tests | tap-min",
+    "build": "npm run build:grammar -s && npm run build:spec -s",
+    "build:grammar": "nearleyc src/grammar.ne > src/grammar.js",
+    "build:spec": "node tests/genSpec.js > spec.md"
   },
   "repository": {
     "type": "git",
