@@ -16,6 +16,27 @@ var ast = parser(src);
 ## AST Specification
 The specification is found in [spec.md](https://github.com/farskipper/node-krl-parser/blob/master/spec.md)
 
+## API
+### ast = parser(src[, options])
+ * `src` - your krl source code string
+ * `options.filename` - If provided, it will be used on parsing errors so the user know what file failed to parse.
+
+This function will throw errors when it can't parse. When applicable, the Error object may have a `where` property. i.e.
+```js
+var src = 'function(a, b] { a + b }';
+try{
+  ast = parser(src, {filename: 'bad-function.krl'});
+}catch(err){
+  console.log(err.where);
+}
+```
+```js
+{ filename: 'bad-function.krl',
+  line: 1,
+  col: 14,
+  excerpt: 'function(a, b] { a + b }\n             ^' }
+```
+
 ## Developing
 
 The parser is built using [nearley](https://www.npmjs.com/package/nearley). It uses the Earley parser algorithm.
@@ -32,6 +53,12 @@ To rebuild and run tests once, run this:
 ```sh
 $ npm test
 ```
+
+Sometimes you may unwittingly introduce an ambiguity into the grammar. Run this script to help you find it:
+```sh
+$ node tests/ambiguityFinder.js
+```
+It will generate and try to parse random KRL programs (using [KaRL42](https://www.npmjs.com/package/karl42). When it finds an ambiguity it will stop and diff the outputs to help you spot the ambiguity.
 
 ## License
 MIT

@@ -17,8 +17,12 @@ var mkParseError = function(src, line, col, orig_err, filename){
   msg += "\n \n" + excerptAtLineCol(src, line - 1, col - 1, 0);
 
   var err = new Error(msg);
-  err.line = line;
-  err.col = col;
+  err.where = {
+    filename: filename,
+    line: line,
+    col: col,
+    excerpt: excerptAtLineCol(src, line - 1, col - 1, 3)
+  };
   return err;
 };
 
