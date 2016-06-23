@@ -113,7 +113,7 @@ test('parser', function(t){
           loc: {start: 15, end: 25},
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
           rule_state: "active",
-          select_when: null,
+          select: null,
           prelude: [],
           action_block: null,
           postlude: null
@@ -142,7 +142,7 @@ test('parser', function(t){
           loc: {start: 15, end: 25},
           name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
           rule_state: "active",
-          select_when: null,
+          select: null,
           prelude: [],
           action_block: null,
           postlude: null
@@ -152,7 +152,7 @@ test('parser', function(t){
           loc: {start: 28, end: 38},
           name: {type: 'Identifier', value: 'r2', loc: {start: 33, end: 35}},
           rule_state: "active",
-          select_when: null,
+          select: null,
           prelude: [],
           action_block: null,
           postlude: null
@@ -167,8 +167,8 @@ test('parser', function(t){
 test('select when', function(t){
   var asertRuleAST = function(rule_body, expected){
     var ast = parseRuleBody(rule_body);
-    t.ok(_.has(ast, 'select_when'));
-    t.deepEquals(rmLoc(ast.select_when), expected);
+    t.ok(ast.select.kind === 'when');
+    t.deepEquals(rmLoc(ast.select.event_expression), expected);
   }; 
 
   var src = 'select when d t';
@@ -407,7 +407,7 @@ test('locations', function(t){
           value: 'two'
         },
         rule_state: "active",
-        select_when: null,
+        select: null,
         prelude: [],
         action_block: null,
         postlude: null
@@ -416,7 +416,7 @@ test('locations', function(t){
   });
 
   src = 'select when a b';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select_when, {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select.event_expression, {
     loc: {start: 35, end: 38},
     type: 'EventExpression',
     event_domain: {
@@ -435,7 +435,7 @@ test('locations', function(t){
   });
 
   src = 'select when a b or c d';
-  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select_when, {
+  t.deepEquals(parser('ruleset one {rule two {' + src + '}}')[0].rules[0].select.event_expression, {
     loc: {start: 35, end: 45},
     type: 'EventOperator',
     op: 'or',
@@ -898,7 +898,7 @@ test('EventExpression', function(t){
       rule_body += ';';//TODO can remove this?
     }
     var ast = normalizeAST(rmLoc(parseRuleBody('select when ' + rule_body)));
-    t.deepEquals(ast.select_when, normalizeAST(expected));
+    t.deepEquals(ast.select.event_expression, normalizeAST(expected));
   }; 
 
   testEE('a b', {

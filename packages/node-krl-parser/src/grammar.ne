@@ -235,7 +235,7 @@ loc_close_curly {%
       type: 'Rule',
       name: data[2],
       rule_state: data[3] ? data[3][3] : "active",
-      select_when: data[7] && data[7][0],
+      select: data[7] && data[7][0],
       prelude: data[8][1] || [],
       action_block: data[8][2],
       postlude: data[8][3]
@@ -244,6 +244,18 @@ loc_close_curly {%
 %}
 
 rule_state -> "active" {% id %} | "inactive" {% id %}
+
+RuleSelect -> "select" __ "when" __ EventExpression {%
+  function(data, start){
+    var ee =  data[4];
+    return {
+      loc: {start: start, end: ee.loc.end},
+      type: 'RuleSelect',
+      kind: 'when',
+      event_expression: ee
+    };
+  }
+%}
 
 RuleBody -> null {% idIndecies(-1, -1, -1, -1) %}
     | RulePrelude _
@@ -260,8 +272,6 @@ RuleBody -> null {% idIndecies(-1, -1, -1, -1) %}
       {% idIndecies(-1, -1, 0, 2) %}
     | RulePrelude _ RuleActionBlock __ RulePostlude _
       {% idIndecies(-1, 0, 2, 4) %}
-
-RuleSelect -> "select" __ "when" __ EventExpression {% getN(4) %}
 
 RulePrelude -> "pre" _ declaration_block {% getN(2) %}
 
