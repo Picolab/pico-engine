@@ -238,6 +238,17 @@ ruleset_meta_prop ->
     | "logging"     __ OnOrOff {% metaProp2part %}
     | "keys" __ Keyword __ (String | Map)
       {% metaProp(function(data){return [data[2], data[4][0]]}) %}
+    | "use" __ "module" __ RulesetName
+        (__ "version" __ String):?
+        (__ "alias" __ Identifier):?
+        (__ "with" __ declaration_list):?
+      {% metaProp(function(data){return {
+        kind: data[2],
+        name: data[4],
+        version: data[5] && data[5][3],
+        alias:   data[6] && data[6][3],
+        'with':  data[7] && data[7][3]
+      }}) %}
 
 Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
   function(data, start){

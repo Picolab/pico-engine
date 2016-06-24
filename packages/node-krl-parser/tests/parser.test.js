@@ -1172,6 +1172,29 @@ test('Ruleset meta', function(t){
   testMeta('logging on', [mk.meta('logging', mk(true))]);
   testMeta('logging off', [mk.meta('logging', mk(false))]);
 
+  testMeta([
+    'use module com.blah',
+    'use module com.blah version "2" alias blah with one = 2 three = 4'
+  ].join('\n'), [
+    mk.meta('use', {
+      kind: 'module',
+      name: {type: 'RulesetName', value: 'com.blah'},
+      version: null,
+      alias:   null,
+      'with':  null
+    }),
+    mk.meta('use', {
+      kind: 'module',
+      name: {type: 'RulesetName', value: 'com.blah'},
+      version: mk('2'),
+      alias: mk.id('blah'),
+      'with': [
+        mk.declare('=', mk.id('one'), mk(2)),
+        mk.declare('=', mk.id('three'), mk(4))
+      ]
+    })
+  ]);
+
   t.end();
 });
 
