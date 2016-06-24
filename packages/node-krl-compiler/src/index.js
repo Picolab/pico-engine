@@ -9,14 +9,14 @@ module.exports = function(ast){
     ast = parser(ast);
   }
 
-  if(!_.isArray(ast) || ast.length !== 1 || ast[0].type !== 'Ruleset'){
-    throw new Error('one ruleset per file');
+  if(!ast || ast.type !== 'Ruleset'){
+    throw new Error('expected to compile a ruleset');
   }
 
   var estree = {
     'type': 'Program',
     'body': [
-      e(';', e('=', e('.', e.id('module'), e.id('exports')), compile(ast[0])))
+      e(';', e('=', e('.', e.id('module'), e.id('exports')), compile(ast)))
     ]
   };
   return escodegen.generate(estree);
