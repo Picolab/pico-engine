@@ -14,10 +14,12 @@ var comp_by_type = {
     _.each(ast.rules, function(rule){
       rules_obj[rule.name.value] = comp(rule);
     });
-    return e.obj({
-      name: e.str(ast.name.value),
-      rules: e.obj(rules_obj)
-    });
+    return [
+      e(';', e('=', e('.', e.id('module'), e.id('exports')), e.obj({
+        name: e.str(ast.name.value),
+        rules: e.obj(rules_obj)
+      })))
+    ];
   },
   'Rule': function(ast, comp){
     return e.obj({
