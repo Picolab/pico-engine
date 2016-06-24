@@ -23,6 +23,14 @@ var mk = function(v){
     return {type: 'String', value: v};
   }else if(_.isRegExp(v)){
     return {type: 'RegExp', value: v};
+  }else if(_.isPlainObject(v)){
+    return {type: 'Map', value: _.map(v, function(val, key){
+      return {
+        type: 'MapKeyValuePair',
+        key: {type:'String', value: key},
+        value: val
+      };
+    })};
   }
   return v;
 };
@@ -52,6 +60,13 @@ mk.ee = function(domain, type, attrs, where, setting){
 };
 mk.declare = function(op, left, right){
   return {type: 'Declaration', op: op, left: left, right: right};
+};
+mk.meta = function(key, value){
+  return {
+    type: 'RulesetMetaProperty',
+    key: mk.key(key),
+    value: value
+  };
 };
 
 var mkEventExp = function(domain, type){
@@ -1135,34 +1150,23 @@ test('Ruleset meta', function(t){
 
   //testing for whitespace parsing ambiguity
   testMeta('\n  name "two"\n  ', [
-    {
-      type: 'RulesetMetaProperty',
-      key: mk.key('name'),
-      value: mk('two')
-    }
+    mk.meta('name', mk('two'))
   ]);
 
   testMeta('name "blah" description <<\n  wat? ok\n  >>\nauthor "bob"', [
-    {
-      type: 'RulesetMetaProperty',
-      key: mk.key('name'),
-      value: mk('blah')
-    },
-    {
-      type: 'RulesetMetaProperty',
-      key: mk.key('description'),
-      value: {
-        type: 'Chevron',
-        value: [
-          {type: 'String', value: '\n  wat? ok\n  '}
-        ]
-      }
-    },
-    {
-      type: 'RulesetMetaProperty',
-      key: mk.key('author'),
-      value: mk('bob')
-    }
+    mk.meta('name', mk('blah')),
+    mk.meta('description', {
+      type: 'Chevron',
+      value: [
+        {type: 'String', value: '\n  wat? ok\n  '}
+      ]
+    }),
+    mk.meta('author', mk('bob'))
+  ]);
+
+  testMeta('keys one "one string"\n keys two {"some": "map"}', [
+    mk.meta('keys', [mk.key('one'), mk('one string')]),
+    mk.meta('keys', [mk.key('two'), mk({'some': mk('map')})])
   ]);
 
   t.end();

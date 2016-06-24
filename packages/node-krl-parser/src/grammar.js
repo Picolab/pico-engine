@@ -174,14 +174,20 @@ var mkRulesetMetaProperty = function(key, value, start){
   return {
     loc: {start: start, end: lastEndLoc(value)},
     type: 'RulesetMetaProperty',
-    key: key,
+    key: mkKeyword(key, start),
     value: value
   };
 };
 
-var metaProp2part = function(data, start){
-  return mkRulesetMetaProperty(mkKeyword(data[0]), data[2], start);
+var metaProp = function(fn){
+  return function(data, start){
+    return mkRulesetMetaProperty(data[0], fn(data), start);
+  };
 };
+
+var metaProp2part = metaProp(function(data){
+  return data[2];
+});
 
 var grammar = {
     ParserRules: [
@@ -235,6 +241,18 @@ var grammar = {
     {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$2", "__", "Chevron"], "postprocess": metaProp2part},
     {"name": "ruleset_meta_prop$string$3", "symbols": [{"literal":"a"}, {"literal":"u"}, {"literal":"t"}, {"literal":"h"}, {"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$3", "__", "String"], "postprocess": metaProp2part},
+    {"name": "ruleset_meta_prop$string$4", "symbols": [{"literal":"k"}, {"literal":"e"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop$subexpression$1", "symbols": ["String"]},
+    {"name": "ruleset_meta_prop$subexpression$1", "symbols": ["Map"]},
+    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$4", "__", "Keyword", "__", "ruleset_meta_prop$subexpression$1"], "postprocess": metaProp(function(data){return [data[2], data[4][0]]})},
+    {"name": "Keyword$ebnf$1", "symbols": []},
+    {"name": "Keyword$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "Keyword$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "Keyword", "symbols": [/[a-zA-Z_$]/, "Keyword$ebnf$1"], "postprocess": 
+        function(data, start){
+          var src = flatten(data).join('');
+          return mkKeyword(src, start);
+        }
+        },
     {"name": "rule$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "rule$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"i"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "rule$ebnf$1$subexpression$1", "symbols": ["__", "rule$ebnf$1$subexpression$1$string$1", "__", "rule_state"]},

@@ -170,14 +170,20 @@ var mkRulesetMetaProperty = function(key, value, start){
   return {
     loc: {start: start, end: lastEndLoc(value)},
     type: 'RulesetMetaProperty',
-    key: key,
+    key: mkKeyword(key, start),
     value: value
   };
 };
 
-var metaProp2part = function(data, start){
-  return mkRulesetMetaProperty(mkKeyword(data[0]), data[2], start);
+var metaProp = function(fn){
+  return function(data, start){
+    return mkRulesetMetaProperty(data[0], fn(data), start);
+  };
 };
+
+var metaProp2part = metaProp(function(data){
+  return data[2];
+});
 
 %}
 
@@ -229,6 +235,15 @@ ruleset_meta_prop ->
       "name"        __ String {% metaProp2part %}
     | "description" __ Chevron {% metaProp2part %}
     | "author"      __ String {% metaProp2part %}
+    | "keys" __ Keyword __ (String | Map)
+      {% metaProp(function(data){return [data[2], data[4][0]]}) %}
+
+Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
+  function(data, start){
+    var src = flatten(data).join('');
+    return mkKeyword(src, start);
+  }
+%}
 
 ################################################################################
 #
