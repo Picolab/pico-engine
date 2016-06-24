@@ -1169,6 +1169,9 @@ test('Ruleset meta', function(t){
     mk.meta('keys', [mk.key('two'), mk({'some': mk('map')})])
   ]);
 
+  testMeta('logging on', [mk.meta('logging', mk(true))]);
+  testMeta('logging off', [mk.meta('logging', mk(false))]);
+
   t.end();
 });
 

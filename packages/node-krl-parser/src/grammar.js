@@ -241,10 +241,12 @@ var grammar = {
     {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$2", "__", "Chevron"], "postprocess": metaProp2part},
     {"name": "ruleset_meta_prop$string$3", "symbols": [{"literal":"a"}, {"literal":"u"}, {"literal":"t"}, {"literal":"h"}, {"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$3", "__", "String"], "postprocess": metaProp2part},
-    {"name": "ruleset_meta_prop$string$4", "symbols": [{"literal":"k"}, {"literal":"e"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop$string$4", "symbols": [{"literal":"l"}, {"literal":"o"}, {"literal":"g"}, {"literal":"g"}, {"literal":"i"}, {"literal":"n"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$4", "__", "OnOrOff"], "postprocess": metaProp2part},
+    {"name": "ruleset_meta_prop$string$5", "symbols": [{"literal":"k"}, {"literal":"e"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset_meta_prop$subexpression$1", "symbols": ["String"]},
     {"name": "ruleset_meta_prop$subexpression$1", "symbols": ["Map"]},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$4", "__", "Keyword", "__", "ruleset_meta_prop$subexpression$1"], "postprocess": metaProp(function(data){return [data[2], data[4][0]]})},
+    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$5", "__", "Keyword", "__", "ruleset_meta_prop$subexpression$1"], "postprocess": metaProp(function(data){return [data[2], data[4][0]]})},
     {"name": "Keyword$ebnf$1", "symbols": []},
     {"name": "Keyword$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "Keyword$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "Keyword", "symbols": [/[a-zA-Z_$]/, "Keyword$ebnf$1"], "postprocess": 
@@ -253,6 +255,10 @@ var grammar = {
           return mkKeyword(src, start);
         }
         },
+    {"name": "OnOrOff$string$1", "symbols": [{"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "OnOrOff", "symbols": ["OnOrOff$string$1"], "postprocess": booleanAST(true )},
+    {"name": "OnOrOff$string$2", "symbols": [{"literal":"o"}, {"literal":"f"}, {"literal":"f"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "OnOrOff", "symbols": ["OnOrOff$string$2"], "postprocess": booleanAST(false)},
     {"name": "rule$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "rule$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"i"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "rule$ebnf$1$subexpression$1", "symbols": ["__", "rule$ebnf$1$subexpression$1$string$1", "__", "rule_state"]},

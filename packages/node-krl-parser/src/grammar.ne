@@ -235,6 +235,7 @@ ruleset_meta_prop ->
       "name"        __ String {% metaProp2part %}
     | "description" __ Chevron {% metaProp2part %}
     | "author"      __ String {% metaProp2part %}
+    | "logging"     __ OnOrOff {% metaProp2part %}
     | "keys" __ Keyword __ (String | Map)
       {% metaProp(function(data){return [data[2], data[4][0]]}) %}
 
@@ -244,6 +245,9 @@ Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
     return mkKeyword(src, start);
   }
 %}
+
+OnOrOff -> "on"  {% booleanAST(true ) %}
+         | "off" {% booleanAST(false) %}
 
 ################################################################################
 #
