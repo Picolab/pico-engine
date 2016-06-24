@@ -6,7 +6,7 @@ A first ruleset for the Quickstart
     >>
     author "Phil Windley"
     logging on
-    sharing on
+    shares hello
     provides hello
   }
   global {

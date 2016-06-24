@@ -109,18 +109,36 @@ var gen_by_type = {
     src += ind() + '}';
     return src;
   },
+  'RulesetName': function(ast, ind, gen){
+    return ast.value;
+  },
   'RulesetMetaProperty': function(ast, ind, gen){
-    return ind() + gen(ast.key) + ' ' + gen(ast.value);
+    var src = ind() + gen(ast.key) + ' ';
+    var key = ast.key.value;
+    if(key === 'shares'){
+      src += _.map(ast.value.ids, function(id){
+        return gen(id);
+      }).join(', ');
+    }else if(key === 'provides'){
+      src += _.map(ast.value.ids, function(id){
+        return gen(id);
+      }).join(', ');
+    }else if(_.get(ast, 'value.type') === 'Boolean'){
+      src += ast.value.value ? 'on' : 'off';
+    }else{
+      src += gen(ast.value);
+    }
+    return src;
   },
   'Rule': function(ast, ind, gen){
     var src = '';
     src += ind() + 'rule ' + gen(ast.name) + ' {\n';
-    if(ast.select_when){
-      var select_when = gen(ast.select_when, 1);
+    if(ast.select){
+      var select_when = gen(ast.select.event, 1);
       if(/\)/.test(select_when)){
         select_when += ';';
       }
-      src += ind(1) + 'select when';
+      src += ind(1) + 'select ' + ast.select.kind;
       src += select_when[0] === '\n' ? '' : ' ';
       src += select_when + '\n';
     }
