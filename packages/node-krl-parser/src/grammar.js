@@ -268,6 +268,16 @@ var grammar = {
           alias:   data[6] && data[6][3],
           'with':  data[7] && data[7][3]
         }}) },
+    {"name": "ruleset_meta_prop$string$8", "symbols": [{"literal":"e"}, {"literal":"r"}, {"literal":"r"}, {"literal":"o"}, {"literal":"r"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop$string$9", "symbols": [{"literal":"t"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop$ebnf$4$subexpression$1$string$1", "symbols": [{"literal":"v"}, {"literal":"e"}, {"literal":"r"}, {"literal":"s"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop$ebnf$4$subexpression$1", "symbols": ["__", "ruleset_meta_prop$ebnf$4$subexpression$1$string$1", "__", "String"]},
+    {"name": "ruleset_meta_prop$ebnf$4", "symbols": ["ruleset_meta_prop$ebnf$4$subexpression$1"], "postprocess": id},
+    {"name": "ruleset_meta_prop$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$8", "__", "ruleset_meta_prop$string$9", "__", "RulesetName", "ruleset_meta_prop$ebnf$4"], "postprocess":  metaProp(function(data){return {
+          name: data[4],
+          version: data[5] && data[5][3]
+        }}) },
     {"name": "Keyword$ebnf$1", "symbols": []},
     {"name": "Keyword$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "Keyword$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "Keyword", "symbols": [/[a-zA-Z_$]/, "Keyword$ebnf$1"], "postprocess": 

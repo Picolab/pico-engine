@@ -249,6 +249,11 @@ ruleset_meta_prop ->
         alias:   data[6] && data[6][3],
         'with':  data[7] && data[7][3]
       }}) %}
+    | "errors" __ "to" __ RulesetName (__ "version" __ String):?
+      {% metaProp(function(data){return {
+        name: data[4],
+        version: data[5] && data[5][3]
+      }}) %}
 
 Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
   function(data, start){

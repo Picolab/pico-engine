@@ -1195,6 +1195,20 @@ test('Ruleset meta', function(t){
     })
   ]);
 
+  testMeta([
+    'errors to com.blah',
+    'errors to com.blah version "2"'
+  ].join('\n'), [
+    mk.meta('errors', {
+      name: {type: 'RulesetName', value: 'com.blah'},
+      version: null
+    }),
+    mk.meta('errors', {
+      name: {type: 'RulesetName', value: 'com.blah'},
+      version: mk('2')
+    })
+  ]);
+
   t.end();
 });
 
