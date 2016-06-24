@@ -158,6 +158,27 @@ var MemberExpression_method = function(method){
   };
 };
 
+var mkKeyword = function(src, start){
+  return {
+    loc: {start: start, end: start + src.length},
+    type: 'Keyword',
+    value: src
+  };
+};
+
+var mkRulesetMetaProperty = function(key, value, start){
+  return {
+    loc: {start: start, end: lastEndLoc(value)},
+    type: 'RulesetMetaProperty',
+    key: key,
+    value: value
+  };
+};
+
+var metaProp2part = function(data, start){
+  return mkRulesetMetaProperty(mkKeyword(data[0]), data[2], start);
+};
+
 %}
 
 main -> _ Ruleset _ {% getN(1) %}
@@ -204,27 +225,10 @@ ruleset_meta_block -> "{" _ "}" {% noopArr %}
 ruleset_meta_prop_list -> ruleset_meta_prop {% idArr %}
     | ruleset_meta_prop_list __ ruleset_meta_prop {% concatArr(2) %}
 
-ruleset_meta_prop -> Keyword __ PrimaryExpression {%
-  function(data, start){
-    return {
-      loc: {start: start, end: data[2].loc.end},
-      type: 'RulesetMetaProperty',
-      key: data[0],
-      value: data[2]
-    };
-  }
-%}
-
-Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
-  function(data, loc, reject){
-    var src = flatten(data).join('');
-    return {
-      loc: {start: loc, end: loc + src.length},
-      type: 'Keyword',
-      value: src
-    };
-  }
-%}
+ruleset_meta_prop ->
+      "name"        __ String {% metaProp2part %}
+    | "description" __ Chevron {% metaProp2part %}
+    | "author"      __ String {% metaProp2part %}
 
 ################################################################################
 #

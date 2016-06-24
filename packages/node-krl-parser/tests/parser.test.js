@@ -1125,20 +1125,20 @@ test('Ruleset meta', function(t){
   testMeta('', []);
   testMeta('   ', []);//testing for whitespace parsing ambiguity
 
-  testMeta('one two', [
+  testMeta('name "two"', [
     {
       type: 'RulesetMetaProperty',
-      key: mk.key('one'),
-      value: mk.id('two')
+      key: mk.key('name'),
+      value: mk('two')
     }
   ]);
 
   //testing for whitespace parsing ambiguity
-  testMeta('\n  one two\n  ', [
+  testMeta('\n  name "two"\n  ', [
     {
       type: 'RulesetMetaProperty',
-      key: mk.key('one'),
-      value: mk.id('two')
+      key: mk.key('name'),
+      value: mk('two')
     }
   ]);
 

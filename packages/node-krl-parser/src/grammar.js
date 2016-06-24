@@ -162,6 +162,27 @@ var MemberExpression_method = function(method){
   };
 };
 
+var mkKeyword = function(src, start){
+  return {
+    loc: {start: start, end: start + src.length},
+    type: 'Keyword',
+    value: src
+  };
+};
+
+var mkRulesetMetaProperty = function(key, value, start){
+  return {
+    loc: {start: start, end: lastEndLoc(value)},
+    type: 'RulesetMetaProperty',
+    key: key,
+    value: value
+  };
+};
+
+var metaProp2part = function(data, start){
+  return mkRulesetMetaProperty(mkKeyword(data[0]), data[2], start);
+};
+
 var grammar = {
     ParserRules: [
     {"name": "main", "symbols": ["_", "Ruleset", "_"], "postprocess": getN(1)},
@@ -208,28 +229,12 @@ var grammar = {
     {"name": "ruleset_meta_block", "symbols": [{"literal":"{"}, "_", "ruleset_meta_prop_list", "_", {"literal":"}"}], "postprocess": getN(2)},
     {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop"], "postprocess": idArr},
     {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop_list", "__", "ruleset_meta_prop"], "postprocess": concatArr(2)},
-    {"name": "ruleset_meta_prop", "symbols": ["Keyword", "__", "PrimaryExpression"], "postprocess": 
-        function(data, start){
-          return {
-            loc: {start: start, end: data[2].loc.end},
-            type: 'RulesetMetaProperty',
-            key: data[0],
-            value: data[2]
-          };
-        }
-        },
-    {"name": "Keyword$ebnf$1", "symbols": []},
-    {"name": "Keyword$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "Keyword$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "Keyword", "symbols": [/[a-zA-Z_$]/, "Keyword$ebnf$1"], "postprocess": 
-        function(data, loc, reject){
-          var src = flatten(data).join('');
-          return {
-            loc: {start: loc, end: loc + src.length},
-            type: 'Keyword',
-            value: src
-          };
-        }
-        },
+    {"name": "ruleset_meta_prop$string$1", "symbols": [{"literal":"n"}, {"literal":"a"}, {"literal":"m"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$1", "__", "String"], "postprocess": metaProp2part},
+    {"name": "ruleset_meta_prop$string$2", "symbols": [{"literal":"d"}, {"literal":"e"}, {"literal":"s"}, {"literal":"c"}, {"literal":"r"}, {"literal":"i"}, {"literal":"p"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$2", "__", "Chevron"], "postprocess": metaProp2part},
+    {"name": "ruleset_meta_prop$string$3", "symbols": [{"literal":"a"}, {"literal":"u"}, {"literal":"t"}, {"literal":"h"}, {"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$3", "__", "String"], "postprocess": metaProp2part},
     {"name": "rule$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "rule$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"i"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "rule$ebnf$1$subexpression$1", "symbols": ["__", "rule$ebnf$1$subexpression$1$string$1", "__", "rule_state"]},
