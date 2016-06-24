@@ -1230,6 +1230,18 @@ test('Ruleset meta', function(t){
     })
   ]);
 
+  testMeta([
+    'share x, y, z',
+    'shares x, y, z'
+  ].join('\n'), [
+    mk.meta('shares', {
+      ids: [mk.id('x'), mk.id('y'), mk.id('z')]
+    }),
+    mk.meta('shares', {
+      ids: [mk.id('x'), mk.id('y'), mk.id('z')]
+    })
+  ]);
+
   t.end();
 });
 

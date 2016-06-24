@@ -287,6 +287,9 @@ var grammar = {
           ids: d[4],
           rulesets: d[8]
         }}, "provides") },
+    {"name": "ruleset_meta_prop", "symbols": ["SHAREs", "__", "Identifier_list"], "postprocess":  metaProp(function(d){return {
+          ids: d[2]
+        }}, "shares") },
     {"name": "Keyword$ebnf$1", "symbols": []},
     {"name": "Keyword$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "Keyword$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "Keyword", "symbols": [/[a-zA-Z_$]/, "Keyword$ebnf$1"], "postprocess": 
@@ -300,6 +303,11 @@ var grammar = {
     {"name": "PROVIDEs$subexpression$1$string$2", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"o"}, {"literal":"v"}, {"literal":"i"}, {"literal":"d"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "PROVIDEs$subexpression$1", "symbols": ["PROVIDEs$subexpression$1$string$2"]},
     {"name": "PROVIDEs", "symbols": ["PROVIDEs$subexpression$1"], "postprocess": id},
+    {"name": "SHAREs$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"h"}, {"literal":"a"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "SHAREs$subexpression$1", "symbols": ["SHAREs$subexpression$1$string$1"]},
+    {"name": "SHAREs$subexpression$1$string$2", "symbols": [{"literal":"s"}, {"literal":"h"}, {"literal":"a"}, {"literal":"r"}, {"literal":"e"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "SHAREs$subexpression$1", "symbols": ["SHAREs$subexpression$1$string$2"]},
+    {"name": "SHAREs", "symbols": ["SHAREs$subexpression$1"], "postprocess": id},
     {"name": "Identifier_list", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "Identifier_list", "symbols": ["Identifier_list", "_", {"literal":","}, "_", "Identifier"], "postprocess": concatArr(4)},
     {"name": "RulesetName_list", "symbols": ["RulesetName"], "postprocess": idArr},

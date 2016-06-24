@@ -258,13 +258,16 @@ ruleset_meta_prop ->
       {% metaProp(function(d){return {
         ids: d[2]
       }}, "provides") %}
-
     | PROVIDEs __ Keyword __ Identifier_list __ "to" __ RulesetName_list
       {% metaProp(function(d){return {
         operator: d[2],
         ids: d[4],
         rulesets: d[8]
       }}, "provides") %}
+    | SHAREs __ Identifier_list
+      {% metaProp(function(d){return {
+        ids: d[2]
+      }}, "shares") %}
 
 Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
   function(data, start){
@@ -274,6 +277,7 @@ Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
 %}
 
 PROVIDEs -> ("provides" | "provide") {% id %}
+SHAREs -> ("share" | "shares") {% id %}
 
 Identifier_list -> Identifier {% idArr %}
     | Identifier_list _ "," _ Identifier {% concatArr(4) %}
