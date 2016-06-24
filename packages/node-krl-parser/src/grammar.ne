@@ -254,12 +254,12 @@ ruleset_meta_prop ->
         name: data[4],
         version: data[5] && data[5][3]
       }}) %}
-    | ("provides" | "provide") __ meta_provides_list
+    | PROVIDEs __ Identifier_list
       {% metaProp(function(d){return {
         ids: d[2]
       }}, "provides") %}
 
-    | ("provides" | "provide") __ Keyword __ meta_provides_list __ "to" __ RulesetName_list
+    | PROVIDEs __ Keyword __ Identifier_list __ "to" __ RulesetName_list
       {% metaProp(function(d){return {
         operator: d[2],
         ids: d[4],
@@ -273,8 +273,10 @@ Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
   }
 %}
 
-meta_provides_list -> Identifier {% idArr %}
-    | meta_provides_list _ "," _ Identifier {% concatArr(4) %}
+PROVIDEs -> ("provides" | "provide") {% id %}
+
+Identifier_list -> Identifier {% idArr %}
+    | Identifier_list _ "," _ Identifier {% concatArr(4) %}
 
 RulesetName_list -> RulesetName {% idArr %}
     | RulesetName_list _ "," _ RulesetName {% concatArr(4) %}

@@ -278,19 +278,11 @@ var grammar = {
           name: data[4],
           version: data[5] && data[5][3]
         }}) },
-    {"name": "ruleset_meta_prop$subexpression$2$string$1", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"o"}, {"literal":"v"}, {"literal":"i"}, {"literal":"d"}, {"literal":"e"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$subexpression$2", "symbols": ["ruleset_meta_prop$subexpression$2$string$1"]},
-    {"name": "ruleset_meta_prop$subexpression$2$string$2", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"o"}, {"literal":"v"}, {"literal":"i"}, {"literal":"d"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$subexpression$2", "symbols": ["ruleset_meta_prop$subexpression$2$string$2"]},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$subexpression$2", "__", "meta_provides_list"], "postprocess":  metaProp(function(d){return {
+    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "Identifier_list"], "postprocess":  metaProp(function(d){return {
           ids: d[2]
         }}, "provides") },
-    {"name": "ruleset_meta_prop$subexpression$3$string$1", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"o"}, {"literal":"v"}, {"literal":"i"}, {"literal":"d"}, {"literal":"e"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$subexpression$3", "symbols": ["ruleset_meta_prop$subexpression$3$string$1"]},
-    {"name": "ruleset_meta_prop$subexpression$3$string$2", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"o"}, {"literal":"v"}, {"literal":"i"}, {"literal":"d"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$subexpression$3", "symbols": ["ruleset_meta_prop$subexpression$3$string$2"]},
     {"name": "ruleset_meta_prop$string$10", "symbols": [{"literal":"t"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$subexpression$3", "__", "Keyword", "__", "meta_provides_list", "__", "ruleset_meta_prop$string$10", "__", "RulesetName_list"], "postprocess":  metaProp(function(d){return {
+    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "Keyword", "__", "Identifier_list", "__", "ruleset_meta_prop$string$10", "__", "RulesetName_list"], "postprocess":  metaProp(function(d){return {
           operator: d[2],
           ids: d[4],
           rulesets: d[8]
@@ -303,8 +295,13 @@ var grammar = {
           return mkKeyword(src, start);
         }
         },
-    {"name": "meta_provides_list", "symbols": ["Identifier"], "postprocess": idArr},
-    {"name": "meta_provides_list", "symbols": ["meta_provides_list", "_", {"literal":","}, "_", "Identifier"], "postprocess": concatArr(4)},
+    {"name": "PROVIDEs$subexpression$1$string$1", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"o"}, {"literal":"v"}, {"literal":"i"}, {"literal":"d"}, {"literal":"e"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "PROVIDEs$subexpression$1", "symbols": ["PROVIDEs$subexpression$1$string$1"]},
+    {"name": "PROVIDEs$subexpression$1$string$2", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"o"}, {"literal":"v"}, {"literal":"i"}, {"literal":"d"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "PROVIDEs$subexpression$1", "symbols": ["PROVIDEs$subexpression$1$string$2"]},
+    {"name": "PROVIDEs", "symbols": ["PROVIDEs$subexpression$1"], "postprocess": id},
+    {"name": "Identifier_list", "symbols": ["Identifier"], "postprocess": idArr},
+    {"name": "Identifier_list", "symbols": ["Identifier_list", "_", {"literal":","}, "_", "Identifier"], "postprocess": concatArr(4)},
     {"name": "RulesetName_list", "symbols": ["RulesetName"], "postprocess": idArr},
     {"name": "RulesetName_list", "symbols": ["RulesetName_list", "_", {"literal":","}, "_", "RulesetName"], "postprocess": concatArr(4)},
     {"name": "OnOrOff$string$1", "symbols": [{"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
