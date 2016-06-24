@@ -175,9 +175,9 @@ var mkRulesetMetaProperty = function(key, value, start){
   };
 };
 
-var metaProp = function(fn){
+var metaProp = function(fn, key){
   return function(data, start){
-    return mkRulesetMetaProperty(data[0], fn(data), start);
+    return mkRulesetMetaProperty(key || data[0], fn(data), start);
   };
 };
 
@@ -254,6 +254,17 @@ ruleset_meta_prop ->
         name: data[4],
         version: data[5] && data[5][3]
       }}) %}
+    | ("provides" | "provide") __ meta_provides_list
+      {% metaProp(function(d){return {
+        ids: d[2]
+      }}, "provides") %}
+
+    | ("provides" | "provide") __ Keyword __ meta_provides_list __ "to" __ RulesetName_list
+      {% metaProp(function(d){return {
+        operator: d[2],
+        ids: d[4],
+        rulesets: d[8]
+      }}, "provides") %}
 
 Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
   function(data, start){
@@ -261,6 +272,12 @@ Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
     return mkKeyword(src, start);
   }
 %}
+
+meta_provides_list -> Identifier {% idArr %}
+    | meta_provides_list _ "," _ Identifier {% concatArr(4) %}
+
+RulesetName_list -> RulesetName {% idArr %}
+    | RulesetName_list _ "," _ RulesetName {% concatArr(4) %}
 
 OnOrOff -> "on"  {% booleanAST(true ) %}
          | "off" {% booleanAST(false) %}

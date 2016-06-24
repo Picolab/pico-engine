@@ -1209,6 +1209,27 @@ test('Ruleset meta', function(t){
     })
   ]);
 
+  testMeta([
+    'provide x, y, z',
+    'provides x, y, z',
+    'provides keys s3, gmail to com.google, io.picolabs'
+  ].join('\n'), [
+    mk.meta('provides', {
+      ids: [mk.id('x'), mk.id('y'), mk.id('z')]
+    }),
+    mk.meta('provides', {
+      ids: [mk.id('x'), mk.id('y'), mk.id('z')]
+    }),
+    mk.meta('provides', {
+      operator: mk.key('keys'),
+      ids: [mk.id('s3'), mk.id('gmail')],
+      rulesets: [
+        {type: 'RulesetName', value: 'com.google'},
+        {type: 'RulesetName', value: 'io.picolabs'}
+      ]
+    })
+  ]);
+
   t.end();
 });
 
