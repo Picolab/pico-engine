@@ -9,6 +9,15 @@ var comp_by_type = {
     //TODO work around reserved words etc.
     return e.id(ast.value);
   },
+  'Application': function(ast, comp){
+    return e('call',
+      comp(ast.callee),
+      comp(ast.args)
+    );
+  },
+  'ExpressionStatement': function(ast, comp){
+    return e(';', comp(ast.expression));
+  },
   'Ruleset': function(ast, comp){
     var rules_obj = {};
     _.each(ast.rules, function(rule){
