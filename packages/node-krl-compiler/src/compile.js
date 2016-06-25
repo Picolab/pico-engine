@@ -102,6 +102,8 @@ var comp_by_type = {
 module.exports = function(ast, options){
   options = options || {};
 
+  var toLoc = options.toLoc || _.noop;
+
   var compile = function compile(ast){
     if(_.isArray(ast)){
       return _.map(ast, function(a){
@@ -112,7 +114,7 @@ module.exports = function(ast, options){
     }else if(!_.has(comp_by_type, ast.type)){
       throw new Error('Unsupported ast node type: ' + ast.type);
     }
-    return comp_by_type[ast.type](ast, compile);
+    return comp_by_type[ast.type](ast, compile, toLoc);
   };
 
   return compile(ast, 0);
