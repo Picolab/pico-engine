@@ -282,7 +282,7 @@ var grammar = {
           ids: d[2]
         }}, "provides") },
     {"name": "ruleset_meta_prop$string$10", "symbols": [{"literal":"t"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "Keyword", "__", "Identifier_list", "__", "ruleset_meta_prop$string$10", "__", "RulesetName_list"], "postprocess":  metaProp(function(d){return {
+    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "ProvidesOperator", "__", "Identifier_list", "__", "ruleset_meta_prop$string$10", "__", "RulesetName_list"], "postprocess":  metaProp(function(d){return {
           operator: d[2],
           ids: d[4],
           rulesets: d[8]
@@ -290,6 +290,13 @@ var grammar = {
     {"name": "ruleset_meta_prop", "symbols": ["SHAREs", "__", "Identifier_list"], "postprocess":  metaProp(function(d){return {
           ids: d[2]
         }}, "shares") },
+    {"name": "ProvidesOperator$string$1", "symbols": [{"literal":"k"}, {"literal":"e"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ProvidesOperator", "symbols": ["ProvidesOperator$string$1"], "postprocess": 
+        function(data, start){
+          var src = flatten(data).join('');
+          return mkKeyword(src, start);
+        }
+        },
     {"name": "Keyword$ebnf$1", "symbols": []},
     {"name": "Keyword$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "Keyword$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "Keyword", "symbols": [/[a-zA-Z_$]/, "Keyword$ebnf$1"], "postprocess": 

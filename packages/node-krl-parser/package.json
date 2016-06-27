@@ -7,7 +7,7 @@
     "src/"
   ],
   "scripts": {
-    "start": "onchange 'src/' 'tests/' -e 'src/grammar.js' -i -- npm test -s",
+    "start": "onchange 'src/' 'tests/' -e 'src/grammar.js' -i -- npm test",
     "test": "npm run build -s && node tests | tap-min",
     "build": "npm run build:grammar -s && npm run build:spec -s",
     "build:grammar": "nearleyc src/grammar.ne > src/grammar.js",
@@ -30,7 +30,7 @@
   "homepage": "https://github.com/farskipper/node-krl-parser#readme",
   "devDependencies": {
     "diff-lines": "^1.1.0",
-    "karl42": "^2.1.0",
+    "karl42": "^2.1.1",
     "krl-generator": "^0.2.0",
     "lodash": "^4.13.1",
     "onchange": "^2.4.0",

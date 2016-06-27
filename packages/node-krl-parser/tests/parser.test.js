@@ -1493,5 +1493,8 @@ test('no ambiguity!', function(t){
   testAmb('{   }');
   testAmb('{ "one"  :   2  , "  three  "   : 4  }');
 
+  //ambiguity on the provides operator
+  testAmb('ruleset rs{meta { provides notanop errors to i}}');
+
   t.end();
 });
