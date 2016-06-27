@@ -89,28 +89,16 @@ var comp_by_type = {
   'RuleSelect': function(ast, comp, e){
     ast = ast.event;//TODO remove this Hack
 
-    var estCTXEventProp = function(prop){
-      return e('.', e('.', e('id', 'ctx'), e('id', 'event')), e('id', prop));
-    };
-
-    var eventExprToEstree = function(expr){
-      var fn_body = [];
-      fn_body.push(e(';', e('call', e('id', 'callback'), [
-        e('nil'),
-        e('&&',
-          e('===', estCTXEventProp('domain'), e('str', 'echo')),
-          e('===', estCTXEventProp('type'), e('str', 'hello'))
-        )
-      ])));
-      return e('fn', ['ctx', 'callback'], fn_body);
-    };
-
-
     var exprs_array = [];
-    exprs_array.push({
-      domain: ast.event_domain.value,
-      type: ast.event_type.value
-    });
+
+    //TODO taverse and get all event expressions and logical operations
+    if(ast.type === 'EventExpression'){
+      exprs_array.push({
+        domain: ast.event_domain.value,
+        type: ast.event_type.value,
+        estree: comp(ast)
+      });
+    }
 
     var graph = {};
     var eventexprs = {};
@@ -118,7 +106,7 @@ var comp_by_type = {
     _.each(exprs_array, function(expr, i){
       var id = 'expr_' + i;
       _.set(graph, [expr.domain, expr.type, id], true);
-      eventexprs[id] = eventExprToEstree(expr);
+      eventexprs[id] = expr.estree;
 
       state_machine.start.push([id, 'end']);
       state_machine.start.push([['not', id], 'start']);
@@ -129,6 +117,23 @@ var comp_by_type = {
       eventexprs: e('obj', eventexprs),
       state_machine: e('json', state_machine)
     });
+  },
+  'EventExpression': function(ast, comp, e){
+    var estEventProp = function(prop){
+      var loc = ast['event_' + prop].loc;
+      var est_ctx = e('.', e('.', e('id', 'ctx', loc), e('id', 'event', loc), loc), e('id', prop, loc), loc);
+      return e('===', est_ctx, e('str', ast['event_' + prop].value, loc), loc);
+    };
+
+    var fn_body = [];
+    fn_body.push(e(';', e('call', e('id', 'callback'), [
+      e('nil'),
+      e('&&',
+        estEventProp('domain'),
+        estEventProp('type')
+      )
+    ])));
+    return e('fn', ['ctx', 'callback'], fn_body);
   },
   'RuleActionBlock': function(ast, comp, e){
     return e('fn', ['ctx', 'callback'], _.flattenDeep(_.map(ast.actions, function(action){
