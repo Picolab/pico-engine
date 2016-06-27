@@ -162,11 +162,11 @@ var MemberExpression_method = function(method){
   };
 };
 
-var mkKeyword = function(src, start){
+var mkKeyword = function(src, start, normalized_value){
   return {
     loc: {start: start, end: start + src.length},
     type: 'Keyword',
-    value: src
+    value: normalized_value || src
   };
 };
 
@@ -174,14 +174,14 @@ var mkRulesetMetaProperty = function(key, value, start){
   return {
     loc: {start: start, end: lastEndLoc(value)},
     type: 'RulesetMetaProperty',
-    key: mkKeyword(key, start),
+    key: typeof key === 'string' ? mkKeyword(key, start) : key,
     value: value
   };
 };
 
-var metaProp = function(fn, key){
+var metaProp = function(fn){
   return function(data, start){
-    return mkRulesetMetaProperty(key || data[0], fn(data), start);
+    return mkRulesetMetaProperty(data[0], fn(data), start);
   };
 };
 
@@ -280,16 +280,16 @@ var grammar = {
         }}) },
     {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "Identifier_list"], "postprocess":  metaProp(function(d){return {
           ids: d[2]
-        }}, "provides") },
+        }}) },
     {"name": "ruleset_meta_prop$string$10", "symbols": [{"literal":"t"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "ProvidesOperator", "__", "Identifier_list", "__", "ruleset_meta_prop$string$10", "__", "RulesetName_list"], "postprocess":  metaProp(function(d){return {
           operator: d[2],
           ids: d[4],
           rulesets: d[8]
-        }}, "provides") },
+        }}) },
     {"name": "ruleset_meta_prop", "symbols": ["SHAREs", "__", "Identifier_list"], "postprocess":  metaProp(function(d){return {
           ids: d[2]
-        }}, "shares") },
+        }}) },
     {"name": "ProvidesOperator$string$1", "symbols": [{"literal":"k"}, {"literal":"e"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ProvidesOperator", "symbols": ["ProvidesOperator$string$1"], "postprocess": 
         function(data, start){
@@ -309,12 +309,22 @@ var grammar = {
     {"name": "PROVIDEs$subexpression$1", "symbols": ["PROVIDEs$subexpression$1$string$1"]},
     {"name": "PROVIDEs$subexpression$1$string$2", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"o"}, {"literal":"v"}, {"literal":"i"}, {"literal":"d"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "PROVIDEs$subexpression$1", "symbols": ["PROVIDEs$subexpression$1$string$2"]},
-    {"name": "PROVIDEs", "symbols": ["PROVIDEs$subexpression$1"], "postprocess": id},
-    {"name": "SHAREs$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"h"}, {"literal":"a"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "PROVIDEs", "symbols": ["PROVIDEs$subexpression$1"], "postprocess": 
+        function(data, start){
+          var src = data[0][0];
+          return mkKeyword(src, start, "provides");
+        }
+        },
+    {"name": "SHAREs$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"h"}, {"literal":"a"}, {"literal":"r"}, {"literal":"e"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "SHAREs$subexpression$1", "symbols": ["SHAREs$subexpression$1$string$1"]},
-    {"name": "SHAREs$subexpression$1$string$2", "symbols": [{"literal":"s"}, {"literal":"h"}, {"literal":"a"}, {"literal":"r"}, {"literal":"e"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "SHAREs$subexpression$1$string$2", "symbols": [{"literal":"s"}, {"literal":"h"}, {"literal":"a"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "SHAREs$subexpression$1", "symbols": ["SHAREs$subexpression$1$string$2"]},
-    {"name": "SHAREs", "symbols": ["SHAREs$subexpression$1"], "postprocess": id},
+    {"name": "SHAREs", "symbols": ["SHAREs$subexpression$1"], "postprocess": 
+        function(data, start){
+          var src = data[0][0];
+          return mkKeyword(src, start, "shares");
+        }
+        },
     {"name": "Identifier_list", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "Identifier_list", "symbols": ["Identifier_list", "_", {"literal":","}, "_", "Identifier"], "postprocess": concatArr(4)},
     {"name": "RulesetName_list", "symbols": ["RulesetName"], "postprocess": idArr},

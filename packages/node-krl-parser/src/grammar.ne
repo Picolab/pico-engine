@@ -158,11 +158,11 @@ var MemberExpression_method = function(method){
   };
 };
 
-var mkKeyword = function(src, start){
+var mkKeyword = function(src, start, normalized_value){
   return {
     loc: {start: start, end: start + src.length},
     type: 'Keyword',
-    value: src
+    value: normalized_value || src
   };
 };
 
@@ -170,14 +170,14 @@ var mkRulesetMetaProperty = function(key, value, start){
   return {
     loc: {start: start, end: lastEndLoc(value)},
     type: 'RulesetMetaProperty',
-    key: mkKeyword(key, start),
+    key: typeof key === 'string' ? mkKeyword(key, start) : key,
     value: value
   };
 };
 
-var metaProp = function(fn, key){
+var metaProp = function(fn){
   return function(data, start){
-    return mkRulesetMetaProperty(key || data[0], fn(data), start);
+    return mkRulesetMetaProperty(data[0], fn(data), start);
   };
 };
 
@@ -257,17 +257,17 @@ ruleset_meta_prop ->
     | PROVIDEs __ Identifier_list
       {% metaProp(function(d){return {
         ids: d[2]
-      }}, "provides") %}
+      }}) %}
     | PROVIDEs __ ProvidesOperator __ Identifier_list __ "to" __ RulesetName_list
       {% metaProp(function(d){return {
         operator: d[2],
         ids: d[4],
         rulesets: d[8]
-      }}, "provides") %}
+      }}) %}
     | SHAREs __ Identifier_list
       {% metaProp(function(d){return {
         ids: d[2]
-      }}, "shares") %}
+      }}) %}
 
 ProvidesOperator -> "keys" {%
   function(data, start){
@@ -283,8 +283,18 @@ Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
   }
 %}
 
-PROVIDEs -> ("provides" | "provide") {% id %}
-SHAREs -> ("share" | "shares") {% id %}
+PROVIDEs -> ("provides" | "provide") {%
+  function(data, start){
+    var src = data[0][0];
+    return mkKeyword(src, start, "provides");
+  }
+%}
+SHAREs -> ("shares" | "share") {%
+  function(data, start){
+    var src = data[0][0];
+    return mkKeyword(src, start, "shares");
+  }
+%}
 
 Identifier_list -> Identifier {% idArr %}
     | Identifier_list _ "," _ Identifier {% concatArr(4) %}
