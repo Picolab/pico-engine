@@ -9,6 +9,15 @@ var comp_by_type = {
   'Identifier': function(ast, comp, e){
     return e('id', toId(ast.value));
   },
+  'Chevron': function(ast, comp, e){
+    if(ast.value.length !== 1){
+      throw new Error('TODO finish implementing Chevron compiler');
+    }
+    return comp(ast.value[0]);
+  },
+  'Boolean': function(ast, comp, e){
+    return e(ast.value ? 'true' : 'false');
+  },
   'Application': function(ast, comp, e){
     return e('call',
       comp(ast.callee),
@@ -48,12 +57,28 @@ var comp_by_type = {
     return comp(ast.global).concat([
       e(';', e('=', e('.', e('id', 'module'), e('id', 'exports')), e('obj', {
         name: comp(ast.name),
+        meta: e('obj-raw', comp(ast.meta)),
         rules: e('obj', rules_obj)
       })))
     ]);
   },
   'RulesetName': function(ast, comp, e){
     return e('string', ast.value);
+  },
+  'RulesetMetaProperty': function(ast, comp, e){
+    var key = ast.key.value;
+    var val = e('nil');
+    if(_.includes([
+      'String', 'Boolean', 'Chevron'
+    ], _.get(ast, 'value.type'))){
+      val = comp(ast.value);
+    }
+    if(key === 'shares'){
+      val = e('obj-raw', _.map(ast.value.ids, function(id){
+        return e('obj-prop', e('str', id.value, id.loc), comp(id));
+      }));
+    }
+    return e('obj-prop', e('str', key, ast.key.loc), val);
   },
   'Rule': function(ast, comp, e){
     return e('obj', {

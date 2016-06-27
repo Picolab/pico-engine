@@ -3,7 +3,14 @@ var hello = function (obj) {
   return msg;
 };
 module.exports = {
-  'name': 'hello_world',
+  'name': 'io.picolabs.hello_world',
+  'meta': {
+    'name': 'Hello World',
+    'description': '\nA first ruleset for the Quickstart\n    ',
+    'author': 'Phil Windley',
+    'logging': true,
+    'shares': { 'hello': hello }
+  },
   'rules': {
     'say_hello': {
       'select': {

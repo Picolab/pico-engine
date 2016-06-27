@@ -1,4 +1,4 @@
-ruleset hello_world {
+ruleset io.picolabs.hello_world {
   meta {
     name "Hello World"
     description <<
@@ -7,7 +7,6 @@ A first ruleset for the Quickstart
     author "Phil Windley"
     logging on
     shares hello
-    provides hello
   }
   global {
     hello = function(obj){
