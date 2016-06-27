@@ -86,60 +86,8 @@ var comp_by_type = {
       action: ast.action_block ? comp(ast.action_block) : e('nil')
     });
   },
-  'RuleSelect': function(ast, comp, e){
-    ast = ast.event;//TODO remove this Hack
-
-    var ee_id = 0;
-    var graph = {};
-    var eventexprs = {};
-
-    var onEE = function(ast){
-      var domain = ast.event_domain.value;
-      var type = ast.event_type.value;
-      var id = 'expr_' + (ee_id++);
-
-      _.set(graph, [domain, type, id], true);
-
-      eventexprs[id] = comp(ast);
-      return id;
-    };
-
-    //TODO taverse and get all event expressions and logical operations
-    if(ast.type === 'EventExpression'){
-      onEE(ast);
-    }else{
-      onEE(ast.args[0]);
-    }
-
-    var state_machine = {start: []};
-    _.each(eventexprs, function(estree, id){
-      state_machine.start.push([id, 'end']);
-      state_machine.start.push([['not', id], 'start']);
-    });
-
-    return e('obj', {
-      graph: e('json', graph),
-      eventexprs: e('obj', eventexprs),
-      state_machine: e('json', state_machine)
-    });
-  },
-  'EventExpression': function(ast, comp, e){
-    var estEventProp = function(prop){
-      var loc = ast['event_' + prop].loc;
-      var est_ctx = e('.', e('.', e('id', 'ctx', loc), e('id', 'event', loc), loc), e('id', prop, loc), loc);
-      return e('===', est_ctx, e('str', ast['event_' + prop].value, loc), loc);
-    };
-
-    var fn_body = [];
-    fn_body.push(e(';', e('call', e('id', 'callback'), [
-      e('nil'),
-      e('&&',
-        estEventProp('domain'),
-        estEventProp('type')
-      )
-    ])));
-    return e('fn', ['ctx', 'callback'], fn_body);
-  },
+  'RuleSelect': require('./c/RuleSelect'),
+  'EventExpression': require('./c/EventExpression'),
   'RuleActionBlock': function(ast, comp, e){
     return e('fn', ['ctx', 'callback'], _.flattenDeep(_.map(ast.actions, function(action){
       return comp(action);
