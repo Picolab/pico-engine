@@ -542,6 +542,7 @@ test('locations', function(t){
 
   t.deepEquals(parser('ruleset a{meta{shares b}}').meta[0].key.loc, {start: 15, end: 21});
   t.deepEquals(parser('ruleset a{meta{share b}}').meta[0].key.loc, {start: 15, end: 20});
+  t.deepEquals(parser('ruleset a{meta{share b}}').meta[0].loc, {start: 15, end: 22});
 
   var testTopLoc = function(src){
     var src2 = '\n  ' + src + '  \n ';

@@ -4,6 +4,17 @@ var last = function(arr){
   return arr[arr.length - 1];
 };
 
+var values = function(obj){
+  var v = [];
+  var key;
+  for(key in obj){
+    if(obj.hasOwnProperty(key)){
+      v.push(obj[key]);
+    }
+  }
+  return v;
+};
+
 var lastEndLoc = function(data){
   var nodes = flatten([data]);
   var i, node;
@@ -168,7 +179,7 @@ var mkKeyword = function(src, start, normalized_value){
 
 var mkRulesetMetaProperty = function(key, value, start){
   return {
-    loc: {start: start, end: lastEndLoc(value)},
+    loc: {start: start, end: lastEndLoc(values(value))},
     type: 'RulesetMetaProperty',
     key: typeof key === 'string' ? mkKeyword(key, start) : key,
     value: value
