@@ -99,15 +99,29 @@ var comp_by_type = {
   }
 };
 
+var isKRL_loc = function(loc){
+  return _.isPlainObject(loc) && _.has(loc, 'start') && _.has(loc, 'end');
+};
+
 module.exports = function(ast, options){
   options = options || {};
 
   var toLoc = options.toLoc || _.noop;
 
-  var e = function(){
-    var args = Array.prototype.slice.call(arguments);
-    toLoc(0, 1);
-    return mkTree.apply(null, args);
+  var mkE = function(default_krl_loc){
+    var default_loc = toLoc(default_krl_loc.start, default_krl_loc.end);
+
+    return function(){
+      var args = Array.prototype.slice.call(arguments);
+      var last_i = args.length - 1;
+      var last = args[last_i];
+      if(isKRL_loc(last)){
+        args[last_i] = toLoc(last.start, last.end);
+      }else{
+        args.push(default_loc);
+      }
+      return mkTree.apply(null, args);
+    };
   };
 
   var compile = function compile(ast){
@@ -120,7 +134,7 @@ module.exports = function(ast, options){
     }else if(!_.has(comp_by_type, ast.type)){
       throw new Error('Unsupported ast node type: ' + ast.type);
     }
-    return comp_by_type[ast.type](ast, compile, e);
+    return comp_by_type[ast.type](ast, compile, mkE(ast.loc));
   };
 
   return compile(ast, 0);

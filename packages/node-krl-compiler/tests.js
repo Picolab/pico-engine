@@ -27,7 +27,7 @@ test('compiler', function(t){
 
         var compiled;
         try{
-          compiled = compiler(srcs.krl);
+          compiled = compiler(srcs.krl).code;
         }catch(e){
           compiled = e + '';
         }
