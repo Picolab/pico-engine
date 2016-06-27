@@ -83,31 +83,36 @@ var comp_by_type = {
   'Rule': function(ast, comp, e){
     return e('obj', {
       select: comp(ast.select),
-      action: comp(ast.action_block)
+      action: ast.action_block ? comp(ast.action_block) : e('nil')
     });
   },
   'RuleSelect': function(ast, comp, e){
     ast = ast.event;//TODO remove this Hack
 
-    var exprs_array = [];
+    var ee_id = 0;
+    var graph = {};
+    var eventexprs = {};
+
+    var onEE = function(ast){
+      var domain = ast.event_domain.value;
+      var type = ast.event_type.value;
+      var id = 'expr_' + (ee_id++);
+
+      _.set(graph, [domain, type, id], true);
+
+      eventexprs[id] = comp(ast);
+      return id;
+    };
 
     //TODO taverse and get all event expressions and logical operations
     if(ast.type === 'EventExpression'){
-      exprs_array.push({
-        domain: ast.event_domain.value,
-        type: ast.event_type.value,
-        estree: comp(ast)
-      });
+      onEE(ast);
+    }else{
+      onEE(ast.args[0]);
     }
 
-    var graph = {};
-    var eventexprs = {};
     var state_machine = {start: []};
-    _.each(exprs_array, function(expr, i){
-      var id = 'expr_' + i;
-      _.set(graph, [expr.domain, expr.type, id], true);
-      eventexprs[id] = expr.estree;
-
+    _.each(eventexprs, function(estree, id){
       state_machine.start.push([id, 'end']);
       state_machine.start.push([['not', id], 'start']);
     });
