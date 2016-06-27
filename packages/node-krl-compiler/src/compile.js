@@ -1,24 +1,24 @@
 var _ = require('lodash');
-var e = require('estree-builder');
 var toId = require('to-js-identifier');
+var mkTree = require('estree-builder');
 
 var comp_by_type = {
-  'String': function(ast, comp){
+  'String': function(ast, comp, e){
     return e.str(ast.value);
   },
-  'Identifier': function(ast, comp){
+  'Identifier': function(ast, comp, e){
     return e.id(toId(ast.value));
   },
-  'Application': function(ast, comp){
+  'Application': function(ast, comp, e){
     return e('call',
       comp(ast.callee),
       comp(ast.args)
     );
   },
-  'ExpressionStatement': function(ast, comp){
+  'ExpressionStatement': function(ast, comp, e){
     return e(';', comp(ast.expression));
   },
-  'Ruleset': function(ast, comp){
+  'Ruleset': function(ast, comp, e){
     var rules_obj = {};
     _.each(ast.rules, function(rule){
       rules_obj[rule.name.value] = comp(rule);
@@ -30,13 +30,13 @@ var comp_by_type = {
       })))
     ];
   },
-  'Rule': function(ast, comp){
+  'Rule': function(ast, comp, e){
     return e.obj({
       select: comp(ast.select),
       action: comp(ast.action_block)
     });
   },
-  'RuleSelect': function(ast, comp){
+  'RuleSelect': function(ast, comp, e){
     ast = ast.event;//TODO remove this Hack
 
     var estCTXEventProp = function(prop){
@@ -80,12 +80,12 @@ var comp_by_type = {
       state_machine: e.json(state_machine)
     });
   },
-  'RuleActionBlock': function(ast, comp){
+  'RuleActionBlock': function(ast, comp, e){
     return e.fn(['ctx', 'callback'], _.flattenDeep(_.map(ast.actions, function(action){
       return comp(action);
     })));
   },
-  'RuleAction': function(ast, comp){
+  'RuleAction': function(ast, comp, e){
     return e(';', e('call', e.id('callback'), [
       e.nil(),
       e.obj({
@@ -104,6 +104,18 @@ module.exports = function(ast, options){
 
   var toLoc = options.toLoc || _.noop;
 
+  var e = function(){
+    var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+    toLoc(0, 1);
+    return mkTree.apply(null, args);
+  };
+  _.each(mkTree, function(fn, key){
+    e[key] = function(){
+      var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+      return mkTree.apply(null, [key].concat(args));
+    };
+  });
+
   var compile = function compile(ast){
     if(_.isArray(ast)){
       return _.map(ast, function(a){
@@ -114,7 +126,7 @@ module.exports = function(ast, options){
     }else if(!_.has(comp_by_type, ast.type)){
       throw new Error('Unsupported ast node type: ' + ast.type);
     }
-    return comp_by_type[ast.type](ast, compile, toLoc);
+    return comp_by_type[ast.type](ast, compile, e);
   };
 
   return compile(ast, 0);
