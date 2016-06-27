@@ -177,18 +177,18 @@ var mkKeyword = function(src, start, normalized_value){
   };
 };
 
-var mkRulesetMetaProperty = function(key, value, start){
+var mkRulesetMetaProperty = function(key, value, start, is_obj_value){
   return {
-    loc: {start: start, end: lastEndLoc(values(value))},
+    loc: {start: start, end: lastEndLoc(is_obj_value ? values(value) : value)},
     type: 'RulesetMetaProperty',
     key: typeof key === 'string' ? mkKeyword(key, start) : key,
     value: value
   };
 };
 
-var metaProp = function(fn){
+var metaProp = function(fn, is_obj_value){
   return function(data, start){
-    return mkRulesetMetaProperty(data[0], fn(data), start);
+    return mkRulesetMetaProperty(data[0], fn(data), start, is_obj_value);
   };
 };
 
@@ -259,26 +259,26 @@ ruleset_meta_prop ->
         version: data[5] && data[5][3],
         alias:   data[6] && data[6][3],
         'with':  data[7] && data[7][3]
-      }}) %}
+      }}, true) %}
     | "errors" __ "to" __ RulesetName (__ "version" __ String):?
       {% metaProp(function(data){return {
         name: data[4],
         version: data[5] && data[5][3]
-      }}) %}
+      }}, true) %}
     | PROVIDEs __ Identifier_list
       {% metaProp(function(d){return {
         ids: d[2]
-      }}) %}
+      }}, true) %}
     | PROVIDEs __ ProvidesOperator __ Identifier_list __ "to" __ RulesetName_list
       {% metaProp(function(d){return {
         operator: d[2],
         ids: d[4],
         rulesets: d[8]
-      }}) %}
+      }}, true) %}
     | SHAREs __ Identifier_list
       {% metaProp(function(d){return {
         ids: d[2]
-      }}) %}
+      }}, true) %}
 
 ProvidesOperator -> "keys" {%
   function(data, start){

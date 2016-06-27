@@ -181,18 +181,18 @@ var mkKeyword = function(src, start, normalized_value){
   };
 };
 
-var mkRulesetMetaProperty = function(key, value, start){
+var mkRulesetMetaProperty = function(key, value, start, is_obj_value){
   return {
-    loc: {start: start, end: lastEndLoc(values(value))},
+    loc: {start: start, end: lastEndLoc(is_obj_value ? values(value) : value)},
     type: 'RulesetMetaProperty',
     key: typeof key === 'string' ? mkKeyword(key, start) : key,
     value: value
   };
 };
 
-var metaProp = function(fn){
+var metaProp = function(fn, is_obj_value){
   return function(data, start){
-    return mkRulesetMetaProperty(data[0], fn(data), start);
+    return mkRulesetMetaProperty(data[0], fn(data), start, is_obj_value);
   };
 };
 
@@ -278,7 +278,7 @@ var grammar = {
           version: data[5] && data[5][3],
           alias:   data[6] && data[6][3],
           'with':  data[7] && data[7][3]
-        }}) },
+        }}, true) },
     {"name": "ruleset_meta_prop$string$8", "symbols": [{"literal":"e"}, {"literal":"r"}, {"literal":"r"}, {"literal":"o"}, {"literal":"r"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset_meta_prop$string$9", "symbols": [{"literal":"t"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset_meta_prop$ebnf$4$subexpression$1$string$1", "symbols": [{"literal":"v"}, {"literal":"e"}, {"literal":"r"}, {"literal":"s"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -288,19 +288,19 @@ var grammar = {
     {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$8", "__", "ruleset_meta_prop$string$9", "__", "RulesetName", "ruleset_meta_prop$ebnf$4"], "postprocess":  metaProp(function(data){return {
           name: data[4],
           version: data[5] && data[5][3]
-        }}) },
+        }}, true) },
     {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "Identifier_list"], "postprocess":  metaProp(function(d){return {
           ids: d[2]
-        }}) },
+        }}, true) },
     {"name": "ruleset_meta_prop$string$10", "symbols": [{"literal":"t"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "ProvidesOperator", "__", "Identifier_list", "__", "ruleset_meta_prop$string$10", "__", "RulesetName_list"], "postprocess":  metaProp(function(d){return {
           operator: d[2],
           ids: d[4],
           rulesets: d[8]
-        }}) },
+        }}, true) },
     {"name": "ruleset_meta_prop", "symbols": ["SHAREs", "__", "Identifier_list"], "postprocess":  metaProp(function(d){return {
           ids: d[2]
-        }}) },
+        }}, true) },
     {"name": "ProvidesOperator$string$1", "symbols": [{"literal":"k"}, {"literal":"e"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "ProvidesOperator", "symbols": ["ProvidesOperator$string$1"], "postprocess": 
         function(data, start){
