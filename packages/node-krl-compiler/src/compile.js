@@ -25,10 +25,13 @@ var comp_by_type = {
     });
     return [
       e(';', e('=', e('.', e('id', 'module'), e('id', 'exports')), e('obj', {
-        name: e('str', ast.name.value),
+        name: comp(ast.name),
         rules: e('obj', rules_obj)
       })))
     ];
+  },
+  'RulesetName': function(ast, comp, e){
+    return e('string', ast.value);
   },
   'Rule': function(ast, comp, e){
     return e('obj', {
