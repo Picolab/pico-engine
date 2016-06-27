@@ -1,4 +1,5 @@
 var _ = require('lodash');
+var btoa = require('btoa');
 var parser = require('krl-parser');
 var compile = require('./compile');
 var escodegen = require('escodegen');
@@ -13,8 +14,22 @@ module.exports = function(input){
     toLoc: toLoc
   });
 
-  return escodegen.generate({
+  var out = escodegen.generate({
     'type': 'Program',
     'body': _.isArray(body) ? body : []
+  }, {
+    format: {
+      indent: {
+        style: '  '
+      }
+    },
+    sourceMap: true,
+    sourceContent: src,
+    sourceMapWithCode: true
   });
+
+  return out.code
+    + '\n//# sourceMappingURL=data:application/json;base64,'
+    + btoa(out.map.toString())
+    + '\n';
 };
