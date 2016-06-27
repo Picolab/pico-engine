@@ -146,6 +146,11 @@ var gen_by_type = {
       src += select_when[0] === '\n' ? '' : ' ';
       src += select_when + '\n';
     }
+    if(!_.isEmpty(ast.prelude)){
+      src += ind(1) + 'pre {\n';
+      src += gen(ast.prelude, 2) + '\n';
+      src += ind(1) + '}\n';
+    }
     if(ast.action_block){
       src += gen(ast.action_block, 1) + '\n';
     }
