@@ -132,7 +132,11 @@ var gen_by_type = {
   },
   'Rule': function(ast, ind, gen){
     var src = '';
-    src += ind() + 'rule ' + gen(ast.name) + ' {\n';
+    src += ind() + 'rule ' + gen(ast.name);
+    if(ast.rule_state !== "active"){
+      src += ' is ' + ast.rule_state;
+    }
+    src += ' {\n';
     if(ast.select){
       var select_when = gen(ast.select.event, 1);
       if(/\)/.test(select_when)){
