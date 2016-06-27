@@ -1,13 +1,13 @@
 var _ = require('lodash');
 var e = require('estree-builder');
+var toId = require('to-js-identifier');
 
 var comp_by_type = {
   'String': function(ast, comp){
     return e.str(ast.value);
   },
   'Identifier': function(ast, comp){
-    //TODO work around reserved words etc.
-    return e.id(ast.value);
+    return e.id(toId(ast.value));
   },
   'Application': function(ast, comp){
     return e('call',

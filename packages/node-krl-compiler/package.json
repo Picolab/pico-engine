@@ -42,6 +42,7 @@
     "estree-builder": "^1.1.0",
     "estree-loc": "^1.0.1",
     "krl-parser": "0.7.0",
-    "lodash": "^4.13.1"
+    "lodash": "^4.13.1",
+    "to-js-identifier": "^1.0.0"
   }
 }
