@@ -15,6 +15,28 @@ var comp_by_type = {
       comp(ast.args)
     );
   },
+  'InfixOperator': function(ast, comp, e){
+    if(ast.op === '+'){
+      return e('+', comp(ast.left), comp(ast.right));
+    }
+    throw new Error('Unsuported InfixOperator.op: ' + ast.op);
+  },
+  'Function': function(ast, comp, e){
+    return e('function', _.map(ast.params, function(param){
+      return param.value;
+    }), _.map(ast.body, function(part, i){
+      if(i < (ast.body.length - 1)){
+        return comp(part);
+      }
+      return e('return', comp(part).expression, part.loc);
+    }));
+  },
+  'Declaration': function(ast, comp, e){
+    if(ast.op === '='){
+      return e('var', comp(ast.left), comp(ast.right));
+    }
+    throw new Error('Unsuported Declaration.op: ' + ast.op);
+  },
   'ExpressionStatement': function(ast, comp, e){
     return e(';', comp(ast.expression));
   },
@@ -23,12 +45,12 @@ var comp_by_type = {
     _.each(ast.rules, function(rule){
       rules_obj[rule.name.value] = comp(rule);
     });
-    return [
+    return comp(ast.global).concat([
       e(';', e('=', e('.', e('id', 'module'), e('id', 'exports')), e('obj', {
         name: comp(ast.name),
         rules: e('obj', rules_obj)
       })))
-    ];
+    ]);
   },
   'RulesetName': function(ast, comp, e){
     return e('string', ast.value);

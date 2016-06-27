@@ -1,3 +1,7 @@
+var hello = function (obj) {
+  var msg = 'Hello ' + obj;
+  return msg;
+};
 module.exports = {
   'name': 'hello_world',
   'rules': {
