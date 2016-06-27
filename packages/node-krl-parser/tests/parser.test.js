@@ -1440,12 +1440,16 @@ test('parse errors', function(t){
 
 test('no ambiguity!', function(t){
   //run $ node tests/ambiguityFinder.js to help you find them
-  var testAmb = function(src){
+  var testAmb = function(src, should_be_no_parsing){
     try{
       parser(src);
+      if(should_be_no_parsing){
+        t.fail('should_be_no_parsing');
+        return;
+      }
       t.ok(true);
     }catch(e){
-      if(/No possible parsings/i.test(e + '')){
+      if(should_be_no_parsing && /No possible parsings/i.test(e + '')){
         //this is ok b/c it is not ambiguous
         t.ok(true);
       }else{
@@ -1460,11 +1464,12 @@ test('no ambiguity!', function(t){
   //map_always{} -or- map_ always { getPath();
   testAmb('ruleset a{rule b{select when a b;c() with d = map_always{getPath()}}}');
 
-  testAmb('ruleset a{rule b{select when Domain TypeAttrib re#(.*)#}}');
+  testAmb('ruleset a{rule b{select when Domain TypeAttrib re#(.*)#}}', true);
 
   //a >< "blah" -or- a > "<blah"
   testAmb('a><<<blah>>');
-  testAmb('<<blah>>><a');
+  testAmb('<<blah>>><a', true);//"blah"><a, >< needs whitespace around it
+  testAmb('<<blah>><a');//"blah"<a
 
   //in this case where should be an attribute
   testAmb('ruleset a{rule b{select when a b where re#(.*)#}}');
@@ -1487,9 +1492,6 @@ test('no ambiguity!', function(t){
   //whitespace ambiguity in Map
   testAmb('{   }');
   testAmb('{ "one"  :   2  , "  three  "   : 4  }');
-
-  //one:2, cmp:4 -or- one: (2 cmp 4) - fixed by meta is Keyword -> PrimaryExpression
-  testAmb('ruleset a{meta{one 2 cmp 4}}');
 
   t.end();
 });
