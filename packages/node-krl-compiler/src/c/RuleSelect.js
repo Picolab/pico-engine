@@ -1,8 +1,6 @@
 var _ = require('lodash');
 
 module.exports = function(ast, comp, e){
-  ast = ast.event;//TODO remove this Hack
-
   var ee_id = 0;
   var graph = {};
   var eventexprs = {};
@@ -18,12 +16,19 @@ module.exports = function(ast, comp, e){
     return id;
   };
 
-  //TODO taverse and get all event expressions and logical operations
-  if(ast.type === 'EventExpression'){
-    onEE(ast);
-  }else{
-    onEE(ast.args[0]);
-  }
+  var traverse = function(ast){
+    if(ast.type === 'EventExpression'){
+      return onEE(ast);
+    }else if(ast.type === 'EventOperator'){
+      if(ast.op === 'or'){
+        return _.map(ast.args, traverse);
+      }
+      throw new Error('EventOperator.op not supported: ' + ast.op);
+    }
+    throw new Error('invalid event ast node: ' + ast.type);
+  };
+
+  traverse(ast.event);
 
   var state_machine = {start: []};
   _.each(eventexprs, function(estree, id){
