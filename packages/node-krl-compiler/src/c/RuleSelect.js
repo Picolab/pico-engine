@@ -1,6 +1,9 @@
 var _ = require('lodash');
 
 module.exports = function(ast, comp, e){
+  if(ast.kind !== 'when'){
+    throw new Error('RuleSelect.kind not supported: ' + ast.kind);
+  }
   var ee_id = 0;
   var graph = {};
   var eventexprs = {};
@@ -21,20 +24,26 @@ module.exports = function(ast, comp, e){
       return onEE(ast);
     }else if(ast.type === 'EventOperator'){
       if(ast.op === 'or'){
-        return _.map(ast.args, traverse);
+        return [ast.op].concat(_.map(ast.args, traverse));
       }
       throw new Error('EventOperator.op not supported: ' + ast.op);
     }
     throw new Error('invalid event ast node: ' + ast.type);
   };
 
-  traverse(ast.event);
+  var lisp = traverse(ast.event);
 
   var state_machine = {start: []};
-  _.each(eventexprs, function(estree, id){
-    state_machine.start.push([id, 'end']);
-    state_machine.start.push([['not', id], 'start']);
-  });
+
+  if(_.isString(lisp)){
+    state_machine.start.push([lisp, 'end']);
+    state_machine.start.push([['not', lisp], 'start']);
+  }else{
+    //TODO undo this hack
+    state_machine.start.push([lisp[1], 'end']);
+    state_machine.start.push([lisp[2], 'end']);
+    state_machine.start.push([['not', lisp], 'start']);
+  }
 
   return e('obj', {
     graph: e('json', graph),

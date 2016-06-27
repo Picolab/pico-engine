@@ -23,9 +23,17 @@ module.exports = {
               'end'
             ],
             [
+              'expr_1',
+              'end'
+            ],
+            [
               [
                 'not',
-                'expr_0'
+                [
+                  'or',
+                  'expr_0',
+                  'expr_1'
+                ]
               ],
               'start'
             ]
