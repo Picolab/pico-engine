@@ -1,4 +1,7 @@
 ruleset io.picolabs.events {
+  rule set_attr {
+    select when echo hello name re#^(.*)$# setting(name);
+  }
   rule or_op {
     select when echo hello or say hello
   }

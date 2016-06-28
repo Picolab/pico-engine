@@ -2,6 +2,39 @@ module.exports = {
   'name': 'io.picolabs.events',
   'meta': {},
   'rules': {
+    'set_attr': {
+      'select': {
+        'graph': { 'echo': { 'hello': { 'expr_0': true } } },
+        'eventexprs': {
+          'expr_0': function (ctx, callback) {
+            var matches = [];
+            var m;
+            m = new RegExp('^(.*)$', '').exec(ctx.event.attrs.$name$);
+            if (!m)
+              return callback(undefined, false);
+            if (m.length > 1)
+              matches.push(m[1]);
+            ctx.vars.$name$ = matches[0];
+            callback(undefined, true);
+          }
+        },
+        'state_machine': {
+          'start': [
+            [
+              'expr_0',
+              'end'
+            ],
+            [
+              [
+                'not',
+                'expr_0'
+              ],
+              'start'
+            ]
+          ]
+        }
+      }
+    },
     'or_op': {
       'select': {
         'graph': {
@@ -10,10 +43,10 @@ module.exports = {
         },
         'eventexprs': {
           'expr_0': function (ctx, callback) {
-            callback(undefined, ctx.event.domain === 'echo' && ctx.event.type === 'hello');
+            callback(undefined, true);
           },
           'expr_1': function (ctx, callback) {
-            callback(undefined, ctx.event.domain === 'say' && ctx.event.type === 'hello');
+            callback(undefined, true);
           }
         },
         'state_machine': {
@@ -49,10 +82,10 @@ module.exports = {
         },
         'eventexprs': {
           'expr_0': function (ctx, callback) {
-            callback(undefined, ctx.event.domain === 'echo' && ctx.event.type === 'hello');
+            callback(undefined, true);
           },
           'expr_1': function (ctx, callback) {
-            callback(undefined, ctx.event.domain === 'say' && ctx.event.type === 'hello');
+            callback(undefined, true);
           }
         },
         'state_machine': {
@@ -117,13 +150,13 @@ module.exports = {
         },
         'eventexprs': {
           'expr_0': function (ctx, callback) {
-            callback(undefined, ctx.event.domain === 'echo' && ctx.event.type === 'a');
+            callback(undefined, true);
           },
           'expr_1': function (ctx, callback) {
-            callback(undefined, ctx.event.domain === 'echo' && ctx.event.type === 'b');
+            callback(undefined, true);
           },
           'expr_2': function (ctx, callback) {
-            callback(undefined, ctx.event.domain === 'echo' && ctx.event.type === 'c');
+            callback(undefined, true);
           }
         },
         'state_machine': {

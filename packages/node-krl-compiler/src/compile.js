@@ -18,6 +18,19 @@ var comp_by_type = {
   'Boolean': function(ast, comp, e){
     return e(ast.value ? 'true' : 'false');
   },
+  'RegExp': function(ast, comp, e){
+    var flags = '';
+    if(ast.value.global){
+      flags += 'g';
+    }
+    if(ast.value.ignoreCase){
+      flags += 'i';
+    }
+    return e('new', e('id', 'RegExp'), [
+      e('str', ast.value.source),
+      e('str', flags)
+    ]);
+  },
   'Application': function(ast, comp, e){
     return e('call',
       comp(ast.callee),
