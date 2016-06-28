@@ -1537,5 +1537,13 @@ test('DomainIdentifier', function(t){
     )
   );
 
+  testIt('ent:name.blah', mk.get(mk.dID('ent', 'name'), mk.id('blah')));
+  try{
+    parser('blah.ent:name');
+    t.fail();
+  }catch(e){
+    t.ok(/No possible parsings/i.test(e + ''));
+  }
+
   t.end();
 });
