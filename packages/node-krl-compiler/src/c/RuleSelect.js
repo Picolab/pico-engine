@@ -5,32 +5,44 @@ var event_ops = {
     toLispArgs: function(ast, traverse){
       return _.map(ast.args, traverse);
     },
-    mkStateMachine: function(state_machine, args, newState){
+    mkStateMachine: function(start, end, args, newState){
       var a = args[0];
       var b = args[1];
-      state_machine.start.push([a, 'end']);
-      state_machine.start.push([b, 'end']);
-      state_machine.start.push([['not', ['or', a, b]], 'start']);
+
+      var stm = {};
+      stm[start] = [
+        [a, end],
+        [b, end],
+        [['not', ['or', a, b]], start]
+      ];
+      return stm;
     }
   },
   'and': {
     toLispArgs: function(ast, traverse){
       return _.map(ast.args, traverse);
     },
-    mkStateMachine: function(state_machine, args, newState){
+    mkStateMachine: function(start, end, args, newState){
       var a = args[0];
       var b = args[1];
       var s1 = newState();
       var s2 = newState();
-      state_machine.start.push([a, s1]);
-      state_machine.start.push([b, s2]);
-      state_machine.start.push([['not', ['or', a, b]], 'start']);
 
-      state_machine[s1].push([b, 'end']);
-      state_machine[s1].push([['not', b], s1]);
-
-      state_machine[s2].push([a, 'end']);
-      state_machine[s2].push([['not', a], s2]);
+      var stm = {};
+      stm[start] = [
+        [a, s1],
+        [b, s2],
+        [['not', ['or', a, b]], start]
+      ];
+      stm[s1] = [
+        [b, end],
+        [['not', b], s1]
+      ];
+      stm[s2] = [
+        [a, end],
+        [['not', a], s2]
+      ];
+      return stm;
     }
   }
 };
@@ -68,24 +80,25 @@ module.exports = function(ast, comp, e){
 
   var lisp = traverse(ast.event);
 
-  var state_machine = {start: []};
+  var state_machine = {};
 
   var newState = (function(){
     var i = 0;
     return function(){
       var id = 'state_' + i;
       i++;
-      state_machine[id] = [];
       return id;
     };
   }());
 
   if(_.isString(lisp)){
-    state_machine.start.push([lisp, 'end']);
-    state_machine.start.push([['not', lisp], 'start']);
+    _.assign(state_machine, {start: [
+      [lisp, 'end'],
+      [['not', lisp], 'start']
+    ]});
   }else{
     if(_.has(event_ops, lisp[0])){
-      event_ops[lisp[0]].mkStateMachine(state_machine, lisp.slice(1), newState);
+      _.assign(state_machine, event_ops[lisp[0]].mkStateMachine('start', 'end', lisp.slice(1), newState));
     }else{
       throw new Error('EventOperator.op not supported: ' + ast.op);
     }
