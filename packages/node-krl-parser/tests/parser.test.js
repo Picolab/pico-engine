@@ -31,6 +31,8 @@ var mk = function(v){
         value: val
       };
     })};
+  }else if(_.isArray(v)){
+    return {type: 'Array', value: _.map(v, mk)};
   }
   return v;
 };
@@ -46,6 +48,13 @@ mk.get = function(object, property, method){
     object: object,
     property: property,
     method: method || 'dot'
+  };
+};
+mk.set = function(left, right){
+  return {
+    type: 'SetStatement',
+    left: left,
+    right: right
   };
 };
 mk.app = function(callee, args){
@@ -1520,7 +1529,10 @@ test('DomainIdentifier', function(t){
   });
 
   var testIt = function(src, expected){
-    var ast = parser(src)[0].expression;
+    var ast = parser(src)[0];
+    if(ast.type === 'ExpressionStatement'){
+      ast = ast.expression;
+    }
     t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
   };
   testIt('name', mk.id('name'));
@@ -1544,6 +1556,13 @@ test('DomainIdentifier', function(t){
   }catch(e){
     t.ok(/No possible parsings/i.test(e + ''));
   }
+
+  testIt('set ent:name "bob"', mk.set(mk.dID('ent', 'name'), mk('bob')));
+  testIt('set ent:names[0] "jim"', mk.set(mk.get(mk.dID('ent', 'names'), mk(0), 'index'), mk('jim')));
+  testIt('set ent:users{["id2", "name", "first"]} "sue"', mk.set(
+    mk.get(mk.dID('ent', 'users'), mk(["id2", "name", "first"]), 'path'),
+    mk('sue')
+  ));
 
   t.end();
 });

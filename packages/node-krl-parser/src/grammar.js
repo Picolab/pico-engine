@@ -591,12 +591,24 @@ var grammar = {
         },
     {"name": "Statement", "symbols": ["ExpressionStatement"], "postprocess": id},
     {"name": "Statement", "symbols": ["Declaration"], "postprocess": id},
+    {"name": "Statement", "symbols": ["SetStatement"], "postprocess": id},
     {"name": "ExpressionStatement", "symbols": ["Expression"], "postprocess": 
         function(data){
           return {
             loc: data[0].loc,
             type: 'ExpressionStatement',
             expression: data[0]
+          };
+        }
+        },
+    {"name": "SetStatement$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "SetStatement", "symbols": ["SetStatement$string$1", "__", "MemberExpression", "__", "Expression"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: data[4].loc.end},
+            type: 'SetStatement',
+            left: data[2],
+            right: data[4]
           };
         }
         },
