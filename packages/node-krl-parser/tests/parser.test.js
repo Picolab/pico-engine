@@ -1503,3 +1503,23 @@ test('no ambiguity!', function(t){
 
   t.end();
 });
+
+test('DomainIdentifier', function(t){
+
+  t.deepEquals(parser('ent:name')[0].expression, {
+    loc: {start: 0, end: 8},
+    type: 'DomainIdentifier',
+    value: 'name',
+    domain: 'ent'
+  });
+
+  var testIt = function(src, expected){
+    var ast = parser(src)[0].expression;
+    t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+  };
+  testIt('name', {type: 'Identifier', value: 'name'});
+  testIt('app:name', {type: 'DomainIdentifier', value: 'name', domain: 'app'});
+  testIt('ent:name', {type: 'DomainIdentifier', value: 'name', domain: 'ent'});
+
+  t.end();
+});

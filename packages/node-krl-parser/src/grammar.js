@@ -675,6 +675,7 @@ var grammar = {
     {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"{"}, "_", "Expression", "_", "loc_close_curly"], "postprocess": MemberExpression_method('path')},
     {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"."}, "_", "Identifier"], "postprocess": MemberExpression_method('dot')},
     {"name": "PrimaryExpression", "symbols": ["Identifier"], "postprocess": id},
+    {"name": "PrimaryExpression", "symbols": ["DomainIdentifier"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["Literal"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": [{"literal":"("}, "_", "Expression", "_", {"literal":")"}], "postprocess": getN(2)},
     {"name": "PrimaryExpression", "symbols": ["Function"], "postprocess": id},
@@ -744,6 +745,17 @@ var grammar = {
             type: 'MapKeyValuePair',
             key: data[0],
             value: data[4]
+          };
+        }
+        },
+    {"name": "DomainIdentifier", "symbols": ["Identifier", "_", {"literal":":"}, "_", "Identifier"], "postprocess": 
+        function(data, start, reject){
+          var id = data[4];
+          return {
+            type: 'DomainIdentifier',
+            loc: {start: start, end: id.loc.end},
+            value: id.value,
+            domain: data[0].value
           };
         }
         },

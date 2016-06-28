@@ -662,6 +662,7 @@ MemberExpression -> PrimaryExpression {% id %}
 
 PrimaryExpression ->
       Identifier {% id %}
+    | DomainIdentifier {% id %}
     | Literal {% id %}
     | "(" _ Expression _ ")" {% getN(2) %}
     | Function {% id %}
@@ -757,6 +758,18 @@ map_kv_pair -> String _ ":" _ Expression {%
 
 ################################################################################
 # Literals
+
+DomainIdentifier -> Identifier _ ":" _ Identifier {%
+  function(data, start, reject){
+    var id = data[4];
+    return {
+      type: 'DomainIdentifier',
+      loc: {start: start, end: id.loc.end},
+      value: id.value,
+      domain: data[0].value
+    };
+  }
+%}
 
 Identifier -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
   function(data, loc, reject){
