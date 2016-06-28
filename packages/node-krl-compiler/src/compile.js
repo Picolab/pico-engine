@@ -143,7 +143,20 @@ var comp_by_type = {
   },
   'RulePostlude': require('./c/RulePostlude'),
   'SetStatement': function(ast, comp, e){
-    return e(';', e('=', comp(ast.left), comp(ast.right)));
+    //right now only entity vars can be set.
+    if(ast.left
+        && ast.left.type === 'DomainIdentifier'
+        && ast.left.domain === 'ent'
+      ){
+      //TODO fix this - it's kind of hacky in how it handles the callback etc...
+      return e(';', e('call', e('.', e('.', e('id', 'ctx'), e('id', 'db')), e('id', 'putEntVar')), [
+        e('.', e('.', e('id', 'ctx'), e('id', 'pico')), e('id', 'id')),
+        e('str', ast.left.value, ast.left.loc),
+        comp(ast.right),
+        e('id', 'callback')
+      ]));
+    }
+    throw new Error('SetStatement only supports "ent:*" vars right now');
   }
 };
 

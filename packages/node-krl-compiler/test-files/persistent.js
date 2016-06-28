@@ -51,7 +51,7 @@ module.exports = {
         'fired': undefined,
         'notfired': undefined,
         'always': function (ctx, callback) {
-          //TODO
+          ctx.db.putEntVar(ctx.pico.id, 'name', ctx.vars.my_name, callback);
         }
       }
     }
