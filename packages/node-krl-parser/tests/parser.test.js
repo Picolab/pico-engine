@@ -37,6 +37,24 @@ var mk = function(v){
 mk.id = function(value){
   return {type: 'Identifier', value: value};
 };
+mk.dID = function(domain, value){
+  return {type: 'DomainIdentifier', value: value, domain: domain};
+};
+mk.get = function(object, property, method){
+  return {
+    type: 'MemberExpression',
+    object: object,
+    property: property,
+    method: method || 'dot'
+  };
+};
+mk.app = function(callee, args){
+  return {
+    type: 'Application',
+    callee: callee,
+    args: args || []
+  };
+};
 mk.key = function(value){
   return {type: 'Keyword', value: value};
 };
@@ -1505,9 +1523,19 @@ test('DomainIdentifier', function(t){
     var ast = parser(src)[0].expression;
     t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
   };
-  testIt('name', {type: 'Identifier', value: 'name'});
-  testIt('app:name', {type: 'DomainIdentifier', value: 'name', domain: 'app'});
-  testIt('ent:name', {type: 'DomainIdentifier', value: 'name', domain: 'ent'});
+  testIt('name', mk.id('name'));
+  testIt('app:name', mk.dID('app', 'name'));
+  testIt('ent:name', mk.dID('ent', 'name'));
+  testIt(
+    'event:attr("name").klog("hi")',
+    mk.app(
+      mk.get(
+        mk.app(mk.dID('event', 'attr'), [mk('name')]),
+        mk.id('klog')
+      ),
+      [mk('hi')]
+    )
+  );
 
   t.end();
 });
