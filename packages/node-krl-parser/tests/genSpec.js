@@ -69,6 +69,7 @@ var examples = {
     '"hello world"',
     '-12.3',
     'thing',
+    'ent:name',
     'true',
     're#^My name is (.*)#i',
     '[A, B, C]',

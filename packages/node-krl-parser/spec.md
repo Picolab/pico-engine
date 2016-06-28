@@ -300,6 +300,13 @@ thing
   "value": "thing"
 }
 
+ent:name
+{
+  "type": "DomainIdentifier",
+  "value": "name",
+  "domain": "ent"
+}
+
 true
 {
   "type": "Boolean",
