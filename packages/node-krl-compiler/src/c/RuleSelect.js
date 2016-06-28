@@ -1,8 +1,38 @@
 var _ = require('lodash');
 
-var event_op_passthru_args = {
-  'or': true,
-  'and': true
+var event_ops = {
+  'or': {
+    toLispArgs: function(ast, traverse){
+      return _.map(ast.args, traverse);
+    },
+    mkStateMachine: function(state_machine, args, newState){
+      var a = args[0];
+      var b = args[1];
+      state_machine.start.push([a, 'end']);
+      state_machine.start.push([b, 'end']);
+      state_machine.start.push([['not', ['or', a, b]], 'start']);
+    }
+  },
+  'and': {
+    toLispArgs: function(ast, traverse){
+      return _.map(ast.args, traverse);
+    },
+    mkStateMachine: function(state_machine, args, newState){
+      var a = args[0];
+      var b = args[1];
+      var s1 = newState();
+      var s2 = newState();
+      state_machine.start.push([a, s1]);
+      state_machine.start.push([b, s2]);
+      state_machine.start.push([['not', ['or', a, b]], 'start']);
+
+      state_machine[s1].push([b, 'end']);
+      state_machine[s1].push([['not', b], s1]);
+
+      state_machine[s2].push([a, 'end']);
+      state_machine[s2].push([['not', a], s2]);
+    }
+  }
 };
 
 module.exports = function(ast, comp, e){
@@ -28,8 +58,8 @@ module.exports = function(ast, comp, e){
     if(ast.type === 'EventExpression'){
       return onEE(ast);
     }else if(ast.type === 'EventOperator'){
-      if(_.has(event_op_passthru_args, ast.op)){
-        return [ast.op].concat(_.map(ast.args, traverse));
+      if(_.has(event_ops, ast.op)){
+        return [ast.op].concat(event_ops[ast.op].toLispArgs(ast, traverse));
       }
       throw new Error('EventOperator.op not supported: ' + ast.op);
     }
@@ -54,22 +84,8 @@ module.exports = function(ast, comp, e){
     state_machine.start.push([lisp, 'end']);
     state_machine.start.push([['not', lisp], 'start']);
   }else{
-    if(lisp[0] === 'or'){
-      state_machine.start.push([lisp[1], 'end']);
-      state_machine.start.push([lisp[2], 'end']);
-      state_machine.start.push([['not', lisp], 'start']);
-    }else if(lisp[0] === 'and'){
-      var s1 = newState();
-      var s2 = newState();
-      state_machine.start.push([lisp[1], s1]);
-      state_machine.start.push([lisp[2], s2]);
-      state_machine.start.push([['not', ['or', lisp[1], lisp[2]]], 'start']);
-
-      state_machine[s1].push([lisp[2], 'end']);
-      state_machine[s1].push([['not', lisp[2]], s1]);
-
-      state_machine[s2].push([lisp[1], 'end']);
-      state_machine[s2].push([['not', lisp[1]], s2]);
+    if(_.has(event_ops, lisp[0])){
+      event_ops[lisp[0]].mkStateMachine(state_machine, lisp.slice(1), newState);
     }else{
       throw new Error('EventOperator.op not supported: ' + ast.op);
     }
