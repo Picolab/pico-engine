@@ -31,6 +31,10 @@ var comp_by_type = {
       e('str', flags)
     ]);
   },
+  'DomainIdentifier': function(ast, comp, e){
+    //TODO the right way
+    return e('id', toId(ast.value));
+  },
   'Application': function(ast, comp, e){
     return e('call',
       comp(ast.callee),
@@ -107,7 +111,9 @@ var comp_by_type = {
     if(ast.action_block){
       rule.action_block = comp(ast.action_block);
     }
-    //TODO ast.postlude
+    if(ast.postlude){
+      rule.postlude = comp(ast.postlude);
+    }
     return e('obj', rule);
   },
   'RuleSelect': require('./c/RuleSelect'),
@@ -134,6 +140,10 @@ var comp_by_type = {
       })
     ])));
     return e('fn', ['ctx', 'callback'], fn_body);
+  },
+  'RulePostlude': require('./c/RulePostlude'),
+  'SetStatement': function(ast, comp, e){
+    return e(';', e('=', comp(ast.left), comp(ast.right)));
   }
 };
 

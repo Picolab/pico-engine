@@ -46,6 +46,13 @@ module.exports = {
               'options': { 'name': ctx.vars.my_name }
             });
           }]
+      },
+      'postlude': {
+        'fired': undefined,
+        'notfired': undefined,
+        'always': function (ctx, callback) {
+          //TODO
+        }
       }
     }
   }
