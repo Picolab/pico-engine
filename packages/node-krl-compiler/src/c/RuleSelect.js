@@ -1,20 +1,49 @@
 var _ = require('lodash');
 
+var wrapInOr = function(states){
+  if(_.size(states) === 1){
+    return _.head(states);
+  }
+  return ['or', _.head(states), wrapInOr(_.tail(states))];
+};
+
 var event_ops = {
   'or': {
     toLispArgs: function(ast, traverse){
       return _.map(ast.args, traverse);
     },
     mkStateMachine: function(start, end, args, newState, evalEELisp){
-      var a = evalEELisp(args[0]);
-      var b = evalEELisp(args[1]);
+      var a = evalEELisp(args[0], start, end);
+      var b = evalEELisp(args[1], start, end);
 
       var stm = {};
-      stm[start] = [
-        [a, end],
-        [b, end],
-        [['not', ['or', a, b]], start]
-      ];
+      stm[start] = [];
+
+      var states_that_leave_start = [];
+      if(_.isString(a)){
+        stm[start].push([a, end]);
+        states_that_leave_start.push(a);
+      }else{
+        //TODO remove this hack
+        _.each(a[start], function(pair){
+          if(_.isString(pair[0])){
+            stm[start].push(pair);
+            states_that_leave_start.push(pair[0]);
+          }
+        });
+        //TODO remove this hack
+        _.each(a, function(state_pairs, key){
+          if(key !== start){
+            stm[key] = state_pairs;
+          }
+        });
+      }
+
+      //TODO remove this hack
+      stm[start].push([b, end]);
+      states_that_leave_start.push(b);
+
+      stm[start].push([['not', wrapInOr(states_that_leave_start)], start]);
       return stm;
     }
   },
@@ -22,9 +51,9 @@ var event_ops = {
     toLispArgs: function(ast, traverse){
       return _.map(ast.args, traverse);
     },
-    mkStateMachine: function(start, end, args, newState, evalEELisp){
-      var a = evalEELisp(args[0]);
-      var b = evalEELisp(args[1]);
+    mkStateMachine: function(start, end, args, newState){
+      var a = args[0];
+      var b = args[1];
       var s1 = newState();
       var s2 = newState();
 
