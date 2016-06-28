@@ -5,9 +5,9 @@ var event_ops = {
     toLispArgs: function(ast, traverse){
       return _.map(ast.args, traverse);
     },
-    mkStateMachine: function(start, end, args, newState){
-      var a = args[0];
-      var b = args[1];
+    mkStateMachine: function(start, end, args, newState, evalEELisp){
+      var a = evalEELisp(args[0]);
+      var b = evalEELisp(args[1]);
 
       var stm = {};
       stm[start] = [
@@ -22,9 +22,9 @@ var event_ops = {
     toLispArgs: function(ast, traverse){
       return _.map(ast.args, traverse);
     },
-    mkStateMachine: function(start, end, args, newState){
-      var a = args[0];
-      var b = args[1];
+    mkStateMachine: function(start, end, args, newState, evalEELisp){
+      var a = evalEELisp(args[0]);
+      var b = evalEELisp(args[1]);
       var s1 = newState();
       var s2 = newState();
 
@@ -78,10 +78,6 @@ module.exports = function(ast, comp, e){
     throw new Error('invalid event ast node: ' + ast.type);
   };
 
-  var lisp = traverse(ast.event);
-
-  var state_machine = {};
-
   var newState = (function(){
     var i = 0;
     return function(){
@@ -91,17 +87,24 @@ module.exports = function(ast, comp, e){
     };
   }());
 
-  if(_.isString(lisp)){
-    _.assign(state_machine, {start: [
-      [lisp, 'end'],
-      [['not', lisp], 'start']
-    ]});
-  }else{
+  var evalEELisp = function(lisp, start, end){
+    if(_.isString(lisp)){
+      return lisp;
+    }
     if(_.has(event_ops, lisp[0])){
-      _.assign(state_machine, event_ops[lisp[0]].mkStateMachine('start', 'end', lisp.slice(1), newState));
+      return event_ops[lisp[0]].mkStateMachine(start, end, lisp.slice(1), newState, evalEELisp);
     }else{
       throw new Error('EventOperator.op not supported: ' + ast.op);
     }
+  };
+
+  var lisp = traverse(ast.event);
+  var state_machine = evalEELisp(lisp, 'start', 'end');
+  if(_.isString(state_machine)){
+    state_machine = {'start': [
+      [lisp, 'end'],
+      [['not', lisp], 'start']
+    ]};
   }
 
   return e('obj', {
