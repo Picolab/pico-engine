@@ -13,6 +13,7 @@ module.exports = {
   },
   'rules': {
     'say_hello': {
+      'name': 'say_hello',
       'select': {
         'graph': { 'echo': { 'hello': { 'expr_0': true } } },
         'eventexprs': {

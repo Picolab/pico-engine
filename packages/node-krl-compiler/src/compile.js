@@ -94,13 +94,20 @@ var comp_by_type = {
     return e('obj-prop', e('str', key, ast.key.loc), val);
   },
   'Rule': function(ast, comp, e){
-    var rule = {};
+    var rule = {
+      name: e('string', ast.name.value, ast.name.loc)
+    };
+    if(ast.rule_state !== 'active'){
+      rule.rule_state = e('string', ast.rule_state);
+    }
     if(ast.select){
       rule.select = comp(ast.select);
     }
+    //TODO ast.prelude
     if(ast.action_block){
       rule.action_block = comp(ast.action_block);
     }
+    //TODO ast.postlude
     return e('obj', rule);
   },
   'RuleSelect': require('./c/RuleSelect'),

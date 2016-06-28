@@ -6,6 +6,7 @@ module.exports = {
   'meta': { 'shares': { 'read': read } },
   'rules': {
     'store_my_name': {
+      'name': 'store_my_name',
       'select': {
         'graph': { 'echo': { 'hello': { 'expr_0': true } } },
         'eventexprs': {

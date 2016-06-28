@@ -3,6 +3,7 @@ module.exports = {
   'meta': {},
   'rules': {
     'set_attr': {
+      'name': 'set_attr',
       'select': {
         'graph': { 'echo': { 'hello': { 'expr_0': true } } },
         'eventexprs': {
@@ -36,6 +37,7 @@ module.exports = {
       }
     },
     'or_op': {
+      'name': 'or_op',
       'select': {
         'graph': {
           'echo': { 'hello': { 'expr_0': true } },
@@ -75,6 +77,7 @@ module.exports = {
       }
     },
     'and_op': {
+      'name': 'and_op',
       'select': {
         'graph': {
           'echo': { 'hello': { 'expr_0': true } },
@@ -140,6 +143,7 @@ module.exports = {
       }
     },
     'and_or': {
+      'name': 'and_or',
       'select': {
         'graph': {
           'echo': {
