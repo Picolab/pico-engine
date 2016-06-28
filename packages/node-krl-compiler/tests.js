@@ -29,7 +29,8 @@ test('compiler', function(t){
         try{
           compiled = compiler(srcs.krl).code;
         }catch(e){
-          compiled = e + '';
+          console.log(e.stack);
+          process.exit(1);//end asap, so they can easily see the error
         }
         compiled = compiled.trim();
         var expected = srcs.js.trim();

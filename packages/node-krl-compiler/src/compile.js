@@ -86,19 +86,24 @@ var comp_by_type = {
       rule.select = comp(ast.select);
     }
     if(ast.action_block){
-      rule.action = comp(ast.action_block);
+      rule.action_block = comp(ast.action_block);
     }
     return e('obj', rule);
   },
   'RuleSelect': require('./c/RuleSelect'),
   'EventExpression': require('./c/EventExpression'),
   'RuleActionBlock': function(ast, comp, e){
-    return e('fn', ['ctx', 'callback'], _.flattenDeep(_.map(ast.actions, function(action){
+    var block = {};
+    //TODO "condition": COND,
+    //TODO "block_type": "choose",
+    block.actions = e('arr', _.map(ast.actions, function(action){
       return comp(action);
-    })));
+    }));
+    return e('obj', block);
   },
   'RuleAction': function(ast, comp, e){
-    return e(';', e('call', e('id', 'callback'), [
+    var fn_body = [];
+    fn_body.push(e(';', e('call', e('id', 'callback'), [
       e('nil'),
       e('obj', {
         type: e('str', 'directive'),
@@ -107,7 +112,8 @@ var comp_by_type = {
           return [dec.left.value, comp(dec.right)];
         })))
       })
-    ]));
+    ])));
+    return e('fn', ['ctx', 'callback'], fn_body);
   }
 };
 

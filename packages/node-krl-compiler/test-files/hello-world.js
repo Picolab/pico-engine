@@ -36,12 +36,14 @@ module.exports = {
           ]
         }
       },
-      'action': function (ctx, callback) {
-        callback(undefined, {
-          'type': 'directive',
-          'name': 'say',
-          'options': { 'something': 'Hello World' }
-        });
+      'action_block': {
+        'actions': [function (ctx, callback) {
+            callback(undefined, {
+              'type': 'directive',
+              'name': 'say',
+              'options': { 'something': 'Hello World' }
+            });
+          }]
       }
     }
   }
