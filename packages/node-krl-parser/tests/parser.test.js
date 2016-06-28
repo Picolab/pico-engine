@@ -58,6 +58,13 @@ mk.ee = function(domain, type, attrs, where, setting){
     setting: setting ? setting.map(mk.id) : []
   };
 };
+mk.eventOp = function(op, args){
+  return {
+    type: 'EventOperator',
+    op: op,
+    args: args
+  };
+};
 mk.declare = function(op, left, right){
   return {type: 'Declaration', op: op, left: left, right: right};
 };
@@ -69,30 +76,11 @@ mk.meta = function(key, value){
   };
 };
 
-var mkEventExp = function(domain, type){
-  return {
-    type: 'EventExpression',
-    event_domain: mk.id(domain),
-    event_type: mk.id(type),
-    attributes: [],
-    where: null,
-    setting: []
-  };
-};
-
-var mkEventOp = function(op, args){
-  return {
-    type: 'EventOperator',
-    op: op,
-    args: args
-  };
-};
-
-var assertAST = function(t, src, ast){
-  t.deepEquals(parser(src), ast);
-};
-
 test('parser', function(t){
+  var assertAST = function(t, src, ast){
+    t.deepEquals(parser(src), ast);
+  };
+
   var src = '';
   src += 'ruleset rs {\n';
   src += '}';
@@ -215,12 +203,12 @@ test('select when', function(t){
   });
 
   src = 'select when d a and d b';
-  asertRuleAST(src, mkEventOp('and', [mkEventExp('d', 'a'), mkEventExp('d', 'b')]));
+  asertRuleAST(src, mk.eventOp('and', [mk.ee('d', 'a'), mk.ee('d', 'b')]));
 
   src = 'select when d a and (d b or d c)';
-  asertRuleAST(src, mkEventOp('and', [
-    mkEventExp('d', 'a'),
-    mkEventOp('or', [mkEventExp('d', 'b'), mkEventExp('d', 'c')])
+  asertRuleAST(src, mk.eventOp('and', [
+    mk.ee('d', 'a'),
+    mk.eventOp('or', [mk.ee('d', 'b'), mk.ee('d', 'c')])
   ]));
 
   t.end();
