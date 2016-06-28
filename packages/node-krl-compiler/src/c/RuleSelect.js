@@ -1,5 +1,10 @@
 var _ = require('lodash');
 
+var event_op_passthru_args = {
+  'or': true,
+  'and': true
+};
+
 module.exports = function(ast, comp, e){
   if(ast.kind !== 'when'){
     throw new Error('RuleSelect.kind not supported: ' + ast.kind);
@@ -23,7 +28,7 @@ module.exports = function(ast, comp, e){
     if(ast.type === 'EventExpression'){
       return onEE(ast);
     }else if(ast.type === 'EventOperator'){
-      if(ast.op === 'or'){
+      if(_.has(event_op_passthru_args, ast.op)){
         return [ast.op].concat(_.map(ast.args, traverse));
       }
       throw new Error('EventOperator.op not supported: ' + ast.op);
@@ -35,14 +40,39 @@ module.exports = function(ast, comp, e){
 
   var state_machine = {start: []};
 
+  var newState = (function(){
+    var i = 0;
+    return function(){
+      var id = 'state_' + i;
+      i++;
+      state_machine[id] = [];
+      return id;
+    };
+  }());
+
   if(_.isString(lisp)){
     state_machine.start.push([lisp, 'end']);
     state_machine.start.push([['not', lisp], 'start']);
   }else{
-    //TODO undo this hack
-    state_machine.start.push([lisp[1], 'end']);
-    state_machine.start.push([lisp[2], 'end']);
-    state_machine.start.push([['not', lisp], 'start']);
+    if(lisp[0] === 'or'){
+      state_machine.start.push([lisp[1], 'end']);
+      state_machine.start.push([lisp[2], 'end']);
+      state_machine.start.push([['not', lisp], 'start']);
+    }else if(lisp[0] === 'and'){
+      var s1 = newState();
+      var s2 = newState();
+      state_machine.start.push([lisp[1], s1]);
+      state_machine.start.push([lisp[2], s2]);
+      state_machine.start.push([['not', ['or', lisp[1], lisp[2]]], 'start']);
+
+      state_machine[s1].push([lisp[2], 'end']);
+      state_machine[s1].push([['not', lisp[2]], s1]);
+
+      state_machine[s2].push([lisp[1], 'end']);
+      state_machine[s2].push([['not', lisp[1]], s2]);
+    }else{
+      throw new Error('EventOperator.op not supported: ' + ast.op);
+    }
   }
 
   return e('obj', {

@@ -81,10 +81,14 @@ var comp_by_type = {
     return e('obj-prop', e('str', key, ast.key.loc), val);
   },
   'Rule': function(ast, comp, e){
-    return e('obj', {
-      select: comp(ast.select),
-      action: ast.action_block ? comp(ast.action_block) : e('nil')
-    });
+    var rule = {};
+    if(ast.select){
+      rule.select = comp(ast.select);
+    }
+    if(ast.action_block){
+      rule.action = comp(ast.action_block);
+    }
+    return e('obj', rule);
   },
   'RuleSelect': require('./c/RuleSelect'),
   'EventExpression': require('./c/EventExpression'),
