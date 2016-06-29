@@ -42,12 +42,12 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
   });
 });
 
-router.set('/sky/cloud/:rid/:function', function(req, res, route){
+router.set('/sky/cloud/:eci/:rid/:function', function(req, res, route){
   var ctx = {
-    eci: route.data['_eci'],
+    eci: route.params.eci,
     rid: route.params.rid,
     fn_name: route.params['function'],
-    args: _.omit(route.data, '_eci')
+    args: route.data
   };
 
   pe.callFunction(ctx, function(err, data){
