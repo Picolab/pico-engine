@@ -23,6 +23,7 @@ var installRuleset = function(path){
 };
 
 installRuleset('hello-world');
+installRuleset('events');
 
 module.exports = function(conf){
   var db = DB(conf.db);

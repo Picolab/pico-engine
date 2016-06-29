@@ -5,15 +5,15 @@ ruleset io.picolabs.events {
       name = my_name
   }
   rule or_op {
-    select when events a or events b
+    select when events_or a or events_or b
     send_directive("or")
   }
   rule and_op {
-    select when events a and events b
+    select when events_and a and events_and b
     send_directive("and")
   }
   rule and_or {
-    select when (events a and events b) or events c
+    select when (events_andor a and events_andor b) or events_andor c
     send_directive("(a and b) or c")
   }
 }

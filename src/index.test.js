@@ -1,15 +1,13 @@
-//var _ = require('lodash');
+var _ = require('lodash');
 var λ = require('contra');
 var test = require('tape');
 var mkTestPicoEngine = require('./mkTestPicoEngine');
 
-/*
 var omitMeta = function(resp){
   return _.map(resp.directives, function(d){
     return _.omit(d, 'meta');
   });
 };
-*/
 
 test('PicoEngine - hello_world ruleset', function(t){
   var pe = mkTestPicoEngine();
@@ -181,40 +179,41 @@ test('PicoEngine - raw ruleset', function(t){
     });
   });
 });
+*/
 
-test('PicoEngine - event_ops ruleset', function(t){
+test('PicoEngine - io.picolabs.events ruleset', function(t){
   var pe = mkTestPicoEngine();
 
-  var signal = function(type, attrs){
+  var signal = function(domain, type, attrs){
     return λ.curry(pe.signalEvent, {
       eci: 'id1',
       eid: '1234',
-      domain: 'event_ops',
+      domain: domain,
       type: type,
-      attrs: attrs
+      attrs: attrs || {}
     });
   };
 
   λ.series({
     pico: λ.curry(pe.db.newPico, {}),
     chan: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
-    rid4: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'rid4x0'}),
+    rid4: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.events'}),
 
-    bind: signal('bind', {name: 'blah?!'}),
+    bind: signal('events', 'bind', {name: 'blah?!'}),
 
-    or_a: signal('or', {val: 'a'}),
-    or_b: signal('or', {val: 'b'}),
-    or_c: signal('or', {val: 'c'}),
+    or_a: signal('events_or', 'a'),
+    or_b: signal('events_or', 'b'),
+    or_c: signal('events_or', 'c'),
 
-    and0: signal('and', {val: 'a'}),
-    and1: signal('and', {val: 'c'}),
-    and2: signal('and', {val: 'b'}),
-    and3: signal('and', {val: 'b'}),
-    and4: signal('and', {val: 'a'}),
-    and5: signal('and', {val: 'b'}),
-    and6: signal('and', {val: 'b'}),
-    and7: signal('and', {val: 'b'}),
-    and8: signal('and', {val: 'a'})
+    and0: signal('events_and', 'a'),
+    and1: signal('events_and', 'c'),
+    and2: signal('events_and', 'b'),
+    and3: signal('events_and', 'b'),
+    and4: signal('events_and', 'a'),
+    and5: signal('events_and', 'b'),
+    and6: signal('events_and', 'b'),
+    and7: signal('events_and', 'b'),
+    and8: signal('events_and', 'a')
 
   }, function(err, data){
     if(err) return t.end(err);
@@ -240,4 +239,3 @@ test('PicoEngine - event_ops ruleset', function(t){
     t.end();
   });
 });
-*/
