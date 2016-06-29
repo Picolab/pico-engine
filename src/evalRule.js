@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var λ = require('contra');
+var applyInFiber = require('./applyInFiber');
 
 var pre_noop = function(ctx, callback){
   callback(undefined, {});
@@ -12,15 +13,13 @@ var doActions = function(rule, ctx, callback){
   }, callback);
 };
 
-var doPostlude = function(rule, ctx, callback){
+var doPostlude = function(rule, ctx){
   //TODO fired
   //TODO notfired
   var always = _.get(rule, ['postlude', 'always']);
   if(_.isFunction(always)){
-    always(ctx, callback);
-    return;
+    always(ctx);
   }
-  callback();
 };
 
 module.exports = function(rule, ctx, callback){
@@ -51,7 +50,7 @@ module.exports = function(rule, ctx, callback){
         };
       });
 
-      doPostlude(rule, ctx, function(err){
+      applyInFiber(doPostlude, null, [rule, ctx], function(err){
         //TODO collect errors and respond individually to the client
         callback(err, resp_data);
       });

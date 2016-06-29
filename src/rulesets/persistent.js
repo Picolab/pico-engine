@@ -58,8 +58,8 @@ module.exports = {
       'postlude': {
         'fired': undefined,
         'notfired': undefined,
-        'always': function (ctx, callback) {
-          ctx.db.putEntVar(ctx.pico.id, 'name', ctx.vars.my_name, callback);
+        'always': function (ctx) {
+          return ctx.db.putEntVarFuture(ctx.pico.id, 'name', ctx.vars.my_name).wait();
         }
       }
     },
@@ -108,8 +108,8 @@ module.exports = {
       'postlude': {
         'fired': undefined,
         'notfired': undefined,
-        'always': function (ctx, callback) {
-          ctx.db.putAppVar(ctx.rid, 'appvar', ctx.vars.my_name, callback);
+        'always': function (ctx) {
+          return ctx.db.putAppVarFuture(ctx.rid, 'appvar', ctx.vars.my_name).wait();
         }
       }
     }

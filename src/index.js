@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var λ = require('contra');
 var DB = require('./DB');
+var Future = require('fibers/future');
 var evalRule = require('./evalRule');
 var selectRulesToEval = require('./selectRulesToEval');
 
@@ -27,7 +28,7 @@ installRuleset('events');
 installRuleset('persistent');
 
 module.exports = function(conf){
-  var db = DB(conf.db);
+  var db = Future.wrap(DB(conf.db));
 
   return {
     db: db,
