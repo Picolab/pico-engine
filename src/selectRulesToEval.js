@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var λ = require('contra');
 var contraFind = require('contra-find');
+var applyInFiber = require('./applyInFiber');
 
 var evalExpr = function(rule, ctx, exp, callback){
   if(_.isArray(exp)){
@@ -38,10 +39,12 @@ var evalExpr = function(rule, ctx, exp, callback){
   if(_.get(rule, ['select', 'graph', domain, type, exp]) !== true){
     return callback(undefined, false);
   }
-  rule.select.eventexprs[exp](ctx, callback);
+  applyInFiber(rule.select.eventexprs[exp], null, [ctx], callback);
 };
 
 var getNextState = function(ctx, rule, curr_state, callback){
+  //TODO if we are going to stick with fibers
+  //TODO then remove contraFind and the async evalExpr
   var stm = rule.select.state_machine[curr_state];
 
   contraFind(λ, stm, function(s, next){

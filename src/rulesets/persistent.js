@@ -18,16 +18,16 @@ module.exports = {
       'select': {
         'graph': { 'store': { 'name': { 'expr_0': true } } },
         'eventexprs': {
-          'expr_0': function (ctx, callback) {
+          'expr_0': function (ctx) {
             var matches = [];
             var m;
             m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['name']);
             if (!m)
-              return callback(undefined, false);
+              return false;
             if (m.length > 1)
               matches.push(m[1]);
             ctx.vars.my_name = matches[0];
-            callback(undefined, true);
+            return true;
           }
         },
         'state_machine': {
@@ -68,16 +68,16 @@ module.exports = {
       'select': {
         'graph': { 'store': { 'appvar': { 'expr_0': true } } },
         'eventexprs': {
-          'expr_0': function (ctx, callback) {
+          'expr_0': function (ctx) {
             var matches = [];
             var m;
             m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['appvar']);
             if (!m)
-              return callback(undefined, false);
+              return false;
             if (m.length > 1)
               matches.push(m[1]);
             ctx.vars.my_name = matches[0];
-            callback(undefined, true);
+            return true;
           }
         },
         'state_machine': {

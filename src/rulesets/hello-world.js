@@ -18,8 +18,8 @@ module.exports = {
       'select': {
         'graph': { 'echo': { 'hello': { 'expr_0': true } } },
         'eventexprs': {
-          'expr_0': function (ctx, callback) {
-            callback(undefined, true);
+          'expr_0': function (ctx) {
+            return true;
           }
         },
         'state_machine': {
