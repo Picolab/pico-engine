@@ -2,6 +2,11 @@ var _ = require('lodash');
 var toId = require('to-js-identifier');
 var mkTree = require('estree-builder');
 
+var mkDbCall = function(e, method, args){
+  var to_call = 'ctx.db.' + method + 'Future';
+  return e('call', e('.', e('call', e('id', to_call), args), e('id', 'wait')), []);
+};
+
 var comp_by_type = {
   'String': function(ast, comp, e){
     return e('string', ast.value);
@@ -37,17 +42,15 @@ var comp_by_type = {
   },
   'DomainIdentifier': function(ast, comp, e){
     if(ast.domain === 'ent'){
-      return e(';', e('call', e('id', 'ctx.db.getEntVar'), [
+      return mkDbCall(e, 'getEntVar', [
         e('id', 'ctx.pico.id'),
-        e('str', ast.value),
-        e('id', 'callback')
-      ]));
+        e('str', ast.value)
+      ]);
     }else if(ast.domain === 'app'){
-      return e(';', e('call', e('id', 'ctx.db.getAppVar'), [
+      return mkDbCall(e, 'getAppVar', [
         e('id', 'ctx.rid'),
-        e('str', ast.value),
-        e('id', 'callback')
-      ]));
+        e('str', ast.value)
+      ]);
     }
     //TODO the right way
     return e('id', toId(ast.value));
@@ -82,29 +85,11 @@ var comp_by_type = {
         return body.push(comp(part));
       }
       if(part.type === 'ExpressionStatement'){
-        //TODO fix this hackyness
-        //TODO should walk the tree to see if it'll call the callback on it's own, or if we need to wrap it.
-        if(part.expression.type === 'DomainIdentifier'){
-          return body.push(comp(part.expression));
-        }else{
-          return body.push(
-            e(';',
-              e('call',
-                e('id', 'callback', part.loc),
-                [
-                  e('nil', part.loc),
-                  comp(part.expression)
-                ],
-                part.loc
-              ),
-              part.loc
-            )
-          );
-        }
+        part = part.expression;
       }
-      return body.push(comp(part));
+      return body.push(e('return', comp(part)));
     });
-    return e('fn', ['ctx', 'callback'], body);
+    return e('fn', ['ctx'], body);
   },
   'Declaration': function(ast, comp, e){
     if(ast.op === '='){
@@ -178,17 +163,14 @@ var comp_by_type = {
   },
   'RuleAction': function(ast, comp, e){
     var fn_body = [];
-    fn_body.push(e(';', e('call', e('id', 'callback'), [
-      e('nil'),
-      e('obj', {
-        type: e('str', 'directive'),
-        name: e('str', ast.args[0].value),
-        options: e('obj', _.fromPairs(_.map(ast['with'], function(dec){
-          return [dec.left.value, comp(dec.right)];
-        })))
-      })
-    ])));
-    return e('fn', ['ctx', 'callback'], fn_body);
+    fn_body.push(e('return', e('obj', {
+      type: e('str', 'directive'),
+      name: e('str', ast.args[0].value),
+      options: e('obj', _.fromPairs(_.map(ast['with'], function(dec){
+        return [dec.left.value, comp(dec.right)];
+      })))
+    })));
+    return e('fn', ['ctx'], fn_body);
   },
   'RulePostlude': require('./c/RulePostlude'),
   'SetStatement': function(ast, comp, e){
@@ -197,23 +179,19 @@ var comp_by_type = {
         && ast.left.type === 'DomainIdentifier'
         && ast.left.domain === 'ent'
       ){
-      //TODO fix this - it's kind of hacky in how it handles the callback etc...
-      return e(';', e('call', e('id', 'ctx.db.putEntVar'), [
+      return e(';', mkDbCall(e, 'putEntVar', [
         e('id', 'ctx.pico.id'),
         e('str', ast.left.value, ast.left.loc),
-        comp(ast.right),
-        e('id', 'callback')
+        comp(ast.right)
       ]));
     }else if(ast.left
         && ast.left.type === 'DomainIdentifier'
         && ast.left.domain === 'app'
       ){
-      //TODO fix this - it's kind of hacky in how it handles the callback etc...
-      return e(';', e('call', e('id', 'ctx.db.putAppVar'), [
+      return e(';', mkDbCall(e, 'putAppVar', [
         e('id', 'ctx.rid'),
         e('str', ast.left.value, ast.left.loc),
-        comp(ast.right),
-        e('id', 'callback')
+        comp(ast.right)
       ]));
     }
     throw new Error('SetStatement only supports "ent:*" and "app:*" vars right now');

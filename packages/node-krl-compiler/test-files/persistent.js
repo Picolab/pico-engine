@@ -59,7 +59,7 @@ module.exports = {
         'fired': undefined,
         'notfired': undefined,
         'always': function (ctx) {
-          return ctx.db.putEntVarFuture(ctx.pico.id, 'name', ctx.vars.my_name).wait();
+          ctx.db.putEntVarFuture(ctx.pico.id, 'name', ctx.vars.my_name).wait();
         }
       }
     },
@@ -109,7 +109,7 @@ module.exports = {
         'fired': undefined,
         'notfired': undefined,
         'always': function (ctx) {
-          return ctx.db.putAppVarFuture(ctx.rid, 'appvar', ctx.vars.my_name).wait();
+          ctx.db.putAppVarFuture(ctx.rid, 'appvar', ctx.vars.my_name).wait();
         }
       }
     }

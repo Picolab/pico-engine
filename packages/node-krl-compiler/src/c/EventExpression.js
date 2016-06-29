@@ -1,10 +1,7 @@
 var _ = require('lodash');
 
 var returnFalse = function(e, loc){
-  return e('return', e('call', e('id', 'callback', loc), [
-    e('nil', loc),
-    e('false', loc)
-  ], loc), loc);
+  return e('return', e('false', loc), loc);
 };
 
 module.exports = function(ast, comp, e){
@@ -53,9 +50,7 @@ module.exports = function(ast, comp, e){
         s.loc), s.loc));
   });
 
-  fn_body.push(e(';', e('call', e('id', 'callback'), [
-    e('nil'),
-    e(true)
-  ])));
-  return e('fn', ['ctx', 'callback'], fn_body);
+  fn_body.push(e('return', e(true)));
+
+  return e('fn', ['ctx'], fn_body);
 };
