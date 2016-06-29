@@ -81,20 +81,11 @@ module.exports = function(conf){
         if(!_.has(rulesets, ctx.rid)){
           return callback(new Error('Not found: rid'));
         }
-        if(!_.has(rulesets[ctx.rid].provided_functions, ctx.fn_name)){
-          return callback(new Error('Not found: function'));
+        var fun = _.get(rulesets, [ctx.rid, 'meta', 'shares', ctx.fn_name]);
+        if(!_.isFunction(fun)){
+          return callback(new Error('Function not shared: ' + ctx.fn_name));
         }
-        var fun = rulesets[ctx.rid].provided_functions[ctx.fn_name];
-
-        if(fun.type === 'query'){
-          fun.fn(ctx, callback);
-        }else if(fun.type === 'raw'){
-          callback(undefined, function(res){
-            fun.fn(ctx, res);
-          });
-        }else{
-          callback(new Error('invalid provided_function type: ' + fun.type));
-        }
+        fun(ctx, callback);
       });
     }
   };
