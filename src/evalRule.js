@@ -1,7 +1,15 @@
 var _ = require('lodash');
+var λ = require('contra');
 
 var pre_noop = function(ctx, callback){
   callback(undefined, {});
+};
+
+var doActions = function(rule, ctx, callback){
+  var actions = _.get(rule, ['action_block', 'actions']);
+  λ.map(actions, function(action, done){
+    action(ctx, done);
+  }, callback);
 };
 
 module.exports = function(rule, ctx, callback){
@@ -13,12 +21,13 @@ module.exports = function(rule, ctx, callback){
 
     ctx.vars = _.assign({}, ctx.vars, new_vars);
 
-    rule.action(ctx, function(err, response){
+    doActions(rule, ctx, function(err, responses){
       //TODO collect errors and respond individually to the client
       if(err) return callback(err);
 
-      if(response.type === 'directive'){
-        callback(undefined, {
+      //TODO handle more than one response type
+      callback(undefined, _.map(responses, function(response){
+        return {
           type: 'directive',
           options: response.options,
           name: response.name,
@@ -28,11 +37,8 @@ module.exports = function(rule, ctx, callback){
             txn_id: 'TODO',//TODO transactions
             eid: ctx.event.eid
           }
-        });
-      }else{
-        //TODO collect errors and respond individually to the client
-        return callback(new Error('Invalid response type: ' + response.type));
-      }
+        };
+      }));
 
       if(_.isFunction(rule.always)){
         rule.always(ctx, function(err){

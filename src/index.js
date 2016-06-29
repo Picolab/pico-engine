@@ -6,11 +6,11 @@ var selectRulesToEval = require('./selectRulesToEval');
 
 var rulesets = {};
 var salience_graph = {};
-var installRuleset = function(rid, path){
+var installRuleset = function(path){
   var rs = require('./rulesets/' + path);
-  rs.rid = rid;
+  rs.rid = rs.name;
   _.each(rs.rules, function(rule, rule_name){
-    rule.rid = rid;
+    rule.rid = rs.rid;
     rule.rule_name = rule_name;
 
     _.each(rule.select && rule.select.graph, function(g, domain){
@@ -19,13 +19,10 @@ var installRuleset = function(rid, path){
       });
     });
   });
-  rulesets[rid] = rs;
+  rulesets[rs.rid] = rs;
 };
 
-installRuleset('rid1x0', 'hello_world');
-installRuleset('rid2x0', 'store_name');
-installRuleset('rid3x0', 'raw');
-installRuleset('rid4x0', 'event_ops');
+installRuleset('hello-world');
 
 module.exports = function(conf){
   var db = DB(conf.db);
@@ -56,7 +53,7 @@ module.exports = function(conf){
           }, function(err, responses){
             if(err) return callback(err);
 
-            var res_by_type = _.groupBy(responses, 'type');
+            var res_by_type = _.groupBy(_.flattenDeep(responses), 'type');
 
             //TODO other types
             callback(undefined, {
