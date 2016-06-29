@@ -1,7 +1,7 @@
-var hello = function (ctx, callback) {
+var hello = function (ctx) {
   var obj = ctx.args['obj'];
   var msg = 'Hello ' + obj;
-  callback(undefined, msg);
+  return msg;
 };
 module.exports = {
   'name': 'io.picolabs.hello_world',

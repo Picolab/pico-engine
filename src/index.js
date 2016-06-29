@@ -3,6 +3,7 @@ var λ = require('contra');
 var DB = require('./DB');
 var Future = require('fibers/future');
 var evalRule = require('./evalRule');
+var applyInFiber = require('./applyInFiber');
 var selectRulesToEval = require('./selectRulesToEval');
 
 var rulesets = {};
@@ -97,7 +98,7 @@ module.exports = function(conf){
         if(!_.isFunction(fun)){
           return callback(new Error('Function not shared: ' + ctx.fn_name));
         }
-        fun(ctx, callback);
+        applyInFiber(fun, null, [ctx], callback);
       });
     }
   };

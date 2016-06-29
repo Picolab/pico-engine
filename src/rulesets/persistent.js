@@ -1,8 +1,8 @@
-var getName = function (ctx, callback) {
-  ctx.db.getEntVar(ctx.pico.id, 'name', callback);
+var getName = function (ctx) {
+  return ctx.db.getEntVarFuture(ctx.pico.id, 'name').wait();
 };
-var getAppVar = function (ctx, callback) {
-  ctx.db.getAppVar(ctx.rid, 'appvar', callback);
+var getAppVar = function (ctx) {
+  return ctx.db.getAppVarFuture(ctx.rid, 'appvar').wait();
 };
 module.exports = {
   'name': 'io.picolabs.persistent',
