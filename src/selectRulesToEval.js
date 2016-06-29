@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var λ = require('contra');
-var asyncFind = require('./asyncFind');
+var contraFind = require('contra-find');
 
 var evalExpr = function(rule, ctx, exp, callback){
   if(_.isArray(exp)){
@@ -44,7 +44,7 @@ var evalExpr = function(rule, ctx, exp, callback){
 var getNextState = function(ctx, rule, curr_state, callback){
   var stm = rule.select.state_machine[curr_state];
 
-  asyncFind(stm, function(s, next){
+  contraFind(λ, stm, function(s, next){
     evalExpr(rule, ctx, s[0], next);
   }, function(err, matching_pair){
     if(err) return callback(err);
