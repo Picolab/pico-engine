@@ -8,5 +8,5 @@ process.stdin.on('data', function(data){
 });
 
 process.stdin.on('end', function(){
-  process.stdout.write(compiler(src));
+  process.stdout.write(compiler(src, {inline_source_map: true}).code);
 });
