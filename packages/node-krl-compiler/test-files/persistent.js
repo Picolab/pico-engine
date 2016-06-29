@@ -1,14 +1,14 @@
-var read = function (ctx, callback) {
+var getName = function (ctx, callback) {
   ctx.db.getEntVar(ctx.pico.id, 'name', callback);
 };
 module.exports = {
   'name': 'io.picolabs.persistent',
-  'meta': { 'shares': { 'read': read } },
+  'meta': { 'shares': { 'getName': getName } },
   'rules': {
     'store_my_name': {
       'name': 'store_my_name',
       'select': {
-        'graph': { 'echo': { 'hello': { 'expr_0': true } } },
+        'graph': { 'store': { 'name': { 'expr_0': true } } },
         'eventexprs': {
           'expr_0': function (ctx, callback) {
             var matches = [];

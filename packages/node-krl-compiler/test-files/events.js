@@ -49,8 +49,10 @@ module.exports = {
       'name': 'or_op',
       'select': {
         'graph': {
-          'echo': { 'hello': { 'expr_0': true } },
-          'say': { 'hello': { 'expr_1': true } }
+          'events_or': {
+            'a': { 'expr_0': true },
+            'b': { 'expr_1': true }
+          }
         },
         'eventexprs': {
           'expr_0': function (ctx, callback) {
@@ -83,14 +85,25 @@ module.exports = {
             ]
           ]
         }
+      },
+      'action_block': {
+        'actions': [function (ctx, callback) {
+            callback(undefined, {
+              'type': 'directive',
+              'name': 'or',
+              'options': {}
+            });
+          }]
       }
     },
     'and_op': {
       'name': 'and_op',
       'select': {
         'graph': {
-          'echo': { 'hello': { 'expr_0': true } },
-          'say': { 'hello': { 'expr_1': true } }
+          'events_and': {
+            'a': { 'expr_0': true },
+            'b': { 'expr_1': true }
+          }
         },
         'eventexprs': {
           'expr_0': function (ctx, callback) {
@@ -149,13 +162,22 @@ module.exports = {
             ]
           ]
         }
+      },
+      'action_block': {
+        'actions': [function (ctx, callback) {
+            callback(undefined, {
+              'type': 'directive',
+              'name': 'and',
+              'options': {}
+            });
+          }]
       }
     },
     'and_or': {
       'name': 'and_or',
       'select': {
         'graph': {
-          'echo': {
+          'events_andor': {
             'a': { 'expr_0': true },
             'b': { 'expr_1': true },
             'c': { 'expr_2': true }
@@ -229,6 +251,15 @@ module.exports = {
             ]
           ]
         }
+      },
+      'action_block': {
+        'actions': [function (ctx, callback) {
+            callback(undefined, {
+              'type': 'directive',
+              'name': '(a and b) or c',
+              'options': {}
+            });
+          }]
       }
     }
   }
