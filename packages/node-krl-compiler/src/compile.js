@@ -210,7 +210,7 @@ var comp_by_type = {
       ){
       //TODO fix this - it's kind of hacky in how it handles the callback etc...
       return e(';', e('call', e('id', 'ctx.db.putAppVar'), [
-        e('id', 'ctx.rule.rid'),
+        e('id', 'ctx.rid'),
         e('str', ast.left.value, ast.left.loc),
         comp(ast.right),
         e('id', 'callback')
