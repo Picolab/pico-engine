@@ -56,18 +56,17 @@ test('PicoEngine - hello_world ruleset', function(t){
   });
 });
 
-/*
-test('PicoEngine - store_name ruleset', function(t){
+test('PicoEngine - persistent ruleset', function(t){
   var pe = mkTestPicoEngine();
 
   λ.series({
     pico0: λ.curry(pe.db.newPico, {}),
     chan1: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
-    rid_0: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'rid2x0'}),
+    rid_0: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.persistent'}),
 
     pico2: λ.curry(pe.db.newPico, {}),
     chan3: λ.curry(pe.db.newChannel, {pico_id: 'id2', name: 'three', type: 't'}),
-    rid_1: λ.curry(pe.db.addRuleset, {pico_id: 'id2', rid: 'rid2x0'}),
+    rid_1: λ.curry(pe.db.addRuleset, {pico_id: 'id2', rid: 'io.picolabs.persistent'}),
 
     store_bob0: λ.curry(pe.signalEvent, {
       eci: 'id1',
@@ -79,7 +78,7 @@ test('PicoEngine - store_name ruleset', function(t){
 
     query0: λ.curry(pe.callFunction, {
       eci: 'id1',
-      rid: 'rid2x0',
+      rid: 'io.picolabs.persistent',
       fn_name: 'getName',
       args: {}
     }),
@@ -94,16 +93,16 @@ test('PicoEngine - store_name ruleset', function(t){
 
     query1: λ.curry(pe.callFunction, {
       eci: 'id1',
-      rid: 'rid2x0',
+      rid: 'io.picolabs.persistent',
       fn_name: 'getName',
       args: {}
     }),
     query2: λ.curry(pe.callFunction, {
       eci: 'id1',
-      rid: 'rid2x0',
+      rid: 'io.picolabs.persistent',
       fn_name: 'getName',
       args: {}
-    }),
+    })/*,
 
     store_appvar0: λ.curry(pe.signalEvent, {
       eci: 'id1',
@@ -114,17 +113,17 @@ test('PicoEngine - store_name ruleset', function(t){
     }),
     query3: λ.curry(pe.callFunction, {
       eci: 'id1',
-      rid: 'rid2x0',
+      rid: 'io.picolabs.persistent',
       fn_name: 'getAppVar',
       args: {}
     }),
     query4: λ.curry(pe.callFunction, {
       eci: 'id3',
-      rid: 'rid2x0',
+      rid: 'io.picolabs.persistent',
       fn_name: 'getAppVar',
       args: {}
     })
-
+    */
   }, function(err, data){
     if(err) return t.end(err);
 
@@ -141,16 +140,19 @@ test('PicoEngine - store_name ruleset', function(t){
     t.deepEquals(data.query1, 'jim');
     t.deepEquals(data.query2, 'jim');
 
+    /*
     t.deepEquals(omitMeta(data.store_appvar0), [
       {name: 'store_appvar', options: {name: 'global thing'}}
     ]);
     t.deepEquals(data.query3, 'global thing');
     t.deepEquals(data.query4, 'global thing');
+    */
 
     t.end();
   });
 });
 
+/*
 test('PicoEngine - raw ruleset', function(t){
   var pe = mkTestPicoEngine();
 

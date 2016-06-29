@@ -24,6 +24,7 @@ var installRuleset = function(path){
 
 installRuleset('hello-world');
 installRuleset('events');
+installRuleset('persistent');
 
 module.exports = function(conf){
   var db = DB(conf.db);

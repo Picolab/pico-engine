@@ -1,14 +1,14 @@
 ruleset io.picolabs.persistent {
   meta {
-    shares read
+    shares getName
   }
   global {
-    read = function(){
+    getName = function(){
       ent:name
     }
   }
   rule store_my_name {
-    select when echo hello name re#^(.*)$# setting(my_name);
+    select when store name name re#^(.*)$# setting(my_name);
 
     send_directive("store_name") with
       name = my_name

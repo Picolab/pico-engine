@@ -12,6 +12,17 @@ var doActions = function(rule, ctx, callback){
   }, callback);
 };
 
+var doPostlude = function(rule, ctx, callback){
+  //TODO fired
+  //TODO notfired
+  var always = _.get(rule, ['postlude', 'always']);
+  if(_.isFunction(always)){
+    always(ctx, callback);
+    return;
+  }
+  callback();
+};
+
 module.exports = function(rule, ctx, callback){
 
   var pre = _.isFunction(rule.pre) ? rule.pre : pre_noop;
@@ -26,7 +37,7 @@ module.exports = function(rule, ctx, callback){
       if(err) return callback(err);
 
       //TODO handle more than one response type
-      callback(undefined, _.map(responses, function(response){
+      var resp_data = _.map(responses, function(response){
         return {
           type: 'directive',
           options: response.options,
@@ -38,16 +49,12 @@ module.exports = function(rule, ctx, callback){
             eid: ctx.event.eid
           }
         };
-      }));
+      });
 
-      if(_.isFunction(rule.always)){
-        rule.always(ctx, function(err){
-          if(err){
-            //TODO better error handling
-            console.error('rule_name: ' + rule.rule_name, err);
-          }
-        });
-      }
+      doPostlude(rule, ctx, function(err){
+        //TODO collect errors and respond individually to the client
+        callback(err, resp_data);
+      });
     });
   });
 };
