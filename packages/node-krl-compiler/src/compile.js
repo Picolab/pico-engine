@@ -6,8 +6,8 @@ var comp_by_type = {
   'String': function(ast, comp, e){
     return e('string', ast.value);
   },
-  'Identifier': function(ast, comp, e){
-    if(ast.value === 'my_name' && (ast.loc.start > 200)){//TODO remove this hack
+  'Identifier': function(ast, comp, e, compile_opts){
+    if(ast.value === 'my_name' || (compile_opts && compile_opts.is_ctx_var)){//TODO remove this hack
       //TODO remove this hack
       return e('.', e('.', e('id', 'ctx'), e('id', 'vars')), e('id', toId(ast.value)));
     }
@@ -228,7 +228,7 @@ module.exports = function(ast, options){
     };
   };
 
-  var compile = function compile(ast){
+  var compile = function compile(ast, compile_opts){
     if(_.isArray(ast)){
       return _.map(ast, function(a){
         return compile(a);
@@ -238,7 +238,7 @@ module.exports = function(ast, options){
     }else if(!_.has(comp_by_type, ast.type)){
       throw new Error('Unsupported ast node type: ' + ast.type);
     }
-    return comp_by_type[ast.type](ast, compile, mkE(ast.loc));
+    return comp_by_type[ast.type](ast, compile, mkE(ast.loc), compile_opts);
   };
 
   return compile(ast, 0);

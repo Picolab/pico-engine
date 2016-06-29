@@ -52,9 +52,7 @@ module.exports = function(ast, comp, e){
   _.each(ast.setting, function(s){
     fn_body.push(e(';',
         e('=',
-        e('.',
-          e('.', e('id', 'ctx', s.loc), e('id', 'vars', s.loc), s.loc),
-          comp(s), s.loc),
+        comp(s, {is_ctx_var: true}),
         e('get', e('id', 'matches', s.loc), e('num', 0, s.loc), s.loc),
         s.loc), s.loc));
   });
