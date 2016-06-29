@@ -7,6 +7,10 @@ var comp_by_type = {
     return e('string', ast.value);
   },
   'Identifier': function(ast, comp, e){
+    if(ast.value === 'my_name' && (ast.loc.start > 200)){//TODO remove this hack
+      //TODO remove this hack
+      return e('.', e('.', e('id', 'ctx'), e('id', 'vars')), e('id', toId(ast.value)));
+    }
     return e('id', toId(ast.value));
   },
   'Chevron': function(ast, comp, e){
@@ -32,6 +36,13 @@ var comp_by_type = {
     ]);
   },
   'DomainIdentifier': function(ast, comp, e){
+    if(ast.domain === 'ent'){
+      return e(';', e('call', e('.', e('.', e('id', 'ctx'), e('id', 'db')), e('id', 'getEntVar')), [
+        e('.', e('.', e('id', 'ctx'), e('id', 'pico')), e('id', 'id')),
+        e('str', ast.value),
+        e('id', 'callback')
+      ]));
+    }
     //TODO the right way
     return e('id', toId(ast.value));
   },
@@ -48,14 +59,42 @@ var comp_by_type = {
     throw new Error('Unsuported InfixOperator.op: ' + ast.op);
   },
   'Function': function(ast, comp, e){
-    return e('function', _.map(ast.params, function(param){
-      return param.value;
-    }), _.map(ast.body, function(part, i){
+    var body = _.map(ast.params, function(param, i){
+      var loc = param.loc;
+      return e('var',
+        param.value,
+        e('get', e('.', e('id', 'ctx', loc), e('id', 'args', loc), loc), e('num', i, loc), loc),
+        loc
+      );
+    });
+    _.each(ast.body, function(part, i){
       if(i < (ast.body.length - 1)){
-        return comp(part);
+        return body.push(comp(part));
       }
-      return e('return', comp(part).expression, part.loc);
-    }));
+      if(part.type === 'ExpressionStatement'){
+        //TODO fix this hackyness
+        //TODO should walk the tree to see if it'll call the callback on it's own, or if we need to wrap it.
+        if(part.expression.type === 'DomainIdentifier'){
+          return body.push(comp(part.expression));
+        }else{
+          return body.push(
+            e(';',
+              e('call',
+                e('id', 'callback', part.loc),
+                [
+                  e('nil', part.loc),
+                  comp(part.expression)
+                ],
+                part.loc
+              ),
+              part.loc
+            )
+          );
+        }
+      }
+      return body.push(comp(part));
+    });
+    return e('fn', ['ctx', 'callback'], body);
   },
   'Declaration': function(ast, comp, e){
     if(ast.op === '='){

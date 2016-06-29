@@ -1,5 +1,5 @@
-var read = function (obj) {
-  return 'TODO';
+var read = function (ctx, callback) {
+  ctx.db.getEntVar(ctx.pico.id, 'name', callback);
 };
 module.exports = {
   'name': 'io.picolabs.persistent',

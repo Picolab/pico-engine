@@ -3,8 +3,8 @@ ruleset io.picolabs.persistent {
     shares read
   }
   global {
-    read = function(obj){
-      "TODO"//ent:name
+    read = function(){
+      ent:name
     }
   }
   rule store_my_name {
