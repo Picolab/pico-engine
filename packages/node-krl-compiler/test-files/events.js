@@ -5,17 +5,17 @@ module.exports = {
     'set_attr': {
       'name': 'set_attr',
       'select': {
-        'graph': { 'echo': { 'hello': { 'expr_0': true } } },
+        'graph': { 'events': { 'bind': { 'expr_0': true } } },
         'eventexprs': {
           'expr_0': function (ctx, callback) {
             var matches = [];
             var m;
-            m = new RegExp('^(.*)$', '').exec(ctx.event.attrs.$name$);
+            m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['name']);
             if (!m)
               return callback(undefined, false);
             if (m.length > 1)
               matches.push(m[1]);
-            ctx.vars.$name$ = matches[0];
+            ctx.vars.my_name = matches[0];
             callback(undefined, true);
           }
         },
@@ -34,6 +34,15 @@ module.exports = {
             ]
           ]
         }
+      },
+      'action_block': {
+        'actions': [function (ctx, callback) {
+            callback(undefined, {
+              'type': 'directive',
+              'name': 'bound',
+              'options': { 'name': ctx.vars.my_name }
+            });
+          }]
       }
     },
     'or_op': {

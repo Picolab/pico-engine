@@ -17,7 +17,7 @@ module.exports = function(ast, comp, e){
     fn_body.push(e('var', e('id', 'm')));
   }
   _.each(ast.attributes, function(a){
-    var readAttr = e('.',
+    var readAttr = e('get',
       e('.',
         e('.',
           e('id', 'ctx', a.key.loc),
@@ -25,7 +25,7 @@ module.exports = function(ast, comp, e){
           a.key.loc
         ),
         e('id', 'attrs', a.key.loc), a.key.loc
-      ), comp(a.key), a.key.loc);
+      ), e('str', a.key.value, a.key.loc), a.key.loc);
 
     var regex_exec = e('.',
         comp(a.value),
