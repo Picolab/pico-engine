@@ -42,6 +42,12 @@ var comp_by_type = {
         e('str', ast.value),
         e('id', 'callback')
       ]));
+    }else if(ast.domain === 'app'){
+      return e(';', e('call', e('.', e('.', e('id', 'ctx'), e('id', 'db')), e('id', 'getAppVar')), [
+        e('.', e('id', 'ctx'), e('id', 'rid')),
+        e('str', ast.value),
+        e('id', 'callback')
+      ]));
     }
     //TODO the right way
     return e('id', toId(ast.value));
@@ -198,8 +204,19 @@ var comp_by_type = {
         comp(ast.right),
         e('id', 'callback')
       ]));
+    }else if(ast.left
+        && ast.left.type === 'DomainIdentifier'
+        && ast.left.domain === 'app'
+      ){
+      //TODO fix this - it's kind of hacky in how it handles the callback etc...
+      return e(';', e('call', e('.', e('.', e('id', 'ctx'), e('id', 'db')), e('id', 'putAppVar')), [
+        e('.', e('.', e('id', 'ctx'), e('id', 'rule')), e('id', 'rid')),
+        e('str', ast.left.value, ast.left.loc),
+        comp(ast.right),
+        e('id', 'callback')
+      ]));
     }
-    throw new Error('SetStatement only supports "ent:*" vars right now');
+    throw new Error('SetStatement only supports "ent:*" and "app:*" vars right now');
   }
 };
 
