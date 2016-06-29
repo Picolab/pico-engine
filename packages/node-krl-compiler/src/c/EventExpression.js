@@ -18,14 +18,10 @@ module.exports = function(ast, comp, e){
   }
   _.each(ast.attributes, function(a){
     var readAttr = e('get',
-      e('.',
-        e('.',
-          e('id', 'ctx', a.key.loc),
-          e('id', 'event', a.key.loc),
-          a.key.loc
-        ),
-        e('id', 'attrs', a.key.loc), a.key.loc
-      ), e('str', a.key.value, a.key.loc), a.key.loc);
+      e('id', 'ctx.event.attrs', a.key.loc),
+      e('str', a.key.value, a.key.loc),
+      a.key.loc
+    );
 
     var regex_exec = e('.',
         comp(a.value),
@@ -42,7 +38,7 @@ module.exports = function(ast, comp, e){
     fn_body.push(e('if',
           e('>', e('.', m, e('id', 'length', a.loc), a.loc), e('num', 1, a.loc), a.loc),
           e(';',
-          e('call', e('.', e('id', 'matches', a.loc), e('id', 'push', a.loc), a.loc), [
+          e('call', e('id', 'matches.push', a.loc), [
             e('get', m, e('num', 1, a.loc), a.loc)
           ], a.loc), a.loc), a.loc));
   });

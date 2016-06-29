@@ -9,7 +9,7 @@ var comp_by_type = {
   'Identifier': function(ast, comp, e, compile_opts){
     if(ast.value === 'my_name' || (compile_opts && compile_opts.is_ctx_var)){//TODO remove this hack
       //TODO remove this hack
-      return e('.', e('.', e('id', 'ctx'), e('id', 'vars')), e('id', toId(ast.value)));
+      return e('.', e('id', 'ctx.vars'), e('id', toId(ast.value)));
     }
     return e('id', toId(ast.value));
   },
@@ -37,14 +37,14 @@ var comp_by_type = {
   },
   'DomainIdentifier': function(ast, comp, e){
     if(ast.domain === 'ent'){
-      return e(';', e('call', e('.', e('.', e('id', 'ctx'), e('id', 'db')), e('id', 'getEntVar')), [
-        e('.', e('.', e('id', 'ctx'), e('id', 'pico')), e('id', 'id')),
+      return e(';', e('call', e('id', 'ctx.db.getEntVar'), [
+        e('id', 'ctx.pico.id'),
         e('str', ast.value),
         e('id', 'callback')
       ]));
     }else if(ast.domain === 'app'){
-      return e(';', e('call', e('.', e('.', e('id', 'ctx'), e('id', 'db')), e('id', 'getAppVar')), [
-        e('.', e('id', 'ctx'), e('id', 'rid')),
+      return e(';', e('call', e('id', 'ctx.db.getAppVar'), [
+        e('id', 'ctx.rid'),
         e('str', ast.value),
         e('id', 'callback')
       ]));
@@ -70,7 +70,7 @@ var comp_by_type = {
       return e('var',
         comp(param),
         e('get',
-          e('.', e('id', 'ctx', loc), e('id', 'args', loc), loc),
+          e('id', 'ctx.args', loc),
           e('str', param.value, loc),
           loc
         ),
@@ -121,7 +121,7 @@ var comp_by_type = {
       rules_obj[rule.name.value] = comp(rule);
     });
     return comp(ast.global).concat([
-      e(';', e('=', e('.', e('id', 'module'), e('id', 'exports')), e('obj', {
+      e(';', e('=', e('id', 'module.exports'), e('obj', {
         name: comp(ast.name),
         meta: e('obj-raw', comp(ast.meta)),
         rules: e('obj', rules_obj)
@@ -198,8 +198,8 @@ var comp_by_type = {
         && ast.left.domain === 'ent'
       ){
       //TODO fix this - it's kind of hacky in how it handles the callback etc...
-      return e(';', e('call', e('.', e('.', e('id', 'ctx'), e('id', 'db')), e('id', 'putEntVar')), [
-        e('.', e('.', e('id', 'ctx'), e('id', 'pico')), e('id', 'id')),
+      return e(';', e('call', e('id', 'ctx.db.putEntVar'), [
+        e('id', 'ctx.pico.id'),
         e('str', ast.left.value, ast.left.loc),
         comp(ast.right),
         e('id', 'callback')
@@ -209,8 +209,8 @@ var comp_by_type = {
         && ast.left.domain === 'app'
       ){
       //TODO fix this - it's kind of hacky in how it handles the callback etc...
-      return e(';', e('call', e('.', e('.', e('id', 'ctx'), e('id', 'db')), e('id', 'putAppVar')), [
-        e('.', e('.', e('id', 'ctx'), e('id', 'rule')), e('id', 'rid')),
+      return e(';', e('call', e('id', 'ctx.db.putAppVar'), [
+        e('id', 'ctx.rule.rid'),
         e('str', ast.left.value, ast.left.loc),
         comp(ast.right),
         e('id', 'callback')
