@@ -7,16 +7,16 @@ module.exports = {
       'select': {
         'graph': { 'events': { 'bind': { 'expr_0': true } } },
         'eventexprs': {
-          'expr_0': function (ctx, callback) {
+          'expr_0': function (ctx) {
             var matches = [];
             var m;
             m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['name']);
             if (!m)
-              return callback(undefined, false);
+              return false;
             if (m.length > 1)
               matches.push(m[1]);
             ctx.vars.my_name = matches[0];
-            callback(undefined, true);
+            return true;
           }
         },
         'state_machine': {
@@ -36,12 +36,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'bound',
               'options': { 'name': ctx.vars.my_name }
-            });
+            };
           }]
       }
     },
@@ -55,11 +55,11 @@ module.exports = {
           }
         },
         'eventexprs': {
-          'expr_0': function (ctx, callback) {
-            callback(undefined, true);
+          'expr_0': function (ctx) {
+            return true;
           },
-          'expr_1': function (ctx, callback) {
-            callback(undefined, true);
+          'expr_1': function (ctx) {
+            return true;
           }
         },
         'state_machine': {
@@ -87,12 +87,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'or',
               'options': {}
-            });
+            };
           }]
       }
     },
@@ -106,11 +106,11 @@ module.exports = {
           }
         },
         'eventexprs': {
-          'expr_0': function (ctx, callback) {
-            callback(undefined, true);
+          'expr_0': function (ctx) {
+            return true;
           },
-          'expr_1': function (ctx, callback) {
-            callback(undefined, true);
+          'expr_1': function (ctx) {
+            return true;
           }
         },
         'state_machine': {
@@ -164,12 +164,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'and',
               'options': {}
-            });
+            };
           }]
       }
     },
@@ -184,14 +184,14 @@ module.exports = {
           }
         },
         'eventexprs': {
-          'expr_0': function (ctx, callback) {
-            callback(undefined, true);
+          'expr_0': function (ctx) {
+            return true;
           },
-          'expr_1': function (ctx, callback) {
-            callback(undefined, true);
+          'expr_1': function (ctx) {
+            return true;
           },
-          'expr_2': function (ctx, callback) {
-            callback(undefined, true);
+          'expr_2': function (ctx) {
+            return true;
           }
         },
         'state_machine': {
@@ -253,12 +253,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': '(a and b) or c',
               'options': {}
-            });
+            };
           }]
       }
     }

@@ -1,7 +1,7 @@
-var hello = function (ctx, callback) {
+var hello = function (ctx) {
   var obj = ctx.args['obj'];
   var msg = 'Hello ' + obj;
-  callback(undefined, msg);
+  return msg;
 };
 module.exports = {
   'name': 'io.picolabs.hello_world',
@@ -18,8 +18,8 @@ module.exports = {
       'select': {
         'graph': { 'echo': { 'hello': { 'expr_0': true } } },
         'eventexprs': {
-          'expr_0': function (ctx, callback) {
-            callback(undefined, true);
+          'expr_0': function (ctx) {
+            return true;
           }
         },
         'state_machine': {
@@ -39,12 +39,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'say',
               'options': { 'something': 'Hello World' }
-            });
+            };
           }]
       }
     }

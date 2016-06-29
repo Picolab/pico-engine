@@ -1,8 +1,8 @@
-var getName = function (ctx, callback) {
-  ctx.db.getEntVar(ctx.pico.id, 'name', callback);
+var getName = function (ctx) {
+  return ctx.db.getEntVarFuture(ctx.pico.id, 'name').wait();
 };
-var getAppVar = function (ctx, callback) {
-  ctx.db.getAppVar(ctx.rid, 'appvar', callback);
+var getAppVar = function (ctx) {
+  return ctx.db.getAppVarFuture(ctx.rid, 'appvar').wait();
 };
 module.exports = {
   'name': 'io.picolabs.persistent',
@@ -18,16 +18,16 @@ module.exports = {
       'select': {
         'graph': { 'store': { 'name': { 'expr_0': true } } },
         'eventexprs': {
-          'expr_0': function (ctx, callback) {
+          'expr_0': function (ctx) {
             var matches = [];
             var m;
             m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['name']);
             if (!m)
-              return callback(undefined, false);
+              return false;
             if (m.length > 1)
               matches.push(m[1]);
             ctx.vars.my_name = matches[0];
-            callback(undefined, true);
+            return true;
           }
         },
         'state_machine': {
@@ -47,19 +47,19 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'store_name',
               'options': { 'name': ctx.vars.my_name }
-            });
+            };
           }]
       },
       'postlude': {
         'fired': undefined,
         'notfired': undefined,
-        'always': function (ctx, callback) {
-          ctx.db.putEntVar(ctx.pico.id, 'name', ctx.vars.my_name, callback);
+        'always': function (ctx) {
+          return ctx.db.putEntVarFuture(ctx.pico.id, 'name', ctx.vars.my_name).wait();
         }
       }
     },
@@ -68,16 +68,16 @@ module.exports = {
       'select': {
         'graph': { 'store': { 'appvar': { 'expr_0': true } } },
         'eventexprs': {
-          'expr_0': function (ctx, callback) {
+          'expr_0': function (ctx) {
             var matches = [];
             var m;
             m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['appvar']);
             if (!m)
-              return callback(undefined, false);
+              return false;
             if (m.length > 1)
               matches.push(m[1]);
             ctx.vars.my_name = matches[0];
-            callback(undefined, true);
+            return true;
           }
         },
         'state_machine': {
@@ -97,19 +97,19 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'store_appvar',
               'options': { 'appvar': ctx.vars.my_name }
-            });
+            };
           }]
       },
       'postlude': {
         'fired': undefined,
         'notfired': undefined,
-        'always': function (ctx, callback) {
-          ctx.db.putAppVar(ctx.rid, 'appvar', ctx.vars.my_name, callback);
+        'always': function (ctx) {
+          return ctx.db.putAppVarFuture(ctx.rid, 'appvar', ctx.vars.my_name).wait();
         }
       }
     }
