@@ -109,7 +109,7 @@ module.exports = {
         'fired': undefined,
         'notfired': undefined,
         'always': function (ctx, callback) {
-          ctx.db.putAppVar(ctx.rule.rid, 'appvar', ctx.vars.my_name, callback);
+          ctx.db.putAppVar(ctx.rid, 'appvar', ctx.vars.my_name, callback);
         }
       }
     }

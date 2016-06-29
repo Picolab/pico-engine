@@ -49,6 +49,7 @@ module.exports = function(conf){
           λ.map(to_eval, function(rule, callback){
 
             var ctx = _.cloneDeep(ctx_orig);
+            ctx.rid = rule.rid;
             ctx.rule = rule;
 
             evalRule(rule, ctx, callback);
