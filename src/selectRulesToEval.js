@@ -2,44 +2,50 @@ var _ = require('lodash');
 var λ = require('contra');
 var asyncFind = require('./asyncFind');
 
-var evalExpr = function(fns, ctx, exp, callback){
+var evalExpr = function(rule, ctx, exp, callback){
   if(_.isArray(exp)){
     if(exp[0] === 'not'){
-      evalExpr(fns, ctx, exp[1], function(err, is_match){
+      evalExpr(rule, ctx, exp[1], function(err, is_match){
         if(err) return callback(err);
         callback(undefined, !is_match);
       });
       return;
     }else if(exp[0] === 'and'){
-      evalExpr(fns, ctx, exp[1], function(err, is_a){
+      evalExpr(rule, ctx, exp[1], function(err, is_a){
         if(err) return callback(err);
         if(!is_a){
           callback(undefined, false);
           return;
         }
-        evalExpr(fns, ctx, exp[2], callback);
+        evalExpr(rule, ctx, exp[2], callback);
       });
       return;
     }else if(exp[0] === 'or'){
-      evalExpr(fns, ctx, exp[1], function(err, is_a){
+      evalExpr(rule, ctx, exp[1], function(err, is_a){
         if(err) return callback(err);
         if(is_a){
           callback(undefined, true);
           return;
         }
-        evalExpr(fns, ctx, exp[2], callback);
+        evalExpr(rule, ctx, exp[2], callback);
       });
       return;
     }
   }
-  fns[exp](ctx, callback);
+  //only run the function if the domain and type match
+  var domain = ctx.event.domain;
+  var type = ctx.event.type;
+  if(_.get(rule, ['select', 'graph', domain, type, exp]) !== true){
+    return callback(undefined, false);
+  }
+  rule.select.eventexprs[exp](ctx, callback);
 };
 
 var getNextState = function(ctx, rule, curr_state, callback){
   var stm = rule.select.state_machine[curr_state];
 
   asyncFind(stm, function(s, next){
-    evalExpr(rule.select.eventexprs, ctx, s[0], next);
+    evalExpr(rule, ctx, s[0], next);
   }, function(err, matching_pair){
     if(err) return callback(err);
 
