@@ -62,8 +62,12 @@ var comp_by_type = {
     var body = _.map(ast.params, function(param, i){
       var loc = param.loc;
       return e('var',
-        param.value,
-        e('get', e('.', e('id', 'ctx', loc), e('id', 'args', loc), loc), e('num', i, loc), loc),
+        comp(param),
+        e('get',
+          e('.', e('id', 'ctx', loc), e('id', 'args', loc), loc),
+          e('str', param.value, loc),
+          loc
+        ),
         loc
       );
     });

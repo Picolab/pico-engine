@@ -1,5 +1,5 @@
 var hello = function (ctx, callback) {
-  var obj = ctx.args[0];
+  var obj = ctx.args['obj'];
   var msg = 'Hello ' + obj;
   callback(undefined, msg);
 };
