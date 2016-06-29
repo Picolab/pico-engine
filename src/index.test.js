@@ -102,7 +102,7 @@ test('PicoEngine - persistent ruleset', function(t){
       rid: 'io.picolabs.persistent',
       fn_name: 'getName',
       args: {}
-    })/*,
+    }),
 
     store_appvar0: λ.curry(pe.signalEvent, {
       eci: 'id1',
@@ -123,7 +123,6 @@ test('PicoEngine - persistent ruleset', function(t){
       fn_name: 'getAppVar',
       args: {}
     })
-    */
   }, function(err, data){
     if(err) return t.end(err);
 
@@ -140,13 +139,11 @@ test('PicoEngine - persistent ruleset', function(t){
     t.deepEquals(data.query1, 'jim');
     t.deepEquals(data.query2, 'jim');
 
-    /*
     t.deepEquals(omitMeta(data.store_appvar0), [
-      {name: 'store_appvar', options: {name: 'global thing'}}
+      {name: 'store_appvar', options: {appvar: 'global thing'}}
     ]);
     t.deepEquals(data.query3, 'global thing');
     t.deepEquals(data.query4, 'global thing');
-    */
 
     t.end();
   });
