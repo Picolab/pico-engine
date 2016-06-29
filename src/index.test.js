@@ -30,7 +30,7 @@ test('PicoEngine - hello_world ruleset', function(t){
       eci: 'id1',
       rid: 'io.picolabs.hello_world',
       fn_name: 'hello',
-      args: ['Bob']//TODO undo hack {obj: 'Bob'}
+      args: {obj: 'Bob'}
     })
 
   }, function(err, data){
