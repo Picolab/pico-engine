@@ -1,14 +1,15 @@
-var _ = require('lodash');
+//var _ = require('lodash');
 var λ = require('contra');
 var test = require('tape');
 var mkTestPicoEngine = require('./mkTestPicoEngine');
 
+/*
 var omitMeta = function(resp){
   return _.map(resp.directives, function(d){
     return _.omit(d, 'meta');
   });
 };
-
+*/
 
 test('PicoEngine - hello_world ruleset', function(t){
   var pe = mkTestPicoEngine();
@@ -16,7 +17,7 @@ test('PicoEngine - hello_world ruleset', function(t){
   λ.series({
     npico: λ.curry(pe.db.newPico, {}),
     chan0: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
-    rid1x: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'rid1x0'}),
+    rid1x: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.hello_world'}),
 
     hello_event: λ.curry(pe.signalEvent, {
       eci: 'id1',
@@ -27,9 +28,9 @@ test('PicoEngine - hello_world ruleset', function(t){
     }),
     hello_query: λ.curry(pe.callFunction, {
       eci: 'id1',
-      rid: 'rid1x0',
+      rid: 'io.picolabs.hello_world',
       fn_name: 'hello',
-      args: {obj: 'Bob'}
+      args: ['Bob']//TODO undo hack {obj: 'Bob'}
     })
 
   }, function(err, data){
@@ -44,8 +45,8 @@ test('PicoEngine - hello_world ruleset', function(t){
           },
           meta: {
             eid: '1234',
-            rid: 'rid1x0',
-            rule_name: 'hello_world',
+            rid: 'io.picolabs.hello_world',
+            rule_name: 'say_hello',
             txn_id: 'TODO'
           }
         }
@@ -57,6 +58,7 @@ test('PicoEngine - hello_world ruleset', function(t){
   });
 });
 
+/*
 test('PicoEngine - store_name ruleset', function(t){
   var pe = mkTestPicoEngine();
 
@@ -238,3 +240,4 @@ test('PicoEngine - event_ops ruleset', function(t){
     t.end();
   });
 });
+*/
