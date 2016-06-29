@@ -36,12 +36,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'bound',
               'options': { 'name': ctx.vars.my_name }
-            });
+            };
           }]
       }
     },
@@ -87,12 +87,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'or',
               'options': {}
-            });
+            };
           }]
       }
     },
@@ -164,12 +164,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'and',
               'options': {}
-            });
+            };
           }]
       }
     },
@@ -253,12 +253,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': '(a and b) or c',
               'options': {}
-            });
+            };
           }]
       }
     }

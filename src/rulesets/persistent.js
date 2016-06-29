@@ -47,12 +47,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'store_name',
               'options': { 'name': ctx.vars.my_name }
-            });
+            };
           }]
       },
       'postlude': {
@@ -97,12 +97,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'store_appvar',
               'options': { 'appvar': ctx.vars.my_name }
-            });
+            };
           }]
       },
       'postlude': {

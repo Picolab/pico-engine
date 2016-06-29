@@ -39,12 +39,12 @@ module.exports = {
         }
       },
       'action_block': {
-        'actions': [function (ctx, callback) {
-            callback(undefined, {
+        'actions': [function (ctx) {
+            return {
               'type': 'directive',
               'name': 'say',
               'options': { 'something': 'Hello World' }
-            });
+            };
           }]
       }
     }
