@@ -43,14 +43,14 @@ router.set('/sky/event/:eci/:eid/:domain/:type', function(req, res, route){
 });
 
 router.set('/sky/cloud/:eci/:rid/:function', function(req, res, route){
-  var ctx = {
+  var query = {
     eci: route.params.eci,
     rid: route.params.rid,
     fn_name: route.params['function'],
     args: route.data
   };
 
-  pe.callFunction(ctx, function(err, data){
+  pe.callFunction(query, function(err, data){
     if(err) return errResp(res, err);
     if(_.isFunction(data)){
       data(res);

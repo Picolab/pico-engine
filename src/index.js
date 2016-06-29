@@ -67,7 +67,15 @@ module.exports = function(conf){
         });
       });
     },
-    callFunction: function(ctx_orig, callback){
+    callFunction: function(query, callback){
+
+      var ctx_orig = {
+        eci: query.eci,
+        rid: query.rid,
+        fn_name: query.fn_name,
+        args: query.args
+      };
+
       db.getPicoByECI(ctx_orig.eci, function(err, pico){
         if(err) return callback(err);
         var ctx = _.assign({}, ctx_orig, {
