@@ -50,13 +50,6 @@ mk.get = function(object, property, method){
     method: method || 'dot'
   };
 };
-mk.set = function(left, right){
-  return {
-    type: 'SetStatement',
-    left: left,
-    right: right
-  };
-};
 mk.app = function(callee, args){
   return {
     type: 'Application',
@@ -1557,9 +1550,10 @@ test('DomainIdentifier', function(t){
     t.ok(/No possible parsings/i.test(e + ''));
   }
 
-  testIt('set ent:name "bob"', mk.set(mk.dID('ent', 'name'), mk('bob')));
-  testIt('set ent:names[0] "jim"', mk.set(mk.get(mk.dID('ent', 'names'), mk(0), 'index'), mk('jim')));
-  testIt('set ent:users{["id2", "name", "first"]} "sue"', mk.set(
+  testIt('ent:name = "bob"', mk.declare('=', mk.dID('ent', 'name'), mk('bob')));
+  testIt('ent:names[0] = "jim"', mk.declare('=', mk.get(mk.dID('ent', 'names'), mk(0), 'index'), mk('jim')));
+  testIt('ent:users{["id2", "name", "first"]} = "sue"', mk.declare(
+    '=',
     mk.get(mk.dID('ent', 'users'), mk(["id2", "name", "first"]), 'path'),
     mk('sue')
   ));

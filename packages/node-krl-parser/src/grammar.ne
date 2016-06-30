@@ -564,7 +564,6 @@ postlude_clause -> "{" Statement_list loc_close_curly {%
 Statement ->
       ExpressionStatement {% id %}
     | Declaration {% id %}
-    | SetStatement {% id %}
 
 ExpressionStatement -> Expression {%
   function(data){
@@ -572,17 +571,6 @@ ExpressionStatement -> Expression {%
       loc: data[0].loc,
       type: 'ExpressionStatement',
       expression: data[0]
-    };
-  }
-%}
-
-SetStatement -> "set" __ MemberExpression __ Expression {%
-  function(data, start){
-    return {
-      loc: {start: start, end: data[4].loc.end},
-      type: 'SetStatement',
-      left: data[2],
-      right: data[4]
     };
   }
 %}
@@ -600,7 +588,7 @@ Declaration -> left_side_of_declaration _ "=" _ Expression {%
 %}
 
 # Later we may add destructuring
-left_side_of_declaration -> Identifier {% id %}
+left_side_of_declaration -> MemberExpression {% id %}
 
 Statement_list -> _ {% noopArr %}
     | _ Statement_list_body _ {% getN(1) %}
