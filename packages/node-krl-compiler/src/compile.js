@@ -93,6 +93,25 @@ var comp_by_type = {
   },
   'Declaration': function(ast, comp, e){
     if(ast.op === '='){
+      if(ast.left
+          && ast.left.type === 'DomainIdentifier'
+          && ast.left.domain === 'ent'
+        ){
+        return e(';', mkDbCall(e, 'putEntVar', [
+          e('id', 'ctx.pico.id'),
+          e('str', ast.left.value, ast.left.loc),
+          comp(ast.right)
+        ]));
+      }else if(ast.left
+          && ast.left.type === 'DomainIdentifier'
+          && ast.left.domain === 'app'
+        ){
+        return e(';', mkDbCall(e, 'putAppVar', [
+          e('id', 'ctx.rid'),
+          e('str', ast.left.value, ast.left.loc),
+          comp(ast.right)
+        ]));
+      }
       return e(';', e('call', e('id', 'ctx.scope.set'), [
         e('str', ast.left.value, ast.left.loc),
         comp(ast.right)
@@ -181,30 +200,7 @@ var comp_by_type = {
     })));
     return e('fn', ['ctx'], fn_body);
   },
-  'RulePostlude': require('./c/RulePostlude'),
-  'SetStatement': function(ast, comp, e){
-    //right now only entity vars can be set.
-    if(ast.left
-        && ast.left.type === 'DomainIdentifier'
-        && ast.left.domain === 'ent'
-      ){
-      return e(';', mkDbCall(e, 'putEntVar', [
-        e('id', 'ctx.pico.id'),
-        e('str', ast.left.value, ast.left.loc),
-        comp(ast.right)
-      ]));
-    }else if(ast.left
-        && ast.left.type === 'DomainIdentifier'
-        && ast.left.domain === 'app'
-      ){
-      return e(';', mkDbCall(e, 'putAppVar', [
-        e('id', 'ctx.rid'),
-        e('str', ast.left.value, ast.left.loc),
-        comp(ast.right)
-      ]));
-    }
-    throw new Error('SetStatement only supports "ent:*" and "app:*" vars right now');
-  }
+  'RulePostlude': require('./c/RulePostlude')
 };
 
 var isKRL_loc = function(loc){
