@@ -4,8 +4,24 @@ var test = require('tape');
 var mkTestPicoEngine = require('./mkTestPicoEngine');
 
 var omitMeta = function(resp){
+  if(!_.has(resp, 'directives')){
+    return resp;
+  }
   return _.map(resp.directives, function(d){
     return _.omit(d, 'meta');
+  });
+};
+
+var testOutputs = function(t, pairs, callback){
+  λ.series(_.map(pairs, 0), function(err, results){
+    if(err) return callback(err);
+    _.each(pairs, function(pair, i){
+      var actual = results[i];
+      var expected = pair[1];
+
+      t.deepEquals(omitMeta(actual), expected);
+    });
+    callback();
   });
 };
 
@@ -252,25 +268,35 @@ test('PicoEngine - io.picolabs.scope ruleset', function(t){
     });
   };
 
-  λ.series({
-    pico: λ.curry(pe.db.newPico, {}),
-    chan: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
-    rid4: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.scope'}),
 
-    e1: signal('scope', 'event0', {name: 'name 0'}),
-    e2: signal('scope', 'event1', {name: 'name 1'})
-
-  }, function(err, data){
+  λ.series([
+    λ.curry(pe.db.newPico, {}),
+    λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
+    λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.scope'})
+  ], function(err, data){
     if(err) return t.end(err);
 
-    t.deepEquals(omitMeta(data.e1), [
-      {name: 'say', options: {name: 'name 0'}}
-    ]);
-
-    t.deepEquals(omitMeta(data.e2), [
-      {name: 'say', options: {name: undefined}}
-    ]);
-
-    t.end();
+    testOutputs(t, [
+      [
+        signal('scope', 'event0', {name: 'name 0'}),
+        [{name: 'say', options: {name: 'name 0'}}]
+      ],
+      [
+        signal('scope', 'event1', {name: 'name 1'}),
+        [{name: 'say', options: {name: undefined}}]
+      ],
+      //TODO[
+      //TODO  signal('scope', 'event0', {}),
+      //TODO  [{name: 'say', options: {name: undefined}}]
+      //TODO],
+      [
+        signal('scope', 'prelude', {name: 'Bill'}),
+        [{name: 'say', options: {
+          name: 'Bill',
+          p0: 'prelude 0',
+          p1: 'prelude 1'
+        }}]
+      ]
+    ], t.end);
   });
 });
