@@ -238,3 +238,39 @@ test('PicoEngine - io.picolabs.events ruleset', function(t){
     t.end();
   });
 });
+
+test('PicoEngine - io.picolabs.scope ruleset', function(t){
+  var pe = mkTestPicoEngine();
+
+  var signal = function(domain, type, attrs){
+    return λ.curry(pe.signalEvent, {
+      eci: 'id1',
+      eid: '1234',
+      domain: domain,
+      type: type,
+      attrs: attrs || {}
+    });
+  };
+
+  λ.series({
+    pico: λ.curry(pe.db.newPico, {}),
+    chan: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
+    rid4: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.scope'}),
+
+    e1: signal('scope', 'event0', {name: 'name 0'}),
+    e2: signal('scope', 'event1', {name: 'name 1'})
+
+  }, function(err, data){
+    if(err) return t.end(err);
+
+    t.deepEquals(omitMeta(data.e1), [
+      {name: 'say', options: {name: 'name 0'}}
+    ]);
+
+    t.deepEquals(omitMeta(data.e1), [
+      {name: 'say', options: {name: null}}
+    ]);
+
+    t.end();
+  });
+});

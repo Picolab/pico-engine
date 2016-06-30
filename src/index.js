@@ -42,6 +42,7 @@ var installRuleset = function(path){
 installRuleset('hello-world');
 installRuleset('events');
 installRuleset('persistent');
+installRuleset('scope');
 
 module.exports = function(conf){
   var db = Future.wrap(DB(conf.db));
