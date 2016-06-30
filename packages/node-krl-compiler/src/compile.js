@@ -12,11 +12,7 @@ var comp_by_type = {
     return e('string', ast.value);
   },
   'Identifier': function(ast, comp, e){
-    if(ast.value === 'my_name'){//TODO remove this hack
-      //TODO remove this hack
-      return e('call', e('id', 'ctx.scope.get'), [e('str', ast.value)]);
-    }
-    return e('id', toId(ast.value));
+    return e('call', e('id', 'ctx.scope.get'), [e('str', ast.value)]);
   },
   'Chevron': function(ast, comp, e){
     if(ast.value.length !== 1){
@@ -70,15 +66,14 @@ var comp_by_type = {
   'Function': function(ast, comp, e){
     var body = _.map(ast.params, function(param, i){
       var loc = param.loc;
-      return e('var',
-        comp(param),
+      return e(';', e('call', e('id', 'ctx.scope.set', loc), [
+        e('str', param.value, loc),
         e('get',
           e('id', 'ctx.args', loc),
           e('str', param.value, loc),
           loc
-        ),
-        loc
-      );
+        )
+      ], loc), loc);
     });
     _.each(ast.body, function(part, i){
       if(i < (ast.body.length - 1)){
@@ -93,12 +88,6 @@ var comp_by_type = {
   },
   'Declaration': function(ast, comp, e){
     if(ast.op === '='){
-      if(ast.left.value === 'msg'){//TODO remove this hack
-        return e('var',
-          e('id', ast.left.value, ast.left.loc),
-          comp(ast.right)
-        );
-      }
       return e(';', e('call', e('id', 'ctx.scope.set'), [
         e('str', ast.left.value, ast.left.loc),
         comp(ast.right)

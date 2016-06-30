@@ -9,9 +9,9 @@ module.exports = {
   },
   'global': function (ctx) {
     ctx.scope.set('hello', function (ctx) {
-      var obj = ctx.args['obj'];
-      var msg = 'Hello ' + obj;
-      return msg;
+      ctx.scope.set('obj', ctx.args['obj']);
+      ctx.scope.set('msg', 'Hello ' + ctx.scope.get('obj'));
+      return ctx.scope.get('msg');
     });
   },
   'rules': {

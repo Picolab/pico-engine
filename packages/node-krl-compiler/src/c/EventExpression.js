@@ -40,7 +40,7 @@ module.exports = function(ast, comp, e){
           ], a.loc), a.loc), a.loc));
   });
 
-  //TODO where: null
+  //TODO ast.where
 
   _.each(ast.setting, function(s){
     fn_body.push(e(';',
