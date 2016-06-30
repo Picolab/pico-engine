@@ -12,10 +12,30 @@ var omitMeta = function(resp){
   });
 };
 
+var mkSignal = function(pe, eci){
+  return function(domain, type, attrs){
+    return λ.curry(pe.signalEvent, {
+      eci: eci,
+      eid: '1234',
+      domain: domain,
+      type: type,
+      attrs: attrs || {}
+    });
+  };
+};
+
 var testOutputs = function(t, pairs, callback){
-  λ.series(_.map(pairs, 0), function(err, results){
+  λ.series(_.map(pairs, function(pair){
+    if(!_.isArray(pair)){
+      return pair;
+    }
+    return pair[0];
+  }), function(err, results){
     if(err) return callback(err);
     _.each(pairs, function(pair, i){
+      if(!_.isArray(pair)){
+        return;
+      }
       var actual = results[i];
       var expected = pair[1];
 
@@ -258,45 +278,31 @@ test('PicoEngine - io.picolabs.events ruleset', function(t){
 test('PicoEngine - io.picolabs.scope ruleset', function(t){
   var pe = mkTestPicoEngine();
 
-  var signal = function(domain, type, attrs){
-    return λ.curry(pe.signalEvent, {
-      eci: 'id1',
-      eid: '1234',
-      domain: domain,
-      type: type,
-      attrs: attrs || {}
-    });
-  };
+  var signal = mkSignal(pe, 'id1');
 
-
-  λ.series([
+  testOutputs(t, [
     λ.curry(pe.db.newPico, {}),
     λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
-    λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.scope'})
-  ], function(err, data){
-    if(err) return t.end(err);
-
-    testOutputs(t, [
-      [
-        signal('scope', 'event0', {name: 'name 0'}),
-        [{name: 'say', options: {name: 'name 0'}}]
-      ],
-      [
-        signal('scope', 'event1', {name: 'name 1'}),
-        [{name: 'say', options: {name: undefined}}]
-      ],
-      //TODO[
-      //TODO  signal('scope', 'event0', {}),
-      //TODO  [{name: 'say', options: {name: undefined}}]
-      //TODO],
-      [
-        signal('scope', 'prelude', {name: 'Bill'}),
-        [{name: 'say', options: {
-          name: 'Bill',
-          p0: 'prelude 0',
-          p1: 'prelude 1'
-        }}]
-      ]
-    ], t.end);
-  });
+    λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.scope'}),
+    [
+      signal('scope', 'event0', {name: 'name 0'}),
+      [{name: 'say', options: {name: 'name 0'}}]
+    ],
+    [
+      signal('scope', 'event1', {name: 'name 1'}),
+      [{name: 'say', options: {name: undefined}}]
+    ],
+    //TODO[
+    //TODO  signal('scope', 'event0', {}),
+    //TODO  [{name: 'say', options: {name: undefined}}]
+    //TODO],
+    [
+      signal('scope', 'prelude', {name: 'Bill'}),
+      [{name: 'say', options: {
+        name: 'Bill',
+        p0: 'prelude 0',
+        p1: 'prelude 1'
+      }}]
+    ]
+  ], t.end);
 });
