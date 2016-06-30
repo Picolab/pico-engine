@@ -1,16 +1,18 @@
-var getName = function (ctx) {
-  return ctx.db.getEntVarFuture(ctx.pico.id, 'name').wait();
-};
-var getAppVar = function (ctx) {
-  return ctx.db.getAppVarFuture(ctx.rid, 'appvar').wait();
-};
 module.exports = {
   'name': 'io.picolabs.persistent',
   'meta': {
-    'shares': {
-      'getName': getName,
-      'getAppVar': getAppVar
-    }
+    'shares': [
+      'getName',
+      'getAppVar'
+    ]
+  },
+  'global': function (ctx) {
+    ctx.scope.set('getName', function (ctx) {
+      return ctx.db.getEntVarFuture(ctx.pico.id, 'name').wait();
+    });
+    ctx.scope.set('getAppVar', function (ctx) {
+      return ctx.db.getAppVarFuture(ctx.rid, 'appvar').wait();
+    });
   },
   'rules': {
     'store_my_name': {
@@ -26,7 +28,7 @@ module.exports = {
               return false;
             if (m.length > 1)
               matches.push(m[1]);
-            ctx.vars.my_name = matches[0];
+            ctx.scope.set('my_name', matches[0]);
             return true;
           }
         },
@@ -51,7 +53,7 @@ module.exports = {
             return {
               'type': 'directive',
               'name': 'store_name',
-              'options': { 'name': ctx.vars.my_name }
+              'options': { 'name': ctx.scope.get('my_name') }
             };
           }]
       },
@@ -59,7 +61,7 @@ module.exports = {
         'fired': undefined,
         'notfired': undefined,
         'always': function (ctx) {
-          ctx.db.putEntVarFuture(ctx.pico.id, 'name', ctx.vars.my_name).wait();
+          ctx.db.putEntVarFuture(ctx.pico.id, 'name', ctx.scope.get('my_name')).wait();
         }
       }
     },
@@ -76,7 +78,7 @@ module.exports = {
               return false;
             if (m.length > 1)
               matches.push(m[1]);
-            ctx.vars.my_name = matches[0];
+            ctx.scope.set('my_name', matches[0]);
             return true;
           }
         },
@@ -101,7 +103,7 @@ module.exports = {
             return {
               'type': 'directive',
               'name': 'store_appvar',
-              'options': { 'appvar': ctx.vars.my_name }
+              'options': { 'appvar': ctx.scope.get('my_name') }
             };
           }]
       },
@@ -109,7 +111,7 @@ module.exports = {
         'fired': undefined,
         'notfired': undefined,
         'always': function (ctx) {
-          ctx.db.putAppVarFuture(ctx.rid, 'appvar', ctx.vars.my_name).wait();
+          ctx.db.putAppVarFuture(ctx.rid, 'appvar', ctx.scope.get('my_name')).wait();
         }
       }
     }

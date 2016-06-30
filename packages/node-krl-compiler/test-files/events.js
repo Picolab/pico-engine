@@ -15,7 +15,7 @@ module.exports = {
               return false;
             if (m.length > 1)
               matches.push(m[1]);
-            ctx.vars.my_name = matches[0];
+            ctx.scope.set('my_name', matches[0]);
             return true;
           }
         },
@@ -40,7 +40,7 @@ module.exports = {
             return {
               'type': 'directive',
               'name': 'bound',
-              'options': { 'name': ctx.vars.my_name }
+              'options': { 'name': ctx.scope.get('my_name') }
             };
           }]
       }

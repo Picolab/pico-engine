@@ -1,8 +1,3 @@
-var hello = function (ctx) {
-  var obj = ctx.args['obj'];
-  var msg = 'Hello ' + obj;
-  return msg;
-};
 module.exports = {
   'name': 'io.picolabs.hello_world',
   'meta': {
@@ -10,7 +5,14 @@ module.exports = {
     'description': '\nA first ruleset for the Quickstart\n    ',
     'author': 'Phil Windley',
     'logging': true,
-    'shares': { 'hello': hello }
+    'shares': ['hello']
+  },
+  'global': function (ctx) {
+    ctx.scope.set('hello', function (ctx) {
+      var obj = ctx.args['obj'];
+      var msg = 'Hello ' + obj;
+      return msg;
+    });
   },
   'rules': {
     'say_hello': {

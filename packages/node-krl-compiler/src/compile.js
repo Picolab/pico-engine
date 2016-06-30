@@ -11,10 +11,10 @@ var comp_by_type = {
   'String': function(ast, comp, e){
     return e('string', ast.value);
   },
-  'Identifier': function(ast, comp, e, compile_opts){
-    if(ast.value === 'my_name' || (compile_opts && compile_opts.is_ctx_var)){//TODO remove this hack
+  'Identifier': function(ast, comp, e){
+    if(ast.value === 'my_name'){//TODO remove this hack
       //TODO remove this hack
-      return e('.', e('id', 'ctx.vars'), e('id', toId(ast.value)));
+      return e('call', e('id', 'ctx.scope.get'), [e('str', ast.value)]);
     }
     return e('id', toId(ast.value));
   },
@@ -93,7 +93,16 @@ var comp_by_type = {
   },
   'Declaration': function(ast, comp, e){
     if(ast.op === '='){
-      return e('var', comp(ast.left), comp(ast.right));
+      if(ast.left.value === 'msg'){//TODO remove this hack
+        return e('var',
+          e('id', ast.left.value, ast.left.loc),
+          comp(ast.right)
+        );
+      }
+      return e(';', e('call', e('id', 'ctx.scope.set'), [
+        e('str', ast.left.value, ast.left.loc),
+        comp(ast.right)
+      ]));
     }
     throw new Error('Unsuported Declaration.op: ' + ast.op);
   },
@@ -105,13 +114,17 @@ var comp_by_type = {
     _.each(ast.rules, function(rule){
       rules_obj[rule.name.value] = comp(rule);
     });
-    return comp(ast.global).concat([
-      e(';', e('=', e('id', 'module.exports'), e('obj', {
-        name: comp(ast.name),
-        meta: e('obj-raw', comp(ast.meta)),
-        rules: e('obj', rules_obj)
-      })))
-    ]);
+    var rs = {
+      name: comp(ast.name),
+      meta: e('obj-raw', comp(ast.meta))
+    };
+    if(!_.isEmpty(ast.global)){
+      rs.global = e('fn', ['ctx'], comp(ast.global));
+    }
+    rs.rules = e('obj', rules_obj);
+    return [
+      e(';', e('=', e('id', 'module.exports'), e('obj', rs)))
+    ];
   },
   'RulesetName': function(ast, comp, e){
     return e('string', ast.value);
@@ -125,8 +138,8 @@ var comp_by_type = {
       val = comp(ast.value);
     }
     if(key === 'shares'){
-      val = e('obj-raw', _.map(ast.value.ids, function(id){
-        return e('obj-prop', e('str', id.value, id.loc), comp(id));
+      val = e('arr', _.map(ast.value.ids, function(id){
+        return e('str', id.value, id.loc);
       }));
     }
     return e('obj-prop', e('str', key, ast.key.loc), val);
@@ -223,7 +236,7 @@ module.exports = function(ast, options){
     };
   };
 
-  var compile = function compile(ast, compile_opts){
+  var compile = function compile(ast){
     if(_.isArray(ast)){
       return _.map(ast, function(a){
         return compile(a);
@@ -233,7 +246,7 @@ module.exports = function(ast, options){
     }else if(!_.has(comp_by_type, ast.type)){
       throw new Error('Unsupported ast node type: ' + ast.type);
     }
-    return comp_by_type[ast.type](ast, compile, mkE(ast.loc), compile_opts);
+    return comp_by_type[ast.type](ast, compile, mkE(ast.loc));
   };
 
   return compile(ast, 0);

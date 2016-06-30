@@ -44,10 +44,10 @@ module.exports = function(ast, comp, e){
 
   _.each(ast.setting, function(s){
     fn_body.push(e(';',
-        e('=',
-        comp(s, {is_ctx_var: true}),
-        e('get', e('id', 'matches', s.loc), e('num', 0, s.loc), s.loc),
-        s.loc), s.loc));
+      e('call', e('id', 'ctx.scope.set', s.loc), [
+        e('str', s.value, s.loc),
+        e('get', e('id', 'matches', s.loc), e('num', 0, s.loc), s.loc)
+      ], s.loc), s.loc));
   });
 
   fn_body.push(e('return', e(true)));
