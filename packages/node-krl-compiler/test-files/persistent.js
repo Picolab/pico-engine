@@ -78,7 +78,7 @@ module.exports = {
               return false;
             if (m.length > 1)
               matches.push(m[1]);
-            ctx.scope.set('my_name', matches[0]);
+            ctx.scope.set('my_appvar', matches[0]);
             return true;
           }
         },
@@ -103,7 +103,7 @@ module.exports = {
             return {
               'type': 'directive',
               'name': 'store_appvar',
-              'options': { 'appvar': ctx.scope.get('my_name') }
+              'options': { 'appvar': ctx.scope.get('my_appvar') }
             };
           }]
       },
@@ -111,7 +111,7 @@ module.exports = {
         'fired': undefined,
         'notfired': undefined,
         'always': function (ctx) {
-          ctx.db.putAppVarFuture(ctx.rid, 'appvar', ctx.scope.get('my_name')).wait();
+          ctx.db.putAppVarFuture(ctx.rid, 'appvar', ctx.scope.get('my_appvar')).wait();
         }
       }
     }

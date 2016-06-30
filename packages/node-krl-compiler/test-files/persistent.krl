@@ -21,13 +21,13 @@ ruleset io.picolabs.persistent {
     }
   }
   rule store_appvar {
-    select when store appvar appvar re#^(.*)$# setting(my_name);
+    select when store appvar appvar re#^(.*)$# setting(my_appvar);
 
     send_directive("store_appvar") with
-      appvar = my_name
+      appvar = my_appvar
 
     always {
-      set app:appvar my_name
+      set app:appvar my_appvar
     }
   }
 }
