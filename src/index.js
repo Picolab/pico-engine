@@ -21,7 +21,6 @@ var doInstallRuleset = function(path){
   _.each(rs.rules, function(rule, rule_name){
     rule.rid = rs.rid;
     rule.rule_name = rule_name;
-    rule.scope = rs.scope.push();
 
     _.each(rule.select && rule.select.graph, function(g, domain){
       _.each(g, function(exprs, type){

@@ -267,8 +267,8 @@ test('PicoEngine - io.picolabs.scope ruleset', function(t){
       {name: 'say', options: {name: 'name 0'}}
     ]);
 
-    t.deepEquals(omitMeta(data.e1), [
-      {name: 'say', options: {name: null}}
+    t.deepEquals(omitMeta(data.e2), [
+      {name: 'say', options: {name: undefined}}
     ]);
 
     t.end();

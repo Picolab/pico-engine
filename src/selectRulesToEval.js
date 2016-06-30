@@ -71,7 +71,10 @@ module.exports = function(ctx, salience_graph, rulesets, callback){
       if(is_on){
         var rule = _.get(rulesets, [rid, 'rules', rule_name]);
         if(rule){
-          rules_to_select.push(rule);
+          //shallow clone with it's own scope for this run
+          rules_to_select.push(_.assign({}, rule, {
+            scope: rulesets[rid].scope.push()
+          }));
         }
       }
     });
