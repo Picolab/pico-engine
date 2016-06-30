@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var toId = require('to-js-identifier');
+//TODO remove from package.json var toId = require('to-js-identifier');
 var mkTree = require('estree-builder');
 
 var mkDbCall = function(e, method, args){
@@ -48,8 +48,13 @@ var comp_by_type = {
         e('str', ast.value)
       ]);
     }
-    //TODO the right way
-    return e('id', toId(ast.value));
+    throw new Error('Only ent:* and app:* DomainIdentifiers are supported');
+  },
+  'Map': function(ast, comp, e){
+    return e('obj-raw', comp(ast.value));
+  },
+  'MapKeyValuePair': function(ast, comp, e){
+    return e('obj-prop', comp(ast.key), comp(ast.value));
   },
   'Application': function(ast, comp, e){
     return e('call',
@@ -143,7 +148,9 @@ var comp_by_type = {
     if(ast.select){
       rule.select = comp(ast.select);
     }
-    //TODO ast.prelude
+    if(!_.isEmpty(ast.prelude)){
+      rule.prelude = e('fn', ['ctx'], comp(ast.prelude));
+    }
     if(ast.action_block){
       rule.action_block = comp(ast.action_block);
     }
