@@ -219,60 +219,65 @@ test('PicoEngine - raw ruleset', function(t){
 test('PicoEngine - io.picolabs.events ruleset', function(t){
   var pe = mkTestPicoEngine();
 
-  var signal = function(domain, type, attrs){
-    return λ.curry(pe.signalEvent, {
-      eci: 'id1',
-      eid: '1234',
-      domain: domain,
-      type: type,
-      attrs: attrs || {}
-    });
-  };
+  var signal = mkSignal(pe, 'id1');
 
-  λ.series({
-    pico: λ.curry(pe.db.newPico, {}),
-    chan: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
-    rid4: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.events'}),
-
-    bind: signal('events', 'bind', {name: 'blah?!'}),
-
-    or_a: signal('events_or', 'a'),
-    or_b: signal('events_or', 'b'),
-    or_c: signal('events_or', 'c'),
-
-    and0: signal('events_and', 'a'),
-    and1: signal('events_and', 'c'),
-    and2: signal('events_and', 'b'),
-    and3: signal('events_and', 'b'),
-    and4: signal('events_and', 'a'),
-    and5: signal('events_and', 'b'),
-    and6: signal('events_and', 'b'),
-    and7: signal('events_and', 'b'),
-    and8: signal('events_and', 'a')
-
-  }, function(err, data){
-    if(err) return t.end(err);
-
-    t.deepEquals(omitMeta(data.bind), [
-      {name: 'bound', options: {name: 'blah?!'}}
-    ]);
-
-    t.deepEquals(omitMeta(data.or_a), [{name: 'or', options: {}}]);
-    t.deepEquals(omitMeta(data.or_b), [{name: 'or', options: {}}]);
-    t.deepEquals(omitMeta(data.or_c), []);
-
-    t.deepEquals(omitMeta(data.and0), []);
-    t.deepEquals(omitMeta(data.and1), []);
-    t.deepEquals(omitMeta(data.and2), [{name: 'and', options: {}}]);
-    t.deepEquals(omitMeta(data.and3), []);
-    t.deepEquals(omitMeta(data.and4), [{name: 'and', options: {}}]);
-    t.deepEquals(omitMeta(data.and5), []);
-    t.deepEquals(omitMeta(data.and6), []);
-    t.deepEquals(omitMeta(data.and7), []);
-    t.deepEquals(omitMeta(data.and8), [{name: 'and', options: {}}]);
-
-    t.end();
-  });
+  testOutputs(t, [
+    λ.curry(pe.db.newPico, {}),
+    λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
+    λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.events'}),
+    [
+      signal('events', 'bind', {name: 'blah?!'}),
+      [{name: 'bound', options: {name: 'blah?!'}}]
+    ],
+    [
+      signal('events_or', 'a'),
+      [{name: 'or', options: {}}]
+    ],
+    [
+      signal('events_or', 'b'),
+      [{name: 'or', options: {}}]
+    ],
+    [
+      signal('events_or', 'c'),
+      []
+    ],
+    [
+      signal('events_and', 'a'),
+      []
+    ],
+    [
+      signal('events_and', 'c'),
+      []
+    ],
+    [
+      signal('events_and', 'b'),
+      [{name: 'and', options: {}}]
+    ],
+    [
+      signal('events_and', 'b'),
+      []
+    ],
+    [
+      signal('events_and', 'a'),
+      [{name: 'and', options: {}}]
+    ],
+    [
+      signal('events_and', 'b'),
+      []
+    ],
+    [
+      signal('events_and', 'b'),
+      []
+    ],
+    [
+      signal('events_and', 'b'),
+      []
+    ],
+    [
+      signal('events_and', 'a'),
+      [{name: 'and', options: {}}]
+    ]
+  ], t.end);
 });
 
 test('PicoEngine - io.picolabs.scope ruleset', function(t){
