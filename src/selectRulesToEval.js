@@ -39,9 +39,7 @@ var evalExpr = function(ctx, exp, callback){
   if(_.get(ctx, ['rule', 'select', 'graph', domain, type, exp]) !== true){
     return callback(undefined, false);
   }
-  applyInFiber(ctx.rule.select.eventexprs[exp], null, [
-    _.assign({}, ctx, {scope: ctx.rule.scope})
-  ], callback);
+  applyInFiber(ctx.rule.select.eventexprs[exp], null, [ctx], callback);
 };
 
 var getNextState = function(ctx, curr_state, callback){
@@ -84,7 +82,8 @@ module.exports = function(ctx, salience_graph, rulesets, callback){
       if(err) return next(err);
 
       getNextState(_.assign({}, ctx, {
-        rule: rule
+        rule: rule,
+        scope: rule.scope
       }), curr_state, function(err, next_state){
         if(err) return next(err);
 
