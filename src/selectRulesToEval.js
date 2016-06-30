@@ -39,7 +39,9 @@ var evalExpr = function(ctx, exp, callback){
   if(_.get(ctx, ['rule', 'select', 'graph', domain, type, exp]) !== true){
     return callback(undefined, false);
   }
-  applyInFiber(ctx.rule.select.eventexprs[exp], null, [ctx], callback);
+  applyInFiber(ctx.rule.select.eventexprs[exp], null, [
+    _.assign({}, ctx, {scope: ctx.rule.scope})
+  ], callback);
 };
 
 var getNextState = function(ctx, curr_state, callback){

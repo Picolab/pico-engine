@@ -67,6 +67,7 @@ module.exports = function(conf){
             var ctx = _.cloneDeep(ctx_orig);
             ctx.rid = rule.rid;
             ctx.rule = rule;
+            ctx.scope = rule.scope;
 
             evalRule(rule, ctx, callback);
           }, function(err, responses){
