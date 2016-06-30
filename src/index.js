@@ -3,14 +3,21 @@ var λ = require('contra');
 var DB = require('./DB');
 var Future = require('fibers/future');
 var evalRule = require('./evalRule');
+var SymbolTable = require('symbol-table');
 var applyInFiber = require('./applyInFiber');
 var selectRulesToEval = require('./selectRulesToEval');
 
 var rulesets = {};
 var salience_graph = {};
-var installRuleset = function(path){
+var doInstallRuleset = function(path){
   var rs = require('./rulesets/' + path);
   rs.rid = rs.name;
+  rs.scope = SymbolTable();
+  if(_.isFunction(rs.global)){
+    rs.global({
+      scope: rs.scope
+    });
+  }
   _.each(rs.rules, function(rule, rule_name){
     rule.rid = rs.rid;
     rule.rule_name = rule_name;
@@ -22,6 +29,13 @@ var installRuleset = function(path){
     });
   });
   rulesets[rs.rid] = rs;
+};
+
+var installRuleset = function(path){
+  applyInFiber(doInstallRuleset, null, [path], function(err){
+    //TODO better error handling when rulesets fail to load
+    if(err) throw err;
+  });
 };
 
 installRuleset('hello-world');
@@ -94,7 +108,12 @@ module.exports = function(conf){
         if(!_.has(rulesets, ctx.rid)){
           return callback(new Error('Not found: rid'));
         }
-        var fun = _.get(rulesets, [ctx.rid, 'meta', 'shares', ctx.fn_name]);
+        var rs = rulesets[ctx.rid];
+        var shares = _.get(rs, ['meta', 'shares']);
+        if(!_.isArray(shares) || !_.includes(shares, ctx.fn_name)){
+          return callback(new Error('Not shared'));
+        }
+        var fun = rs.scope.get(ctx.fn_name);
         if(!_.isFunction(fun)){
           return callback(new Error('Function not shared: ' + ctx.fn_name));
         }

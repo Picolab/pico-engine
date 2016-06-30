@@ -1,16 +1,18 @@
-var getName = function (ctx) {
-  return ctx.db.getEntVarFuture(ctx.pico.id, 'name').wait();
-};
-var getAppVar = function (ctx) {
-  return ctx.db.getAppVarFuture(ctx.rid, 'appvar').wait();
-};
 module.exports = {
   'name': 'io.picolabs.persistent',
   'meta': {
-    'shares': {
-      'getName': getName,
-      'getAppVar': getAppVar
-    }
+    'shares': [
+      'getName',
+      'getAppVar'
+    ]
+  },
+  'global': function (ctx) {
+    ctx.scope.set('getName', function (ctx) {
+      return ctx.db.getEntVarFuture(ctx.pico.id, 'name').wait();
+    });
+    ctx.scope.set('getAppVar', function (ctx) {
+      return ctx.db.getAppVarFuture(ctx.rid, 'appvar').wait();
+    });
   },
   'rules': {
     'store_my_name': {
