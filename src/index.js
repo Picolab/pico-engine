@@ -118,6 +118,7 @@ module.exports = function(conf){
         if(!_.isFunction(fun)){
           return callback(new Error('Function not shared: ' + ctx.fn_name));
         }
+        ctx.scope = rs.scope.push();//they get their own scope where they can't mutate global scope
         applyInFiber(fun, null, [ctx], callback);
       });
     }
