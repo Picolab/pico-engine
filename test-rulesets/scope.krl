@@ -34,9 +34,9 @@ ruleset io.picolabs.scope {
       p1 = p1
 
     always {
-      set ent:ent_var_name name;
-      set ent:ent_var_p0 p0;
-      set ent:ent_var_p1 p1
+      ent:ent_var_name = name;
+      ent:ent_var_p0 = p0;
+      ent:ent_var_p1 = p1
     }
   }
 }
