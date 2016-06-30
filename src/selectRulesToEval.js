@@ -3,32 +3,32 @@ var λ = require('contra');
 var contraFind = require('contra-find');
 var applyInFiber = require('./applyInFiber');
 
-var evalExpr = function(rule, ctx, exp, callback){
+var evalExpr = function(ctx, exp, callback){
   if(_.isArray(exp)){
     if(exp[0] === 'not'){
-      evalExpr(rule, ctx, exp[1], function(err, is_match){
+      evalExpr(ctx, exp[1], function(err, is_match){
         if(err) return callback(err);
         callback(undefined, !is_match);
       });
       return;
     }else if(exp[0] === 'and'){
-      evalExpr(rule, ctx, exp[1], function(err, is_a){
+      evalExpr(ctx, exp[1], function(err, is_a){
         if(err) return callback(err);
         if(!is_a){
           callback(undefined, false);
           return;
         }
-        evalExpr(rule, ctx, exp[2], callback);
+        evalExpr(ctx, exp[2], callback);
       });
       return;
     }else if(exp[0] === 'or'){
-      evalExpr(rule, ctx, exp[1], function(err, is_a){
+      evalExpr(ctx, exp[1], function(err, is_a){
         if(err) return callback(err);
         if(is_a){
           callback(undefined, true);
           return;
         }
-        evalExpr(rule, ctx, exp[2], callback);
+        evalExpr(ctx, exp[2], callback);
       });
       return;
     }
@@ -36,19 +36,19 @@ var evalExpr = function(rule, ctx, exp, callback){
   //only run the function if the domain and type match
   var domain = ctx.event.domain;
   var type = ctx.event.type;
-  if(_.get(rule, ['select', 'graph', domain, type, exp]) !== true){
+  if(_.get(ctx, ['rule', 'select', 'graph', domain, type, exp]) !== true){
     return callback(undefined, false);
   }
-  applyInFiber(rule.select.eventexprs[exp], null, [ctx], callback);
+  applyInFiber(ctx.rule.select.eventexprs[exp], null, [ctx], callback);
 };
 
-var getNextState = function(ctx, rule, curr_state, callback){
+var getNextState = function(ctx, curr_state, callback){
   //TODO if we are going to stick with fibers
   //TODO then remove contraFind and the async evalExpr
-  var stm = rule.select.state_machine[curr_state];
+  var stm = ctx.rule.select.state_machine[curr_state];
 
   contraFind(λ, stm, function(s, next){
-    evalExpr(rule, ctx, s[0], next);
+    evalExpr(ctx, s[0], next);
   }, function(err, matching_pair){
     if(err) return callback(err);
 
@@ -81,7 +81,9 @@ module.exports = function(ctx, salience_graph, rulesets, callback){
     ctx.db.getStateMachineState(ctx.pico.id, rule, function(err, curr_state){
       if(err) return next(err);
 
-      getNextState(ctx, rule, curr_state, function(err, next_state){
+      getNextState(_.assign({}, ctx, {
+        rule: rule
+      }), curr_state, function(err, next_state){
         if(err) return next(err);
 
         ctx.db.putStateMachineState(ctx.pico.id, rule, next_state, function(err){

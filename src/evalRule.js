@@ -29,8 +29,6 @@ module.exports = function(rule, ctx, callback){
   pre(ctx, function(err, new_vars){
     if(err) return callback(err);
 
-    ctx.vars = _.assign({}, ctx.vars, new_vars);
-
     doActions(rule, ctx, function(err, responses){
       //TODO collect errors and respond individually to the client
       if(err) return callback(err);
