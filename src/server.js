@@ -46,11 +46,11 @@ router.set('/sky/cloud/:eci/:rid/:function', function(req, res, route){
   var query = {
     eci: route.params.eci,
     rid: route.params.rid,
-    fn_name: route.params['function'],
+    name: route.params['function'],
     args: route.data
   };
 
-  pe.callFunction(query, function(err, data){
+  pe.runQuery(query, function(err, data){
     if(err) return errResp(res, err);
     if(_.isFunction(data)){
       data(res);

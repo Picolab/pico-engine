@@ -25,11 +25,11 @@ var mkSignalTask = function(pe, eci){
 };
 
 var mkQueryTask = function(pe, eci, rid){
-  return function(fn_name, args){
-    return λ.curry(pe.callFunction, {
+  return function(name, args){
+    return λ.curry(pe.runQuery, {
       eci: eci,
       rid: rid,
-      fn_name: fn_name,
+      name: name,
       args: args
     });
   };
@@ -71,10 +71,10 @@ test('PicoEngine - hello_world ruleset', function(t){
       type: 'hello',
       attrs: {}
     }),
-    hello_query: λ.curry(pe.callFunction, {
+    hello_query: λ.curry(pe.runQuery, {
       eci: 'id1',
       rid: 'io.picolabs.hello_world',
-      fn_name: 'hello',
+      name: 'hello',
       args: {obj: 'Bob'}
     })
 
@@ -123,10 +123,10 @@ test('PicoEngine - persistent ruleset', function(t){
       attrs: {name: 'bob'}
     }),
 
-    query0: λ.curry(pe.callFunction, {
+    query0: λ.curry(pe.runQuery, {
       eci: 'id1',
       rid: 'io.picolabs.persistent',
-      fn_name: 'getName',
+      name: 'getName',
       args: {}
     }),
 
@@ -138,16 +138,16 @@ test('PicoEngine - persistent ruleset', function(t){
       attrs: {name: 'jim'}
     }),
 
-    query1: λ.curry(pe.callFunction, {
+    query1: λ.curry(pe.runQuery, {
       eci: 'id1',
       rid: 'io.picolabs.persistent',
-      fn_name: 'getName',
+      name: 'getName',
       args: {}
     }),
-    query2: λ.curry(pe.callFunction, {
+    query2: λ.curry(pe.runQuery, {
       eci: 'id1',
       rid: 'io.picolabs.persistent',
-      fn_name: 'getName',
+      name: 'getName',
       args: {}
     }),
 
@@ -158,16 +158,16 @@ test('PicoEngine - persistent ruleset', function(t){
       type: 'appvar',
       attrs: {appvar: 'global thing'}
     }),
-    query3: λ.curry(pe.callFunction, {
+    query3: λ.curry(pe.runQuery, {
       eci: 'id1',
       rid: 'io.picolabs.persistent',
-      fn_name: 'getAppVar',
+      name: 'getAppVar',
       args: {}
     }),
-    query4: λ.curry(pe.callFunction, {
+    query4: λ.curry(pe.runQuery, {
       eci: 'id3',
       rid: 'io.picolabs.persistent',
-      fn_name: 'getAppVar',
+      name: 'getAppVar',
       args: {}
     })
   }, function(err, data){
@@ -205,10 +205,10 @@ test('PicoEngine - raw ruleset', function(t){
     chan: λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
     rid3: λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'rid3x0'}),
 
-    signal: λ.curry(pe.callFunction, {
+    signal: λ.curry(pe.runQuery, {
       eci: 'id1',
       rid: 'rid3x0',
-      fn_name: 'sayRawHello',
+      name: 'sayRawHello',
       args: {}
     })
 

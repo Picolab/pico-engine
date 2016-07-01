@@ -85,12 +85,12 @@ module.exports = function(conf){
         });
       });
     },
-    callFunction: function(query, callback){
+    runQuery: function(query, callback){
 
       var ctx_orig = {
         eci: query.eci,
         rid: query.rid,
-        fn_name: query.fn_name,
+        name: query.name,
         args: query.args
       };
 
@@ -111,12 +111,12 @@ module.exports = function(conf){
         }
         var rs = rulesets[ctx.rid];
         var shares = _.get(rs, ['meta', 'shares']);
-        if(!_.isArray(shares) || !_.includes(shares, ctx.fn_name)){
+        if(!_.isArray(shares) || !_.includes(shares, ctx.name)){
           return callback(new Error('Not shared'));
         }
-        var fun = rs.scope.get(ctx.fn_name);
+        var fun = rs.scope.get(ctx.name);
         if(!_.isFunction(fun)){
-          return callback(new Error('Function not shared: ' + ctx.fn_name));
+          return callback(new Error('Function not shared: ' + ctx.name));
         }
         ctx.scope = rs.scope.push();//they get their own scope where they can't mutate global scope
         applyInFiber(fun, null, [ctx], callback);
