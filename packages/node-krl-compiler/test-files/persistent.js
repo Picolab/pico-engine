@@ -23,7 +23,7 @@ module.exports = {
           'expr_0': function (ctx) {
             var matches = [];
             var m;
-            m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['name']);
+            m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['name'] || '');
             if (!m)
               return false;
             if (m.length > 1)
@@ -73,7 +73,7 @@ module.exports = {
           'expr_0': function (ctx) {
             var matches = [];
             var m;
-            m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['appvar']);
+            m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['appvar'] || '');
             if (!m)
               return false;
             if (m.length > 1)

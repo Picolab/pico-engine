@@ -14,11 +14,11 @@ module.exports = function(ast, comp, e){
     fn_body.push(e('var', e('id', 'm')));
   }
   _.each(ast.attributes, function(a){
-    var readAttr = e('get',
+    var readAttr = e('||', e('get',
       e('id', 'ctx.event.attrs', a.key.loc),
       e('str', a.key.value, a.key.loc),
       a.key.loc
-    );
+    ), e('str', '', a.key.loc), a.key.loc);
 
     var regex_exec = e('.',
         comp(a.value),

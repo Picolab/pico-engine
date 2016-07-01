@@ -40,6 +40,8 @@ test('compiler', function(t){
           next();
         }else{
           console.log('');
+          console.log(path.basename(f_krl) + ' -> ' + path.basename(f_js));
+          console.log('');
           console.log(diff(expected, compiled, {
             n_surrounding: 3
           }));
