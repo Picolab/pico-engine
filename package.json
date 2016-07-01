@@ -43,7 +43,6 @@
   "dependencies": {
     "bytewise": "^1.1.0",
     "contra": "^1.9.1",
-    "contra-find": "^1.0.0",
     "cuid": "^1.3.8",
     "fibers": "^1.0.13",
     "home-dir": "^1.0.0",
