@@ -16,6 +16,18 @@ module.exports = {
         'p1': ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p1').wait()
       };
     });
+    ctx.scope.set('add', function (ctx) {
+      ctx.scope.set('a', ctx.args['a']);
+      ctx.scope.set('b', ctx.args['b']);
+      return ctx.scope.get('a') + ctx.scope.get('b');
+    });
+    ctx.scope.set('incByN', function (ctx) {
+      ctx.scope.set('n', ctx.args['n']);
+      return function (ctx) {
+        ctx.scope.set('a', ctx.args['a']);
+        return ctx.scope.get('a') + ctx.scope.get('n');
+      };
+    });
   },
   'rules': {
     'eventex': {

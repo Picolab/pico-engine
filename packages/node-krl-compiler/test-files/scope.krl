@@ -12,6 +12,14 @@ ruleset io.picolabs.scope {
         "p1": ent:ent_var_p1
       }
     }
+    add = function(a, b){
+      a + b
+    }
+    incByN = function(n){
+      function(a){
+        a + n
+      }
+    }
   }
   rule eventex {
     select when
