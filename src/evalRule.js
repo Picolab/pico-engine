@@ -2,8 +2,12 @@ var _ = require('lodash');
 var λ = require('contra');
 var applyInFiber = require('./applyInFiber');
 
-var pre_noop = function(ctx, callback){
-  callback(undefined, {});
+var doPrelude = function(rule, ctx, callback){
+  if(!_.isFunction(rule.prelude)){
+    callback();
+    return;
+  }
+  applyInFiber(rule.prelude, null, [ctx], callback);
 };
 
 var doActions = function(rule, ctx, callback){
@@ -24,9 +28,7 @@ var doPostlude = function(rule, ctx){
 
 module.exports = function(rule, ctx, callback){
 
-  var pre = _.isFunction(rule.pre) ? rule.pre : pre_noop;
-
-  pre(ctx, function(err, new_vars){
+  doPrelude(rule, ctx, function(err, new_vars){
     if(err) return callback(err);
 
     doActions(rule, ctx, function(err, responses){
