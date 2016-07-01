@@ -1,6 +1,6 @@
 # krl-compiler
 
-[![build status](https://secure.travis-ci.org/farskipper/node-krl-compiler.svg)](https://travis-ci.org/farskipper/node-krl-compiler)
+[![build status](https://secure.travis-ci.org/Picolab/node-krl-compiler.svg)](https://travis-ci.org/Picolab/node-krl-compiler)
 
 [KRL](http://picolabs.io/) to javascript compiler.
 
