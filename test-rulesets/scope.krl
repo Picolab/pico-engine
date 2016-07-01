@@ -1,10 +1,11 @@
 ruleset io.picolabs.scope {
   meta {
     name "testing scope"
-    shares getVals, g0
+    shares g0, g1, getVals, add
   }
   global {
     g0 = "global 0" 
+    g1 = 1
     getVals = function(){
       {
         "name": ent:ent_var_name,
@@ -48,5 +49,18 @@ ruleset io.picolabs.scope {
       ent:ent_var_p0 = p0;
       ent:ent_var_p1 = p1
     }
+  }
+  rule functions {
+    select when scope functions;
+
+    pre {
+      g0 = "overrided g0!"
+      inc5 = incByN(5)
+    }
+
+    send_directive("say") with
+      add_one_two = add(1, 2)
+      inc5_3 = inc5(3)
+      g0 = g0
   }
 }

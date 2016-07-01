@@ -30,7 +30,7 @@ var mkQueryTask = function(pe, eci, rid){
       eci: eci,
       rid: rid,
       name: name,
-      args: args
+      args: args || {}
     });
   };
 };
@@ -329,6 +329,18 @@ test('PicoEngine - io.picolabs.scope ruleset', function(t){
     [
       query('g0'),
       'global 0'
+    ],
+    [
+      query('add', {'a': 10, 'b': 2}),
+      12
+    ],
+    [
+      signal('scope', 'functions'),
+      [{name: 'say', options: {
+        add_one_two: 3,
+        inc5_3: 8,
+        g0: 'overrided g0!'
+      }}]
     ]
   ], t.end);
 });
