@@ -9,7 +9,7 @@ module.exports = {
   },
   'global': function (ctx) {
     ctx.scope.set('hello', function (ctx) {
-      ctx.scope.set('obj', ctx.args['obj']);
+      ctx.scope.set('obj', ctx.getArg('obj', 0));
       ctx.scope.set('msg', 'Hello ' + ctx.scope.get('obj'));
       return ctx.scope.get('msg');
     });

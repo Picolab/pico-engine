@@ -17,14 +17,14 @@ module.exports = {
       };
     });
     ctx.scope.set('add', function (ctx) {
-      ctx.scope.set('a', ctx.args['a']);
-      ctx.scope.set('b', ctx.args['b']);
+      ctx.scope.set('a', ctx.getArg('a', 0));
+      ctx.scope.set('b', ctx.getArg('b', 1));
       return ctx.scope.get('a') + ctx.scope.get('b');
     });
     ctx.scope.set('incByN', function (ctx) {
-      ctx.scope.set('n', ctx.args['n']);
+      ctx.scope.set('n', ctx.getArg('n', 0));
       return function (ctx) {
-        ctx.scope.set('a', ctx.args['a']);
+        ctx.scope.set('a', ctx.getArg('a', 0));
         return ctx.scope.get('a') + ctx.scope.get('n');
       };
     });

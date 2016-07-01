@@ -73,9 +73,12 @@ var comp_by_type = {
       var loc = param.loc;
       return e(';', e('call', e('id', 'ctx.scope.set', loc), [
         e('str', param.value, loc),
-        e('get',
-          e('id', 'ctx.args', loc),
-          e('str', param.value, loc),
+        e('call',
+          e('id', 'ctx.getArg', loc),
+          [
+            e('string', param.value, loc),
+            e('number', i, loc)
+          ],
           loc
         )
       ], loc), loc);
