@@ -114,12 +114,16 @@ module.exports = function(conf){
         if(!_.isArray(shares) || !_.includes(shares, ctx.name)){
           return callback(new Error('Not shared'));
         }
-        var fun = rs.scope.get(ctx.name);
-        if(!_.isFunction(fun)){
+        if(!rs.scope.has(ctx.name)){
           return callback(new Error('Function not shared: ' + ctx.name));
         }
-        ctx.scope = rs.scope.push();//they get their own scope where they can't mutate global scope
-        applyInFiber(fun, null, [ctx], callback);
+        var val = rs.scope.get(ctx.name);
+        if(_.isFunction(val)){
+          ctx.scope = rs.scope.push();//they get their own scope where they can't mutate global scope
+          applyInFiber(val, null, [ctx], callback);
+        }else{
+          callback(undefined, val);
+        }
       });
     }
   };

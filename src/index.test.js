@@ -323,8 +323,12 @@ test('PicoEngine - io.picolabs.scope ruleset', function(t){
       }}]
     ],
     [
-      query('getVals', {}),
+      query('getVals'),
       {name: 'Bill', p0: 'prelude 0', p1: 'prelude 1'}
+    ],
+    [
+      query('g0'),
+      'global 0'
     ]
   ], t.end);
 });
