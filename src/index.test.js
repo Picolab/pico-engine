@@ -306,7 +306,8 @@ test('PicoEngine - io.picolabs.scope ruleset', function(t){
       [{name: 'say', options: {
         name: 'Bill',
         p0: 'prelude 0',
-        p1: 'prelude 1'
+        p1: 'prelude 1',
+        g0: 'global 0'
       }}]
     ]
   ], t.end);
