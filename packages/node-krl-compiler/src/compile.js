@@ -11,6 +11,9 @@ var comp_by_type = {
   'String': function(ast, comp, e){
     return e('string', ast.value);
   },
+  'Number': function(ast, comp, e){
+    return e('number', ast.value);
+  },
   'Identifier': function(ast, comp, e){
     return e('call', e('id', 'ctx.scope.get'), [e('str', ast.value)]);
   },

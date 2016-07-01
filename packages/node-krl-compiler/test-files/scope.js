@@ -3,12 +3,15 @@ module.exports = {
   'meta': {
     'name': 'testing scope',
     'shares': [
+      'g0',
+      'g1',
       'getVals',
-      'g0'
+      'add'
     ]
   },
   'global': function (ctx) {
     ctx.scope.set('g0', 'global 0');
+    ctx.scope.set('g1', 1);
     ctx.scope.set('getVals', function (ctx) {
       return {
         'name': ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_name').wait(),
@@ -148,6 +151,49 @@ module.exports = {
           ctx.db.putEntVarFuture(ctx.pico.id, 'ent_var_p0', ctx.scope.get('p0')).wait();
           ctx.db.putEntVarFuture(ctx.pico.id, 'ent_var_p1', ctx.scope.get('p1')).wait();
         }
+      }
+    },
+    'functions': {
+      'name': 'functions',
+      'select': {
+        'graph': { 'scope': { 'functions': { 'expr_0': true } } },
+        'eventexprs': {
+          'expr_0': function (ctx) {
+            return true;
+          }
+        },
+        'state_machine': {
+          'start': [
+            [
+              'expr_0',
+              'end'
+            ],
+            [
+              [
+                'not',
+                'expr_0'
+              ],
+              'start'
+            ]
+          ]
+        }
+      },
+      'prelude': function (ctx) {
+        ctx.scope.set('g0', 'overrided g0!');
+        ctx.scope.set('inc5', ctx.scope.get('incByN')(5));
+      },
+      'action_block': {
+        'actions': [function (ctx) {
+            return {
+              'type': 'directive',
+              'name': 'say',
+              'options': {
+                'add_one_two': ctx.scope.get('add')(1, 2),
+                'inc5_3': ctx.scope.get('inc5')(3),
+                'g0': ctx.scope.get('g0')
+              }
+            };
+          }]
       }
     }
   }
