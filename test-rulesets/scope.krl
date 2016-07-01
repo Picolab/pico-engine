@@ -1,6 +1,7 @@
 ruleset io.picolabs.scope {
   meta {
     name "testing scope"
+    shares getVals
   }
   global {
     g0 = "global 0" 

@@ -12,7 +12,7 @@ var omitMeta = function(resp){
   });
 };
 
-var mkSignal = function(pe, eci){
+var mkSignalTask = function(pe, eci){
   return function(domain, type, attrs){
     return λ.curry(pe.signalEvent, {
       eci: eci,
@@ -20,6 +20,17 @@ var mkSignal = function(pe, eci){
       domain: domain,
       type: type,
       attrs: attrs || {}
+    });
+  };
+};
+
+var mkQueryTask = function(pe, eci, rid){
+  return function(fn_name, args){
+    return λ.curry(pe.callFunction, {
+      eci: eci,
+      rid: rid,
+      fn_name: fn_name,
+      args: args
     });
   };
 };
@@ -219,7 +230,7 @@ test('PicoEngine - raw ruleset', function(t){
 test('PicoEngine - io.picolabs.events ruleset', function(t){
   var pe = mkTestPicoEngine();
 
-  var signal = mkSignal(pe, 'id1');
+  var signal = mkSignalTask(pe, 'id1');
 
   testOutputs(t, [
     λ.curry(pe.db.newPico, {}),
@@ -283,7 +294,8 @@ test('PicoEngine - io.picolabs.events ruleset', function(t){
 test('PicoEngine - io.picolabs.scope ruleset', function(t){
   var pe = mkTestPicoEngine();
 
-  var signal = mkSignal(pe, 'id1');
+  var query = mkQueryTask(pe, 'id1', 'io.picolabs.scope');
+  var signal = mkSignalTask(pe, 'id1');
 
   testOutputs(t, [
     λ.curry(pe.db.newPico, {}),
@@ -297,10 +309,10 @@ test('PicoEngine - io.picolabs.scope ruleset', function(t){
       signal('scope', 'event1', {name: 'name 1'}),
       [{name: 'say', options: {name: undefined}}]
     ],
-    //TODO[
-    //TODO  signal('scope', 'event0', {}),
-    //TODO  [{name: 'say', options: {name: undefined}}]
-    //TODO],
+    [
+      signal('scope', 'event0', {}),
+      [{name: 'say', options: {name: ''}}]
+    ],
     [
       signal('scope', 'prelude', {name: 'Bill'}),
       [{name: 'say', options: {
@@ -309,6 +321,10 @@ test('PicoEngine - io.picolabs.scope ruleset', function(t){
         p1: 'prelude 1',
         g0: 'global 0'
       }}]
+    ],
+    [
+      query('getVals', {}),
+      {name: 'Bill', p0: 'prelude 0', p1: 'prelude 1'}
     ]
   ], t.end);
 });
