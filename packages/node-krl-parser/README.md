@@ -1,6 +1,6 @@
 # krl-parser
 
-[![build status](https://secure.travis-ci.org/farskipper/node-krl-parser.svg)](https://travis-ci.org/farskipper/node-krl-parser)
+[![build status](https://secure.travis-ci.org/Picolab/node-krl-parser.svg)](https://travis-ci.org/Picolab/node-krl-parser)
 
 Parse KRL source code into an AST
 
@@ -14,7 +14,7 @@ var ast = parser(src);
 ```
 
 ## AST Specification
-The specification is found in [spec.md](https://github.com/farskipper/node-krl-parser/blob/master/spec.md)
+The specification is found in [spec.md](https://github.com/Picolab/node-krl-parser/blob/master/spec.md)
 
 ## API
 ### ast = parser(src[, options])
@@ -41,7 +41,7 @@ try{
 
 The parser is built using [nearley](https://www.npmjs.com/package/nearley). It uses the Earley parser algorithm.
 
-The KRL grammar is defined here: [src/grammar.ne](https://github.com/farskipper/node-krl-parser/blob/master/src/grammar.ne)
+The KRL grammar is defined here: [src/grammar.ne](https://github.com/Picolab/node-krl-parser/blob/master/src/grammar.ne)
 
 When developing run this:
 ```sh

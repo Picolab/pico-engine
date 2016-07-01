@@ -15,19 +15,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/farskipper/node-krl-parser.git"
+    "url": "git+https://github.com/Picolab/node-krl-parser.git"
   },
   "keywords": [
     "pico-engine",
     "krl",
     "parser"
   ],
-  "author": "farskipper",
+  "author": "Picolab",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/farskipper/node-krl-parser/issues"
+    "url": "https://github.com/Picolab/node-krl-parser/issues"
   },
-  "homepage": "https://github.com/farskipper/node-krl-parser#readme",
+  "homepage": "https://github.com/Picolab/node-krl-parser#readme",
   "devDependencies": {
     "diff-lines": "^1.1.0",
     "karl42": "^2.1.2",
