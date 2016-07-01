@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/farskipper/node-krl-generator.git"
+    "url": "git+https://github.com/Picolab/node-krl-generator.git"
   },
   "keywords": [
     "krl",
@@ -17,12 +17,12 @@
     "pretty-printer",
     "pico-engine"
   ],
-  "author": "farskipper",
+  "author": "Picolab",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/farskipper/node-krl-generator/issues"
+    "url": "https://github.com/Picolab/node-krl-generator/issues"
   },
-  "homepage": "https://github.com/farskipper/node-krl-generator#readme",
+  "homepage": "https://github.com/Picolab/node-krl-generator#readme",
   "devDependencies": {
     "contra": "^1.9.4",
     "diff-lines": "^1.0.0",

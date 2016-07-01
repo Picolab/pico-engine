@@ -1,10 +1,10 @@
 # krl-generator
 
-[![build status](https://secure.travis-ci.org/farskipper/node-krl-generator.svg)](https://travis-ci.org/farskipper/node-krl-generator)
+[![build status](https://secure.travis-ci.org/Picolab/node-krl-generator.svg)](https://travis-ci.org/Picolab/node-krl-generator)
 
 Generate KRL code given krl-ast as input.
 
-See [krl-parser](https://github.com/farskipper/node-krl-parser) for the AST specification.
+See [krl-parser](https://github.com/Picolab/node-krl-parser) for the AST specification.
 
 ## Example
 Let's make a KRL pretty printer (code re-formatter):
