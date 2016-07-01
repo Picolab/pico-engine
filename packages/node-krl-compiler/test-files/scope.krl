@@ -1,6 +1,7 @@
 ruleset io.picolabs.scope {
   meta {
     name "testing scope"
+    shares getVals, g0
   }
   global {
     g0 = "global 0" 
@@ -32,6 +33,7 @@ ruleset io.picolabs.scope {
       name = name
       p0 = p0
       p1 = p1
+      g0 = g0
 
     always {
       ent:ent_var_name = name;

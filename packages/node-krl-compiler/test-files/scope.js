@@ -1,6 +1,12 @@
 module.exports = {
   'name': 'io.picolabs.scope',
-  'meta': { 'name': 'testing scope' },
+  'meta': {
+    'name': 'testing scope',
+    'shares': [
+      'getVals',
+      'g0'
+    ]
+  },
   'global': function (ctx) {
     ctx.scope.set('g0', 'global 0');
     ctx.scope.set('getVals', function (ctx) {
@@ -116,7 +122,8 @@ module.exports = {
               'options': {
                 'name': ctx.scope.get('name'),
                 'p0': ctx.scope.get('p0'),
-                'p1': ctx.scope.get('p1')
+                'p1': ctx.scope.get('p1'),
+                'g0': ctx.scope.get('g0')
               }
             };
           }]
