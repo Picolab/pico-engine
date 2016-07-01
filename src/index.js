@@ -91,7 +91,11 @@ module.exports = function(conf){
         eci: query.eci,
         rid: query.rid,
         name: query.name,
-        args: query.args
+        getArg: function(name, index){
+          return _.has(query.args, name)
+            ? query.args[name]
+            : query.args[index];
+        }
       };
 
       db.getPicoByECI(ctx_orig.eci, function(err, pico){
