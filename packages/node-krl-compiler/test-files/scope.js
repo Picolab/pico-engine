@@ -12,25 +12,25 @@ module.exports = {
   'global': function (ctx) {
     ctx.scope.set('g0', 'global 0');
     ctx.scope.set('g1', 1);
-    ctx.scope.set('getVals', function (ctx) {
+    ctx.scope.set('getVals', ctx.mk_krlClosure(ctx, function (ctx) {
       return {
         'name': ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_name').wait(),
         'p0': ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p0').wait(),
         'p1': ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p1').wait()
       };
-    });
-    ctx.scope.set('add', function (ctx) {
+    }));
+    ctx.scope.set('add', ctx.mk_krlClosure(ctx, function (ctx) {
       ctx.scope.set('a', ctx.getArg('a', 0));
       ctx.scope.set('b', ctx.getArg('b', 1));
       return ctx.scope.get('a') + ctx.scope.get('b');
-    });
-    ctx.scope.set('incByN', function (ctx) {
+    }));
+    ctx.scope.set('incByN', ctx.mk_krlClosure(ctx, function (ctx) {
       ctx.scope.set('n', ctx.getArg('n', 0));
-      return function (ctx) {
+      return ctx.mk_krlClosure(ctx, function (ctx) {
         ctx.scope.set('a', ctx.getArg('a', 0));
         return ctx.scope.get('a') + ctx.scope.get('n');
-      };
-    });
+      });
+    }));
   },
   'rules': {
     'eventex': {
@@ -180,7 +180,7 @@ module.exports = {
       },
       'prelude': function (ctx) {
         ctx.scope.set('g0', 'overrided g0!');
-        ctx.scope.set('inc5', ctx.scope.get('incByN')(5));
+        ctx.scope.set('inc5', ctx.krlFnApply(ctx, 'incByN', [5]));
       },
       'action_block': {
         'actions': [function (ctx) {
@@ -188,8 +188,8 @@ module.exports = {
               'type': 'directive',
               'name': 'say',
               'options': {
-                'add_one_two': ctx.scope.get('add')(1, 2),
-                'inc5_3': ctx.scope.get('inc5')(3),
+                'add_one_two': ctx.krlFnApply(ctx, 'add', [1, 2]),
+                'inc5_3': ctx.krlFnApply(ctx, 'inc5', [3]),
                 'g0': ctx.scope.get('g0')
               }
             };

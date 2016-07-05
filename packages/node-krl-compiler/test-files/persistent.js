@@ -7,12 +7,12 @@ module.exports = {
     ]
   },
   'global': function (ctx) {
-    ctx.scope.set('getName', function (ctx) {
+    ctx.scope.set('getName', ctx.mk_krlClosure(ctx, function (ctx) {
       return ctx.db.getEntVarFuture(ctx.pico.id, 'name').wait();
-    });
-    ctx.scope.set('getAppVar', function (ctx) {
+    }));
+    ctx.scope.set('getAppVar', ctx.mk_krlClosure(ctx, function (ctx) {
       return ctx.db.getAppVarFuture(ctx.rid, 'appvar').wait();
-    });
+    }));
   },
   'rules': {
     'store_my_name': {
