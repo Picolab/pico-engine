@@ -79,6 +79,7 @@ var comp_by_type = {
         e('call',
           e('id', 'ctx.getArg', loc),
           [
+            e('id', 'ctx.args', loc),
             e('string', param.value, loc),
             e('number', i, loc)
           ],

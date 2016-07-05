@@ -20,14 +20,14 @@ module.exports = {
       };
     }));
     ctx.scope.set('add', ctx.mk_krlClosure(ctx, function (ctx) {
-      ctx.scope.set('a', ctx.getArg('a', 0));
-      ctx.scope.set('b', ctx.getArg('b', 1));
+      ctx.scope.set('a', ctx.getArg(ctx.args, 'a', 0));
+      ctx.scope.set('b', ctx.getArg(ctx.args, 'b', 1));
       return ctx.scope.get('a') + ctx.scope.get('b');
     }));
     ctx.scope.set('incByN', ctx.mk_krlClosure(ctx, function (ctx) {
-      ctx.scope.set('n', ctx.getArg('n', 0));
+      ctx.scope.set('n', ctx.getArg(ctx.args, 'n', 0));
       return ctx.mk_krlClosure(ctx, function (ctx) {
-        ctx.scope.set('a', ctx.getArg('a', 0));
+        ctx.scope.set('a', ctx.getArg(ctx.args, 'a', 0));
         return ctx.scope.get('a') + ctx.scope.get('n');
       });
     }));
