@@ -180,7 +180,7 @@ module.exports = {
       },
       'prelude': function (ctx) {
         ctx.scope.set('g0', 'overrided g0!');
-        ctx.scope.set('inc5', ctx.krlFnApply(ctx, 'incByN', [5]));
+        ctx.scope.set('inc5', ctx.scope.get('incByN')(ctx, [5]));
       },
       'action_block': {
         'actions': [function (ctx) {
@@ -188,8 +188,11 @@ module.exports = {
               'type': 'directive',
               'name': 'say',
               'options': {
-                'add_one_two': ctx.krlFnApply(ctx, 'add', [1, 2]),
-                'inc5_3': ctx.krlFnApply(ctx, 'inc5', [3]),
+                'add_one_two': ctx.scope.get('add')(ctx, [
+                  1,
+                  2
+                ]),
+                'inc5_3': ctx.scope.get('inc5')(ctx, [3]),
                 'g0': ctx.scope.get('g0')
               }
             };

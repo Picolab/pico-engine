@@ -60,10 +60,10 @@ var comp_by_type = {
     return e('obj-prop', comp(ast.key), comp(ast.value));
   },
   'Application': function(ast, comp, e){
-    return e('call',
-      comp(ast.callee),
-      comp(ast.args)
-    );
+    return e('call', comp(ast.callee), [
+      e('id', 'ctx'),
+      e('array', comp(ast.args))
+    ]);
   },
   'InfixOperator': function(ast, comp, e){
     if(ast.op === '+'){
@@ -95,7 +95,10 @@ var comp_by_type = {
       }
       return body.push(e('return', comp(part)));
     });
-    return e('fn', ['ctx'], body);
+    return e('call', e('id', 'ctx.mk_krlClosure'), [
+      e('id', 'ctx'),
+      e('fn', ['ctx'], body)
+    ]);
   },
   'Declaration': function(ast, comp, e){
     if(ast.op === '='){
