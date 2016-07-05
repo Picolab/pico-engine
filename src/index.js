@@ -7,6 +7,25 @@ var SymbolTable = require('symbol-table');
 var applyInFiber = require('./applyInFiber');
 var selectRulesToEval = require('./selectRulesToEval');
 
+var mk_getArg = function(args){
+  return function(name, index){
+    return _.has(args, name)
+      ? args[name]
+      : args[index];
+  };
+};
+var mk_krlClosure = function(ctx, fn){
+  return function(ctx2, args){
+    return fn(_.assign({}, ctx2, {
+      scope: ctx.scope.push(),
+      getArg: mk_getArg(args)
+    }));
+  };
+};
+var krlFnApply = function(ctx, name, args){
+  return ctx.scope.get(name)(ctx, args);
+};
+
 var rulesets = {};
 var salience_graph = {};
 var doInstallRuleset = function(path){
@@ -15,6 +34,8 @@ var doInstallRuleset = function(path){
   rs.scope = SymbolTable();
   if(_.isFunction(rs.global)){
     rs.global({
+      mk_krlClosure: mk_krlClosure,
+      krlFnApply: krlFnApply,
       scope: rs.scope
     });
   }
@@ -54,6 +75,8 @@ module.exports = function(conf){
         if(err) return callback(err);
 
         var ctx_orig = {
+          mk_krlClosure: mk_krlClosure,
+          krlFnApply: krlFnApply,
           pico: pico,
           db: db,
           event: event
@@ -91,11 +114,8 @@ module.exports = function(conf){
         eci: query.eci,
         rid: query.rid,
         name: query.name,
-        getArg: function(name, index){
-          return _.has(query.args, name)
-            ? query.args[name]
-            : query.args[index];
-        }
+        mk_krlClosure: mk_krlClosure,
+        krlFnApply: krlFnApply
       };
 
       db.getPicoByECI(ctx_orig.eci, function(err, pico){
@@ -124,7 +144,7 @@ module.exports = function(conf){
         var val = rs.scope.get(ctx.name);
         if(_.isFunction(val)){
           ctx.scope = rs.scope.push();//they get their own scope where they can't mutate global scope
-          applyInFiber(val, null, [ctx], callback);
+          applyInFiber(val, null, [ctx, query.args], callback);
         }else{
           callback(undefined, val);
         }
