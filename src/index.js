@@ -7,18 +7,16 @@ var SymbolTable = require('symbol-table');
 var applyInFiber = require('./applyInFiber');
 var selectRulesToEval = require('./selectRulesToEval');
 
-var mk_getArg = function(args){
-  return function(name, index){
-    return _.has(args, name)
-      ? args[name]
-      : args[index];
-  };
+var getArg = function(args, name, index){
+  return _.has(args, name)
+    ? args[name]
+    : args[index];
 };
 var mk_krlClosure = function(ctx, fn){
   return function(ctx2, args){
     return fn(_.assign({}, ctx2, {
       scope: ctx.scope.push(),
-      getArg: mk_getArg(args)
+      args: args
     }));
   };
 };
@@ -31,6 +29,7 @@ var doInstallRuleset = function(path){
   rs.scope = SymbolTable();
   if(_.isFunction(rs.global)){
     rs.global({
+      getArg: getArg,
       mk_krlClosure: mk_krlClosure,
       scope: rs.scope
     });
@@ -71,6 +70,7 @@ module.exports = function(conf){
         if(err) return callback(err);
 
         var ctx_orig = {
+          getArg: getArg,
           mk_krlClosure: mk_krlClosure,
           pico: pico,
           db: db,
@@ -109,6 +109,7 @@ module.exports = function(conf){
         eci: query.eci,
         rid: query.rid,
         name: query.name,
+        getArg: getArg,
         mk_krlClosure: mk_krlClosure
       };
 
