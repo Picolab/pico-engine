@@ -3,7 +3,6 @@ var λ = require('contra');
 var DB = require('./DB');
 var Future = require('fibers/future');
 var evalRule = require('./evalRule');
-var KRLString = require('./krl/KRLString');
 var SymbolTable = require('symbol-table');
 var applyInFiber = require('./applyInFiber');
 var selectRulesToEval = require('./selectRulesToEval');
@@ -13,24 +12,14 @@ var getArg = function(args, name, index){
     ? args[name]
     : args[index];
 };
-var mk_krlClosure = function(ctx, fn){
-  return function(ctx2, args){
-    return fn(_.assign({}, ctx2, {
-      scope: ctx.scope.push(),
-      args: args
-    }));
-  };
-};
-var mk_baseType = function(value){
-  if(_.isString(value)){
-    return KRLString(value);
-  }
-  return value;
+var mk_krl = {
+  Null: require('./krl/KRLNull'),
+  String: require('./krl/KRLString'),
+  Closure: require('./krl/KRLClosure')
 };
 var mkCTX = function(ctx){
   ctx.getArg = getArg;
-  ctx.mk_krlClosure = mk_krlClosure;
-  ctx.mk_baseType = mk_baseType;
+  ctx.mk = mk_krl;
   return ctx;
 };
 

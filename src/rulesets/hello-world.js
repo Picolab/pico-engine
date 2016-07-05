@@ -8,7 +8,7 @@ module.exports = {
     'shares': ['hello']
   },
   'global': function (ctx) {
-    ctx.scope.set('hello', ctx.mk_krlClosure(ctx, function (ctx) {
+    ctx.scope.set('hello', ctx.mk.Closure(ctx, function (ctx) {
       ctx.scope.set('obj', ctx.getArg(ctx.args, 'obj', 0));
       ctx.scope.set('msg', 'Hello ' + ctx.scope.get('obj'));
       return ctx.scope.get('msg');
