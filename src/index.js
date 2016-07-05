@@ -20,6 +20,11 @@ var mk_krlClosure = function(ctx, fn){
     }));
   };
 };
+var mkCTX = function(ctx){
+  ctx.getArg = getArg;
+  ctx.mk_krlClosure = mk_krlClosure;
+  return ctx;
+};
 
 var rulesets = {};
 var salience_graph = {};
@@ -28,11 +33,9 @@ var doInstallRuleset = function(path){
   rs.rid = rs.name;
   rs.scope = SymbolTable();
   if(_.isFunction(rs.global)){
-    rs.global({
-      getArg: getArg,
-      mk_krlClosure: mk_krlClosure,
+    rs.global(mkCTX({
       scope: rs.scope
-    });
+    }));
   }
   _.each(rs.rules, function(rule, rule_name){
     rule.rid = rs.rid;
@@ -69,13 +72,11 @@ module.exports = function(conf){
       db.getPicoByECI(event.eci, function(err, pico){
         if(err) return callback(err);
 
-        var ctx_orig = {
-          getArg: getArg,
-          mk_krlClosure: mk_krlClosure,
+        var ctx_orig = mkCTX({
           pico: pico,
           db: db,
           event: event
-        };
+        });
 
         selectRulesToEval(ctx_orig, salience_graph, rulesets, function(err, to_eval){
           if(err) return callback(err);
@@ -105,13 +106,11 @@ module.exports = function(conf){
     },
     runQuery: function(query, callback){
 
-      var ctx_orig = {
+      var ctx_orig = mkCTX({
         eci: query.eci,
         rid: query.rid,
-        name: query.name,
-        getArg: getArg,
-        mk_krlClosure: mk_krlClosure
-      };
+        name: query.name
+      });
 
       db.getPicoByECI(ctx_orig.eci, function(err, pico){
         if(err) return callback(err);
