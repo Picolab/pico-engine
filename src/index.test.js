@@ -344,3 +344,19 @@ test('PicoEngine - io.picolabs.scope ruleset', function(t){
     ]
   ], t.end);
 });
+
+test('PicoEngine - io.picolabs.methods ruleset', function(t){
+  var pe = mkTestPicoEngine();
+
+  var query = mkQueryTask(pe, 'id1', 'io.picolabs.methods');
+
+  testOutputs(t, [
+    λ.curry(pe.db.newPico, {}),
+    λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
+    λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.methods'}),
+    [
+      query('cap_hello'),
+      'HELLO WORLD'
+    ]
+  ], t.end);
+});

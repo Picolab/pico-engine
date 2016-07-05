@@ -3,6 +3,7 @@ var λ = require('contra');
 var DB = require('./DB');
 var Future = require('fibers/future');
 var evalRule = require('./evalRule');
+var KRLString = require('./krl/KRLString');
 var SymbolTable = require('symbol-table');
 var applyInFiber = require('./applyInFiber');
 var selectRulesToEval = require('./selectRulesToEval');
@@ -20,9 +21,16 @@ var mk_krlClosure = function(ctx, fn){
     }));
   };
 };
+var mk_baseType = function(value){
+  if(_.isString(value)){
+    return KRLString(value);
+  }
+  return value;
+};
 var mkCTX = function(ctx){
   ctx.getArg = getArg;
   ctx.mk_krlClosure = mk_krlClosure;
+  ctx.mk_baseType = mk_baseType;
   return ctx;
 };
 
