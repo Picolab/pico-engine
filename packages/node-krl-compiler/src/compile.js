@@ -53,6 +53,17 @@ var comp_by_type = {
     }
     throw new Error('Only ent:* and app:* DomainIdentifiers are supported');
   },
+  'MemberExpression': function(ast, comp, e){
+    if(ast.method === 'dot'){
+      if(ast.property.type === 'Identifier'){
+        //using 'get' rather than . b/c we don't want to mess
+        //with reserved javascript properties i.e. "prototype"
+        return e('get', comp(ast.object), e('str', ast.property.value, ast.property.loc));
+      }
+      return e('get', comp(ast.object), comp(ast.property));
+    }
+    throw new Error('Unsupported MemberExpression method: ' + ast.method);
+  },
   'Map': function(ast, comp, e){
     return e('obj-raw', comp(ast.value));
   },
