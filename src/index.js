@@ -22,9 +22,6 @@ var mk_krlClosure = function(ctx, fn){
     }));
   };
 };
-var krlFnApply = function(ctx, name, args){
-  return ctx.scope.get(name)(ctx, args);
-};
 
 var rulesets = {};
 var salience_graph = {};
@@ -35,7 +32,6 @@ var doInstallRuleset = function(path){
   if(_.isFunction(rs.global)){
     rs.global({
       mk_krlClosure: mk_krlClosure,
-      krlFnApply: krlFnApply,
       scope: rs.scope
     });
   }
@@ -76,7 +72,6 @@ module.exports = function(conf){
 
         var ctx_orig = {
           mk_krlClosure: mk_krlClosure,
-          krlFnApply: krlFnApply,
           pico: pico,
           db: db,
           event: event
@@ -114,8 +109,7 @@ module.exports = function(conf){
         eci: query.eci,
         rid: query.rid,
         name: query.name,
-        mk_krlClosure: mk_krlClosure,
-        krlFnApply: krlFnApply
+        mk_krlClosure: mk_krlClosure
       };
 
       db.getPicoByECI(ctx_orig.eci, function(err, pico){
