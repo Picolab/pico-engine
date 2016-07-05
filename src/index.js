@@ -83,10 +83,11 @@ module.exports = function(conf){
 
           λ.map(to_eval, function(rule, callback){
 
-            var ctx = _.cloneDeep(ctx_orig);
-            ctx.rid = rule.rid;
-            ctx.rule = rule;
-            ctx.scope = rule.scope;
+            var ctx = _.assign({}, ctx_orig, {
+              rid: rule.rid,
+              rule: rule,
+              scope: rule.scope
+            });
 
             evalRule(rule, ctx, callback);
           }, function(err, responses){
@@ -105,39 +106,36 @@ module.exports = function(conf){
       });
     },
     runQuery: function(query, callback){
-
-      var ctx_orig = mkCTX({
-        eci: query.eci,
-        rid: query.rid,
-        name: query.name
-      });
-
-      db.getPicoByECI(ctx_orig.eci, function(err, pico){
+      db.getPicoByECI(query.eci, function(err, pico){
         if(err) return callback(err);
-        var ctx = _.assign({}, ctx_orig, {
-          db: db,
-          pico: pico
-        });
-        if(!ctx.pico){
+        if(!pico){
           return callback(new Error('Bad eci'));
         }
-        if(!_.has(ctx.pico.ruleset, ctx.rid)){
+        if(!_.has(pico.ruleset, query.rid)){
           return callback(new Error('Pico does not have that rid'));
         }
-        if(!_.has(rulesets, ctx.rid)){
+        if(!_.has(rulesets, query.rid)){
           return callback(new Error('Not found: rid'));
         }
-        var rs = rulesets[ctx.rid];
+        var rs = rulesets[query.rid];
         var shares = _.get(rs, ['meta', 'shares']);
-        if(!_.isArray(shares) || !_.includes(shares, ctx.name)){
+        if(!_.isArray(shares) || !_.includes(shares, query.name)){
           return callback(new Error('Not shared'));
         }
-        if(!rs.scope.has(ctx.name)){
-          return callback(new Error('Function not shared: ' + ctx.name));
+        if(!rs.scope.has(query.name)){
+          //TODO throw -or- nil????
+          return callback(new Error('Shared, but not defined: ' + query.name));
         }
-        var val = rs.scope.get(ctx.name);
+
+        ////////////////////////////////////////////////////////////////////////
+        var ctx = mkCTX({
+          db: db,
+          rid: rs.rid,
+          pico: pico,
+          scope: rs.scope
+        });
+        var val = ctx.scope.get(query.name);
         if(_.isFunction(val)){
-          ctx.scope = rs.scope.push();//they get their own scope where they can't mutate global scope
           applyInFiber(val, null, [ctx, query.args], callback);
         }else{
           callback(undefined, val);
