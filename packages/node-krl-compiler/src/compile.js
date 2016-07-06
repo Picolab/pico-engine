@@ -9,7 +9,7 @@ var mkDbCall = function(e, method, args){
 
 var comp_by_type = {
   'String': function(ast, comp, e){
-    return e('string', ast.value);
+    return e('new', e('id', 'ctx.krl.String'), [e('string', ast.value)]);
   },
   'Number': function(ast, comp, e){
     return e('number', ast.value);
@@ -21,7 +21,12 @@ var comp_by_type = {
     if(ast.value.length !== 1){
       throw new Error('TODO finish implementing Chevron compiler');
     }
-    return comp(ast.value[0]);
+    //TODO wrap the result in a new ctx.krl.String
+    var elm = ast.value[0];
+    if(elm.type === 'String'){
+      return e('string', elm.value, elm.loc);
+    }
+    return comp(elm);
   },
   'Boolean': function(ast, comp, e){
     return e(ast.value ? 'true' : 'false');
@@ -68,7 +73,7 @@ var comp_by_type = {
     return e('obj-raw', comp(ast.value));
   },
   'MapKeyValuePair': function(ast, comp, e){
-    return e('obj-prop', comp(ast.key), comp(ast.value));
+    return e('obj-prop', e('string', ast.key.value + '', ast.key.loc), comp(ast.value));
   },
   'Application': function(ast, comp, e){
     return e('call', comp(ast.callee), [
@@ -107,7 +112,7 @@ var comp_by_type = {
       }
       return body.push(e('return', comp(part)));
     });
-    return e('call', e('id', 'ctx.mk_krlClosure'), [
+    return e('call', e('id', 'ctx.krl.Closure'), [
       e('id', 'ctx'),
       e('fn', ['ctx'], body)
     ]);
@@ -166,15 +171,16 @@ var comp_by_type = {
   'RulesetMetaProperty': function(ast, comp, e){
     var key = ast.key.value;
     var val = e('nil');
-    if(_.includes([
-      'String', 'Boolean', 'Chevron'
-    ], _.get(ast, 'value.type'))){
-      val = comp(ast.value);
-    }
     if(key === 'shares'){
       val = e('arr', _.map(ast.value.ids, function(id){
         return e('str', id.value, id.loc);
       }));
+    }else if(ast.value.type === 'String'){
+      val = e('string', ast.value.value, ast.value.loc);
+    }else if(_.includes([
+      'Boolean', 'Chevron'
+    ], _.get(ast, 'value.type'))){
+      val = comp(ast.value);
     }
     return e('obj-prop', e('str', key, ast.key.loc), val);
   },

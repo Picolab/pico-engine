@@ -7,10 +7,10 @@ module.exports = {
     ]
   },
   'global': function (ctx) {
-    ctx.scope.set('getName', ctx.mk_krlClosure(ctx, function (ctx) {
+    ctx.scope.set('getName', ctx.krl.Closure(ctx, function (ctx) {
       return ctx.db.getEntVarFuture(ctx.pico.id, 'name').wait();
     }));
-    ctx.scope.set('getAppVar', ctx.mk_krlClosure(ctx, function (ctx) {
+    ctx.scope.set('getAppVar', ctx.krl.Closure(ctx, function (ctx) {
       return ctx.db.getAppVarFuture(ctx.rid, 'appvar').wait();
     }));
   },

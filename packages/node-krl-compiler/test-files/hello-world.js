@@ -8,9 +8,9 @@ module.exports = {
     'shares': ['hello']
   },
   'global': function (ctx) {
-    ctx.scope.set('hello', ctx.mk_krlClosure(ctx, function (ctx) {
+    ctx.scope.set('hello', ctx.krl.Closure(ctx, function (ctx) {
       ctx.scope.set('obj', ctx.getArg(ctx.args, 'obj', 0));
-      ctx.scope.set('msg', 'Hello ' + ctx.scope.get('obj'));
+      ctx.scope.set('msg', new ctx.krl.String('Hello ') + ctx.scope.get('obj'));
       return ctx.scope.get('msg');
     }));
   },
@@ -45,7 +45,7 @@ module.exports = {
             return {
               'type': 'directive',
               'name': 'say',
-              'options': { 'something': 'Hello World' }
+              'options': { 'something': new ctx.krl.String('Hello World') }
             };
           }]
       }
