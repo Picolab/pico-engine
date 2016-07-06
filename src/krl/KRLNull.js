@@ -1,5 +1,3 @@
 var KRLNull = function(){
 };
-module.exports = function(){
-  return new KRLNull();
-};
+module.exports = KRLNull;

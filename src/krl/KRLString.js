@@ -4,6 +4,4 @@ var KRLString = function(str){
 KRLString.prototype.capitalize = function(){
   return this.self.toUpperCase();
 };
-module.exports = function(str){
-  return new KRLString(str);
-};
+module.exports = KRLString;

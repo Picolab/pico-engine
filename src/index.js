@@ -12,14 +12,14 @@ var getArg = function(args, name, index){
     ? args[name]
     : args[index];
 };
-var mk_krl = {
+var krl = {
   Null: require('./krl/KRLNull'),
   String: require('./krl/KRLString'),
   Closure: require('./krl/KRLClosure')
 };
 var mkCTX = function(ctx){
   ctx.getArg = getArg;
-  ctx.mk = mk_krl;
+  ctx.krl = krl;
   return ctx;
 };
 
