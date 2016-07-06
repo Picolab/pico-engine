@@ -9,7 +9,7 @@ var mkDbCall = function(e, method, args){
 
 var comp_by_type = {
   'String': function(ast, comp, e){
-    return e('new', e('id', 'ctx.krl.String'), [e('string', ast.value)]);
+    return e('call', e('id', 'ctx.krl.String'), [e('string', ast.value)]);
   },
   'Number': function(ast, comp, e){
     return e('number', ast.value);
@@ -19,7 +19,7 @@ var comp_by_type = {
   },
   'Chevron': function(ast, comp, e){
     if(ast.value.length < 1){
-      return e('new', e('id', 'ctx.krl.String'), []);
+      return e('call', e('id', 'ctx.krl.String'), []);
     }
     var compElm = function(elm){
       if(elm.type === 'String'){
@@ -33,7 +33,7 @@ var comp_by_type = {
       curr = e('+', curr, compElm(ast.value[i]));
       i++;
     }
-    return e('new', e('id', 'ctx.krl.String'), [curr]);
+    return e('call', e('id', 'ctx.krl.String'), [curr]);
   },
   'Boolean': function(ast, comp, e){
     return e(ast.value ? 'true' : 'false');

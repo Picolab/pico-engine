@@ -10,7 +10,7 @@ module.exports = {
     ]
   },
   'global': function (ctx) {
-    ctx.scope.set('g0', new ctx.krl.String('global 0'));
+    ctx.scope.set('g0', ctx.krl.String('global 0'));
     ctx.scope.set('g1', 1);
     ctx.scope.set('getVals', ctx.krl.Closure(ctx, function (ctx) {
       return {
@@ -126,8 +126,8 @@ module.exports = {
         }
       },
       'prelude': function (ctx) {
-        ctx.scope.set('p0', new ctx.krl.String('prelude 0'));
-        ctx.scope.set('p1', new ctx.krl.String('prelude 1'));
+        ctx.scope.set('p0', ctx.krl.String('prelude 0'));
+        ctx.scope.set('p1', ctx.krl.String('prelude 1'));
       },
       'action_block': {
         'actions': [function (ctx) {
@@ -179,7 +179,7 @@ module.exports = {
         }
       },
       'prelude': function (ctx) {
-        ctx.scope.set('g0', new ctx.krl.String('overrided g0!'));
+        ctx.scope.set('g0', ctx.krl.String('overrided g0!'));
         ctx.scope.set('inc5', ctx.scope.get('incByN')(ctx, [5]));
       },
       'action_block': {
