@@ -26,7 +26,7 @@ var mkCTX = function(ctx){
 var rulesets = {};
 var salience_graph = {};
 var doInstallRuleset = function(path){
-  var rs = require('./rulesets/' + path);
+  var rs = require('../test-rulesets/' + path);
   rs.rid = rs.name;
   rs.scope = SymbolTable();
   if(_.isFunction(rs.global)){
