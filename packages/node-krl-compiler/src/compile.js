@@ -18,15 +18,22 @@ var comp_by_type = {
     return e('call', e('id', 'ctx.scope.get'), [e('str', ast.value)]);
   },
   'Chevron': function(ast, comp, e){
-    if(ast.value.length !== 1){
-      throw new Error('TODO finish implementing Chevron compiler');
+    if(ast.value.length < 1){
+      return e('new', e('id', 'ctx.krl.String'), []);
     }
-    //TODO wrap the result in a new ctx.krl.String
-    var elm = ast.value[0];
-    if(elm.type === 'String'){
-      return e('string', elm.value, elm.loc);
+    var compElm = function(elm){
+      if(elm.type === 'String'){
+        return e('string', elm.value, elm.loc);
+      }
+      return e('call', e('id', 'ctx.krl.beesting'), [comp(elm)], elm.loc);
+    };
+    var curr = compElm(ast.value[0]);
+    var i = 1;
+    while(i < ast.value.length){
+      curr = e('+', curr, compElm(ast.value[i]));
+      i++;
     }
-    return comp(elm);
+    return e('new', e('id', 'ctx.krl.String'), [curr]);
   },
   'Boolean': function(ast, comp, e){
     return e(ast.value ? 'true' : 'false');
@@ -177,9 +184,9 @@ var comp_by_type = {
       }));
     }else if(ast.value.type === 'String'){
       val = e('string', ast.value.value, ast.value.loc);
-    }else if(_.includes([
-      'Boolean', 'Chevron'
-    ], _.get(ast, 'value.type'))){
+    }else if(ast.value.type === 'Chevron'){
+      val = e('string', ast.value.value[0].value, ast.value.value[0].loc);
+    }else if(ast.value.type === 'Boolean'){
       val = comp(ast.value);
     }
     return e('obj-prop', e('str', key, ast.key.loc), val);
