@@ -1,8 +1,8 @@
 var _ = require('lodash');
 var λ = require('contra');
 var DB = require('./DB');
+var krl = require('./krl');
 var Future = require('fibers/future');
-var KRLType = require('./krl/KRLType');
 var evalRule = require('./evalRule');
 var SymbolTable = require('symbol-table');
 var applyInFiber = require('./applyInFiber');
@@ -12,33 +12,6 @@ var getArg = function(args, name, index){
   return _.has(args, name)
     ? args[name]
     : args[index];
-};
-var krl = {
-  lib: {
-    '+': function(){
-      if(arguments.length === 0){
-        return;
-      }
-      var r = arguments[0];
-      if(r instanceof KRLType){
-        r = r.toJS();
-      }
-      var i, arg;
-      for(i=1; i < arguments.length; i++){
-        arg = arguments[i];
-        if(arg instanceof KRLType){
-          arg = arg.toJS();
-        }
-        r = r + arg;
-      }
-      return r;
-    }
-  },
-  toJS: require('./krl/toJS'),
-  fromJS: require('./krl/fromJS'),
-  Null: require('./krl/KRLNull'),
-  String: require('./krl/KRLString'),
-  Closure: require('./krl/KRLClosure')
 };
 var mkCTX = function(ctx){
   ctx.getArg = getArg;
