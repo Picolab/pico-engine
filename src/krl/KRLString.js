@@ -1,7 +1,16 @@
-var KRLString = function(str){
-  this.self = str;
+var makeType = require('./makeType');
+
+var KRLString = makeType(function(value){
+  this.value = value;
+}, {
+  capitalize: function(){
+    return this.value.toUpperCase();
+  },
+  toJS: function(){
+    return this.value;
+  }
+});
+
+module.exports = function(str){
+  return new KRLString(str);
 };
-KRLString.prototype.capitalize = function(){
-  return this.self.toUpperCase();
-};
-module.exports = KRLString;

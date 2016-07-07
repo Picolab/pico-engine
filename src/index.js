@@ -2,6 +2,7 @@ var _ = require('lodash');
 var λ = require('contra');
 var DB = require('./DB');
 var Future = require('fibers/future');
+var KRLType = require('./krl/KRLType');
 var evalRule = require('./evalRule');
 var SymbolTable = require('symbol-table');
 var applyInFiber = require('./applyInFiber');
@@ -13,6 +14,28 @@ var getArg = function(args, name, index){
     : args[index];
 };
 var krl = {
+  lib: {
+    '+': function(){
+      if(arguments.length === 0){
+        return;
+      }
+      var r = arguments[0];
+      if(r instanceof KRLType){
+        r = r.toJS();
+      }
+      var i, arg;
+      for(i=1; i < arguments.length; i++){
+        arg = arguments[i];
+        if(arg instanceof KRLType){
+          arg = arg.toJS();
+        }
+        r = r + arg;
+      }
+      return r;
+    }
+  },
+  toJS: require('./krl/toJS'),
+  toKRL: require('./krl/toKRL'),
   Null: require('./krl/KRLNull'),
   String: require('./krl/KRLString'),
   Closure: require('./krl/KRLClosure')
@@ -94,11 +117,11 @@ module.exports = function(conf){
             var res_by_type = _.groupBy(_.flattenDeep(responses), 'type');
 
             //TODO other types
-            callback(undefined, {
+            callback(undefined, krl.toJS({
               directives:  _.map(res_by_type.directive, function(d){
                 return _.omit(d, 'type');
               })
-            });
+            }));
           });
         });
       });
@@ -134,9 +157,12 @@ module.exports = function(conf){
         });
         var val = ctx.scope.get(query.name);
         if(_.isFunction(val)){
-          applyInFiber(val, null, [ctx, query.args], callback);
+          applyInFiber(val, null, [ctx, query.args], function(err, resp){
+            if(err) return callback(err);
+            callback(undefined, krl.toJS(resp));
+          });
         }else{
-          callback(undefined, val);
+          callback(undefined, krl.toJS(val));
         }
       });
     }

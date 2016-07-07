@@ -14,9 +14,9 @@ module.exports = {
     ctx.scope.set('g1', 1);
     ctx.scope.set('getVals', ctx.krl.Closure(ctx, function (ctx) {
       return {
-        'name': ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_name').wait(),
-        'p0': ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p0').wait(),
-        'p1': ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p1').wait()
+        'name': ctx.krl.toKRL(ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_name').wait()),
+        'p0': ctx.krl.toKRL(ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p0').wait()),
+        'p1': ctx.krl.toKRL(ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p1').wait())
       };
     }));
     ctx.scope.set('add', ctx.krl.Closure(ctx, function (ctx) {
@@ -147,9 +147,9 @@ module.exports = {
         'fired': undefined,
         'notfired': undefined,
         'always': function (ctx) {
-          ctx.db.putEntVarFuture(ctx.pico.id, 'ent_var_name', ctx.scope.get('name')).wait();
-          ctx.db.putEntVarFuture(ctx.pico.id, 'ent_var_p0', ctx.scope.get('p0')).wait();
-          ctx.db.putEntVarFuture(ctx.pico.id, 'ent_var_p1', ctx.scope.get('p1')).wait();
+          ctx.db.putEntVarFuture(ctx.pico.id, 'ent_var_name', ctx.krl.toJS(ctx.scope.get('name'))).wait();
+          ctx.db.putEntVarFuture(ctx.pico.id, 'ent_var_p0', ctx.krl.toJS(ctx.scope.get('p0'))).wait();
+          ctx.db.putEntVarFuture(ctx.pico.id, 'ent_var_p1', ctx.krl.toJS(ctx.scope.get('p1'))).wait();
         }
       }
     },
