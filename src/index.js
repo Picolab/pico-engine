@@ -35,7 +35,7 @@ var krl = {
     }
   },
   toJS: require('./krl/toJS'),
-  toKRL: require('./krl/toKRL'),
+  fromJS: require('./krl/fromJS'),
   Null: require('./krl/KRLNull'),
   String: require('./krl/KRLString'),
   Closure: require('./krl/KRLClosure')

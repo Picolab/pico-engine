@@ -14,9 +14,9 @@ module.exports = {
     ctx.scope.set('g1', 1);
     ctx.scope.set('getVals', ctx.krl.Closure(ctx, function (ctx) {
       return {
-        'name': ctx.krl.toKRL(ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_name').wait()),
-        'p0': ctx.krl.toKRL(ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p0').wait()),
-        'p1': ctx.krl.toKRL(ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p1').wait())
+        'name': ctx.krl.fromJS(ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_name').wait()),
+        'p0': ctx.krl.fromJS(ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p0').wait()),
+        'p1': ctx.krl.fromJS(ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p1').wait())
       };
     }));
     ctx.scope.set('add', ctx.krl.Closure(ctx, function (ctx) {

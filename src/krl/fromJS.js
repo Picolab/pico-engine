@@ -2,15 +2,15 @@ var _ = require('lodash');
 var KRLType = require('./KRLType');
 var KRLString = require('./KRLString');
 
-var toKRL = function toKRL(val){
+var fromJS = function fromJS(val){
   if(val instanceof KRLType){
     return val;
   }
   if(_.isArray(val)){
-    return _.map(val, toKRL);
+    return _.map(val, fromJS);
   }
   if(_.isPlainObject(val)){
-    return _.mapValues(val, toKRL);
+    return _.mapValues(val, fromJS);
   }
   if(_.isString(val)){
     return KRLString(val);
@@ -18,4 +18,4 @@ var toKRL = function toKRL(val){
   return val;
 };
 
-module.exports = toKRL;
+module.exports = fromJS;
