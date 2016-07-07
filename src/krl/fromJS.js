@@ -13,7 +13,7 @@ var fromJS = function fromJS(val){
     return _.mapValues(val, fromJS);
   }
   if(_.isString(val)){
-    return KRLString(val);
+    return new KRLString(val);
   }
   return val;
 };
