@@ -1,5 +1,5 @@
 module.exports = {
-  lib: require('./lib'),
+  stdlib: require('./stdlib'),
   toJS: require('./toJS'),
   fromJS: require('./fromJS'),
   Null: require('./KRLNull'),
