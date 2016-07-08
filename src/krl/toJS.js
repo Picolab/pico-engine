@@ -9,7 +9,7 @@ var toJS = function toJS(val){
     return _.mapValues(val, toJS);
   }
   if(val instanceof KRLType){
-    return val.toJS();
+    return val.as('javascript');
   }
   return val;
 };

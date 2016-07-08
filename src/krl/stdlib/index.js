@@ -12,7 +12,7 @@ module.exports = {
     var getArg = function(i){
       var arg = args[i];
       if(arg instanceof KRLType){
-        return arg.toJS();
+        return arg.as('javascript');
       }
       return arg;
     };

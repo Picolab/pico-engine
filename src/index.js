@@ -87,7 +87,7 @@ module.exports = function(conf){
         for(i = 0; i < pairs.length; i++){
           pair = pairs[i];
           attr = event.attrs[pair[0]];
-          m = pair[1].toJS().exec(attr || '');
+          m = pair[1].as('javascript').exec(attr || '');
           if(!m){
             return undefined;
           }
