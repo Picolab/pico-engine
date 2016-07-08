@@ -44,6 +44,7 @@
     "estree-loc": "^1.0.1",
     "krl-parser": "0.10.0",
     "lodash": "^4.13.1",
+    "minimist": "^1.2.0",
     "to-js-identifier": "^1.0.0"
   }
 }

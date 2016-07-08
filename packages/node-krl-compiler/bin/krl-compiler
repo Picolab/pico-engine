@@ -1,5 +1,16 @@
 #!/usr/bin/env node
 
+var args = require('minimist')(process.argv.slice(2), {
+  'boolean': ['source-map'],
+  'default': {
+    'source-map': true
+  }
+});
+
+var opts = {
+  inline_source_map: !!args['source-map']
+};
+
 var compiler = require('../src');
 
 var src = '';
@@ -8,5 +19,5 @@ process.stdin.on('data', function(data){
 });
 
 process.stdin.on('end', function(){
-  process.stdout.write(compiler(src, {inline_source_map: true}).code);
+  process.stdout.write(compiler(src, opts).code);
 });
