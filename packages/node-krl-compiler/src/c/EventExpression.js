@@ -10,10 +10,15 @@ module.exports = function(ast, comp, e){
     fn_body.push(e('var', 'matches',
             e('call', e('id', 'ctx.event.attrs.getMatches'), [
               e('array', _.map(ast.attributes, function(a){
-                return comp(a.value);
+                return e('array', [
+                  e('string', a.key.value, a.key.loc),
+                  comp(a.value)
+                ], a.loc);
               }))
             ])));
     fn_body.push(e('if', e('!', e('id', 'matches')), e('return', e('false'))));
+  }else if(!_.isEmpty(ast.setting)){
+    fn_body.push(e('var', 'matches', e('array', [])));
   }
 
   //TODO ast.where

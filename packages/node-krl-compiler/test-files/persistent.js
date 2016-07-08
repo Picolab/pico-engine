@@ -21,13 +21,12 @@ module.exports = {
         'graph': { 'store': { 'name': { 'expr_0': true } } },
         'eventexprs': {
           'expr_0': function (ctx) {
-            var matches = [];
-            var m;
-            m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['name'] || '');
-            if (!m)
+            var matches = ctx.event.attrs.getMatches([[
+                'name',
+                new ctx.krl.RegExp('^(.*)$', '')
+              ]]);
+            if (!matches)
               return false;
-            if (m.length > 1)
-              matches.push(m[1]);
             ctx.scope.set('my_name', new ctx.krl.String(matches[0]));
             return true;
           }
@@ -71,13 +70,12 @@ module.exports = {
         'graph': { 'store': { 'appvar': { 'expr_0': true } } },
         'eventexprs': {
           'expr_0': function (ctx) {
-            var matches = [];
-            var m;
-            m = new RegExp('^(.*)$', '').exec(ctx.event.attrs['appvar'] || '');
-            if (!m)
+            var matches = ctx.event.attrs.getMatches([[
+                'appvar',
+                new ctx.krl.RegExp('^(.*)$', '')
+              ]]);
+            if (!matches)
               return false;
-            if (m.length > 1)
-              matches.push(m[1]);
             ctx.scope.set('my_appvar', new ctx.krl.String(matches[0]));
             return true;
           }
