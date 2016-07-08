@@ -54,7 +54,7 @@ installRuleset('hello-world');
 installRuleset('events');
 installRuleset('persistent');
 installRuleset('scope');
-installRuleset('methods');
+installRuleset('operators');
 installRuleset('chevron');
 
 module.exports = function(conf){

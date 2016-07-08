@@ -345,15 +345,15 @@ test('PicoEngine - io.picolabs.scope ruleset', function(t){
   ], t.end);
 });
 
-test('PicoEngine - io.picolabs.methods ruleset', function(t){
+test('PicoEngine - io.picolabs.operators ruleset', function(t){
   var pe = mkTestPicoEngine();
 
-  var query = mkQueryTask(pe, 'id1', 'io.picolabs.methods');
+  var query = mkQueryTask(pe, 'id1', 'io.picolabs.operators');
 
   testOutputs(t, [
     λ.curry(pe.db.newPico, {}),
     λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
-    λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.methods'}),
+    λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.operators'}),
     [
       query('cap_hello'),
       'HELLO WORLD'
