@@ -55,6 +55,7 @@ installRuleset('events');
 installRuleset('persistent');
 installRuleset('scope');
 installRuleset('methods');
+installRuleset('chevron');
 
 module.exports = function(conf){
   var db = Future.wrap(DB(conf.db));

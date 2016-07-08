@@ -20,5 +20,12 @@ module.exports = {
       r = r + getArg(i);
     }
     return r;
+  },
+  'beesting': function(val){
+    //TODO behave differently based on type
+    if(val instanceof KRLType){
+      return val.toJS() + '';
+    }
+    return val + '';
   }
 };
