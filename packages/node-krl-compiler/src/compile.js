@@ -1,8 +1,8 @@
 var _ = require('lodash');
 //TODO remove from package.json var toId = require('to-js-identifier');
 var mkTree = require('estree-builder');
-var wrapKRLType = require('./wrapKRLType');
-var callStdLibFn = require('./callStdLibFn');
+var wrapKRLType = require('./utils/wrapKRLType');
+var callStdLibFn = require('./utils/callStdLibFn');
 
 var mkDbCall = function(e, method, args){
   return e('call', e('id', 'ctx.persistent.' + method), args);

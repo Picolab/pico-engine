@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var wrapKRLType = require('../wrapKRLType');
+var wrapKRLType = require('../utils/wrapKRLType');
 
 module.exports = function(ast, comp, e){
   //FYI the graph allready vetted the domain and type
