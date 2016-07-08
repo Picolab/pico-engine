@@ -68,12 +68,67 @@ stdlib['typeof'] = function(val){
   //should we throw up?
 };
 
-//String operators
+stdlib.sprintf = function(val, template){
+  if(_.isNumber(val)){
+    return template.replace(/%d/g, val + '');
+  }else if(_.isString(val)){
+    return template.replace(/%s/g, val);
+  }
+  return template;
+};
+
+//Number operators//////////////////////////////////////////////////////////////
+stdlib.chr = function(val){
+  return String.fromCharCode(val);
+};
+stdlib.range = function(val, end){
+  return _.range(val, end + 1);
+};
+
+//String operators//////////////////////////////////////////////////////////////
 stdlib.capitalize = function(val){
-  return (val + '').toUpperCase();
+  return val[0].toUpperCase() + val.slice(1);
+};
+stdlib.decode = function(val){
+  return JSON.parse(val);
+};
+stdlib.extract = function(val, regex){
+  return _.tail(_.toArray(regex.exec(val)));
 };
 stdlib.lc = function(val){
-  return (val + '').toLowerCase();
+  return val.toLowerCase();
+};
+stdlib.match = function(val, regex){
+  return regex.test(val);
+};
+stdlib.ord = function(val){
+  var code = val.charCodeAt(0);
+  return _.isNaN(code) ? undefined : code;
+};
+stdlib.replace = function(val, regex, replacement){
+  return val.replace(regex, replacement);
+};
+stdlib.split = function(val, split_on){
+  return val.split(split_on);
+};
+stdlib.substr = function(val, start, len){
+  if(start > val.length){
+    return;
+  }
+  var end;
+  if(len === undefined){
+    end = val.length;
+  }else{
+    if(len > 0){
+      end = start + len;
+    }else{
+      end = val.length + len;
+    }
+  }
+  return val.substring(start, end);
+};
+stdlib.uc = function(val){
+  return val.toUpperCase();
 };
 
 module.exports = stdlib;

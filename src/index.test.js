@@ -360,9 +360,39 @@ test('PicoEngine - io.picolabs.operators ruleset', function(t){
         'str_as_num': 100.25,
         'num_as_str': '1.05',
         'regex_as_str': 'blah',
-        'isnull': true,
-        'hello_cap': 'HELLO WORLD',
-        'hello_low': 'hello world'
+        'isnull': [
+          false,
+          false,
+          true
+        ],
+        'typeof': [
+          'Number',
+          'String',
+          'String',
+          'Array',
+          'Map',
+          'RegExp',
+          'Null',
+          'Null'
+        ],
+        '75.chr()': 'K',
+        '0.range(10)': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        '10.sprintf': '< 10>',
+        '.capitalize()': 'Hello World',
+        '.decode()': [3, 4, 5],
+        '.extract': ['s is a st','ring'],
+        '.lc()': 'hello world',
+        '.match true': true,
+        '.match false': false,
+        '.ord()': 72,
+        '.replace': 'Hello Billiam!',
+        '.split': ['a', 'b', 'c'],
+        '.sprintf': 'Hello Jim!',
+        '.substr(5)': 'is a string',
+        '.substr(5, 4)': 'is a',
+        '.substr(5, -5)': 'is a s',
+        '.substr(25)': undefined,
+        '.uc()': 'HELLO WORLD'
       }
     ]
   ], t.end);
