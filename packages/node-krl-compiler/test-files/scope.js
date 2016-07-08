@@ -10,25 +10,25 @@ module.exports = {
     ]
   },
   'global': function (ctx) {
-    ctx.scope.set('g0', ctx.krl.String('global 0'));
+    ctx.scope.set('g0', new ctx.krl.String('global 0'));
     ctx.scope.set('g1', 1);
     ctx.scope.set('getVals', ctx.krl.Closure(ctx, function (ctx) {
       return {
-        'name': ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_name').wait(),
-        'p0': ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p0').wait(),
-        'p1': ctx.db.getEntVarFuture(ctx.pico.id, 'ent_var_p1').wait()
+        'name': ctx.persistent.getEnt('ent_var_name'),
+        'p0': ctx.persistent.getEnt('ent_var_p0'),
+        'p1': ctx.persistent.getEnt('ent_var_p1')
       };
     }));
     ctx.scope.set('add', ctx.krl.Closure(ctx, function (ctx) {
       ctx.scope.set('a', ctx.getArg(ctx.args, 'a', 0));
       ctx.scope.set('b', ctx.getArg(ctx.args, 'b', 1));
-      return ctx.scope.get('a') + ctx.scope.get('b');
+      return ctx.krl.stdlib['+'](ctx.scope.get('a'), ctx.scope.get('b'));
     }));
     ctx.scope.set('incByN', ctx.krl.Closure(ctx, function (ctx) {
       ctx.scope.set('n', ctx.getArg(ctx.args, 'n', 0));
       return ctx.krl.Closure(ctx, function (ctx) {
         ctx.scope.set('a', ctx.getArg(ctx.args, 'a', 0));
-        return ctx.scope.get('a') + ctx.scope.get('n');
+        return ctx.krl.stdlib['+'](ctx.scope.get('a'), ctx.scope.get('n'));
       });
     }));
   },
@@ -51,7 +51,7 @@ module.exports = {
               return false;
             if (m.length > 1)
               matches.push(m[1]);
-            ctx.scope.set('my_name', matches[0]);
+            ctx.scope.set('my_name', new ctx.krl.String(matches[0]));
             return true;
           },
           'expr_1': function (ctx) {
@@ -105,7 +105,7 @@ module.exports = {
               return false;
             if (m.length > 1)
               matches.push(m[1]);
-            ctx.scope.set('name', matches[0]);
+            ctx.scope.set('name', new ctx.krl.String(matches[0]));
             return true;
           }
         },
@@ -126,8 +126,8 @@ module.exports = {
         }
       },
       'prelude': function (ctx) {
-        ctx.scope.set('p0', ctx.krl.String('prelude 0'));
-        ctx.scope.set('p1', ctx.krl.String('prelude 1'));
+        ctx.scope.set('p0', new ctx.krl.String('prelude 0'));
+        ctx.scope.set('p1', new ctx.krl.String('prelude 1'));
       },
       'action_block': {
         'actions': [function (ctx) {
@@ -147,9 +147,9 @@ module.exports = {
         'fired': undefined,
         'notfired': undefined,
         'always': function (ctx) {
-          ctx.db.putEntVarFuture(ctx.pico.id, 'ent_var_name', ctx.scope.get('name')).wait();
-          ctx.db.putEntVarFuture(ctx.pico.id, 'ent_var_p0', ctx.scope.get('p0')).wait();
-          ctx.db.putEntVarFuture(ctx.pico.id, 'ent_var_p1', ctx.scope.get('p1')).wait();
+          ctx.persistent.putEnt('ent_var_name', ctx.scope.get('name'));
+          ctx.persistent.putEnt('ent_var_p0', ctx.scope.get('p0'));
+          ctx.persistent.putEnt('ent_var_p1', ctx.scope.get('p1'));
         }
       }
     },
@@ -179,7 +179,7 @@ module.exports = {
         }
       },
       'prelude': function (ctx) {
-        ctx.scope.set('g0', ctx.krl.String('overrided g0!'));
+        ctx.scope.set('g0', new ctx.krl.String('overrided g0!'));
         ctx.scope.set('inc5', ctx.scope.get('incByN')(ctx, [5]));
       },
       'action_block': {

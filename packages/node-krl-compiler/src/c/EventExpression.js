@@ -46,7 +46,9 @@ module.exports = function(ast, comp, e){
     fn_body.push(e(';',
       e('call', e('id', 'ctx.scope.set', s.loc), [
         e('str', s.value, s.loc),
-        e('get', e('id', 'matches', s.loc), e('num', 0, s.loc), s.loc)
+        e('new', e('id', 'ctx.krl.String', s.loc), [
+          e('get', e('id', 'matches', s.loc), e('num', 0, s.loc), s.loc)
+        ], s.loc)
       ], s.loc), s.loc));
   });
 

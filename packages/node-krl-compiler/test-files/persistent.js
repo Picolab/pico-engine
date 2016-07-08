@@ -8,10 +8,10 @@ module.exports = {
   },
   'global': function (ctx) {
     ctx.scope.set('getName', ctx.krl.Closure(ctx, function (ctx) {
-      return ctx.db.getEntVarFuture(ctx.pico.id, 'name').wait();
+      return ctx.persistent.getEnt('name');
     }));
     ctx.scope.set('getAppVar', ctx.krl.Closure(ctx, function (ctx) {
-      return ctx.db.getAppVarFuture(ctx.rid, 'appvar').wait();
+      return ctx.persistent.getApp('appvar');
     }));
   },
   'rules': {
@@ -28,7 +28,7 @@ module.exports = {
               return false;
             if (m.length > 1)
               matches.push(m[1]);
-            ctx.scope.set('my_name', matches[0]);
+            ctx.scope.set('my_name', new ctx.krl.String(matches[0]));
             return true;
           }
         },
@@ -61,7 +61,7 @@ module.exports = {
         'fired': undefined,
         'notfired': undefined,
         'always': function (ctx) {
-          ctx.db.putEntVarFuture(ctx.pico.id, 'name', ctx.scope.get('my_name')).wait();
+          ctx.persistent.putEnt('name', ctx.scope.get('my_name'));
         }
       }
     },
@@ -78,7 +78,7 @@ module.exports = {
               return false;
             if (m.length > 1)
               matches.push(m[1]);
-            ctx.scope.set('my_appvar', matches[0]);
+            ctx.scope.set('my_appvar', new ctx.krl.String(matches[0]));
             return true;
           }
         },
@@ -111,7 +111,7 @@ module.exports = {
         'fired': undefined,
         'notfired': undefined,
         'always': function (ctx) {
-          ctx.db.putAppVarFuture(ctx.rid, 'appvar', ctx.scope.get('my_appvar')).wait();
+          ctx.persistent.putApp('appvar', ctx.scope.get('my_appvar'));
         }
       }
     }

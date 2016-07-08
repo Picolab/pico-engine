@@ -3,13 +3,12 @@ var _ = require('lodash');
 var mkTree = require('estree-builder');
 
 var mkDbCall = function(e, method, args){
-  var to_call = 'ctx.db.' + method + 'Future';
-  return e('call', e('.', e('call', e('id', to_call), args), e('id', 'wait')), []);
+  return e('call', e('id', 'ctx.persistent.' + method), args);
 };
 
 var comp_by_type = {
   'String': function(ast, comp, e){
-    return e('call', e('id', 'ctx.krl.String'), [e('string', ast.value)]);
+    return e('new', e('id', 'ctx.krl.String'), [e('string', ast.value)]);
   },
   'Number': function(ast, comp, e){
     return e('number', ast.value);
@@ -19,13 +18,13 @@ var comp_by_type = {
   },
   'Chevron': function(ast, comp, e){
     if(ast.value.length < 1){
-      return e('call', e('id', 'ctx.krl.String'), []);
+      return e('new', e('id', 'ctx.krl.String'), []);
     }
     var compElm = function(elm){
       if(elm.type === 'String'){
         return e('string', elm.value, elm.loc);
       }
-      return e('call', e('id', 'ctx.krl.beesting'), [comp(elm)], elm.loc);
+      return e('call', e('get', e('id', 'ctx.krl.stdlib'), e('string', 'beesting', elm.loc), elm.loc), [comp(elm)], elm.loc);
     };
     var curr = compElm(ast.value[0]);
     var i = 1;
@@ -33,7 +32,7 @@ var comp_by_type = {
       curr = e('+', curr, compElm(ast.value[i]));
       i++;
     }
-    return e('call', e('id', 'ctx.krl.String'), [curr]);
+    return e('new', e('id', 'ctx.krl.String'), [curr]);
   },
   'Boolean': function(ast, comp, e){
     return e(ast.value ? 'true' : 'false');
@@ -53,13 +52,11 @@ var comp_by_type = {
   },
   'DomainIdentifier': function(ast, comp, e){
     if(ast.domain === 'ent'){
-      return mkDbCall(e, 'getEntVar', [
-        e('id', 'ctx.pico.id'),
+      return mkDbCall(e, 'getEnt', [
         e('str', ast.value)
       ]);
     }else if(ast.domain === 'app'){
-      return mkDbCall(e, 'getAppVar', [
-        e('id', 'ctx.rid'),
+      return mkDbCall(e, 'getApp', [
         e('str', ast.value)
       ]);
     }
@@ -89,10 +86,10 @@ var comp_by_type = {
     ]);
   },
   'InfixOperator': function(ast, comp, e){
-    if(ast.op === '+'){
-      return e('+', comp(ast.left), comp(ast.right));
-    }
-    throw new Error('Unsuported InfixOperator.op: ' + ast.op);
+    return e('call', e('get', e('id', 'ctx.krl.stdlib'), e('string', ast.op)), [
+      comp(ast.left),
+      comp(ast.right)
+    ]);
   },
   'Function': function(ast, comp, e){
     var body = _.map(ast.params, function(param, i){
@@ -130,8 +127,7 @@ var comp_by_type = {
           && ast.left.type === 'DomainIdentifier'
           && ast.left.domain === 'ent'
         ){
-        return e(';', mkDbCall(e, 'putEntVar', [
-          e('id', 'ctx.pico.id'),
+        return e(';', mkDbCall(e, 'putEnt', [
           e('str', ast.left.value, ast.left.loc),
           comp(ast.right)
         ]));
@@ -139,8 +135,7 @@ var comp_by_type = {
           && ast.left.type === 'DomainIdentifier'
           && ast.left.domain === 'app'
         ){
-        return e(';', mkDbCall(e, 'putAppVar', [
-          e('id', 'ctx.rid'),
+        return e(';', mkDbCall(e, 'putApp', [
           e('str', ast.left.value, ast.left.loc),
           comp(ast.right)
         ]));

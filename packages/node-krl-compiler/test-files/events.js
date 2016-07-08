@@ -15,7 +15,7 @@ module.exports = {
               return false;
             if (m.length > 1)
               matches.push(m[1]);
-            ctx.scope.set('my_name', matches[0]);
+            ctx.scope.set('my_name', new ctx.krl.String(matches[0]));
             return true;
           }
         },
