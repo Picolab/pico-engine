@@ -13,8 +13,37 @@ module.exports = {
         ctx.krl.stdlib['isnull'](ctx.scope.get('some_string')),
         ctx.krl.stdlib['isnull'](ctx.scope.get('nothing'))
       ],
-      'hello_cap': ctx.krl.stdlib['capitalize']('Hello World'),
-      'hello_low': ctx.krl.stdlib['lc']('Hello World')
+      'typeof': [
+        ctx.krl.stdlib['typeof'](1),
+        ctx.krl.stdlib['typeof'](ctx.scope.get('some_string')),
+        ctx.krl.stdlib['typeof']('hi'),
+        ctx.krl.stdlib['typeof']([
+          1,
+          2
+        ]),
+        ctx.krl.stdlib['typeof']({ 'a': 1 }),
+        ctx.krl.stdlib['typeof'](new RegExp('foo', '')),
+        ctx.krl.stdlib['typeof'](ctx.scope.get('nothing')),
+        ctx.krl.stdlib['typeof'](void 0)
+      ],
+      '75.chr()': ctx.krl.stdlib['chr'](75),
+      '0.range(10)': ctx.krl.stdlib['range'](0, 10),
+      '0.sprintf(10)': ctx.krl.stdlib['sprintf'](0, '< %d>'),
+      '.capitalize()': ctx.krl.stdlib['capitalize']('Hello World'),
+      '.decode()': ctx.krl.stdlib['decode']('[3, 4, 5]'),
+      '.extract': ctx.krl.stdlib['extract']('I like cheese', new RegExp('(s.+).*(.ing)', '')),
+      '.lc()': ctx.krl.stdlib['lc']('Hello World'),
+      '.match true': ctx.krl.stdlib['match']('Something', new RegExp('^S.*g$', '')),
+      '.match false': ctx.krl.stdlib['match']('Someone', new RegExp('^S.*g$', '')),
+      '.ord()': ctx.krl.stdlib['ord']('Hello'),
+      '.replace': ctx.krl.stdlib['replace']('Hello William!', new RegExp('will', ''), 'Bill'),
+      '.split': ctx.krl.stdlib['split']('a;b;c', new RegExp(';', '')),
+      '.sprintf': ctx.krl.stdlib['sprintf']('Jim', 'Hello %s!'),
+      '.substr(5)': ctx.krl.stdlib['substr']('This is a string', 5),
+      '.substr(5, 4)': ctx.krl.stdlib['substr']('This is a string', 5, 4),
+      '.substr(5, -5)': ctx.krl.stdlib['substr']('This is a string', 5, -5),
+      '.substr(25)': ctx.krl.stdlib['substr']('This is a string', 25),
+      '.uc()': ctx.krl.stdlib['uc']('Hello World')
     });
   },
   'rules': {}
