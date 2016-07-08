@@ -8,7 +8,7 @@ module.exports = {
         'graph': { 'events': { 'bind': { 'expr_0': true } } },
         'eventexprs': {
           'expr_0': function (ctx) {
-            var matches = ctx.event.attrs.getMatches([[
+            var matches = ctx.event.getAttrMatches([[
                 'name',
                 new ctx.krl.RegExp('^(.*)$', '')
               ]]);

@@ -64,6 +64,23 @@ module.exports = function(conf){
     db: db,
     signalEvent: function(event, callback){
       event.timestamp = new Date();
+      event.getAttrMatches = function(pairs){
+        var matches = [];
+        var i, attr, m, pair;
+        for(i = 0; i < pairs.length; i++){
+          pair = pairs[i];
+          attr = event.attrs[pair[0]];
+          if(!_.isString(attr)){
+            return undefined;
+          }
+          m = pair[1].toJS().exec(attr);
+          if(!m){
+            return undefined;
+          }
+          matches.push(m[1]);
+        }
+        return matches;
+      };
       db.getPicoByECI(event.eci, function(err, pico){
         if(err) return callback(err);
 

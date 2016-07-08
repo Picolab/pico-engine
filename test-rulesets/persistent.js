@@ -21,7 +21,7 @@ module.exports = {
         'graph': { 'store': { 'name': { 'expr_0': true } } },
         'eventexprs': {
           'expr_0': function (ctx) {
-            var matches = ctx.event.attrs.getMatches([[
+            var matches = ctx.event.getAttrMatches([[
                 'name',
                 new ctx.krl.RegExp('^(.*)$', '')
               ]]);
@@ -70,7 +70,7 @@ module.exports = {
         'graph': { 'store': { 'appvar': { 'expr_0': true } } },
         'eventexprs': {
           'expr_0': function (ctx) {
-            var matches = ctx.event.attrs.getMatches([[
+            var matches = ctx.event.getAttrMatches([[
                 'appvar',
                 new ctx.krl.RegExp('^(.*)$', '')
               ]]);

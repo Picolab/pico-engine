@@ -44,7 +44,7 @@ module.exports = {
         },
         'eventexprs': {
           'expr_0': function (ctx) {
-            var matches = ctx.event.attrs.getMatches([[
+            var matches = ctx.event.getAttrMatches([[
                 'name',
                 new ctx.krl.RegExp('^(.*)$', '')
               ]]);
@@ -97,7 +97,7 @@ module.exports = {
         'graph': { 'scope': { 'prelude': { 'expr_0': true } } },
         'eventexprs': {
           'expr_0': function (ctx) {
-            var matches = ctx.event.attrs.getMatches([[
+            var matches = ctx.event.getAttrMatches([[
                 'name',
                 new ctx.krl.RegExp('^(.*)$', '')
               ]]);
