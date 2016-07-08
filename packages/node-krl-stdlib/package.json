@@ -4,7 +4,9 @@
   "description": "Standard library for KRL",
   "main": "src/index.js",
   "scripts": {
-    "test": "node tests.js"
+    "start": "onchange -i src/ -- npm test -s",
+    "lint": "eslint src/ && echo lint-ok",
+    "test": "npm run lint -s && node src/tests.js"
   },
   "repository": {
     "type": "git",
@@ -20,5 +22,13 @@
   "bugs": {
     "url": "https://github.com/Picolab/node-krl-stdlib/issues"
   },
-  "homepage": "https://github.com/Picolab/node-krl-stdlib#readme"
+  "homepage": "https://github.com/Picolab/node-krl-stdlib#readme",
+  "devDependencies": {
+    "eslint": "^3.0.1",
+    "onchange": "^2.5.0",
+    "tape": "^4.6.0"
+  },
+  "dependencies": {
+    "lodash": "^4.13.1"
+  }
 }
