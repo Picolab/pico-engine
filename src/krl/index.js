@@ -4,5 +4,7 @@ module.exports = {
   fromJS: require('./fromJS'),
   Null: require('./KRLNull'),
   String: require('./KRLString'),
+  Number: require('./KRLNumber'),
+  RegExp: require('./KRLRegExp'),
   Closure: require('./KRLClosure')
 };
