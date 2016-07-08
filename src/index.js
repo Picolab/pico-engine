@@ -63,16 +63,16 @@ module.exports = function(conf){
   var mkPersistent = function(pico_id, rid){
     return {
       getEnt: function(key){
-        return krl.fromJS(db.getEntVarFuture(pico_id, key).wait());
+        return db.getEntVarFuture(pico_id, key).wait();
       },
       putEnt: function(key, value){
-        db.putEntVarFuture(pico_id, key, krl.toJS(value)).wait();
+        db.putEntVarFuture(pico_id, key, value).wait();
       },
       getApp: function(key, value){
-        return krl.fromJS(db.getAppVarFuture(rid, key).wait());
+        return db.getAppVarFuture(rid, key).wait();
       },
       putApp: function(key, value){
-        db.putAppVarFuture(rid, key, krl.toJS(value)).wait();
+        db.putAppVarFuture(rid, key, value).wait();
       }
     };
   };
@@ -87,7 +87,7 @@ module.exports = function(conf){
         for(i = 0; i < pairs.length; i++){
           pair = pairs[i];
           attr = event.attrs[pair[0]];
-          m = pair[1].as('javascript').exec(attr || '');
+          m = pair[1].exec(attr || '');
           if(!m){
             return undefined;
           }
@@ -123,11 +123,11 @@ module.exports = function(conf){
             var res_by_type = _.groupBy(_.flattenDeep(responses), 'type');
 
             //TODO other types
-            callback(undefined, krl.toJS({
+            callback(undefined, {
               directives:  _.map(res_by_type.directive, function(d){
                 return _.omit(d, 'type');
               })
-            }));
+            });
           });
         });
       });
@@ -166,10 +166,10 @@ module.exports = function(conf){
         if(_.isFunction(val)){
           applyInFiber(val, null, [ctx, query.args], function(err, resp){
             if(err) return callback(err);
-            callback(undefined, krl.toJS(resp));
+            callback(undefined, resp);
           });
         }else{
-          callback(undefined, krl.toJS(val));
+          callback(undefined, val);
         }
       });
     }

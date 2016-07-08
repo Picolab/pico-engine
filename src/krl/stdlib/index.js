@@ -10,6 +10,9 @@ module.exports = {
     }
     return r;
   },
+  'capitalize': function(val){
+    return (val + '').toUpperCase();
+  },
   'beesting': function(val){
     return val + '';
   }
