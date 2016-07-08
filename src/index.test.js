@@ -355,8 +355,15 @@ test('PicoEngine - io.picolabs.operators ruleset', function(t){
     λ.curry(pe.db.newChannel, {pico_id: 'id0', name: 'one', type: 't'}),
     λ.curry(pe.db.addRuleset, {pico_id: 'id0', rid: 'io.picolabs.operators'}),
     [
-      query('cap_hello'),
-      'HELLO WORLD'
+      query('results'),
+      {
+        'str_as_num': 100.25,
+        'num_as_str': '1.05',
+        'regex_as_str': 'blah',
+        'isnull': true,
+        'hello_cap': 'HELLO WORLD',
+        'hello_low': 'hello world'
+      }
     ]
   ], t.end);
 });
