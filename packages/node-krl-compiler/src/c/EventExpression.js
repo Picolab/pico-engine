@@ -1,45 +1,20 @@
 var _ = require('lodash');
 var wrapKRLType = require('../wrapKRLType');
 
-var returnFalse = function(e, loc){
-  return e('return', e('false', loc), loc);
-};
-
 module.exports = function(ast, comp, e){
   //FYI the graph allready vetted the domain and type
 
   var fn_body = [];
 
-  if((_.size(ast.attributes) + _.size(ast.setting)) > 0){
-    fn_body.push(e('var', e('id', 'matches'), e('arr', [])));
-    fn_body.push(e('var', e('id', 'm')));
+  if(!_.isEmpty(ast.attributes)){
+    fn_body.push(e('var', 'matches',
+            e('call', e('id', 'ctx.event.attrs.getMatches'), [
+              e('array', _.map(ast.attributes, function(a){
+                return comp(a.value);
+              }))
+            ])));
+    fn_body.push(e('if', e('!', e('id', 'matches')), e('return', e('false'))));
   }
-  _.each(ast.attributes, function(a){
-    var readAttr = e('||', e('get',
-      e('id', 'ctx.event.attrs', a.key.loc),
-      e('str', a.key.value, a.key.loc),
-      a.key.loc
-    ), e('str', '', a.key.loc), a.key.loc);
-
-    var regex_exec = e('.',
-        comp(a.value),
-        e('id', 'exec', a.value.loc), a.value.loc);
-
-    var m = e('id', 'm', a.loc);
-
-    fn_body.push(e(';', e('=', m,
-            e('call', regex_exec, [readAttr]),
-            a.loc), a.loc));
-
-    fn_body.push(e('if', e('!', m, a.loc), returnFalse(e, a.loc), a.loc));
-
-    fn_body.push(e('if',
-          e('>', e('.', m, e('id', 'length', a.loc), a.loc), e('num', 1, a.loc), a.loc),
-          e(';',
-          e('call', e('id', 'matches.push', a.loc), [
-            e('get', m, e('num', 1, a.loc), a.loc)
-          ], a.loc), a.loc), a.loc));
-  });
 
   //TODO ast.where
 
