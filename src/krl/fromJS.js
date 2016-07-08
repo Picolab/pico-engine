@@ -1,6 +1,6 @@
 var _ = require('lodash');
-var KRLType = require('./KRLType');
-var KRLString = require('./KRLString');
+var KRLType = require('./types/KRLType');
+var KRLString = require('./types/String');
 
 var fromJS = function fromJS(val){
   if(val instanceof KRLType){

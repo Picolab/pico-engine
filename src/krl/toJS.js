@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var KRLType = require('./KRLType');
+var KRLType = require('./types/KRLType');
 
 var toJS = function toJS(val){
   if(_.isArray(val)){

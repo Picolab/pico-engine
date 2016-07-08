@@ -1,5 +1,7 @@
 var _ = require('lodash');
-var KRLType = require('../KRLType');
+var KRLType = require('../types/KRLType');
+var KRLNumber = require('../types/Number');
+var KRLString = require('../types/String');
 
 module.exports = {
   '+': function(){
@@ -19,13 +21,15 @@ module.exports = {
     for(i = 1; i < args.length; i++){
       r = r + getArg(i);
     }
-    return r;
+    if(_.isNumber(r)){
+      return new KRLNumber(r);
+    }
+    return new KRLString(r + '');
   },
   'beesting': function(val){
-    //TODO behave differently based on type
     if(val instanceof KRLType){
-      return val.toJS() + '';
+      return val.as('String');
     }
-    return val + '';
+    return new KRLString(val + '');
   }
 };
