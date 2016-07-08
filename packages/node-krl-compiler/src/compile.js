@@ -36,7 +36,7 @@ var comp_by_type = {
     return wrapKRLType(e, 'String', [curr]);
   },
   'Boolean': function(ast, comp, e){
-    return e(ast.value ? 'true' : 'false');
+    return wrapKRLType(e, 'Boolean', [e(ast.value ? 'true' : 'false')]);
   },
   'RegExp': function(ast, comp, e){
     var flags = '';
@@ -183,7 +183,7 @@ var comp_by_type = {
     }else if(ast.value.type === 'Chevron'){
       val = e('string', ast.value.value[0].value, ast.value.value[0].loc);
     }else if(ast.value.type === 'Boolean'){
-      val = comp(ast.value);
+      val = e(ast.value.value ? 'true' : 'false', ast.value.loc);
     }
     return e('obj-prop', e('str', key, ast.key.loc), val);
   },
