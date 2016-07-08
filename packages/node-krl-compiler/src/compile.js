@@ -46,7 +46,7 @@ var comp_by_type = {
     if(ast.value.ignoreCase){
       flags += 'i';
     }
-    return e('new', e('id', 'RegExp'), [
+    return wrapKRLType(e, 'RegExp', [
       e('str', ast.value.source),
       e('str', flags)
     ]);
