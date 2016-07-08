@@ -1,6 +1,7 @@
 var _ = require('lodash');
 //TODO remove from package.json var toId = require('to-js-identifier');
 var mkTree = require('estree-builder');
+var wrapKRLType = require('./wrapKRLType');
 
 var mkDbCall = function(e, method, args){
   return e('call', e('id', 'ctx.persistent.' + method), args);
@@ -8,7 +9,7 @@ var mkDbCall = function(e, method, args){
 
 var comp_by_type = {
   'String': function(ast, comp, e){
-    return e('new', e('id', 'ctx.krl.String'), [e('string', ast.value)]);
+    return wrapKRLType(e, 'String', [e('string', ast.value)]);
   },
   'Number': function(ast, comp, e){
     return e('number', ast.value);
@@ -18,7 +19,7 @@ var comp_by_type = {
   },
   'Chevron': function(ast, comp, e){
     if(ast.value.length < 1){
-      return e('new', e('id', 'ctx.krl.String'), []);
+      return wrapKRLType(e, 'String', []);
     }
     var compElm = function(elm){
       if(elm.type === 'String'){
@@ -32,7 +33,7 @@ var comp_by_type = {
       curr = e('+', curr, compElm(ast.value[i]));
       i++;
     }
-    return e('new', e('id', 'ctx.krl.String'), [curr]);
+    return wrapKRLType(e, 'String', [curr]);
   },
   'Boolean': function(ast, comp, e){
     return e(ast.value ? 'true' : 'false');
