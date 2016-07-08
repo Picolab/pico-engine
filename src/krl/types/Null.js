@@ -1,3 +1,7 @@
-var KRLNull = function(){
-};
-module.exports = KRLNull;
+var makeType = require('./makeType');
+
+module.exports = makeType(function(){}, {
+  isnull: function(){
+    return true;
+  }
+});
