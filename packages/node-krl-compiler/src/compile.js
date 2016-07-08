@@ -81,6 +81,19 @@ var comp_by_type = {
     return e('obj-prop', e('string', ast.key.value + '', ast.key.loc), comp(ast.value));
   },
   'Application': function(ast, comp, e){
+    if(ast.callee.type === 'MemberExpression'
+        && ast.callee.method === 'dot'
+        && ast.callee.property.type === 'Identifier'
+        ){
+      //operator syntax is just sugar
+      var operator = ast.callee.property;
+      var callee = e('get',
+        e('id', 'ctx.krl.stdlib', operator.loc),
+        e('string', operator.value, operator.loc),
+        operator.loc
+      );
+      return e('call', callee, [comp(ast.callee.object)].concat(comp(ast.args)));
+    }
     return e('call', comp(ast.callee), [
       e('id', 'ctx'),
       e('array', comp(ast.args))
