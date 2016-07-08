@@ -60,6 +60,23 @@ installRuleset('chevron');
 module.exports = function(conf){
   var db = Future.wrap(DB(conf.db));
 
+  var mkPersistent = function(pico_id, rid){
+    return {
+      getEnt: function(key){
+        return krl.fromJS(db.getEntVarFuture(pico_id, key).wait());
+      },
+      putEnt: function(key, value){
+        db.putEntVarFuture(pico_id, key, krl.toJS(value)).wait();
+      },
+      getApp: function(key, value){
+        return krl.fromJS(db.getAppVarFuture(rid, key).wait());
+      },
+      putApp: function(key, value){
+        db.putAppVarFuture(rid, key, krl.toJS(value)).wait();
+      }
+    };
+  };
+
   return {
     db: db,
     signalEvent: function(event, callback){
@@ -98,6 +115,7 @@ module.exports = function(conf){
             var ctx = _.assign({}, ctx_orig, {
               rid: rule.rid,
               rule: rule,
+              persistent: mkPersistent(pico.id, rule.rid),
               scope: rule.scope
             });
 
@@ -144,6 +162,7 @@ module.exports = function(conf){
           db: db,
           rid: rs.rid,
           pico: pico,
+          persistent: mkPersistent(pico.id, rs.rid),
           scope: rs.scope
         });
         var val = ctx.scope.get(query.name);
