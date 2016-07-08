@@ -1,0 +1,24 @@
+{
+  "name": "krl-stdlib",
+  "version": "0.0.0",
+  "description": "Standard library for KRL",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Picolab/node-krl-stdlib.git"
+  },
+  "keywords": [
+    "krl",
+    "pico-engine",
+    "compiler"
+  ],
+  "author": "Picolab",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Picolab/node-krl-stdlib/issues"
+  },
+  "homepage": "https://github.com/Picolab/node-krl-stdlib#readme"
+}
