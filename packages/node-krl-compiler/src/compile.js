@@ -12,7 +12,7 @@ var comp_by_type = {
     return wrapKRLType(e, 'String', [e('string', ast.value)]);
   },
   'Number': function(ast, comp, e){
-    return e('number', ast.value);
+    return wrapKRLType(e, 'Number', [e('number', ast.value)]);
   },
   'Identifier': function(ast, comp, e){
     return e('call', e('id', 'ctx.scope.get'), [e('str', ast.value)]);
