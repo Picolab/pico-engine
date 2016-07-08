@@ -1,9 +1,0 @@
-module.exports = {
-  'name': 'io.picolabs.methods',
-  'meta': { 'shares': ['cap_hello'] },
-  'global': function (ctx) {
-    ctx.scope.set('cap_hello', new ctx.krl.String('Hello World')['capitalize'](ctx, []));
-  },
-  'rules': {}
-};
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInJ1bGVzZXQgaW8ucGljb2xhYnMubWV0aG9kcyB7XG4gIG1ldGEge1xuICAgIHNoYXJlcyBjYXBfaGVsbG9cbiAgfVxuICBnbG9iYWwge1xuICAgIGNhcF9oZWxsbyA9IFwiSGVsbG8gV29ybGRcIi5jYXBpdGFsaXplKClcbiAgfVxufSIsImlvLnBpY29sYWJzLm1ldGhvZHMiLCJzaGFyZXMiLCJzaGFyZXMgY2FwX2hlbGxvIiwiY2FwX2hlbGxvIiwiY2FwX2hlbGxvID0gXCJIZWxsbyBXb3JsZFwiLmNhcGl0YWxpemUoKSIsIlwiSGVsbG8gV29ybGRcIiIsIlwiSGVsbG8gV29ybGRcIi5jYXBpdGFsaXplIiwiY2FwaXRhbGl6ZSIsIlwiSGVsbG8gV29ybGRcIi5jYXBpdGFsaXplKCkiXSwibmFtZXMiOlsibW9kdWxlIiwiZXhwb3J0cyIsImN0eCIsInNjb3BlIiwic2V0Iiwia3JsIiwiU3RyaW5nIl0sIm1hcHBpbmdzIjoiQUFBQUEsTUFBQSxDQUFBQyxPQUFBO0FBQUEsRSxRQ0FRLHFCREFSO0FBQUEsRSxRQUFBLEVFRUksUUNBQSxHQ0FPLFdEQVAsQ0hGSjtBQUFBLEUsVUFBQSxVQUFBQyxHQUFBO0FBQUEsSUtLSUEsR0FBQSxDQUFBQyxLQUFBLENBQUFDLEdBQUEsQ0RBQSxXQ0FBLEVDQVksSUFBQUYsR0FBQSxDQUFBRyxHQUFBLENBQUFDLE1BQUEsZUNBQSxDQ0FjLFlEQWQsQ0VBQSxDQUFBSixHQUFBLEtKQVosRUxMSjtBQUFBO0FBQUEsRSxTQUFBO0FBQUEiLCJzb3VyY2VzQ29udGVudCI6W251bGwsbnVsbCxudWxsLG51bGwsbnVsbCxudWxsLG51bGwsbnVsbCxudWxsLG51bGxdfQ==
