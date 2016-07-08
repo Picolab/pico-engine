@@ -45,3 +45,15 @@ test("general operators", function(t){
 
   t.end();
 });
+
+test("Number operators", function(t){
+
+  t.equals(stdlib.chr(74), "J");
+
+  t.deepEquals(stdlib.range(0, 0), [0]);
+  t.deepEquals(stdlib.range(0, 10), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+  t.equals(stdlib.sprintf(.25, "That is %d"), "That is 0.25");
+
+  t.end();
+});
