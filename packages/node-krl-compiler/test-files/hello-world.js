@@ -10,7 +10,7 @@ module.exports = {
   'global': function (ctx) {
     ctx.scope.set('hello', ctx.krl.Closure(ctx, function (ctx) {
       ctx.scope.set('obj', ctx.getArg(ctx.args, 'obj', 0));
-      ctx.scope.set('msg', ctx.krl.stdlib['+'](new ctx.krl.String('Hello '), ctx.scope.get('obj')));
+      ctx.scope.set('msg', ctx.krl.stdlib['+']('Hello ', ctx.scope.get('obj')));
       return ctx.scope.get('msg');
     }));
   },
@@ -45,7 +45,7 @@ module.exports = {
             return {
               'type': 'directive',
               'name': 'say',
-              'options': { 'something': new ctx.krl.String('Hello World') }
+              'options': { 'something': 'Hello World' }
             };
           }]
       }

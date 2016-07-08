@@ -10,11 +10,11 @@ module.exports = {
           'expr_0': function (ctx) {
             var matches = ctx.event.getAttrMatches([[
                 'name',
-                new ctx.krl.RegExp('^(.*)$', '')
+                new RegExp('^(.*)$', '')
               ]]);
             if (!matches)
               return false;
-            ctx.scope.set('my_name', new ctx.krl.String(matches[0]));
+            ctx.scope.set('my_name', matches[0]);
             return true;
           }
         },

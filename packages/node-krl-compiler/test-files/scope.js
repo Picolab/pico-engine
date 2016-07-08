@@ -10,8 +10,8 @@ module.exports = {
     ]
   },
   'global': function (ctx) {
-    ctx.scope.set('g0', new ctx.krl.String('global 0'));
-    ctx.scope.set('g1', new ctx.krl.Number(1));
+    ctx.scope.set('g0', 'global 0');
+    ctx.scope.set('g1', 1);
     ctx.scope.set('getVals', ctx.krl.Closure(ctx, function (ctx) {
       return {
         'name': ctx.persistent.getEnt('ent_var_name'),
@@ -46,11 +46,11 @@ module.exports = {
           'expr_0': function (ctx) {
             var matches = ctx.event.getAttrMatches([[
                 'name',
-                new ctx.krl.RegExp('^(.*)$', '')
+                RegExp('^(.*)$', '')
               ]]);
             if (!matches)
               return false;
-            ctx.scope.set('my_name', new ctx.krl.String(matches[0]));
+            ctx.scope.set('my_name', matches[0]);
             return true;
           },
           'expr_1': function (ctx) {
@@ -99,11 +99,11 @@ module.exports = {
           'expr_0': function (ctx) {
             var matches = ctx.event.getAttrMatches([[
                 'name',
-                new ctx.krl.RegExp('^(.*)$', '')
+                RegExp('^(.*)$', '')
               ]]);
             if (!matches)
               return false;
-            ctx.scope.set('name', new ctx.krl.String(matches[0]));
+            ctx.scope.set('name', matches[0]);
             return true;
           }
         },
@@ -124,8 +124,8 @@ module.exports = {
         }
       },
       'prelude': function (ctx) {
-        ctx.scope.set('p0', new ctx.krl.String('prelude 0'));
-        ctx.scope.set('p1', new ctx.krl.String('prelude 1'));
+        ctx.scope.set('p0', 'prelude 0');
+        ctx.scope.set('p1', 'prelude 1');
       },
       'action_block': {
         'actions': [function (ctx) {
@@ -177,8 +177,8 @@ module.exports = {
         }
       },
       'prelude': function (ctx) {
-        ctx.scope.set('g0', new ctx.krl.String('overrided g0!'));
-        ctx.scope.set('inc5', ctx.scope.get('incByN')(ctx, [new ctx.krl.Number(5)]));
+        ctx.scope.set('g0', 'overrided g0!');
+        ctx.scope.set('inc5', ctx.scope.get('incByN')(ctx, [5]));
       },
       'action_block': {
         'actions': [function (ctx) {
@@ -187,10 +187,10 @@ module.exports = {
               'name': 'say',
               'options': {
                 'add_one_two': ctx.scope.get('add')(ctx, [
-                  new ctx.krl.Number(1),
-                  new ctx.krl.Number(2)
+                  1,
+                  2
                 ]),
-                'inc5_3': ctx.scope.get('inc5')(ctx, [new ctx.krl.Number(3)]),
+                'inc5_3': ctx.scope.get('inc5')(ctx, [3]),
                 'g0': ctx.scope.get('g0')
               }
             };

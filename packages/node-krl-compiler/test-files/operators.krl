@@ -1,4 +1,4 @@
-ruleset io.picolabs.methods {
+ruleset io.picolabs.operators {
   meta {
     shares cap_hello
   }

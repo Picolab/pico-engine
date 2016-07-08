@@ -1,7 +1,6 @@
 var _ = require('lodash');
 //TODO remove from package.json var toId = require('to-js-identifier');
 var mkTree = require('estree-builder');
-var wrapKRLType = require('./utils/wrapKRLType');
 var callStdLibFn = require('./utils/callStdLibFn');
 
 var mkDbCall = function(e, method, args){
@@ -10,17 +9,17 @@ var mkDbCall = function(e, method, args){
 
 var comp_by_type = {
   'String': function(ast, comp, e){
-    return wrapKRLType(e, 'String', [e('string', ast.value)]);
+    return e('string', ast.value);
   },
   'Number': function(ast, comp, e){
-    return wrapKRLType(e, 'Number', [e('number', ast.value)]);
+    return e('number', ast.value);
   },
   'Identifier': function(ast, comp, e){
     return e('call', e('id', 'ctx.scope.get'), [e('str', ast.value)]);
   },
   'Chevron': function(ast, comp, e){
     if(ast.value.length < 1){
-      return wrapKRLType(e, 'String', []);
+      return e('string', '');
     }
     var compElm = function(elm){
       if(elm.type === 'String'){
@@ -34,10 +33,10 @@ var comp_by_type = {
       curr = e('+', curr, compElm(ast.value[i]));
       i++;
     }
-    return wrapKRLType(e, 'String', [curr]);
+    return curr;
   },
   'Boolean': function(ast, comp, e){
-    return wrapKRLType(e, 'Boolean', [e(ast.value ? 'true' : 'false')]);
+    return e(ast.value ? 'true' : 'false');
   },
   'RegExp': function(ast, comp, e){
     var flags = '';
@@ -47,7 +46,7 @@ var comp_by_type = {
     if(ast.value.ignoreCase){
       flags += 'i';
     }
-    return wrapKRLType(e, 'RegExp', [
+    return e('new', e('id', 'RegExp'), [
       e('str', ast.value.source),
       e('str', flags)
     ]);

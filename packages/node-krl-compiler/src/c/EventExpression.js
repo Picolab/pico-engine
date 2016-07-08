@@ -1,5 +1,4 @@
 var _ = require('lodash');
-var wrapKRLType = require('../utils/wrapKRLType');
 
 module.exports = function(ast, comp, e){
   //FYI the graph allready vetted the domain and type
@@ -27,9 +26,7 @@ module.exports = function(ast, comp, e){
     fn_body.push(e(';',
       e('call', e('id', 'ctx.scope.set', s.loc), [
         e('str', s.value, s.loc),
-        wrapKRLType(e, 'String', [
-          e('get', e('id', 'matches', s.loc), e('num', 0, s.loc), s.loc)
-        ])
+        e('get', e('id', 'matches', s.loc), e('num', 0, s.loc), s.loc)
       ], s.loc), s.loc));
   });
 
