@@ -2,6 +2,7 @@ var _ = require('lodash');
 //TODO remove from package.json var toId = require('to-js-identifier');
 var mkTree = require('estree-builder');
 var wrapKRLType = require('./wrapKRLType');
+var callStdLibFn = require('./callStdLibFn');
 
 var mkDbCall = function(e, method, args){
   return e('call', e('id', 'ctx.persistent.' + method), args);
@@ -25,7 +26,7 @@ var comp_by_type = {
       if(elm.type === 'String'){
         return e('string', elm.value, elm.loc);
       }
-      return e('call', e('get', e('id', 'ctx.krl.stdlib'), e('string', 'beesting', elm.loc), elm.loc), [comp(elm)], elm.loc);
+      return callStdLibFn(e, 'beesting', [comp(elm)], elm.loc);
     };
     var curr = compElm(ast.value[0]);
     var i = 1;
@@ -87,10 +88,10 @@ var comp_by_type = {
     ]);
   },
   'InfixOperator': function(ast, comp, e){
-    return e('call', e('get', e('id', 'ctx.krl.stdlib'), e('string', ast.op)), [
+    return callStdLibFn(e, ast.op, [
       comp(ast.left),
       comp(ast.right)
-    ]);
+    ], ast.loc);
   },
   'Function': function(ast, comp, e){
     var body = _.map(ast.params, function(param, i){
