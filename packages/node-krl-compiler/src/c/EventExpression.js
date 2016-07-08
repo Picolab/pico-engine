@@ -8,7 +8,7 @@ module.exports = function(ast, comp, e){
 
   if(!_.isEmpty(ast.attributes)){
     fn_body.push(e('var', 'matches',
-            e('call', e('id', 'ctx.event.attrs.getMatches'), [
+            e('call', e('id', 'ctx.event.getAttrMatches'), [
               e('array', _.map(ast.attributes, function(a){
                 return e('array', [
                   e('string', a.key.value, a.key.loc),
