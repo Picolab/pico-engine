@@ -11,6 +11,10 @@ var assertThrows = function(t, fn, args){
   }
 };
 
+var testFn = function(t, fn, args, expected, message){
+  t.deepEquals(stdlib[fn].apply(null, args), expected, message);
+};
+
 test("general operators", function(t){
 
   t.equals(stdlib.as(1, "String"), "1");
@@ -48,12 +52,12 @@ test("general operators", function(t){
 
 test("Number operators", function(t){
 
-  t.equals(stdlib.chr(74), "J");
+  testFn(t, "chr", [74], "J");
 
-  t.deepEquals(stdlib.range(0, 0), [0]);
-  t.deepEquals(stdlib.range(0, 10), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  testFn(t, "range", [0, 0], [0]);
+  testFn(t, "range", [0, 10], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
-  t.equals(stdlib.sprintf(.25, "That is %d"), "That is 0.25");
+  testFn(t, "sprintf", [.25, "That is %d"], "That is 0.25");
 
   t.end();
 });
