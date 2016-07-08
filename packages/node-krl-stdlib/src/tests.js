@@ -51,13 +51,49 @@ test("general operators", function(t){
 });
 
 test("Number operators", function(t){
+  var tf = _.partial(testFn, t);
 
-  testFn(t, "chr", [74], "J");
+  tf("chr", [74], "J");
 
-  testFn(t, "range", [0, 0], [0]);
-  testFn(t, "range", [0, 10], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  tf("range", [0, 0], [0]);
+  tf("range", [0, 10], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
-  testFn(t, "sprintf", [.25, "That is %d"], "That is 0.25");
+  tf("sprintf", [.25, "That is %d"], "That is 0.25");
+
+  t.end();
+});
+
+test("String operators", function(t){
+  var tf = _.partial(testFn, t);
+
+  tf("sprintf", ["Bob", "Hi %s!"], "Hi Bob!");
+
+  tf("capitalize", ["lower"], "Lower");
+
+  tf("decode", ["[1,2,3]"], [1, 2, 3]);
+
+  tf("extract", ["3 + 2 - 1", /([0-9])/g], ["3", "2", "1"]);
+  tf("extract", ["no-match", /([0-9])/g], null);
+
+  tf("lc", ["UppER"], "upper");
+
+  tf("match", ["3 + 2 - 1", /([0-9])/g], true);
+  tf("match", ["no-match", /([0-9])/g], false);
+
+  tf("ord", [""], void 0);
+  tf("ord", ["a"], 97);
+  tf("ord", ["bill"], 98);
+
+  tf("replace", ["William", /W/, "B"], "Billiam");
+
+  tf("split", ["a;b;3;4;", /;/], ["a", "b", "3", "4", ""]);
+
+  tf("substr", ["This is a string", 5], "is a string");
+  tf("substr", ["This is a string", 5, 4], "is a");
+  tf("substr", ["This is a string", 5, -5], "is a s");
+  tf("substr", ["This is a string", 25], void 0);
+
+  tf("uc", ["loWer"], "LOWER");
 
   t.end();
 });
