@@ -1,7 +1,10 @@
 var _ = require('lodash');
 var λ = require('contra');
 var DB = require('./DB');
-var krl = require('./krl');
+var krl = {
+  stdlib: require('krl-stdlib'),
+  Closure: require('./KRLClosure')
+};
 var Future = require('fibers/future');
 var evalRule = require('./evalRule');
 var SymbolTable = require('symbol-table');
