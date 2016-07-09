@@ -97,3 +97,52 @@ test("String operators", function(t){
 
   t.end();
 });
+
+test("Collection operators", function(t){
+  var tf = _.partial(testFn, t);
+
+  var a = [3, 4, 5];
+
+  _.each({
+    "all":    [ true, false, false],
+    "notall": [false,  true,  true],
+    "any":    [ true,  true, false],
+    "none":   [false, false,  true]
+  }, function(expected, fn){
+    tf(fn, [a, function(x){return x < 10;}], expected[0]);
+    tf(fn, [a, function(x){return x >  3;}], expected[1]);
+    tf(fn, [a, function(x){return x > 10;}], expected[2]);
+    t.deepEquals(a, [3, 4, 5], "should not be mutated");
+  });
+
+  tf("append", [a, [6]], [3, 4, 5, 6]);
+  t.deepEquals(a, [3, 4, 5], "should not be mutated");
+  tf("append", [["a", "b"], ["c", "d"]], ["a", "b", "c", "d"]);
+  tf("append", [["a", "b"], 10, 11], ["a", "b", 10, 11]);
+  tf("append", [10, 11], [10, 11]);
+
+  tf("collect", [[7, 4, 3, 5, 2, 1, 6], function(a){
+    return (a < 5) ? "x" : "y";
+  }], {
+    "x": [4,3,2,1],
+    "y": [7,5,6]
+  });
+
+  tf("filter", [a, function(x){return x < 5;}], [3, 4]);
+  tf("filter", [a, function(x){return x !== 4;}], [3, 5]);
+  t.deepEquals(a, [3, 4, 5], "should not be mutated");
+
+  tf("head", [a], 3);
+  t.deepEquals(a, [3, 4, 5], "should not be mutated");
+  tf("head", [[]], void 0);
+
+  tf("join", [a, ";"], "3;4;5");
+  t.deepEquals(a, [3, 4, 5], "should not be mutated");
+
+  tf("length", [a], 3);
+
+  tf("map", [a, function(x){return x + 2;}], [5, 6, 7]);
+  t.deepEquals(a, [3, 4, 5], "should not be mutated");
+
+  t.end();
+});

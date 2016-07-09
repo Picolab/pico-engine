@@ -131,4 +131,22 @@ stdlib.uc = function(val){
   return val.toUpperCase();
 };
 
+//Collection operators//////////////////////////////////////////////////////////
+stdlib.all = _.every;
+stdlib.notall = function(val, iter){
+  return _.every(val, _.negate(iter));
+};
+stdlib.any = _.some;
+stdlib.none = function(val, iter){
+  return _.some(val, _.negate(iter));
+};
+stdlib.append = _.concat;
+stdlib.collect = _.groupBy;
+stdlib.filter = _.filter;
+stdlib.head = _.head;
+stdlib.index = _.indexOf;
+stdlib.join = _.join;
+stdlib.length = _.size;
+stdlib.map = _.map;
+
 module.exports = stdlib;
