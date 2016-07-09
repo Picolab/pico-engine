@@ -93,7 +93,14 @@ stdlib.decode = function(val){
   return JSON.parse(val);
 };
 stdlib.extract = function(val, regex){
-  return val.match(regex);
+  var r = val.match(regex);
+  if(!r){
+    return [];
+  }
+  if(regex.global){
+    return r;
+  }
+  return r.slice(1);
 };
 stdlib.lc = function(val){
   return val.toLowerCase();

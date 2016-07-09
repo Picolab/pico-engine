@@ -73,7 +73,12 @@ test("String operators", function(t){
   tf("decode", ["[1,2,3]"], [1, 2, 3]);
 
   tf("extract", ["3 + 2 - 1", /([0-9])/g], ["3", "2", "1"]);
-  tf("extract", ["no-match", /([0-9])/g], null);
+  tf("extract", ["no-match", /([0-9])/g], []);
+  tf("extract", ["This is a string", /(is)/], ["is"]);
+  tf("extract", ["This is a string", /(s.+).*(.ing)/], ["s is a st", "ring"]);
+  tf("extract", ["This is a string", /(boot)/], []);
+  tf("extract", ["I like cheese", /like (\w+)/], ["cheese"]);
+  tf("extract", ["I like cheese", /(e)/g], ["e", "e", "e", "e"]);
 
   tf("lc", ["UppER"], "upper");
 
