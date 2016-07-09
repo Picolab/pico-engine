@@ -257,5 +257,34 @@ stdlib.values = function(val, path){
   }
   return _.values(val);
 };
+stdlib.intersection = _.intersection;
+stdlib.union = _.union;
+stdlib.difference = _.difference;
+stdlib.has = function(val, other){
+  return _.every(other, function(e){
+    return _.includes(val, e);
+  });
+};
+stdlib.once = function(val){
+  //TODO optimize
+  var r = [];
+  _.each(_.groupBy(val), function(group){
+    if(_.size(group) === 1){
+      r.push(_.head(group));
+    }
+  });
+  return r;
+};
+stdlib.duplicates = function(val){
+  //TODO optimize
+  var r = [];
+  _.each(_.groupBy(val), function(group){
+    if(_.size(group) > 1){
+      r.push(_.head(group));
+    }
+  });
+  return r;
+};
+stdlib.unique = _.uniq;
 
 module.exports = stdlib;

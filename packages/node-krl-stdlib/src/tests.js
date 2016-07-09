@@ -245,5 +245,21 @@ test("Collection operators", function(t){
   });
   assertObjNotMutated();
 
+  tf("intersection", [[2, 1], [2, 3]], [2]);
+
+  tf("union", [[2], [1, 2]], [2, 1]);
+  tf("union", [[1, 2], [1, 4]], [1, 2, 4]);
+
+  tf("difference", [[2, 1], [2, 3]], [1]);
+
+  tf("has", [[1, 2, 3, 4], [4, 2]], true);
+  tf("has", [[1, 2, 3, 4], [4, 5]], false);
+
+  tf("once", [[1, 2, 1, 3, 4, 4]], [2, 3]);
+
+  tf("duplicates", [[1, 2, 1, 3, 4, 4]], [1, 4]);
+
+  tf("unique", [[1, 2, 1, 3, 4, 4]], [1, 2, 3, 4]);
+
   t.end();
 });
