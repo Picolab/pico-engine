@@ -164,5 +164,28 @@ stdlib.reduce = function(val, iter, dflt){
   }
   return _.reduce.apply(null, arguments);
 };
+stdlib.reverse = function(val){
+  return _.reverse(_.clone(val));
+};
+stdlib.slice = function(val, start, end){
+  if(start < 0 || start > _.size(val)){
+    return;
+  }
+  if(arguments.length < 3){
+    return _.slice(val, 0, start + 1);
+  }
+  if(end < 0 || end > _.size(val)){
+    return;
+  }
+  return _.slice(val, start, end + 1);
+};
+stdlib.splice = function(val, start, n_elms, value){
+  var part1 = _.slice(val, 0, start);
+  var part2 = _.slice(val, start + n_elms);
+  if(arguments.length < 4){
+    return _.concat(part1, part2);
+  }
+  return _.concat(part1, value, part2);
+};
 
 module.exports = stdlib;

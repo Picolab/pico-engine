@@ -151,12 +151,27 @@ test("Collection operators", function(t){
   tf("reduce", [a, function(a,b){return a+b;}, 10], 22);
   tf("reduce", [a, function(a,b){return a-b;}], -6);
   t.deepEquals(a, [3, 4, 5], "should not be mutated");
-
   tf("reduce", [[], function(a,b){return a+b;}], 0);
   tf("reduce", [[], function(a,b){return a+b;}, 15], 15);
-
   tf("reduce", [[76], function(a,b){return a+b;}], 76);
   tf("reduce", [[76], function(a,b){return a+b;}, 15], 91);
+
+  tf("reverse", [a], [5, 4, 3]);
+  t.deepEquals(a, [3, 4, 5], "should not be mutated");
+
+  var vegies = ["corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"];
+  tf("slice", [vegies, 1, 4], ["tomato","tomato","tomato","sprouts"]);
+  tf("slice", [vegies, 2], ["corn","tomato","tomato"]);
+  tf("slice", [vegies, 14], void 0);
+  tf("slice", [vegies, 0, 0], ["corn"]);
+
+  tf("splice", [vegies, 1, 4], ["corn","lettuce","sprouts"]);
+  tf("splice", [vegies, 2, 0, ["corn", "tomato"]], ["corn","tomato","corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"]);
+  tf("splice", [vegies, 2, 0, "liver"], ["corn","tomato","liver","tomato","tomato","sprouts","lettuce","sprouts"]);
+  tf("splice", [vegies, 2, 2, "liver"], ["corn","tomato","liver","sprouts","lettuce","sprouts"]);
+  tf("splice", [vegies, 1, 10], ["corn"]);
+  tf("splice", [vegies, 1, 10, "liver"], ["corn", "liver"]);
+  t.deepEquals(vegies, ["corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"], "should not be mutated");
 
   t.end();
 });
