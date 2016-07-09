@@ -134,11 +134,11 @@ stdlib.uc = function(val){
 //Collection operators//////////////////////////////////////////////////////////
 stdlib.all = _.every;
 stdlib.notall = function(val, iter){
-  return _.every(val, _.negate(iter));
+  return _.some(val, _.negate(iter));
 };
 stdlib.any = _.some;
 stdlib.none = function(val, iter){
-  return _.some(val, _.negate(iter));
+  return _.every(val, _.negate(iter));
 };
 stdlib.append = _.concat;
 stdlib.collect = _.groupBy;
@@ -148,5 +148,21 @@ stdlib.index = _.indexOf;
 stdlib.join = _.join;
 stdlib.length = _.size;
 stdlib.map = _.map;
+stdlib.pairwise = _.zipWith;
+stdlib.reduce = function(val, iter, dflt){
+  if(_.size(val) === 0){
+    if(arguments.length < 3){
+      return 0;
+    }
+    return dflt;
+  }
+  if(_.size(val) === 1){
+    if(arguments.length < 3){
+      return _.head(val);
+    }
+    return iter(dflt, _.head(val));
+  }
+  return _.reduce.apply(null, arguments);
+};
 
 module.exports = stdlib;

@@ -144,5 +144,19 @@ test("Collection operators", function(t){
   tf("map", [a, function(x){return x + 2;}], [5, 6, 7]);
   t.deepEquals(a, [3, 4, 5], "should not be mutated");
 
+  tf("pairwise", [a, [6, 7, 8], function(x, y){return x + y;}], [9, 11, 13]);
+  t.deepEquals(a, [3, 4, 5], "should not be mutated");
+
+  tf("reduce", [a, function(a,b){return a+b;}], 12);
+  tf("reduce", [a, function(a,b){return a+b;}, 10], 22);
+  tf("reduce", [a, function(a,b){return a-b;}], -6);
+  t.deepEquals(a, [3, 4, 5], "should not be mutated");
+
+  tf("reduce", [[], function(a,b){return a+b;}], 0);
+  tf("reduce", [[], function(a,b){return a+b;}, 15], 15);
+
+  tf("reduce", [[76], function(a,b){return a+b;}], 76);
+  tf("reduce", [[76], function(a,b){return a+b;}, 15], 91);
+
   t.end();
 });
