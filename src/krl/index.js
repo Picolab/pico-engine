@@ -1,4 +1,4 @@
 module.exports = {
-  stdlib: require('./stdlib'),
+  stdlib: require('krl-stdlib'),
   Closure: require('./Closure')
 };
