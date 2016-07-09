@@ -142,13 +142,29 @@ stdlib.none = function(val, iter){
 };
 stdlib.append = _.concat;
 stdlib.collect = _.groupBy;
-stdlib.filter = _.filter;
+stdlib.filter = function(val, iter){
+  if(_.isPlainObject(val)){
+    var r = {};
+    _.each(val, function(v, k, o){
+      if(iter(v, k, o)){
+        r[k] = v;
+      }
+    });
+    return r;
+  }
+  return _.filter(val, iter);
+};
 stdlib.head = _.head;
 stdlib.tail = _.tail;
 stdlib.index = _.indexOf;
 stdlib.join = _.join;
 stdlib.length = _.size;
-stdlib.map = _.map;
+stdlib.map = function(val, iter){
+  if(_.isPlainObject(val)){
+    return _.mapValues(val, iter);
+  }
+  return _.map(val, iter);
+};
 stdlib.pairwise = _.zipWith;
 stdlib.reduce = function(val, iter, dflt){
   if(_.size(val) === 0){
@@ -208,5 +224,38 @@ stdlib.sort = (function(){
     );
   };
 }());
+stdlib["delete"] = function(val, path){
+  //TODO optimize
+  var n_val = _.cloneDeep(val);
+  _.unset(n_val, path);
+  return n_val;
+};
+stdlib.put = function(val, path, to_set){
+  if(arguments.length < 3){
+    return _.assign({}, val, path);
+  }
+  //TODO optimize
+  var n_val = _.cloneDeep(val);
+  _.update(n_val, path, function(at_p){
+    return _.assign(at_p, to_set);
+  });
+  return n_val;
+};
+stdlib.encode = function(val){
+  //TODO options???
+  return JSON.stringify(val);
+};
+stdlib.keys = function(val, path){
+  if(path){
+    return _.keys(_.get(val, path));
+  }
+  return _.keys(val);
+};
+stdlib.values = function(val, path){
+  if(path){
+    return _.values(_.get(val, path));
+  }
+  return _.values(val);
+};
 
 module.exports = stdlib;

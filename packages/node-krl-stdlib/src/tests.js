@@ -103,6 +103,21 @@ test("Collection operators", function(t){
 
   var a = [3, 4, 5];
 
+  var obj = {
+    "colors": "many",
+    "pi": [3, 1, 4, 1, 5, 6, 9],
+    "foo": {"bar": {"10": "I like cheese"}}
+  };
+  var obj2 = {"a": 1, "b": 2, "c": 3};
+  var assertObjNotMutated = function(){
+    t.deepEquals(obj, {
+      "colors": "many",
+      "pi": [3, 1, 4, 1, 5, 6, 9],
+      "foo": {"bar": {"10": "I like cheese"}}
+    }, "should not be mutated");
+    t.deepEquals(obj2, {"a": 1, "b": 2, "c": 3}, "should not be mutated");
+  };
+
   _.each({
     "all":    [ true, false, false],
     "notall": [false,  true,  true],
@@ -131,6 +146,9 @@ test("Collection operators", function(t){
   tf("filter", [a, function(x){return x < 5;}], [3, 4]);
   tf("filter", [a, function(x){return x !== 4;}], [3, 5]);
   t.deepEquals(a, [3, 4, 5], "should not be mutated");
+  tf("filter", [obj2, function(v, k){return v < 3;}], {"a":1,"b":2});
+  tf("filter", [obj2, function(v, k){return k === "b";}], {"b":2});
+  assertObjNotMutated();
 
   tf("head", [a], 3);
   t.deepEquals(a, [3, 4, 5], "should not be mutated");
@@ -147,6 +165,8 @@ test("Collection operators", function(t){
 
   tf("map", [a, function(x){return x + 2;}], [5, 6, 7]);
   t.deepEquals(a, [3, 4, 5], "should not be mutated");
+  tf("map", [obj2, function(x){return x + 2;}], {"a":3,"b":4,"c":5});
+  assertObjNotMutated();
 
   tf("pairwise", [a, [6, 7, 8], function(x, y){return x + y;}], [9, 11, 13]);
   t.deepEquals(a, [3, 4, 5], "should not be mutated");
@@ -186,6 +206,44 @@ test("Collection operators", function(t){
     return a < b ? -1 : (a == b ? 0 : 1);
   }], [1, 3, 4, 5, 12]);
   t.deepEquals(to_sort, [5, 3, 4, 1, 12], "should not be mutated");
+
+  tf("delete", [obj, ["foo", "bar", 10]], {
+    "colors": "many",
+    "pi": [3, 1, 4, 1, 5, 6, 9],
+    "foo": {"bar": {}}//or "foo": {} ???
+  });
+  assertObjNotMutated();
+
+  tf("encode", [{blah: 1}], "{\"blah\":1}");
+  tf("encode", [[1, 2]], "[1,2]");
+
+  tf("keys", [obj], ["colors", "pi", "foo"]);
+  tf("keys", [obj, ["foo", "bar"]], ["10"]);
+  assertObjNotMutated();
+
+  tf("values", [obj], [
+    "many",
+    [3, 1, 4, 1, 5, 6, 9],
+    {"bar": {"10": "I like cheese"}}
+  ]);
+  tf("values", [obj, ["foo", "bar"]], ["I like cheese"]);
+  assertObjNotMutated();
+
+  tf("put", [obj, ["foo"], {baz: "qux"}], {
+    "colors": "many",
+    "pi": [3, 1, 4, 1, 5, 6, 9],
+    "foo": {
+      "bar": {"10": "I like cheese"},
+      "baz": "qux"
+    }
+  });
+  tf("put", [obj, {flop: 12}], {
+    "colors": "many",
+    "pi": [3, 1, 4, 1, 5, 6, 9],
+    "foo": {"bar": {"10": "I like cheese"}},
+    "flop": 12
+  });
+  assertObjNotMutated();
 
   t.end();
 });
