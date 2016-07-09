@@ -144,6 +144,7 @@ stdlib.append = _.concat;
 stdlib.collect = _.groupBy;
 stdlib.filter = _.filter;
 stdlib.head = _.head;
+stdlib.tail = _.tail;
 stdlib.index = _.indexOf;
 stdlib.join = _.join;
 stdlib.length = _.size;
@@ -187,5 +188,25 @@ stdlib.splice = function(val, start, n_elms, value){
   }
   return _.concat(part1, value, part2);
 };
+stdlib.sort = (function(){
+  var sorters = {
+    "numeric": function(a, b){
+      return a < b ? -1 : (a == b ? 0 : 1);
+    },
+    "ciremun": function(a, b){
+      return a < b ? 1 : (a == b ? 0 : -1);
+    }
+  };
+  return function(val, sort_by){
+    if(sort_by === "reverse"){
+      //TODO optimize by making a "reverse" sorter function
+      return _.clone(val).sort().reverse();
+    }
+    return _.clone(val).sort(_.has(sorters, sort_by)
+      ? sorters[sort_by]
+      : sort_by
+    );
+  };
+}());
 
 module.exports = stdlib;

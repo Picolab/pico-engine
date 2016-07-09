@@ -136,6 +136,10 @@ test("Collection operators", function(t){
   t.deepEquals(a, [3, 4, 5], "should not be mutated");
   tf("head", [[]], void 0);
 
+  tf("tail", [a], [4, 5]);
+  t.deepEquals(a, [3, 4, 5], "should not be mutated");
+  tf("tail", [[]], []);
+
   tf("join", [a, ";"], "3;4;5");
   t.deepEquals(a, [3, 4, 5], "should not be mutated");
 
@@ -172,6 +176,16 @@ test("Collection operators", function(t){
   tf("splice", [vegies, 1, 10], ["corn"]);
   tf("splice", [vegies, 1, 10, "liver"], ["corn", "liver"]);
   t.deepEquals(vegies, ["corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"], "should not be mutated");
+
+  var to_sort = [5, 3, 4, 1, 12];
+  tf("sort", [to_sort], [1, 12, 3, 4, 5]);
+  tf("sort", [to_sort, "reverse"], [5, 4, 3, 12, 1]);
+  tf("sort", [to_sort, "numeric"], [1, 3, 4, 5, 12]);
+  tf("sort", [to_sort, "ciremun"], [12, 5, 4, 3, 1]);
+  tf("sort", [to_sort, function(a, b){
+    return a < b ? -1 : (a == b ? 0 : 1);
+  }], [1, 3, 4, 5, 12]);
+  t.deepEquals(to_sort, [5, 3, 4, 1, 12], "should not be mutated");
 
   t.end();
 });
