@@ -3,12 +3,15 @@ var url = require('url');
 var path = require('path');
 var http = require('http');
 var PicoEngine = require('./');
+var installRuleset = require('./installRuleset');
 var HttpHashRouter = require('http-hash-router');
 
 ////////////////////////////////////////////////////////////////////////////////
 var port = process.env.PORT || 8080;
 var pico_engine_home = process.env.PICO_ENGINE_HOME || path.resolve(__dirname, '..');
 ////////////////////////////////////////////////////////////////////////////////
+
+var rulesets_dir = path.resolve(pico_engine_home, 'rulesets');
 
 var pe = PicoEngine({
   db: {
@@ -112,6 +115,11 @@ router.set('/', function(req, res, route){
     html += '<div style="margin-left:2em">';
     html += '<a href="/api/new-pico">add pico</a>';
     html += '</div>';
+    html += '<h1>Rulesets</h1>';
+    html += '<form action="/api/ruleset/install" method="GET">';
+    html += '<textarea name="src"></textarea>';
+    html += '<button type="submit">install ruleset</button>';
+    html += '</form>';
     html += '<hr/>';
     html += '<pre>' + JSON.stringify(db_data, undefined, 2) + '</pre>';
     res.end(html);
@@ -152,6 +160,15 @@ router.set('/api/pico/:id/rm-ruleset/:rid', function(req, res, route){
 
 router.set('/api/pico/:id/add-ruleset', function(req, res, route){
   pe.db.addRuleset({pico_id: route.params.id, rid: route.data.rid}, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
+router.set('/api/ruleset/install', function(req, res, route){
+  var src = _.get(url.parse(req.url, true), ['query', 'src']);
+
+  installRuleset(rulesets_dir, src, function(err){
     if(err) return errResp(res, err);
     jsonResp(res, {ok: true});
   });
