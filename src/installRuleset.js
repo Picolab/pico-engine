@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var spawn = require('child_process').spawn;
 var crypto = require('crypto');
 var mkdirp = require('mkdirp');
 
@@ -28,21 +29,54 @@ var storeFile = function(file_path, src, callback){
   });
 };
 
+var compileFile = function(src_file, out_file, callback){
+  var src = fs.createReadStream(src_file);
+  var out = fs.createWriteStream(out_file, {
+    mode: 0660// eslint-disable-line
+  });
+
+  //spawn a process, so we don't lock up the running server
+  var proc = spawn('krl-compiler', [], {
+    cwd: path.resolve(__dirname, '../node_modules/krl-compiler/bin')//this seems a bit hacky
+  });
+
+  var err_msg = '';
+  proc.stderr.on('data', function(data){
+    err_msg += data;
+  });
+  proc.on('close', function(code){
+    if(code === 0){
+      return callback();//all is well
+    }
+    callback(new Error('Failed to compile: ' + err_msg));
+  });
+
+  proc.stdout.pipe(out);
+  src.pipe(proc.stdin);
+};
+
 module.exports = function(rulesets_dir, src, callback){
+  src = src + ' ';
   var shasum = crypto.createHash('sha256');
   shasum.update(src);
   var hash = shasum.digest('hex');
-  var file_path = path.join(
+  var hash_path = path.join(
     rulesets_dir,
     hash.substr(0, 2),
     hash.substr(2, 2),
-    hash + '.krl'
+    hash
   );
-  fsExist(file_path, function(err, does_exist){
+  var krl_path = hash_path + '.krl';
+  var js_path = hash_path + '.js';
+  fsExist(krl_path, function(err, does_exist){
     if(err) return callback(err);
     if(does_exist){
-      return callback(undefined, 'already exists');
+      compileFile(krl_path, js_path, callback);
+      return;
     }
-    storeFile(file_path, src, callback);
+    storeFile(krl_path, src, function(err){
+      if(err) return callback(err);
+      compileFile(krl_path, js_path, callback);
+    });
   });
 };
