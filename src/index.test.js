@@ -1,7 +1,20 @@
 var _ = require("lodash");
 var λ = require("contra");
 var test = require("tape");
-var mkTestPicoEngine = require("./mkTestPicoEngine");
+var mkTestPicoEngineORIG = require("./mkTestPicoEngine");
+
+var mkTestPicoEngine = function(){
+  return mkTestPicoEngineORIG({
+    rulesets: [
+      "hello-world",
+      "events",
+      "persistent",
+      "scope",
+      "operators",
+      "chevron"
+    ]
+  });
+};
 
 var omitMeta = function(resp){
   if(!_.has(resp, "directives")){

@@ -24,8 +24,8 @@ var mkCTX = function(ctx){
 
 var rulesets = {};
 var salience_graph = {};
-var doInstallRuleset = function(path){
-  var rs = require("../test-rulesets/" + path);
+
+var doInstallRuleset = function(rs){
   rs.rid = rs.name;
   rs.scope = SymbolTable();
   if(_.isFunction(rs.global)){
@@ -46,19 +46,12 @@ var doInstallRuleset = function(path){
   rulesets[rs.rid] = rs;
 };
 
-var installRuleset = function(path){
-  applyInFiber(doInstallRuleset, null, [path], function(err){
+var directInstallRuleset = function(rs){
+  applyInFiber(doInstallRuleset, null, [rs], function(err){
     //TODO better error handling when rulesets fail to load
     if(err) throw err;
   });
 };
-
-installRuleset("hello-world");
-installRuleset("events");
-installRuleset("persistent");
-installRuleset("scope");
-installRuleset("operators");
-installRuleset("chevron");
 
 module.exports = function(conf){
   var rulesets_dir = conf.rulesets_dir;
@@ -82,6 +75,7 @@ module.exports = function(conf){
   };
 
   return {
+    directInstallRuleset: directInstallRuleset,
     db: db,
     installRuleset: function(rs_name, callback){
       db.getEnableRuleset(rs_name, function(err, data){
