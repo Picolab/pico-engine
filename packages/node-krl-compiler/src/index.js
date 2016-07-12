@@ -22,6 +22,7 @@ module.exports = function(input, options){
     "body": _.isArray(body) ? body : []
   }, {
     format: {
+      quotes: "double",
       indent: {
         style: "  "
       }
