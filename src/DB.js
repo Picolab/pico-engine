@@ -156,10 +156,10 @@ module.exports = function(opts){
         callback(undefined, hash);
       });
     },
-    installRuleset: function(hash, callback){
+    enableRuleset: function(hash, callback){
       ldb.get(["rulesets", "krl", hash], function(err, data){
         if(err) return callback(err);
-        ldb.put(["rulesets", "installed", data.rs_name], {
+        ldb.put(["rulesets", "enabled", data.rs_name], {
           hash: hash,
           timestamp: (new Date()).toISOString()
         }, callback);

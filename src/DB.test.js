@@ -76,7 +76,7 @@ test("DB - registerRuleset", function(t){
   });
 });
 
-test("DB - installRuleset", function(t){
+test("DB - enableRuleset", function(t){
   var pe = mkTestPicoEngine();
 
   var krl_src = "ruleset io.picolabs.cool {}";
@@ -90,7 +90,7 @@ test("DB - installRuleset", function(t){
       pe.db.registerRuleset(krl_src, callback);
     },
     function(hash, callback){
-      pe.db.installRuleset(hash, function(err){
+      pe.db.enableRuleset(hash, function(err){
         callback(err, hash);
       });
     },
@@ -102,7 +102,7 @@ test("DB - installRuleset", function(t){
     function(db, hash, callback){
       t.deepEquals(_.get(db, [
         "rulesets",
-        "installed",
+        "enabled",
         "io.picolabs.cool",
         "hash"
       ]), hash);
