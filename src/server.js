@@ -124,6 +124,8 @@ router.set("/", function(req, res, route){
           html += timestamp + " | " + hash + " | ";
           if(hash === enabled_hash){
             html += "<a href=\"/api/ruleset/disable/"+rs_data.rs_name+"\">disable</a>";
+            html += " | ";
+            html += "<a href=\"/api/ruleset/install/"+rs_data.rs_name+"\">install</a>";
           }else{
             html += "<a href=\"/api/ruleset/enable/"+hash+"\">enable</a>";
           }
@@ -192,6 +194,13 @@ router.set("/api/ruleset/register", function(req, res, route){
 
 router.set("/api/ruleset/enable/:hash", function(req, res, route){
   pe.db.enableRuleset(route.params.hash, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
+router.set("/api/ruleset/install/:rid", function(req, res, route){
+  pe.installRuleset(route.params.rid, function(err){
     if(err) return errResp(res, err);
     jsonResp(res, {ok: true});
   });

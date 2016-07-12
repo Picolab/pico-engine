@@ -6,6 +6,7 @@ var krl = {
   Closure: require("./KRLClosure")
 };
 var Future = require("fibers/future");
+var compiler = require("krl-compiler");
 var evalRule = require("./evalRule");
 var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
@@ -46,11 +47,12 @@ var doInstallRuleset = function(rs){
   rulesets[rs.rid] = rs;
 };
 
-var directInstallRuleset = function(rs){
-  applyInFiber(doInstallRuleset, null, [rs], function(err){
+var directInstallRuleset = function(rs, callback){
+  callback = callback || function(err){
     //TODO better error handling when rulesets fail to load
     if(err) throw err;
-  });
+  };
+  applyInFiber(doInstallRuleset, null, [rs], callback);
 };
 
 module.exports = function(conf){
@@ -77,14 +79,23 @@ module.exports = function(conf){
   return {
     directInstallRuleset: directInstallRuleset,
     db: db,
-    installRuleset: function(rs_name, callback){
-      db.getEnableRuleset(rs_name, function(err, data){
+    installRuleset: function(rid, callback){
+      db.getEnableRuleset(rid, function(err, data){
         if(err) return callback(err);
         if(rulesets_dir){
           //rulesets_dir / data.hash + ".krl";
           //TODO store the ruleset and `require` it
         }else{
           //TODO just install the rulesets in memory via `eval`
+          var rs;
+          try{
+            var js = compiler(data.src);
+            rs = eval(js);
+          }catch(err){
+            rs = undefined;
+            throw err;//TODO handle this somehow?
+          }
+          directInstallRuleset(rs, callback);
         }
       });
     },
