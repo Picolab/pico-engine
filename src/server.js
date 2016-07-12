@@ -10,9 +10,8 @@ var port = process.env.PORT || 8080;
 var pico_engine_home = process.env.PICO_ENGINE_HOME || path.resolve(__dirname, "..");
 ////////////////////////////////////////////////////////////////////////////////
 
-var rulesets_dir = path.resolve(pico_engine_home, "rulesets");
-
 var pe = PicoEngine({
+  rulesets_dir: path.resolve(pico_engine_home, "rulesets"),
   db: {
     path: path.join(pico_engine_home, "db")
   }

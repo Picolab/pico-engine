@@ -61,6 +61,7 @@ installRuleset("operators");
 installRuleset("chevron");
 
 module.exports = function(conf){
+  var rulesets_dir = conf.rulesets_dir;
   var db = Future.wrap(DB(conf.db));
 
   var mkPersistent = function(pico_id, rid){
@@ -82,6 +83,14 @@ module.exports = function(conf){
 
   return {
     db: db,
+    installRuleset: function(hash_id){
+      //TODO enable it first in the DB
+      if(rulesets_dir){
+        //TODO store the ruleset and `require` it
+      }else{
+        //TODO just install the rulesets in memory via `eval`
+      }
+    },
     signalEvent: function(event, callback){
       event.timestamp = new Date();
       event.getAttrMatches = function(pairs){
