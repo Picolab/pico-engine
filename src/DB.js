@@ -165,6 +165,9 @@ module.exports = function(opts){
         }, callback);
       });
     },
+    disableRuleset: function(rid, callback){
+      ldb.del(["rulesets", "enabled", rid], callback);
+    },
     getEnableRuleset: function(rs_name, callback){
       ldb.get(["rulesets", "enabled", rs_name], function(err, data_e){
         if(err) return callback(err);
@@ -176,7 +179,7 @@ module.exports = function(opts){
             rs_name: data_k.rs_name,
             timestamp_register: data_k.timestamp,
             timestamp_enable: data_e.timestamp
-        });
+          });
         });
       });
     }

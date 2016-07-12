@@ -114,6 +114,24 @@ router.set("/", function(req, res, route){
     html += "<a href=\"/api/new-pico\">add pico</a>";
     html += "</div>";
     html += "<h1>Rulesets</h1>";
+    _.each(_.get(db_data, ["rulesets", "krl"]), function(rs_data, hash){
+      var enabled_hash = _.get(db_data, ["rulesets", "enabled", rs_data.rs_name, "hash"]);
+      html += "<div style=\"margin-left:2em\">";
+      html += "<h2>"+rs_data.rs_name+"</h2>";
+      _.each(_.get(db_data, ["rulesets", "versions", rs_data.rs_name]), function(info, timestamp){
+        _.each(info, function(is_on, hash){
+          html += "<div style=\"margin-left:2em\">";
+          html += timestamp + " | " + hash + " | ";
+          if(hash === enabled_hash){
+            html += "<a href=\"/api/ruleset/disable/"+rs_data.rs_name+"\">disable</a>";
+          }else{
+            html += "<a href=\"/api/ruleset/enable/"+hash+"\">enable</a>";
+          }
+          html += "</div>";
+        });
+      });
+      html += "</div>";
+    });
     html += "<form action=\"/api/ruleset/register\" method=\"GET\">";
     html += "<textarea name=\"src\"></textarea>";
     html += "<button type=\"submit\">register ruleset</button>";
@@ -167,6 +185,20 @@ router.set("/api/ruleset/register", function(req, res, route){
   var src = _.get(url.parse(req.url, true), ["query", "src"]);
 
   pe.db.registerRuleset(src, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
+router.set("/api/ruleset/enable/:hash", function(req, res, route){
+  pe.db.enableRuleset(route.params.hash, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
+router.set("/api/ruleset/disable/:rid", function(req, res, route){
+  pe.db.disableRuleset(route.params.rid, function(err){
     if(err) return errResp(res, err);
     jsonResp(res, {ok: true});
   });
