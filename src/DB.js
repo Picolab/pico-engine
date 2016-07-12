@@ -135,6 +135,7 @@ module.exports = function(opts){
 
       var ops = [
         {
+          //the source of truth for a ruleset version
           type: "put",
           key: ["rulesets", "krl", hash],
           value: {
@@ -144,10 +145,18 @@ module.exports = function(opts){
           }
         },
         {
+          //index to view all the versions of a given ruleset name
           type: "put",
           key: ["rulesets", "versions", rs_name, timestamp, hash],
+          value: true
+        },
+        {
+          //the rulesets that are in use
+          type: "put",
+          key: ["rulesets", "installed", rs_name],
           value: {
-            src: krl_src
+            hash: hash,
+            timestamp: timestamp
           }
         }
       ];

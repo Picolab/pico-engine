@@ -59,8 +59,10 @@ test("DB - installRuleset", function(t){
     rs_name: rs_name,
     timestamp: timestamp
   });
-  _.set(expected, ["rulesets", "versions", rs_name, timestamp, hash], {
-    src: krl_src
+  _.set(expected, ["rulesets", "versions", rs_name, timestamp, hash], true);
+  _.set(expected, ["rulesets", "installed", rs_name], {
+    hash: hash,
+    timestamp: timestamp
   });
 
   λ.series({
