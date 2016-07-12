@@ -166,13 +166,17 @@ module.exports = function(opts){
       });
     },
     getEnableRuleset: function(rs_name, callback){
-      ldb.get(["rulesets", "enabled", rs_name], function(err, data){
+      ldb.get(["rulesets", "enabled", rs_name], function(err, data_e){
         if(err) return callback(err);
-        callback(undefined, {
-          //src: krl_src,
-          hash: data.hash,
-          rs_name: rs_name,
-          enabled_timestamp: data.timestamp
+        ldb.get(["rulesets", "krl", data_e.hash], function(err, data_k){
+          if(err) return callback(err);
+          callback(undefined, {
+            src: data_k.src,
+            hash: data_e.hash,
+            rs_name: data_k.rs_name,
+            timestamp_register: data_k.timestamp,
+            timestamp_enable: data_e.timestamp
+        });
         });
       });
     }

@@ -106,7 +106,19 @@ test("DB - enableRuleset", function(t){
         "io.picolabs.cool",
         "hash"
       ]), hash);
-      callback();
+      pe.db.getEnableRuleset("io.picolabs.cool", function(err, data){
+        if(err) return callback(err);
+        t.equals(data.src, krl_src);
+        t.equals(data.hash, hash);
+        t.equals(data.rs_name, "io.picolabs.cool");
+        t.equals(data.timestamp_enable, _.get(db, [
+          "rulesets",
+          "enabled",
+          "io.picolabs.cool",
+          "timestamp"
+        ]));
+        callback();
+      });
     }
   ], t.end);
 });
