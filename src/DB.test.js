@@ -43,3 +43,25 @@ test('DB - write and read', function(t){
     t.end();
   });
 });
+
+test('DB - installRuleset', function(t){
+  var pe = mkTestPicoEngine();
+
+  var krl_src = 'ruleset io.picolabs.cool {}';
+
+  λ.series({
+    start_db: λ.curry(pe.db.toObj),
+    install: λ.curry(pe.db.installRuleset, krl_src),
+    end_db: λ.curry(pe.db.toObj)
+  }, function(err, data){
+    if(err) return t.end(err);
+
+    t.deepEquals(data.start_db, {});
+
+    t.deepEquals(data.end_db, {rulesets: {krl: {
+      '7d71c05bc934b0d41fdd2055c7644fc4d0d3eabf303d67fb97f604eaab2c0aa1': krl_src
+    }}});
+
+    t.end();
+  });
+});

@@ -1,5 +1,6 @@
 var _ = require('lodash');
 var cuid = require('cuid');
+var crypto = require('crypto');
 var levelup = require('levelup');
 var bytewise = require('bytewise');
 
@@ -115,6 +116,12 @@ module.exports = function(opts){
     putStateMachineState: function(pico_id, rule, state, callback){
       var key = ['state_machine', pico_id, rule.rid, rule.rule_name];
       ldb.put(key, state || 'start', callback);
+    },
+    installRuleset: function(krl_src, callback){
+      var shasum = crypto.createHash('sha256');
+      shasum.update(krl_src);
+      var hash = shasum.digest('hex');
+      ldb.put(['rulesets', 'krl', hash], krl_src, callback);
     }
   };
 };
