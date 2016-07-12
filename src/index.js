@@ -89,7 +89,7 @@ module.exports = function(conf){
           //TODO just install the rulesets in memory via `eval`
           var rs;
           try{
-            var js = compiler(data.src);
+            var js = compiler(data.src).code;
             rs = eval(js);
           }catch(err){
             rs = undefined;
