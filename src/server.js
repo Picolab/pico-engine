@@ -3,7 +3,6 @@ var url = require("url");
 var path = require("path");
 var http = require("http");
 var PicoEngine = require("./");
-var installRuleset = require("./installRuleset");
 var HttpHashRouter = require("http-hash-router");
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -116,9 +115,9 @@ router.set("/", function(req, res, route){
     html += "<a href=\"/api/new-pico\">add pico</a>";
     html += "</div>";
     html += "<h1>Rulesets</h1>";
-    html += "<form action=\"/api/ruleset/install\" method=\"GET\">";
+    html += "<form action=\"/api/ruleset/register\" method=\"GET\">";
     html += "<textarea name=\"src\"></textarea>";
-    html += "<button type=\"submit\">install ruleset</button>";
+    html += "<button type=\"submit\">register ruleset</button>";
     html += "</form>";
     html += "<hr/>";
     html += "<pre>" + JSON.stringify(db_data, undefined, 2) + "</pre>";
@@ -165,10 +164,10 @@ router.set("/api/pico/:id/add-ruleset", function(req, res, route){
   });
 });
 
-router.set("/api/ruleset/install", function(req, res, route){
+router.set("/api/ruleset/register", function(req, res, route){
   var src = _.get(url.parse(req.url, true), ["query", "src"]);
 
-  installRuleset(rulesets_dir, src, function(err){
+  pe.db.registerRuleset(src, function(err){
     if(err) return errResp(res, err);
     jsonResp(res, {ok: true});
   });
