@@ -83,13 +83,16 @@ module.exports = function(conf){
 
   return {
     db: db,
-    installRuleset: function(hash_id){
-      //TODO enable it first in the DB
-      if(rulesets_dir){
-        //TODO store the ruleset and `require` it
-      }else{
-        //TODO just install the rulesets in memory via `eval`
-      }
+    installRuleset: function(rs_name, callback){
+      db.getEnableRuleset(rs_name, function(err, data){
+        if(err) return callback(err);
+        if(rulesets_dir){
+          //rulesets_dir / data.hash + ".krl";
+          //TODO store the ruleset and `require` it
+        }else{
+          //TODO just install the rulesets in memory via `eval`
+        }
+      });
     },
     signalEvent: function(event, callback){
       event.timestamp = new Date();

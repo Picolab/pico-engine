@@ -164,6 +164,17 @@ module.exports = function(opts){
           timestamp: (new Date()).toISOString()
         }, callback);
       });
+    },
+    getEnableRuleset: function(rs_name, callback){
+      ldb.get(["rulesets", "enabled", rs_name], function(err, data){
+        if(err) return callback(err);
+        callback(undefined, {
+          //src: krl_src,
+          hash: data.hash,
+          rs_name: rs_name,
+          enabled_timestamp: data.timestamp
+        });
+      });
     }
   };
 };
