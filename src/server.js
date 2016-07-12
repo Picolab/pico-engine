@@ -115,23 +115,23 @@ router.set("/", function(req, res, route){
     html += "</div>";
     html += "<h1>Rulesets</h1>";
     _.each(_.get(db_data, ["rulesets", "krl"]), function(rs_data, hash){
-      var enabled_hash = _.get(db_data, ["rulesets", "enabled", rs_data.rs_name, "hash"]);
+      var enabled_hash = _.get(db_data, ["rulesets", "enabled", rs_data.rid, "hash"]);
       html += "<div style=\"margin-left:2em\">";
-      html += "<h2>"+rs_data.rs_name+"</h2>";
-      _.each(_.get(db_data, ["rulesets", "versions", rs_data.rs_name]), function(info, timestamp){
+      html += "<h2>"+rs_data.rid+"</h2>";
+      _.each(_.get(db_data, ["rulesets", "versions", rs_data.rid]), function(info, timestamp){
         _.each(info, function(is_on, hash){
           html += "<div style=\"margin-left:2em\">";
           html += timestamp + " | " + hash + " | ";
           if(hash === enabled_hash){
-            html += "<a href=\"/api/ruleset/disable/"+rs_data.rs_name+"\">disable</a>";
+            html += "<a href=\"/api/ruleset/disable/"+rs_data.rid+"\">disable</a>";
           }else{
             html += "<a href=\"/api/ruleset/enable/"+hash+"\">enable</a>";
           }
           html += " | ";
-          if(pe.isInstalled(rs_data.rs_name)){
+          if(pe.isInstalled(rs_data.rid)){
             html += "uninstall";
           }else{
-            html += "<a href=\"/api/ruleset/install/"+rs_data.rs_name+"\">install</a>";
+            html += "<a href=\"/api/ruleset/install/"+rs_data.rid+"\">install</a>";
           }
           html += "</div>";
         });

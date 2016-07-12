@@ -124,8 +124,8 @@ module.exports = function(opts){
         timestamp = arguments[2];//for testing only
       }//for testing only
 
-      var rs_name = extractRulesetName(krl_src);
-      if(!rs_name){
+      var rid = extractRulesetName(krl_src);
+      if(!rid){
         callback(new Error("Ruleset name not found"));
         return;
       }
@@ -140,14 +140,14 @@ module.exports = function(opts){
           key: ["rulesets", "krl", hash],
           value: {
             src: krl_src,
-            rs_name: rs_name,
+            rid: rid,
             timestamp: timestamp
           }
         },
         {
           //index to view all the versions of a given ruleset name
           type: "put",
-          key: ["rulesets", "versions", rs_name, timestamp, hash],
+          key: ["rulesets", "versions", rid, timestamp, hash],
           value: true
         }
       ];
@@ -159,7 +159,7 @@ module.exports = function(opts){
     enableRuleset: function(hash, callback){
       ldb.get(["rulesets", "krl", hash], function(err, data){
         if(err) return callback(err);
-        ldb.put(["rulesets", "enabled", data.rs_name], {
+        ldb.put(["rulesets", "enabled", data.rid], {
           hash: hash,
           timestamp: (new Date()).toISOString()
         }, callback);
@@ -168,15 +168,15 @@ module.exports = function(opts){
     disableRuleset: function(rid, callback){
       ldb.del(["rulesets", "enabled", rid], callback);
     },
-    getEnableRuleset: function(rs_name, callback){
-      ldb.get(["rulesets", "enabled", rs_name], function(err, data_e){
+    getEnableRuleset: function(rid, callback){
+      ldb.get(["rulesets", "enabled", rid], function(err, data_e){
         if(err) return callback(err);
         ldb.get(["rulesets", "krl", data_e.hash], function(err, data_k){
           if(err) return callback(err);
           callback(undefined, {
             src: data_k.src,
             hash: data_e.hash,
-            rs_name: data_k.rs_name,
+            rid: data_k.rid,
             timestamp_register: data_k.timestamp,
             timestamp_enable: data_e.timestamp
           });

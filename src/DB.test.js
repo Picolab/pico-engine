@@ -49,17 +49,17 @@ test("DB - registerRuleset", function(t){
   var pe = mkTestPicoEngine();
 
   var krl_src = "ruleset io.picolabs.cool {}";
-  var rs_name = "io.picolabs.cool";
+  var rid = "io.picolabs.cool";
   var hash = "7d71c05bc934b0d41fdd2055c7644fc4d0d3eabf303d67fb97f604eaab2c0aa1";
   var timestamp = (new Date()).toISOString();
 
   var expected = {};
   _.set(expected, ["rulesets", "krl", hash], {
     src: krl_src,
-    rs_name: rs_name,
+    rid: rid,
     timestamp: timestamp
   });
-  _.set(expected, ["rulesets", "versions", rs_name, timestamp, hash], true);
+  _.set(expected, ["rulesets", "versions", rid, timestamp, hash], true);
 
   λ.series({
     start_db: λ.curry(pe.db.toObj),
@@ -110,7 +110,7 @@ test("DB - enableRuleset", function(t){
         if(err) return callback(err);
         t.equals(data.src, krl_src);
         t.equals(data.hash, hash);
-        t.equals(data.rs_name, "io.picolabs.cool");
+        t.equals(data.rid, "io.picolabs.cool");
         t.equals(data.timestamp_enable, _.get(db, [
           "rulesets",
           "enabled",
