@@ -138,6 +138,9 @@ module.exports = function(conf){
       };
       db.getPicoByECI(event.eci, function(err, pico){
         if(err) return callback(err);
+        if(!pico){
+          return callback(new Error("Invalid eci: " + event.eci));
+        }
 
         var ctx_orig = mkCTX({
           pico: pico,
