@@ -5,7 +5,6 @@ var krl = {
   stdlib: require("krl-stdlib"),
   Closure: require("./KRLClosure")
 };
-var path = require("path");
 var Future = require("fibers/future");
 var compiler = require("krl-compiler");
 var evalRule = require("./evalRule");
@@ -13,8 +12,6 @@ var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
 var selectRulesToEval = require("./selectRulesToEval");
 var installRulesetFile = require("./installRulesetFile");
-
-var version_key = require("../package.json").version + "-" + require("krl-compiler/package.json").version;
 
 var getArg = function(args, name, index){
   return _.has(args, name)
@@ -83,28 +80,15 @@ module.exports = function(conf){
   var installRuleset = function(rid, callback){
     db.getEnableRuleset(rid, function(err, data){
       if(err) return callback(err);
-      var js_src;
-      try{
-        js_src = compiler(data.src).code;
-      }catch(err){
-        js_src = undefined;
-        throw err;//TODO handle this somehow?
-      }
       if(rulesets_dir){
-        var file = path.resolve(
-          rulesets_dir,
-          version_key,
-          data.hash.substr(0, 2),
-          data.hash.substr(2, 2),
-          data.hash + ".js"
-        );
-        installRulesetFile(file, js_src, function(err, rs){
+        installRulesetFile(rulesets_dir, data.hash, data.src, function(err, rs){
           if(err) return callback(err);
           directInstallRuleset(rs, callback);
         });
       }else{
         var rs;
         try{
+          var js_src = compiler(data.src).code;
           rs = eval(js_src);
         }catch(err){
           rs = undefined;
