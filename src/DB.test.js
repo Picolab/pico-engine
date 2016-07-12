@@ -70,12 +70,43 @@ test("DB - registerRuleset", function(t){
   }, function(err, data){
     if(err) return t.end(err);
     t.deepEquals(data.start_db, {});
+    t.deepEquals(data.install, hash);
     t.deepEquals(data.end_db, expected);
     t.end();
   });
 });
 
 test("DB - installRuleset", function(t){
+  var pe = mkTestPicoEngine();
+
+  var krl_src = "ruleset io.picolabs.cool {}";
   //TODO
-  t.end();
+  λ.waterfall([
+    function(callback){
+      pe.db.toObj(callback);
+    },
+    function(db, callback){
+      t.deepEquals(db, {});
+      pe.db.registerRuleset(krl_src, callback);
+    },
+    function(hash, callback){
+      pe.db.installRuleset(hash, function(err){
+        callback(err, hash);
+      });
+    },
+    function(hash, callback){
+      pe.db.toObj(function(err, db){
+        callback(err, db, hash);
+      });
+    },
+    function(db, hash, callback){
+      t.deepEquals(_.get(db, [
+        "rulesets",
+        "installed",
+        "io.picolabs.cool",
+        "hash"
+      ]), hash);
+      callback();
+    }
+  ], t.end);
 });

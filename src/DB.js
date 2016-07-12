@@ -151,16 +151,19 @@ module.exports = function(opts){
           value: true
         }
       ];
-      ldb.batch(ops, callback);
-    },
-    installRuleset: function(ruleset_hash_id, callback){
-      //TODO
-      /*
-      _.set(expected, ["rulesets", "installed", rs_name], {
-        hash: hash,
-        timestamp: timestamp
+      ldb.batch(ops, function(err){
+        if(err) return callback(err);
+        callback(undefined, hash);
       });
-      */
+    },
+    installRuleset: function(hash, callback){
+      ldb.get(["rulesets", "krl", hash], function(err, data){
+        if(err) return callback(err);
+        ldb.put(["rulesets", "installed", data.rs_name], {
+          hash: hash,
+          timestamp: (new Date()).toISOString()
+        }, callback);
+      });
     }
   };
 };
