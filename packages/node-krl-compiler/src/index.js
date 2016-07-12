@@ -1,9 +1,9 @@
-var _ = require('lodash');
-var btoa = require('btoa');
-var parser = require('krl-parser');
-var compile = require('./compile');
-var escodegen = require('escodegen');
-var EStreeLoc = require('estree-loc');
+var _ = require("lodash");
+var btoa = require("btoa");
+var parser = require("krl-parser");
+var compile = require("./compile");
+var escodegen = require("escodegen");
+var EStreeLoc = require("estree-loc");
 
 module.exports = function(input, options){
   options = options || {};
@@ -17,13 +17,13 @@ module.exports = function(input, options){
   });
 
   var out = escodegen.generate({
-    'loc': toLoc(0, src.length - 1),
-    'type': 'Program',
-    'body': _.isArray(body) ? body : []
+    "loc": toLoc(0, src.length - 1),
+    "type": "Program",
+    "body": _.isArray(body) ? body : []
   }, {
     format: {
       indent: {
-        style: '  '
+        style: "  "
       }
     },
     sourceMap: true,
@@ -36,9 +36,9 @@ module.exports = function(input, options){
   };
 
   if(options.inline_source_map){
-    r.code += '\n//# sourceMappingURL=data:application/json;base64,'
+    r.code += "\n//# sourceMappingURL=data:application/json;base64,"
       + btoa(out.map.toString())
-      + '\n';
+      + "\n";
   }
   return r;
 };

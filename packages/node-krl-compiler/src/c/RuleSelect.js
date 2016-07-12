@@ -1,14 +1,14 @@
-var _ = require('lodash');
+var _ = require("lodash");
 
 var wrapInOr = function(states){
   if(_.size(states) === 1){
     return _.head(states);
   }
-  return ['or', _.head(states), wrapInOr(_.tail(states))];
+  return ["or", _.head(states), wrapInOr(_.tail(states))];
 };
 
 var event_ops = {
-  'or': {
+  "or": {
     toLispArgs: function(ast, traverse){
       return _.map(ast.args, traverse);
     },
@@ -43,11 +43,11 @@ var event_ops = {
       stm[start].push([b, end]);
       states_that_leave_start.push(b);
 
-      stm[start].push([['not', wrapInOr(states_that_leave_start)], start]);
+      stm[start].push([["not", wrapInOr(states_that_leave_start)], start]);
       return stm;
     }
   },
-  'and': {
+  "and": {
     toLispArgs: function(ast, traverse){
       return _.map(ast.args, traverse);
     },
@@ -61,15 +61,15 @@ var event_ops = {
       stm[start] = [
         [a, s1],
         [b, s2],
-        [['not', ['or', a, b]], start]
+        [["not", ["or", a, b]], start]
       ];
       stm[s1] = [
         [b, end],
-        [['not', b], s1]
+        [["not", b], s1]
       ];
       stm[s2] = [
         [a, end],
-        [['not', a], s2]
+        [["not", a], s2]
       ];
       return stm;
     }
@@ -77,8 +77,8 @@ var event_ops = {
 };
 
 module.exports = function(ast, comp, e){
-  if(ast.kind !== 'when'){
-    throw new Error('RuleSelect.kind not supported: ' + ast.kind);
+  if(ast.kind !== "when"){
+    throw new Error("RuleSelect.kind not supported: " + ast.kind);
   }
   var ee_id = 0;
   var graph = {};
@@ -87,7 +87,7 @@ module.exports = function(ast, comp, e){
   var onEE = function(ast){
     var domain = ast.event_domain.value;
     var type = ast.event_type.value;
-    var id = 'expr_' + (ee_id++);
+    var id = "expr_" + (ee_id++);
 
     _.set(graph, [domain, type, id], true);
 
@@ -96,21 +96,21 @@ module.exports = function(ast, comp, e){
   };
 
   var traverse = function(ast){
-    if(ast.type === 'EventExpression'){
+    if(ast.type === "EventExpression"){
       return onEE(ast);
-    }else if(ast.type === 'EventOperator'){
+    }else if(ast.type === "EventOperator"){
       if(_.has(event_ops, ast.op)){
         return [ast.op].concat(event_ops[ast.op].toLispArgs(ast, traverse));
       }
-      throw new Error('EventOperator.op not supported: ' + ast.op);
+      throw new Error("EventOperator.op not supported: " + ast.op);
     }
-    throw new Error('invalid event ast node: ' + ast.type);
+    throw new Error("invalid event ast node: " + ast.type);
   };
 
   var newState = (function(){
     var i = 0;
     return function(){
-      var id = 'state_' + i;
+      var id = "state_" + i;
       i++;
       return id;
     };
@@ -123,22 +123,22 @@ module.exports = function(ast, comp, e){
     if(_.has(event_ops, lisp[0])){
       return event_ops[lisp[0]].mkStateMachine(start, end, lisp.slice(1), newState, evalEELisp);
     }else{
-      throw new Error('EventOperator.op not supported: ' + ast.op);
+      throw new Error("EventOperator.op not supported: " + ast.op);
     }
   };
 
   var lisp = traverse(ast.event);
-  var state_machine = evalEELisp(lisp, 'start', 'end');
+  var state_machine = evalEELisp(lisp, "start", "end");
   if(_.isString(state_machine)){
-    state_machine = {'start': [
-      [lisp, 'end'],
-      [['not', lisp], 'start']
+    state_machine = {"start": [
+      [lisp, "end"],
+      [["not", lisp], "start"]
     ]};
   }
 
-  return e('obj', {
-    graph: e('json', graph),
-    eventexprs: e('obj', eventexprs),
-    state_machine: e('json', state_machine)
+  return e("obj", {
+    graph: e("json", graph),
+    eventexprs: e("obj", eventexprs),
+    state_machine: e("json", state_machine)
   });
 };
