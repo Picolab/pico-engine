@@ -124,10 +124,14 @@ router.set("/", function(req, res, route){
           html += timestamp + " | " + hash + " | ";
           if(hash === enabled_hash){
             html += "<a href=\"/api/ruleset/disable/"+rs_data.rs_name+"\">disable</a>";
-            html += " | ";
-            html += "<a href=\"/api/ruleset/install/"+rs_data.rs_name+"\">install</a>";
           }else{
             html += "<a href=\"/api/ruleset/enable/"+hash+"\">enable</a>";
+          }
+          html += " | ";
+          if(pe.isInstalled(rs_data.rs_name)){
+            html += "uninstall";
+          }else{
+            html += "<a href=\"/api/ruleset/install/"+rs_data.rs_name+"\">install</a>";
           }
           html += "</div>";
         });

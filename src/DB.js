@@ -182,6 +182,14 @@ module.exports = function(opts){
           });
         });
       });
+    },
+    getAllEnableRulesets: function(callback){
+      //TODO optimize
+      dbToObj(ldb, function(err, db){
+        if(err) return callback(err);
+        var enabled = _.get(db, ["rulesets", "enabled"], {});
+        callback(undefined, _.keys(enabled));
+      });
     }
   };
 };

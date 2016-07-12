@@ -57,6 +57,7 @@ var directInstallRuleset = function(rs, callback){
 
 module.exports = function(conf){
   var rulesets_dir = conf.rulesets_dir;
+  rulesets_dir = null;
   var db = Future.wrap(DB(conf.db));
 
   var mkPersistent = function(pico_id, rid){
@@ -76,29 +77,48 @@ module.exports = function(conf){
     };
   };
 
+  var installRuleset = function(rid, callback){
+    db.getEnableRuleset(rid, function(err, data){
+      if(err) return callback(err);
+      if(rulesets_dir){
+        //rulesets_dir / data.hash + ".krl";
+        //TODO store the ruleset and `require` it
+      }else{
+        //TODO just install the rulesets in memory via `eval`
+        var rs;
+        try{
+          var js = compiler(data.src).code;
+          rs = eval(js);
+        }catch(err){
+          rs = undefined;
+          throw err;//TODO handle this somehow?
+        }
+        directInstallRuleset(rs, callback);
+      }
+    });
+  };
+
+  //TODO standard startup-phase
+  db.getAllEnableRulesets(function(err, rids){
+    if(err){
+      throw err;//TODO handle this somehow?
+    }
+    _.each(rids, function(rid){
+      installRuleset(rid, function(err){
+        if(err){
+          throw err;//TODO handle this somehow?
+        }
+      });
+    });
+  });
+
   return {
     directInstallRuleset: directInstallRuleset,
     db: db,
-    installRuleset: function(rid, callback){
-      db.getEnableRuleset(rid, function(err, data){
-        if(err) return callback(err);
-        if(rulesets_dir){
-          //rulesets_dir / data.hash + ".krl";
-          //TODO store the ruleset and `require` it
-        }else{
-          //TODO just install the rulesets in memory via `eval`
-          var rs;
-          try{
-            var js = compiler(data.src).code;
-            rs = eval(js);
-          }catch(err){
-            rs = undefined;
-            throw err;//TODO handle this somehow?
-          }
-          directInstallRuleset(rs, callback);
-        }
-      });
+    isInstalled: function(rid){
+      return _.has(rulesets, rid);
     },
+    installRuleset: installRuleset,
     signalEvent: function(event, callback){
       event.timestamp = new Date();
       event.getAttrMatches = function(pairs){
