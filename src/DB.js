@@ -3,6 +3,7 @@ var cuid = require("cuid");
 var crypto = require("crypto");
 var levelup = require("levelup");
 var bytewise = require("bytewise");
+var extractRulesetName = require("krl-parser/src/extractRulesetName");
 
 var dbToObj = function(ldb, callback){
   var db_data = {};
@@ -118,10 +119,39 @@ module.exports = function(opts){
       ldb.put(key, state || "start", callback);
     },
     installRuleset: function(krl_src, callback){
+      var timestamp = (new Date()).toISOString();
+      if(arguments.length === 3 && _.isString(arguments[2])){//for testing only
+        timestamp = arguments[2];//for testing only
+      }//for testing only
+
+      var rs_name = extractRulesetName(krl_src);
+      if(!rs_name){
+        callback(new Error("Ruleset name not found"));
+        return;
+      }
       var shasum = crypto.createHash("sha256");
       shasum.update(krl_src);
       var hash = shasum.digest("hex");
-      ldb.put(["rulesets", "krl", hash], krl_src, callback);
+
+      var ops = [
+        {
+          type: "put",
+          key: ["rulesets", "krl", hash],
+          value: {
+            src: krl_src,
+            rs_name: rs_name,
+            timestamp: timestamp
+          }
+        },
+        {
+          type: "put",
+          key: ["rulesets", "versions", rs_name, timestamp, hash],
+          value: {
+            src: krl_src
+          }
+        }
+      ];
+      ldb.batch(ops, callback);
     }
   };
 };

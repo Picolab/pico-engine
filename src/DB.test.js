@@ -1,3 +1,4 @@
+var _ = require("lodash");
 var λ = require("contra");
 var test = require("tape");
 var mkTestPicoEngine = require("./mkTestPicoEngine");
@@ -48,20 +49,30 @@ test("DB - installRuleset", function(t){
   var pe = mkTestPicoEngine();
 
   var krl_src = "ruleset io.picolabs.cool {}";
+  var rs_name = "io.picolabs.cool";
+  var hash = "7d71c05bc934b0d41fdd2055c7644fc4d0d3eabf303d67fb97f604eaab2c0aa1";
+  var timestamp = (new Date()).toISOString();
+
+  var expected = {};
+  _.set(expected, ["rulesets", "krl", hash], {
+    src: krl_src,
+    rs_name: rs_name,
+    timestamp: timestamp
+  });
+  _.set(expected, ["rulesets", "versions", rs_name, timestamp, hash], {
+    src: krl_src
+  });
 
   λ.series({
     start_db: λ.curry(pe.db.toObj),
-    install: λ.curry(pe.db.installRuleset, krl_src),
+    install: function(next){
+      pe.db.installRuleset(krl_src, next, timestamp);
+    },
     end_db: λ.curry(pe.db.toObj)
   }, function(err, data){
     if(err) return t.end(err);
-
     t.deepEquals(data.start_db, {});
-
-    t.deepEquals(data.end_db, {rulesets: {krl: {
-      "7d71c05bc934b0d41fdd2055c7644fc4d0d3eabf303d67fb97f604eaab2c0aa1": krl_src
-    }}});
-
+    t.deepEquals(data.end_db, expected);
     t.end();
   });
 });
