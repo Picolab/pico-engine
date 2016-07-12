@@ -118,7 +118,7 @@ module.exports = function(opts){
       var key = ["state_machine", pico_id, rule.rid, rule.rule_name];
       ldb.put(key, state || "start", callback);
     },
-    installRuleset: function(krl_src, callback){
+    registerRuleset: function(krl_src, callback){
       var timestamp = (new Date()).toISOString();
       if(arguments.length === 3 && _.isString(arguments[2])){//for testing only
         timestamp = arguments[2];//for testing only
@@ -149,18 +149,18 @@ module.exports = function(opts){
           type: "put",
           key: ["rulesets", "versions", rs_name, timestamp, hash],
           value: true
-        },
-        {
-          //the rulesets that are in use
-          type: "put",
-          key: ["rulesets", "installed", rs_name],
-          value: {
-            hash: hash,
-            timestamp: timestamp
-          }
         }
       ];
       ldb.batch(ops, callback);
+    },
+    installRuleset: function(ruleset_hash_id, callback){
+      //TODO
+      /*
+      _.set(expected, ["rulesets", "installed", rs_name], {
+        hash: hash,
+        timestamp: timestamp
+      });
+      */
     }
   };
 };

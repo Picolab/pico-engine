@@ -45,7 +45,7 @@ test("DB - write and read", function(t){
   });
 });
 
-test("DB - installRuleset", function(t){
+test("DB - registerRuleset", function(t){
   var pe = mkTestPicoEngine();
 
   var krl_src = "ruleset io.picolabs.cool {}";
@@ -60,15 +60,11 @@ test("DB - installRuleset", function(t){
     timestamp: timestamp
   });
   _.set(expected, ["rulesets", "versions", rs_name, timestamp, hash], true);
-  _.set(expected, ["rulesets", "installed", rs_name], {
-    hash: hash,
-    timestamp: timestamp
-  });
 
   λ.series({
     start_db: λ.curry(pe.db.toObj),
     install: function(next){
-      pe.db.installRuleset(krl_src, next, timestamp);
+      pe.db.registerRuleset(krl_src, next, timestamp);
     },
     end_db: λ.curry(pe.db.toObj)
   }, function(err, data){
@@ -77,4 +73,9 @@ test("DB - installRuleset", function(t){
     t.deepEquals(data.end_db, expected);
     t.end();
   });
+});
+
+test("DB - installRuleset", function(t){
+  //TODO
+  t.end();
 });
