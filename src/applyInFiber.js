@@ -1,4 +1,4 @@
-var Fiber = require('fibers');
+var Fiber = require("fibers");
 
 module.exports = function(fn, that, args, callback){
   Fiber(function(){

@@ -1,4 +1,4 @@
-var Future = require('fibers/future');
+var Future = require("fibers/future");
 
 module.exports = function(fn){
   var fnF = Future.wrap(fn);

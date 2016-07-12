@@ -1,2 +1,2 @@
-require('./index.test');
-require('./DB.test');
+require("./index.test");
+require("./DB.test");

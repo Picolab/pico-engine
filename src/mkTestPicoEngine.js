@@ -1,5 +1,5 @@
-var memdown = require('memdown');
-var PicoEngine = require('./');
+var memdown = require("memdown");
+var PicoEngine = require("./");
 
 module.exports = function(){
   return PicoEngine({
@@ -8,7 +8,7 @@ module.exports = function(){
       newID: (function(){
         var i = 0;
         return function(){
-          return 'id' + i++;
+          return "id" + i++;
         };
       }())
     }

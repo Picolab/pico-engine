@@ -1,15 +1,15 @@
-var _ = require('lodash');
-var λ = require('contra');
-var DB = require('./DB');
+var _ = require("lodash");
+var λ = require("contra");
+var DB = require("./DB");
 var krl = {
-  stdlib: require('krl-stdlib'),
-  Closure: require('./KRLClosure')
+  stdlib: require("krl-stdlib"),
+  Closure: require("./KRLClosure")
 };
-var Future = require('fibers/future');
-var evalRule = require('./evalRule');
-var SymbolTable = require('symbol-table');
-var applyInFiber = require('./applyInFiber');
-var selectRulesToEval = require('./selectRulesToEval');
+var Future = require("fibers/future");
+var evalRule = require("./evalRule");
+var SymbolTable = require("symbol-table");
+var applyInFiber = require("./applyInFiber");
+var selectRulesToEval = require("./selectRulesToEval");
 
 var getArg = function(args, name, index){
   return _.has(args, name)
@@ -25,7 +25,7 @@ var mkCTX = function(ctx){
 var rulesets = {};
 var salience_graph = {};
 var doInstallRuleset = function(path){
-  var rs = require('../test-rulesets/' + path);
+  var rs = require("../test-rulesets/" + path);
   rs.rid = rs.name;
   rs.scope = SymbolTable();
   if(_.isFunction(rs.global)){
@@ -53,12 +53,12 @@ var installRuleset = function(path){
   });
 };
 
-installRuleset('hello-world');
-installRuleset('events');
-installRuleset('persistent');
-installRuleset('scope');
-installRuleset('operators');
-installRuleset('chevron');
+installRuleset("hello-world");
+installRuleset("events");
+installRuleset("persistent");
+installRuleset("scope");
+installRuleset("operators");
+installRuleset("chevron");
 
 module.exports = function(conf){
   var db = Future.wrap(DB(conf.db));
@@ -90,7 +90,7 @@ module.exports = function(conf){
         for(i = 0; i < pairs.length; i++){
           pair = pairs[i];
           attr = event.attrs[pair[0]];
-          m = pair[1].exec(attr || '');
+          m = pair[1].exec(attr || "");
           if(!m){
             return undefined;
           }
@@ -123,12 +123,12 @@ module.exports = function(conf){
           }, function(err, responses){
             if(err) return callback(err);
 
-            var res_by_type = _.groupBy(_.flattenDeep(responses), 'type');
+            var res_by_type = _.groupBy(_.flattenDeep(responses), "type");
 
             //TODO other types
             callback(undefined, {
               directives:  _.map(res_by_type.directive, function(d){
-                return _.omit(d, 'type');
+                return _.omit(d, "type");
               })
             });
           });
@@ -139,22 +139,22 @@ module.exports = function(conf){
       db.getPicoByECI(query.eci, function(err, pico){
         if(err) return callback(err);
         if(!pico){
-          return callback(new Error('Bad eci'));
+          return callback(new Error("Bad eci"));
         }
         if(!_.has(pico.ruleset, query.rid)){
-          return callback(new Error('Pico does not have that rid'));
+          return callback(new Error("Pico does not have that rid"));
         }
         if(!_.has(rulesets, query.rid)){
-          return callback(new Error('Not found: rid'));
+          return callback(new Error("Not found: rid"));
         }
         var rs = rulesets[query.rid];
-        var shares = _.get(rs, ['meta', 'shares']);
+        var shares = _.get(rs, ["meta", "shares"]);
         if(!_.isArray(shares) || !_.includes(shares, query.name)){
-          return callback(new Error('Not shared'));
+          return callback(new Error("Not shared"));
         }
         if(!rs.scope.has(query.name)){
           //TODO throw -or- nil????
-          return callback(new Error('Shared, but not defined: ' + query.name));
+          return callback(new Error("Shared, but not defined: " + query.name));
         }
 
         ////////////////////////////////////////////////////////////////////////

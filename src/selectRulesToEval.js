@@ -1,21 +1,21 @@
-var _ = require('lodash');
-var λ = require('contra');
-var applyInFiber = require('./applyInFiber');
+var _ = require("lodash");
+var λ = require("contra");
+var applyInFiber = require("./applyInFiber");
 
 var evalExpr = function(ctx, exp, callback){
   if(_.isArray(exp)){
-    if(exp[0] === 'not'){
+    if(exp[0] === "not"){
       return !evalExpr(ctx, exp[1]);
-    }else if(exp[0] === 'and'){
+    }else if(exp[0] === "and"){
       return evalExpr(ctx, exp[1]) && evalExpr(ctx, exp[2]);
-    }else if(exp[0] === 'or'){
+    }else if(exp[0] === "or"){
       return evalExpr(ctx, exp[1]) || evalExpr(ctx, exp[2]);
     }
   }
   //only run the function if the domain and type match
   var domain = ctx.event.domain;
   var type = ctx.event.type;
-  if(_.get(ctx, ['rule', 'select', 'graph', domain, type, exp]) !== true){
+  if(_.get(ctx, ["rule", "select", "graph", domain, type, exp]) !== true){
     return false;
   }
   return ctx.rule.select.eventexprs[exp](ctx);
@@ -42,9 +42,9 @@ module.exports = function(ctx, salience_graph, rulesets, callback){
     }
     _.each(rules, function(is_on, rule_name){
       if(is_on){
-        var rule = _.get(rulesets, [rid, 'rules', rule_name]);
+        var rule = _.get(rulesets, [rid, "rules", rule_name]);
         if(rule){
-          //shallow clone with it's own scope for this run
+          //shallow clone with it"s own scope for this run
           rules_to_select.push(_.assign({}, rule, {
             scope: rulesets[rid].scope.push()
           }));
@@ -64,7 +64,7 @@ module.exports = function(ctx, salience_graph, rulesets, callback){
         if(err) return next(err);
 
         ctx.db.putStateMachineState(ctx.pico.id, rule, next_state, function(err){
-          next(err, next_state === 'end');
+          next(err, next_state === "end");
         });
       });
     });

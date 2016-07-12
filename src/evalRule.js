@@ -1,6 +1,6 @@
-var _ = require('lodash');
-var λ = require('contra');
-var applyInFiber = require('./applyInFiber');
+var _ = require("lodash");
+var λ = require("contra");
+var applyInFiber = require("./applyInFiber");
 
 var doPrelude = function(rule, ctx, callback){
   if(!_.isFunction(rule.prelude)){
@@ -11,7 +11,7 @@ var doPrelude = function(rule, ctx, callback){
 };
 
 var doActions = function(rule, ctx, callback){
-  var actions = _.get(rule, ['action_block', 'actions']);
+  var actions = _.get(rule, ["action_block", "actions"]);
   λ.map(actions, function(action, done){
     applyInFiber(action, null, [ctx], done);
   }, callback);
@@ -20,7 +20,7 @@ var doActions = function(rule, ctx, callback){
 var doPostlude = function(rule, ctx){
   //TODO fired
   //TODO notfired
-  var always = _.get(rule, ['postlude', 'always']);
+  var always = _.get(rule, ["postlude", "always"]);
   if(_.isFunction(always)){
     always(ctx);
   }
@@ -38,13 +38,13 @@ module.exports = function(rule, ctx, callback){
       //TODO handle more than one response type
       var resp_data = _.map(responses, function(response){
         return {
-          type: 'directive',
+          type: "directive",
           options: response.options,
           name: response.name,
           meta: {
             rid: rule.rid,
             rule_name: rule.rule_name,
-            txn_id: 'TODO',//TODO transactions
+            txn_id: "TODO",//TODO transactions
             eid: ctx.event.eid
           }
         };
