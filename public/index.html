@@ -20,10 +20,10 @@
               <h4>Channels</h4>
               <ul>
                 {{#each channel}}
-                  <li>{{toJSON this}} <a href="/api/pico/{{../id}}/rm-channel/{{id}}">del</a></li>
+                  <li>{{toJSON this}} <a class="js-ajax-link" href="/api/pico/{{../id}}/rm-channel/{{id}}">del</a></li>
                 {{/each}}
               </ul>
-              <form action="/api/pico/{{id}}/new-channel" method="GET">
+              <form class="js-ajax-form" action="/api/pico/{{id}}/new-channel" method="GET">
                 <input type="text" name="name" placeholder="name...">
                 <input type="text" name="type" placeholder="type...">
                 <button type="submit">add channel</button>
@@ -31,10 +31,10 @@
               <h4>Rulesets</h4>
               <ul>
                 {{#each ruleset}}
-                  <li>{{@key}} <a href="/api/pico/{{../id}}/rm-ruleset/{{@key}}">del</a></li>
+                  <li>{{@key}} <a class="js-ajax-link" href="/api/pico/{{../id}}/rm-ruleset/{{@key}}">del</a></li>
                 {{/each}}
               </ul>
-              <form action="/api/pico/{{id}}/add-ruleset" method="GET">
+              <form class="js-ajax-form" action="/api/pico/{{id}}/add-ruleset" method="GET">
                 <input type="text" name="rid" placeholder="Ruleset id...">
                 <button type="submit">add ruleset</button>
               </form>
@@ -47,10 +47,10 @@
             </div>
           </div>
         {{/each}}
-        <a href="/api/new-pico">add pico</a>
+        <a class="js-ajax-link" href="/api/new-pico">add pico</a>
         <h1>Rulesets</h1>
         <code>//TODO finish</code>
-        <form action="/api/ruleset/register" method="GET">
+        <form class="js-ajax-form" action="/api/ruleset/register" method="GET">
           <textarea name="src"></textarea>
           <button type="submit">register ruleset</button>
         </form>
@@ -64,6 +64,32 @@
       Handlebars.registerHelper("toJSON", function(data){
         return JSON.stringify(data, undefined, 2);
       });
+      var api = function(url, data, callback){
+        $.ajax({
+          type:"GET",
+          url: url,
+          data: data,
+          dataType: "json"
+        }).done(function(data){
+          callback(undefined, data);
+        }).fail(function(err){
+          callback(err);
+        });
+      };
+      var apiDefault = function(url, data){
+        render({loading: true});
+        api(url, data, function(err, data){
+          if(err) return render({error: err});
+          reRender();
+        });
+      };
+      var formToJSON = function(form){
+        var json = {};
+        $.each($(form).serializeArray(), function(key, elm){
+          json[elm.name] = elm.value;
+        });
+        return json;
+      };
       var template = Handlebars.compile($("#template-main").html());
       var $main = $("#main");
       var render = function(state){
@@ -71,18 +97,24 @@
       };
       var reRender = function(){
         render({loading: true});
-        $.ajax({
-          type:"GET",
-          url: "/api/db-dump",
-          dataType: "json"
-        }).done(function(data){
+        api("/api/db-dump", {}, function(err, data){
+          if(err) return render({error: err});
           render({db: data});
-        }).fail(function(data){
-          render({error: data});
         });
       };
 
       reRender();
+
+      $(document).on("click", "a.js-ajax-link", function(e){
+        e.preventDefault();
+        var url = $(this).attr("href");
+        apiDefault(url, {});
+      });
+      $(document).on("submit", "form.js-ajax-form", function(e){
+        e.preventDefault();
+        var url = $(this).attr("action");
+        apiDefault(url, formToJSON(this));
+      });
 
     </script>
   </body>
