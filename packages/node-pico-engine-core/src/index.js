@@ -47,11 +47,7 @@ var doInstallRuleset = function(rs){
   rulesets[rs.rid] = rs;
 };
 
-var directInstallRuleset = function(rs, callback){
-  callback = callback || function(err){
-    //TODO better error handling when rulesets fail to load
-    if(err) throw err;
-  };
+var installRuleset = function(rs, callback){
   applyInFiber(doInstallRuleset, null, [rs], callback);
 };
 
@@ -89,7 +85,7 @@ module.exports = function(conf){
     };
   };
 
-  var installRuleset = function(rid, callback){
+  var installRid = function(rid, callback){
     db.getEnableRuleset(rid, function(err, data){
       if(err) return callback(err);
       compileAndLoadRuleset({
@@ -98,7 +94,7 @@ module.exports = function(conf){
         hash: data.hash
       }, function(err, rs){
         if(err) return callback(err);
-        directInstallRuleset(rs, callback);
+        installRuleset(rs, callback);
       });
     });
   };
@@ -109,7 +105,7 @@ module.exports = function(conf){
       throw err;//TODO handle this somehow?
     }
     _.each(rids, function(rid){
-      installRuleset(rid, function(err){
+      installRid(rid, function(err){
         if(err){
           throw err;//TODO handle this somehow?
         }
@@ -118,12 +114,12 @@ module.exports = function(conf){
   });
 
   return {
-    directInstallRuleset: directInstallRuleset,
+    installRuleset: installRuleset,
     db: db,
     isInstalled: function(rid){
       return _.has(rulesets, rid);
     },
-    installRuleset: installRuleset,
+    installRid: installRid,
     signalEvent: function(event, callback){
       event.timestamp = new Date();
       event.getAttrMatches = function(pairs){

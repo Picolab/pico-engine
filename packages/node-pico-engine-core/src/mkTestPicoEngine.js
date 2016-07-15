@@ -34,7 +34,7 @@ module.exports = function(opts){
     }
   });
   _.each(test_rulesets, function(rs, rid){
-    pe.directInstallRuleset(rs);
+    pe.installRuleset(rs, _.noop);
   });
   return pe;
 };
