@@ -1,9 +1,28 @@
 var _ = require("lodash");
+var fs = require("fs");
+var path = require("path");
 var memdown = require("memdown");
 var PicoEngine = require("./");
 
+var test_rulesets = {};
+var test_dir = path.resolve(__dirname, "../test-rulesets");
+_.each(fs.readdirSync(test_dir), function(file){
+  if(!/\.js$/.test(file)){
+    return;
+  }
+  var rs = require(path.resolve(test_dir, file));
+  if(!rs.name){
+    return;
+  }
+  test_rulesets[rs.name] = rs;
+});
+
 module.exports = function(opts){
   var pe = PicoEngine({
+    compileAndLoadRuleset: function(rs_info, callback){
+      var rs = test_rulesets[rs_info.rid];
+      callback(undefined, rs);
+    },
     db: {
       db: memdown,
       newID: (function(){
@@ -14,8 +33,8 @@ module.exports = function(opts){
       }())
     }
   });
-  _.each(opts && opts.rulesets, function(name){
-    pe.directInstallRuleset(require("../test-rulesets/" + name));
+  _.each(test_rulesets, function(rs, rid){
+    pe.directInstallRuleset(rs);
   });
   return pe;
 };

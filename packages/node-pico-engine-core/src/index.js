@@ -55,7 +55,7 @@ var directInstallRuleset = function(rs, callback){
   applyInFiber(doInstallRuleset, null, [rs], callback);
 };
 
-var defaultCompileAndInjectRuleset = function(rs_info, callback){
+var defaultCompileAndLoadRuleset = function(rs_info, callback){
   var rs;
   try{
     var js_src = compiler(rs_info.src).code;
@@ -68,7 +68,7 @@ var defaultCompileAndInjectRuleset = function(rs_info, callback){
 };
 
 module.exports = function(conf){
-  var compileAndInjectRuleset = conf.compileAndInjectRuleset || defaultCompileAndInjectRuleset;
+  var compileAndLoadRuleset = conf.compileAndLoadRuleset || defaultCompileAndLoadRuleset;
 
   var db = Future.wrap(DB(conf.db));
 
@@ -92,7 +92,7 @@ module.exports = function(conf){
   var installRuleset = function(rid, callback){
     db.getEnableRuleset(rid, function(err, data){
       if(err) return callback(err);
-      compileAndInjectRuleset({
+      compileAndLoadRuleset({
         rid: rid,
         src: data.src,
         hash: data.hash
