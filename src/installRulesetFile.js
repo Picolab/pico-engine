@@ -41,7 +41,12 @@ module.exports = function(rulesets_dir, hash, krl_src, callback){
       callback(undefined, require(file));
       return;
     }
-    var js_src = compiler(krl_src).code;
+    var js_src;
+    try{
+      js_src = compiler(krl_src).code;
+    }catch(err){
+      return callback(err);
+    }
     storeFile(file, js_src, function(err){
       if(err) return callback(err);
       callback(undefined, require(file));
