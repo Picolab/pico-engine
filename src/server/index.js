@@ -2,12 +2,12 @@ var _ = require("lodash");
 var url = require("url");
 var path = require("path");
 var http = require("http");
-var PicoEngine = require("./");
+var PicoEngine = require("../");
 var HttpHashRouter = require("http-hash-router");
 
 ////////////////////////////////////////////////////////////////////////////////
 var port = process.env.PORT || 8080;
-var pico_engine_home = process.env.PICO_ENGINE_HOME || path.resolve(__dirname, "..");
+var pico_engine_home = process.env.PICO_ENGINE_HOME || path.resolve(__dirname, "..", "..");
 ////////////////////////////////////////////////////////////////////////////////
 
 var pe = PicoEngine({

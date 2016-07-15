@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "start": "scriptsp watch:http watch:test",
-    "watch:http": "onchange -i src/ test-rulesets/ -- node src/server.js",
+    "watch:http": "onchange -i src/ test-rulesets/ -- node src/server/index.js",
     "watch:test": "onchange -i src/ test-rulesets/ -- npm run test -s",
     "lint": "eslint src/ && echo lint-ok",
     "test": "npm run lint && node src/tests.js"
