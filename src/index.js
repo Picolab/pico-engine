@@ -62,6 +62,13 @@ router.set("/sky/cloud/:eci/:rid/:function", function(req, res, route){
   });
 });
 
+router.set("/api/db-dump", function(req, res, route){
+  pe.db.toObj(function(err, db_data){
+    if(err) return errResp(res, err);
+    jsonResp(res, db_data);
+  });
+});
+
 router.set("/old", function(req, res, route){
   pe.db.toObj(function(err, db_data){
     if(err) return errResp(res, err);

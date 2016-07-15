@@ -9,18 +9,80 @@
   <body>
     <div id="main"></div>
     <script id="template-main" type="text/x-handlebars-template">
-      <h1>Hi {{name}}!</h1>
+      {{#if loading}}
+        <h1>Loading...</h1>
+      {{else}}
+        <h1>Picos</h1>
+        {{#each db.pico}}
+          <div style="margin-left:2em">
+            <h2>{{id}}</h2>
+            <div style="margin-left:2em">
+              <h4>Channels</h4>
+              <ul>
+                {{#each channel}}
+                  <li>{{toJSON this}} <a href="/api/pico/{{../id}}/rm-channel/{{id}}">del</a></li>
+                {{/each}}
+              </ul>
+              <form action="/api/pico/{{id}}/new-channel" method="GET">
+                <input type="text" name="name" placeholder="name...">
+                <input type="text" name="type" placeholder="type...">
+                <button type="submit">add channel</button>
+              </form>
+              <h4>Rulesets</h4>
+              <ul>
+                {{#each ruleset}}
+                  <li>{{@key}} <a href="/api/pico/{{../id}}/rm-ruleset/{{@key}}">del</a></li>
+                {{/each}}
+              </ul>
+              <form action="/api/pico/{{id}}/add-ruleset" method="GET">
+                <input type="text" name="rid" placeholder="Ruleset id...">
+                <button type="submit">add ruleset</button>
+              </form>
+              <h4>`ent` Vars</h4>
+              <ul>
+                {{#each vars}}
+                  <li>{{@key}} = {{this}}</li>
+                {{/each}}
+              </ul>
+            </div>
+          </div>
+        {{/each}}
+        <a href="/api/new-pico">add pico</a>
+        <h1>Rulesets</h1>
+        <code>//TODO finish</code>
+        <form action="/api/ruleset/register" method="GET">
+          <textarea name="src"></textarea>
+          <button type="submit">register ruleset</button>
+        </form>
+        <hr/>
+        <pre>{{toJSON this}}</pre>
+      {{/if}}
     </script>
     <script src="/js/jquery-3.1.0.min.js"></script>
     <script src="/js/handlebars.min.js"></script>
     <script>
+      Handlebars.registerHelper("toJSON", function(data){
+        return JSON.stringify(data, undefined, 2);
+      });
       var template = Handlebars.compile($("#template-main").html());
       var $main = $("#main");
       var render = function(state){
         $main.html(template(state));
       };
+      var reRender = function(){
+        render({loading: true});
+        $.ajax({
+          type:"GET",
+          url: "/api/db-dump",
+          dataType: "json"
+        }).done(function(data){
+          render({db: data});
+        }).fail(function(data){
+          render({error: data});
+        });
+      };
 
-      render({name: "bob>>>"});
+      reRender();
 
     </script>
   </body>
