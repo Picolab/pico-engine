@@ -3,6 +3,7 @@ var url = require("url");
 var path = require("path");
 var http = require("http");
 var PicoEngine = require("pico-engine-core");
+var serveStatic = require("ecstatic")({root: path.resolve(__dirname, "..", "public")});
 var HttpHashRouter = require("http-hash-router");
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +62,7 @@ router.set("/sky/cloud/:eci/:rid/:function", function(req, res, route){
   });
 });
 
-router.set("/", function(req, res, route){
+router.set("/old", function(req, res, route){
   pe.db.toObj(function(err, db_data){
     if(err) return errResp(res, err);
 
@@ -225,6 +226,10 @@ var server = http.createServer(function(req, res){
     data: url.parse(req.url, true).query
   }, function(err){
     if(err){
+      if(err.type === "http-hash-router.not-found"){
+        serveStatic(req, res);
+        return;
+      }
       errResp(res, err);
     }
   });

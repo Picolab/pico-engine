@@ -12,8 +12,8 @@
   ],
   "scripts": {
     "start": "scriptsp watch:http watch:test",
-    "watch:http": "onchange -i src/ test-rulesets/ -- node src/index.js",
-    "watch:test": "onchange -i src/ test-rulesets/ -- npm run test -s",
+    "watch:http": "onchange -i src/ public/ -- node src/index.js",
+    "watch:test": "onchange -i src/ -- npm run test -s",
     "lint": "eslint src/ && echo lint-ok",
     "test": "npm run lint && node src/tests.js"
   },
@@ -40,6 +40,7 @@
     "tape": "^4.5.1"
   },
   "dependencies": {
+    "ecstatic": "^1.4.1",
     "home-dir": "^1.0.0",
     "http-hash-router": "^1.1.0",
     "leveldown": "^1.4.6",
