@@ -21,16 +21,11 @@ var dbToObj = function(ldb, callback){
 
 module.exports = function(opts){
 
-  var ldb = opts.path
-    ? levelup(opts.path, {
-      keyEncoding: bytewise,
-      valueEncoding: "json"
-    })
-    : levelup({
-      db: opts.db,
-      keyEncoding: bytewise,
-      valueEncoding: "json"
-    });
+  var ldb = levelup({
+    db: opts.db,
+    keyEncoding: bytewise,
+    valueEncoding: "json"
+  });
 
   var newID = _.isFunction(opts.newID) ? opts.newID : cuid;
 

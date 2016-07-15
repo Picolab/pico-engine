@@ -11,7 +11,6 @@ var evalRule = require("./evalRule");
 var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
 var selectRulesToEval = require("./selectRulesToEval");
-var installRulesetFile = require("./installRulesetFile");
 
 var getArg = function(args, name, index){
   return _.has(args, name)
@@ -56,8 +55,21 @@ var directInstallRuleset = function(rs, callback){
   applyInFiber(doInstallRuleset, null, [rs], callback);
 };
 
+var defaultCompileAndInjectRuleset = function(rs_info, callback){
+  var rs;
+  try{
+    var js_src = compiler(rs_info.src).code;
+    rs = eval(js_src);
+  }catch(err){
+    callback(err);
+    return;
+  }
+  callback(undefined, rs);
+};
+
 module.exports = function(conf){
-  var rulesets_dir = conf.rulesets_dir;
+  var compileAndInjectRuleset = conf.compileAndInjectRuleset || defaultCompileAndInjectRuleset;
+
   var db = Future.wrap(DB(conf.db));
 
   var mkPersistent = function(pico_id, rid){
@@ -80,22 +92,14 @@ module.exports = function(conf){
   var installRuleset = function(rid, callback){
     db.getEnableRuleset(rid, function(err, data){
       if(err) return callback(err);
-      if(rulesets_dir){
-        installRulesetFile(rulesets_dir, data.hash, data.src, function(err, rs){
-          if(err) return callback(err);
-          directInstallRuleset(rs, callback);
-        });
-      }else{
-        var rs;
-        try{
-          var js_src = compiler(data.src).code;
-          rs = eval(js_src);
-        }catch(err){
-          rs = undefined;
-          throw err;//TODO handle this somehow?
-        }
+      compileAndInjectRuleset({
+        rid: rid,
+        src: data.src,
+        hash: data.hash
+      }, function(err, rs){
+        if(err) return callback(err);
         directInstallRuleset(rs, callback);
-      }
+      });
     });
   };
 
