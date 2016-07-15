@@ -1,221 +1,235 @@
 var _ = require("lodash");
-var λ = require("contra");
-var DB = require("./DB");
-var krl = {
-  stdlib: require("krl-stdlib"),
-  Closure: require("./KRLClosure")
-};
-var Future = require("fibers/future");
-var compiler = require("krl-compiler");
-var evalRule = require("./evalRule");
-var SymbolTable = require("symbol-table");
-var applyInFiber = require("./applyInFiber");
-var selectRulesToEval = require("./selectRulesToEval");
-var installRulesetFile = require("./installRulesetFile");
+var url = require("url");
+var path = require("path");
+var http = require("http");
+var PicoEngine = require("pico-engine-core");
+var HttpHashRouter = require("http-hash-router");
 
-var getArg = function(args, name, index){
-  return _.has(args, name)
-    ? args[name]
-    : args[index];
-};
-var mkCTX = function(ctx){
-  ctx.getArg = getArg;
-  ctx.krl = krl;
-  return ctx;
-};
+////////////////////////////////////////////////////////////////////////////////
+var port = process.env.PORT || 8080;
+var pico_engine_home = process.env.PICO_ENGINE_HOME || path.resolve(__dirname, "..");
+////////////////////////////////////////////////////////////////////////////////
 
-var rulesets = {};
-var salience_graph = {};
-
-var doInstallRuleset = function(rs){
-  rs.rid = rs.name;
-  rs.scope = SymbolTable();
-  if(_.isFunction(rs.global)){
-    rs.global(mkCTX({
-      scope: rs.scope
-    }));
+var pe = PicoEngine({
+  rulesets_dir: path.resolve(pico_engine_home, "rulesets"),
+  db: {
+    path: path.join(pico_engine_home, "db")
   }
-  _.each(rs.rules, function(rule, rule_name){
-    rule.rid = rs.rid;
-    rule.rule_name = rule_name;
+});
 
-    _.each(rule.select && rule.select.graph, function(g, domain){
-      _.each(g, function(exprs, type){
-        _.set(salience_graph, [domain, type, rule.rid, rule.rule_name], true);
-      });
-    });
+var router = HttpHashRouter();
+
+var jsonResp = function(res, data){
+  res.end(JSON.stringify(data, undefined, 2));
+};
+
+var errResp = function(res, err){
+  res.statusCode = err.statusCode || 500;
+  res.end(err.message);
+};
+
+
+router.set("/sky/event/:eci/:eid/:domain/:type", function(req, res, route){
+  var event = {
+    eci: route.params.eci,
+    eid: route.params.eid,
+    domain: route.params.domain,
+    type: route.params.type,
+    attrs: route.data
+  };
+  pe.signalEvent(event, function(err, response){
+    if(err) return errResp(res, err);
+    jsonResp(res, response);
   });
-  rulesets[rs.rid] = rs;
-};
+});
 
-var directInstallRuleset = function(rs, callback){
-  callback = callback || function(err){
-    //TODO better error handling when rulesets fail to load
-    if(err) throw err;
-  };
-  applyInFiber(doInstallRuleset, null, [rs], callback);
-};
-
-module.exports = function(conf){
-  var rulesets_dir = conf.rulesets_dir;
-  var db = Future.wrap(DB(conf.db));
-
-  var mkPersistent = function(pico_id, rid){
-    return {
-      getEnt: function(key){
-        return db.getEntVarFuture(pico_id, key).wait();
-      },
-      putEnt: function(key, value){
-        db.putEntVarFuture(pico_id, key, value).wait();
-      },
-      getApp: function(key, value){
-        return db.getAppVarFuture(rid, key).wait();
-      },
-      putApp: function(key, value){
-        db.putAppVarFuture(rid, key, value).wait();
-      }
-    };
+router.set("/sky/cloud/:eci/:rid/:function", function(req, res, route){
+  var query = {
+    eci: route.params.eci,
+    rid: route.params.rid,
+    name: route.params["function"],
+    args: route.data
   };
 
-  var installRuleset = function(rid, callback){
-    db.getEnableRuleset(rid, function(err, data){
-      if(err) return callback(err);
-      if(rulesets_dir){
-        installRulesetFile(rulesets_dir, data.hash, data.src, function(err, rs){
-          if(err) return callback(err);
-          directInstallRuleset(rs, callback);
-        });
-      }else{
-        var rs;
-        try{
-          var js_src = compiler(data.src).code;
-          rs = eval(js_src);
-        }catch(err){
-          rs = undefined;
-          throw err;//TODO handle this somehow?
-        }
-        directInstallRuleset(rs, callback);
-      }
-    });
-  };
-
-  //TODO standard startup-phase
-  db.getAllEnableRulesets(function(err, rids){
-    if(err){
-      throw err;//TODO handle this somehow?
+  pe.runQuery(query, function(err, data){
+    if(err) return errResp(res, err);
+    if(_.isFunction(data)){
+      data(res);
+    }else{
+      jsonResp(res, data);
     }
-    _.each(rids, function(rid){
-      installRuleset(rid, function(err){
-        if(err){
-          throw err;//TODO handle this somehow?
-        }
-      });
-    });
   });
+});
 
-  return {
-    directInstallRuleset: directInstallRuleset,
-    db: db,
-    isInstalled: function(rid){
-      return _.has(rulesets, rid);
-    },
-    installRuleset: installRuleset,
-    signalEvent: function(event, callback){
-      event.timestamp = new Date();
-      event.getAttrMatches = function(pairs){
-        var matches = [];
-        var i, attr, m, pair;
-        for(i = 0; i < pairs.length; i++){
-          pair = pairs[i];
-          attr = event.attrs[pair[0]];
-          m = pair[1].exec(attr || "");
-          if(!m){
-            return undefined;
+router.set("/", function(req, res, route){
+  pe.db.toObj(function(err, db_data){
+    if(err) return errResp(res, err);
+
+    var html = "";
+    html += "<html><body>";
+    html += "<h1>Picos</h1>";
+    _.each(db_data.pico, function(pico){
+      html += "<div style=\"margin-left:2em\">";
+      html += "<h2>"+pico.id+"</h1>";
+      html += "<div style=\"margin-left:2em\">";
+
+      html += "<h4>Channels</h4>";
+      html += "<ul>";
+      _.each(pico.channel, function(chan){
+        var rm_link = "/api/pico/"+pico.id+"/rm-channel/"+chan.id;
+        html += "<li>"+JSON.stringify(chan)+" <a href=\""+rm_link+"\">del</a></li>";
+      });
+      html += "</ul>";
+
+      html += "<form action=\"/api/pico/"+pico.id+"/new-channel\" method=\"GET\">";
+      html += "<input type=\"text\" name=\"name\" placeholder=\"name...\">";
+      html += "<input type=\"text\" name=\"type\" placeholder=\"type...\">";
+      html += "<button type=\"submit\">add channel</button>";
+      html += "</form>";
+
+      html += "<h4>Rulesets</h4>";
+      html += "<ul>";
+      _.each(pico.ruleset, function(d, rid){
+        var rm_link = "/api/pico/"+pico.id+"/rm-ruleset/"+rid;
+        html += "<li>"+rid+" <a href=\""+rm_link+"\">del</a></li>";
+      });
+      html += "</ul>";
+
+      html += "<form action=\"/api/pico/"+pico.id+"/add-ruleset\" method=\"GET\">";
+      html += "<input type=\"text\" name=\"rid\" placeholder=\"Ruleset id...\">";
+      html += "<button type=\"submit\">add ruleset</button>";
+      html += "</form>";
+
+      html += "<h4>`ent` Variables</h4>";
+      html += "<ul>";
+      _.each(pico.vars, function(v, k){
+        html += "<li>"+k+" = "+v+"</li>";
+      });
+      html += "</ul>";
+
+      html += "</div>";
+      html += "</div>";
+    });
+    html += "<div style=\"margin-left:2em\">";
+    html += "<a href=\"/api/new-pico\">add pico</a>";
+    html += "</div>";
+    html += "<h1>Rulesets</h1>";
+    _.each(_.get(db_data, ["rulesets", "versions"]), function(versions, rid){
+      var enabled_hash = _.get(db_data, ["rulesets", "enabled", rid, "hash"]);
+      html += "<div style=\"margin-left:2em\">";
+      html += "<h2>"+rid+"</h2>";
+      _.each(versions, function(hashes, timestamp){
+        _.each(hashes, function(is_there, hash){
+          if(!is_there){
+            return;
           }
-          matches.push(m[1]);
-        }
-        return matches;
-      };
-      db.getPicoByECI(event.eci, function(err, pico){
-        if(err) return callback(err);
-        if(!pico){
-          return callback(new Error("Invalid eci: " + event.eci));
-        }
-
-        var ctx_orig = mkCTX({
-          pico: pico,
-          db: db,
-          event: event
-        });
-
-        selectRulesToEval(ctx_orig, salience_graph, rulesets, function(err, to_eval){
-          if(err) return callback(err);
-
-          λ.map(to_eval, function(rule, callback){
-
-            var ctx = _.assign({}, ctx_orig, {
-              rid: rule.rid,
-              rule: rule,
-              persistent: mkPersistent(pico.id, rule.rid),
-              scope: rule.scope
-            });
-
-            evalRule(rule, ctx, callback);
-          }, function(err, responses){
-            if(err) return callback(err);
-
-            var res_by_type = _.groupBy(_.flattenDeep(responses), "type");
-
-            //TODO other types
-            callback(undefined, {
-              directives:  _.map(res_by_type.directive, function(d){
-                return _.omit(d, "type");
-              })
-            });
-          });
+          html += "<div style=\"margin-left:2em\">";
+          html += timestamp + " | " + hash + " | ";
+          if(hash === enabled_hash){
+            html += "<a href=\"/api/ruleset/disable/"+rid+"\">disable</a>";
+            html += " | ";
+            if(pe.isInstalled(rid)){
+              html += "uninstall";
+            }else{
+              html += "<a href=\"/api/ruleset/install/"+rid+"\">install</a>";
+            }
+          }else{
+            html += "<a href=\"/api/ruleset/enable/"+hash+"\">enable</a>";
+          }
+          html += "</div>";
         });
       });
-    },
-    runQuery: function(query, callback){
-      db.getPicoByECI(query.eci, function(err, pico){
-        if(err) return callback(err);
-        if(!pico){
-          return callback(new Error("Bad eci"));
-        }
-        if(!_.has(pico.ruleset, query.rid)){
-          return callback(new Error("Pico does not have that rid"));
-        }
-        if(!_.has(rulesets, query.rid)){
-          return callback(new Error("Not found: rid"));
-        }
-        var rs = rulesets[query.rid];
-        var shares = _.get(rs, ["meta", "shares"]);
-        if(!_.isArray(shares) || !_.includes(shares, query.name)){
-          return callback(new Error("Not shared"));
-        }
-        if(!rs.scope.has(query.name)){
-          //TODO throw -or- nil????
-          return callback(new Error("Shared, but not defined: " + query.name));
-        }
+      html += "</div>";
+    });
+    html += "<form action=\"/api/ruleset/register\" method=\"GET\">";
+    html += "<textarea name=\"src\"></textarea>";
+    html += "<button type=\"submit\">register ruleset</button>";
+    html += "</form>";
+    html += "<hr/>";
+    html += "<pre>" + JSON.stringify(db_data, undefined, 2) + "</pre>";
+    res.end(html);
+  });
+});
 
-        ////////////////////////////////////////////////////////////////////////
-        var ctx = mkCTX({
-          db: db,
-          rid: rs.rid,
-          pico: pico,
-          persistent: mkPersistent(pico.id, rs.rid),
-          scope: rs.scope
-        });
-        var val = ctx.scope.get(query.name);
-        if(_.isFunction(val)){
-          applyInFiber(val, null, [ctx, query.args], function(err, resp){
-            if(err) return callback(err);
-            callback(undefined, resp);
-          });
-        }else{
-          callback(undefined, val);
-        }
-      });
+router.set("/api/new-pico", function(req, res, route){
+  pe.db.newPico({}, function(err, new_pico){
+    if(err) return errResp(res, err);
+    res.end(JSON.stringify(new_pico, undefined, 2));
+  });
+});
+
+router.set("/api/pico/:id/new-channel", function(req, res, route){
+  pe.db.newChannel({
+    pico_id: route.params.id,
+    name: route.data.name,
+    type: route.data.type
+  }, function(err, new_channel){
+    if(err) return errResp(res, err);
+    res.end(JSON.stringify(new_channel, undefined, 2));
+  });
+});
+
+router.set("/api/pico/:id/rm-channel/:eci", function(req, res, route){
+  pe.db.removeChannel(route.params.id, route.params.eci, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
+router.set("/api/pico/:id/rm-ruleset/:rid", function(req, res, route){
+  pe.db.removeRuleset(route.params.id, route.params.rid, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
+router.set("/api/pico/:id/add-ruleset", function(req, res, route){
+  pe.db.addRuleset({pico_id: route.params.id, rid: route.data.rid}, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
+router.set("/api/ruleset/register", function(req, res, route){
+  var src = _.get(url.parse(req.url, true), ["query", "src"]);
+
+  pe.db.registerRuleset(src, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
+router.set("/api/ruleset/enable/:hash", function(req, res, route){
+  pe.db.enableRuleset(route.params.hash, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
+router.set("/api/ruleset/install/:rid", function(req, res, route){
+  pe.installRuleset(route.params.rid, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
+router.set("/api/ruleset/disable/:rid", function(req, res, route){
+  pe.db.disableRuleset(route.params.rid, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
+var server = http.createServer(function(req, res){
+  router(req, res, {
+    data: url.parse(req.url, true).query
+  }, function(err){
+    if(err){
+      errResp(res, err);
     }
-  };
-};
+  });
+});
+
+server.listen(port, function(){
+  console.log("http://localhost:" + server.address().port);
+});

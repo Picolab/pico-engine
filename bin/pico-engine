@@ -8,4 +8,4 @@ if(!process.env.PICO_ENGINE_HOME){
 
 mkdirp.sync(process.env.PICO_ENGINE_HOME);
 
-require('../src/server');
+require('../');

@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "start": "scriptsp watch:http watch:test",
-    "watch:http": "onchange -i src/ test-rulesets/ -- node src/server/index.js",
+    "watch:http": "onchange -i src/ test-rulesets/ -- node src/index.js",
     "watch:test": "onchange -i src/ test-rulesets/ -- npm run test -s",
     "lint": "eslint src/ && echo lint-ok",
     "test": "npm run lint && node src/tests.js"
@@ -35,25 +35,15 @@
   "homepage": "https://github.com/Picolab/node-pico-engine#readme",
   "devDependencies": {
     "eslint": "^3.0.1",
-    "memdown": "^1.1.2",
     "onchange": "^2.4.0",
     "scriptsp": "^0.3.0",
     "tape": "^4.5.1"
   },
   "dependencies": {
-    "bytewise": "^1.1.0",
-    "contra": "^1.9.1",
-    "cuid": "^1.3.8",
-    "fibers": "^1.0.13",
     "home-dir": "^1.0.0",
-    "http-hash-router": "^1.1.0",
-    "krl-compiler": "^0.10.1",
-    "krl-parser": "^0.11.0",
-    "krl-stdlib": "^0.2.0",
     "leveldown": "^1.4.6",
-    "levelup": "^1.3.2",
     "lodash": "^4.11.2",
     "mkdirp": "^0.5.1",
-    "symbol-table": "^1.1.0"
+    "pico-engine-core": "^0.1.0"
   }
 }
