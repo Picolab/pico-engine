@@ -16,6 +16,29 @@ var testFn = function(t, fn, args, expected, message){
 };
 
 test("general operators", function(t){
+  var tf = _.partial(testFn, t);
+  tf("+", [], void 0);
+  tf("+", [1], 1);
+  tf("+", [1, 2], 3);
+  tf("+", [1, 2, 3], 6);
+  tf("-", [1, 2, 3], -4);
+
+  tf("||", [false, false], false);
+  tf("||", [true, false], true);
+  tf("&&", [true, false], false);
+  tf("&&", [true, true], true);
+
+  tf("<", [1, 3], true);
+  tf("<", [3, 1], false);
+
+  tf("*", [5, 2], 10);
+  tf("/", [4, 2], 2);
+  tf("%", [4, 2], 0);
+
+  t.end();
+});
+
+test("general operators", function(t){
 
   t.equals(stdlib.as(1, "String"), "1");
   t.equals(stdlib.as(.32, "String"), "0.32");

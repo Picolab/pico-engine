@@ -3,6 +3,60 @@ var _ = require("lodash");
 
 var stdlib = {};
 
+var defVarArgOp = function(op, reducer){
+  stdlib[op] = function(){
+    if(arguments.length === 0){
+      return;
+    }
+    var r = arguments[0];
+    var i;
+    for(i = 1; i < arguments.length; i++){
+      r = reducer(r, arguments[i]);
+    }
+    return r;
+  };
+};
+
+defVarArgOp("||", function(r, a){
+  return r || a;
+});
+defVarArgOp("&&", function(r, a){
+  return r && a;
+});
+defVarArgOp("<", function(r, a){
+  return r < a;
+});
+defVarArgOp(">", function(r, a){
+  return r > a;
+});
+defVarArgOp("<=", function(r, a){
+  return r <= a;
+});
+defVarArgOp(">=", function(r, a){
+  return r >= a;
+});
+defVarArgOp("==", function(r, a){
+  return r === a;
+});
+defVarArgOp("!=", function(r, a){
+  return r !== a;
+});
+defVarArgOp("+", function(r, a){
+  return r + a;
+});
+defVarArgOp("-", function(r, a){
+  return r - a;
+});
+defVarArgOp("*", function(r, a){
+  return r * a;
+});
+defVarArgOp("/", function(r, a){
+  return r / a;
+});
+defVarArgOp("%", function(r, a){
+  return r % a;
+});
+
 stdlib["+"] = function(){
   if(arguments.length === 0){
     return;
