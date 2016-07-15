@@ -1,0 +1,27 @@
+{
+  "name": "pico-engine-core",
+  "version": "0.0.0",
+  "description": "The core javascript api for the pico-engine. (no http, logging, process management etc...)",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node src/tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Picolab/node-pico-engine-core.git"
+  },
+  "keywords": [
+    "krl",
+    "pico-engine",
+    "IoT"
+  ],
+  "author": "farskipper",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Picolab/node-pico-engine-core/issues"
+  },
+  "homepage": "https://github.com/Picolab/node-pico-engine-core#readme",
+  "devDependencies": {
+    "tape": "^4.6.0"
+  }
+}
