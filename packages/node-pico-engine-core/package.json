@@ -41,6 +41,7 @@
     "krl-parser": "^0.11.0",
     "krl-stdlib": "^0.2.0",
     "levelup": "^1.3.2",
+    "lodash": "^4.13.1",
     "symbol-table": "^1.1.0"
   }
 }
