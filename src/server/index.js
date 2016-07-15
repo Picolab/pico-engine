@@ -114,24 +114,27 @@ router.set("/", function(req, res, route){
     html += "<a href=\"/api/new-pico\">add pico</a>";
     html += "</div>";
     html += "<h1>Rulesets</h1>";
-    _.each(_.get(db_data, ["rulesets", "krl"]), function(rs_data, hash){
-      var enabled_hash = _.get(db_data, ["rulesets", "enabled", rs_data.rid, "hash"]);
+    _.each(_.get(db_data, ["rulesets", "versions"]), function(versions, rid){
+      var enabled_hash = _.get(db_data, ["rulesets", "enabled", rid, "hash"]);
       html += "<div style=\"margin-left:2em\">";
-      html += "<h2>"+rs_data.rid+"</h2>";
-      _.each(_.get(db_data, ["rulesets", "versions", rs_data.rid]), function(info, timestamp){
-        _.each(info, function(is_on, hash){
+      html += "<h2>"+rid+"</h2>";
+      _.each(versions, function(hashes, timestamp){
+        _.each(hashes, function(is_there, hash){
+          if(!is_there){
+            return;
+          }
           html += "<div style=\"margin-left:2em\">";
           html += timestamp + " | " + hash + " | ";
           if(hash === enabled_hash){
-            html += "<a href=\"/api/ruleset/disable/"+rs_data.rid+"\">disable</a>";
+            html += "<a href=\"/api/ruleset/disable/"+rid+"\">disable</a>";
+            html += " | ";
+            if(pe.isInstalled(rid)){
+              html += "uninstall";
+            }else{
+              html += "<a href=\"/api/ruleset/install/"+rid+"\">install</a>";
+            }
           }else{
             html += "<a href=\"/api/ruleset/enable/"+hash+"\">enable</a>";
-          }
-          html += " | ";
-          if(pe.isInstalled(rs_data.rid)){
-            html += "uninstall";
-          }else{
-            html += "<a href=\"/api/ruleset/install/"+rs_data.rid+"\">install</a>";
           }
           html += "</div>";
         });
