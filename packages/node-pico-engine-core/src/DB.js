@@ -66,6 +66,22 @@ module.exports = function(opts){
         callback(undefined, new_pico);
       });
     },
+    removePico: function(id, callback){
+      var to_batch = [];
+      ldb.createKeyStream({
+        gte: ["pico", id],
+        lte: ["pico", id, undefined]//bytewise sorts with null at the bottom and undefined at the top
+      })
+        .on("error", function(err){
+          callback(err);
+        })
+        .on("data", function(key){
+          to_batch.push({type: "del", key: key});
+        })
+        .on("end", function(){
+          ldb.batch(to_batch, callback);
+        });
+    },
     newChannel: function(opts, callback){
       var new_channel = {
         id: newID(),

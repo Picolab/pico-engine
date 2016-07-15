@@ -12,7 +12,9 @@ test("DB - write and read", function(t){
     chan1: λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
     rule0: λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "rs0"}),
     chan2: λ.curry(pe.db.newChannel, {pico_id: "id0", name: "two", type: "t"}),
-    end_db: λ.curry(pe.db.toObj)
+    end_db: λ.curry(pe.db.toObj),
+    rmpico0: λ.curry(pe.db.removePico, "id0"),
+    post_del_db: λ.curry(pe.db.toObj)
   }, function(err, data){
     if(err) return t.end(err);
 
@@ -40,6 +42,8 @@ test("DB - write and read", function(t){
         }
       }
     });
+
+    t.deepEquals(data.post_del_db, {});
 
     t.end();
   });
