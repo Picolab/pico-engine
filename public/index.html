@@ -15,7 +15,7 @@
         <h1>Picos</h1>
         {{#each db.pico}}
           <div style="margin-left:2em">
-            <h2>{{id}}</h2>
+            <h2>{{id}} <a class="js-ajax-link" href="/api/rm-pico/{{id}}">del</a></h2>
             <div style="margin-left:2em">
               <h4>Channels</h4>
               <ul>

@@ -166,6 +166,13 @@ router.set("/api/new-pico", function(req, res, route){
   });
 });
 
+router.set("/api/rm-pico/:id", function(req, res, route){
+  pe.db.removePico(route.params.id, function(err){
+    if(err) return errResp(res, err);
+    jsonResp(res, {ok: true});
+  });
+});
+
 router.set("/api/pico/:id/new-channel", function(req, res, route){
   pe.db.newChannel({
     pico_id: route.params.id,
