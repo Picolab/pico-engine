@@ -2,8 +2,10 @@ var _ = require("lodash");
 var url = require("url");
 var path = require("path");
 var http = require("http");
+var leveldown = require("leveldown");
 var PicoEngine = require("pico-engine-core");
 var serveStatic = require("ecstatic")({root: path.resolve(__dirname, "..", "public")});
+var RulesetLoader = require("./RulesetLoader");
 var HttpHashRouter = require("http-hash-router");
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -12,9 +14,12 @@ var pico_engine_home = process.env.PICO_ENGINE_HOME || path.resolve(__dirname, "
 ////////////////////////////////////////////////////////////////////////////////
 
 var pe = PicoEngine({
-  rulesets_dir: path.resolve(pico_engine_home, "rulesets"),
+  compileAndLoadRuleset: RulesetLoader({
+    rulesets_dir: path.resolve(pico_engine_home, "rulesets")
+  }),
   db: {
-    path: path.join(pico_engine_home, "db")
+    db: leveldown,
+    location: path.join(pico_engine_home, "db")
   }
 });
 
