@@ -85,16 +85,21 @@ module.exports = function(conf){
     };
   };
 
-  var installRid = function(rid, callback){
+  var installRID = function(rid, callback){
+    var compNLoad = _.partialRight(compileAndLoadRuleset, function(err, rs){
+      if(err) return callback(err);
+      installRuleset(rs, callback);
+    });
+    if(conf._dont_check_enabled_before_installing){//for testing
+      compNLoad({rid: rid});
+      return;
+    }
     db.getEnableRuleset(rid, function(err, data){
       if(err) return callback(err);
-      compileAndLoadRuleset({
+      compNLoad({
         rid: rid,
         src: data.src,
         hash: data.hash
-      }, function(err, rs){
-        if(err) return callback(err);
-        installRuleset(rs, callback);
       });
     });
   };
@@ -105,7 +110,7 @@ module.exports = function(conf){
       throw err;//TODO handle this somehow?
     }
     _.each(rids, function(rid){
-      installRid(rid, function(err){
+      installRID(rid, function(err){
         if(err){
           throw err;//TODO handle this somehow?
         }
@@ -114,12 +119,11 @@ module.exports = function(conf){
   });
 
   return {
-    installRuleset: installRuleset,
     db: db,
     isInstalled: function(rid){
       return _.has(rulesets, rid);
     },
-    installRid: installRid,
+    installRID: installRID,
     signalEvent: function(event, callback){
       event.timestamp = new Date();
       event.getAttrMatches = function(pairs){
