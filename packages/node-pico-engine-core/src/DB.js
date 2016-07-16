@@ -21,7 +21,7 @@ var dbToObj = function(ldb, callback){
 
 module.exports = function(opts){
 
-  var ldb = levelup({
+  var ldb = levelup(opts.location, {
     db: opts.db,
     keyEncoding: bytewise,
     valueEncoding: "json"
