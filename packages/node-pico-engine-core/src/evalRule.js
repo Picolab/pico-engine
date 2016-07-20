@@ -11,7 +11,7 @@ var doPrelude = function(rule, ctx, callback){
 };
 
 var doActions = function(rule, ctx, callback){
-  var actions = _.get(rule, ["action_block", "actions"]);
+  var actions = _.get(rule, ["action_block", "actions"], []);
   λ.map(actions, function(action, done){
     applyInFiber(action, null, [ctx], done);
   }, callback);

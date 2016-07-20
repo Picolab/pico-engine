@@ -245,6 +245,10 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
       [{name: "get", options: {thing: "asdf"}}]
     ],
     [
+      signal("events", "noop", {}),
+      []
+    ],
+    [
       signal("events_or", "a"),
       [{name: "or", options: {}}]
     ],
