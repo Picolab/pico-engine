@@ -82,6 +82,32 @@ module.exports = {
           }]
       }
     },
+    "noop": {
+      "name": "noop",
+      "select": {
+        "graph": { "events": { "noop": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      }
+    },
     "or_op": {
       "name": "or_op",
       "select": {
