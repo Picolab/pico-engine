@@ -44,6 +44,44 @@ module.exports = {
           }]
       }
     },
+    "get_attr": {
+      "name": "get_attr",
+      "select": {
+        "graph": { "events": { "get": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "prelude": function (ctx) {
+        ctx.scope.set("thing", ctx.event.getAttr("thing"));
+      },
+      "action_block": {
+        "actions": [function (ctx) {
+            return {
+              "type": "directive",
+              "name": "get",
+              "options": { "thing": ctx.scope.get("thing") }
+            };
+          }]
+      }
+    },
     "or_op": {
       "name": "or_op",
       "select": {

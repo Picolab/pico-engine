@@ -4,6 +4,14 @@ ruleset io.picolabs.events {
     send_directive("bound") with
       name = my_name
   }
+  rule get_attr {
+    select when events get;
+    pre {
+      thing = event:attr("thing")
+    }
+    send_directive("get") with
+      thing = thing
+  }
   rule or_op {
     select when events_or a or events_or b
     send_directive("or")
