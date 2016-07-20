@@ -126,6 +126,9 @@ module.exports = function(conf){
     installRID: installRID,
     signalEvent: function(event, callback){
       event.timestamp = new Date();
+      event.getAttr = function(attr_key){
+        return event.attrs[attr_key];
+      };
       event.getAttrMatches = function(pairs){
         var matches = [];
         var i, attr, m, pair;

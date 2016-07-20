@@ -1,20 +1,7 @@
 var _ = require("lodash");
 var λ = require("contra");
 var test = require("tape");
-var mkTestPicoEngineORIG = require("./mkTestPicoEngine");
-
-var mkTestPicoEngine = function(){
-  return mkTestPicoEngineORIG({
-    rulesets: [
-      "hello-world",
-      "events",
-      "persistent",
-      "scope",
-      "operators",
-      "chevron"
-    ]
-  });
-};
+var mkTestPicoEngine = require("./mkTestPicoEngine");
 
 var omitMeta = function(resp){
   if(!_.has(resp, "directives")){
@@ -252,6 +239,10 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
     [
       signal("events", "bind", {name: "blah?!"}),
       [{name: "bound", options: {name: "blah?!"}}]
+    ],
+    [
+      signal("events", "get", {thing: "asdf"}),
+      [{name: "get", options: {thing: "asdf"}}]
     ],
     [
       signal("events_or", "a"),

@@ -1,262 +1,300 @@
 module.exports = {
-  'name': 'io.picolabs.events',
-  'meta': {},
-  'rules': {
-    'set_attr': {
-      'name': 'set_attr',
-      'select': {
-        'graph': { 'events': { 'bind': { 'expr_0': true } } },
-        'eventexprs': {
-          'expr_0': function (ctx) {
+  "name": "io.picolabs.events",
+  "meta": {},
+  "rules": {
+    "set_attr": {
+      "name": "set_attr",
+      "select": {
+        "graph": { "events": { "bind": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
             var matches = ctx.event.getAttrMatches([[
-                'name',
-                new RegExp('^(.*)$', '')
+                "name",
+                new RegExp("^(.*)$", "")
               ]]);
             if (!matches)
               return false;
-            ctx.scope.set('my_name', matches[0]);
+            ctx.scope.set("my_name", matches[0]);
             return true;
           }
         },
-        'state_machine': {
-          'start': [
+        "state_machine": {
+          "start": [
             [
-              'expr_0',
-              'end'
+              "expr_0",
+              "end"
             ],
             [
               [
-                'not',
-                'expr_0'
+                "not",
+                "expr_0"
               ],
-              'start'
+              "start"
             ]
           ]
         }
       },
-      'action_block': {
-        'actions': [function (ctx) {
+      "action_block": {
+        "actions": [function (ctx) {
             return {
-              'type': 'directive',
-              'name': 'bound',
-              'options': { 'name': ctx.scope.get('my_name') }
+              "type": "directive",
+              "name": "bound",
+              "options": { "name": ctx.scope.get("my_name") }
             };
           }]
       }
     },
-    'or_op': {
-      'name': 'or_op',
-      'select': {
-        'graph': {
-          'events_or': {
-            'a': { 'expr_0': true },
-            'b': { 'expr_1': true }
-          }
-        },
-        'eventexprs': {
-          'expr_0': function (ctx) {
-            return true;
-          },
-          'expr_1': function (ctx) {
+    "get_attr": {
+      "name": "get_attr",
+      "select": {
+        "graph": { "events": { "get": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
             return true;
           }
         },
-        'state_machine': {
-          'start': [
+        "state_machine": {
+          "start": [
             [
-              'expr_0',
-              'end'
-            ],
-            [
-              'expr_1',
-              'end'
+              "expr_0",
+              "end"
             ],
             [
               [
-                'not',
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "prelude": function (ctx) {
+        ctx.scope.set("thing", ctx.event.getAttr("thing"));
+      },
+      "action_block": {
+        "actions": [function (ctx) {
+            return {
+              "type": "directive",
+              "name": "get",
+              "options": { "thing": ctx.scope.get("thing") }
+            };
+          }]
+      }
+    },
+    "or_op": {
+      "name": "or_op",
+      "select": {
+        "graph": {
+          "events_or": {
+            "a": { "expr_0": true },
+            "b": { "expr_1": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          },
+          "expr_1": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              "expr_1",
+              "end"
+            ],
+            [
+              [
+                "not",
                 [
-                  'or',
-                  'expr_0',
-                  'expr_1'
+                  "or",
+                  "expr_0",
+                  "expr_1"
                 ]
               ],
-              'start'
+              "start"
             ]
           ]
         }
       },
-      'action_block': {
-        'actions': [function (ctx) {
+      "action_block": {
+        "actions": [function (ctx) {
             return {
-              'type': 'directive',
-              'name': 'or',
-              'options': {}
+              "type": "directive",
+              "name": "or",
+              "options": {}
             };
           }]
       }
     },
-    'and_op': {
-      'name': 'and_op',
-      'select': {
-        'graph': {
-          'events_and': {
-            'a': { 'expr_0': true },
-            'b': { 'expr_1': true }
+    "and_op": {
+      "name": "and_op",
+      "select": {
+        "graph": {
+          "events_and": {
+            "a": { "expr_0": true },
+            "b": { "expr_1": true }
           }
         },
-        'eventexprs': {
-          'expr_0': function (ctx) {
+        "eventexprs": {
+          "expr_0": function (ctx) {
             return true;
           },
-          'expr_1': function (ctx) {
+          "expr_1": function (ctx) {
             return true;
           }
         },
-        'state_machine': {
-          'start': [
+        "state_machine": {
+          "start": [
             [
-              'expr_0',
-              'state_0'
+              "expr_0",
+              "state_0"
             ],
             [
-              'expr_1',
-              'state_1'
+              "expr_1",
+              "state_1"
             ],
             [
               [
-                'not',
+                "not",
                 [
-                  'or',
-                  'expr_0',
-                  'expr_1'
+                  "or",
+                  "expr_0",
+                  "expr_1"
                 ]
               ],
-              'start'
+              "start"
             ]
           ],
-          'state_0': [
+          "state_0": [
             [
-              'expr_1',
-              'end'
+              "expr_1",
+              "end"
             ],
             [
               [
-                'not',
-                'expr_1'
+                "not",
+                "expr_1"
               ],
-              'state_0'
+              "state_0"
             ]
           ],
-          'state_1': [
+          "state_1": [
             [
-              'expr_0',
-              'end'
+              "expr_0",
+              "end"
             ],
             [
               [
-                'not',
-                'expr_0'
+                "not",
+                "expr_0"
               ],
-              'state_1'
+              "state_1"
             ]
           ]
         }
       },
-      'action_block': {
-        'actions': [function (ctx) {
+      "action_block": {
+        "actions": [function (ctx) {
             return {
-              'type': 'directive',
-              'name': 'and',
-              'options': {}
+              "type": "directive",
+              "name": "and",
+              "options": {}
             };
           }]
       }
     },
-    'and_or': {
-      'name': 'and_or',
-      'select': {
-        'graph': {
-          'events_andor': {
-            'a': { 'expr_0': true },
-            'b': { 'expr_1': true },
-            'c': { 'expr_2': true }
+    "and_or": {
+      "name": "and_or",
+      "select": {
+        "graph": {
+          "events_andor": {
+            "a": { "expr_0": true },
+            "b": { "expr_1": true },
+            "c": { "expr_2": true }
           }
         },
-        'eventexprs': {
-          'expr_0': function (ctx) {
+        "eventexprs": {
+          "expr_0": function (ctx) {
             return true;
           },
-          'expr_1': function (ctx) {
+          "expr_1": function (ctx) {
             return true;
           },
-          'expr_2': function (ctx) {
+          "expr_2": function (ctx) {
             return true;
           }
         },
-        'state_machine': {
-          'start': [
+        "state_machine": {
+          "start": [
             [
-              'expr_0',
-              'state_0'
+              "expr_0",
+              "state_0"
             ],
             [
-              'expr_1',
-              'state_1'
+              "expr_1",
+              "state_1"
             ],
             [
-              'expr_2',
-              'end'
+              "expr_2",
+              "end"
             ],
             [
               [
-                'not',
+                "not",
                 [
-                  'or',
-                  'expr_0',
+                  "or",
+                  "expr_0",
                   [
-                    'or',
-                    'expr_1',
-                    'expr_2'
+                    "or",
+                    "expr_1",
+                    "expr_2"
                   ]
                 ]
               ],
-              'start'
+              "start"
             ]
           ],
-          'state_0': [
+          "state_0": [
             [
-              'expr_1',
-              'end'
+              "expr_1",
+              "end"
             ],
             [
               [
-                'not',
-                'expr_1'
+                "not",
+                "expr_1"
               ],
-              'state_0'
+              "state_0"
             ]
           ],
-          'state_1': [
+          "state_1": [
             [
-              'expr_0',
-              'end'
+              "expr_0",
+              "end"
             ],
             [
               [
-                'not',
-                'expr_0'
+                "not",
+                "expr_0"
               ],
-              'state_1'
+              "state_1"
             ]
           ]
         }
       },
-      'action_block': {
-        'actions': [function (ctx) {
+      "action_block": {
+        "actions": [function (ctx) {
             return {
-              'type': 'directive',
-              'name': '(a and b) or c',
-              'options': {}
+              "type": "directive",
+              "name": "(a and b) or c",
+              "options": {}
             };
           }]
       }
