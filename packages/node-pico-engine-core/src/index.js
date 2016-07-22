@@ -86,20 +86,27 @@ module.exports = function(conf){
   };
 
   var installRID = function(rid, callback){
-    var compNLoad = _.partialRight(compileAndLoadRuleset, function(err, rs){
-      if(err) return callback(err);
-      installRuleset(rs, callback);
-    });
     if(conf._dont_check_enabled_before_installing){//for testing
-      compNLoad({rid: rid});
+      compileAndLoadRuleset({rid: rid}, function(err, rs){
+        if(err) return callback(err);
+        installRuleset(rs, callback);
+      });
       return;
     }
     db.getEnableRuleset(rid, function(err, data){
       if(err) return callback(err);
-      compNLoad({
+      compileAndLoadRuleset({
         rid: rid,
         src: data.src,
         hash: data.hash
+      }, function(err, rs){
+        if(err){
+          db.disableRuleset(rid, function(){
+            callback(err);
+          });
+          return;
+        }
+        installRuleset(rs, callback);
       });
     });
   };
