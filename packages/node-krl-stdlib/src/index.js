@@ -101,6 +101,7 @@ stdlib.isnull = function(val){
 
 stdlib.klog = function(val, message){
   console.log("[KLOG]", message, val);
+  return val;
 };
 
 stdlib["typeof"] = function(val){

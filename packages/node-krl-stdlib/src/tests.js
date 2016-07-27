@@ -56,6 +56,7 @@ test("general operators", function(t){
   t.equals(stdlib.isnull({}), false);
 
   t.ok(_.isFunction(stdlib.klog), "just checking that it's there");
+  t.equals(stdlib.klog(42,"log message for"),42);
 
   t.equals(stdlib["typeof"](""), "String");
   t.equals(stdlib["typeof"](0), "Number");
