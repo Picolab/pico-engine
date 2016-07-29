@@ -230,7 +230,7 @@ router.set("/api/ruleset/enable/:hash", function(req, res, route){
 });
 
 router.set("/api/ruleset/install/:rid", function(req, res, route){
-  pe.installRuleset(route.params.rid, function(err){
+  pe.db.installRuleset(route.params.rid, function(err){
     if(err) return errResp(res, err);
     jsonResp(res, {ok: true});
   });
