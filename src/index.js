@@ -79,64 +79,64 @@ router.set("/old", function(req, res, route){
     if(err) return errResp(res, err);
 
     var html = "";
-    html += "<html><body>";
-    html += "<h1>Picos</h1>";
+    html += "<html>\n<body>\n";
+    html += "<h1>Picos</h1>\n";
     _.each(db_data.pico, function(pico){
-      html += "<div style=\"margin-left:2em\">";
-      html += "<h2>"+pico.id+"</h1>";
-      html += "<div style=\"margin-left:2em\">";
+      html += "<div style=\"margin-left:2em\">\n";
+      html += "<h2>"+pico.id+"</h2>\n";
+      html += "<div style=\"margin-left:2em\">\n";
 
-      html += "<h4>Channels</h4>";
-      html += "<ul>";
+      html += "<h4>Channels</h4>\n";
+      html += "<ul>\n";
       _.each(pico.channel, function(chan){
         var rm_link = "/api/pico/"+pico.id+"/rm-channel/"+chan.id;
-        html += "<li>"+JSON.stringify(chan)+" <a href=\""+rm_link+"\">del</a></li>";
+        html += "<li>"+JSON.stringify(chan)+" <a href=\""+rm_link+"\">del</a></li>\n";
       });
-      html += "</ul>";
+      html += "</ul>\n";
 
-      html += "<form action=\"/api/pico/"+pico.id+"/new-channel\" method=\"GET\">";
-      html += "<input type=\"text\" name=\"name\" placeholder=\"name...\">";
-      html += "<input type=\"text\" name=\"type\" placeholder=\"type...\">";
-      html += "<button type=\"submit\">add channel</button>";
-      html += "</form>";
+      html += "<form action=\"/api/pico/"+pico.id+"/new-channel\" method=\"GET\">\n";
+      html += "<input type=\"text\" name=\"name\" placeholder=\"name...\">\n";
+      html += "<input type=\"text\" name=\"type\" placeholder=\"type...\">\n";
+      html += "<button type=\"submit\">add channel</button>\n";
+      html += "</form>\n";
 
-      html += "<h4>Rulesets</h4>";
-      html += "<ul>";
+      html += "<h4>Rulesets</h4>\n";
+      html += "<ul>\n";
       _.each(pico.ruleset, function(d, rid){
         var rm_link = "/api/pico/"+pico.id+"/rm-ruleset/"+rid;
-        html += "<li>"+rid+" <a href=\""+rm_link+"\">del</a></li>";
+        html += "<li>"+rid+" <a href=\""+rm_link+"\">del</a></li>\n";
       });
-      html += "</ul>";
+      html += "</ul>\n";
 
-      html += "<form action=\"/api/pico/"+pico.id+"/add-ruleset\" method=\"GET\">";
-      html += "<input type=\"text\" name=\"rid\" placeholder=\"Ruleset id...\">";
-      html += "<button type=\"submit\">add ruleset</button>";
-      html += "</form>";
+      html += "<form action=\"/api/pico/"+pico.id+"/add-ruleset\" method=\"GET\">\n";
+      html += "<input type=\"text\" name=\"rid\" placeholder=\"Ruleset id...\">\n";
+      html += "<button type=\"submit\">add ruleset</button>\n";
+      html += "</form>\n";
 
-      html += "<h4>`ent` Variables</h4>";
-      html += "<ul>";
+      html += "<h4>`ent` Variables</h4>\n";
+      html += "<ul>\n";
       _.each(pico.vars, function(v, k){
-        html += "<li>"+k+" = "+v+"</li>";
+        html += "<li>"+k+" = "+v+"</li>\n";
       });
-      html += "</ul>";
+      html += "</ul>\n";
 
-      html += "</div>";
-      html += "</div>";
+      html += "</div>\n";
+      html += "</div>\n";
     });
-    html += "<div style=\"margin-left:2em\">";
-    html += "<a href=\"/api/new-pico\">add pico</a>";
-    html += "</div>";
-    html += "<h1>Rulesets</h1>";
+    html += "<div style=\"margin-left:2em\">\n";
+    html += "<a href=\"/api/new-pico\">add pico</a>\n";
+    html += "</div>\n";
+    html += "<h1>Rulesets</h1>\n";
     _.each(_.get(db_data, ["rulesets", "versions"]), function(versions, rid){
       var enabled_hash = _.get(db_data, ["rulesets", "enabled", rid, "hash"]);
-      html += "<div style=\"margin-left:2em\">";
-      html += "<h2>"+rid+"</h2>";
+      html += "<div style=\"margin-left:2em\">\n";
+      html += "<h2>"+rid+"</h2>\n";
       _.each(versions, function(hashes, timestamp){
         _.each(hashes, function(is_there, hash){
           if(!is_there){
             return;
           }
-          html += "<div style=\"margin-left:2em\">";
+          html += "<div style=\"margin-left:2em\">\n";
           html += timestamp + " | " + hash + " | ";
           if(hash === enabled_hash){
             html += "<a href=\"/api/ruleset/disable/"+rid+"\">disable</a>";
@@ -146,20 +146,23 @@ router.set("/old", function(req, res, route){
             }else{
               html += "<a href=\"/api/ruleset/install/"+rid+"\">install</a>";
             }
+            var the_krl_src = _.get(db_data, ["rulesets", "krl", enabled_hash, "src"]);
+            html += "<pre>" + the_krl_src + "</pre>\n";
           }else{
             html += "<a href=\"/api/ruleset/enable/"+hash+"\">enable</a>";
           }
-          html += "</div>";
+          html += "</div>\n";
         });
       });
-      html += "</div>";
+      html += "</div>\n";
     });
-    html += "<form action=\"/api/ruleset/register\" method=\"GET\">";
-    html += "<textarea name=\"src\"></textarea>";
-    html += "<button type=\"submit\">register ruleset</button>";
-    html += "</form>";
-    html += "<hr/>";
-    html += "<pre>" + JSON.stringify(db_data, undefined, 2) + "</pre>";
+    html += "<form action=\"/api/ruleset/register\" method=\"GET\">\n";
+    html += "<textarea name=\"src\"></textarea>\n";
+    html += "<button type=\"submit\">register ruleset</button>\n";
+    html += "</form>\n";
+//    html += "<hr/>\n"; // instead, use route /api/db-dump
+//    html += "<pre>\n" + JSON.stringify(db_data, undefined, 2) + "\n</pre>\n";
+    html += "</body>\n</html>\n";
     res.end(html);
   });
 });
