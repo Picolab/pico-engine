@@ -15,6 +15,10 @@ ruleset io.picolabs.events {
   rule noop {
     select when events noop
   }
+  rule noop2 {
+    select when events noop2;
+    noop()
+  }
   rule or_op {
     select when events_or a or events_or b
     send_directive("or")
