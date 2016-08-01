@@ -249,6 +249,10 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
       []
     ],
     [
+      signal("events", "noop2", {}),
+      []
+    ],
+    [
       signal("events_or", "a"),
       [{name: "or", options: {}}]
     ],

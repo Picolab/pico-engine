@@ -36,7 +36,10 @@ module.exports = function(rule, ctx, callback){
       if(err) return callback(err);
 
       //TODO handle more than one response type
-      var resp_data = _.map(responses, function(response){
+      var resp_data = _.compact(_.map(responses, function(response){
+        if((response === void 0) || (response === null)){
+          return;//noop
+        }
         return {
           type: "directive",
           options: response.options,
@@ -48,7 +51,7 @@ module.exports = function(rule, ctx, callback){
             eid: ctx.event.eid
           }
         };
-      });
+      }));
 
       applyInFiber(doPostlude, null, [rule, ctx], function(err){
         //TODO collect errors and respond individually to the client
