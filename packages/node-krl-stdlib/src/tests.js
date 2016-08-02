@@ -290,5 +290,14 @@ test("Collection operators", function(t){
 
   tf("unique", [[1, 2, 1, 3, 4, 4]], [1, 2, 3, 4]);
 
+
   t.end();
+});
+
+test("Random functions", function(t){
+    t.ok(_.isString(stdlib.randomWord()));
+    t.notEquals(stdlib.randomWord(),stdlib.randomWord());
+    t.ok(_.isString(stdlib.uuid()));
+    t.notEquals(stdlib.uuid(),stdlib.uuid());
+    t.end();
 });

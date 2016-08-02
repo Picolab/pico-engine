@@ -1,5 +1,6 @@
 var _ = require("lodash");
-
+var cuid = require("cuid");
+var randomWords = require("random-words");
 
 var stdlib = {};
 
@@ -347,6 +348,13 @@ stdlib.duplicates = function(val){
   });
   return r;
 };
+stdlib.randomWord = function(){
+  return randomWords();
+};
+stdlib.uuid = function(){
+  return cuid();
+};
+
 stdlib.unique = _.uniq;
 
 module.exports = stdlib;
