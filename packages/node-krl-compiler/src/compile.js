@@ -122,6 +122,13 @@ var comp_by_type = {
       comp(ast.right)
     ], ast.loc);
   },
+  "ConditionalExpression": function(ast, comp, e){
+    return e("ternary",
+      comp(ast.test),
+      comp(ast.consequent),
+      comp(ast.alternate)
+    );
+  },
   "Function": function(ast, comp, e){
     var body = _.map(ast.params, function(param, i){
       var loc = param.loc;
