@@ -1,6 +1,9 @@
 var _ = require("lodash");
 var λ = require("contra");
 var applyInFiber = require("./applyInFiber");
+var noopTrue = function(){
+  return true;
+};
 
 var doPrelude = function(rule, ctx, callback){
   if(!_.isFunction(rule.prelude)){
@@ -11,10 +14,17 @@ var doPrelude = function(rule, ctx, callback){
 };
 
 var doActions = function(rule, ctx, callback){
-  var actions = _.get(rule, ["action_block", "actions"], []);
-  λ.map(actions, function(action, done){
-    applyInFiber(action, null, [ctx], done);
-  }, callback);
+  var condition = _.get(rule, ["action_block", "condition"], noopTrue);
+  applyInFiber(condition, null, [ctx], function(err, cond){
+    if(err) return callback(err);
+    if(!cond){
+      return callback();
+    }
+    var actions = _.get(rule, ["action_block", "actions"], []);
+    λ.map(actions, function(action, done){
+      applyInFiber(action, null, [ctx], done);
+    }, callback);
+  });
 };
 
 var doPostlude = function(rule, ctx){

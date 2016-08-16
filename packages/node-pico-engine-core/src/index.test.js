@@ -299,6 +299,14 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
     [
       signal("events_and", "a"),
       [{name: "and", options: {}}]
+    ],
+    [
+      signal("events", "ifthen", {name: "something"}),
+      [{name: "ifthen", options: {}}]
+    ],
+    [
+      signal("events", "ifthen", {}),
+      []
     ]
   ], t.end);
 });
