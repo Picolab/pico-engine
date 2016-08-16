@@ -355,6 +355,51 @@ module.exports = {
             };
           }]
       }
+    },
+    "ifthen": {
+      "name": "ifthen",
+      "select": {
+        "graph": { "events": { "ifthen": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.event.getAttrMatches([[
+                "name",
+                new RegExp("^(.*)$", "")
+              ]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("my_name", matches[0]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "condition": function (ctx) {
+          return ctx.scope.get("my_name");
+        },
+        "actions": [function (ctx) {
+            return {
+              "type": "directive",
+              "name": "ifthen",
+              "options": {}
+            };
+          }]
+      }
     }
   }
 };
