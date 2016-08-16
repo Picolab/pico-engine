@@ -133,6 +133,15 @@ stdlib.sprintf = function(val, template){
   return template;
 };
 
+stdlib.defaultsTo = function(val,defaultVal,message){
+  if(_.size(val) === 0){
+    if(message !== undefined) stdlib.emitter.emit("debug", "[DEFAULTSTO]", message);
+    return defaultVal;
+  } else {
+    return val;
+  }
+};
+
 //Number operators//////////////////////////////////////////////////////////////
 stdlib.chr = function(val){
   return String.fromCharCode(val);
