@@ -45,6 +45,10 @@ test("general operators", function(t){
   assertThrows(t, stdlib.as, [NaN, "String"]);
   t.equals(stdlib.as("-1.23", "Number"), -1.23);
   t.equals(stdlib.as("^a.*z$", "RegExp").source, /^a.*z$/.source);
+  t.equals(stdlib.as(42, "Number"), 42);
+  t.equals(stdlib.as("str", "String"), "str");
+  var test_regex = /^a.*z$/;
+  t.equals(stdlib.as(test_regex, "RegExp"), test_regex);
 
   t.equals(stdlib.isnull(), true);
   t.equals(stdlib.isnull(void 0), true);

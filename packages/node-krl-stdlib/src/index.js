@@ -72,14 +72,20 @@ stdlib.as = function(val, type){
       return parseFloat(val) || 0;
     }else if(type === "RegExp"){
       return new RegExp(val);
+    }else if(type === "String"){
+      return val;
     }
   }else if(_.isNumber(val) && !_.isNaN(val)){
     if(type === "String"){
       return val + "";
+    }else if(type === "Number"){
+      return val;
     }
   }else if(_.isRegExp(val)){
     if(type === "String"){
       return val.source;
+    }else if(type === "RegExp"){
+      return val;
     }
   }
   throw new Error("Cannot use .as(\""+type+"\") operator with " + JSON.stringify(val));
