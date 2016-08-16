@@ -1,8 +1,11 @@
 var _ = require("lodash");
 var cuid = require("cuid");
 var randomWords = require("random-words");
+var EventEmitter = require("events");
 
 var stdlib = {};
+
+stdlib.emitter = new EventEmitter();
 
 var defVarArgOp = function(op, reducer){
   stdlib[op] = function(){
@@ -98,7 +101,7 @@ stdlib.isnull = function(val){
 };
 
 stdlib.klog = function(val, message){
-  console.log("[KLOG]", message, val);
+  stdlib.emitter.emit("klog", val, message);
   return val;
 };
 

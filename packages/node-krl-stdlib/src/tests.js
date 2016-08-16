@@ -59,9 +59,6 @@ test("general operators", function(t){
   t.equals(stdlib.isnull(""), false);
   t.equals(stdlib.isnull({}), false);
 
-  t.ok(_.isFunction(stdlib.klog), "just checking that it's there");
-  t.equals(stdlib.klog(42,"log message for"),42);
-
   t.equals(stdlib["typeof"](""), "String");
   t.equals(stdlib["typeof"](0), "Number");
   t.equals(stdlib["typeof"](-.01), "Number");
@@ -304,4 +301,13 @@ test("Random functions", function(t){
     t.ok(_.isString(stdlib.uuid()));
     t.notEquals(stdlib.uuid(),stdlib.uuid());
     t.end();
+});
+
+test("klog", function(t){
+  t.plan(2);
+  stdlib.emitter.on("klog", function(val, message){
+    t.equals(val, 42);
+    t.equals(message, "message 1");
+  });
+  stdlib.klog(42, "message 1");
 });
