@@ -198,6 +198,16 @@ var comp_by_type = {
       meta: e("obj-raw", comp(ast.meta))
     };
     if(!_.isEmpty(ast.global)){
+      _.each(ast.global, function(g){
+        if(!g || g.type !== "Declaration"){
+          throw new Error("Ruleset.global should only be declarations");
+        }
+        if(g.left && g.left.type === "DomainIdentifier"){
+          if(g.left.domain === "ent"){
+            throw new Error("Cannot set ent:* vars in the global scope");
+          }
+        }
+      });
       rs.global = e("fn", ["ctx"], comp(ast.global));
     }
     rs.rules = e("obj", rules_obj);

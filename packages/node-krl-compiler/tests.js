@@ -53,3 +53,13 @@ test("compiler", function(t){
     }, t.end);
   });
 });
+
+test("compiler errors", function(t){
+  try{
+    compiler("ruleset blah {global {ent:a = 1}}\n");
+    t.fail("should have thrown up b/c ent:* = * not allowed in global scope");
+  }catch(err){
+    t.ok(true);
+  }
+  t.end();
+});
