@@ -67,26 +67,28 @@ stdlib.beesting = function(val){
 //Operators
 //
 stdlib.as = function(val, type){
-  if(_.isString(val)){
+  var val_type = stdlib["typeof"](val);
+  if(val_type === type){
+    return val;
+  }
+  if(val_type === "String"){
     if(type === "Number"){
       return parseFloat(val) || 0;
     }else if(type === "RegExp"){
       return new RegExp(val);
-    }else if(type === "String"){
-      return val;
     }
-  }else if(_.isNumber(val) && !_.isNaN(val)){
+  }else if(val_type === "Number"){
     if(type === "String"){
       return val + "";
-    }else if(type === "Number"){
-      return val;
     }
-  }else if(_.isRegExp(val)){
+  }else if(val_type === "Boolean"){// eslint-disable-line
+  }else if(val_type === "Null"){// eslint-disable-line
+  }else if(val_type === "RegExp"){
     if(type === "String"){
       return val.source;
-    }else if(type === "RegExp"){
-      return val;
     }
+  }else if(val_type === "Array"){// eslint-disable-line
+  }else if(val_type === "Map"){// eslint-disable-line
   }
   throw new Error("Cannot use .as(\""+type+"\") operator with " + JSON.stringify(val));
 };
