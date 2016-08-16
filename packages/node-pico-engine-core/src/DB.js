@@ -98,11 +98,11 @@ module.exports = function(opts){
     removeChannel: function(pico_id, eci, callback){
       ldb.del(["pico", pico_id, "channel", eci], callback);
     },
-    putEntVar: function(pico_id, var_name, val, callback){
-      ldb.put(["pico", pico_id, "vars", var_name], val, callback);
+    putEntVar: function(pico_id, rid, var_name, val, callback){
+      ldb.put(["pico", pico_id, rid, "vars", var_name], val, callback);
     },
-    getEntVar: function(pico_id, var_name, callback){
-      ldb.get(["pico", pico_id, "vars", var_name], callback);
+    getEntVar: function(pico_id, rid, var_name, callback){
+      ldb.get(["pico", pico_id, rid, "vars", var_name], callback);
     },
     putAppVar: function(rid, var_name, val, callback){
       ldb.put(["resultset", rid, "vars", var_name], val, callback);

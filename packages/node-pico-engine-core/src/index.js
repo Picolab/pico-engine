@@ -71,10 +71,10 @@ module.exports = function(conf){
   var mkPersistent = function(pico_id, rid){
     return {
       getEnt: function(key){
-        return db.getEntVarFuture(pico_id, key).wait();
+        return db.getEntVarFuture(pico_id, rid, key).wait();
       },
       putEnt: function(key, value){
-        db.putEntVarFuture(pico_id, key, value).wait();
+        db.putEntVarFuture(pico_id, rid, key, value).wait();
       },
       getApp: function(key, value){
         return db.getAppVarFuture(rid, key).wait();
