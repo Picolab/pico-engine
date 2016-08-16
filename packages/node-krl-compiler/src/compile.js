@@ -242,7 +242,11 @@ var comp_by_type = {
   "EventExpression": require("./c/EventExpression"),
   "RuleActionBlock": function(ast, comp, e){
     var block = {};
-    //TODO "condition": COND,
+    if(ast.condition){
+      block.condition = e("fn", ["ctx"], [
+        e("return", comp(ast.condition))
+      ]);
+    }
     //TODO "block_type": "choose",
     block.actions = e("arr", _.map(ast.actions, function(action){
       return comp(action);
