@@ -9,3 +9,4 @@ node_modules/.bin/krl-compiler --no-source-map < test-rulesets/persistent.krl > 
 node_modules/.bin/krl-compiler --no-source-map < test-rulesets/scope.krl > test-rulesets/scope.js
 node_modules/.bin/krl-compiler --no-source-map < test-rulesets/operators.krl > test-rulesets/operators.js
 node_modules/.bin/krl-compiler --no-source-map < test-rulesets/chevron.krl > test-rulesets/chevron.js
+node_modules/.bin/krl-compiler --no-source-map < test-rulesets/section.krl > test-rulesets/section.js
