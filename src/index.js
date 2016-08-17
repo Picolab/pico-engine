@@ -80,13 +80,14 @@ router.set("/old", function(req, res, route){
 
     var html = "";
     html += "<html>\n<body>\n";
-    html += "<h1>Picos</h1>\n";
+    html += "<h1>http://localhost:" + server.address().port + "</h1>\n";
+    html += "<h2>Picos</h2>\n";
     _.each(db_data.pico, function(pico){
       html += "<div style=\"margin-left:2em\">\n";
-      html += "<h2>"+pico.id+"</h2>\n";
+      html += "<h3>"+pico.id+"</h3>\n";
       html += "<div style=\"margin-left:2em\">\n";
 
-      html += "<h3>Channels</h3>\n";
+      html += "<h4>Channels</h4>\n";
       html += "<ul>\n";
       _.each(pico.channel, function(chan){
         var rm_link = "/api/pico/"+pico.id+"/rm-channel/"+chan.id;
@@ -100,15 +101,15 @@ router.set("/old", function(req, res, route){
       html += "<button type=\"submit\">add channel</button>\n";
       html += "</form>\n";
 
-      html += "<h3>Rulesets</h3>\n";
+      html += "<h4>Rulesets</h4>\n";
       html += "<ul>\n";
       _.each(pico.ruleset, function(d, rid){
         var rm_link = "/api/pico/"+pico.id+"/rm-ruleset/"+rid;
         html += "<li>"+rid+" <a href=\""+rm_link+"\">del</a></li>\n";
         html += "<ul>\n";
         _.each(_.get(db_data, ["pico", pico.id, rid, "vars"]),
-               function(vars,name){
-                 html += "<li>"+name+"="+JSON.stringify(vars)+"</li>";
+               function(v,k){
+                 html += "<li>"+k+"="+JSON.stringify(v)+"</li>\n";
                });
         html += "</ul>\n";
       });
@@ -125,11 +126,11 @@ router.set("/old", function(req, res, route){
     html += "<div style=\"margin-left:2em\">\n";
     html += "<a href=\"/api/new-pico\">add pico</a>\n";
     html += "</div>\n";
-    html += "<h1>Rulesets</h1>\n";
+    html += "<h2>Rulesets</h2>\n";
     _.each(_.get(db_data, ["rulesets", "versions"]), function(versions, rid){
       var enabled_hash = _.get(db_data, ["rulesets", "enabled", rid, "hash"]);
       html += "<div style=\"margin-left:2em\">\n";
-      html += "<h2>"+rid+"</h2>\n";
+      html += "<h3>"+rid+"</h3>\n";
       _.each(versions, function(hashes, timestamp){
         _.each(hashes, function(is_there, hash){
           if(!is_there){
@@ -159,7 +160,8 @@ router.set("/old", function(req, res, route){
     html += "<textarea name=\"src\"></textarea>\n";
     html += "<button type=\"submit\">register ruleset</button>\n";
     html += "</form>\n";
-//    html += "<hr/>\n"; // instead, use route /api/db-dump
+    html += "<hr/>\n";
+    html += "<a href=\"/api/db-dump\">raw database dump</a>\n";
 //    html += "<pre>\n" + JSON.stringify(db_data, undefined, 2) + "\n</pre>\n";
     html += "</body>\n</html>\n";
     res.end(html);
