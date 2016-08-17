@@ -86,7 +86,7 @@ router.set("/old", function(req, res, route){
       html += "<h2>"+pico.id+"</h2>\n";
       html += "<div style=\"margin-left:2em\">\n";
 
-      html += "<h4>Channels</h4>\n";
+      html += "<h3>Channels</h3>\n";
       html += "<ul>\n";
       _.each(pico.channel, function(chan){
         var rm_link = "/api/pico/"+pico.id+"/rm-channel/"+chan.id;
@@ -100,11 +100,17 @@ router.set("/old", function(req, res, route){
       html += "<button type=\"submit\">add channel</button>\n";
       html += "</form>\n";
 
-      html += "<h4>Rulesets</h4>\n";
+      html += "<h3>Rulesets</h3>\n";
       html += "<ul>\n";
       _.each(pico.ruleset, function(d, rid){
         var rm_link = "/api/pico/"+pico.id+"/rm-ruleset/"+rid;
         html += "<li>"+rid+" <a href=\""+rm_link+"\">del</a></li>\n";
+        html += "<ul>\n";
+        _.each(_.get(db_data, ["pico", pico.id, rid, "vars"]),
+               function(vars,name){
+                 html += "<li>"+name+"="+JSON.stringify(vars)+"</li>";
+               });
+        html += "</ul>\n";
       });
       html += "</ul>\n";
 
@@ -112,13 +118,6 @@ router.set("/old", function(req, res, route){
       html += "<input type=\"text\" name=\"rid\" placeholder=\"Ruleset id...\">\n";
       html += "<button type=\"submit\">add ruleset</button>\n";
       html += "</form>\n";
-
-      html += "<h4>`ent` Variables</h4>\n";
-      html += "<ul>\n";
-      _.each(pico.vars, function(v, k){
-        html += "<li>"+k+" = "+v+"</li>\n";
-      });
-      html += "</ul>\n";
 
       html += "</div>\n";
       html += "</div>\n";
