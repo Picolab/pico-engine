@@ -1,0 +1,13 @@
+{
+  "title": "My Picos",
+  "descr": "These are my Picos in the local KRE.", 
+  "picos": [
+    {
+      "id": "ciqmqsshe0000ipe8feut080s", 
+      "dname": "Owner Pico",
+      "style": "width:80px;left:100px;top:70px;background-color:lightskyblue"
+    }
+  ],
+  "chans": [
+  ]
+}

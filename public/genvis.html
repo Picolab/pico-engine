@@ -1,0 +1,97 @@
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
+<title>TITLE</title>
+<link rel="stylesheet" href="css/genvis.css">
+<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script src="js/jquery-ui-1.11.4.min.js" type="text/javascript"></script>
+<script src="js/handlebars.min.js" type="text/javascript"></script>
+<script src="js/genvis.js" type="text/javascript"></script>
+<script id="the-template" type="text/x-handlebars-template">
+<a class="logo" href="https://picolabs.io"><img src="logo.png" alt="logo"></a>
+<h1 class="title">{{title}}</h1>
+<div id="container" style="position:relative">
+<p class="description">
+{{descr}}
+</p>
+{{#picos}}
+<div class="pico" id="{{id}}" style="{{style}}">
+{{dname}}
+</div>
+<div class="pico-edit" style="{{style}}">
+{{dname}}
+<ul class="horiz-menu">
+<li>About</li>
+<li>Rulesets</li>
+<li>Channels</li>
+<li>Subscriptions</li>
+<li>Logging</li>
+</ul>
+<div class="pico-section"></div>
+</div>
+{{/picos}}
+{{#if chans}}
+<svg>
+{{#chans}}
+  <line class="{{class}}"></line>
+{{/chans}}
+</svg>
+{{/if}}
+</div>
+</script>
+<script id="about-template" type="text/x-handlebars-template">
+<p>
+{{id}}
+</p>
+<p></p>
+<form method="GET">
+<input type="submit" value="add child pico" onclick="return false">
+</form>
+</script>
+<script id="rulesets-template" type="text/x-handlebars-template">
+Rulesets
+<ul>
+{{#each this}}
+<li>{{@key}}</li>
+<ul>
+{{#each vars}}
+<li>{{@key}}={{this}}</li>
+{{/each}}
+</ul>
+{{/each}}
+</ul>
+<p></p>
+<form method="GET">
+<input type="text" name="rid" placeholder="Ruleset id...">
+<input type="submit" value="add ruleset" onclick="return false">
+</form>
+</script>
+<script id="channels-template" type="text/x-handlebars-template">
+Channels
+<table border="1" cellspacing="0">
+<tr><th>name</th><th>id</th><th>type</th></tr>
+{{#each pico}}
+{{#each channel}}
+<tr><td>{{name}}</td><td>{{id}}</td><td>{{type}}</td></tr>
+{{/each}}
+{{/each}}
+</table>
+<p></p>
+<form method="GET">
+<input type="text" name="name" placeholder="name...">
+<input type="text" name="type" placeholder="type...">
+<input type="submit" value="add channel" onclick="return false">
+</form>
+</script>
+<script id="subscriptions-template" type="text/x-handlebars-template">
+Subscriptions
+</script>
+<script id="logging-template" type="text/x-handlebars-template">
+Logging
+</script>
+</head>
+<body>
+<p>Loading...</p>
+</body>
+</html>

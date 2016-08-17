@@ -1,0 +1,82 @@
+div#container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+div.pico {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border: 1px solid black;
+  border-radius: 25px;
+  padding: 10px;
+  z-index: 1000;
+}
+div.pico-edit {
+  display: none;
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border: 1px solid black;
+  border-radius: 25px;
+  padding: 10px;
+  margin-right: 50px;
+  z-index: 1001;
+  overflow: hidden;
+}
+div.pico-edit ul.horiz-menu {
+  margin: 0px;
+  padding: 0px;
+  font-size: 70%;
+  list-style-type: none;
+  width: auto;
+}
+div.pico-edit ul.horiz-menu li {
+  display: inline-block;
+  width: 10em;
+  text-align: center;
+}
+div.pico-edit ul.horiz-menu li:hover {
+  background-color: white;
+  cursor: pointer;
+}
+div.pico-edit ul.horiz-menu li.active {
+  background-color: white;
+  border-radius: 6px 6px 0 0;
+}
+div.pico-edit button {
+  float: right;
+}
+div.pico-section {
+  height: 90%;
+  background-color: white;
+  padding: 20px;
+}
+svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+svg line {
+  stroke: #000;
+  stroke-width: 5px;
+}
+div p.description {
+  display: inline-block;
+  position: absolute;
+  width: 250px;
+  font-size: 120%;
+  padding-left: 20px;
+}
+h1.title {
+  display: inline-block;
+  font-family: Arial, sans-serif;
+  margin: 0 0 0 120px;
+  padding-top: 18px;
+}
+a.logo img {
+  vertical-align: top;
+}
+a.logo {
+  cursor: pointer;
+}
