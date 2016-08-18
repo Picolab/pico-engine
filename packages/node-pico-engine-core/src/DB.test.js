@@ -126,3 +126,17 @@ test("DB - enableRuleset", function(t){
     }
   ], t.end);
 });
+
+test("DB - read keys that don't exist", function(t){
+  var pe = mkTestPicoEngine();
+
+  λ.series({
+    ent: λ.curry(pe.db.getEntVar, "pico0", "rid0", "var that doesn't exisit"),
+    app: λ.curry(pe.db.getAppVar, "rid0", "var that doesn't exisit")
+  }, function(err, data){
+    if(err) return t.end(err);
+    t.deepEquals(data.ent, undefined);
+    t.deepEquals(data.app, undefined);
+    t.end();
+  });
+});

@@ -103,20 +103,22 @@ module.exports = function(opts){
     },
     getEntVar: function(pico_id, rid, var_name, callback){
       ldb.get(["pico", pico_id, rid, "vars", var_name], function(err, data){
-        if(err){
-          if(err.notFound){
-            return callback();
-          }
-          return callback(err);
+        if(err && err.notFound){
+          return callback();
         }
-        callback(undefined, data);
+        callback(err, data);
       });
     },
     putAppVar: function(rid, var_name, val, callback){
       ldb.put(["resultset", rid, "vars", var_name], val, callback);
     },
     getAppVar: function(rid, var_name, callback){
-      ldb.get(["resultset", rid, "vars", var_name], callback);
+      ldb.get(["resultset", rid, "vars", var_name], function(err, data){
+        if(err && err.notFound){
+          return callback();
+        }
+        callback(err, data);
+      });
     },
     getStateMachineState: function(pico_id, rule, callback){
       var key = ["state_machine", pico_id, rule.rid, rule.rule_name];
