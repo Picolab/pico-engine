@@ -102,7 +102,15 @@ module.exports = function(opts){
       ldb.put(["pico", pico_id, rid, "vars", var_name], val, callback);
     },
     getEntVar: function(pico_id, rid, var_name, callback){
-      ldb.get(["pico", pico_id, rid, "vars", var_name], callback);
+      ldb.get(["pico", pico_id, rid, "vars", var_name], function(err, data){
+        if(err){
+          if(err.notFound){
+            return callback();
+          }
+          return callback(err);
+        }
+        callback(undefined, data);
+      });
     },
     putAppVar: function(rid, var_name, val, callback){
       ldb.put(["resultset", rid, "vars", var_name], val, callback);

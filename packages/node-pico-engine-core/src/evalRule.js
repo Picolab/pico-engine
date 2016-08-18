@@ -27,13 +27,17 @@ var doActions = function(rule, ctx, callback){
   });
 };
 
-var doPostlude = function(rule, ctx){
-  //TODO fired
-  //TODO notfired
-  var always = _.get(rule, ["postlude", "always"]);
-  if(_.isFunction(always)){
-    always(ctx);
+var doPostlude = function(rule, ctx, did_fire){
+  var getPostFn = function(name){
+    var fn = _.get(rule, ["postlude", name]);
+    return _.isFunction(fn) ? fn : _.noop;
+  };
+  if(did_fire){
+    getPostFn("fired")(ctx);
+  }else{
+    getPostFn("notfired")(ctx);
   }
+  getPostFn("always")(ctx);
 };
 
 module.exports = function(rule, ctx, callback){
@@ -45,11 +49,14 @@ module.exports = function(rule, ctx, callback){
       //TODO collect errors and respond individually to the client
       if(err) return callback(err);
 
+      var did_fire = false;
+
       //TODO handle more than one response type
       var resp_data = _.compact(_.map(responses, function(response){
         if((response === void 0) || (response === null)){
           return;//noop
         }
+        did_fire = true;
         return {
           type: "directive",
           options: response.options,
@@ -63,7 +70,7 @@ module.exports = function(rule, ctx, callback){
         };
       }));
 
-      applyInFiber(doPostlude, null, [rule, ctx], function(err){
+      applyInFiber(doPostlude, null, [rule, ctx, did_fire], function(err){
         //TODO collect errors and respond individually to the client
         callback(err, resp_data);
       });

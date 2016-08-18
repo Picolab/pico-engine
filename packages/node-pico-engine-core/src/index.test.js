@@ -307,6 +307,14 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
     [
       signal("events", "ifthen", {}),
       []
+    ],
+    [
+      signal("events", "on_fired", {name: "blah"}),
+      [{name: "on_fired", options: {previous_name: undefined}}]
+    ],
+    [
+      signal("events", "on_fired", {}),
+      [{name: "on_fired", options: {previous_name: "blah"}}]
     ]
   ], t.end);
 });

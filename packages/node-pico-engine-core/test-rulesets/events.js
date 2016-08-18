@@ -400,6 +400,55 @@ module.exports = {
             };
           }]
       }
+    },
+    "on_fired": {
+      "name": "on_fired",
+      "select": {
+        "graph": { "events": { "on_fired": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.event.getAttrMatches([[
+                "name",
+                new RegExp("^(.*)$", "")
+              ]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("my_name", matches[0]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "actions": [function (ctx) {
+            return {
+              "type": "directive",
+              "name": "on_fired",
+              "options": { "previous_name": ctx.persistent.getEnt("on_fired_prev_name") }
+            };
+          }]
+      },
+      "postlude": {
+        "fired": function (ctx) {
+          ctx.persistent.putEnt("on_fired_prev_name", ctx.scope.get("my_name"));
+        },
+        "notfired": undefined,
+        "always": undefined
+      }
     }
   }
 };
