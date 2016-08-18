@@ -80,3 +80,17 @@ a.logo img {
 a.logo {
   cursor: pointer;
 }
+li.krlrid:hover {
+  background-color: silver;
+  cursor: pointer;
+}
+div.krlsrc {
+  overflow:auto;
+  height:100%;
+  margin-right:0;
+}
+div.krlsrc pre {
+  margin: 0 0 0 15px;
+  border-left:dashed black 1px;
+  padding-left:5px;
+}

@@ -41,19 +41,33 @@
 </div>
 </script>
 <script id="about-template" type="text/x-handlebars-template">
+<h2>Pico</h2>
 <p>
-{{id}}
+<b>Name: </b>
+<span id="about-pico-name">{{id}}</span>
 </p>
-<p></p>
+<p>
+<b>ECI: </b>
+<span id="about-eci">{{eci}}</span>
+</p>
+<p>
+<b>Note: </b>
+the ECI is the path into your pico and should be treated as a
+<em>shared secret</em> between the pico and the application using
+the pico's Event-Query API.
+Do not disclose it or check it into a repository like Github.
+</p>
+<h2>Children</h2>
 <form method="GET">
 <input type="submit" value="add child pico" onclick="return false">
 </form>
 </script>
 <script id="rulesets-template" type="text/x-handlebars-template">
+<div style="float:left">
 Rulesets
 <ul>
 {{#each this}}
-<li>{{@key}}</li>
+<li class="krlrid">{{@key}}</li>
 <ul>
 {{#each vars}}
 <li>{{@key}}={{this}}</li>
@@ -66,6 +80,10 @@ Rulesets
 <input type="text" name="rid" placeholder="Ruleset id...">
 <input type="submit" value="add ruleset" onclick="return false">
 </form>
+</div>
+<div class="krlsrc">
+<pre></pre>
+</div>
 </script>
 <script id="channels-template" type="text/x-handlebars-template">
 Channels

@@ -46,11 +46,17 @@ $(document).ready(function() {
     left: 0 };
   var fadeOutOptions;
   var db_dump;
-  var specDB = function($li) {
+  var specDB = function($li) { //specialize the db for the particular tab
     var label = $li.html();
     var thePicoInp = db_dump.pico[$li.parent().parent().prev().attr("id")];
     if (label === "About") {
-      return thePicoInp;
+      var thePicoOut = {};
+      thePicoOut.id = thePicoInp.id;
+      for (var channel in thePicoInp.channel) {
+        thePicoOut.eci = channel;
+        break;
+      }
+      return thePicoOut;
     } else if (label === "Rulesets") {
       var theRulesetInp = thePicoInp;
       var theRulesetOut = {};
@@ -65,6 +71,19 @@ $(document).ready(function() {
       return db_dump;
     }
   }
+  var krlSrcInvite = "//click on a ruleset name to see its source here";
+  var displayKrl = function() {
+    $(this).siblings(".krl-showing").toggleClass("krl-showing");
+    var src = "N/A";
+    if($(this).hasClass("krl-showing")) {
+      src = krlSrcInvite;
+    } else {
+      var rs_info = db_dump.rulesets.enabled[$(this).html()];
+      if (rs_info) { src = db_dump.rulesets.krl[rs_info.hash].src; }
+    }
+    $(this).parent().parent().parent().find(".krlsrc pre").html(src);
+    $(this).toggleClass("krl-showing");
+  }
   var renderTab =
     function(){
       $(this).parent().find('.active').toggleClass('active');
@@ -74,6 +93,10 @@ $(document).ready(function() {
       var tabTemplate = Handlebars.compile($('#'+liContent+'-template').html());
       var $theSection = $(this).parent().next('.pico-section');
       $theSection.html(tabTemplate(specDB($(this))));
+      if(liContent === "rulesets") {
+        $(".pico-edit .krlrid").click(displayKrl);
+        $(".krlsrc pre").html(krlSrcInvite);
+      }
     };
   var mpl = Handlebars.compile($('#the-template').html());
   var json_name = location.search.substring(1);
