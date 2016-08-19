@@ -43,7 +43,7 @@
 <script id="about-template" type="text/x-handlebars-template">
 <h2>Pico</h2>
 <p>
-<b>Name: </b>
+<b>ID: </b>
 <span id="about-pico-name">{{id}}</span>
 </p>
 <p>
@@ -58,28 +58,46 @@ the pico's Event-Query API.
 Do not disclose it or check it into a repository like Github.
 </p>
 <h2>Children</h2>
-<form method="GET">
-<input type="submit" value="add child pico" onclick="return false">
+<p>
+Manual steps to add child (pending implementation of push button automation):
+</p>
+<ol>
+<li>create (in engine) new Pico, receiving its id</li>
+<li>create (in engine) new channel for new Pico, receiving its id</li>
+<li>send (this Pico) event pico/child_created</li>
+<li>install ruleset io.picolabs.pico in new Pico</li>
+<li>send (new Pico) event pico/child_created</li>
+<li>refresh this page</li>
+</ol>
+<form method="GET" onsubmit="alert('not implemented');return false">
+<input type="submit" value="add child pico">
 </form>
 </script>
 <script id="rulesets-template" type="text/x-handlebars-template">
 <div style="float:left">
-Rulesets
+Installed Rulesets
 <ul>
-{{#each this}}
+{{#each installed}}
 <li class="krlrid">{{@key}}</li>
 <ul>
 {{#each vars}}
-<li>{{@key}}={{this}}</li>
+<li>ent:{{@key}}={{this}}</li>
 {{/each}}
 </ul>
 {{/each}}
 </ul>
+{{#if avail}}
+Available Rulesets
 <p></p>
-<form method="GET">
-<input type="text" name="rid" placeholder="Ruleset id...">
-<input type="submit" value="add ruleset" onclick="return false">
+<form action="/api/pico/{{pico_id}}/add-ruleset" method="GET">
+<select name="rid">
+{{#each avail}}
+<option>{{this}}</option>
+{{/each}}
+</select>
+<input type="submit" value="install ruleset">
 </form>
+{{/if}}
 </div>
 <div class="krlsrc">
 <pre></pre>
@@ -89,17 +107,15 @@ Rulesets
 Channels
 <table border="1" cellspacing="0">
 <tr><th>name</th><th>id</th><th>type</th></tr>
-{{#each pico}}
 {{#each channel}}
 <tr><td>{{name}}</td><td>{{id}}</td><td>{{type}}</td></tr>
 {{/each}}
-{{/each}}
 </table>
 <p></p>
-<form method="GET">
+<form method="GET" onsubmit="alert('not implemented');return false">
 <input type="text" name="name" placeholder="name...">
 <input type="text" name="type" placeholder="type...">
-<input type="submit" value="add channel" onclick="return false">
+<input type="submit" value="add channel">
 </form>
 </script>
 <script id="subscriptions-template" type="text/x-handlebars-template">

@@ -5,9 +5,15 @@
     {
       "id": "ciqmqsshe0000ipe8feut080s", 
       "dname": "Owner Pico",
-      "style": "width:80px;left:100px;top:70px;background-color:lightskyblue"
+      "style": "width:80px;left:450px;top:50px;background-color:lightskyblue"
+    },
+    {
+      "id": "cis1wfq6t00005rs0v8a50sex",
+      "dname": "Child Pico",
+      "style": "width:auto;left:230px;top:220px;background-color:aquamarine"
     }
   ],
   "chans": [
+    { "class": "ciqmqsshe0000ipe8feut080s-origin cis1wfq6t00005rs0v8a50sex-target"}
   ]
 }

@@ -59,14 +59,31 @@ $(document).ready(function() {
       return thePicoOut;
     } else if (label === "Rulesets") {
       var theRulesetInp = thePicoInp;
-      var theRulesetOut = {};
+      var installedRS = {};
       for (var rs in theRulesetInp.ruleset) {
-        theRulesetOut[rs] = theRulesetInp.ruleset[rs];
+        installedRS[rs] = theRulesetInp.ruleset[rs];
         if (theRulesetInp[rs]) {
-          theRulesetOut[rs].vars = theRulesetInp[rs].vars;
+          var theVarsInp = theRulesetInp[rs].vars;
+          var theVarsOut = {};
+          for (var ent in theVarsInp) {
+            theVarsOut[ent] = JSON.stringify(theVarsInp[ent]);
+          }
+          installedRS[rs].vars = theVarsOut;
         }
       }
+      var avail = [];
+      for (var rid in db_dump.rulesets.enabled) {
+        if (installedRS[rid] === undefined) {
+          avail.push(rid);
+        }
+      }
+      var theRulesetOut = {
+        "pico_id": thePicoInp.id,
+        "installed": installedRS,
+        "avail" : avail };
       return theRulesetOut;
+    } else if (label === "Channels") {
+      return thePicoInp;
     } else {
       return db_dump;
     }
