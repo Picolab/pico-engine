@@ -23,6 +23,13 @@ var pe = PicoEngine({
   }
 });
 
+pe.emitter.on("klog", function(val, message){
+  console.log("[KLOG] ", val, message);
+});
+pe.emitter.on("debug", function(kind, context, message){
+  console.log("[DEBUG]", kind, context, message);
+});
+
 var router = HttpHashRouter();
 
 var jsonResp = function(res, data){
