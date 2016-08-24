@@ -11,9 +11,15 @@
       "id": "cis1wfq6t00005rs0v8a50sex",
       "dname": "Child Pico",
       "style": "width:auto;left:230px;top:220px;background-color:aquamarine"
+    },
+    {
+      "id": "cis93mcf70000gyaot8rs8uuj",
+      "dname": "Second Child Pico",
+      "style": "width:auto;left:330px;top:220px;background-color:aquamarine"
     }
   ],
   "chans": [
-    { "class": "ciqmqsshe0000ipe8feut080s-origin cis1wfq6t00005rs0v8a50sex-target"}
+    { "class": "ciqmqsshe0000ipe8feut080s-origin cis1wfq6t00005rs0v8a50sex-target"},
+    { "class": "ciqmqsshe0000ipe8feut080s-origin cis93mcf70000gyaot8rs8uuj-target"}
   ]
 }

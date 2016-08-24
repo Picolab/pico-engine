@@ -98,7 +98,7 @@ $(document).ready(function() {
       var rs_info = db_dump.rulesets.enabled[$(this).html()];
       if (rs_info) { src = db_dump.rulesets.krl[rs_info.hash].src; }
     }
-    $(this).parent().parent().parent().find(".krlsrc pre").html(src);
+    $(this).parent().parent().parent().find(".krlsrc textarea").html(src);
     $(this).toggleClass("krl-showing");
   }
   var renderTab =
@@ -112,7 +112,7 @@ $(document).ready(function() {
       $theSection.html(tabTemplate(specDB($(this))));
       if(liContent === "rulesets") {
         $(".pico-edit .krlrid").click(displayKrl);
-        $(".krlsrc pre").html(krlSrcInvite);
+        $(".krlsrc textarea").html(krlSrcInvite);
       }
     };
   var mpl = Handlebars.compile($('#the-template').html());
@@ -133,7 +133,7 @@ $(document).ready(function() {
                     left: $(this).css('left') };
                   var $pediv = $(this).next('.pico-edit');
                   var fadeAway = function(ev) {
-                                   $pediv.find('button').remove();
+                                   $pediv.find('button.x').remove();
                                    $pediv.animate(fadeOutOptions);
                                    $pediv.fadeOut();
                                    ev.stopPropagation();
@@ -141,8 +141,8 @@ $(document).ready(function() {
                   $pediv.fadeIn();
                   $pediv.animate(fadeInOptions,
                                  function(){
-                                   $pediv.prepend("<button>X</button>");
-                                   $pediv.find('button').click(fadeAway);
+                                   $pediv.prepend("<button class=\"x\">X</button>");
+                                   $pediv.find('button.x').click(fadeAway);
                                  });
                 })
          .each(function(){updateEdges($(this).attr("id"))})

@@ -7,6 +7,7 @@ var PicoEngine = require("pico-engine-core");
 var serveStatic = require("ecstatic")({root: path.resolve(__dirname, "..", "public")});
 var RulesetLoader = require("./RulesetLoader");
 var HttpHashRouter = require("http-hash-router");
+var compiler = require("krl-compiler");
 
 ////////////////////////////////////////////////////////////////////////////////
 var port = process.env.PORT || 8080;
@@ -24,7 +25,7 @@ var pe = PicoEngine({
 });
 
 pe.emitter.on("klog", function(val, message){
-  console.log("[KLOG] ", val, message);
+  console.log("[KLOG] ", message, val);
 });
 pe.emitter.on("debug", function(kind, context, message){
   console.log("[DEBUG]", kind, context, message);
@@ -33,6 +34,7 @@ pe.emitter.on("debug", function(kind, context, message){
 var router = HttpHashRouter();
 
 var jsonResp = function(res, data){
+  res.writeHead(200, {"Content-Type": "application/json"});
   res.end(JSON.stringify(data, undefined, 2));
 };
 
@@ -219,6 +221,15 @@ router.set("/api/pico/:id/add-ruleset", function(req, res, route){
     if(err) return errResp(res, err);
     jsonResp(res, {ok: true});
   });
+});
+
+router.set("/api/ruleset/compile", function(req, res, route){
+  var src = _.get(url.parse(req.url, true), ["query", "src"]);
+  try{
+    jsonResp(res, { code: compiler(src).code});
+  }catch(err){
+    jsonResp(res, { error: err.toString() });
+  }
 });
 
 router.set("/api/ruleset/register", function(req, res, route){

@@ -27,6 +27,7 @@
 <li>Channels</li>
 <li>Subscriptions</li>
 <li>Logging</li>
+<li>Help</li>
 </ul>
 <div class="pico-section"></div>
 </div>
@@ -74,7 +75,7 @@ Manual steps to add child (pending implementation of push button automation):
 </form>
 </script>
 <script id="rulesets-template" type="text/x-handlebars-template">
-<div style="float:left">
+<div style="float:left;max-width:40%">
 Installed Rulesets
 <ul>
 {{#each installed}}
@@ -100,7 +101,10 @@ Available Rulesets
 {{/if}}
 </div>
 <div class="krlsrc">
-<pre></pre>
+<form class="ruleset-compile" action="/api/ruleset/compile" method="GET">
+<textarea name="src"></textarea>
+<button type="submit">compile ruleset</button>
+</form>
 </div>
 </script>
 <script id="channels-template" type="text/x-handlebars-template">
@@ -123,6 +127,22 @@ Subscriptions
 </script>
 <script id="logging-template" type="text/x-handlebars-template">
 Logging
+</script>
+<script id="help-template" type="text/x-handlebars-template">
+Temporary helper for child creation
+{{#each pico}}
+<p>{{@index}}: {{id}} {{#each channel}}{{id}}{{/each}}</p>
+{{/each}}
+<form method="GET" onsubmit="this.action='http://localhost:8080/sky/event/'+(this.receiver.value==='child'?this.eci.value:this.parent_eci.value)+'/17/pico/child_created';alert(this.action)">
+receiver
+<input type="radio" name="receiver" value="parent">parent
+<input type="radio" name="receiver" value="child">child<br>
+<input type="text" name="parent_id" placeholder="parent_id..." size="40"><br>
+<input type="text" name="parent_eci" placeholder="parent_eci..." size="40"><br>
+<input type="text" name="id" placeholder="id..." size="40"><br>
+<input type="text" name="eci" placeholder="eci..." size="40"><br>
+<input type="submit" value="child_created">
+</form>
 </script>
 </head>
 <body>
