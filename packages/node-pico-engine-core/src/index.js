@@ -10,6 +10,7 @@ var compiler = require("krl-compiler");
 var evalRule = require("./evalRule");
 var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
+var EventEmitter = require("events");
 var selectRulesToEval = require("./selectRulesToEval");
 
 var getArg = function(args, name, index){
@@ -67,6 +68,13 @@ module.exports = function(conf){
   var compileAndLoadRuleset = conf.compileAndLoadRuleset || defaultCompileAndLoadRuleset;
 
   var db = Future.wrap(DB(conf.db));
+  var emitter = new EventEmitter();
+  krl.stdlib.emitter.on("klog", function(val, message){
+    emitter.emit("klog", val, message);
+  });
+  krl.stdlib.emitter.on("debug", function(scope, message){
+    emitter.emit("debug", "stdlib", scope, message);
+  });
 
   var mkPersistent = function(pico_id, rid){
     return {
@@ -127,6 +135,7 @@ module.exports = function(conf){
 
   return {
     db: db,
+    emitter: emitter,
     isInstalled: function(rid){
       return _.has(rulesets, rid);
     },
@@ -150,11 +159,24 @@ module.exports = function(conf){
         }
         return matches;
       };
+      var debug_info = {
+        event: {
+          eci: event.eci,
+          eid: event.eid,
+          domain: event.domain,
+          type: event.type,
+          attrs: _.cloneDeep(event.attrs),
+          timestamp: event.timestamp.toISOString()
+        }
+      };
+      emitter.emit("debug", "event", debug_info, "event recieved");
       db.getPicoByECI(event.eci, function(err, pico){
         if(err) return callback(err);
         if(!pico){
           return callback(new Error("Invalid eci: " + event.eci));
         }
+        debug_info.pico_id = pico.id;
+        emitter.emit("debug", "event", debug_info, "pico selected");
 
         var ctx_orig = mkCTX({
           pico: pico,
@@ -167,12 +189,22 @@ module.exports = function(conf){
 
           λ.map(to_eval, function(rule, callback){
 
+            var rule_debug_info = _.assign({}, debug_info, {
+              rid: rule.rid,
+              rule_name: rule.rule_name
+            });
+
             var ctx = _.assign({}, ctx_orig, {
               rid: rule.rid,
               rule: rule,
               persistent: mkPersistent(pico.id, rule.rid),
-              scope: rule.scope
+              scope: rule.scope,
+              emitDebug: function(msg){
+                emitter.emit("debug", "event", rule_debug_info, msg);
+              }
             });
+
+            ctx.emitDebug("rule selected");
 
             evalRule(rule, ctx, callback);
           }, function(err, responses){

@@ -70,6 +70,12 @@ module.exports = function(rule, ctx, callback){
         };
       }));
 
+      if(did_fire){
+        ctx.emitDebug("fired");
+      }else{
+        ctx.emitDebug("not fired");
+      }
+
       applyInFiber(doPostlude, null, [rule, ctx, did_fire], function(err){
         //TODO collect errors and respond individually to the client
         callback(err, resp_data);
