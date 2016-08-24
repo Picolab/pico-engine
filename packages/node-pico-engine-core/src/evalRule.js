@@ -23,7 +23,9 @@ var doActions = function(rule, ctx, callback){
     var actions = _.get(rule, ["action_block", "actions"], []);
     λ.map(actions, function(action, done){
       applyInFiber(action, null, [ctx], done);
-    }, callback);
+    }, function(err, responses){
+      callback(err, responses, true);
+    });
   });
 };
 
@@ -45,18 +47,16 @@ module.exports = function(rule, ctx, callback){
   doPrelude(rule, ctx, function(err, new_vars){
     if(err) return callback(err);
 
-    doActions(rule, ctx, function(err, responses){
+    doActions(rule, ctx, function(err, responses, did_fire){
       //TODO collect errors and respond individually to the client
       if(err) return callback(err);
 
-      var did_fire = false;
 
       //TODO handle more than one response type
       var resp_data = _.compact(_.map(responses, function(response){
         if((response === void 0) || (response === null)){
           return;//noop
         }
-        did_fire = true;
         return {
           type: "directive",
           options: response.options,
