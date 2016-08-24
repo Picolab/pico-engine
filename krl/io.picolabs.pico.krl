@@ -8,15 +8,13 @@ ruleset io.picolabs.pico {
       eci = event:attr("eci")
       new_child = [  { "id": id, "eci": eci } ]
     }
-    if ( parent_id == ent:id ) then send_directive("noop")
+    if ( parent_id == ent:id ) then noop()
     fired {
-      //ent:children = ent:children.defaultsTo([]).append(new_child);
-      ent:children = new_child.klog("new child:")
+      ent:children = ent:children.defaultsTo([]).union(new_child)
     } else {
       ent:id = id;
       ent:eci = eci;
-      ent:parent_id = parent_id.klog("new parent:");
-      ent:parent_eci = parent_eci
+      ent:parent = { "id": parent_id, "eci": parent_eci }
     }
   }
 
