@@ -1,6 +1,10 @@
 $(document).ready(function() {
   var json_name = location.search.substring(1);
-  if (json_name.length === 0) json_name = "genvis";
+  var renderDemo = true;
+  if (json_name.length === 0){
+    json_name = "genvis";
+    renderDemo = false;
+  }
   var leftRadius = function(nodeId) {
     var theNode = $('#'+nodeId);
     return Math.floor(
@@ -41,10 +45,11 @@ $.getJSON("/api/db-dump", function(db_dump){
     var nodeId = ui.helper[0].getAttribute("id");
     $('#'+nodeId).next(".pico-edit").css('left',ui.position.left)
                                     .css('top',ui.position.top);
-    if(json_name !== "genvis") return; // no one to notify for demos
-    $.getJSON(
-      "/sky/event/"+findEciById(nodeId)+"/23/visual/moved",
-      { left: ui.position.left, top: ui.position.top });
+    if(!renderDemo) {
+      $.getJSON(
+        "/sky/event/"+findEciById(nodeId)+"/23/visual/moved",
+        { left: ui.position.left, top: ui.position.top });
+    }
   }
   var fadeInOptions = {
     width: "95%",
@@ -121,7 +126,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     function(){
       $(this).parent().find('.active').toggleClass('active');
       $(this).toggleClass('active');
-      if(json_name !== "genvis") return; // nothing to render for demos
+      if(renderDemo) return; // nothing to render for demos
       var liContent = $(this).html().toLowerCase();
       var tabTemplate = Handlebars.compile($('#'+liContent+'-template').html());
       var $theSection = $(this).parent().next('.pico-section');
@@ -139,8 +144,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
     return id;
   }
-  $.getJSON(
-     json_name + ".json",
+  var renderGraph =
      function(data){
        $('body').html(mpl(data));
        document.title = $('body h1').html();
@@ -168,7 +172,7 @@ $.getJSON("/api/db-dump", function(db_dump){
                 })
          .each(function(){updateEdges($(this).attr("id"))})
          .parent().find('ul li').click(renderTab);
-     }
-  );
+     };
+  $.getJSON( json_name + ".json", renderGraph);
 });
 });
