@@ -25,7 +25,7 @@ var pe = PicoEngine({
 });
 
 pe.emitter.on("klog", function(val, message){
-  console.log("[KLOG] ", message, val);
+  console.log("[KLOG]", message, val);
 });
 pe.emitter.on("debug", function(kind, context, message){
   console.log("[DEBUG]", kind, context, message);
@@ -65,7 +65,6 @@ router.set("/sky/cloud/:eci/:rid/:function", function(req, res, route){
     name: route.params["function"],
     args: route.data
   };
-
   pe.runQuery(query, function(err, data){
     if(err) return errResp(res, err);
     if(_.isFunction(data)){

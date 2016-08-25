@@ -1,4 +1,6 @@
 $(document).ready(function() {
+  var json_name = location.search.substring(1);
+  if (json_name.length === 0) json_name = "genvis";
   var leftRadius = function(nodeId) {
     var theNode = $('#'+nodeId);
     return Math.floor(
@@ -34,10 +36,15 @@ $(document).ready(function() {
     var nodeId = ui.helper[0].getAttribute("id");
     updateLines(nodeId,ui.position.left,ui.position.top);
   }
+$.getJSON("/api/db-dump", function(db_dump){
   var dragstop = function(event,ui) {
     var nodeId = ui.helper[0].getAttribute("id");
     $('#'+nodeId).next(".pico-edit").css('left',ui.position.left)
                                     .css('top',ui.position.top);
+    if(json_name !== "genvis") return; // no one to notify for demos
+    $.getJSON(
+      "/sky/event/"+findEciById(nodeId)+"/23/visual/moved",
+      { left: ui.position.left, top: ui.position.top });
   }
   var fadeInOptions = {
     width: "95%",
@@ -45,7 +52,6 @@ $(document).ready(function() {
     top: 0,
     left: 0 };
   var fadeOutOptions;
-  var db_dump;
   var specDB = function($li) { //specialize the db for the particular tab
     var label = $li.html();
     var thePicoInp = db_dump.pico[$li.parent().parent().prev().attr("id")];
@@ -116,8 +122,13 @@ $(document).ready(function() {
       }
     };
   var mpl = Handlebars.compile($('#the-template').html());
-  var json_name = location.search.substring(1);
-  if (json_name.length === 0) json_name = "genvis";
+  var findEciById = function(id) {
+    var thePicoInp = db_dump.pico[id];
+    for (var channel in thePicoInp.channel) {
+      return channel;
+    }
+    return id;
+  }
   $.getJSON(
      json_name + ".json",
      function(data){
@@ -149,7 +160,5 @@ $(document).ready(function() {
          .parent().find('ul li').click(renderTab);
      }
   );
-  if (json_name === "genvis") {
-    $.getJSON("/api/db-dump", function(data){ db_dump = data; });
-  }
+});
 });

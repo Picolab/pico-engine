@@ -1,4 +1,20 @@
 ruleset io.picolabs.pico {
+  meta {
+    shares myself, parent, children
+  }
+  global {
+    myself = function(){
+      info = { "id": ent:id, "eci": ent:eci };
+      info.klog("myself:")
+    }
+    parent = function(){
+      ent:parent.defaultsTo({}).klog("parent:")
+    }
+    children = function(){
+      ent:children.defaultsTo([]).klog("children:")
+    }
+  }
+
   rule pico_child_created {
     select when pico child_created
     pre {
@@ -10,7 +26,8 @@ ruleset io.picolabs.pico {
     }
     if ( parent_id == ent:id ) then noop()
     fired {
-      ent:children = ent:children.defaultsTo([]).union(new_child)
+      ent:children = ent:children.defaultsTo([])
+                                 .union(new_child)
     } else {
       ent:id = id;
       ent:eci = eci;
