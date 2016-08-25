@@ -422,6 +422,14 @@ test("PicoEngine - io.picolabs.operators ruleset", function(t){
         ".substr(25)": undefined,
         ".uc()": "HELLO WORLD"
       }
+    ],
+    [
+      query("returnMapAfterKlog"),
+      {a: 1}
+    ],
+    [
+      query("returnArrayAfterKlog"),
+      [1, 2]
     ]
   ], t.end);
 });

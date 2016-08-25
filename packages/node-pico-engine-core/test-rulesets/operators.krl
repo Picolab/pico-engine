@@ -1,6 +1,6 @@
 ruleset io.picolabs.operators {
   meta {
-    shares results
+    shares results, returnMapAfterKlog, returnArrayAfterKlog
   }
   global {
     nothing = null
@@ -45,6 +45,12 @@ ruleset io.picolabs.operators {
       ".substr(5, -5)": "This is a string".substr(5, -5),
       ".substr(25)": "This is a string".substr(25),
       ".uc()": "Hello World".uc()
+    }
+    returnMapAfterKlog = function(){
+      {"a": 1}.klog("hi:")
+    }
+    returnArrayAfterKlog = function(){
+      [1, 2].klog("hi:")
     }
   }
 }

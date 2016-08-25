@@ -1,6 +1,12 @@
 module.exports = {
   "name": "io.picolabs.operators",
-  "meta": { "shares": ["results"] },
+  "meta": {
+    "shares": [
+      "results",
+      "returnMapAfterKlog",
+      "returnArrayAfterKlog"
+    ]
+  },
   "global": function (ctx) {
     ctx.scope.set("nothing", void 0);
     ctx.scope.set("some_string", "foo");
@@ -45,6 +51,15 @@ module.exports = {
       ".substr(25)": ctx.krl.stdlib["substr"]("This is a string", 25),
       ".uc()": ctx.krl.stdlib["uc"]("Hello World")
     });
+    ctx.scope.set("returnMapAfterKlog", ctx.krl.Closure(ctx, function (ctx) {
+      return ctx.krl.stdlib["klog"]({ "a": 1 }, "hi:");
+    }));
+    ctx.scope.set("returnArrayAfterKlog", ctx.krl.Closure(ctx, function (ctx) {
+      return ctx.krl.stdlib["klog"]([
+        1,
+        2
+      ], "hi:");
+    }));
   },
   "rules": {}
 };
