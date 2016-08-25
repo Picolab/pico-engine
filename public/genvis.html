@@ -58,7 +58,20 @@ the ECI is the path into your pico and should be treated as a
 the pico's Event-Query API.
 Do not disclose it or check it into a repository like Github.
 </p>
+{{#if parent}}
+<h2>Parent</h2>
+<p>
+<b>ID: </b>{{parent.id}}
+<b>ECI: </b>{{parent.eci}}
+</p>
+{{/if}}
 <h2>Children</h2>
+{{#each children}}
+<p>
+<b>ID: </b>{{this.id}}
+<b>ECI: </b>{{this.eci}}
+</p>
+{{/each}}
 <p>
 Manual steps to add child (pending implementation of push button automation):
 </p>
@@ -104,6 +117,7 @@ Available Rulesets
 <form class="ruleset-compile" action="/api/ruleset/compile" method="GET">
 <textarea name="src"></textarea>
 <button type="submit">compile ruleset</button>
+<button type="submit" formaction="/api/ruleset/register">register ruleset</button>
 </form>
 </div>
 </script>

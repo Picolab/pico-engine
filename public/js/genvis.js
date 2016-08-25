@@ -62,6 +62,16 @@ $.getJSON("/api/db-dump", function(db_dump){
         thePicoOut.eci = channel;
         break;
       }
+      if (thePicoInp["io.picolabs.pico"]) {
+        if (thePicoInp["io.picolabs.pico"].vars) {
+          if (thePicoInp["io.picolabs.pico"].vars.parent) {
+            thePicoOut.parent = thePicoInp["io.picolabs.pico"].vars.parent;
+          }
+          if (thePicoInp["io.picolabs.pico"].vars.children) {
+            thePicoOut.children = thePicoInp["io.picolabs.pico"].vars.children;
+          }
+        }
+      }
       return thePicoOut;
     } else if (label === "Rulesets") {
       var theRulesetInp = thePicoInp;
