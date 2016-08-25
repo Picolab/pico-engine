@@ -1,10 +1,6 @@
 $(document).ready(function() {
   var json_name = location.search.substring(1);
-  var renderDemo = true;
-  if (json_name.length === 0){
-    json_name = "genvis";
-    renderDemo = false;
-  }
+  var renderDemo = (json_name.length > 0);
   var leftRadius = function(nodeId) {
     var theNode = $('#'+nodeId);
     return Math.floor(
@@ -173,6 +169,48 @@ $.getJSON("/api/db-dump", function(db_dump){
          .each(function(){updateEdges($(this).attr("id"))})
          .parent().find('ul li').click(renderTab);
      };
-  $.getJSON( json_name + ".json", renderGraph);
+  if (renderDemo) {
+    $.getJSON( json_name + ".json", renderGraph);
+  } else {
+    var get = // adapted from lodash.get, with thanks
+      function(o,p,v) {
+        var i=0, l=p.length;
+        while(o && i<l) { o = o[p[i++]]; }
+        return o ? o : v;
+      }
+    var getV = function(p,n,d) {
+      return get(db_dump.pico,[p.id,"io.picolabs.visual_params","vars",n],d);
+    }
+    var db_graph = {};
+    var ownerPico = {};
+    for (var k in db_dump.pico) { ownerPico.id = k; break; }
+    db_graph.title = getV(ownerPico,"title","My Picos");
+    db_graph.descr = getV(ownerPico,"descr", "These are in the local KRE.");
+    db_graph.picos = [];
+    db_graph.chans = [];
+    var walkPico =
+      function(pico,ordinal){
+        pico.dname = getV(pico,"dname",ordinal?"Child "+ordinal:"Owner Pico");
+        var width = getV(pico,"width",undefined);
+        var left = getV(pico,"left",ordinal*100);
+        var top = getV(pico,"top",ordinal*100+20);
+        var color = getV(pico,"color",ordinal?"aquamarine":"lightskyblue");
+        pico.style = getV(pico,"style",
+          (width?"width:"+width+"px;":"")
+          +"left:"+left+"px;"
+          +"top:"+top+"px;"
+          +"background-color:"+color);
+        db_graph.picos.push(pico);
+        var children = get(db_dump.pico,[pico.id,"io.picolabs.pico","vars","children"],[]);
+        var i=0, l=children.length;
+        for (;i<l;++i) {
+          var cp = { id: children[i].id };
+          db_graph.chans.push({ class: pico.id +"-origin "+ cp.id +"-target" });
+          walkPico(cp,ordinal*10+i+1);
+        }
+      }
+    walkPico(ownerPico,0);
+    renderGraph(db_graph);
+  }
 });
 });
