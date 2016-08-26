@@ -231,8 +231,8 @@ var grammar = {
         }
         },
     {"name": "RulesetName$ebnf$1", "symbols": []},
-    {"name": "RulesetName$ebnf$1", "symbols": [/[a-z_.]/, "RulesetName$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "RulesetName", "symbols": [/[a-z]/, "RulesetName$ebnf$1"], "postprocess": 
+    {"name": "RulesetName$ebnf$1", "symbols": [/[a-zA-Z0-9_.\-]/, "RulesetName$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "RulesetName", "symbols": [/[a-zA-Z]/, "RulesetName$ebnf$1"], "postprocess": 
         function(data, start){
           var src = flatten(data).join('');
           return {

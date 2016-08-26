@@ -225,7 +225,7 @@ loc_close_curly {%
   }
 %}
 
-RulesetName -> [a-z] [a-z_.]:* {%
+RulesetName -> [a-zA-Z] [a-zA-Z0-9_.\-]:* {%
   function(data, start){
     var src = flatten(data).join('');
     return {

@@ -1143,6 +1143,23 @@ test('EventExpression', function(t){
   t.end();
 });
 
+test('RulesetName', function(t){
+  var testName = function(name, is_valid){
+    try{
+      parser("ruleset " + name + " {}")
+      t.ok(is_valid);
+    }catch(e){
+      t.ok(!is_valid);
+    }
+  };
+  testName("io.picolabs.some-thing", true);
+  testName("A.B-b9.c", true);
+
+  testName("1.2.3", false);
+  testName(".wat", false);
+  t.end();
+});
+
 test('Ruleset meta', function(t){
   var testMeta = function(meta_body, expected){
     var src = 'ruleset rs{meta{' + meta_body + '}}';
