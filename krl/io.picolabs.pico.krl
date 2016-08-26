@@ -4,14 +4,13 @@ ruleset io.picolabs.pico {
   }
   global {
     myself = function(){
-      info = { "id": ent:id, "eci": ent:eci };
-      info.klog("myself:")
+      { "id": ent:id, "eci": ent:eci }
     }
     parent = function(){
-      ent:parent.defaultsTo({}).klog("parent:")
+      ent:parent.defaultsTo({})
     }
     children = function(){
-      ent:children.defaultsTo([]).klog("children:")
+      ent:children.defaultsTo([])
     }
   }
 
