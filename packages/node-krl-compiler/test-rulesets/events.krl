@@ -37,4 +37,12 @@ ruleset io.picolabs.events {
     if my_name then
       send_directive("ifthen")
   }
+  rule on_fired {
+    select when events on_fired name re#^(.*)$# setting(my_name);
+    send_directive("on_fired") with
+      previous_name = ent:on_fired_prev_name
+    fired {
+      ent:on_fired_prev_name = my_name
+    }
+  }
 }
