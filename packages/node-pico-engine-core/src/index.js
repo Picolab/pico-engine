@@ -76,6 +76,15 @@ module.exports = function(conf){
     emitter.emit("debug", "stdlib", scope, message);
   });
 
+  var engine = {
+    newPico: function(opts){
+      return db.newPicoFuture(opts).wait();
+    },
+    newChannel: function(opts){
+      return db.newChannelFuture(opts).wait();
+    }
+  };
+
   var mkPersistent = function(pico_id, rid){
     return {
       getEnt: function(key){
@@ -181,6 +190,7 @@ module.exports = function(conf){
         var ctx_orig = mkCTX({
           pico: pico,
           db: db,
+          engine: engine,
           event: event
         });
 
@@ -249,6 +259,7 @@ module.exports = function(conf){
           db: db,
           rid: rs.rid,
           pico: pico,
+          engine: engine,
           persistent: mkPersistent(pico.id, rs.rid),
           scope: rs.scope
         });
