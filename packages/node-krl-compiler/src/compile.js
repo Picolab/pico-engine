@@ -105,6 +105,20 @@ var comp_by_type = {
       );
       return e("call", callee, [comp(ast.callee.object)].concat(comp(ast.args)));
     }
+    //TODO undo this hack
+    if(ast.callee.type === "DomainIdentifier"
+        && ast.callee.domain === "engine"
+        && ast.callee.value === "newPico"
+        ){
+      return e("call",
+        e(".",
+          e("call", e("id", "ctx.db.newPicoFuture"), []),
+          e("id", "wait")
+        ),
+        []
+      );
+    }
+    //TODO undo this hack
     if(ast.callee.type === "DomainIdentifier"
         && ast.callee.domain === "event"
         && ast.callee.value === "attr"
