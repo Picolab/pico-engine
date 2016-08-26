@@ -4,8 +4,10 @@
 <link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
 <title>TITLE</title>
 <link rel="stylesheet" href="css/genvis.css">
+<link rel="stylesheet" href="css/jquery.minicolors.css">
 <script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
 <script src="js/jquery-ui-1.11.4.min.js" type="text/javascript"></script>
+<script src="js/jquery.minicolors.js"></script>
 <script src="js/handlebars.min.js" type="text/javascript"></script>
 <script src="js/genvis.js" type="text/javascript"></script>
 <script id="the-template" type="text/x-handlebars-template">
@@ -58,6 +60,17 @@ the ECI is the path into your pico and should be treated as a
 the pico's Event-Query API.
 Do not disclose it or check it into a repository like Github.
 </p>
+<form action="/sky/event/{{eci}}/31/visual/update" method="GET">
+<p>
+<b>Display name: </b>
+<input type="text" name="dname" value="{{dname}}">
+</p>
+<p>
+<b>Color: </b>
+<input type="text" name="color" id="{{id}}-minicolors" value="{{color}}">
+</p>
+<button type="submit">send event visual/update</button>
+</form>
 {{#if parent}}
 <h2>Parent</h2>
 <p>
@@ -90,7 +103,7 @@ Manual steps to add child (pending implementation of push button automation):
 <script id="rulesets-template" type="text/x-handlebars-template">
 <div style="float:left;max-width:40%">
 Installed Rulesets
-<ul>
+<ul class="rulesets">
 {{#each installed}}
 <li class="krlrid">{{@key}}</li>
 <ul>

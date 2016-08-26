@@ -19,6 +19,18 @@ ruleset io.picolabs.visual_params {
     }
   }
 
+  rule visual_update {
+    select when visual update
+    pre {
+      dname = event:attr("dname")
+      color = event:attr("color")
+    }
+    always {
+      ent:dname = dname;
+      ent:color = color
+    }
+  }
+
   rule visual_moved {
     select when visual moved
     pre {

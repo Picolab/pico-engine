@@ -63,16 +63,12 @@ $.getJSON("/api/db-dump", function(db_dump){
         thePicoOut.eci = channel;
         break;
       }
-      if (thePicoInp["io.picolabs.pico"]) {
-        if (thePicoInp["io.picolabs.pico"].vars) {
-          if (thePicoInp["io.picolabs.pico"].vars.parent) {
-            thePicoOut.parent = thePicoInp["io.picolabs.pico"].vars.parent;
-          }
-          if (thePicoInp["io.picolabs.pico"].vars.children) {
-            thePicoOut.children = thePicoInp["io.picolabs.pico"].vars.children;
-          }
-        }
-      }
+      thePicoOut.parent = get(thePicoInp,["io.picolabs.pico","vars","parent"],undefined);
+      thePicoOut.children = get(thePicoInp,["io.picolabs.pico","vars","children"],[]);
+      thePicoOut.dname = getV(thePicoInp,"dname",
+                              $li.parent().parent().prev().text());
+      thePicoOut.color = getV(thePicoInp,"color",
+                              thePicoOut.parent?"#7FFFD4":"#87CEFA");
       return thePicoOut;
     } else if (label === "Rulesets") {
       var theRulesetInp = thePicoInp;
@@ -126,10 +122,14 @@ $.getJSON("/api/db-dump", function(db_dump){
       var liContent = $(this).html().toLowerCase();
       var tabTemplate = Handlebars.compile($('#'+liContent+'-template').html());
       var $theSection = $(this).parent().next('.pico-section');
-      $theSection.html(tabTemplate(specDB($(this))));
+      var theDB = specDB($(this));
+      $theSection.html(tabTemplate(theDB));
       if(liContent === "rulesets") {
         $(".pico-edit .krlrid").click(displayKrl);
         $(".krlsrc textarea").html(krlSrcInvite);
+      } else if(liContent === "about") {
+        $('#'+theDB.id+'-minicolors').minicolors(
+          { swatches: "#ccc|#fcc|#7fffd4|#ccf|#ffc|#87CEFA|#fcf".split('|')});
       }
     };
   var mpl = Handlebars.compile($('#the-template').html());
@@ -167,7 +167,7 @@ $.getJSON("/api/db-dump", function(db_dump){
                                  });
                 })
          .each(function(){updateEdges($(this).attr("id"))})
-         .parent().find('ul li').click(renderTab);
+         .parent().find('ul.horiz-menu li').click(renderTab);
      };
   if (renderDemo) {
     $.getJSON( json_name + ".json", renderGraph);
