@@ -76,15 +76,6 @@ module.exports = function(conf){
     emitter.emit("debug", "stdlib", scope, message);
   });
 
-  var engine = {
-    newPico: function(opts){
-      return db.newPicoFuture(opts).wait();
-    },
-    newChannel: function(opts){
-      return db.newChannelFuture(opts).wait();
-    }
-  };
-
   var mkPersistent = function(pico_id, rid){
     return {
       getEnt: function(key){
@@ -142,6 +133,110 @@ module.exports = function(conf){
     });
   });
 
+  var signalEvent = function(event, callback){
+    event.timestamp = new Date();
+    event.getAttr = function(attr_key){
+      return event.attrs[attr_key];
+    };
+    event.getAttrMatches = function(pairs){
+      var matches = [];
+      var i, attr, m, pair;
+      for(i = 0; i < pairs.length; i++){
+        pair = pairs[i];
+        attr = event.attrs[pair[0]];
+        m = pair[1].exec(attr || "");
+        if(!m){
+          return undefined;
+        }
+        matches.push(m[1]);
+      }
+      return matches;
+    };
+    var debug_info = {
+      event: {
+        eci: event.eci,
+        eid: event.eid,
+        domain: event.domain,
+        type: event.type,
+        attrs: _.cloneDeep(event.attrs),
+        timestamp: event.timestamp.toISOString()
+      }
+    };
+    emitter.emit("debug", "event", debug_info, "event recieved");
+    db.getPicoByECI(event.eci, function(err, pico){
+      if(err) return callback(err);
+      if(!pico){
+        return callback(new Error("Invalid eci: " + event.eci));
+      }
+      debug_info.pico_id = pico.id;
+      emitter.emit("debug", "event", debug_info, "pico selected");
+
+      var ctx_orig = mkCTX({
+        pico: pico,
+        db: db,
+        engine: engine,
+        event: event
+      });
+
+      selectRulesToEval(ctx_orig, salience_graph, rulesets, function(err, to_eval){
+        if(err) return callback(err);
+
+        λ.map(to_eval, function(rule, callback){
+
+          var rule_debug_info = _.assign({}, debug_info, {
+            rid: rule.rid,
+            rule_name: rule.rule_name
+          });
+
+          var ctx = _.assign({}, ctx_orig, {
+            rid: rule.rid,
+            rule: rule,
+            persistent: mkPersistent(pico.id, rule.rid),
+            scope: rule.scope,
+            emitDebug: function(msg){
+              emitter.emit("debug", "event", rule_debug_info, msg);
+            }
+          });
+
+          ctx.emitDebug("rule selected");
+
+          evalRule(rule, ctx, callback);
+        }, function(err, responses){
+          if(err) return callback(err);
+
+          var res_by_type = _.groupBy(_.flattenDeep(responses), "type");
+
+          //TODO other types
+          callback(undefined, {
+            directives:  _.map(res_by_type.directive, function(d){
+              return _.omit(d, "type");
+            })
+          });
+        });
+      });
+    });
+  };
+
+  var future_wraps = Future.wrap({
+    installRID: installRID,
+    signalEvent: signalEvent
+  });
+  //This is the built in KRL module `engine`
+  var engine = {
+    newPico: function(opts){
+      return db.newPicoFuture(opts).wait();
+    },
+    newChannel: function(opts){
+      return db.newChannelFuture(opts).wait();
+    },
+    installRID: function(rid){
+      return future_wraps.installRIDFuture(rid).wait();
+    },
+    signalEvent: function(event){
+      return future_wraps.signalEventFuture(event).wait();
+    }
+  };
+
   return {
     db: db,
     emitter: emitter,
@@ -149,89 +244,7 @@ module.exports = function(conf){
       return _.has(rulesets, rid);
     },
     installRID: installRID,
-    signalEvent: function(event, callback){
-      event.timestamp = new Date();
-      event.getAttr = function(attr_key){
-        return event.attrs[attr_key];
-      };
-      event.getAttrMatches = function(pairs){
-        var matches = [];
-        var i, attr, m, pair;
-        for(i = 0; i < pairs.length; i++){
-          pair = pairs[i];
-          attr = event.attrs[pair[0]];
-          m = pair[1].exec(attr || "");
-          if(!m){
-            return undefined;
-          }
-          matches.push(m[1]);
-        }
-        return matches;
-      };
-      var debug_info = {
-        event: {
-          eci: event.eci,
-          eid: event.eid,
-          domain: event.domain,
-          type: event.type,
-          attrs: _.cloneDeep(event.attrs),
-          timestamp: event.timestamp.toISOString()
-        }
-      };
-      emitter.emit("debug", "event", debug_info, "event recieved");
-      db.getPicoByECI(event.eci, function(err, pico){
-        if(err) return callback(err);
-        if(!pico){
-          return callback(new Error("Invalid eci: " + event.eci));
-        }
-        debug_info.pico_id = pico.id;
-        emitter.emit("debug", "event", debug_info, "pico selected");
-
-        var ctx_orig = mkCTX({
-          pico: pico,
-          db: db,
-          engine: engine,
-          event: event
-        });
-
-        selectRulesToEval(ctx_orig, salience_graph, rulesets, function(err, to_eval){
-          if(err) return callback(err);
-
-          λ.map(to_eval, function(rule, callback){
-
-            var rule_debug_info = _.assign({}, debug_info, {
-              rid: rule.rid,
-              rule_name: rule.rule_name
-            });
-
-            var ctx = _.assign({}, ctx_orig, {
-              rid: rule.rid,
-              rule: rule,
-              persistent: mkPersistent(pico.id, rule.rid),
-              scope: rule.scope,
-              emitDebug: function(msg){
-                emitter.emit("debug", "event", rule_debug_info, msg);
-              }
-            });
-
-            ctx.emitDebug("rule selected");
-
-            evalRule(rule, ctx, callback);
-          }, function(err, responses){
-            if(err) return callback(err);
-
-            var res_by_type = _.groupBy(_.flattenDeep(responses), "type");
-
-            //TODO other types
-            callback(undefined, {
-              directives:  _.map(res_by_type.directive, function(d){
-                return _.omit(d, "type");
-              })
-            });
-          });
-        });
-      });
-    },
+    signalEvent: signalEvent,
     runQuery: function(query, callback){
       db.getPicoByECI(query.eci, function(err, pico){
         if(err) return callback(err);
