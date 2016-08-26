@@ -43,10 +43,10 @@
     "ecstatic": "^1.4.1",
     "home-dir": "^1.0.0",
     "http-hash-router": "^1.1.0",
-    "krl-compiler": "^0.14.0",
+    "krl-compiler": "^0.15.0",
     "leveldown": "^1.4.6",
     "lodash": "^4.11.2",
     "mkdirp": "^0.5.1",
-    "pico-engine-core": "^0.9.0"
+    "pico-engine-core": "^0.10.0"
   }
 }
