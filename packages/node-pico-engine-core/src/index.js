@@ -6,7 +6,6 @@ var krl = {
   Closure: require("./KRLClosure")
 };
 var Future = require("fibers/future");
-var compiler = require("krl-compiler");
 var evalRule = require("./evalRule");
 var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
@@ -52,22 +51,10 @@ var installRuleset = function(rs, callback){
   applyInFiber(doInstallRuleset, null, [rs], callback);
 };
 
-var defaultCompileAndLoadRuleset = function(rs_info, callback){
-  var rs;
-  try{
-    var js_src = compiler(rs_info.src).code;
-    rs = eval(js_src);
-  }catch(err){
-    callback(err);
-    return;
-  }
-  callback(undefined, rs);
-};
-
 module.exports = function(conf){
-  var compileAndLoadRuleset = conf.compileAndLoadRuleset || defaultCompileAndLoadRuleset;
-
   var db = Future.wrap(DB(conf.db));
+  var compileAndLoadRuleset = conf.compileAndLoadRuleset;
+
   var emitter = new EventEmitter();
   krl.stdlib.emitter.on("klog", function(val, message){
     emitter.emit("klog", val, message);
