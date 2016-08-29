@@ -40,7 +40,7 @@
     "tape": "^4.5.1"
   },
   "dependencies": {
-    "ecstatic": "^1.4.1",
+    "ecstatic": "^2.1.0",
     "home-dir": "^1.0.0",
     "http-hash-router": "^1.1.0",
     "krl-compiler": ">=0.15.0",
