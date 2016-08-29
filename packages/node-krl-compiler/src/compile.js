@@ -1,5 +1,4 @@
 var _ = require("lodash");
-//TODO remove from package.json var toId = require("to-js-identifier");
 var mkTree = require("estree-builder");
 var callStdLibFn = require("./utils/callStdLibFn");
 
