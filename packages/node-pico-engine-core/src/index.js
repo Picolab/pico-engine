@@ -216,6 +216,9 @@ module.exports = function(conf){
     newChannel: function(opts){
       return db.newChannelFuture(opts).wait();
     },
+    addRuleset: function(opts){
+      return db.addRulesetFuture(opts).wait();
+    },
     installRID: function(rid){
       return future_wraps.installRIDFuture(rid).wait();
     },
