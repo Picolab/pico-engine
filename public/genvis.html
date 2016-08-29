@@ -29,7 +29,6 @@
 <li>Channels</li>
 <li>Subscriptions</li>
 <li>Logging</li>
-<li>Help</li>
 </ul>
 <div class="pico-section"></div>
 </div>
@@ -86,19 +85,10 @@ Do not disclose it or check it into a repository like Github.
 </p>
 {{/each}}
 <p>
-Manual steps to add child (pending implementation of push button automation):
-</p>
-<ol>
-<li>create (in engine) new Pico, receiving its id</li>
-<li>create (in engine) new channel for new Pico, receiving its id</li>
-<li>send (this Pico) event pico/child_created</li>
-<li>install ruleset io.picolabs.pico in new Pico</li>
-<li>send (new Pico) event pico/child_created</li>
-<li>refresh this page</li>
-</ol>
-<form method="GET" onsubmit="alert('not implemented');return false">
+<form action="/sky/event/{{eci}}/52/pico/new_child_request" method="GET">
 <input type="submit" value="add child pico">
 </form>
+</p>
 </script>
 <script id="rulesets-template" type="text/x-handlebars-template">
 <div style="float:left;max-width:40%">
@@ -154,22 +144,6 @@ Subscriptions
 </script>
 <script id="logging-template" type="text/x-handlebars-template">
 Logging
-</script>
-<script id="help-template" type="text/x-handlebars-template">
-Temporary helper for child creation
-{{#each pico}}
-<p>{{@index}}: {{id}} {{#each channel}}{{id}}{{/each}}</p>
-{{/each}}
-<form method="GET" onsubmit="this.action='http://localhost:8080/sky/event/'+(this.receiver.value==='child'?this.eci.value:this.parent_eci.value)+'/17/pico/child_created';alert(this.action)">
-receiver
-<input type="radio" name="receiver" value="parent">parent
-<input type="radio" name="receiver" value="child">child<br>
-<input type="text" name="parent_id" placeholder="parent_id..." size="40"><br>
-<input type="text" name="parent_eci" placeholder="parent_eci..." size="40"><br>
-<input type="text" name="id" placeholder="id..." size="40"><br>
-<input type="text" name="eci" placeholder="eci..." size="40"><br>
-<input type="submit" value="child_created">
-</form>
 </script>
 </head>
 <body>

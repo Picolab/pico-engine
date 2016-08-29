@@ -14,6 +14,44 @@ ruleset io.picolabs.pico {
     }
   }
 
+  rule pico_new_child_request {
+    select when pico new_child_request
+    pre {
+      child = engine:newPico()
+      child_id = child.id
+      child_eci = engine:newChannel(
+        { "name": "main", "type": "secret", "pico_id": child_id }).id
+      attrs = {
+        "parent_id": ent:id,
+        "parent_eci": ent:eci,
+        "id": child_id,
+        "eci": child_eci
+      }
+    }
+    always {
+      engine:signalEvent(
+        { "eci": ent:eci, "eid": 53,
+          "domain": "pico", "type": "child_created",
+          "attrs": attrs });
+      engine:addRuleset(
+        { "pico_id": child_id, "rid": "io.picolabs.pico" });
+      engine:signalEvent(
+        { "eci": child_eci, "eid": 57,
+          "domain": "pico", "type": "child_created",
+          "attrs": attrs });
+      engine:addRuleset(
+         { "pico_id": child_id, "rid": "io.picolabs.visual_params" })
+    }
+  }
+
+  rule pico_children_reset {
+    select when pico children_reset
+    always {
+      ent:children = [];
+      send_directive("reset")
+    }
+  }
+
   rule pico_child_created {
     select when pico child_created
     pre {

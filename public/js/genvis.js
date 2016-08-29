@@ -191,12 +191,12 @@ $.getJSON("/api/db-dump", function(db_dump){
     db_graph.picos = [];
     db_graph.chans = [];
     var walkPico =
-      function(pico,ordinal){
-        pico.dname = getV(pico,"dname",ordinal?"Child "+ordinal:"Owner Pico");
+      function(pico,dNumber,dLeft,dTop){
+        pico.dname = getV(pico,"dname",dNumber?"Child "+dNumber:"Owner Pico");
         var width = getV(pico,"width",undefined);
-        var left = getV(pico,"left",ordinal*100);
-        var top = getV(pico,"top",ordinal*100+20);
-        var color = getV(pico,"color",ordinal?"aquamarine":"lightskyblue");
+        var left = getV(pico,"left",dLeft);
+        var top = getV(pico,"top",dTop);
+        var color = getV(pico,"color",dNumber?"aquamarine":"lightskyblue");
         pico.style = getV(pico,"style",
           (width?"width:"+width+"px;":"")
           +"left:"+left+"px;"
@@ -208,10 +208,10 @@ $.getJSON("/api/db-dump", function(db_dump){
         for (;i<l;++i) {
           var cp = { id: children[i].id };
           db_graph.chans.push({ class: pico.id +"-origin "+ cp.id +"-target" });
-          walkPico(cp,ordinal*10+i+1);
+          walkPico(cp,dNumber*10+i+1,left+(i*10)+20,top+20);
         }
       }
-    walkPico(ownerPico,0);
+    walkPico(ownerPico,0,20,20);
     renderGraph(db_graph);
   }
 });
