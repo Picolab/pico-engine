@@ -13,7 +13,7 @@ There are three user interfaces, which are (assuming you used the default PORT):
 Look at each of them, and keep them open in tabs for future reference.
 
 ## Bootstrap
-Using the new UI, add a Pico and then a channel within it named "main" of
+Using the current UI, add a Pico and then a channel within it named "main" of
 type "secret".
 Now if you refresh the visual UI, 
 and click on the "Owner Pico" you'll see its information in the "About" tab.
@@ -30,14 +30,13 @@ added to a Pico.
 
 ### Preparing a ruleset for use
 1. Copy the entire content of a .krl file into the clipboard
-2. Paste it into the box beside the "register ruleset" button in either the old or current UI
-3. Click the "register ruleset" button to register a version of the ruleset (in old UI, go back one page and refresh)
-4. Refresh the old UI and click the "enable" link beside the version of the ruleset (click browser back button and refresh)
-5. Still in the old UI, click the "install" link beside the enabled version
+2. Paste it into the box beside the "register ruleset" button in the old UI 
+3. Click the "register ruleset" button to register a version of the ruleset, then refresh. note the new time stamp and version hash of your new registered ruleset.
+4. Click the "enable" link beside the version of the ruleset, navigate back to old UI and refresh. note that source code of your ruleset is displayed. 
+5. Still in the old UI, click the "install" link beside the enabled version, this may take a minute so grab a soda. navigate back to old UI and refresh.
 6. Refresh the visual UI, click on the Owner Pico, then on its Rulesets tab
-7. Find your ruleset in the dropdown under "Available rulesets", then on the "add ruleset" button
+7. Find your ruleset in the dropdown under "Available rulesets", then click on the "add ruleset" button
 (click browser back button and refresh)
-8. You may need to stop and restart the web server
 
 Repeat the steps above for each of the two rulesets in the `krl` folder.
  * `io.picolabs.pico` is used by each Pico to keep track of itself and its children
