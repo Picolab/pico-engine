@@ -5,15 +5,14 @@ Once you have started the pico-engine,
 as described in the [README](https://github.com/Picolab/node-pico-engine/blob/master/README.md),
 there is a web server running on your local machine.
 
-There are three user interfaces, which are (assuming you used the default PORT):
+There are two user interfaces, which are (assuming you used the default PORT):
 * "old UI" at localhost:8080/old
-* "current UI" at localhost:8080
 * "visual UI" at localhost:8080/genvis.html
 
 Look at each of them, and keep them open in tabs for future reference.
 
 ## Bootstrap
-Using the current UI, add a Pico and then a channel within it named "main" of
+Using the old UI, add a Pico and then a channel within it named "main" of
 type "secret".
 Now if you refresh the visual UI, 
 and click on the "Owner Pico" you'll see its information in the "About" tab.
@@ -36,7 +35,7 @@ added to a Pico.
 5. Still in the old UI, click the "install" link beside the enabled version, this may take a minute so grab a soda. navigate back to old UI and refresh.
 6. Refresh the visual UI, click on the Owner Pico, then on its Rulesets tab
 7. Find your ruleset in the dropdown under "Available rulesets", then click on the "add ruleset" button
-(click browser back button and refresh)
+(click browser back button and refresh) note your new ruleset in visual UI.
 
 Repeat the steps above for each of the two rulesets in the `krl` folder.
  * `io.picolabs.pico` is used by each Pico to keep track of itself and its children
@@ -51,7 +50,7 @@ With the rulesets installed, you can now drag the rounded rectangle of your Pico
 wherever you want it. In its "About" tab (click on it to reveal the tabs) you can change its
 display name and color.
 
-Also, in the "About" tab you can add child Picos, and delete them.
+Also, in the "About" tab you can add child Picos.
 
 In the "Rulesets" tab you can see the information held for your Pico by each of its rulesets,
 and you can view the source code of each ruleset.
