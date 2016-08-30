@@ -6,15 +6,17 @@ as described in the [README](https://github.com/Picolab/node-pico-engine/blob/ma
 there is a web server running on your local machine.
 
 There are two user interfaces, which are (assuming you used the default PORT):
-* "old UI" at localhost:8080/old
-* "visual UI" at localhost:8080/genvis.html
+* "**old UI**" at localhost:8080/old
+* "**visual UI**" at localhost:8080/genvis.html
 
 Look at each of them, and keep them open in tabs for future reference.
+Making a change in either of these UI's currently requires you to use
+your browser's back button and then refresh to see changes.
 
 ## Bootstrap
-Using the old UI, add a Pico and then a channel within it named "main" of
-type "secret".
-Now if you refresh the visual UI, 
+Using the **old UI**, add a Pico and then a channel within it (named "main" of
+type "secret", say).
+Now if you refresh the **visual UI**, 
 and click on the "Owner Pico" you'll see its information in the "About" tab.
 
 Nothing can be done with your Pico until you add rulesets to it.
@@ -24,30 +26,30 @@ Each ruleset is written in [KRL](https://en.wikipedia.org/wiki/Kinetic_Rule_Lang
 two rulesets that you need to get started are in the folder [krl](https://github.com/Picolab/node-pico-engine/tree/master/krl)
 in this repository.
 
-A ruleset must be registered with the engine, have an enabled version which is also installed, and finally it must be
-added to a Pico.
+A ruleset must be _registered_ with the engine, have an _enabled version_ which is also _installed_, and finally it must be
+_added_ to a Pico.
 
 ### Preparing a ruleset for use
 1. Copy the entire content of a .krl file into the clipboard
-2. Paste it into the box beside the "register ruleset" button in the old UI 
-3. Click the "register ruleset" button to register a version of the ruleset, then refresh. note the new time stamp and version hash of your new registered ruleset.
-4. Click the "enable" link beside the version of the ruleset, navigate back to old UI and refresh. note that source code of your ruleset is displayed. 
-5. Still in the old UI, click the "install" link beside the enabled version, this may take a minute so grab a soda. navigate back to old UI and refresh.
-6. Refresh the visual UI, click on the Owner Pico, then on its Rulesets tab
-7. Find your ruleset in the dropdown under "Available rulesets", then click on the "add ruleset" button
-(click browser back button and refresh) note your new ruleset in visual UI.
+2. Paste it into the box beside the "register ruleset" button in the **old UI** 
+3. Click the "register ruleset" button to register a version of the ruleset, then refresh. Note the new time stamp and version hash of your new registered ruleset.
+4. Click the "enable" link beside the version of the ruleset, navigate back to **old UI** and refresh. Note that source code of your ruleset is displayed. 
+5. Still in the **old UI**, click the "install" link beside the enabled version; this may take a minute so grab a soda. Navigate back to **old UI** and refresh.
+6. Switch to the **visual UI** tab, refresh, click on the Owner Pico, then on its "Rulesets" tab
+7. Find your ruleset in the dropdown list under "Available rulesets", then click on the "add ruleset" button
+(click browser back button and refresh). Note your new ruleset in **visual UI**.
 
-Repeat the steps above for each of the two rulesets in the `krl` folder.
+Repeat the steps above for each of these _two_ rulesets in the `krl` folder.
  * `io.picolabs.pico` is used by each Pico to keep track of itself and its children
- * `io.picolabs.visual_params` is used by each Pico to keep track of it in the visual UI
+ * `io.picolabs.visual_params` is used by each Pico to keep track of it in the **visual UI**
  
-## Using the visual UI
+## Using the **visual UI**
 
 Click on the Owner Pico, then on the "About" tab. There is a link next to its "ID"
 labelled "send event pico/root_created". Click on this link to complete the bootstrap.
 
 With the rulesets installed, you can now drag the rounded rectangle of your Pico and drop it
-wherever you want it. In its "About" tab (click on it to reveal the tabs) you can change its
+wherever you want it. In its "About" tab (remember to click on it to reveal the tabs) you can change its
 display name and color.
 
 Also, in the "About" tab you can add child Picos.
