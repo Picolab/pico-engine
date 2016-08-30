@@ -213,6 +213,9 @@ module.exports = function(conf){
     newPico: function(opts){
       return db.newPicoFuture(opts).wait();
     },
+    removePico: function(id) {
+      return db.removePicoFuture(id).wait();
+    },
     newChannel: function(opts){
       return db.newChannelFuture(opts).wait();
     },
