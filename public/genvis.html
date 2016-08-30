@@ -46,7 +46,8 @@
 <h2>Pico</h2>
 <p>
 <b>ID: </b>
-<span id="about-pico-name">{{id}}</span>
+<span id="about-pico-name">{{id}}{{#if root}}
+<a href="/sky/event/{{eci}}/19/pico/root_created?id={{id}}&eci={{eci}}">send event pico/root_created</a>{{/if}}</span>
 </p>
 <p>
 <b>ECI: </b>
@@ -82,6 +83,9 @@ Do not disclose it or check it into a repository like Github.
 <p>
 <b>ID: </b>{{this.id}}
 <b>ECI: </b>{{this.eci}}
+{{#if canDel}}
+<a href="/sky/event/{{../eci}}/58/pico/delete_child_request?id={{this.id}}&eci={{this.eci}}">del</a>
+{{/if}}
 </p>
 {{/each}}
 <p>
@@ -92,7 +96,7 @@ Do not disclose it or check it into a repository like Github.
 </script>
 <script id="rulesets-template" type="text/x-handlebars-template">
 <div style="float:left;max-width:40%">
-Installed Rulesets
+Pico Rulesets
 <ul class="rulesets">
 {{#each installed}}
 <li class="krlrid">{{@key}}</li>

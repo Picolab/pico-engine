@@ -63,8 +63,7 @@ ruleset io.picolabs.pico {
     }
     if ( parent_id == ent:id ) then noop()
     fired {
-      ent:children = ent:children.defaultsTo([])
-                                 .union(new_child)
+      ent:children = children().union(new_child)
     } else {
       ent:id = id;
       ent:eci = eci;
@@ -81,6 +80,22 @@ ruleset io.picolabs.pico {
     always {
       ent:id = id;
       ent:eci = eci
+    }
+  }
+
+  rule pico_delete_child_request {
+    select when pico delete_child_request
+    pre {
+      child_id = event:attr("id")
+      child_eci = event:attr("eci")
+      child = { "id": child_id, "eci": child_eci }
+      left_with_children = children().difference( [ child ] )
+                                     .klog("remaining children:")
+    }
+    if left_with_children.length() < children().length() then noop()
+    fired {
+      ent:children = left_with_children;
+      engine:removePico(child_id)
     }
   }
 }

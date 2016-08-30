@@ -64,7 +64,16 @@ $.getJSON("/api/db-dump", function(db_dump){
         break;
       }
       thePicoOut.parent = get(thePicoInp,["io.picolabs.pico","vars","parent"],undefined);
+      if (!thePicoOut.parent) thePicoOut.root = true;
       thePicoOut.children = get(thePicoInp,["io.picolabs.pico","vars","children"],[]);
+      var i = 0;
+      var cLen = thePicoOut.children.length;
+      for (; i<cLen; ++i) {
+        var p = thePicoOut.children[i];
+        p.canDel = get(db_dump.pico,
+                       [p.id,"io.picolabs.pico","vars","children"],
+                       []).length == 0; 
+      }
       thePicoOut.dname = getV(thePicoInp,"dname",
                               $li.parent().parent().prev().text());
       thePicoOut.color = getV(thePicoInp,"color",
