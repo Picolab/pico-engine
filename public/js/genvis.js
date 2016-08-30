@@ -94,9 +94,11 @@ $.getJSON("/api/db-dump", function(db_dump){
         }
       }
       var avail = [];
-      for (var rid in db_dump.rulesets.enabled) {
-        if (installedRS[rid] === undefined) {
-          avail.push(rid);
+      if (db_dump.rulesets){
+        for (var rid in db_dump.rulesets.enabled) {
+          if (installedRS[rid] === undefined) {
+            avail.push(rid);
+          }
         }
       }
       var theRulesetOut = {
@@ -220,7 +222,7 @@ $.getJSON("/api/db-dump", function(db_dump){
           walkPico(cp,dNumber*10+i+1,left+(i*10)+20,top+20);
         }
       }
-    walkPico(ownerPico,0,20,20);
+    walkPico(ownerPico,0,300,50);
     renderGraph(db_graph);
   }
 });

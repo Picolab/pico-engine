@@ -12,6 +12,10 @@ ruleset io.picolabs.pico {
     children = function(){
       ent:children.defaultsTo([])
     }
+    hasChild = function(child){
+      temp = children().union(child);
+      temp.length() == children().length()
+    }
   }
 
   rule pico_new_child_request {
@@ -86,13 +90,61 @@ ruleset io.picolabs.pico {
   rule pico_delete_child_request {
     select when pico delete_child_request
     pre {
+      attrs = {
+        "parent_id": ent:id,
+        "parent_eci": ent:eci,
+        "id": event:attr("id"),
+        "eci": event:attr("eci")
+      }
+      child = { "id": attrs.id, "eci": attrs.eci }
+    }
+    if hasChild(child) then noop()
+    fired {
+      engine:signalEvent(
+        { "eci": child.eci, "eid": 59,
+          "domain": "pico", "type": "intent_to_orphan",
+          "attrs": attrs })
+    }
+  }
+
+  rule pico_intent_to_orphan {
+    select when pico intent_to_orphan
+    pre {
+      attrs = {
+        "parent_id": ent:parent.id,
+        "parent_eci": ent:parent.eci,
+        "id": ent:id,
+        "eci": ent:eci
+      }
+    }
+    if event:attr("id") == ent:id
+    && event:attr("eci") == ent:eci
+    && event:attr("parent_id") == ent:parent.id
+    && event:attr("parent_eci") == ent:parent.eci
+    && children().length() == 0
+    then noop()
+    fired {
+      engine:signalEvent(
+        { "eci": ent:parent.eci, "eid": 60,
+          "domain": "pico", "type": "child_is_orphan",
+          "attrs": attrs })//;
+      //ent:parent = null
+    }
+  }
+
+  rule pico_child_is_orphan {
+    select when pico child_is_orphan
+    pre {
       child_id = event:attr("id")
       child_eci = event:attr("eci")
       child = { "id": child_id, "eci": child_eci }
       left_with_children = children().difference( [ child ] )
                                      .klog("remaining children:")
     }
-    if left_with_children.length() < children().length() then noop()
+    if left_with_children.length() < children().length()
+    && event:attr("parent_id") == ent:id
+    && event:attr("parent_eci") == ent:eci
+    then noop()
     fired {
       ent:children = left_with_children;
       engine:removePico(child_id)
