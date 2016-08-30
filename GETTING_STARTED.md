@@ -15,9 +15,9 @@ your browser's back button and then refresh to see changes.
 
 ## Bootstrap
 Using the **old UI**, add a Pico and then a channel within it (named "main" of
-type "secret", say).
+type "secret", say). [pic](https://github.com/Picolab/node-pico-engine/blob/master/getting_started_img/Screen%20Shot%202016-08-30%20at%201.55.27%20PM.png)
 Now if you refresh the **visual UI**, 
-and click on the "Owner Pico" you'll see its information in the "About" tab.
+and click on the "Owner Pico" you'll see its information in the "About" tab. [pic](https://github.com/Picolab/node-pico-engine/blob/master/getting_started_img/Screen%20Shot%202016-08-30%20at%201.56.40%20PM.png)
 
 Nothing can be done with your Pico until you add rulesets to it.
 
@@ -31,13 +31,13 @@ _added_ to a Pico.
 
 ### Preparing a ruleset for use
 1. Copy the entire content of a .krl file into the clipboard
-2. Paste it into the box beside the "register ruleset" button in the **old UI** 
-3. Click the "register ruleset" button to register a version of the ruleset, then refresh. Note the new time stamp and version hash of your new registered ruleset.
-4. Click the "enable" link beside the version of the ruleset, navigate back to **old UI** and refresh. Note that source code of your ruleset is displayed. 
+2. Paste it into the box beside the "register ruleset" button in the **old UI** [pic](https://github.com/Picolab/node-pico-engine/blob/master/getting_started_img/Screen%20Shot%202016-08-30%20at%201.59.29%20PM.png)
+3. Click the "register ruleset" button to register a version of the ruleset, then refresh. Note the new time stamp and version hash of your new registered ruleset. [pic](https://github.com/Picolab/node-pico-engine/blob/master/getting_started_img/Screen%20Shot%202016-08-30%20at%202.03.18%20PM.png)
+4. Click the "enable" link beside the version of the ruleset, navigate back to **old UI** and refresh. Note that source code of your ruleset is displayed. [pic](https://github.com/Picolab/node-pico-engine/blob/master/getting_started_img/Screen%20Shot%202016-08-30%20at%202.05.58%20PM.png)
 5. Still in the **old UI**, click the "install" link beside the enabled version; this may take a minute so grab a soda. Navigate back to **old UI** and refresh.
 6. Switch to the **visual UI** tab, refresh, click on the Owner Pico, then on its "Rulesets" tab
-7. Find your ruleset in the dropdown list under "Available rulesets", then click on the "add ruleset" button
-(click browser back button and refresh). Note your new ruleset in **visual UI**.
+7. Find your ruleset in the dropdown list under "Available rulesets", [pic](https://github.com/Picolab/node-pico-engine/blob/master/getting_started_img/Screen%20Shot%202016-08-30%20at%202.09.29%20PM.png) then click on the "add ruleset" button
+(click browser back button and refresh). Note your new ruleset in **visual UI**. [pic](https://github.com/Picolab/node-pico-engine/blob/master/getting_started_img/Screen%20Shot%202016-08-30%20at%202.12.19%20PM.png) and if you click on the ruleset name, its source code will be displayed. [pic](https://github.com/Picolab/node-pico-engine/blob/master/getting_started_img/Screen%20Shot%202016-08-30%20at%202.12.29%20PM.png)
 
 Repeat the steps above for each of these _two_ rulesets in the `krl` folder.
  * `io.picolabs.pico` is used by each Pico to keep track of itself and its children
