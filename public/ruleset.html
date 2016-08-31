@@ -1,0 +1,42 @@
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
+<title>TITLE</title>
+<link rel="stylesheet" href="css/ruleset.css">
+<link href="css/jquery-linedtextarea.css" type="text/css" rel="stylesheet">
+<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script src="js/handlebars.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="js/jquery-linedtextarea.js"></script>
+<script src="js/ruleset.js" type="text/javascript"></script>
+<script id="the-template" type="text/x-handlebars-template">
+<a class="logo" href="https://picolabs.io"><img src="logo.png" alt="logo"></a>
+<h1 class="title">{{title}}</h1>
+<div id="container" style="position:relative">
+<p class="description">
+{{descr}}
+</p>
+<div id="rulesets"></div>
+</script>
+<script id="rulesets-template" type="text/x-handlebars-template">
+<div id="ruleset-list" style="float:left;max-width:40%">
+Rulesets
+<ul>
+{{#each enabled}}
+<li class="krlrid">{{@key}}</li>
+{{/each}}
+</ul>
+</div>
+<div class="krlsrc">
+<form class="ruleset-compile" action="/api/ruleset/compile" method="GET">
+<textarea class="lined" name="src"></textarea>
+<button type="submit">compile ruleset</button>
+<button type="submit" formaction="/api/ruleset/register">register ruleset</button>
+</form>
+</div>
+</script>
+</head>
+<body>
+<p>Loading...</p>
+</body>
+</html>
