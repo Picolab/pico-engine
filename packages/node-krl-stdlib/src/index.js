@@ -335,7 +335,7 @@ stdlib.union = function() {
   args.push(_.isEqual);
   return _.unionWith.apply(_, args);
 };
-stdlib.difference = _.difference;
+stdlib.difference = _.partialRight(_.differenceWith,_.isEqual);
 stdlib.has = function(val, other){
   return _.every(other, function(e){
     return _.includes(val, e);
