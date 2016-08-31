@@ -279,6 +279,7 @@ test("Collection operators", function(t){
 
   tf("union", [[2], [1, 2]], [2, 1]);
   tf("union", [[1, 2], [1, 4]], [1, 2, 4]);
+  tf("union", [[{"x":2}], [{"x":1}, {"x":2}]], [{"x":2}, {"x":1}]);
 
   tf("difference", [[2, 1], [2, 3]], [1]);
 
