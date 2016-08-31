@@ -85,13 +85,3 @@ li.krlrid:hover {
   background-color: silver;
   cursor: pointer;
 }
-div.krlsrc {
-  height:100%;
-  padding: 0 0 0 15px;
-}
-div.krlsrc textarea {
-  box-sizing: border-box;
-  width: 100%;
-  height: 95%;
-  overflow:auto;
-}

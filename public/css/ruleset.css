@@ -33,6 +33,9 @@ li.krlrid:hover {
   background-color: silver;
   cursor: pointer;
 }
+li.krl-showing {
+  background-color: #87cefa;
+}
 div.krlsrc {
   height:90%;
   padding: 0 0 0 15px;

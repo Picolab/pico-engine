@@ -112,18 +112,8 @@ $.getJSON("/api/db-dump", function(db_dump){
       return db_dump;
     }
   }
-  var krlSrcInvite = "//click on a ruleset name to see its source here";
   var displayKrl = function() {
-    $(this).siblings(".krl-showing").toggleClass("krl-showing");
-    var src = "N/A";
-    if($(this).hasClass("krl-showing")) {
-      src = krlSrcInvite;
-    } else {
-      var rs_info = db_dump.rulesets.enabled[$(this).html()];
-      if (rs_info) { src = db_dump.rulesets.krl[rs_info.hash].src; }
-    }
-    $(this).parent().parent().parent().find(".krlsrc textarea").html(src);
-    $(this).toggleClass("krl-showing");
+    window.open("/ruleset.html?"+$(this).html(),"ruleset");
   }
   var renderTab =
     function(){
@@ -137,7 +127,6 @@ $.getJSON("/api/db-dump", function(db_dump){
       $theSection.html(tabTemplate(theDB));
       if(liContent === "rulesets") {
         $(".pico-edit .krlrid").click(displayKrl);
-        $(".krlsrc textarea").html(krlSrcInvite);
       } else if(liContent === "about") {
         $('#'+theDB.id+'-minicolors').minicolors(
           { swatches: "#ccc|#fcc|#7fffd4|#ccf|#ffc|#87CEFA|#fcf".split('|')});
@@ -198,7 +187,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     var ownerPico = {};
     for (var k in db_dump.pico) { ownerPico.id = k; break; }
     db_graph.title = getV(ownerPico,"title","My Picos");
-    db_graph.descr = getV(ownerPico,"descr", "These are in the local KRE.");
+    db_graph.descr = getV(ownerPico,"descr", "These are my Picos hosted by this KRE.");
     db_graph.picos = [];
     db_graph.chans = [];
     var walkPico =

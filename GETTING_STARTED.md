@@ -52,16 +52,18 @@ With the rulesets installed, you can now drag the rounded rectangle of your Pico
 wherever you want it. In its "About" tab (remember to click on it to reveal the tabs) you can change its
 display name and color.
 
-Also, in the "About" tab you can add child Picos.
+Also in the "About" tab, you can add and delete child Picos.
 
 In the "Rulesets" tab you can see the information held for your Pico by each of its rulesets,
 and you can view the source code of each ruleset.
 
-To make your own ruleset, write your code in the box in the "Rulesets" tab.
-Make sure you keep a copy of it, either in your clipboard or in a file.
+To make your own ruleset, write your code in the box in the
+"Engine Rulesets" page at localhost:8080/ruleset.html (assuming you
+use the default PORT).
+Make sure you **_keep a copy_** of it, either in your clipboard or in a file.
 Click on the "compile ruleset" button to see any compilation errors.
 After the ruleset compiles correctly (you'll see text like that shown below),
-click the browser back button, refresh, and return to the "Rulesets" tab.
+click the browser back button, and refresh.
 Paste in your source code and click the "register ruleset" button.
 Finally, perform steps 4-7 of the section "Preparing a ruleset for use" and test your new ruleset.
 

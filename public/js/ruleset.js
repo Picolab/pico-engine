@@ -1,4 +1,5 @@
 $(document).ready(function() {
+  var rid = location.search.substring(1);
   var get = // adapted from lodash.get, with thanks
     function(o,p,v) {
       var i=0, l=p.length;
@@ -27,6 +28,9 @@ $.getJSON("/api/db-dump", function(db_dump){
       $(".krlrid").click(displayKrl);
       $(".krlsrc textarea").html(krlSrcInvite);
       $(".lined").linedtextarea();
+      if(rid){
+        $(".krlrid:contains('"+rid+"')").trigger("click");
+      }
     };
   var renderGraph =
      function(data){
@@ -35,7 +39,7 @@ $.getJSON("/api/db-dump", function(db_dump){
      };
   var rs_graph = {};
   rs_graph.title = "Engine Rulesets";
-  rs_graph.descr = "These are the rulesets managed by this KRE";
+  rs_graph.descr = "These are the rulesets hosted by this KRE.";
   renderGraph(rs_graph);
   renderContent();
 });
