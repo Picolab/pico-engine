@@ -282,7 +282,7 @@ test("Collection operators", function(t){
   tf("union", [[{"x":2}], [{"x":1}, {"x":2}]], [{"x":2}, {"x":1}]);
 
   tf("difference", [[2, 1], [2, 3]], [1]);
-  tf("difference", [[{"x":2}, {"x":1}], [{"x":2}, 3]], [{"x":1}]);
+  tf("difference", [[{"x":2}, {"x":1}], [{"x":2}, {"x":3}]], [{"x":1}]);
 
   tf("has", [[1, 2, 3, 4], [4, 2]], true);
   tf("has", [[1, 2, 3, 4], [4, 5]], false);
