@@ -28,11 +28,12 @@ Rulesets
 </ul>
 </div>
 <div class="krlsrc">
-<form class="ruleset-compile" action="/api/ruleset/compile" method="GET">
+<form class="ruleset-compile" method="GET">
 <textarea class="lined" name="src"></textarea>
-<button type="submit">compile ruleset</button>
-<button type="submit" formaction="/api/ruleset/register">register ruleset</button>
+<button id="btn-compile" type="submit">compile ruleset</button>
+<button id="btn-register" type="submit">register ruleset</button>
 </form>
+<pre id="feedback"></pre>
 </div>
 </script>
 </head>

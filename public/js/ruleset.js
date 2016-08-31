@@ -7,6 +7,13 @@ $(document).ready(function() {
       return o ? o : v;
     }
   var mpl = Handlebars.compile($('#the-template').html());
+  var formToJSON = function(form){
+    var json = {};
+    $.each($(form).serializeArray(), function(key, elm){
+      json[elm.name] = elm.value;
+    });
+    return json;
+  };
 $.getJSON("/api/db-dump", function(db_dump){
   var krlSrcInvite = "//click on a ruleset name to see its source here";
   var displayKrl = function() {
@@ -20,6 +27,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
     $(this).parent().parent().parent().find(".krlsrc textarea").html(src);
     $(this).toggleClass("krl-showing");
+    $("pre#feedback").html("");
   }
   var renderContent =
     function(){
@@ -42,5 +50,28 @@ $.getJSON("/api/db-dump", function(db_dump){
   rs_graph.descr = "These are the rulesets hosted by this KRE.";
   renderGraph(rs_graph);
   renderContent();
+  $("div.krlsrc form button").click(function(){
+    $(this).siblings(".clicked").toggleClass("clicked")
+    $(this).toggleClass("clicked");
+  });
+  $("div.krlsrc").on("submit","form.ruleset-compile",function(e){
+    e.preventDefault();
+    var $feedback = $("pre#feedback");
+    $feedback.html("Compiling...");
+    var formAction = "/api/ruleset/compile";
+    if ($(".clicked").attr("id") === "btn-register") {
+      $feedback.html("Registering...");
+      formAction = "/api/ruleset/register";
+    }
+    $.getJSON(formAction,formToJSON(this),function(result){
+      if(result.error){
+        $feedback.html(result.error);
+      } else if(result.code || result.ok){
+        $feedback.html("ok");
+      } else {
+        $feedback.html(JSON.stringify(result));
+      }
+    });
+  });
 });
 });

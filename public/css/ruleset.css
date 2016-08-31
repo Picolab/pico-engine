@@ -37,12 +37,16 @@ li.krl-showing {
   background-color: #87cefa;
 }
 div.krlsrc {
-  height:90%;
+  height:95%;
   padding: 0 0 0 15px;
   overflow:hidden;
 }
 div.krlsrc textarea {
   box-sizing: border-box;
   width: 90%;
-  height: 95%;
+  height: 80%;
+}
+div.krlsrc pre#feedback {
+  background-color: #F5F5F5;
+  width: 90%;
 }
