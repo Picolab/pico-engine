@@ -3,6 +3,7 @@ var cuid = require("cuid");
 var crypto = require("crypto");
 var levelup = require("levelup");
 var bytewise = require("bytewise");
+var safeJsonCodec = require("level-json-coerce-null");
 var extractRulesetName = require("./extractRulesetName");
 
 var dbToObj = function(ldb, callback){
@@ -24,7 +25,7 @@ module.exports = function(opts){
   var ldb = levelup(opts.location, {
     db: opts.db,
     keyEncoding: bytewise,
-    valueEncoding: "json"
+    valueEncoding: safeJsonCodec
   });
 
   var newID = _.isFunction(opts.newID) ? opts.newID : cuid;
