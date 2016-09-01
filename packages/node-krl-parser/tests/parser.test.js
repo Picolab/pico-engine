@@ -1420,11 +1420,11 @@ test('ruleset global declarations', function(t){
 });
 
 test('comments preserver locations', function(t){
-  var ast = parser('1;//some comment\n2/*annother comment*/;3');
+  var ast = parser('1; //some comment\n2/*annother comment*/;3');
   t.deepEquals(ast, _.map([
     _.assign(mk(1), {loc: {start: 0, end: 1}}),
-    _.assign(mk(2), {loc: {start: 17, end: 18}}),
-    _.assign(mk(3), {loc: {start: 39, end: 40}})
+    _.assign(mk(2), {loc: {start: 18, end: 19}}),
+    _.assign(mk(3), {loc: {start: 40, end: 41}})
   ], function(e){
     return {loc: e.loc, type: 'ExpressionStatement', expression: e};
   }));
