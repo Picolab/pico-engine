@@ -37,17 +37,6 @@ try{
   excerpt: 'function(a, b] { a + b }\n             ^' }
 ```
 
-### name = extractRulesetName(src)
- * `src` - your krl source code string
-
-This function return the ruleset name. Or `undefined` if it's unable to parse it. This is handy when you need the ruleset name without the overhead of parsing the entire file.
-```js
-var extractRulesetName = require('krl-parser/src/extractRulesetName');
-
-name = extractRulesetName('ruleset blah { ... }');
-//-> "blah"
-```
-
 ## Developing
 
 The parser is built using [nearley](https://www.npmjs.com/package/nearley). It uses the Earley parser algorithm.
