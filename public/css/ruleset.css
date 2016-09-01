@@ -36,6 +36,9 @@ li.krlrid:hover {
 li.krl-showing {
   background-color: #87cefa;
 }
+li.disabled {
+  list-style-type: circle;
+}
 div.krlsrc {
   height:95%;
   padding: 0 0 0 15px;

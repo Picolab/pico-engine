@@ -22,8 +22,25 @@ $.getJSON("/api/db-dump", function(db_dump){
     if($(this).hasClass("krl-showing")) {
       src = krlSrcInvite;
     } else {
-      var rs_info = db_dump.rulesets.enabled[$(this).html()];
-      if (rs_info) { src = db_dump.rulesets.krl[rs_info.hash].src; }
+      var rid = $(this).html();
+      var rs_info = db_dump.rulesets.enabled[rid];
+      if (rs_info) {
+        $(this).removeClass("disabled");
+        src = db_dump.rulesets.krl[rs_info.hash].src;
+      } else {
+        $(this).addClass("disabled");
+        var hashobj;
+        for (var vds in db_dump.rulesets.versions[rid]) {
+          hashobj = db_dump.rulesets.versions[rid][vds];
+        }
+        if (hashobj) {
+          for(var hash in hashobj)
+          {
+            src = db_dump.rulesets.krl[hash].src;
+            break;
+          }
+        }
+      }
     }
     $(this).parent().parent().parent().find(".krlsrc textarea").html(src);
     $(this).toggleClass("krl-showing");
