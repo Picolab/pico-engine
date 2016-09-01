@@ -3,9 +3,11 @@ node_js:
   - "6"
   - "4"
 
+#Build settings for node-fibers
 env:
   - CXX=g++-4.8
 
+#Build settings for node-fibers
 addons:
   apt:
     sources:
