@@ -3,7 +3,7 @@ var cuid = require("cuid");
 var crypto = require("crypto");
 var levelup = require("levelup");
 var bytewise = require("bytewise");
-var extractRulesetName = require("krl-parser/src/extractRulesetName");
+var extractRulesetName = require("./extractRulesetName");
 
 var dbToObj = function(ldb, callback){
   var db_data = {};
