@@ -9,7 +9,7 @@
   "scripts": {
     "start": "onchange -i src/ test-rulesets/ -- npm run test -s",
     "lint": "eslint src/ && echo lint-ok",
-    "test": "npm run lint && node src/tests.js"
+    "test": "npm run lint && node src/tests.js | tap-min"
   },
   "repository": {
     "type": "git",
@@ -31,6 +31,7 @@
     "krl-compiler": "^0.17.0",
     "memdown": "^1.2.0",
     "onchange": "^3.0.0",
+    "tap-min": "^1.1.0",
     "tape": "^4.6.0"
   },
   "dependencies": {

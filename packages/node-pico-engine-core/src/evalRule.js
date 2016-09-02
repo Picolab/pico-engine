@@ -22,7 +22,7 @@ var doActions = function(rule, ctx, callback){
     }
     var actions = _.get(rule, ["action_block", "actions"], []);
     λ.map(actions, function(action, done){
-      applyInFiber(action, null, [ctx], done);
+      applyInFiber(action.action, null, [ctx], done);
     }, function(err, responses){
       callback(err, responses, true);
     });
