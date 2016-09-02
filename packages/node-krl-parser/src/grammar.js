@@ -274,7 +274,7 @@ var grammar = {
     {"name": "ruleset_meta_prop$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$6", "__", "ruleset_meta_prop$string$7", "__", "RulesetID", "ruleset_meta_prop$ebnf$1", "ruleset_meta_prop$ebnf$2", "ruleset_meta_prop$ebnf$3"], "postprocess":  metaProp(function(data){return {
           kind: data[2],
-          name: data[4],
+          rid: data[4],
           version: data[5] && data[5][3],
           alias:   data[6] && data[6][3],
           'with':  data[7] && data[7][3]
@@ -286,7 +286,7 @@ var grammar = {
     {"name": "ruleset_meta_prop$ebnf$4", "symbols": ["ruleset_meta_prop$ebnf$4$subexpression$1"], "postprocess": id},
     {"name": "ruleset_meta_prop$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$8", "__", "ruleset_meta_prop$string$9", "__", "RulesetID", "ruleset_meta_prop$ebnf$4"], "postprocess":  metaProp(function(data){return {
-          name: data[4],
+          rid: data[4],
           version: data[5] && data[5][3]
         }}, true) },
     {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "Identifier_list"], "postprocess":  metaProp(function(d){return {

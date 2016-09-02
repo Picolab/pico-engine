@@ -255,14 +255,14 @@ ruleset_meta_prop ->
         (__ "with" __ declaration_list):?
       {% metaProp(function(data){return {
         kind: data[2],
-        name: data[4],
+        rid: data[4],
         version: data[5] && data[5][3],
         alias:   data[6] && data[6][3],
         'with':  data[7] && data[7][3]
       }}, true) %}
     | "errors" __ "to" __ RulesetID (__ "version" __ String):?
       {% metaProp(function(data){return {
-        name: data[4],
+        rid: data[4],
         version: data[5] && data[5][3]
       }}, true) %}
     | PROVIDEs __ Identifier_list
