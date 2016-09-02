@@ -222,7 +222,7 @@ var comp_by_type = {
       e(";", e("=", e("id", "module.exports"), e("obj", rs)))
     ];
   },
-  "RulesetName": function(ast, comp, e){
+  "RulesetID": function(ast, comp, e){
     return e("string", ast.value);
   },
   "RulesetMetaProperty": function(ast, comp, e){
