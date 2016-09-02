@@ -48,12 +48,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "store_name",
-              "options": { "name": ctx.scope.get("my_name") }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "store_name",
+                "options": { "name": ctx.scope.get("my_name") }
+              };
+            }
           }]
       },
       "postlude": {
@@ -97,12 +99,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "store_appvar",
-              "options": { "appvar": ctx.scope.get("my_appvar") }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "store_appvar",
+                "options": { "appvar": ctx.scope.get("my_appvar") }
+              };
+            }
           }]
       },
       "postlude": {

@@ -1,6 +1,11 @@
 module.exports = {
   "name": "io.picolabs.events",
-  "meta": {},
+  "meta": { "shares": ["getOnChooseFired"] },
+  "global": function (ctx) {
+    ctx.scope.set("getOnChooseFired", ctx.krl.Closure(ctx, function (ctx) {
+      return ctx.persistent.getEnt("on_choose_fired");
+    }));
+  },
   "rules": {
     "set_attr": {
       "name": "set_attr",
@@ -35,12 +40,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "bound",
-              "options": { "name": ctx.scope.get("my_name") }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "bound",
+                "options": { "name": ctx.scope.get("my_name") }
+              };
+            }
           }]
       }
     },
@@ -73,12 +80,14 @@ module.exports = {
         ctx.scope.set("thing", ctx.event.getAttr("thing"));
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "get",
-              "options": { "thing": ctx.scope.get("thing") }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "get",
+                "options": { "thing": ctx.scope.get("thing") }
+              };
+            }
           }]
       }
     },
@@ -134,8 +143,10 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return void 0;
+        "actions": [{
+            "action": function (ctx) {
+              return void 0;
+            }
           }]
       }
     },
@@ -181,12 +192,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "or",
-              "options": {}
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "or",
+                "options": {}
+              };
+            }
           }]
       }
     },
@@ -258,12 +271,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "and",
-              "options": {}
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "and",
+                "options": {}
+              };
+            }
           }]
       }
     },
@@ -347,12 +362,113 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "(a and b) or c",
-              "options": {}
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "(a and b) or c",
+                "options": {}
+              };
+            }
+          }]
+      }
+    },
+    "or_and": {
+      "name": "or_and",
+      "select": {
+        "graph": {
+          "events_orand": {
+            "a": { "expr_0": true },
+            "b": { "expr_1": true },
+            "c": { "expr_2": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          },
+          "expr_1": function (ctx) {
+            return true;
+          },
+          "expr_2": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "state_0"
+            ],
+            [
+              [
+                "or",
+                "expr_1",
+                "expr_2"
+              ],
+              "state_1"
+            ],
+            [
+              [
+                "not",
+                [
+                  "or",
+                  "expr_0",
+                  [
+                    "or",
+                    "expr_1",
+                    "expr_2"
+                  ]
+                ]
+              ],
+              "start"
+            ]
+          ],
+          "state_0": [
+            [
+              [
+                "or",
+                "expr_1",
+                "expr_2"
+              ],
+              "end"
+            ],
+            [
+              [
+                "not",
+                [
+                  "or",
+                  "expr_1",
+                  "expr_2"
+                ]
+              ],
+              "state_0"
+            ]
+          ],
+          "state_1": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "state_1"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "a and (b or c)",
+                "options": {}
+              };
+            }
           }]
       }
     },
@@ -392,12 +508,14 @@ module.exports = {
         "condition": function (ctx) {
           return ctx.scope.get("my_name");
         },
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "ifthen",
-              "options": {}
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "ifthen",
+                "options": {}
+              };
+            }
           }]
       }
     },
@@ -434,12 +552,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "on_fired",
-              "options": { "previous_name": ctx.persistent.getEnt("on_fired_prev_name") }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "on_fired",
+                "options": { "previous_name": ctx.persistent.getEnt("on_fired_prev_name") }
+              };
+            }
           }]
       },
       "postlude": {
@@ -447,6 +567,76 @@ module.exports = {
           ctx.persistent.putEnt("on_fired_prev_name", ctx.scope.get("my_name"));
         },
         "notfired": undefined,
+        "always": undefined
+      }
+    },
+    "on_choose": {
+      "name": "on_choose",
+      "select": {
+        "graph": { "events": { "on_choose": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.event.getAttrMatches([[
+                "thing",
+                new RegExp("^(.*)$", "")
+              ]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("thing", matches[0]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "block_type": "choose",
+        "condition": function (ctx) {
+          return ctx.scope.get("thing");
+        },
+        "actions": [
+          {
+            "label": "one",
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "on_choose - one",
+                "options": {}
+              };
+            }
+          },
+          {
+            "label": "two",
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "on_choose - two",
+                "options": {}
+              };
+            }
+          }
+        ]
+      },
+      "postlude": {
+        "fired": function (ctx) {
+          ctx.persistent.putEnt("on_choose_fired", true);
+        },
+        "notfired": function (ctx) {
+          ctx.persistent.putEnt("on_choose_fired", false);
+        },
         "always": undefined
       }
     }

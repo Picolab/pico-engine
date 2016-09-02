@@ -85,8 +85,10 @@ module.exports = {
         "condition": function (ctx) {
           return ctx.krl.stdlib["<"](ctx.persistent.getEnt("taken"), ctx.persistent.getEnt("capacity"));
         },
-        "actions": [function (ctx) {
-            return void 0;
+        "actions": [{
+            "action": function (ctx) {
+              return void 0;
+            }
           }]
       },
       "postlude": {
@@ -126,8 +128,10 @@ module.exports = {
         "condition": function (ctx) {
           return ctx.krl.stdlib[">"](ctx.persistent.getEnt("taken"), 0);
         },
-        "actions": [function (ctx) {
-            return void 0;
+        "actions": [{
+            "action": function (ctx) {
+              return void 0;
+            }
           }]
       },
       "postlude": {
@@ -192,12 +196,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "section",
-              "options": { "section_info": ctx.scope.get("sectionInfo")(ctx, []) }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "section",
+                "options": { "section_info": ctx.scope.get("sectionInfo")(ctx, []) }
+              };
+            }
           }]
       }
     }

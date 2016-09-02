@@ -1,4 +1,12 @@
 ruleset io.picolabs.events {
+  meta {
+    shares getOnChooseFired
+  }
+  global {
+    getOnChooseFired = function(){
+      ent:on_choose_fired
+    }
+  }
   rule set_attr {
     select when events bind name re#^(.*)$# setting(my_name);
     send_directive("bound") with
@@ -31,6 +39,10 @@ ruleset io.picolabs.events {
     select when (events_andor a and events_andor b) or events_andor c
     send_directive("(a and b) or c")
   }
+  rule or_and {
+    select when events_orand a and (events_orand b or events_orand c)
+    send_directive("a and (b or c)")
+  }
   rule ifthen {
     select when events ifthen name re#^(.*)$# setting(my_name);
 
@@ -43,6 +55,20 @@ ruleset io.picolabs.events {
       previous_name = ent:on_fired_prev_name
     fired {
       ent:on_fired_prev_name = my_name
+    }
+  }
+  rule on_choose {
+    select when events on_choose thing re#^(.*)$# setting(thing);
+
+    if thing then
+    choose
+      one => send_directive("on_choose - one")
+      two => send_directive("on_choose - two")
+
+    fired {
+      ent:on_choose_fired = true
+    } else {
+      ent:on_choose_fired = false
     }
   }
 }
