@@ -4,7 +4,7 @@ var crypto = require("crypto");
 var levelup = require("levelup");
 var bytewise = require("bytewise");
 var safeJsonCodec = require("level-json-coerce-null");
-var extractRulesetName = require("./extractRulesetName");
+var extractRulesetID = require("./extractRulesetID");
 
 var dbToObj = function(ldb, callback){
   var db_data = {};
@@ -146,7 +146,7 @@ module.exports = function(opts){
         timestamp = arguments[2];//for testing only
       }//for testing only
 
-      var rid = extractRulesetName(krl_src);
+      var rid = extractRulesetID(krl_src);
       if(!rid){
         callback(new Error("Ruleset name not found"));
         return;

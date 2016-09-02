@@ -28,7 +28,7 @@
   "homepage": "https://github.com/Picolab/node-pico-engine-core#readme",
   "devDependencies": {
     "eslint": "^3.0.1",
-    "krl-compiler": "^0.17.1",
+    "krl-compiler": ">=0.18.0",
     "memdown": "^1.2.0",
     "onchange": "^3.0.0",
     "tap-min": "^1.1.0",

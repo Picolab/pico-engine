@@ -1,7 +1,7 @@
-var fn = require("./extractRulesetName");
+var fn = require("./extractRulesetID");
 var test = require("tape");
 
-test("extractRulesetName", function(t){
+test("extractRulesetID", function(t){
   t.equals(fn(""), undefined);
   t.equals(fn("  "), undefined);
   t.equals(fn("/* ruleset not {} */ ruleset blah.ok.bye "), "blah.ok.bye");
