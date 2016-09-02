@@ -356,6 +356,103 @@ module.exports = {
           }]
       }
     },
+    "or_and": {
+      "name": "or_and",
+      "select": {
+        "graph": {
+          "events_orand": {
+            "a": { "expr_0": true },
+            "b": { "expr_1": true },
+            "c": { "expr_2": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          },
+          "expr_1": function (ctx) {
+            return true;
+          },
+          "expr_2": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "state_0"
+            ],
+            [
+              [
+                "or",
+                "expr_1",
+                "expr_2"
+              ],
+              "state_1"
+            ],
+            [
+              [
+                "not",
+                [
+                  "or",
+                  "expr_0",
+                  [
+                    "or",
+                    "expr_1",
+                    "expr_2"
+                  ]
+                ]
+              ],
+              "start"
+            ]
+          ],
+          "state_0": [
+            [
+              [
+                "or",
+                "expr_1",
+                "expr_2"
+              ],
+              "end"
+            ],
+            [
+              [
+                "not",
+                [
+                  "or",
+                  "expr_1",
+                  "expr_2"
+                ]
+              ],
+              "state_0"
+            ]
+          ],
+          "state_1": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "state_1"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "actions": [function (ctx) {
+            return {
+              "type": "directive",
+              "name": "a and (b or c)",
+              "options": {}
+            };
+          }]
+      }
+    },
     "ifthen": {
       "name": "ifthen",
       "select": {

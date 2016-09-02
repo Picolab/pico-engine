@@ -31,6 +31,10 @@ ruleset io.picolabs.events {
     select when (events_andor a and events_andor b) or events_andor c
     send_directive("(a and b) or c")
   }
+  rule or_and {
+    select when events_orand a and (events_orand b or events_orand c)
+    send_directive("a and (b or c)")
+  }
   rule ifthen {
     select when events ifthen name re#^(.*)$# setting(my_name);
 
