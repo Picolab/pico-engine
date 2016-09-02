@@ -49,4 +49,18 @@ ruleset io.picolabs.events {
       ent:on_fired_prev_name = my_name
     }
   }
+  rule on_choose {
+    select when events on_choose thing re#^(.*)$# setting(thing);
+
+    if thing then
+    choose
+      one => send_directive("on_choose - one")
+      two => send_directive("on_choose - two")
+
+    fired {
+      ent:on_choose_fired = true
+    } else {
+      ent:on_choose_fired = false
+    }
+  }
 }

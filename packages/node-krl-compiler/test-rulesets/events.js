@@ -546,6 +546,69 @@ module.exports = {
         "notfired": undefined,
         "always": undefined
       }
+    },
+    "on_choose": {
+      "name": "on_choose",
+      "select": {
+        "graph": { "events": { "on_choose": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.event.getAttrMatches([[
+                "thing",
+                new RegExp("^(.*)$", "")
+              ]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("thing", matches[0]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "condition": function (ctx) {
+          return ctx.scope.get("thing");
+        },
+        "actions": [
+          function (ctx) {
+            return {
+              "type": "directive",
+              "name": "on_choose - one",
+              "options": {}
+            };
+          },
+          function (ctx) {
+            return {
+              "type": "directive",
+              "name": "on_choose - two",
+              "options": {}
+            };
+          }
+        ]
+      },
+      "postlude": {
+        "fired": function (ctx) {
+          ctx.persistent.putEnt("on_choose_fired", true);
+        },
+        "notfired": function (ctx) {
+          ctx.persistent.putEnt("on_choose_fired", false);
+        },
+        "always": undefined
+      }
     }
   }
 };
