@@ -1,6 +1,6 @@
 module.exports = {
   "rid": "io.picolabs.module-defined",
-  "meta": { "provides": undefined },
+  "meta": { "provides": ["hello"] },
   "global": function (ctx) {
     ctx.scope.set("hello", ctx.krl.Closure(ctx, function (ctx) {
       ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));

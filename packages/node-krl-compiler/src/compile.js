@@ -228,7 +228,7 @@ var comp_by_type = {
   "RulesetMetaProperty": function(ast, comp, e){
     var key = ast.key.value;
     var val = e("nil");
-    if(key === "shares"){
+    if(key === "shares" || key === "provides"){
       val = e("arr", _.map(ast.value.ids, function(id){
         return e("str", id.value, id.loc);
       }));
