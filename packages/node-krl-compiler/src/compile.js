@@ -16,11 +16,14 @@ var comp_by_type = {
     }
     return e("number", ast.value);
   },
-  "Identifier": function(ast, comp, e){
+  "Identifier": function(ast, comp, e, context){
     if(ast.value === "null"){
       //undefined is the true "null" in javascript
       //however, undefined can be re-assigned. So `void 0` returns undefined but can"t be re-assigned
       return e("void", e("number", 0));
+    }
+    if(context && context.identifiers_are_event_attributes){
+      return e("call", e("id", "ctx.event.getAttr"), [e("str", ast.value)]);
     }
     return e("call", e("id", "ctx.scope.get"), [e("str", ast.value)]);
   },
@@ -330,7 +333,7 @@ module.exports = function(ast, options){
     };
   };
 
-  var compile = function compile(ast){
+  var compile = function compile(ast, context){
     if(_.isArray(ast)){
       return _.map(ast, function(a){
         return compile(a);
@@ -340,7 +343,13 @@ module.exports = function(ast, options){
     }else if(!_.has(comp_by_type, ast.type)){
       throw new Error("Unsupported ast node type: " + ast.type);
     }
-    return comp_by_type[ast.type](ast, compile, mkE(ast.loc));
+    var comp = compile;
+    if(context){
+      comp = function(ast, c){
+        return compile(ast, c || context);
+      };
+    }
+    return comp_by_type[ast.type](ast, comp, mkE(ast.loc), context);
   };
 
   return compile(ast);

@@ -21,7 +21,9 @@ module.exports = function(ast, comp, e){
   }
 
   if(ast.where){
-    fn_body.push(e("if", e("!", comp(ast.where)), e("return", e("false"))));
+    fn_body.push(e("if", e("!", comp(ast.where, {
+      identifiers_are_event_attributes: true
+    })), e("return", e("false"))));
   }
 
   _.each(ast.setting, function(s){
