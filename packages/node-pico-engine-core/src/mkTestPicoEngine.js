@@ -14,10 +14,10 @@ _.each(fs.readdirSync(test_dir), function(file){
     return;
   }
   var rs = require(path.resolve(test_dir, file));
-  if(!rs.name){
+  if(!rs.rid){
     return;
   }
-  test_rulesets[rs.name] = rs;
+  test_rulesets[rs.rid] = rs;
 });
 
 module.exports = function(opts){

@@ -1,5 +1,5 @@
 module.exports = {
-  "name": "io.picolabs.hello_world",
+  "rid": "io.picolabs.hello_world",
   "meta": {
     "name": "Hello World",
     "description": "\nA first ruleset for the Quickstart\n    ",

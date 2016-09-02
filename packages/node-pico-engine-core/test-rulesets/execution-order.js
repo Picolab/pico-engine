@@ -1,5 +1,5 @@
 module.exports = {
-  "name": "io.picolabs.execution-order",
+  "rid": "io.picolabs.execution-order",
   "meta": { "shares": ["getOrder"] },
   "global": function (ctx) {
     ctx.scope.set("getOrder", ctx.krl.Closure(ctx, function (ctx) {

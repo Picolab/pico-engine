@@ -1,5 +1,5 @@
 module.exports = {
-  "name": "io.picolabs.registration",
+  "rid": "io.picolabs.registration",
   "meta": {
     "name": "Section",
     "description": "\nA test ruleset for Registration\n",

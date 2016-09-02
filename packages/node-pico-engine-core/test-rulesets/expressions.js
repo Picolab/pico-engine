@@ -1,5 +1,5 @@
 module.exports = {
-  "name": "io.picolabs.expressions",
+  "rid": "io.picolabs.expressions",
   "meta": {},
   "global": function (ctx) {
     ctx.scope.set("cond_exp_1", true ? 1 : 2);

@@ -1,5 +1,5 @@
 module.exports = {
-  "name": "io.picolabs.chevron",
+  "rid": "io.picolabs.chevron",
   "meta": {
     "description": "\nHello Chevrons!\n    ",
     "shares": ["d"]

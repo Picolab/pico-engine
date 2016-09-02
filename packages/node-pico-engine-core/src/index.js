@@ -27,7 +27,6 @@ var rulesets = {};
 var salience_graph = {};
 
 var doInstallRuleset = function(rs){
-  rs.rid = rs.name;
   rs.scope = SymbolTable();
   if(_.isFunction(rs.global)){
     rs.global(mkCTX({
