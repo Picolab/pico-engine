@@ -639,6 +639,45 @@ module.exports = {
         },
         "always": undefined
       }
+    },
+    "select_where": {
+      "name": "select_where",
+      "select": {
+        "graph": { "events": { "select_where": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            if (!ctx.krl.stdlib["match"](ctx.event.getAttr("something"), new RegExp("^wat", "")))
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "select_where",
+                "options": {}
+              };
+            }
+          }]
+      }
     }
   }
 };

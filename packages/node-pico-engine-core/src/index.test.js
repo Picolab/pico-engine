@@ -336,6 +336,14 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
     [
       query("getOnChooseFired"),
       false
+    ],
+    [
+      signal("events", "select_where", {something: "wat?"}),
+      [{name: "select_where", options: {}}]
+    ],
+    [
+      signal("events", "select_where", {something: "ok wat?"}),
+      []
     ]
   ], t.end);
 });
