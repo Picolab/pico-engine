@@ -1,9 +1,17 @@
 module.exports = {
   "name": "io.picolabs.events",
-  "meta": { "shares": ["getOnChooseFired"] },
+  "meta": {
+    "shares": [
+      "getOnChooseFired",
+      "getNoActionFired"
+    ]
+  },
   "global": function (ctx) {
     ctx.scope.set("getOnChooseFired", ctx.krl.Closure(ctx, function (ctx) {
       return ctx.persistent.getEnt("on_choose_fired");
+    }));
+    ctx.scope.set("getNoActionFired", ctx.krl.Closure(ctx, function (ctx) {
+      return ctx.persistent.getEnt("no_action_fired");
     }));
   },
   "rules": {
@@ -677,6 +685,47 @@ module.exports = {
               };
             }
           }]
+      }
+    },
+    "no_action": {
+      "name": "no_action",
+      "select": {
+        "graph": { "events": { "no_action": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.event.getAttrMatches([[
+                "fired",
+                new RegExp("^yes$", "i")
+              ]]);
+            if (!matches)
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "postlude": {
+        "fired": function (ctx) {
+          ctx.persistent.putEnt("no_action_fired", true);
+        },
+        "notfired": function (ctx) {
+          ctx.persistent.putEnt("no_action_fired", false);
+        },
+        "always": undefined
       }
     }
   }

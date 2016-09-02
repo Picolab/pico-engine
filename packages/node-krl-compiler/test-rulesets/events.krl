@@ -1,10 +1,13 @@
 ruleset io.picolabs.events {
   meta {
-    shares getOnChooseFired
+    shares getOnChooseFired, getNoActionFired
   }
   global {
     getOnChooseFired = function(){
       ent:on_choose_fired
+    }
+    getNoActionFired = function(){
+      ent:no_action_fired
     }
   }
   rule set_attr {
@@ -74,5 +77,13 @@ ruleset io.picolabs.events {
   rule select_where {
     select when events select_where where something.match(re#^wat#);
     send_directive("select_where")
+  }
+  rule no_action {
+    select when events no_action fired re#^yes$#i
+    fired {
+      ent:no_action_fired = true
+    } else {
+      ent:no_action_fired = false
+    }
   }
 }
