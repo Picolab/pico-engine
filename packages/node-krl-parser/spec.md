@@ -26,7 +26,7 @@ ruleset io.picolabs.hello {
 {
   "type": "Ruleset",
   "name": {
-    "type": "RulesetName",
+    "type": "RulesetID",
     "value": "io.picolabs.hello"
   },
   "meta": [  ],
@@ -48,7 +48,7 @@ Hello parser!
 {
   "type": "Ruleset",
   "name": {
-    "type": "RulesetName",
+    "type": "RulesetID",
     "value": "io.picolabs.hello"
   },
   "meta": [

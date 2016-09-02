@@ -109,7 +109,7 @@ test('parser', function(t){
     type: 'Ruleset',
     loc: {start: 0, end: 14},
 
-    name: {type: 'RulesetName', value: 'rs', loc: {start: 8, end: 10}},
+    name: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
     meta: [],
     global: [],
     rules: []
@@ -124,7 +124,7 @@ test('parser', function(t){
     type: 'Ruleset',
     loc: {start: 0, end: 27},
 
-    name: {type: 'RulesetName', value: 'rs', loc: {start: 8, end: 10}},
+    name: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
     meta: [],
     global: [],
     rules: [
@@ -151,7 +151,7 @@ test('parser', function(t){
     type: 'Ruleset',
     loc: {start: 0, end: 40},
 
-    name: {type: 'RulesetName', value: 'rs', loc: {start: 8, end: 10}},
+    name: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
     meta: [],
     global: [],
     rules: [
@@ -409,7 +409,7 @@ test('locations', function(t){
     loc: {start: 0, end: 32},
     name: {
       loc: {start: 8, end: 11},
-      type: 'RulesetName',
+      type: 'RulesetID',
       value: 'one'
     },
     meta: [],
@@ -1143,7 +1143,7 @@ test('EventExpression', function(t){
   t.end();
 });
 
-test('RulesetName', function(t){
+test('RulesetID', function(t){
   var testName = function(name, is_valid){
     try{
       parser("ruleset " + name + " {}")
@@ -1208,14 +1208,14 @@ test('Ruleset meta', function(t){
   ].join('\n'), [
     mk.meta('use', {
       kind: 'module',
-      name: {type: 'RulesetName', value: 'com.blah'},
+      name: {type: 'RulesetID', value: 'com.blah'},
       version: null,
       alias:   null,
       'with':  null
     }),
     mk.meta('use', {
       kind: 'module',
-      name: {type: 'RulesetName', value: 'com.blah'},
+      name: {type: 'RulesetID', value: 'com.blah'},
       version: mk('2'),
       alias: mk.id('blah'),
       'with': [
@@ -1230,11 +1230,11 @@ test('Ruleset meta', function(t){
     'errors to com.blah version "2"'
   ].join('\n'), [
     mk.meta('errors', {
-      name: {type: 'RulesetName', value: 'com.blah'},
+      name: {type: 'RulesetID', value: 'com.blah'},
       version: null
     }),
     mk.meta('errors', {
-      name: {type: 'RulesetName', value: 'com.blah'},
+      name: {type: 'RulesetID', value: 'com.blah'},
       version: mk('2')
     })
   ]);
@@ -1254,8 +1254,8 @@ test('Ruleset meta', function(t){
       operator: mk.key('keys'),
       ids: [mk.id('s3'), mk.id('gmail')],
       rulesets: [
-        {type: 'RulesetName', value: 'com.google'},
-        {type: 'RulesetName', value: 'io.picolabs'}
+        {type: 'RulesetID', value: 'com.google'},
+        {type: 'RulesetID', value: 'io.picolabs'}
       ]
     })
   ]);

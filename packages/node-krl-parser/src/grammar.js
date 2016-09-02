@@ -216,7 +216,7 @@ var grammar = {
     {"name": "Ruleset$ebnf$3", "symbols": []},
     {"name": "Ruleset$ebnf$3$subexpression$1", "symbols": ["rule", "_"]},
     {"name": "Ruleset$ebnf$3", "symbols": ["Ruleset$ebnf$3$subexpression$1", "Ruleset$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "Ruleset", "symbols": ["Ruleset$string$1", "__", "RulesetName", "_", {"literal":"{"}, "_", "Ruleset$ebnf$1", "Ruleset$ebnf$2", "Ruleset$ebnf$3", "loc_close_curly"], "postprocess": 
+    {"name": "Ruleset", "symbols": ["Ruleset$string$1", "__", "RulesetID", "_", {"literal":"{"}, "_", "Ruleset$ebnf$1", "Ruleset$ebnf$2", "Ruleset$ebnf$3", "loc_close_curly"], "postprocess": 
         function(data, loc){
           return {
             loc: {start: loc, end: last(data)},
@@ -230,14 +230,14 @@ var grammar = {
           };
         }
         },
-    {"name": "RulesetName$ebnf$1", "symbols": []},
-    {"name": "RulesetName$ebnf$1", "symbols": [/[a-zA-Z0-9_.\-]/, "RulesetName$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "RulesetName", "symbols": [/[a-zA-Z]/, "RulesetName$ebnf$1"], "postprocess": 
+    {"name": "RulesetID$ebnf$1", "symbols": []},
+    {"name": "RulesetID$ebnf$1", "symbols": [/[a-zA-Z0-9_.\-]/, "RulesetID$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "RulesetID", "symbols": [/[a-zA-Z]/, "RulesetID$ebnf$1"], "postprocess": 
         function(data, start){
           var src = flatten(data).join('');
           return {
             loc: {start: start, end: start + src.length},
-            type: 'RulesetName',
+            type: 'RulesetID',
             value: src
           };
         }
@@ -272,7 +272,7 @@ var grammar = {
     {"name": "ruleset_meta_prop$ebnf$3$subexpression$1", "symbols": ["__", "ruleset_meta_prop$ebnf$3$subexpression$1$string$1", "__", "declaration_list"]},
     {"name": "ruleset_meta_prop$ebnf$3", "symbols": ["ruleset_meta_prop$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "ruleset_meta_prop$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$6", "__", "ruleset_meta_prop$string$7", "__", "RulesetName", "ruleset_meta_prop$ebnf$1", "ruleset_meta_prop$ebnf$2", "ruleset_meta_prop$ebnf$3"], "postprocess":  metaProp(function(data){return {
+    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$6", "__", "ruleset_meta_prop$string$7", "__", "RulesetID", "ruleset_meta_prop$ebnf$1", "ruleset_meta_prop$ebnf$2", "ruleset_meta_prop$ebnf$3"], "postprocess":  metaProp(function(data){return {
           kind: data[2],
           name: data[4],
           version: data[5] && data[5][3],
@@ -285,7 +285,7 @@ var grammar = {
     {"name": "ruleset_meta_prop$ebnf$4$subexpression$1", "symbols": ["__", "ruleset_meta_prop$ebnf$4$subexpression$1$string$1", "__", "String"]},
     {"name": "ruleset_meta_prop$ebnf$4", "symbols": ["ruleset_meta_prop$ebnf$4$subexpression$1"], "postprocess": id},
     {"name": "ruleset_meta_prop$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$8", "__", "ruleset_meta_prop$string$9", "__", "RulesetName", "ruleset_meta_prop$ebnf$4"], "postprocess":  metaProp(function(data){return {
+    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$8", "__", "ruleset_meta_prop$string$9", "__", "RulesetID", "ruleset_meta_prop$ebnf$4"], "postprocess":  metaProp(function(data){return {
           name: data[4],
           version: data[5] && data[5][3]
         }}, true) },
@@ -293,7 +293,7 @@ var grammar = {
           ids: d[2]
         }}, true) },
     {"name": "ruleset_meta_prop$string$10", "symbols": [{"literal":"t"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "ProvidesOperator", "__", "Identifier_list", "__", "ruleset_meta_prop$string$10", "__", "RulesetName_list"], "postprocess":  metaProp(function(d){return {
+    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "ProvidesOperator", "__", "Identifier_list", "__", "ruleset_meta_prop$string$10", "__", "RulesetID_list"], "postprocess":  metaProp(function(d){return {
           operator: d[2],
           ids: d[4],
           rulesets: d[8]
@@ -338,8 +338,8 @@ var grammar = {
         },
     {"name": "Identifier_list", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "Identifier_list", "symbols": ["Identifier_list", "_", {"literal":","}, "_", "Identifier"], "postprocess": concatArr(4)},
-    {"name": "RulesetName_list", "symbols": ["RulesetName"], "postprocess": idArr},
-    {"name": "RulesetName_list", "symbols": ["RulesetName_list", "_", {"literal":","}, "_", "RulesetName"], "postprocess": concatArr(4)},
+    {"name": "RulesetID_list", "symbols": ["RulesetID"], "postprocess": idArr},
+    {"name": "RulesetID_list", "symbols": ["RulesetID_list", "_", {"literal":","}, "_", "RulesetID"], "postprocess": concatArr(4)},
     {"name": "OnOrOff$string$1", "symbols": [{"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "OnOrOff", "symbols": ["OnOrOff$string$1"], "postprocess": booleanAST(true )},
     {"name": "OnOrOff$string$2", "symbols": [{"literal":"o"}, {"literal":"f"}, {"literal":"f"}], "postprocess": function joiner(d) {return d.join('');}},

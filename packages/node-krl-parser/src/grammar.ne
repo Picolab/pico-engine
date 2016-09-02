@@ -206,7 +206,7 @@ main -> _ Ruleset _ {% getN(1) %}
 # Ruleset
 #
 
-Ruleset -> "ruleset" __ RulesetName _ "{" _
+Ruleset -> "ruleset" __ RulesetID _ "{" _
   ("meta" _ ruleset_meta_block _):?
   ("global" _ declaration_block _):?
   (rule _):*
@@ -225,12 +225,12 @@ loc_close_curly {%
   }
 %}
 
-RulesetName -> [a-zA-Z] [a-zA-Z0-9_.\-]:* {%
+RulesetID -> [a-zA-Z] [a-zA-Z0-9_.\-]:* {%
   function(data, start){
     var src = flatten(data).join('');
     return {
       loc: {start: start, end: start + src.length},
-      type: 'RulesetName',
+      type: 'RulesetID',
       value: src
     };
   }
@@ -249,7 +249,7 @@ ruleset_meta_prop ->
     | "logging"     __ OnOrOff {% metaProp2part %}
     | "keys" __ Keyword __ (String | Map)
       {% metaProp(function(data){return [data[2], data[4][0]]}) %}
-    | "use" __ "module" __ RulesetName
+    | "use" __ "module" __ RulesetID
         (__ "version" __ String):?
         (__ "alias" __ Identifier):?
         (__ "with" __ declaration_list):?
@@ -260,7 +260,7 @@ ruleset_meta_prop ->
         alias:   data[6] && data[6][3],
         'with':  data[7] && data[7][3]
       }}, true) %}
-    | "errors" __ "to" __ RulesetName (__ "version" __ String):?
+    | "errors" __ "to" __ RulesetID (__ "version" __ String):?
       {% metaProp(function(data){return {
         name: data[4],
         version: data[5] && data[5][3]
@@ -269,7 +269,7 @@ ruleset_meta_prop ->
       {% metaProp(function(d){return {
         ids: d[2]
       }}, true) %}
-    | PROVIDEs __ ProvidesOperator __ Identifier_list __ "to" __ RulesetName_list
+    | PROVIDEs __ ProvidesOperator __ Identifier_list __ "to" __ RulesetID_list
       {% metaProp(function(d){return {
         operator: d[2],
         ids: d[4],
@@ -310,8 +310,8 @@ SHAREs -> ("shares" | "share") {%
 Identifier_list -> Identifier {% idArr %}
     | Identifier_list _ "," _ Identifier {% concatArr(4) %}
 
-RulesetName_list -> RulesetName {% idArr %}
-    | RulesetName_list _ "," _ RulesetName {% concatArr(4) %}
+RulesetID_list -> RulesetID {% idArr %}
+    | RulesetID_list _ "," _ RulesetID {% concatArr(4) %}
 
 OnOrOff -> "on"  {% booleanAST(true ) %}
          | "off" {% booleanAST(false) %}
