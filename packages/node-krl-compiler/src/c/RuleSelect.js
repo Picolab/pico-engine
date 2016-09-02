@@ -7,11 +7,13 @@ var wrapInOr = function(states){
   return ["or", _.head(states), wrapInOr(_.tail(states))];
 };
 
+var toLispArgs = function(ast, traverse){
+  return _.map(ast.args, traverse);
+};
+
 var event_ops = {
   "or": {
-    toLispArgs: function(ast, traverse){
-      return _.map(ast.args, traverse);
-    },
+    toLispArgs: toLispArgs,
     mkStateMachine: function(start, end, args, newState, evalEELisp){
       var a = evalEELisp(args[0], start, end);
       var b = evalEELisp(args[1], start, end);
@@ -48,9 +50,7 @@ var event_ops = {
     }
   },
   "and": {
-    toLispArgs: function(ast, traverse){
-      return _.map(ast.args, traverse);
-    },
+    toLispArgs: toLispArgs,
     mkStateMachine: function(start, end, args, newState){
       var a = args[0];
       var b = args[1];
