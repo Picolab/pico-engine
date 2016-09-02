@@ -15,12 +15,20 @@ var doPrelude = function(rule, ctx, callback){
 
 var doActions = function(rule, ctx, callback){
   var condition = _.get(rule, ["action_block", "condition"], noopTrue);
+  var block_type = _.get(rule, ["action_block", "block_type"], "every");
   applyInFiber(condition, null, [ctx], function(err, cond){
     if(err) return callback(err);
-    if(!cond){
+    var actions = _.get(rule, ["action_block", "actions"], []);
+    if(block_type === "choose"){
+      actions = _.filter(actions, function(action){
+        return action.label === cond;
+      });
+    }else if(!cond){
+      actions = [];
+    }
+    if(_.isEmpty(actions)){
       return callback();
     }
-    var actions = _.get(rule, ["action_block", "actions"], []);
     λ.map(actions, function(action, done){
       applyInFiber(action.action, null, [ctx], done);
     }, function(err, responses){

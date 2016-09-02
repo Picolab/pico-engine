@@ -230,6 +230,7 @@ test("PicoEngine - raw ruleset", function(t){
 test("PicoEngine - io.picolabs.events ruleset", function(t){
   var pe = mkTestPicoEngine();
 
+  var query = mkQueryTask(pe, "id1", "io.picolabs.events");
   var signal = mkSignalTask(pe, "id1");
 
   testOutputs(t, [
@@ -315,6 +316,26 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
     [
       signal("events", "on_fired", {}),
       [{name: "on_fired", options: {previous_name: "blah"}}]
+    ],
+    [
+      signal("events", "on_choose", {thing: "one"}),
+      [{name: "on_choose - one", options: {}}]
+    ],
+    [
+      query("getOnChooseFired"),
+      true
+    ],
+    [
+      signal("events", "on_choose", {thing: "two"}),
+      [{name: "on_choose - two", options: {}}]
+    ],
+    [
+      signal("events", "on_choose", {thing: "wat?"}),
+      []
+    ],
+    [
+      query("getOnChooseFired"),
+      false
     ]
   ], t.end);
 });
