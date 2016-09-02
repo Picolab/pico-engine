@@ -4,6 +4,9 @@ var path = require("path");
 var memdown = require("memdown");
 var PicoEngine = require("./");
 
+//since each engine instance attaches it's own listeners, and in testing we create lots of engines, but in production you only need 1
+require("krl-stdlib").emitter.setMaxListeners(100);
+
 var test_rulesets = {};
 var test_dir = path.resolve(__dirname, "../test-rulesets");
 _.each(fs.readdirSync(test_dir), function(file){

@@ -482,3 +482,28 @@ test("PicoEngine - io.picolabs.chevron ruleset", function(t){
     ]
   ], t.end);
 });
+
+test("PicoEngine - io.picolabs.execution-order ruleset", function(t){
+  var pe = mkTestPicoEngine();
+
+  var query = mkQueryTask(pe, "id1", "io.picolabs.execution-order");
+  var signal = mkSignalTask(pe, "id1");
+
+  testOutputs(t, [
+    λ.curry(pe.db.newPico, {}),
+    λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+    λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.execution-order"}),
+    [
+      query("getOrder"),
+      void 0
+    ],
+    [
+      signal("execution_order", "all"),
+      [{name: "first", options: {}}, {name: "second", options: {}}]
+    ],
+    [
+      query("getOrder"),
+      [null, "first-fired", "first-finally", "second-fired", "second-finally"]
+    ]
+  ], t.end);
+});
