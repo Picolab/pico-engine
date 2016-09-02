@@ -25,7 +25,7 @@ ruleset io.picolabs.hello {
 }
 {
   "type": "Ruleset",
-  "name": {
+  "rid": {
     "type": "RulesetID",
     "value": "io.picolabs.hello"
   },
@@ -47,7 +47,7 @@ Hello parser!
 }
 {
   "type": "Ruleset",
-  "name": {
+  "rid": {
     "type": "RulesetID",
     "value": "io.picolabs.hello"
   },

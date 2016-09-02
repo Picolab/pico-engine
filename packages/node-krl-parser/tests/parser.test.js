@@ -109,7 +109,7 @@ test('parser', function(t){
     type: 'Ruleset',
     loc: {start: 0, end: 14},
 
-    name: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
+    rid: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
     meta: [],
     global: [],
     rules: []
@@ -124,7 +124,7 @@ test('parser', function(t){
     type: 'Ruleset',
     loc: {start: 0, end: 27},
 
-    name: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
+    rid: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
     meta: [],
     global: [],
     rules: [
@@ -151,7 +151,7 @@ test('parser', function(t){
     type: 'Ruleset',
     loc: {start: 0, end: 40},
 
-    name: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
+    rid: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
     meta: [],
     global: [],
     rules: [
@@ -407,7 +407,7 @@ test('locations', function(t){
   t.deepEquals(parser(src), {
     type: 'Ruleset',
     loc: {start: 0, end: 32},
-    name: {
+    rid: {
       loc: {start: 8, end: 11},
       type: 'RulesetID',
       value: 'one'
@@ -1208,14 +1208,14 @@ test('Ruleset meta', function(t){
   ].join('\n'), [
     mk.meta('use', {
       kind: 'module',
-      name: {type: 'RulesetID', value: 'com.blah'},
+      rid: {type: 'RulesetID', value: 'com.blah'},
       version: null,
       alias:   null,
       'with':  null
     }),
     mk.meta('use', {
       kind: 'module',
-      name: {type: 'RulesetID', value: 'com.blah'},
+      rid: {type: 'RulesetID', value: 'com.blah'},
       version: mk('2'),
       alias: mk.id('blah'),
       'with': [
@@ -1230,11 +1230,11 @@ test('Ruleset meta', function(t){
     'errors to com.blah version "2"'
   ].join('\n'), [
     mk.meta('errors', {
-      name: {type: 'RulesetID', value: 'com.blah'},
+      rid: {type: 'RulesetID', value: 'com.blah'},
       version: null
     }),
     mk.meta('errors', {
-      name: {type: 'RulesetID', value: 'com.blah'},
+      rid: {type: 'RulesetID', value: 'com.blah'},
       version: mk('2')
     })
   ]);
