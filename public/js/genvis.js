@@ -113,7 +113,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
   }
   var displayKrl = function() {
-    window.open("/ruleset.html?"+$(this).html(),"ruleset");
+    window.open("/ruleset.html#"+$(this).html(),"ruleset");
   }
   var renderTab =
     function(){

@@ -1,5 +1,5 @@
 $(document).ready(function() {
-  var rid = location.search.substring(1);
+  var rid = location.hash.substring(1);
   var get = // adapted from lodash.get, with thanks
     function(o,p,v) {
       var i=0, l=p.length;
@@ -16,30 +16,39 @@ $(document).ready(function() {
   };
 $.getJSON("/api/db-dump", function(db_dump){
   var krlSrcInvite = "//click on a ruleset name to see its source here";
+  var srcFromEnabled = function(rid) {
+    var rs_info = get(db_dump.rulesets,["enabled",rid],undefined);
+    if (rs_info) {
+      return get(db_dump.rulesets,["krl",rs_info.hash,"src"],undefined);
+    } else {
+      return undefined;
+    }
+  }
+  var srcFromVersions = function(rid,ifnone) {
+    var hashobj;
+    for (var vds in db_dump.rulesets.versions[rid]) {
+      hashobj = db_dump.rulesets.versions[rid][vds];
+    }
+    if (hashobj) {
+      for(var hash in hashobj)
+      {
+        return db_dump.rulesets.krl[hash].src;
+      }
+    }
+    return ifnone;
+  }
   var displayKrl = function() {
     $(this).siblings(".krl-showing").toggleClass("krl-showing");
-    var src = "N/A";
     if($(this).hasClass("krl-showing")) {
       src = krlSrcInvite;
     } else {
       var rid = $(this).html();
-      var rs_info = db_dump.rulesets.enabled[rid];
-      if (rs_info) {
+      src = srcFromEnabled(rid);
+      if (src) {
         $(this).removeClass("disabled");
-        src = db_dump.rulesets.krl[rs_info.hash].src;
       } else {
         $(this).addClass("disabled");
-        var hashobj;
-        for (var vds in db_dump.rulesets.versions[rid]) {
-          hashobj = db_dump.rulesets.versions[rid][vds];
-        }
-        if (hashobj) {
-          for(var hash in hashobj)
-          {
-            src = db_dump.rulesets.krl[hash].src;
-            break;
-          }
-        }
+        src = srcFromVersions(rid,"N/A");
       }
     }
     $(this).parent().parent().parent().find(".krlsrc textarea").html(src);
