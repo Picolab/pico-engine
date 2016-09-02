@@ -201,7 +201,7 @@ var comp_by_type = {
       rules_obj[rule.name.value] = comp(rule);
     });
     var rs = {
-      name: comp(ast.name),
+      rid: comp(ast.rid),
       meta: e("obj-raw", comp(ast.meta))
     };
     if(!_.isEmpty(ast.global)){

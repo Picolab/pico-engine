@@ -1,5 +1,5 @@
 module.exports = {
-  "name": "io.picolabs.persistent",
+  "rid": "io.picolabs.persistent",
   "meta": {
     "shares": [
       "getName",

@@ -1,5 +1,5 @@
 module.exports = {
-  "name": "io.picolabs.scope",
+  "rid": "io.picolabs.scope",
   "meta": {
     "name": "testing scope",
     "shares": [
