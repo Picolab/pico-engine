@@ -51,7 +51,7 @@ $.getJSON("/api/db-dump", function(db_dump){
         src = srcFromVersions(rid,"N/A");
       }
     }
-    $(this).parent().parent().parent().find(".krlsrc textarea").html(src);
+    $(".krlsrc textarea").html(src);
     $(this).toggleClass("krl-showing");
     $("pre#feedback").html("");
   }
@@ -76,6 +76,11 @@ $.getJSON("/api/db-dump", function(db_dump){
   rs_graph.descr = "These are the rulesets hosted by this KRE.";
   renderGraph(rs_graph);
   renderContent();
+  $("form.ruleset-new").submit(function(e){
+    e.preventDefault();
+    var rid = this.rid.value;
+    $(".krlsrc textarea").html("ruleset "+rid+" {\n}");
+  });
   $("div.krlsrc form button").click(function(){
     $(this).siblings(".clicked").toggleClass("clicked")
     $(this).toggleClass("clicked");
