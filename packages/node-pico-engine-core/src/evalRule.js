@@ -42,7 +42,7 @@ var evalRuleFiber = function(rule, ctx){
       name: response.name,
       meta: {
         rid: rule.rid,
-        rule_name: rule.rule_name,
+        rule_name: rule.name,
         txn_id: "TODO",//TODO transactions
         eid: ctx.event.eid
       }

@@ -33,13 +33,12 @@ var doInstallRuleset = function(rs){
       scope: rs.scope
     }));
   }
-  _.each(rs.rules, function(rule, rule_name){
+  _.each(rs.rules, function(rule){
     rule.rid = rs.rid;
-    rule.rule_name = rule_name;
 
     _.each(rule.select && rule.select.graph, function(g, domain){
       _.each(g, function(exprs, type){
-        _.set(salience_graph, [domain, type, rule.rid, rule.rule_name], true);
+        _.set(salience_graph, [domain, type, rule.rid, rule.name], true);
       });
     });
   });
@@ -172,7 +171,7 @@ module.exports = function(conf){
 
             var rule_debug_info = _.assign({}, debug_info, {
               rid: rule.rid,
-              rule_name: rule.rule_name
+              rule_name: rule.name
             });
 
             var ctx = _.assign({}, ctx_orig, {

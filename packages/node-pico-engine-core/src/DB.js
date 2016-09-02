@@ -122,7 +122,7 @@ module.exports = function(opts){
       });
     },
     getStateMachineState: function(pico_id, rule, callback){
-      var key = ["state_machine", pico_id, rule.rid, rule.rule_name];
+      var key = ["state_machine", pico_id, rule.rid, rule.name];
       ldb.get(key, function(err, curr_state){
         if(err){
           if(err.notFound){
@@ -137,7 +137,7 @@ module.exports = function(opts){
       });
     },
     putStateMachineState: function(pico_id, rule, state, callback){
-      var key = ["state_machine", pico_id, rule.rid, rule.rule_name];
+      var key = ["state_machine", pico_id, rule.rid, rule.name];
       ldb.put(key, state || "start", callback);
     },
     registerRuleset: function(krl_src, callback){
