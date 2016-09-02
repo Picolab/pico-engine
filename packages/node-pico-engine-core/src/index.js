@@ -168,30 +168,32 @@ module.exports = function(conf){
       selectRulesToEval(ctx_orig, salience_graph, rulesets, function(err, to_eval){
         if(err) return callback(err);
 
-        λ.map(to_eval, function(rule, callback){
+        λ.map(_.groupBy(to_eval, "rid"), function(rules_by_rid, callback){
+          λ.map.series(rules_by_rid, function(rule, callback){
 
-          var rule_debug_info = _.assign({}, debug_info, {
-            rid: rule.rid,
-            rule_name: rule.rule_name
-          });
+            var rule_debug_info = _.assign({}, debug_info, {
+              rid: rule.rid,
+              rule_name: rule.rule_name
+            });
 
-          var ctx = _.assign({}, ctx_orig, {
-            rid: rule.rid,
-            rule: rule,
-            persistent: mkPersistent(pico.id, rule.rid),
-            scope: rule.scope,
-            emitDebug: function(msg){
-              emitter.emit("debug", "event", rule_debug_info, msg);
-            }
-          });
+            var ctx = _.assign({}, ctx_orig, {
+              rid: rule.rid,
+              rule: rule,
+              persistent: mkPersistent(pico.id, rule.rid),
+              scope: rule.scope,
+              emitDebug: function(msg){
+                emitter.emit("debug", "event", rule_debug_info, msg);
+              }
+            });
 
-          ctx.emitDebug("rule selected");
+            ctx.emitDebug("rule selected");
 
-          evalRule(rule, ctx, callback);
+            evalRule(rule, ctx, callback);
+          }, callback);
         }, function(err, responses){
           if(err) return callback(err);
 
-          var res_by_type = _.groupBy(_.flattenDeep(responses), "type");
+          var res_by_type = _.groupBy(_.flattenDeep(_.values(responses)), "type");
 
           //TODO other types
           callback(undefined, {
