@@ -13,7 +13,7 @@
   "scripts": {
     "start": "onchange -i src/ tests.js test-rulesets/ -- npm test -s",
     "lint": "eslint src/ tests.js && echo lint-ok",
-    "test": "npm run lint -s && node tests.js"
+    "test": "npm run lint -s && node tests.js | tap-min"
   },
   "repository": {
     "type": "git",
@@ -35,6 +35,7 @@
     "diff-lines": "^1.1.0",
     "eslint": "^3.3.1",
     "onchange": "^2.5.0",
+    "tap-min": "^1.1.0",
     "tape": "^4.6.0"
   },
   "dependencies": {
