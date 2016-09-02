@@ -1,6 +1,11 @@
 module.exports = {
   "name": "io.picolabs.events",
-  "meta": {},
+  "meta": { "shares": ["getOnChooseFired"] },
+  "global": function (ctx) {
+    ctx.scope.set("getOnChooseFired", ctx.krl.Closure(ctx, function (ctx) {
+      return ctx.persistent.getEnt("on_choose_fired");
+    }));
+  },
   "rules": {
     "set_attr": {
       "name": "set_attr",

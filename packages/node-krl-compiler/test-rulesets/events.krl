@@ -1,4 +1,12 @@
 ruleset io.picolabs.events {
+  meta {
+    shares getOnChooseFired
+  }
+  global {
+    getOnChooseFired = function(){
+      ent:on_choose_fired
+    }
+  }
   rule set_attr {
     select when events bind name re#^(.*)$# setting(my_name);
     send_directive("bound") with
