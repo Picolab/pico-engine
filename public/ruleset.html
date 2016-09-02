@@ -12,28 +12,26 @@
 <script id="the-template" type="text/x-handlebars-template">
 <a class="logo" href="https://picolabs.io"><img src="logo.png" alt="logo"></a>
 <h1 class="title">{{title}}</h1>
-<div id="container" style="position:relative">
+<div id="container">
 <p class="description">
 {{descr}}
 </p>
-<div id="rulesets"></div>
-</script>
-<script id="rulesets-template" type="text/x-handlebars-template">
-<div id="ruleset-list" style="float:left;max-width:40%">
+<div id="ruleset-list">
 Registered Rulesets
 <ul>
-{{#each versions}}
-<li class="krlrid">{{@key}}</li>
+{{#each rulesets}}
+<li class="krlrid{{#unless enabled}} disabled{{/unless}}">{{@key}}</li>
 {{/each}}
 </ul>
 <hr>
 <form class="ruleset-new">
 <input type="text" name="rid" placeholder="ruleset id">
-<button type="submit">add</button>
+<button type="submit">add ruleset</button>
 </form>
 </div>
 <div class="krlsrc">
 <form class="ruleset-compile" method="GET">
+<input type="hidden" name="rid">
 <textarea class="lined" name="src"></textarea>
 <button id="btn-compile" type="submit">compile ruleset</button>
 <button id="btn-register" type="submit">register ruleset</button>

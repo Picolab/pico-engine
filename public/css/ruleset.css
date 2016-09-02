@@ -23,6 +23,7 @@ a.logo {
   cursor: pointer;
 }
 #ruleset-list {
+  float: left;
   height: 90%;
   background-color: white;
   padding: 20px;

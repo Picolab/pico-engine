@@ -6,7 +6,6 @@ $(document).ready(function() {
       while(o && i<l) { o = o[p[i++]]; }
       return o ? o : v;
     }
-  var mpl = Handlebars.compile($('#the-template').html());
   var formToJSON = function(form){
     var json = {};
     $.each($(form).serializeArray(), function(key, elm){
@@ -15,7 +14,6 @@ $(document).ready(function() {
     return json;
   };
 $.getJSON("/api/db-dump", function(db_dump){
-  var krlSrcInvite = "//click on a ruleset name to see its source here";
   var srcFromEnabled = function(rid) {
     var rs_info = get(db_dump.rulesets,["enabled",rid],undefined);
     if (rs_info) {
@@ -37,6 +35,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
     return ifnone;
   }
+  var krlSrcInvite = "//click on a ruleset name to see its source here";
   var displayKrl = function() {
     $(this).siblings(".krl-showing").toggleClass("krl-showing");
     if($(this).hasClass("krl-showing")) {
@@ -56,29 +55,33 @@ $.getJSON("/api/db-dump", function(db_dump){
     $("pre#feedback").html("");
   }
   var renderContent =
-    function(){
-      var contentTemplate = Handlebars.compile($('#rulesets-template').html());
-      $('#rulesets').html(contentTemplate(db_dump.rulesets));
+    function(data){
+      var mpl = Handlebars.compile($('#the-template').html());
+      $('body').html(mpl(data));
+      document.title = $('body h1').html();
       $(".krlrid").click(displayKrl);
+      $(".krlsrc input").val(rid);
       $(".krlsrc textarea").html(krlSrcInvite);
       $(".lined").linedtextarea();
       if(rid){
         $(".krlrid:contains('"+rid+"')").trigger("click");
       }
     };
-  var renderGraph =
-     function(data){
-       $('body').html(mpl(data));
-       document.title = $('body h1').html();
-     };
-  var rs_graph = {};
-  rs_graph.title = "Engine Rulesets";
-  rs_graph.descr = "These are the rulesets hosted by this KRE.";
-  renderGraph(rs_graph);
-  renderContent();
+  var rs_data = {};
+  rs_data.title = "Engine Rulesets";
+  rs_data.descr = "These are the rulesets hosted by this KRE.";
+  rs_data.rulesets = {};
+  for(var aRid in db_dump.rulesets.versions) {
+    rs_data.rulesets[aRid] = {};
+    if (get(db_dump.rulesets,["enabled",aRid],undefined)) {
+      rs_data.rulesets[aRid].enabled = true;
+    }
+  }
+  renderContent(rs_data);
   $("form.ruleset-new").submit(function(e){
     e.preventDefault();
     var rid = this.rid.value;
+    $(".krlsrc input").val(rid);
     $(".krlsrc textarea").html("ruleset "+rid+" {\n}");
   });
   $("div.krlsrc form button").click(function(){
