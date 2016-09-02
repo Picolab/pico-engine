@@ -30,6 +30,8 @@ var evalRuleFiber = function(rule, ctx){
 
   //TODO handle more than one response type
   var responses = _.compact(_.map(actions, function(action){
+    //TODO collect errors and respond individually to the client
+    //TODO try{}catch(e){}
     var response = action.action(ctx);
     if((response === void 0) || (response === null)){
       return;//noop
@@ -64,6 +66,5 @@ var evalRuleFiber = function(rule, ctx){
 };
 
 module.exports = function(rule, ctx, callback){
-  //TODO collect errors and respond individually to the client
   applyInFiber(evalRuleFiber, null, [rule, ctx], callback);
 };
