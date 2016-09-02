@@ -344,7 +344,11 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
     [
       signal("events", "select_where", {something: "ok wat?"}),
       []
-    ]
+    ],
+    [signal("events", "no_action", {fired: "no"}), []],
+    [query("getNoActionFired"), void 0],
+    [signal("events", "no_action", {fired: "yes"}), []],
+    [query("getNoActionFired"), true]//fired even though no actions
   ], t.end);
 });
 

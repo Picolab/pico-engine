@@ -23,11 +23,14 @@ var doActions = function(rule, ctx, callback){
       actions = _.filter(actions, function(action){
         return action.label === cond;
       });
+      if(_.isEmpty(actions)){
+        return callback();//not fired b/c nothing matched
+      }
     }else if(!cond){
-      actions = [];
+      return callback();//not fired
     }
     if(_.isEmpty(actions)){
-      return callback();
+      return callback(void 0, void 0, true);//this did fire, even though there are no actions
     }
     λ.map(actions, function(action, done){
       applyInFiber(action.action, null, [ctx], done);
