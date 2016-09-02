@@ -263,12 +263,14 @@ var comp_by_type = {
   "EventExpression": require("./c/EventExpression"),
   "RuleActionBlock": function(ast, comp, e){
     var block = {};
+    if(_.isString(ast.block_type) && ast.block_type !== "every"){
+      block.block_type = e("string", ast.block_type);
+    }
     if(ast.condition){
       block.condition = e("fn", ["ctx"], [
         e("return", comp(ast.condition))
       ]);
     }
-    //TODO "block_type": "choose",
     block.actions = e("arr", _.map(ast.actions, function(action){
       return comp(action);
     }));
@@ -293,7 +295,12 @@ var comp_by_type = {
     }else{
       throw new Error("Unsuported RuleAction.action");
     }
-    return e("fn", ["ctx"], fn_body);
+    var obj = {};
+    if(ast.label && ast.label.type === "Identifier"){
+      obj.label = e("str", ast.label.value, ast.label.loc);
+    }
+    obj.action = e("fn", ["ctx"], fn_body);
+    return e("obj", obj);
   },
   "RulePostlude": require("./c/RulePostlude")
 };

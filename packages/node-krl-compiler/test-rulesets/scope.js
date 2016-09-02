@@ -82,12 +82,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "say",
-              "options": { "name": ctx.scope.get("my_name") }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "say",
+                "options": { "name": ctx.scope.get("my_name") }
+              };
+            }
           }]
       }
     },
@@ -128,17 +130,19 @@ module.exports = {
         ctx.scope.set("p1", "prelude 1");
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "say",
-              "options": {
-                "name": ctx.scope.get("name"),
-                "p0": ctx.scope.get("p0"),
-                "p1": ctx.scope.get("p1"),
-                "g0": ctx.scope.get("g0")
-              }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "say",
+                "options": {
+                  "name": ctx.scope.get("name"),
+                  "p0": ctx.scope.get("p0"),
+                  "p1": ctx.scope.get("p1"),
+                  "g0": ctx.scope.get("g0")
+                }
+              };
+            }
           }]
       },
       "postlude": {
@@ -181,19 +185,21 @@ module.exports = {
         ctx.scope.set("inc5", ctx.scope.get("incByN")(ctx, [5]));
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "say",
-              "options": {
-                "add_one_two": ctx.scope.get("add")(ctx, [
-                  1,
-                  2
-                ]),
-                "inc5_3": ctx.scope.get("inc5")(ctx, [3]),
-                "g0": ctx.scope.get("g0")
-              }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "say",
+                "options": {
+                  "add_one_two": ctx.scope.get("add")(ctx, [
+                    1,
+                    2
+                  ]),
+                  "inc5_3": ctx.scope.get("inc5")(ctx, [3]),
+                  "g0": ctx.scope.get("g0")
+                }
+              };
+            }
           }]
       }
     }

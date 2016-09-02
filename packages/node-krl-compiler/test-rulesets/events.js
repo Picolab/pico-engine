@@ -40,12 +40,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "bound",
-              "options": { "name": ctx.scope.get("my_name") }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "bound",
+                "options": { "name": ctx.scope.get("my_name") }
+              };
+            }
           }]
       }
     },
@@ -78,12 +80,14 @@ module.exports = {
         ctx.scope.set("thing", ctx.event.getAttr("thing"));
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "get",
-              "options": { "thing": ctx.scope.get("thing") }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "get",
+                "options": { "thing": ctx.scope.get("thing") }
+              };
+            }
           }]
       }
     },
@@ -139,8 +143,10 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return void 0;
+        "actions": [{
+            "action": function (ctx) {
+              return void 0;
+            }
           }]
       }
     },
@@ -186,12 +192,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "or",
-              "options": {}
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "or",
+                "options": {}
+              };
+            }
           }]
       }
     },
@@ -263,12 +271,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "and",
-              "options": {}
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "and",
+                "options": {}
+              };
+            }
           }]
       }
     },
@@ -352,12 +362,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "(a and b) or c",
-              "options": {}
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "(a and b) or c",
+                "options": {}
+              };
+            }
           }]
       }
     },
@@ -449,12 +461,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "a and (b or c)",
-              "options": {}
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "a and (b or c)",
+                "options": {}
+              };
+            }
           }]
       }
     },
@@ -494,12 +508,14 @@ module.exports = {
         "condition": function (ctx) {
           return ctx.scope.get("my_name");
         },
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "ifthen",
-              "options": {}
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "ifthen",
+                "options": {}
+              };
+            }
           }]
       }
     },
@@ -536,12 +552,14 @@ module.exports = {
         }
       },
       "action_block": {
-        "actions": [function (ctx) {
-            return {
-              "type": "directive",
-              "name": "on_fired",
-              "options": { "previous_name": ctx.persistent.getEnt("on_fired_prev_name") }
-            };
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "on_fired",
+                "options": { "previous_name": ctx.persistent.getEnt("on_fired_prev_name") }
+              };
+            }
           }]
       },
       "postlude": {
@@ -585,23 +603,30 @@ module.exports = {
         }
       },
       "action_block": {
+        "block_type": "choose",
         "condition": function (ctx) {
           return ctx.scope.get("thing");
         },
         "actions": [
-          function (ctx) {
-            return {
-              "type": "directive",
-              "name": "on_choose - one",
-              "options": {}
-            };
+          {
+            "label": "one",
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "on_choose - one",
+                "options": {}
+              };
+            }
           },
-          function (ctx) {
-            return {
-              "type": "directive",
-              "name": "on_choose - two",
-              "options": {}
-            };
+          {
+            "label": "two",
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "on_choose - two",
+                "options": {}
+              };
+            }
           }
         ]
       },
