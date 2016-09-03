@@ -1,6 +1,16 @@
 module.exports = {
   "rid": "io.picolabs.module-used",
-  "meta": { "use": undefined },
+  "meta": {
+    "use": [
+      {
+        "kind": "module",
+        "rid": "io.picolabs.module-defined",
+        "alias": "hello"
+        //TODO or should this be a function that runs and imports the module
+        //TODO and adds something to the scope?
+      }
+    ]
+  },
   "rules": {
     "say_hello": {
       "name": "say_hello",

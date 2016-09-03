@@ -200,9 +200,13 @@ var comp_by_type = {
     _.each(ast.rules, function(rule){
       rules_obj[rule.name.value] = comp(rule);
     });
+    var meta = {};
+    _.each(comp(ast.meta), function(pair){
+      meta[pair[0]] = pair[1];
+    });
     var rs = {
       rid: comp(ast.rid),
-      meta: e("obj-raw", comp(ast.meta))
+      meta: e("obj", meta)
     };
     if(!_.isEmpty(ast.global)){
       _.each(ast.global, function(g){
@@ -232,6 +236,14 @@ var comp_by_type = {
       val = e("arr", _.map(ast.value.ids, function(id){
         return e("str", id.value, id.loc);
       }));
+    }else if(key === "use"){
+      if(ast.value.kind === "module"){
+        //TODO array of deps
+        console.log(ast.value.rid);
+        console.log(ast.value.version);
+        console.log(ast.value.alias);
+        console.log(ast.value["with"]);
+      }
     }else if(ast.value.type === "String"){
       val = e("string", ast.value.value, ast.value.loc);
     }else if(ast.value.type === "Chevron"){
@@ -239,7 +251,7 @@ var comp_by_type = {
     }else if(ast.value.type === "Boolean"){
       val = e(ast.value.value ? "true" : "false", ast.value.loc);
     }
-    return e("obj-prop", e("str", key, ast.key.loc), val);
+    return [key, val];
   },
   "Rule": function(ast, comp, e){
     var rule = {
