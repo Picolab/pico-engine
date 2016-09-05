@@ -61,19 +61,29 @@ module.exports = function(conf){
     emitter.emit("debug", "stdlib", scope, message);
   });
 
-  var mkPersistent = function(pico_id, rid){
+  var mkModules = function(ctx){
     return {
-      getEnt: function(key){
-        return db.getEntVarFuture(pico_id, rid, key).wait();
+      get: function(domain, id){
+        if(domain === "ent"){
+          return db.getEntVarFuture(ctx.pico.id, ctx.rid, id).wait();
+        }else if(domain === "app"){
+          return db.getAppVarFuture(ctx.rid, id).wait();
+        }else if(domain === "event"){
+          return function(ctx2, args){
+            return ctx2.event.getAttr(args[0]);
+          };
+        }
+        throw new Error("Module Domain not defined: " + domain);
       },
-      putEnt: function(key, value){
-        db.putEntVarFuture(pico_id, rid, key, value).wait();
-      },
-      getApp: function(key, value){
-        return db.getAppVarFuture(rid, key).wait();
-      },
-      putApp: function(key, value){
-        db.putAppVarFuture(rid, key, value).wait();
+      set: function(domain, id, value){
+        if(domain === "ent"){
+          db.putEntVarFuture(ctx.pico.id, ctx.rid, id, value).wait();
+          return;
+        }else if(domain === "app"){
+          db.putAppVarFuture(ctx.rid, id, value).wait();
+          return;
+        }
+        throw new Error("Module Domain not defined: " + domain);
       }
     };
   };
@@ -177,12 +187,12 @@ module.exports = function(conf){
             var ctx = _.assign({}, ctx_orig, {
               rid: rule.rid,
               rule: rule,
-              persistent: mkPersistent(pico.id, rule.rid),
               scope: rule.scope,
               emitDebug: function(msg){
                 emitter.emit("debug", "event", rule_debug_info, msg);
               }
             });
+            ctx.modules = mkModules(ctx);
 
             ctx.emitDebug("rule selected");
 
@@ -266,9 +276,10 @@ module.exports = function(conf){
           rid: rs.rid,
           pico: pico,
           engine: engine,
-          persistent: mkPersistent(pico.id, rs.rid),
           scope: rs.scope
         });
+        ctx.modules = mkModules(ctx);
+
         var val = ctx.scope.get(query.name);
         if(_.isFunction(val)){
           applyInFiber(val, null, [ctx, query.args], function(err, resp){

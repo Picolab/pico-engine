@@ -3,7 +3,7 @@ module.exports = {
   "meta": { "shares": ["getOrder"] },
   "global": function (ctx) {
     ctx.scope.set("getOrder", ctx.krl.Closure(ctx, function (ctx) {
-      return ctx.persistent.getEnt("order");
+      return ctx.modules.get("ent", "order");
     }));
   },
   "rules": {
@@ -45,11 +45,11 @@ module.exports = {
       },
       "postlude": {
         "fired": function (ctx) {
-          ctx.persistent.putEnt("order", ctx.krl.stdlib["append"](ctx.persistent.getEnt("order"), "first-fired"));
+          ctx.modules.set("ent", "order", ctx.krl.stdlib["append"](ctx.modules.get("ent", "order"), "first-fired"));
         },
         "notfired": undefined,
         "always": function (ctx) {
-          ctx.persistent.putEnt("order", ctx.krl.stdlib["append"](ctx.persistent.getEnt("order"), "first-finally"));
+          ctx.modules.set("ent", "order", ctx.krl.stdlib["append"](ctx.modules.get("ent", "order"), "first-finally"));
         }
       }
     },
@@ -91,11 +91,11 @@ module.exports = {
       },
       "postlude": {
         "fired": function (ctx) {
-          ctx.persistent.putEnt("order", ctx.krl.stdlib["append"](ctx.persistent.getEnt("order"), "second-fired"));
+          ctx.modules.set("ent", "order", ctx.krl.stdlib["append"](ctx.modules.get("ent", "order"), "second-fired"));
         },
         "notfired": undefined,
         "always": function (ctx) {
-          ctx.persistent.putEnt("order", ctx.krl.stdlib["append"](ctx.persistent.getEnt("order"), "second-finally"));
+          ctx.modules.set("ent", "order", ctx.krl.stdlib["append"](ctx.modules.get("ent", "order"), "second-finally"));
         }
       }
     }
