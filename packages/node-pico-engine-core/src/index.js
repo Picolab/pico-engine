@@ -139,6 +139,7 @@ module.exports = function(conf){
       var ctx_orig = mkCTX({
         pico: pico,
         db: db,
+        engine: engine,
         modules: modules,
         event: event
       });
@@ -183,28 +184,10 @@ module.exports = function(conf){
     });
   };
 
-  /*
-  TODO move to modules/engine.js
-  var future_wraps = Future.wrap({
+  var engine = Future.wrap({
     installRID: installRID,
     signalEvent: signalEvent
   });
-  //This is the built in KRL module `engine`
-  var engine = {
-    removePico: function(id) {
-      return db.removePicoFuture(id).wait();
-    },
-    addRuleset: function(opts){
-      return db.addRulesetFuture(opts).wait();
-    },
-    installRID: function(rid){
-      return future_wraps.installRIDFuture(rid).wait();
-    },
-    signalEvent: function(event){
-      return future_wraps.signalEventFuture(event).wait();
-    }
-  };
-  */
 
   return {
     db: db,
@@ -241,6 +224,7 @@ module.exports = function(conf){
           db: db,
           rid: rs.rid,
           pico: pico,
+          engine: engine,
           modules: modules,
           scope: rs.scope
         });
