@@ -6,6 +6,7 @@ var krl = {
   Closure: require("./KRLClosure")
 };
 var Future = require("fibers/future");
+var modules = require("./modules");
 var evalRule = require("./evalRule");
 var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
@@ -48,32 +49,6 @@ var doInstallRuleset = function(rs){
 var installRuleset = function(rs, callback){
   applyInFiber(doInstallRuleset, null, [rs], callback);
 };
-
-var modules = {
-  get: function(ctx, domain, id){
-    if(domain === "ent"){
-      return ctx.db.getEntVarFuture(ctx.pico.id, ctx.rid, id).wait();
-    }else if(domain === "app"){
-      return ctx.db.getAppVarFuture(ctx.rid, id).wait();
-    }else if(domain === "event"){
-      return function(ctx2, args){
-        return ctx2.event.getAttr(args[0]);
-      };
-    }
-    throw new Error("Module Domain not defined: " + domain);
-  },
-  set: function(ctx, domain, id, value){
-    if(domain === "ent"){
-      ctx.db.putEntVarFuture(ctx.pico.id, ctx.rid, id, value).wait();
-      return;
-    }else if(domain === "app"){
-      ctx.db.putAppVarFuture(ctx.rid, id, value).wait();
-      return;
-    }
-    throw new Error("Module Domain not defined: " + domain);
-  }
-};
-
 
 module.exports = function(conf){
   var db = Future.wrap(DB(conf.db));
