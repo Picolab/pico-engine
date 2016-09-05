@@ -1,20 +1,10 @@
 var _ = require("lodash");
 var getArg = require("../getArg");
+var engine = require("./engine");
 
 var eventGetAttr = function(ctx, args){
   var name = getArg(args, "name", 0);
   return ctx.event.getAttr(name);
-};
-
-var engine = {
-  newPico: function(ctx, args){
-    var opts = getArg(args, "opts", 0);
-    return ctx.db.newPicoFuture(opts).wait();
-  },
-  newChannel: function(ctx, args){
-    var opts = getArg(args, "opts", 0);
-    return ctx.db.newChannelFuture(opts).wait();
-  }
 };
 
 module.exports = {
