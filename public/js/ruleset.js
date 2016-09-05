@@ -71,10 +71,12 @@ $.getJSON("/api/db-dump", function(db_dump){
   rs_data.title = "Engine Rulesets";
   rs_data.descr = "These are the rulesets hosted by this KRE.";
   rs_data.rulesets = {};
-  for(var aRid in db_dump.rulesets.versions) {
-    rs_data.rulesets[aRid] = {};
-    if (get(db_dump.rulesets,["enabled",aRid],undefined)) {
-      rs_data.rulesets[aRid].enabled = true;
+  if (db_dump.rulesets && db_dump.rulesets.versions) {
+    for(var aRid in db_dump.rulesets.versions) {
+      rs_data.rulesets[aRid] = {};
+      if (get(db_dump.rulesets,["enabled",aRid],undefined)) {
+        rs_data.rulesets[aRid].enabled = true;
+      }
     }
   }
   renderContent(rs_data);
