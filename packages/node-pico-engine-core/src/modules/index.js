@@ -1,5 +1,18 @@
+var _ = require("lodash");
+
 var eventGetAttr = function(ctx, args){
-  return ctx.event.getAttr(args[0]);
+  return ctx.event.getAttr(_.first(args));
+};
+
+var engine = {
+  newPico: function(ctx, args){
+    var opts = _.first(args);//TODO use getArg
+    return ctx.db.newPicoFuture(opts).wait();
+  },
+  newChannel: function(ctx, args){
+    var opts = _.first(args);//TODO use getArg
+    return ctx.db.newChannelFuture(opts).wait();
+  }
 };
 
 module.exports = {
@@ -11,6 +24,10 @@ module.exports = {
     }else if(domain === "event"){
       if(id === "attr"){
         return eventGetAttr;
+      }
+    }else if(domain === "engine"){
+      if(_.has(engine, id)){
+        return engine[id];
       }
     }
     throw new Error("Not defined `" + domain + ":" + id + "`");
@@ -24,6 +41,8 @@ module.exports = {
       return;
     }else if(domain === "event"){
       throw new Error("Cannot assign to `event:*`");
+    }else if(domain === "engine"){
+      throw new Error("Cannot assign to `engine:*`");
     }
     throw new Error("Not defined `" + domain + ":" + id + "`");
   }

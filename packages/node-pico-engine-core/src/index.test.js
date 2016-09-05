@@ -507,3 +507,40 @@ test("PicoEngine - io.picolabs.execution-order ruleset", function(t){
     ]
   ], t.end);
 });
+
+test("PicoEngine - io.picolabs.engine ruleset", function(t){
+  var pe = mkTestPicoEngine();
+
+  var signal = mkSignalTask(pe, "id1");
+
+  testOutputs(t, [
+    λ.curry(pe.db.newPico, {}),
+    λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+    λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.engine"}),
+    [signal("engine", "newPico"), []],
+    [
+      signal("engine", "newChannel", {
+        pico_id: "id2",
+        name: "krl created chan",
+        type: "some type?"
+      }),
+      []
+    ],
+    function(done){
+      pe.db.toObj(function(err, data){
+        if(err)return done(err);
+        t.deepEquals(data.pico.id2, {
+          id: "id2",
+          channel: {
+            id3: {
+              id: "id3",
+              name: "krl created chan",
+              type: "some type?"
+            }
+          }
+        });
+        done();
+      });
+    }
+  ], t.end);
+});
