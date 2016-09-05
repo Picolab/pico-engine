@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.module-used",
   "meta": {
     "use": [function (ctx) {
-        ctx.modules.use("my_module", "io.picolabs.module-defined");
+        ctx.modules.use(ctx, "my_module", "io.picolabs.module-defined");
       }]
   },
   "rules": {
@@ -39,7 +39,7 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "say_hello",
-                "options": { "something": ctx.modules.get("my_module", "hello")(ctx, [ctx.scope.get("name")]) }
+                "options": { "something": ctx.modules.get(ctx, "my_module", "hello")(ctx, [ctx.scope.get("name")]) }
               };
             }
           }]

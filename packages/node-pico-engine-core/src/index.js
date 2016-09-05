@@ -49,6 +49,32 @@ var installRuleset = function(rs, callback){
   applyInFiber(doInstallRuleset, null, [rs], callback);
 };
 
+var modules = {
+  get: function(ctx, domain, id){
+    if(domain === "ent"){
+      return ctx.db.getEntVarFuture(ctx.pico.id, ctx.rid, id).wait();
+    }else if(domain === "app"){
+      return ctx.db.getAppVarFuture(ctx.rid, id).wait();
+    }else if(domain === "event"){
+      return function(ctx2, args){
+        return ctx2.event.getAttr(args[0]);
+      };
+    }
+    throw new Error("Module Domain not defined: " + domain);
+  },
+  set: function(ctx, domain, id, value){
+    if(domain === "ent"){
+      ctx.db.putEntVarFuture(ctx.pico.id, ctx.rid, id, value).wait();
+      return;
+    }else if(domain === "app"){
+      ctx.db.putAppVarFuture(ctx.rid, id, value).wait();
+      return;
+    }
+    throw new Error("Module Domain not defined: " + domain);
+  }
+};
+
+
 module.exports = function(conf){
   var db = Future.wrap(DB(conf.db));
   var compileAndLoadRuleset = conf.compileAndLoadRuleset;
@@ -60,33 +86,6 @@ module.exports = function(conf){
   krl.stdlib.emitter.on("debug", function(scope, message){
     emitter.emit("debug", "stdlib", scope, message);
   });
-
-  var mkModules = function(ctx){
-    return {
-      get: function(domain, id){
-        if(domain === "ent"){
-          return db.getEntVarFuture(ctx.pico.id, ctx.rid, id).wait();
-        }else if(domain === "app"){
-          return db.getAppVarFuture(ctx.rid, id).wait();
-        }else if(domain === "event"){
-          return function(ctx2, args){
-            return ctx2.event.getAttr(args[0]);
-          };
-        }
-        throw new Error("Module Domain not defined: " + domain);
-      },
-      set: function(domain, id, value){
-        if(domain === "ent"){
-          db.putEntVarFuture(ctx.pico.id, ctx.rid, id, value).wait();
-          return;
-        }else if(domain === "app"){
-          db.putAppVarFuture(ctx.rid, id, value).wait();
-          return;
-        }
-        throw new Error("Module Domain not defined: " + domain);
-      }
-    };
-  };
 
   var installRID = function(rid, callback){
     if(conf._dont_check_enabled_before_installing){//for testing
@@ -169,6 +168,7 @@ module.exports = function(conf){
       var ctx_orig = mkCTX({
         pico: pico,
         db: db,
+        modules: modules,
         engine: engine,
         event: event
       });
@@ -192,7 +192,6 @@ module.exports = function(conf){
                 emitter.emit("debug", "event", rule_debug_info, msg);
               }
             });
-            ctx.modules = mkModules(ctx);
 
             ctx.emitDebug("rule selected");
 
@@ -275,10 +274,10 @@ module.exports = function(conf){
           db: db,
           rid: rs.rid,
           pico: pico,
+          modules: modules,
           engine: engine,
           scope: rs.scope
         });
-        ctx.modules = mkModules(ctx);
 
         var val = ctx.scope.get(query.name);
         if(_.isFunction(val)){
