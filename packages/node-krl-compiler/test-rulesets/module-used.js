@@ -1,15 +1,9 @@
 module.exports = {
   "rid": "io.picolabs.module-used",
   "meta": {
-    "use": [
-      {
-        "kind": "module",
-        "rid": "io.picolabs.module-defined",
-        "alias": "hello"
-        //TODO or should this be a function that runs and imports the module
-        //TODO and adds something to the scope?
-      }
-    ]
+    "use": [function (ctx) {
+        ctx.modules.use("my_module", "io.picolabs.module-defined");
+      }]
   },
   "rules": {
     "say_hello": {
@@ -45,7 +39,7 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "say_hello",
-                "options": { "something": ctx.scope.get("hello")(ctx, [ctx.scope.get("name")]) }
+                "options": { "something": ctx.modules.get("my_module", "hello")(ctx, [ctx.scope.get("name")]) }
               };
             }
           }]

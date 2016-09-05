@@ -71,7 +71,10 @@ var comp_by_type = {
         e("str", ast.value)
       ]);
     }
-    throw new Error("Only ent:* and app:* DomainIdentifiers are supported");
+    return e("call", e("id", "ctx.modules.get"), [
+      e("str", ast.domain),
+      e("str", ast.value)
+    ]);
   },
   "MemberExpression": function(ast, comp, e){
     if(ast.method === "dot"){
@@ -238,11 +241,19 @@ var comp_by_type = {
       }));
     }else if(key === "use"){
       if(ast.value.kind === "module"){
-        //TODO array of deps
-        console.log(ast.value.rid);
-        console.log(ast.value.version);
-        console.log(ast.value.alias);
-        console.log(ast.value["with"]);
+        //TODO support multiple 'use'
+        val = e("array", [
+          e("fn", ["ctx"], [
+            e(";", e("call", e("id", "ctx.modules.use", ast.value.loc), [
+              ast.value.alias
+                ? e("str", ast.value.alias.value, ast.value.alias.loc)
+                : e("str", ast.value.rid.value, ast.value.rid.loc),
+              e("str", ast.value.rid.value, ast.value.rid.loc)
+            ], ast.value.loc), ast.value.loc)
+          ], ast.value.loc)
+        ], ast.value.loc);
+        //TODO use -> ast.value.version
+        //TODO use -> ast.value["with"]
       }
     }else if(ast.value.type === "String"){
       val = e("string", ast.value.value, ast.value.loc);
