@@ -5,6 +5,7 @@ var krl = {
   stdlib: require("krl-stdlib"),
   Closure: require("./KRLClosure")
 };
+var getArg = require("./getArg");
 var Future = require("fibers/future");
 var modules = require("./modules");
 var evalRule = require("./evalRule");
@@ -13,11 +14,6 @@ var applyInFiber = require("./applyInFiber");
 var EventEmitter = require("events");
 var selectRulesToEval = require("./selectRulesToEval");
 
-var getArg = function(args, name, index){
-  return _.has(args, name)
-    ? args[name]
-    : args[index];
-};
 var mkCTX = function(ctx){
   ctx.getArg = getArg;
   ctx.krl = krl;

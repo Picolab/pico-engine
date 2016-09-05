@@ -1,16 +1,18 @@
 var _ = require("lodash");
+var getArg = require("../getArg");
 
 var eventGetAttr = function(ctx, args){
-  return ctx.event.getAttr(_.first(args));
+  var name = getArg(args, "name", 0);
+  return ctx.event.getAttr(name);
 };
 
 var engine = {
   newPico: function(ctx, args){
-    var opts = _.first(args);//TODO use getArg
+    var opts = getArg(args, "opts", 0);
     return ctx.db.newPicoFuture(opts).wait();
   },
   newChannel: function(ctx, args){
-    var opts = _.first(args);//TODO use getArg
+    var opts = getArg(args, "opts", 0);
     return ctx.db.newChannelFuture(opts).wait();
   }
 };
