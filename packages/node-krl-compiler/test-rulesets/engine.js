@@ -29,7 +29,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function (ctx) {
-          ctx.modules.get("engine", "newPico")(ctx, []);
+          ctx.modules.get(ctx, "engine", "newPico")(ctx, []);
         },
         "notfired": undefined,
         "always": undefined
@@ -62,10 +62,10 @@ module.exports = {
       },
       "postlude": {
         "fired": function (ctx) {
-          ctx.modules.get("engine", "newChannel")(ctx, [{
-              "name": ctx.modules.get("event", "attr")(ctx, ["name"]),
-              "type": ctx.modules.get("event", "attr")(ctx, ["type"]),
-              "pico_id": ctx.modules.get("event", "attr")(ctx, ["pico_id"])
+          ctx.modules.get(ctx, "engine", "newChannel")(ctx, [{
+              "name": ctx.modules.get(ctx, "event", "attr")(ctx, ["name"]),
+              "type": ctx.modules.get(ctx, "event", "attr")(ctx, ["type"]),
+              "pico_id": ctx.modules.get(ctx, "event", "attr")(ctx, ["pico_id"])
             }]);
         },
         "notfired": undefined,

@@ -8,10 +8,10 @@ module.exports = {
   },
   "global": function (ctx) {
     ctx.scope.set("getName", ctx.krl.Closure(ctx, function (ctx) {
-      return ctx.modules.get("ent", "name");
+      return ctx.modules.get(ctx, "ent", "name");
     }));
     ctx.scope.set("getAppVar", ctx.krl.Closure(ctx, function (ctx) {
-      return ctx.modules.get("app", "appvar");
+      return ctx.modules.get(ctx, "app", "appvar");
     }));
   },
   "rules": {
@@ -62,7 +62,7 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function (ctx) {
-          ctx.modules.set("ent", "name", ctx.scope.get("my_name"));
+          ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
         }
       }
     },
@@ -113,7 +113,7 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function (ctx) {
-          ctx.modules.set("app", "appvar", ctx.scope.get("my_appvar"));
+          ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
         }
       }
     }

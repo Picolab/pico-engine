@@ -14,9 +14,9 @@ module.exports = {
     ctx.scope.set("g1", 1);
     ctx.scope.set("getVals", ctx.krl.Closure(ctx, function (ctx) {
       return {
-        "name": ctx.modules.get("ent", "ent_var_name"),
-        "p0": ctx.modules.get("ent", "ent_var_p0"),
-        "p1": ctx.modules.get("ent", "ent_var_p1")
+        "name": ctx.modules.get(ctx, "ent", "ent_var_name"),
+        "p0": ctx.modules.get(ctx, "ent", "ent_var_p0"),
+        "p1": ctx.modules.get(ctx, "ent", "ent_var_p1")
       };
     }));
     ctx.scope.set("add", ctx.krl.Closure(ctx, function (ctx) {
@@ -149,9 +149,9 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function (ctx) {
-          ctx.modules.set("ent", "ent_var_name", ctx.scope.get("name"));
-          ctx.modules.set("ent", "ent_var_p0", ctx.scope.get("p0"));
-          ctx.modules.set("ent", "ent_var_p1", ctx.scope.get("p1"));
+          ctx.modules.set(ctx, "ent", "ent_var_name", ctx.scope.get("name"));
+          ctx.modules.set(ctx, "ent", "ent_var_p0", ctx.scope.get("p0"));
+          ctx.modules.set(ctx, "ent", "ent_var_p1", ctx.scope.get("p1"));
         }
       }
     },

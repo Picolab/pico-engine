@@ -59,6 +59,7 @@ var comp_by_type = {
   },
   "DomainIdentifier": function(ast, comp, e){
     return e("call", e("id", "ctx.modules.get"), [
+      e("id", "ctx"),
       e("str", ast.domain),
       e("str", ast.value)
     ]);
@@ -149,6 +150,7 @@ var comp_by_type = {
     if(ast.op === "="){
       if(ast.left.type === "DomainIdentifier"){
         return e(";", e("call", e("id", "ctx.modules.set"), [
+          e("id", "ctx"),
           e("str", ast.left.domain, ast.left.loc),
           e("str", ast.left.value, ast.left.loc),
           comp(ast.right)
@@ -211,6 +213,7 @@ var comp_by_type = {
         val = e("array", [
           e("fn", ["ctx"], [
             e(";", e("call", e("id", "ctx.modules.use", ast.value.loc), [
+              e("id", "ctx"),
               ast.value.alias
                 ? e("str", ast.value.alias.value, ast.value.alias.loc)
                 : e("str", ast.value.rid.value, ast.value.rid.loc),

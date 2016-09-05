@@ -8,10 +8,10 @@ module.exports = {
   },
   "global": function (ctx) {
     ctx.scope.set("getOnChooseFired", ctx.krl.Closure(ctx, function (ctx) {
-      return ctx.modules.get("ent", "on_choose_fired");
+      return ctx.modules.get(ctx, "ent", "on_choose_fired");
     }));
     ctx.scope.set("getNoActionFired", ctx.krl.Closure(ctx, function (ctx) {
-      return ctx.modules.get("ent", "no_action_fired");
+      return ctx.modules.get(ctx, "ent", "no_action_fired");
     }));
   },
   "rules": {
@@ -85,7 +85,7 @@ module.exports = {
         }
       },
       "prelude": function (ctx) {
-        ctx.scope.set("thing", ctx.modules.get("event", "attr")(ctx, ["thing"]));
+        ctx.scope.set("thing", ctx.modules.get(ctx, "event", "attr")(ctx, ["thing"]));
       },
       "action_block": {
         "actions": [{
@@ -565,14 +565,14 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "on_fired",
-                "options": { "previous_name": ctx.modules.get("ent", "on_fired_prev_name") }
+                "options": { "previous_name": ctx.modules.get(ctx, "ent", "on_fired_prev_name") }
               };
             }
           }]
       },
       "postlude": {
         "fired": function (ctx) {
-          ctx.modules.set("ent", "on_fired_prev_name", ctx.scope.get("my_name"));
+          ctx.modules.set(ctx, "ent", "on_fired_prev_name", ctx.scope.get("my_name"));
         },
         "notfired": undefined,
         "always": undefined
@@ -640,10 +640,10 @@ module.exports = {
       },
       "postlude": {
         "fired": function (ctx) {
-          ctx.modules.set("ent", "on_choose_fired", true);
+          ctx.modules.set(ctx, "ent", "on_choose_fired", true);
         },
         "notfired": function (ctx) {
-          ctx.modules.set("ent", "on_choose_fired", false);
+          ctx.modules.set(ctx, "ent", "on_choose_fired", false);
         },
         "always": undefined
       }
@@ -720,10 +720,10 @@ module.exports = {
       },
       "postlude": {
         "fired": function (ctx) {
-          ctx.modules.set("ent", "no_action_fired", true);
+          ctx.modules.set(ctx, "ent", "no_action_fired", true);
         },
         "notfired": function (ctx) {
-          ctx.modules.set("ent", "no_action_fired", false);
+          ctx.modules.set(ctx, "ent", "no_action_fired", false);
         },
         "always": undefined
       }
