@@ -1,6 +1,6 @@
 var getArg = require("../getArg");
 
-module.exports = {
+var fns = {
   newPico: function(ctx, args){
     var opts = getArg(args, "opts", 0);
     return ctx.db.newPicoFuture(opts).wait();
@@ -24,5 +24,11 @@ module.exports = {
   signalEvent: function(ctx, args){
     var event = getArg(args, "event", 0);
     return ctx.engine.signalEventFuture(event).wait();
+  }
+};
+
+module.exports = {
+  get: function(ctx, id){
+    return fns[id];
   }
 };

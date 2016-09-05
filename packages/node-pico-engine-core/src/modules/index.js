@@ -1,10 +1,13 @@
 var _ = require("lodash");
 var getArg = require("../getArg");
-var engine = require("./engine");
 
 var eventGetAttr = function(ctx, args){
   var name = getArg(args, "name", 0);
   return ctx.event.getAttr(name);
+};
+
+var modules = {
+  engine: require("./engine")
 };
 
 module.exports = {
@@ -17,9 +20,10 @@ module.exports = {
       if(id === "attr"){
         return eventGetAttr;
       }
-    }else if(domain === "engine"){
-      if(_.has(engine, id)){
-        return engine[id];
+    }
+    if(_.has(modules, domain)){
+      if(_.has(modules[domain], "get")){
+        return modules[domain].get(ctx, id);
       }
     }
     throw new Error("Not defined `" + domain + ":" + id + "`");
@@ -33,8 +37,13 @@ module.exports = {
       return;
     }else if(domain === "event"){
       throw new Error("Cannot assign to `event:*`");
-    }else if(domain === "engine"){
-      throw new Error("Cannot assign to `engine:*`");
+    }
+    if(_.has(modules, domain)){
+      if(_.has(modules[domain], "set")){
+        modules[domain].set(ctx, id, value);
+        return;
+      }
+      throw new Error("Cannot assign to `" + domain + ":*`");
     }
     throw new Error("Not defined `" + domain + ":" + id + "`");
   }
