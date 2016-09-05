@@ -2,10 +2,6 @@ var _ = require("lodash");
 var mkTree = require("estree-builder");
 var callStdLibFn = require("./utils/callStdLibFn");
 
-var mkDbCall = function(e, method, args){
-  return e("call", e("id", "ctx.persistent." + method), args);
-};
-
 var comp_by_type = {
   "String": function(ast, comp, e){
     return e("string", ast.value);
@@ -62,15 +58,6 @@ var comp_by_type = {
     ]);
   },
   "DomainIdentifier": function(ast, comp, e){
-    if(ast.domain === "ent"){
-      return mkDbCall(e, "getEnt", [
-        e("str", ast.value)
-      ]);
-    }else if(ast.domain === "app"){
-      return mkDbCall(e, "getApp", [
-        e("str", ast.value)
-      ]);
-    }
     return e("call", e("id", "ctx.modules.get"), [
       e("str", ast.domain),
       e("str", ast.value)
@@ -171,19 +158,9 @@ var comp_by_type = {
   },
   "Declaration": function(ast, comp, e){
     if(ast.op === "="){
-      if(ast.left
-          && ast.left.type === "DomainIdentifier"
-          && ast.left.domain === "ent"
-        ){
-        return e(";", mkDbCall(e, "putEnt", [
-          e("str", ast.left.value, ast.left.loc),
-          comp(ast.right)
-        ]));
-      }else if(ast.left
-          && ast.left.type === "DomainIdentifier"
-          && ast.left.domain === "app"
-        ){
-        return e(";", mkDbCall(e, "putApp", [
+      if(ast.left.type === "DomainIdentifier"){
+        return e(";", e("call", e("id", "ctx.modules.set"), [
+          e("str", ast.left.domain, ast.left.loc),
           e("str", ast.left.value, ast.left.loc),
           comp(ast.right)
         ]));
