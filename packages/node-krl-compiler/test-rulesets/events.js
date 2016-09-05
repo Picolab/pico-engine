@@ -85,7 +85,7 @@ module.exports = {
         }
       },
       "prelude": function (ctx) {
-        ctx.scope.set("thing", ctx.event.getAttr("thing"));
+        ctx.scope.set("thing", ctx.modules.get("event", "attr")(ctx, ["thing"]));
       },
       "action_block": {
         "actions": [{

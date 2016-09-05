@@ -97,17 +97,6 @@ var comp_by_type = {
       );
       return e("call", callee, [comp(ast.callee.object)].concat(comp(ast.args)));
     }
-    //TODO rethink this
-    if(ast.callee.type === "DomainIdentifier" && ast.callee.domain === "engine"){
-      return e("call", e("id", "ctx.engine." + ast.callee.value), comp(ast.args));
-    }
-    //TODO undo this hack
-    if(ast.callee.type === "DomainIdentifier"
-        && ast.callee.domain === "event"
-        && ast.callee.value === "attr"
-        ){
-      return e("call", e("id", "ctx.event.getAttr", ast.callee.loc), comp(ast.args));
-    }
     return e("call", comp(ast.callee), [
       e("id", "ctx"),
       e("array", comp(ast.args))
