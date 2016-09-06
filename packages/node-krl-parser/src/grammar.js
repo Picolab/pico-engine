@@ -221,7 +221,7 @@ var grammar = {
             loc: {start: loc, end: last(data)},
             type: 'Ruleset',
             rid: data[2],
-            meta: data[6] ? data[6][0] : [],
+            meta: data[6] ? data[6][0] : void 0,
             global: data[7] ? data[7][2] : [],
             rules: data[8].map(function(pair){
               return pair[0];

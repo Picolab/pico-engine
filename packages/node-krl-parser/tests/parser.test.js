@@ -110,7 +110,7 @@ test('parser', function(t){
     loc: {start: 0, end: 14},
 
     rid: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
-    meta: [],
+    meta: void 0,
     global: [],
     rules: []
   });
@@ -125,7 +125,7 @@ test('parser', function(t){
     loc: {start: 0, end: 27},
 
     rid: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
-    meta: [],
+    meta: void 0,
     global: [],
     rules: [
       {
@@ -152,7 +152,7 @@ test('parser', function(t){
     loc: {start: 0, end: 40},
 
     rid: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
-    meta: [],
+    meta: void 0,
     global: [],
     rules: [
       {
@@ -412,7 +412,7 @@ test('locations', function(t){
       type: 'RulesetID',
       value: 'one'
     },
-    meta: [],
+    meta: void 0,
     global: [],
     rules: [
       {

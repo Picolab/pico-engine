@@ -29,7 +29,7 @@ ruleset io.picolabs.hello {
     "type": "RulesetID",
     "value": "io.picolabs.hello"
   },
-  "meta": [  ],
+  "meta": undefined,
   "global": [  ],
   "rules": [  ]
 }
