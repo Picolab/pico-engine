@@ -205,8 +205,7 @@ var grammar = {
     {"name": "main", "symbols": ["_", "Ruleset", "_"], "postprocess": getN(1)},
     {"name": "main", "symbols": ["Statement_list"], "postprocess": id},
     {"name": "Ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "Ruleset$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"m"}, {"literal":"e"}, {"literal":"t"}, {"literal":"a"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "Ruleset$ebnf$1$subexpression$1", "symbols": ["Ruleset$ebnf$1$subexpression$1$string$1", "_", "ruleset_meta_block", "_"]},
+    {"name": "Ruleset$ebnf$1$subexpression$1", "symbols": ["RulesetMeta", "_"]},
     {"name": "Ruleset$ebnf$1", "symbols": ["Ruleset$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "Ruleset$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Ruleset$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"g"}, {"literal":"l"}, {"literal":"o"}, {"literal":"b"}, {"literal":"a"}, {"literal":"l"}], "postprocess": function joiner(d) {return d.join('');}},
@@ -222,7 +221,7 @@ var grammar = {
             loc: {start: loc, end: last(data)},
             type: 'Ruleset',
             rid: data[2],
-            meta: data[6] ? data[6][2] : [],
+            meta: data[6] ? data[6][0] : [],
             global: data[7] ? data[7][2] : [],
             rules: data[8].map(function(pair){
               return pair[0];
@@ -239,6 +238,17 @@ var grammar = {
             loc: {start: start, end: start + src.length},
             type: 'RulesetID',
             value: src
+          };
+        }
+        },
+    {"name": "RulesetMeta$string$1", "symbols": [{"literal":"m"}, {"literal":"e"}, {"literal":"t"}, {"literal":"a"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RulesetMeta", "symbols": ["RulesetMeta$string$1", "_", "ruleset_meta_block"], "postprocess": 
+        function(data, start){
+          var props = data[2];
+          return {
+            loc: {start: start, end: lastEndLoc(props)},
+            type: "RulesetMeta",
+            properties: props
           };
         }
         },

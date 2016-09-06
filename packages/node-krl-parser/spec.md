@@ -51,23 +51,26 @@ Hello parser!
     "type": "RulesetID",
     "value": "io.picolabs.hello"
   },
-  "meta": [
-    {
-      "type": "RulesetMetaProperty",
-      "key": {value: "name", type:"Keyword"},
-      "value": {value: "Hello World", type:"String"}
-    },
-    {
-      "type": "RulesetMetaProperty",
-      "key": {value: "description", type:"Keyword"},
-      "value": {
-        "type": "Chevron",
-        "value": [
-          {value: "\nHello parser!\n", type:"String"}
-        ]
+  "meta": {
+    "type": "RulesetMeta",
+    "properties": [
+      {
+        "type": "RulesetMetaProperty",
+        "key": {value: "name", type:"Keyword"},
+        "value": {value: "Hello World", type:"String"}
+      },
+      {
+        "type": "RulesetMetaProperty",
+        "key": {value: "description", type:"Keyword"},
+        "value": {
+          "type": "Chevron",
+          "value": [
+            {value: "\nHello parser!\n", type:"String"}
+          ]
+        }
       }
-    }
-  ],
+    ]
+  },
   "global": [
     {
       "type": "Declaration",

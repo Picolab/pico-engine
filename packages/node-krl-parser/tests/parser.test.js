@@ -548,10 +548,10 @@ test('locations', function(t){
     ]
   });
 
-  t.deepEquals(parser('ruleset a{meta{shares b}}').meta[0].key.loc, {start: 15, end: 21});
-  t.deepEquals(parser('ruleset a{meta{share b}}').meta[0].key.loc, {start: 15, end: 20});
-  t.deepEquals(parser('ruleset a{meta{share b}}').meta[0].loc, {start: 15, end: 22});
-  t.deepEquals(parser('ruleset a{meta{name "b"}}').meta[0].loc, {start: 15, end: 23});
+  t.deepEquals(parser('ruleset a{meta{shares b}}').meta.properties[0].key.loc, {start: 15, end: 21});
+  t.deepEquals(parser('ruleset a{meta{share b}}').meta.properties[0].key.loc, {start: 15, end: 20});
+  t.deepEquals(parser('ruleset a{meta{share b}}').meta.properties[0].loc, {start: 15, end: 22});
+  t.deepEquals(parser('ruleset a{meta{name "b"}}').meta.properties[0].loc, {start: 15, end: 23});
 
   var testTopLoc = function(src){
     var src2 = '\n  ' + src + '  \n ';
@@ -1164,7 +1164,10 @@ test('Ruleset meta', function(t){
   var testMeta = function(meta_body, expected){
     var src = 'ruleset rs{meta{' + meta_body + '}}';
     var ast = normalizeAST(rmLoc(parser(src)));
-    t.deepEquals(ast.meta, normalizeAST(expected));
+    t.deepEquals(ast.meta, {
+      type: "RulesetMeta",
+      properties: normalizeAST(expected)
+    });
   };
 
   testMeta('', []);

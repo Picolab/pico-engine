@@ -207,7 +207,7 @@ main -> _ Ruleset _ {% getN(1) %}
 #
 
 Ruleset -> "ruleset" __ RulesetID _ "{" _
-  ("meta" _ ruleset_meta_block _):?
+  (RulesetMeta _):?
   ("global" _ declaration_block _):?
   (rule _):*
 loc_close_curly {%
@@ -216,7 +216,7 @@ loc_close_curly {%
       loc: {start: loc, end: last(data)},
       type: 'Ruleset',
       rid: data[2],
-      meta: data[6] ? data[6][2] : [],
+      meta: data[6] ? data[6][0] : [],
       global: data[7] ? data[7][2] : [],
       rules: data[8].map(function(pair){
         return pair[0];
@@ -232,6 +232,17 @@ RulesetID -> [a-zA-Z] [a-zA-Z0-9_.\-]:* {%
       loc: {start: start, end: start + src.length},
       type: 'RulesetID',
       value: src
+    };
+  }
+%}
+
+RulesetMeta -> "meta" _ ruleset_meta_block {%
+  function(data, start){
+    var props = data[2];
+    return {
+      loc: {start: start, end: lastEndLoc(props)},
+      type: "RulesetMeta",
+      properties: props
     };
   }
 %}
