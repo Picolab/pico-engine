@@ -171,14 +171,12 @@ var comp_by_type = {
     _.each(ast.rules, function(rule){
       rules_obj[rule.name.value] = comp(rule);
     });
-    var meta = {};
-    _.each(comp(ast.meta), function(pair){
-      meta[pair[0]] = pair[1];
-    });
     var rs = {
-      rid: comp(ast.rid),
-      meta: e("obj", meta)
+      rid: comp(ast.rid)
     };
+    if(ast.meta){
+      rs.meta = comp(ast.meta);
+    }
     if(!_.isEmpty(ast.global)){
       _.each(ast.global, function(g){
         if(!g || g.type !== "Declaration"){
@@ -199,6 +197,13 @@ var comp_by_type = {
   },
   "RulesetID": function(ast, comp, e){
     return e("string", ast.value);
+  },
+  "RulesetMeta": function(ast, comp, e){
+    var meta = {};
+    _.each(comp(ast.properties), function(pair){
+      meta[pair[0]] = pair[1];
+    });
+    return e("obj", meta);
   },
   "RulesetMetaProperty": function(ast, comp, e){
     var key = ast.key.value;
