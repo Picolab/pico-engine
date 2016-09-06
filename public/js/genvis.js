@@ -128,7 +128,7 @@ $.getJSON("/api/db-dump", function(db_dump){
       if(liContent === "rulesets") {
         $(".pico-edit .krlrid").click(displayKrl);
       } else if(liContent === "about") {
-        $('#'+theDB.id+'-minicolors').minicolors(
+        $theSection.find('.use-minicolors').minicolors(
           { swatches: "#ccc|#fcc|#7fffd4|#ccf|#ffc|#87CEFA|#fcf".split('|')});
         $('.minicolors-input-swatch').css('top',0);
         $('.minicolors-input-swatch').css('left',0);

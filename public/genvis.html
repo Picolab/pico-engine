@@ -61,14 +61,8 @@ the pico's Event-Query API.
 Do not disclose it or check it into a repository like Github.
 </p>
 <form action="/sky/event/{{eci}}/31/visual/update" method="GET">
-<p>
-<b>Display name: </b>
-<input type="text" name="dname" value="{{dname}}">
-</p>
-<p>
-<b>Color: </b>
-<input type="text" name="color" id="{{id}}-minicolors" value="{{color}}">
-</p>
+<input type="text" name="dname" value="{{dname}}" placeholder="display name">
+<input type="text" name="color" class="use-minicolors" value="{{color}}">
 <button type="submit">send event visual/update</button>
 </form>
 {{#if parent}}
