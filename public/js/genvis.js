@@ -178,6 +178,10 @@ $.getJSON("/api/db-dump", function(db_dump){
                                    $pediv.prepend("<button class=\"x\">X</button>");
                                    $pediv.find('button.x').click(fadeAway);
                                  });
+                  var $horizMenu = $pediv.find('ul.horiz-menu');
+                  if ($horizMenu.find('li.active').length === 0) {
+                    $horizMenu.find('li:first').trigger('click');
+                  }
                 })
          .each(function(){updateEdges($(this).attr("id"))})
          .parent().find('ul.horiz-menu li').click(renderTab);
