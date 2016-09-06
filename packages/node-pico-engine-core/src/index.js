@@ -30,6 +30,32 @@ var doInstallRuleset = function(rs){
       scope: rs.scope
     }));
   }
+  rs.modules_used = {};
+  _.each(rs.meta && rs.meta.use, function(use){
+    if(use.kind !== "module"){
+      throw new Error("Unsupported 'use' kind: " + use.kind);
+    }
+    if(!_.has(rulesets, use.rid)){
+      throw new Error("Dependant module not loaded: " + use.rid);
+    }
+    var dep_rs = rulesets[use.rid];
+    var ctx = mkCTX({
+      scope: SymbolTable()//or dep_rs.scope.push() ??? TODO
+    });
+    if(_.isFunction(dep_rs.meta && dep_rs.meta.configure)){
+      dep_rs.meta.configure(ctx);
+    }
+    if(_.isFunction(use["with"])){
+      use["with"](ctx);
+    }
+    if(_.isFunction(dep_rs.global)){
+      dep_rs.global(ctx);
+    }
+    rs.modules_used[use.alias] = {
+      rid: use.rid,
+      scope: ctx.scope
+    };
+  });
   _.each(rs.rules, function(rule){
     rule.rid = rs.rid;
 
