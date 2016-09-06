@@ -168,6 +168,17 @@ $.getJSON("/api/db-dump", function(db_dump){
                 location.reload();
             });
         });
+      } else if(liContent === "channels") {
+        var d = theDB.id+"-Channels";
+        $theSection.find('.js-ajax-form').submit(function(e){
+            e.preventDefault();
+            $.getJSON($(this).attr("action"),formToJSON(this),function(){
+                if (location.hash !== d) {
+                  location.hash = d;
+                }
+                location.reload();
+            });
+        });
       }
     };
   var mpl = Handlebars.compile($('#the-template').html());

@@ -124,7 +124,7 @@ Channels
 {{/each}}
 </table>
 <p></p>
-<form method="GET" onsubmit="alert('not implemented');return false">
+<form class="js-ajax-form" action="/api/pico/{{id}}/new-channel" method="GET">
 <input type="text" name="name" placeholder="name...">
 <input type="text" name="type" placeholder="type...">
 <button type="submit">add channel</button>
