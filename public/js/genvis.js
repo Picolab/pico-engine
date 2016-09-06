@@ -132,6 +132,16 @@ $.getJSON("/api/db-dump", function(db_dump){
           { swatches: "#ccc|#fcc|#7fffd4|#ccf|#ffc|#87CEFA|#fcf".split('|')});
         $('.minicolors-input-swatch').css('top',0);
         $('.minicolors-input-swatch').css('left',0);
+        var d = theDB.id+"-About";
+        $theSection.find('.js-ajax-link').click(function(e){
+            e.preventDefault();
+            $.getJSON($(this).attr("href"),{},function(){
+                if (location.hash !== d) {
+                  location.hash = d;
+                }
+                location.reload();
+              });
+          });
       }
     };
   var mpl = Handlebars.compile($('#the-template').html());
@@ -160,6 +170,7 @@ $.getJSON("/api/db-dump", function(db_dump){
                                    $pediv.animate(fadeOutOptions);
                                    $pediv.fadeOut();
                                    ev.stopPropagation();
+                                   location.hash = "";
                                  };
                   $pediv.fadeIn();
                   $pediv.animate(fadeInOptions,
