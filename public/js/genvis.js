@@ -170,6 +170,14 @@ $.getJSON("/api/db-dump", function(db_dump){
                 })
          .each(function(){updateEdges($(this).attr("id"))})
          .parent().find('ul.horiz-menu li').click(renderTab);
+       var whereSpec = location.hash.substring(1).split("-");
+       if (whereSpec.length > 0 && whereSpec[0]) {
+         $('div#'+whereSpec[0]).trigger('click');
+       }
+       if (whereSpec.length > 1) {
+         $('div#'+whereSpec[0]).next('.pico-edit')
+           .find('ul li:contains('+whereSpec[1]+')').trigger('click');
+       }
      };
   if (renderDemo) {
     $.getJSON( json_name + ".json", renderGraph);
