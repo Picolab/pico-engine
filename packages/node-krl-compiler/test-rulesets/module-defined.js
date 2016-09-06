@@ -1,10 +1,15 @@
 module.exports = {
   "rid": "io.picolabs.module-defined",
-  "meta": { "provides": ["hello"] },
+  "meta": {
+    "provides": ["hello"],
+    "configure": function (ctx) {
+      ctx.scope.set("greeting", "Hello ");
+    }
+  },
   "global": function (ctx) {
     ctx.scope.set("hello", ctx.krl.Closure(ctx, function (ctx) {
       ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
-      return ctx.krl.stdlib["+"]("Hello ", ctx.scope.get("obj"));
+      return ctx.krl.stdlib["+"](ctx.scope.get("greeting"), ctx.scope.get("obj"));
     }));
   },
   "rules": {

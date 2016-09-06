@@ -224,6 +224,8 @@ var comp_by_type = {
         //TODO use -> ast.value.version
         //TODO use -> ast.value["with"]
       }
+    }else if(key === "configure"){
+      val = e("fn", ["ctx"], comp(ast.value.declarations), ast.value.loc);
     }else if(ast.value.type === "String"){
       val = e("string", ast.value.value, ast.value.loc);
     }else if(ast.value.type === "Chevron"){
