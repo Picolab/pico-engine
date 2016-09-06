@@ -1,5 +1,19 @@
 var _ = require("lodash");
 
+var prop_use = function(ast, comp, e){
+  //TODO use -> ast.version
+  //TODO use -> ast["with"]
+  return e("fn", ["ctx"], [
+    e(";", e("call", e("id", "ctx.modules.use", ast.loc), [
+      e("id", "ctx"),
+      ast.alias
+        ? e("str", ast.alias.value, ast.alias.loc)
+        : e("str", ast.rid.value, ast.rid.loc),
+      e("str", ast.rid.value, ast.rid.loc)
+    ], ast.loc), ast.loc)
+  ], ast.loc);
+};
+
 module.exports = function(ast, comp, e){
   var key = ast.key.value;
   var val = e("nil");
@@ -9,20 +23,9 @@ module.exports = function(ast, comp, e){
     }));
   }else if(key === "use"){
     if(ast.value.kind === "module"){
-      //TODO support multiple 'use'
-      val = e("array", [
-        e("fn", ["ctx"], [
-          e(";", e("call", e("id", "ctx.modules.use", ast.value.loc), [
-            e("id", "ctx"),
-            ast.value.alias
-              ? e("str", ast.value.alias.value, ast.value.alias.loc)
-              : e("str", ast.value.rid.value, ast.value.rid.loc),
-            e("str", ast.value.rid.value, ast.value.rid.loc)
-          ], ast.value.loc), ast.value.loc)
-        ], ast.value.loc)
-      ], ast.value.loc);
-      //TODO use -> ast.value.version
-      //TODO use -> ast.value["with"]
+      val = [
+        prop_use(ast.value, comp, e)
+      ];
     }
   }else if(key === "configure"){
     val = e("fn", ["ctx"], comp(ast.value.declarations), ast.value.loc);
