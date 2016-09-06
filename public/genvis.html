@@ -60,7 +60,7 @@ the ECI is the path into your pico and should be treated as a
 the pico's Event-Query API.
 Do not disclose it or check it into a repository like Github.
 </p>
-<form action="/sky/event/{{eci}}/31/visual/update" method="GET">
+<form class="js-ajax-form" action="/sky/event/{{eci}}/31/visual/update" method="GET">
 <input type="text" name="dname" value="{{dname}}" placeholder="display name">
 <input type="text" name="color" class="use-minicolors" value="{{color}}">
 <button type="submit">send event visual/update</button>
@@ -83,7 +83,7 @@ Do not disclose it or check it into a repository like Github.
 </p>
 {{/each}}
 <p>
-<form action="/sky/event/{{eci}}/52/pico/new_child_request" method="GET">
+<form class="js-ajax-form" action="/sky/event/{{eci}}/52/pico/new_child_request" method="GET">
 <button type="submit">add child pico</button>
 </form>
 </p>
@@ -104,7 +104,7 @@ Pico Rulesets
 {{#if avail}}
 Available Rulesets
 <p></p>
-<form action="/api/pico/{{pico_id}}/add-ruleset" method="GET">
+<form class="js-ajax-form" action="/api/pico/{{pico_id}}/add-ruleset" method="GET">
 <select name="rid">
 {{#each avail}}
 <option>{{this}}</option>

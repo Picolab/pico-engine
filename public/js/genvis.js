@@ -36,6 +36,13 @@ $(document).ready(function() {
     var nodeId = ui.helper[0].getAttribute("id");
     updateLines(nodeId,ui.position.left,ui.position.top);
   }
+  var formToJSON = function(form){
+    var json = {};
+    $.each($(form).serializeArray(), function(key, elm){
+      json[elm.name] = elm.value;
+    });
+    return json;
+  };
 $.getJSON("/api/db-dump", function(db_dump){
   var dragstop = function(event,ui) {
     var nodeId = ui.helper[0].getAttribute("id");
@@ -127,6 +134,16 @@ $.getJSON("/api/db-dump", function(db_dump){
       $theSection.html(tabTemplate(theDB));
       if(liContent === "rulesets") {
         $(".pico-edit .krlrid").click(displayKrl);
+        var d = theDB.pico_id+"-Rulesets";
+        $theSection.find('.js-ajax-form').submit(function(e){
+            e.preventDefault();
+            $.getJSON($(this).attr("action"),formToJSON(this),function(){
+                if (location.hash !== d) {
+                  location.hash = d;
+                }
+                location.reload();
+            });
+        });
       } else if(liContent === "about") {
         $theSection.find('.use-minicolors').minicolors(
           { swatches: "#ccc|#fcc|#7fffd4|#ccf|#ffc|#87CEFA|#fcf".split('|')});
@@ -142,6 +159,15 @@ $.getJSON("/api/db-dump", function(db_dump){
                 location.reload();
               });
           });
+        $theSection.find('.js-ajax-form').submit(function(e){
+            e.preventDefault();
+            $.getJSON($(this).attr("action"),formToJSON(this),function(){
+                if (location.hash !== d) {
+                  location.hash = d;
+                }
+                location.reload();
+            });
+        });
       }
     };
   var mpl = Handlebars.compile($('#the-template').html());
