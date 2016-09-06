@@ -1,10 +1,11 @@
 ruleset io.picolabs.module-defined {
   meta {
     provides hello
+    configure using greeting = "Hello "
   }
   global {
     hello = function(obj){
-      "Hello " + obj
+      greeting + obj
     }
   }
   rule should_not_handle_events {

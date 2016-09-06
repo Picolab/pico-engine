@@ -1,6 +1,5 @@
 module.exports = {
   "rid": "io.picolabs.engine",
-  "meta": {},
   "rules": {
     "newPico": {
       "name": "newPico",

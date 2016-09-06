@@ -10,9 +10,9 @@ module.exports = {
   "global": function (ctx) {
     ctx.scope.set("sectionInfo", ctx.krl.Closure(ctx, function (ctx) {
       ctx.scope.set("info", {
-        "capacity": ctx.persistent.getEnt("capacity"),
-        "taken": ctx.persistent.getEnt("taken"),
-        "remaining": ctx.krl.stdlib["-"](ctx.persistent.getEnt("capacity"), ctx.persistent.getEnt("taken"))
+        "capacity": ctx.modules.get(ctx, "ent", "capacity"),
+        "taken": ctx.modules.get(ctx, "ent", "taken"),
+        "remaining": ctx.krl.stdlib["-"](ctx.modules.get(ctx, "ent", "capacity"), ctx.modules.get(ctx, "ent", "taken"))
       });
       return ctx.krl.stdlib["klog"](ctx.scope.get("info"), "Section Info: ");
     }));
@@ -44,15 +44,15 @@ module.exports = {
         }
       },
       "prelude": function (ctx) {
-        ctx.scope.set("capacity", ctx.event.getAttr("capacity"));
-        ctx.scope.set("taken", ctx.event.getAttr("taken"));
+        ctx.scope.set("capacity", ctx.modules.get(ctx, "event", "attr")(ctx, ["capacity"]));
+        ctx.scope.set("taken", ctx.modules.get(ctx, "event", "attr")(ctx, ["taken"]));
       },
       "postlude": {
         "fired": undefined,
         "notfired": undefined,
         "always": function (ctx) {
-          ctx.persistent.putEnt("capacity", ctx.scope.get("capacity"));
-          ctx.persistent.putEnt("taken", ctx.krl.stdlib["as"](ctx.scope.get("taken"), "Number"));
+          ctx.modules.set(ctx, "ent", "capacity", ctx.scope.get("capacity"));
+          ctx.modules.set(ctx, "ent", "taken", ctx.krl.stdlib["as"](ctx.scope.get("taken"), "Number"));
         }
       }
     },
@@ -83,7 +83,7 @@ module.exports = {
       },
       "action_block": {
         "condition": function (ctx) {
-          return ctx.krl.stdlib["<"](ctx.persistent.getEnt("taken"), ctx.persistent.getEnt("capacity"));
+          return ctx.krl.stdlib["<"](ctx.modules.get(ctx, "ent", "taken"), ctx.modules.get(ctx, "ent", "capacity"));
         },
         "actions": [{
             "action": function (ctx) {
@@ -93,7 +93,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function (ctx) {
-          ctx.persistent.putEnt("taken", ctx.krl.stdlib["klog"](ctx.krl.stdlib["+"](ctx.persistent.getEnt("taken"), 1), "new ent:taken"));
+          ctx.modules.set(ctx, "ent", "taken", ctx.krl.stdlib["klog"](ctx.krl.stdlib["+"](ctx.modules.get(ctx, "ent", "taken"), 1), "new ent:taken"));
         },
         "notfired": undefined,
         "always": undefined
@@ -126,7 +126,7 @@ module.exports = {
       },
       "action_block": {
         "condition": function (ctx) {
-          return ctx.krl.stdlib[">"](ctx.persistent.getEnt("taken"), 0);
+          return ctx.krl.stdlib[">"](ctx.modules.get(ctx, "ent", "taken"), 0);
         },
         "actions": [{
             "action": function (ctx) {
@@ -136,7 +136,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function (ctx) {
-          ctx.persistent.putEnt("taken", ctx.krl.stdlib["klog"](ctx.krl.stdlib["-"](ctx.persistent.getEnt("taken"), 1), "new ent:taken"));
+          ctx.modules.set(ctx, "ent", "taken", ctx.krl.stdlib["klog"](ctx.krl.stdlib["-"](ctx.modules.get(ctx, "ent", "taken"), 1), "new ent:taken"));
         },
         "notfired": undefined,
         "always": undefined
