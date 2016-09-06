@@ -265,6 +265,10 @@ ruleset_meta_prop ->
         rid: data[4],
         version: data[5] && data[5][3]
       }}, true) %}
+    | "configure" __ "using" __ declaration_list
+      {% metaProp(function(data){return {
+        declarations: data[4]
+      }}, true) %}
     | PROVIDEs __ Identifier_list
       {% metaProp(function(d){return {
         ids: d[2]

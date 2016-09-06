@@ -1272,6 +1272,26 @@ test('Ruleset meta', function(t){
     })
   ]);
 
+  testMeta('configure using a = 1', [{
+    type: 'RulesetMetaProperty',
+    key: mk.key('configure'),
+    value: {
+      declarations: [
+        mk.declare('=', mk.id('a'), mk(1))
+      ]
+    }
+  }]);
+  testMeta('configure using a = 1 b = 2', [{
+    type: 'RulesetMetaProperty',
+    key: mk.key('configure'),
+    value: {
+      declarations: [
+        mk.declare('=', mk.id('a'), mk(1)),
+        mk.declare('=', mk.id('b'), mk(2))
+      ]
+    }
+  }]);
+
   t.end();
 });
 

@@ -289,11 +289,16 @@ var grammar = {
           rid: data[4],
           version: data[5] && data[5][3]
         }}, true) },
+    {"name": "ruleset_meta_prop$string$10", "symbols": [{"literal":"c"}, {"literal":"o"}, {"literal":"n"}, {"literal":"f"}, {"literal":"i"}, {"literal":"g"}, {"literal":"u"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop$string$11", "symbols": [{"literal":"u"}, {"literal":"s"}, {"literal":"i"}, {"literal":"n"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$10", "__", "ruleset_meta_prop$string$11", "__", "declaration_list"], "postprocess":  metaProp(function(data){return {
+          declarations: data[4]
+        }}, true) },
     {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "Identifier_list"], "postprocess":  metaProp(function(d){return {
           ids: d[2]
         }}, true) },
-    {"name": "ruleset_meta_prop$string$10", "symbols": [{"literal":"t"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "ProvidesOperator", "__", "Identifier_list", "__", "ruleset_meta_prop$string$10", "__", "RulesetID_list"], "postprocess":  metaProp(function(d){return {
+    {"name": "ruleset_meta_prop$string$12", "symbols": [{"literal":"t"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "ProvidesOperator", "__", "Identifier_list", "__", "ruleset_meta_prop$string$12", "__", "RulesetID_list"], "postprocess":  metaProp(function(d){return {
           operator: d[2],
           ids: d[4],
           rulesets: d[8]
