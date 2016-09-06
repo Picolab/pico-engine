@@ -1,17 +1,20 @@
 var _ = require("lodash");
 
 var prop_use = function(ast, comp, e){
-  //TODO use -> ast.version
-  //TODO use -> ast["with"]
-  return e("fn", ["ctx"], [
-    e(";", e("call", e("id", "ctx.modules.use", ast.loc), [
-      e("id", "ctx"),
-      ast.alias
-        ? e("str", ast.alias.value, ast.alias.loc)
-        : e("str", ast.rid.value, ast.rid.loc),
-      e("str", ast.rid.value, ast.rid.loc)
-    ], ast.loc), ast.loc)
-  ], ast.loc);
+  var obj = {
+    kind: e("str", ast.kind, ast.loc),
+    rid: e("str", ast.rid.value, ast.rid.loc),
+    alias: ast.alias
+      ? e("str", ast.alias.value, ast.alias.loc)
+      : e("str", ast.rid.value, ast.rid.loc)
+  };
+  if(ast.version){
+    obj.version = comp(ast.version);
+  }
+  if(ast["with"]){
+    obj["with"] = e("fn", ["ctx"], comp(ast["with"]), ast["with"].loc);
+  }
+  return e("obj", obj, ast.loc);
 };
 
 module.exports = function(ast, comp, e){

@@ -1,9 +1,21 @@
 module.exports = {
   "rid": "io.picolabs.module-used",
   "meta": {
-    "use": [function (ctx) {
-        ctx.modules.use(ctx, "my_module", "io.picolabs.module-defined");
-      }]
+    "use": [
+      {
+        "kind": "module",
+        "rid": "io.picolabs.module-defined",
+        "alias": "my_module"
+      },
+      {
+        "kind": "module",
+        "rid": "io.picolabs.module-defined",
+        "alias": "my_module_conf",
+        "with": function (ctx) {
+          ctx.scope.set("greeting", "Greetings ");
+        }
+      }
+    ]
   },
   "rules": {
     "say_hello": {
@@ -39,7 +51,10 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "say_hello",
-                "options": { "something": ctx.modules.get(ctx, "my_module", "hello")(ctx, [ctx.scope.get("name")]) }
+                "options": {
+                  "something": ctx.modules.get(ctx, "my_module", "hello")(ctx, [ctx.scope.get("name")]),
+                  "configured": ctx.modules.get(ctx, "my_module_conf", "hello")(ctx, [ctx.scope.get("name")])
+                }
               };
             }
           }]
