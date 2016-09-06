@@ -90,7 +90,7 @@ Do not disclose it or check it into a repository like Github.
 {{/each}}
 <p>
 <form action="/sky/event/{{eci}}/52/pico/new_child_request" method="GET">
-<input type="submit" value="add child pico">
+<button type="submit">add child pico</button>
 </form>
 </p>
 </script>
@@ -116,7 +116,7 @@ Available Rulesets
 <option>{{this}}</option>
 {{/each}}
 </select>
-<input type="submit" value="add ruleset">
+<button type="submit">add ruleset</button>
 </form>
 {{/if}}
 </div>
@@ -133,7 +133,7 @@ Channels
 <form method="GET" onsubmit="alert('not implemented');return false">
 <input type="text" name="name" placeholder="name...">
 <input type="text" name="type" placeholder="type...">
-<input type="submit" value="add channel">
+<button type="submit">add channel</button>
 </form>
 </script>
 <script id="subscriptions-template" type="text/x-handlebars-template">
