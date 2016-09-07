@@ -25,6 +25,11 @@ var salience_graph = {};
 
 var doInstallRuleset = function(rs){
   rs.scope = SymbolTable();
+  if(_.isFunction(rs.meta && rs.meta.configure)){
+    rs.meta.configure(mkCTX({
+      scope: rs.scope
+    }));
+  }
   if(_.isFunction(rs.global)){
     rs.global(mkCTX({
       scope: rs.scope
@@ -255,6 +260,7 @@ module.exports = function(conf){
           pico: pico,
           engine: engine,
           modules: modules,
+          modules_used: rs.modules_used,
           scope: rs.scope
         });
 

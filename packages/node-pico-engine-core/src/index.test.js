@@ -548,6 +548,7 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
 test("PicoEngine - io.picolabs.module-used ruleset", function(t){
   var pe = mkTestPicoEngine();
 
+  var query = mkQueryTask(pe, "id1", "io.picolabs.module-defined");
   var signal = mkSignalTask(pe, "id1");
 
   testOutputs(t, [
@@ -571,6 +572,10 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
     [
       signal("module_defined", "hello"),
       [{name: "module_defined - should_not_handle_events !", options: {}}]
+    ],
+    [
+      query("queryFn", {obj: "Jim"}),
+      "Query: Private: Hello Jim"
     ]
   ], t.end);
 });

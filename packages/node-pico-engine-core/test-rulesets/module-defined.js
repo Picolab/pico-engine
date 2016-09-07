@@ -2,6 +2,7 @@ module.exports = {
   "rid": "io.picolabs.module-defined",
   "meta": {
     "provides": ["hello"],
+    "shares": ["queryFn"],
     "configure": function (ctx) {
       ctx.scope.set("greeting", "Hello ");
     }
@@ -10,6 +11,14 @@ module.exports = {
     ctx.scope.set("hello", ctx.krl.Closure(ctx, function (ctx) {
       ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
       return ctx.krl.stdlib["+"](ctx.scope.get("greeting"), ctx.scope.get("obj"));
+    }));
+    ctx.scope.set("privateFn", ctx.krl.Closure(ctx, function (ctx) {
+      ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
+      return ctx.krl.stdlib["+"]("Private: ", ctx.scope.get("hello")(ctx, [ctx.scope.get("obj")]));
+    }));
+    ctx.scope.set("queryFn", ctx.krl.Closure(ctx, function (ctx) {
+      ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
+      return ctx.krl.stdlib["+"]("Query: ", ctx.scope.get("privateFn")(ctx, [ctx.scope.get("obj")]));
     }));
   },
   "rules": {
