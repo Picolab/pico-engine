@@ -7,7 +7,7 @@ ruleset io.picolabs.module-used {
       with greeting = "Greetings "
   }
   rule say_hello {
-    select when module_used say_hello setting(my_name);
+    select when module_used say_hello name re#(.*)# setting(name);
     send_directive("say_hello") with
       something = my_module:hello(name)
       configured = my_module_conf:hello(name)

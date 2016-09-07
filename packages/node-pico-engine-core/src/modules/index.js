@@ -14,6 +14,11 @@ module.exports = {
         return modules[domain].get(ctx, id);
       }
     }
+    if(_.has(ctx, ["modules_used", domain, "scope"])){
+      if(ctx.modules_used[domain].scope.has(id)){
+        return ctx.modules_used[domain].scope.get(id);
+      }
+    }
     throw new Error("Not defined `" + domain + ":" + id + "`");
   },
   set: function(ctx, domain, id, value){

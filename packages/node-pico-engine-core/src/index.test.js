@@ -544,3 +544,33 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
     }
   ], t.end);
 });
+
+test("PicoEngine - io.picolabs.module-used ruleset", function(t){
+  var pe = mkTestPicoEngine();
+
+  var signal = mkSignalTask(pe, "id1");
+
+  testOutputs(t, [
+    λ.curry(pe.db.newPico, {}),
+    λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+    λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.module-used"}),
+    [
+      signal("module_used", "say_hello", {
+        name: "Bob"
+      }),
+      [{name: "say_hello", options: {
+        something: "Hello Bob",
+        configured: "Greetings Bob"
+      }}]
+    ],
+    [
+      signal("module_defined", "hello"),
+      []
+    ],
+    λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.module-defined"}),
+    [
+      signal("module_defined", "hello"),
+      [{name: "module_defined - should_not_handle_events !", options: {}}]
+    ]
+  ], t.end);
+});

@@ -24,8 +24,13 @@ module.exports = {
         "graph": { "module_used": { "say_hello": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = [];
-            ctx.scope.set("my_name", matches[0]);
+            var matches = ctx.event.getAttrMatches([[
+                "name",
+                new RegExp("(.*)", "")
+              ]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("name", matches[0]);
             return true;
           }
         },

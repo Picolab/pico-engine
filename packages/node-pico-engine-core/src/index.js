@@ -189,6 +189,9 @@ module.exports = function(conf){
                 emitter.emit("debug", "event", rule_debug_info, msg);
               }
             });
+            if(_.has(rulesets, rule.rid)){
+              ctx.modules_used = rulesets[rule.rid].modules_used;
+            }
 
             ctx.emitDebug("rule selected");
 
