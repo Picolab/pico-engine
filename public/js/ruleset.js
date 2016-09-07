@@ -152,7 +152,7 @@ $.getJSON("/api/db-dump", function(db_dump){
         $feedback.html(result.error);
       } else if(result.code || result.ok){
         $feedback.html("ok");
-        if (formAction.startsWith("/api/ruleset/enable")) {
+        if (!formAction.startsWith("/api/ruleset/compile")) {
           location.reload();
         }
       } else {
