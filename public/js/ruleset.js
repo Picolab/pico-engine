@@ -93,11 +93,28 @@ $.getJSON("/api/db-dump", function(db_dump){
   $("div.krlsrc").on("submit","form.ruleset-compile",function(e){
     e.preventDefault();
     var $feedback = $("pre#feedback");
-    $feedback.html("Compiling...");
-    var formAction = "/api/ruleset/compile";
-    if ($(".clicked").attr("id") === "btn-register") {
+    var whichBtn = $(".clicked").attr("id"); 
+    var formAction;
+    if (whichBtn === "btn-compile") {
+      $feedback.html("Compiling...");
+      formAction = "/api/ruleset/compile";
+    } else if (whichBtn === "btn-register") {
       $feedback.html("Registering...");
       formAction = "/api/ruleset/register";
+    } else if (whichBtn === "btn-enable") {
+      $feedback.html("Enabling...");
+      formAction = "/api/ruleset/enable";
+      $feedback.html("use old ui");
+      alert("not yet implemented");
+      $feedback.html("");
+      return;
+    } else if (whichBtn === "btn-install") {
+      $feedback.html("Installing...");
+      formAction = "/api/ruleset/install";
+      $feedback.html("use old ui");
+      alert("not yet implemented");
+      $feedback.html("");
+      return;
     }
     $.getJSON(formAction,formToJSON(this),function(result){
       if(result.error){
