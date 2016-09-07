@@ -212,7 +212,7 @@ $.getJSON("/api/db-dump", function(db_dump){
                   $pediv.fadeIn();
                   $pediv.animate(fadeInOptions,
                                  function(){
-                                   $pediv.prepend("<button class=\"x\">X</button>");
+                                   $pediv.prepend("<button class=\"x\">&ndash;</button>");
                                    $pediv.find('button.x').click(fadeAway);
                                  });
                   var $horizMenu = $pediv.find('ul.horiz-menu');
