@@ -132,54 +132,45 @@ $.getJSON("/api/db-dump", function(db_dump){
       var $theSection = $(this).parent().next('.pico-section');
       var theDB = specDB($(this));
       $theSection.html(tabTemplate(theDB));
+      var d = "";
       if(liContent === "rulesets") {
         $(".pico-edit .krlrid").click(displayKrl);
-        var d = theDB.pico_id+"-Rulesets";
-        $theSection.find('.js-ajax-form').submit(function(e){
-            e.preventDefault();
-            $.getJSON($(this).attr("action"),formToJSON(this),function(){
-                if (location.hash !== d) {
-                  location.hash = d;
-                }
-                location.reload();
-            });
-        });
+        d = theDB.pico_id+"-Rulesets";
       } else if(liContent === "about") {
         $theSection.find('.use-minicolors').minicolors(
           { swatches: "#ccc|#fcc|#7fffd4|#ccf|#ffc|#87CEFA|#fcf".split('|')});
         $('.minicolors-input-swatch').css('top',0);
         $('.minicolors-input-swatch').css('left',0);
-        var d = theDB.id+"-About";
-        $theSection.find('.js-ajax-link').click(function(e){
-            e.preventDefault();
-            $.getJSON($(this).attr("href"),{},function(){
-                if (location.hash !== d) {
-                  location.hash = d;
-                }
-                location.reload();
-              });
-          });
-        $theSection.find('.js-ajax-form').submit(function(e){
-            e.preventDefault();
-            $.getJSON($(this).attr("action"),formToJSON(this),function(){
-                if (location.hash !== d) {
-                  location.hash = d;
-                }
-                location.reload();
-            });
-        });
+        d = theDB.id+"-About";
       } else if(liContent === "channels") {
-        var d = theDB.id+"-Channels";
-        $theSection.find('.js-ajax-form').submit(function(e){
-            e.preventDefault();
-            $.getJSON($(this).attr("action"),formToJSON(this),function(){
-                if (location.hash !== d) {
-                  location.hash = d;
-                }
-                location.reload();
-            });
-        });
+        d = theDB.id+"-Channels";
       }
+      $theSection.find('.js-ajax-form').submit(function(e){
+        e.preventDefault();
+        $.getJSON($(this).attr("action"),formToJSON(this),function(){
+            if (location.hash !== d) {
+              location.hash = d;
+            }
+            location.reload();
+        });
+      });
+      $theSection.find('.js-ajax-link').click(function(e){
+        e.preventDefault();
+        $.getJSON($(this).attr("href"),{},function(){
+            if (location.hash !== d) {
+              location.hash = d;
+            }
+            location.reload();
+          });
+      });
+      $theSection.find('.js-nav').click(function(e){
+        e.preventDefault();
+        var d = $(this).attr("href").substring(1);
+        if (location.hash !== d) {
+          location.hash = d;
+        }
+        location.reload();
+      });
     };
   var mpl = Handlebars.compile($('#the-template').html());
   var findEciById = function(id) {
