@@ -100,7 +100,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     e.preventDefault();
     var rid = this.rid.value;
     if (ridRE.test(rid)) {
-      $feedback.html("Registering...");
+      $("pre#feedback").html("Registering...");
       var src = "ruleset "+rid+" {\n}";
       $.getJSON("/api/ruleset/register",{"src":src},function(result){
         location.hash = rid;
@@ -114,30 +114,23 @@ $.getJSON("/api/db-dump", function(db_dump){
     $(this).siblings(".clicked").toggleClass("clicked")
     $(this).toggleClass("clicked");
   });
-  $("div.krlsrc").on("submit","form.ruleset-compile",function(e){
+  $("div.krlsrc").on("submit","form.ruleset-action",function(e){
     e.preventDefault();
     var $feedback = $("pre#feedback");
-    var whichBtn = $(".clicked").attr("id"); 
-    var formAction;
-    if (whichBtn === "btn-compile") {
-      $feedback.html("Compiling...");
-      formAction = "/api/ruleset/compile";
-    } else if (whichBtn === "btn-register") {
-      $feedback.html("Registering...");
-      formAction = "/api/ruleset/register";
-    } else if (whichBtn === "btn-enable") {
-      $feedback.html("Enabling...");
-      formAction = "/api/ruleset/enable";
-      $feedback.html("use old ui");
-      alert("not yet implemented");
+    $feedback.html("working...");
+    var formAction = $(".clicked").attr("formaction");
+    $(".clicked").toggleClass("clicked");
+    var not_implemented = function(fa) {
+      $feedback.html("use UI at localhost:8080/old");
+      alert("not implemented: "+fa);
       $feedback.html("");
+    };
+    if (formAction === "/api/ruleset/enable") {
+      not_implemented(formAction);
       return;
-    } else if (whichBtn === "btn-install") {
-      $feedback.html("Installing...");
-      formAction = "/api/ruleset/install";
-      $feedback.html("use old ui");
-      alert("not yet implemented");
-      $feedback.html("");
+    }
+    if (formAction === "/api/ruleset/install") {
+      not_implemented(formAction);
       return;
     }
     $.getJSON(formAction,formToJSON(this),function(result){

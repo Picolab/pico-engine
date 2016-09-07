@@ -26,7 +26,7 @@ Registered Rulesets
 <hr>
 <form class="ruleset-new">
 <input type="text" name="rid" placeholder="ruleset id">
-<button type="submit">add ruleset</button>
+<button type="submit">add</button>
 </form>
 <p style="color:silver;font-size:85%;font-family:monospace">
 ruleset id must match this pattern:<br>
@@ -34,13 +34,13 @@ ruleset id must match this pattern:<br>
 </p>
 </div>
 <div class="krlsrc">
-<form class="ruleset-compile" method="GET">
+<form class="ruleset-action" method="GET">
 <input type="hidden" name="rid">
 <textarea class="lined" name="src">{{src}}</textarea>
-<button id="btn-compile" type="submit">compile ruleset</button>
-<button id="btn-register" type="submit">register ruleset</button>
-<button id="btn-enable" type="submit">enable ruleset</button>
-<button id="btn-install" type="submit">install ruleset</button>
+<button formaction="/api/ruleset/compile" type="submit">compile</button>
+<button formaction="/api/ruleset/register" type="submit">register</button>
+<button formaction="/api/ruleset/enable" type="submit">enable</button>
+<button formaction="/api/ruleset/install" type="submit">install</button>
 </form>
 <pre id="feedback"></pre>
 </div>
