@@ -35,6 +35,19 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
     return ifnone;
   }
+  var hashFromVersions = function(rid,ifnone) {
+    var hashobj;
+    for (var vds in db_dump.rulesets.versions[rid]) {
+      hashobj = db_dump.rulesets.versions[rid][vds];
+    }
+    if (hashobj) {
+      for(var hash in hashobj)
+      {
+        return hash;
+      }
+    }
+    return ifnone;
+  }
   var krlSrcInvite = "//click on a ruleset name to see its source here";
   var displayKrl = function() {
     $(this).siblings(".krl-showing").toggleClass("krl-showing");
@@ -126,18 +139,22 @@ $.getJSON("/api/db-dump", function(db_dump){
       $feedback.html("");
     };
     if (formAction === "/api/ruleset/enable") {
-      not_implemented(formAction);
-      return;
+      var rsHash = hashFromVersions(this.rid.value,undefined);
+      if (rsHash) {
+        formAction += "/" + rsHash;
+      }
     }
     if (formAction === "/api/ruleset/install") {
-      not_implemented(formAction);
-      return;
+      formAction += "/" + this.rid.value;
     }
     $.getJSON(formAction,formToJSON(this),function(result){
       if(result.error){
         $feedback.html(result.error);
       } else if(result.code || result.ok){
         $feedback.html("ok");
+        if (formAction.startsWith("/api/ruleset/enable")) {
+          location.reload();
+        }
       } else {
         $feedback.html(JSON.stringify(result));
       }
