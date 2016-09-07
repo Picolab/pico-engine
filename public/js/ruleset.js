@@ -68,13 +68,14 @@ $.getJSON("/api/db-dump", function(db_dump){
       $(".krlsrc input").val(rid);
       $(".lined").linedtextarea();
       if(rid){
-        $(".krlrid:contains('"+rid+"')").toggleClass("krl-showing");
+        $(".krlrid").filter(function(){
+          return $(this).text() === rid;
+        }).toggleClass("krl-showing");
       }
     };
   var rs_data = {};
   rs_data.title = "Engine Rulesets";
   rs_data.descr = "These are the rulesets hosted by this KRE.";
-  rs_data.rulesets = {};
   if(rid){
     rs_data.src = srcFromEnabled(rid);
     if (!rs_data.src) {
@@ -83,6 +84,7 @@ $.getJSON("/api/db-dump", function(db_dump){
   } else {
     rs_data.src = krlSrcInvite;
   }
+  rs_data.rulesets = {};
   if (db_dump.rulesets && db_dump.rulesets.versions) {
     for(var aRid in db_dump.rulesets.versions) {
       rs_data.rulesets[aRid] = {};
@@ -91,12 +93,22 @@ $.getJSON("/api/db-dump", function(db_dump){
       }
     }
   }
+  var ridRE = /^[a-zA-Z][a-zA-Z0-9_.-]*$/;
+  rs_data.ridRE = ridRE.toString();
   renderContent(rs_data);
   $("form.ruleset-new").submit(function(e){
     e.preventDefault();
     var rid = this.rid.value;
-    $(".krlsrc input").val(rid);
-    $(".krlsrc textarea").html("ruleset "+rid+" {\n}");
+    if (ridRE.test(rid)) {
+      $feedback.html("Registering...");
+      var src = "ruleset "+rid+" {\n}";
+      $.getJSON("/api/ruleset/register",{"src":src},function(result){
+        location.hash = rid;
+        location.reload();
+      });
+    } else {
+      alert("invalid ruleset id");
+    }
   });
   $("div.krlsrc form button").click(function(){
     $(this).siblings(".clicked").toggleClass("clicked")

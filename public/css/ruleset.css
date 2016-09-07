@@ -53,4 +53,5 @@ div.krlsrc textarea {
 div.krlsrc pre#feedback {
   background-color: #F5F5F5;
   width: 90%;
+  overlow: auto;
 }
