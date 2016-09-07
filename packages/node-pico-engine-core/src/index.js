@@ -58,7 +58,8 @@ var doInstallRuleset = function(rs){
     }
     rs.modules_used[use.alias] = {
       rid: use.rid,
-      scope: ctx.scope
+      scope: ctx.scope,
+      provides: dep_rs.meta.provides
     };
   });
   _.each(rs.rules, function(rule){

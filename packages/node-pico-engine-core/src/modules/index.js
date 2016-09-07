@@ -16,7 +16,9 @@ module.exports = {
     }
     if(_.has(ctx, ["modules_used", domain, "scope"])){
       if(ctx.modules_used[domain].scope.has(id)){
-        return ctx.modules_used[domain].scope.get(id);
+        if(_.includes(ctx.modules_used[domain].provides, id)){
+          return ctx.modules_used[domain].scope.get(id);
+        }
       }
     }
     throw new Error("Not defined `" + domain + ":" + id + "`");

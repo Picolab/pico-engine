@@ -12,4 +12,14 @@ ruleset io.picolabs.module-used {
       something = my_module:hello(name)
       configured = my_module_conf:hello(name)
   }
+  rule privateFn {
+    select when module_used privateFn;
+    send_directive("privateFn") with
+      something = my_module:privateFn("{{name}}")
+  }
+  rule queryFn {
+    select when module_used queryFn;
+    send_directive("queryFn") with
+      something = my_module:queryFn("{{name}}")
+  }
 }

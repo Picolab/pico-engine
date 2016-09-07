@@ -576,6 +576,26 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
     [
       query("queryFn", {obj: "Jim"}),
       "Query: Private: Hello Jim"
-    ]
+    ],
+    //test non-shared fn can't be queried
+    function(next){
+      query("hello", {obj: "Jim"})(function(err, data){
+        t.ok(/Error: Not shared/i.test(err + ""));
+        query("privateFn", {obj: "Jim"})(function(err, data){
+          t.ok(/Error: Not shared/i.test(err + ""));
+          next();
+        });
+      });
+    },
+    //test non-provides fn can't be used
+    function(next){
+      signal("module_used", "privateFn")(function(err, data){
+        t.ok(/Error: Not defined/i.test(err + ""));
+        signal("module_used", "queryFn")(function(err, data){
+          t.ok(/Error: Not defined/i.test(err + ""));
+          next();
+        });
+      });
+    }
   ], t.end);
 });
