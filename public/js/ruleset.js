@@ -39,18 +39,23 @@ $.getJSON("/api/db-dump", function(db_dump){
   var displayKrl = function() {
     $(this).siblings(".krl-showing").toggleClass("krl-showing");
     if($(this).hasClass("krl-showing")) {
-      src = krlSrcInvite;
+      $(".krlsrc textarea").html(krlSrcInvite);
     } else {
       var rid = $(this).html();
-      src = srcFromEnabled(rid);
+      var src = srcFromEnabled(rid);
       if (src) {
         $(this).removeClass("disabled");
       } else {
         $(this).addClass("disabled");
         src = srcFromVersions(rid,"N/A");
       }
+      if (location.hash.substring(1) === rid) {
+        $(".krlsrc textarea").html(src);
+      } else {
+        location.hash = rid;
+        location.reload();
+      }
     }
-    $(".krlsrc textarea").html(src);
     $(this).toggleClass("krl-showing");
     $("pre#feedback").html("");
   }
@@ -61,16 +66,23 @@ $.getJSON("/api/db-dump", function(db_dump){
       document.title = $('body h1').html();
       $(".krlrid").click(displayKrl);
       $(".krlsrc input").val(rid);
-      $(".krlsrc textarea").html(krlSrcInvite);
       $(".lined").linedtextarea();
       if(rid){
-        $(".krlrid:contains('"+rid+"')").trigger("click");
+        $(".krlrid:contains('"+rid+"')").toggleClass("krl-showing");
       }
     };
   var rs_data = {};
   rs_data.title = "Engine Rulesets";
   rs_data.descr = "These are the rulesets hosted by this KRE.";
   rs_data.rulesets = {};
+  if(rid){
+    rs_data.src = srcFromEnabled(rid);
+    if (!rs_data.src) {
+      rs_data.src = srcFromVersions(rid,krlSrcInvite);
+    }
+  } else {
+    rs_data.src = krlSrcInvite;
+  }
   if (db_dump.rulesets && db_dump.rulesets.versions) {
     for(var aRid in db_dump.rulesets.versions) {
       rs_data.rulesets[aRid] = {};
