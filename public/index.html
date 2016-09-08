@@ -1,121 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>Pico Engine</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/><![endif]-->
-    <link rel="stylesheet" href="/css/bootstrap-3.3.6.min.css"/>
-  </head>
-  <body>
-    <div id="main"></div>
-    <script id="template-main" type="text/x-handlebars-template">
-      {{#if loading}}
-        <h1>Loading...</h1>
-      {{else}}
-        <h1>Picos</h1>
-        {{#each db.pico}}
-          <div style="margin-left:2em">
-            <h2>{{id}} <a class="js-ajax-link" href="/api/rm-pico/{{id}}">del</a></h2>
-            <div style="margin-left:2em">
-              <h4>Channels</h4>
-              <ul>
-                {{#each channel}}
-                  <li>{{toJSON this}} <a class="js-ajax-link" href="/api/pico/{{../id}}/rm-channel/{{id}}">del</a></li>
-                {{/each}}
-              </ul>
-              <form class="js-ajax-form" action="/api/pico/{{id}}/new-channel" method="GET">
-                <input type="text" name="name" placeholder="name...">
-                <input type="text" name="type" placeholder="type...">
-                <button type="submit">add channel</button>
-              </form>
-              <h4>Rulesets</h4>
-              <ul>
-                {{#each ruleset}}
-                  <li>{{@key}} <a class="js-ajax-link" href="/api/pico/{{../id}}/rm-ruleset/{{@key}}">del</a></li>
-                {{/each}}
-              </ul>
-              <form class="js-ajax-form" action="/api/pico/{{id}}/add-ruleset" method="GET">
-                <input type="text" name="rid" placeholder="Ruleset id...">
-                <button type="submit">add ruleset</button>
-              </form>
-              <h4>`ent` Vars</h4>
-              <ul>
-                {{#each vars}}
-                  <li>{{@key}} = {{this}}</li>
-                {{/each}}
-              </ul>
-            </div>
-          </div>
-        {{/each}}
-        <a class="js-ajax-link" href="/api/new-pico">add pico</a>
-        <h1>Rulesets</h1>
-        <code>//TODO finish</code>
-        <form class="js-ajax-form" action="/api/ruleset/register" method="GET">
-          <textarea name="src"></textarea>
-          <button type="submit">register ruleset</button>
-        </form>
-        <hr/>
-        <pre>{{toJSON this}}</pre>
-      {{/if}}
-    </script>
-    <script src="/js/jquery-3.1.0.min.js"></script>
-    <script src="/js/handlebars.min.js"></script>
-    <script>
-      Handlebars.registerHelper("toJSON", function(data){
-        return JSON.stringify(data, undefined, 2);
-      });
-      var api = function(url, data, callback){
-        $.ajax({
-          type:"GET",
-          url: url,
-          data: data,
-          dataType: "json"
-        }).done(function(data){
-          callback(undefined, data);
-        }).fail(function(err){
-          callback(err);
-        });
-      };
-      var apiDefault = function(url, data){
-        render({loading: true});
-        api(url, data, function(err, data){
-          if(err) return render({error: err});
-          reRender();
-        });
-      };
-      var formToJSON = function(form){
-        var json = {};
-        $.each($(form).serializeArray(), function(key, elm){
-          json[elm.name] = elm.value;
-        });
-        return json;
-      };
-      var template = Handlebars.compile($("#template-main").html());
-      var $main = $("#main");
-      var render = function(state){
-        $main.html(template(state));
-      };
-      var reRender = function(){
-        render({loading: true});
-        api("/api/db-dump", {}, function(err, data){
-          if(err) return render({error: err});
-          render({db: data});
-        });
-      };
-
-      reRender();
-
-      $(document).on("click", "a.js-ajax-link", function(e){
-        e.preventDefault();
-        var url = $(this).attr("href");
-        apiDefault(url, {});
-      });
-      $(document).on("submit", "form.js-ajax-form", function(e){
-        e.preventDefault();
-        var url = $(this).attr("action");
-        apiDefault(url, formToJSON(this));
-      });
-
-    </script>
-  </body>
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
+<title>Pico Bootstrap</title>
+<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script src="js/index.js" type="text/javascript"></script>
+<style type="text/css">
+h1.title {
+  display: inline-block;
+  font-family: Arial, sans-serif;
+  margin: 0 0 0 120px;
+  padding-top: 18px;
+}
+a.logo img {
+  vertical-align: top;
+}
+a.logo {
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+<a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
+<h1 class="title">Pico Bootstrap</h1>
+<h2>Operations log</h2>
+<pre></pre>
+<h2>Manual next steps</h2>
+<p>
+Check the operations log, above.
+It shows the creation of the Pico and its channel,
+and the registering of the two
+rulesets which are needed by every Pico.
+</p>
+<h3>Enable and install rulesets</h3>
+<p>
+Visit the <a href="ruleset.html" target="ruleset">Engine Rulesets</a>
+page for each ruleset.
+While there, click on the enable button
+and then on the install button for each.
+</p>
+<h3>Add rulesets to the Pico</h3>
+<p>
+Visit the <a href="mypicos.html" target="mypicos">My Picos</a>
+page and in the Rulesets tab for the Owner Pico,
+add the two rulesets.
+</p>
+<h3>Record Owner Pico ids</h3>
+<p>
+The final bootstrap step is to <em>use</em>
+the Owner Pico ruleset to record
+its identifiers.
+To do this, visit its About tab
+and click on the link
+"send event pico/root_created"
+to inform it that it is
+the root of your Pico hierarchy.
+</p>
+<h2>Done</h2>
+<p>
+The bootstrap is now complete.
+You may close this tab and use
+the other two tabs to create
+your Pico hierarchy and
+add your own rulesets.
+</p>
+<h2>Reset database</h2>
+<p>
+If you wish to start over,
+it is safe to stop your
+HTTP server (use <code>Ctrl-C</code>)
+and remove the database.
+Use <code>rm -r db</code>
+to clear the database.
+Then restart the HTTP server
+(use <code>npm start</code>)
+which will create an empty
+database.
+Refresh this Bootstrap page
+and complete the bootstrap
+process each time you
+clear the database.
+</p>
+</body>
 </html>
