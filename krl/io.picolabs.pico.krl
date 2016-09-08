@@ -127,8 +127,8 @@ ruleset io.picolabs.pico {
       engine:signalEvent(
         { "eci": ent:parent.eci, "eid": 60,
           "domain": "pico", "type": "child_is_orphan",
-          "attrs": attrs })//;
-      //ent:parent = null
+          "attrs": attrs });
+      ent:parent = null
     }
   }
 
