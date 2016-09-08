@@ -48,10 +48,9 @@
 <b>ID: </b>
 <span id="about-pico-name">{{id}}{{#if root}}
 <a class="js-ajax-link" href="/sky/event/{{eci}}/19/pico/root_created?id={{id}}&eci={{eci}}">send event pico/root_created</a>{{/if}}</span>
-</p>
-<p>
 <b>ECI: </b>
 <span id="about-eci">{{eci}}</span>
+"{{dname}}"
 </p>
 <p>
 <b>Note: </b>
@@ -70,6 +69,7 @@ Do not disclose it or check it into a repository like Github.
 <p>
 <b>ID: </b><a class="js-nav" href="#{{parent.id}}-About">{{parent.id}}</a>
 <b>ECI: </b>{{parent.eci}}
+"{{parent.dname}}"
 </p>
 {{/if}}
 <h2>Children</h2>
@@ -80,6 +80,7 @@ Do not disclose it or check it into a repository like Github.
 {{#if canDel}}
 <a class="js-ajax-link" href="/sky/event/{{../eci}}/58/pico/delete_child_request?id={{this.id}}&eci={{this.eci}}">del</a>
 {{/if}}
+"{{this.dname}}"
 </p>
 {{/each}}
 <p>

@@ -72,11 +72,13 @@ $.getJSON("/api/db-dump", function(db_dump){
       }
       thePicoOut.parent = get(thePicoInp,["io.picolabs.pico","vars","parent"],undefined);
       if (!thePicoOut.parent) thePicoOut.root = true;
+      else thePicoOut.parent.dname = getV(db_dump.pico[thePicoOut.parent.id],"dname",undefined);
       thePicoOut.children = get(thePicoInp,["io.picolabs.pico","vars","children"],[]);
       var i = 0;
       var cLen = thePicoOut.children.length;
       for (; i<cLen; ++i) {
         var p = thePicoOut.children[i];
+        p.dname = getV(db_dump.pico[p.id],"dname",undefined);
         p.canDel = get(db_dump.pico,
                        [p.id,"io.picolabs.pico","vars","children"],
                        []).length == 0; 
