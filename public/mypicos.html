@@ -50,7 +50,7 @@
 <a class="js-ajax-link" href="/sky/event/{{eci}}/19/pico/root_created?id={{id}}&eci={{eci}}">send event pico/root_created</a>{{/if}}</span>
 <b>ECI: </b>
 <span id="about-eci">{{eci}}</span>
-"{{dname}}"
+<em>"{{dname}}"</em>
 </p>
 <p>
 <b>Note: </b>
@@ -69,7 +69,7 @@ Do not disclose it or check it into a repository like Github.
 <p>
 <b>ID: </b><a class="js-nav" href="#{{parent.id}}-About">{{parent.id}}</a>
 <b>ECI: </b>{{parent.eci}}
-"{{parent.dname}}"
+<em>"{{parent.dname}}"</em>
 </p>
 {{/if}}
 <h2>Children</h2>
@@ -80,11 +80,12 @@ Do not disclose it or check it into a repository like Github.
 {{#if canDel}}
 <a class="js-ajax-link" href="/sky/event/{{../eci}}/58/pico/delete_child_request?id={{this.id}}&eci={{this.eci}}">del</a>
 {{/if}}
-"{{this.dname}}"
+<em>"{{this.dname}}"</em>
 </p>
 {{/each}}
 <p>
 <form class="js-ajax-form" action="/sky/event/{{eci}}/52/pico/new_child_request" method="GET">
+<input type="text" name="dname" placeholder="display name">
 <button type="submit">add child pico</button>
 </form>
 </p>
@@ -119,9 +120,9 @@ Available Rulesets
 <script id="channels-template" type="text/x-handlebars-template">
 Channels
 <table border="1" cellspacing="0">
-<tr><th>name</th><th>id</th><th>type</th></tr>
+<tr><th>id</th><th>name</th><th>type</th></tr>
 {{#each channel}}
-<tr><td>{{name}}</td><td>{{id}}</td><td>{{type}}</td></tr>
+<tr><td>{{id}}</td><td>{{name}}</td><td>{{type}}</td></tr>
 {{/each}}
 </table>
 <p></p>
