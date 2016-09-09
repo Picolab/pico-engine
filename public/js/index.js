@@ -9,7 +9,6 @@ $(document).ready(function() {
       while(o && i<l) { o = o[p[i++]]; }
       return o ? o : v;
     }
-  log("Loading database");
   var createOwnerPico = function(callback){
     $.getJSON("/api/new-pico", function(d) {
       if (d && d.id) {
@@ -48,20 +47,21 @@ $(document).ready(function() {
       }
     },"text");
   };
-$.getJSON("/api/db-dump", function(db_dump){
-  log("Database loaded");
-  if (!db_dump.pico) {
-    log("Creating owner Pico");
-    createOwnerPico();
-  } else {
-    log("Database has an owner Pico");
-  }
-  if (!db_dump.rulesets) {
-    log("Registering rulesets");
-    installRuleset("io.picolabs.pico");
-    installRuleset("io.picolabs.visual_params");
-  } else {
-    log("Database has rulesets");
-  }
-});
+  log("Loading database");
+  $.getJSON("/api/db-dump", function(db_dump){
+    log("Database loaded");
+    if (db_dump.pico) {
+      log("Database has an owner Pico");
+    } else {
+      log("Creating owner Pico");
+      createOwnerPico();
+    }
+    if (db_dump.rulesets) {
+      log("Database has rulesets");
+    } else {
+      log("Registering rulesets");
+      installRuleset("io.picolabs.pico");
+      installRuleset("io.picolabs.visual_params");
+    }
+  });
 });
