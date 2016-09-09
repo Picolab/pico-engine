@@ -19,6 +19,7 @@ $(document).ready(function() {
             function(c){
               if (c && c.id) {
                 log("Owner Pico ECI: "+c.id);
+                callback(c.id);
               } else {
                 log("*Problem creating owner Pico channel");
               }
@@ -38,6 +39,7 @@ $(document).ready(function() {
         $.getJSON("/api/ruleset/register",{"src":k},function(r){
           if (r && r.ok) {
             log(rid+" registered");
+            callback();
           } else {
             log("*Problem registering "+rid);
           }
@@ -52,16 +54,20 @@ $(document).ready(function() {
     log("Database loaded");
     if (db_dump.pico) {
       log("Database has an owner Pico");
+      if (db_dump.rulesets) {
+        log("Database has rulesets");
+      } else {
+        log("*Problem");
+      }
     } else {
       log("Creating owner Pico");
-      createOwnerPico();
-    }
-    if (db_dump.rulesets) {
-      log("Database has rulesets");
-    } else {
-      log("Registering rulesets");
-      installRuleset("io.picolabs.pico");
-      installRuleset("io.picolabs.visual_params");
+      createOwnerPico(function(eci){
+        log("Registering rulesets");
+        installRuleset("io.picolabs.pico",function(){
+          installRuleset("io.picolabs.visual_params",function(){
+          });
+        });
+      });
     }
   });
 });
