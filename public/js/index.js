@@ -10,10 +10,7 @@ $(document).ready(function() {
       return o ? o : v;
     }
   log("Loading database");
-$.getJSON("/api/db-dump", function(db_dump){
-  log("Database loaded");
-  if (!db_dump.pico) {
-    log("Creating owner Pico");
+  var createOwnerPico = function(callback){
     $.getJSON("/api/new-pico", function(d) {
       if (d && d.id) {
         log("Pico created: "+d.id);
@@ -32,43 +29,37 @@ $.getJSON("/api/db-dump", function(db_dump){
         log("*Problem creating owner Pico");
       }
     });
+  };
+  var installRuleset = function(rid,callback){
+    log("Getting "+rid);
+    $.get("https://raw.githubusercontent.com/Picolab/node-pico-engine/master/krl/"+rid+".krl",function(k){
+      if (k && k.length > 0) {
+        log(rid+".krl length: "+k.length);
+        log("Registering "+rid);
+        $.getJSON("/api/ruleset/register",{"src":k},function(r){
+          if (r && r.ok) {
+            log(rid+" registered");
+          } else {
+            log("*Problem registering "+rid);
+          }
+        });
+      } else {
+        log("*Problem getting "+rid);
+      }
+    },"text");
+  };
+$.getJSON("/api/db-dump", function(db_dump){
+  log("Database loaded");
+  if (!db_dump.pico) {
+    log("Creating owner Pico");
+    createOwnerPico();
   } else {
     log("Database has an owner Pico");
   }
   if (!db_dump.rulesets) {
     log("Registering rulesets");
-    log("Getting io.picolabs.pico.krl");
-    $.get("https://raw.githubusercontent.com/Picolab/node-pico-engine/master/krl/io.picolabs.pico.krl",function(k){
-      if (k && k.length > 0) {
-        log("io.picolabs.pico.krl length: "+k.length);
-        log("Registering io.picolabs.pico");
-        $.getJSON("/api/ruleset/register",{"src":k},function(r){
-          if (r && r.ok) {
-            log("io.picolabs.pico registered");
-          } else {
-            log("*Problem registering io.picolabs.pico");
-          }
-        });
-      } else {
-        log("*Problem getting io.picolabs.pico.krl");
-      }
-    },"text");
-    log("Getting io.picolabs.visual_params.krl");
-    $.get("https://raw.githubusercontent.com/Picolab/node-pico-engine/master/krl/io.picolabs.visual_params.krl",function(k){
-      if (k && k.length > 0) {
-        log("io.picolabs.visual_params.krl length: "+k.length);
-        log("Registering io.picolabs.visual_params");
-        $.getJSON("/api/ruleset/register",{"src":k},function(r){
-          if (r && r.ok) {
-            log("io.picolabs.visual_params registered");
-          } else {
-            log("*Problem registering io.picolabs.visual_params");
-          }
-        });
-      } else {
-        log("*Problem getting io.picolabs.visual_params.krl");
-      }
-    },"text");
+    installRuleset("io.picolabs.pico");
+    installRuleset("io.picolabs.visual_params");
   } else {
     log("Database has rulesets");
   }
