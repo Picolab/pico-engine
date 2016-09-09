@@ -113,12 +113,17 @@ $.getJSON("/api/db-dump", function(db_dump){
     e.preventDefault();
     var rid = this.rid.value;
     if (ridRE.test(rid)) {
-      $("pre#feedback").html("Registering...");
-      var src = "ruleset "+rid+" {\n}";
-      $.getJSON("/api/ruleset/register",{"src":src},function(result){
+      if (get(db_dump,["rulesets","versions",rid],undefined)) {
         location.hash = rid;
         location.reload();
-      });
+      } else {
+        $("pre#feedback").html("Registering...");
+        var src = "ruleset "+rid+" {\n}";
+        $.getJSON("/api/ruleset/register",{"src":src},function(result){
+          location.hash = rid;
+          location.reload();
+        });
+      }
     } else {
       alert("invalid ruleset id");
     }
