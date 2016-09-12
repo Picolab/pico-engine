@@ -27,7 +27,7 @@ appropriate for those who wish to contribute
 improvements:
 
 Install by:
- * `git clone https://github.com/Picolab/node-pico-engine`
+ * `git clone https://github.com/Picolab/node-pico-engine.git`
  * `npm install`
 
 Start with:
