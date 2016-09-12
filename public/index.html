@@ -25,51 +25,36 @@ a.logo {
 <h1 class="title">Pico Bootstrap</h1>
 <h2>Operations log</h2>
 <pre></pre>
-<h2>Manual next steps</h2>
+<h3>Review operations log</h3>
 <p>
 Check the operations log, above.
-It shows the creation of the Pico and its channel,
-and the registering of the two
-rulesets which are needed by every Pico.
-</p>
-<h3>Enable and install rulesets</h3>
-<p>
-Visit the <a href="ruleset.html" target="ruleset">Engine Rulesets</a>
-page for each ruleset.
-While there, click on the enable button
-and then on the install button for each.
-</p>
-<h3>Add rulesets to the Pico</h3>
-<p>
-Visit the <a href="mypicos.html" target="mypicos">My Picos</a>
-page and in the Rulesets tab for the Owner Pico,
-add the two rulesets.
-</p>
-<h3>Record Owner Pico ids</h3>
-<p>
-The final bootstrap step is to <em>use</em>
-the Owner Pico ruleset to record
-its identifiers.
-To do this, visit its About tab
-and click on the link
-"send event pico/root_created"
-to inform it that it is
-the root of your Pico hierarchy.
+Any problems will appear as
+"*Problem..."
+Please report any problems.
 </p>
 <h2>Done</h2>
 <p>
 The bootstrap is now complete.
-You may close this tab and use
-the other two tabs to create
-your Pico hierarchy and
-add your own rulesets.
+</p>
+<h3>Managing Picos</h3>
+<p>
+Visit the <a href="mypicos.html" target="mypicos">My Picos</a>
+page to see your Owner Pico.
+On the My Picos page you can create a hierarchy of
+Picos.
+</p>
+<h3>Managing rulesets</h3>
+<p>
+To create your own rulesets,
+use the <a href="ruleset.html" target="ruleset">Engine Rulesets</a>
+page.
 </p>
 <h2>Reset database</h2>
 <p>
 If you wish to start over,
-it is safe to stop your
-HTTP server (use <code>Ctrl-C</code>)
-and remove the database.
+remove the database.
+First, stop your
+HTTP server (use <code>Ctrl-C</code>).
 Use <code>rm -r db</code>
 to clear the database.
 Then restart the HTTP server
@@ -77,8 +62,7 @@ Then restart the HTTP server
 which will create an empty
 database.
 Refresh this Bootstrap page
-and complete the bootstrap
-process each time you
+each time you
 clear the database.
 </p>
 </body>
