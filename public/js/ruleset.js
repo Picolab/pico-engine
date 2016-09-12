@@ -90,10 +90,7 @@ $.getJSON("/api/db-dump", function(db_dump){
   rs_data.title = "Engine Rulesets";
   rs_data.descr = "These are the rulesets hosted by this KRE.";
   if(rid){
-    rs_data.src = srcFromEnabled(rid);
-    if (!rs_data.src) {
-      rs_data.src = srcFromVersions(rid,krlSrcInvite);
-    }
+    rs_data.src = srcFromVersions(rid,krlSrcInvite);
   } else {
     rs_data.src = krlSrcInvite;
   }
