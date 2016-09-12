@@ -14,7 +14,7 @@ ruleset io.picolabs.visual_params {
       stuff = "width:" + ent:width.as("String") + "px;"
             + "left:" + ent:left.as("String") + "px;"
             + "top:" + ent:top.as("String") + "px;"
-            + "background-color:" + ent:color.defaultsTo("#ccc");
+            + "background-color:" + ent:color;
       stuff.klog("style:")
     }
   }
@@ -23,7 +23,7 @@ ruleset io.picolabs.visual_params {
     select when visual update
     pre {
       dname = event:attr("dname")
-      color = event:attr("color")
+      color = event:attr("color").defaultsTo("#ccc")
     }
     always {
       ent:dname = dname;
