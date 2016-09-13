@@ -11,9 +11,9 @@ ruleset io.picolabs.visual_params {
       info.klog("Visual Info:")
     }
     style = function() {
-      stuff = "width:" + ent:width.as("String") + "px;"
-            + "left:" + ent:left.as("String") + "px;"
-            + "top:" + ent:top.as("String") + "px;"
+      stuff = width => "width:" + ent:width + "px;" | ""
+            + "left:" + ent:left + "px;"
+            + "top:" + ent:top + "px;"
             + "background-color:" + ent:color;
       stuff.klog("style:")
     }
@@ -34,25 +34,25 @@ ruleset io.picolabs.visual_params {
   rule visual_moved {
     select when visual moved
     pre {
-      left = event:attr("left")
-      top = event:attr("top")
+      left = event:attr("left").as("String")
+      top = event:attr("top").as("String")
     }
     if left != ent:left || top != ent:top then noop()
     fired {
-      ent:left = left.as("Number").klog("left");
-      ent:top = top.as("Number").klog("top")
+      ent:left = left.klog("left");
+      ent:top = top.klog("top")
     }
   }
 
   rule visual_config {
     select when visual config
     pre {
-      width = event:attr("width")
-      height = event:attr("height")
+      width = event:attr("width").defaultsTo("100").as("String")
+      height = event:attr("height").defaultsTo("100").as("String")
     }
     always {
-      ent:width = width.defaultsTo("100").as("Number").klog("width");
-      ent:height = height.defaultsTo("100").as("Number").klog("height")
+      ent:width = width.klog("width");
+      ent:height = height.klog("height")
     }
   }
 
