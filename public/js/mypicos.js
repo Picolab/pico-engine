@@ -60,7 +60,8 @@ $.getJSON("/api/db-dump", function(db_dump){
     top: 0,
     left: 0 };
   var fadeOutOptions;
-  var specDB = function($li) { //specialize the db for the particular tab
+  //specialize the db for the particular tab
+  var specDB = function($li,callback) {
     var label = $li.html();
     var thePicoInp = db_dump.pico[$li.parent().parent().prev().attr("id")];
     if (label === "About") {
@@ -87,7 +88,7 @@ $.getJSON("/api/db-dump", function(db_dump){
                               $li.parent().parent().prev().text());
       thePicoOut.color = getV(thePicoInp,"color",
                               thePicoOut.parent?"#7FFFD4":"#87CEFA");
-      return thePicoOut;
+      callback(thePicoOut);
     } else if (label === "Rulesets") {
       var theRulesetInp = thePicoInp;
       var installedRS = {};
@@ -114,11 +115,9 @@ $.getJSON("/api/db-dump", function(db_dump){
         "pico_id": thePicoInp.id,
         "installed": installedRS,
         "avail" : avail };
-      return theRulesetOut;
-    } else if (label === "Channels") {
-      return thePicoInp;
+      callback(theRulesetOut);
     } else {
-      return db_dump;
+      callback(thePicoInp);
     }
   }
   var displayKrl = function() {
@@ -132,7 +131,7 @@ $.getJSON("/api/db-dump", function(db_dump){
       var liContent = $(this).html().toLowerCase();
       var tabTemplate = Handlebars.compile($('#'+liContent+'-template').html());
       var $theSection = $(this).parent().next('.pico-section');
-      var theDB = specDB($(this));
+      specDB($(this),function(theDB){
       $theSection.html(tabTemplate(theDB));
       var d = "";
       if(liContent === "rulesets") {
@@ -163,7 +162,7 @@ $.getJSON("/api/db-dump", function(db_dump){
               location.hash = d;
             }
             location.reload();
-          });
+        });
       });
       $theSection.find('.js-nav').click(function(e){
         e.preventDefault();
@@ -172,6 +171,7 @@ $.getJSON("/api/db-dump", function(db_dump){
           location.hash = d;
         }
         location.reload();
+      });
       });
     };
   var mpl = Handlebars.compile($('#the-template').html());
