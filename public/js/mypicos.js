@@ -294,8 +294,8 @@ $.getJSON("/api/db-dump", function(db_dump){
       function(pico,dNumber,dLeft,dTop){
         pico.dname = getV(pico,"dname",dNumber?"Child "+dNumber:"Owner Pico");
         var width = getV(pico,"width",undefined);
-        var left = getV(pico,"left",dLeft);
-        var top = getV(pico,"top",dTop);
+        var left = Math.floor(parseFloat(getV(pico,"left",dLeft)));
+        var top = Math.floor(parseFloat(getV(pico,"top",dTop)));
         var color = getV(pico,"color",dNumber?"aquamarine":"lightskyblue");
         pico.style = getV(pico,"style",
           (width?"width:"+width+"px;":"")
@@ -311,7 +311,7 @@ $.getJSON("/api/db-dump", function(db_dump){
           walkPico(cp,dNumber*10+i+1,left+(i*10)+20,top+20);
         }
       }
-    walkPico(ownerPico,0,300,50);
+    walkPico(ownerPico,0,"300","50");
     renderGraph(db_graph);
   }
 });
