@@ -28,6 +28,7 @@ ruleset io.picolabs.pico {
     select when pico new_child_request
     pre {
       child_dname = event:attr("dname")
+      child_color = event:attr("color")
       child = engine:newPico()
       child_id = child.id
       child_eci = engine:newChannel(
@@ -55,7 +56,7 @@ ruleset io.picolabs.pico {
       engine:signalEvent(
          { "eci": child_eci, "eid": 59,
            "domain": "visual", "type": "update",
-           "attrs": { "dname": child_dname } })
+           "attrs": { "dname": child_dname, "color": child_color } })
     }
   }
 
