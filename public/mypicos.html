@@ -141,7 +141,7 @@ Logging
 <script id="testing-template" type="text/x-handlebars-template">
 <div style="float:left;width:40%;height=100%">
 Testing
-{{#each ruleset}}
+{{#each testing}}
 <p>{{this.rid}}</p>
 {{#if capabilities.queries}}
 <ul>
@@ -165,7 +165,7 @@ Testing
 {{/if}}
 {{/each}}
 </div>
-{{#if ruleset}}
+{{#if testing}}
 <div id="test-results" style="margin-left:40%">
 Results
 <pre></pre>

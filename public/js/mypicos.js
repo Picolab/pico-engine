@@ -148,7 +148,7 @@ $.getJSON("/api/db-dump", function(db_dump){
       parMap(theRids,
              getCapabilities.bind(null,eci),
              function (theCapabilities) {
-               callback({ "ruleset": theCapabilities });
+               callback({ "testing": theCapabilities });
              });
     } else {
       callback(thePicoInp);
