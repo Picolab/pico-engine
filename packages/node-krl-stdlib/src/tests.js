@@ -49,6 +49,9 @@ test("general operators", function(t){
   t.equals(stdlib.as("str", "String"), "str");
   var test_regex = /^a.*z$/;
   t.equals(stdlib.as(test_regex, "RegExp"), test_regex);
+  t.equals(stdlib.as("true", "Boolean"), true);
+  t.equals(stdlib.as("false", "Boolean"), false);
+  t.equals(stdlib.as(0, "Boolean"), false);
 
   t.equals(stdlib.isnull(), true);
   t.equals(stdlib.isnull(void 0), true);

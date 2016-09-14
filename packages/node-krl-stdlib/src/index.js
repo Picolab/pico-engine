@@ -74,6 +74,12 @@ stdlib.as = function(val, type){
   if(val_type === type){
     return val;
   }
+  if(type === "Boolean"){
+    if(val === "false"){
+      return false;
+    }
+    return !!val;
+  }
   if(val_type === "String"){
     if(type === "Number"){
       return parseFloat(val) || 0;
