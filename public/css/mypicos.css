@@ -12,6 +12,15 @@ div.pico {
   padding: 10px;
   z-index: 1000;
 }
+div.resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 25px;
+  height: 25px;
+  z-index: 1001;
+  cursor: nwse-resize;
+}
 div.pico-edit {
   display: none;
   position: absolute;
@@ -21,7 +30,7 @@ div.pico-edit {
   border-radius: 25px;
   padding: 10px;
   margin-right: 50px;
-  z-index: 1001;
+  z-index: 1002;
   overflow: hidden;
 }
 div.pico-edit ul.horiz-menu {

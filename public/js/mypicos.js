@@ -229,11 +229,27 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
     return id;
   }
+  var resizeOptions = {
+    maxHeight: 200,
+    maxWidth: 200,
+    minHeight: 50,
+    minWidth: 50,
+    resize: dragmove,
+    stop: function(event,ui) {
+      if(!renderDemo) {
+        var nodeId = ui.helper[0].getAttribute("id");
+        $.getJSON(
+          "/sky/event/"+findEciById(nodeId)+"/25/visual/config",
+          { width: ui.size.width, height: ui.size.height });
+      }
+    }
+  };
   var renderGraph =
      function(data){
        $('body').html(mpl(data));
        document.title = $('body h1').html();
        $('div.pico')
+         .resizable(resizeOptions)
          .draggable({ containment: "parent", drag: dragmove, stop: dragstop })
          .click(function(){
                   fadeOutOptions = {
@@ -294,11 +310,13 @@ $.getJSON("/api/db-dump", function(db_dump){
       function(pico,dNumber,dLeft,dTop){
         pico.dname = getV(pico,"dname",dNumber?"Child "+dNumber:"Owner Pico");
         var width = getV(pico,"width",undefined);
+        var height = getV(pico,"height",100);
         var left = Math.floor(parseFloat(getV(pico,"left",dLeft)));
         var top = Math.floor(parseFloat(getV(pico,"top",dTop)));
         var color = getV(pico,"color",dNumber?"aquamarine":"lightskyblue");
         pico.style = getV(pico,"style",
           (width?"width:"+width+"px;":"")
+          +"height:"+height+"px;"
           +"left:"+left+"px;"
           +"top:"+top+"px;"
           +"background-color:"+color);
