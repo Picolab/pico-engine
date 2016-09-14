@@ -8,6 +8,7 @@
   },
   "files": [
     "bin",
+    "public",
     "src"
   ],
   "scripts": {
