@@ -55,8 +55,8 @@ ruleset io.picolabs.visual_params {
   rule visual_config {
     select when visual config
     pre {
-      width = event:attr("width").defaultsTo("100").as("String")
-      height = event:attr("height").defaultsTo("100").as("String")
+      width = event:attr("width").as("String")
+      height = event:attr("height").as("String")
     }
     always {
       ent:width = width.klog("width");
