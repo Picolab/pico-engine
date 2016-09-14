@@ -40,40 +40,43 @@ test("general operators", function(t){
 
 test("general operators", function(t){
 
-  t.equals(stdlib.as(1, "String"), "1");
-  t.equals(stdlib.as(.32, "String"), "0.32");
+  var tf = _.partial(testFn, t);
+  tf("as", [1, "String"], "1");
+
+  tf("as", [1, "String"], "1");
+  tf("as", [.32, "String"], "0.32");
   assertThrows(t, stdlib.as, [NaN, "String"]);
-  t.equals(stdlib.as("-1.23", "Number"), -1.23);
+  tf("as", ["-1.23", "Number"], -1.23);
   t.equals(stdlib.as("^a.*z$", "RegExp").source, /^a.*z$/.source);
-  t.equals(stdlib.as(42, "Number"), 42);
-  t.equals(stdlib.as("str", "String"), "str");
+  tf("as", [42, "Number"], 42);
+  tf("as", ["str", "String"], "str");
   var test_regex = /^a.*z$/;
-  t.equals(stdlib.as(test_regex, "RegExp"), test_regex);
-  t.equals(stdlib.as("true", "Boolean"), true);
-  t.equals(stdlib.as("false", "Boolean"), false);
-  t.equals(stdlib.as(0, "Boolean"), false);
+  tf("as", [test_regex, "RegExp"], test_regex);
+  tf("as", ["true", "Boolean"], true);
+  tf("as", ["false", "Boolean"], false);
+  tf("as", [0, "Boolean"], false);
 
-  t.equals(stdlib.isnull(), true);
-  t.equals(stdlib.isnull(void 0), true);
-  t.equals(stdlib.isnull(null), true);
-  t.equals(stdlib.isnull(NaN), true);
-  t.equals(stdlib.isnull(false), false);
-  t.equals(stdlib.isnull(0), false);
-  t.equals(stdlib.isnull(""), false);
-  t.equals(stdlib.isnull({}), false);
+  tf("isnull", [], true);
+  tf("isnull", [void 0], true);
+  tf("isnull", [null], true);
+  tf("isnull", [NaN], true);
+  tf("isnull", [false], false);
+  tf("isnull", [0], false);
+  tf("isnull", [""], false);
+  tf("isnull", [{}], false);
 
-  t.equals(stdlib["typeof"](""), "String");
-  t.equals(stdlib["typeof"](0), "Number");
-  t.equals(stdlib["typeof"](-.01), "Number");
-  t.equals(stdlib["typeof"](10e10), "Number");
-  t.equals(stdlib["typeof"](true), "Boolean");
-  t.equals(stdlib["typeof"](false), "Boolean");
-  t.equals(stdlib["typeof"](void 0), "Null");
-  t.equals(stdlib["typeof"](null), "Null");
-  t.equals(stdlib["typeof"](NaN), "Null");
-  t.equals(stdlib["typeof"](/a/), "RegExp");
-  t.equals(stdlib["typeof"]([]), "Array");
-  t.equals(stdlib["typeof"]({}), "Map");
+  tf("typeof", [""], "String");
+  tf("typeof", [0], "Number");
+  tf("typeof", [-.01], "Number");
+  tf("typeof", [10e10], "Number");
+  tf("typeof", [true], "Boolean");
+  tf("typeof", [false], "Boolean");
+  tf("typeof", [void 0], "Null");
+  tf("typeof", [null], "Null");
+  tf("typeof", [NaN], "Null");
+  tf("typeof", [/a/], "RegExp");
+  tf("typeof", [[]], "Array");
+  tf("typeof", [{}], "Map");
 
   t.end();
 });
