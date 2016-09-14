@@ -1,6 +1,6 @@
 ruleset io.picolabs.pico {
   meta {
-    shares myself, parent, children
+    shares myself, parent, children, __testing
   }
   global {
     myself = function(){
@@ -15,6 +15,12 @@ ruleset io.picolabs.pico {
     hasChild = function(child){
       temp = children().union(child);
       temp.length() == children().length()
+    }
+
+    __testing = function() {
+      { "queries": [ { "name": "myself" },
+                     { "name": "__testing" } ]
+      }
     }
   }
 
@@ -156,3 +162,4 @@ ruleset io.picolabs.pico {
     }
   }
 }
+

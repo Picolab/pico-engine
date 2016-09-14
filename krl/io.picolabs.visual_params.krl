@@ -1,6 +1,6 @@
 ruleset io.picolabs.visual_params {
   meta {
-    shares visualInfo, style
+    shares visualInfo, style, __testing
   }
   global {
     visualInfo = function() {
@@ -11,11 +11,19 @@ ruleset io.picolabs.visual_params {
       info.klog("Visual Info:")
     }
     style = function() {
-      stuff = width => "width:" + ent:width + "px;" | ""
+      stuff = "width:" + ent:width + "px;"
             + "left:" + ent:left + "px;"
             + "top:" + ent:top + "px;"
             + "background-color:" + ent:color;
       stuff.klog("style:")
+    }
+
+    __testing = function() {
+      { "queries": [ { "name": "visualInfo" },
+                     { "name": "style" },
+                     { "name": "__testing" } ],
+        "events": [ { "domain": "visual", "type": "config", "attrs": [ "width", "height" ] } ]
+      }
     }
   }
 
@@ -62,3 +70,4 @@ ruleset io.picolabs.visual_params {
       with visual_info = visualInfo()
   }
 }
+

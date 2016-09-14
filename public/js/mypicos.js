@@ -43,6 +43,29 @@ $(document).ready(function() {
     });
     return json;
   };
+  var getCapabilities = function(eci,rid,callback) {
+    var ans = { "eci":eci, "rid":rid, "capabilities":{} };
+    $.getJSON("/sky/cloud/"+eci+"/"+rid+"/__testing",function(c){
+      ans.capabilities = c;
+      callback(ans);
+    }).fail(function(){
+      callback(ans);
+    });
+  };
+  var parMap = function (arr, visitor, done) {
+    var count = 0;
+    var target = arr.length;
+    var outp = new Array(target);
+    var maybeDone = function (index,result) {
+      outp[index] = result;
+      if (++count === target) {
+        done(outp);
+      }
+    }
+    for (var i=0; i<target; ++i) {
+      visitor(arr[i], maybeDone.bind(null,i));
+    }
+  };
 $.getJSON("/api/db-dump", function(db_dump){
   var dragstop = function(event,ui) {
     var nodeId = ui.helper[0].getAttribute("id");
@@ -116,6 +139,17 @@ $.getJSON("/api/db-dump", function(db_dump){
         "installed": installedRS,
         "avail" : avail };
       callback(theRulesetOut);
+    } else if (label === "Testing") {
+      var eci = findEciById(thePicoInp.id);
+      var theRids = [];
+      for (var rid in thePicoInp.ruleset) {
+        theRids.push(rid);
+      }
+      parMap(theRids,
+             getCapabilities.bind(null,eci),
+             function (theCapabilities) {
+               callback({ "ruleset": theCapabilities });
+             });
     } else {
       callback(thePicoInp);
     }
@@ -171,6 +205,19 @@ $.getJSON("/api/db-dump", function(db_dump){
           location.hash = d;
         }
         location.reload();
+      });
+      var $theResultsPre = $theSection.find('div#test-results pre');
+      $theSection.find('form.js-test').submit(function(e){
+        e.preventDefault();
+        $.getJSON($(this).attr("action"),formToJSON(this),function(ans){
+          $theResultsPre.html(JSON.stringify(ans,undefined,2));
+        });
+      });
+      $theSection.find('a.js-test').click(function(e){
+        e.preventDefault();
+        $.getJSON($(this).attr("href"),{},function(ans){
+          $theResultsPre.html(JSON.stringify(ans,undefined,2));
+        });
       });
       });
     };

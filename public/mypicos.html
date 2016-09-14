@@ -29,6 +29,7 @@
 <li>Channels</li>
 <li>Subscriptions</li>
 <li>Logging</li>
+<li>Testing</li>
 </ul>
 <div class="pico-section"></div>
 </div>
@@ -136,6 +137,40 @@ Subscriptions
 </script>
 <script id="logging-template" type="text/x-handlebars-template">
 Logging
+</script>
+<script id="testing-template" type="text/x-handlebars-template">
+<div style="float:left;width:40%;height=100%">
+Testing
+{{#each ruleset}}
+<p>{{this.rid}}</p>
+{{#if capabilities.queries}}
+<ul>
+{{#each capabilities.queries}}
+<li><a class="js-test" href="sky/cloud/{{../eci}}/{{../rid}}/{{this.name}}">{{this.name}}</a></li>
+{{/each}}
+</ul>
+{{/if}}
+{{#if capabilities.events}}
+<ul>
+{{#each capabilities.events}}
+<li><form class="js-test" action="sky/event/{{../eci}}/5/{{this.domain}}/{{this.type}}">
+{{#if this.attrs}}
+{{#each this.attrs}}
+<input type="text" name="{{this}}" placeholder="{{this}}">
+{{/each}}
+{{/if}}
+<input type="submit" value="{{this.domain}}/{{this.type}}"></form></li>
+{{/each}}
+</ul>
+{{/if}}
+{{/each}}
+</div>
+{{#if ruleset}}
+<div id="test-results" style="margin-left:40%">
+Results
+<pre></pre>
+</div>
+{{/if}}
 </script>
 </head>
 <body>
