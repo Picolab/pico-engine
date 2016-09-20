@@ -64,6 +64,7 @@ div.pico-section {
   background-color: white;
   padding: 20px;
   overflow: auto;
+  border-radius: 0 0 15px 15px;
 }
 svg {
   width: 100%;
