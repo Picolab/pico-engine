@@ -93,9 +93,8 @@ Do not disclose it or check it into a repository like Github.
 </p>
 </script>
 <script id="rulesets-template" type="text/x-handlebars-template">
-<div style="float:left;max-width:40%">
 Pico Rulesets
-<ul class="rulesets">
+<ul style="list-style: none;padding:0">
 {{#each installed}}
 <li class="krlrid">{{@key}}</li>
 <ul>
@@ -117,7 +116,6 @@ Available Rulesets
 <button type="submit">add ruleset</button>
 </form>
 {{/if}}
-</div>
 </script>
 <script id="channels-template" type="text/x-handlebars-template">
 Channels
