@@ -148,7 +148,8 @@ $.getJSON("/api/db-dump", function(db_dump){
       parMap(theRids,
              getCapabilities.bind(null,eci),
              function (theCapabilities) {
-               callback({ "testing": theCapabilities });
+               callback({ "testing": theCapabilities,
+                          "pico_id": thePicoInp.id });
              });
     } else {
       callback(thePicoInp);
@@ -171,6 +172,8 @@ $.getJSON("/api/db-dump", function(db_dump){
       if(liContent === "rulesets") {
         $(".pico-edit .krlrid").click(displayKrl);
         d = theDB.pico_id+"-Rulesets";
+      } else if(liContent === "testing") {
+        location.hash = theDB.pico_id+"-Testing";
       } else if(liContent === "about") {
         $theSection.find('.use-minicolors').minicolors(
           { swatches: "#ccc|#fcc|#7fffd4|#ccf|#ffc|#87CEFA|#fcf".split('|')});
