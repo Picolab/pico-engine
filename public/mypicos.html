@@ -147,7 +147,7 @@ Testing
 {{#each testing}}
 <li class="krlrid">{{this.rid}}</li>
 {{#if capabilities.queries}}
-<ul>
+<ul style="list-style-type:circle">
 {{#each capabilities.queries}}
 <li><form class="js-test sky-cloud" action="sky/cloud/{{../eci}}/{{../rid}}/{{this.name}}">
 {{#if this.args}}
@@ -160,7 +160,7 @@ Testing
 </ul>
 {{/if}}
 {{#if capabilities.events}}
-<ul>
+<ul style="list-style-type:disc">
 {{#each capabilities.events}}
 <li><form class="js-test" action="sky/event/{{../eci}}/5/{{this.domain}}/{{this.type}}">
 {{#if this.attrs}}
@@ -173,6 +173,11 @@ Testing
 </ul>
 {{/if}}
 {{/each}}
+<li>Legend</li>
+<ul>
+<li style="list-style-type:circle">query</li>
+<li style="list-style-type:disc">event</li>
+</ul>
 </ul>
 </div>
 {{#if testing}}
