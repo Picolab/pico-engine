@@ -50,16 +50,16 @@ $.getJSON("/api/db-dump", function(db_dump){
   }
   var krlSrcInvite = "//click on a ruleset name to see its source here";
   var displayKrl = function() {
-    $(this).siblings(".krl-showing").toggleClass("krl-showing");
-    if($(this).hasClass("krl-showing")) {
+    $(this).parent().siblings(".krl-showing").toggleClass("krl-showing");
+    if($(this).parent().hasClass("krl-showing")) {
       $(".krlsrc textarea").html(krlSrcInvite);
     } else {
       var rid = $(this).html();
       var src = srcFromEnabled(rid);
       if (src) {
-        $(this).removeClass("disabled");
+        $(this).parent().removeClass("disabled");
       } else {
-        $(this).addClass("disabled");
+        $(this).parent().addClass("disabled");
         src = srcFromVersions(rid,"N/A");
       }
       if (location.hash.substring(1) === rid) {
@@ -69,7 +69,7 @@ $.getJSON("/api/db-dump", function(db_dump){
         location.reload();
       }
     }
-    $(this).toggleClass("krl-showing");
+    $(this).parent().toggleClass("krl-showing");
     $("pre#feedback").html("");
   }
   var renderContent =
@@ -77,12 +77,12 @@ $.getJSON("/api/db-dump", function(db_dump){
       var mpl = Handlebars.compile($('#the-template').html());
       $('body').html(mpl(data));
       document.title = $('body h1').html();
-      $(".krlrid").click(displayKrl);
+      $(".krlrid span").click(displayKrl);
       $(".krlsrc input").val(rid);
       $(".lined").linedtextarea();
       if(rid){
         $(".krlrid").filter(function(){
-          return $(this).text() === rid;
+          return $(this).find('span').text() === rid;
         }).toggleClass("krl-showing");
       }
     };

@@ -10,8 +10,10 @@
 <script type="text/javascript" src="js/jquery-linedtextarea.js"></script>
 <script src="js/ruleset.js" type="text/javascript"></script>
 <script id="the-template" type="text/x-handlebars-template">
+<div id="top">
 <a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
 <h1 class="title">{{title}}</h1>
+</div>
 <div id="container">
 <p class="description">
 {{descr}}
@@ -20,7 +22,7 @@
 Registered Rulesets
 <ul>
 {{#each rulesets}}
-<li class="krlrid{{#unless enabled}} disabled{{/unless}}">{{@key}}</li>
+<li class="krlrid{{#unless enabled}} disabled{{/unless}}"><span>{{@key}}</span></li>
 {{/each}}
 </ul>
 <hr>

@@ -1,7 +1,17 @@
-div#container {
-  position: relative;
-  width: 100%;
+html {
+  margin: 0;
+  padding: 0;
+}
+body {
   height: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+div#container {
+  width: 100%;
+  height: calc(100% - 66px);
 }
 div p.description {
   display: inline-block;
@@ -17,6 +27,7 @@ h1.title {
   padding-top: 18px;
 }
 a.logo img {
+  margin-left: 8px;
   vertical-align: top;
 }
 a.logo {
@@ -30,28 +41,28 @@ a.logo {
   margin-top: 100px;
   min-width: 250px;
 }
-li.krlrid:hover {
+li.krlrid span:hover {
   background-color: silver;
   cursor: pointer;
 }
-li.krl-showing {
+li.krl-showing span {
   background-color: #87cefa;
 }
 li.disabled {
   list-style-type: circle;
 }
 div.krlsrc {
-  height:95%;
   padding: 0 0 0 15px;
-  overflow:hidden;
+  overflow: hidden;
 }
 div.krlsrc textarea {
   box-sizing: border-box;
   width: 90%;
-  height: 80%;
+  height: calc(100% - 42px - 6em);
 }
 div.krlsrc pre#feedback {
   background-color: #F5F5F5;
   width: 90%;
+  /* height: 6em; */
   overflow: auto;
 }

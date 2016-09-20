@@ -172,6 +172,7 @@ $.getJSON("/api/db-dump", function(db_dump){
       if(liContent === "rulesets") {
         $(".pico-edit .krlrid").click(displayKrl);
         d = theDB.pico_id+"-Rulesets";
+        location.hash = d;
       } else if(liContent === "testing") {
         $(".pico-edit .krlrid").click(displayKrl);
         location.hash = theDB.pico_id+"-Testing";
