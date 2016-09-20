@@ -143,8 +143,9 @@ Logging
 <script id="testing-template" type="text/x-handlebars-template">
 <div style="float:left;width:40%;height=100%">
 Testing
+<ul style="list-style: none;padding:0">
 {{#each testing}}
-<p>{{this.rid}}</p>
+<li class="krlrid">{{this.rid}}</li>
 {{#if capabilities.queries}}
 <ul>
 {{#each capabilities.queries}}
@@ -172,6 +173,7 @@ Testing
 </ul>
 {{/if}}
 {{/each}}
+</ul>
 </div>
 {{#if testing}}
 <div id="test-results" style="margin-left:40%">

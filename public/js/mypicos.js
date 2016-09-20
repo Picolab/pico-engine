@@ -173,6 +173,7 @@ $.getJSON("/api/db-dump", function(db_dump){
         $(".pico-edit .krlrid").click(displayKrl);
         d = theDB.pico_id+"-Rulesets";
       } else if(liContent === "testing") {
+        $(".pico-edit .krlrid").click(displayKrl);
         location.hash = theDB.pico_id+"-Testing";
       } else if(liContent === "about") {
         $theSection.find('.use-minicolors').minicolors(
