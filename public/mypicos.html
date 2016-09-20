@@ -148,7 +148,13 @@ Testing
 {{#if capabilities.queries}}
 <ul>
 {{#each capabilities.queries}}
-<li><a class="js-test" href="sky/cloud/{{../eci}}/{{../rid}}/{{this.name}}">{{this.name}}</a></li>
+<li><form class="js-test sky-cloud" action="sky/cloud/{{../eci}}/{{../rid}}/{{this.name}}">
+{{#if this.args}}
+{{#each this.args}}
+<input type="text" name="{{this}}" placeholder="{{this}}">
+{{/each}}
+{{/if}}
+<button type="submit">{{this.name}}</button></form></li>
 {{/each}}
 </ul>
 {{/if}}

@@ -98,3 +98,15 @@ li.krlrid:hover {
   background-color: silver;
   cursor: pointer;
 }
+form.sky-cloud {
+  margin: 0;
+}
+form.sky-cloud button {
+  border: none;
+  padding: 0;
+  background: none;
+  text-decoration: underline;
+  color: #0000EE;
+  cursor: pointer;
+  margin-bottom: 1em;
+}
