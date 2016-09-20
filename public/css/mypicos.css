@@ -94,7 +94,7 @@ a.logo img {
 a.logo {
   cursor: pointer;
 }
-li.krlrid:hover {
+.krlrid:hover {
   background-color: silver;
   cursor: pointer;
 }

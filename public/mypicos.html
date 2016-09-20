@@ -96,12 +96,13 @@ Do not disclose it or check it into a repository like Github.
 Pico Rulesets
 <ul style="list-style: none;padding:0">
 {{#each installed}}
-<li class="krlrid">{{@key}}</li>
+<li><span class="krlrid">{{@key}}</span>
 <ul>
 {{#each vars}}
 <li>ent:{{@key}}={{this}}</li>
 {{/each}}
 </ul>
+</li>
 {{/each}}
 </ul>
 {{#if avail}}
@@ -143,7 +144,7 @@ Logging
 Testing
 <ul style="list-style: none;padding:0">
 {{#each testing}}
-<li class="krlrid">{{this.rid}}</li>
+<li><span class="krlrid">{{this.rid}}</span>
 {{#if capabilities.queries}}
 <ul style="list-style-type:circle">
 {{#each capabilities.queries}}
@@ -166,10 +167,11 @@ Testing
 <input type="text" name="{{this}}" placeholder="{{this}}">
 {{/each}}
 {{/if}}
-<input type="submit" value="{{this.domain}}/{{this.type}}"></form></li>
+<button type="submit">{{this.domain}}/{{this.type}}</button></form></li>
 {{/each}}
 </ul>
 {{/if}}
+</li>
 {{/each}}
 <li>Legend</li>
 <ul>
