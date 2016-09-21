@@ -78,6 +78,8 @@ $(document).ready(function() {
                     } else {
                       log("*Problem installing "+rid);
                     }
+                  }).fail(function() {
+                    log("*Problem installing "+rid+": failed to compile");
                   });
                 } else {
                   log("*Problem enabling "+rid);
