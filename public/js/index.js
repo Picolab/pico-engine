@@ -122,7 +122,7 @@ $(document).ready(function() {
             });
             log("Sending event visual/update");
             $.getJSON("/sky/event/"+eci+"/31/visual/update",
-              {"dname":"OwnerPico","color":"#87cefa"},function(d){
+              {"dname":"Owner Pico","color":"#87cefa"},function(d){
                 if (d && d.directives) {
                   log("Event visual/update processed");
                 } else {
