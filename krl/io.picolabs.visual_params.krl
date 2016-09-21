@@ -34,8 +34,8 @@ ruleset io.picolabs.visual_params {
       color = event:attr("color").defaultsTo("#ccc")
     }
     always {
-      ent:dname = dname;
-      ent:color = color
+      ent:dname := dname;
+      ent:color := color
     }
   }
 
@@ -47,8 +47,8 @@ ruleset io.picolabs.visual_params {
     }
     if left != ent:left || top != ent:top then noop()
     fired {
-      ent:left = left.klog("left");
-      ent:top = top.klog("top")
+      ent:left := left.klog("left");
+      ent:top := top.klog("top")
     }
   }
 
@@ -59,8 +59,8 @@ ruleset io.picolabs.visual_params {
       height = event:attr("height").as("String")
     }
     always {
-      ent:width = width.klog("width");
-      ent:height = height.klog("height")
+      ent:width := width.klog("width");
+      ent:height := height.klog("height")
     }
   }
 
