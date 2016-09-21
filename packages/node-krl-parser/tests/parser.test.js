@@ -1600,3 +1600,29 @@ test('DomainIdentifier', function(t){
 
   t.end();
 });
+
+test('PersistentVariableAssignment', function(t){
+
+  var testPostlude = function(src_core, expected){
+    var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+    var ast = parser(src).rules[0].postlude.fired;
+    t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+  };
+  try{
+    parser("ent:blah := 1");
+    t.fail();
+  }catch(e){
+    t.ok(true, "Assignment should only be allowed in the postlude");
+  }
+
+  testPostlude("ent:name := 1", [
+    {
+      type: "PersistentVariableAssignment",
+      op: ":=",
+      left: mk.dID("ent", "name"),
+      right: mk(1)
+    }
+  ]);
+
+  t.end();
+});

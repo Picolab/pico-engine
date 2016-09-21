@@ -598,10 +598,28 @@ var grammar = {
     {"name": "RulePostlude$ebnf$2", "symbols": ["RulePostlude$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "RulePostlude$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RulePostlude", "symbols": ["RulePostlude$string$2", "_", "postlude_clause", "RulePostlude$ebnf$1", "RulePostlude$ebnf$2"], "postprocess": RulePostlude_by_paths([2, 0], [3, 3, 0], [4, 3, 0])},
-    {"name": "postlude_clause", "symbols": [{"literal":"{"}, "Statement_list", "loc_close_curly"], "postprocess": 
+    {"name": "postlude_clause", "symbols": [{"literal":"{"}, "PostludeStatements", "loc_close_curly"], "postprocess": 
         function(d){
           //we need to keep the location of the close curly
           return [d[1],d[2]];
+        }
+        },
+    {"name": "PostludeStatements", "symbols": ["_"], "postprocess": noopArr},
+    {"name": "PostludeStatements", "symbols": ["_", "PostludeStatements_body", "_"], "postprocess": getN(1)},
+    {"name": "PostludeStatements_body", "symbols": ["PostludeStatement"], "postprocess": idArr},
+    {"name": "PostludeStatements_body", "symbols": ["PostludeStatements_body", "_", {"literal":";"}, "_", "PostludeStatement"], "postprocess": concatArr(4)},
+    {"name": "PostludeStatement", "symbols": ["Statement"], "postprocess": id},
+    {"name": "PostludeStatement", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
+    {"name": "PersistentVariableAssignment$string$1", "symbols": [{"literal":":"}, {"literal":"="}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "PersistentVariableAssignment", "symbols": ["DomainIdentifier", "_", "PersistentVariableAssignment$string$1", "_", "Expression"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: data[4].loc.end},
+            type: 'PersistentVariableAssignment',
+            op: data[2],
+            left: data[0],
+            right: data[4]
+          };
         }
         },
     {"name": "Statement", "symbols": ["ExpressionStatement"], "postprocess": id},

@@ -564,10 +564,34 @@ RulePostlude ->
       (_ "finally" _ postlude_clause):?
       {% RulePostlude_by_paths([2, 0], [3, 3, 0], [4, 3, 0]) %}
 
-postlude_clause -> "{" Statement_list loc_close_curly {%
+postlude_clause -> "{" PostludeStatements loc_close_curly {%
   function(d){
     //we need to keep the location of the close curly
     return [d[1],d[2]];
+  }
+%}
+
+PostludeStatements ->
+      _ {% noopArr %}
+    | _ PostludeStatements_body _ {% getN(1) %}
+
+PostludeStatements_body ->
+      PostludeStatement {% idArr %}
+    | PostludeStatements_body _ ";" _ PostludeStatement {% concatArr(4) %}
+
+PostludeStatement ->
+      Statement {% id %}
+    | PersistentVariableAssignment {% id %}
+
+PersistentVariableAssignment -> DomainIdentifier _ ":=" _ Expression {%
+  function(data, start){
+    return {
+      loc: {start: start, end: data[4].loc.end},
+      type: 'PersistentVariableAssignment',
+      op: data[2],
+      left: data[0],
+      right: data[4]
+    };
   }
 %}
 
