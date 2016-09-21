@@ -146,15 +146,24 @@ var comp_by_type = {
       e("fn", ["ctx"], body)
     ]);
   },
+  "PersistentVariableAssignment": function(ast, comp, e){
+    if(ast.op !== ":="){
+      throw new Error("Unsuported Declaration.op: " + ast.op);
+    }
+    if(ast.left.type !== "DomainIdentifier" || !/^(ent|app)$/.test(ast.left.domain)){
+      throw new Error("PersistentVariableAssignment - only works on ent:* or app:* variables");
+    }
+    return e(";", e("call", e("id", "ctx.modules.set"), [
+      e("id", "ctx"),
+      e("str", ast.left.domain, ast.left.loc),
+      e("str", ast.left.value, ast.left.loc),
+      comp(ast.right)
+    ]));
+  },
   "Declaration": function(ast, comp, e){
     if(ast.op === "="){
       if(ast.left.type === "DomainIdentifier"){
-        return e(";", e("call", e("id", "ctx.modules.set"), [
-          e("id", "ctx"),
-          e("str", ast.left.domain, ast.left.loc),
-          e("str", ast.left.value, ast.left.loc),
-          comp(ast.right)
-        ]));
+        throw new Error("It's invalid to Declare DomainIdentifiers");
       }
       return e(";", e("call", e("id", "ctx.scope.set"), [
         e("str", ast.left.value, ast.left.loc),
@@ -181,11 +190,6 @@ var comp_by_type = {
       _.each(ast.global, function(g){
         if(!g || g.type !== "Declaration"){
           throw new Error("Ruleset.global should only be declarations");
-        }
-        if(g.left && g.left.type === "DomainIdentifier"){
-          if(g.left.domain === "ent"){
-            throw new Error("Cannot set ent:* vars in the global scope");
-          }
         }
       });
       rs.global = e("fn", ["ctx"], comp(ast.global));

@@ -17,7 +17,7 @@ ruleset io.picolabs.persistent {
       name = my_name
 
     always {
-      ent:name = my_name
+      ent:name := my_name
     }
   }
   rule store_appvar {
@@ -27,7 +27,7 @@ ruleset io.picolabs.persistent {
       appvar = my_appvar
 
     always {
-      app:appvar = my_appvar
+      app:appvar := my_appvar
     }
   }
 }

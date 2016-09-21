@@ -57,7 +57,7 @@ ruleset io.picolabs.events {
     send_directive("on_fired") with
       previous_name = ent:on_fired_prev_name
     fired {
-      ent:on_fired_prev_name = my_name
+      ent:on_fired_prev_name := my_name
     }
   }
   rule on_choose {
@@ -69,9 +69,9 @@ ruleset io.picolabs.events {
       two => send_directive("on_choose - two")
 
     fired {
-      ent:on_choose_fired = true
+      ent:on_choose_fired := true
     } else {
-      ent:on_choose_fired = false
+      ent:on_choose_fired := false
     }
   }
   rule select_where {
@@ -81,9 +81,9 @@ ruleset io.picolabs.events {
   rule no_action {
     select when events no_action fired re#^yes$#i
     fired {
-      ent:no_action_fired = true
+      ent:no_action_fired := true
     } else {
-      ent:no_action_fired = false
+      ent:no_action_fired := false
     }
   }
 }
