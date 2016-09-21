@@ -24,8 +24,10 @@ $.getJSON("/api/db-dump", function(db_dump){
   }
   var srcFromVersions = function(rid,ifnone) {
     var hashobj;
-    for (var vds in db_dump.rulesets.versions[rid]) {
-      hashobj = db_dump.rulesets.versions[rid][vds];
+    if (db_dump.rulesets) {
+      for (var vds in db_dump.rulesets.versions[rid]) {
+        hashobj = db_dump.rulesets.versions[rid][vds];
+      }
     }
     if (hashobj) {
       for(var hash in hashobj)
@@ -37,8 +39,10 @@ $.getJSON("/api/db-dump", function(db_dump){
   }
   var hashFromVersions = function(rid,ifnone) {
     var hashobj;
-    for (var vds in db_dump.rulesets.versions[rid]) {
-      hashobj = db_dump.rulesets.versions[rid][vds];
+    if (db_dump.rulesets) {
+      for (var vds in db_dump.rulesets.versions[rid]) {
+        hashobj = db_dump.rulesets.versions[rid][vds];
+      }
     }
     if (hashobj) {
       for(var hash in hashobj)
