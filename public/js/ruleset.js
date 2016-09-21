@@ -88,7 +88,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     };
   var rs_data = {};
   rs_data.title = "Engine Rulesets";
-  rs_data.descr = "These picos hosted by this pico engines.";
+  rs_data.descr = "These picos are hosted on this pico engine.";
   if(rid){
     rs_data.src = srcFromVersions(rid,krlSrcInvite);
   } else {

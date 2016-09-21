@@ -308,7 +308,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     var ownerPico = {};
     for (var k in db_dump.pico) { ownerPico.id = k; break; }
     db_graph.title = getV(ownerPico,"title","My Picos");
-    db_graph.descr = getV(ownerPico,"descr", "These picos hosted by this pico engines.");
+    db_graph.descr = getV(ownerPico,"descr", "These picos are hosted on this pico engine.");
     db_graph.picos = [];
     db_graph.chans = [];
     var walkPico =
