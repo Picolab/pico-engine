@@ -63,7 +63,7 @@ ruleset io.picolabs.pico {
   rule pico_children_reset {
     select when pico children_reset
     always {
-      ent:children = [];
+      ent:children := [];
       send_directive("reset")
     }
   }
@@ -79,11 +79,11 @@ ruleset io.picolabs.pico {
     }
     if ( parent_id == ent:id ) then noop()
     fired {
-      ent:children = children().union(new_child)
+      ent:children := children().union(new_child)
     } else {
-      ent:id = id;
-      ent:eci = eci;
-      ent:parent = { "id": parent_id, "eci": parent_eci }
+      ent:id := id;
+      ent:eci := eci;
+      ent:parent := { "id": parent_id, "eci": parent_eci }
     }
   }
 
@@ -94,8 +94,8 @@ ruleset io.picolabs.pico {
       eci = event:attr("eci")
     }
     always {
-      ent:id = id;
-      ent:eci = eci
+      ent:id := id;
+      ent:eci := eci
     }
   }
 
@@ -140,7 +140,7 @@ ruleset io.picolabs.pico {
         { "eci": ent:parent.eci, "eid": 60,
           "domain": "pico", "type": "child_is_orphan",
           "attrs": attrs });
-      ent:parent = null
+      ent:parent := null
     }
   }
 
@@ -158,7 +158,7 @@ ruleset io.picolabs.pico {
     && event:attr("parent_eci") == ent:eci
     then noop()
     fired {
-      ent:children = left_with_children;
+      ent:children := left_with_children;
       engine:removePico(child_id)
     }
   }
