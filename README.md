@@ -5,7 +5,7 @@
 A prototype implementation of the [pico-engine](http://www.windley.com/archives/2016/03/rebuilding_krl.shtml) written in node.js
 
 ## CLI
-To run the pico-engine on your machine simply do the following:
+To run the pico-engine on your machine simply(*) do the following:
 ```sh
 $ npm install -g pico-engine
 $ pico-engine
@@ -22,20 +22,31 @@ MIT
 
 ## Starting the pico-engine
 
-Alternate technique for installaing the pico-engine,
+Alternate technique for installing(*) the pico-engine,
 appropriate for those who wish to contribute
 improvements:
 
-Install by:
- * `git clone https://github.com/Picolab/node-pico-engine.git`
- * `npm install`
-
-Start with:
- * `npm start`
+Install and start with:
+```sh
+$ git clone https://github.com/Picolab/node-pico-engine.git
+$ cd node-pico-engine
+$ npm install
+$ npm start
+```
 
 ## UI
 Once you have started the pico-engine, 
 there is a web server running on your local machine.
+You will see a line showing the "document root" of the web server.
+
+For example:
+```sh
+$ PORT=8084 pico-engine
+http://localhost:8084
+```
+
+As you exercise the system, you will also see logging information
+produced by your activity.
 
 ## Bootstrap
 Visit the Pico Bootstrap page at `localhost:8080`
@@ -69,3 +80,5 @@ of your code with the engine.
 Use the "enable" button to enable this version,
 and the "install" button to have the engine save away
 the compiled code for use.
+
+(*) This assumes that you have already installed `node`
