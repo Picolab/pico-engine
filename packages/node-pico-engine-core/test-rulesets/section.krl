@@ -30,8 +30,8 @@ A test ruleset for Registration
       taken = event:attr("taken")
     }
     always {
-      ent:capacity = capacity;
-      ent:taken = taken.as("Number")
+      ent:capacity := capacity;
+      ent:taken := taken.as("Number")
     }
   }
 
@@ -39,7 +39,7 @@ A test ruleset for Registration
     select when section add_request
     if ent:taken < ent:capacity then noop()
     fired {
-      ent:taken = (ent:taken + 1).klog("new ent:taken")
+      ent:taken := (ent:taken + 1).klog("new ent:taken")
     }
   }
 
@@ -47,7 +47,7 @@ A test ruleset for Registration
     select when section drop_request
     if ent:taken > 0 then noop()
     fired {
-      ent:taken = (ent:taken - 1).klog("new ent:taken")
+      ent:taken := (ent:taken - 1).klog("new ent:taken")
     }
     
   }
