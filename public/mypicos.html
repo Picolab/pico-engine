@@ -97,6 +97,9 @@ Pico Rulesets
 <ul style="list-style: none;padding:0">
 {{#each installed}}
 <li><span class="krlrid">{{@key}}</span>
+{{#if canDel}}
+<a class="js-ajax-link" href="/api/pico/{{../pico_id}}/rm-ruleset/{{@key}}">del</a>
+{{/if}}
 <ul>
 {{#each vars}}
 <li>ent:{{@key}}={{this}}</li>
