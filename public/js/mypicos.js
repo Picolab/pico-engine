@@ -154,6 +154,21 @@ $.getJSON("/api/db-dump", function(db_dump){
                callback({ "testing": theCapabilities,
                           "pico_id": thePicoInp.id });
              });
+    } else if (label === "Channels") {
+      var theChannels = [];
+      var theECI;
+      Object.keys(thePicoInp.channel).forEach(function(id){
+        var aChannel = get(thePicoInp,["channel",id],undefined);
+        if (aChannel) {
+          if (theECI) {
+            aChannel.canDel = true;
+          } else {
+            theECI = id;
+          }
+          theChannels.push(aChannel);
+        }
+      });
+      callback({ "id": thePicoInp.id, "channel": theChannels });
     } else {
       callback(thePicoInp);
     }

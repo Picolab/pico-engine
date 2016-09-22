@@ -110,3 +110,12 @@ form.sky-cloud button {
   cursor: pointer;
   margin-bottom: 1em;
 }
+table.channel-table {
+  text-align: left;
+}
+table.channel-table th {
+  padding: 4px;
+}
+table.channel-table td {
+  padding: 4px;
+}
