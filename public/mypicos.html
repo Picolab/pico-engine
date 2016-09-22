@@ -128,9 +128,11 @@ Channels
 {{#each channel}}
 <tr>
 <td>{{id}}</td><td>{{name}}</td><td>{{type}}</td>
+<td>
 {{#if canDel}}
-<td><a class="js-ajax-link" href="/api/pico/{{../id}}/rm-channel/{{id}}">del</a></td>
+<a class="js-ajax-link" href="/api/pico/{{../id}}/rm-channel/{{id}}">del</a>
 {{/if}}
+</td>
 </tr>
 {{/each}}
 </table>
