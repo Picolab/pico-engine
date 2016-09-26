@@ -168,6 +168,10 @@ module.exports = function(conf){
     emitter.emit("debug", "event", debug_info, "pico selected");
 
     var ctx_orig = mkCTX({
+      emit: function(type, val, message){//for stdlib
+        //TODO think this through more
+        emitter.emit(type, debug_info, val, message);
+      },
       pico: pico,
       db: db,
       engine: engine,
