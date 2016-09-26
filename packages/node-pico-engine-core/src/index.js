@@ -1,14 +1,12 @@
 var _ = require("lodash");
 var λ = require("contra");
 var DB = require("./DB");
-var krl = {
-  stdlib: require("krl-stdlib"),
-  Closure: require("./KRLClosure")
-};
 var getArg = require("./getArg");
 var Future = require("fibers/future");
 var modules = require("./modules");
 var evalRule = require("./evalRule");
+var krl_stdlib = require("krl-stdlib");
+var KRLClosure = require("./KRLClosure");
 var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
 var EventEmitter = require("events");
@@ -16,13 +14,14 @@ var selectRulesToEval = require("./selectRulesToEval");
 
 var mkCTX = function(ctx){
   ctx.getArg = getArg;
-  ctx.krl = krl;
+  ctx.KRLClosure = KRLClosure;
   if(!_.has(ctx, "emit")){
     ctx.emit = _.noop;//stdlib expects an "emit" function to be available
   }
   ctx.callKRLstdlib = function(fn_name){
-    var args = _.tail(_.toArray(arguments));
-    return krl.stdlib[fn_name].apply(void 0, [ctx].concat(args));
+    var args = _.toArray(arguments);
+    args[0] = ctx;
+    return krl_stdlib[fn_name].apply(void 0, args);
   };
   return ctx;
 };

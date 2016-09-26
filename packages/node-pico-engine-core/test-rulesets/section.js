@@ -8,7 +8,7 @@ module.exports = {
     "shares": ["sectionInfo"]
   },
   "global": function (ctx) {
-    ctx.scope.set("sectionInfo", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("sectionInfo", ctx.KRLClosure(ctx, function (ctx) {
       ctx.scope.set("info", {
         "capacity": ctx.modules.get(ctx, "ent", "capacity"),
         "taken": ctx.modules.get(ctx, "ent", "taken"),

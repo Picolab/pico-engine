@@ -8,15 +8,15 @@ module.exports = {
     }
   },
   "global": function (ctx) {
-    ctx.scope.set("hello", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("hello", ctx.KRLClosure(ctx, function (ctx) {
       ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
       return ctx.callKRLstdlib("+", ctx.scope.get("greeting"), ctx.scope.get("obj"));
     }));
-    ctx.scope.set("privateFn", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("privateFn", ctx.KRLClosure(ctx, function (ctx) {
       ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
       return ctx.callKRLstdlib("+", "Private: ", ctx.scope.get("hello")(ctx, [ctx.scope.get("obj")]));
     }));
-    ctx.scope.set("queryFn", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("queryFn", ctx.KRLClosure(ctx, function (ctx) {
       ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
       return ctx.callKRLstdlib("+", "Query: ", ctx.scope.get("privateFn")(ctx, [ctx.scope.get("obj")]));
     }));

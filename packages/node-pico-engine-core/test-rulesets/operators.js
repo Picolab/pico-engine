@@ -51,10 +51,10 @@ module.exports = {
       ".substr(25)": ctx.callKRLstdlib("substr", "This is a string", 25),
       ".uc()": ctx.callKRLstdlib("uc", "Hello World")
     });
-    ctx.scope.set("returnMapAfterKlog", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("returnMapAfterKlog", ctx.KRLClosure(ctx, function (ctx) {
       return ctx.callKRLstdlib("klog", { "a": 1 }, "hi:");
     }));
-    ctx.scope.set("returnArrayAfterKlog", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("returnArrayAfterKlog", ctx.KRLClosure(ctx, function (ctx) {
       return ctx.callKRLstdlib("klog", [
         1,
         2

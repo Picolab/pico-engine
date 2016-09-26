@@ -12,21 +12,21 @@ module.exports = {
   "global": function (ctx) {
     ctx.scope.set("g0", "global 0");
     ctx.scope.set("g1", 1);
-    ctx.scope.set("getVals", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("getVals", ctx.KRLClosure(ctx, function (ctx) {
       return {
         "name": ctx.modules.get(ctx, "ent", "ent_var_name"),
         "p0": ctx.modules.get(ctx, "ent", "ent_var_p0"),
         "p1": ctx.modules.get(ctx, "ent", "ent_var_p1")
       };
     }));
-    ctx.scope.set("add", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("add", ctx.KRLClosure(ctx, function (ctx) {
       ctx.scope.set("a", ctx.getArg(ctx.args, "a", 0));
       ctx.scope.set("b", ctx.getArg(ctx.args, "b", 1));
       return ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("b"));
     }));
-    ctx.scope.set("incByN", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("incByN", ctx.KRLClosure(ctx, function (ctx) {
       ctx.scope.set("n", ctx.getArg(ctx.args, "n", 0));
-      return ctx.krl.Closure(ctx, function (ctx) {
+      return ctx.KRLClosure(ctx, function (ctx) {
         ctx.scope.set("a", ctx.getArg(ctx.args, "a", 0));
         return ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("n"));
       });

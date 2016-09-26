@@ -7,10 +7,10 @@ module.exports = {
     ]
   },
   "global": function (ctx) {
-    ctx.scope.set("getOnChooseFired", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("getOnChooseFired", ctx.KRLClosure(ctx, function (ctx) {
       return ctx.modules.get(ctx, "ent", "on_choose_fired");
     }));
-    ctx.scope.set("getNoActionFired", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("getNoActionFired", ctx.KRLClosure(ctx, function (ctx) {
       return ctx.modules.get(ctx, "ent", "no_action_fired");
     }));
   },
