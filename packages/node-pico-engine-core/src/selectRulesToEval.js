@@ -68,5 +68,11 @@ module.exports = function(ctx, salience_graph, rulesets, callback){
         });
       });
     });
-  }, callback);
+  }, function(err, rules){
+    if(err) return callback(err);
+    //rules in the same ruleset must fire in order
+    callback(void 0, _.reduce(_.groupBy(rules, "rid"), function(acc, rules){
+      return acc.concat(rules);
+    }, []));
+  });
 };

@@ -176,33 +176,31 @@ module.exports = function(conf){
         event: event
       });
 
-      selectRulesToEval(ctx_orig, salience_graph, rulesets, function(err, to_eval){
+      selectRulesToEval(ctx_orig, salience_graph, rulesets, function(err, rules){
         if(err) return callback(err);
 
-        λ.map(_.groupBy(to_eval, "rid"), function(rules_by_rid, callback){
-          λ.map.series(rules_by_rid, function(rule, callback){
+        λ.map.series(rules, function(rule, callback){
 
-            var rule_debug_info = _.assign({}, debug_info, {
-              rid: rule.rid,
-              rule_name: rule.name
-            });
+          var rule_debug_info = _.assign({}, debug_info, {
+            rid: rule.rid,
+            rule_name: rule.name
+          });
 
-            var ctx = _.assign({}, ctx_orig, {
-              rid: rule.rid,
-              rule: rule,
-              scope: rule.scope,
-              emitDebug: function(msg){
-                emitter.emit("debug", "event", rule_debug_info, msg);
-              }
-            });
-            if(_.has(rulesets, rule.rid)){
-              ctx.modules_used = rulesets[rule.rid].modules_used;
+          var ctx = _.assign({}, ctx_orig, {
+            rid: rule.rid,
+            rule: rule,
+            scope: rule.scope,
+            emitDebug: function(msg){
+              emitter.emit("debug", "event", rule_debug_info, msg);
             }
+          });
+          if(_.has(rulesets, rule.rid)){
+            ctx.modules_used = rulesets[rule.rid].modules_used;
+          }
 
-            ctx.emitDebug("rule selected");
+          ctx.emitDebug("rule selected");
 
-            evalRule(rule, ctx, callback);
-          }, callback);
+          evalRule(rule, ctx, callback);
         }, function(err, responses){
           if(err) return callback(err);
 
