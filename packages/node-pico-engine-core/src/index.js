@@ -17,6 +17,13 @@ var selectRulesToEval = require("./selectRulesToEval");
 var mkCTX = function(ctx){
   ctx.getArg = getArg;
   ctx.krl = krl;
+  if(!_.has(ctx, "emit")){
+    ctx.emit = _.noop;//stdlib expects an "emit" function to be available
+  }
+  ctx.callKRLstdlib = function(fn_name){
+    var args = _.tail(_.toArray(arguments));
+    return krl.stdlib[fn_name].apply(void 0, [ctx].concat(args));
+  };
   return ctx;
 };
 
@@ -83,12 +90,6 @@ module.exports = function(conf){
   var compileAndLoadRuleset = conf.compileAndLoadRuleset;
 
   var emitter = new EventEmitter();
-  krl.stdlib.emitter.on("klog", function(val, message){
-    emitter.emit("klog", val, message);
-  });
-  krl.stdlib.emitter.on("debug", function(scope, message){
-    emitter.emit("debug", "stdlib", scope, message);
-  });
 
   var installRID = function(rid, callback){
     if(conf._dont_check_enabled_before_installing){//for testing

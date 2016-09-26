@@ -22,13 +22,13 @@ module.exports = {
     ctx.scope.set("add", ctx.krl.Closure(ctx, function (ctx) {
       ctx.scope.set("a", ctx.getArg(ctx.args, "a", 0));
       ctx.scope.set("b", ctx.getArg(ctx.args, "b", 1));
-      return ctx.krl.stdlib["+"](ctx.scope.get("a"), ctx.scope.get("b"));
+      return ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("b"));
     }));
     ctx.scope.set("incByN", ctx.krl.Closure(ctx, function (ctx) {
       ctx.scope.set("n", ctx.getArg(ctx.args, "n", 0));
       return ctx.krl.Closure(ctx, function (ctx) {
         ctx.scope.set("a", ctx.getArg(ctx.args, "a", 0));
-        return ctx.krl.stdlib["+"](ctx.scope.get("a"), ctx.scope.get("n"));
+        return ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("n"));
       });
     }));
   },

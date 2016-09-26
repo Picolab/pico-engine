@@ -12,9 +12,9 @@ module.exports = {
       ctx.scope.set("info", {
         "capacity": ctx.modules.get(ctx, "ent", "capacity"),
         "taken": ctx.modules.get(ctx, "ent", "taken"),
-        "remaining": ctx.krl.stdlib["-"](ctx.modules.get(ctx, "ent", "capacity"), ctx.modules.get(ctx, "ent", "taken"))
+        "remaining": ctx.callKRLstdlib("-", ctx.modules.get(ctx, "ent", "capacity"), ctx.modules.get(ctx, "ent", "taken"))
       });
-      return ctx.krl.stdlib["klog"](ctx.scope.get("info"), "Section Info: ");
+      return ctx.callKRLstdlib("klog", ctx.scope.get("info"), "Section Info: ");
     }));
   },
   "rules": {
@@ -52,7 +52,7 @@ module.exports = {
         "notfired": undefined,
         "always": function (ctx) {
           ctx.modules.set(ctx, "ent", "capacity", ctx.scope.get("capacity"));
-          ctx.modules.set(ctx, "ent", "taken", ctx.krl.stdlib["as"](ctx.scope.get("taken"), "Number"));
+          ctx.modules.set(ctx, "ent", "taken", ctx.callKRLstdlib("as", ctx.scope.get("taken"), "Number"));
         }
       }
     },
@@ -83,7 +83,7 @@ module.exports = {
       },
       "action_block": {
         "condition": function (ctx) {
-          return ctx.krl.stdlib["<"](ctx.modules.get(ctx, "ent", "taken"), ctx.modules.get(ctx, "ent", "capacity"));
+          return ctx.callKRLstdlib("<", ctx.modules.get(ctx, "ent", "taken"), ctx.modules.get(ctx, "ent", "capacity"));
         },
         "actions": [{
             "action": function (ctx) {
@@ -93,7 +93,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function (ctx) {
-          ctx.modules.set(ctx, "ent", "taken", ctx.krl.stdlib["klog"](ctx.krl.stdlib["+"](ctx.modules.get(ctx, "ent", "taken"), 1), "new ent:taken"));
+          ctx.modules.set(ctx, "ent", "taken", ctx.callKRLstdlib("klog", ctx.callKRLstdlib("+", ctx.modules.get(ctx, "ent", "taken"), 1), "new ent:taken"));
         },
         "notfired": undefined,
         "always": undefined
@@ -126,7 +126,7 @@ module.exports = {
       },
       "action_block": {
         "condition": function (ctx) {
-          return ctx.krl.stdlib[">"](ctx.modules.get(ctx, "ent", "taken"), 0);
+          return ctx.callKRLstdlib(">", ctx.modules.get(ctx, "ent", "taken"), 0);
         },
         "actions": [{
             "action": function (ctx) {
@@ -136,7 +136,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function (ctx) {
-          ctx.modules.set(ctx, "ent", "taken", ctx.krl.stdlib["klog"](ctx.krl.stdlib["-"](ctx.modules.get(ctx, "ent", "taken"), 1), "new ent:taken"));
+          ctx.modules.set(ctx, "ent", "taken", ctx.callKRLstdlib("klog", ctx.callKRLstdlib("-", ctx.modules.get(ctx, "ent", "taken"), 1), "new ent:taken"));
         },
         "notfired": undefined,
         "always": undefined
