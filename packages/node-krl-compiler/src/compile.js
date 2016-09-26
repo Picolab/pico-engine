@@ -137,7 +137,7 @@ var comp_by_type = {
       }
       return body.push(e("return", comp(part)));
     });
-    return e("call", e("id", "ctx.krl.Closure"), [
+    return e("call", e("id", "ctx.KRLClosure"), [
       e("id", "ctx"),
       e("fn", ["ctx"], body)
     ]);

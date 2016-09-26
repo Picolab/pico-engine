@@ -7,10 +7,10 @@ module.exports = {
     ]
   },
   "global": function (ctx) {
-    ctx.scope.set("getName", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("getName", ctx.KRLClosure(ctx, function (ctx) {
       return ctx.modules.get(ctx, "ent", "name");
     }));
-    ctx.scope.set("getAppVar", ctx.krl.Closure(ctx, function (ctx) {
+    ctx.scope.set("getAppVar", ctx.KRLClosure(ctx, function (ctx) {
       return ctx.modules.get(ctx, "app", "appvar");
     }));
   },
