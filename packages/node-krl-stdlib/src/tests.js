@@ -198,6 +198,9 @@ test("Collection operators", function(t){
   t.deepEquals(a, [3, 4, 5], "should not be mutated");
   tf("tail", [[]], []);
 
+  tf("index", [a, 5], 2);
+  t.deepEquals(a, [3, 4, 5], "should not be mutated");
+
   tf("join", [a, ";"], "3;4;5");
   t.deepEquals(a, [3, 4, 5], "should not be mutated");
 

@@ -243,7 +243,9 @@ stdlib.head = function(ctx, val){
 stdlib.tail = function(ctx, val){
   return _.tail(val);
 };
-stdlib.index = _.indexOf;//TODO test
+stdlib.index = function(ctx, val, elm){
+  return _.indexOf(val, elm);
+};
 stdlib.join = function(ctx, val, str){
   return _.join(val, str);
 };
