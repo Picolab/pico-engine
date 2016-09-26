@@ -89,14 +89,10 @@ var comp_by_type = {
         && ast.callee.method === "dot"
         && ast.callee.property.type === "Identifier"
         ){
-      //operator syntax is just sugar
+      //operator syntax is just sugar for stdlib functions
       var operator = ast.callee.property;
-      var callee = e("get",
-        e("id", "ctx.krl.stdlib", operator.loc),
-        e("string", operator.value, operator.loc),
-        operator.loc
-      );
-      return e("call", callee, [comp(ast.callee.object)].concat(comp(ast.args)));
+      var args = [comp(ast.callee.object)].concat(comp(ast.args));
+      return callStdLibFn(e, operator.value, args, operator.loc);
     }
     return e("call", comp(ast.callee), [
       e("id", "ctx"),
