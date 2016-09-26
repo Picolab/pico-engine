@@ -654,7 +654,7 @@ module.exports = {
         "graph": { "events": { "select_where": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            if (!ctx.krl.stdlib["match"](ctx.event.getAttr("something"), new RegExp("^wat", "")))
+            if (!ctx.callKRLstdlib("match", ctx.event.getAttr("something"), new RegExp("^wat", "")))
               return false;
             return true;
           }
