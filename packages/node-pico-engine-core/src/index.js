@@ -1,16 +1,15 @@
 var _ = require("lodash");
-var λ = require("contra");
 var DB = require("./DB");
 var getArg = require("./getArg");
 var Future = require("fibers/future");
 var modules = require("./modules");
-var evalRule = require("./evalRule");
 var krl_stdlib = require("krl-stdlib");
 var KRLClosure = require("./KRLClosure");
 var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
 var EventEmitter = require("events");
-var selectRulesToEval = require("./selectRulesToEval");
+var evalRuleInFiber = require("./evalRuleInFiber");
+var selectRulesToEvalFuture = Future.wrap(require("./selectRulesToEval"));
 
 var mkCTX = function(ctx){
   ctx.getArg = getArg;
@@ -130,7 +129,7 @@ module.exports = function(conf){
     });
   });
 
-  var signalEvent = function(event, callback){
+  var signalEventInFiber = function(event){
     event.timestamp = new Date();
     event.getAttr = function(attr_key){
       return event.attrs[attr_key];
@@ -160,61 +159,58 @@ module.exports = function(conf){
       }
     };
     emitter.emit("debug", "event", debug_info, "event recieved");
-    db.getPicoByECI(event.eci, function(err, pico){
-      if(err) return callback(err);
-      if(!pico){
-        return callback(new Error("Invalid eci: " + event.eci));
-      }
-      debug_info.pico_id = pico.id;
-      emitter.emit("debug", "event", debug_info, "pico selected");
 
-      var ctx_orig = mkCTX({
-        pico: pico,
-        db: db,
-        engine: engine,
-        modules: modules,
-        event: event
-      });
+    var pico = db.getPicoByECIFuture(event.eci).wait();
+    if(!pico){
+      throw new Error("Invalid eci: " + event.eci);
+    }
+    debug_info.pico_id = pico.id;
+    emitter.emit("debug", "event", debug_info, "pico selected");
 
-      selectRulesToEval(ctx_orig, salience_graph, rulesets, function(err, rules){
-        if(err) return callback(err);
-
-        λ.map.series(rules, function(rule, callback){
-
-          var rule_debug_info = _.assign({}, debug_info, {
-            rid: rule.rid,
-            rule_name: rule.name
-          });
-
-          var ctx = _.assign({}, ctx_orig, {
-            rid: rule.rid,
-            rule: rule,
-            scope: rule.scope,
-            emitDebug: function(msg){
-              emitter.emit("debug", "event", rule_debug_info, msg);
-            }
-          });
-          if(_.has(rulesets, rule.rid)){
-            ctx.modules_used = rulesets[rule.rid].modules_used;
-          }
-
-          ctx.emitDebug("rule selected");
-
-          evalRule(rule, ctx, callback);
-        }, function(err, responses){
-          if(err) return callback(err);
-
-          var res_by_type = _.groupBy(_.flattenDeep(_.values(responses)), "type");
-
-          //TODO other types
-          callback(undefined, {
-            directives:  _.map(res_by_type.directive, function(d){
-              return _.omit(d, "type");
-            })
-          });
-        });
-      });
+    var ctx_orig = mkCTX({
+      pico: pico,
+      db: db,
+      engine: engine,
+      modules: modules,
+      event: event
     });
+
+    var rules = selectRulesToEvalFuture(ctx_orig, salience_graph, rulesets).wait();
+    var responses = _.map(rules, function(rule){
+      var rule_debug_info = _.assign({}, debug_info, {
+        rid: rule.rid,
+        rule_name: rule.name
+      });
+
+      var ctx = _.assign({}, ctx_orig, {
+        rid: rule.rid,
+        rule: rule,
+        scope: rule.scope,
+        emitDebug: function(msg){
+          emitter.emit("debug", "event", rule_debug_info, msg);
+        }
+      });
+      if(_.has(rulesets, rule.rid)){
+        ctx.modules_used = rulesets[rule.rid].modules_used;
+      }
+
+      ctx.emitDebug("rule selected");
+
+      return evalRuleInFiber(rule, ctx);
+    });
+
+    var res_by_type = _.groupBy(_.flattenDeep(_.values(responses)), "type");
+
+    //TODO other types
+    return {
+      directives:  _.map(res_by_type.directive, function(d){
+        return _.omit(d, "type");
+      })
+    };
+  };
+
+  var signalEvent = function(event, callback){
+    applyInFiber(signalEventInFiber, void 0, [event], callback);
   };
 
   var engine = Future.wrap({

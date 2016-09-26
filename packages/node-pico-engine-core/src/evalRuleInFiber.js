@@ -1,10 +1,9 @@
 var _ = require("lodash");
-var applyInFiber = require("./applyInFiber");
 var noopTrue = function(){
   return true;
 };
 
-var evalRuleFiber = function(rule, ctx){
+module.exports = function(rule, ctx){
   if(_.isFunction(rule.prelude)){
     rule.prelude(ctx);
   }
@@ -63,8 +62,4 @@ var evalRuleFiber = function(rule, ctx){
   getPostFn("always")(ctx);
 
   return responses;
-};
-
-module.exports = function(rule, ctx, callback){
-  applyInFiber(evalRuleFiber, null, [rule, ctx], callback);
 };
