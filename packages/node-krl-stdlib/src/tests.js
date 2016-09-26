@@ -11,8 +11,12 @@ var assertThrows = function(t, fn, args){
   }
 };
 
+var defaultCTX = {
+  emit: _.noop
+};
+
 var testFn = function(t, fn, args, expected, message){
-  t.deepEquals(stdlib[fn].apply(null, args), expected, message);
+  t.deepEquals(stdlib[fn].apply(null, [defaultCTX].concat(args)), expected, message);
 };
 
 test("general operators", function(t){
@@ -45,9 +49,9 @@ test("general operators", function(t){
 
   tf("as", [1, "String"], "1");
   tf("as", [.32, "String"], "0.32");
-  assertThrows(t, stdlib.as, [NaN, "String"]);
+  assertThrows(t, stdlib.as, [defaultCTX, NaN, "String"]);
   tf("as", ["-1.23", "Number"], -1.23);
-  t.equals(stdlib.as("^a.*z$", "RegExp").source, /^a.*z$/.source);
+  t.equals(stdlib.as(defaultCTX, "^a.*z$", "RegExp").source, /^a.*z$/.source);
   tf("as", [42, "Number"], 42);
   tf("as", ["str", "String"], "str");
   var test_regex = /^a.*z$/;
@@ -304,54 +308,34 @@ test("Collection operators", function(t){
 });
 
 test("Random functions", function(t){
-    t.ok(_.isString(stdlib.randomWord()));
-    t.notEquals(stdlib.randomWord(),stdlib.randomWord());
-    t.ok(_.isString(stdlib.uuid()));
-    t.notEquals(stdlib.uuid(),stdlib.uuid());
+    t.ok(_.isString(stdlib.randomWord(defaultCTX)));
+    t.notEquals(stdlib.randomWord(defaultCTX),stdlib.randomWord(defaultCTX));
+    t.ok(_.isString(stdlib.uuid(defaultCTX)));
+    t.notEquals(stdlib.uuid(defaultCTX),stdlib.uuid(defaultCTX));
     t.end();
 });
 
 test("klog", function(t){
-  t.plan(2);
-  stdlib.emitter.on("klog", function(val, message){
-    t.equals(val, 42);
-    t.equals(message, "message 1");
-  });
-  stdlib.klog(42, "message 1");
+  t.plan(3);
+  stdlib.klog({
+    emit: function(kind, val, message){
+      t.equals(kind, "klog");
+      t.equals(val, 42);
+      t.equals(message, "message 1");
+    }
+  }, 42, "message 1");
 });
 
-test("defaultsTo - not needed", function(t){
-  t.plan(1);
-  var tl = function(){
-    t.equals(arguments.length,2);
-    t.equals(arguments[0],"[DEFAULTSTO]");
-    t.equals(arguments[1],"message 2");
+test("defaultsTo - testing debug logging", function(t){
+  t.plan(5);
+  var ctx = {
+    emit: function(kind, message){
+      t.equals(kind, "debug");
+      t.equals(message,"[DEFAULTSTO] message 2");
+    }
   };
-  stdlib.emitter.on("debug", tl);
-  t.equals(stdlib.defaultsTo("not needed",42,"message 2"),"not needed");
-  stdlib.emitter.removeListener("debug",tl);
-});
 
-test("defaultsTo - logging", function(t){
-  t.plan(4);
-  var tl = function(){
-    t.equals(arguments.length,2);
-    t.equals(arguments[0],"[DEFAULTSTO]");
-    t.equals(arguments[1],"message 2");
-  };
-  stdlib.emitter.on("debug", tl);
-  t.equals(stdlib.defaultsTo("",42,"message 2"),42);
-  stdlib.emitter.removeListener("debug",tl);
-});
-
-test("defaultsTo - no logging", function(t){
-  t.plan(1);
-  var tl = function(){
-    t.equals(arguments.length,2);
-    t.equals(arguments[0],"[DEFAULTSTO]");
-    t.equals(arguments[1],"message 2");
-  };
-  stdlib.emitter.on("debug", tl);
-  t.equals(stdlib.defaultsTo("",42),42);
-  stdlib.emitter.removeListener("debug",tl);
+  t.equals(stdlib.defaultsTo(ctx, "not needed", 42, "message 2"), "not needed");
+  t.equals(stdlib.defaultsTo(ctx, "", 42), 42, "no message to log");
+  t.equals(stdlib.defaultsTo(ctx, "", 42, "message 2"), 42, "should emit debug");
 });

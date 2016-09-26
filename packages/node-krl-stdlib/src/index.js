@@ -1,20 +1,17 @@
 var _ = require("lodash");
 var cuid = require("cuid");
 var randomWords = require("random-words");
-var EventEmitter = require("events");
 
 var stdlib = {};
-
-stdlib.emitter = new EventEmitter();
 
 var defVarArgOp = function(op, reducer){
   stdlib[op] = function(){
     if(arguments.length === 0){
       return;
     }
-    var r = arguments[0];
+    var r = arguments[1];
     var i;
-    for(i = 1; i < arguments.length; i++){
+    for(i = 2; i < arguments.length; i++){
       r = reducer(r, arguments[i]);
     }
     return r;
@@ -61,7 +58,7 @@ defVarArgOp("%", function(r, a){
   return r % a;
 });
 
-stdlib.beesting = function(val){
+stdlib.beesting = function(ctx, val){
   return val + "";
 };
 
@@ -69,8 +66,8 @@ stdlib.beesting = function(val){
 //
 //Operators
 //
-stdlib.as = function(val, type){
-  var val_type = stdlib["typeof"](val);
+stdlib.as = function(ctx, val, type){
+  var val_type = stdlib["typeof"](ctx, val);
   if(val_type === type){
     return val;
   }
@@ -102,23 +99,23 @@ stdlib.as = function(val, type){
   throw new Error("Cannot use .as(\""+type+"\") operator with " + JSON.stringify(val));
 };
 
-stdlib.isnull = function(val){
+stdlib.isnull = function(ctx, val){
   return val === null || val === undefined || _.isNaN(val);
 };
 
-stdlib.klog = function(val, message){
-  stdlib.emitter.emit("klog", val, message);
+stdlib.klog = function(ctx, val, message){
+  ctx.emit("klog", val, message);
   return val;
 };
 
-stdlib["typeof"] = function(val){
+stdlib["typeof"] = function(ctx, val){
   if(_.isString(val)){
     return "String";
   }else if(_.isNumber(val) && !_.isNaN(val)){
     return "Number";
   }else if(val === true || val === false){
     return "Boolean";
-  }else if(stdlib.isnull(val)){
+  }else if(stdlib.isnull(ctx, val)){
     return "Null";
   }else if(_.isRegExp(val)){
     return "RegExp";
@@ -130,7 +127,7 @@ stdlib["typeof"] = function(val){
   //should we throw up?
 };
 
-stdlib.sprintf = function(val, template){
+stdlib.sprintf = function(ctx, val, template){
   if(_.isNumber(val)){
     return template.replace(/%d/g, val + "");
   }else if(_.isString(val)){
@@ -139,9 +136,9 @@ stdlib.sprintf = function(val, template){
   return template;
 };
 
-stdlib.defaultsTo = function(val,defaultVal,message){
+stdlib.defaultsTo = function(ctx, val,defaultVal,message){
   if(_.size(val) === 0){
-    if(message !== undefined) stdlib.emitter.emit("debug", "[DEFAULTSTO]", message);
+    if(message !== undefined) ctx.emit("debug", "[DEFAULTSTO] " + message);
     return defaultVal;
   } else {
     return val;
@@ -149,21 +146,21 @@ stdlib.defaultsTo = function(val,defaultVal,message){
 };
 
 //Number operators//////////////////////////////////////////////////////////////
-stdlib.chr = function(val){
+stdlib.chr = function(ctx, val){
   return String.fromCharCode(val);
 };
-stdlib.range = function(val, end){
+stdlib.range = function(ctx, val, end){
   return _.range(val, end + 1);
 };
 
 //String operators//////////////////////////////////////////////////////////////
-stdlib.capitalize = function(val){
+stdlib.capitalize = function(ctx, val){
   return val[0].toUpperCase() + val.slice(1);
 };
-stdlib.decode = function(val){
+stdlib.decode = function(ctx, val){
   return JSON.parse(val);
 };
-stdlib.extract = function(val, regex){
+stdlib.extract = function(ctx, val, regex){
   var r = val.match(regex);
   if(!r){
     return [];
@@ -173,23 +170,23 @@ stdlib.extract = function(val, regex){
   }
   return r.slice(1);
 };
-stdlib.lc = function(val){
+stdlib.lc = function(ctx, val){
   return val.toLowerCase();
 };
-stdlib.match = function(val, regex){
+stdlib.match = function(ctx, val, regex){
   return regex.test(val);
 };
-stdlib.ord = function(val){
+stdlib.ord = function(ctx, val){
   var code = val.charCodeAt(0);
   return _.isNaN(code) ? undefined : code;
 };
-stdlib.replace = function(val, regex, replacement){
+stdlib.replace = function(ctx, val, regex, replacement){
   return val.replace(regex, replacement);
 };
-stdlib.split = function(val, split_on){
+stdlib.split = function(ctx, val, split_on){
   return val.split(split_on);
 };
-stdlib.substr = function(val, start, len){
+stdlib.substr = function(ctx, val, start, len){
   if(start > val.length){
     return;
   }
@@ -205,22 +202,30 @@ stdlib.substr = function(val, start, len){
   }
   return val.substring(start, end);
 };
-stdlib.uc = function(val){
+stdlib.uc = function(ctx, val){
   return val.toUpperCase();
 };
 
 //Collection operators//////////////////////////////////////////////////////////
-stdlib.all = _.every;
-stdlib.notall = function(val, iter){
+stdlib.all = function(ctx, val, iter){
+  return _.every(val, iter);
+};
+stdlib.notall = function(ctx, val, iter){
   return _.some(val, _.negate(iter));
 };
-stdlib.any = _.some;
-stdlib.none = function(val, iter){
+stdlib.any = function(ctx, val, iter){
+  return _.some(val, iter);
+};
+stdlib.none = function(ctx, val, iter){
   return _.every(val, _.negate(iter));
 };
-stdlib.append = _.concat;
-stdlib.collect = _.groupBy;
-stdlib.filter = function(val, iter){
+stdlib.append = function(ctx, val, others){
+  return _.concat.apply(void 0, _.tail(_.toArray(arguments)));
+};
+stdlib.collect = function(ctx, val, iter){
+  return _.groupBy(val, iter);
+};
+stdlib.filter = function(ctx, val, iter){
   if(_.isPlainObject(val)){
     var r = {};
     _.each(val, function(v, k, o){
@@ -232,41 +237,51 @@ stdlib.filter = function(val, iter){
   }
   return _.filter(val, iter);
 };
-stdlib.head = _.head;
-stdlib.tail = _.tail;
-stdlib.index = _.indexOf;
-stdlib.join = _.join;
-stdlib.length = _.size;
-stdlib.map = function(val, iter){
+stdlib.head = function(ctx, val){
+  return _.head(val);
+};
+stdlib.tail = function(ctx, val){
+  return _.tail(val);
+};
+stdlib.index = _.indexOf;//TODO test
+stdlib.join = function(ctx, val, str){
+  return _.join(val, str);
+};
+stdlib.length = function(ctx, val){
+  return _.size(val);
+};
+stdlib.map = function(ctx, val, iter){
   if(_.isPlainObject(val)){
     return _.mapValues(val, iter);
   }
   return _.map(val, iter);
 };
-stdlib.pairwise = _.zipWith;
-stdlib.reduce = function(val, iter, dflt){
+stdlib.pairwise = function(ctx, vals, iter){
+  return _.zipWith.apply(void 0, _.tail(_.toArray(arguments)));
+};
+stdlib.reduce = function(ctx, val, iter, dflt){
   if(_.size(val) === 0){
-    if(arguments.length < 3){
+    if(arguments.length < 4){
       return 0;
     }
     return dflt;
   }
   if(_.size(val) === 1){
-    if(arguments.length < 3){
+    if(arguments.length < 4){
       return _.head(val);
     }
     return iter(dflt, _.head(val));
   }
-  return _.reduce.apply(null, arguments);
+  return _.reduce.apply(void 0, _.tail(_.toArray(arguments)));
 };
-stdlib.reverse = function(val){
+stdlib.reverse = function(ctx, val){
   return _.reverse(_.clone(val));
 };
-stdlib.slice = function(val, start, end){
+stdlib.slice = function(ctx, val, start, end){
   if(start < 0 || start > _.size(val)){
     return;
   }
-  if(arguments.length < 3){
+  if(arguments.length < 4){
     return _.slice(val, 0, start + 1);
   }
   if(end < 0 || end > _.size(val)){
@@ -274,10 +289,10 @@ stdlib.slice = function(val, start, end){
   }
   return _.slice(val, start, end + 1);
 };
-stdlib.splice = function(val, start, n_elms, value){
+stdlib.splice = function(ctx, val, start, n_elms, value){
   var part1 = _.slice(val, 0, start);
   var part2 = _.slice(val, start + n_elms);
-  if(arguments.length < 4){
+  if(arguments.length < 5){
     return _.concat(part1, part2);
   }
   return _.concat(part1, value, part2);
@@ -291,7 +306,7 @@ stdlib.sort = (function(){
       return a < b ? 1 : (a == b ? 0 : -1);
     }
   };
-  return function(val, sort_by){
+  return function(ctx, val, sort_by){
     if(sort_by === "reverse"){
       //TODO optimize by making a "reverse" sorter function
       return _.clone(val).sort().reverse();
@@ -302,14 +317,14 @@ stdlib.sort = (function(){
     );
   };
 }());
-stdlib["delete"] = function(val, path){
+stdlib["delete"] = function(ctx, val, path){
   //TODO optimize
   var n_val = _.cloneDeep(val);
   _.unset(n_val, path);
   return n_val;
 };
-stdlib.put = function(val, path, to_set){
-  if(arguments.length < 3){
+stdlib.put = function(ctx, val, path, to_set){
+  if(arguments.length < 4){
     return _.assign({}, val, path);
   }
   //TODO optimize
@@ -319,35 +334,37 @@ stdlib.put = function(val, path, to_set){
   });
   return n_val;
 };
-stdlib.encode = function(val){
+stdlib.encode = function(ctx, val){
   //TODO options???
   return JSON.stringify(val);
 };
-stdlib.keys = function(val, path){
+stdlib.keys = function(ctx, val, path){
   if(path){
     return _.keys(_.get(val, path));
   }
   return _.keys(val);
 };
-stdlib.values = function(val, path){
+stdlib.values = function(ctx, val, path){
   if(path){
     return _.values(_.get(val, path));
   }
   return _.values(val);
 };
-stdlib.intersection = _.intersection;
-stdlib.union = function() {
-  var args = Array.prototype.slice.call(arguments);
-  args.push(_.isEqual);
-  return _.unionWith.apply(_, args);
+stdlib.intersection = function(ctx, a, b){
+  return _.intersection(a, b);
 };
-stdlib.difference = _.partialRight(_.differenceWith,_.isEqual);
-stdlib.has = function(val, other){
+stdlib.union = function(ctx, a, b){
+  return _.unionWith(a, b, _.isEqual);
+};
+stdlib.difference = function(ctx, a, b){
+  return _.differenceWith(a, b, _.isEqual);
+};
+stdlib.has = function(ctx, val, other){
   return _.every(other, function(e){
     return _.includes(val, e);
   });
 };
-stdlib.once = function(val){
+stdlib.once = function(ctx, val){
   //TODO optimize
   var r = [];
   _.each(_.groupBy(val), function(group){
@@ -357,7 +374,7 @@ stdlib.once = function(val){
   });
   return r;
 };
-stdlib.duplicates = function(val){
+stdlib.duplicates = function(ctx, val){
   //TODO optimize
   var r = [];
   _.each(_.groupBy(val), function(group){
@@ -367,13 +384,15 @@ stdlib.duplicates = function(val){
   });
   return r;
 };
-stdlib.randomWord = function(){
+stdlib.randomWord = function(ctx){
   return randomWords();
 };
-stdlib.uuid = function(){
+stdlib.uuid = function(ctx){
   return cuid();
 };
 
-stdlib.unique = _.uniq;
+stdlib.unique = function(ctx, val){
+  return _.uniq(val);
+};
 
 module.exports = stdlib;
