@@ -6,7 +6,7 @@ var stdlib = {};
 
 var defVarArgOp = function(op, reducer){
   stdlib[op] = function(){
-    if(arguments.length === 0){
+    if(arguments.length === 1){
       return;
     }
     var r = arguments[1];
