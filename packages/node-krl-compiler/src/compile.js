@@ -77,6 +77,11 @@ var comp_by_type = {
         comp(ast.object),
         comp(ast.property)
       ], ast.loc);
+    }else if(ast.method === "index"){
+      return callStdLibFn(e, "get", [
+        comp(ast.object),
+        e("array", [comp(ast.property)], ast.property.loc)
+      ], ast.loc);
     }
     throw new Error("Unsupported MemberExpression method: " + ast.method);
   },
@@ -170,6 +175,12 @@ var comp_by_type = {
           return e(";", callStdLibFn(e, "set", [
             comp(ast.left.object),
             comp(ast.left.property),
+            comp(ast.right)
+          ], ast.left.loc));
+        }else if(ast.left.method === "index"){
+          return e(";", callStdLibFn(e, "set", [
+            comp(ast.left.object),
+            e("array", [comp(ast.left.property)], ast.left.property.loc),
             comp(ast.right)
           ], ast.left.loc));
         }

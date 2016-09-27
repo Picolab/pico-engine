@@ -4,7 +4,9 @@ module.exports = {
     "shares": [
       "obj",
       "path1",
-      "path2"
+      "path2",
+      "index1",
+      "index2"
     ]
   },
   "global": function (ctx) {
@@ -23,6 +25,14 @@ module.exports = {
         ]
       }
     });
+    ctx.callKRLstdlib("set", ctx.scope.get("obj"), [
+      "b",
+      "c",
+      3,
+      "d",
+      "e"
+    ], "changed 5");
+    ctx.callKRLstdlib("set", ctx.scope.get("obj"), ["a"], "changed 1");
     ctx.scope.set("path1", ctx.callKRLstdlib("get", ctx.scope.get("obj"), [
       "b",
       "c",
@@ -34,12 +44,8 @@ module.exports = {
       "c",
       5
     ]));
-    ctx.callKRLstdlib("set", ctx.scope.get("obj"), [
-      "b",
-      "c",
-      3,
-      "d"
-    ], 4);
+    ctx.scope.set("index1", ctx.callKRLstdlib("get", ctx.scope.get("obj"), ["a"]));
+    ctx.scope.set("index2", ctx.callKRLstdlib("get", ctx.callKRLstdlib("get", ctx.callKRLstdlib("get", ctx.scope.get("obj"), ["b"]), ["c"]), [1]));
   },
   "rules": {}
 };
