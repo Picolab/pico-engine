@@ -72,6 +72,11 @@ var comp_by_type = {
         return e("get", comp(ast.object), e("str", ast.property.value, ast.property.loc));
       }
       return e("get", comp(ast.object), comp(ast.property));
+    }else if(ast.method === "path"){
+      return callStdLibFn(e, "get", [
+        comp(ast.object),
+        comp(ast.property)
+      ], ast.loc);
     }
     throw new Error("Unsupported MemberExpression method: " + ast.method);
   },
@@ -160,6 +165,14 @@ var comp_by_type = {
     if(ast.op === "="){
       if(ast.left.type === "DomainIdentifier"){
         throw new Error("It's invalid to Declare DomainIdentifiers");
+      }else if(ast.left.type === "MemberExpression"){
+        if(ast.left.method === "path"){
+          return e(";", callStdLibFn(e, "set", [
+            comp(ast.left.object),
+            comp(ast.left.property),
+            comp(ast.right)
+          ], ast.left.loc));
+        }
       }
       return e(";", e("call", e("id", "ctx.scope.set"), [
         e("str", ast.left.value, ast.left.loc),
