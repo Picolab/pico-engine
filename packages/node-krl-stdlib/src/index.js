@@ -397,4 +397,12 @@ stdlib.unique = function(ctx, val){
   return _.uniq(val);
 };
 
+stdlib["get"] = function(ctx, obj, path) {
+  return _.get(obj,path);
+};
+
+stdlib["set"] = function(ctx, obj, path, val) {
+  return _.set(obj,path,val);
+};
+
 module.exports = stdlib;
