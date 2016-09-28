@@ -15,7 +15,9 @@ var mkCTX = function(ctx){
   ctx.getArg = getArg;
   ctx.KRLClosure = KRLClosure;
   if(!_.has(ctx, "emit")){
-    ctx.emit = _.noop;//stdlib expects an "emit" function to be available
+    ctx.emit = function(){
+      console.error("WARNING ctx.emit(...) was not defined!");
+    };//stdlib expects an "emit" function to be available
   }
   ctx.callKRLstdlib = function(fn_name){
     var args = _.toArray(arguments);
@@ -248,6 +250,10 @@ module.exports = function(conf){
           db: db,
           rid: rs.rid,
           pico: pico,
+          emit: function(type, val, message){//for stdlib
+            //TODO think this through more
+            emitter.emit(type, {rid: rs.rid}, val, message);
+          },
           engine: engine,
           modules: modules,
           modules_used: rs.modules_used,
