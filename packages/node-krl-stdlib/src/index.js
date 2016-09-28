@@ -66,6 +66,15 @@ stdlib.beesting = function(ctx, val){
 //
 //Operators
 //
+stdlib["><"] = function(ctx, obj, val){
+  if(_.isArray(obj)){
+    return _.indexOf(obj,val) >= 0;
+  }else if(_.isPlainObject(obj)){
+    return _.indexOf(_.keys(obj),val) >= 0;
+  }else{
+    return false;
+  }
+};
 stdlib.as = function(ctx, val, type){
   var val_type = stdlib["typeof"](ctx, val);
   if(val_type === type){

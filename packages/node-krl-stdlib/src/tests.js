@@ -158,6 +158,12 @@ test("Collection operators", function(t){
     t.deepEquals(obj2, {"a": 1, "b": 2, "c": 3}, "should not be mutated");
   };
 
+  tf("><",[obj,"pi"],true);
+  tf("><",[obj,"a"],false);
+  assertObjNotMutated();
+  tf("><",[[5, 6, 7],6],true);
+  tf("><",[[5, 6, 7],3],false);
+
   _.each({
     "all":    [ true, false, false],
     "notall": [false,  true,  true],
