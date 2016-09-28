@@ -24,11 +24,11 @@ var pe = PicoEngine({
   }
 });
 
-pe.emitter.on("klog", function(val, message){
+pe.emitter.on("klog", function(context, val, message){
   console.log("[KLOG]", message, val);
 });
-pe.emitter.on("debug", function(kind, context, message){
-  console.log("[DEBUG]", kind, context, message);
+pe.emitter.on("debug", function(context, message){
+  console.log("[DEBUG]", context, message);
 });
 
 var router = HttpHashRouter();
