@@ -167,7 +167,7 @@ module.exports = function(conf){
     debug_info.pico_id = pico.id;
     emitter.emit("debug", "event", debug_info, "pico selected");
 
-    var ctx_orig = mkCTX({
+    var ctx = mkCTX({
       emit: function(type, val, message){//for stdlib
         //TODO think this through more
         emitter.emit(type, debug_info, val, message);
@@ -179,26 +179,17 @@ module.exports = function(conf){
       event: event
     });
 
-    var rules = selectRulesToEvalFuture(ctx_orig, salience_graph, rulesets).wait();
+    var rules = selectRulesToEvalFuture(ctx, salience_graph, rulesets).wait();
     var responses = _.map(rules, function(rule){
-      var rule_debug_info = _.assign({}, debug_info, {
-        rid: rule.rid,
-        rule_name: rule.name
-      });
 
-      var ctx = _.assign({}, ctx_orig, {
-        rid: rule.rid,
-        rule: rule,
-        scope: rule.scope,
-        emitDebug: function(msg){
-          emitter.emit("debug", "event", rule_debug_info, msg);
-        }
-      });
+      ctx.emit("debug", "rule selected: " + rule.rid + " -> " + rule.name);
+
+      ctx.rid = rule.rid;
+      ctx.rule = rule;
+      ctx.scope = rule.scope;
       if(_.has(rulesets, rule.rid)){
         ctx.modules_used = rulesets[rule.rid].modules_used;
       }
-
-      ctx.emitDebug("rule selected");
 
       return evalRuleInFiber(rule, ctx);
     });

@@ -53,10 +53,10 @@ module.exports = function(rule, ctx){
     return _.isFunction(fn) ? fn : _.noop;
   };
   if(did_fire){
-    ctx.emitDebug("fired");
+    ctx.emit("debug", "fired");
     getPostFn("fired")(ctx);
   }else{
-    ctx.emitDebug("not fired");
+    ctx.emit("debug", "not fired");
     getPostFn("notfired")(ctx);
   }
   getPostFn("always")(ctx);
