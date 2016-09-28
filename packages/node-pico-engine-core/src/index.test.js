@@ -599,3 +599,38 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
     }
   ], t.end);
 });
+
+test("PicoEngine - io.picolabs.expressions ruleset", function(t){
+  var pe = mkTestPicoEngine();
+
+  var query = mkQueryTask(pe, "id1", "io.picolabs.expressions");
+
+  testOutputs(t, [
+    λ.curry(pe.db.newPico, {}),
+    λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+    λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.expressions"}),
+    [
+      query("obj"),
+      {
+        a: "changed 1",
+        b: {c: [2, 3, 4, {d: {e: "changed 5"}}, 6, 7]}
+      }
+    ],
+    [
+      query("path1"),
+      {e: "changed 5"}
+    ],
+    [
+      query("path2"),
+      7
+    ],
+    [
+      query("index1"),
+      "changed 1"
+    ],
+    [
+      query("index2"),
+      3
+    ]
+  ], t.end);
+});
