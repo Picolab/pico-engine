@@ -1,5 +1,6 @@
 ruleset io.picolabs.pico {
   meta {
+    provides myself, children
     shares myself, parent, children, __testing
   }
   global {
