@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var λ = require("contra");
 var DB = require("./DB");
 var getArg = require("./getArg");
 var Future = require("fibers/future");
@@ -99,12 +100,9 @@ module.exports = function(conf){
     applyInFiber(doInstallRuleset, null, [rs], callback);
   };
 
-  var installRID = function(rid, callback){
+  var getRulesetForRID = function(rid, callback){
     if(conf._dont_check_enabled_before_installing){//for testing
-      compileAndLoadRuleset({rid: rid}, function(err, rs){
-        if(err) return callback(err);
-        installRuleset(rs, callback);
-      });
+      compileAndLoadRuleset({rid: rid}, callback);
       return;
     }
     db.getEnableRuleset(rid, function(err, data){
@@ -120,8 +118,15 @@ module.exports = function(conf){
           });
           return;
         }
-        installRuleset(rs, callback);
+        callback(void 0, rs);
       });
+    });
+  };
+
+  var installRID = function(rid, callback){
+    getRulesetForRID(rid, function(err, rs){
+      if(err) return callback(err);
+      installRuleset(rs, callback);
     });
   };
 
@@ -130,11 +135,17 @@ module.exports = function(conf){
     if(err){
       throw err;//TODO handle this somehow?
     }
-    _.each(rids, function(rid){
-      installRID(rid, function(err){
-        if(err){
-          throw err;//TODO handle this somehow?
-        }
+    λ.map(rids, getRulesetForRID, function(err, rs_list){
+      if(err){
+        throw err;//TODO handle this somehow?
+      }
+      //TODO load in order of dependancies? or simply index all then install?
+      _.each(rs_list, function(rs){
+        installRuleset(rs, function(err){
+          if(err){
+            throw err;//TODO handle this somehow?
+          }
+        });
       });
     });
   });
