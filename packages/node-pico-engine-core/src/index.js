@@ -21,13 +21,21 @@ module.exports = function(conf){
   var emitter = new EventEmitter();
 
   var mkCTX = function(ctx){
+    ctx.db = db;
     ctx.getArg = getArg;
     ctx.KRLClosure = KRLClosure;
-    if(!_.has(ctx, "emit")){
-      ctx.emit = function(){
-        console.error("WARNING ctx.emit(...) was not defined!");
-      };//stdlib expects an "emit" function to be available
-    }
+    ctx.emit = function(type, val, message){//for stdlib
+      var info = {rid: ctx.rid};
+      if(ctx.event){
+        info.event = {
+          eci: ctx.event.eci,
+          eid: ctx.event.eid,
+          domain: ctx.event.domain,
+          type: ctx.event.type,
+        };
+      }
+      emitter.emit(type, info, val, message);
+    };
     ctx.callKRLstdlib = function(fn_name){
       var args = _.toArray(arguments);
       args[0] = ctx;
@@ -150,36 +158,21 @@ module.exports = function(conf){
       }
       return matches;
     };
-    var debug_info = {
-      event: {
-        eci: event.eci,
-        eid: event.eid,
-        domain: event.domain,
-        type: event.type,
-        attrs: _.cloneDeep(event.attrs),
-        timestamp: event.timestamp.toISOString()
-      }
-    };
-    emitter.emit("debug", "event", debug_info, "event recieved");
-
-    var pico = db.getPicoByECIFuture(event.eci).wait();
-    if(!pico){
-      throw new Error("Invalid eci: " + event.eci);
-    }
-    debug_info.pico_id = pico.id;
-    emitter.emit("debug", "event", debug_info, "pico selected");
 
     var ctx = mkCTX({
-      emit: function(type, val, message){//for stdlib
-        //TODO think this through more
-        emitter.emit(type, debug_info, val, message);
-      },
-      pico: pico,
-      db: db,
       engine: engine,
       modules: modules,
       event: event
     });
+
+    ctx.emit("debug", "event recieved");
+
+    ctx.pico = db.getPicoByECIFuture(event.eci).wait();
+    if(!ctx.pico){
+      throw new Error("Invalid eci: " + event.eci);
+    }
+
+    ctx.emit("debug", "pico selected");
 
     var rules = selectRulesToEvalFuture(ctx, salience_graph, rulesets).wait();
     var responses = _.map(rules, function(rule){
@@ -247,13 +240,8 @@ module.exports = function(conf){
 
         ////////////////////////////////////////////////////////////////////////
         var ctx = mkCTX({
-          db: db,
           rid: rs.rid,
           pico: pico,
-          emit: function(type, val, message){//for stdlib
-            //TODO think this through more
-            emitter.emit(type, {rid: rs.rid}, val, message);
-          },
           engine: engine,
           modules: modules,
           modules_used: rs.modules_used,
