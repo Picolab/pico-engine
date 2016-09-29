@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var λ = require("contra");
 var fs = require("fs");
 var path = require("path");
 var memdown = require("memdown");
@@ -34,8 +35,7 @@ module.exports = function(opts, callback){
       }())
     }
   });
-  _.each(test_rulesets, function(rs, rid){
-    pe.installRID(rid, function(err){if(err)throw err;});
+  λ.each(_.keys(test_rulesets), pe.installRID, function(err){
+    callback(err, pe);
   });
-  callback(void 0, pe);
 };
