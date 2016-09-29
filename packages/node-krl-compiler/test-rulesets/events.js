@@ -21,7 +21,7 @@ module.exports = {
         "graph": { "events": { "bind": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
+            var matches = ctx.getEventAttrMatches(ctx, [[
                 "name",
                 new RegExp("^(.*)$", "")
               ]]);
@@ -486,7 +486,7 @@ module.exports = {
         "graph": { "events": { "ifthen": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
+            var matches = ctx.getEventAttrMatches(ctx, [[
                 "name",
                 new RegExp("^(.*)$", "")
               ]]);
@@ -533,7 +533,7 @@ module.exports = {
         "graph": { "events": { "on_fired": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
+            var matches = ctx.getEventAttrMatches(ctx, [[
                 "name",
                 new RegExp("^(.*)$", "")
               ]]);
@@ -584,7 +584,7 @@ module.exports = {
         "graph": { "events": { "on_choose": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
+            var matches = ctx.getEventAttrMatches(ctx, [[
                 "thing",
                 new RegExp("^(.*)$", "")
               ]]);
@@ -693,7 +693,7 @@ module.exports = {
         "graph": { "events": { "no_action": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
+            var matches = ctx.getEventAttrMatches(ctx, [[
                 "fired",
                 new RegExp("^yes$", "i")
               ]]);

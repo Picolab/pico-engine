@@ -24,7 +24,7 @@ module.exports = {
         "graph": { "module_used": { "say_hello": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
+            var matches = ctx.getEventAttrMatches(ctx, [[
                 "name",
                 new RegExp("(.*)", "")
               ]]);
