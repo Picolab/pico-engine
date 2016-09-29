@@ -17,7 +17,7 @@ _.each(fs.readdirSync(test_dir), function(file){
   test_rulesets[rs.rid] = rs;
 });
 
-module.exports = function(opts){
+module.exports = function(opts, callback){
   var pe = PicoEngine({
     _dont_check_enabled_before_installing: true,
     compileAndLoadRuleset: function(rs_info, callback){
@@ -37,5 +37,5 @@ module.exports = function(opts){
   _.each(test_rulesets, function(rs, rid){
     pe.installRID(rid, function(err){if(err)throw err;});
   });
-  return pe;
+  callback(void 0, pe);
 };
