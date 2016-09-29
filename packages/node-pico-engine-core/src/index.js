@@ -11,85 +11,85 @@ var EventEmitter = require("events");
 var evalRuleInFiber = require("./evalRuleInFiber");
 var selectRulesToEvalFuture = Future.wrap(require("./selectRulesToEval"));
 
-var mkCTX = function(ctx){
-  ctx.getArg = getArg;
-  ctx.KRLClosure = KRLClosure;
-  if(!_.has(ctx, "emit")){
-    ctx.emit = function(){
-      console.error("WARNING ctx.emit(...) was not defined!");
-    };//stdlib expects an "emit" function to be available
-  }
-  ctx.callKRLstdlib = function(fn_name){
-    var args = _.toArray(arguments);
-    args[0] = ctx;
-    return krl_stdlib[fn_name].apply(void 0, args);
-  };
-  return ctx;
-};
-
-var rulesets = {};
-var salience_graph = {};
-
-var doInstallRuleset = function(rs){
-  rs.scope = SymbolTable();
-  if(_.isFunction(rs.meta && rs.meta.configure)){
-    rs.meta.configure(mkCTX({
-      scope: rs.scope
-    }));
-  }
-  if(_.isFunction(rs.global)){
-    rs.global(mkCTX({
-      scope: rs.scope
-    }));
-  }
-  rs.modules_used = {};
-  _.each(rs.meta && rs.meta.use, function(use){
-    if(use.kind !== "module"){
-      throw new Error("Unsupported 'use' kind: " + use.kind);
-    }
-    if(!_.has(rulesets, use.rid)){
-      throw new Error("Dependant module not loaded: " + use.rid);
-    }
-    var dep_rs = rulesets[use.rid];
-    var ctx = mkCTX({
-      scope: SymbolTable()//or dep_rs.scope.push() ??? TODO
-    });
-    if(_.isFunction(dep_rs.meta && dep_rs.meta.configure)){
-      dep_rs.meta.configure(ctx);
-    }
-    if(_.isFunction(use["with"])){
-      use["with"](ctx);
-    }
-    if(_.isFunction(dep_rs.global)){
-      dep_rs.global(ctx);
-    }
-    rs.modules_used[use.alias] = {
-      rid: use.rid,
-      scope: ctx.scope,
-      provides: dep_rs.meta.provides
-    };
-  });
-  _.each(rs.rules, function(rule){
-    rule.rid = rs.rid;
-
-    _.each(rule.select && rule.select.graph, function(g, domain){
-      _.each(g, function(exprs, type){
-        _.set(salience_graph, [domain, type, rule.rid, rule.name], true);
-      });
-    });
-  });
-  rulesets[rs.rid] = rs;
-};
-
-var installRuleset = function(rs, callback){
-  applyInFiber(doInstallRuleset, null, [rs], callback);
-};
-
 module.exports = function(conf){
   var db = Future.wrap(DB(conf.db));
   var compileAndLoadRuleset = conf.compileAndLoadRuleset;
 
+  var rulesets = {};
+  var salience_graph = {};
+
   var emitter = new EventEmitter();
+
+  var mkCTX = function(ctx){
+    ctx.getArg = getArg;
+    ctx.KRLClosure = KRLClosure;
+    if(!_.has(ctx, "emit")){
+      ctx.emit = function(){
+        console.error("WARNING ctx.emit(...) was not defined!");
+      };//stdlib expects an "emit" function to be available
+    }
+    ctx.callKRLstdlib = function(fn_name){
+      var args = _.toArray(arguments);
+      args[0] = ctx;
+      return krl_stdlib[fn_name].apply(void 0, args);
+    };
+    return ctx;
+  };
+
+  var doInstallRuleset = function(rs){
+    rs.scope = SymbolTable();
+    if(_.isFunction(rs.meta && rs.meta.configure)){
+      rs.meta.configure(mkCTX({
+        scope: rs.scope
+      }));
+    }
+    if(_.isFunction(rs.global)){
+      rs.global(mkCTX({
+        scope: rs.scope
+      }));
+    }
+    rs.modules_used = {};
+    _.each(rs.meta && rs.meta.use, function(use){
+      if(use.kind !== "module"){
+        throw new Error("Unsupported 'use' kind: " + use.kind);
+      }
+      if(!_.has(rulesets, use.rid)){
+        throw new Error("Dependant module not loaded: " + use.rid);
+      }
+      var dep_rs = rulesets[use.rid];
+      var ctx = mkCTX({
+        scope: SymbolTable()//or dep_rs.scope.push() ??? TODO
+      });
+      if(_.isFunction(dep_rs.meta && dep_rs.meta.configure)){
+        dep_rs.meta.configure(ctx);
+      }
+      if(_.isFunction(use["with"])){
+        use["with"](ctx);
+      }
+      if(_.isFunction(dep_rs.global)){
+        dep_rs.global(ctx);
+      }
+      rs.modules_used[use.alias] = {
+        rid: use.rid,
+        scope: ctx.scope,
+        provides: dep_rs.meta.provides
+      };
+    });
+    _.each(rs.rules, function(rule){
+      rule.rid = rs.rid;
+
+      _.each(rule.select && rule.select.graph, function(g, domain){
+        _.each(g, function(exprs, type){
+          _.set(salience_graph, [domain, type, rule.rid, rule.name], true);
+        });
+      });
+    });
+    rulesets[rs.rid] = rs;
+  };
+
+  var installRuleset = function(rs, callback){
+    applyInFiber(doInstallRuleset, null, [rs], callback);
+  };
 
   var installRID = function(rid, callback){
     if(conf._dont_check_enabled_before_installing){//for testing
