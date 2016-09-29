@@ -183,46 +183,40 @@ module.exports = function(conf, callback){
     applyInFiber(signalEventInFiber, void 0, [event], callback);
   };
 
+  var runQueryInFiber = function(ctx, query){
+    ctx.pico = ctx.db.getPicoByECIFuture(query.eci).wait();
+    if(!ctx.pico){
+      throw new Error("Invalid eci: " + query.eci);
+    }
+    if(!_.has(ctx.pico.ruleset, query.rid)){
+      throw new Error("Pico does not have that rid");
+    }
+    if(!_.has(rulesets, query.rid)){
+      throw new Error("Not found: rid");
+    }
+    var rs = rulesets[query.rid];
+    var shares = _.get(rs, ["meta", "shares"]);
+    if(!_.isArray(shares) || !_.includes(shares, query.name)){
+      throw new Error("Not shared");
+    }
+    if(!rs.scope.has(query.name)){
+      throw new Error("Shared, but not defined: " + query.name);
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    ctx.rid = rs.rid;
+    ctx.modules_used = rs.modules_used;
+    ctx.scope = rs.scope;
+    var val = ctx.scope.get(query.name);
+    if(_.isFunction(val)){
+      return val(ctx, query.args);
+    }
+    return val;
+  };
+
   var runQuery = function(query, callback){
-    db.getPicoByECI(query.eci, function(err, pico){
-      if(err) return callback(err);
-      if(!pico){
-        return callback(new Error("Bad eci"));
-      }
-      if(!_.has(pico.ruleset, query.rid)){
-        return callback(new Error("Pico does not have that rid"));
-      }
-      if(!_.has(rulesets, query.rid)){
-        return callback(new Error("Not found: rid"));
-      }
-      var rs = rulesets[query.rid];
-      var shares = _.get(rs, ["meta", "shares"]);
-      if(!_.isArray(shares) || !_.includes(shares, query.name)){
-        return callback(new Error("Not shared"));
-      }
-      if(!rs.scope.has(query.name)){
-        //TODO throw -or- nil????
-        return callback(new Error("Shared, but not defined: " + query.name));
-      }
-
-      ////////////////////////////////////////////////////////////////////////
-      var ctx = mkCTX({
-        rid: rs.rid,
-        pico: pico,
-        modules_used: rs.modules_used,
-        scope: rs.scope
-      });
-
-      var val = ctx.scope.get(query.name);
-      if(_.isFunction(val)){
-        applyInFiber(val, null, [ctx, query.args], function(err, resp){
-          if(err) return callback(err);
-          callback(undefined, resp);
-        });
-      }else{
-        callback(undefined, val);
-      }
-    });
+    var ctx = mkCTX({});
+    applyInFiber(runQueryInFiber, void 0, [ctx, query], callback);
   };
 
   var engine = Future.wrap({
