@@ -19,7 +19,11 @@ var comp_by_type = {
       return e("void", e("number", 0));
     }
     if(context && context.identifiers_are_event_attributes){
-      return e("call", e("id", "ctx.event.getAttr"), [e("str", ast.value)]);
+      return e("call", e("call", e("id", "ctx.modules.get"), [
+          e("id", "ctx"),
+          e("str", "event"),
+          e("str", "attr")
+      ]), [e("id", "ctx"), e("arr", [e("str", ast.value)])]);
     }
     return e("call", e("id", "ctx.scope.get"), [e("str", ast.value)]);
   },
