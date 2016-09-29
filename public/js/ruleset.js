@@ -139,11 +139,6 @@ $.getJSON("/api/db-dump", function(db_dump){
     $feedback.html("working...");
     var formAction = $(".clicked").attr("formaction");
     $(".clicked").toggleClass("clicked");
-    var not_implemented = function(fa) {
-      $feedback.html("use UI at localhost:8080/old");
-      alert("not implemented: "+fa);
-      $feedback.html("");
-    };
     if (formAction === "/api/ruleset/enable") {
       var rsHash = hashFromVersions(this.rid.value,undefined);
       if (rsHash) {
