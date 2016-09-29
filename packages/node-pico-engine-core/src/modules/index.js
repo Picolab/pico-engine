@@ -4,7 +4,8 @@ var modules = {
   ent: require("./ent"),
   app: require("./app"),
   event: require("./event"),
-  engine: require("./engine")
+  engine: require("./engine"),
+  meta: require("./meta")
 };
 
 module.exports = {
