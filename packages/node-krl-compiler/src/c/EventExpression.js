@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var callModuleFn = require("../utils/callModuleFn");
 
 module.exports = function(ast, comp, e){
   //FYI the graph allready vetted the domain and type
@@ -7,15 +8,14 @@ module.exports = function(ast, comp, e){
 
   if(!_.isEmpty(ast.attributes)){
     fn_body.push(e("var", "matches",
-            e("call", e("id", "ctx.getEventAttrMatches"), [
-              e("id", "ctx"),
+            callModuleFn(e, "event", "attrMatches", [
               e("array", _.map(ast.attributes, function(a){
                 return e("array", [
                   e("string", a.key.value, a.key.loc),
                   comp(a.value)
                 ], a.loc);
               }))
-            ])));
+            ], ast.loc)));
     fn_body.push(e("if", e("!", e("id", "matches")), e("return", e("false"))));
   }else if(!_.isEmpty(ast.setting)){
     fn_body.push(e("var", "matches", e("array", [])));
