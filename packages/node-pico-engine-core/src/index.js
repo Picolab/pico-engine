@@ -24,6 +24,7 @@ module.exports = function(conf){
   var mkCTX = function(ctx){
     ctx.db = db;
     ctx.getArg = getArg;
+    ctx.modules = modules;
     ctx.KRLClosure = KRLClosure;
     ctx.emit = function(type, val, message){//for stdlib
       var info = {rid: ctx.rid};
@@ -47,15 +48,14 @@ module.exports = function(conf){
 
   var doInstallRuleset = function(rs){
     rs.scope = SymbolTable();
+    var ctx = mkCTX({
+      scope: rs.scope
+    });
     if(_.isFunction(rs.meta && rs.meta.configure)){
-      rs.meta.configure(mkCTX({
-        scope: rs.scope
-      }));
+      rs.meta.configure(ctx);
     }
     if(_.isFunction(rs.global)){
-      rs.global(mkCTX({
-        scope: rs.scope
-      }));
+      rs.global(ctx);
     }
     rs.modules_used = {};
     _.each(rs.meta && rs.meta.use, function(use){
@@ -155,7 +155,6 @@ module.exports = function(conf){
 
     var ctx = mkCTX({
       engine: engine,
-      modules: modules,
       event: event
     });
 
@@ -237,7 +236,6 @@ module.exports = function(conf){
           rid: rs.rid,
           pico: pico,
           engine: engine,
-          modules: modules,
           modules_used: rs.modules_used,
           scope: rs.scope
         });
