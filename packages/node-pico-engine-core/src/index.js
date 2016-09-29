@@ -49,7 +49,7 @@ module.exports = function(conf, callback){
     return ctx;
   };
 
-  var installRulesetInFiber = function(rs){
+  var installRulesetInFiber = function(rs, loadDepRS){
     rs.scope = SymbolTable();
     var ctx = mkCTX({
       scope: rs.scope
@@ -65,10 +65,10 @@ module.exports = function(conf, callback){
       if(use.kind !== "module"){
         throw new Error("Unsupported 'use' kind: " + use.kind);
       }
-      if(!_.has(rulesets, use.rid)){
+      var dep_rs = loadDepRS(use.rid);
+      if(!dep_rs){
         throw new Error("Dependant module not loaded: " + use.rid);
       }
-      var dep_rs = rulesets[use.rid];
       var ctx = mkCTX({
         scope: SymbolTable()//or dep_rs.scope.push() ??? TODO
       });
@@ -99,8 +99,8 @@ module.exports = function(conf, callback){
     rulesets[rs.rid] = rs;
   };
 
-  var installRuleset = function(rs, callback){
-    applyInFiber(installRulesetInFiber, null, [rs], callback);
+  var installRuleset = function(rs, loadDepRS, callback){
+    applyInFiber(installRulesetInFiber, null, [rs, loadDepRS], callback);
   };
 
   var getRulesetForRID = function(rid, callback){
@@ -125,7 +125,9 @@ module.exports = function(conf, callback){
   var installRID = function(rid, callback){
     getRulesetForRID(rid, function(err, rs){
       if(err) return callback(err);
-      installRuleset(rs, callback);
+      installRuleset(rs, function(rid){
+        return rulesets[rid];
+      }, callback);
     });
   };
 
@@ -150,8 +152,16 @@ module.exports = function(conf, callback){
       if(err)return callback(err);
       λ.map(rids, getRulesetForRID, function(err, rs_list){
         if(err)return callback(err);
-        //TODO load in order of dependancies? or simply index all then install?
-        λ.each(rs_list, installRuleset, callback);
+        var rs_by_rid = {};
+        _.each(rs_list, function(rs){
+          rs_by_rid[rs.rid] = rs;
+        });
+        var loadDepRS = function(rid){
+          return rs_by_rid[rid];
+        };
+        λ.each(rs_list, function(rs, next){
+          installRuleset(rs, loadDepRS, next);
+        }, callback);
       });
     });
   };
