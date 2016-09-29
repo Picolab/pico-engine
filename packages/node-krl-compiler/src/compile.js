@@ -1,6 +1,7 @@
 var _ = require("lodash");
 var mkTree = require("estree-builder");
 var callStdLibFn = require("./utils/callStdLibFn");
+var callModuleFn = require("./utils/callModuleFn");
 
 var comp_by_type = {
   "String": function(ast, comp, e){
@@ -19,11 +20,7 @@ var comp_by_type = {
       return e("void", e("number", 0));
     }
     if(context && context.identifiers_are_event_attributes){
-      return e("call", e("call", e("id", "ctx.modules.get"), [
-          e("id", "ctx"),
-          e("str", "event"),
-          e("str", "attr")
-      ]), [e("id", "ctx"), e("arr", [e("str", ast.value)])]);
+      return callModuleFn(e, "event", "attr", [e("str", ast.value)], ast.loc);
     }
     return e("call", e("id", "ctx.scope.get"), [e("str", ast.value)]);
   },
