@@ -12,7 +12,7 @@ var EventEmitter = require("events");
 var evalRuleInFiber = require("./evalRuleInFiber");
 var selectRulesToEvalFuture = Future.wrap(require("./selectRulesToEval"));
 
-module.exports = function(conf){
+module.exports = function(conf, callback){
   var db = Future.wrap(DB(conf.db));
   var compileAndLoadRuleset = conf.compileAndLoadRuleset;
 
@@ -24,6 +24,7 @@ module.exports = function(conf){
   var mkCTX = function(ctx){
     ctx.db = db;
     ctx.getArg = getArg;
+    ctx.engine = engine;
     ctx.modules = modules;
     ctx.KRLClosure = KRLClosure;
     ctx.emit = function(type, val, message){//for stdlib
@@ -141,18 +142,10 @@ module.exports = function(conf){
     });
   };
 
-  //TODO standard startup-phase
-  installAllEnableRulesets(function(err){
-    if(err){
-      throw err;//TODO handle this somehow?
-    }
-  });
-
   var signalEventInFiber = function(event){
     event.timestamp = new Date();
 
     var ctx = mkCTX({
-      engine: engine,
       event: event
     });
 
@@ -194,60 +187,64 @@ module.exports = function(conf){
     applyInFiber(signalEventInFiber, void 0, [event], callback);
   };
 
+  var runQuery = function(query, callback){
+    db.getPicoByECI(query.eci, function(err, pico){
+      if(err) return callback(err);
+      if(!pico){
+        return callback(new Error("Bad eci"));
+      }
+      if(!_.has(pico.ruleset, query.rid)){
+        return callback(new Error("Pico does not have that rid"));
+      }
+      if(!_.has(rulesets, query.rid)){
+        return callback(new Error("Not found: rid"));
+      }
+      var rs = rulesets[query.rid];
+      var shares = _.get(rs, ["meta", "shares"]);
+      if(!_.isArray(shares) || !_.includes(shares, query.name)){
+        return callback(new Error("Not shared"));
+      }
+      if(!rs.scope.has(query.name)){
+        //TODO throw -or- nil????
+        return callback(new Error("Shared, but not defined: " + query.name));
+      }
+
+      ////////////////////////////////////////////////////////////////////////
+      var ctx = mkCTX({
+        rid: rs.rid,
+        pico: pico,
+        modules_used: rs.modules_used,
+        scope: rs.scope
+      });
+
+      var val = ctx.scope.get(query.name);
+      if(_.isFunction(val)){
+        applyInFiber(val, null, [ctx, query.args], function(err, resp){
+          if(err) return callback(err);
+          callback(undefined, resp);
+        });
+      }else{
+        callback(undefined, val);
+      }
+    });
+  };
+
   var engine = Future.wrap({
     installRID: installRID,
     signalEvent: signalEvent
   });
 
-  return {
-    db: db,
-    emitter: emitter,
-    isInstalled: function(rid){
-      return _.has(rulesets, rid);
-    },
-    installRID: installRID,
-    signalEvent: signalEvent,
-    runQuery: function(query, callback){
-      db.getPicoByECI(query.eci, function(err, pico){
-        if(err) return callback(err);
-        if(!pico){
-          return callback(new Error("Bad eci"));
-        }
-        if(!_.has(pico.ruleset, query.rid)){
-          return callback(new Error("Pico does not have that rid"));
-        }
-        if(!_.has(rulesets, query.rid)){
-          return callback(new Error("Not found: rid"));
-        }
-        var rs = rulesets[query.rid];
-        var shares = _.get(rs, ["meta", "shares"]);
-        if(!_.isArray(shares) || !_.includes(shares, query.name)){
-          return callback(new Error("Not shared"));
-        }
-        if(!rs.scope.has(query.name)){
-          //TODO throw -or- nil????
-          return callback(new Error("Shared, but not defined: " + query.name));
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        var ctx = mkCTX({
-          rid: rs.rid,
-          pico: pico,
-          engine: engine,
-          modules_used: rs.modules_used,
-          scope: rs.scope
-        });
-
-        var val = ctx.scope.get(query.name);
-        if(_.isFunction(val)){
-          applyInFiber(val, null, [ctx, query.args], function(err, resp){
-            if(err) return callback(err);
-            callback(undefined, resp);
-          });
-        }else{
-          callback(undefined, val);
-        }
-      });
-    }
-  };
+  installAllEnableRulesets(function(err){
+    if(err) return callback(err);
+    callback(void 0, {
+      db: db,
+      emitter: emitter,
+      isInstalled: function(rid){
+        return _.has(rulesets, rid);
+      },
+      installRID: installRID,
+      signalEvent: signalEvent,
+      runQuery: runQuery
+    });
+  });
 };

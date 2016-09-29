@@ -19,7 +19,7 @@ _.each(fs.readdirSync(test_dir), function(file){
 });
 
 module.exports = function(opts, callback){
-  var pe = PicoEngine({
+  PicoEngine({
     _dont_check_enabled_before_installing: true,
     compileAndLoadRuleset: function(rs_info, callback){
       var rs = test_rulesets[rs_info.rid];
@@ -34,8 +34,10 @@ module.exports = function(opts, callback){
         };
       }())
     }
-  });
-  λ.each(_.keys(test_rulesets), pe.installRID, function(err){
-    callback(err, pe);
+  }, function(err, pe){
+    if(err)return callback(err);
+    λ.each(_.keys(test_rulesets), pe.installRID, function(err){
+      callback(err, pe);
+    });
   });
 };
