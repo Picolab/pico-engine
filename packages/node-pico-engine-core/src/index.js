@@ -130,24 +130,22 @@ module.exports = function(conf){
     });
   };
 
+  var installAllEnableRulesets = function(callback){
+    db.getAllEnableRulesets(function(err, rids){
+      if(err)return callback(err);
+      λ.map(rids, getRulesetForRID, function(err, rs_list){
+        if(err)return callback(err);
+        //TODO load in order of dependancies? or simply index all then install?
+        λ.each(rs_list, installRuleset, callback);
+      });
+    });
+  };
+
   //TODO standard startup-phase
-  db.getAllEnableRulesets(function(err, rids){
+  installAllEnableRulesets(function(err){
     if(err){
       throw err;//TODO handle this somehow?
     }
-    λ.map(rids, getRulesetForRID, function(err, rs_list){
-      if(err){
-        throw err;//TODO handle this somehow?
-      }
-      //TODO load in order of dependancies? or simply index all then install?
-      _.each(rs_list, function(rs){
-        installRuleset(rs, function(err){
-          if(err){
-            throw err;//TODO handle this somehow?
-          }
-        });
-      });
-    });
   });
 
   var signalEventInFiber = function(event){
