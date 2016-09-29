@@ -164,6 +164,11 @@ $.getJSON("/api/db-dump", function(db_dump){
       } else {
         $feedback.html(JSON.stringify(result));
       }
+    }).fail(function(err){
+      $feedback.html(
+        "<span style=\"color:red\">"
+        + JSON.stringify(err,undefined,2)
+        + "</span>")
     });
   });
 });
