@@ -9,8 +9,8 @@ var KRLClosure = require("./KRLClosure");
 var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
 var EventEmitter = require("events");
-var evalRuleInFiber = require("./evalRuleInFiber");
-var selectRulesToEvalFuture = Future.wrap(require("./selectRulesToEval"));
+var runQueryInFiber = require("./runQueryInFiber");
+var signalEventInFiber = require("./signalEventInFiber");
 
 module.exports = function(conf, callback){
   var db = Future.wrap(DB(conf.db));
@@ -26,6 +26,8 @@ module.exports = function(conf, callback){
     ctx.getArg = getArg;
     ctx.engine = engine;
     ctx.modules = modules;
+    ctx.rulesets = rulesets;
+    ctx.salience_graph = salience_graph;
     ctx.KRLClosure = KRLClosure;
     ctx.emit = function(type, val, message){//for stdlib
       var info = {rid: ctx.rid};
@@ -127,6 +129,22 @@ module.exports = function(conf, callback){
     });
   };
 
+  var signalEvent = function(event, callback){
+    event.timestamp = new Date();
+    var ctx = mkCTX({event: event});
+    applyInFiber(signalEventInFiber, void 0, [ctx], callback);
+  };
+
+  var runQuery = function(query, callback){
+    var ctx = mkCTX({query: query});
+    applyInFiber(runQueryInFiber, void 0, [ctx], callback);
+  };
+
+  var engine = Future.wrap({
+    installRID: installRID,
+    signalEvent: signalEvent
+  });
+
   var installAllEnableRulesets = function(callback){
     db.getAllEnableRulesets(function(err, rids){
       if(err)return callback(err);
@@ -137,92 +155,6 @@ module.exports = function(conf, callback){
       });
     });
   };
-
-  var signalEventInFiber = function(event){
-    event.timestamp = new Date();
-
-    var ctx = mkCTX({
-      event: event
-    });
-
-    ctx.emit("debug", "event recieved");
-
-    ctx.pico = db.getPicoByECIFuture(event.eci).wait();
-    if(!ctx.pico){
-      throw new Error("Invalid eci: " + event.eci);
-    }
-
-    ctx.emit("debug", "pico selected");
-
-    var rules = selectRulesToEvalFuture(ctx, salience_graph, rulesets).wait();
-    var responses = _.map(rules, function(rule){
-
-      ctx.emit("debug", "rule selected: " + rule.rid + " -> " + rule.name);
-
-      ctx.rid = rule.rid;
-      ctx.rule = rule;
-      ctx.scope = rule.scope;
-      if(_.has(rulesets, rule.rid)){
-        ctx.modules_used = rulesets[rule.rid].modules_used;
-      }
-
-      return evalRuleInFiber(rule, ctx);
-    });
-
-    var res_by_type = _.groupBy(_.flattenDeep(_.values(responses)), "type");
-
-    //TODO other types
-    return {
-      directives:  _.map(res_by_type.directive, function(d){
-        return _.omit(d, "type");
-      })
-    };
-  };
-
-  var signalEvent = function(event, callback){
-    applyInFiber(signalEventInFiber, void 0, [event], callback);
-  };
-
-  var runQueryInFiber = function(ctx, query){
-    ctx.pico = ctx.db.getPicoByECIFuture(query.eci).wait();
-    if(!ctx.pico){
-      throw new Error("Invalid eci: " + query.eci);
-    }
-    if(!_.has(ctx.pico.ruleset, query.rid)){
-      throw new Error("Pico does not have that rid");
-    }
-    if(!_.has(rulesets, query.rid)){
-      throw new Error("Not found: rid");
-    }
-    var rs = rulesets[query.rid];
-    var shares = _.get(rs, ["meta", "shares"]);
-    if(!_.isArray(shares) || !_.includes(shares, query.name)){
-      throw new Error("Not shared");
-    }
-    if(!rs.scope.has(query.name)){
-      throw new Error("Shared, but not defined: " + query.name);
-    }
-
-    ////////////////////////////////////////////////////////////////////////
-    ctx.rid = rs.rid;
-    ctx.modules_used = rs.modules_used;
-    ctx.scope = rs.scope;
-    var val = ctx.scope.get(query.name);
-    if(_.isFunction(val)){
-      return val(ctx, query.args);
-    }
-    return val;
-  };
-
-  var runQuery = function(query, callback){
-    var ctx = mkCTX({});
-    applyInFiber(runQueryInFiber, void 0, [ctx, query], callback);
-  };
-
-  var engine = Future.wrap({
-    installRID: installRID,
-    signalEvent: signalEvent
-  });
 
   installAllEnableRulesets(function(err){
     if(err) return callback(err);

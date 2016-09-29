@@ -31,9 +31,9 @@ var getNextState = function(ctx, curr_state){
   return matching_pair ? matching_pair[1] : undefined;
 };
 
-module.exports = function(ctx, salience_graph, rulesets, callback){
+module.exports = function(ctx, callback){
 
-  var to_run = _.get(salience_graph, [ctx.event.domain, ctx.event.type], {});
+  var to_run = _.get(ctx.salience_graph, [ctx.event.domain, ctx.event.type], {});
 
   var rules_to_select = [];
   _.each(to_run, function(rules, rid){
@@ -42,11 +42,11 @@ module.exports = function(ctx, salience_graph, rulesets, callback){
     }
     _.each(rules, function(is_on, rule_name){
       if(is_on){
-        var rule = _.get(rulesets, [rid, "rules", rule_name]);
+        var rule = _.get(ctx.rulesets, [rid, "rules", rule_name]);
         if(rule){
           //shallow clone with it"s own scope for this run
           rules_to_select.push(_.assign({}, rule, {
-            scope: rulesets[rid].scope.push()
+            scope: ctx.rulesets[rid].scope.push()
           }));
         }
       }
