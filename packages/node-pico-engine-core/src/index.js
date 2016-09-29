@@ -102,10 +102,6 @@ module.exports = function(conf, callback){
   };
 
   var getRulesetForRID = function(rid, callback){
-    if(conf._dont_check_enabled_before_installing){//for testing
-      compileAndLoadRuleset({rid: rid}, callback);
-      return;
-    }
     db.getEnableRuleset(rid, function(err, data){
       if(err) return callback(err);
       compileAndLoadRuleset({

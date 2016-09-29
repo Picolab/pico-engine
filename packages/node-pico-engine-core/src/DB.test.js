@@ -4,7 +4,7 @@ var test = require("tape");
 var mkTestPicoEngine = require("./mkTestPicoEngine");
 
 test("DB - write and read", function(t){
-  mkTestPicoEngine({}, function(err, pe){
+  mkTestPicoEngine({dont_register_rulesets: true}, function(err, pe){
     if(err)return t.end(err);
 
     λ.series({
@@ -52,7 +52,7 @@ test("DB - write and read", function(t){
 });
 
 test("DB - registerRuleset", function(t){
-  mkTestPicoEngine({}, function(err, pe){
+  mkTestPicoEngine({dont_register_rulesets: true}, function(err, pe){
     if(err)return t.end(err);
 
     var krl_src = "ruleset io.picolabs.cool {}";
@@ -95,7 +95,7 @@ test("DB - enableRuleset", function(t){
         pe.db.toObj(callback);
       },
       function(db, callback){
-        t.deepEquals(db, {});
+        t.deepEquals(_.omit(db, "rulesets"), {});
         pe.db.registerRuleset(krl_src, callback);
       },
       function(hash, callback){
