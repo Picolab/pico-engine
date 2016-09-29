@@ -46,7 +46,7 @@ module.exports = function(conf){
     return ctx;
   };
 
-  var doInstallRuleset = function(rs){
+  var installRulesetInFiber = function(rs){
     rs.scope = SymbolTable();
     var ctx = mkCTX({
       scope: rs.scope
@@ -97,7 +97,7 @@ module.exports = function(conf){
   };
 
   var installRuleset = function(rs, callback){
-    applyInFiber(doInstallRuleset, null, [rs], callback);
+    applyInFiber(installRulesetInFiber, null, [rs], callback);
   };
 
   var getRulesetForRID = function(rid, callback){
