@@ -234,12 +234,11 @@ $.getJSON("/api/db-dump", function(db_dump){
         e.preventDefault();
         $.getJSON($(this).attr("action"),formToJSON(this),function(ans){
           $theResultsPre.html(JSON.stringify(ans,undefined,2));
-        });
-      });
-      $theSection.find('a.js-test').click(function(e){
-        e.preventDefault();
-        $.getJSON($(this).attr("href"),{},function(ans){
-          $theResultsPre.html(JSON.stringify(ans,undefined,2));
+        }).fail(function(err){
+          $theResultsPre.html(
+            "<span style=\"color:red\">"
+            + JSON.stringify(err,undefined,2)
+            + "</span>");
         });
       });
       });
