@@ -21,10 +21,10 @@ module.exports = {
         "graph": { "store": { "name": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
-                "name",
-                new RegExp("^(.*)$", "")
-              ]]);
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "name",
+                  new RegExp("^(.*)$", "")
+                ]]]);
             if (!matches)
               return false;
             ctx.scope.set("my_name", matches[0]);
@@ -72,10 +72,10 @@ module.exports = {
         "graph": { "store": { "appvar": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
-                "appvar",
-                new RegExp("^(.*)$", "")
-              ]]);
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "appvar",
+                  new RegExp("^(.*)$", "")
+                ]]]);
             if (!matches)
               return false;
             ctx.scope.set("my_appvar", matches[0]);

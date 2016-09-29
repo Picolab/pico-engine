@@ -44,10 +44,10 @@ module.exports = {
         },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
-                "name",
-                new RegExp("^(.*)$", "")
-              ]]);
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "name",
+                  new RegExp("^(.*)$", "")
+                ]]]);
             if (!matches)
               return false;
             ctx.scope.set("my_name", matches[0]);
@@ -99,10 +99,10 @@ module.exports = {
         "graph": { "scope": { "prelude": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
-                "name",
-                new RegExp("^(.*)$", "")
-              ]]);
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "name",
+                  new RegExp("^(.*)$", "")
+                ]]]);
             if (!matches)
               return false;
             ctx.scope.set("name", matches[0]);

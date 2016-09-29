@@ -21,10 +21,10 @@ module.exports = {
         "graph": { "events": { "bind": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
-                "name",
-                new RegExp("^(.*)$", "")
-              ]]);
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "name",
+                  new RegExp("^(.*)$", "")
+                ]]]);
             if (!matches)
               return false;
             ctx.scope.set("my_name", matches[0]);
@@ -486,10 +486,10 @@ module.exports = {
         "graph": { "events": { "ifthen": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
-                "name",
-                new RegExp("^(.*)$", "")
-              ]]);
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "name",
+                  new RegExp("^(.*)$", "")
+                ]]]);
             if (!matches)
               return false;
             ctx.scope.set("my_name", matches[0]);
@@ -533,10 +533,10 @@ module.exports = {
         "graph": { "events": { "on_fired": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
-                "name",
-                new RegExp("^(.*)$", "")
-              ]]);
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "name",
+                  new RegExp("^(.*)$", "")
+                ]]]);
             if (!matches)
               return false;
             ctx.scope.set("my_name", matches[0]);
@@ -584,10 +584,10 @@ module.exports = {
         "graph": { "events": { "on_choose": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
-                "thing",
-                new RegExp("^(.*)$", "")
-              ]]);
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "thing",
+                  new RegExp("^(.*)$", "")
+                ]]]);
             if (!matches)
               return false;
             ctx.scope.set("thing", matches[0]);
@@ -654,7 +654,7 @@ module.exports = {
         "graph": { "events": { "select_where": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            if (!ctx.callKRLstdlib("match", ctx.event.getAttr("something"), new RegExp("^wat", "")))
+            if (!ctx.callKRLstdlib("match", ctx.modules.get(ctx, "event", "attr")(ctx, ["something"]), new RegExp("^wat", "")))
               return false;
             return true;
           }
@@ -693,10 +693,10 @@ module.exports = {
         "graph": { "events": { "no_action": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.event.getAttrMatches([[
-                "fired",
-                new RegExp("^yes$", "i")
-              ]]);
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "fired",
+                  new RegExp("^yes$", "i")
+                ]]]);
             if (!matches)
               return false;
             return true;

@@ -152,23 +152,6 @@ module.exports = function(conf){
 
   var signalEventInFiber = function(event){
     event.timestamp = new Date();
-    event.getAttr = function(attr_key){
-      return event.attrs[attr_key];
-    };
-    event.getAttrMatches = function(pairs){
-      var matches = [];
-      var i, attr, m, pair;
-      for(i = 0; i < pairs.length; i++){
-        pair = pairs[i];
-        attr = event.attrs[pair[0]];
-        m = pair[1].exec(attr || "");
-        if(!m){
-          return undefined;
-        }
-        matches.push(m[1]);
-      }
-      return matches;
-    };
 
     var ctx = mkCTX({
       engine: engine,
