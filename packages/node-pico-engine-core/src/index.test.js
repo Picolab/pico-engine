@@ -656,3 +656,26 @@ test("PicoEngine - io.picolabs.expressions ruleset", function(t){
     ], t.end);
   });
 });
+
+test("PicoEngine - io.picolabs.meta ruleset", function(t){
+  mkTestPicoEngine({}, function(err, pe){
+    if(err)return t.end(err);
+
+    var query = mkQueryTask(pe, "id1", "io.picolabs.meta");
+    var signal = mkSignalTask(pe, "id1");
+
+    testOutputs(t, [
+      λ.curry(pe.db.newPico, {}),
+      λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+      λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.meta"}),
+      [
+        signal("meta", "eci"),
+        [{name: "eci", options: {eci: "id1"}}]
+      ],
+      [
+        query("eci"),
+        "id1"
+      ]
+    ], t.end);
+  });
+});
