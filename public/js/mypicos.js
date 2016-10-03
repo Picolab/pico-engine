@@ -94,18 +94,24 @@ $.getJSON("/api/db-dump", function(db_dump){
         thePicoOut.eci = channel;
         break;
       }
-      thePicoOut.parent = get(thePicoInp,["io.picolabs.pico","vars","parent"],undefined);
-      if (!thePicoOut.parent) thePicoOut.root = true;
-      else thePicoOut.parent.dname = getV(db_dump.pico[thePicoOut.parent.id],"dname",undefined);
-      thePicoOut.children = get(thePicoInp,["io.picolabs.pico","vars","children"],[]);
+      var pp = getP(thePicoInp,"parent",undefined);
+      if (pp) {
+        thePicoOut.parent = {};
+        thePicoOut.parent.id = pp.id;
+        thePicoOut.parent.eci = pp.eci;
+        thePicoOut.parent.dname = getV(pp,"dname",undefined);
+      }
+      thePicoOut.children = [];
+      var reportedChildren = getP(thePicoInp,"children",[]);
       var i = 0;
-      var cLen = thePicoOut.children.length;
+      var cLen = reportedChildren.length;
       for (; i<cLen; ++i) {
-        var p = thePicoOut.children[i];
-        p.dname = getV(db_dump.pico[p.id],"dname",undefined);
-        p.canDel = get(db_dump.pico,
-                       [p.id,"io.picolabs.pico","vars","children"],
-                       []).length == 0; 
+        var p = reportedChildren[i];
+        var cp = {}; cp.id = p.id; cp.eci = p.eci;
+        if (db_dump.pico[p.id] === undefined) continue;
+        cp.dname = getV(p,"dname",undefined);
+        cp.canDel = getP(p,"children", []).length == 0; 
+        thePicoOut.children.push(cp);
       }
       thePicoOut.dname = getV(thePicoInp,"dname",
                               $li.parent().parent().prev().text());
@@ -318,7 +324,12 @@ $.getJSON("/api/db-dump", function(db_dump){
         while(o && i<l) { o = o[p[i++]]; }
         return o ? o : v;
       }
+    var getP = function(p,n,d) {
+      if (p === undefined) return d;
+      return get(db_dump.pico,[p.id,"io.picolabs.pico","vars",n],d);
+    }
     var getV = function(p,n,d) {
+      if (p === undefined) return d;
       return get(db_dump.pico,[p.id,"io.picolabs.visual_params","vars",n],d);
     }
     var db_graph = {};
@@ -343,9 +354,10 @@ $.getJSON("/api/db-dump", function(db_dump){
           +"top:"+top+"px;"
           +"background-color:"+color);
         db_graph.picos.push(pico);
-        var children = get(db_dump.pico,[pico.id,"io.picolabs.pico","vars","children"],[]);
+        var children = getP(pico,"children",[]);
         var i=0, l=children.length;
         for (;i<l;++i) {
+          if (db_dump.pico[children[i].id] === undefined) continue;
           var cp = { id: children[i].id };
           db_graph.chans.push({ class: pico.id +"-origin "+ cp.id +"-target" });
           walkPico(cp,dNumber*10+i+1,left+(i*10)+20,top+20);
