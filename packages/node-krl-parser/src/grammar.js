@@ -584,7 +584,7 @@ var grammar = {
     {"name": "RuleAction$ebnf$2$subexpression$1", "symbols": ["_", "RuleAction$ebnf$2$subexpression$1$string$1", "__", "declaration_list"]},
     {"name": "RuleAction$ebnf$2", "symbols": ["RuleAction$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier", "_", {"literal":"("}, "Expression_list", "loc_close_paren", "RuleAction$ebnf$2"], "postprocess": 
+    {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier_or_DomainIdentifier", "_", {"literal":"("}, "Expression_list", "loc_close_paren", "RuleAction$ebnf$2"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: lastEndLoc(data)},
@@ -596,6 +596,8 @@ var grammar = {
           };
         }
         },
+    {"name": "Identifier_or_DomainIdentifier", "symbols": ["Identifier"], "postprocess": id},
+    {"name": "Identifier_or_DomainIdentifier", "symbols": ["DomainIdentifier"], "postprocess": id},
     {"name": "RulePostlude$string$1", "symbols": [{"literal":"a"}, {"literal":"l"}, {"literal":"w"}, {"literal":"a"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "RulePostlude", "symbols": ["RulePostlude$string$1", "_", "postlude_clause"], "postprocess": RulePostlude_by_paths(null, null, [2, 0])},
     {"name": "RulePostlude$string$2", "symbols": [{"literal":"f"}, {"literal":"i"}, {"literal":"r"}, {"literal":"e"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},

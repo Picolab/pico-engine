@@ -548,7 +548,7 @@ RuleActions -> RuleAction {% idArr %}
 
 RuleAction ->
     (Identifier _ "=>" _):?
-    Identifier _ "(" Expression_list loc_close_paren
+    Identifier_or_DomainIdentifier _ "(" Expression_list loc_close_paren
     (_ "with" __ declaration_list):? {%
   function(data, start){
     return {
@@ -561,6 +561,10 @@ RuleAction ->
     };
   }
 %}
+
+Identifier_or_DomainIdentifier ->
+      Identifier {% id %}
+    | DomainIdentifier {% id %}
 
 ################################################################################
 #
