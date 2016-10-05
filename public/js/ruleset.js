@@ -119,7 +119,14 @@ $.getJSON("/api/db-dump", function(db_dump){
         location.reload();
       } else {
         $("pre#feedback").html("Registering...");
-        var src = "ruleset "+rid+" {\n}";
+        var src = "ruleset "+rid+" {\n"
+          + "  meta {\n"
+          + "    shares __testing\n"
+          + "  }\n"
+          + "  global {\n"
+          + "    __testing = { \"queries\": [ { \"name\": \"__testing\" } ] }\n"
+          + "  }\n"
+          + "}\n";
         $.getJSON("/api/ruleset/register",{"src":src},function(result){
           location.hash = rid;
           location.reload();
