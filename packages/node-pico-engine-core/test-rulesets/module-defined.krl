@@ -23,7 +23,7 @@ ruleset io.picolabs.module-defined {
     select when module_defined store_memo memo re#^(.*)$# setting(text);
 
     send_directive("store_memo") with
-      greeting = greeting
+      name = configured_name
       memo_to_store = text
 
     always {

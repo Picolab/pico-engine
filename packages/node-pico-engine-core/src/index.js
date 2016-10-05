@@ -52,6 +52,7 @@ module.exports = function(conf, callback){
   var installRulesetInFiber = function(rs, loadDepRS){
     rs.scope = SymbolTable();
     var ctx = mkCTX({
+      rid: rs.rid,
       scope: rs.scope
     });
     if(_.isFunction(rs.meta && rs.meta.configure)){
@@ -70,6 +71,7 @@ module.exports = function(conf, callback){
         throw new Error("Dependant module not loaded: " + use.rid);
       }
       var ctx = mkCTX({
+        rid: dep_rs.rid,
         scope: SymbolTable()//or dep_rs.scope.push() ??? TODO
       });
       if(_.isFunction(dep_rs.meta && dep_rs.meta.configure)){

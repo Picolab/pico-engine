@@ -574,6 +574,8 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
       λ.curry(pe.db.newPico, {}),
       λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
       λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.module-used"}),
+
+      // Test overiding module configurations
       [
         signal("module_used", "dflt_name"),
         [{name: "dflt_name", options: {name: "Bob"}}]
@@ -582,25 +584,19 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
         signal("module_used", "conf_name"),
         [{name: "conf_name", options: {name: "Jim"}}]
       ],
-      [
-        signal("module_used", "dflt_info"),
-        //TODO shouldn't this error? b/c `ent` shouldn't work here?
-        //TODO shouldn't this error? b/c `ent` shouldn't work here?
-        [{name: "dflt_info", options: {info: {
-          memo: void 0,
-          name: "Bob",
-          privateFn: "privateFn = name: Bob memo: undefined"
-        }}}]
-      ],
+      //TODO test error signal("module_used", "dflt_info"),
+      //TODO test error signal("module_used", "conf_info"),
+
+      // The dependant module is not added to the pico
       [
         signal("module_defined", "store_memo", {memo: "foo"}),
-        []
+        []//should not respond to this event
       ],
       λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.module-defined"}),
       [
         signal("module_defined", "store_memo", {memo: "foo"}),
         [{name: "store_memo", options: {
-          greeting: void 0,//TODO shouldn't this be the default?
+          name: "Bob",//the default is used when a module is added to a pico
           memo_to_store: "foo"
         }}]
       ],
@@ -612,28 +608,22 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
           privateFn: "privateFn = name: Bob memo: [\"foo\" by Bob]"
         }
       ],
-      /*
-      //test non-shared fn can't be queried
-      function(next){
-        query("hello", {obj: "Jim"})(function(err, data){
-          t.ok(/Error: Not shared/i.test(err + ""));
-          query("privateFn", {obj: "Jim"})(function(err, data){
-            t.ok(/Error: Not shared/i.test(err + ""));
-            next();
-          });
-        });
-      },
-      //test non-provides fn can't be used
-      function(next){
-        signal("module_used", "privateFn")(function(err, data){
-          t.ok(/Error: Not defined/i.test(err + ""));
-          signal("module_used", "queryFn")(function(err, data){
-            t.ok(/Error: Not defined/i.test(err + ""));
-            next();
-          });
-        });
-      }
-      */
+      [
+        signal("module_used", "dflt_info"),
+        [{name: "dflt_info", options: {info: {
+          name: "Bob",
+          memo: "[\"foo\" by Bob]",
+          privateFn: "privateFn = name: Bob memo: [\"foo\" by Bob]"
+        }}}]
+      ],
+      [
+        signal("module_used", "conf_info"),
+        [{name: "conf_info", options: {info: {
+          name: "Jim",//the overrided config is used here
+          memo: "[\"foo\" by Bob]",//the memo was stored on the pico ruleset with default config
+          privateFn: "privateFn = name: Jim memo: [\"foo\" by Bob]"
+        }}}]
+      ]
     ], t.end);
   });
 });

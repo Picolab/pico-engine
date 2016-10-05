@@ -65,7 +65,7 @@ module.exports = {
                 "type": "directive",
                 "name": "store_memo",
                 "options": {
-                  "greeting": ctx.scope.get("greeting"),
+                  "name": ctx.scope.get("configured_name"),
                   "memo_to_store": ctx.scope.get("text")
                 }
               };
