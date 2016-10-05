@@ -68,6 +68,13 @@ mk.op = function(op, left, right){
     right: right
   };
 };
+mk.unary = function(op, arg){
+  return {
+    type: 'UnaryOperator',
+    op: op,
+    arg: arg
+  };
+};
 mk.ee = function(domain, type, attrs, where, setting){
   return {
     type: 'EventExpression',
@@ -906,6 +913,18 @@ test('expressions', function(t){
     },
     args: []
   });
+
+  testExp("not a", mk.unary("not", mk.id("a")));
+  testExp("nota", mk.id("nota"));
+  testExp("not not a || b",
+    mk.op("||",
+      mk.unary("not",  mk.unary("not", mk.id("a"))),
+      mk.id("b")
+    )
+  );
+  testExp("not (not a || b)",
+    mk.unary("not", mk.op("||", mk.unary("not", mk.id("a")), mk.id("b")))
+  );
 
   t.end();
 });

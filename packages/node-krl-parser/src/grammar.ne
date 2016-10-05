@@ -63,6 +63,7 @@ var get = function(o, path, dflt){
 
 var reserved_identifiers = {
   "function": true,
+  "not": true,
   "true": true,
   "false": true
 };
@@ -132,6 +133,15 @@ var booleanAST = function(value){
       type: 'Boolean',
       value: value
     };
+  };
+};
+
+var unaryOp = function(data, start){
+  return {
+    loc: {start: start, end: data[2].loc.end},
+    type: "UnaryOperator",
+    op: data[0],
+    arg: data[2]
   };
 };
 
@@ -686,10 +696,13 @@ exp_sum -> exp_product {% id %}
     | exp_sum _ "+" _ exp_product {% infixOp %}
     | exp_sum _ "-" _ exp_product {% infixOp %}
 
-exp_product -> MemberExpression {% id %}
-    | exp_product _ "*" _ MemberExpression {% infixOp %}
-    | exp_product _ "/" _ MemberExpression {% infixOp %}
-    | exp_product _ "%" _ MemberExpression {% infixOp %}
+exp_product -> UnaryOperator {% id %}
+    | exp_product _ "*" _ UnaryOperator {% infixOp %}
+    | exp_product _ "/" _ UnaryOperator {% infixOp %}
+    | exp_product _ "%" _ UnaryOperator {% infixOp %}
+
+UnaryOperator -> MemberExpression {% id %}
+    | "not" __ UnaryOperator {% unaryOp %}
 
 MemberExpression -> PrimaryExpression {% id %}
     | MemberExpression _ "[" _ Expression _ loc_close_square

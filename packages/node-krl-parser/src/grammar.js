@@ -67,6 +67,7 @@ var get = function(o, path, dflt){
 
 var reserved_identifiers = {
   "function": true,
+  "not": true,
   "true": true,
   "false": true
 };
@@ -136,6 +137,15 @@ var booleanAST = function(value){
       type: 'Boolean',
       value: value
     };
+  };
+};
+
+var unaryOp = function(data, start){
+  return {
+    loc: {start: start, end: data[2].loc.end},
+    type: "UnaryOperator",
+    op: data[0],
+    arg: data[2]
   };
 };
 
@@ -699,10 +709,13 @@ var grammar = {
     {"name": "exp_sum", "symbols": ["exp_product"], "postprocess": id},
     {"name": "exp_sum", "symbols": ["exp_sum", "_", {"literal":"+"}, "_", "exp_product"], "postprocess": infixOp},
     {"name": "exp_sum", "symbols": ["exp_sum", "_", {"literal":"-"}, "_", "exp_product"], "postprocess": infixOp},
-    {"name": "exp_product", "symbols": ["MemberExpression"], "postprocess": id},
-    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"*"}, "_", "MemberExpression"], "postprocess": infixOp},
-    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"/"}, "_", "MemberExpression"], "postprocess": infixOp},
-    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"%"}, "_", "MemberExpression"], "postprocess": infixOp},
+    {"name": "exp_product", "symbols": ["UnaryOperator"], "postprocess": id},
+    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"*"}, "_", "UnaryOperator"], "postprocess": infixOp},
+    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"/"}, "_", "UnaryOperator"], "postprocess": infixOp},
+    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"%"}, "_", "UnaryOperator"], "postprocess": infixOp},
+    {"name": "UnaryOperator", "symbols": ["MemberExpression"], "postprocess": id},
+    {"name": "UnaryOperator$string$1", "symbols": [{"literal":"n"}, {"literal":"o"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "UnaryOperator", "symbols": ["UnaryOperator$string$1", "__", "UnaryOperator"], "postprocess": unaryOp},
     {"name": "MemberExpression", "symbols": ["PrimaryExpression"], "postprocess": id},
     {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"["}, "_", "Expression", "_", "loc_close_square"], "postprocess": MemberExpression_method('index')},
     {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"{"}, "_", "Expression", "_", "loc_close_curly"], "postprocess": MemberExpression_method('path')},
