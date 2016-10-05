@@ -110,7 +110,18 @@ var comp_by_type = {
       e("array", comp(ast.args))
     ]);
   },
+  "UnaryOperator": function(ast, comp, e){
+    if(ast.op === "not"){
+      return e("!", comp(ast.arg));
+    }
+    return callStdLibFn(e, ast.op, [
+      comp(ast.arg)
+    ], ast.loc);
+  },
   "InfixOperator": function(ast, comp, e){
+    if((ast.op === "||") || (ast.op === "&&")){
+      return e(ast.op, comp(ast.left), comp(ast.right));
+    }
     return callStdLibFn(e, ast.op, [
       comp(ast.left),
       comp(ast.right)

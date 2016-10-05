@@ -12,5 +12,11 @@ ruleset io.picolabs.expressions {
     path2 = obj{["b", "c", 5]}
     index1 = obj["a"]
     index2 = obj["b"]["c"][1]
+
+    not_true = not true
+    not_null = not null
+
+    true_or_false = true || false
+    true_and_false = true && false
   }
 }
