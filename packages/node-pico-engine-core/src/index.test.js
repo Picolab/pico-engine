@@ -584,10 +584,29 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
         signal("module_used", "conf_name"),
         [{name: "conf_name", options: {name: "Jim"}}]
       ],
-      //TODO test error signal("module_used", "dflt_info"),
-      //TODO test error signal("module_used", "conf_info"),
 
-      // The dependant module is not added to the pico
+      // Test using provided functions that use `ent` vars
+      // NOTE: the dependent ruleset is NOT added to the pico
+      [
+        signal("module_used", "dflt_info"),
+        [{name: "dflt_info", options: {info: {
+          name: "Bob",
+          memo: void 0,//there is nothing stored in that `ent` var
+          //TODO should this be an error?
+          privateFn: "privateFn = name: Bob memo: undefined"
+        }}}]
+      ],
+      [
+        signal("module_used", "conf_info"),
+        [{name: "conf_info", options: {info: {
+          name: "Jim",
+          memo: void 0,//there is nothing stored in that `ent` var
+          //TODO should this be an error?
+          privateFn: "privateFn = name: Jim memo: undefined"
+        }}}]
+      ],
+
+      // Assert dependant module is not added to the pico
       [
         signal("module_defined", "store_memo", {memo: "foo"}),
         []//should not respond to this event
