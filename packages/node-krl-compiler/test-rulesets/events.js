@@ -1,7 +1,3 @@
-{ type: 'DomainIdentifier',
-  loc: { start: 2208, end: 2218 },
-  value: 'send',
-  domain: 'event' }
 module.exports = {
   "rid": "io.picolabs.events",
   "meta": {
@@ -771,6 +767,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function (ctx) {
+              return ctx.modules.get(ctx, "event", "send")(ctx, [{
+                  "eci": ctx.modules.get(ctx, "meta", "eci"),
+                  "eid": "0",
+                  "domain": "events",
+                  "type": "store_sent_name",
+                  "attrs": { "name": ctx.scope.get("my_name") }
+                }]);
             }
           }]
       }

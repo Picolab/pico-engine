@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var callModuleFn = require("../utils/callModuleFn");
 
 module.exports = function(ast, comp, e){
   var fn_body = [];
@@ -18,7 +19,11 @@ module.exports = function(ast, comp, e){
     fn_body.push(e("return", e("void", e("number", 0))));
   }else if(ast.action
       && ast.action.type === "DomainIdentifier"){
-    console.log(ast.action);
+    fn_body.push(e("return", callModuleFn(e,
+            ast.action.domain,
+            ast.action.value,
+            comp(ast.args),
+            ast.loc)));
   }else{
     throw new Error("Unsuported RuleAction.action");
   }
