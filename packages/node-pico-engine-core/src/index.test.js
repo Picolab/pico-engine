@@ -355,7 +355,14 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
       [signal("events", "no_action", {fired: "no"}), []],
       [query("getNoActionFired"), void 0],
       [signal("events", "no_action", {fired: "yes"}), []],
-      [query("getNoActionFired"), true]//fired even though no actions
+      [query("getNoActionFired"), true],//fired even though no actions
+
+      //Testing action event:send
+      [signal("events", "store_sent_name", {name: "Bob"}), []],
+      [query("getSentName"), "Bob"],
+      [signal("events", "action_send", {name: "Jim"}), []],
+      //this should in turn call store_sent_name and change it
+      [query("getSentName"), "Jim"]
     ], t.end);
   });
 });

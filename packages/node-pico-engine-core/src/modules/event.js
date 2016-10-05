@@ -27,9 +27,8 @@ module.exports = {
       return eventGetAttr;
     }else if(id === "attrMatches"){
       return attrMatches;
+    }else if(id === "send"){
+      return function(){};
     }
-  },
-  set: function(ctx, id, value){
-    ctx.db.putAppVarFuture(ctx.rid, id, value).wait();
   }
 };

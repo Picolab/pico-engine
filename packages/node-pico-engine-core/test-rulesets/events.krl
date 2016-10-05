@@ -1,6 +1,6 @@
 ruleset io.picolabs.events {
   meta {
-    shares getOnChooseFired, getNoActionFired
+    shares getOnChooseFired, getNoActionFired, getSentName
   }
   global {
     getOnChooseFired = function(){
@@ -8,6 +8,9 @@ ruleset io.picolabs.events {
     }
     getNoActionFired = function(){
       ent:no_action_fired
+    }
+    getSentName = function(){
+      ent:sent_name
     }
   }
   rule set_attr {
@@ -84,6 +87,22 @@ ruleset io.picolabs.events {
       ent:no_action_fired := true
     } else {
       ent:no_action_fired := false
+    }
+  }
+  rule action_send {
+    select when events action_send name re#^(.*)$# setting(my_name);
+    event:send({
+      "eci": meta:eci,
+      "eid": "0",
+      "domain": "events",
+      "type": "store_sent_name",
+      "attrs": {"name": my_name}
+    })
+  }
+  rule store_sent_name {
+    select when events store_sent_name name re#^(.*)$# setting(my_name);
+    fired{
+      ent:sent_name := my_name
     }
   }
 }

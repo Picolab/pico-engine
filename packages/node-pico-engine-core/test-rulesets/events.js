@@ -3,7 +3,8 @@ module.exports = {
   "meta": {
     "shares": [
       "getOnChooseFired",
-      "getNoActionFired"
+      "getNoActionFired",
+      "getSentName"
     ]
   },
   "global": function (ctx) {
@@ -12,6 +13,9 @@ module.exports = {
     }));
     ctx.scope.set("getNoActionFired", ctx.KRLClosure(ctx, function (ctx) {
       return ctx.modules.get(ctx, "ent", "no_action_fired");
+    }));
+    ctx.scope.set("getSentName", ctx.KRLClosure(ctx, function (ctx) {
+      return ctx.modules.get(ctx, "ent", "sent_name");
     }));
   },
   "rules": {
@@ -725,6 +729,92 @@ module.exports = {
         "notfired": function (ctx) {
           ctx.modules.set(ctx, "ent", "no_action_fired", false);
         },
+        "always": undefined
+      }
+    },
+    "action_send": {
+      "name": "action_send",
+      "select": {
+        "graph": { "events": { "action_send": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "name",
+                  new RegExp("^(.*)$", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("my_name", matches[0]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return ctx.modules.get(ctx, "event", "send")(ctx, [{
+                  "eci": ctx.modules.get(ctx, "meta", "eci"),
+                  "eid": "0",
+                  "domain": "events",
+                  "type": "store_sent_name",
+                  "attrs": { "name": ctx.scope.get("my_name") }
+                }]);
+            }
+          }]
+      }
+    },
+    "store_sent_name": {
+      "name": "store_sent_name",
+      "select": {
+        "graph": { "events": { "store_sent_name": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "name",
+                  new RegExp("^(.*)$", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("my_name", matches[0]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "postlude": {
+        "fired": function (ctx) {
+          ctx.modules.set(ctx, "ent", "sent_name", ctx.scope.get("my_name"));
+        },
+        "notfired": undefined,
         "always": undefined
       }
     }
