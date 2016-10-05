@@ -20,8 +20,13 @@ var fns = {
     }
     return matches;
   },
+
+  //TODO this is technically a RuleAction
+  //TODO should this rather return info for event to be signaled?
+  //TODO is this allowed other places in the code?
   send: function(ctx, args){
-    //TODO
+    var event = getArg(args, "event", 0);
+    ctx.engine.signalEventFuture(event).wait();
   }
 };
 

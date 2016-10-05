@@ -21,6 +21,8 @@ var fns = {
     var rid = getArg(args, "rid", 0);
     return ctx.engine.installRIDFuture(rid).wait();
   },
+
+  //TODO same as `event:send`?? or is this different b/c it's a postlude function rather than an action?
   signalEvent: function(ctx, args){
     var event = getArg(args, "event", 0);
     return ctx.engine.signalEventFuture(event).wait();
