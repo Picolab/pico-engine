@@ -7,7 +7,7 @@ module.exports = {
     ],
     "shares": ["getInfo"],
     "configure": function (ctx) {
-      ctx.scope.set("configured_name", "Default");
+      ctx.scope.set("configured_name", "Bob");
     }
   },
   "global": function (ctx) {
@@ -76,7 +76,7 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function (ctx) {
-          ctx.modules.set(ctx, "ent", "memo", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", "Name: ", ctx.scope.get("configured_name")), " Memo: "), ctx.scope.get("text")));
+          ctx.modules.set(ctx, "ent", "memo", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", "[\"", ctx.scope.get("text")), "\" by "), ctx.scope.get("configured_name")), "]"));
         }
       }
     }

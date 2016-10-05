@@ -576,7 +576,7 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
       λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.module-used"}),
       [
         signal("module_used", "dflt_name"),
-        [{name: "dflt_name", options: {name: "Default"}}]
+        [{name: "dflt_name", options: {name: "Bob"}}]
       ],
       [
         signal("module_used", "conf_name"),
@@ -588,8 +588,8 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
         //TODO shouldn't this error? b/c `ent` shouldn't work here?
         [{name: "dflt_info", options: {info: {
           memo: void 0,
-          name: "Default",
-          privateFn: "privateFn = name: Default memo: undefined"
+          name: "Bob",
+          privateFn: "privateFn = name: Bob memo: undefined"
         }}}]
       ],
       [
@@ -607,9 +607,9 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
       [
         query("getInfo"),
         {
-          name: "Default",
-          memo: "Name: Default Memo: foo",
-          privateFn: "privateFn = name: Default memo: Name: Default Memo: foo"
+          name: "Bob",
+          memo: "[\"foo\" by Bob]",
+          privateFn: "privateFn = name: Bob memo: [\"foo\" by Bob]"
         }
       ],
       /*

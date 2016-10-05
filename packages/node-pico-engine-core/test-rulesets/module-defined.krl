@@ -2,7 +2,7 @@ ruleset io.picolabs.module-defined {
   meta {
     provides getInfo, getName
     shares getInfo
-    configure using configured_name = "Default"
+    configure using configured_name = "Bob"
   }
   global {
     privateFn = function(){
@@ -27,7 +27,7 @@ ruleset io.picolabs.module-defined {
       memo_to_store = text
 
     always {
-      ent:memo := "Name: " + configured_name + " Memo: " + text
+      ent:memo := "[\"" + text + "\" by " + configured_name + "]"
     }
   }
 }
