@@ -575,27 +575,44 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
       λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
       λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.module-used"}),
       [
-        signal("module_used", "say_hello", {
-          name: "Bob"
-        }),
-        [{name: "say_hello", options: {
-          something: "Hello Bob",
-          configured: "Greetings Bob"
-        }}]
+        signal("module_used", "dflt_name"),
+        [{name: "dflt_name", options: {name: "Default"}}]
       ],
       [
-        signal("module_defined", "hello"),
+        signal("module_used", "conf_name"),
+        [{name: "conf_name", options: {name: "Jim"}}]
+      ],
+      [
+        signal("module_used", "dflt_info"),
+        //TODO shouldn't this error? b/c `ent` shouldn't work here?
+        //TODO shouldn't this error? b/c `ent` shouldn't work here?
+        [{name: "dflt_info", options: {info: {
+          memo: void 0,
+          name: "Default",
+          privateFn: "privateFn = name: Default memo: undefined"
+        }}}]
+      ],
+      [
+        signal("module_defined", "store_memo", {memo: "foo"}),
         []
       ],
       λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.module-defined"}),
       [
-        signal("module_defined", "hello"),
-        [{name: "module_defined - should_not_handle_events !", options: {}}]
+        signal("module_defined", "store_memo", {memo: "foo"}),
+        [{name: "store_memo", options: {
+          greeting: void 0,//TODO shouldn't this be the default?
+          memo_to_store: "foo"
+        }}]
       ],
       [
-        query("queryFn", {obj: "Jim"}),
-        "Query: Private: Hello Jim"
+        query("getInfo"),
+        {
+          name: "Default",
+          memo: "Name: Default Memo: foo",
+          privateFn: "privateFn = name: Default memo: Name: Default Memo: foo"
+        }
       ],
+      /*
       //test non-shared fn can't be queried
       function(next){
         query("hello", {obj: "Jim"})(function(err, data){
@@ -616,6 +633,7 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
           });
         });
       }
+      */
     ], t.end);
   });
 });
