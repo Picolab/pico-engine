@@ -1,33 +1,44 @@
 module.exports = {
   "rid": "io.picolabs.module-defined",
   "meta": {
-    "provides": ["hello"],
-    "shares": ["queryFn"],
+    "provides": [
+      "getInfo",
+      "getName"
+    ],
+    "shares": ["getInfo"],
     "configure": function (ctx) {
-      ctx.scope.set("greeting", "Hello ");
+      ctx.scope.set("configured_name", "Default");
     }
   },
   "global": function (ctx) {
-    ctx.scope.set("hello", ctx.KRLClosure(ctx, function (ctx) {
-      ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
-      return ctx.callKRLstdlib("+", ctx.scope.get("greeting"), ctx.scope.get("obj"));
-    }));
     ctx.scope.set("privateFn", ctx.KRLClosure(ctx, function (ctx) {
-      ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
-      return ctx.callKRLstdlib("+", "Private: ", ctx.scope.get("hello")(ctx, [ctx.scope.get("obj")]));
+      return ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", "privateFn = name: ", ctx.scope.get("configured_name")), " memo: "), ctx.modules.get(ctx, "ent", "memo"));
     }));
-    ctx.scope.set("queryFn", ctx.KRLClosure(ctx, function (ctx) {
-      ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
-      return ctx.callKRLstdlib("+", "Query: ", ctx.scope.get("privateFn")(ctx, [ctx.scope.get("obj")]));
+    ctx.scope.set("getName", ctx.KRLClosure(ctx, function (ctx) {
+      return ctx.scope.get("configured_name");
+    }));
+    ctx.scope.set("getInfo", ctx.KRLClosure(ctx, function (ctx) {
+      return {
+        "name": ctx.scope.get("getName")(ctx, []),
+        "memo": ctx.modules.get(ctx, "ent", "memo"),
+        "privateFn": ctx.scope.get("privateFn")(ctx, [])
+      };
     }));
   },
   "rules": {
-    "should_not_handle_events": {
-      "name": "should_not_handle_events",
+    "store_memo": {
+      "name": "store_memo",
       "select": {
-        "graph": { "module_defined": { "hello": { "expr_0": true } } },
+        "graph": { "module_defined": { "store_memo": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "memo",
+                  new RegExp("^(.*)$", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("text", matches[0]);
             return true;
           }
         },
@@ -52,11 +63,21 @@ module.exports = {
             "action": function (ctx) {
               return {
                 "type": "directive",
-                "name": "module_defined - should_not_handle_events !",
-                "options": {}
+                "name": "store_memo",
+                "options": {
+                  "greeting": ctx.scope.get("greeting"),
+                  "memo_to_store": ctx.scope.get("text")
+                }
               };
             }
           }]
+      },
+      "postlude": {
+        "fired": undefined,
+        "notfired": undefined,
+        "always": function (ctx) {
+          ctx.modules.set(ctx, "ent", "memo", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", "Name: ", ctx.scope.get("configured_name")), " Memo: "), ctx.scope.get("text")));
+        }
       }
     }
   }

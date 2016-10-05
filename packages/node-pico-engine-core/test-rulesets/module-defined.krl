@@ -1,22 +1,33 @@
 ruleset io.picolabs.module-defined {
   meta {
-    provides hello
-    shares queryFn
-    configure using greeting = "Hello "
+    provides getInfo, getName
+    shares getInfo
+    configure using configured_name = "Default"
   }
   global {
-    hello = function(obj){
-      greeting + obj
+    privateFn = function(){
+      "privateFn = name: " + configured_name + " memo: " + ent:memo
     }
-    privateFn = function(obj){
-      "Private: " + hello(obj)
+    getName = function(){
+      configured_name
     }
-    queryFn = function(obj){
-      "Query: " + privateFn(obj)
+    getInfo = function(){
+      {
+        "name": getName(),
+        "memo": ent:memo,
+        "privateFn": privateFn()
+      }
     }
   }
-  rule should_not_handle_events {
-    select when module_defined hello;
-    send_directive("module_defined - should_not_handle_events !")
+  rule store_memo {
+    select when module_defined store_memo memo re#^(.*)$# setting(text);
+
+    send_directive("store_memo") with
+      greeting = greeting
+      memo_to_store = text
+
+    always {
+      ent:memo := "Name: " + configured_name + " Memo: " + text
+    }
   }
 }
