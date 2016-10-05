@@ -18,12 +18,6 @@ var defVarArgOp = function(op, reducer){
   };
 };
 
-defVarArgOp("||", function(r, a){
-  return r || a;
-});
-defVarArgOp("&&", function(r, a){
-  return r && a;
-});
 defVarArgOp("<", function(r, a){
   return r < a;
 });

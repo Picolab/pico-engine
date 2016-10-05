@@ -27,11 +27,6 @@ test("general operators", function(t){
   tf("+", [1, 2, 3], 6);
   tf("-", [1, 2, 3], -4);
 
-  tf("||", [false, false], false);
-  tf("||", [true, false], true);
-  tf("&&", [true, false], false);
-  tf("&&", [true, true], true);
-
   tf("<", [1, 3], true);
   tf("<", [3, 1], false);
 
