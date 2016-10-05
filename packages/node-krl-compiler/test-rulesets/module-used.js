@@ -5,32 +5,25 @@ module.exports = {
       {
         "kind": "module",
         "rid": "io.picolabs.module-defined",
-        "alias": "my_module"
+        "alias": "my_module_dflt"
       },
       {
         "kind": "module",
         "rid": "io.picolabs.module-defined",
         "alias": "my_module_conf",
         "with": function (ctx) {
-          ctx.scope.set("greeting", "Greetings ");
+          ctx.scope.set("configured_name", "Jim");
         }
       }
     ]
   },
   "rules": {
-    "say_hello": {
-      "name": "say_hello",
+    "dflt_name": {
+      "name": "dflt_name",
       "select": {
-        "graph": { "module_used": { "say_hello": { "expr_0": true } } },
+        "graph": { "module_used": { "dflt_name": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
-                  "name",
-                  new RegExp("(.*)", "")
-                ]]]);
-            if (!matches)
-              return false;
-            ctx.scope.set("name", matches[0]);
             return true;
           }
         },
@@ -55,20 +48,17 @@ module.exports = {
             "action": function (ctx) {
               return {
                 "type": "directive",
-                "name": "say_hello",
-                "options": {
-                  "something": ctx.modules.get(ctx, "my_module", "hello")(ctx, [ctx.scope.get("name")]),
-                  "configured": ctx.modules.get(ctx, "my_module_conf", "hello")(ctx, [ctx.scope.get("name")])
-                }
+                "name": "dflt_name",
+                "options": { "name": ctx.modules.get(ctx, "my_module_dflt", "getName")(ctx, []) }
               };
             }
           }]
       }
     },
-    "privateFn": {
-      "name": "privateFn",
+    "conf_name": {
+      "name": "conf_name",
       "select": {
-        "graph": { "module_used": { "privateFn": { "expr_0": true } } },
+        "graph": { "module_used": { "conf_name": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
             return true;
@@ -95,17 +85,17 @@ module.exports = {
             "action": function (ctx) {
               return {
                 "type": "directive",
-                "name": "privateFn",
-                "options": { "something": ctx.modules.get(ctx, "my_module", "privateFn")(ctx, ["{{name}}"]) }
+                "name": "conf_name",
+                "options": { "name": ctx.modules.get(ctx, "my_module_conf", "getName")(ctx, []) }
               };
             }
           }]
       }
     },
-    "queryFn": {
-      "name": "queryFn",
+    "dflt_info": {
+      "name": "dflt_info",
       "select": {
-        "graph": { "module_used": { "queryFn": { "expr_0": true } } },
+        "graph": { "module_used": { "dflt_info": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
             return true;
@@ -132,8 +122,45 @@ module.exports = {
             "action": function (ctx) {
               return {
                 "type": "directive",
-                "name": "queryFn",
-                "options": { "something": ctx.modules.get(ctx, "my_module", "queryFn")(ctx, ["{{name}}"]) }
+                "name": "dflt_info",
+                "options": { "info": ctx.modules.get(ctx, "my_module_dflt", "getInfo")(ctx, []) }
+              };
+            }
+          }]
+      }
+    },
+    "conf_info": {
+      "name": "conf_info",
+      "select": {
+        "graph": { "module_used": { "conf_info": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "conf_info",
+                "options": { "info": ctx.modules.get(ctx, "my_module_conf", "getInfo")(ctx, []) }
               };
             }
           }]

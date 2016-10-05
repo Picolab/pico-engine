@@ -1,25 +1,31 @@
 ruleset io.picolabs.module-used {
   meta {
     use module io.picolabs.module-defined
-      alias my_module
+      alias my_module_dflt
     use module io.picolabs.module-defined
       alias my_module_conf
-      with greeting = "Greetings "
+      with configured_name = "Jim"
   }
-  rule say_hello {
-    select when module_used say_hello name re#(.*)# setting(name);
-    send_directive("say_hello") with
-      something = my_module:hello(name)
-      configured = my_module_conf:hello(name)
+
+  rule dflt_name {
+    select when module_used dflt_name;
+    send_directive("dflt_name") with
+      name = my_module_dflt:getName()
   }
-  rule privateFn {
-    select when module_used privateFn;
-    send_directive("privateFn") with
-      something = my_module:privateFn("{{name}}")
+  rule conf_name {
+    select when module_used conf_name;
+    send_directive("conf_name") with
+      name = my_module_conf:getName()
   }
-  rule queryFn {
-    select when module_used queryFn;
-    send_directive("queryFn") with
-      something = my_module:queryFn("{{name}}")
+
+  rule dflt_info {
+    select when module_used dflt_info;
+    send_directive("dflt_info") with
+      info = my_module_dflt:getInfo()
+  }
+  rule conf_info {
+    select when module_used conf_info;
+    send_directive("conf_info") with
+      info = my_module_conf:getInfo()
   }
 }
