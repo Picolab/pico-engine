@@ -591,8 +591,7 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
         signal("module_used", "dflt_info"),
         [{name: "dflt_info", options: {info: {
           name: "Bob",
-          memo: void 0,//there is nothing stored in that `ent` var
-          //TODO should this be an error?
+          memo: void 0,//there is nothing stored in that `ent` var on this pico
           privateFn: "privateFn = name: Bob memo: undefined"
         }}}]
       ],
@@ -600,8 +599,7 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
         signal("module_used", "conf_info"),
         [{name: "conf_info", options: {info: {
           name: "Jim",
-          memo: void 0,//there is nothing stored in that `ent` var
-          //TODO should this be an error?
+          memo: void 0,//there is nothing stored in that `ent` var on this pico
           privateFn: "privateFn = name: Jim memo: undefined"
         }}}]
       ],
