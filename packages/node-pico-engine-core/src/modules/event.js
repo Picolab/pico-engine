@@ -1,6 +1,9 @@
 var getArg = require("../getArg");
 
 var fns = {
+  attrs: function(ctx, args){
+    return ctx.event.attrs;
+  },
   attr: function(ctx, args){
     var name = getArg(args, "name", 0);
     return ctx.event.attrs[name];

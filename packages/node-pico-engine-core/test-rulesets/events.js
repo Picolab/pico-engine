@@ -4,6 +4,7 @@ module.exports = {
     "shares": [
       "getOnChooseFired",
       "getNoActionFired",
+      "getSentAttrs",
       "getSentName"
     ]
   },
@@ -13,6 +14,9 @@ module.exports = {
     }));
     ctx.scope.set("getNoActionFired", ctx.KRLClosure(ctx, function (ctx) {
       return ctx.modules.get(ctx, "ent", "no_action_fired");
+    }));
+    ctx.scope.set("getSentAttrs", ctx.KRLClosure(ctx, function (ctx) {
+      return ctx.modules.get(ctx, "ent", "sent_attrs");
     }));
     ctx.scope.set("getSentName", ctx.KRLClosure(ctx, function (ctx) {
       return ctx.modules.get(ctx, "ent", "sent_name");
@@ -812,6 +816,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function (ctx) {
+          ctx.modules.set(ctx, "ent", "sent_attrs", ctx.modules.get(ctx, "event", "attrs")(ctx, []));
           ctx.modules.set(ctx, "ent", "sent_name", ctx.scope.get("my_name"));
         },
         "notfired": undefined,
