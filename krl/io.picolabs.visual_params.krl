@@ -18,17 +18,16 @@ ruleset io.picolabs.visual_params {
       stuff.klog("style:")
     }
 
-    __testing = function() {
-      { "queries": [ { "name": "visualInfo" },
-                     { "name": "style" },
-                     { "name": "__testing" } ],
-        "events": [ { "domain": "visual", "type": "config", "attrs": [ "width", "height" ] } ]
-      }
-    }
+    __testing = { "queries": [ { "name": "visualInfo" },
+                               { "name": "style" },
+                               { "name": "__testing" } ],
+                  "events": [ { "domain": "visual", "type": "config",
+                                "attrs": [ "width", "height" ] } ] }
   }
 
   rule visual_update {
     select when visual update
+             or pico ruleset_added
     pre {
       dname = event:attr("dname")
       color = event:attr("color").defaultsTo("#ccc")
@@ -70,4 +69,3 @@ ruleset io.picolabs.visual_params {
       with visual_info = visualInfo()
   }
 }
-
