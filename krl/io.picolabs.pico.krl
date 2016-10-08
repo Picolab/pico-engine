@@ -73,14 +73,19 @@ ruleset io.picolabs.pico {
     }
     if ( parent_id != ent:id )
     then // must be running for the new child pico
-      event:send(
-        { "eci": parent_eci, "eid": 59,
-          "domain": "pico", "type": "child_initialized",
-          "attrs": event:attrs() })
+      noop() // temporary until event order corrected
+//      event:send(
+//        { "eci": parent_eci, "eid": 59,
+//          "domain": "pico", "type": "child_initialized",
+//          "attrs": event:attrs() })
     fired {
       ent:id := id;
       ent:eci := eci;
-      ent:parent := { "id": parent_id, "eci": parent_eci }
+      ent:parent := { "id": parent_id, "eci": parent_eci };
+      engine:signalEvent( // temporary until event order corrected
+        { "eci": parent_eci, "eid": 59,
+          "domain": "pico", "type": "child_initialized",
+          "attrs": event:attrs() })
     } else {
       ent:children := children().append(new_child)
     }
