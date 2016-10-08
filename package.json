@@ -1,6 +1,6 @@
 {
   "name": "pico-engine",
-  "version": "0.4.14",
+  "version": "0.4.15",
   "description": "An implementation of the pico-engine targetting node.js",
   "main": "src/index.js",
   "bin": {
