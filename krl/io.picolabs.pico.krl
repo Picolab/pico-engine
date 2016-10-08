@@ -29,19 +29,16 @@ ruleset io.picolabs.pico {
   rule pico_new_child_request {
     select when pico new_child_request
     pre {
-      child_dname = event:attr("dname")
-      child_color = event:attr("color")
       child = engine:newPico()
       child_id = child.id
       channel = engine:newChannel(
         { "name": "main", "type": "secret", "pico_id": child_id })
       child_eci = channel.id
-      attrs = {
-        "parent_id": ent:id,
-        "parent_eci": ent:eci,
-        "id": child_id,
-        "eci": child_eci
-      }
+      attrs = event:attrs()
+        .set(["parent_id"],ent:id)
+        .set(["parent_eci"],ent:eci)
+        .set(["id"],child_id)
+        .set(["eci"],child_eci)
     }
     if true
     then
@@ -54,8 +51,7 @@ ruleset io.picolabs.pico {
       event:send(
          { "eci": child_eci, "eid": 59,
            "domain": "pico", "type": "new_ruleset",
-           "attrs": { "rid": "io.picolabs.visual_params",
-                      "dname": child_dname, "color": child_color } })
+           "attrs": attrs.set(["rid"],"io.picolabs.visual_params") })
     always {
       engine:signalEvent( // raise pico event "child_created"
         { "eci": ent:eci, "eid": 53,
@@ -80,7 +76,7 @@ ruleset io.picolabs.pico {
       event:send(
         { "eci": parent_eci, "eid": 59,
           "domain": "pico", "type": "child_initialized",
-          "attrs": attrs })
+          "attrs": event:attrs() })
     fired {
       ent:id := id;
       ent:eci := eci;
