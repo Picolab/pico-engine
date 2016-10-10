@@ -124,7 +124,8 @@ $.getJSON("/api/db-dump", function(db_dump){
           + "    shares __testing\n"
           + "  }\n"
           + "  global {\n"
-          + "    __testing = { \"queries\": [ { \"name\": \"__testing\" } ] }\n"
+          + "    __testing = { \"queries\": [ { \"name\": \"__testing\" } ],\n"
+          + "                  \"events\": [ ] }\n"
           + "  }\n"
           + "}\n";
         $.getJSON("/api/ruleset/register",{"src":src},function(result){
@@ -142,11 +143,13 @@ $.getJSON("/api/db-dump", function(db_dump){
   });
   $("div.krlsrc").on("submit","form.ruleset-action",function(e){
     e.preventDefault();
-    var $feedback = $("pre#feedback");
-    $feedback.html("working...");
     var formAction = $(".clicked").attr("formaction");
     $(".clicked").toggleClass("clicked");
     if (formAction === "/api/ruleset/enable") {
+      if (!this.rid.value) {
+        alert("Please select a registered ruleset");
+        return;
+      }
       var rsHash = hashFromVersions(this.rid.value,undefined);
       if (rsHash) {
         formAction += "/" + rsHash;
@@ -155,22 +158,30 @@ $.getJSON("/api/db-dump", function(db_dump){
     if (formAction === "/api/ruleset/install") {
       formAction += "/" + this.rid.value;
     }
+    var $feedback = $("pre#feedback");
+    $feedback.html("working...");
+    var reportError = function(msg) {
+      $feedback.html(
+        "<span style=\"color:red\">"
+        + JSON.stringify(msg,undefined,2)
+        + "</span>")
+    }
     $.getJSON(formAction,formToJSON(this),function(result){
       if(result.error){
         $feedback.html(result.error);
-      } else if(result.code || result.ok){
+      } else if(result.code){
         $feedback.html("ok");
-        if (!formAction.startsWith("/api/ruleset/compile")) {
-          location.reload();
+        var m = /^  "rid": "([^"]+)/m.exec(result.code);
+        if (m && m[1]) {
+          location.hash = m[1];
         }
+      } else if(result.ok){
+        location.reload();
       } else {
-        $feedback.html(JSON.stringify(result));
+        reportError(result);
       }
     }).fail(function(err){
-      $feedback.html(
-        "<span style=\"color:red\">"
-        + JSON.stringify(err,undefined,2)
-        + "</span>")
+      reportError(err);
     });
   });
 });
