@@ -21,12 +21,12 @@ $(document).ready(function() {
                 log("Owner Pico ECI: "+c.id);
                 callback(d.id,c.id);
               } else {
-                log("*Problem creating owner Pico channel");
+                log("*Problem creating owner pico channel");
               }
             }
         );
       } else {
-        log("*Problem creating owner Pico");
+        log("*Problem creating owner pico");
       }
     });
   };
@@ -99,14 +99,14 @@ $(document).ready(function() {
   $.getJSON("/api/db-dump", function(db_dump){
     log("Database loaded");
     if (db_dump.pico) {
-      log("Database has an owner Pico");
+      log("Database has an owner pico");
       if (db_dump.rulesets) {
         log("Database has rulesets");
       } else {
         log("*Problem");
       }
     } else {
-      log("Creating owner Pico");
+      log("Creating owner pico");
       createOwnerPico(function(id,eci){
         log("Registering rulesets");
         installAndAddRuleset("io.picolabs.pico",id,function(){
