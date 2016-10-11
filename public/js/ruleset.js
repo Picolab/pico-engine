@@ -171,7 +171,7 @@ $.getJSON("/api/db-dump", function(db_dump){
         $feedback.html(result.error);
       } else if(result.code){
         $feedback.html("ok");
-        var m = /^  "rid": "([^"]+)/m.exec(result.code);
+        var m = /^  "rid": "([^"]+)",$/m.exec(result.code);
         if (m && m[1]) {
           location.hash = m[1];
         }
