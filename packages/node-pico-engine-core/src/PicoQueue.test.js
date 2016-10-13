@@ -17,6 +17,7 @@ test("PicoQueue", function(t){
   });
 
   var enqueue = function(pico_id, data, done){
+    log.push("enqueue [" + pico_id + "] " + data);
     pq.enqueue(pico_id, data, function(){
       log.push("done [" + pico_id + "] " + data);
       if(done){
@@ -31,6 +32,10 @@ test("PicoQueue", function(t){
   enqueue("B", 0);
   enqueue("A", 2, function(){
     t.deepEquals(log, [
+      "enqueue [A] 0",
+      "enqueue [A] 1",
+      "enqueue [B] 0",
+      "enqueue [A] 2",
       "working_0 [A] 0",
       "working_0 [B] 0",//different picos can be concurrent
       "working_1 [A] 0",
