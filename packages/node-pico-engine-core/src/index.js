@@ -134,19 +134,42 @@ module.exports = function(conf, callback){
     });
   };
 
-  var picoQ = PicoQueue(function(pico_id, data, done){
+  var picoQ = PicoQueue(function(pico_id, data, callback){
+    var ctx;
+    if(data.type === "event"){
+      var event = data.event;
+      event.timestamp = new Date(event.timestamp);
+      ctx = mkCTX({event: event});
+      applyInFiber(signalEventInFiber, void 0, [ctx, pico_id], callback);
+      return;
+    }else if(data.type === "query"){
+      ctx = mkCTX({query: data.query});
+      applyInFiber(runQueryInFiber, void 0, [ctx, pico_id], callback);
+      return;
+    }
+    callback(new Error("invalid PicoQueue type:" + data.type));
   });
-  _.noop(picoQ);//TODO remove
 
   var signalEvent = function(event, callback){
     event.timestamp = new Date();
-    var ctx = mkCTX({event: event});
-    applyInFiber(signalEventInFiber, void 0, [ctx], callback);
+
+    db.getPicoIDByECI(event.eci, function(err, pico_id){
+      if(err) return callback(err);
+      picoQ.enqueue(pico_id, {
+        type: "event",
+        event: event
+      }, callback);
+    });
   };
 
   var runQuery = function(query, callback){
-    var ctx = mkCTX({query: query});
-    applyInFiber(runQueryInFiber, void 0, [ctx], callback);
+    db.getPicoIDByECI(query.eci, function(err, pico_id){
+      if(err) return callback(err);
+      picoQ.enqueue(pico_id, {
+        type: "query",
+        query: query
+      }, callback);
+    });
   };
 
   var engine = Future.wrap({

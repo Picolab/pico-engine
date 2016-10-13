@@ -3,10 +3,10 @@ var Future = require("fibers/future");
 var evalRuleInFiber = require("./evalRuleInFiber");
 var selectRulesToEvalFuture = Future.wrap(require("./selectRulesToEval"));
 
-module.exports = function(ctx){
+module.exports = function(ctx, pico_id){
   ctx.emit("debug", "event recieved");
 
-  ctx.pico = ctx.db.getPicoByECIFuture(ctx.event.eci).wait();
+  ctx.pico = ctx.db.getPicoFuture(pico_id).wait();
   if(!ctx.pico){
     throw new Error("Invalid eci: " + ctx.event.eci);
   }

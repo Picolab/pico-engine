@@ -1,7 +1,7 @@
 var _ = require("lodash");
 
-module.exports = function(ctx){
-  ctx.pico = ctx.db.getPicoByECIFuture(ctx.query.eci).wait();
+module.exports = function(ctx, pico_id){
+  ctx.pico = ctx.db.getPicoFuture(pico_id).wait();
   if(!ctx.pico){
     throw new Error("Invalid eci: " + ctx.query.eci);
   }

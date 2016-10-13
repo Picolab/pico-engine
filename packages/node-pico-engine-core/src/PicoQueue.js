@@ -8,7 +8,7 @@ module.exports = function(worker){
   var getQ = function(pico_id){
     if(!_.has(pico_queues, pico_id)){
       var q = λ.queue(function(job, done){
-        worker(pico_id, job, done);
+        worker(pico_id, JSON.parse(job), done);
       });
       pico_queues[pico_id] = q;
     }
