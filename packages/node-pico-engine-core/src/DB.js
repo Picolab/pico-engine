@@ -30,27 +30,31 @@ module.exports = function(opts){
 
   var newID = _.isFunction(opts.newID) ? opts.newID : cuid;
 
+  var getPico = function(id, callback){
+    var pico = {};
+    ldb.createReadStream({
+      gte: ["pico", id],
+      lte: ["pico", id, undefined]//bytewise sorts with null at the bottom and undefined at the top
+    })
+      .on("data", function(data){
+        _.set(pico, data.key, data.value);
+      })
+      .on("end", function(){
+        callback(undefined, pico.pico[id]);
+      });
+  };
+
   return {
     toObj: function(callback){
       dbToObj(ldb, callback);
     },
+    getPicoIDByECI: function(eci, callback){
+      ldb.get(["channel", eci, "pico_id"], callback);
+    },
     getPicoByECI: function(eci, callback){
-      var db_data = {};
-      ldb.createReadStream()
-        .on("data", function(data){
-          if(!_.isArray(data.key)){
-            return;
-          }
-          _.set(db_data, data.key, data.value);
-        })
-      .on("end", function(){
-        var da_pico = undefined;
-        _.each(db_data.pico, function(pico, pico_id){
-          if(_.has(pico.channel, eci)){
-            da_pico = pico;
-          }
-        });
-        callback(undefined, da_pico);
+      ldb.get(["channel", eci, "pico_id"], function(err, pico_id){
+        if(err) return callback(err);
+        getPico(pico_id, callback);
       });
     },
     newPico: function(opts, callback){

@@ -4,6 +4,7 @@ var DB = require("./DB");
 var getArg = require("./getArg");
 var Future = require("fibers/future");
 var modules = require("./modules");
+var PicoQueue = require("./PicoQueue");
 var krl_stdlib = require("krl-stdlib");
 var KRLClosure = require("./KRLClosure");
 var SymbolTable = require("symbol-table");
@@ -132,6 +133,10 @@ module.exports = function(conf, callback){
       }, callback);
     });
   };
+
+  var picoQ = PicoQueue(function(pico_id, data, done){
+  });
+  _.noop(picoQ);//TODO remove
 
   var signalEvent = function(event, callback){
     event.timestamp = new Date();
