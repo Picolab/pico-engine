@@ -73,6 +73,10 @@ module.exports = function(opts){
         })
         .on("data", function(key){
           to_batch.push({type: "del", key: key});
+          if(key[2] === "channel"){
+            //remove this index
+            to_batch.push({type: "del", key: ["channel", key[3], "pico_id"]});
+          }
         })
         .on("end", function(){
           ldb.batch(to_batch, callback);
@@ -84,8 +88,21 @@ module.exports = function(opts){
         name: opts.name,
         type: opts.type
       };
-      var key = ["pico", opts.pico_id, "channel", new_channel.id];
-      ldb.put(key, new_channel, function(err){
+      var ops = [
+        {
+          //the source of truth for a channel
+          type: "put",
+          key: ["pico", opts.pico_id, "channel", new_channel.id],
+          value: new_channel
+        },
+        {
+          //index to get pico_id by eci
+          type: "put",
+          key: ["channel", new_channel.id, "pico_id"],
+          value: opts.pico_id
+        }
+      ];
+      ldb.batch(ops, function(err){
         if(err) return callback(err);
         callback(undefined, new_channel);
       });
@@ -97,7 +114,11 @@ module.exports = function(opts){
       ldb.del(["pico", pico_id, "ruleset", rid], callback);
     },
     removeChannel: function(pico_id, eci, callback){
-      ldb.del(["pico", pico_id, "channel", eci], callback);
+      var ops = [
+        {type: "del", key: ["pico", pico_id, "channel", eci]},
+        {type: "del", key: ["channel", eci, "pico_id"]}
+      ];
+      ldb.batch(ops, callback);
     },
     putEntVar: function(pico_id, rid, var_name, val, callback){
       ldb.put(["pico", pico_id, rid, "vars", var_name], val, callback);
