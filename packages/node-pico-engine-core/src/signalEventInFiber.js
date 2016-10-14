@@ -42,6 +42,9 @@ module.exports = function(ctx, pico_id){
   if(_.has(r, "directive")){
     r.directives = r.directive;
     delete r.directive;
+  }else{
+    //we always want to return a directives array even if it's empty
+    r.directives = [];
   }
 
   return r;
