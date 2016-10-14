@@ -622,6 +622,7 @@ var grammar = {
     {"name": "PostludeStatements_body", "symbols": ["PostludeStatements_body", "_", {"literal":";"}, "_", "PostludeStatement"], "postprocess": concatArr(4)},
     {"name": "PostludeStatement", "symbols": ["Statement"], "postprocess": id},
     {"name": "PostludeStatement", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
+    {"name": "PostludeStatement", "symbols": ["RaiseEventStatement"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [{"literal":"{"}, "_", "Expression", "_", {"literal":"}"}, "_"]},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
@@ -635,6 +636,18 @@ var grammar = {
             left: data[0],
             path_expression: data[2] ? data[2][2] : null,
             right: data[5]
+          };
+        }
+        },
+    {"name": "RaiseEventStatement$string$1", "symbols": [{"literal":"r"}, {"literal":"a"}, {"literal":"i"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RaiseEventStatement$string$2", "symbols": [{"literal":"e"}, {"literal":"v"}, {"literal":"e"}, {"literal":"n"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RaiseEventStatement", "symbols": ["RaiseEventStatement$string$1", "__", "Identifier", "__", "RaiseEventStatement$string$2", "__", "Expression"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: lastEndLoc(data)},
+            type: 'RaiseEventStatement',
+            event_domain: data[2],
+            event_type: data[6]
           };
         }
         },

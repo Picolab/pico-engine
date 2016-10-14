@@ -596,6 +596,7 @@ PostludeStatements_body ->
 PostludeStatement ->
       Statement {% id %}
     | PersistentVariableAssignment {% id %}
+    | RaiseEventStatement {% id %}
 
 PersistentVariableAssignment -> DomainIdentifier _ ("{" _ Expression _ "}" _):? ":=" _ Expression {%
   function(data, start){
@@ -606,6 +607,17 @@ PersistentVariableAssignment -> DomainIdentifier _ ("{" _ Expression _ "}" _):? 
       left: data[0],
       path_expression: data[2] ? data[2][2] : null,
       right: data[5]
+    };
+  }
+%}
+
+RaiseEventStatement -> "raise" __ Identifier __ "event" __ Expression {%
+  function(data, start){
+    return {
+      loc: {start: start, end: lastEndLoc(data)},
+      type: 'RaiseEventStatement',
+      event_domain: data[2],
+      event_type: data[6]
     };
   }
 %}

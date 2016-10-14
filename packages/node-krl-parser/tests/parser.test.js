@@ -1656,3 +1656,22 @@ test('PersistentVariableAssignment', function(t){
 
   t.end();
 });
+
+test("raise event", function(t){
+
+  var testPostlude = function(src_core, expected){
+    var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+    var ast = parser(src).rules[0].postlude.fired;
+    t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+  };
+
+  testPostlude("raise domain event \"type\"", [
+    {
+      type: "RaiseEventStatement",
+      event_domain: mk.id("domain"),
+      event_type: mk("type")
+    }
+  ]);
+
+  t.end();
+});
