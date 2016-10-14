@@ -9,6 +9,12 @@ ruleset io.picolabs.persistent {
     getAppVar = function(){
       app:appvar
     }
+    getUser = function(){
+      ent:user
+    }
+    getUserFirstname = function(){
+      ent:user{["firstname"]}
+    }
   }
   rule store_my_name {
     select when store name name re#^(.*)$# setting(my_name);
@@ -30,10 +36,10 @@ ruleset io.picolabs.persistent {
       app:appvar := my_appvar
     }
   }
-  rule store_username {
-    select when store username name re#^(.*)$# setting(my_name);
+  rule store_user_firstname {
+    select when store user_firstname name re#^(.*)$# setting(my_name);
 
-    send_directive("store_username") with
+    send_directive("store_user_firstname") with
       name = my_name
 
     always {

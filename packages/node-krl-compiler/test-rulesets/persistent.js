@@ -13,6 +13,12 @@ module.exports = {
     ctx.scope.set("getAppVar", ctx.KRLClosure(ctx, function (ctx) {
       return ctx.modules.get(ctx, "app", "appvar");
     }));
+    ctx.scope.set("getUser", ctx.KRLClosure(ctx, function (ctx) {
+      return ctx.modules.get(ctx, "ent", "user");
+    }));
+    ctx.scope.set("getUserFirstname", ctx.KRLClosure(ctx, function (ctx) {
+      return ctx.callKRLstdlib("get", ctx.modules.get(ctx, "ent", "user"), ["firstname"]);
+    }));
   },
   "rules": {
     "store_my_name": {
@@ -117,10 +123,10 @@ module.exports = {
         }
       }
     },
-    "store_username": {
-      "name": "store_username",
+    "store_user_firstname": {
+      "name": "store_user_firstname",
       "select": {
-        "graph": { "store": { "username": { "expr_0": true } } },
+        "graph": { "store": { "user_firstname": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
@@ -154,7 +160,7 @@ module.exports = {
             "action": function (ctx) {
               return {
                 "type": "directive",
-                "name": "store_username",
+                "name": "store_user_firstname",
                 "options": { "name": ctx.scope.get("my_name") }
               };
             }
