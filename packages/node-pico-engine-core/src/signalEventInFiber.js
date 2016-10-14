@@ -4,14 +4,12 @@ var evalRuleInFiber = require("./evalRuleInFiber");
 var selectRulesToEvalFuture = Future.wrap(require("./selectRulesToEval"));
 
 module.exports = function(ctx, pico_id){
-  ctx.emit("debug", "event recieved");
+  ctx.emit("debug", "event being processed");
 
   ctx.pico = ctx.db.getPicoFuture(pico_id).wait();
   if(!ctx.pico){
     throw new Error("Invalid eci: " + ctx.event.eci);
   }
-
-  ctx.emit("debug", "pico selected");
 
   var rules = selectRulesToEvalFuture(ctx).wait();
   var responses = _.map(rules, function(rule){
@@ -46,6 +44,8 @@ module.exports = function(ctx, pico_id){
     //we always want to return a directives array even if it's empty
     r.directives = [];
   }
+
+  ctx.emit("debug", "event finished processing");
 
   return r;
 };
