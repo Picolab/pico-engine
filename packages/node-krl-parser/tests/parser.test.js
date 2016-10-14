@@ -1669,7 +1669,48 @@ test("raise event", function(t){
     {
       type: "RaiseEventStatement",
       event_domain: mk.id("domain"),
-      event_type: mk("type")
+      event_type: mk("type"),
+      for_rid: null,
+      attributes: null
+    }
+  ]);
+
+  testPostlude("raise domain event \"type\" for io.picolabs.test", [
+    {
+      type: "RaiseEventStatement",
+      event_domain: mk.id("domain"),
+      event_type: mk("type"),
+      for_rid: {type: "RulesetID", value: "io.picolabs.test"},
+      attributes: null
+    }
+  ]);
+
+  testPostlude("raise domain event \"type\" with a = 1 b = 2", [
+    {
+      type: "RaiseEventStatement",
+      event_domain: mk.id("domain"),
+      event_type: mk("type"),
+      for_rid: null,
+      attributes: {
+        type: "RaiseEventAttributes",
+        "with": [
+          mk.declare("=", mk.id("a"), mk(1)),
+          mk.declare("=", mk.id("b"), mk(2))
+        ]
+      }
+    }
+  ]);
+
+  testPostlude("raise domain event \"type\" attributes {\"a\":1,\"b\":2}", [
+    {
+      type: "RaiseEventStatement",
+      event_domain: mk.id("domain"),
+      event_type: mk("type"),
+      for_rid: null,
+      attributes: {
+        type: "RaiseEventAttributes",
+        expression: mk({a: mk(1), b: mk(2)})
+      }
     }
   ]);
 

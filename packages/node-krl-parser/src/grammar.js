@@ -641,13 +641,42 @@ var grammar = {
         },
     {"name": "RaiseEventStatement$string$1", "symbols": [{"literal":"r"}, {"literal":"a"}, {"literal":"i"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "RaiseEventStatement$string$2", "symbols": [{"literal":"e"}, {"literal":"v"}, {"literal":"e"}, {"literal":"n"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RaiseEventStatement", "symbols": ["RaiseEventStatement$string$1", "__", "Identifier", "__", "RaiseEventStatement$string$2", "__", "Expression"], "postprocess": 
+    {"name": "RaiseEventStatement$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"f"}, {"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RaiseEventStatement$ebnf$1$subexpression$1", "symbols": ["__", "RaiseEventStatement$ebnf$1$subexpression$1$string$1", "__", "RulesetID"]},
+    {"name": "RaiseEventStatement$ebnf$1", "symbols": ["RaiseEventStatement$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "RaiseEventStatement$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RaiseEventStatement$ebnf$2$subexpression$1", "symbols": ["__", "RaiseEventAttributes"]},
+    {"name": "RaiseEventStatement$ebnf$2", "symbols": ["RaiseEventStatement$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "RaiseEventStatement$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RaiseEventStatement", "symbols": ["RaiseEventStatement$string$1", "__", "Identifier", "__", "RaiseEventStatement$string$2", "__", "Expression", "RaiseEventStatement$ebnf$1", "RaiseEventStatement$ebnf$2"], "postprocess": 
         function(data, start){
           return {
             loc: {start: start, end: lastEndLoc(data)},
             type: 'RaiseEventStatement',
             event_domain: data[2],
-            event_type: data[6]
+            event_type: data[6],
+            for_rid: data[7] ? data[7][3] : null,
+            attributes: data[8] ? data[8][1] : null,
+          };
+        }
+        },
+    {"name": "RaiseEventAttributes$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RaiseEventAttributes", "symbols": ["RaiseEventAttributes$string$1", "__", "declaration_list"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: lastEndLoc(data)},
+            type: "RaiseEventAttributes",
+            with: data[2]
+          };
+        }
+        },
+    {"name": "RaiseEventAttributes$string$2", "symbols": [{"literal":"a"}, {"literal":"t"}, {"literal":"t"}, {"literal":"r"}, {"literal":"i"}, {"literal":"b"}, {"literal":"u"}, {"literal":"t"}, {"literal":"e"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "RaiseEventAttributes", "symbols": ["RaiseEventAttributes$string$2", "__", "Expression"], "postprocess": 
+        function(data, start){
+          return {
+            loc: {start: start, end: lastEndLoc(data)},
+            type: "RaiseEventAttributes",
+            expression: data[2]
           };
         }
         },

@@ -611,13 +611,39 @@ PersistentVariableAssignment -> DomainIdentifier _ ("{" _ Expression _ "}" _):? 
   }
 %}
 
-RaiseEventStatement -> "raise" __ Identifier __ "event" __ Expression {%
+RaiseEventStatement -> "raise" __ Identifier __ "event" __ Expression
+  (__ "for" __ RulesetID):?
+  (__ RaiseEventAttributes):?
+{%
   function(data, start){
     return {
       loc: {start: start, end: lastEndLoc(data)},
       type: 'RaiseEventStatement',
       event_domain: data[2],
-      event_type: data[6]
+      event_type: data[6],
+      for_rid: data[7] ? data[7][3] : null,
+      attributes: data[8] ? data[8][1] : null,
+    };
+  }
+%}
+
+RaiseEventAttributes -> "with" __ declaration_list
+{%
+  function(data, start){
+    return {
+      loc: {start: start, end: lastEndLoc(data)},
+      type: "RaiseEventAttributes",
+      with: data[2]
+    };
+  }
+%}
+    | "attributes" __ Expression
+{%
+  function(data, start){
+    return {
+      loc: {start: start, end: lastEndLoc(data)},
+      type: "RaiseEventAttributes",
+      expression: data[2]
     };
   }
 %}
