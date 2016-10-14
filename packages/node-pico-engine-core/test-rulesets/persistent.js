@@ -3,7 +3,9 @@ module.exports = {
   "meta": {
     "shares": [
       "getName",
-      "getAppVar"
+      "getAppVar",
+      "getUser",
+      "getUserFirstname"
     ]
   },
   "global": function (ctx) {
@@ -12,6 +14,12 @@ module.exports = {
     }));
     ctx.scope.set("getAppVar", ctx.KRLClosure(ctx, function (ctx) {
       return ctx.modules.get(ctx, "app", "appvar");
+    }));
+    ctx.scope.set("getUser", ctx.KRLClosure(ctx, function (ctx) {
+      return ctx.modules.get(ctx, "ent", "user");
+    }));
+    ctx.scope.set("getUserFirstname", ctx.KRLClosure(ctx, function (ctx) {
+      return ctx.callKRLstdlib("get", ctx.modules.get(ctx, "ent", "user"), ["firstname"]);
     }));
   },
   "rules": {
@@ -114,6 +122,58 @@ module.exports = {
         "notfired": undefined,
         "always": function (ctx) {
           ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
+        }
+      }
+    },
+    "store_user_firstname": {
+      "name": "store_user_firstname",
+      "select": {
+        "graph": { "store": { "user_firstname": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "firstname",
+                  new RegExp("^(.*)$", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("firstname", matches[0]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "store_user_firstname",
+                "options": { "name": ctx.scope.get("firstname") }
+              };
+            }
+          }]
+      },
+      "postlude": {
+        "fired": undefined,
+        "notfired": undefined,
+        "always": function (ctx) {
+          ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
+          ctx.modules.set(ctx, "ent", "user", ctx.callKRLstdlib("set", ctx.modules.get(ctx, "ent", "user"), ["firstname"], ctx.scope.get("firstname")));
         }
       }
     }

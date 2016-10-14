@@ -46,6 +46,10 @@ module.exports = {
     ]));
     ctx.scope.set("index1", ctx.callKRLstdlib("get", ctx.scope.get("obj"), ["a"]));
     ctx.scope.set("index2", ctx.callKRLstdlib("get", ctx.callKRLstdlib("get", ctx.callKRLstdlib("get", ctx.scope.get("obj"), ["b"]), ["c"]), [1]));
+    ctx.scope.set("not_true", !true);
+    ctx.scope.set("not_null", !void 0);
+    ctx.scope.set("true_or_false", true || false);
+    ctx.scope.set("true_and_false", true && false);
   },
   "rules": {}
 };

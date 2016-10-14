@@ -105,98 +105,68 @@ test("PicoEngine - hello_world ruleset", function(t){
   });
 });
 
-test("PicoEngine - persistent ruleset", function(t){
+test("PicoEngine - io.picolabs.persistent", function(t){
   mkTestPicoEngine({}, function(err, pe){
     if(err)return t.end(err);
 
-    λ.series({
-      pico0: λ.curry(pe.db.newPico, {}),
-      chan1: λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-      rid_0: λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.persistent"}),
+    //two picos with the same ruleset
+    var A_query = mkQueryTask(pe, "id2", "io.picolabs.persistent");
+    var B_query = mkQueryTask(pe, "id3", "io.picolabs.persistent");
+    var A_signal = mkSignalTask(pe, "id2");
+    var B_signal = mkSignalTask(pe, "id3");
 
-      pico2: λ.curry(pe.db.newPico, {}),
-      chan3: λ.curry(pe.db.newChannel, {pico_id: "id2", name: "three", type: "t"}),
-      rid_1: λ.curry(pe.db.addRuleset, {pico_id: "id2", rid: "io.picolabs.persistent"}),
+    testOutputs(t, [
+      λ.curry(pe.db.newPico, {}),//id0 - pico A
+      λ.curry(pe.db.newPico, {}),//id1 - pico B
+      λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),//id2
+      λ.curry(pe.db.newChannel, {pico_id: "id1", name: "one", type: "t"}),//id3
+      λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.persistent"}),
+      λ.curry(pe.db.addRuleset, {pico_id: "id1", rid: "io.picolabs.persistent"}),
 
-      store_bob0: λ.curry(pe.signalEvent, {
-        eci: "id1",
-        eid: "1234",
-        domain: "store",
-        type: "name",
-        attrs: {name: "bob"}
-      }),
+      //////////////////////////////////////////////////////////////////////////
+      //if not set, the var should return undefined
+      [A_query("getName"), void 0],
+      [A_query("getAppVar"), void 0],
 
-      query0: λ.curry(pe.runQuery, {
-        eci: "id1",
-        rid: "io.picolabs.persistent",
-        name: "getName",
-        args: {}
-      }),
+      //////////////////////////////////////////////////////////////////////////
+      //store different names on each pico
+      [
+        A_signal("store", "name", {name: "Alf"}),
+        [{name: "store_name", options: {name: "Alf"}}]
+      ],
+      [
+        B_signal("store", "name", {name: "Bob"}),
+        [{name: "store_name", options: {name: "Bob"}}]
+      ],
+      //pico's should have their respective names
+      [A_query("getName"), "Alf"],
+      [B_query("getName"), "Bob"],
 
-      store_bob1: λ.curry(pe.signalEvent, {
-        eci: "id1",
-        eid: "12345",
-        domain: "store",
-        type: "name",
-        attrs: {name: "jim"}
-      }),
+      //////////////////////////////////////////////////////////////////////////
+      //app vars are shared per-ruleset
+      [
+        A_signal("store", "appvar", {appvar: "Some appvar"}),
+        [{name: "store_appvar", options: {appvar: "Some appvar"}}]
+      ],
+      [A_query("getAppVar"), "Some appvar"],
+      [B_query("getAppVar"), "Some appvar"],
+      [
+        B_signal("store", "appvar", {appvar: "Changed by B"}),
+        [{name: "store_appvar", options: {appvar: "Changed by B"}}]
+      ],
+      [A_query("getAppVar"), "Changed by B"],
+      [B_query("getAppVar"), "Changed by B"],
 
-      query1: λ.curry(pe.runQuery, {
-        eci: "id1",
-        rid: "io.picolabs.persistent",
-        name: "getName",
-        args: {}
-      }),
-      query2: λ.curry(pe.runQuery, {
-        eci: "id1",
-        rid: "io.picolabs.persistent",
-        name: "getName",
-        args: {}
-      }),
+      //////////////////////////////////////////////////////////////////////////
+      //query paths
+      [
+        A_signal("store", "user_firstname", {firstname: "Leonard"}),
+        [{name: "store_user_firstname", options: {name: "Leonard"}}]
+      ],
+      [A_query("getUser"), {firstname: "Leonard", "lastname": "McCoy"}],
+      [A_query("getUserFirstname"), "Leonard"]
 
-      store_appvar0: λ.curry(pe.signalEvent, {
-        eci: "id1",
-        eid: "123456",
-        domain: "store",
-        type: "appvar",
-        attrs: {appvar: "global thing"}
-      }),
-      query3: λ.curry(pe.runQuery, {
-        eci: "id1",
-        rid: "io.picolabs.persistent",
-        name: "getAppVar",
-        args: {}
-      }),
-      query4: λ.curry(pe.runQuery, {
-        eci: "id3",
-        rid: "io.picolabs.persistent",
-        name: "getAppVar",
-        args: {}
-      })
-    }, function(err, data){
-      if(err) return t.end(err);
-
-      t.deepEquals(omitMeta(data.store_bob0), [
-          {name: "store_name", options: {name: "bob"}}
-      ]);
-
-      t.deepEquals(data.query0, "bob");
-
-      t.deepEquals(omitMeta(data.store_bob1), [
-        {name: "store_name", options: {name: "jim"}}
-      ]);
-
-      t.deepEquals(data.query1, "jim");
-      t.deepEquals(data.query2, "jim");
-
-      t.deepEquals(omitMeta(data.store_appvar0), [
-        {name: "store_appvar", options: {appvar: "global thing"}}
-      ]);
-      t.deepEquals(data.query3, "global thing");
-      t.deepEquals(data.query4, "global thing");
-
-      t.end();
-    });
+    ], t.end);
   });
 });
 

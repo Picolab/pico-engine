@@ -1,6 +1,6 @@
 ruleset io.picolabs.persistent {
   meta {
-    shares getName, getAppVar
+    shares getName, getAppVar, getUser, getUserFirstname
   }
   global {
     getName = function(){
@@ -8,6 +8,12 @@ ruleset io.picolabs.persistent {
     }
     getAppVar = function(){
       app:appvar
+    }
+    getUser = function(){
+      ent:user
+    }
+    getUserFirstname = function(){
+      ent:user{["firstname"]}
     }
   }
   rule store_my_name {
@@ -28,6 +34,19 @@ ruleset io.picolabs.persistent {
 
     always {
       app:appvar := my_appvar
+    }
+  }
+  rule store_user_firstname {
+    select when store user_firstname firstname re#^(.*)$# setting(firstname);
+
+    send_directive("store_user_firstname") with
+      name = firstname
+
+    always {
+      ent:user := {"lastname": "McCoy"};
+
+      //this what we really want to test
+      ent:user{["firstname"]} := firstname
     }
   }
 }
