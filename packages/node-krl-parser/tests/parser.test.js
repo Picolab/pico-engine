@@ -1639,7 +1639,18 @@ test('PersistentVariableAssignment', function(t){
       type: "PersistentVariableAssignment",
       op: ":=",
       left: mk.dID("ent", "name"),
+      path_expression: null,
       right: mk(1)
+    }
+  ]);
+
+  testPostlude("ent:user{[\"firstname\"]} := \"bob\"", [
+    {
+      type: "PersistentVariableAssignment",
+      op: ":=",
+      left: mk.dID("ent", "user"),
+      path_expression: mk(["firstname"]),
+      right: mk("bob")
     }
   ]);
 

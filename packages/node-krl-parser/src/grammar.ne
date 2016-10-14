@@ -597,14 +597,15 @@ PostludeStatement ->
       Statement {% id %}
     | PersistentVariableAssignment {% id %}
 
-PersistentVariableAssignment -> DomainIdentifier _ ":=" _ Expression {%
+PersistentVariableAssignment -> DomainIdentifier _ ("{" _ Expression _ "}" _):? ":=" _ Expression {%
   function(data, start){
     return {
-      loc: {start: start, end: data[4].loc.end},
+      loc: {start: start, end: data[5].loc.end},
       type: 'PersistentVariableAssignment',
-      op: data[2],
+      op: data[3],
       left: data[0],
-      right: data[4]
+      path_expression: data[2] ? data[2][2] : null,
+      right: data[5]
     };
   }
 %}

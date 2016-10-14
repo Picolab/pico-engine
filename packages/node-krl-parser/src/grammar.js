@@ -622,15 +622,19 @@ var grammar = {
     {"name": "PostludeStatements_body", "symbols": ["PostludeStatements_body", "_", {"literal":";"}, "_", "PostludeStatement"], "postprocess": concatArr(4)},
     {"name": "PostludeStatement", "symbols": ["Statement"], "postprocess": id},
     {"name": "PostludeStatement", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
+    {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [{"literal":"{"}, "_", "Expression", "_", {"literal":"}"}, "_"]},
+    {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "PersistentVariableAssignment$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "PersistentVariableAssignment$string$1", "symbols": [{"literal":":"}, {"literal":"="}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "PersistentVariableAssignment", "symbols": ["DomainIdentifier", "_", "PersistentVariableAssignment$string$1", "_", "Expression"], "postprocess": 
+    {"name": "PersistentVariableAssignment", "symbols": ["DomainIdentifier", "_", "PersistentVariableAssignment$ebnf$1", "PersistentVariableAssignment$string$1", "_", "Expression"], "postprocess": 
         function(data, start){
           return {
-            loc: {start: start, end: data[4].loc.end},
+            loc: {start: start, end: data[5].loc.end},
             type: 'PersistentVariableAssignment',
-            op: data[2],
+            op: data[3],
             left: data[0],
-            right: data[4]
+            path_expression: data[2] ? data[2][2] : null,
+            right: data[5]
           };
         }
         },
