@@ -30,4 +30,17 @@ ruleset io.picolabs.persistent {
       app:appvar := my_appvar
     }
   }
+  rule store_username {
+    select when store username name re#^(.*)$# setting(my_name);
+
+    send_directive("store_username") with
+      name = my_name
+
+    always {
+      ent:user := {};
+
+      //this what we really want to test
+      ent:user{["firstname"]} := name
+    }
+  }
 }
