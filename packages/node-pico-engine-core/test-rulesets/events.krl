@@ -116,7 +116,7 @@ ruleset io.picolabs.events {
     }
   }
   rule raise_set_name_attr {
-    select when events raise_set_name name re#^(.*)$# setting(my_name);
+    select when events raise_set_name_attr name re#^(.*)$# setting(my_name);
     fired{
       raise events event "store_sent_name" attributes {"name": my_name}
     }

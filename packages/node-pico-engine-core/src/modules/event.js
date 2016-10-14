@@ -1,8 +1,9 @@
+var _ = require("lodash");
 var getArg = require("../getArg");
 
 var fns = {
   attrs: function(ctx, args){
-    return ctx.event.attrs;
+    return _.cloneDeep(ctx.event.attrs);//the user may mutate their copy
   },
   attr: function(ctx, args){
     var name = getArg(args, "name", 0);
@@ -22,6 +23,11 @@ var fns = {
       matches.push(m[1]);
     }
     return matches;
+  },
+
+  raise: function(ctx, args){
+    var revent = getArg(args, "revent", 0);
+    ctx.raiseEvent(revent);
   },
 
   //TODO this is technically a RuleAction

@@ -334,7 +334,18 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
       [signal("events", "action_send", {name: "Jim"}), []],
       //this should in turn call store_sent_name and change it
       [query("getSentAttrs"), {name: "Jim"}],
-      [query("getSentName"), "Jim"]
+      [query("getSentName"), "Jim"],
+
+      //////////////////////////////////////////////////////////////////////////
+      //Testing raise <domain> event
+      [signal("events", "raise_set_name", {name: "Raised"}), []],
+      [query("getSentAttrs"), {name: "Raised"}],
+      [query("getSentName"), "Raised"],
+
+      [signal("events", "raise_set_name_attr", {name: "Raised-2"}), []],
+      [query("getSentAttrs"), {name: "Raised-2"}],
+      [query("getSentName"), "Raised-2"]
+
     ], t.end);
   });
 });
