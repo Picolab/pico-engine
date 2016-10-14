@@ -11,8 +11,12 @@ module.exports = function(ctx, pico_id){
     throw new Error("Invalid eci: " + ctx.event.eci);
   }
 
-  var rules = selectRulesToEvalFuture(ctx).wait();
-  var responses = _.map(rules, function(rule){
+  var rules_schedule = selectRulesToEvalFuture(ctx).wait();
+  var responses = [];
+  //using a while loop b/c rules_schedule is MUTABLE
+  //Durring execution new events may be `raised` that will mutate the schedule
+  while(rules_schedule.length > 0){
+    var rule = rules_schedule.shift();
 
     ctx.emit("debug", "rule selected: " + rule.rid + " -> " + rule.name);
 
@@ -23,8 +27,8 @@ module.exports = function(ctx, pico_id){
       ctx.modules_used = ctx.rulesets[rule.rid].modules_used;
     }
 
-    return evalRuleInFiber(rule, ctx);
-  });
+    responses.push(evalRuleInFiber(rule, ctx));
+  }
 
   var res_by_type = _.groupBy(_.flattenDeep(_.values(responses)), "type");
 

@@ -822,6 +822,96 @@ module.exports = {
         "notfired": undefined,
         "always": undefined
       }
+    },
+    "raise_set_name": {
+      "name": "raise_set_name",
+      "select": {
+        "graph": { "events": { "raise_set_name": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "name",
+                  new RegExp("^(.*)$", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("my_name", matches[0]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "postlude": {
+        "fired": function (ctx) {
+          ctx.modules.get(ctx, "event", "raise")(ctx, [{
+              "domain": "events",
+              "type": "store_sent_name",
+              "for_rid": undefined,
+              "attributes": { "name": ctx.scope.get("my_name") }
+            }]);
+        },
+        "notfired": undefined,
+        "always": undefined
+      }
+    },
+    "raise_set_name_attr": {
+      "name": "raise_set_name_attr",
+      "select": {
+        "graph": { "events": { "raise_set_name": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "name",
+                  new RegExp("^(.*)$", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("my_name", matches[0]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "postlude": {
+        "fired": function (ctx) {
+          ctx.modules.get(ctx, "event", "raise")(ctx, [{
+              "domain": "events",
+              "type": "store_sent_name",
+              "for_rid": undefined,
+              "attributes": { "name": ctx.scope.get("my_name") }
+            }]);
+        },
+        "notfired": undefined,
+        "always": undefined
+      }
     }
   }
 };

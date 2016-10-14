@@ -109,4 +109,16 @@ ruleset io.picolabs.events {
       ent:sent_name := my_name
     }
   }
+  rule raise_set_name {
+    select when events raise_set_name name re#^(.*)$# setting(my_name);
+    fired{
+      raise events event "store_sent_name" with name = my_name
+    }
+  }
+  rule raise_set_name_attr {
+    select when events raise_set_name name re#^(.*)$# setting(my_name);
+    fired{
+      raise events event "store_sent_name" attributes {"name": my_name}
+    }
+  }
 }
