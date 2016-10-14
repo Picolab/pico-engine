@@ -1,6 +1,6 @@
 ruleset io.picolabs.persistent {
   meta {
-    shares getName, getAppVar
+    shares getName, getAppVar, getUser, getUserFirstname
   }
   global {
     getName = function(){
@@ -37,16 +37,16 @@ ruleset io.picolabs.persistent {
     }
   }
   rule store_user_firstname {
-    select when store user_firstname name re#^(.*)$# setting(my_name);
+    select when store user_firstname firstname re#^(.*)$# setting(firstname);
 
     send_directive("store_user_firstname") with
-      name = my_name
+      name = firstname
 
     always {
-      ent:user := {};
+      ent:user := {"lastname": "McCoy"};
 
       //this what we really want to test
-      ent:user{["firstname"]} := name
+      ent:user{["firstname"]} := firstname
     }
   }
 }

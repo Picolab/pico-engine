@@ -3,7 +3,9 @@ module.exports = {
   "meta": {
     "shares": [
       "getName",
-      "getAppVar"
+      "getAppVar",
+      "getUser",
+      "getUserFirstname"
     ]
   },
   "global": function (ctx) {
@@ -130,12 +132,12 @@ module.exports = {
         "eventexprs": {
           "expr_0": function (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
-                  "name",
+                  "firstname",
                   new RegExp("^(.*)$", "")
                 ]]]);
             if (!matches)
               return false;
-            ctx.scope.set("my_name", matches[0]);
+            ctx.scope.set("firstname", matches[0]);
             return true;
           }
         },
@@ -161,7 +163,7 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "store_user_firstname",
-                "options": { "name": ctx.scope.get("my_name") }
+                "options": { "name": ctx.scope.get("firstname") }
               };
             }
           }]
@@ -170,8 +172,8 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function (ctx) {
-          ctx.modules.set(ctx, "ent", "user", {});
-          ctx.modules.set(ctx, "ent", "user", ctx.callKRLstdlib("set", ctx.modules.get(ctx, "ent", "user"), ["firstname"], ctx.scope.get("name")));
+          ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
+          ctx.modules.set(ctx, "ent", "user", ctx.callKRLstdlib("set", ctx.modules.get(ctx, "ent", "user"), ["firstname"], ctx.scope.get("firstname")));
         }
       }
     }
