@@ -140,7 +140,19 @@ module.exports = function(conf, callback){
       var event = data.event;
       event.timestamp = new Date(event.timestamp);
       ctx = mkCTX({event: event});
-      applyInFiber(signalEventInFiber, void 0, [ctx, pico_id], callback);
+      applyInFiber(signalEventInFiber, void 0, [ctx, pico_id], function(err, data){
+        if(err) return callback(err);
+        if(_.has(data, "event:send")){
+          _.each(data["event:send"], function(o){
+            picoQ.enqueue(pico_id, {
+              type: "event",
+              event: o.event
+            }, _.noop);
+          });
+          data = _.omit(data, "event:send");
+        }
+        callback(void 0, data);
+      });
       return;
     }else if(data.type === "query"){
       ctx = mkCTX({query: data.query});

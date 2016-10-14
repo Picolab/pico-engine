@@ -29,7 +29,10 @@ var fns = {
   //TODO is this allowed other places in the code?
   send: function(ctx, args){
     var event = getArg(args, "event", 0);
-    ctx.engine.signalEventFuture(event).wait();
+    return {
+      type: "event:send",
+      event: event
+    };
   }
 };
 

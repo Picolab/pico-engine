@@ -30,10 +30,19 @@ module.exports = function(ctx, pico_id){
 
   var res_by_type = _.groupBy(_.flattenDeep(_.values(responses)), "type");
 
-  //TODO other types
-  return {
-    directives:  _.map(res_by_type.directive, function(d){
-      return _.omit(d, "type");
-    })
-  };
+  var r = _.mapValues(res_by_type, function(responses, key){
+    if(key === "directive"){
+      return _.map(responses, function(d){
+        return _.omit(d, "type");
+      });
+    }
+    return responses;
+  });
+
+  if(_.has(r, "directive")){
+    r.directives = r.directive;
+    delete r.directive;
+  }
+
+  return r;
 };

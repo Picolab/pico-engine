@@ -35,6 +35,9 @@ module.exports = function(rule, ctx){
     if((response === void 0) || (response === null)){
       return;//noop
     }
+    if(response.type !== "directive"){
+      return response;
+    }
     return {
       type: "directive",
       options: response.options,
