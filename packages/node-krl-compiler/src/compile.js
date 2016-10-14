@@ -290,7 +290,9 @@ var comp_by_type = {
     return e("obj", block);
   },
   "RuleAction": require("./c/RuleAction"),
-  "RulePostlude": require("./c/RulePostlude")
+  "RulePostlude": require("./c/RulePostlude"),
+  "RaiseEventStatement": require("./c/RaiseEventStatement"),
+  "RaiseEventAttributes": require("./c/RaiseEventAttributes")
 };
 
 var isKRL_loc = function(loc){
