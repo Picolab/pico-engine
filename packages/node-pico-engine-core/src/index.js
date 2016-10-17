@@ -144,10 +144,7 @@ module.exports = function(conf, callback){
         if(err) return callback(err);
         if(_.has(data, "event:send")){
           _.each(data["event:send"], function(o){
-            picoQ.enqueue(pico_id, {
-              type: "event",
-              event: o.event
-            }, _.noop);
+            signalEvent(o.event,callback);
           });
           data = _.omit(data, "event:send");
         }
