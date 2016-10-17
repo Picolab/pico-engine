@@ -13,81 +13,71 @@ ruleset io.picolabs.pico {
     children = function(){
       ent:children.defaultsTo([])
     }
-    hasChild = function(child){
-      temp = children().union(child);
-      temp.length() == children().length()
-    }
 
     __testing = { "queries": [ { "name": "myself" },
                                { "name": "parent" },
                                { "name": "children" },
                                { "name": "__testing" } ] }
+
+    hasChild = function(child){
+      temp = children().union(child);
+      temp.length() == children().length()
+    }
+
+    newPico = function(){
+      child = engine:newPico();
+      child_id = child.id;
+      channel = engine:newChannel(
+        { "name": "main", "type": "secret", "pico_id": child_id });
+      child_eci = channel.id;
+      { "id": child_id, "eci": child_eci }
+    }
   }
 
-// create a new pico and its main channel
+// create a new pico and connect to it
 
   rule pico_new_child_request {
     select when pico new_child_request
     pre {
-      child = engine:newPico()
-      child_id = child.id
-      channel = engine:newChannel(
-        { "name": "main", "type": "secret", "pico_id": child_id })
-      child_eci = channel.id
-      attrs = event:attrs()
-        .set(["parent_id"],ent:id)
-        .set(["parent_eci"],ent:eci)
-        .set(["id"],child_id)
-        .set(["eci"],child_eci)
+      new_child = newPico()
+      attrs = { "parent": myself(),
+                "new_child" : new_child }
     }
     if true
     then
       engine:addRuleset(
-        { "pico_id": child_id, "rid": "io.picolabs.pico" })
+        { "pico_id": new_child.id, "rid": "io.picolabs.pico" })
       event:send(
-        { "eci": child_eci, "eid": 57,
+        { "eci": new_child.eci, "eid": 57,
           "domain": "pico", "type": "child_created",
           "attrs": attrs })
       event:send(
-         { "eci": child_eci, "eid": 59,
+         { "eci": new_child.eci, "eid": 59,
            "domain": "pico", "type": "new_ruleset",
-           "attrs": attrs.set(["rid"],"io.picolabs.visual_params") })
+           "attrs": event:attrs().put({ "rid": "io.picolabs.visual_params" }) })
     always {
-      engine:signalEvent( // raise pico event "child_created"
-        { "eci": ent:eci, "eid": 53,
-          "domain": "pico", "type": "child_created",
-          "attrs": attrs })
+      ent:children := children().union([new_child])
     }
   }
 
-// connect parent and new child pico
+// connect new child pico to its parent
 
   rule pico_child_created {
     select when pico child_created
     pre {
-      parent_id = event:attr("parent_id")
-      parent_eci = event:attr("parent_eci")
-      id = event:attr("id")
-      eci = event:attr("eci")
-      new_child = { "id": id, "eci": eci }
+      parent = event:attr("parent")
+      new_child = event:attr("new_child")
     }
-    if ( parent_id != ent:id )
-    then // must be running for the new child pico
-      noop() // temporary until event order corrected
-//      event:send(
-//        { "eci": parent_eci, "eid": 59,
-//          "domain": "pico", "type": "child_initialized",
-//          "attrs": event:attrs() })
-    fired {
-      ent:id := id;
-      ent:eci := eci;
-      ent:parent := { "id": parent_id, "eci": parent_eci };
-      engine:signalEvent( // temporary until event order corrected
-        { "eci": parent_eci, "eid": 59,
+    if true
+    then
+      event:send(
+        { "eci": parent.eci, "eid": 59,
           "domain": "pico", "type": "child_initialized",
           "attrs": event:attrs() })
-    } else {
-      ent:children := children().append(new_child)
+    fired {
+      ent:id := new_child.id;
+      ent:eci := new_child.eci;
+      ent:parent := parent
     }
   }
 
@@ -176,7 +166,7 @@ ruleset io.picolabs.pico {
     pre {
       rid = event:attr("rid")
     }
-    engine:addRuleset( { "pico_id": ent:id, "rid": rid })
+    engine:addRuleset( { "pico_id": ent:id, "rid": rid } )
     always {
       engine:signalEvent( // raise pico event "ruleset_added" for rid
         { "eci": ent:eci, "eid": 56,
