@@ -166,7 +166,7 @@ var comp_by_type = {
   },
   "PersistentVariableAssignment": function(ast, comp, e){
     if(ast.op !== ":="){
-      throw new Error("Unsuported Declaration.op: " + ast.op);
+      throw new Error("Unsuported PersistentVariableAssignment.op: " + ast.op);
     }
     if(ast.left.type !== "DomainIdentifier" || !/^(ent|app)$/.test(ast.left.domain)){
       throw new Error("PersistentVariableAssignment - only works on ent:* or app:* variables");
@@ -193,38 +193,7 @@ var comp_by_type = {
       value_to_store
     ]));
   },
-  "Declaration": function(ast, comp, e){
-    if(ast.op === "="){
-      if(ast.left.type === "DomainIdentifier"){
-        throw new Error("It's invalid to Declare DomainIdentifiers");
-      }else if(ast.left.type === "MemberExpression"){
-        if(ast.left.method === "path"){
-          return e(";", e("call", e("id", "ctx.scope.set"), [
-            e("str", ast.left.object.value, ast.left.loc),
-            callStdLibFn(e, "set", [
-              comp(ast.left.object),
-              comp(ast.left.property),
-              comp(ast.right)
-            ], ast.left.loc)
-          ]));
-        }else if(ast.left.method === "index"){
-          return e(";", e("call", e("id", "ctx.scope.set"), [
-            e("str", ast.left.object.value, ast.left.loc),
-            callStdLibFn(e, "set", [
-              comp(ast.left.object),
-              e("array", [comp(ast.left.property)], ast.left.property.loc),
-              comp(ast.right)
-            ], ast.left.loc)
-          ]));
-        }
-      }
-      return e(";", e("call", e("id", "ctx.scope.set"), [
-        e("str", ast.left.value, ast.left.loc),
-        comp(ast.right)
-      ]));
-    }
-    throw new Error("Unsuported Declaration.op: " + ast.op);
-  },
+  "Declaration": require("./c/Declaration"),
   "ExpressionStatement": function(ast, comp, e){
     return e(";", comp(ast.expression));
   },
