@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var cuid = require("cuid");
 var Future = require("fibers/future");
 var evalRuleInFiber = require("./evalRuleInFiber");
 var selectRulesToEvalFuture = Future.wrap(require("./selectRulesToEval"));
@@ -42,7 +41,7 @@ module.exports = function(ctx, pico_id, mkCTX){
     //shape the revent like a normal event
     var event = {
       eci: ctx.event.eci,//raise event is always to the same pico
-      eid: cuid(),
+      eid: ctx.event.eid,//inherit from parent event to aid in debugging
       domain: revent.domain,
       type: revent.type,
       attrs: revent.attributes,
