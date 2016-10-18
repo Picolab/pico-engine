@@ -40,8 +40,8 @@ ruleset io.picolabs.pico {
     select when pico new_child_request
     pre {
       new_child = newPico()
-      attrs = { "parent": myself(),
-                "new_child" : new_child }
+      attrs = event:attrs().put({ "parent": myself() })
+                           .put({"new_child" : new_child })
     }
     if true
     then

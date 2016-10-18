@@ -30,11 +30,16 @@ ruleset io.picolabs.visual_params {
              or pico ruleset_added
     pre {
       dname = event:attr("dname")
-      color = event:attr("color").defaultsTo("#ccc")
+      color = event:attr("color")
     }
-    always {
+    if dname
+      || color
+      || rid == "io.picolabs.visual_params"
+    then
+      noop()
+    fired {
       ent:dname := dname;
-      ent:color := color
+      ent:color := color.defaultsTo("#ccc")
     }
   }
 
