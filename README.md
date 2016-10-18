@@ -2,7 +2,7 @@
 
 [![build status](https://secure.travis-ci.org/Picolab/node-pico-engine.svg)](https://travis-ci.org/Picolab/node-pico-engine)
 
-A prototype implementation of the [pico-engine](http://www.windley.com/archives/2016/03/rebuilding_krl.shtml) written in node.js
+An implementation of the [pico-engine](http://www.windley.com/archives/2016/03/rebuilding_krl.shtml) written in node.js
 
 ## Getting Started
 
@@ -10,7 +10,7 @@ A prototype implementation of the [pico-engine](http://www.windley.com/archives/
 
 You'll need [node.js](https://nodejs.org/) v4 or later.
  * On windows use the installer provided at [nodejs.org](https://nodejs.org/)
- * On OSX or linux we recommend the [n](https://github.com/tj/n) script which will allow you to install and manage your node versions.
+ * On OSX or linux we recommend the [n bash script](https://github.com/tj/n) which will allow you to install and manage your node versions.
 
 Once you have node installed, use npm to install the `pico-engine`;
 
@@ -96,6 +96,8 @@ $ npm start
 ```
 
 That will start the `pico-engine` server and run the test. Anytime you make a change in the `src/` folder it will restart the server and re-run the tests.
+
+NOTE: When running via `npm start` the `PICO_ENGINE_HOME` will default to your current directory i.e. your clone of this repository.
 
 ## License
 MIT
