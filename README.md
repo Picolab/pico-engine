@@ -9,8 +9,8 @@ An implementation of the [pico-engine](http://www.windley.com/archives/2016/03/r
 ### Installing
 
 You'll need [node.js](https://nodejs.org/) v4 or later.
- * On windows use the installer provided at [nodejs.org](https://nodejs.org/)
- * On OSX or linux we recommend the [n bash script](https://github.com/tj/n) which will allow you to install and manage your node versions.
+ * Windows - use the installer provided at [nodejs.org](https://nodejs.org/)
+ * Mac/Linux - we recommend the [n bash script](https://github.com/tj/n) which will allow you to install and manage your node versions.
 
 Once you have node installed, use npm to install the `pico-engine`;
 
