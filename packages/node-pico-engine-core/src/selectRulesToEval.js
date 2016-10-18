@@ -40,6 +40,11 @@ module.exports = function(ctx, callback){
     if(!_.has(ctx.pico.ruleset, rid)){
       return;
     }
+    if(_.has(ctx.event, "for_rid") && _.isString(ctx.event.for_rid)){
+      if(rid !== ctx.event.for_rid){
+        return;
+      }
+    }
     _.each(rules, function(is_on, rule_name){
       if(is_on){
         var rule = _.get(ctx.rulesets, [rid, "rules", rule_name]);
