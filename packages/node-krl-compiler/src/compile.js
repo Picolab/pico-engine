@@ -199,17 +199,23 @@ var comp_by_type = {
         throw new Error("It's invalid to Declare DomainIdentifiers");
       }else if(ast.left.type === "MemberExpression"){
         if(ast.left.method === "path"){
-          return e(";", callStdLibFn(e, "set", [
-            comp(ast.left.object),
-            comp(ast.left.property),
-            comp(ast.right)
-          ], ast.left.loc));
+          return e(";", e("call", e("id", "ctx.scope.set"), [
+            e("str", ast.left.object.value, ast.left.loc),
+            callStdLibFn(e, "set", [
+              comp(ast.left.object),
+              comp(ast.left.property),
+              comp(ast.right)
+            ], ast.left.loc)
+          ]));
         }else if(ast.left.method === "index"){
-          return e(";", callStdLibFn(e, "set", [
-            comp(ast.left.object),
-            e("array", [comp(ast.left.property)], ast.left.property.loc),
-            comp(ast.right)
-          ], ast.left.loc));
+          return e(";", e("call", e("id", "ctx.scope.set"), [
+            e("str", ast.left.object.value, ast.left.loc),
+            callStdLibFn(e, "set", [
+              comp(ast.left.object),
+              e("array", [comp(ast.left.property)], ast.left.property.loc),
+              comp(ast.right)
+            ], ast.left.loc)
+          ]));
         }
       }
       return e(";", e("call", e("id", "ctx.scope.set"), [

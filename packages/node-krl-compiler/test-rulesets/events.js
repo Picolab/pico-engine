@@ -871,7 +871,7 @@ module.exports = {
     "raise_set_name_attr": {
       "name": "raise_set_name_attr",
       "select": {
-        "graph": { "events": { "raise_set_name": { "expr_0": true } } },
+        "graph": { "events": { "raise_set_name_attr": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[

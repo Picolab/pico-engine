@@ -25,14 +25,14 @@ module.exports = {
         ]
       }
     });
-    ctx.callKRLstdlib("set", ctx.scope.get("obj"), [
+    ctx.scope.set("obj", ctx.callKRLstdlib("set", ctx.scope.get("obj"), [
       "b",
       "c",
       3,
       "d",
       "e"
-    ], "changed 5");
-    ctx.callKRLstdlib("set", ctx.scope.get("obj"), ["a"], "changed 1");
+    ], "changed 5"));
+    ctx.scope.set("obj", ctx.callKRLstdlib("set", ctx.scope.get("obj"), ["a"], "changed 1"));
     ctx.scope.set("path1", ctx.callKRLstdlib("get", ctx.scope.get("obj"), [
       "b",
       "c",
