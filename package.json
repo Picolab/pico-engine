@@ -47,6 +47,7 @@
     "krl-compiler": "^0.19.9",
     "leveldown": "^1.4.6",
     "lodash": "^4.11.2",
+    "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "pico-engine-core": "^0.15.6"
   }
