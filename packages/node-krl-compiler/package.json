@@ -1,6 +1,6 @@
 {
   "name": "krl-compiler",
-  "version": "0.19.8",
+  "version": "0.19.9",
   "description": "KRL compiler",
   "main": "src/index.js",
   "bin": {
