@@ -293,7 +293,6 @@ test("Collection operators", function(t){
   tf("get", [obj, "colors"], "many");
   assertObjNotMutated();
 
-  // note that the "set" tests mutates the obj
   tf("set", [obj, ["foo", "baz"], "qux"], {
     "colors": "many",
     "pi": [3, 1, 4, 1, 5, 6, 9],
@@ -306,8 +305,7 @@ test("Collection operators", function(t){
     "colors": "many",
     "pi": [3, 1, 4, 1, 5, 6, 9],
     "foo": {
-      "bar": {"10": "I like cheese"},
-      "baz": "qux"
+      "bar": {"10": "I like cheese"}
     },
     "flop": 12
   });
@@ -315,11 +313,17 @@ test("Collection operators", function(t){
     "colors": ["R", "G", "B"],
     "pi": [3, 1, 4, 1, 5, 6, 9],
     "foo": {
-      "bar": {"10": "I like cheese"},
-      "baz": "qux"
-    },
-    "flop": 12
+      "bar": {"10": "I like cheese"}
+    }
   });
+  tf("set", [obj, ["foo", "bar", "10"], "modified a sub object"], {
+    "colors": "many",
+    "pi": [3, 1, 4, 1, 5, 6, 9],
+    "foo": {
+      "bar": {"10": "modified a sub object"}
+    }
+  });
+  assertObjNotMutated();
 
   tf("intersection", [[2, 1], [2, 3]], [2]);
 

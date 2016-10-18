@@ -405,7 +405,8 @@ stdlib["get"] = function(ctx, obj, path) {
 };
 
 stdlib["set"] = function(ctx, obj, path, val) {
-  return _.set(obj,path,val);
+  //TODO optimize
+  return _.set(_.cloneDeep(obj), path, val);
 };
 
 module.exports = stdlib;
