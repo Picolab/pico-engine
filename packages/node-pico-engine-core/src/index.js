@@ -11,7 +11,7 @@ var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
 var EventEmitter = require("events");
 var runQueryInFiber = require("./runQueryInFiber");
-var signalEventInFiber = require("./signalEventInFiber");
+var processEventInFiber = require("./processEventInFiber");
 
 module.exports = function(conf, callback){
   var db = Future.wrap(DB(conf.db));
@@ -140,7 +140,7 @@ module.exports = function(conf, callback){
       var event = data.event;
       event.timestamp = new Date(event.timestamp);//convert from JSON string to date
       ctx = mkCTX({event: event});
-      applyInFiber(signalEventInFiber, void 0, [ctx, pico_id, mkCTX], function(err, data){
+      applyInFiber(processEventInFiber, void 0, [ctx, pico_id, mkCTX], function(err, data){
         if(err) return callback(err);
         if(_.has(data, "event:send")){
           _.each(data["event:send"], function(o){
