@@ -138,9 +138,9 @@ module.exports = function(conf, callback){
     var ctx;
     if(data.type === "event"){
       var event = data.event;
-      event.timestamp = new Date(event.timestamp);
+      event.timestamp = new Date(event.timestamp);//convert from JSON string to date
       ctx = mkCTX({event: event});
-      applyInFiber(signalEventInFiber, void 0, [ctx, pico_id], function(err, data){
+      applyInFiber(signalEventInFiber, void 0, [ctx, pico_id, mkCTX], function(err, data){
         if(err) return callback(err);
         if(_.has(data, "event:send")){
           _.each(data["event:send"], function(o){

@@ -20,7 +20,7 @@ var runEvent = function(scheduled){
   return evalRuleInFiber(rule, ctx);
 };
 
-module.exports = function(ctx, pico_id){
+module.exports = function(ctx, pico_id, mkCTX){
   ctx.emit("debug", "event being processed");
 
   ctx.pico = ctx.db.getPicoFuture(pico_id).wait();
@@ -41,14 +41,21 @@ module.exports = function(ctx, pico_id){
   ctx.raiseEvent = function(revent){
     //shape the revent like a normal event
     var event = {
-      eci: ctx.event.eci,
+      eci: ctx.event.eci,//raise event is always to the same pico
       eid: cuid(),
       domain: revent.domain,
       type: revent.type,
       attrs: revent.attributes,
+      for_rid: revent.for_rid,
       timestamp: new Date()
     };
-    scheduleEvent(_.assign({}, ctx, {event: event}));
+    //must make a new ctx for this raise b/c it's a different event
+    var raise_ctx = mkCTX({
+      event: event,
+      pico: ctx.pico//raise event is always to the same pico
+    });
+    raise_ctx.emit("debug", "raised event added to schedule");
+    scheduleEvent(raise_ctx);
   };
 
 
