@@ -31,6 +31,22 @@ var getNextState = function(ctx, curr_state){
   return matching_pair ? matching_pair[1] : undefined;
 };
 
+var shouldRuleSelect = function(ctx, rule){
+
+  var curr_state = ctx.db.getStateMachineStateFuture(ctx.pico_id, rule).wait();
+
+  //this ctx will be passed to the compiled code for evaluting event exp
+  var ctx_for_eventexp = _.assign({}, ctx, {
+    rule: rule,
+    scope: rule.scope
+  });
+  var next_state = getNextState(ctx_for_eventexp, curr_state);
+
+  ctx.db.putStateMachineStateFuture(ctx.pico_id, rule, next_state).wait();
+
+  return next_state === "end";
+};
+
 var selectForPico = function(ctx, pico, callback){
 
   var to_run = _.get(ctx.salience_graph, [ctx.event.domain, ctx.event.type], {});
@@ -59,20 +75,7 @@ var selectForPico = function(ctx, pico, callback){
   });
 
   λ.filter(rules_to_select, function(rule, next){
-    ctx.db.getStateMachineState(ctx.pico_id, rule, function(err, curr_state){
-      if(err) return next(err);
-
-      applyInFiber(getNextState, null, [_.assign({}, ctx, {
-        rule: rule,
-        scope: rule.scope
-      }), curr_state], function(err, next_state){
-        if(err) return next(err);
-
-        ctx.db.putStateMachineState(ctx.pico_id, rule, next_state, function(err){
-          next(err, next_state === "end");
-        });
-      });
-    });
+    applyInFiber(shouldRuleSelect, null, [ctx, rule], next);
   }, function(err, rules){
     if(err) return callback(err);
     //rules in the same ruleset must fire in order
