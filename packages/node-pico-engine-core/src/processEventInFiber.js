@@ -31,6 +31,7 @@ module.exports = function(ctx, pico_id, mkCTX){
   var scheduleEvent = function(ctx){
     var rules = selectRulesToEvalFuture(ctx).wait();
     _.each(rules, function(rule){
+      ctx.emit("debug", "rule added to schedule: " + rule.rid + " -> " + rule.name);
       schedule.push({rule: rule, ctx: ctx});
     });
   };
@@ -54,7 +55,7 @@ module.exports = function(ctx, pico_id, mkCTX){
       pico: ctx.pico//raise event is always to the same pico
     });
     raise_ctx.raiseEvent = ctx.raiseEvent;
-    raise_ctx.emit("debug", "raised event added to schedule");
+    raise_ctx.emit("debug", "adding raised event to schedule");
     scheduleEvent(raise_ctx);
   };
 
