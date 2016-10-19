@@ -53,6 +53,7 @@ module.exports = function(ctx, pico_id, mkCTX){
       event: event,
       pico: ctx.pico//raise event is always to the same pico
     });
+    raise_ctx.raiseEvent = ctx.raiseEvent;
     raise_ctx.emit("debug", "raised event added to schedule");
     scheduleEvent(raise_ctx);
   };
