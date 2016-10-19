@@ -31,7 +31,10 @@ module.exports = function(conf, callback){
     ctx.salience_graph = salience_graph;
     ctx.KRLClosure = KRLClosure;
     ctx.emit = function(type, val, message){//for stdlib
-      var info = {rid: ctx.rid};
+      var info = {
+        rid: ctx.rid,
+        pico_id: ctx.pico_id
+      };
       if(ctx.event){
         info.event = {
           eci: ctx.event.eci,
@@ -139,8 +142,11 @@ module.exports = function(conf, callback){
     if(data.type === "event"){
       var event = data.event;
       event.timestamp = new Date(event.timestamp);//convert from JSON string to date
-      ctx = mkCTX({event: event});
-      applyInFiber(processEventInFiber, void 0, [ctx, pico_id, mkCTX], function(err, data){
+      ctx = mkCTX({
+        event: event,
+        pico_id: pico_id
+      });
+      applyInFiber(processEventInFiber, void 0, [ctx, mkCTX], function(err, data){
         if(err) return callback(err);
         if(_.has(data, "event:send")){
           _.each(data["event:send"], function(o){
@@ -152,8 +158,11 @@ module.exports = function(conf, callback){
       });
       return;
     }else if(data.type === "query"){
-      ctx = mkCTX({query: data.query});
-      applyInFiber(runQueryInFiber, void 0, [ctx, pico_id], callback);
+      ctx = mkCTX({
+        query: data.query,
+        pico_id: pico_id
+      });
+      applyInFiber(runQueryInFiber, void 0, [ctx], callback);
       return;
     }
     callback(new Error("invalid PicoQueue type:" + data.type));

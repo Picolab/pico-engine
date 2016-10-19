@@ -1,11 +1,11 @@
 var _ = require("lodash");
 
-module.exports = function(ctx, pico_id){
-  ctx.pico = ctx.db.getPicoFuture(pico_id).wait();
-  if(!ctx.pico){
+module.exports = function(ctx){
+  var pico = ctx.db.getPicoFuture(ctx.pico_id).wait();
+  if(!pico){
     throw new Error("Invalid eci: " + ctx.query.eci);
   }
-  if(!_.has(ctx.pico.ruleset, ctx.query.rid)){
+  if(!_.has(pico.ruleset, ctx.query.rid)){
     throw new Error("Pico does not have that rid");
   }
   if(!_.has(ctx.rulesets, ctx.query.rid)){

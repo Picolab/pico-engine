@@ -19,13 +19,8 @@ var runEvent = function(scheduled){
   return evalRuleInFiber(rule, ctx);
 };
 
-module.exports = function(ctx, pico_id, mkCTX){
+module.exports = function(ctx, mkCTX){
   ctx.emit("debug", "event being processed");
-
-  ctx.pico = ctx.db.getPicoFuture(pico_id).wait();
-  if(!ctx.pico){
-    throw new Error("Invalid eci: " + ctx.event.eci);
-  }
 
   var schedule = [];
   var scheduleEvent = function(ctx){
@@ -52,7 +47,7 @@ module.exports = function(ctx, pico_id, mkCTX){
     //must make a new ctx for this raise b/c it's a different event
     var raise_ctx = mkCTX({
       event: event,
-      pico: ctx.pico//raise event is always to the same pico
+      pico_id: ctx.pico_id//raise event is always to the same pico
     });
     raise_ctx.raiseEvent = ctx.raiseEvent;
     raise_ctx.emit("debug", "adding raised event to schedule");
