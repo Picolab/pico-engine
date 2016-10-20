@@ -55,6 +55,9 @@ div.krlsrc {
   padding: 0 0 0 15px;
   overflow: hidden;
 }
+div.krlsrc form {
+  margin: 0px;
+}
 div.krlsrc textarea {
   box-sizing: border-box;
   width: 90%;
@@ -65,4 +68,5 @@ div.krlsrc pre#feedback {
   width: 90%;
   /* height: 6em; */
   overflow: auto;
+  margin: 0.5em 0px 0px;
 }
