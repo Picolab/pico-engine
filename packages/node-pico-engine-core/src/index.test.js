@@ -344,7 +344,11 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
 
       [signal("events", "raise_set_name_attr", {name: "Raised-2"}), []],
       [query("getSentAttrs"), {name: "Raised-2"}],
-      [query("getSentName"), "Raised-2"]
+      [query("getSentName"), "Raised-2"],
+
+      [signal("events", "raise_set_name_rid", {name: "Raised-3"}), []],
+      [query("getSentAttrs"), {name: "Raised-3"}],
+      [query("getSentName"), "Raised-3"]
 
     ], t.end);
   });
