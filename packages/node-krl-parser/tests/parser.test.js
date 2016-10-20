@@ -1675,12 +1675,12 @@ test("raise event", function(t){
     }
   ]);
 
-  testPostlude("raise domain event \"type\" for io.picolabs.test", [
+  testPostlude("raise domain event \"type\" for \"io.picolabs.test\"", [
     {
       type: "RaiseEventStatement",
       event_domain: mk.id("domain"),
       event_type: mk("type"),
-      for_rid: {type: "RulesetID", value: "io.picolabs.test"},
+      for_rid: mk("io.picolabs.test"),
       attributes: null
     }
   ]);

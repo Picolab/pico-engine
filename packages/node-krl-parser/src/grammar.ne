@@ -612,7 +612,7 @@ PersistentVariableAssignment -> DomainIdentifier _ ("{" _ Expression _ "}" _):? 
 %}
 
 RaiseEventStatement -> "raise" __ Identifier __ "event" __ Expression
-  (__ "for" __ RulesetID):?
+  (__ "for" __ Expression):?
   (__ RaiseEventAttributes):?
 {%
   function(data, start){

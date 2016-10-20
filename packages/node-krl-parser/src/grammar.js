@@ -642,7 +642,7 @@ var grammar = {
     {"name": "RaiseEventStatement$string$1", "symbols": [{"literal":"r"}, {"literal":"a"}, {"literal":"i"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "RaiseEventStatement$string$2", "symbols": [{"literal":"e"}, {"literal":"v"}, {"literal":"e"}, {"literal":"n"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "RaiseEventStatement$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"f"}, {"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RaiseEventStatement$ebnf$1$subexpression$1", "symbols": ["__", "RaiseEventStatement$ebnf$1$subexpression$1$string$1", "__", "RulesetID"]},
+    {"name": "RaiseEventStatement$ebnf$1$subexpression$1", "symbols": ["__", "RaiseEventStatement$ebnf$1$subexpression$1$string$1", "__", "Expression"]},
     {"name": "RaiseEventStatement$ebnf$1", "symbols": ["RaiseEventStatement$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RaiseEventStatement$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RaiseEventStatement$ebnf$2$subexpression$1", "symbols": ["__", "RaiseEventAttributes"]},
