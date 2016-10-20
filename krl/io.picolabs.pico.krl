@@ -40,8 +40,9 @@ ruleset io.picolabs.pico {
     select when pico new_child_request
     pre {
       new_child = newPico()
-      attrs = event:attrs().put({ "parent": myself() })
-                           .put({"new_child" : new_child })
+      attrs = { "parent":    myself(),
+                "new_child": new_child,
+                "rs_attrs":  event:attrs() }
     }
     if true
     then
@@ -61,8 +62,9 @@ ruleset io.picolabs.pico {
   rule pico_child_created {
     select when pico child_created
     pre {
-      parent = event:attr("parent")
+      parent    = event:attr("parent")
       new_child = event:attr("new_child")
+      rs_attrs  = event:attr("rs_attrs")
     }
     if true
     then
@@ -75,7 +77,7 @@ ruleset io.picolabs.pico {
       ent:eci := new_child.eci;
       ent:parent := parent;
       raise pico event "new_ruleset"
-        attributes event:attrs().put({ "rid": "io.picolabs.visual_params" })
+        attributes rs_attrs.put({ "rid": "io.picolabs.visual_params" })
     }
   }
 
@@ -166,8 +168,11 @@ ruleset io.picolabs.pico {
     }
     always {
       engine:addRuleset( { "pico_id": ent:id, "rid": rid } );
-      raise pico event "ruleset_added" for rid
-        attributes event:attrs()
+      engine:signalEvent( //      raise pico event "ruleset_added" for rid
+                          //        attributes event:attrs()
+        { "eci": meta:eci, "eid": 666,
+          "domain": "pico", "type": "ruleset_added",
+          "attrs": event:attrs() } )
     }
   }
 }
