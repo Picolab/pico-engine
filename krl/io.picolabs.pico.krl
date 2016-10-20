@@ -45,17 +45,13 @@ ruleset io.picolabs.pico {
     }
     if true
     then
-      engine:addRuleset(
-        { "pico_id": new_child.id, "rid": "io.picolabs.pico" })
       event:send(
-        { "eci": new_child.eci, "eid": 57,
+        { "eci": new_child.eci, "eid": 151,
           "domain": "pico", "type": "child_created",
           "attrs": attrs })
-      event:send(
-         { "eci": new_child.eci, "eid": 59,
-           "domain": "pico", "type": "new_ruleset",
-           "attrs": event:attrs().put({ "rid": "io.picolabs.visual_params" }) })
     always {
+      engine:addRuleset(
+        { "pico_id": new_child.id, "rid": "io.picolabs.pico" });
       ent:children := children().union([new_child])
     }
   }
@@ -71,13 +67,15 @@ ruleset io.picolabs.pico {
     if true
     then
       event:send(
-        { "eci": parent.eci, "eid": 59,
+        { "eci": parent.eci, "eid": 155,
           "domain": "pico", "type": "child_initialized",
           "attrs": event:attrs() })
     fired {
       ent:id := new_child.id;
       ent:eci := new_child.eci;
-      ent:parent := parent
+      ent:parent := parent;
+      raise pico event "new_ruleset"
+        attributes event:attrs().put({ "rid": "io.picolabs.visual_params" })
     }
   }
 
@@ -112,7 +110,7 @@ ruleset io.picolabs.pico {
     if hasChild(child)
     then
       event:send(
-        { "eci": child.eci, "eid": 59,
+        { "eci": child.eci, "eid": 51,
           "domain": "pico", "type": "intent_to_orphan",
           "attrs": attrs })
   }
@@ -134,7 +132,7 @@ ruleset io.picolabs.pico {
       && children().length() == 0
     then
       event:send(
-        { "eci": ent:parent.eci, "eid": 60,
+        { "eci": ent:parent.eci, "eid": 53,
           "domain": "pico", "type": "child_is_orphan",
           "attrs": attrs })
   }
@@ -166,12 +164,10 @@ ruleset io.picolabs.pico {
     pre {
       rid = event:attr("rid")
     }
-    engine:addRuleset( { "pico_id": ent:id, "rid": rid } )
     always {
-      engine:signalEvent( // raise pico event "ruleset_added" for rid
-        { "eci": ent:eci, "eid": 56,
-          "domain": "pico", "type": "ruleset_added",
-          "attrs": event:attrs() } )
+      engine:addRuleset( { "pico_id": ent:id, "rid": rid } );
+      raise pico event "ruleset_added" for rid
+        attributes event:attrs()
     }
   }
 }
