@@ -121,4 +121,15 @@ ruleset io.picolabs.events {
       raise events event "store_sent_name" attributes {"name": my_name}
     }
   }
+  rule raise_set_name_rid {
+    select when events raise_set_name_rid name re#^(.*)$# setting(my_name);
+    pre {
+      rid = "io.picolabs.events"
+    }
+    fired{
+      raise events event "store_sent_name"
+        for rid
+        with name = my_name
+    }
+  }
 }
