@@ -168,7 +168,7 @@ ruleset io.picolabs.pico {
     }
     always {
       engine:addRuleset( { "pico_id": ent:id, "rid": rid } );
-      raise pico event "ruleset_added" // for rid
+      raise pico event "ruleset_added" for rid
         attributes event:attrs()
     }
   }
