@@ -179,6 +179,13 @@ PicoEngine({
     });
   });
 
+  router.set("/api/owner-channel", function(req, res, route){
+    pe.db.getFirstChannel(function(err, first_channel){
+      if(err) return errResp(res, err);
+      res.end(JSON.stringify(first_channel, undefined, 2));
+    });
+  });
+
   router.set("/api/new-pico", function(req, res, route){
     pe.db.newPico({}, function(err, new_pico){
       if(err) return errResp(res, err);
