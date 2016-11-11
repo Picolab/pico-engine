@@ -698,3 +698,37 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
     ], t.end);
   });
 });
+
+test("PicoEngine - io.picolabs.http ruleset", function(t){
+  mkTestPicoEngine({}, function(err, pe){
+    if(err)return t.end(err);
+
+    var query = mkQueryTask(pe, "id1", "io.picolabs.http");
+    var signal = mkSignalTask(pe, "id1");
+
+    testOutputs(t, [
+      λ.curry(pe.db.newPico, {}),
+      λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+      λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.http"}),
+      [
+        signal("http", "get"),
+        []
+      ],
+      [
+        query("getResp"),
+        {
+          content: {
+            args: {foo: "bar"},
+            headers: {Baz: "quix", Host: "httpbin.org"},
+            origin: "-",
+            url: "https://httpbin.org/get?foo=bar"
+          },
+          content_length: 179,
+          content_type: "application/json",
+          status_code: 200,
+          status_line: "OK"
+        }
+      ]
+    ], t.end);
+  });
+});

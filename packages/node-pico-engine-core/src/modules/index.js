@@ -5,6 +5,7 @@ var modules = {
   app: require("./app"),
   event: require("./event"),
   engine: require("./engine"),
+  http: require("./http"),
   meta: require("./meta")
 };
 
