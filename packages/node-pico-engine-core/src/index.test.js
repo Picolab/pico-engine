@@ -723,7 +723,7 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
             origin: "-",
             url: "https://httpbin.org/get?foo=bar"
           },
-          content_length: 179,
+          content_length: 175,
           content_type: "application/json",
           status_code: 200,
           status_line: "OK"

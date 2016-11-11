@@ -18,7 +18,14 @@ ruleset io.picolabs.http {
 
       resp2 = resp.set("content", resp["content"].decode().set("origin", "-"));
 
-      ent:get_resp := resp2
+      resp3 = resp2.set(
+        "content_length",
+        resp["content_length"] > 160 && resp["content_length"] < 400
+          => 175
+           | resp["content_length"]
+      );
+
+      ent:get_resp := resp3
     }
   }
 }
