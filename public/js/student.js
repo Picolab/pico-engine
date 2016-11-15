@@ -1,6 +1,4 @@
 $(document).ready(function() {
-  var student_id = $("#student_id").val();
-  var section_id = $("#section_id").val();
   var $pre = $('pre');
   var log = function(m) {
     $pre.append(m).append("\r\n");
@@ -34,20 +32,49 @@ $(document).ready(function() {
       }
     });
   }
-  log("Finding owner pico");
-  $.getJSON("/api/owner-channel", function(owner){
-    if (owner.channel) {
-      var ownerPico = {};
-      for (var k in owner.channel) { ownerPico.eci = k; break; }
-      ownerPico.id = get(owner.channel,[ownerPico.eci,"pico_id"]);
-      log("Owner pico id is "+ownerPico.id);
-      $("#own_eci").val(ownerPico.eci);
+  var findOwnerPico = function(callback) {
+    var own_eci = $("#own_eci").val();
+    if (own_eci){
+      callback(own_eci);
+    } else {
+      log("Finding owner pico");
+      $.getJSON("/api/owner-channel", function(owner){
+        if (owner.channel) {
+          for (var k in owner.channel) { own_eci = k; break; }
+          log("Owner pico id is "+get(owner.channel,[own_eci,"pico_id"]));
+          $("#own_eci").val(own_eci);
+          callback(own_eci);
+        } else {
+          log("*Problem: no owner pico");
+        }
+      });
+    }
+  }
+  var getRegistrationPico = function(student_id,callback) {
+    var reg_eci = $("#reg_eci").val();
+    if (reg_eci) {
+      callback(reg_eci);
+    } else {
       log("Finding registration pico");
       if (student_id) {
         log("Recognize student_id "+student_id);
-        getAnonECI("registration",ownerPico.eci,"registration/channel_needed","student_id="+student_id,function(reg_eci){
-          log("Registration pico anonymous eci is "+reg_eci);
-          $("#reg_eci").val(reg_eci);
+        var own_eci = $("#own_eci").val();
+        getAnonECI("registration",own_eci,"registration/channel_needed","student_id="+student_id,function(the_eci){
+          log("Registration pico anonymous eci is "+the_eci);
+          $("#reg_eci").val(the_eci);
+          callback(the_eci);
+        });
+      } else {
+        log("*Problem: missing Student");
+      }
+    }
+  }
+  var doAll = function() {
+    var student_id = $("#student_id").val();
+    var section_id = $("#section_id").val();
+    $pre.empty();
+    findOwnerPico(function(own_eci){
+      getRegistrationPico(student_id,function(reg_eci){
           if (section_id) {
             log("Recognize section_id "+section_id);
             getAnonECI("section_collection",reg_eci,"section/needed","student_id="+student_id+"&section_id="+section_id,function(sc_eci){
@@ -60,6 +87,21 @@ $(document).ready(function() {
                   if (sinfo.capacity) {
                     $.getJSON("sky/event/"+sr_eci+"/join_section/section/add_request?student_id="+student_id,function(the_resp){
                       log(JSON.stringify(the_resp,undefined,2));
+                      if (the_resp.directives) {
+                        for(var i=0;i<the_resp.directives.length;++i){
+                          if (the_resp.directives[i].name == "request_granted"){
+                            var drop_url = "/sky/event/"
+                              + sr_eci
+                              + "/click-to-drop/"
+                              + "section/drop_request?student_id="
+                              + student_id;
+                            $("#enrolled_sections").append(
+                              $("<li>").append(section_id).append(
+                                $("<a>").attr('href',drop_url).append(" drop")
+                              ));
+                          }
+                        }
+                      }
                     });
                   } else {
                     log("*Problem: section not configured");
@@ -71,11 +113,29 @@ $(document).ready(function() {
             log("*Problem: missing section id");
           }
         });
-      } else {
-        log("*Problem: missing Net ID");
-      }
-    } else {
-      log("*Problem: no owner pico");
-    }
+    });
+  }
+  doAll();
+  $("#student_id").on("change",function(){
+    $("#reg_eci").val("");
+    $("#section_id").val("");
+    $("#sco_eci").val("");
+    $("#sec_eci").val("");
+    $("#enrolled_sections").empty();
+    doAll();
+  });
+  $("#section_id_btn").on("click",function(){
+    $("#sco_eci").val("");
+    $("#sec_eci").val("");
+    doAll();
+  });
+  $("#enrolled_sections").on("click","li a",function(ev){
+    ev.preventDefault();
+    var the_url = $(this).attr("href");
+    $.getJSON(the_url,function(rep){
+      $pre.empty();
+      log(JSON.stringify(rep,undefined,2));
+    });
+    $(this).parent().remove();
   });
 });
