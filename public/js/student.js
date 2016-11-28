@@ -1,4 +1,5 @@
 $(document).ready(function() {
+  $("#section_id").load("http://sanbachs.net/byu/picolabs/cgi-bin/sec-sel.cgi");
   var $pre = $('pre');
   var log = function(m) {
     $pre.append(m).append("\r\n");
