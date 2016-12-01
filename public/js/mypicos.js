@@ -360,7 +360,8 @@ $.getJSON("/api/db-dump", function(db_dump){
           if (db_dump.pico[children[i].id] === undefined) continue;
           var cp = { id: children[i].id };
           db_graph.chans.push({ class: pico.id +"-origin "+ cp.id +"-target" });
-          walkPico(cp,dNumber*10+i+1,left+(i*10)+20,top+20);
+          var limitI = Math.min(i,45);
+          walkPico(cp,dNumber*10+i+1,left+(limitI*10)+20,top+20);
         }
       }
     walkPico(ownerPico,0,"300","50");
