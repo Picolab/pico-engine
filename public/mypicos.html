@@ -147,7 +147,43 @@ Channels
 Subscriptions
 </script>
 <script id="logging-template" type="text/x-handlebars-template">
+<div>
 Logging
+{{#if disabled}}
+is disabled.
+To enable, add the ruleset "io.picolabs.logging" to this pico.
+{{else}}
+<span id="switch">
+<input id="logging-off" type="radio" name="status" value="off" checked="">
+<label for="logging-off"> Off </label>
+<input id="logging-on" type="radio" name="status" value="on">
+<label for="logging-on"> On </label>
+</span>
+<div id="logging-list">
+<p>
+Select an episode from the list of timestamp - event channel identifier - event identifier to see the log entries for that episode.
+</p>
+{{#if logs}}
+<ul style="list-style: none;padding:0">
+{{#each logs}}
+<li class="episode" id="episode-{{@index}}">{{@key}}</li>
+{{/each}}
+</ul>
+{{/if}}
+</div>
+{{#if logs}}
+{{#each logs}}
+<div class="logging-detail" id="log-episode-{{@index}}">
+<pre>
+{{#each this}}
+{{this}}
+{{/each}}
+</pre>
+</div>
+{{/each}}
+{{/if}}
+{{/if}}
+</div>
 </script>
 <script id="testing-template" type="text/x-handlebars-template">
 <div style="float:left;width:40%;height=100%">

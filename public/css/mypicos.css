@@ -119,3 +119,28 @@ table.channel-table th {
 table.channel-table td {
   padding: 4px;
 }
+#switch input[type="radio"] {
+  display: none;
+}
+#switch input[type="radio"] + label {
+  color: silver;
+}
+#switch input[type="radio"]:checked + label {
+  background-color: black;
+  color: white;
+}
+#switch {
+  margin-left: 10px;
+  border: solid black 1px;
+  border-radius: 5px;
+}
+#logging-list {
+  display: none;
+}
+.episode:hover , .episode.active {
+  background-color: silver;
+  cursor: pointer;
+}
+.logging-detail {
+  display: none;
+}

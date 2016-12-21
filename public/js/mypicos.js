@@ -148,6 +148,9 @@ $.getJSON("/api/db-dump", function(db_dump){
         "installed": installedRS,
         "avail" : avail };
       callback(theRulesetOut);
+    } else if (label === "Logging") {
+      callback(get(db_dump,["pico",thePicoInp.id,"io.picolabs.logging","vars"],
+        { "disabled": true }));
     } else if (label === "Testing") {
       var eci = findEciById(thePicoInp.id);
       var theRids = [];
@@ -208,6 +211,24 @@ $.getJSON("/api/db-dump", function(db_dump){
         d = theDB.id+"-About";
       } else if(liContent === "channels") {
         d = theDB.id+"-Channels";
+      } else if(liContent === "logging") {
+        $("#logging-on").click(function(){
+          $("#logging-list").fadeIn();
+        });
+        if (theDB.status) {
+          $("#logging-on").click();
+        }
+        $("#logging-off").click(function(){
+          $("#logging-list").fadeOut();
+        });
+        $(".episode").click(function(e){
+          $(this).parent().find('.active').each(function(){
+            $(this).toggleClass('active');
+            $("#log-"+$(this).attr("id")).fadeOut();
+          });
+          $(this).toggleClass('active');
+          $("#log-"+$(this).attr("id")).fadeIn();
+        });
       }
       $theSection.find('.js-ajax-form').submit(function(e){
         e.preventDefault();
