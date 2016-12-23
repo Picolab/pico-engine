@@ -219,7 +219,9 @@ $.getJSON("/api/db-dump", function(db_dump){
           $("#logging-on").click();
         }
         $("#logging-off").click(function(){
-          $("#logging-list").fadeOut();
+          $("#logging-list").hide();
+          $("#logging-list").find(".active").toggleClass("active");
+          $(".logging-detail").hide();
         });
         $(".episode").click(function(e){
           $(this).parent().find('.active').each(function(){
