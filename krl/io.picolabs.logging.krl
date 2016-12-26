@@ -52,13 +52,25 @@ ruleset io.picolabs.logging {
       key2 = ("2016-12-19T22:52:47.313Z - " + meta:eci + " - another-event-id")
              .replace(re#[.]#,"+")
       data2 = [ "nothing", "of", "interest", "here" ]
+      key3 = "2016-12-26T23:21:52-429Z - ciwxnjhdj0001plao5eq87qnl - 23"
+      data3 = [ "2016-12-26T23:21:52.429Z event recieved",
+                "2016-12-26T23:21:52.439Z event being processed",
+                "2016-12-26T23:21:52.437Z event added to pico queue: ciwxnjhdh0000plaoyg58tmdp",
+                "2016-12-26T23:21:52.459Z rule added to schedule: io.picolabs.visual_params -> visual_moved",
+                "2016-12-26T23:21:52.460Z rule selected: io.picolabs.visual_params -> visual_moved",
+                "2016-12-26T23:21:52.465Z [KLOG] left 459",
+                "2016-12-26T23:21:52.467Z fired",
+                "2016-12-26T23:21:52.470Z [KLOG] top 161",
+                "2016-12-26T23:21:52.471Z event finished processing"
+              ]
     }
     noop()
     fired {
       ent:status := true;
       ent:logs := ent:logs.defaultsTo({});
       ent:logs{key} := data;
-      ent:logs{key2} := data2
+      ent:logs{key2} := data2;
+      ent:logs{key3} := data3
     }
   }
 }

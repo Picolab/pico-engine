@@ -137,6 +137,9 @@ table.channel-table td {
 #logging-list {
   display: none;
 }
+#logging-list li {
+  font-family: monospace;
+}
 .episode:hover , .episode.active {
   background-color: silver;
   cursor: pointer;
