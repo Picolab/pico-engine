@@ -73,7 +73,7 @@ $.getJSON("/api/db-dump", function(db_dump){
                                     .css('top',ui.position.top);
     if(!renderDemo) {
       $.getJSON(
-        "/sky/event/"+findEciById(nodeId)+"/23/visual/moved",
+        "/sky/event/"+findEciById(nodeId)+"/drag_pico/visual/moved",
         { left: ui.position.left, top: ui.position.top });
     }
   }
@@ -149,8 +149,14 @@ $.getJSON("/api/db-dump", function(db_dump){
         "avail" : avail };
       callback(theRulesetOut);
     } else if (label === "Logging") {
-      callback(get(db_dump,["pico",thePicoInp.id,"io.picolabs.logging","vars"],
-        { "disabled": true }));
+      var theLoggingOut =
+        get(db_dump,["pico",thePicoInp.id,"io.picolabs.logging","vars"],
+          { "disabled": true });
+      for (var channel in thePicoInp.channel) {
+        theLoggingOut.eci = channel;
+        break;
+      }
+      callback(theLoggingOut);
     } else if (label === "Testing") {
       var eci = findEciById(thePicoInp.id);
       var theRids = [];
@@ -213,7 +219,9 @@ $.getJSON("/api/db-dump", function(db_dump){
         d = theDB.id+"-Channels";
       } else if(liContent === "logging") {
         $("#logging-on").click(function(){
-          $("#logging-list").fadeIn();
+          $.getJSON("/sky/event/"+theDB.eci+"/logging-on/picolog/begin",function(){
+            $("#logging-list").fadeIn();
+          });
         });
         if (theDB.status) {
           $("#logging-on").click();
@@ -222,6 +230,7 @@ $.getJSON("/api/db-dump", function(db_dump){
           $("#logging-list").hide();
           $("#logging-list").find(".active").toggleClass("active");
           $(".logging-detail").hide();
+          $.getJSON("/sky/event/"+theDB.eci+"/logging-on/picolog/reset",function(){ });
         });
         $(".episode").click(function(e){
           $(this).parent().find('.active').each(function(){
