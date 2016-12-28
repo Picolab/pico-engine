@@ -87,13 +87,11 @@ $.getJSON("/api/db-dump", function(db_dump){
   var specDB = function($li,callback) {
     var label = $li.html();
     var thePicoInp = db_dump.pico[$li.parent().parent().prev().attr("id")];
+    var eci = findEciById(thePicoInp.id);
     if (label === "About") {
       var thePicoOut = {};
       thePicoOut.id = thePicoInp.id;
-      for (var channel in thePicoInp.channel) {
-        thePicoOut.eci = channel;
-        break;
-      }
+      thePicoOut.eci = eci;
       var pp = getP(thePicoInp,"parent",undefined);
       if (pp) {
         thePicoOut.parent = {};
@@ -145,16 +143,20 @@ $.getJSON("/api/db-dump", function(db_dump){
       }
       var theRulesetOut = {
         "pico_id": thePicoInp.id,
+        "eci": eci,
         "installed": installedRS,
         "avail" : avail };
       callback(theRulesetOut);
     } else if (label === "Logging") {
-      var theLoggingOut =
-        get(db_dump,["pico",thePicoInp.id,"io.picolabs.logging","vars"],
-          { "disabled": true });
-      for (var channel in thePicoInp.channel) {
-        theLoggingOut.eci = channel;
-        break;
+      var logRID = "io.picolabs.logging";
+      var theLoggingOut = {};
+      if (get(db_dump,["pico",thePicoInp.id,"ruleset",logRID,"on"])) {
+        var theLoggingVars = get(db_dump,["pico",thePicoInp.id,logRID,"vars"]);
+        theLoggingOut.status = theLoggingVars.status;
+        theLoggingOut.logs = theLoggingVars.logs;
+        theLoggingOut.eci = eci;
+      } else {
+        theLoggingOut.disabled = true;
       }
       callback(theLoggingOut);
     } else if (label === "Testing") {

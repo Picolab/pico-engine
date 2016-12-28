@@ -39,4 +39,13 @@ ruleset io.picolabs.logging {
       ent:status := true
     }
   }
+
+  rule pico_ruleset_added {
+    select when pico ruleset_added
+    noop()
+    fired {
+      ent:logs := {};
+      ent:status := event:attr("status")
+    }
+  }
 }

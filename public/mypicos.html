@@ -111,7 +111,7 @@ Pico Rulesets
 {{#if avail}}
 Available Rulesets
 <p></p>
-<form class="js-ajax-form" action="/api/pico/{{pico_id}}/add-ruleset" method="GET">
+<form class="js-ajax-form" action="/sky/event/{{eci}}/add-ruleset/pico/new_ruleset" method="GET">
 <select name="rid">
 {{#each avail}}
 <option>{{this}}</option>
