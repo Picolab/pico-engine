@@ -55,7 +55,7 @@ PicoEngine({
         if (!pico[logRID]) {
           dlog();
         } else if (_.get(pico,[logRID, "vars", "status"])) {
-          if (/event rec..ved$/.test(message)) {
+          if (key && /event rec..ved$/.test(message)) {
             startEpisode(pico_id,key,timestamp,message);
           } else {
             extendEpisode(pico_id,timestamp,message);
@@ -67,7 +67,16 @@ PicoEngine({
     }
   };
   pe.emitter.on("klog", function(context, val, message){
-    console.log("[KLOG]", message, val);
+    var defaultLog = function(){
+      console.log("[KLOG]", message, val);
+    };
+    var timestamp = (new Date()).toISOString();
+    if (context.pico_id) {
+      handleLog(context.pico_id,defaultLog,undefined,timestamp,
+        "[KLOG] "+message+" "+val);
+    } else {
+      defaultLog();
+    }
   });
   pe.emitter.on("debug", function(context, message){
     var defaultLog = function(){
