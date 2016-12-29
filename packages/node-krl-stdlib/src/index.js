@@ -293,7 +293,10 @@ stdlib.reduce = function(ctx, val, iter, dflt){
     }
     return iter(dflt, _.head(val));
   }
-  return _.reduce.apply(void 0, _.tail(_.toArray(arguments)));
+  if(arguments.length < 4){
+    return _.reduce(val, iter);
+  }
+  return _.reduce(val, iter, dflt);
 };
 stdlib.reverse = function(ctx, val){
   return _.reverse(_.clone(val));
