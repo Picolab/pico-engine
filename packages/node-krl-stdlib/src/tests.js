@@ -16,6 +16,15 @@ var defaultCTX = {
 };
 
 var testFn = function(t, fn, args, expected, message){
+  //wrap lambdas as KRL Closures
+  args = _.map(args, function(arg){
+    if(_.isFunction(arg)){
+      return function(ctx, args){
+        return arg.apply(this, args);
+      };
+    }
+    return arg;
+  });
   t.deepEquals(stdlib[fn].apply(null, [defaultCTX].concat(args)), expected, message);
 };
 

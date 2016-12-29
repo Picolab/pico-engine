@@ -18,6 +18,12 @@ var defVarArgOp = function(op, reducer){
   };
 };
 
+var krlLambda = function(ctx, fn){
+  return function(){
+    return fn(ctx, _.toArray(arguments));
+  };
+};
+
 defVarArgOp("<", function(r, a){
   return r < a;
 });
@@ -211,24 +217,30 @@ stdlib.uc = function(ctx, val){
 
 //Collection operators//////////////////////////////////////////////////////////
 stdlib.all = function(ctx, val, iter){
+  iter = krlLambda(ctx, iter);
   return _.every(val, iter);
 };
 stdlib.notall = function(ctx, val, iter){
+  iter = krlLambda(ctx, iter);
   return _.some(val, _.negate(iter));
 };
 stdlib.any = function(ctx, val, iter){
+  iter = krlLambda(ctx, iter);
   return _.some(val, iter);
 };
 stdlib.none = function(ctx, val, iter){
+  iter = krlLambda(ctx, iter);
   return _.every(val, _.negate(iter));
 };
 stdlib.append = function(ctx, val, others){
   return _.concat.apply(void 0, _.tail(_.toArray(arguments)));
 };
 stdlib.collect = function(ctx, val, iter){
+  iter = krlLambda(ctx, iter);
   return _.groupBy(val, iter);
 };
 stdlib.filter = function(ctx, val, iter){
+  iter = krlLambda(ctx, iter);
   if(_.isPlainObject(val)){
     var r = {};
     _.each(val, function(v, k, o){
@@ -256,15 +268,19 @@ stdlib.length = function(ctx, val){
   return _.size(val);
 };
 stdlib.map = function(ctx, val, iter){
+  iter = krlLambda(ctx, iter);
   if(_.isPlainObject(val)){
     return _.mapValues(val, iter);
   }
   return _.map(val, iter);
 };
-stdlib.pairwise = function(ctx, vals, iter){
-  return _.zipWith.apply(void 0, _.tail(_.toArray(arguments)));
+stdlib.pairwise = function(ctx){
+  var args = _.tail(_.toArray(arguments));
+  args[args.length - 1] = krlLambda(ctx, args[args.length - 1]);
+  return _.zipWith.apply(void 0, args);
 };
 stdlib.reduce = function(ctx, val, iter, dflt){
+  iter = krlLambda(ctx, iter);
   if(_.size(val) === 0){
     if(arguments.length < 4){
       return 0;
@@ -316,10 +332,13 @@ stdlib.sort = (function(){
       //TODO optimize by making a "reverse" sorter function
       return _.clone(val).sort().reverse();
     }
-    return _.clone(val).sort(_.has(sorters, sort_by)
-      ? sorters[sort_by]
-      : sort_by
-    );
+    var iter;
+    if(_.isFunction(sort_by)){
+      iter = krlLambda(ctx, sort_by);
+    }else if(_.has(sorters, sort_by)){
+      iter = sorters[sort_by];
+    }
+    return _.clone(val).sort(iter);
   };
 }());
 stdlib["delete"] = function(ctx, val, path){
