@@ -226,7 +226,7 @@ $.getJSON("/api/db-dump", function(db_dump){
           });
         });
         if (theDB.status) {
-          $("#logging-on").click();
+          $("#logging-list").show();
         }
         $("#logging-off").click(function(){
           $("#logging-list").hide();

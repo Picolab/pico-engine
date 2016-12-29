@@ -27,74 +27,11 @@ PicoEngine({
     throw err;
   }
 
-  var logRID = "io.picolabs.logging";
-  var startEpisode = function(pico_id,key,timestamp,message){
-    pe.db.getEntVar(pico_id,logRID,"logs",function(e,data){
-      data[key] = [timestamp+" "+message];
-      pe.db.putEntVar(pico_id,logRID,"logs",data,function(e){
-        if (e) console.log("ERROR",e);
-        console.log(key);
-      });
-    });
-  };
-  var extendEpisode = function(pico_id,timestamp,message) {
-    pe.db.getEntVar(pico_id,logRID,"logs",function(e,data){
-      var key = Object.keys(data).pop();
-      if (key && data[key]) {
-        data[key].push(timestamp+" "+message);
-      }
-      pe.db.putEntVar(pico_id,logRID,"logs",data,function(e){
-        if (e) console.log("ERROR",e);
-        console.log(timestamp, message);
-      });
-    });
-  };
-  var handleLog = function(pico_id,dlog,key,timestamp,message){
-    if (pico_id) {
-      pe.db.getPico(pico_id,function(err,pico){
-        if (!pico[logRID]) {
-          dlog();
-        } else if (_.get(pico,[logRID, "vars", "status"])) {
-          if (key && /event rec..ved$/.test(message)) {
-            startEpisode(pico_id,key,timestamp,message);
-          } else {
-            extendEpisode(pico_id,timestamp,message);
-          }
-        }
-      });
-    } else {
-      dlog();
-    }
-  };
   pe.emitter.on("klog", function(context, val, message){
-    var defaultLog = function(){
-      console.log("[KLOG]", message, val);
-    };
-    var timestamp = (new Date()).toISOString();
-    if (context.pico_id) {
-      handleLog(context.pico_id,defaultLog,undefined,timestamp,
-        "[KLOG] "+message+" "+val);
-    } else {
-      defaultLog();
-    }
+    console.log("[KLOG]", message, val);
   });
   pe.emitter.on("debug", function(context, message){
-    var defaultLog = function(){
-      console.log("[DEBUG]", context, message);
-    };
-    var timestamp = (new Date()).toISOString();
-    var eci = _.get(context,["event","eci"]);
-    var key = timestamp.replace(".","-") + " - " + eci
-      + ((context.event) ? " - " + context.event.eid : "");
-    if (context.pico_id) {
-      handleLog(context.pico_id,defaultLog,key,timestamp,message);
-    } else if (eci) {
-      pe.db.getPicoIDByECI(eci,function(err,pid){
-        handleLog(pid,defaultLog,key,timestamp,message);
-      });
-    } else {
-      defaultLog();
-    }
+    console.log("[DEBUG]", context, message);
   });
 
   var router = HttpHashRouter();

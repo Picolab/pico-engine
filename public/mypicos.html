@@ -154,9 +154,9 @@ is disabled.
 To enable, add the ruleset "io.picolabs.logging" to this pico.
 {{else}}
 <span id="switch">
-<input id="logging-off" type="radio" name="status" value="off" checked="">
+<input id="logging-off" type="radio" name="status" value="off"{{#unless status}} checked=""{{/unless}}>
 <label for="logging-off"> Off </label>
-<input id="logging-on" type="radio" name="status" value="on">
+<input id="logging-on" type="radio" name="status" value="on"{{#if status}} checked=""{{/if}}>
 <label for="logging-on"> On </label>
 </span>
 <div id="logging-list">
