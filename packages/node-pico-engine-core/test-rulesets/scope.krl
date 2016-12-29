@@ -1,7 +1,7 @@
 ruleset io.picolabs.scope {
   meta {
     name "testing scope"
-    shares g0, g1, getVals, add
+    shares g0, g1, getVals, add, mapped
   }
   global {
     g0 = "global 0" 
@@ -21,6 +21,9 @@ ruleset io.picolabs.scope {
         a + n
       }
     }
+    mapped = [1, 2, 3].map(function(n){
+      n + g1
+    })
   }
   rule eventex {
     select when

@@ -405,6 +405,10 @@ test("PicoEngine - io.picolabs.scope ruleset", function(t){
           inc5_3: 8,
           g0: "overrided g0!"
         }}]
+      ],
+      [
+        query("mapped"),
+        [2, 3, 4]
       ]
     ], t.end);
   });

@@ -6,7 +6,8 @@ module.exports = {
       "g0",
       "g1",
       "getVals",
-      "add"
+      "add",
+      "mapped"
     ]
   },
   "global": function (ctx) {
@@ -31,6 +32,14 @@ module.exports = {
         return ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("n"));
       });
     }));
+    ctx.scope.set("mapped", ctx.callKRLstdlib("map", [
+      1,
+      2,
+      3
+    ], ctx.KRLClosure(ctx, function (ctx) {
+      ctx.scope.set("n", ctx.getArg(ctx.args, "n", 0));
+      return ctx.callKRLstdlib("+", ctx.scope.get("n"), ctx.scope.get("g1"));
+    })));
   },
   "rules": {
     "eventex": {
