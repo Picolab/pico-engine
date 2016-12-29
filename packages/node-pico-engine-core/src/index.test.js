@@ -399,6 +399,10 @@ test("PicoEngine - io.picolabs.scope ruleset", function(t){
         12
       ],
       [
+        query("sum", {"arr": [1, 2, 3, 4, 5]}),
+        15
+      ],
+      [
         signal("scope", "functions"),
         [{name: "say", options: {
           add_one_two: 3,
