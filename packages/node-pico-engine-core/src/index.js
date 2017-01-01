@@ -31,10 +31,13 @@ module.exports = function(conf, callback){
     ctx.salience_graph = salience_graph;
     ctx.KRLClosure = KRLClosure;
     ctx.emit = function(type, val, message){//for stdlib
-      var info = {
-        rid: ctx.rid,
-        pico_id: ctx.pico_id
-      };
+      var info = {};
+      if(ctx.rid){
+        info.rid = ctx.rid;
+      }
+      if(ctx.pico_id){
+        info.pico_id = ctx.pico_id;
+      }
       if(ctx.event){
         info.event = {
           eci: ctx.event.eci,
@@ -42,6 +45,17 @@ module.exports = function(conf, callback){
           domain: ctx.event.domain,
           type: ctx.event.type,
         };
+      }
+      if(ctx.query){
+        info.query = {
+          eci: ctx.query.eci,
+          rid: ctx.query.rid,
+          name: ctx.query.name,
+          args: ctx.query.args
+        };
+        if(!info.rid){
+          info.rid = ctx.query.rid;
+        }
       }
       emitter.emit(type, info, val, message);
     };
