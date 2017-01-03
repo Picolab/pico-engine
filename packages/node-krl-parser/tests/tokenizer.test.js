@@ -71,5 +71,27 @@ test("tokenizer", function(t){
       "[number]0.0",
   ]);
 
+
+  tst("re#regex#", [
+      "[regexp]re#regex#",
+  ]);
+  tst("re#regex#iok", [
+      "[regexp]re#regex#i",
+      "[raw]ok",
+  ]);
+  tst("re#regex#gok", [
+      "[regexp]re#regex#g",
+      "[raw]ok",
+  ]);
+  tst("re#regex#igok", [
+      "[regexp]re#regex#ig",
+      "[raw]ok",
+  ]);
+  tst("re#regex#giok", [
+      "[regexp]re#regex#gi",
+      "[raw]ok",
+  ]);
+
+
   t.end();
 });

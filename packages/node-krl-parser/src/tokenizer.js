@@ -93,6 +93,41 @@ module.exports = function(src, opts){
       pushTok("number");
 
     ///////////////////////////////////////////////////////////////////////////
+    //regexp
+    }else if(c === "r" && src[i+1] === "e" && src[i+2] === "#"){
+      ctxChange();
+      buff = src.substring(i, i + 3);
+      i += 3;
+      while(i < src.length){
+        c = src[i];
+        buff += c;
+        if(c === "#"){
+          if(src[i + 1] === "i"){
+            i++;
+            c = src[i];
+            buff += c;
+            if(src[i + 1] === "g"){
+              i++;
+              c = src[i];
+              buff += c;
+            }
+          }else if(src[i + 1] === "g"){
+            i++;
+            c = src[i];
+            buff += c;
+            if(src[i + 1] === "i"){
+              i++;
+              c = src[i];
+              buff += c;
+            }
+          }
+          break;
+        }
+        i++;
+      }
+      pushTok("regexp");
+
+    ///////////////////////////////////////////////////////////////////////////
     //line-comment
     }else if(c === "/" && (src[i + 1] === "/")){
       ctxChange();
