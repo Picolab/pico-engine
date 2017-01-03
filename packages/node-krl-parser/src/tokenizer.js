@@ -21,7 +21,7 @@ module.exports = function(src, opts){
   };
   var ctxChange = function(){
     if(buff.length > 0){
-      pushTok("raw");
+      pushTok("RAW");
     }
     buff = c;
   };
@@ -41,7 +41,7 @@ module.exports = function(src, opts){
         buff += c;
         i++;
       }
-      pushTok("whitespace");
+      pushTok("WHITESPACE");
 
     ///////////////////////////////////////////////////////////////////////////
     //string
@@ -64,7 +64,7 @@ module.exports = function(src, opts){
         }
         i++;
       }
-      pushTok("string");
+      pushTok("STRING");
 
     ///////////////////////////////////////////////////////////////////////////
     //chevron
@@ -79,7 +79,7 @@ module.exports = function(src, opts){
         }
         i++;
       }
-      pushTok("chevron");
+      pushTok("CHEVRON");
 
     ///////////////////////////////////////////////////////////////////////////
     //number
@@ -99,7 +99,7 @@ module.exports = function(src, opts){
         }
         i++;
       }
-      pushTok("number");
+      pushTok("NUMBER");
 
     ///////////////////////////////////////////////////////////////////////////
     //regexp
@@ -142,7 +142,7 @@ module.exports = function(src, opts){
         }
         i++;
       }
-      pushTok("regexp");
+      pushTok("REGEXP");
 
     ///////////////////////////////////////////////////////////////////////////
     //line-comment
@@ -157,7 +157,7 @@ module.exports = function(src, opts){
         }
         i++;
       }
-      pushTok("line-comment");
+      pushTok("LINE-COMMENT");
 
     ///////////////////////////////////////////////////////////////////////////
     //block-comment
@@ -172,7 +172,7 @@ module.exports = function(src, opts){
         }
         i++;
       }
-      pushTok("block-comment");
+      pushTok("BLOCK-COMMENT");
 
     ///////////////////////////////////////////////////////////////////////////
     //raw

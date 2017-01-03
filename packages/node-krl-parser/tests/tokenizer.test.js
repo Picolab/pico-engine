@@ -16,99 +16,99 @@ test("tokenizer", function(t){
   };
 
   tst("\"str\"", [
-      "[string]\"str\""
+      "[STRING]\"str\""
   ]);
   tst("hello \"world\"\"two\"", [
-      "[raw]hello",
-      "[whitespace] ",
-      "[string]\"world\"",
-      "[string]\"two\""
+      "[RAW]hello",
+      "[WHITESPACE] ",
+      "[STRING]\"world\"",
+      "[STRING]\"two\""
   ]);
   tst("hello//some comment \"not a string\" ok\nok", [
-      "[raw]hello",
-      "[line-comment]//some comment \"not a string\" ok\n",
-      "[raw]ok"
+      "[RAW]hello",
+      "[LINE-COMMENT]//some comment \"not a string\" ok\n",
+      "[RAW]ok"
   ]);
 
   tst("hello/* /* wat? * // some comment\n \"not a string\" ok*/ok", [
-      "[raw]hello",
-      "[block-comment]/* /* wat? * // some comment\n \"not a string\" ok*/",
-      "[raw]ok"
+      "[RAW]hello",
+      "[BLOCK-COMMENT]/* /* wat? * // some comment\n \"not a string\" ok*/",
+      "[RAW]ok"
   ]);
 
   tst("<<some chevron\n\"?\"//string\nok?>>", [
-      "[chevron]<<some chevron\n\"?\"//string\nok?>>",
+      "[CHEVRON]<<some chevron\n\"?\"//string\nok?>>",
   ]);
 
   tst("<<This #{x{\"flip\"}} that >\\> >>", [
-      "[chevron]<<This #{x{\"flip\"}} that >\\> >>",
+      "[CHEVRON]<<This #{x{\"flip\"}} that >\\> >>",
   ]);
 
   tst("<<This #{x{\"flip\"}} that >\\>>>", [
-      "[chevron]<<This #{x{\"flip\"}} that >\\>>>",
+      "[CHEVRON]<<This #{x{\"flip\"}} that >\\>>>",
   ]);
 
   tst("<<This /* wat */\n//ok\n>>", [
-      "[chevron]<<This /* wat */\n//ok\n>>",
+      "[CHEVRON]<<This /* wat */\n//ok\n>>",
   ]);
 
   //NOTE a chevron in a beesting is not allowed.
 
   tst("123", [
-      "[number]123",
+      "[NUMBER]123",
   ]);
   tst(".1", [
-      "[number].1",
+      "[NUMBER].1",
   ]);
   tst("10.25", [
-      "[number]10.25",
+      "[NUMBER]10.25",
   ]);
   tst("10.25.25", [
-      "[number]10.25",
-      "[number].25",
+      "[NUMBER]10.25",
+      "[NUMBER].25",
   ]);
   tst("0.0", [
-      "[number]0.0",
+      "[NUMBER]0.0",
   ]);
 
 
   tst("re#regex#", [
-      "[regexp]re#regex#",
+      "[REGEXP]re#regex#",
   ]);
   tst("re#regex#iok", [
-      "[regexp]re#regex#i",
-      "[raw]ok",
+      "[REGEXP]re#regex#i",
+      "[RAW]ok",
   ]);
   tst("re#regex#gok", [
-      "[regexp]re#regex#g",
-      "[raw]ok",
+      "[REGEXP]re#regex#g",
+      "[RAW]ok",
   ]);
   tst("re#regex#igok", [
-      "[regexp]re#regex#ig",
-      "[raw]ok",
+      "[REGEXP]re#regex#ig",
+      "[RAW]ok",
   ]);
   tst("re#regex#giok", [
-      "[regexp]re#regex#gi",
-      "[raw]ok",
+      "[REGEXP]re#regex#gi",
+      "[RAW]ok",
   ]);
   tst("re#\\##", [
-      "[regexp]re#\\##"
+      "[REGEXP]re#\\##"
   ]);
   tst("re#\\#\\\\#", [
-      "[regexp]re#\\#\\\\#"
+      "[REGEXP]re#\\#\\\\#"
   ]);
 
 
   //testing escapes i.e. \\" is not \"
   tst('"some\\\\"end', [
-      "[string]\"some\\\\\"",
-      "[raw]end",
+      "[STRING]\"some\\\\\"",
+      "[RAW]end",
   ]);
   tst('"some\\"string"', [
-      "[string]\"some\\\"string\"",
+      "[STRING]\"some\\\"string\"",
   ]);
   tst('"some\\n"', [
-      "[string]\"some\\n\"",
+      "[STRING]\"some\\n\"",
   ]);
 
   t.end();
