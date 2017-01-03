@@ -872,16 +872,13 @@ var grammar = {
     {"name": "Boolean", "symbols": ["Boolean$string$1"], "postprocess": booleanAST(true )},
     {"name": "Boolean$string$2", "symbols": [{"literal":"f"}, {"literal":"a"}, {"literal":"l"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "Boolean", "symbols": ["Boolean$string$2"], "postprocess": booleanAST(false)},
-    {"name": "PositiveInteger$ebnf$1", "symbols": [/[0-9]/]},
-    {"name": "PositiveInteger$ebnf$1", "symbols": [/[0-9]/, "PositiveInteger$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "PositiveInteger", "symbols": ["PositiveInteger$ebnf$1"], "postprocess": 
-        function(data, loc){
-          var src = flatten(data).join('');
-          return {
-            loc: {start: loc, end: loc + src.length},
-            type: 'Number',
-            value: parseInt(src, 10) || 0// or 0 to avoid NaN
-          };
+    {"name": "PositiveInteger", "symbols": ["Number"], "postprocess": 
+        function(data, loc, reject){
+          var n = data[0];
+          if(n.value >= 0 && (n.value === parseInt(n.value, 10))){
+            return n;
+          }
+          return reject;
         }
         },
     {"name": "Number", "symbols": ["number"], "postprocess": 

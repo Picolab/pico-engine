@@ -883,14 +883,13 @@ Identifier -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
 Boolean -> "true"  {% booleanAST(true ) %}
          | "false" {% booleanAST(false) %}
 
-PositiveInteger -> [0-9]:+ {%
-  function(data, loc){
-    var src = flatten(data).join('');
-    return {
-      loc: {start: loc, end: loc + src.length},
-      type: 'Number',
-      value: parseInt(src, 10) || 0// or 0 to avoid NaN
-    };
+PositiveInteger -> Number {%
+  function(data, loc, reject){
+    var n = data[0];
+    if(n.value >= 0 && (n.value === parseInt(n.value, 10))){
+      return n;
+    }
+    return reject;
   }
 %}
 
