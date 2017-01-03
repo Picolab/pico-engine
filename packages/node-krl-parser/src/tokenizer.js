@@ -52,18 +52,33 @@ module.exports = function(src, opts){
 
     ///////////////////////////////////////////////////////////////////////////
     //line-comment
-    }else if(c === "/" && (c[i + 1] !== "/")){
+    }else if(c === "/" && (src[i + 1] === "/")){
       ctxChange();
       i++;
       while(i < src.length){
         c = src[i];
         buff += c;
-        if(c === '\n' || c === '\r'){
+        if(c === "\n" || c === "\r"){
           break;
         }
         i++;
       }
       pushTok("line-comment");
+
+    ///////////////////////////////////////////////////////////////////////////
+    //block-comment
+    }else if(c === "/" && (src[i + 1] === "*")){
+      ctxChange();
+      i++;
+      while(i < src.length){
+        c = src[i];
+        buff += c;
+        if(c === "/" && (src[i-1] === "*")){
+          break;
+        }
+        i++;
+      }
+      pushTok("block-comment");
 
     ///////////////////////////////////////////////////////////////////////////
     //raw
@@ -72,6 +87,7 @@ module.exports = function(src, opts){
     }
     i++;
   }
+  ctxChange();
 
   return r;
 };

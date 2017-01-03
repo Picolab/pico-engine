@@ -19,6 +19,17 @@ test("tokenizer", function(t){
       "[string]\"world\"",
       "[string]\"two\""
   ]);
+  tst("hello//some comment \"not a string\" ok\nok", [
+      "[raw]hello",
+      "[line-comment]//some comment \"not a string\" ok\n",
+      "[raw]ok"
+  ]);
+
+  tst("hello/* /* wat? * // some comment\n \"not a string\" ok*/ok", [
+      "[raw]hello",
+      "[block-comment]/* /* wat? * // some comment\n \"not a string\" ok*/",
+      "[raw]ok"
+  ]);
 
   t.end();
 });
