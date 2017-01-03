@@ -43,12 +43,27 @@ module.exports = function(src, opts){
       while(i < src.length){
         c = src[i];
         buff += c;
-        if(c === "\"" && (c[i - 1] !== "\\")){
+        if(c === "\"" && (src[i - 1] !== "\\")){
           break;
         }
         i++;
       }
       pushTok("string");
+
+    ///////////////////////////////////////////////////////////////////////////
+    //chevron
+    }else if(c === "<" && (src[i + 1] === "<")){
+      ctxChange();
+      i++;
+      while(i < src.length){
+        c = src[i];
+        buff += c;
+        if(c === ">" && (src[i - 1] === ">") && (src[i - 2] !== "\\")){
+          break;
+        }
+        i++;
+      }
+      pushTok("chevron");
 
     ///////////////////////////////////////////////////////////////////////////
     //line-comment

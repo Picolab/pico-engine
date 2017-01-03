@@ -13,6 +13,9 @@ test("tokenizer", function(t){
     }), expected);
   };
 
+  tst("\"str\"", [
+      "[string]\"str\""
+  ]);
   tst("hello \"world\"\"two\"", [
       "[raw]hello",
       "[whitespace] ",
@@ -30,6 +33,24 @@ test("tokenizer", function(t){
       "[block-comment]/* /* wat? * // some comment\n \"not a string\" ok*/",
       "[raw]ok"
   ]);
+
+  tst("<<some chevron\n\"?\"//string\nok?>>", [
+      "[chevron]<<some chevron\n\"?\"//string\nok?>>",
+  ]);
+
+  tst("<<This #{x{\"flip\"}} that >\\> >>", [
+      "[chevron]<<This #{x{\"flip\"}} that >\\> >>",
+  ]);
+
+  tst("<<This #{x{\"flip\"}} that >\\>>>", [
+      "[chevron]<<This #{x{\"flip\"}} that >\\>>>",
+  ]);
+
+  tst("<<This /* wat */\n//ok\n>>", [
+      "[chevron]<<This /* wat */\n//ok\n>>",
+  ]);
+
+  //NOTE a chevron in a beesting is not allowed.
 
   t.end();
 });
