@@ -54,5 +54,22 @@ test("tokenizer", function(t){
 
   //NOTE a chevron in a beesting is not allowed.
 
+  tst("123", [
+      "[number]123",
+  ]);
+  tst(".1", [
+      "[number].1",
+  ]);
+  tst("10.25", [
+      "[number]10.25",
+  ]);
+  tst("10.25.25", [
+      "[number]10.25",
+      "[number].25",
+  ]);
+  tst("0.0", [
+      "[number]0.0",
+  ]);
+
   t.end();
 });

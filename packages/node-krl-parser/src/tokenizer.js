@@ -73,6 +73,26 @@ module.exports = function(src, opts){
       pushTok("chevron");
 
     ///////////////////////////////////////////////////////////////////////////
+    //number
+    }else if(/^[0-9]$/.test(c) || (c === "." && /^[0-9]$/.test(src[i + 1]))){
+      ctxChange();
+      i++;
+      var has_seen_decimal = c === ".";
+      while(i < src.length){
+        c = src[i];
+        buff += c;
+        if(!/^[0-9]$/.test(src[i + 1])){
+          if(src[i+1] === "." && !has_seen_decimal){
+            has_seen_decimal = true;
+          }else{
+            break;
+          }
+        }
+        i++;
+      }
+      pushTok("number");
+
+    ///////////////////////////////////////////////////////////////////////////
     //line-comment
     }else if(c === "/" && (src[i + 1] === "/")){
       ctxChange();
