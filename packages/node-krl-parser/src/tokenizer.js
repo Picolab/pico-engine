@@ -6,14 +6,21 @@ module.exports = function(src, opts){
   var c;
   var buff = "";
   var i = 0;
+  var next_loc = 0;
 
   var pushTok = function(type){
-    r.push({type: type, src: buff});
+    var loc = {start: next_loc, end: next_loc + buff.length};
+    r.push({
+      type: type,
+      src: buff,
+      loc: loc
+    });
+    next_loc = loc.end;
     buff = "";
   };
   var ctxChange = function(){
     if(buff.length > 0){
-      r.push(buff);
+      pushTok("raw");
     }
     buff = c;
   };
