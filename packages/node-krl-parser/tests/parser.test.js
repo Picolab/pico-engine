@@ -592,11 +592,11 @@ test('literals', function(t){
   testLiteral('"one\\"two"', {type: 'String', value: 'one"two'});
 
   testLiteral('123', {type: 'Number', value: 123});
-  testLiteral('-1', {type: 'Number', value: -1});
+  testLiteral('-1', mk.unary("-", {type: 'Number', value: 1}));
   testLiteral('1.5', {type: 'Number', value: 1.5});
-  testLiteral('+1.5', {type: 'Number', value: 1.5});
-  testLiteral('-.50', {type: 'Number', value: -0.5});
-  testLiteral('-0.0', {type: 'Number', value: 0});
+  testLiteral('+1.5', mk.unary("+", {type: 'Number', value: 1.5}));
+  testLiteral('-.50', mk.unary("-", {type: 'Number', value: 0.5}));
+  testLiteral('-0.0', mk.unary("-", {type: 'Number', value: 0}));
 
   testLiteral('true', {type: 'Boolean', value: true});
   testLiteral('false', {type: 'Boolean', value: false});

@@ -745,6 +745,8 @@ exp_product -> UnaryOperator {% id %}
     | exp_product _ "%" _ UnaryOperator {% infixOp %}
 
 UnaryOperator -> MemberExpression {% id %}
+    | "+" _ UnaryOperator {% unaryOp %}
+    | "-" _ UnaryOperator {% unaryOp %}
     | "not" __ UnaryOperator {% unaryOp %}
 
 MemberExpression -> PrimaryExpression {% id %}
@@ -905,11 +907,6 @@ Number -> number {%
 %}
 
 number ->
-    float
-    | "+" float
-    | "-" float
-
-float ->
     int
     | "." int
     | int "." int
