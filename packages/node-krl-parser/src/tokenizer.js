@@ -4,6 +4,7 @@ module.exports = function(src, opts){
   var r = [];
 
   var c;
+  var next_is_escaped;
   var buff = "";
   var i = 0;
   var next_loc = 0;
@@ -47,11 +48,19 @@ module.exports = function(src, opts){
     }else if(c === "\""){
       ctxChange();
       i++;
+      next_is_escaped = false;
       while(i < src.length){
         c = src[i];
         buff += c;
-        if(c === "\"" && (src[i - 1] !== "\\")){
-          break;
+        if(next_is_escaped){
+          next_is_escaped = false;
+        }else{
+          if(c === "\\"){
+            next_is_escaped = true;
+          }
+          if(c === "\""){
+            break;
+          }
         }
         i++;
       }

@@ -93,5 +93,17 @@ test("tokenizer", function(t){
   ]);
 
 
+  //testing escapes i.e. \\" is not \"
+  tst('"some\\\\"end', [
+      "[string]\"some\\\\\"",
+      "[raw]end",
+  ]);
+  tst('"some\\"string"', [
+      "[string]\"some\\\"string\"",
+  ]);
+  tst('"some\\n"', [
+      "[string]\"some\\n\"",
+  ]);
+
   t.end();
 });
