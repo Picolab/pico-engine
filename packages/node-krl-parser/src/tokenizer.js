@@ -107,30 +107,38 @@ module.exports = function(src, opts){
       ctxChange();
       buff = src.substring(i, i + 3);
       i += 3;
+      next_is_escaped = false;
       while(i < src.length){
         c = src[i];
         buff += c;
-        if(c === "#"){
-          if(src[i + 1] === "i"){
-            i++;
-            c = src[i];
-            buff += c;
-            if(src[i + 1] === "g"){
-              i++;
-              c = src[i];
-              buff += c;
-            }
-          }else if(src[i + 1] === "g"){
-            i++;
-            c = src[i];
-            buff += c;
+        if(next_is_escaped){
+          next_is_escaped = false;
+        }else{
+          if(c === "\\"){
+            next_is_escaped = true;
+          }
+          if(c === "#"){
             if(src[i + 1] === "i"){
               i++;
               c = src[i];
               buff += c;
+              if(src[i + 1] === "g"){
+                i++;
+                c = src[i];
+                buff += c;
+              }
+            }else if(src[i + 1] === "g"){
+              i++;
+              c = src[i];
+              buff += c;
+              if(src[i + 1] === "i"){
+                i++;
+                c = src[i];
+                buff += c;
+              }
             }
+            break;
           }
-          break;
         }
         i++;
       }

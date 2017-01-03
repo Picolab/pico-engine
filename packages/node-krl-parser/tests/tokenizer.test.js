@@ -91,6 +91,12 @@ test("tokenizer", function(t){
       "[regexp]re#regex#gi",
       "[raw]ok",
   ]);
+  tst("re#\\##", [
+      "[regexp]re#\\##"
+  ]);
+  tst("re#\\#\\\\#", [
+      "[regexp]re#\\#\\\\#"
+  ]);
 
 
   //testing escapes i.e. \\" is not \"
