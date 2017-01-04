@@ -1461,7 +1461,7 @@ test('ruleset global declarations', function(t){
   t.end();
 });
 
-test('comments preserver locations', function(t){
+test('comments preserve locations', function(t){
   var ast = parser('1; //some comment\n2/*annother comment*/;3');
   t.deepEquals(ast, _.map([
     _.assign(mk(1), {loc: {start: 0, end: 1}}),

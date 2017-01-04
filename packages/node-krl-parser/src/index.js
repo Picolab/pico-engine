@@ -1,7 +1,7 @@
 var nearley = require('nearley');
 var grammar = require('./grammar.js');
+var tokenizer = require('./tokenizer');
 var lineColumn = require('line-column');
-var commentsToSpaces = require('./commentsToSpaces');
 var excerptAtLineCol = require('excerpt-at-line-col');
 
 var mkParseError = function(src, line, col, orig_err, filename){
@@ -31,7 +31,12 @@ module.exports = function(src, opts){
 
   var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
   try{
-    p.feed(commentsToSpaces(src));
+    p.feed(tokenizer(src).map(function(t){
+      if(t.type === "BLOCK-COMMENT" || t.type === "LINE-COMMENT" || t.type === "WHITESPACE"){
+        return t.src.replace(/[^\n]/g, " ");
+      }
+      return t.src;
+    }).join(""));
   }catch(e){
     if(typeof e.offset === "number"){
       var lc = lineColumn(src, e.offset);

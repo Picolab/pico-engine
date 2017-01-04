@@ -5,7 +5,7 @@ var parser = require('../src/');
 var nearley = require('nearley');
 var grammar = require('../src/grammar.js');
 var generator = require('krl-generator');
-var commentsToSpaces = require('../src/commentsToSpaces');
+var tokenizer = require('../src/tokenizer');
 
 var onAmbiguousProgram = function(src){
   console.error('Found an ambiguous program');
@@ -14,7 +14,12 @@ var onAmbiguousProgram = function(src){
   console.error('--------------------------------');
 
   var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
-  p.feed(commentsToSpaces(src));
+  p.feed(tokenizer(src).map(function(t){
+    if(t.type === "BLOCK-COMMENT" || t.type === "LINE-COMMENT" || t.type === "WHITESPACE"){
+      return t.src.replace(/[^\n]/g, " ");
+    }
+    return t.src;
+  }).join(""));
 
   console.log(p.results.length, ' parsings found. Here is the diff for the first two');
 

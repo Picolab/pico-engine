@@ -293,8 +293,9 @@ select when any 2 (A A, B B, C C)
 
 -12.3
 {
-  "type": "Number",
-  "value": -12.3
+  "type": "UnaryOperator",
+  "op": "-",
+  "arg": {value: 12.3, type:"Number"}
 }
 
 thing
