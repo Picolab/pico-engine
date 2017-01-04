@@ -31,12 +31,13 @@ module.exports = function(src, opts){
 
   var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
   try{
-    p.feed(tokenizer(src).map(function(t){
-      if(t.type === "BLOCK-COMMENT" || t.type === "LINE-COMMENT" || t.type === "WHITESPACE"){
-        return t.src.replace(/[^\n]/g, " ");
-      }
-      return t.src;
-    }).join(""));
+    p.feed(tokenizer(src).filter(function(t){
+      return true
+        && t.type !== "WHITESPACE"
+        && t.type !== "LINE-COMMENT"
+        && t.type !== "BLOCK-COMMENT"
+        ;
+    }));
   }catch(e){
     if(typeof e.offset === "number"){
       var lc = lineColumn(src, e.offset);

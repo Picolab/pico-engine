@@ -206,9 +206,44 @@ var metaProp2part = metaProp(function(data){
   return data[2];
 });
 
+var mkLoc = function(d){
+  var loc = {};
+  var elms = flatten(d);
+  var i = 0;
+  while(i < elms.length){
+    if(elms[i] && elms[i].loc){
+      if(!loc.hasOwnProperty("start")){
+        loc.start = elms[i].loc.start;
+      }
+      loc.end = elms[i].loc.end;
+    }
+    i++;
+  }
+  return loc;
+};
+
+var tok = function(type, value){
+  return {test: function(x){
+    if(!x || x.type !== type){
+      return false;
+    }
+    if(value){
+      return x.src === value;
+    }
+    return true;
+  }};
+};
+
+var tok_RAW = tok("RAW");
+
+var tok_OPEN_CURLY = tok("RAW", "{");
+var tok_CLSE_CURLY = tok("RAW", "}");
+
+var tok_ruleset = tok("RAW", "ruleset");
+
 %}
 
-main -> _ Ruleset _ {% getN(1) %}
+main -> Ruleset {% id %}
     | Statement_list {% id %}
 
 ################################################################################
@@ -216,32 +251,35 @@ main -> _ Ruleset _ {% getN(1) %}
 # Ruleset
 #
 
-Ruleset -> "ruleset" __ RulesetID _ "{" _
+Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
   (RulesetMeta _):?
   ("global" _ declaration_block _):?
   (rule _):*
-loc_close_curly {%
+%tok_CLSE_CURLY {%
   function(data, loc){
     return {
-      loc: {start: loc, end: last(data)},
+      loc: mkLoc(data),
       type: 'Ruleset',
-      rid: data[2],
-      meta: data[6] ? data[6][0] : void 0,
-      global: data[7] ? data[7][2] : [],
-      rules: data[8].map(function(pair){
+      rid: data[1],
+      meta: data[3] ? data[3][0] : void 0,
+      global: data[4] ? data[4][2] : [],
+      rules: data[5].map(function(pair){
         return pair[0];
       })
     };
   }
 %}
 
-RulesetID -> [a-zA-Z] [a-zA-Z0-9_.\-]:* {%
-  function(data, start){
-    var src = flatten(data).join('');
+RulesetID -> %tok_RAW {%
+  function(data, start, reject){
+    var d = data[0];
+    if(!/^[a-z][a-z0-9_.\-]*/i.test(d.src)){
+      return reject;
+    }
     return {
-      loc: {start: start, end: start + src.length},
+      loc: d.loc,
       type: 'RulesetID',
-      value: src
+      value: d.src
     };
   }
 %}
@@ -682,8 +720,7 @@ Declaration -> left_side_of_declaration _ "=" _ Expression {%
 # Later we may add destructuring
 left_side_of_declaration -> MemberExpression {% id %}
 
-Statement_list -> _ {% noopArr %}
-    | _ Statement_list_body _ {% getN(1) %}
+Statement_list -> Statement_list_body {% id %}
 
 Statement_list_body ->
       Statement {% idArr %}
@@ -868,16 +905,19 @@ DomainIdentifier -> Identifier _ ":" _ Identifier {%
   }
 %}
 
-Identifier -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
+Identifier -> %tok_RAW {%
   function(data, loc, reject){
-    var src = flatten(data).join('');
-    if(reserved_identifiers.hasOwnProperty(src)){
+    var d = data[0];
+    if(reserved_identifiers.hasOwnProperty(d.src)){
+      return reject;
+    }
+    if(!/^[a-z_$][a-z0-9_$]*/i.test(d.src)){
       return reject;
     }
     return {
       type: 'Identifier',
-      loc: {start: loc, end: loc + src.length},
-      value: src
+      loc: d.loc,
+      value: d.src
     };
   }
 %}
