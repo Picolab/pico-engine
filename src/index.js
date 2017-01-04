@@ -27,11 +27,58 @@ PicoEngine({
     throw err;
   }
 
+  var logs = {};
+  var logRID = "io.picolabs.logging";
+  var logEntry = function(context,message){
+    var eci = context.eci;
+    var timestamp = (new Date()).toISOString();
+    var episode = logs[eci];
+    if (episode) {
+      episode.logs.push(timestamp+" "+message);
+    } else {
+      episode = {};
+      episode.key = timestamp.replace(".","-") + " - " + eci
+        + ((context.event) ? " - " + context.event.eid : " - query");
+      episode.logs = [timestamp+" "+message];
+      logs[eci] = episode;
+    }
+  };
+  var logEpisode = function(pico_id,context,callback){
+    var eci = context.eci;
+    var episode = logs[eci];
+    pe.db.getEntVar(pico_id,logRID,"status",function(e,status){
+      if (status) {
+        pe.db.getEntVar(pico_id,logRID,"logs",function(e,data){
+          data[episode.key] = episode.logs;
+          pe.db.putEntVar(pico_id,logRID,"logs",data,function(e){
+            callback(delete logs[eci]);
+          });
+        });
+      } else {
+        callback(delete logs[eci]);
+      }
+    });
+  };
   pe.emitter.on("klog", function(context, val, message){
     console.log("[KLOG]", message, val);
+    logEntry(context,"[KLOG] "+message+" "+val);
   });
   pe.emitter.on("debug", function(context, message){
     console.log("[DEBUG]", context, message);
+    var prefix = "";
+    if (/^event rec..ved/.test(message)) {
+      prefix = context.event.domain + "/" + context.event.type + " ";
+    } else if (/^query rec..ved/.test(message)) {
+      prefix = context.query.rid + "/" + context.query.name + " ";
+    }
+    logEntry(context,prefix+message);
+    var callback = function(outcome){};
+    if (/^event finished processing$/.test(message)) {
+      logEpisode(context.pico_id,context,callback);
+    } else if (/^query added to pico queue: /.test(message)) {
+      var pico_id = message.split(" ")[5];
+      logEpisode(pico_id,context,callback);
+    }
   });
 
   var router = HttpHashRouter();
