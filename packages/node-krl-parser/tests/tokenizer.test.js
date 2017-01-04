@@ -15,6 +15,9 @@ test("tokenizer", function(t){
     }), expected);
   };
 
+  tst("\"\"", [
+      "[STRING]\"\""
+  ]);
   tst("\"str\"", [
       "[STRING]\"str\""
   ]);
@@ -34,6 +37,16 @@ test("tokenizer", function(t){
       "[RAW]hello",
       "[BLOCK-COMMENT]/* /* wat? * // some comment\n \"not a string\" ok*/",
       "[RAW]ok"
+  ]);
+  tst("1; //some comment\n2/*annother comment*/;3", [
+      "[NUMBER]1",
+      "[RAW];",
+      "[WHITESPACE] ",
+      "[LINE-COMMENT]//some comment\n",
+      "[NUMBER]2",
+      "[BLOCK-COMMENT]/*annother comment*/",
+      "[RAW];",
+      "[NUMBER]3"
   ]);
 
   tst("<<some chevron\n\"?\"//string\nok?>>", [

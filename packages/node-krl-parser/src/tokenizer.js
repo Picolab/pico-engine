@@ -85,7 +85,7 @@ module.exports = function(src, opts){
     //number
     }else if(/^[0-9]$/.test(c) || (c === "." && /^[0-9]$/.test(src[i + 1]))){
       ctxChange();
-      i++;
+      buff = "";
       var has_seen_decimal = c === ".";
       while(i < src.length){
         c = src[i];
