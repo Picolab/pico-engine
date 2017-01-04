@@ -145,6 +145,21 @@ module.exports = function(src, opts){
       pushTok("REGEXP");
 
     ///////////////////////////////////////////////////////////////////////////
+    //symbol
+    }else if(/^[a-zA-Z_$]$/.test(c)){
+      ctxChange();
+      buff = "";
+      while(i < src.length){
+        c = src[i];
+        buff += c;
+        if(!/^[a-zA-Z0-9_$]$/.test(src[i + 1])){
+          break;
+        }
+        i++;
+      }
+      pushTok("SYMBOL");
+
+    ///////////////////////////////////////////////////////////////////////////
     //line-comment
     }else if(c === "/" && (src[i + 1] === "/")){
       ctxChange();
@@ -176,6 +191,9 @@ module.exports = function(src, opts){
 
     ///////////////////////////////////////////////////////////////////////////
     //raw
+    }else if("(){}[];".indexOf(c) >= 0){//single char groups
+      ctxChange();
+      pushTok("RAW");
     }else{
       buff += c;
     }

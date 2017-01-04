@@ -22,21 +22,21 @@ test("tokenizer", function(t){
       "[STRING]\"str\""
   ]);
   tst("hello \"world\"\"two\"", [
-      "[RAW]hello",
+      "[SYMBOL]hello",
       "[WHITESPACE] ",
       "[STRING]\"world\"",
       "[STRING]\"two\""
   ]);
   tst("hello//some comment \"not a string\" ok\nok", [
-      "[RAW]hello",
+      "[SYMBOL]hello",
       "[LINE-COMMENT]//some comment \"not a string\" ok\n",
-      "[RAW]ok"
+      "[SYMBOL]ok"
   ]);
 
   tst("hello/* /* wat? * // some comment\n \"not a string\" ok*/ok", [
-      "[RAW]hello",
+      "[SYMBOL]hello",
       "[BLOCK-COMMENT]/* /* wat? * // some comment\n \"not a string\" ok*/",
-      "[RAW]ok"
+      "[SYMBOL]ok"
   ]);
   tst("1; //some comment\n2/*annother comment*/;3", [
       "[NUMBER]1",
@@ -90,19 +90,19 @@ test("tokenizer", function(t){
   ]);
   tst("re#regex#iok", [
       "[REGEXP]re#regex#i",
-      "[RAW]ok",
+      "[SYMBOL]ok",
   ]);
   tst("re#regex#gok", [
       "[REGEXP]re#regex#g",
-      "[RAW]ok",
+      "[SYMBOL]ok",
   ]);
   tst("re#regex#igok", [
       "[REGEXP]re#regex#ig",
-      "[RAW]ok",
+      "[SYMBOL]ok",
   ]);
   tst("re#regex#giok", [
       "[REGEXP]re#regex#gi",
-      "[RAW]ok",
+      "[SYMBOL]ok",
   ]);
   tst("re#\\##", [
       "[REGEXP]re#\\##"
@@ -115,13 +115,26 @@ test("tokenizer", function(t){
   //testing escapes i.e. \\" is not \"
   tst('"some\\\\"end', [
       "[STRING]\"some\\\\\"",
-      "[RAW]end",
+      "[SYMBOL]end",
   ]);
   tst('"some\\"string"', [
       "[STRING]\"some\\\"string\"",
   ]);
   tst('"some\\n"', [
       "[STRING]\"some\\n\"",
+  ]);
+
+  tst("ruleset rs{rule r1{}}", [
+      "[SYMBOL]ruleset",
+      "[WHITESPACE] ",
+      "[SYMBOL]rs",
+      "[RAW]{",
+      "[SYMBOL]rule",
+      "[WHITESPACE] ",
+      "[SYMBOL]r1",
+      "[RAW]{",
+      "[RAW]}",
+      "[RAW]}",
   ]);
 
   t.end();
