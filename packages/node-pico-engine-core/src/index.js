@@ -45,6 +45,9 @@ module.exports = function(conf, callback){
           domain: ctx.event.domain,
           type: ctx.event.type,
         };
+        if(!info.eci){
+          info.eci = ctx.event.eci;
+        }
       }
       if(ctx.query){
         info.query = {
@@ -55,6 +58,9 @@ module.exports = function(conf, callback){
         };
         if(!info.rid){
           info.rid = ctx.query.rid;
+        }
+        if(!info.eci){
+          info.eci = ctx.query.eci;
         }
       }
       emitter.emit(type, info, val, message);
