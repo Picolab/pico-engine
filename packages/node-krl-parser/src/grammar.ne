@@ -104,10 +104,10 @@ var getN = function(n){
 
 var infixEventOp = function(data, start){
   return {
-    loc: {start: start, end: data[4].loc.end},
+    loc: mkLoc(data),
     type: 'EventOperator',
-    op: data[2],
-    args: [data[0], data[4]]//not all event ops have left/right
+    op: data[1].src,
+    args: [data[0], data[2]]//not all event ops have left/right
   };
 };
 
@@ -235,11 +235,24 @@ var tok = function(type, value){
 };
 
 var tok_RAW = tok("RAW");
+var tok_SYMBOL = tok("SYMBOL");
 
+var tok_OPEN_PAREN = tok("RAW", "(");
+var tok_CLSE_PAREN = tok("RAW", ")");
 var tok_OPEN_CURLY = tok("RAW", "{");
 var tok_CLSE_CURLY = tok("RAW", "}");
+var tok_SEMI = tok("SYMBOL", ";");
 
-var tok_ruleset = tok("RAW", "ruleset");
+var tok_ruleset = tok("SYMBOL", "ruleset");
+var tok_rule = tok("SYMBOL", "rule");
+var tok_select = tok("SYMBOL", "select");
+var tok_when = tok("SYMBOL", "when");
+
+var tok_or = tok("SYMBOL", "or");
+var tok_and = tok("SYMBOL", "and");
+var tok_before = tok("SYMBOL", "before");
+var tok_then = tok("SYMBOL", "then");
+var tok_after = tok("SYMBOL", "after");
 
 %}
 
@@ -254,7 +267,7 @@ main -> Ruleset {% id %}
 Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
   (RulesetMeta _):?
   ("global" _ declaration_block _):?
-  (rule _):*
+  rule:*
 %tok_CLSE_CURLY {%
   function(data, loc){
     return {
@@ -263,14 +276,12 @@ Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
       rid: data[1],
       meta: data[3] ? data[3][0] : void 0,
       global: data[4] ? data[4][2] : [],
-      rules: data[5].map(function(pair){
-        return pair[0];
-      })
+      rules: data[5]
     };
   }
 %}
 
-RulesetID -> %tok_RAW {%
+RulesetID -> %tok_SYMBOL {%
   function(data, start, reject){
     var d = data[0];
     if(!/^[a-z][a-z0-9_.\-]*/i.test(d.src)){
@@ -384,36 +395,35 @@ OnOrOff -> "on"  {% booleanAST(true ) %}
 # Rule
 #
 
-rule -> "rule" __ Identifier (__ "is" __ rule_state):? _ "{" _
-  (RuleSelect _semi):?
+rule -> %tok_rule Identifier (__ "is" __ rule_state):? %tok_OPEN_CURLY
+  (RuleSelect %tok_SEMI:?):?
 
   RuleBody
 
-loc_close_curly {%
+%tok_CLSE_CURLY {%
   function(data, loc){
     return {
-      loc: {start: loc, end: last(data)},
+      loc: mkLoc(data),
       type: 'Rule',
-      name: data[2],
-      rule_state: data[3] ? data[3][3] : "active",
-      select: data[7] && data[7][0],
-      prelude: data[8][1] || [],
-      action_block: data[8][2],
-      postlude: data[8][3]
+      name: data[1],
+      rule_state: data[2] ? data[2][3] : "active",
+      select: data[4] && data[4][0],
+      prelude: data[5][1] || [],
+      action_block: data[5][2],
+      postlude: data[5][3]
     };
   }
 %}
 
 rule_state -> "active" {% id %} | "inactive" {% id %}
 
-RuleSelect -> "select" __ "when" __ EventExpression {%
+RuleSelect -> %tok_select %tok_when EventExpression {%
   function(data, start){
-    var ee =  data[4];
     return {
-      loc: {start: start, end: ee.loc.end},
+      loc: mkLoc(data),
       type: 'RuleSelect',
       kind: 'when',
-      event: ee
+      event: data[2]
     };
   }
 %}
@@ -448,15 +458,15 @@ event_exp_within -> event_exp_or {% id %}
       {% complexEventOp("within", 0, 4, 6) %}
 
 event_exp_or -> event_exp_and {% id %}
-    | event_exp_or __ "or" __ event_exp_and {% infixEventOp %}
+    | event_exp_or %tok_or event_exp_and {% infixEventOp %}
 
 event_exp_and -> event_exp_infix_op {% id %}
-    | event_exp_and __ "and" __ event_exp_infix_op {% infixEventOp %}
+    | event_exp_and %tok_and event_exp_infix_op {% infixEventOp %}
 
 event_exp_infix_op -> event_exp_fns {% id %}
-    | event_exp_infix_op __ "before" __ event_exp_fns {% infixEventOp %}
-    | event_exp_infix_op __ "then"   __ event_exp_fns {% infixEventOp %}
-    | event_exp_infix_op __ "after"  __ event_exp_fns {% infixEventOp %}
+    | event_exp_infix_op %tok_before event_exp_fns {% infixEventOp %}
+    | event_exp_infix_op %tok_then   event_exp_fns {% infixEventOp %}
+    | event_exp_infix_op %tok_after  event_exp_fns {% infixEventOp %}
 
 event_exp_fns -> event_exp_base {% id %}
     | event_exp_fns __ "between" _ "(" _ EventExpression _ "," _ EventExpression _ loc_close_paren
@@ -490,20 +500,20 @@ event_exp_fns -> event_exp_base {% id %}
     | event_exp_fns __  "push" _ "(" function_params loc_close_paren
       {% complexEventOp("push", 0, 5) %}
 
-event_exp_base -> "(" _ EventExpression _ ")" {% getN(2) %}
-  | Identifier __ Identifier
+event_exp_base -> %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN {% getN(1) %}
+  | Identifier Identifier
     (__ event_exp_attribute_pairs):?
     (__ "where" __ event_exp_where):?
     (__ "setting" _ "(" function_params loc_close_paren):? {%
   function(data, start){
     return {
       type: 'EventExpression',
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       event_domain: data[0],
-      event_type: data[2],
-      attributes: (data[3] && data[3][1]) || [],
-      where: data[4] && data[4][3],
-      setting: (data[5] && data[5][4]) || []
+      event_type: data[1],
+      attributes: (data[2] && data[2][1]) || [],
+      where: data[3] && data[3][3],
+      setting: (data[4] && data[4][4]) || []
     };
   }
 %}
@@ -905,13 +915,10 @@ DomainIdentifier -> Identifier _ ":" _ Identifier {%
   }
 %}
 
-Identifier -> %tok_RAW {%
+Identifier -> %tok_SYMBOL {%
   function(data, loc, reject){
     var d = data[0];
     if(reserved_identifiers.hasOwnProperty(d.src)){
-      return reject;
-    }
-    if(!/^[a-z_$][a-z0-9_$]*/i.test(d.src)){
       return reject;
     }
     return {
