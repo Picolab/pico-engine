@@ -273,6 +273,7 @@ var tok_CLSE_SQARE = tok("RAW", "]");
 var tok_AND = tok("RAW", "&&");
 var tok_COMMA = tok("RAW", ",");
 var tok_COLON = tok("RAW", ":");
+var tok_COLON_EQ = tok("RAW", ":=");
 var tok_DIVIDE = tok("RAW", "/");
 var tok_DOT = tok("RAW", ".");
 var tok_EQ = tok("RAW", "=");
@@ -299,6 +300,7 @@ var tok_alias = tok("SYMBOL", "alias");
 var tok_always = tok("SYMBOL", "always");
 var tok_and = tok("SYMBOL", "and");
 var tok_any = tok("SYMBOL", "any");
+var tok_attributes = tok("SYMBOL", "attributes");
 var tok_author = tok("SYMBOL", "author");
 var tok_before = tok("SYMBOL", "before");
 var tok_between = tok("SYMBOL", "between");
@@ -308,13 +310,16 @@ var tok_count = tok("SYMBOL", "count");
 var tok_cmp = tok("SYMBOL", "cmp");
 var tok_description = tok("SYMBOL", "description");
 var tok_errors = tok("SYMBOL", "errors");
+var tok_event = tok("SYMBOL", "event");
 var tok_every = tok("SYMBOL", "every");
 var tok_eq = tok("SYMBOL", "eq");
 var tok_else = tok("SYMBOL", "else");
 var tok_false = tok("SYMBOL", "false");
 var tok_fired = tok("SYMBOL", "fired");
 var tok_finally = tok("SYMBOL", "finally");
+var tok_for = tok("SYMBOL", "for");
 var tok_function = tok("SYMBOL", "function");
+var tok_global = tok("SYMBOL", "global");
 var tok_if = tok("SYMBOL", "if");
 var tok_inactive = tok("SYMBOL", "inactive");
 var tok_is = tok("SYMBOL", "is");
@@ -333,6 +338,7 @@ var tok_on = tok("SYMBOL", "on");
 var tok_pre = tok("SYMBOL", "pre");
 var tok_provide  = tok("SYMBOL", "provide");
 var tok_provides = tok("SYMBOL", "provides");
+var tok_raise = tok("SYMBOL", "raise");
 var tok_repeat = tok("SYMBOL", "repeat");
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
@@ -363,7 +369,7 @@ main -> Ruleset {% id %}
 
 Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
   (RulesetMeta _):?
-  ("global" _ declaration_block _):?
+  (%tok_global declaration_block):?
   rule:*
 %tok_CLSE_CURLY {%
   function(data, loc){
@@ -372,7 +378,7 @@ Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
       type: 'Ruleset',
       rid: data[1],
       meta: data[3] ? data[3][0] : void 0,
-      global: data[4] ? data[4][2] : [],
+      global: data[4] ? data[4][1] : [],
       rules: data[5]
     };
   }
@@ -727,52 +733,52 @@ PostludeStatement ->
     | PersistentVariableAssignment {% id %}
     | RaiseEventStatement {% id %}
 
-PersistentVariableAssignment -> DomainIdentifier _ ("{" _ Expression _ "}" _):? ":=" _ Expression {%
-  function(data, start){
+PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
+  function(data){
     return {
-      loc: {start: start, end: data[5].loc.end},
+      loc: mkLoc(data),
       type: 'PersistentVariableAssignment',
-      op: data[3],
+      op: data[2].src,
       left: data[0],
-      path_expression: data[2] ? data[2][2] : null,
-      right: data[5]
+      path_expression: data[1] ? data[1][1] : null,
+      right: data[3]
     };
   }
 %}
 
-RaiseEventStatement -> "raise" __ Identifier __ "event" __ Expression
-  (__ "for" __ Expression):?
-  (__ RaiseEventAttributes):?
+RaiseEventStatement -> %tok_raise Identifier %tok_event Expression
+  (%tok_for Expression):?
+  RaiseEventAttributes:?
 {%
-  function(data, start){
+  function(data){
     return {
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       type: 'RaiseEventStatement',
-      event_domain: data[2],
-      event_type: data[6],
-      for_rid: data[7] ? data[7][3] : null,
-      attributes: data[8] ? data[8][1] : null,
+      event_domain: data[1],
+      event_type: data[3],
+      for_rid: data[4] ? data[4][1] : null,
+      attributes: data[5]
     };
   }
 %}
 
-RaiseEventAttributes -> "with" __ declaration_list
+RaiseEventAttributes -> %tok_with declaration_list
 {%
-  function(data, start){
+  function(data){
     return {
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       type: "RaiseEventAttributes",
-      with: data[2]
+      with: data[1]
     };
   }
 %}
-    | "attributes" __ Expression
+    | %tok_attributes Expression
 {%
-  function(data, start){
+  function(data){
     return {
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       type: "RaiseEventAttributes",
-      expression: data[2]
+      expression: data[1]
     };
   }
 %}
@@ -815,7 +821,7 @@ Statement_list -> Statement_list_body {% id %}
 
 Statement_list_body ->
       Statement {% idArr %}
-    | Statement_list_body _ ";" _ Statement {% concatArr(4) %}
+    | Statement_list_body %tok_SEMI Statement {% concatArr(2) %}
 
 declaration_block -> %tok_OPEN_CURLY %tok_CLSE_CURLY {% noopArr %}
     | %tok_OPEN_CURLY declaration_list %tok_CLSE_CURLY {% getN(1) %}
@@ -981,13 +987,12 @@ map_kv_pair -> String %tok_COLON Expression {%
 ################################################################################
 # Literals
 
-DomainIdentifier -> Identifier _ ":" _ Identifier {%
+DomainIdentifier -> Identifier %tok_COLON Identifier {%
   function(data, start, reject){
-    var id = data[4];
     return {
+      loc: mkLoc(data),
       type: 'DomainIdentifier',
-      loc: {start: start, end: id.loc.end},
-      value: id.value,
+      value: data[2].value,
       domain: data[0].value
     };
   }
