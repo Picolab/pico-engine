@@ -321,6 +321,8 @@ var tok_name = tok("SYMBOL", "name");
 var tok_neq = tok("SYMBOL", "neq");
 var tok_not = tok("SYMBOL", "not");
 var tok_or = tok("SYMBOL", "or");
+var tok_off = tok("SYMBOL", "off");
+var tok_on = tok("SYMBOL", "on");
 var tok_provide  = tok("SYMBOL", "provide");
 var tok_provides = tok("SYMBOL", "provides");
 var tok_repeat = tok("SYMBOL", "repeat");
@@ -368,16 +370,20 @@ Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
   }
 %}
 
-RulesetID -> %tok_SYMBOL {%
+RulesetID -> (%tok_SYMBOL | %tok_DOT | %tok_MINUS | %tok_NUMBER):+ {%
   function(data, start, reject){
-    var d = data[0];
-    if(!/^[a-z][a-z0-9_.\-]*/i.test(d.src)){
+    var i;
+    var src = "";
+    for(i=0; i < data[0].length; i++){
+      src += data[0][i][0].src;
+    }
+    if(!/^[a-z][a-z0-9_.\-]*/i.test(src)){
       return reject;
     }
     return {
-      loc: d.loc,
+      loc: mkLoc(data),
       type: 'RulesetID',
-      value: d.src
+      value: src
     };
   }
 %}
@@ -483,8 +489,8 @@ Identifier_list -> Identifier {% idArr %}
 RulesetID_list -> RulesetID {% idArr %}
     | RulesetID_list _ "," _ RulesetID {% concatArr(4) %}
 
-OnOrOff -> "on"  {% booleanAST(true ) %}
-         | "off" {% booleanAST(false) %}
+OnOrOff -> %tok_on  {% booleanAST(true ) %}
+         | %tok_off {% booleanAST(false) %}
 
 ################################################################################
 #
