@@ -221,6 +221,30 @@ var mkLoc = function(d){
   return loc;
 };
 
+
+var time_period_enum = [
+  "years",
+  "months",
+  "weeks",
+  "days",
+  "hours",
+  "minutes",
+  "seconds",
+  "year",
+  "month",
+  "week",
+  "day",
+  "hour",
+  "minute",
+  "second",
+];
+var tok_TIME_PERIOD_ENUM = {test: function(x){
+  if(!x || x.type !== "SYMBOL"){
+    return false;
+  }
+  return time_period_enum.indexOf(x.src) >= 0;
+}};
+
 var tok = function(type, value){
   return {test: function(x){
     if(!x || x.type !== type){
@@ -272,10 +296,13 @@ var tok_STAR = tok("RAW", "*");
 var tok_after = tok("SYMBOL", "after");
 var tok_alias = tok("SYMBOL", "alias");
 var tok_and = tok("SYMBOL", "and");
+var tok_any = tok("SYMBOL", "any");
 var tok_author = tok("SYMBOL", "author");
 var tok_before = tok("SYMBOL", "before");
+var tok_between = tok("SYMBOL", "between");
 var tok_choose = tok("SYMBOL", "choose");
 var tok_configure = tok("SYMBOL", "configure");
+var tok_count = tok("SYMBOL", "count");
 var tok_cmp = tok("SYMBOL", "cmp");
 var tok_description = tok("SYMBOL", "description");
 var tok_errors = tok("SYMBOL", "errors");
@@ -287,6 +314,7 @@ var tok_if = tok("SYMBOL", "if");
 var tok_keys = tok("SYMBOL", "keys");
 var tok_like = tok("SYMBOL", "like");
 var tok_logging = tok("SYMBOL", "logging");
+var tok_max = tok("SYMBOL", "max");
 var tok_meta = tok("SYMBOL", "meta");
 var tok_module = tok("SYMBOL", "module");
 var tok_name = tok("SYMBOL", "name");
@@ -295,11 +323,13 @@ var tok_not = tok("SYMBOL", "not");
 var tok_or = tok("SYMBOL", "or");
 var tok_provide  = tok("SYMBOL", "provide");
 var tok_provides = tok("SYMBOL", "provides");
+var tok_repeat = tok("SYMBOL", "repeat");
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
 var tok_share  = tok("SYMBOL", "share");
 var tok_shares = tok("SYMBOL", "shares");
 var tok_select = tok("SYMBOL", "select");
+var tok_setting = tok("SYMBOL", "setting");
 var tok_then = tok("SYMBOL", "then");
 var tok_to = tok("SYMBOL", "to");
 var tok_true = tok("SYMBOL", "true");
@@ -307,7 +337,9 @@ var tok_use = tok("SYMBOL", "use");
 var tok_using = tok("SYMBOL", "using");
 var tok_version = tok("SYMBOL", "version");
 var tok_when = tok("SYMBOL", "when");
+var tok_where = tok("SYMBOL", "where");
 var tok_with = tok("SYMBOL", "with");
+var tok_within = tok("SYMBOL", "within");
 
 %}
 
@@ -518,8 +550,8 @@ RulePrelude -> "pre" _ declaration_block {% getN(2) %}
 EventExpression -> event_exp_within {% id %}
 
 event_exp_within -> event_exp_or {% id %}
-    | event_exp_within __ "within" __ PositiveInteger __ time_period
-      {% complexEventOp("within", 0, 4, 6) %}
+    | event_exp_within %tok_within PositiveInteger time_period
+      {% complexEventOp("within", 0, 2, 3) %}
 
 event_exp_or -> event_exp_and {% id %}
     | event_exp_or %tok_or event_exp_and {% infixEventOp %}
@@ -533,28 +565,28 @@ event_exp_infix_op -> event_exp_fns {% id %}
     | event_exp_infix_op %tok_after  event_exp_fns {% infixEventOp %}
 
 event_exp_fns -> event_exp_base {% id %}
-    | event_exp_fns __ "between" _ "(" _ EventExpression _ "," _ EventExpression _ loc_close_paren
-      {% complexEventOp("between", 0, 6, 10) %}
-    | event_exp_fns __ "not" __ "between" _ "(" _ EventExpression _ "," _ EventExpression _ loc_close_paren
-      {% complexEventOp("not between", 0, 8, 12) %}
-    | "any" __ PositiveInteger _ "(" _ EventExpression_list _ loc_close_paren
-      {% complexEventOp("any", 2, 6) %}
-    | "count" __ PositiveInteger _ "(" _ EventExpression _ loc_close_paren
-      {% complexEventOp("count", 2, 6) %}
-    | "repeat" __ PositiveInteger _ "(" _ EventExpression _ loc_close_paren
-      {% complexEventOp("repeat", 2, 6) %}
-    | "and" _ "(" _ EventExpression_list _ loc_close_paren
-      {% complexEventOp("and", 4) %}
-    | "or" _ "(" _ EventExpression_list _ loc_close_paren
-      {% complexEventOp("or", 4) %}
+    | event_exp_fns %tok_between %tok_OPEN_PAREN EventExpression %tok_COMMA EventExpression %tok_CLSE_PAREN
+      {% complexEventOp("between", 0, 3, 5) %}
+    | event_exp_fns %tok_not %tok_between %tok_OPEN_PAREN EventExpression %tok_COMMA EventExpression %tok_CLSE_PAREN
+      {% complexEventOp("not between", 0, 4, 6) %}
+    | %tok_any PositiveInteger %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
+      {% complexEventOp("any", 1, 3) %}
+    | %tok_count PositiveInteger %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN
+      {% complexEventOp("count", 1, 3) %}
+    | %tok_repeat PositiveInteger %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN
+      {% complexEventOp("repeat", 1, 3) %}
+    | %tok_and %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
+      {% complexEventOp("and", 2) %}
+    | %tok_or %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
+      {% complexEventOp("or", 2) %}
     | "before" _ "(" _ EventExpression_list _ loc_close_paren
       {% complexEventOp("before", 4) %}
     | "then" _ "(" _ EventExpression_list _ loc_close_paren
       {% complexEventOp("then", 4) %}
     | "after" _ "(" _ EventExpression_list _ loc_close_paren
       {% complexEventOp("after", 4) %}
-    | event_exp_fns __  "max" _ "(" function_params loc_close_paren
-      {% complexEventOp("max", 0, 5) %}
+    | event_exp_fns %tok_max %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
+      {% complexEventOp("max", 0, 3) %}
     | event_exp_fns __  "min" _ "(" function_params loc_close_paren
       {% complexEventOp("min", 0, 5) %}
     | event_exp_fns __  "sum" _ "(" function_params loc_close_paren
@@ -566,32 +598,29 @@ event_exp_fns -> event_exp_base {% id %}
 
 event_exp_base -> %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN {% getN(1) %}
   | Identifier Identifier
-    (__ event_exp_attribute_pairs):?
-    (__ "where" __ event_exp_where):?
-    (__ "setting" _ "(" function_params loc_close_paren):? {%
+    event_exp_attribute_pair:*
+    (%tok_where event_exp_where):?
+    (%tok_setting %tok_OPEN_PAREN function_params %tok_CLSE_PAREN):? {%
   function(data, start){
     return {
       type: 'EventExpression',
       loc: mkLoc(data),
       event_domain: data[0],
       event_type: data[1],
-      attributes: (data[2] && data[2][1]) || [],
-      where: data[3] && data[3][3],
-      setting: (data[4] && data[4][4]) || []
+      attributes: data[2],
+      where: data[3] && data[3][1],
+      setting: (data[4] && data[4][2]) || []
     };
   }
 %}
 
-event_exp_attribute_pairs -> event_exp_attribute_pair {% idArr %}
-    | event_exp_attribute_pairs __ event_exp_attribute_pair {% concatArr(2) %}
-
-event_exp_attribute_pair -> Identifier __ RegExp {%
-  function(data, start){
+event_exp_attribute_pair -> Identifier RegExp {%
+  function(data){
     return {
-      loc: {start: start, end: data[2].loc.end},
+      loc: mkLoc(data),
       type: 'AttributeMatch',
       key: data[0],
-      value: data[2]
+      value: data[1]
     };
   }
 %}
@@ -605,34 +634,18 @@ event_exp_where -> Expression {%
 %}
 
 EventExpression_list -> EventExpression {% idArr %}
-    | EventExpression_list _ "," _ EventExpression {% concatArr(4) %}
+    | EventExpression_list %tok_COMMA EventExpression {% concatArr(2) %}
 
-time_period -> time_period_enum {%
-  function(data, start){
-    var src = data[0][0];
+time_period -> %tok_TIME_PERIOD_ENUM {%
+  function(data){
+    var d = data[0];
     return {
-      loc: {start: start, end: start + src.length},
+      loc: d.loc,
       type: 'String',
-      value: src
+      value: d.src
     };
   }
 %}
-
-time_period_enum ->
-      "years"
-    | "months"
-    | "weeks"
-    | "days"
-    | "hours"
-    | "minutes"
-    | "seconds"
-    | "year"
-    | "month"
-    | "week"
-    | "day"
-    | "hour"
-    | "minute"
-    | "second"
 
 ################################################################################
 #
