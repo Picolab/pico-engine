@@ -859,13 +859,13 @@ function_params_body ->
       Identifier {% idArr %}
     | function_params_body _ "," _ Identifier {% concatArr(4) %}
 
-Application -> MemberExpression _ "(" Expression_list loc_close_paren {%
+Application -> MemberExpression %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN {%
   function(data, start){
     return {
-      loc: {start: start, end: last(data)},
+      loc: mkLoc(data),
       type: 'Application',
       callee: data[0],
-      args: data[3]
+      args: data[2]
     };
   }
 %}
