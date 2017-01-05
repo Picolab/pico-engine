@@ -146,11 +146,11 @@ var unaryOp = function(data, start){
 
 var infixOp = function(data, start){
   return {
-    loc: {start: start, end: data[4].loc.end},
+    loc: mkLoc(data),
     type: 'InfixOperator',
-    op: data[2],
+    op: data[1].src,
     left: data[0],
-    right: data[4]
+    right: data[2]
   };
 };
 
@@ -246,16 +246,28 @@ var tok_CLSE_CURLY = tok("RAW", "}");
 var tok_OPEN_SQARE = tok("RAW", "[");
 var tok_CLSE_SQARE = tok("RAW", "]");
 
+var tok_AND = tok("RAW", "&&");
 var tok_COMMA = tok("RAW", ",");
 var tok_COLON = tok("RAW", ":");
+var tok_DIVIDE = tok("RAW", "/");
 var tok_DOT = tok("RAW", ".");
 var tok_EQ = tok("RAW", "=");
-var tok_PLUS = tok("RAW", "+");
-var tok_MINUS = tok("RAW", "-");
+var tok_EQEQ = tok("RAW", "==");
+var tok_FAT_ARROW_DOUBLE = tok("RAW", "<=>");
 var tok_FAT_ARROW_RIGHT = tok("RAW", "=>");
+var tok_GT = tok("RAW", ">");
+var tok_GTEQ = tok("RAW", ">=");
+var tok_GTLT = tok("RAW", "><");
+var tok_LT = tok("RAW", "<");
+var tok_LTEQ = tok("RAW", "<=");
+var tok_MINUS = tok("RAW", "-");
+var tok_MODULO = tok("RAW", "%");
+var tok_NOTEQ = tok("RAW", "!=");
+var tok_OR = tok("RAW", "||");
+var tok_PLUS = tok("RAW", "+");
 var tok_PIPE = tok("RAW", "|");
 var tok_SEMI = tok("RAW", ";");
-
+var tok_STAR = tok("RAW", "*");
 
 var tok_after = tok("SYMBOL", "after");
 var tok_alias = tok("SYMBOL", "alias");
@@ -264,17 +276,21 @@ var tok_author = tok("SYMBOL", "author");
 var tok_before = tok("SYMBOL", "before");
 var tok_choose = tok("SYMBOL", "choose");
 var tok_configure = tok("SYMBOL", "configure");
+var tok_cmp = tok("SYMBOL", "cmp");
 var tok_description = tok("SYMBOL", "description");
 var tok_errors = tok("SYMBOL", "errors");
 var tok_every = tok("SYMBOL", "every");
+var tok_eq = tok("SYMBOL", "eq");
 var tok_false = tok("SYMBOL", "false");
 var tok_function = tok("SYMBOL", "function");
 var tok_if = tok("SYMBOL", "if");
 var tok_keys = tok("SYMBOL", "keys");
+var tok_like = tok("SYMBOL", "like");
 var tok_logging = tok("SYMBOL", "logging");
 var tok_meta = tok("SYMBOL", "meta");
 var tok_module = tok("SYMBOL", "module");
 var tok_name = tok("SYMBOL", "name");
+var tok_neq = tok("SYMBOL", "neq");
 var tok_not = tok("SYMBOL", "not");
 var tok_or = tok("SYMBOL", "or");
 var tok_provide  = tok("SYMBOL", "provide");
@@ -807,33 +823,33 @@ exp_conditional -> exp_or {% id %}
 %}
  
 exp_or -> exp_and {% id %}
-    | exp_or _ "||" _ exp_and {% infixOp %}
+    | exp_or %tok_OR exp_and {% infixOp %}
  
 exp_and -> exp_comp {% id %}
-    | exp_and _ "&&" _ exp_comp {% infixOp %}
+    | exp_and %tok_AND exp_comp {% infixOp %}
 
 exp_comp -> exp_sum {% id %}
-    | exp_comp _  "<"    _ exp_sum {% infixOp %}
-    | exp_comp _  ">"    _ exp_sum {% infixOp %}
-    | exp_comp _  "<="   _ exp_sum {% infixOp %}
-    | exp_comp _  ">="   _ exp_sum {% infixOp %}
-    | exp_comp _  "=="   _ exp_sum {% infixOp %}
-    | exp_comp _  "!="   _ exp_sum {% infixOp %}
-    | exp_comp __ "eq"   __ exp_sum {% infixOp %}
-    | exp_comp __ "neq"  __ exp_sum {% infixOp %}
-    | exp_comp __ "like" __ exp_sum {% infixOp %}
-    | exp_comp __ "><"   __ exp_sum {% infixOp %}
-    | exp_comp __ "<=>"  __ exp_sum {% infixOp %}
-    | exp_comp __ "cmp"  __ exp_sum {% infixOp %}
+    | exp_comp %tok_LT exp_sum {% infixOp %}
+    | exp_comp %tok_GT exp_sum {% infixOp %}
+    | exp_comp %tok_LTEQ exp_sum {% infixOp %}
+    | exp_comp %tok_GTEQ exp_sum {% infixOp %}
+    | exp_comp %tok_EQEQ exp_sum {% infixOp %}
+    | exp_comp %tok_NOTEQ exp_sum {% infixOp %}
+    | exp_comp %tok_eq exp_sum {% infixOp %}
+    | exp_comp %tok_neq exp_sum {% infixOp %}
+    | exp_comp %tok_like exp_sum {% infixOp %}
+    | exp_comp %tok_GTLT exp_sum {% infixOp %}
+    | exp_comp %tok_FAT_ARROW_DOUBLE exp_sum {% infixOp %}
+    | exp_comp %tok_cmp exp_sum {% infixOp %}
 
 exp_sum -> exp_product {% id %}
-    | exp_sum _ "+" _ exp_product {% infixOp %}
-    | exp_sum _ "-" _ exp_product {% infixOp %}
+    | exp_sum %tok_PLUS exp_product {% infixOp %}
+    | exp_sum %tok_MINUS exp_product {% infixOp %}
 
 exp_product -> UnaryOperator {% id %}
-    | exp_product _ "*" _ UnaryOperator {% infixOp %}
-    | exp_product _ "/" _ UnaryOperator {% infixOp %}
-    | exp_product _ "%" _ UnaryOperator {% infixOp %}
+    | exp_product %tok_STAR UnaryOperator {% infixOp %}
+    | exp_product %tok_DIVIDE UnaryOperator {% infixOp %}
+    | exp_product %tok_MODULO UnaryOperator {% infixOp %}
 
 UnaryOperator -> MemberExpression {% id %}
     | %tok_PLUS UnaryOperator {% unaryOp %}
@@ -852,7 +868,7 @@ PrimaryExpression ->
       Identifier {% id %}
     | DomainIdentifier {% id %}
     | Literal {% id %}
-    | "(" _ Expression _ ")" {% getN(2) %}
+    | %tok_OPEN_PAREN Expression %tok_CLSE_PAREN {% getN(1) %}
     | Function {% id %}
     | Application {% id %}
 
