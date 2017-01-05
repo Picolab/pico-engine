@@ -167,12 +167,12 @@ var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
 };
 
 var MemberExpression_method = function(method){
-  return function(data, start){
+  return function(data){
     return {
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       type: 'MemberExpression',
       object: data[0],
-      property: data[4],
+      property: data[2],
       method: method
     };
   };
@@ -242,8 +242,11 @@ var tok_OPEN_PAREN = tok("RAW", "(");
 var tok_CLSE_PAREN = tok("RAW", ")");
 var tok_OPEN_CURLY = tok("RAW", "{");
 var tok_CLSE_CURLY = tok("RAW", "}");
+var tok_OPEN_SQARE = tok("RAW", "[");
+var tok_CLSE_SQARE = tok("RAW", "]");
 
 var tok_COMMA = tok("RAW", ",");
+var tok_DOT = tok("RAW", ".");
 var tok_EQ = tok("RAW", "=");
 var tok_PLUS = tok("RAW", "+");
 var tok_MINUS = tok("RAW", "-");
@@ -836,11 +839,11 @@ UnaryOperator -> MemberExpression {% id %}
     | %tok_not UnaryOperator {% unaryOp %}
 
 MemberExpression -> PrimaryExpression {% id %}
-    | MemberExpression _ "[" _ Expression _ loc_close_square
+    | MemberExpression %tok_OPEN_SQARE Expression %tok_CLSE_SQARE
       {% MemberExpression_method('index') %}
-    | MemberExpression _ "{" _ Expression _ loc_close_curly
+    | MemberExpression %tok_OPEN_CURLY Expression %tok_CLSE_CURLY
       {% MemberExpression_method('path') %}
-    | MemberExpression _ "." _ Identifier
+    | MemberExpression %tok_DOT Identifier
       {% MemberExpression_method('dot') %}
 
 PrimaryExpression ->
@@ -865,7 +868,7 @@ Expression_list -> null {% noopArr %}
 
 Expression_list_body ->
       Expression {% idArr %}
-    | Expression_list_body "," Expression {% concatArr(2) %}
+    | Expression_list_body %tok_COMMA Expression {% concatArr(2) %}
 
 ################################################################################
 # Functions
@@ -899,11 +902,11 @@ Application -> MemberExpression %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN 
 ################################################################################
 # Literal Datastructures
 
-Array -> "[" Expression_list loc_close_square {%
-  function(data, loc){
+Array -> %tok_OPEN_SQARE Expression_list %tok_CLSE_SQARE {%
+  function(data){
     return {
+      loc: mkLoc(data),
       type: 'Array',
-      loc: {start: loc, end: last(data)},
       value: data[1]
     };
   }
