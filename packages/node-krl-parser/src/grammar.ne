@@ -126,10 +126,9 @@ var complexEventOp = function(op){
 };
 
 var booleanAST = function(value){
-  return function(data, loc){
-    var src = data[0];
+  return function(data){
     return {
-      loc: {start: loc, end: loc + src.length},
+      loc: data[0].loc,
       type: 'Boolean',
       value: value
     };
@@ -235,24 +234,39 @@ var tok = function(type, value){
 };
 
 var tok_RAW = tok("RAW");
+var tok_STRING = tok("STRING");
+var tok_NUMBER = tok("NUMBER");
 var tok_SYMBOL = tok("SYMBOL");
 
 var tok_OPEN_PAREN = tok("RAW", "(");
 var tok_CLSE_PAREN = tok("RAW", ")");
 var tok_OPEN_CURLY = tok("RAW", "{");
 var tok_CLSE_CURLY = tok("RAW", "}");
-var tok_SEMI = tok("SYMBOL", ";");
+var tok_SEMI = tok("RAW", ";");
+var tok_EQ = tok("RAW", "=");
+var tok_FAT_ARROW_RIGHT = tok("RAW", "=>");
+
 
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
 var tok_select = tok("SYMBOL", "select");
 var tok_when = tok("SYMBOL", "when");
+var tok_with = tok("SYMBOL", "with");
+
+var tok_if = tok("SYMBOL", "if");
+var tok_then = tok("SYMBOL", "then");
+
+var tok_true = tok("SYMBOL", "true");
+var tok_false = tok("SYMBOL", "false");
 
 var tok_or = tok("SYMBOL", "or");
 var tok_and = tok("SYMBOL", "and");
 var tok_before = tok("SYMBOL", "before");
 var tok_then = tok("SYMBOL", "then");
 var tok_after = tok("SYMBOL", "after");
+
+var tok_choose = tok("SYMBOL", "choose");
+var tok_every = tok("SYMBOL", "every");
 
 %}
 
@@ -429,20 +443,20 @@ RuleSelect -> %tok_select %tok_when EventExpression {%
 %}
 
 RuleBody -> null {% idIndecies(-1, -1, -1, -1) %}
-    | RulePrelude _
+    | RulePrelude
       {% idIndecies(-1, 0, -1, -1) %}
-    | RuleActionBlock _
+    | RuleActionBlock
       {% idIndecies(-1, -1, 0, -1) %}
-    | RulePrelude _ RuleActionBlock _
-      {% idIndecies(-1, 0, 2, -1) %}
-    | RulePostlude _
+    | RulePrelude RuleActionBlock
+      {% idIndecies(-1, 0, 1, -1) %}
+    | RulePostlude
       {% idIndecies(-1, -1, -1, 0) %}
-    | RulePrelude _ RulePostlude _
-      {% idIndecies(-1, 0, -1, 2) %}
-    | RuleActionBlock __ RulePostlude _
-      {% idIndecies(-1, -1, 0, 2) %}
-    | RulePrelude _ RuleActionBlock __ RulePostlude _
-      {% idIndecies(-1, 0, 2, 4) %}
+    | RulePrelude RulePostlude
+      {% idIndecies(-1, 0, -1, 1) %}
+    | RuleActionBlock RulePostlude
+      {% idIndecies(-1, -1, 0, 1) %}
+    | RulePrelude RuleActionBlock RulePostlude
+      {% idIndecies(-1, 0, 1, 2) %}
 
 RulePrelude -> "pre" _ declaration_block {% getN(2) %}
 
@@ -575,37 +589,33 @@ time_period_enum ->
 # RuleActionBlock
 #
 
-RuleActionBlock -> ("if" __ Expression __ "then" __ (action_block_type __):?):? RuleActions {%
-  function(data, start){
+RuleActionBlock -> (%tok_if Expression %tok_then action_block_type:?):? RuleAction:+ {%
+  function(data){
     return {
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       type: 'RuleActionBlock',
-      condition: data[0] && data[0][2],
-      block_type: get(data, [0, 6, 0], "every"),
+      condition: data[0] && data[0][1],
+      block_type: (data[0] && data[0][3] && data[0][3].src) || "every",
       actions: data[1]
     };
   }
 %}
 
-action_block_type -> "choose" {% id %}
-    | "every" {% id %}
-
-#NOTE - there must be at least one action
-RuleActions -> RuleAction {% idArr %}
-    | RuleActions __ RuleAction {% concatArr(2) %}
+action_block_type -> %tok_choose {% id %}
+    | %tok_every {% id %}
 
 RuleAction ->
-    (Identifier _ "=>" _):?
-    Identifier_or_DomainIdentifier _ "(" Expression_list loc_close_paren
-    (_ "with" __ declaration_list):? {%
+    (Identifier %tok_FAT_ARROW_RIGHT):?
+    Identifier_or_DomainIdentifier %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN
+    (%tok_with declaration_list):? {%
   function(data, start){
     return {
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       type: 'RuleAction',
       label: data[0] && data[0][0],
       action: data[1],
-      args: data[4],
-      "with": data[6] ? data[6][3] : []
+      args: data[3],
+      "with": data[5] ? data[5][1] : []
     };
   }
 %}
@@ -715,14 +725,14 @@ ExpressionStatement -> Expression {%
   }
 %}
 
-Declaration -> left_side_of_declaration _ "=" _ Expression {%
-  function(data, start){
+Declaration -> left_side_of_declaration %tok_EQ Expression {%
+  function(data){
     return {
-      loc: {start: data[0].loc.start, end: data[4].loc.end},
+      loc: mkLoc(data),
       type: 'Declaration',
-      op: data[2],
+      op: "=",
       left: data[0],
-      right: data[4]
+      right: data[2]
     };
   }
 %}
@@ -740,7 +750,7 @@ declaration_block -> "{" _ "}" {% noopArr %}
     | "{" _ declaration_list _ "}" {% getN(2) %}
 
 declaration_list -> Declaration {% idArr %}
-    | declaration_list __ Declaration {% concatArr(2) %}
+    | declaration_list Declaration {% concatArr(1) %}
 
 ################################################################################
 #
@@ -821,12 +831,12 @@ Literal ->
     | Array {% id %}
     | Map {% id %}
 
-Expression_list -> _ {% noopArr %}
-    | _ Expression_list_body _ {% getN(1) %}
+Expression_list -> null {% noopArr %}
+    | Expression_list_body {% id %}
 
 Expression_list_body ->
       Expression {% idArr %}
-    | Expression_list_body _ "," _ Expression {% concatArr(4) %}
+    | Expression_list_body "," Expression {% concatArr(2) %}
 
 ################################################################################
 # Functions
@@ -929,8 +939,8 @@ Identifier -> %tok_SYMBOL {%
   }
 %}
 
-Boolean -> "true"  {% booleanAST(true ) %}
-         | "false" {% booleanAST(false) %}
+Boolean -> %tok_true  {% booleanAST(true ) %}
+         | %tok_false {% booleanAST(false) %}
 
 PositiveInteger -> Number {%
   function(data, loc, reject){
@@ -942,23 +952,16 @@ PositiveInteger -> Number {%
   }
 %}
 
-Number -> number {%
-  function(data, loc){
-    var src = flatten(data).join('');
+Number -> %tok_NUMBER {%
+  function(data){
+    var d = data[0];
     return {
-      loc: {start: loc, end: loc + src.length},
+      loc: d.loc,
       type: 'Number',
-      value: parseFloat(src) || 0// or 0 to avoid NaN
+      value: parseFloat(d.src) || 0// or 0 to avoid NaN
     };
   }
 %}
-
-number ->
-    int
-    | "." int
-    | int "." int
-
-int -> [0-9]:+ {% idAll %}
 
 RegExp -> "re#" regexp_pattern "#" regexp_modifiers {%
   function(data, loc){
@@ -1026,23 +1029,16 @@ chevron_char ->
     | "#" [^{] {% idAll %}
     | ">" [^>] {% idAll %}
 
-String -> "\"" string "\"" {%
+String -> %tok_STRING {%
   function(data, loc){
-    var src = data[1];
+    var d = data[0];
     return {
-      loc: {start: loc, end: loc + src.length + 2},
+      loc: d.loc,
       type: 'String',
-      value: src
+      value: JSON.parse(d.src)
     };
   }
 %}
-
-string -> null {% noopStr %}
-    | string stringchar {% function(d){return d[0] + d[1]} %}
-
-stringchar ->
-      [^\\"] {% id %}
-    | "\\" [^] {% function(d){return JSON.parse('"' + d[0] + d[1] + '"')} %}
 
 ################################################################################
 # Utils
