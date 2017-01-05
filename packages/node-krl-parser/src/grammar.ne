@@ -137,10 +137,10 @@ var booleanAST = function(value){
 
 var unaryOp = function(data, start){
   return {
-    loc: {start: start, end: data[2].loc.end},
+    loc: mkLoc(data),
     type: "UnaryOperator",
-    op: data[0],
-    arg: data[2]
+    op: data[0].src,
+    arg: data[1]
   };
 };
 
@@ -242,9 +242,14 @@ var tok_OPEN_PAREN = tok("RAW", "(");
 var tok_CLSE_PAREN = tok("RAW", ")");
 var tok_OPEN_CURLY = tok("RAW", "{");
 var tok_CLSE_CURLY = tok("RAW", "}");
-var tok_SEMI = tok("RAW", ";");
+
+var tok_COMMA = tok("RAW", ",");
 var tok_EQ = tok("RAW", "=");
+var tok_PLUS = tok("RAW", "+");
+var tok_MINUS = tok("RAW", "-");
 var tok_FAT_ARROW_RIGHT = tok("RAW", "=>");
+var tok_PIPE = tok("RAW", "|");
+var tok_SEMI = tok("RAW", ";");
 
 
 var tok_after = tok("SYMBOL", "after");
@@ -258,12 +263,14 @@ var tok_description = tok("SYMBOL", "description");
 var tok_errors = tok("SYMBOL", "errors");
 var tok_every = tok("SYMBOL", "every");
 var tok_false = tok("SYMBOL", "false");
+var tok_function = tok("SYMBOL", "function");
 var tok_if = tok("SYMBOL", "if");
 var tok_keys = tok("SYMBOL", "keys");
 var tok_logging = tok("SYMBOL", "logging");
 var tok_meta = tok("SYMBOL", "meta");
 var tok_module = tok("SYMBOL", "module");
 var tok_name = tok("SYMBOL", "name");
+var tok_not = tok("SYMBOL", "not");
 var tok_or = tok("SYMBOL", "or");
 var tok_provide  = tok("SYMBOL", "provide");
 var tok_provides = tok("SYMBOL", "provides");
@@ -782,14 +789,14 @@ declaration_list -> Declaration {% idArr %}
 Expression -> exp_conditional {% id %}
 
 exp_conditional -> exp_or {% id %}
-    | exp_or _ "=>" _ exp_or _ "|" _ exp_conditional {%
-  function(data, start){
+    | exp_or %tok_FAT_ARROW_RIGHT exp_or %tok_PIPE exp_conditional {%
+  function(data){
     return {
-      loc: {start: data[0].loc.start, end: data[8].loc.end},
+      loc: mkLoc(data),
       type: 'ConditionalExpression',
       test: data[0],
-      consequent: data[4],
-      alternate: data[8]
+      consequent: data[2],
+      alternate: data[4]
     };
   }
 %}
@@ -824,9 +831,9 @@ exp_product -> UnaryOperator {% id %}
     | exp_product _ "%" _ UnaryOperator {% infixOp %}
 
 UnaryOperator -> MemberExpression {% id %}
-    | "+" _ UnaryOperator {% unaryOp %}
-    | "-" _ UnaryOperator {% unaryOp %}
-    | "not" __ UnaryOperator {% unaryOp %}
+    | %tok_PLUS UnaryOperator {% unaryOp %}
+    | %tok_MINUS UnaryOperator {% unaryOp %}
+    | %tok_not UnaryOperator {% unaryOp %}
 
 MemberExpression -> PrimaryExpression {% id %}
     | MemberExpression _ "[" _ Expression _ loc_close_square
@@ -863,23 +870,20 @@ Expression_list_body ->
 ################################################################################
 # Functions
 
-Function -> "function" _ "(" function_params ")" _ "{" Statement_list loc_close_curly {%
-  function(data, start){
+Function -> %tok_function %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_OPEN_CURLY Statement_list %tok_CLSE_CURLY {%
+  function(data){
     return {
-      loc: {start: start, end: last(data)},
+      loc: mkLoc(data),
       type: 'Function',
-      params: data[3],
-      body: data[7]
+      params: data[2],
+      body: data[5]
     };
   }
 %}
 
-function_params -> _ {% noopArr %}
-    | _ function_params_body _ {% getN(1) %}
-
-function_params_body ->
-      Identifier {% idArr %}
-    | function_params_body _ "," _ Identifier {% concatArr(4) %}
+function_params -> null {% noopArr %}
+    | Identifier {% idArr %}
+    | function_params %tok_COMMA Identifier {% concatArr(2) %}
 
 Application -> MemberExpression %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN {%
   function(data, start){
