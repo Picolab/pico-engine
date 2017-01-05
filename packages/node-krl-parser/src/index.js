@@ -29,18 +29,20 @@ var mkParseError = function(src, line, col, orig_err, filename){
 module.exports = function(src, opts){
   opts = opts || {};
 
+  var tokens = tokenizer(src).filter(function(t){
+    return true
+      && t.type !== "WHITESPACE"
+      && t.type !== "LINE-COMMENT"
+      && t.type !== "BLOCK-COMMENT"
+      ;
+  });
+
   var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
   try{
-    p.feed(tokenizer(src).filter(function(t){
-      return true
-        && t.type !== "WHITESPACE"
-        && t.type !== "LINE-COMMENT"
-        && t.type !== "BLOCK-COMMENT"
-        ;
-    }));
+    p.feed(tokens);
   }catch(e){
-    if(typeof e.offset === "number"){
-      var lc = lineColumn(src, e.offset);
+    if(typeof e.offset === "number" && tokens[e.offset] && tokens[e.offset].loc){
+      var lc = lineColumn(src, tokens[e.offset].loc.start);
       if(lc){
         throw mkParseError(src, lc.line, lc.col, e, opts.filename);
       }
