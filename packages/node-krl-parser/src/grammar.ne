@@ -155,9 +155,9 @@ var infixOp = function(data, start){
 };
 
 var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
-  return function(data, start){
+  return function(data){
     return {
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       type: 'RulePostlude',
       fired: get(data, fired_i, null),
       notfired: get(data, notfired_i, null),
@@ -293,8 +293,10 @@ var tok_PIPE = tok("RAW", "|");
 var tok_SEMI = tok("RAW", ";");
 var tok_STAR = tok("RAW", "*");
 
+var tok_active = tok("SYMBOL", "active");
 var tok_after = tok("SYMBOL", "after");
 var tok_alias = tok("SYMBOL", "alias");
+var tok_always = tok("SYMBOL", "always");
 var tok_and = tok("SYMBOL", "and");
 var tok_any = tok("SYMBOL", "any");
 var tok_author = tok("SYMBOL", "author");
@@ -308,9 +310,14 @@ var tok_description = tok("SYMBOL", "description");
 var tok_errors = tok("SYMBOL", "errors");
 var tok_every = tok("SYMBOL", "every");
 var tok_eq = tok("SYMBOL", "eq");
+var tok_else = tok("SYMBOL", "else");
 var tok_false = tok("SYMBOL", "false");
+var tok_fired = tok("SYMBOL", "fired");
+var tok_finally = tok("SYMBOL", "finally");
 var tok_function = tok("SYMBOL", "function");
 var tok_if = tok("SYMBOL", "if");
+var tok_inactive = tok("SYMBOL", "inactive");
+var tok_is = tok("SYMBOL", "is");
 var tok_keys = tok("SYMBOL", "keys");
 var tok_like = tok("SYMBOL", "like");
 var tok_logging = tok("SYMBOL", "logging");
@@ -323,6 +330,7 @@ var tok_not = tok("SYMBOL", "not");
 var tok_or = tok("SYMBOL", "or");
 var tok_off = tok("SYMBOL", "off");
 var tok_on = tok("SYMBOL", "on");
+var tok_pre = tok("SYMBOL", "pre");
 var tok_provide  = tok("SYMBOL", "provide");
 var tok_provides = tok("SYMBOL", "provides");
 var tok_repeat = tok("SYMBOL", "repeat");
@@ -484,7 +492,7 @@ SHAREs -> (%tok_shares | %tok_share) {%
 %}
 
 Identifier_list -> Identifier {% idArr %}
-    | Identifier_list _ "," _ Identifier {% concatArr(4) %}
+    | Identifier_list %tok_COMMA Identifier {% concatArr(2) %}
 
 RulesetID_list -> RulesetID {% idArr %}
     | RulesetID_list _ "," _ RulesetID {% concatArr(4) %}
@@ -497,7 +505,7 @@ OnOrOff -> %tok_on  {% booleanAST(true ) %}
 # Rule
 #
 
-rule -> %tok_rule Identifier (__ "is" __ rule_state):? %tok_OPEN_CURLY
+rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
   (RuleSelect %tok_SEMI:?):?
 
   RuleBody
@@ -508,7 +516,7 @@ rule -> %tok_rule Identifier (__ "is" __ rule_state):? %tok_OPEN_CURLY
       loc: mkLoc(data),
       type: 'Rule',
       name: data[1],
-      rule_state: data[2] ? data[2][3] : "active",
+      rule_state: data[2] ? data[2][1].src : "active",
       select: data[4] && data[4][0],
       prelude: data[5][1] || [],
       action_block: data[5][2],
@@ -517,7 +525,7 @@ rule -> %tok_rule Identifier (__ "is" __ rule_state):? %tok_OPEN_CURLY
   }
 %}
 
-rule_state -> "active" {% id %} | "inactive" {% id %}
+rule_state -> %tok_active {% id %} | %tok_inactive {% id %}
 
 RuleSelect -> %tok_select %tok_when EventExpression {%
   function(data, start){
@@ -546,7 +554,7 @@ RuleBody -> null {% idIndecies(-1, -1, -1, -1) %}
     | RulePrelude RuleActionBlock RulePostlude
       {% idIndecies(-1, 0, 1, 2) %}
 
-RulePrelude -> "pre" _ declaration_block {% getN(2) %}
+RulePrelude -> %tok_pre declaration_block {% getN(1) %}
 
 ################################################################################
 #
@@ -699,26 +707,20 @@ Identifier_or_DomainIdentifier ->
 #
 
 RulePostlude ->
-      "always" _ postlude_clause {% RulePostlude_by_paths(null, null, [2, 0]) %}
-    | "fired" _ postlude_clause
-      (_ "else" _ postlude_clause):?
-      (_ "finally" _ postlude_clause):?
-      {% RulePostlude_by_paths([2, 0], [3, 3, 0], [4, 3, 0]) %}
-
-postlude_clause -> "{" PostludeStatements loc_close_curly {%
-  function(d){
-    //we need to keep the location of the close curly
-    return [d[1],d[2]];
-  }
-%}
+      %tok_always %tok_OPEN_CURLY PostludeStatements %tok_CLSE_CURLY
+      {% RulePostlude_by_paths(null, null, [2]) %}
+    | %tok_fired %tok_OPEN_CURLY PostludeStatements %tok_CLSE_CURLY
+      (%tok_else %tok_OPEN_CURLY PostludeStatements %tok_CLSE_CURLY):?
+      (%tok_finally %tok_OPEN_CURLY PostludeStatements %tok_CLSE_CURLY):?
+      {% RulePostlude_by_paths([2], [4, 2], [5, 2]) %}
 
 PostludeStatements ->
-      _ {% noopArr %}
-    | _ PostludeStatements_body _ {% getN(1) %}
+      null {% noopArr %}
+    | PostludeStatements_body {% id %}
 
 PostludeStatements_body ->
       PostludeStatement {% idArr %}
-    | PostludeStatements_body _ ";" _ PostludeStatement {% concatArr(4) %}
+    | PostludeStatements_body %tok_SEMI PostludeStatement {% concatArr(2) %}
 
 PostludeStatement ->
       Statement {% id %}
@@ -815,8 +817,8 @@ Statement_list_body ->
       Statement {% idArr %}
     | Statement_list_body _ ";" _ Statement {% concatArr(4) %}
 
-declaration_block -> "{" _ "}" {% noopArr %}
-    | "{" _ declaration_list _ "}" {% getN(2) %}
+declaration_block -> %tok_OPEN_CURLY %tok_CLSE_CURLY {% noopArr %}
+    | %tok_OPEN_CURLY declaration_list %tok_CLSE_CURLY {% getN(1) %}
 
 declaration_list -> Declaration {% idArr %}
     | declaration_list Declaration {% concatArr(1) %}
