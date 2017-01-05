@@ -49,21 +49,65 @@ test("tokenizer", function(t){
       "[NUMBER]3"
   ]);
 
-  tst("<<some chevron\n\"?\"//string\nok?>>", [
+  tst("<<some chevron\n\"?\"//string\nok?>>ok", [
       "[CHEVRON-OPEN]<<",
       "[CHEVRON-STRING]some chevron\n\"?\"//string\nok?",
+      "[CHEVRON-CLOSE]>>",
+      "[SYMBOL]ok",
+  ]);
+
+  tst("<<This #{\"is\"} a beesting>>", [
+      "[CHEVRON-OPEN]<<",
+      "[CHEVRON-STRING]This ",
+      "[CHEVRON-BEESTING-OPEN]#{",
+      "[STRING]\"is\"",
+      "[CHEVRON-BEESTING-CLOSE]}",
+      "[CHEVRON-STRING] a beesting",
       "[CHEVRON-CLOSE]>>",
   ]);
 
   tst("<<This #{x{\"flip\"}} that >\\> >>", [
       "[CHEVRON-OPEN]<<",
-      "[CHEVRON-STRING]This #{x{\"flip\"}} that >\\> ",
+      "[CHEVRON-STRING]This ",
+      "[CHEVRON-BEESTING-OPEN]#{",
+      "[SYMBOL]x",
+      "[RAW]{",
+      "[STRING]\"flip\"",
+      "[RAW]}",
+      "[CHEVRON-BEESTING-CLOSE]}",
+      "[CHEVRON-STRING] that >\\> ",
       "[CHEVRON-CLOSE]>>",
   ]);
 
   tst("<<This #{x{\"flip\"}} that >\\>>>", [
       "[CHEVRON-OPEN]<<",
-      "[CHEVRON-STRING]This #{x{\"flip\"}} that >\\>",
+      "[CHEVRON-STRING]This ",
+      "[CHEVRON-BEESTING-OPEN]#{",
+      "[SYMBOL]x",
+      "[RAW]{",
+      "[STRING]\"flip\"",
+      "[RAW]}",
+      "[CHEVRON-BEESTING-CLOSE]}",
+      "[CHEVRON-STRING] that >\\>",
+      "[CHEVRON-CLOSE]>>",
+  ]);
+  tst("<<#{ x }{#{{{{}}}}}>>", [
+      "[CHEVRON-OPEN]<<",
+      "[CHEVRON-BEESTING-OPEN]#{",
+      "[WHITESPACE] ",
+      "[SYMBOL]x",
+      "[WHITESPACE] ",
+      "[CHEVRON-BEESTING-CLOSE]}",
+      "[CHEVRON-STRING]{",
+      "[CHEVRON-BEESTING-OPEN]#{",
+      "[RAW]{",
+      "[RAW]{",
+      "[RAW]{",
+      "[RAW]}",
+      "[RAW]}",
+      "[RAW]}",
+      "[CHEVRON-BEESTING-CLOSE]}",
+      "[CHEVRON-STRING]}",
       "[CHEVRON-CLOSE]>>",
   ]);
 

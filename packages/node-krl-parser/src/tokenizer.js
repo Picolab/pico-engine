@@ -5,6 +5,10 @@ module.exports = function(src, opts){
 
   var c;
   var next_is_escaped;
+
+  var is_in_beesting = false;
+  var beesting_curly_count = 0;
+
   var buff = "";
   var i = 0;
   var next_loc = 0;
@@ -68,11 +72,20 @@ module.exports = function(src, opts){
 
     ///////////////////////////////////////////////////////////////////////////
     //chevron
-    }else if(c === "<" && (src[i + 1] === "<")){
+    }else if(false
+        || (c === "<" && (src[i + 1] === "<"))
+        || (c === "}" && is_in_beesting && beesting_curly_count === 0)
+        ){
       ctxChange();
-      buff = src.substring(i, i + 2);
-      i += 2;
-      pushTok("CHEVRON-OPEN");
+      if(is_in_beesting){
+        pushTok("CHEVRON-BEESTING-CLOSE");
+        i++;
+        is_in_beesting = false;
+      }else{
+        buff = src.substring(i, i + 2);
+        i += 2;
+        pushTok("CHEVRON-OPEN");
+      }
       next_is_escaped = false;
       while(i < src.length){
         c = src[i];
@@ -83,16 +96,29 @@ module.exports = function(src, opts){
             next_is_escaped = true;
           }
           if(c === ">" && (src[i + 1] === ">")){
-            pushTok("CHEVRON-STRING");
+            if(buff.length > 0){
+              pushTok("CHEVRON-STRING");
+            }
             buff = src.substring(i, i + 2);
-            i += 2;
+            i += 1;
+            pushTok("CHEVRON-CLOSE");
+            break;
+          }
+          if(c === "#" && (src[i + 1] === "{")){
+            if(buff.length > 0){
+              pushTok("CHEVRON-STRING");
+            }
+            buff = src.substring(i, i + 2);
+            i += 1;
+            pushTok("CHEVRON-BEESTING-OPEN");
+            is_in_beesting = true;
+            beesting_curly_count = 0;
             break;
           }
         }
         buff += c;
         i++;
       }
-      pushTok("CHEVRON-CLOSE");
 
     ///////////////////////////////////////////////////////////////////////////
     //number
@@ -207,6 +233,13 @@ module.exports = function(src, opts){
     }else if("(){}[];".indexOf(c) >= 0){//single char groups
       ctxChange();
       pushTok("RAW");
+      if(is_in_beesting){
+        if(c === "{"){
+          beesting_curly_count++;
+        }else if(c === "}"){
+          beesting_curly_count--;
+        }
+      }
     }else{
       buff += c;
     }
