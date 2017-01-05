@@ -247,46 +247,39 @@ var tok_EQ = tok("RAW", "=");
 var tok_FAT_ARROW_RIGHT = tok("RAW", "=>");
 
 
-var tok_ruleset = tok("SYMBOL", "ruleset");
-var tok_rule = tok("SYMBOL", "rule");
-var tok_meta = tok("SYMBOL", "meta");
-var tok_select = tok("SYMBOL", "select");
-var tok_when = tok("SYMBOL", "when");
-var tok_with = tok("SYMBOL", "with");
-
-var tok_name = tok("SYMBOL", "name");
-var tok_description = tok("SYMBOL", "description");
-var tok_author = tok("SYMBOL", "author");
-var tok_logging = tok("SYMBOL", "logging");
-var tok_keys = tok("SYMBOL", "keys");
-var tok_use = tok("SYMBOL", "use");
-var tok_module = tok("SYMBOL", "module");
-var tok_version = tok("SYMBOL", "version");
+var tok_after = tok("SYMBOL", "after");
 var tok_alias = tok("SYMBOL", "alias");
-var tok_errors = tok("SYMBOL", "errors");
-var tok_to = tok("SYMBOL", "to");
-var tok_version = tok("SYMBOL", "version");
+var tok_and = tok("SYMBOL", "and");
+var tok_author = tok("SYMBOL", "author");
+var tok_before = tok("SYMBOL", "before");
+var tok_choose = tok("SYMBOL", "choose");
 var tok_configure = tok("SYMBOL", "configure");
-var tok_using = tok("SYMBOL", "using");
+var tok_description = tok("SYMBOL", "description");
+var tok_errors = tok("SYMBOL", "errors");
+var tok_every = tok("SYMBOL", "every");
+var tok_false = tok("SYMBOL", "false");
+var tok_if = tok("SYMBOL", "if");
+var tok_keys = tok("SYMBOL", "keys");
+var tok_logging = tok("SYMBOL", "logging");
+var tok_meta = tok("SYMBOL", "meta");
+var tok_module = tok("SYMBOL", "module");
+var tok_name = tok("SYMBOL", "name");
+var tok_or = tok("SYMBOL", "or");
 var tok_provide  = tok("SYMBOL", "provide");
 var tok_provides = tok("SYMBOL", "provides");
+var tok_ruleset = tok("SYMBOL", "ruleset");
+var tok_rule = tok("SYMBOL", "rule");
 var tok_share  = tok("SYMBOL", "share");
 var tok_shares = tok("SYMBOL", "shares");
-
-var tok_if = tok("SYMBOL", "if");
+var tok_select = tok("SYMBOL", "select");
 var tok_then = tok("SYMBOL", "then");
-
+var tok_to = tok("SYMBOL", "to");
 var tok_true = tok("SYMBOL", "true");
-var tok_false = tok("SYMBOL", "false");
-
-var tok_or = tok("SYMBOL", "or");
-var tok_and = tok("SYMBOL", "and");
-var tok_before = tok("SYMBOL", "before");
-var tok_then = tok("SYMBOL", "then");
-var tok_after = tok("SYMBOL", "after");
-
-var tok_choose = tok("SYMBOL", "choose");
-var tok_every = tok("SYMBOL", "every");
+var tok_use = tok("SYMBOL", "use");
+var tok_using = tok("SYMBOL", "using");
+var tok_version = tok("SYMBOL", "version");
+var tok_when = tok("SYMBOL", "when");
+var tok_with = tok("SYMBOL", "with");
 
 %}
 
