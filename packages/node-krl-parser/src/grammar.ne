@@ -891,13 +891,13 @@ Expression_list_body ->
 ################################################################################
 # Functions
 
-Function -> %tok_function %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_OPEN_CURLY Statement_list %tok_CLSE_CURLY {%
+Function -> %tok_function %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_OPEN_CURLY Statement_list:? %tok_CLSE_CURLY {%
   function(data){
     return {
       loc: mkLoc(data),
       type: 'Function',
       params: data[2],
-      body: data[5]
+      body: data[5] || []
     };
   }
 %}
