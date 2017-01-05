@@ -36,16 +36,15 @@ PicoEngine({
     if (episode) {
       episode.logs.push(timestamp+" "+message);
     } else {
-      episode = {};
-      episode.key = timestamp.replace(".","-") + " - " + eci
-        + ((context.event) ? " - " + context.event.eid : " - query");
-      episode.logs = [timestamp+" "+message];
-      logs[eci] = episode;
+      console.log("[ERROR]","no episode found for",eci);
     }
   };
   var logEpisode = function(pico_id,context,callback){
     var eci = context.eci;
     var episode = logs[eci];
+    if (!episode) {
+      console.log("[ERROR]","no episode found for",eci);
+    }
     pe.db.getEntVar(pico_id,logRID,"status",function(e,status){
       if (status) {
         pe.db.getEntVar(pico_id,logRID,"logs",function(e,data){
@@ -59,6 +58,23 @@ PicoEngine({
       }
     });
   };
+  pe.emitter.on("episode_start", function(context){
+    console.log("EPISODE_START",context);
+    var eci = context.eci;
+    var timestamp = (new Date()).toISOString();
+    var episode = logs[eci];
+    if (episode) {
+      console.log("[ERROR]","episode already exists for",eci);
+    } else {
+      episode = {};
+      episode.key = (
+        timestamp + " - " + eci
+          + " - " + ((context.event) ? context.event.eid : "query")
+        ).replace(/[.]/g, "-");
+      episode.logs = [];
+      logs[eci] = episode;
+    }
+  });
   pe.emitter.on("klog", function(context, val, message){
     console.log("[KLOG]", message, val);
     logEntry(context,"[KLOG] "+message+" "+val);
@@ -72,13 +88,13 @@ PicoEngine({
       prefix = context.query.rid + "/" + context.query.name + " ";
     }
     logEntry(context,prefix+message);
-    var callback = function(outcome){};
-    if (/^event finished processing$/.test(message)) {
-      logEpisode(context.pico_id,context,callback);
-    } else if (/^query added to pico queue: /.test(message)) {
-      var pico_id = message.split(" ")[5];
-      logEpisode(pico_id,context,callback);
-    }
+  });
+  pe.emitter.on("episode_stop", function(context){
+    console.log("EPISODE_STOP",context);
+    var callback = function(outcome){
+      console.log("[EPISODE_REMOVED]",outcome);
+    };
+    logEpisode(context.pico_id,context,callback);
   });
 
   var router = HttpHashRouter();
