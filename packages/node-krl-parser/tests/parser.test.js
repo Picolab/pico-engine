@@ -1583,7 +1583,8 @@ test('no ambiguity!', function(t){
 
   //a >< "blah" -or- a > "<blah"
   testAmb('a><<<blah>>');
-  testAmb('<<blah>>><a', true);//"blah"><a, >< needs whitespace around it
+  //"blah" >< a -or- "blah>" < a
+  testAmb('<<blah>>><a')
   testAmb('<<blah>><a');//"blah"<a
 
   //in this case where should be an attribute
