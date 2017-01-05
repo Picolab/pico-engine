@@ -1,34 +1,5 @@
 @{%
 
-var last = function(arr){
-  return arr[arr.length - 1];
-};
-
-var values = function(obj){
-  var v = [];
-  var key;
-  for(key in obj){
-    if(obj.hasOwnProperty(key)){
-      v.push(obj[key]);
-    }
-  }
-  return v;
-};
-
-var lastEndLoc = function(data){
-  var nodes = flatten([data]);
-  var i, node;
-  for(i = nodes.length - 1; i >= 0; i--){
-    node = nodes[i];
-    if(node && node.loc){
-      return node.loc.end;
-    }else if(typeof node === "number"){
-      return node;
-    }
-  }
-  return -1;
-};
-
 var flatten = function(toFlatten){
   var isArray = Object.prototype.toString.call(toFlatten) === '[object Array]';
 
@@ -71,9 +42,7 @@ var reserved_identifiers = {
 ////////////////////////////////////////////////////////////////////////////////
 // ast functions
 var noop = function(){};
-var noopStr = function(){return ""};
 var noopArr = function(){return []};
-var idAll = function(d){return flatten(d).join('')};
 var idArr = function(d){return [d[0]]};
 var idEndLoc = function(data, start){return start + flatten(data).join('').length};
 
@@ -115,7 +84,7 @@ var complexEventOp = function(op){
   var arg_indices = Array.prototype.slice.call(arguments, 1);
   return function(data, start){
     return {
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       type: 'EventOperator',
       op: op,
       args: flatten(arg_indices.map(function(i){
@@ -374,7 +343,7 @@ main -> Ruleset {% id %}
 #
 
 Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
-  (RulesetMeta _):?
+  RulesetMeta:?
   (%tok_global declaration_block):?
   rule:*
 %tok_CLSE_CURLY {%
@@ -383,7 +352,7 @@ Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
       loc: mkLoc(data),
       type: 'Ruleset',
       rid: data[1],
-      meta: data[3] ? data[3][0] : void 0,
+      meta: data[3] || void 0,
       global: data[4] ? data[4][1] : [],
       rules: data[5]
     };
@@ -1095,18 +1064,8 @@ String -> %tok_STRING {%
 # Utils
 
 # Chars that return their end location
-loc_close_curly -> "}" {% idEndLoc %}
-loc_close_square -> "]" {% idEndLoc %}
 loc_close_paren -> ")" {% idEndLoc %}
-loc_close_chevron -> ">>" {% idEndLoc %}
 
 # Whitespace and Semi-colons
 _  -> [\s]:* {% noop %}
 __ -> [\s]:+ {% noop %}
-
-##optional space and/or semi-colon
-_semi -> [\s;]:* {% noop %}
-
-##required space and/or semi-colon
-__semi -> [\s;]:+ {% noop %}
-#if you must have semi-colon, use ";" directly
