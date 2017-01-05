@@ -277,6 +277,7 @@ var tok_and = tok("SYMBOL", "and");
 var tok_any = tok("SYMBOL", "any");
 var tok_attributes = tok("SYMBOL", "attributes");
 var tok_author = tok("SYMBOL", "author");
+var tok_avg = tok("SYMBOL", "avg");
 var tok_before = tok("SYMBOL", "before");
 var tok_between = tok("SYMBOL", "between");
 var tok_choose = tok("SYMBOL", "choose");
@@ -302,6 +303,7 @@ var tok_keys = tok("SYMBOL", "keys");
 var tok_like = tok("SYMBOL", "like");
 var tok_logging = tok("SYMBOL", "logging");
 var tok_max = tok("SYMBOL", "max");
+var tok_min = tok("SYMBOL", "min");
 var tok_meta = tok("SYMBOL", "meta");
 var tok_module = tok("SYMBOL", "module");
 var tok_name = tok("SYMBOL", "name");
@@ -313,6 +315,7 @@ var tok_on = tok("SYMBOL", "on");
 var tok_pre = tok("SYMBOL", "pre");
 var tok_provide  = tok("SYMBOL", "provide");
 var tok_provides = tok("SYMBOL", "provides");
+var tok_push = tok("SYMBOL", "push");
 var tok_raise = tok("SYMBOL", "raise");
 var tok_repeat = tok("SYMBOL", "repeat");
 var tok_ruleset = tok("SYMBOL", "ruleset");
@@ -321,6 +324,7 @@ var tok_share  = tok("SYMBOL", "share");
 var tok_shares = tok("SYMBOL", "shares");
 var tok_select = tok("SYMBOL", "select");
 var tok_setting = tok("SYMBOL", "setting");
+var tok_sum = tok("SYMBOL", "sum");
 var tok_then = tok("SYMBOL", "then");
 var tok_to = tok("SYMBOL", "to");
 var tok_true = tok("SYMBOL", "true");
@@ -476,7 +480,7 @@ Identifier_list -> Identifier {% idArr %}
     | Identifier_list %tok_COMMA Identifier {% concatArr(2) %}
 
 RulesetID_list -> RulesetID {% idArr %}
-    | RulesetID_list _ "," _ RulesetID {% concatArr(4) %}
+    | RulesetID_list %tok_COMMA RulesetID {% concatArr(2) %}
 
 OnOrOff -> %tok_on  {% booleanAST(true ) %}
          | %tok_off {% booleanAST(false) %}
@@ -574,22 +578,22 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("and", 2) %}
     | %tok_or %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
       {% complexEventOp("or", 2) %}
-    | "before" _ "(" _ EventExpression_list _ loc_close_paren
-      {% complexEventOp("before", 4) %}
-    | "then" _ "(" _ EventExpression_list _ loc_close_paren
-      {% complexEventOp("then", 4) %}
-    | "after" _ "(" _ EventExpression_list _ loc_close_paren
-      {% complexEventOp("after", 4) %}
+    | %tok_before %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
+      {% complexEventOp("before", 2) %}
+    | %tok_then %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
+      {% complexEventOp("then", 2) %}
+    | %tok_after %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
+      {% complexEventOp("after", 2) %}
     | event_exp_fns %tok_max %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
       {% complexEventOp("max", 0, 3) %}
-    | event_exp_fns __  "min" _ "(" function_params loc_close_paren
-      {% complexEventOp("min", 0, 5) %}
-    | event_exp_fns __  "sum" _ "(" function_params loc_close_paren
-      {% complexEventOp("sum", 0, 5) %}
-    | event_exp_fns __  "avg" _ "(" function_params loc_close_paren
-      {% complexEventOp("avg", 0, 5) %}
-    | event_exp_fns __  "push" _ "(" function_params loc_close_paren
-      {% complexEventOp("push", 0, 5) %}
+    | event_exp_fns %tok_min %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
+      {% complexEventOp("min", 0, 3) %}
+    | event_exp_fns %tok_sum %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
+      {% complexEventOp("sum", 0, 3) %}
+    | event_exp_fns %tok_avg %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
+      {% complexEventOp("avg", 0, 3) %}
+    | event_exp_fns %tok_push %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
+      {% complexEventOp("push", 0, 3) %}
 
 event_exp_base -> %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN {% getN(1) %}
   | Identifier Identifier
@@ -1059,13 +1063,3 @@ String -> %tok_STRING {%
     };
   }
 %}
-
-################################################################################
-# Utils
-
-# Chars that return their end location
-loc_close_paren -> ")" {% idEndLoc %}
-
-# Whitespace and Semi-colons
-_  -> [\s]:* {% noop %}
-__ -> [\s]:+ {% noop %}

@@ -1129,6 +1129,27 @@ test('EventExpression', function(t){
     ]
   });
 
+  testEE('a b min(c, d)', {
+    type: 'EventOperator',
+    op: 'min',
+    args: [mk.ee('a', 'b'), mk.id('c'), mk.id('d')]
+  });
+  testEE('a b sum(c, d)', {
+    type: 'EventOperator',
+    op: 'sum',
+    args: [mk.ee('a', 'b'), mk.id('c'), mk.id('d')]
+  });
+  testEE('a b avg(c, d)', {
+    type: 'EventOperator',
+    op: 'avg',
+    args: [mk.ee('a', 'b'), mk.id('c'), mk.id('d')]
+  });
+  testEE('a b push(c, d)', {
+    type: 'EventOperator',
+    op: 'push',
+    args: [mk.ee('a', 'b'), mk.id('c'), mk.id('d')]
+  });
+
   testEE('a b within 5 minutes', {
     type: 'EventOperator',
     op: 'within',
@@ -1153,6 +1174,31 @@ test('EventExpression', function(t){
       },
       mk(5),
       mk('minutes')
+    ]
+  });
+
+  testEE('before (a b, c d)', {
+    type: 'EventOperator',
+    op: 'before',
+    args: [
+      mk.ee('a', 'b'),
+      mk.ee('c', 'd')
+    ]
+  });
+  testEE('then (a b, c d)', {
+    type: 'EventOperator',
+    op: 'then',
+    args: [
+      mk.ee('a', 'b'),
+      mk.ee('c', 'd')
+    ]
+  });
+  testEE('after (a b, c d)', {
+    type: 'EventOperator',
+    op: 'after',
+    args: [
+      mk.ee('a', 'b'),
+      mk.ee('c', 'd')
     ]
   });
 
