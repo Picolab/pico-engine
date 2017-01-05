@@ -70,16 +70,29 @@ module.exports = function(src, opts){
     //chevron
     }else if(c === "<" && (src[i + 1] === "<")){
       ctxChange();
-      i++;
+      buff = src.substring(i, i + 2);
+      i += 2;
+      pushTok("CHEVRON-OPEN");
+      next_is_escaped = false;
       while(i < src.length){
         c = src[i];
-        buff += c;
-        if(c === ">" && (src[i - 1] === ">") && (src[i - 2] !== "\\")){
-          break;
+        if(next_is_escaped){
+          next_is_escaped = false;
+        }else{
+          if(c === "\\"){
+            next_is_escaped = true;
+          }
+          if(c === ">" && (src[i + 1] === ">")){
+            pushTok("CHEVRON-STRING");
+            buff = src.substring(i, i + 2);
+            i += 2;
+            break;
+          }
         }
+        buff += c;
         i++;
       }
-      pushTok("CHEVRON");
+      pushTok("CHEVRON-CLOSE");
 
     ///////////////////////////////////////////////////////////////////////////
     //number

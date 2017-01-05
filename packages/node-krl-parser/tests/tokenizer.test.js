@@ -50,22 +50,28 @@ test("tokenizer", function(t){
   ]);
 
   tst("<<some chevron\n\"?\"//string\nok?>>", [
-      "[CHEVRON]<<some chevron\n\"?\"//string\nok?>>",
+      "[CHEVRON-OPEN]<<",
+      "[CHEVRON-STRING]some chevron\n\"?\"//string\nok?",
+      "[CHEVRON-CLOSE]>>",
   ]);
 
   tst("<<This #{x{\"flip\"}} that >\\> >>", [
-      "[CHEVRON]<<This #{x{\"flip\"}} that >\\> >>",
+      "[CHEVRON-OPEN]<<",
+      "[CHEVRON-STRING]This #{x{\"flip\"}} that >\\> ",
+      "[CHEVRON-CLOSE]>>",
   ]);
 
   tst("<<This #{x{\"flip\"}} that >\\>>>", [
-      "[CHEVRON]<<This #{x{\"flip\"}} that >\\>>>",
+      "[CHEVRON-OPEN]<<",
+      "[CHEVRON-STRING]This #{x{\"flip\"}} that >\\>",
+      "[CHEVRON-CLOSE]>>",
   ]);
 
   tst("<<This /* wat */\n//ok\n>>", [
-      "[CHEVRON]<<This /* wat */\n//ok\n>>",
+      "[CHEVRON-OPEN]<<",
+      "[CHEVRON-STRING]This /* wat */\n//ok\n",
+      "[CHEVRON-CLOSE]>>",
   ]);
-
-  //NOTE a chevron in a beesting is not allowed.
 
   tst("123", [
       "[NUMBER]123",
