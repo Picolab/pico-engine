@@ -236,6 +236,7 @@ var tok = function(type, value){
 var tok_RAW = tok("RAW");
 var tok_STRING = tok("STRING");
 var tok_NUMBER = tok("NUMBER");
+var tok_REGEXP = tok("REGEXP");
 var tok_SYMBOL = tok("SYMBOL");
 
 var tok_OPEN_PAREN = tok("RAW", "(");
@@ -246,6 +247,7 @@ var tok_OPEN_SQARE = tok("RAW", "[");
 var tok_CLSE_SQARE = tok("RAW", "]");
 
 var tok_COMMA = tok("RAW", ",");
+var tok_COLON = tok("RAW", ":");
 var tok_DOT = tok("RAW", ".");
 var tok_EQ = tok("RAW", "=");
 var tok_PLUS = tok("RAW", "+");
@@ -912,29 +914,29 @@ Array -> %tok_OPEN_SQARE Expression_list %tok_CLSE_SQARE {%
   }
 %}
 
-Map -> "{" Map_body loc_close_curly {%
-  function(data, loc){
+Map -> %tok_OPEN_CURLY Map_body %tok_CLSE_CURLY {%
+  function(data){
     return {
-      loc: {start: loc, end: last(data)},
+      loc: mkLoc(data),
       type: 'Map',
       value: data[1]
     };
   }
 %}
 
-Map_body -> _ {% noopArr %}
-    | _ map_kv_pairs _ {% getN(1) %}
+Map_body -> null {% noopArr %}
+    | map_kv_pairs {% id %}
 
 map_kv_pairs -> map_kv_pair {% idArr %}
-    | map_kv_pairs _ "," _ map_kv_pair {% concatArr(4) %}
+    | map_kv_pairs %tok_COMMA map_kv_pair {% concatArr(2) %}
 
-map_kv_pair -> String _ ":" _ Expression {%
-  function(data, start){
+map_kv_pair -> String %tok_COLON Expression {%
+  function(data){
     return {
-      loc: {start: start, end: data[4].loc.end},
+      loc: mkLoc(data),
       type: 'MapKeyValuePair',
       key: data[0],
-      value: data[4]
+      value: data[2]
     };
   }
 %}
@@ -992,35 +994,18 @@ Number -> %tok_NUMBER {%
   }
 %}
 
-RegExp -> "re#" regexp_pattern "#" regexp_modifiers {%
-  function(data, loc){
-    var pattern = data[1];
-    var modifiers = data[3][0];
+RegExp -> %tok_REGEXP {%
+  function(data){
+    var d = data[0];
+    var pattern = d.src.substring(3, d.src.lastIndexOf("#")).replace(/\\#/g, "#");
+    var modifiers = d.src.substring(d.src.lastIndexOf("#") + 1);
     return {
-      loc: {start: loc, end: data[3][1]},
+      loc: d.loc,
       type: 'RegExp',
       value: new RegExp(pattern, modifiers)
     };
   }
 %}
-
-regexp_pattern ->
-    null {% noopStr %}
-    | regexp_pattern regexp_pattern_char {% function(d){return d[0] + d[1]} %}
-
-regexp_pattern_char ->
-  [^\\#] {% id %}
-  | "\\" [^] {% function(d){return d[1] === '#' ? '#' : '\\\\'} %}
-
-regexp_modifiers -> regexp_modifiers_chars {%
-  function(data, loc){
-    var src = flatten(data).join('');
-    return [src, loc + src.length];
-  }
-%}
-
-regexp_modifiers_chars -> null {% noopStr %}
-    | "i" | "g" | "ig" | "gi"
 
 Chevron -> "<<" chevron_body loc_close_chevron {%
   function(data, loc){
@@ -1061,10 +1046,11 @@ chevron_char ->
 String -> %tok_STRING {%
   function(data, loc){
     var d = data[0];
+    var v = d.src.replace(/(^")|("$)/g, "").replace(/\\"/g, "\"");
     return {
       loc: d.loc,
       type: 'String',
-      value: JSON.parse(d.src)
+      value: v
     };
   }
 %}
