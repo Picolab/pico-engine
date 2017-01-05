@@ -644,7 +644,6 @@ test('literals', function(t){
   testLiteral('<<>>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: ''}
     ]
   });
   testLiteral('<<\n  hello\n  >>', {
@@ -656,9 +655,7 @@ test('literals', function(t){
   testLiteral('<<#{1}>>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: ''},
       {type: 'Number', value: 1},
-      {type: 'String', value: ''}
     ]
   });
 

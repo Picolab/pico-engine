@@ -263,6 +263,12 @@ var tok_NUMBER = tok("NUMBER");
 var tok_REGEXP = tok("REGEXP");
 var tok_SYMBOL = tok("SYMBOL");
 
+var tok_CHEVRON_OPEN = tok("CHEVRON-OPEN");
+var tok_CHEVRON_STRING = tok("CHEVRON-STRING");
+var tok_BEESTING_OPEN = tok("CHEVRON-BEESTING-OPEN");
+var tok_BEESTING_CLOSE = tok("CHEVRON-BEESTING-CLOSE");
+var tok_CHEVRON_CLOSE = tok("CHEVRON-CLOSE");
+
 var tok_OPEN_PAREN = tok("RAW", "(");
 var tok_CLSE_PAREN = tok("RAW", ")");
 var tok_OPEN_CURLY = tok("RAW", "{");
@@ -1049,41 +1055,29 @@ RegExp -> %tok_REGEXP {%
   }
 %}
 
-Chevron -> "<<" chevron_body loc_close_chevron {%
-  function(data, loc){
+Chevron -> %tok_CHEVRON_OPEN ChevronPart:* %tok_CHEVRON_CLOSE {%
+  function(data){
     return {
-      loc: {start: loc - 2, end: last(data)},
+      loc: mkLoc(data),
       type: 'Chevron',
       value: data[1]
     };
   }
 %}
 
-chevron_body ->
-    chevron_string_node {% idArr %}
-    | chevron_body beesting chevron_string_node {% function(d){return d[0].concat([d[1], d[2]])} %}
+ChevronPart -> ChevronString {% id %}
+    | %tok_BEESTING_OPEN Expression %tok_BEESTING_CLOSE {% getN(1) %}
 
-beesting -> "#{" _ Expression _ "}" {% getN(2) %}
-
-chevron_string_node -> chevron_string {%
-  function(data, loc){
-    var src = data[0];
+ChevronString -> %tok_CHEVRON_STRING {%
+  function(data){
+    var d = data[0];
     return {
-      loc: {start: loc, end: loc + src.length},
+      loc: d.loc,
       type: 'String',
-      value: src.replace(/>\\>/g, '>>')
+      value: d.src.replace(/>\\>/g, '>>')
     };
   }
 %}
-
-chevron_string ->
-    null {% noopStr %}
-    | chevron_string chevron_char {% function(d){return d[0] + d[1]} %}
-
-chevron_char ->
-    [^>#] {% id %}
-    | "#" [^{] {% idAll %}
-    | ">" [^>] {% idAll %}
 
 String -> %tok_STRING {%
   function(data, loc){
