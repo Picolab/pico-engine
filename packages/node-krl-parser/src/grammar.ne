@@ -178,31 +178,31 @@ var MemberExpression_method = function(method){
   };
 };
 
-var mkKeyword = function(src, start, normalized_value){
+var mkRulesetMetaProperty = function(data, value, is_obj_value){
+  var key = data[0];
+  if(key.type === "SYMBOL"){
+    key = {
+      loc: key.loc,
+      type: 'Keyword',
+      value: key.src
+    };
+  }
   return {
-    loc: {start: start, end: start + src.length},
-    type: 'Keyword',
-    value: normalized_value || src
-  };
-};
-
-var mkRulesetMetaProperty = function(key, value, start, is_obj_value){
-  return {
-    loc: {start: start, end: lastEndLoc(is_obj_value ? values(value) : value)},
+    loc: mkLoc(data),
     type: 'RulesetMetaProperty',
-    key: typeof key === 'string' ? mkKeyword(key, start) : key,
+    key: key,
     value: value
   };
 };
 
 var metaProp = function(fn, is_obj_value){
-  return function(data, start){
-    return mkRulesetMetaProperty(data[0], fn(data), start, is_obj_value);
+  return function(data){
+    return mkRulesetMetaProperty(data, fn(data), is_obj_value);
   };
 };
 
 var metaProp2part = metaProp(function(data){
-  return data[2];
+  return data[1];
 });
 
 var mkLoc = function(d){
@@ -249,9 +249,29 @@ var tok_FAT_ARROW_RIGHT = tok("RAW", "=>");
 
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
+var tok_meta = tok("SYMBOL", "meta");
 var tok_select = tok("SYMBOL", "select");
 var tok_when = tok("SYMBOL", "when");
 var tok_with = tok("SYMBOL", "with");
+
+var tok_name = tok("SYMBOL", "name");
+var tok_description = tok("SYMBOL", "description");
+var tok_author = tok("SYMBOL", "author");
+var tok_logging = tok("SYMBOL", "logging");
+var tok_keys = tok("SYMBOL", "keys");
+var tok_use = tok("SYMBOL", "use");
+var tok_module = tok("SYMBOL", "module");
+var tok_version = tok("SYMBOL", "version");
+var tok_alias = tok("SYMBOL", "alias");
+var tok_errors = tok("SYMBOL", "errors");
+var tok_to = tok("SYMBOL", "to");
+var tok_version = tok("SYMBOL", "version");
+var tok_configure = tok("SYMBOL", "configure");
+var tok_using = tok("SYMBOL", "using");
+var tok_provide  = tok("SYMBOL", "provide");
+var tok_provides = tok("SYMBOL", "provides");
+var tok_share  = tok("SYMBOL", "share");
+var tok_shares = tok("SYMBOL", "shares");
 
 var tok_if = tok("SYMBOL", "if");
 var tok_then = tok("SYMBOL", "then");
@@ -309,89 +329,98 @@ RulesetID -> %tok_SYMBOL {%
   }
 %}
 
-RulesetMeta -> "meta" _ ruleset_meta_block {%
+RulesetMeta -> %tok_meta %tok_OPEN_CURLY ruleset_meta_prop:* %tok_CLSE_CURLY {%
   function(data, start){
-    var props = data[2];
     return {
-      loc: {start: start, end: lastEndLoc(props)},
+      loc: mkLoc(data),
       type: "RulesetMeta",
-      properties: props
+      properties: data[2]
     };
   }
 %}
 
-ruleset_meta_block -> "{" _ "}" {% noopArr %}
-    | "{" _ ruleset_meta_prop_list _ "}" {% getN(2) %}
-
-ruleset_meta_prop_list -> ruleset_meta_prop {% idArr %}
-    | ruleset_meta_prop_list __ ruleset_meta_prop {% concatArr(2) %}
-
 ruleset_meta_prop ->
-      "name"        __ String {% metaProp2part %}
-    | "description" __ Chevron {% metaProp2part %}
-    | "author"      __ String {% metaProp2part %}
-    | "logging"     __ OnOrOff {% metaProp2part %}
-    | "keys" __ Keyword __ (String | Map)
-      {% metaProp(function(data){return [data[2], data[4][0]]}) %}
-    | "use" __ "module" __ RulesetID
-        (__ "version" __ String):?
-        (__ "alias" __ Identifier):?
-        (__ "with" __ declaration_list):?
+      %tok_name        String {% metaProp2part %}
+    | %tok_description Chevron {% metaProp2part %}
+    | %tok_author      String {% metaProp2part %}
+    | %tok_logging     OnOrOff {% metaProp2part %}
+    | %tok_keys Keyword (String | Map)
+      {% metaProp(function(data){return [data[1], data[2][0]]}) %}
+    | %tok_use %tok_module RulesetID
+        (%tok_version String):?
+        (%tok_alias Identifier):?
+        (%tok_with declaration_list):?
       {% metaProp(function(data){return {
-        kind: data[2],
-        rid: data[4],
-        version: data[5] && data[5][3],
-        alias:   data[6] && data[6][3],
-        'with':  data[7] && data[7][3]
+        kind: data[1],
+        rid: data[2],
+        version: data[3] && data[3][1],
+        alias:   data[4] && data[4][1],
+        'with':  data[5] && data[5][1]
       }}, true) %}
-    | "errors" __ "to" __ RulesetID (__ "version" __ String):?
+    | %tok_errors %tok_to RulesetID (%tok_version String):?
       {% metaProp(function(data){return {
-        rid: data[4],
-        version: data[5] && data[5][3]
+        rid: data[2],
+        version: data[3] && data[3][1]
       }}, true) %}
-    | "configure" __ "using" __ declaration_list
+    | %tok_configure %tok_using declaration_list
       {% metaProp(function(data){return {
-        declarations: data[4]
+        declarations: data[2]
       }}, true) %}
-    | PROVIDEs __ Identifier_list
+    | PROVIDEs Identifier_list
       {% metaProp(function(d){return {
-        ids: d[2]
+        ids: d[1]
       }}, true) %}
-    | PROVIDEs __ ProvidesOperator __ Identifier_list __ "to" __ RulesetID_list
+    | PROVIDEs ProvidesOperator Identifier_list %tok_to RulesetID_list
       {% metaProp(function(d){return {
-        operator: d[2],
-        ids: d[4],
-        rulesets: d[8]
+        operator: d[1],
+        ids: d[2],
+        rulesets: d[4]
       }}, true) %}
-    | SHAREs __ Identifier_list
+    | SHAREs Identifier_list
       {% metaProp(function(d){return {
-        ids: d[2]
+        ids: d[1]
       }}, true) %}
 
-ProvidesOperator -> "keys" {%
+ProvidesOperator -> %tok_keys {%
   function(data, start){
-    var src = flatten(data).join('');
-    return mkKeyword(src, start);
+    var d = data[0];
+    return {
+      loc: d.loc,
+      type: 'Keyword',
+      value: d.src
+    };
   }
 %}
 
-Keyword -> [a-zA-Z_$] [a-zA-Z0-9_$]:* {%
+Keyword -> %tok_SYMBOL {%
   function(data, start){
-    var src = flatten(data).join('');
-    return mkKeyword(src, start);
+    var d = data[0];
+    return {
+      loc: d.loc,
+      type: 'Keyword',
+      value: d.src
+    };
   }
 %}
 
-PROVIDEs -> ("provides" | "provide") {%
+PROVIDEs -> (%tok_provides | %tok_provide) {%
   function(data, start){
-    var src = data[0][0];
-    return mkKeyword(src, start, "provides");
+    var d = data[0][0];
+    return {
+      loc: d.loc,
+      type: 'Keyword',
+      value: "provides"
+    };
   }
 %}
-SHAREs -> ("shares" | "share") {%
+SHAREs -> (%tok_shares | %tok_share) {%
   function(data, start){
-    var src = data[0][0];
-    return mkKeyword(src, start, "shares");
+    var d = data[0][0];
+    return {
+      loc: d.loc,
+      type: 'Keyword',
+      value: "shares"
+    };
   }
 %}
 
