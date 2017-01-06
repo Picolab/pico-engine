@@ -364,9 +364,17 @@ Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
 
 RulesetID -> RulesetID_parts {%
   function(data, start, reject){
-    var src = flatten(data).map(function(d){
-      return d.src;
-    }).join("");
+    var parts = flatten(data);
+    var last_end = false;
+    var i;
+    var src = "";
+    for(i=0; i < parts.length; i++){
+      src += parts[i].src;
+      if(last_end !== false && last_end !== parts[i].loc.start){
+        return reject;
+      }
+      last_end = parts[i].loc.end;
+    }
     if(!/^[a-z][a-z0-9_.\-]*/i.test(src)){
       return reject;
     }

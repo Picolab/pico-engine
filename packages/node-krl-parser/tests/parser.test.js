@@ -1219,6 +1219,8 @@ test('RulesetID', function(t){
 
   testName("1.2.3", false);
   testName(".wat", false);
+  testName("io. picolabs", false);// no spaces
+  testName("some - thing", false);// no spaces
   t.end();
 });
 
