@@ -69,7 +69,7 @@ ruleset io.picolabs.pico {
     if true
     then
       event:send(
-        { "eci": parent.eci, "eid": 155,
+        { "eci": parent.eci, "eid": "child-initialized",
           "domain": "pico", "type": "child_initialized",
           "attrs": event:attrs() })
     fired {
@@ -134,7 +134,7 @@ ruleset io.picolabs.pico {
       && children().length() == 0
     then
       event:send(
-        { "eci": ent:parent.eci, "eid": 53,
+        { "eci": ent:parent.eci, "eid": "child-is-orphan",
           "domain": "pico", "type": "child_is_orphan",
           "attrs": attrs })
   }
