@@ -1,12 +1,11 @@
 var _ = require("lodash");
 var url = require("url");
 var path = require("path");
-var http = require("http");
+var express = require("express");
 var leveldown = require("leveldown");
+var bodyParser = require("body-parser");
 var PicoEngine = require("pico-engine-core");
-var serveStatic = require("ecstatic")({root: path.resolve(__dirname, "..", "public")});
 var RulesetLoader = require("./RulesetLoader");
-var HttpHashRouter = require("http-hash-router");
 var compiler = require("krl-compiler");
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +96,10 @@ PicoEngine({
     logEpisode(context.pico_id,context,callback);
   });
 
-  var router = HttpHashRouter();
+  var app = express();
+  app.use(express.static(path.resolve(__dirname, "..", "public")));
+  app.use(bodyParser.json({type: "application/*+json"}));
+  app.use(bodyParser.urlencoded({type: "application/x-www-form-urlencoded", extended: false}));
 
   var jsonResp = function(res, data){
     res.writeHead(200, {"Content-Type": "application/json"});
@@ -110,13 +112,13 @@ PicoEngine({
   };
 
 
-  router.set("/sky/event/:eci/:eid/:domain/:type", function(req, res, route){
+  app.all("/sky/event/:eci/:eid/:domain/:type", function(req, res){
     var event = {
-      eci: route.params.eci,
-      eid: route.params.eid,
-      domain: route.params.domain,
-      type: route.params.type,
-      attrs: route.data
+      eci: req.params.eci,
+      eid: req.params.eid,
+      domain: req.params.domain,
+      type: req.params.type,
+      attrs: req.query
     };
     pe.signalEvent(event, function(err, response){
       if(err) return errResp(res, err);
@@ -124,12 +126,12 @@ PicoEngine({
     });
   });
 
-  router.set("/sky/cloud/:eci/:rid/:function", function(req, res, route){
+  app.all("/sky/cloud/:eci/:rid/:function", function(req, res){
     var query = {
-      eci: route.params.eci,
-      rid: route.params.rid,
-      name: route.params["function"],
-      args: route.data
+      eci: req.params.eci,
+      rid: req.params.rid,
+      name: req.params["function"],
+      args: req.query
     };
     pe.runQuery(query, function(err, data){
       if(err) return errResp(res, err);
@@ -141,20 +143,20 @@ PicoEngine({
     });
   });
 
-  router.set("/api/db-dump", function(req, res, route){
+  app.all("/api/db-dump", function(req, res){
     pe.db.toObj(function(err, db_data){
       if(err) return errResp(res, err);
       jsonResp(res, db_data);
     });
   });
 
-  router.set("/old", function(req, res, route){
+  app.all("/old", function(req, res){
     pe.db.toObj(function(err, db_data){
       if(err) return errResp(res, err);
 
       var html = "";
       html += "<html>\n<body>\n";
-      html += "<h1>http://localhost:" + server.address().port + "</h1>\n";
+      html += "<h1>http://localhost:" + port + "</h1>\n";
       html += "<h2>Picos</h2>\n";
       _.each(db_data.pico, function(pico){
         html += "<div style=\"margin-left:2em\">\n";
@@ -242,60 +244,60 @@ PicoEngine({
     });
   });
 
-  router.set("/api/owner-channel", function(req, res, route){
+  app.all("/api/owner-channel", function(req, res){
     pe.db.getFirstChannel(function(err, first_channel){
       if(err) return errResp(res, err);
       res.end(JSON.stringify(first_channel, undefined, 2));
     });
   });
 
-  router.set("/api/new-pico", function(req, res, route){
+  app.all("/api/new-pico", function(req, res){
     pe.db.newPico({}, function(err, new_pico){
       if(err) return errResp(res, err);
       res.end(JSON.stringify(new_pico, undefined, 2));
     });
   });
 
-  router.set("/api/rm-pico/:id", function(req, res, route){
-    pe.db.removePico(route.params.id, function(err){
+  app.all("/api/rm-pico/:id", function(req, res){
+    pe.db.removePico(req.params.id, function(err){
       if(err) return errResp(res, err);
       jsonResp(res, {ok: true});
     });
   });
 
-  router.set("/api/pico/:id/new-channel", function(req, res, route){
+  app.all("/api/pico/:id/new-channel", function(req, res){
     pe.db.newChannel({
-      pico_id: route.params.id,
-      name: route.data.name,
-      type: route.data.type
+      pico_id: req.params.id,
+      name: req.query.name,
+      type: req.query.type
     }, function(err, new_channel){
       if(err) return errResp(res, err);
       res.end(JSON.stringify(new_channel, undefined, 2));
     });
   });
 
-  router.set("/api/pico/:id/rm-channel/:eci", function(req, res, route){
-    pe.db.removeChannel(route.params.id, route.params.eci, function(err){
+  app.all("/api/pico/:id/rm-channel/:eci", function(req, res){
+    pe.db.removeChannel(req.params.id, req.params.eci, function(err){
       if(err) return errResp(res, err);
       jsonResp(res, {ok: true});
     });
   });
 
-  router.set("/api/pico/:id/rm-ruleset/:rid", function(req, res, route){
-    pe.db.removeRuleset(route.params.id, route.params.rid, function(err){
+  app.all("/api/pico/:id/rm-ruleset/:rid", function(req, res){
+    pe.db.removeRuleset(req.params.id, req.params.rid, function(err){
       if(err) return errResp(res, err);
       jsonResp(res, {ok: true});
     });
   });
 
-  router.set("/api/pico/:id/add-ruleset", function(req, res, route){
-    pe.db.addRuleset({pico_id: route.params.id, rid: route.data.rid}, function(err){
+  app.all("/api/pico/:id/add-ruleset", function(req, res){
+    pe.db.addRuleset({pico_id: req.params.id, rid: req.query.rid}, function(err){
       if(err) return errResp(res, err);
       jsonResp(res, {ok: true});
     });
   });
 
-  router.set("/api/ruleset/compile", function(req, res, route){
+  app.all("/api/ruleset/compile", function(req, res){
     var src = _.get(url.parse(req.url, true), ["query", "src"]);
     try{
       jsonResp(res, { code: compiler(src).code});
@@ -304,7 +306,7 @@ PicoEngine({
     }
   });
 
-  router.set("/api/ruleset/register", function(req, res, route){
+  app.all("/api/ruleset/register", function(req, res){
     var src = _.get(url.parse(req.url, true), ["query", "src"]);
 
     pe.db.registerRuleset(src, function(err){
@@ -313,42 +315,28 @@ PicoEngine({
     });
   });
 
-  router.set("/api/ruleset/enable/:hash", function(req, res, route){
-    pe.db.enableRuleset(route.params.hash, function(err){
+  app.all("/api/ruleset/enable/:hash", function(req, res){
+    pe.db.enableRuleset(req.params.hash, function(err){
       if(err) return errResp(res, err);
       jsonResp(res, {ok: true});
     });
   });
 
-  router.set("/api/ruleset/install/:rid", function(req, res, route){
-    pe.installRID(route.params.rid, function(err){
+  app.all("/api/ruleset/install/:rid", function(req, res){
+    pe.installRID(req.params.rid, function(err){
       if(err) return errResp(res, err);
       jsonResp(res, {ok: true});
     });
   });
 
-  router.set("/api/ruleset/disable/:rid", function(req, res, route){
-    pe.db.disableRuleset(route.params.rid, function(err){
+  app.all("/api/ruleset/disable/:rid", function(req, res){
+    pe.db.disableRuleset(req.params.rid, function(err){
       if(err) return errResp(res, err);
       jsonResp(res, {ok: true});
     });
   });
 
-  var server = http.createServer(function(req, res){
-    router(req, res, {
-      data: url.parse(req.url, true).query
-    }, function(err){
-      if(err){
-        if(err.type === "http-hash-router.not-found"){
-          serveStatic(req, res);
-          return;
-        }
-        errResp(res, err);
-      }
-    });
-  });
-
-  server.listen(port, function(){
-    console.log("http://localhost:" + server.address().port);
+  app.listen(port, function () {
+    console.log("http://localhost:" + port);
   });
 });
