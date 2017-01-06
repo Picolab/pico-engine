@@ -101,11 +101,6 @@ PicoEngine({
   app.use(bodyParser.json({type: "application/*+json"}));
   app.use(bodyParser.urlencoded({type: "application/x-www-form-urlencoded", extended: false}));
 
-  var jsonResp = function(res, data){
-    res.writeHead(200, {"Content-Type": "application/json"});
-    res.end(JSON.stringify(data, undefined, 2));
-  };
-
   var errResp = function(res, err){
     res.statusCode = err.statusCode || 500;
     res.end(err.message);
@@ -122,7 +117,7 @@ PicoEngine({
     };
     pe.signalEvent(event, function(err, response){
       if(err) return errResp(res, err);
-      jsonResp(res, response);
+      res.json(response);
     });
   });
 
@@ -138,7 +133,7 @@ PicoEngine({
       if(_.isFunction(data)){
         data(res);
       }else{
-        jsonResp(res, data);
+        res.json(data);
       }
     });
   });
@@ -146,7 +141,7 @@ PicoEngine({
   app.all("/api/db-dump", function(req, res){
     pe.db.toObj(function(err, db_data){
       if(err) return errResp(res, err);
-      jsonResp(res, db_data);
+      res.json(db_data);
     });
   });
 
@@ -261,7 +256,7 @@ PicoEngine({
   app.all("/api/rm-pico/:id", function(req, res){
     pe.db.removePico(req.params.id, function(err){
       if(err) return errResp(res, err);
-      jsonResp(res, {ok: true});
+      res.json({ok: true});
     });
   });
 
@@ -272,37 +267,37 @@ PicoEngine({
       type: req.query.type
     }, function(err, new_channel){
       if(err) return errResp(res, err);
-      res.end(JSON.stringify(new_channel, undefined, 2));
+      res.json(new_channel);
     });
   });
 
   app.all("/api/pico/:id/rm-channel/:eci", function(req, res){
     pe.db.removeChannel(req.params.id, req.params.eci, function(err){
       if(err) return errResp(res, err);
-      jsonResp(res, {ok: true});
+      res.json({ok: true});
     });
   });
 
   app.all("/api/pico/:id/rm-ruleset/:rid", function(req, res){
     pe.db.removeRuleset(req.params.id, req.params.rid, function(err){
       if(err) return errResp(res, err);
-      jsonResp(res, {ok: true});
+      res.json({ok: true});
     });
   });
 
   app.all("/api/pico/:id/add-ruleset", function(req, res){
     pe.db.addRuleset({pico_id: req.params.id, rid: req.query.rid}, function(err){
       if(err) return errResp(res, err);
-      jsonResp(res, {ok: true});
+      res.json({ok: true});
     });
   });
 
   app.all("/api/ruleset/compile", function(req, res){
     var src = _.get(url.parse(req.url, true), ["query", "src"]);
     try{
-      jsonResp(res, { code: compiler(src).code});
+      res.json({ code: compiler(src).code});
     }catch(err){
-      jsonResp(res, { error: err.toString() });
+      res.json({ error: err.toString() });
     }
   });
 
@@ -311,28 +306,28 @@ PicoEngine({
 
     pe.db.registerRuleset(src, function(err){
       if(err) return errResp(res, err);
-      jsonResp(res, {ok: true});
+      res.json({ok: true});
     });
   });
 
   app.all("/api/ruleset/enable/:hash", function(req, res){
     pe.db.enableRuleset(req.params.hash, function(err){
       if(err) return errResp(res, err);
-      jsonResp(res, {ok: true});
+      res.json({ok: true});
     });
   });
 
   app.all("/api/ruleset/install/:rid", function(req, res){
     pe.installRID(req.params.rid, function(err){
       if(err) return errResp(res, err);
-      jsonResp(res, {ok: true});
+      res.json({ok: true});
     });
   });
 
   app.all("/api/ruleset/disable/:rid", function(req, res){
     pe.db.disableRuleset(req.params.rid, function(err){
       if(err) return errResp(res, err);
-      jsonResp(res, {ok: true});
+      res.json({ok: true});
     });
   });
 
