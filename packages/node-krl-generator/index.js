@@ -94,11 +94,9 @@ var gen_by_type = {
   },
   'Ruleset': function(ast, ind, gen){
     var src = '';
-    src += ind() + 'ruleset ' + gen(ast.name) + ' {\n';
+    src += ind() + 'ruleset ' + gen(ast.rid) + ' {\n';
     if(!_.isEmpty(ast.meta)){
-      src += ind(1) + 'meta {\n';
-      src += gen(ast.meta, 2) + '\n';
-      src += ind(1) + '}\n';
+      src += ind() + gen(ast.meta, 1) + '\n';
     }
     if(!_.isEmpty(ast.global)){
       src += ind(1) + 'global {\n';
@@ -109,8 +107,15 @@ var gen_by_type = {
     src += ind() + '}';
     return src;
   },
-  'RulesetName': function(ast, ind, gen){
+  'RulesetID': function(ast, ind, gen){
     return ast.value;
+  },
+  'RulesetMeta': function(ast, ind, gen){
+    var src = '';
+    src += ind() + 'meta {\n';
+    src += gen(ast.properties, 1) + '\n';
+    src += ind() + '}';
+    return src;
   },
   'RulesetMetaProperty': function(ast, ind, gen){
     var src = ind() + gen(ast.key) + ' ';

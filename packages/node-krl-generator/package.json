@@ -24,10 +24,11 @@
   },
   "homepage": "https://github.com/Picolab/node-krl-generator#readme",
   "devDependencies": {
+    "comment-regex": "^1.0.0",
     "contra": "^1.9.4",
     "diff-lines": "^1.0.0",
-    "krl-parser": "^0.10.1",
-    "onchange": "^2.5.0"
+    "krl-parser": "^0.13.0",
+    "onchange": "^3.2.0"
   },
   "dependencies": {
     "lodash": "^4.13.1"

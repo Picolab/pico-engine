@@ -5,7 +5,7 @@ var diff = require('diff-lines');
 var path = require('path');
 var parser = require('krl-parser');
 var generator = require('./');
-var commentsRegExp = require('krl-parser/src/commentsRegExp');
+var commentsRegExp = require('comment-regex');
 
 var files_dir = path.resolve(__dirname, './test-files');
 
@@ -29,7 +29,7 @@ fs.readdir(files_dir, function(err, files){
       console.log('testing: ' + path.basename(file));
 
       var out = generator(parser(src, {filename: file}));
-      var expected = src.replace(commentsRegExp, '').trim();
+      var expected = src.replace(commentsRegExp(), '').trim();
 
       if(out === expected){
         console.log('  ...passed');
