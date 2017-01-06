@@ -911,6 +911,17 @@ test('expressions', function(t){
     args: []
   });
 
+  testExp('1.isnull()', {
+    type: 'Application',
+    callee: {
+      type: 'MemberExpression',
+      object: mk(1),
+      property: mk.id('isnull'),
+      method: 'dot'
+    },
+    args: []
+  });
+
   testExp("not a", mk.unary("not", mk.id("a")));
   testExp("nota", mk.id("nota"));
   testExp("not not a || b",

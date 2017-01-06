@@ -138,7 +138,13 @@ module.exports = function(src, opts){
         }
         i++;
       }
-      pushTok("NUMBER");
+      if(buff[buff.length - 1] === "."){
+        buff = buff.substring(0, buff.length - 1);
+        pushTok("NUMBER");
+        buff = ".";
+      }else{
+        pushTok("NUMBER");
+      }
 
     ///////////////////////////////////////////////////////////////////////////
     //regexp

@@ -133,6 +133,15 @@ test("tokenizer", function(t){
   tst("0.0", [
       "[NUMBER]0.0",
   ]);
+  tst("1.", [
+      "[NUMBER]1",
+      "[RAW].",
+  ]);
+  tst("1.z", [
+      "[NUMBER]1",
+      "[RAW].",
+      "[SYMBOL]z",
+  ]);
 
 
   tst("re#regex#", [
