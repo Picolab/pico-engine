@@ -43,6 +43,7 @@ PicoEngine({
     var episode = logs[eci];
     if (!episode) {
       console.log("[ERROR]","no episode found for",eci);
+      return;
     }
     pe.db.getEntVar(pico_id,logRID,"status",function(e,status){
       if (status) {
