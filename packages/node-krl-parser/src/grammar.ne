@@ -363,13 +363,11 @@ Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
   }
 %}
 
-RulesetID -> (%tok_SYMBOL | %tok_DOT | %tok_MINUS | %tok_NUMBER):+ {%
+RulesetID -> RulesetID_parts {%
   function(data, start, reject){
-    var i;
-    var src = "";
-    for(i=0; i < data[0].length; i++){
-      src += data[0][i][0].src;
-    }
+    var src = flatten(data).map(function(d){
+      return d.src;
+    }).join("");
     if(!/^[a-z][a-z0-9_.\-]*/i.test(src)){
       return reject;
     }
@@ -380,6 +378,10 @@ RulesetID -> (%tok_SYMBOL | %tok_DOT | %tok_MINUS | %tok_NUMBER):+ {%
     };
   }
 %}
+
+RulesetID_parts -> %tok_SYMBOL
+    | RulesetID_parts %tok_DOT (%tok_SYMBOL | %tok_NUMBER)
+    | RulesetID_parts %tok_MINUS (%tok_SYMBOL | %tok_NUMBER)
 
 RulesetMeta -> %tok_meta %tok_OPEN_CURLY ruleset_meta_prop:* %tok_CLSE_CURLY {%
   function(data, start){
@@ -403,7 +405,7 @@ ruleset_meta_prop ->
         (%tok_alias Identifier):?
         (%tok_with declaration_list):?
       {% metaProp(function(data){return {
-        kind: data[1],
+        kind: data[1].src,
         rid: data[2],
         version: data[3] && data[3][1],
         alias:   data[4] && data[4][1],
