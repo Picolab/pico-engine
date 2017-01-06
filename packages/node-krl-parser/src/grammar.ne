@@ -44,7 +44,6 @@ var reserved_identifiers = {
 var noop = function(){};
 var noopArr = function(){return []};
 var idArr = function(d){return [d[0]]};
-var idEndLoc = function(data, start){return start + flatten(data).join('').length};
 
 var idIndecies = function(){
   var indices = Array.prototype.slice.call(arguments, 0);
@@ -71,7 +70,7 @@ var getN = function(n){
   };
 };
 
-var infixEventOp = function(data, start){
+var infixEventOp = function(data){
   return {
     loc: mkLoc(data),
     type: 'EventOperator',
@@ -82,7 +81,7 @@ var infixEventOp = function(data, start){
 
 var complexEventOp = function(op){
   var arg_indices = Array.prototype.slice.call(arguments, 1);
-  return function(data, start){
+  return function(data){
     return {
       loc: mkLoc(data),
       type: 'EventOperator',
@@ -104,7 +103,7 @@ var booleanAST = function(value){
   };
 };
 
-var unaryOp = function(data, start){
+var unaryOp = function(data){
   return {
     loc: mkLoc(data),
     type: "UnaryOperator",
@@ -113,7 +112,7 @@ var unaryOp = function(data, start){
   };
 };
 
-var infixOp = function(data, start){
+var infixOp = function(data){
   return {
     loc: mkLoc(data),
     type: 'InfixOperator',
@@ -351,7 +350,7 @@ Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
   (%tok_global declaration_block):?
   rule:*
 %tok_CLSE_CURLY {%
-  function(data, loc){
+  function(data){
     return {
       loc: mkLoc(data),
       type: 'Ruleset',
@@ -384,7 +383,7 @@ RulesetID_parts -> %tok_SYMBOL
     | RulesetID_parts %tok_MINUS (%tok_SYMBOL | %tok_NUMBER)
 
 RulesetMeta -> %tok_meta %tok_OPEN_CURLY ruleset_meta_prop:* %tok_CLSE_CURLY {%
-  function(data, start){
+  function(data){
     return {
       loc: mkLoc(data),
       type: "RulesetMeta",
@@ -436,7 +435,7 @@ ruleset_meta_prop ->
       }}, true) %}
 
 ProvidesOperator -> %tok_keys {%
-  function(data, start){
+  function(data){
     var d = data[0];
     return {
       loc: d.loc,
@@ -447,7 +446,7 @@ ProvidesOperator -> %tok_keys {%
 %}
 
 Keyword -> %tok_SYMBOL {%
-  function(data, start){
+  function(data){
     var d = data[0];
     return {
       loc: d.loc,
@@ -458,7 +457,7 @@ Keyword -> %tok_SYMBOL {%
 %}
 
 PROVIDEs -> (%tok_provides | %tok_provide) {%
-  function(data, start){
+  function(data){
     var d = data[0][0];
     return {
       loc: d.loc,
@@ -468,7 +467,7 @@ PROVIDEs -> (%tok_provides | %tok_provide) {%
   }
 %}
 SHAREs -> (%tok_shares | %tok_share) {%
-  function(data, start){
+  function(data){
     var d = data[0][0];
     return {
       loc: d.loc,
@@ -498,7 +497,7 @@ rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
   RuleBody
 
 %tok_CLSE_CURLY {%
-  function(data, loc){
+  function(data){
     return {
       loc: mkLoc(data),
       type: 'Rule',
@@ -515,7 +514,7 @@ rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
 rule_state -> %tok_active {% id %} | %tok_inactive {% id %}
 
 RuleSelect -> %tok_select %tok_when EventExpression {%
-  function(data, start){
+  function(data){
     return {
       loc: mkLoc(data),
       type: 'RuleSelect',
@@ -602,7 +601,7 @@ event_exp_base -> %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN {% getN(1) %}
     event_exp_attribute_pair:*
     (%tok_where event_exp_where):?
     (%tok_setting %tok_OPEN_PAREN function_params %tok_CLSE_PAREN):? {%
-  function(data, start){
+  function(data){
     return {
       type: 'EventExpression',
       loc: mkLoc(data),
@@ -672,7 +671,7 @@ RuleAction ->
     (Identifier %tok_FAT_ARROW_RIGHT):?
     Identifier_or_DomainIdentifier %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN
     (%tok_with declaration_list):? {%
-  function(data, start){
+  function(data){
     return {
       loc: mkLoc(data),
       type: 'RuleAction',
@@ -915,7 +914,7 @@ function_params -> null {% noopArr %}
     | function_params %tok_COMMA Identifier {% concatArr(2) %}
 
 Application -> MemberExpression %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN {%
-  function(data, start){
+  function(data){
     return {
       loc: mkLoc(data),
       type: 'Application',
@@ -980,7 +979,7 @@ DomainIdentifier -> Identifier %tok_COLON Identifier {%
 %}
 
 Identifier -> %tok_SYMBOL {%
-  function(data, loc, reject){
+  function(data, start, reject){
     var d = data[0];
     if(reserved_identifiers.hasOwnProperty(d.src)){
       return reject;
@@ -997,7 +996,7 @@ Boolean -> %tok_true  {% booleanAST(true ) %}
          | %tok_false {% booleanAST(false) %}
 
 PositiveInteger -> Number {%
-  function(data, loc, reject){
+  function(data, start, reject){
     var n = data[0];
     if(n.value >= 0 && (n.value === parseInt(n.value, 10))){
       return n;
@@ -1055,7 +1054,7 @@ ChevronString -> %tok_CHEVRON_STRING {%
 %}
 
 String -> %tok_STRING {%
-  function(data, loc){
+  function(data){
     var d = data[0];
     var v = d.src.replace(/(^")|("$)/g, "").replace(/\\"/g, "\"");
     return {
