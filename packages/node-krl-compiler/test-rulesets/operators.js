@@ -47,7 +47,7 @@ module.exports = {
       ".sprintf": ctx.callKRLstdlib("sprintf", "Jim", "Hello %s!"),
       ".substr(5)": ctx.callKRLstdlib("substr", "This is a string", 5),
       ".substr(5, 4)": ctx.callKRLstdlib("substr", "This is a string", 5, 4),
-      ".substr(5, -5)": ctx.callKRLstdlib("substr", "This is a string", 5, -5),
+      ".substr(5, -5)": ctx.callKRLstdlib("substr", "This is a string", 5, ctx.callKRLstdlib("-", 5)),
       ".substr(25)": ctx.callKRLstdlib("substr", "This is a string", 25),
       ".uc()": ctx.callKRLstdlib("uc", "Hello World")
     });
