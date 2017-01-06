@@ -10,6 +10,9 @@ var defVarArgOp = function(op, reducer){
       return;
     }
     var r = arguments[1];
+    if(op === "-" && arguments.length === 2){
+      return -r;
+    }
     var i;
     for(i = 2; i < arguments.length; i++){
       r = reducer(r, arguments[i]);
