@@ -4,35 +4,6 @@
 function id(x) {return x[0]; }
 
 
-var last = function(arr){
-  return arr[arr.length - 1];
-};
-
-var values = function(obj){
-  var v = [];
-  var key;
-  for(key in obj){
-    if(obj.hasOwnProperty(key)){
-      v.push(obj[key]);
-    }
-  }
-  return v;
-};
-
-var lastEndLoc = function(data){
-  var nodes = flatten([data]);
-  var i, node;
-  for(i = nodes.length - 1; i >= 0; i--){
-    node = nodes[i];
-    if(node && node.loc){
-      return node.loc.end;
-    }else if(typeof node === "number"){
-      return node;
-    }
-  }
-  return -1;
-};
-
 var flatten = function(toFlatten){
   var isArray = Object.prototype.toString.call(toFlatten) === '[object Array]';
 
@@ -75,11 +46,8 @@ var reserved_identifiers = {
 ////////////////////////////////////////////////////////////////////////////////
 // ast functions
 var noop = function(){};
-var noopStr = function(){return ""};
 var noopArr = function(){return []};
-var idAll = function(d){return flatten(d).join('')};
 var idArr = function(d){return [d[0]]};
-var idEndLoc = function(data, start){return start + flatten(data).join('').length};
 
 var idIndecies = function(){
   var indices = Array.prototype.slice.call(arguments, 0);
@@ -106,20 +74,20 @@ var getN = function(n){
   };
 };
 
-var infixEventOp = function(data, start){
+var infixEventOp = function(data){
   return {
-    loc: {start: start, end: data[4].loc.end},
+    loc: mkLoc(data),
     type: 'EventOperator',
-    op: data[2],
-    args: [data[0], data[4]]//not all event ops have left/right
+    op: data[1].src,
+    args: [data[0], data[2]]//not all event ops have left/right
   };
 };
 
 var complexEventOp = function(op){
   var arg_indices = Array.prototype.slice.call(arguments, 1);
-  return function(data, start){
+  return function(data){
     return {
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       type: 'EventOperator',
       op: op,
       args: flatten(arg_indices.map(function(i){
@@ -130,39 +98,38 @@ var complexEventOp = function(op){
 };
 
 var booleanAST = function(value){
-  return function(data, loc){
-    var src = data[0];
+  return function(data){
     return {
-      loc: {start: loc, end: loc + src.length},
+      loc: data[0].loc,
       type: 'Boolean',
       value: value
     };
   };
 };
 
-var unaryOp = function(data, start){
+var unaryOp = function(data){
   return {
-    loc: {start: start, end: data[2].loc.end},
+    loc: mkLoc(data),
     type: "UnaryOperator",
-    op: data[0],
-    arg: data[2]
+    op: data[0].src,
+    arg: data[1]
   };
 };
 
-var infixOp = function(data, start){
+var infixOp = function(data){
   return {
-    loc: {start: start, end: data[4].loc.end},
+    loc: mkLoc(data),
     type: 'InfixOperator',
-    op: data[2],
+    op: data[1].src,
     left: data[0],
-    right: data[4]
+    right: data[2]
   };
 };
 
 var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
-  return function(data, start){
+  return function(data){
     return {
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       type: 'RulePostlude',
       fired: get(data, fired_i, null),
       notfired: get(data, notfired_i, null),
@@ -172,335 +139,463 @@ var RulePostlude_by_paths = function(fired_i, notfired_i, always_i){
 };
 
 var MemberExpression_method = function(method){
-  return function(data, start){
+  return function(data){
     return {
-      loc: {start: start, end: lastEndLoc(data)},
+      loc: mkLoc(data),
       type: 'MemberExpression',
       object: data[0],
-      property: data[4],
+      property: data[2],
       method: method
     };
   };
 };
 
-var mkKeyword = function(src, start, normalized_value){
+var mkRulesetMetaProperty = function(data, value, is_obj_value){
+  var key = data[0];
+  if(key.type === "SYMBOL"){
+    key = {
+      loc: key.loc,
+      type: 'Keyword',
+      value: key.src
+    };
+  }
   return {
-    loc: {start: start, end: start + src.length},
-    type: 'Keyword',
-    value: normalized_value || src
-  };
-};
-
-var mkRulesetMetaProperty = function(key, value, start, is_obj_value){
-  return {
-    loc: {start: start, end: lastEndLoc(is_obj_value ? values(value) : value)},
+    loc: mkLoc(data),
     type: 'RulesetMetaProperty',
-    key: typeof key === 'string' ? mkKeyword(key, start) : key,
+    key: key,
     value: value
   };
 };
 
 var metaProp = function(fn, is_obj_value){
-  return function(data, start){
-    return mkRulesetMetaProperty(data[0], fn(data), start, is_obj_value);
+  return function(data){
+    return mkRulesetMetaProperty(data, fn(data), is_obj_value);
   };
 };
 
 var metaProp2part = metaProp(function(data){
-  return data[2];
+  return data[1];
 });
+
+var mkLoc = function(d){
+  var loc = {};
+  var elms = flatten(d);
+  var i = 0;
+  while(i < elms.length){
+    if(elms[i] && elms[i].loc){
+      if(!loc.hasOwnProperty("start")){
+        loc.start = elms[i].loc.start;
+      }
+      loc.end = elms[i].loc.end;
+    }
+    i++;
+  }
+  return loc;
+};
+
+
+var time_period_enum = [
+  "years",
+  "months",
+  "weeks",
+  "days",
+  "hours",
+  "minutes",
+  "seconds",
+  "year",
+  "month",
+  "week",
+  "day",
+  "hour",
+  "minute",
+  "second",
+];
+var tok_TIME_PERIOD_ENUM = {test: function(x){
+  if(!x || x.type !== "SYMBOL"){
+    return false;
+  }
+  return time_period_enum.indexOf(x.src) >= 0;
+}};
+
+var tok = function(type, value){
+  return {test: function(x){
+    if(!x || x.type !== type){
+      return false;
+    }
+    if(value){
+      return x.src === value;
+    }
+    return true;
+  }};
+};
+
+var tok_RAW = tok("RAW");
+var tok_STRING = tok("STRING");
+var tok_NUMBER = tok("NUMBER");
+var tok_REGEXP = tok("REGEXP");
+var tok_SYMBOL = tok("SYMBOL");
+
+var tok_CHEVRON_OPEN = tok("CHEVRON-OPEN");
+var tok_CHEVRON_STRING = tok("CHEVRON-STRING");
+var tok_BEESTING_OPEN = tok("CHEVRON-BEESTING-OPEN");
+var tok_BEESTING_CLOSE = tok("CHEVRON-BEESTING-CLOSE");
+var tok_CHEVRON_CLOSE = tok("CHEVRON-CLOSE");
+
+var tok_OPEN_PAREN = tok("RAW", "(");
+var tok_CLSE_PAREN = tok("RAW", ")");
+var tok_OPEN_CURLY = tok("RAW", "{");
+var tok_CLSE_CURLY = tok("RAW", "}");
+var tok_OPEN_SQARE = tok("RAW", "[");
+var tok_CLSE_SQARE = tok("RAW", "]");
+
+var tok_AND = tok("RAW", "&&");
+var tok_COMMA = tok("RAW", ",");
+var tok_COLON = tok("RAW", ":");
+var tok_COLON_EQ = tok("RAW", ":=");
+var tok_DIVIDE = tok("RAW", "/");
+var tok_DOT = tok("RAW", ".");
+var tok_EQ = tok("RAW", "=");
+var tok_EQEQ = tok("RAW", "==");
+var tok_FAT_ARROW_DOUBLE = tok("RAW", "<=>");
+var tok_FAT_ARROW_RIGHT = tok("RAW", "=>");
+var tok_GT = tok("RAW", ">");
+var tok_GTEQ = tok("RAW", ">=");
+var tok_GTLT = tok("RAW", "><");
+var tok_LT = tok("RAW", "<");
+var tok_LTEQ = tok("RAW", "<=");
+var tok_MINUS = tok("RAW", "-");
+var tok_MODULO = tok("RAW", "%");
+var tok_NOTEQ = tok("RAW", "!=");
+var tok_OR = tok("RAW", "||");
+var tok_PLUS = tok("RAW", "+");
+var tok_PIPE = tok("RAW", "|");
+var tok_SEMI = tok("RAW", ";");
+var tok_STAR = tok("RAW", "*");
+
+var tok_active = tok("SYMBOL", "active");
+var tok_after = tok("SYMBOL", "after");
+var tok_alias = tok("SYMBOL", "alias");
+var tok_always = tok("SYMBOL", "always");
+var tok_and = tok("SYMBOL", "and");
+var tok_any = tok("SYMBOL", "any");
+var tok_attributes = tok("SYMBOL", "attributes");
+var tok_author = tok("SYMBOL", "author");
+var tok_avg = tok("SYMBOL", "avg");
+var tok_before = tok("SYMBOL", "before");
+var tok_between = tok("SYMBOL", "between");
+var tok_choose = tok("SYMBOL", "choose");
+var tok_configure = tok("SYMBOL", "configure");
+var tok_count = tok("SYMBOL", "count");
+var tok_cmp = tok("SYMBOL", "cmp");
+var tok_description = tok("SYMBOL", "description");
+var tok_errors = tok("SYMBOL", "errors");
+var tok_event = tok("SYMBOL", "event");
+var tok_every = tok("SYMBOL", "every");
+var tok_eq = tok("SYMBOL", "eq");
+var tok_else = tok("SYMBOL", "else");
+var tok_false = tok("SYMBOL", "false");
+var tok_fired = tok("SYMBOL", "fired");
+var tok_finally = tok("SYMBOL", "finally");
+var tok_for = tok("SYMBOL", "for");
+var tok_function = tok("SYMBOL", "function");
+var tok_global = tok("SYMBOL", "global");
+var tok_if = tok("SYMBOL", "if");
+var tok_inactive = tok("SYMBOL", "inactive");
+var tok_is = tok("SYMBOL", "is");
+var tok_keys = tok("SYMBOL", "keys");
+var tok_like = tok("SYMBOL", "like");
+var tok_logging = tok("SYMBOL", "logging");
+var tok_max = tok("SYMBOL", "max");
+var tok_min = tok("SYMBOL", "min");
+var tok_meta = tok("SYMBOL", "meta");
+var tok_module = tok("SYMBOL", "module");
+var tok_name = tok("SYMBOL", "name");
+var tok_neq = tok("SYMBOL", "neq");
+var tok_not = tok("SYMBOL", "not");
+var tok_or = tok("SYMBOL", "or");
+var tok_off = tok("SYMBOL", "off");
+var tok_on = tok("SYMBOL", "on");
+var tok_pre = tok("SYMBOL", "pre");
+var tok_provide  = tok("SYMBOL", "provide");
+var tok_provides = tok("SYMBOL", "provides");
+var tok_push = tok("SYMBOL", "push");
+var tok_raise = tok("SYMBOL", "raise");
+var tok_repeat = tok("SYMBOL", "repeat");
+var tok_ruleset = tok("SYMBOL", "ruleset");
+var tok_rule = tok("SYMBOL", "rule");
+var tok_share  = tok("SYMBOL", "share");
+var tok_shares = tok("SYMBOL", "shares");
+var tok_select = tok("SYMBOL", "select");
+var tok_setting = tok("SYMBOL", "setting");
+var tok_sum = tok("SYMBOL", "sum");
+var tok_then = tok("SYMBOL", "then");
+var tok_to = tok("SYMBOL", "to");
+var tok_true = tok("SYMBOL", "true");
+var tok_use = tok("SYMBOL", "use");
+var tok_using = tok("SYMBOL", "using");
+var tok_version = tok("SYMBOL", "version");
+var tok_when = tok("SYMBOL", "when");
+var tok_where = tok("SYMBOL", "where");
+var tok_with = tok("SYMBOL", "with");
+var tok_within = tok("SYMBOL", "within");
 
 var grammar = {
     ParserRules: [
-    {"name": "main", "symbols": ["_", "Ruleset", "_"], "postprocess": getN(1)},
+    {"name": "main", "symbols": ["Ruleset"], "postprocess": id},
     {"name": "main", "symbols": ["Statement_list"], "postprocess": id},
-    {"name": "Ruleset$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}, {"literal":"s"}, {"literal":"e"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "Ruleset$ebnf$1$subexpression$1", "symbols": ["RulesetMeta", "_"]},
-    {"name": "Ruleset$ebnf$1", "symbols": ["Ruleset$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "Ruleset$ebnf$1", "symbols": ["RulesetMeta"], "postprocess": id},
     {"name": "Ruleset$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Ruleset$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"g"}, {"literal":"l"}, {"literal":"o"}, {"literal":"b"}, {"literal":"a"}, {"literal":"l"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "Ruleset$ebnf$2$subexpression$1", "symbols": ["Ruleset$ebnf$2$subexpression$1$string$1", "_", "declaration_block", "_"]},
+    {"name": "Ruleset$ebnf$2$subexpression$1", "symbols": [tok_global, "declaration_block"]},
     {"name": "Ruleset$ebnf$2", "symbols": ["Ruleset$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "Ruleset$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Ruleset$ebnf$3", "symbols": []},
-    {"name": "Ruleset$ebnf$3$subexpression$1", "symbols": ["rule", "_"]},
-    {"name": "Ruleset$ebnf$3", "symbols": ["Ruleset$ebnf$3$subexpression$1", "Ruleset$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "Ruleset", "symbols": ["Ruleset$string$1", "__", "RulesetID", "_", {"literal":"{"}, "_", "Ruleset$ebnf$1", "Ruleset$ebnf$2", "Ruleset$ebnf$3", "loc_close_curly"], "postprocess": 
-        function(data, loc){
+    {"name": "Ruleset$ebnf$3", "symbols": ["rule", "Ruleset$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "Ruleset", "symbols": [tok_ruleset, "RulesetID", tok_OPEN_CURLY, "Ruleset$ebnf$1", "Ruleset$ebnf$2", "Ruleset$ebnf$3", tok_CLSE_CURLY], "postprocess": 
+        function(data){
           return {
-            loc: {start: loc, end: last(data)},
+            loc: mkLoc(data),
             type: 'Ruleset',
-            rid: data[2],
-            meta: data[6] ? data[6][0] : void 0,
-            global: data[7] ? data[7][2] : [],
-            rules: data[8].map(function(pair){
-              return pair[0];
-            })
+            rid: data[1],
+            meta: data[3] || void 0,
+            global: data[4] ? data[4][1] : [],
+            rules: data[5]
           };
         }
         },
-    {"name": "RulesetID$ebnf$1", "symbols": []},
-    {"name": "RulesetID$ebnf$1", "symbols": [/[a-zA-Z0-9_.\-]/, "RulesetID$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "RulesetID", "symbols": [/[a-zA-Z]/, "RulesetID$ebnf$1"], "postprocess": 
-        function(data, start){
-          var src = flatten(data).join('');
+    {"name": "RulesetID", "symbols": ["RulesetID_parts"], "postprocess": 
+        function(data, start, reject){
+          var parts = flatten(data);
+          var last_end = false;
+          var i;
+          var src = "";
+          for(i=0; i < parts.length; i++){
+            src += parts[i].src;
+            if(last_end !== false && last_end !== parts[i].loc.start){
+              return reject;
+            }
+            last_end = parts[i].loc.end;
+          }
+          if(!/^[a-z][a-z0-9_.\-]*/i.test(src)){
+            return reject;
+          }
           return {
-            loc: {start: start, end: start + src.length},
+            loc: mkLoc(data),
             type: 'RulesetID',
             value: src
           };
         }
         },
-    {"name": "RulesetMeta$string$1", "symbols": [{"literal":"m"}, {"literal":"e"}, {"literal":"t"}, {"literal":"a"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RulesetMeta", "symbols": ["RulesetMeta$string$1", "_", "ruleset_meta_block"], "postprocess": 
-        function(data, start){
-          var props = data[2];
+    {"name": "RulesetID_parts", "symbols": [tok_SYMBOL]},
+    {"name": "RulesetID_parts$subexpression$1", "symbols": [tok_SYMBOL]},
+    {"name": "RulesetID_parts$subexpression$1", "symbols": [tok_NUMBER]},
+    {"name": "RulesetID_parts", "symbols": ["RulesetID_parts", tok_DOT, "RulesetID_parts$subexpression$1"]},
+    {"name": "RulesetID_parts$subexpression$2", "symbols": [tok_SYMBOL]},
+    {"name": "RulesetID_parts$subexpression$2", "symbols": [tok_NUMBER]},
+    {"name": "RulesetID_parts", "symbols": ["RulesetID_parts", tok_MINUS, "RulesetID_parts$subexpression$2"]},
+    {"name": "RulesetMeta$ebnf$1", "symbols": []},
+    {"name": "RulesetMeta$ebnf$1", "symbols": ["ruleset_meta_prop", "RulesetMeta$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "RulesetMeta", "symbols": [tok_meta, tok_OPEN_CURLY, "RulesetMeta$ebnf$1", tok_CLSE_CURLY], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: lastEndLoc(props)},
+            loc: mkLoc(data),
             type: "RulesetMeta",
-            properties: props
+            properties: data[2]
           };
         }
         },
-    {"name": "ruleset_meta_block", "symbols": [{"literal":"{"}, "_", {"literal":"}"}], "postprocess": noopArr},
-    {"name": "ruleset_meta_block", "symbols": [{"literal":"{"}, "_", "ruleset_meta_prop_list", "_", {"literal":"}"}], "postprocess": getN(2)},
-    {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop"], "postprocess": idArr},
-    {"name": "ruleset_meta_prop_list", "symbols": ["ruleset_meta_prop_list", "__", "ruleset_meta_prop"], "postprocess": concatArr(2)},
-    {"name": "ruleset_meta_prop$string$1", "symbols": [{"literal":"n"}, {"literal":"a"}, {"literal":"m"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$1", "__", "String"], "postprocess": metaProp2part},
-    {"name": "ruleset_meta_prop$string$2", "symbols": [{"literal":"d"}, {"literal":"e"}, {"literal":"s"}, {"literal":"c"}, {"literal":"r"}, {"literal":"i"}, {"literal":"p"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$2", "__", "Chevron"], "postprocess": metaProp2part},
-    {"name": "ruleset_meta_prop$string$3", "symbols": [{"literal":"a"}, {"literal":"u"}, {"literal":"t"}, {"literal":"h"}, {"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$3", "__", "String"], "postprocess": metaProp2part},
-    {"name": "ruleset_meta_prop$string$4", "symbols": [{"literal":"l"}, {"literal":"o"}, {"literal":"g"}, {"literal":"g"}, {"literal":"i"}, {"literal":"n"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$4", "__", "OnOrOff"], "postprocess": metaProp2part},
-    {"name": "ruleset_meta_prop$string$5", "symbols": [{"literal":"k"}, {"literal":"e"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "ruleset_meta_prop", "symbols": [tok_name, "String"], "postprocess": metaProp2part},
+    {"name": "ruleset_meta_prop", "symbols": [tok_description, "Chevron"], "postprocess": metaProp2part},
+    {"name": "ruleset_meta_prop", "symbols": [tok_author, "String"], "postprocess": metaProp2part},
+    {"name": "ruleset_meta_prop", "symbols": [tok_logging, "OnOrOff"], "postprocess": metaProp2part},
     {"name": "ruleset_meta_prop$subexpression$1", "symbols": ["String"]},
     {"name": "ruleset_meta_prop$subexpression$1", "symbols": ["Map"]},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$5", "__", "Keyword", "__", "ruleset_meta_prop$subexpression$1"], "postprocess": metaProp(function(data){return [data[2], data[4][0]]})},
-    {"name": "ruleset_meta_prop$string$6", "symbols": [{"literal":"u"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$string$7", "symbols": [{"literal":"m"}, {"literal":"o"}, {"literal":"d"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"v"}, {"literal":"e"}, {"literal":"r"}, {"literal":"s"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$ebnf$1$subexpression$1", "symbols": ["__", "ruleset_meta_prop$ebnf$1$subexpression$1$string$1", "__", "String"]},
+    {"name": "ruleset_meta_prop", "symbols": [tok_keys, "Keyword", "ruleset_meta_prop$subexpression$1"], "postprocess": metaProp(function(data){return [data[1], data[2][0]]})},
+    {"name": "ruleset_meta_prop$ebnf$1$subexpression$1", "symbols": [tok_version, "String"]},
     {"name": "ruleset_meta_prop$ebnf$1", "symbols": ["ruleset_meta_prop$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "ruleset_meta_prop$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ruleset_meta_prop$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"a"}, {"literal":"l"}, {"literal":"i"}, {"literal":"a"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$ebnf$2$subexpression$1", "symbols": ["__", "ruleset_meta_prop$ebnf$2$subexpression$1$string$1", "__", "Identifier"]},
+    {"name": "ruleset_meta_prop$ebnf$2$subexpression$1", "symbols": [tok_alias, "Identifier"]},
     {"name": "ruleset_meta_prop$ebnf$2", "symbols": ["ruleset_meta_prop$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "ruleset_meta_prop$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ruleset_meta_prop$ebnf$3$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$ebnf$3$subexpression$1", "symbols": ["__", "ruleset_meta_prop$ebnf$3$subexpression$1$string$1", "__", "declaration_list"]},
+    {"name": "ruleset_meta_prop$ebnf$3$subexpression$1", "symbols": [tok_with, "declaration_list"]},
     {"name": "ruleset_meta_prop$ebnf$3", "symbols": ["ruleset_meta_prop$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "ruleset_meta_prop$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$6", "__", "ruleset_meta_prop$string$7", "__", "RulesetID", "ruleset_meta_prop$ebnf$1", "ruleset_meta_prop$ebnf$2", "ruleset_meta_prop$ebnf$3"], "postprocess":  metaProp(function(data){return {
-          kind: data[2],
-          rid: data[4],
-          version: data[5] && data[5][3],
-          alias:   data[6] && data[6][3],
-          'with':  data[7] && data[7][3]
+    {"name": "ruleset_meta_prop", "symbols": [tok_use, tok_module, "RulesetID", "ruleset_meta_prop$ebnf$1", "ruleset_meta_prop$ebnf$2", "ruleset_meta_prop$ebnf$3"], "postprocess":  metaProp(function(data){return {
+          kind: data[1].src,
+          rid: data[2],
+          version: data[3] && data[3][1],
+          alias:   data[4] && data[4][1],
+          'with':  data[5] && data[5][1]
         }}, true) },
-    {"name": "ruleset_meta_prop$string$8", "symbols": [{"literal":"e"}, {"literal":"r"}, {"literal":"r"}, {"literal":"o"}, {"literal":"r"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$string$9", "symbols": [{"literal":"t"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$ebnf$4$subexpression$1$string$1", "symbols": [{"literal":"v"}, {"literal":"e"}, {"literal":"r"}, {"literal":"s"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$ebnf$4$subexpression$1", "symbols": ["__", "ruleset_meta_prop$ebnf$4$subexpression$1$string$1", "__", "String"]},
+    {"name": "ruleset_meta_prop$ebnf$4$subexpression$1", "symbols": [tok_version, "String"]},
     {"name": "ruleset_meta_prop$ebnf$4", "symbols": ["ruleset_meta_prop$ebnf$4$subexpression$1"], "postprocess": id},
     {"name": "ruleset_meta_prop$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$8", "__", "ruleset_meta_prop$string$9", "__", "RulesetID", "ruleset_meta_prop$ebnf$4"], "postprocess":  metaProp(function(data){return {
-          rid: data[4],
-          version: data[5] && data[5][3]
+    {"name": "ruleset_meta_prop", "symbols": [tok_errors, tok_to, "RulesetID", "ruleset_meta_prop$ebnf$4"], "postprocess":  metaProp(function(data){return {
+          rid: data[2],
+          version: data[3] && data[3][1]
         }}, true) },
-    {"name": "ruleset_meta_prop$string$10", "symbols": [{"literal":"c"}, {"literal":"o"}, {"literal":"n"}, {"literal":"f"}, {"literal":"i"}, {"literal":"g"}, {"literal":"u"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop$string$11", "symbols": [{"literal":"u"}, {"literal":"s"}, {"literal":"i"}, {"literal":"n"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop", "symbols": ["ruleset_meta_prop$string$10", "__", "ruleset_meta_prop$string$11", "__", "declaration_list"], "postprocess":  metaProp(function(data){return {
-          declarations: data[4]
+    {"name": "ruleset_meta_prop", "symbols": [tok_configure, tok_using, "declaration_list"], "postprocess":  metaProp(function(data){return {
+          declarations: data[2]
         }}, true) },
-    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "Identifier_list"], "postprocess":  metaProp(function(d){return {
-          ids: d[2]
+    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "Identifier_list"], "postprocess":  metaProp(function(d){return {
+          ids: d[1]
         }}, true) },
-    {"name": "ruleset_meta_prop$string$12", "symbols": [{"literal":"t"}, {"literal":"o"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "__", "ProvidesOperator", "__", "Identifier_list", "__", "ruleset_meta_prop$string$12", "__", "RulesetID_list"], "postprocess":  metaProp(function(d){return {
-          operator: d[2],
-          ids: d[4],
-          rulesets: d[8]
+    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "ProvidesOperator", "Identifier_list", tok_to, "RulesetID_list"], "postprocess":  metaProp(function(d){return {
+          operator: d[1],
+          ids: d[2],
+          rulesets: d[4]
         }}, true) },
-    {"name": "ruleset_meta_prop", "symbols": ["SHAREs", "__", "Identifier_list"], "postprocess":  metaProp(function(d){return {
-          ids: d[2]
+    {"name": "ruleset_meta_prop", "symbols": ["SHAREs", "Identifier_list"], "postprocess":  metaProp(function(d){return {
+          ids: d[1]
         }}, true) },
-    {"name": "ProvidesOperator$string$1", "symbols": [{"literal":"k"}, {"literal":"e"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "ProvidesOperator", "symbols": ["ProvidesOperator$string$1"], "postprocess": 
-        function(data, start){
-          var src = flatten(data).join('');
-          return mkKeyword(src, start);
+    {"name": "ProvidesOperator", "symbols": [tok_keys], "postprocess": 
+        function(data){
+          var d = data[0];
+          return {
+            loc: d.loc,
+            type: 'Keyword',
+            value: d.src
+          };
         }
         },
-    {"name": "Keyword$ebnf$1", "symbols": []},
-    {"name": "Keyword$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "Keyword$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "Keyword", "symbols": [/[a-zA-Z_$]/, "Keyword$ebnf$1"], "postprocess": 
-        function(data, start){
-          var src = flatten(data).join('');
-          return mkKeyword(src, start);
+    {"name": "Keyword", "symbols": [tok_SYMBOL], "postprocess": 
+        function(data){
+          var d = data[0];
+          return {
+            loc: d.loc,
+            type: 'Keyword',
+            value: d.src
+          };
         }
         },
-    {"name": "PROVIDEs$subexpression$1$string$1", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"o"}, {"literal":"v"}, {"literal":"i"}, {"literal":"d"}, {"literal":"e"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "PROVIDEs$subexpression$1", "symbols": ["PROVIDEs$subexpression$1$string$1"]},
-    {"name": "PROVIDEs$subexpression$1$string$2", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"o"}, {"literal":"v"}, {"literal":"i"}, {"literal":"d"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "PROVIDEs$subexpression$1", "symbols": ["PROVIDEs$subexpression$1$string$2"]},
+    {"name": "PROVIDEs$subexpression$1", "symbols": [tok_provides]},
+    {"name": "PROVIDEs$subexpression$1", "symbols": [tok_provide]},
     {"name": "PROVIDEs", "symbols": ["PROVIDEs$subexpression$1"], "postprocess": 
-        function(data, start){
-          var src = data[0][0];
-          return mkKeyword(src, start, "provides");
+        function(data){
+          var d = data[0][0];
+          return {
+            loc: d.loc,
+            type: 'Keyword',
+            value: "provides"
+          };
         }
         },
-    {"name": "SHAREs$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"h"}, {"literal":"a"}, {"literal":"r"}, {"literal":"e"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "SHAREs$subexpression$1", "symbols": ["SHAREs$subexpression$1$string$1"]},
-    {"name": "SHAREs$subexpression$1$string$2", "symbols": [{"literal":"s"}, {"literal":"h"}, {"literal":"a"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "SHAREs$subexpression$1", "symbols": ["SHAREs$subexpression$1$string$2"]},
+    {"name": "SHAREs$subexpression$1", "symbols": [tok_shares]},
+    {"name": "SHAREs$subexpression$1", "symbols": [tok_share]},
     {"name": "SHAREs", "symbols": ["SHAREs$subexpression$1"], "postprocess": 
-        function(data, start){
-          var src = data[0][0];
-          return mkKeyword(src, start, "shares");
+        function(data){
+          var d = data[0][0];
+          return {
+            loc: d.loc,
+            type: 'Keyword',
+            value: "shares"
+          };
         }
         },
     {"name": "Identifier_list", "symbols": ["Identifier"], "postprocess": idArr},
-    {"name": "Identifier_list", "symbols": ["Identifier_list", "_", {"literal":","}, "_", "Identifier"], "postprocess": concatArr(4)},
+    {"name": "Identifier_list", "symbols": ["Identifier_list", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
     {"name": "RulesetID_list", "symbols": ["RulesetID"], "postprocess": idArr},
-    {"name": "RulesetID_list", "symbols": ["RulesetID_list", "_", {"literal":","}, "_", "RulesetID"], "postprocess": concatArr(4)},
-    {"name": "OnOrOff$string$1", "symbols": [{"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "OnOrOff", "symbols": ["OnOrOff$string$1"], "postprocess": booleanAST(true )},
-    {"name": "OnOrOff$string$2", "symbols": [{"literal":"o"}, {"literal":"f"}, {"literal":"f"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "OnOrOff", "symbols": ["OnOrOff$string$2"], "postprocess": booleanAST(false)},
-    {"name": "rule$string$1", "symbols": [{"literal":"r"}, {"literal":"u"}, {"literal":"l"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"i"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule$ebnf$1$subexpression$1", "symbols": ["__", "rule$ebnf$1$subexpression$1$string$1", "__", "rule_state"]},
+    {"name": "RulesetID_list", "symbols": ["RulesetID_list", tok_COMMA, "RulesetID"], "postprocess": concatArr(2)},
+    {"name": "OnOrOff", "symbols": [tok_on], "postprocess": booleanAST(true )},
+    {"name": "OnOrOff", "symbols": [tok_off], "postprocess": booleanAST(false)},
+    {"name": "rule$ebnf$1$subexpression$1", "symbols": [tok_is, "rule_state"]},
     {"name": "rule$ebnf$1", "symbols": ["rule$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$2$subexpression$1", "symbols": ["RuleSelect", "_semi"]},
+    {"name": "rule$ebnf$2$subexpression$1$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
+    {"name": "rule$ebnf$2$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "rule$ebnf$2$subexpression$1", "symbols": ["RuleSelect", "rule$ebnf$2$subexpression$1$ebnf$1"]},
     {"name": "rule$ebnf$2", "symbols": ["rule$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule", "symbols": ["rule$string$1", "__", "Identifier", "rule$ebnf$1", "_", {"literal":"{"}, "_", "rule$ebnf$2", "RuleBody", "loc_close_curly"], "postprocess": 
-        function(data, loc){
+    {"name": "rule", "symbols": [tok_rule, "Identifier", "rule$ebnf$1", tok_OPEN_CURLY, "rule$ebnf$2", "RuleBody", tok_CLSE_CURLY], "postprocess": 
+        function(data){
           return {
-            loc: {start: loc, end: last(data)},
+            loc: mkLoc(data),
             type: 'Rule',
-            name: data[2],
-            rule_state: data[3] ? data[3][3] : "active",
-            select: data[7] && data[7][0],
-            prelude: data[8][1] || [],
-            action_block: data[8][2],
-            postlude: data[8][3]
+            name: data[1],
+            rule_state: data[2] ? data[2][1].src : "active",
+            select: data[4] && data[4][0],
+            prelude: data[5][1] || [],
+            action_block: data[5][2],
+            postlude: data[5][3]
           };
         }
         },
-    {"name": "rule_state$string$1", "symbols": [{"literal":"a"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule_state", "symbols": ["rule_state$string$1"], "postprocess": id},
-    {"name": "rule_state$string$2", "symbols": [{"literal":"i"}, {"literal":"n"}, {"literal":"a"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"v"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "rule_state", "symbols": ["rule_state$string$2"], "postprocess": id},
-    {"name": "RuleSelect$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"l"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RuleSelect$string$2", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RuleSelect", "symbols": ["RuleSelect$string$1", "__", "RuleSelect$string$2", "__", "EventExpression"], "postprocess": 
-        function(data, start){
-          var ee =  data[4];
+    {"name": "rule_state", "symbols": [tok_active], "postprocess": id},
+    {"name": "rule_state", "symbols": [tok_inactive], "postprocess": id},
+    {"name": "RuleSelect", "symbols": [tok_select, tok_when, "EventExpression"], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: ee.loc.end},
+            loc: mkLoc(data),
             type: 'RuleSelect',
             kind: 'when',
-            event: ee
+            event: data[2]
           };
         }
         },
     {"name": "RuleBody", "symbols": [], "postprocess": idIndecies(-1, -1, -1, -1)},
-    {"name": "RuleBody", "symbols": ["RulePrelude", "_"], "postprocess": idIndecies(-1, 0, -1, -1)},
-    {"name": "RuleBody", "symbols": ["RuleActionBlock", "_"], "postprocess": idIndecies(-1, -1, 0, -1)},
-    {"name": "RuleBody", "symbols": ["RulePrelude", "_", "RuleActionBlock", "_"], "postprocess": idIndecies(-1, 0, 2, -1)},
-    {"name": "RuleBody", "symbols": ["RulePostlude", "_"], "postprocess": idIndecies(-1, -1, -1, 0)},
-    {"name": "RuleBody", "symbols": ["RulePrelude", "_", "RulePostlude", "_"], "postprocess": idIndecies(-1, 0, -1, 2)},
-    {"name": "RuleBody", "symbols": ["RuleActionBlock", "__", "RulePostlude", "_"], "postprocess": idIndecies(-1, -1, 0, 2)},
-    {"name": "RuleBody", "symbols": ["RulePrelude", "_", "RuleActionBlock", "__", "RulePostlude", "_"], "postprocess": idIndecies(-1, 0, 2, 4)},
-    {"name": "RulePrelude$string$1", "symbols": [{"literal":"p"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RulePrelude", "symbols": ["RulePrelude$string$1", "_", "declaration_block"], "postprocess": getN(2)},
+    {"name": "RuleBody", "symbols": ["RulePrelude"], "postprocess": idIndecies(-1, 0, -1, -1)},
+    {"name": "RuleBody", "symbols": ["RuleActionBlock"], "postprocess": idIndecies(-1, -1, 0, -1)},
+    {"name": "RuleBody", "symbols": ["RulePrelude", "RuleActionBlock"], "postprocess": idIndecies(-1, 0, 1, -1)},
+    {"name": "RuleBody", "symbols": ["RulePostlude"], "postprocess": idIndecies(-1, -1, -1, 0)},
+    {"name": "RuleBody", "symbols": ["RulePrelude", "RulePostlude"], "postprocess": idIndecies(-1, 0, -1, 1)},
+    {"name": "RuleBody", "symbols": ["RuleActionBlock", "RulePostlude"], "postprocess": idIndecies(-1, -1, 0, 1)},
+    {"name": "RuleBody", "symbols": ["RulePrelude", "RuleActionBlock", "RulePostlude"], "postprocess": idIndecies(-1, 0, 1, 2)},
+    {"name": "RulePrelude", "symbols": [tok_pre, "declaration_block"], "postprocess": getN(1)},
     {"name": "EventExpression", "symbols": ["event_exp_within"], "postprocess": id},
     {"name": "event_exp_within", "symbols": ["event_exp_or"], "postprocess": id},
-    {"name": "event_exp_within$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}, {"literal":"i"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_within", "symbols": ["event_exp_within", "__", "event_exp_within$string$1", "__", "PositiveInteger", "__", "time_period"], "postprocess": complexEventOp("within", 0, 4, 6)},
+    {"name": "event_exp_within", "symbols": ["event_exp_within", tok_within, "PositiveInteger", "time_period"], "postprocess": complexEventOp("within", 0, 2, 3)},
     {"name": "event_exp_or", "symbols": ["event_exp_and"], "postprocess": id},
-    {"name": "event_exp_or$string$1", "symbols": [{"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_or", "symbols": ["event_exp_or", "__", "event_exp_or$string$1", "__", "event_exp_and"], "postprocess": infixEventOp},
+    {"name": "event_exp_or", "symbols": ["event_exp_or", tok_or, "event_exp_and"], "postprocess": infixEventOp},
     {"name": "event_exp_and", "symbols": ["event_exp_infix_op"], "postprocess": id},
-    {"name": "event_exp_and$string$1", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_and", "symbols": ["event_exp_and", "__", "event_exp_and$string$1", "__", "event_exp_infix_op"], "postprocess": infixEventOp},
+    {"name": "event_exp_and", "symbols": ["event_exp_and", tok_and, "event_exp_infix_op"], "postprocess": infixEventOp},
     {"name": "event_exp_infix_op", "symbols": ["event_exp_fns"], "postprocess": id},
-    {"name": "event_exp_infix_op$string$1", "symbols": [{"literal":"b"}, {"literal":"e"}, {"literal":"f"}, {"literal":"o"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", "__", "event_exp_infix_op$string$1", "__", "event_exp_fns"], "postprocess": infixEventOp},
-    {"name": "event_exp_infix_op$string$2", "symbols": [{"literal":"t"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", "__", "event_exp_infix_op$string$2", "__", "event_exp_fns"], "postprocess": infixEventOp},
-    {"name": "event_exp_infix_op$string$3", "symbols": [{"literal":"a"}, {"literal":"f"}, {"literal":"t"}, {"literal":"e"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", "__", "event_exp_infix_op$string$3", "__", "event_exp_fns"], "postprocess": infixEventOp},
+    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", tok_before, "event_exp_fns"], "postprocess": infixEventOp},
+    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", tok_then, "event_exp_fns"], "postprocess": infixEventOp},
+    {"name": "event_exp_infix_op", "symbols": ["event_exp_infix_op", tok_after, "event_exp_fns"], "postprocess": infixEventOp},
     {"name": "event_exp_fns", "symbols": ["event_exp_base"], "postprocess": id},
-    {"name": "event_exp_fns$string$1", "symbols": [{"literal":"b"}, {"literal":"e"}, {"literal":"t"}, {"literal":"w"}, {"literal":"e"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$1", "_", {"literal":"("}, "_", "EventExpression", "_", {"literal":","}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("between", 0, 6, 10)},
-    {"name": "event_exp_fns$string$2", "symbols": [{"literal":"n"}, {"literal":"o"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns$string$3", "symbols": [{"literal":"b"}, {"literal":"e"}, {"literal":"t"}, {"literal":"w"}, {"literal":"e"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$2", "__", "event_exp_fns$string$3", "_", {"literal":"("}, "_", "EventExpression", "_", {"literal":","}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("not between", 0, 8, 12)},
-    {"name": "event_exp_fns$string$4", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"y"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$4", "__", "PositiveInteger", "_", {"literal":"("}, "_", "EventExpression_list", "_", "loc_close_paren"], "postprocess": complexEventOp("any", 2, 6)},
-    {"name": "event_exp_fns$string$5", "symbols": [{"literal":"c"}, {"literal":"o"}, {"literal":"u"}, {"literal":"n"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$5", "__", "PositiveInteger", "_", {"literal":"("}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("count", 2, 6)},
-    {"name": "event_exp_fns$string$6", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"p"}, {"literal":"e"}, {"literal":"a"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$6", "__", "PositiveInteger", "_", {"literal":"("}, "_", "EventExpression", "_", "loc_close_paren"], "postprocess": complexEventOp("repeat", 2, 6)},
-    {"name": "event_exp_fns$string$7", "symbols": [{"literal":"a"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$7", "_", {"literal":"("}, "_", "EventExpression_list", "_", "loc_close_paren"], "postprocess": complexEventOp("and", 4)},
-    {"name": "event_exp_fns$string$8", "symbols": [{"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$8", "_", {"literal":"("}, "_", "EventExpression_list", "_", "loc_close_paren"], "postprocess": complexEventOp("or", 4)},
-    {"name": "event_exp_fns$string$9", "symbols": [{"literal":"b"}, {"literal":"e"}, {"literal":"f"}, {"literal":"o"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$9", "_", {"literal":"("}, "_", "EventExpression_list", "_", "loc_close_paren"], "postprocess": complexEventOp("before", 4)},
-    {"name": "event_exp_fns$string$10", "symbols": [{"literal":"t"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$10", "_", {"literal":"("}, "_", "EventExpression_list", "_", "loc_close_paren"], "postprocess": complexEventOp("then", 4)},
-    {"name": "event_exp_fns$string$11", "symbols": [{"literal":"a"}, {"literal":"f"}, {"literal":"t"}, {"literal":"e"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns$string$11", "_", {"literal":"("}, "_", "EventExpression_list", "_", "loc_close_paren"], "postprocess": complexEventOp("after", 4)},
-    {"name": "event_exp_fns$string$12", "symbols": [{"literal":"m"}, {"literal":"a"}, {"literal":"x"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$12", "_", {"literal":"("}, "function_params", "loc_close_paren"], "postprocess": complexEventOp("max", 0, 5)},
-    {"name": "event_exp_fns$string$13", "symbols": [{"literal":"m"}, {"literal":"i"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$13", "_", {"literal":"("}, "function_params", "loc_close_paren"], "postprocess": complexEventOp("min", 0, 5)},
-    {"name": "event_exp_fns$string$14", "symbols": [{"literal":"s"}, {"literal":"u"}, {"literal":"m"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$14", "_", {"literal":"("}, "function_params", "loc_close_paren"], "postprocess": complexEventOp("sum", 0, 5)},
-    {"name": "event_exp_fns$string$15", "symbols": [{"literal":"a"}, {"literal":"v"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$15", "_", {"literal":"("}, "function_params", "loc_close_paren"], "postprocess": complexEventOp("avg", 0, 5)},
-    {"name": "event_exp_fns$string$16", "symbols": [{"literal":"p"}, {"literal":"u"}, {"literal":"s"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", "__", "event_exp_fns$string$16", "_", {"literal":"("}, "function_params", "loc_close_paren"], "postprocess": complexEventOp("push", 0, 5)},
-    {"name": "event_exp_base", "symbols": [{"literal":"("}, "_", "EventExpression", "_", {"literal":")"}], "postprocess": getN(2)},
-    {"name": "event_exp_base$ebnf$1$subexpression$1", "symbols": ["__", "event_exp_attribute_pairs"]},
-    {"name": "event_exp_base$ebnf$1", "symbols": ["event_exp_base$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "event_exp_base$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "event_exp_base$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"h"}, {"literal":"e"}, {"literal":"r"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_base$ebnf$2$subexpression$1", "symbols": ["__", "event_exp_base$ebnf$2$subexpression$1$string$1", "__", "event_exp_where"]},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_between, tok_OPEN_PAREN, "EventExpression", tok_COMMA, "EventExpression", tok_CLSE_PAREN], "postprocess": complexEventOp("between", 0, 3, 5)},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_not, tok_between, tok_OPEN_PAREN, "EventExpression", tok_COMMA, "EventExpression", tok_CLSE_PAREN], "postprocess": complexEventOp("not between", 0, 4, 6)},
+    {"name": "event_exp_fns", "symbols": [tok_any, "PositiveInteger", tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("any", 1, 3)},
+    {"name": "event_exp_fns", "symbols": [tok_count, "PositiveInteger", tok_OPEN_PAREN, "EventExpression", tok_CLSE_PAREN], "postprocess": complexEventOp("count", 1, 3)},
+    {"name": "event_exp_fns", "symbols": [tok_repeat, "PositiveInteger", tok_OPEN_PAREN, "EventExpression", tok_CLSE_PAREN], "postprocess": complexEventOp("repeat", 1, 3)},
+    {"name": "event_exp_fns", "symbols": [tok_and, tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("and", 2)},
+    {"name": "event_exp_fns", "symbols": [tok_or, tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("or", 2)},
+    {"name": "event_exp_fns", "symbols": [tok_before, tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("before", 2)},
+    {"name": "event_exp_fns", "symbols": [tok_then, tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("then", 2)},
+    {"name": "event_exp_fns", "symbols": [tok_after, tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("after", 2)},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_max, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": complexEventOp("max", 0, 3)},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_min, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": complexEventOp("min", 0, 3)},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_sum, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": complexEventOp("sum", 0, 3)},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_avg, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": complexEventOp("avg", 0, 3)},
+    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_push, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": complexEventOp("push", 0, 3)},
+    {"name": "event_exp_base", "symbols": [tok_OPEN_PAREN, "EventExpression", tok_CLSE_PAREN], "postprocess": getN(1)},
+    {"name": "event_exp_base$ebnf$1", "symbols": []},
+    {"name": "event_exp_base$ebnf$1", "symbols": ["event_exp_attribute_pair", "event_exp_base$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "event_exp_base$ebnf$2$subexpression$1", "symbols": [tok_where, "event_exp_where"]},
     {"name": "event_exp_base$ebnf$2", "symbols": ["event_exp_base$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "event_exp_base$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "event_exp_base$ebnf$3$subexpression$1$string$1", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"t"}, {"literal":"t"}, {"literal":"i"}, {"literal":"n"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "event_exp_base$ebnf$3$subexpression$1", "symbols": ["__", "event_exp_base$ebnf$3$subexpression$1$string$1", "_", {"literal":"("}, "function_params", "loc_close_paren"]},
+    {"name": "event_exp_base$ebnf$3$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN]},
     {"name": "event_exp_base$ebnf$3", "symbols": ["event_exp_base$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "event_exp_base$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "event_exp_base", "symbols": ["Identifier", "__", "Identifier", "event_exp_base$ebnf$1", "event_exp_base$ebnf$2", "event_exp_base$ebnf$3"], "postprocess": 
-        function(data, start){
+    {"name": "event_exp_base", "symbols": ["Identifier", "Identifier", "event_exp_base$ebnf$1", "event_exp_base$ebnf$2", "event_exp_base$ebnf$3"], "postprocess": 
+        function(data){
           return {
             type: 'EventExpression',
-            loc: {start: start, end: lastEndLoc(data)},
+            loc: mkLoc(data),
             event_domain: data[0],
-            event_type: data[2],
-            attributes: (data[3] && data[3][1]) || [],
-            where: data[4] && data[4][3],
-            setting: (data[5] && data[5][4]) || []
+            event_type: data[1],
+            attributes: data[2],
+            where: data[3] && data[3][1],
+            setting: (data[4] && data[4][2]) || []
           };
         }
         },
-    {"name": "event_exp_attribute_pairs", "symbols": ["event_exp_attribute_pair"], "postprocess": idArr},
-    {"name": "event_exp_attribute_pairs", "symbols": ["event_exp_attribute_pairs", "__", "event_exp_attribute_pair"], "postprocess": concatArr(2)},
-    {"name": "event_exp_attribute_pair", "symbols": ["Identifier", "__", "RegExp"], "postprocess": 
-        function(data, start){
+    {"name": "event_exp_attribute_pair", "symbols": ["Identifier", "RegExp"], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: data[2].loc.end},
+            loc: mkLoc(data),
             type: 'AttributeMatch',
             key: data[0],
-            value: data[2]
+            value: data[1]
           };
         }
         },
@@ -512,171 +607,119 @@ var grammar = {
         }
         },
     {"name": "EventExpression_list", "symbols": ["EventExpression"], "postprocess": idArr},
-    {"name": "EventExpression_list", "symbols": ["EventExpression_list", "_", {"literal":","}, "_", "EventExpression"], "postprocess": concatArr(4)},
-    {"name": "time_period", "symbols": ["time_period_enum"], "postprocess": 
-        function(data, start){
-          var src = data[0][0];
+    {"name": "EventExpression_list", "symbols": ["EventExpression_list", tok_COMMA, "EventExpression"], "postprocess": concatArr(2)},
+    {"name": "time_period", "symbols": [tok_TIME_PERIOD_ENUM], "postprocess": 
+        function(data){
+          var d = data[0];
           return {
-            loc: {start: start, end: start + src.length},
+            loc: d.loc,
             type: 'String',
-            value: src
+            value: d.src
           };
         }
         },
-    {"name": "time_period_enum$string$1", "symbols": [{"literal":"y"}, {"literal":"e"}, {"literal":"a"}, {"literal":"r"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$1"]},
-    {"name": "time_period_enum$string$2", "symbols": [{"literal":"m"}, {"literal":"o"}, {"literal":"n"}, {"literal":"t"}, {"literal":"h"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$2"]},
-    {"name": "time_period_enum$string$3", "symbols": [{"literal":"w"}, {"literal":"e"}, {"literal":"e"}, {"literal":"k"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$3"]},
-    {"name": "time_period_enum$string$4", "symbols": [{"literal":"d"}, {"literal":"a"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$4"]},
-    {"name": "time_period_enum$string$5", "symbols": [{"literal":"h"}, {"literal":"o"}, {"literal":"u"}, {"literal":"r"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$5"]},
-    {"name": "time_period_enum$string$6", "symbols": [{"literal":"m"}, {"literal":"i"}, {"literal":"n"}, {"literal":"u"}, {"literal":"t"}, {"literal":"e"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$6"]},
-    {"name": "time_period_enum$string$7", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"c"}, {"literal":"o"}, {"literal":"n"}, {"literal":"d"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$7"]},
-    {"name": "time_period_enum$string$8", "symbols": [{"literal":"y"}, {"literal":"e"}, {"literal":"a"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$8"]},
-    {"name": "time_period_enum$string$9", "symbols": [{"literal":"m"}, {"literal":"o"}, {"literal":"n"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$9"]},
-    {"name": "time_period_enum$string$10", "symbols": [{"literal":"w"}, {"literal":"e"}, {"literal":"e"}, {"literal":"k"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$10"]},
-    {"name": "time_period_enum$string$11", "symbols": [{"literal":"d"}, {"literal":"a"}, {"literal":"y"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$11"]},
-    {"name": "time_period_enum$string$12", "symbols": [{"literal":"h"}, {"literal":"o"}, {"literal":"u"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$12"]},
-    {"name": "time_period_enum$string$13", "symbols": [{"literal":"m"}, {"literal":"i"}, {"literal":"n"}, {"literal":"u"}, {"literal":"t"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$13"]},
-    {"name": "time_period_enum$string$14", "symbols": [{"literal":"s"}, {"literal":"e"}, {"literal":"c"}, {"literal":"o"}, {"literal":"n"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "time_period_enum", "symbols": ["time_period_enum$string$14"]},
-    {"name": "RuleActionBlock$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"i"}, {"literal":"f"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RuleActionBlock$ebnf$1$subexpression$1$string$2", "symbols": [{"literal":"t"}, {"literal":"h"}, {"literal":"e"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1$subexpression$1", "symbols": ["action_block_type", "__"]},
-    {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1", "symbols": ["action_block_type"], "postprocess": id},
     {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleActionBlock$ebnf$1$subexpression$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1$string$1", "__", "Expression", "__", "RuleActionBlock$ebnf$1$subexpression$1$string$2", "__", "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1"]},
+    {"name": "RuleActionBlock$ebnf$1$subexpression$1", "symbols": [tok_if, "Expression", tok_then, "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1"]},
     {"name": "RuleActionBlock$ebnf$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleActionBlock$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleActionBlock", "symbols": ["RuleActionBlock$ebnf$1", "RuleActions"], "postprocess": 
-        function(data, start){
+    {"name": "RuleActionBlock$ebnf$2", "symbols": ["RuleAction"]},
+    {"name": "RuleActionBlock$ebnf$2", "symbols": ["RuleAction", "RuleActionBlock$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "RuleActionBlock", "symbols": ["RuleActionBlock$ebnf$1", "RuleActionBlock$ebnf$2"], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: lastEndLoc(data)},
+            loc: mkLoc(data),
             type: 'RuleActionBlock',
-            condition: data[0] && data[0][2],
-            block_type: get(data, [0, 6, 0], "every"),
+            condition: data[0] && data[0][1],
+            block_type: (data[0] && data[0][3] && data[0][3].src) || "every",
             actions: data[1]
           };
         }
         },
-    {"name": "action_block_type$string$1", "symbols": [{"literal":"c"}, {"literal":"h"}, {"literal":"o"}, {"literal":"o"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "action_block_type", "symbols": ["action_block_type$string$1"], "postprocess": id},
-    {"name": "action_block_type$string$2", "symbols": [{"literal":"e"}, {"literal":"v"}, {"literal":"e"}, {"literal":"r"}, {"literal":"y"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "action_block_type", "symbols": ["action_block_type$string$2"], "postprocess": id},
-    {"name": "RuleActions", "symbols": ["RuleAction"], "postprocess": idArr},
-    {"name": "RuleActions", "symbols": ["RuleActions", "__", "RuleAction"], "postprocess": concatArr(2)},
-    {"name": "RuleAction$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RuleAction$ebnf$1$subexpression$1", "symbols": ["Identifier", "_", "RuleAction$ebnf$1$subexpression$1$string$1", "_"]},
+    {"name": "action_block_type", "symbols": [tok_choose], "postprocess": id},
+    {"name": "action_block_type", "symbols": [tok_every], "postprocess": id},
+    {"name": "RuleAction$ebnf$1$subexpression$1", "symbols": ["Identifier", tok_FAT_ARROW_RIGHT]},
     {"name": "RuleAction$ebnf$1", "symbols": ["RuleAction$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RuleAction$ebnf$2$subexpression$1", "symbols": ["_", "RuleAction$ebnf$2$subexpression$1$string$1", "__", "declaration_list"]},
+    {"name": "RuleAction$ebnf$2$subexpression$1", "symbols": [tok_with, "declaration_list"]},
     {"name": "RuleAction$ebnf$2", "symbols": ["RuleAction$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier_or_DomainIdentifier", "_", {"literal":"("}, "Expression_list", "loc_close_paren", "RuleAction$ebnf$2"], "postprocess": 
-        function(data, start){
+    {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier_or_DomainIdentifier", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "RuleAction$ebnf$2"], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: lastEndLoc(data)},
+            loc: mkLoc(data),
             type: 'RuleAction',
             label: data[0] && data[0][0],
             action: data[1],
-            args: data[4],
-            "with": data[6] ? data[6][3] : []
+            args: data[3],
+            "with": data[5] ? data[5][1] : []
           };
         }
         },
     {"name": "Identifier_or_DomainIdentifier", "symbols": ["Identifier"], "postprocess": id},
     {"name": "Identifier_or_DomainIdentifier", "symbols": ["DomainIdentifier"], "postprocess": id},
-    {"name": "RulePostlude$string$1", "symbols": [{"literal":"a"}, {"literal":"l"}, {"literal":"w"}, {"literal":"a"}, {"literal":"y"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RulePostlude", "symbols": ["RulePostlude$string$1", "_", "postlude_clause"], "postprocess": RulePostlude_by_paths(null, null, [2, 0])},
-    {"name": "RulePostlude$string$2", "symbols": [{"literal":"f"}, {"literal":"i"}, {"literal":"r"}, {"literal":"e"}, {"literal":"d"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RulePostlude$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"e"}, {"literal":"l"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RulePostlude$ebnf$1$subexpression$1", "symbols": ["_", "RulePostlude$ebnf$1$subexpression$1$string$1", "_", "postlude_clause"]},
+    {"name": "RulePostlude", "symbols": [tok_always, tok_OPEN_CURLY, "PostludeStatements", tok_CLSE_CURLY], "postprocess": RulePostlude_by_paths(null, null, [2])},
+    {"name": "RulePostlude$ebnf$1$subexpression$1", "symbols": [tok_else, tok_OPEN_CURLY, "PostludeStatements", tok_CLSE_CURLY]},
     {"name": "RulePostlude$ebnf$1", "symbols": ["RulePostlude$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RulePostlude$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RulePostlude$ebnf$2$subexpression$1$string$1", "symbols": [{"literal":"f"}, {"literal":"i"}, {"literal":"n"}, {"literal":"a"}, {"literal":"l"}, {"literal":"l"}, {"literal":"y"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RulePostlude$ebnf$2$subexpression$1", "symbols": ["_", "RulePostlude$ebnf$2$subexpression$1$string$1", "_", "postlude_clause"]},
+    {"name": "RulePostlude$ebnf$2$subexpression$1", "symbols": [tok_finally, tok_OPEN_CURLY, "PostludeStatements", tok_CLSE_CURLY]},
     {"name": "RulePostlude$ebnf$2", "symbols": ["RulePostlude$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "RulePostlude$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RulePostlude", "symbols": ["RulePostlude$string$2", "_", "postlude_clause", "RulePostlude$ebnf$1", "RulePostlude$ebnf$2"], "postprocess": RulePostlude_by_paths([2, 0], [3, 3, 0], [4, 3, 0])},
-    {"name": "postlude_clause", "symbols": [{"literal":"{"}, "PostludeStatements", "loc_close_curly"], "postprocess": 
-        function(d){
-          //we need to keep the location of the close curly
-          return [d[1],d[2]];
-        }
-        },
-    {"name": "PostludeStatements", "symbols": ["_"], "postprocess": noopArr},
-    {"name": "PostludeStatements", "symbols": ["_", "PostludeStatements_body", "_"], "postprocess": getN(1)},
+    {"name": "RulePostlude", "symbols": [tok_fired, tok_OPEN_CURLY, "PostludeStatements", tok_CLSE_CURLY, "RulePostlude$ebnf$1", "RulePostlude$ebnf$2"], "postprocess": RulePostlude_by_paths([2], [4, 2], [5, 2])},
+    {"name": "PostludeStatements", "symbols": [], "postprocess": noopArr},
+    {"name": "PostludeStatements", "symbols": ["PostludeStatements_body"], "postprocess": id},
     {"name": "PostludeStatements_body", "symbols": ["PostludeStatement"], "postprocess": idArr},
-    {"name": "PostludeStatements_body", "symbols": ["PostludeStatements_body", "_", {"literal":";"}, "_", "PostludeStatement"], "postprocess": concatArr(4)},
+    {"name": "PostludeStatements_body", "symbols": ["PostludeStatements_body", tok_SEMI, "PostludeStatement"], "postprocess": concatArr(2)},
     {"name": "PostludeStatement", "symbols": ["Statement"], "postprocess": id},
     {"name": "PostludeStatement", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
     {"name": "PostludeStatement", "symbols": ["RaiseEventStatement"], "postprocess": id},
-    {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [{"literal":"{"}, "_", "Expression", "_", {"literal":"}"}, "_"]},
+    {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "PersistentVariableAssignment$string$1", "symbols": [{"literal":":"}, {"literal":"="}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "PersistentVariableAssignment", "symbols": ["DomainIdentifier", "_", "PersistentVariableAssignment$ebnf$1", "PersistentVariableAssignment$string$1", "_", "Expression"], "postprocess": 
-        function(data, start){
+    {"name": "PersistentVariableAssignment", "symbols": ["DomainIdentifier", "PersistentVariableAssignment$ebnf$1", tok_COLON_EQ, "Expression"], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: data[5].loc.end},
+            loc: mkLoc(data),
             type: 'PersistentVariableAssignment',
-            op: data[3],
+            op: data[2].src,
             left: data[0],
-            path_expression: data[2] ? data[2][2] : null,
-            right: data[5]
+            path_expression: data[1] ? data[1][1] : null,
+            right: data[3]
           };
         }
         },
-    {"name": "RaiseEventStatement$string$1", "symbols": [{"literal":"r"}, {"literal":"a"}, {"literal":"i"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RaiseEventStatement$string$2", "symbols": [{"literal":"e"}, {"literal":"v"}, {"literal":"e"}, {"literal":"n"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RaiseEventStatement$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"f"}, {"literal":"o"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RaiseEventStatement$ebnf$1$subexpression$1", "symbols": ["__", "RaiseEventStatement$ebnf$1$subexpression$1$string$1", "__", "Expression"]},
+    {"name": "RaiseEventStatement$ebnf$1$subexpression$1", "symbols": [tok_for, "Expression"]},
     {"name": "RaiseEventStatement$ebnf$1", "symbols": ["RaiseEventStatement$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RaiseEventStatement$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RaiseEventStatement$ebnf$2$subexpression$1", "symbols": ["__", "RaiseEventAttributes"]},
-    {"name": "RaiseEventStatement$ebnf$2", "symbols": ["RaiseEventStatement$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "RaiseEventStatement$ebnf$2", "symbols": ["RaiseEventAttributes"], "postprocess": id},
     {"name": "RaiseEventStatement$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RaiseEventStatement", "symbols": ["RaiseEventStatement$string$1", "__", "Identifier", "__", "RaiseEventStatement$string$2", "__", "Expression", "RaiseEventStatement$ebnf$1", "RaiseEventStatement$ebnf$2"], "postprocess": 
-        function(data, start){
+    {"name": "RaiseEventStatement", "symbols": [tok_raise, "Identifier", tok_event, "Expression", "RaiseEventStatement$ebnf$1", "RaiseEventStatement$ebnf$2"], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: lastEndLoc(data)},
+            loc: mkLoc(data),
             type: 'RaiseEventStatement',
-            event_domain: data[2],
-            event_type: data[6],
-            for_rid: data[7] ? data[7][3] : null,
-            attributes: data[8] ? data[8][1] : null,
+            event_domain: data[1],
+            event_type: data[3],
+            for_rid: data[4] ? data[4][1] : null,
+            attributes: data[5]
           };
         }
         },
-    {"name": "RaiseEventAttributes$string$1", "symbols": [{"literal":"w"}, {"literal":"i"}, {"literal":"t"}, {"literal":"h"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RaiseEventAttributes", "symbols": ["RaiseEventAttributes$string$1", "__", "declaration_list"], "postprocess": 
-        function(data, start){
+    {"name": "RaiseEventAttributes", "symbols": [tok_with, "declaration_list"], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: lastEndLoc(data)},
+            loc: mkLoc(data),
             type: "RaiseEventAttributes",
-            with: data[2]
+            with: data[1]
           };
         }
         },
-    {"name": "RaiseEventAttributes$string$2", "symbols": [{"literal":"a"}, {"literal":"t"}, {"literal":"t"}, {"literal":"r"}, {"literal":"i"}, {"literal":"b"}, {"literal":"u"}, {"literal":"t"}, {"literal":"e"}, {"literal":"s"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RaiseEventAttributes", "symbols": ["RaiseEventAttributes$string$2", "__", "Expression"], "postprocess": 
-        function(data, start){
+    {"name": "RaiseEventAttributes", "symbols": [tok_attributes, "Expression"], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: lastEndLoc(data)},
+            loc: mkLoc(data),
             type: "RaiseEventAttributes",
-            expression: data[2]
+            expression: data[1]
           };
         }
         },
@@ -691,89 +734,74 @@ var grammar = {
           };
         }
         },
-    {"name": "Declaration", "symbols": ["left_side_of_declaration", "_", {"literal":"="}, "_", "Expression"], "postprocess": 
-        function(data, start){
+    {"name": "Declaration", "symbols": ["left_side_of_declaration", tok_EQ, "Expression"], "postprocess": 
+        function(data){
           return {
-            loc: {start: data[0].loc.start, end: data[4].loc.end},
+            loc: mkLoc(data),
             type: 'Declaration',
-            op: data[2],
+            op: "=",
             left: data[0],
-            right: data[4]
+            right: data[2]
           };
         }
         },
     {"name": "left_side_of_declaration", "symbols": ["MemberExpression"], "postprocess": id},
-    {"name": "Statement_list", "symbols": ["_"], "postprocess": noopArr},
-    {"name": "Statement_list", "symbols": ["_", "Statement_list_body", "_"], "postprocess": getN(1)},
+    {"name": "Statement_list", "symbols": ["Statement_list_body"], "postprocess": id},
     {"name": "Statement_list_body", "symbols": ["Statement"], "postprocess": idArr},
-    {"name": "Statement_list_body", "symbols": ["Statement_list_body", "_", {"literal":";"}, "_", "Statement"], "postprocess": concatArr(4)},
-    {"name": "declaration_block", "symbols": [{"literal":"{"}, "_", {"literal":"}"}], "postprocess": noopArr},
-    {"name": "declaration_block", "symbols": [{"literal":"{"}, "_", "declaration_list", "_", {"literal":"}"}], "postprocess": getN(2)},
+    {"name": "Statement_list_body", "symbols": ["Statement_list_body", tok_SEMI, "Statement"], "postprocess": concatArr(2)},
+    {"name": "declaration_block", "symbols": [tok_OPEN_CURLY, tok_CLSE_CURLY], "postprocess": noopArr},
+    {"name": "declaration_block", "symbols": [tok_OPEN_CURLY, "declaration_list", tok_CLSE_CURLY], "postprocess": getN(1)},
     {"name": "declaration_list", "symbols": ["Declaration"], "postprocess": idArr},
-    {"name": "declaration_list", "symbols": ["declaration_list", "__", "Declaration"], "postprocess": concatArr(2)},
+    {"name": "declaration_list", "symbols": ["declaration_list", "Declaration"], "postprocess": concatArr(1)},
     {"name": "Expression", "symbols": ["exp_conditional"], "postprocess": id},
     {"name": "exp_conditional", "symbols": ["exp_or"], "postprocess": id},
-    {"name": "exp_conditional$string$1", "symbols": [{"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_conditional", "symbols": ["exp_or", "_", "exp_conditional$string$1", "_", "exp_or", "_", {"literal":"|"}, "_", "exp_conditional"], "postprocess": 
-        function(data, start){
+    {"name": "exp_conditional", "symbols": ["exp_or", tok_FAT_ARROW_RIGHT, "exp_or", tok_PIPE, "exp_conditional"], "postprocess": 
+        function(data){
           return {
-            loc: {start: data[0].loc.start, end: data[8].loc.end},
+            loc: mkLoc(data),
             type: 'ConditionalExpression',
             test: data[0],
-            consequent: data[4],
-            alternate: data[8]
+            consequent: data[2],
+            alternate: data[4]
           };
         }
         },
     {"name": "exp_or", "symbols": ["exp_and"], "postprocess": id},
-    {"name": "exp_or$string$1", "symbols": [{"literal":"|"}, {"literal":"|"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_or", "symbols": ["exp_or", "_", "exp_or$string$1", "_", "exp_and"], "postprocess": infixOp},
+    {"name": "exp_or", "symbols": ["exp_or", tok_OR, "exp_and"], "postprocess": infixOp},
     {"name": "exp_and", "symbols": ["exp_comp"], "postprocess": id},
-    {"name": "exp_and$string$1", "symbols": [{"literal":"&"}, {"literal":"&"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_and", "symbols": ["exp_and", "_", "exp_and$string$1", "_", "exp_comp"], "postprocess": infixOp},
+    {"name": "exp_and", "symbols": ["exp_and", tok_AND, "exp_comp"], "postprocess": infixOp},
     {"name": "exp_comp", "symbols": ["exp_sum"], "postprocess": id},
-    {"name": "exp_comp", "symbols": ["exp_comp", "_", {"literal":"<"}, "_", "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp", "symbols": ["exp_comp", "_", {"literal":">"}, "_", "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp$string$1", "symbols": [{"literal":"<"}, {"literal":"="}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_comp", "symbols": ["exp_comp", "_", "exp_comp$string$1", "_", "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp$string$2", "symbols": [{"literal":">"}, {"literal":"="}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_comp", "symbols": ["exp_comp", "_", "exp_comp$string$2", "_", "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp$string$3", "symbols": [{"literal":"="}, {"literal":"="}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_comp", "symbols": ["exp_comp", "_", "exp_comp$string$3", "_", "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp$string$4", "symbols": [{"literal":"!"}, {"literal":"="}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_comp", "symbols": ["exp_comp", "_", "exp_comp$string$4", "_", "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp$string$5", "symbols": [{"literal":"e"}, {"literal":"q"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_comp", "symbols": ["exp_comp", "__", "exp_comp$string$5", "__", "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp$string$6", "symbols": [{"literal":"n"}, {"literal":"e"}, {"literal":"q"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_comp", "symbols": ["exp_comp", "__", "exp_comp$string$6", "__", "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp$string$7", "symbols": [{"literal":"l"}, {"literal":"i"}, {"literal":"k"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_comp", "symbols": ["exp_comp", "__", "exp_comp$string$7", "__", "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp$string$8", "symbols": [{"literal":">"}, {"literal":"<"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_comp", "symbols": ["exp_comp", "__", "exp_comp$string$8", "__", "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp$string$9", "symbols": [{"literal":"<"}, {"literal":"="}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_comp", "symbols": ["exp_comp", "__", "exp_comp$string$9", "__", "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp$string$10", "symbols": [{"literal":"c"}, {"literal":"m"}, {"literal":"p"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "exp_comp", "symbols": ["exp_comp", "__", "exp_comp$string$10", "__", "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_LT, "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_GT, "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_LTEQ, "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_GTEQ, "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_EQEQ, "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_NOTEQ, "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_eq, "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_neq, "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_like, "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_GTLT, "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_FAT_ARROW_DOUBLE, "exp_sum"], "postprocess": infixOp},
+    {"name": "exp_comp", "symbols": ["exp_comp", tok_cmp, "exp_sum"], "postprocess": infixOp},
     {"name": "exp_sum", "symbols": ["exp_product"], "postprocess": id},
-    {"name": "exp_sum", "symbols": ["exp_sum", "_", {"literal":"+"}, "_", "exp_product"], "postprocess": infixOp},
-    {"name": "exp_sum", "symbols": ["exp_sum", "_", {"literal":"-"}, "_", "exp_product"], "postprocess": infixOp},
+    {"name": "exp_sum", "symbols": ["exp_sum", tok_PLUS, "exp_product"], "postprocess": infixOp},
+    {"name": "exp_sum", "symbols": ["exp_sum", tok_MINUS, "exp_product"], "postprocess": infixOp},
     {"name": "exp_product", "symbols": ["UnaryOperator"], "postprocess": id},
-    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"*"}, "_", "UnaryOperator"], "postprocess": infixOp},
-    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"/"}, "_", "UnaryOperator"], "postprocess": infixOp},
-    {"name": "exp_product", "symbols": ["exp_product", "_", {"literal":"%"}, "_", "UnaryOperator"], "postprocess": infixOp},
+    {"name": "exp_product", "symbols": ["exp_product", tok_STAR, "UnaryOperator"], "postprocess": infixOp},
+    {"name": "exp_product", "symbols": ["exp_product", tok_DIVIDE, "UnaryOperator"], "postprocess": infixOp},
+    {"name": "exp_product", "symbols": ["exp_product", tok_MODULO, "UnaryOperator"], "postprocess": infixOp},
     {"name": "UnaryOperator", "symbols": ["MemberExpression"], "postprocess": id},
-    {"name": "UnaryOperator", "symbols": [{"literal":"+"}, "_", "UnaryOperator"], "postprocess": unaryOp},
-    {"name": "UnaryOperator", "symbols": [{"literal":"-"}, "_", "UnaryOperator"], "postprocess": unaryOp},
-    {"name": "UnaryOperator$string$1", "symbols": [{"literal":"n"}, {"literal":"o"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "UnaryOperator", "symbols": ["UnaryOperator$string$1", "__", "UnaryOperator"], "postprocess": unaryOp},
+    {"name": "UnaryOperator", "symbols": [tok_PLUS, "UnaryOperator"], "postprocess": unaryOp},
+    {"name": "UnaryOperator", "symbols": [tok_MINUS, "UnaryOperator"], "postprocess": unaryOp},
+    {"name": "UnaryOperator", "symbols": [tok_not, "UnaryOperator"], "postprocess": unaryOp},
     {"name": "MemberExpression", "symbols": ["PrimaryExpression"], "postprocess": id},
-    {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"["}, "_", "Expression", "_", "loc_close_square"], "postprocess": MemberExpression_method('index')},
-    {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"{"}, "_", "Expression", "_", "loc_close_curly"], "postprocess": MemberExpression_method('path')},
-    {"name": "MemberExpression", "symbols": ["MemberExpression", "_", {"literal":"."}, "_", "Identifier"], "postprocess": MemberExpression_method('dot')},
+    {"name": "MemberExpression", "symbols": ["MemberExpression", tok_OPEN_SQARE, "Expression", tok_CLSE_SQARE], "postprocess": MemberExpression_method('index')},
+    {"name": "MemberExpression", "symbols": ["MemberExpression", tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY], "postprocess": MemberExpression_method('path')},
+    {"name": "MemberExpression", "symbols": ["MemberExpression", tok_DOT, "Identifier"], "postprocess": MemberExpression_method('dot')},
     {"name": "PrimaryExpression", "symbols": ["Identifier"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["DomainIdentifier"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["Literal"], "postprocess": id},
-    {"name": "PrimaryExpression", "symbols": [{"literal":"("}, "_", "Expression", "_", {"literal":")"}], "postprocess": getN(2)},
+    {"name": "PrimaryExpression", "symbols": [tok_OPEN_PAREN, "Expression", tok_CLSE_PAREN], "postprocess": getN(1)},
     {"name": "PrimaryExpression", "symbols": ["Function"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["Application"], "postprocess": id},
     {"name": "Literal", "symbols": ["String"], "postprocess": id},
@@ -783,99 +811,94 @@ var grammar = {
     {"name": "Literal", "symbols": ["Chevron"], "postprocess": id},
     {"name": "Literal", "symbols": ["Array"], "postprocess": id},
     {"name": "Literal", "symbols": ["Map"], "postprocess": id},
-    {"name": "Expression_list", "symbols": ["_"], "postprocess": noopArr},
-    {"name": "Expression_list", "symbols": ["_", "Expression_list_body", "_"], "postprocess": getN(1)},
+    {"name": "Expression_list", "symbols": [], "postprocess": noopArr},
+    {"name": "Expression_list", "symbols": ["Expression_list_body"], "postprocess": id},
     {"name": "Expression_list_body", "symbols": ["Expression"], "postprocess": idArr},
-    {"name": "Expression_list_body", "symbols": ["Expression_list_body", "_", {"literal":","}, "_", "Expression"], "postprocess": concatArr(4)},
-    {"name": "Function$string$1", "symbols": [{"literal":"f"}, {"literal":"u"}, {"literal":"n"}, {"literal":"c"}, {"literal":"t"}, {"literal":"i"}, {"literal":"o"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "Function", "symbols": ["Function$string$1", "_", {"literal":"("}, "function_params", {"literal":")"}, "_", {"literal":"{"}, "Statement_list", "loc_close_curly"], "postprocess": 
-        function(data, start){
+    {"name": "Expression_list_body", "symbols": ["Expression_list_body", tok_COMMA, "Expression"], "postprocess": concatArr(2)},
+    {"name": "Function$ebnf$1", "symbols": ["Statement_list"], "postprocess": id},
+    {"name": "Function$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Function", "symbols": [tok_function, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "Function$ebnf$1", tok_CLSE_CURLY], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: last(data)},
+            loc: mkLoc(data),
             type: 'Function',
-            params: data[3],
-            body: data[7]
+            params: data[2],
+            body: data[5] || []
           };
         }
         },
-    {"name": "function_params", "symbols": ["_"], "postprocess": noopArr},
-    {"name": "function_params", "symbols": ["_", "function_params_body", "_"], "postprocess": getN(1)},
-    {"name": "function_params_body", "symbols": ["Identifier"], "postprocess": idArr},
-    {"name": "function_params_body", "symbols": ["function_params_body", "_", {"literal":","}, "_", "Identifier"], "postprocess": concatArr(4)},
-    {"name": "Application", "symbols": ["MemberExpression", "_", {"literal":"("}, "Expression_list", "loc_close_paren"], "postprocess": 
-        function(data, start){
+    {"name": "function_params", "symbols": [], "postprocess": noopArr},
+    {"name": "function_params", "symbols": ["Identifier"], "postprocess": idArr},
+    {"name": "function_params", "symbols": ["function_params", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
+    {"name": "Application", "symbols": ["MemberExpression", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: last(data)},
+            loc: mkLoc(data),
             type: 'Application',
             callee: data[0],
-            args: data[3]
+            args: data[2]
           };
         }
         },
-    {"name": "Array", "symbols": [{"literal":"["}, "Expression_list", "loc_close_square"], "postprocess": 
-        function(data, loc){
+    {"name": "Array", "symbols": [tok_OPEN_SQARE, "Expression_list", tok_CLSE_SQARE], "postprocess": 
+        function(data){
           return {
+            loc: mkLoc(data),
             type: 'Array',
-            loc: {start: loc, end: last(data)},
             value: data[1]
           };
         }
         },
-    {"name": "Map", "symbols": [{"literal":"{"}, "Map_body", "loc_close_curly"], "postprocess": 
-        function(data, loc){
+    {"name": "Map", "symbols": [tok_OPEN_CURLY, "Map_body", tok_CLSE_CURLY], "postprocess": 
+        function(data){
           return {
-            loc: {start: loc, end: last(data)},
+            loc: mkLoc(data),
             type: 'Map',
             value: data[1]
           };
         }
         },
-    {"name": "Map_body", "symbols": ["_"], "postprocess": noopArr},
-    {"name": "Map_body", "symbols": ["_", "map_kv_pairs", "_"], "postprocess": getN(1)},
+    {"name": "Map_body", "symbols": [], "postprocess": noopArr},
+    {"name": "Map_body", "symbols": ["map_kv_pairs"], "postprocess": id},
     {"name": "map_kv_pairs", "symbols": ["map_kv_pair"], "postprocess": idArr},
-    {"name": "map_kv_pairs", "symbols": ["map_kv_pairs", "_", {"literal":","}, "_", "map_kv_pair"], "postprocess": concatArr(4)},
-    {"name": "map_kv_pair", "symbols": ["String", "_", {"literal":":"}, "_", "Expression"], "postprocess": 
-        function(data, start){
+    {"name": "map_kv_pairs", "symbols": ["map_kv_pairs", tok_COMMA, "map_kv_pair"], "postprocess": concatArr(2)},
+    {"name": "map_kv_pair", "symbols": ["String", tok_COLON, "Expression"], "postprocess": 
+        function(data){
           return {
-            loc: {start: start, end: data[4].loc.end},
+            loc: mkLoc(data),
             type: 'MapKeyValuePair',
             key: data[0],
-            value: data[4]
+            value: data[2]
           };
         }
         },
-    {"name": "DomainIdentifier", "symbols": ["Identifier", "_", {"literal":":"}, "_", "Identifier"], "postprocess": 
+    {"name": "DomainIdentifier", "symbols": ["Identifier", tok_COLON, "Identifier"], "postprocess": 
         function(data, start, reject){
-          var id = data[4];
           return {
+            loc: mkLoc(data),
             type: 'DomainIdentifier',
-            loc: {start: start, end: id.loc.end},
-            value: id.value,
+            value: data[2].value,
             domain: data[0].value
           };
         }
         },
-    {"name": "Identifier$ebnf$1", "symbols": []},
-    {"name": "Identifier$ebnf$1", "symbols": [/[a-zA-Z0-9_$]/, "Identifier$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "Identifier", "symbols": [/[a-zA-Z_$]/, "Identifier$ebnf$1"], "postprocess": 
-        function(data, loc, reject){
-          var src = flatten(data).join('');
-          if(reserved_identifiers.hasOwnProperty(src)){
+    {"name": "Identifier", "symbols": [tok_SYMBOL], "postprocess": 
+        function(data, start, reject){
+          var d = data[0];
+          if(reserved_identifiers.hasOwnProperty(d.src)){
             return reject;
           }
           return {
             type: 'Identifier',
-            loc: {start: loc, end: loc + src.length},
-            value: src
+            loc: d.loc,
+            value: d.src
           };
         }
         },
-    {"name": "Boolean$string$1", "symbols": [{"literal":"t"}, {"literal":"r"}, {"literal":"u"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "Boolean", "symbols": ["Boolean$string$1"], "postprocess": booleanAST(true )},
-    {"name": "Boolean$string$2", "symbols": [{"literal":"f"}, {"literal":"a"}, {"literal":"l"}, {"literal":"s"}, {"literal":"e"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "Boolean", "symbols": ["Boolean$string$2"], "postprocess": booleanAST(false)},
+    {"name": "Boolean", "symbols": [tok_true], "postprocess": booleanAST(true )},
+    {"name": "Boolean", "symbols": [tok_false], "postprocess": booleanAST(false)},
     {"name": "PositiveInteger", "symbols": ["Number"], "postprocess": 
-        function(data, loc, reject){
+        function(data, start, reject){
           var n = data[0];
           if(n.value >= 0 && (n.value === parseInt(n.value, 10))){
             return n;
@@ -883,111 +906,62 @@ var grammar = {
           return reject;
         }
         },
-    {"name": "Number", "symbols": ["number"], "postprocess": 
-        function(data, loc){
-          var src = flatten(data).join('');
+    {"name": "Number", "symbols": [tok_NUMBER], "postprocess": 
+        function(data){
+          var d = data[0];
           return {
-            loc: {start: loc, end: loc + src.length},
+            loc: d.loc,
             type: 'Number',
-            value: parseFloat(src) || 0// or 0 to avoid NaN
+            value: parseFloat(d.src) || 0// or 0 to avoid NaN
           };
         }
         },
-    {"name": "number", "symbols": ["int"]},
-    {"name": "number", "symbols": [{"literal":"."}, "int"]},
-    {"name": "number", "symbols": ["int", {"literal":"."}, "int"]},
-    {"name": "int$ebnf$1", "symbols": [/[0-9]/]},
-    {"name": "int$ebnf$1", "symbols": [/[0-9]/, "int$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "int", "symbols": ["int$ebnf$1"], "postprocess": idAll},
-    {"name": "RegExp$string$1", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "RegExp", "symbols": ["RegExp$string$1", "regexp_pattern", {"literal":"#"}, "regexp_modifiers"], "postprocess": 
-        function(data, loc){
-          var pattern = data[1];
-          var modifiers = data[3][0];
+    {"name": "RegExp", "symbols": [tok_REGEXP], "postprocess": 
+        function(data){
+          var d = data[0];
+          var pattern = d.src.substring(3, d.src.lastIndexOf("#")).replace(/\\#/g, "#");
+          var modifiers = d.src.substring(d.src.lastIndexOf("#") + 1);
           return {
-            loc: {start: loc, end: data[3][1]},
+            loc: d.loc,
             type: 'RegExp',
             value: new RegExp(pattern, modifiers)
           };
         }
         },
-    {"name": "regexp_pattern", "symbols": [], "postprocess": noopStr},
-    {"name": "regexp_pattern", "symbols": ["regexp_pattern", "regexp_pattern_char"], "postprocess": function(d){return d[0] + d[1]}},
-    {"name": "regexp_pattern_char", "symbols": [/[^\\#]/], "postprocess": id},
-    {"name": "regexp_pattern_char", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return d[1] === '#' ? '#' : '\\\\'}},
-    {"name": "regexp_modifiers", "symbols": ["regexp_modifiers_chars"], "postprocess": 
-        function(data, loc){
-          var src = flatten(data).join('');
-          return [src, loc + src.length];
-        }
-        },
-    {"name": "regexp_modifiers_chars", "symbols": [], "postprocess": noopStr},
-    {"name": "regexp_modifiers_chars", "symbols": [{"literal":"i"}]},
-    {"name": "regexp_modifiers_chars", "symbols": [{"literal":"g"}]},
-    {"name": "regexp_modifiers_chars$string$1", "symbols": [{"literal":"i"}, {"literal":"g"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "regexp_modifiers_chars", "symbols": ["regexp_modifiers_chars$string$1"]},
-    {"name": "regexp_modifiers_chars$string$2", "symbols": [{"literal":"g"}, {"literal":"i"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "regexp_modifiers_chars", "symbols": ["regexp_modifiers_chars$string$2"]},
-    {"name": "Chevron$string$1", "symbols": [{"literal":"<"}, {"literal":"<"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "Chevron", "symbols": ["Chevron$string$1", "chevron_body", "loc_close_chevron"], "postprocess": 
-        function(data, loc){
+    {"name": "Chevron$ebnf$1", "symbols": []},
+    {"name": "Chevron$ebnf$1", "symbols": ["ChevronPart", "Chevron$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "Chevron", "symbols": [tok_CHEVRON_OPEN, "Chevron$ebnf$1", tok_CHEVRON_CLOSE], "postprocess": 
+        function(data){
           return {
-            loc: {start: loc - 2, end: last(data)},
+            loc: mkLoc(data),
             type: 'Chevron',
             value: data[1]
           };
         }
         },
-    {"name": "chevron_body", "symbols": ["chevron_string_node"], "postprocess": idArr},
-    {"name": "chevron_body", "symbols": ["chevron_body", "beesting", "chevron_string_node"], "postprocess": function(d){return d[0].concat([d[1], d[2]])}},
-    {"name": "beesting$string$1", "symbols": [{"literal":"#"}, {"literal":"{"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "beesting", "symbols": ["beesting$string$1", "_", "Expression", "_", {"literal":"}"}], "postprocess": getN(2)},
-    {"name": "chevron_string_node", "symbols": ["chevron_string"], "postprocess": 
-        function(data, loc){
-          var src = data[0];
+    {"name": "ChevronPart", "symbols": ["ChevronString"], "postprocess": id},
+    {"name": "ChevronPart", "symbols": [tok_BEESTING_OPEN, "Expression", tok_BEESTING_CLOSE], "postprocess": getN(1)},
+    {"name": "ChevronString", "symbols": [tok_CHEVRON_STRING], "postprocess": 
+        function(data){
+          var d = data[0];
           return {
-            loc: {start: loc, end: loc + src.length},
+            loc: d.loc,
             type: 'String',
-            value: src.replace(/>\\>/g, '>>')
+            value: d.src.replace(/>\\>/g, '>>')
           };
         }
         },
-    {"name": "chevron_string", "symbols": [], "postprocess": noopStr},
-    {"name": "chevron_string", "symbols": ["chevron_string", "chevron_char"], "postprocess": function(d){return d[0] + d[1]}},
-    {"name": "chevron_char", "symbols": [/[^>#]/], "postprocess": id},
-    {"name": "chevron_char", "symbols": [{"literal":"#"}, /[^{]/], "postprocess": idAll},
-    {"name": "chevron_char", "symbols": [{"literal":">"}, /[^>]/], "postprocess": idAll},
-    {"name": "String", "symbols": [{"literal":"\""}, "string", {"literal":"\""}], "postprocess": 
-        function(data, loc){
-          var src = data[1];
+    {"name": "String", "symbols": [tok_STRING], "postprocess": 
+        function(data){
+          var d = data[0];
+          var v = d.src.replace(/(^")|("$)/g, "").replace(/\\"/g, "\"");
           return {
-            loc: {start: loc, end: loc + src.length + 2},
+            loc: d.loc,
             type: 'String',
-            value: src
+            value: v
           };
         }
-        },
-    {"name": "string", "symbols": [], "postprocess": noopStr},
-    {"name": "string", "symbols": ["string", "stringchar"], "postprocess": function(d){return d[0] + d[1]}},
-    {"name": "stringchar", "symbols": [/[^\\"]/], "postprocess": id},
-    {"name": "stringchar", "symbols": [{"literal":"\\"}, /[^]/], "postprocess": function(d){return JSON.parse('"' + d[0] + d[1] + '"')}},
-    {"name": "loc_close_curly", "symbols": [{"literal":"}"}], "postprocess": idEndLoc},
-    {"name": "loc_close_square", "symbols": [{"literal":"]"}], "postprocess": idEndLoc},
-    {"name": "loc_close_paren", "symbols": [{"literal":")"}], "postprocess": idEndLoc},
-    {"name": "loc_close_chevron$string$1", "symbols": [{"literal":">"}, {"literal":">"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "loc_close_chevron", "symbols": ["loc_close_chevron$string$1"], "postprocess": idEndLoc},
-    {"name": "_$ebnf$1", "symbols": []},
-    {"name": "_$ebnf$1", "symbols": [/[\s]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": noop},
-    {"name": "__$ebnf$1", "symbols": [/[\s]/]},
-    {"name": "__$ebnf$1", "symbols": [/[\s]/, "__$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "__", "symbols": ["__$ebnf$1"], "postprocess": noop},
-    {"name": "_semi$ebnf$1", "symbols": []},
-    {"name": "_semi$ebnf$1", "symbols": [/[\s;]/, "_semi$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "_semi", "symbols": ["_semi$ebnf$1"], "postprocess": noop},
-    {"name": "__semi$ebnf$1", "symbols": [/[\s;]/]},
-    {"name": "__semi$ebnf$1", "symbols": [/[\s;]/, "__semi$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "__semi", "symbols": ["__semi$ebnf$1"], "postprocess": noop}
+        }
 ]
   , ParserStart: "main"
 }
