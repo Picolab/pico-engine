@@ -230,17 +230,14 @@ $.getJSON("/api/db-dump", function(db_dump){
         }
         $("#logging-off").click(function(){
           $("#logging-list").hide();
-          $("#logging-list").find(".active").toggleClass("active");
           $(".logging-detail").hide();
           $.getJSON("/sky/event/"+theDB.eci+"/logging-on/picolog/reset",function(){ });
         });
-        $(".episode").click(function(e){
-          $(this).parent().find('.active').each(function(){
-            $(this).toggleClass('active');
-            $("#log-"+$(this).attr("id")).fadeOut();
-          });
-          $(this).toggleClass('active');
-          $("#log-"+$(this).attr("id")).fadeIn();
+        $("select").on("change", function() {
+          $(".logging-detail").hide();
+          if (this.value) {
+            $("#log-"+this.value).fadeIn();
+          }
         });
       }
       $theSection.find('.js-ajax-form').submit(function(e){
