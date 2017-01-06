@@ -192,6 +192,7 @@ module.exports = function(conf, callback){
     event.timestamp = new Date();
 
     var emit = mkCTX({event: event}).emit;
+    emit("episode_start");
     emit("debug", "event recieved");
 
     db.getPicoIDByECI(event.eci, function(err, pico_id){
@@ -205,15 +206,21 @@ module.exports = function(conf, callback){
   };
 
   var runQuery = function(query, callback){
-    var emit = mkCTX({query: query}).emit;
+    var ctx = mkCTX({query: query});
+    var emit = ctx.emit;
+    emit("episode_start");
     emit("debug", "query recieved");
 
     db.getPicoIDByECI(query.eci, function(err, pico_id){
       if(err) return callback(err);
+      ctx.pico_id = pico_id;
       picoQ.enqueue(pico_id, {
         type: "query",
         query: query
-      }, callback);
+      }, function(err, data){
+        emit("episode_stop");
+        callback(err, data);
+      });
       emit("debug", "query added to pico queue: " + pico_id);
     });
   };

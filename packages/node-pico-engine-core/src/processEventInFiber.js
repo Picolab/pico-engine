@@ -82,6 +82,7 @@ module.exports = function(ctx, mkCTX){
   }
 
   ctx.emit("debug", "event finished processing");
+  ctx.emit("episode_stop");
 
   return r;
 };
