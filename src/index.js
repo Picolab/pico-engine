@@ -98,7 +98,7 @@ PicoEngine({
 
   var app = express();
   app.use(express.static(path.resolve(__dirname, "..", "public")));
-  app.use(bodyParser.json({type: "application/*+json"}));
+  app.use(bodyParser.json({type: "application/json"}));
   app.use(bodyParser.urlencoded({type: "application/x-www-form-urlencoded", extended: false}));
 
   var errResp = function(res, err){
@@ -113,7 +113,7 @@ PicoEngine({
       eid: req.params.eid,
       domain: req.params.domain,
       type: req.params.type,
-      attrs: req.query
+      attrs: _.assign({}, req.query, req.body)
     };
     pe.signalEvent(event, function(err, response){
       if(err) return errResp(res, err);
@@ -126,7 +126,7 @@ PicoEngine({
       eci: req.params.eci,
       rid: req.params.rid,
       name: req.params["function"],
-      args: req.query
+      args: _.assign({}, req.query, req.body)
     };
     pe.runQuery(query, function(err, data){
       if(err) return errResp(res, err);
