@@ -26,11 +26,11 @@ escape close: >\>
     select when a b
     always {
       a => b |
-        c;
+        not c;
       a => b |
       c => d |
       e => f |
-        g
+        -g
     }
   }
   rule Functions {

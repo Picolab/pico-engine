@@ -42,6 +42,9 @@ var gen_by_type = {
   'MapKeyValuePair': function(ast, ind, gen){
     return gen(ast.key) + ': ' + gen(ast.value);
   },
+  'UnaryOperator': function(ast, ind, gen){
+    return ast.op + (/^[a-z]/i.test(ast.op) ? " " : "") +  gen(ast.arg);
+  },
   'InfixOperator': function(ast, ind, gen){
     var src = '';
     src += ast.left.type === 'InfixOperator'
