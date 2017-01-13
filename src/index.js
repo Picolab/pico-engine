@@ -77,7 +77,7 @@ PicoEngine({
   });
   pe.emitter.on("klog", function(context, val, message){
     console.log("[KLOG]", message, val);
-    logEntry(context,"[KLOG] "+message+" "+val);
+    logEntry(context,"[KLOG] "+message+" "+JSON.stringify(val));
   });
   pe.emitter.on("debug", function(context, message){
     console.log("[DEBUG]", context, message);
