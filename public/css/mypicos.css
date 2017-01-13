@@ -147,3 +147,13 @@ table.channel-table td {
 .logging-detail {
   display: none;
 }
+.testing-rids {
+  list-style: none;
+  padding-left: 0px;
+}
+.testing-queries {
+  list-style-type:circle;
+}
+.testing-events {
+  list-style-type:disc;
+}

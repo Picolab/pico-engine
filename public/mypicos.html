@@ -189,11 +189,11 @@ Select an episode from the list of timestamp - event channel identifier - event 
 <script id="testing-template" type="text/x-handlebars-template">
 <div style="float:left;width:40%;height=100%">
 Testing
-<ul style="list-style: none;padding:0">
+<ul class="testing-rids">
 {{#each testing}}
 <li><span class="krlrid">{{this.rid}}</span>
 {{#if capabilities.queries}}
-<ul style="list-style-type:circle">
+<ul class="testing-queries">
 {{#each capabilities.queries}}
 <li><form class="js-test sky-cloud" action="sky/cloud/{{../eci}}/{{../rid}}/{{this.name}}">
 {{#if this.args}}
@@ -206,7 +206,7 @@ Testing
 </ul>
 {{/if}}
 {{#if capabilities.events}}
-<ul style="list-style-type:disc">
+<ul class="testing-events">
 {{#each capabilities.events}}
 <li><form class="js-test" action="sky/event/{{../eci}}/5/{{this.domain}}/{{this.type}}">
 {{#if this.attrs}}
@@ -222,8 +222,8 @@ Testing
 {{/each}}
 <li>Legend</li>
 <ul>
-<li style="list-style-type:circle">query</li>
-<li style="list-style-type:disc">event</li>
+<li class="testing-queries">query</li>
+<li class="testing-events">event</li>
 </ul>
 </ul>
 </div>
