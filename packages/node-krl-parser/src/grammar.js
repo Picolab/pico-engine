@@ -49,19 +49,6 @@ var noop = function(){};
 var noopArr = function(){return []};
 var idArr = function(d){return [d[0]]};
 
-var idIndecies = function(){
-  var indices = Array.prototype.slice.call(arguments, 0);
-  return function(data){
-    var r = [];
-    var i, j;
-    for(i = 0; i < indices.length; i++){
-      j = indices[i];
-      r.push(j >= 0 ? data[j] : null);
-    }
-    return r;
-  };
-};
-
 var concatArr = function(index){
   return function(data){
     return data[0].concat(data[index]);
@@ -506,7 +493,13 @@ var grammar = {
     {"name": "rule$ebnf$2$subexpression$1", "symbols": ["RuleSelect", "rule$ebnf$2$subexpression$1$ebnf$1"]},
     {"name": "rule$ebnf$2", "symbols": ["rule$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule", "symbols": [tok_rule, "Identifier", "rule$ebnf$1", tok_OPEN_CURLY, "rule$ebnf$2", "RuleBody", tok_CLSE_CURLY], "postprocess": 
+    {"name": "rule$ebnf$3", "symbols": ["RulePrelude"], "postprocess": id},
+    {"name": "rule$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "rule$ebnf$4", "symbols": ["RuleActionBlock"], "postprocess": id},
+    {"name": "rule$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "rule$ebnf$5", "symbols": ["RulePostlude"], "postprocess": id},
+    {"name": "rule$ebnf$5", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "rule", "symbols": [tok_rule, "Identifier", "rule$ebnf$1", tok_OPEN_CURLY, "rule$ebnf$2", "rule$ebnf$3", "rule$ebnf$4", "rule$ebnf$5", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -514,9 +507,9 @@ var grammar = {
             name: data[1],
             rule_state: data[2] ? data[2][1].src : "active",
             select: data[4] && data[4][0],
-            prelude: data[5][1] || [],
-            action_block: data[5][2],
-            postlude: data[5][3]
+            prelude: data[5] || [],
+            action_block: data[6],
+            postlude: data[7]
           };
         }
         },
@@ -545,14 +538,6 @@ var grammar = {
           };
         }
         },
-    {"name": "RuleBody", "symbols": [], "postprocess": idIndecies(-1, -1, -1, -1)},
-    {"name": "RuleBody", "symbols": ["RulePrelude"], "postprocess": idIndecies(-1, 0, -1, -1)},
-    {"name": "RuleBody", "symbols": ["RuleActionBlock"], "postprocess": idIndecies(-1, -1, 0, -1)},
-    {"name": "RuleBody", "symbols": ["RulePrelude", "RuleActionBlock"], "postprocess": idIndecies(-1, 0, 1, -1)},
-    {"name": "RuleBody", "symbols": ["RulePostlude"], "postprocess": idIndecies(-1, -1, -1, 0)},
-    {"name": "RuleBody", "symbols": ["RulePrelude", "RulePostlude"], "postprocess": idIndecies(-1, 0, -1, 1)},
-    {"name": "RuleBody", "symbols": ["RuleActionBlock", "RulePostlude"], "postprocess": idIndecies(-1, -1, 0, 1)},
-    {"name": "RuleBody", "symbols": ["RulePrelude", "RuleActionBlock", "RulePostlude"], "postprocess": idIndecies(-1, 0, 1, 2)},
     {"name": "RulePrelude", "symbols": [tok_pre, "declaration_block"], "postprocess": getN(1)},
     {"name": "EventExpression", "symbols": ["event_exp_within"], "postprocess": id},
     {"name": "event_exp_within", "symbols": ["event_exp_or"], "postprocess": id},

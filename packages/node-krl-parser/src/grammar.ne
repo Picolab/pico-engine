@@ -45,19 +45,6 @@ var noop = function(){};
 var noopArr = function(){return []};
 var idArr = function(d){return [d[0]]};
 
-var idIndecies = function(){
-  var indices = Array.prototype.slice.call(arguments, 0);
-  return function(data){
-    var r = [];
-    var i, j;
-    for(i = 0; i < indices.length; i++){
-      j = indices[i];
-      r.push(j >= 0 ? data[j] : null);
-    }
-    return r;
-  };
-};
-
 var concatArr = function(index){
   return function(data){
     return data[0].concat(data[index]);
@@ -501,9 +488,11 @@ OnOrOff -> %tok_on  {% booleanAST(true ) %}
 #
 
 rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
-  (RuleSelect %tok_SEMI:?):?
 
-  RuleBody
+  (RuleSelect %tok_SEMI:?):?
+  RulePrelude:?
+  RuleActionBlock:?
+  RulePostlude:?
 
 %tok_CLSE_CURLY {%
   function(data){
@@ -513,9 +502,9 @@ rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
       name: data[1],
       rule_state: data[2] ? data[2][1].src : "active",
       select: data[4] && data[4][0],
-      prelude: data[5][1] || [],
-      action_block: data[5][2],
-      postlude: data[5][3]
+      prelude: data[5] || [],
+      action_block: data[6],
+      postlude: data[7]
     };
   }
 %}
@@ -544,22 +533,6 @@ RuleForEach -> %tok_foreach Expression %tok_setting %tok_OPEN_PAREN function_par
     };
   }
 %}
-
-RuleBody -> null {% idIndecies(-1, -1, -1, -1) %}
-    | RulePrelude
-      {% idIndecies(-1, 0, -1, -1) %}
-    | RuleActionBlock
-      {% idIndecies(-1, -1, 0, -1) %}
-    | RulePrelude RuleActionBlock
-      {% idIndecies(-1, 0, 1, -1) %}
-    | RulePostlude
-      {% idIndecies(-1, -1, -1, 0) %}
-    | RulePrelude RulePostlude
-      {% idIndecies(-1, 0, -1, 1) %}
-    | RuleActionBlock RulePostlude
-      {% idIndecies(-1, -1, 0, 1) %}
-    | RulePrelude RuleActionBlock RulePostlude
-      {% idIndecies(-1, 0, 1, 2) %}
 
 RulePrelude -> %tok_pre declaration_block {% getN(1) %}
 
