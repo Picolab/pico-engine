@@ -16,7 +16,15 @@ var runEvent = function(scheduled){
     ctx.modules_used = ctx.rulesets[rule.rid].modules_used;
   }
 
-  return evalRuleInFiber(rule, ctx);
+  var r = [];
+  if(rule.foreach){
+    rule.foreach(ctx, function(ctx){
+      r.push(evalRuleInFiber(rule, ctx));
+    });
+  }else{
+      r.push(evalRuleInFiber(rule, ctx));
+  }
+  return r;
 };
 
 module.exports = function(ctx, mkCTX){

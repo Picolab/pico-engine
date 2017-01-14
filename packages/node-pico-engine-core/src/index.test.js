@@ -740,3 +740,25 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
     ], t.end);
   });
 });
+
+test("PicoEngine - io.picolabs.foreach ruleset", function(t){
+  mkTestPicoEngine({}, function(err, pe){
+    if(err)return t.end(err);
+
+    var signal = mkSignalTask(pe, "id1");
+
+    testOutputs(t, [
+      λ.curry(pe.db.newPico, {}),
+      λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+      λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.foreach"}),
+      [
+        signal("foreach", "basic"),
+        [
+            {name: "basic", options: {x: 1}},
+            {name: "basic", options: {x: 2}},
+            {name: "basic", options: {x: 3}}
+        ]
+      ],
+    ], t.end);
+  });
+});
