@@ -141,6 +141,7 @@ test('parser', function(t){
         name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
         rule_state: "active",
         select: null,
+        foreach: [],
         prelude: [],
         action_block: null,
         postlude: null
@@ -168,6 +169,7 @@ test('parser', function(t){
         name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
         rule_state: "active",
         select: null,
+        foreach: [],
         prelude: [],
         action_block: null,
         postlude: null
@@ -178,6 +180,7 @@ test('parser', function(t){
         name: {type: 'Identifier', value: 'r2', loc: {start: 33, end: 35}},
         rule_state: "active",
         select: null,
+        foreach: [],
         prelude: [],
         action_block: null,
         postlude: null
@@ -432,6 +435,7 @@ test('locations', function(t){
         },
         rule_state: "active",
         select: null,
+        foreach: [],
         prelude: [],
         action_block: null,
         postlude: null
@@ -1777,31 +1781,37 @@ test("raise event", function(t){
 test("select when ... foreach ...", function(t){
   var tst = function(rule_body, expected){
     var ast = parseRuleBody(rule_body);
-    t.deepEquals(rmLoc(ast.select), expected);
+    t.deepEquals(rmLoc(ast.foreach), expected);
   };
 
-  tst("select when a b foreach [1,2,3] setting(c)", {
-      type: "RuleSelect",
-      kind: "when",
-      event: mk.ee("a", "b"),
-      foreach: {
-          type: "RuleForEach",
-          expression: mk([1, 2, 3]),
-          setting: [mk.id("c")]
-      }
-  });
+  tst("select when a b foreach [1,2,3] setting(c)", [{
+    type: "RuleForEach",
+    expression: mk([1, 2, 3]),
+    setting: [mk.id("c")]
+  }]);
 
-  tst("select when a b foreach c setting(d, e)", {
-      type: "RuleSelect",
-      kind: "when",
-      event: mk.ee("a", "b"),
-      foreach: {
-          type: "RuleForEach",
-          expression: mk.id("c"),
-          setting: [mk.id("d"), mk.id("e")]
-      }
-  });
+  tst("select when a b foreach c setting(d, e)", [{
+    type: "RuleForEach",
+    expression: mk.id("c"),
+    setting: [mk.id("d"), mk.id("e")]
+  }]);
 
+  var src = "";
+  src += "select when a b\n";
+  src += "foreach [1,2,3] setting(x)\n";
+  src += '  foreach ["a", "b", "c"] setting(y)';
+  tst(src, [
+    {
+      type: "RuleForEach",
+      expression: mk([1, 2, 3]),
+      setting: [mk.id("x")]
+    },
+    {
+      type: "RuleForEach",
+      expression: mk(["a", "b", "c"]),
+      setting: [mk.id("y")]
+    }
+  ]);
 
   t.end();
 });

@@ -490,6 +490,7 @@ OnOrOff -> %tok_on  {% booleanAST(true ) %}
 rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
 
   (RuleSelect %tok_SEMI:?):?
+  RuleForEach:*
   RulePrelude:?
   RuleActionBlock:?
   RulePostlude:?
@@ -502,23 +503,23 @@ rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
       name: data[1],
       rule_state: data[2] ? data[2][1].src : "active",
       select: data[4] && data[4][0],
-      prelude: data[5] || [],
-      action_block: data[6],
-      postlude: data[7]
+      foreach: data[5] || [],
+      prelude: data[6] || [],
+      action_block: data[7],
+      postlude: data[8]
     };
   }
 %}
 
 rule_state -> %tok_active {% id %} | %tok_inactive {% id %}
 
-RuleSelect -> %tok_select %tok_when EventExpression RuleForEach:? {%
+RuleSelect -> %tok_select %tok_when EventExpression {%
   function(data){
     return {
       loc: mkLoc(data),
       type: 'RuleSelect',
       kind: 'when',
-      event: data[2],
-      foreach: data[3]
+      event: data[2]
     };
   }
 %}

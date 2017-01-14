@@ -93,6 +93,7 @@ rule NAME {
   "name": NAME,
   "rule_state": "active",
   "select": null,
+  "foreach": [  ],
   "prelude": [  ],
   "action_block": null,
   "postlude": null
@@ -105,6 +106,7 @@ rule NAME is inactive {
   "name": NAME,
   "rule_state": "inactive",
   "select": null,
+  "foreach": [  ],
   "prelude": [  ],
   "action_block": null,
   "postlude": null
@@ -142,9 +144,9 @@ rule hello {
       "attributes": [  ],
       "where": null,
       "setting": [  ]
-    },
-    "foreach": null
+    }
   },
+  "foreach": [  ],
   "prelude": [
     {
       "type": "Declaration",
