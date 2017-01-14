@@ -98,10 +98,10 @@ a.logo {
   background-color: silver;
   cursor: pointer;
 }
-form.sky-cloud {
+.sky-cloud {
   margin: 0;
 }
-form.sky-cloud button {
+.sky-cloud button {
   border: none;
   padding: 0;
   background: none;
@@ -151,9 +151,42 @@ table.channel-table td {
   list-style: none;
   padding-left: 0px;
 }
+.testing-rids li ul {
+  display: none;
+}
+.testing-rids li.legend ul {
+  display: block;
+}
+.testing-rids li input[type="checkbox"]:checked ~ ul {
+  display: block;
+}
 .testing-queries {
-  list-style-type:circle;
+  list-style-type: circle;
+}
+.testing-queries li {
+  border: 1px solid black;
+  padding: 5px 0 0 5px;
+  margin: 2px 5px;
 }
 .testing-events {
-  list-style-type:disc;
+  list-style-type: disc;
+}
+.testing-events li {
+  border: 1px solid black;
+  padding: 5px 0 0 5px;
+  margin: 2px 5px;
+}
+.testing-events li button {
+  cursor: pointer;
+}
+.legend button {
+  cursor: default;
+  margin-bottom: 0.5em;
+}
+li.legend {
+  padding: 5px 0 0 5px;
+}
+#test-results pre {
+  border-left: 1px dashed silver;
+  padding-left: 4px;
 }
