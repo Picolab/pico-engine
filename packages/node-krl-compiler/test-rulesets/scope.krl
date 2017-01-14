@@ -1,7 +1,7 @@
 ruleset io.picolabs.scope {
   meta {
     name "testing scope"
-    shares g0, g1, getVals, add
+    shares g0, g1, getVals, add, sum, mapped
   }
   global {
     g0 = "global 0" 
@@ -16,11 +16,17 @@ ruleset io.picolabs.scope {
     add = function(a, b){
       a + b
     }
+    sum = function(arr){
+      arr.reduce(add, 0)
+    }
     incByN = function(n){
       function(a){
         a + n
       }
     }
+    mapped = [1, 2, 3].map(function(n){
+      n + g1
+    })
   }
   rule eventex {
     select when

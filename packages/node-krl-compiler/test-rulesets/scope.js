@@ -6,7 +6,9 @@ module.exports = {
       "g0",
       "g1",
       "getVals",
-      "add"
+      "add",
+      "sum",
+      "mapped"
     ]
   },
   "global": function (ctx) {
@@ -24,6 +26,10 @@ module.exports = {
       ctx.scope.set("b", ctx.getArg(ctx.args, "b", 1));
       return ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("b"));
     }));
+    ctx.scope.set("sum", ctx.KRLClosure(ctx, function (ctx) {
+      ctx.scope.set("arr", ctx.getArg(ctx.args, "arr", 0));
+      return ctx.callKRLstdlib("reduce", ctx.scope.get("arr"), ctx.scope.get("add"), 0);
+    }));
     ctx.scope.set("incByN", ctx.KRLClosure(ctx, function (ctx) {
       ctx.scope.set("n", ctx.getArg(ctx.args, "n", 0));
       return ctx.KRLClosure(ctx, function (ctx) {
@@ -31,6 +37,14 @@ module.exports = {
         return ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("n"));
       });
     }));
+    ctx.scope.set("mapped", ctx.callKRLstdlib("map", [
+      1,
+      2,
+      3
+    ], ctx.KRLClosure(ctx, function (ctx) {
+      ctx.scope.set("n", ctx.getArg(ctx.args, "n", 0));
+      return ctx.callKRLstdlib("+", ctx.scope.get("n"), ctx.scope.get("g1"));
+    })));
   },
   "rules": {
     "eventex": {
