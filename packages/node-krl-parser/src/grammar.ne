@@ -293,6 +293,7 @@ var tok_false = tok("SYMBOL", "false");
 var tok_fired = tok("SYMBOL", "fired");
 var tok_finally = tok("SYMBOL", "finally");
 var tok_for = tok("SYMBOL", "for");
+var tok_foreach = tok("SYMBOL", "foreach");
 var tok_function = tok("SYMBOL", "function");
 var tok_global = tok("SYMBOL", "global");
 var tok_if = tok("SYMBOL", "if");
@@ -521,13 +522,25 @@ rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
 
 rule_state -> %tok_active {% id %} | %tok_inactive {% id %}
 
-RuleSelect -> %tok_select %tok_when EventExpression {%
+RuleSelect -> %tok_select %tok_when EventExpression RuleForEach:? {%
   function(data){
     return {
       loc: mkLoc(data),
       type: 'RuleSelect',
       kind: 'when',
-      event: data[2]
+      event: data[2],
+      foreach: data[3]
+    };
+  }
+%}
+
+RuleForEach -> %tok_foreach Expression %tok_setting %tok_OPEN_PAREN function_params %tok_CLSE_PAREN {%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'RuleForEach',
+      expression: data[1],
+      setting: data[4]
     };
   }
 %}

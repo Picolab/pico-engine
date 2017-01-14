@@ -142,7 +142,8 @@ rule hello {
       "attributes": [  ],
       "where": null,
       "setting": [  ]
-    }
+    },
+    "foreach": null
   },
   "prelude": [
     {

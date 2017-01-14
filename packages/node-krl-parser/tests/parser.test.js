@@ -1773,3 +1773,35 @@ test("raise event", function(t){
 
   t.end();
 });
+
+test("select when ... foreach ...", function(t){
+  var tst = function(rule_body, expected){
+    var ast = parseRuleBody(rule_body);
+    t.deepEquals(rmLoc(ast.select), expected);
+  };
+
+  tst("select when a b foreach [1,2,3] setting(c)", {
+      type: "RuleSelect",
+      kind: "when",
+      event: mk.ee("a", "b"),
+      foreach: {
+          type: "RuleForEach",
+          expression: mk([1, 2, 3]),
+          setting: [mk.id("c")]
+      }
+  });
+
+  tst("select when a b foreach c setting(d, e)", {
+      type: "RuleSelect",
+      kind: "when",
+      event: mk.ee("a", "b"),
+      foreach: {
+          type: "RuleForEach",
+          expression: mk.id("c"),
+          setting: [mk.id("d"), mk.id("e")]
+      }
+  });
+
+
+  t.end();
+});
