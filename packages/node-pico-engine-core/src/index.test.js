@@ -759,6 +759,28 @@ test("PicoEngine - io.picolabs.foreach ruleset", function(t){
             {name: "basic", options: {x: 3}}
         ]
       ],
+      [
+        signal("foreach", "map"),
+        [
+            {name: "map", options: {k: "a", v: 1}},
+            {name: "map", options: {k: "b", v: 2}},
+            {name: "map", options: {k: "c", v: 3}}
+        ]
+      ],
+      [
+        signal("foreach", "nested"),
+        [
+            {name: "nested", options: {x: 1, y: "a"}},
+            {name: "nested", options: {x: 1, y: "b"}},
+            {name: "nested", options: {x: 1, y: "c"}},
+            {name: "nested", options: {x: 2, y: "a"}},
+            {name: "nested", options: {x: 2, y: "b"}},
+            {name: "nested", options: {x: 2, y: "c"}},
+            {name: "nested", options: {x: 3, y: "a"}},
+            {name: "nested", options: {x: 3, y: "b"}},
+            {name: "nested", options: {x: 3, y: "c"}},
+        ]
+      ],
     ], t.end);
   });
 });
