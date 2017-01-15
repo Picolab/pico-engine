@@ -2,11 +2,11 @@ module.exports = {
   "rid": "io.picolabs.foreach",
   "meta": { "name": "testing foreach" },
   "global": function (ctx) {
-    ctx.scope.set("getVals", ctx.KRLClosure(ctx, function (ctx) {
+    ctx.scope.set("doubleThis", ctx.KRLClosure(ctx, function (ctx) {
+      ctx.scope.set("arr", ctx.getArg(ctx.args, "arr", 0));
       return [
-        1,
-        2,
-        3
+        ctx.scope.get("arr"),
+        ctx.scope.get("arr")
       ];
     }));
   },
@@ -160,6 +160,66 @@ module.exports = {
                 "options": {
                   "x": ctx.scope.get("x"),
                   "y": ctx.scope.get("y")
+                }
+              };
+            }
+          }]
+      }
+    },
+    "scope": {
+      "name": "scope",
+      "select": {
+        "graph": { "foreach": { "scope": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_0"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "foreach": function (ctx, iter) {
+        ctx.callKRLstdlib("map", ctx.scope.get("doubleThis")(ctx, [[
+            1,
+            2,
+            3
+          ]]), ctx.KRLClosure(ctx, function (ctx) {
+          ctx.scope.set("arr", ctx.getArg(ctx.args, "value", 0));
+          ctx.callKRLstdlib("map", ctx.scope.get("arr"), ctx.KRLClosure(ctx, function (ctx) {
+            ctx.scope.set("foo", ctx.getArg(ctx.args, "value", 0));
+            ctx.callKRLstdlib("map", ctx.callKRLstdlib("range", 0, ctx.scope.get("foo")), ctx.KRLClosure(ctx, function (ctx) {
+              ctx.scope.set("bar", ctx.getArg(ctx.args, "value", 0));
+              iter(ctx);
+            }));
+          }));
+        }));
+      },
+      "prelude": function (ctx) {
+        ctx.scope.set("baz", ctx.callKRLstdlib("*", ctx.scope.get("foo"), ctx.scope.get("bar")));
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "scope",
+                "options": {
+                  "foo": ctx.scope.get("foo"),
+                  "bar": ctx.scope.get("bar"),
+                  "baz": ctx.scope.get("baz")
                 }
               };
             }
