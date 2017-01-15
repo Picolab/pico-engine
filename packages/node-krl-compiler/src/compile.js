@@ -236,6 +236,9 @@ var comp_by_type = {
     if(ast.select){
       rule.select = comp(ast.select);
     }
+    if(!_.isEmpty(ast.foreach)){
+      rule.foreach = e("fn", ["ctx", "iter"], comp(ast.foreach));
+    }
     if(!_.isEmpty(ast.prelude)){
       rule.prelude = e("fn", ["ctx"], comp(ast.prelude));
     }
@@ -248,6 +251,7 @@ var comp_by_type = {
     return e("obj", rule);
   },
   "RuleSelect": require("./c/RuleSelect"),
+  "RuleForEach": require("./c/RuleForEach"),
   "EventExpression": require("./c/EventExpression"),
   "RuleActionBlock": function(ast, comp, e){
     var block = {};
