@@ -15,11 +15,20 @@ ruleset io.picolabs.foreach {
       x = x
   }
   rule map {
-    select when foreach basic
+    select when foreach map
     foreach {"a": 1, "b": 2, "c": 3} setting (v, k)
 
     send_directive("map") with
       k = k
       v = v
+  }
+  rule nested {
+    select when foreach nested
+    foreach [1, 2, 3] setting(x)
+      foreach ["a", "b", "c"] setting(y)
+
+    send_directive("nested") with
+      x = x
+      y = y
   }
 }

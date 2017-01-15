@@ -1,7 +1,7 @@
 var _ = require("lodash");
 var callStdLibFn = require("../utils/callStdLibFn");
 
-module.exports = function(ast, comp, e){
+module.exports = function(ast, comp, e, context){
 
   var setting = _.map(_.filter(_.zip(ast.setting, ["value", "key"]), 0), function(pair, i){
     var id = pair[0];
@@ -22,7 +22,7 @@ module.exports = function(ast, comp, e){
       e("call", e("id", "ctx.KRLClosure"), [
         e("id", "ctx"),
         e("fn", ["ctx"], setting.concat([
-          e(";", e("call", e("id", "iter"), [e("id", "ctx")]))
+          context.iter
         ]))
       ])
   ], ast.loc));

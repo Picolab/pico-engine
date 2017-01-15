@@ -237,7 +237,17 @@ var comp_by_type = {
       rule.select = comp(ast.select);
     }
     if(!_.isEmpty(ast.foreach)){
-      rule.foreach = e("fn", ["ctx", "iter"], comp(ast.foreach));
+      var nestedForeach = function(arr, iter){
+        if(_.isEmpty(arr)){
+          return iter;
+        }
+        var last = _.last(arr);
+        var rest = _.initial(arr);
+        return nestedForeach(rest, comp(last, {iter: iter}));
+      };
+      rule.foreach = e("fn", ["ctx", "iter"], [
+        nestedForeach(ast.foreach, e(";", e("call", e("id", "iter"), [e("id", "ctx")])))
+      ]);
     }
     if(!_.isEmpty(ast.prelude)){
       rule.prelude = e("fn", ["ctx"], comp(ast.prelude));
