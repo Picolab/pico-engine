@@ -3,8 +3,8 @@ ruleset io.picolabs.foreach {
     name "testing foreach"
   }
   global {
-    getVals = function(){
-      [1, 2, 3]
+    doubleThis = function(arr){
+      [arr, arr]
     }
   }
   rule basic {
@@ -30,5 +30,20 @@ ruleset io.picolabs.foreach {
     send_directive("nested") with
       x = x
       y = y
+  }
+  rule scope {
+    select when foreach scope
+    foreach doubleThis([1, 2, 3]) setting(arr)
+      foreach arr setting(foo)
+        foreach 0.range(foo) setting(bar)
+
+    pre {
+      baz = foo * bar
+    }
+
+    send_directive("scope") with
+      foo = foo
+      bar = bar
+      baz = baz
   }
 }

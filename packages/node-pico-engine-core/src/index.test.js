@@ -781,6 +781,34 @@ test("PicoEngine - io.picolabs.foreach ruleset", function(t){
             {name: "nested", options: {x: 3, y: "c"}},
         ]
       ],
+      [
+        signal("foreach", "scope"),
+        [
+            {name: "scope", options: {foo: 1, bar: 0, baz: 0}},
+            {name: "scope", options: {foo: 1, bar: 1, baz: 1}},
+
+            {name: "scope", options: {foo: 2, bar: 0, baz: 0}},
+            {name: "scope", options: {foo: 2, bar: 1, baz: 2}},
+            {name: "scope", options: {foo: 2, bar: 2, baz: 4}},
+
+            {name: "scope", options: {foo: 3, bar: 0, baz: 0}},
+            {name: "scope", options: {foo: 3, bar: 1, baz: 3}},
+            {name: "scope", options: {foo: 3, bar: 2, baz: 6}},
+            {name: "scope", options: {foo: 3, bar: 3, baz: 9}},
+
+            {name: "scope", options: {foo: 1, bar: 0, baz: 0}},
+            {name: "scope", options: {foo: 1, bar: 1, baz: 1}},
+
+            {name: "scope", options: {foo: 2, bar: 0, baz: 0}},
+            {name: "scope", options: {foo: 2, bar: 1, baz: 2}},
+            {name: "scope", options: {foo: 2, bar: 2, baz: 4}},
+
+            {name: "scope", options: {foo: 3, bar: 0, baz: 0}},
+            {name: "scope", options: {foo: 3, bar: 1, baz: 3}},
+            {name: "scope", options: {foo: 3, bar: 2, baz: 6}},
+            {name: "scope", options: {foo: 3, bar: 3, baz: 9}},
+        ]
+      ],
     ], t.end);
   });
 });
