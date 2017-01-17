@@ -643,7 +643,20 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
           privateFn: "privateFn = name: Jim memo: [\"foo\" by Bob]"
         }}}]
       ]
-    ], t.end);
+    ], function(err){
+      if(err) return t.end(err);
+
+      pe.runQuery({
+        eci: "id1",
+        rid: "io.picolabs.module-used",
+        name: "now",
+        args: {}
+      }, function(err, ts){
+        if(err) return t.end(err);
+        t.ok(/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T/.test(ts));
+        t.end();
+      });
+    });
   });
 });
 
