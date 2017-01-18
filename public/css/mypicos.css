@@ -140,12 +140,21 @@ table.channel-table td {
 #logging-list li {
   font-family: monospace;
 }
-.episode:hover , .episode.active {
-  background-color: silver;
-  cursor: pointer;
-}
 .logging-detail {
+  margin-left: 18px;
   display: none;
+}
+#logging-list checkbox {
+  margin: 3px;
+}
+#logging-list li input[type="checkbox"]:checked ~ .logging-detail {
+  display: block;
+}
+#logging-list ul {
+  margin: 0px;
+  padding: 0px;
+  list-style-type: none;
+  width: auto;
 }
 .testing-rids {
   list-style: none;

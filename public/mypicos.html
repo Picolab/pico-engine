@@ -164,24 +164,17 @@ To enable, add the ruleset "io.picolabs.logging" to this pico.
 Select an episode from the list of timestamp - event channel identifier - event identifier to see the log entries for that episode.
 </p>
 {{#if logs}}
-<select>
-<option value="">Select an episode</option>
+<ul>
 {{#each logs}}
-<option value="episode-{{@index}}">{{@key}}</option>
-{{/each}}
-</select>
-{{/if}}
-</div>
-{{#if logs}}
-{{#each logs}}
-<div class="logging-detail" id="log-episode-{{@index}}">
-<pre>
+<li><input type="checkbox"><span>{{@key}}</span>
+<pre class="logging-detail">
 {{#each this}}
 {{this}}
 {{/each}}
 </pre>
-</div>
+</li>
 {{/each}}
+</ul>
 {{/if}}
 {{/if}}
 </div>

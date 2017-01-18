@@ -230,14 +230,7 @@ $.getJSON("/api/db-dump", function(db_dump){
         }
         $("#logging-off").click(function(){
           $("#logging-list").hide();
-          $(".logging-detail").hide();
           $.getJSON("/sky/event/"+theDB.eci+"/logging-on/picolog/reset",function(){ });
-        });
-        $("select").on("change", function() {
-          $(".logging-detail").hide();
-          if (this.value) {
-            $("#log-"+this.value).fadeIn();
-          }
         });
       }
       $theSection.find('.js-ajax-form').submit(function(e){
