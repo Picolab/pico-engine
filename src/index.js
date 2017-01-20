@@ -81,13 +81,7 @@ PicoEngine({
   });
   pe.emitter.on("debug", function(context, message){
     console.log("[DEBUG]", context, message);
-    var prefix = "";
-    if (/^event rec..ved/.test(message)) {
-      prefix = context.event.domain + "/" + context.event.type + " ";
-    } else if (/^query rec..ved/.test(message)) {
-      prefix = context.query.rid + "/" + context.query.name + " ";
-    }
-    logEntry(context,prefix+message);
+    logEntry(context,message);
   });
   pe.emitter.on("episode_stop", function(context){
     console.log("EPISODE_STOP",context);
