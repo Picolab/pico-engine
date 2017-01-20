@@ -166,7 +166,8 @@ Select an episode from the list of timestamp - event channel identifier - event 
 {{#if logs}}
 <ul>
 {{#each logs}}
-<li><input type="checkbox"><span>{{@key}}</span>
+<li><input type="checkbox" id="episode-{{@index}}">
+<label for="episode-{{@index}}">{{@key}}</label>
 <pre class="logging-detail">
 {{#each this}}
 {{this}}

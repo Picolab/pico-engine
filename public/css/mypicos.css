@@ -147,6 +147,9 @@ table.channel-table td {
 #logging-list checkbox {
   margin: 3px;
 }
+#logging-list label {
+  cursor: pointer;
+}
 #logging-list li input[type="checkbox"]:checked ~ .logging-detail {
   display: block;
 }

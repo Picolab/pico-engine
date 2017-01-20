@@ -6,7 +6,9 @@ ruleset io.picolabs.logging {
     __testing = { "queries": [ { "name": "__testing" },
                                { "name": "getLogs" } ],
                   "events": [ { "domain": "picolog", "type": "reset" },
-                              { "domain": "picolog", "type": "begin" } ] }
+                              { "domain": "picolog", "type": "begin" },
+                              { "domain": "picolog", "type": "prune",
+                                "attrs": [ "leaving" ] } ] }
 
     getLogs = function() {
       { "status": ent:status,
@@ -37,6 +39,22 @@ ruleset io.picolabs.logging {
     noop()
     fired {
       ent:status := true
+    }
+  }
+
+  rule picolog_prune {
+    select when picolog prune
+    pre {
+      episodes = ent:logs.keys()
+      old_size = episodes.length()
+      remove = old_size - event:attr("leaving")
+      keys_to_remove = remove <= 0 || remove > old_size
+                         => []
+                          | episodes.slice(remove - 1)
+    }
+    if keys_to_remove.length() > 0 then noop()
+    fired {
+      ent:logs := ent:logs.filter(function(v,k){not (keys_to_remove >< k)})
     }
   }
 
