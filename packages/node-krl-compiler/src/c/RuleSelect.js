@@ -40,26 +40,45 @@ var event_ops = {
   },
   "and": {
     toLispArgs: toLispArgs,
-    mkStateMachine: function(start, end, args, newState){
-      var a = args[0];
-      var b = args[1];
+    mkStateMachine: function(start, end, args, newState, evalEELisp){
+      var a = evalEELisp(args[0], "aaa-START", "aaa-END");
+      var b = evalEELisp(args[1], "bbb-START", "bbb-END");
+
       var s1 = newState();
       var s2 = newState();
 
+      var loop_backers = [];
+
       var stm = {};
-      stm[start] = [
-        [a, s1],
-        [b, s2],
-        [["not", ["or", a, b]], start]
-      ];
-      stm[s1] = [
-        [b, end],
-        [["not", b], s1]
-      ];
-      stm[s2] = [
-        [a, end],
-        [["not", a], s2]
-      ];
+      stm[start] = [];
+      stm[s1] = [];
+      stm[s2] = [];
+
+      _.each(a["aaa-START"], function(transition){
+        var condition = transition[0];
+        var next_state = transition[1];
+        if(next_state === "aaa-END"){
+          stm[start].push([condition, s1]);
+          stm[s2].push([condition, end]);
+        }else if(next_state === "aaa-START"){
+          loop_backers.push(condition);
+          stm[s2].push([condition, s2]);
+        }
+      });
+
+      _.each(b["bbb-START"], function(transition){
+        var condition = transition[0];
+        var next_state = transition[1];
+        if(next_state === "bbb-END"){
+          stm[start].push([condition, s2]);
+          stm[s1].push([condition, end]);
+        }else if(next_state === "bbb-START"){
+          loop_backers.push(condition);
+          stm[s1].push([condition, s1]);
+        }
+      });
+
+      stm[start].push([["and"].concat(loop_backers), start]);
       return stm;
     }
   }
