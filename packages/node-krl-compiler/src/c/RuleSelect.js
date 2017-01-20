@@ -15,37 +15,26 @@ var event_ops = {
   "or": {
     toLispArgs: toLispArgs,
     mkStateMachine: function(start, end, args, newState, evalEELisp){
-      var a = evalEELisp(args[0], start, end);
-      var b = evalEELisp(args[1], start, end);
-
       var stm = {};
       stm[start] = [];
 
-      var states_that_leave_start = [];
-      if(_.isString(a)){
-        stm[start].push([a, end]);
-        states_that_leave_start.push(a);
-      }else{
-        //TODO remove this hack
-        _.each(a[start], function(pair){
-          if(_.isString(pair[0])){
-            stm[start].push(pair);
-            states_that_leave_start.push(pair[0]);
+      var loop_backers = [];
+
+      var a = evalEELisp(args[0], "aaa-START", "aaa-END");
+      var b = evalEELisp(args[1], "aaa-START", "aaa-END");
+
+      _.each([a, b], function(asdf){
+        _.each(asdf["aaa-START"], function(transition){
+          var condition = transition[0];
+          var next_state = transition[1];
+          if(next_state === "aaa-END"){
+            stm[start].push([condition, end]);
+          }else if(next_state === "aaa-START"){
+            loop_backers.push(condition);
           }
         });
-        //TODO remove this hack
-        _.each(a, function(state_pairs, key){
-          if(key !== start){
-            stm[key] = state_pairs;
-          }
-        });
-      }
-
-      //TODO remove this hack
-      stm[start].push([b, end]);
-      states_that_leave_start.push(b);
-
-      stm[start].push([["not", wrapInOr(states_that_leave_start)], start]);
+      });
+      stm[start].push([["and"].concat(loop_backers), start]);
       return stm;
     }
   },
@@ -118,7 +107,12 @@ module.exports = function(ast, comp, e){
 
   var evalEELisp = function(lisp, start, end){
     if(_.isString(lisp)){
-      return lisp;
+      var stm = {};
+      stm[start] = [
+        [lisp, end],
+        [["not", lisp], start]
+      ];
+      return stm;
     }
     if(_.has(event_ops, lisp[0])){
       return event_ops[lisp[0]].mkStateMachine(start, end, lisp.slice(1), newState, evalEELisp);
@@ -129,12 +123,6 @@ module.exports = function(ast, comp, e){
 
   var lisp = traverse(ast.event);
   var state_machine = evalEELisp(lisp, "start", "end");
-  if(_.isString(state_machine)){
-    state_machine = {"start": [
-      [lisp, "end"],
-      [["not", lisp], "start"]
-    ]};
-  }
 
   return e("obj", {
     graph: e("json", graph),
