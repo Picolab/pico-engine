@@ -193,7 +193,7 @@ module.exports = function(conf, callback){
 
     var emit = mkCTX({event: event}).emit;
     emit("episode_start");
-    emit("debug", "event recieved");
+    emit("debug", "event received: " + event.domain + "/" + event.type);
 
     db.getPicoIDByECI(event.eci, function(err, pico_id){
       if(err) return callback(err);
