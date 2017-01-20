@@ -18,8 +18,6 @@ var event_ops = {
       var stm = {};
       stm[start] = [];
 
-      var loop_backers = [];
-
       var a = evalEELisp(args[0], "aaa-START", "aaa-END");
       var b = evalEELisp(args[1], "aaa-START", "aaa-END");
 
@@ -29,12 +27,9 @@ var event_ops = {
           var next_state = transition[1];
           if(next_state === "aaa-END"){
             stm[start].push([condition, end]);
-          }else if(next_state === "aaa-START"){
-            loop_backers.push(condition);
           }
         });
       });
-      stm[start].push([["and"].concat(loop_backers), start]);
       return stm;
     }
   },
@@ -46,8 +41,6 @@ var event_ops = {
 
       var s1 = newState();
       var s2 = newState();
-
-      var loop_backers = [];
 
       var stm = {};
       stm[start] = [];
@@ -61,7 +54,6 @@ var event_ops = {
           stm[start].push([condition, s1]);
           stm[s2].push([condition, end]);
         }else if(next_state === "aaa-START"){
-          loop_backers.push(condition);
           stm[s2].push([condition, s2]);
         }
       });
@@ -73,12 +65,10 @@ var event_ops = {
           stm[start].push([condition, s2]);
           stm[s1].push([condition, end]);
         }else if(next_state === "bbb-START"){
-          loop_backers.push(condition);
           stm[s1].push([condition, s1]);
         }
       });
 
-      stm[start].push([["and"].concat(loop_backers), start]);
       return stm;
     }
   }
@@ -128,8 +118,7 @@ module.exports = function(ast, comp, e){
     if(_.isString(lisp)){
       var stm = {};
       stm[start] = [
-        [lisp, end],
-        [["not", lisp], start]
+        [lisp, end]
       ];
       return stm;
     }
@@ -142,6 +131,26 @@ module.exports = function(ast, comp, e){
 
   var lisp = traverse(ast.event);
   var state_machine = evalEELisp(lisp, "start", "end");
+
+  //add all the loop-back conditions
+  _.each(state_machine, function(arr, key){
+    var away_paths = _.uniq(_.compact(_.map(arr, function(transition){
+      var condition = transition[0];
+      var next_state = transition[1];
+      if(!_.isString(condition) && (next_state === key)){
+        return;//ignore this
+      }
+      return condition;
+    })));
+
+    state_machine[key].push([
+        [
+          "not",
+          wrapInOr(away_paths)
+        ],
+        key
+    ]);
+  });
 
   return e("obj", {
     graph: e("json", graph),
