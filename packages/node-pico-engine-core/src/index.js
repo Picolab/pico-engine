@@ -209,7 +209,7 @@ module.exports = function(conf, callback){
     var ctx = mkCTX({query: query});
     var emit = ctx.emit;
     emit("episode_start");
-    emit("debug", "query recieved");
+    emit("debug", "query received: " + query.rid + "/" + query.name);
 
     db.getPicoIDByECI(query.eci, function(err, pico_id){
       if(err) return callback(err);
