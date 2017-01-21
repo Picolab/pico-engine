@@ -16,19 +16,36 @@ var event_ops = {
     toLispArgs: toLispArgs,
     mkStateMachine: function(start, end, args, newState, evalEELisp){
       var stm = {};
-      stm[start] = [];
 
-      var a = evalEELisp(args[0], "aaa-START", "aaa-END");
-      var b = evalEELisp(args[1], "aaa-START", "aaa-END");
+      var a = evalEELisp(args[0], start, end);
+      var b = evalEELisp(args[1], start, end);
 
-      _.each([a, b], function(asdf){
-        _.each(asdf["aaa-START"], function(transition){
-          var condition = transition[0];
-          var next_state = transition[1];
-          if(next_state === "aaa-END"){
-            stm[start].push([condition, end]);
-          }
-        });
+      _.each(_.uniq(_.keys(a).concat(_.keys(b))), function(state){
+        if(_.has(a, state)){
+          _.each(a[state], function(transition){
+            if(!_.has(stm, state)){
+              stm[state] = [];
+            }
+            stm[state].push(transition);
+          });
+        }else{
+          //
+        }
+        if(_.has(b, state)){
+          _.each(b[state], function(transition){
+            if(!_.has(stm, state)){
+              stm[state] = [];
+            }
+            stm[state].push(transition);
+          });
+        }else{
+          _.each(b["start"], function(transition){
+            if(!_.has(stm, state)){
+              stm[state] = [];
+            }
+            stm[state].push(transition);
+          });
+        }
       });
       return stm;
     }
