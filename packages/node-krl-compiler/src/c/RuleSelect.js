@@ -46,36 +46,43 @@ var event_ops = {
   "and": {
     toLispArgs: toLispArgs,
     mkStateMachine: function(start, end, args, newState, evalEELisp){
-      var a = evalEELisp(args[0], "aaa-START", "aaa-END");
-      var b = evalEELisp(args[1], "bbb-START", "bbb-END");
+      var a = evalEELisp(args[0], start, end);
+      var b = evalEELisp(args[1], start, end);
 
       var s1 = newState();
       var s2 = newState();
 
       var stm = {};
+      var stmPush = function(state, transition){
+        if(!_.has(stm, state)){
+          stm[state] = [];
+        }
+        stm[state].push(transition);
+      };
+
       stm[start] = [];
       stm[s1] = [];
       stm[s2] = [];
 
-      _.each(a["aaa-START"], function(transition){
+      _.each(a[start], function(transition){
         var condition = transition[0];
         var next_state = transition[1];
-        if(next_state === "aaa-END"){
-          stm[start].push([condition, s1]);
-          stm[s2].push([condition, end]);
-        }else if(next_state === "aaa-START"){
-          stm[s2].push([condition, s2]);
+        if(next_state === end){
+          stmPush(start, [condition, s1]);
+          stmPush(s2, [condition, end]);
+        }else if(next_state === start){
+          stmPush(s2, [condition, s2]);
         }
       });
 
-      _.each(b["bbb-START"], function(transition){
+      _.each(b[start], function(transition){
         var condition = transition[0];
         var next_state = transition[1];
-        if(next_state === "bbb-END"){
-          stm[start].push([condition, s2]);
-          stm[s1].push([condition, end]);
-        }else if(next_state === "bbb-START"){
-          stm[s1].push([condition, s1]);
+        if(next_state === end){
+          stmPush(start, [condition, s2]);
+          stmPush(s1, [condition, end]);
+        }else if(next_state === start){
+          stmPush(s1, [condition, s1]);
         }
       });
 
