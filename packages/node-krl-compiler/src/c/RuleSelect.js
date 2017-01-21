@@ -145,26 +145,6 @@ module.exports = function(ast, comp, e){
   var lisp = traverse(ast.event);
   var state_machine = evalEELisp(lisp, "start", "end");
 
-  //add all the loop-back conditions
-  _.each(state_machine, function(arr, key){
-    var away_paths = _.uniq(_.compact(_.map(arr, function(transition){
-      var condition = transition[0];
-      var next_state = transition[1];
-      if(!_.isString(condition) && (next_state === key)){
-        return;//ignore this
-      }
-      return condition;
-    })));
-
-    state_machine[key].push([
-        [
-          "not",
-          wrapInOr(away_paths)
-        ],
-        key
-    ]);
-  });
-
   return e("obj", {
     graph: e("json", graph),
     eventexprs: e("obj", eventexprs),
