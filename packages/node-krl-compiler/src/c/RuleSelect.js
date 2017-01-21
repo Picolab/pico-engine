@@ -70,8 +70,6 @@ var event_ops = {
         if(next_state === end){
           stmPush(start, [condition, s1]);
           stmPush(s2, [condition, end]);
-        }else if(next_state === start){
-          stmPush(s2, [condition, s2]);
         }
       });
 
@@ -81,8 +79,6 @@ var event_ops = {
         if(next_state === end){
           stmPush(start, [condition, s2]);
           stmPush(s1, [condition, end]);
-        }else if(next_state === start){
-          stmPush(s1, [condition, s1]);
         }
       });
 
