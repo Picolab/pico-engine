@@ -7,6 +7,47 @@ var wrapInOr = function(states){
   return ["or", _.head(states), wrapInOr(_.tail(states))];
 };
 
+var uid = _.uniqueId;
+
+var StateMachine = function(){
+  var start = uid();
+  var end = uid();
+  var transitions = [];
+  var normalizeStartEnd = function(state){
+    if(state === start){
+      return "start";
+    }else if(state === end){
+      return "end";
+    }
+    return state;
+  };
+  return {
+    start: start,
+    end: end,
+    add: function(from_state, on_event, to_state){
+      transitions.push([from_state, on_event, to_state]);
+    },
+    join: function(state_1, state_2){
+      //make the states common
+    },
+    toJSON: function(){
+      var stm = {};
+      _.each(transitions, function(t){
+        var from_state = normalizeStartEnd(t[0]);
+        var on_event = t[1];
+        var to_state = normalizeStartEnd(t[2]);
+        if(!_.has(stm, from_state)){
+          stm[from_state] = [];
+        }
+        stm[from_state].push([on_event, to_state]);
+      });
+      return stm;
+    },
+    clone: function(){
+    }
+  };
+};
+
 var toLispArgs = function(ast, traverse){
   return _.map(ast.args, traverse);
 };
@@ -127,27 +168,25 @@ module.exports = function(ast, comp, e){
     };
   }());
 
-  var evalEELisp = function(lisp, start, end){
+  var evalEELisp = function(lisp){
     if(_.isString(lisp)){
-      var stm = {};
-      stm[start] = [
-        [lisp, end]
-      ];
-      return stm;
+      var s = StateMachine();
+      s.add(s.start, lisp, s.end);
+      return s;
     }
     if(_.has(event_ops, lisp[0])){
-      return event_ops[lisp[0]].mkStateMachine(start, end, lisp.slice(1), newState, evalEELisp);
+      return event_ops[lisp[0]].mkStateMachine(lisp.slice(1), newState, evalEELisp);
     }else{
       throw new Error("EventOperator.op not supported: " + ast.op);
     }
   };
 
   var lisp = traverse(ast.event);
-  var state_machine = evalEELisp(lisp, "start", "end");
+  var state_machine = evalEELisp(lisp);
 
   return e("obj", {
     graph: e("json", graph),
     eventexprs: e("obj", eventexprs),
-    state_machine: e("json", state_machine)
+    state_machine: e("json", state_machine.toJSON())
   });
 };
