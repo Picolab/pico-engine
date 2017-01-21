@@ -17,34 +17,27 @@ var event_ops = {
     mkStateMachine: function(start, end, args, newState, evalEELisp){
       var stm = {};
 
+      var stmPush = function(state, transition){
+        if(!_.has(stm, state)){
+          stm[state] = [];
+        }
+        stm[state].push(transition);
+      };
+
       var a = evalEELisp(args[0], start, end);
       var b = evalEELisp(args[1], start, end);
 
       _.each(_.uniq(_.keys(a).concat(_.keys(b))), function(state){
+        var iter = _.partial(stmPush, state);
         if(_.has(a, state)){
-          _.each(a[state], function(transition){
-            if(!_.has(stm, state)){
-              stm[state] = [];
-            }
-            stm[state].push(transition);
-          });
+          _.each(a[state], iter);
         }else{
-          //
+          _.each(a["start"], iter);
         }
         if(_.has(b, state)){
-          _.each(b[state], function(transition){
-            if(!_.has(stm, state)){
-              stm[state] = [];
-            }
-            stm[state].push(transition);
-          });
+          _.each(b[state], iter);
         }else{
-          _.each(b["start"], function(transition){
-            if(!_.has(stm, state)){
-              stm[state] = [];
-            }
-            stm[state].push(transition);
-          });
+          _.each(b["start"], iter);
         }
       });
       return stm;
