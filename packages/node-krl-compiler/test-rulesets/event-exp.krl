@@ -11,4 +11,12 @@ ruleset io.picolabs.event-exp {
     select when ee_then a then ee_then b
     send_directive("then")
   }
+  rule and {
+    select when ee_and a and ee_and b
+    send_directive("and")
+  }
+  rule or {
+    select when ee_or a or ee_or b
+    send_directive("or")
+  }
 }

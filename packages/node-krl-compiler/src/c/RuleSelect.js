@@ -141,26 +141,6 @@ var event_ops = {
       return s;
     }
   },
-  "or": {
-    toLispArgs: toLispArgs,
-    mkStateMachine: function(args, evalEELisp){
-      var s = StateMachine();
-
-      var a = evalEELisp(args[0]);
-      var b = evalEELisp(args[1]);
-
-      s.concat(a);
-      s.concat(b);
-
-      s.join(a.start, s.start);
-      s.join(b.start, s.start);
-
-      s.join(a.end, s.end);
-      s.join(b.end, s.end);
-
-      return s;
-    }
-  },
   "and": {
     toLispArgs: toLispArgs,
     mkStateMachine: function(args, evalEELisp){
@@ -184,6 +164,26 @@ var event_ops = {
 
       s.join(a1.end, s.end);
       s.join(b1.end, s.end);
+
+      return s;
+    }
+  },
+  "or": {
+    toLispArgs: toLispArgs,
+    mkStateMachine: function(args, evalEELisp){
+      var s = StateMachine();
+
+      var a = evalEELisp(args[0]);
+      var b = evalEELisp(args[1]);
+
+      s.concat(a);
+      s.concat(b);
+
+      s.join(a.start, s.start);
+      s.join(b.start, s.start);
+
+      s.join(a.end, s.end);
+      s.join(b.end, s.end);
 
       return s;
     }
