@@ -8,7 +8,7 @@ ruleset io.picolabs.event-exp {
     send_directive("after")
   }
   rule then {
-    select when ee_then a then ee_then b
+    select when ee_then a then ee_then b name re#bob#
     send_directive("then")
   }
   rule and {

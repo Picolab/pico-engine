@@ -766,6 +766,16 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
       });
     };
 
+    var eBlock2 = function(event_pairs){
+      _.each(event_pairs, function(p){
+        var ans = [];
+        if(p[3]){
+          ans.push({name: p[3], options: {}});
+        }
+        test_pairs.push([signal(p[0], p[1], p[2]), ans]);
+      });
+    };
+
     eBlock("ee_before", "before", [
       ["a"],
       ["b", true],
@@ -786,6 +796,15 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
       ["b"],
       ["c"],
       ["a", true],
+    ]);
+
+    eBlock2([
+      ["ee_then", "a", {name: "bob"}],
+      ["ee_then", "b", {name: "bob"}, "then"],
+      ["ee_then", "b", {name: "bob"}],
+      ["ee_then", "a", {name: "bob"}],
+      ["ee_then", "b", {name: "..."}],
+      ["ee_then", "b", {name: "bob"}],
     ]);
 
     eBlock("ee_and", "and", [
