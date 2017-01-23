@@ -800,6 +800,19 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
       ["ee_or", "b", {}, "or"],
       ["ee_or", "c"],
 
+
+      ["ee_between", "b"],
+      ["ee_between", "a"],
+      ["ee_between", "c", {}, "between"],
+      ["ee_between", "b"],
+      ["ee_between", "a"],
+      ["ee_between", "a"],
+      ["ee_between", "c", {}, "between"],
+      ["ee_between", "b"],
+      ["ee_between", "a"],
+      ["ee_between", "b"],
+      ["ee_between", "c", {}, "between"],
+
     ], function(p){
       var ans = [];
       if(p[3]){
