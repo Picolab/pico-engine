@@ -187,7 +187,28 @@ var event_ops = {
 
       return s;
     }
-  }
+  },
+  "between": {
+    toLispArgs: toLispArgs,
+    mkStateMachine: function(args, evalEELisp){
+      var s = StateMachine();
+
+      var a = evalEELisp(args[0]);
+      var b = evalEELisp(args[1]);
+      var c = evalEELisp(args[2]);
+
+      s.concat(a);
+      s.concat(b);
+      s.concat(c);
+
+      s.join(b.start, s.start);
+      s.join(b.end, a.start);
+      s.join(a.end, c.start);
+      s.join(c.end, s.end);
+
+      return s;
+    }
+  },
 };
 
 module.exports = function(ast, comp, e){

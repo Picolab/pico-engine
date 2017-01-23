@@ -19,4 +19,8 @@ ruleset io.picolabs.event-exp {
     select when ee_or a or ee_or b
     send_directive("or")
   }
+  rule between {
+    select when ee_between a between (ee_between b, ee_between c)
+    send_directive("between")
+  }
 }
