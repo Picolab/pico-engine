@@ -27,8 +27,23 @@ var StateMachine = function(){
     add: function(from_state, on_event, to_state){
       transitions.push([from_state, on_event, to_state]);
     },
+    getTransitions: function(){
+      return transitions;
+    },
+    concat: function(other){
+      _.each(other.getTransitions(), function(t){
+        transitions.push(_.cloneDeep(t));
+      });
+    },
     join: function(state_1, state_2){
-      //make the states common
+      _.each(transitions, function(t){
+        if(t[0] === state_1){
+          t[0] = state_2;
+        }
+        if(t[2] === state_1){
+          t[2] = state_2;
+        }
+      });
     },
     toJSON: function(){
       var stm = {};
@@ -55,33 +70,22 @@ var toLispArgs = function(ast, traverse){
 var event_ops = {
   "or": {
     toLispArgs: toLispArgs,
-    mkStateMachine: function(start, end, args, newState, evalEELisp){
-      var stm = {};
+    mkStateMachine: function(args, evalEELisp){
+      var s = StateMachine();
 
-      var stmPush = function(state, transition){
-        if(!_.has(stm, state)){
-          stm[state] = [];
-        }
-        stm[state].push(transition);
-      };
+      var a = evalEELisp(args[0]);
+      var b = evalEELisp(args[1]);
 
-      var a = evalEELisp(args[0], start, end);
-      var b = evalEELisp(args[1], start, end);
+      s.concat(a);
+      s.concat(b);
 
-      _.each(_.uniq(_.keys(a).concat(_.keys(b))), function(state){
-        var iter = _.partial(stmPush, state);
-        if(_.has(a, state)){
-          _.each(a[state], iter);
-        }else{
-          _.each(a["start"], iter);
-        }
-        if(_.has(b, state)){
-          _.each(b[state], iter);
-        }else{
-          _.each(b["start"], iter);
-        }
-      });
-      return stm;
+      s.join(a.start, s.start);
+      s.join(b.start, s.start);
+
+      s.join(a.end, s.end);
+      s.join(b.end, s.end);
+
+      return s;
     }
   },
   "and": {
@@ -159,15 +163,6 @@ module.exports = function(ast, comp, e){
     throw new Error("invalid event ast node: " + ast.type);
   };
 
-  var newState = (function(){
-    var i = 0;
-    return function(){
-      var id = "state_" + i;
-      i++;
-      return id;
-    };
-  }());
-
   var evalEELisp = function(lisp){
     if(_.isString(lisp)){
       var s = StateMachine();
@@ -175,7 +170,7 @@ module.exports = function(ast, comp, e){
       return s;
     }
     if(_.has(event_ops, lisp[0])){
-      return event_ops[lisp[0]].mkStateMachine(lisp.slice(1), newState, evalEELisp);
+      return event_ops[lisp[0]].mkStateMachine(lisp.slice(1), evalEELisp);
     }else{
       throw new Error("EventOperator.op not supported: " + ast.op);
     }
