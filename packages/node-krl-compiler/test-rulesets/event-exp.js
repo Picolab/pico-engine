@@ -95,6 +95,12 @@ module.exports = {
             return true;
           },
           "expr_1": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "name",
+                  new RegExp("bob", "")
+                ]]]);
+            if (!matches)
+              return false;
             return true;
           }
         },
