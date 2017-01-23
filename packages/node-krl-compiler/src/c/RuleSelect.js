@@ -115,6 +115,32 @@ var event_ops = {
       return s;
     }
   },
+  "then": {
+    toLispArgs: toLispArgs,
+    mkStateMachine: function(args, evalEELisp){
+      var s = StateMachine();
+
+      var a = evalEELisp(args[0]);
+      var b = evalEELisp(args[1]);
+
+      s.concat(a);
+      s.concat(b);
+
+      s.join(a.start, s.start);
+      s.join(a.end, b.start);
+      s.join(b.end, s.end);
+
+      //if not B return to start
+      var not_b = wrapInOr(_.uniq(_.compact(_.map(s.getTransitions(), function(t){
+        if(t[0] === b.start){
+          return ["not", t[1]];
+        }
+      }))));
+      s.add(b.start, not_b, s.start);
+
+      return s;
+    }
+  },
   "or": {
     toLispArgs: toLispArgs,
     mkStateMachine: function(args, evalEELisp){
