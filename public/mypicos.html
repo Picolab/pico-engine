@@ -94,9 +94,9 @@ Do not disclose it or check it into a repository like Github.
 </script>
 <script id="rulesets-template" type="text/x-handlebars-template">
 Pico Rulesets
-<ul style="list-style: none;padding:0">
+<ul id="ruleset-list" style="list-style: none;padding:0">
 {{#each installed}}
-<li><span class="krlrid">{{@key}}</span>
+<li><input type="checkbox"><span class="krlrid">{{@key}}</span>
 {{#if canDel}}
 <a class="js-ajax-link" href="/api/pico/{{../pico_id}}/rm-ruleset/{{@key}}">del</a>
 {{/if}}
