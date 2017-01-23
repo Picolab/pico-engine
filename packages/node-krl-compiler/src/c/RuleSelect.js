@@ -13,14 +13,6 @@ var StateMachine = function(){
   var start = uid();
   var end = uid();
   var transitions = [];
-  var normalizeStartEnd = function(state){
-    if(state === start){
-      return "start";
-    }else if(state === end){
-      return "end";
-    }
-    return state;
-  };
   return {
     start: start,
     end: end,
@@ -45,20 +37,39 @@ var StateMachine = function(){
         }
       });
     },
-    toJSON: function(){
-      var stm = {};
-      _.each(transitions, function(t){
-        var from_state = normalizeStartEnd(t[0]);
-        var on_event = t[1];
-        var to_state = normalizeStartEnd(t[2]);
-        if(!_.has(stm, from_state)){
-          stm[from_state] = [];
+    compile: function(){
+      // we want to ensure we get the same output on every compile
+      // that is why we are re-naming states and sorting the output
+      var out_states = {};
+      out_states[start] = "start";
+      out_states[end] = "end";
+      var i = 0;
+      var toOutState = function(state){
+        if(_.has(out_states, state)){
+          return out_states[state];
         }
-        stm[from_state].push([on_event, to_state]);
+        return out_states[state] = "s" + (i++);
+      };
+      var out_transitions = _.sortBy(_.map(transitions, function(t){
+        return [toOutState(t[0]), t[1], toOutState(t[2])];
+      }), function(t){
+        var score = 0;
+        if(t[0] === "start"){
+          score -= 1000;
+        }
+        if(/^s[0-9]+$/.test(t[0])){
+          score += _.parseInt(t[0].substring(1), 10) || 0;
+        }
+        return score;
+      });
+      var stm = {};
+      _.each(out_transitions, function(t){
+        if(!_.has(stm, t[0])){
+          stm[t[0]] = [];
+        }
+        stm[t[0]].push([t[1], t[2]]);
       });
       return stm;
-    },
-    clone: function(){
     }
   };
 };
@@ -167,6 +178,6 @@ module.exports = function(ast, comp, e){
   return e("obj", {
     graph: e("json", graph),
     eventexprs: e("obj", eventexprs),
-    state_machine: e("json", state_machine.toJSON())
+    state_machine: e("json", state_machine.compile())
   });
 };
