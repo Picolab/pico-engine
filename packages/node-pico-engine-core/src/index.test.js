@@ -813,6 +813,15 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
       ["ee_between", "b"],
       ["ee_between", "c", {}, "between"],
 
+      ["ee_not_between", "b"],
+      ["ee_not_between", "c", {}, "not between"],
+      ["ee_not_between", "b"],
+      ["ee_not_between", "a"],
+      ["ee_not_between", "c"],
+      ["ee_not_between", "b"],
+      ["ee_not_between", "c", {}, "not between"],
+      ["ee_not_between", "c"],
+
     ], function(p){
       var ans = [];
       if(p[3]){
