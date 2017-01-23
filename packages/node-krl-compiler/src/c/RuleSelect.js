@@ -79,6 +79,24 @@ var toLispArgs = function(ast, traverse){
 };
 
 var event_ops = {
+  "before": {
+    toLispArgs: toLispArgs,
+    mkStateMachine: function(args, evalEELisp){
+      var s = StateMachine();
+
+      var a = evalEELisp(args[0]);
+      var b = evalEELisp(args[1]);
+
+      s.concat(a);
+      s.concat(b);
+
+      s.join(a.start, s.start);
+      s.join(a.end, b.start);
+      s.join(b.end, s.end);
+
+      return s;
+    }
+  },
   "or": {
     toLispArgs: toLispArgs,
     mkStateMachine: function(args, evalEELisp){
