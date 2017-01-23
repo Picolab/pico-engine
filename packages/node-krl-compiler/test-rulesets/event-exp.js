@@ -319,6 +319,128 @@ module.exports = {
             }
           }]
       }
+    },
+    "and_or": {
+      "name": "and_or",
+      "select": {
+        "graph": {
+          "ee_andor": {
+            "a": { "expr_0": true },
+            "b": { "expr_1": true },
+            "c": { "expr_2": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          },
+          "expr_1": function (ctx) {
+            return true;
+          },
+          "expr_2": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "s0"
+            ],
+            [
+              "expr_1",
+              "s1"
+            ],
+            [
+              "expr_2",
+              "end"
+            ]
+          ],
+          "s0": [[
+              "expr_1",
+              "end"
+            ]],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "(a and b) or c",
+                "options": {}
+              };
+            }
+          }]
+      }
+    },
+    "or_and": {
+      "name": "or_and",
+      "select": {
+        "graph": {
+          "ee_orand": {
+            "a": { "expr_0": true },
+            "b": { "expr_1": true },
+            "c": { "expr_2": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          },
+          "expr_1": function (ctx) {
+            return true;
+          },
+          "expr_2": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "s0"
+            ],
+            [
+              "expr_1",
+              "s1"
+            ],
+            [
+              "expr_2",
+              "s1"
+            ]
+          ],
+          "s0": [
+            [
+              "expr_1",
+              "end"
+            ],
+            [
+              "expr_2",
+              "end"
+            ]
+          ],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "a and (b or c)",
+                "options": {}
+              };
+            }
+          }]
+      }
     }
   }
 };

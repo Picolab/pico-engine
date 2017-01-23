@@ -27,4 +27,12 @@ ruleset io.picolabs.event-exp {
     select when ee_not_between a not between (ee_not_between b, ee_not_between c)
     send_directive("not between")
   }
+  rule and_or {
+    select when (ee_andor a and ee_andor b) or ee_andor c
+    send_directive("(a and b) or c")
+  }
+  rule or_and {
+    select when ee_orand a and (ee_orand b or ee_orand c)
+    send_directive("a and (b or c)")
+  }
 }
