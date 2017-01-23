@@ -269,6 +269,56 @@ module.exports = {
             }
           }]
       }
+    },
+    "not_between": {
+      "name": "not_between",
+      "select": {
+        "graph": {
+          "ee_not_between": {
+            "a": { "expr_0": true },
+            "b": { "expr_1": true },
+            "c": { "expr_2": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          },
+          "expr_1": function (ctx) {
+            return true;
+          },
+          "expr_2": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_1",
+              "s0"
+            ]],
+          "s0": [
+            [
+              "expr_0",
+              "start"
+            ],
+            [
+              "expr_2",
+              "end"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "not between",
+                "options": {}
+              };
+            }
+          }]
+      }
     }
   }
 };

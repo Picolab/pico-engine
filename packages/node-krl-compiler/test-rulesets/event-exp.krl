@@ -23,4 +23,8 @@ ruleset io.picolabs.event-exp {
     select when ee_between a between (ee_between b, ee_between c)
     send_directive("between")
   }
+  rule not_between {
+    select when ee_not_between a not between (ee_not_between b, ee_not_between c)
+    send_directive("not between")
+  }
 }

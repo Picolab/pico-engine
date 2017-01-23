@@ -209,6 +209,31 @@ var event_ops = {
       return s;
     }
   },
+  "not between": {
+    toLispArgs: toLispArgs,
+    mkStateMachine: function(args, evalEELisp){
+      var s = StateMachine();
+
+      var a = evalEELisp(args[0]);
+      var b = evalEELisp(args[1]);
+      var c = evalEELisp(args[2]);
+
+      s.concat(a);
+      s.concat(b);
+      s.concat(c);
+
+      //start:b -> c -> end
+      s.join(b.start, s.start);
+      s.join(b.end, c.start);
+      s.join(c.end, s.end);
+
+      //a -> start
+      s.join(a.start, c.start);
+      s.join(a.end, s.start);
+
+      return s;
+    }
+  },
 };
 
 module.exports = function(ast, comp, e){
