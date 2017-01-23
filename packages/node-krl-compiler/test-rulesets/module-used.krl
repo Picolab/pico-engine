@@ -5,6 +5,13 @@ ruleset io.picolabs.module-used {
     use module io.picolabs.module-defined
       alias my_module_conf
       with configured_name = "Jim"
+
+    shares now
+  }
+  global {
+    now = function(){
+      time:now()
+    }
   }
 
   rule dflt_name {

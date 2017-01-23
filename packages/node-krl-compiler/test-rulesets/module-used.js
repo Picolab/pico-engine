@@ -15,7 +15,13 @@ module.exports = {
           ctx.scope.set("configured_name", "Jim");
         }
       }
-    ]
+    ],
+    "shares": ["now"]
+  },
+  "global": function (ctx) {
+    ctx.scope.set("now", ctx.KRLClosure(ctx, function (ctx) {
+      return ctx.modules.get(ctx, "time", "now")(ctx, []);
+    }));
   },
   "rules": {
     "dflt_name": {
