@@ -28,7 +28,9 @@ var getNextState = function(ctx, curr_state){
     return evalExpr(ctx, s[0]);
   });
 
-  return matching_pair ? matching_pair[1] : undefined;
+  return matching_pair
+    ? matching_pair[1]
+    : curr_state;//by default, stay on the current state
 };
 
 var shouldRuleSelect = function(ctx, rule){

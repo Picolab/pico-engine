@@ -766,6 +766,17 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
       });
     };
 
+    eBlock("ee_before", "before", [
+      ["a"],
+      ["b", true],
+      ["b"],
+      ["b"],
+      ["a"],
+      ["a"],
+      ["c"],
+      ["b", true],
+    ]);
+
     eBlock("ee_and", "and", [
       ["a"],
       ["c"],
