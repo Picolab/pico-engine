@@ -198,54 +198,6 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
         []
       ],
       [
-        signal("events_or", "a"),
-        [{name: "or", options: {}}]
-      ],
-      [
-        signal("events_or", "b"),
-        [{name: "or", options: {}}]
-      ],
-      [
-        signal("events_or", "c"),
-        []
-      ],
-      [
-        signal("events_and", "a"),
-        []
-      ],
-      [
-        signal("events_and", "c"),
-        []
-      ],
-      [
-        signal("events_and", "b"),
-        [{name: "and", options: {}}]
-      ],
-      [
-        signal("events_and", "b"),
-        []
-      ],
-      [
-        signal("events_and", "a"),
-        [{name: "and", options: {}}]
-      ],
-      [
-        signal("events_and", "b"),
-        []
-      ],
-      [
-        signal("events_and", "b"),
-        []
-      ],
-      [
-        signal("events_and", "b"),
-        []
-      ],
-      [
-        signal("events_and", "a"),
-        [{name: "and", options: {}}]
-      ],
-      [
         signal("events", "ifthen", {name: "something"}),
         [{name: "ifthen", options: {}}]
       ],
@@ -789,6 +741,69 @@ test("PicoEngine - io.picolabs.foreach ruleset", function(t){
             {name: "scope", options: {foo: 3, bar: 3, baz: 9}},
         ]
       ],
+    ], t.end);
+  });
+});
+
+test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
+  mkTestPicoEngine({}, function(err, pe){
+    if(err)return t.end(err);
+
+    var signal = mkSignalTask(pe, "id1");
+
+    testOutputs(t, [
+      λ.curry(pe.db.newPico, {}),
+      λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+      λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.event-exp"}),
+      [
+        signal("ee_or", "a"),
+        [{name: "or", options: {}}]
+      ],
+      [
+        signal("ee_or", "b"),
+        [{name: "or", options: {}}]
+      ],
+      [
+        signal("ee_or", "c"),
+        []
+      ],
+      [
+        signal("ee_and", "a"),
+        []
+      ],
+      [
+        signal("ee_and", "c"),
+        []
+      ],
+      [
+        signal("ee_and", "b"),
+        [{name: "and", options: {}}]
+      ],
+      [
+        signal("ee_and", "b"),
+        []
+      ],
+      [
+        signal("ee_and", "a"),
+        [{name: "and", options: {}}]
+      ],
+      [
+        signal("ee_and", "b"),
+        []
+      ],
+      [
+        signal("ee_and", "b"),
+        []
+      ],
+      [
+        signal("ee_and", "b"),
+        []
+      ],
+      [
+        signal("ee_and", "a"),
+        [{name: "and", options: {}}]
+      ],
+
     ], t.end);
   });
 });
