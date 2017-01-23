@@ -97,6 +97,24 @@ var event_ops = {
       return s;
     }
   },
+  "after": {
+    toLispArgs: toLispArgs,
+    mkStateMachine: function(args, evalEELisp){
+      var s = StateMachine();
+
+      var a = evalEELisp(args[0]);
+      var b = evalEELisp(args[1]);
+
+      s.concat(a);
+      s.concat(b);
+
+      s.join(b.start, s.start);
+      s.join(b.end, a.start);
+      s.join(a.end, s.end);
+
+      return s;
+    }
+  },
   "or": {
     toLispArgs: toLispArgs,
     mkStateMachine: function(args, evalEELisp){
