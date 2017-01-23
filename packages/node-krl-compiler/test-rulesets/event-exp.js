@@ -447,6 +447,64 @@ module.exports = {
             }
           }]
       }
+    },
+    "or_n": {
+      "name": "or_n",
+      "select": {
+        "graph": {
+          "ee_or_n": {
+            "a": { "expr_0": true },
+            "b": { "expr_1": true },
+            "c": { "expr_2": true },
+            "d": { "expr_3": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          },
+          "expr_1": function (ctx) {
+            return true;
+          },
+          "expr_2": function (ctx) {
+            return true;
+          },
+          "expr_3": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              "expr_1",
+              "end"
+            ],
+            [
+              "expr_2",
+              "end"
+            ],
+            [
+              "expr_3",
+              "end"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "or_n",
+                "options": {}
+              };
+            }
+          }]
+      }
     }
   }
 };
