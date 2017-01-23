@@ -36,22 +36,6 @@ ruleset io.picolabs.events {
     select when events noop2;
     noop()
   }
-  rule or_op {
-    select when events_or a or events_or b
-    send_directive("or")
-  }
-  rule and_op {
-    select when events_and a and events_and b
-    send_directive("and")
-  }
-  rule and_or {
-    select when (events_andor a and events_andor b) or events_andor c
-    send_directive("(a and b) or c")
-  }
-  rule or_and {
-    select when events_orand a and (events_orand b or events_orand c)
-    send_directive("a and (b or c)")
-  }
   rule ifthen {
     select when events ifthen name re#^(.*)$# setting(my_name);
 

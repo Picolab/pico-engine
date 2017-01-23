@@ -11,19 +11,10 @@ module.exports = {
           }
         },
         "state_machine": {
-          "start": [
-            [
+          "start": [[
               "expr_0",
               "end"
-            ],
-            [
-              [
-                "not",
-                "expr_0"
-              ],
-              "start"
-            ]
-          ]
+            ]]
         }
       },
       "postlude": {
@@ -44,19 +35,10 @@ module.exports = {
           }
         },
         "state_machine": {
-          "start": [
-            [
+          "start": [[
               "expr_0",
               "end"
-            ],
-            [
-              [
-                "not",
-                "expr_0"
-              ],
-              "start"
-            ]
-          ]
+            ]]
         }
       },
       "postlude": {

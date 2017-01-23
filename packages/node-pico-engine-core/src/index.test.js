@@ -170,39 +170,6 @@ test("PicoEngine - io.picolabs.persistent", function(t){
   });
 });
 
-/*
-test("PicoEngine - raw ruleset", function(t){
-  mkTestPicoEngine({}, function(err, pe){
-    if(err)return t.end(err);
-
-    λ.series({
-      pico: λ.curry(pe.db.newPico, {}),
-      chan: λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-      rid3: λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "rid3x0"}),
-
-      signal: λ.curry(pe.runQuery, {
-        eci: "id1",
-        rid: "rid3x0",
-        name: "sayRawHello",
-        args: {}
-      })
-
-    }, function(err, data){
-      if(err) return t.end(err);
-
-      t.ok(_.isFunction(data.signal));
-
-      data.signal({
-        end: function(txt){
-          t.equals(txt, "raw hello!");
-          t.end();
-        }
-      });
-    });
-  });
-});
-*/
-
 test("PicoEngine - io.picolabs.events ruleset", function(t){
   mkTestPicoEngine({}, function(err, pe){
     if(err)return t.end(err);

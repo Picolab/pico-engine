@@ -34,19 +34,10 @@ module.exports = {
           }
         },
         "state_machine": {
-          "start": [
-            [
+          "start": [[
               "expr_0",
               "end"
-            ],
-            [
-              [
-                "not",
-                "expr_0"
-              ],
-              "start"
-            ]
-          ]
+            ]]
         }
       },
       "action_block": {
@@ -71,19 +62,10 @@ module.exports = {
           }
         },
         "state_machine": {
-          "start": [
-            [
+          "start": [[
               "expr_0",
               "end"
-            ],
-            [
-              [
-                "not",
-                "expr_0"
-              ],
-              "start"
-            ]
-          ]
+            ]]
         }
       },
       "action_block": {
@@ -108,19 +90,10 @@ module.exports = {
           }
         },
         "state_machine": {
-          "start": [
-            [
+          "start": [[
               "expr_0",
               "end"
-            ],
-            [
-              [
-                "not",
-                "expr_0"
-              ],
-              "start"
-            ]
-          ]
+            ]]
         }
       },
       "action_block": {
@@ -145,19 +118,10 @@ module.exports = {
           }
         },
         "state_machine": {
-          "start": [
-            [
+          "start": [[
               "expr_0",
               "end"
-            ],
-            [
-              [
-                "not",
-                "expr_0"
-              ],
-              "start"
-            ]
-          ]
+            ]]
         }
       },
       "action_block": {
