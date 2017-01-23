@@ -751,80 +751,61 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
 
     var signal = mkSignalTask(pe, "id1");
 
-    var test_pairs = [
+    testOutputs(t, [
       λ.curry(pe.db.newPico, {}),
       λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
       λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.event-exp"}),
-    ];
-    var eBlock = function(domain, expected, event_pairs){
-      _.each(event_pairs, function(p){
-        var ans = [];
-        if(p[1]){
-          ans.push({name: expected, options: {}});
-        }
-        test_pairs.push([signal(domain, p[0]), ans]);
-      });
-    };
+    ].concat(_.map([
 
-    var eBlock2 = function(event_pairs){
-      _.each(event_pairs, function(p){
-        var ans = [];
-        if(p[3]){
-          ans.push({name: p[3], options: {}});
-        }
-        test_pairs.push([signal(p[0], p[1], p[2]), ans]);
-      });
-    };
+      ["ee_before", "a"],
+      ["ee_before", "b", {}, "before"],
+      ["ee_before", "b"],
+      ["ee_before", "b"],
+      ["ee_before", "a"],
+      ["ee_before", "a"],
+      ["ee_before", "c"],
+      ["ee_before", "b", {}, "before"],
 
-    eBlock("ee_before", "before", [
-      ["a"],
-      ["b", true],
-      ["b"],
-      ["b"],
-      ["a"],
-      ["a"],
-      ["c"],
-      ["b", true],
-    ]);
 
-    eBlock("ee_after", "after", [
-      ["a"],
-      ["b"],
-      ["a", true],
-      ["a"],
-      ["a"],
-      ["b"],
-      ["c"],
-      ["a", true],
-    ]);
+      ["ee_after", "a"],
+      ["ee_after", "b"],
+      ["ee_after", "a", {}, "after"],
+      ["ee_after", "a"],
+      ["ee_after", "a"],
+      ["ee_after", "b"],
+      ["ee_after", "c"],
+      ["ee_after", "a", {}, "after"],
 
-    eBlock2([
+
       ["ee_then", "a", {name: "bob"}],
       ["ee_then", "b", {name: "bob"}, "then"],
       ["ee_then", "b", {name: "bob"}],
       ["ee_then", "a", {name: "bob"}],
       ["ee_then", "b", {name: "..."}],
       ["ee_then", "b", {name: "bob"}],
-    ]);
 
-    eBlock("ee_and", "and", [
-      ["a"],
-      ["c"],
-      ["b", true],
-      ["b"],
-      ["a", true],
-      ["b"],
-      ["b"],
-      ["b"],
-      ["a", true],
-    ]);
 
-    eBlock("ee_or", "or", [
-      ["a", true],
-      ["b", true],
-      ["c"],
-    ]);
+      ["ee_and", "a"],
+      ["ee_and", "c"],
+      ["ee_and", "b", {}, "and"],
+      ["ee_and", "b"],
+      ["ee_and", "a", {}, "and"],
+      ["ee_and", "b"],
+      ["ee_and", "b"],
+      ["ee_and", "b"],
+      ["ee_and", "a", {}, "and"],
 
-    testOutputs(t, test_pairs, t.end);
+
+      ["ee_or", "a", {}, "or"],
+      ["ee_or", "b", {}, "or"],
+      ["ee_or", "c"],
+
+    ], function(p){
+      var ans = [];
+      if(p[3]){
+        ans.push({name: p[3], options: {}});
+      }
+      return [signal(p[0], p[1], p[2]), ans];
+    })), t.end);
   });
 });
