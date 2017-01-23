@@ -80,17 +80,6 @@ module.exports = {
             [
               "expr_1",
               "end"
-            ],
-            [
-              [
-                "not",
-                [
-                  "or",
-                  "expr_0",
-                  "expr_1"
-                ]
-              ],
-              "start"
             ]
           ]
         }
@@ -124,19 +113,10 @@ module.exports = {
           }
         },
         "state_machine": {
-          "start": [
-            [
+          "start": [[
               "expr_0",
               "end"
-            ],
-            [
-              [
-                "not",
-                "expr_0"
-              ],
-              "start"
-            ]
-          ]
+            ]]
         }
       },
       "prelude": function (ctx) {
@@ -179,19 +159,10 @@ module.exports = {
           }
         },
         "state_machine": {
-          "start": [
-            [
+          "start": [[
               "expr_0",
               "end"
-            ],
-            [
-              [
-                "not",
-                "expr_0"
-              ],
-              "start"
-            ]
-          ]
+            ]]
         }
       },
       "prelude": function (ctx) {
