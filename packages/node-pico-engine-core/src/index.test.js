@@ -777,6 +777,17 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
       ["b", true],
     ]);
 
+    eBlock("ee_after", "after", [
+      ["a"],
+      ["b"],
+      ["a", true],
+      ["a"],
+      ["a"],
+      ["b"],
+      ["c"],
+      ["a", true],
+    ]);
+
     eBlock("ee_and", "and", [
       ["a"],
       ["c"],
