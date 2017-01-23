@@ -751,59 +751,39 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
 
     var signal = mkSignalTask(pe, "id1");
 
-    testOutputs(t, [
+    var test_pairs = [
       λ.curry(pe.db.newPico, {}),
       λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
       λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.event-exp"}),
-      [
-        signal("ee_or", "a"),
-        [{name: "or", options: {}}]
-      ],
-      [
-        signal("ee_or", "b"),
-        [{name: "or", options: {}}]
-      ],
-      [
-        signal("ee_or", "c"),
-        []
-      ],
-      [
-        signal("ee_and", "a"),
-        []
-      ],
-      [
-        signal("ee_and", "c"),
-        []
-      ],
-      [
-        signal("ee_and", "b"),
-        [{name: "and", options: {}}]
-      ],
-      [
-        signal("ee_and", "b"),
-        []
-      ],
-      [
-        signal("ee_and", "a"),
-        [{name: "and", options: {}}]
-      ],
-      [
-        signal("ee_and", "b"),
-        []
-      ],
-      [
-        signal("ee_and", "b"),
-        []
-      ],
-      [
-        signal("ee_and", "b"),
-        []
-      ],
-      [
-        signal("ee_and", "a"),
-        [{name: "and", options: {}}]
-      ],
+    ];
+    var eBlock = function(domain, expected, event_pairs){
+      _.each(event_pairs, function(p){
+        var ans = [];
+        if(p[1]){
+          ans.push({name: expected, options: {}});
+        }
+        test_pairs.push([signal(domain, p[0]), ans]);
+      });
+    };
 
-    ], t.end);
+    eBlock("ee_and", "and", [
+      ["a"],
+      ["c"],
+      ["b", true],
+      ["b"],
+      ["a", true],
+      ["b"],
+      ["b"],
+      ["b"],
+      ["a", true],
+    ]);
+
+    eBlock("ee_or", "or", [
+      ["a", true],
+      ["b", true],
+      ["c"],
+    ]);
+
+    testOutputs(t, test_pairs, t.end);
   });
 });
