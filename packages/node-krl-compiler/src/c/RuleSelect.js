@@ -173,17 +173,12 @@ var event_ops = {
     mkStateMachine: function(args, evalEELisp){
       var s = StateMachine();
 
-      var a = evalEELisp(args[0]);
-      var b = evalEELisp(args[1]);
-
-      s.concat(a);
-      s.concat(b);
-
-      s.join(a.start, s.start);
-      s.join(b.start, s.start);
-
-      s.join(a.end, s.end);
-      s.join(b.end, s.end);
+      _.each(args, function(arg){
+        var a = evalEELisp(arg);
+        s.concat(a);
+        s.join(a.start, s.start);
+        s.join(a.end, s.end);
+      });
 
       return s;
     }

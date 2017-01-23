@@ -37,7 +37,12 @@ ruleset io.picolabs.event-exp {
   }
 
   rule or_n {
-    select when ee_or_n a or (ee_or_n b or (ee_or_n c or ee_or_n d))
+    select when or(
+      ee_or_n a,
+      ee_or_n b,
+      ee_or_n c,
+      ee_or_n d
+    )
     send_directive("or_n")
   }
 
