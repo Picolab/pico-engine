@@ -90,44 +90,29 @@ var event_ops = {
   },
   "and": {
     toLispArgs: toLispArgs,
-    mkStateMachine: function(start, end, args, newState, evalEELisp){
-      var a = evalEELisp(args[0], start, end);
-      var b = evalEELisp(args[1], start, end);
+    mkStateMachine: function(args, evalEELisp){
+      var s = StateMachine();
 
-      var s1 = newState();
-      var s2 = newState();
+      var a0 = evalEELisp(args[0]);
+      var b0 = evalEELisp(args[1]);
+      var a1 = evalEELisp(args[0]);
+      var b1 = evalEELisp(args[1]);
 
-      var stm = {};
-      var stmPush = function(state, transition){
-        if(!_.has(stm, state)){
-          stm[state] = [];
-        }
-        stm[state].push(transition);
-      };
+      s.concat(a0);
+      s.concat(b0);
+      s.concat(a1);
+      s.concat(b1);
 
-      stm[start] = [];
-      stm[s1] = [];
-      stm[s2] = [];
+      s.join(a0.start, s.start);
+      s.join(b0.start, s.start);
 
-      _.each(a[start], function(transition){
-        var condition = transition[0];
-        var next_state = transition[1];
-        if(next_state === end){
-          stmPush(start, [condition, s1]);
-          stmPush(s2, [condition, end]);
-        }
-      });
+      s.join(a0.end, b1.start);
+      s.join(b0.end, a1.start);
 
-      _.each(b[start], function(transition){
-        var condition = transition[0];
-        var next_state = transition[1];
-        if(next_state === end){
-          stmPush(start, [condition, s2]);
-          stmPush(s1, [condition, end]);
-        }
-      });
+      s.join(a1.end, s.end);
+      s.join(b1.end, s.end);
 
-      return stm;
+      return s;
     }
   }
 };
