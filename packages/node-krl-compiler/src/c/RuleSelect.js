@@ -142,15 +142,21 @@ var event_ops = {
     mkStateMachine: function(args, evalEELisp){
       var s = StateMachine();
 
-      var a = evalEELisp(args[0]);
-      var b = evalEELisp(args[1]);
-
-      s.concat(a);
-      s.concat(b);
-
-      s.join(a.start, s.start);
-      s.join(a.end, b.start);
-      s.join(b.end, s.end);
+      var prev;
+      _.each(args, function(arg, j){
+        var a = evalEELisp(arg);
+        s.concat(a);
+        if(j === 0){
+          s.join(a.start, s.start);
+        }
+        if(j === _.size(args) - 1){
+          s.join(a.end, s.end);
+        }
+        if(prev){
+          s.join(prev.end, a.start);
+        }
+        prev = a;
+      });
 
       return s;
     }
@@ -160,15 +166,21 @@ var event_ops = {
     mkStateMachine: function(args, evalEELisp){
       var s = StateMachine();
 
-      var a = evalEELisp(args[0]);
-      var b = evalEELisp(args[1]);
-
-      s.concat(a);
-      s.concat(b);
-
-      s.join(b.start, s.start);
-      s.join(b.end, a.start);
-      s.join(a.end, s.end);
+      var prev;
+      _.each(_.range(_.size(args) - 1, -1), function(i, j){
+        var a = evalEELisp(args[i]);
+        s.concat(a);
+        if(j === 0){
+          s.join(a.start, s.start);
+        }
+        if(j === _.size(args) - 1){
+          s.join(a.end, s.end);
+        }
+        if(prev){
+          s.join(prev.end, a.start);
+        }
+        prev = a;
+      });
 
       return s;
     }
