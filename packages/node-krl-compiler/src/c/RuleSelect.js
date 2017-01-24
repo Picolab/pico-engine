@@ -67,14 +67,10 @@ var StateMachine = function(){
       while(true){
         tree = {};
         _.each(transitions, function(t){
-          _.set(tree, [JSON.stringify(t[1]), "from_to", t[0], t[2]], true);
-          _.set(tree, [JSON.stringify(t[1]), "to_from", t[2], t[0]], true);
+          _.set(tree, [JSON.stringify(t[1]), t[0], t[2]], true);
         });
         to_merge = _.flatten(_.map(tree, function(sub_tree){
-          return _.uniqWith(toTarget(sub_tree["from_to"])
-              .concat(toTarget(sub_tree["to_from"])),
-              _.isEqual
-          );
+          return _.uniqWith(toTarget(sub_tree), _.isEqual);
         }));
         if(_.isEmpty(to_merge)){
           break;
@@ -88,51 +84,7 @@ var StateMachine = function(){
       }
       transitions = [];
       _.each(tree, function(sub_tree, on_event){
-        _.each(sub_tree["from_to"], function(asdf, from_state){
-          _.each(asdf, function(bool, to_state){
-            transitions.push([from_state, JSON.parse(on_event), to_state]);
-          });
-        });
-      });
-    },
-    optimize2: function(){
-      var toTarget = function(sub_tree){
-        return _.uniqWith(_.compact(_.map(sub_tree, function(o){
-          var targets = _.keys(o);
-          if(_.size(targets) > 1){
-            targets.sort();
-            return targets;
-          }
-        })), _.isEqual);
-      };
-
-      var tree, to_merge;
-      // eslint-disable-next-line no-constant-condition
-      while(true){
-        tree = {};
-        _.each(transitions, function(t){
-          _.set(tree, [JSON.stringify(t[1]), "from_to", t[0], t[2]], true);
-          //_.set(tree, [JSON.stringify(t[1]), "to_from", t[2], t[0]], true);
-        });
-        to_merge = _.flatten(_.map(tree, function(sub_tree){
-          return _.uniqWith(toTarget(sub_tree["from_to"])
-              .concat(toTarget(sub_tree["to_from"])),
-              _.isEqual
-          );
-        }));
-        if(_.isEmpty(to_merge)){
-          break;
-        }
-        _.each(to_merge, function(states){
-          var to_state = _.head(states);
-          _.each(_.tail(states), function(from_state){
-            join(from_state, to_state);
-          });
-        });
-      }
-      transitions = [];
-      _.each(tree, function(sub_tree, on_event){
-        _.each(sub_tree["from_to"], function(asdf, from_state){
+        _.each(sub_tree, function(asdf, from_state){
           _.each(asdf, function(bool, to_state){
             transitions.push([from_state, JSON.parse(on_event), to_state]);
           });
@@ -288,7 +240,6 @@ var event_ops = {
           prev = a;
         });
       });
-      s.optimize();
 
       return s;
     }
@@ -388,17 +339,6 @@ var event_ops = {
         });
       });
 
-      /*
-      var tree = {};
-      _.each(s.getTransitions(), function(t){
-        _.set(tree, [JSON.stringify(t[1]), "from_to", t[0], t[2]], true);
-        _.set(tree, [JSON.stringify(t[1]), "to_from", t[2], t[0]], true);
-      });
-      console.log(JSON.stringify(tree, false, 2));
-      process.exit();
-      */
-      s.optimize2();
-
       return s;
     }
   },
@@ -444,7 +384,7 @@ module.exports = function(ast, comp, e){
     }
     if(_.has(event_ops, lisp[0])){
       s = event_ops[lisp[0]].mkStateMachine(lisp.slice(1), evalEELisp);
-      //s.optimize();
+      s.optimize();
       return s;
     }else{
       throw new Error("EventOperator.op not supported: " + ast.op);
