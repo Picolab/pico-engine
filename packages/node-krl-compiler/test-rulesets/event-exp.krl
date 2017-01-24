@@ -68,7 +68,6 @@ ruleset io.picolabs.event-exp {
     )
     send_directive("and_n")
   }
-
   rule or_n {
     select when or(
       ee_or_n a,
@@ -77,6 +76,16 @@ ruleset io.picolabs.event-exp {
       ee_or_n d
     )
     send_directive("or_n")
+  }
+
+  rule any {
+    select when any 2 (
+      ee_any a,
+      ee_any b,
+      ee_any c,
+      ee_any d
+    )
+    send_directive("any")
   }
 
 }
