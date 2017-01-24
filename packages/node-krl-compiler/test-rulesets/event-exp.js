@@ -544,6 +544,72 @@ module.exports = {
           }]
       }
     },
+    "then_n": {
+      "name": "then_n",
+      "select": {
+        "graph": {
+          "ee_then_n": {
+            "a": { "expr_0": true },
+            "b": { "expr_1": true },
+            "c": { "expr_2": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          },
+          "expr_1": function (ctx) {
+            return true;
+          },
+          "expr_2": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "s0"
+            ]],
+          "s0": [
+            [
+              "expr_1",
+              "s1"
+            ],
+            [
+              [
+                "not",
+                "expr_1"
+              ],
+              "start"
+            ]
+          ],
+          "s1": [
+            [
+              "expr_2",
+              "end"
+            ],
+            [
+              [
+                "not",
+                "expr_2"
+              ],
+              "start"
+            ]
+          ]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "then_n",
+                "options": {}
+              };
+            }
+          }]
+      }
+    },
     "and_n": {
       "name": "and_n",
       "select": {

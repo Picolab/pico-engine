@@ -52,6 +52,14 @@ ruleset io.picolabs.event-exp {
     )
     send_directive("after_n")
   }
+  rule then_n {
+    select when then(
+      ee_then_n a,
+      ee_then_n b,
+      ee_then_n c
+    )
+    send_directive("then_n")
+  }
   rule and_n {
     select when and(
       ee_and_n a,

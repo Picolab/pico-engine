@@ -190,23 +190,34 @@ var event_ops = {
     mkStateMachine: function(args, evalEELisp){
       var s = StateMachine();
 
-      var a = evalEELisp(args[0]);
-      var b = evalEELisp(args[1]);
-
-      s.concat(a);
-      s.concat(b);
-
-      s.join(a.start, s.start);
-      s.join(a.end, b.start);
-      s.join(b.end, s.end);
-
-      //if not B return to start
-      var not_b = wrapInOr(_.uniq(_.compact(_.map(s.getTransitions(), function(t){
-        if(t[0] === b.start){
-          return ["not", t[1]];
+      var merge_points = [];
+      var prev;
+      _.each(args, function(arg, j){
+        var a = evalEELisp(arg);
+        s.concat(a);
+        if(j === 0){
+          s.join(a.start, s.start);
         }
-      }))));
-      s.add(b.start, not_b, s.start);
+        if(j === _.size(args) - 1){
+          s.join(a.end, s.end);
+        }
+        if(prev){
+          s.join(prev.end, a.start);
+          merge_points.push(a.start);
+        }
+        prev = a;
+      });
+
+      var transitions = s.getTransitions();
+      _.each(merge_points, function(da_state){
+        //if not da_state return to start
+        var not_b = wrapInOr(_.uniq(_.compact(_.map(transitions, function(t){
+          if(t[0] === da_state){
+            return ["not", t[1]];
+          }
+        }))));
+        s.add(da_state, not_b, s.start);
+      });
 
       return s;
     }
