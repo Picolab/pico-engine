@@ -7,12 +7,35 @@ var wrapInOr = function(states){
   return ["or", _.head(states), wrapInOr(_.tail(states))];
 };
 
-var uid = _.uniqueId;
+var permute = function(arr){
+  return arr.reduce(function permute(res, item, key, arr){
+    return res.concat(arr.length > 1
+      ? arr
+        .slice(0, key)
+        .concat(arr.slice(key + 1))
+        .reduce(permute, [])
+        .map(function(perm){
+          return [item].concat(perm);
+        })
+      : item
+    );
+  }, []);
+};
 
 var StateMachine = function(){
-  var start = uid();
-  var end = uid();
+  var start = _.uniqueId("state_");
+  var end = _.uniqueId("state_");
   var transitions = [];
+  var join = function(state_1, state_2){
+    _.each(transitions, function(t){
+      if(t[0] === state_1){
+        t[0] = state_2;
+      }
+      if(t[2] === state_1){
+        t[2] = state_2;
+      }
+    });
+  };
   return {
     start: start,
     end: end,
@@ -27,14 +50,40 @@ var StateMachine = function(){
         transitions.push(_.cloneDeep(t));
       });
     },
-    join: function(state_1, state_2){
-      _.each(transitions, function(t){
-        if(t[0] === state_1){
-          t[0] = state_2;
+    join: join,
+    optimize: function(){
+      var tree, to_merge;
+      // eslint-disable-next-line no-constant-condition
+      while(true){
+        tree = {};
+        _.each(transitions, function(t){
+          _.set(tree, [t[0], JSON.stringify(t[1]), t[2]], true);
+        });
+        to_merge = _.flatten(_.map(tree, function(exprs){
+          return _.compact(_.map(exprs, function(o){
+            var targets = _.keys(o);
+            if(_.size(targets) > 1){
+              return targets;
+            }
+          }));
+        }));
+        if(_.isEmpty(to_merge)){
+          break;
         }
-        if(t[2] === state_1){
-          t[2] = state_2;
-        }
+        _.each(to_merge, function(states){
+          var to_state = _.head(states);
+          _.each(_.tail(states), function(from_state){
+            join(from_state, to_state);
+          });
+        });
+      }
+      transitions = [];
+      _.each(tree, function(exprs, from_state){
+        _.each(exprs, function(to_states, on_event){
+          _.each(to_states, function(bool, to_state){
+            transitions.push([from_state, JSON.parse(on_event), to_state]);
+          });
+        });
       });
     },
     compile: function(){
@@ -146,24 +195,25 @@ var event_ops = {
     mkStateMachine: function(args, evalEELisp){
       var s = StateMachine();
 
-      var a0 = evalEELisp(args[0]);
-      var b0 = evalEELisp(args[1]);
-      var a1 = evalEELisp(args[0]);
-      var b1 = evalEELisp(args[1]);
+      _.each(permute(_.range(0, _.size(args))), function(indices){
+        var prev;
+        _.each(indices, function(i, j){
+          var a = evalEELisp(args[i]);
+          s.concat(a);
+          if(j === 0){
+            s.join(a.start, s.start);
+          }
+          if(j === _.size(indices) - 1){
+            s.join(a.end, s.end);
+          }
+          if(prev){
+            s.join(prev.end, a.start);
+          }
+          prev = a;
+        });
+      });
 
-      s.concat(a0);
-      s.concat(b0);
-      s.concat(a1);
-      s.concat(b1);
-
-      s.join(a0.start, s.start);
-      s.join(b0.start, s.start);
-
-      s.join(a0.end, b1.start);
-      s.join(b0.end, a1.start);
-
-      s.join(a1.end, s.end);
-      s.join(b1.end, s.end);
+      s.optimize();
 
       return s;
     }

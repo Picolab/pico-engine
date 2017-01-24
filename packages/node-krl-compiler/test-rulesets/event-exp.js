@@ -448,6 +448,110 @@ module.exports = {
           }]
       }
     },
+    "and_n": {
+      "name": "and_n",
+      "select": {
+        "graph": {
+          "ee_and_n": {
+            "a": { "expr_0": true },
+            "b": { "expr_1": true },
+            "c": { "expr_2": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          },
+          "expr_1": function (ctx) {
+            return true;
+          },
+          "expr_2": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "s0"
+            ],
+            [
+              "expr_1",
+              "s1"
+            ],
+            [
+              "expr_2",
+              "s2"
+            ]
+          ],
+          "s0": [
+            [
+              "expr_1",
+              "s3"
+            ],
+            [
+              "expr_2",
+              "s4"
+            ]
+          ],
+          "s1": [
+            [
+              "expr_0",
+              "s5"
+            ],
+            [
+              "expr_2",
+              "s6"
+            ]
+          ],
+          "s2": [
+            [
+              "expr_0",
+              "s7"
+            ],
+            [
+              "expr_1",
+              "s8"
+            ]
+          ],
+          "s3": [[
+              "expr_2",
+              "end"
+            ]],
+          "s4": [[
+              "expr_1",
+              "end"
+            ]],
+          "s5": [[
+              "expr_2",
+              "end"
+            ]],
+          "s6": [[
+              "expr_0",
+              "end"
+            ]],
+          "s7": [[
+              "expr_1",
+              "end"
+            ]],
+          "s8": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "and_n",
+                "options": {}
+              };
+            }
+          }]
+      }
+    },
     "or_n": {
       "name": "or_n",
       "select": {

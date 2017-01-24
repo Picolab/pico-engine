@@ -36,6 +36,15 @@ ruleset io.picolabs.event-exp {
     send_directive("a and (b or c)")
   }
 
+  rule and_n {
+    select when and(
+      ee_and_n a,
+      ee_and_n b,
+      ee_and_n c
+    )
+    send_directive("and_n")
+  }
+
   rule or_n {
     select when or(
       ee_or_n a,
