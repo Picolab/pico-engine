@@ -28,9 +28,13 @@ var getNextState = function(ctx, curr_state){
     return evalExpr(ctx, s[0]);
   });
 
-  return matching_pair
-    ? matching_pair[1]
-    : curr_state;//by default, stay on the current state
+  if(matching_pair){
+    return matching_pair[1];
+  }
+  if(curr_state === "end"){
+    return "start";
+  }
+  return curr_state;//by default, stay on the current state
 };
 
 var shouldRuleSelect = function(ctx, rule){

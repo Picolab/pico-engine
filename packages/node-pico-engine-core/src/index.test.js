@@ -832,6 +832,34 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
       ["ee_orand", "c"],
       ["ee_orand", "a", {}, "a and (b or c)"],
 
+      ["ee_and_n", "a"],
+      ["ee_and_n", "c"],
+      ["ee_and_n", "b", {}, "and_n"],
+
+      ["ee_or_n", "a", {}, "or_n"],
+      ["ee_or_n", "d", {}, "or_n"],
+
+      ["ee_any", "a"],
+      ["ee_any", "a"],
+      ["ee_any", "b", {}, "any"],
+      ["ee_any", "c"],
+      ["ee_any", "a", {}, "any"],
+
+      ["ee_count", "a"],
+      ["ee_count", "a"],
+      ["ee_count", "a", {}, "count"],
+      ["ee_count", "a"],
+      ["ee_count", "a"],
+      ["ee_count", "a", {}, "count"],
+      ["ee_count", "a"],
+
+      ["ee_repeat", "a", {name: "bob"}],
+      ["ee_repeat", "a", {name: "bob"}],
+      ["ee_repeat", "a", {name: "bob"}, "repeat"],
+      ["ee_repeat", "a", {name: "bob"}, "repeat"],
+      ["ee_repeat", "a", {name: "..."}],
+      ["ee_repeat", "a", {name: "bob"}],
+
     ], function(p){
       var ans = [];
       if(p[3]){

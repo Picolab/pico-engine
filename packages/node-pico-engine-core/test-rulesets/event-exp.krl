@@ -35,4 +35,65 @@ ruleset io.picolabs.event-exp {
     select when ee_orand a and (ee_orand b or ee_orand c)
     send_directive("a and (b or c)")
   }
+
+  rule before_n {
+    select when before(
+      ee_before_n a,
+      ee_before_n b,
+      ee_before_n c
+    )
+    send_directive("before_n")
+  }
+  rule after_n {
+    select when after(
+      ee_after_n a,
+      ee_after_n b,
+      ee_after_n c
+    )
+    send_directive("after_n")
+  }
+  rule then_n {
+    select when then(
+      ee_then_n a,
+      ee_then_n b,
+      ee_then_n c
+    )
+    send_directive("then_n")
+  }
+  rule and_n {
+    select when and(
+      ee_and_n a,
+      ee_and_n b,
+      ee_and_n c
+    )
+    send_directive("and_n")
+  }
+  rule or_n {
+    select when or(
+      ee_or_n a,
+      ee_or_n b,
+      ee_or_n c,
+      ee_or_n d
+    )
+    send_directive("or_n")
+  }
+
+  rule any {
+    select when any 2 (
+      ee_any a,
+      ee_any b,
+      ee_any c,
+      ee_any d
+    )
+    send_directive("any")
+  }
+  rule count {
+    select when count 3 (ee_count a)
+    send_directive("count")
+  }
+  rule repeat {
+    select when repeat 3 (ee_repeat a name re#bob#)
+    send_directive("repeat")
+  }
+
 }
