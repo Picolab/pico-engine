@@ -91,5 +91,9 @@ ruleset io.picolabs.event-exp {
     select when count 3 (ee_count a)
     send_directive("count")
   }
+  rule repeat {
+    select when repeat 3 (ee_repeat a)
+    send_directive("repeat")
+  }
 
 }

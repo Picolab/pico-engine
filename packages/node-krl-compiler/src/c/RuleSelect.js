@@ -111,6 +111,9 @@ var StateMachine = function(){
         if(t[0] === "start"){
           score -= 1000;
         }
+        if(t[0] === "end"){
+          score += 1000;
+        }
         if(/^s[0-9]+$/.test(t[0])){
           score += _.parseInt(t[0].substring(1), 10) || 0;
         }
@@ -368,6 +371,38 @@ var event_ops = {
         }
         prev = a;
       });
+
+      return s;
+    }
+  },
+  "repeat": {
+    toLispArgs: function(ast, traverse){
+      var num = _.head(ast.args);
+      return [num.value].concat(_.map(_.tail(ast.args), traverse));
+    },
+    mkStateMachine: function(args, evalEELisp){
+      var s = StateMachine();
+
+      var num = _.head(args);
+      var eventex = _.head(_.tail(args));
+
+      var prev;
+      _.each(_.range(0, num), function(i, j){
+        var a = evalEELisp(eventex);
+        s.concat(a);
+        if(j === 0){
+          s.join(a.start, s.start);
+        }
+        if(j === num - 1){
+          s.join(a.end, s.end);
+        }
+        if(prev){
+          s.join(prev.end, a.start);
+        }
+        prev = a;
+      });
+
+      s.add(s.end, eventex, s.end);
 
       return s;
     }

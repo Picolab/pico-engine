@@ -299,6 +299,9 @@ module.exports = function(ast, options){
     return function(){
       var args = Array.prototype.slice.call(arguments);
       var last_i = args.length - 1;
+      if(args[0] === "json" && last_i <= 2){
+        last_i = 2;
+      }
       var last = args[last_i];
       if(isKRL_loc(last)){
         args[last_i] = toLoc(last.start, last.end);
