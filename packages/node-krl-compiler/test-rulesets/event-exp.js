@@ -885,6 +885,42 @@ module.exports = {
             }
           }]
       }
+    },
+    "count": {
+      "name": "count",
+      "select": {
+        "graph": { "ee_count": { "a": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "s0"
+            ]],
+          "s0": [[
+              "expr_0",
+              "s1"
+            ]],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "count",
+                "options": {}
+              };
+            }
+          }]
+      }
     }
   }
 };

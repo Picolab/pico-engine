@@ -87,5 +87,9 @@ ruleset io.picolabs.event-exp {
     )
     send_directive("any")
   }
+  rule count {
+    select when count 3 (ee_count a)
+    send_directive("count")
+  }
 
 }

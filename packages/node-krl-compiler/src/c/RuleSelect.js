@@ -342,6 +342,36 @@ var event_ops = {
       return s;
     }
   },
+  "count": {
+    toLispArgs: function(ast, traverse){
+      var num = _.head(ast.args);
+      return [num.value].concat(_.map(_.tail(ast.args), traverse));
+    },
+    mkStateMachine: function(args, evalEELisp){
+      var s = StateMachine();
+
+      var num = _.head(args);
+      var eventex = _.head(_.tail(args));
+
+      var prev;
+      _.each(_.range(0, num), function(i, j){
+        var a = evalEELisp(eventex);
+        s.concat(a);
+        if(j === 0){
+          s.join(a.start, s.start);
+        }
+        if(j === num - 1){
+          s.join(a.end, s.end);
+        }
+        if(prev){
+          s.join(prev.end, a.start);
+        }
+        prev = a;
+      });
+
+      return s;
+    }
+  },
 };
 
 module.exports = function(ast, comp, e){
