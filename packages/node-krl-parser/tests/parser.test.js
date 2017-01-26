@@ -209,28 +209,24 @@ test('select when', function(t){
   });
 
   src = 'select when d a or d b';
-  asertRuleAST(src, {
-    type: 'EventOperator',
-    op: 'or',
-    args: [
-      {
-        type: 'EventExpression',
-        event_domain: {type: 'Identifier', value: 'd'},
-        event_type: {type: 'Identifier', value: 'a'},
-        attributes: [],
-        where: null,
-        setting: []
-      },
-      {
-        type: 'EventExpression',
-        event_domain: {type: 'Identifier', value: 'd'},
-        event_type: {type: 'Identifier', value: 'b'},
-        attributes: [],
-        where: null,
-        setting: []
-      }
-    ]
-  });
+  asertRuleAST(src, mk.eventOp('or', [
+    {
+      type: 'EventExpression',
+      event_domain: {type: 'Identifier', value: 'd'},
+      event_type: {type: 'Identifier', value: 'a'},
+      attributes: [],
+      where: null,
+      setting: []
+    },
+    {
+      type: 'EventExpression',
+      event_domain: {type: 'Identifier', value: 'd'},
+      event_type: {type: 'Identifier', value: 'b'},
+      attributes: [],
+      where: null,
+      setting: []
+    }
+  ]));
 
   src = 'select when d a and d b';
   asertRuleAST(src, mk.eventOp('and', [mk.ee('d', 'a'), mk.ee('d', 'b')]));
@@ -1027,195 +1023,119 @@ test('EventExpression', function(t){
     setting: [mk.id('e'), mk.id('f')]
   });
 
-  testEE('a b setting(c) or d e setting(f) before g h', {
-    type: 'EventOperator',
-    op: 'or',
-    args: [
-      mk.ee('a', 'b', [], null, ['c']),
-      {
-        type: 'EventOperator',
-        op: 'before',
-        args: [
-          mk.ee('d', 'e', [], null, ['f']),
-          mk.ee('g', 'h')
-        ]
-      }
-    ]
-  });
+  testEE('a b setting(c) or d e setting(f) before g h', mk.eventOp('or', [
+    mk.ee('a', 'b', [], null, ['c']),
+    mk.eventOp('before', [
+      mk.ee('d', 'e', [], null, ['f']),
+      mk.ee('g', 'h')
+    ])
+  ]));
 
-  testEE('a b between(c d, e f)', {
-    type: 'EventOperator',
-    op: 'between',
-    args: [
-      mk.ee('a', 'b'),
+  testEE('a b between(c d, e f)', mk.eventOp('between', [
+    mk.ee('a', 'b'),
+    mk.ee('c', 'd'),
+    mk.ee('e', 'f')
+  ]));
+
+  testEE('a b not\n  between ( c d,e f )', mk.eventOp('not between', [
+    mk.ee('a', 'b'),
+    mk.ee('c', 'd'),
+    mk.ee('e', 'f')
+  ]));
+
+  testEE('any 2 (a b, c d, e f)', mk.eventOp('any', [
+    mk(2),
+    mk.ee('a', 'b'),
+    mk.ee('c', 'd'),
+    mk.ee('e', 'f')
+  ]));
+
+  testEE('count 2 (a b)', mk.eventOp('count', [
+    mk(2),
+    mk.ee('a', 'b')
+  ]));
+
+  testEE('repeat 2(a b)', mk.eventOp('repeat', [
+    mk(2),
+    mk.ee('a', 'b')
+  ]));
+
+  testEE('and(a b, c d, e f)', mk.eventOp('and', [
+    mk.ee('a', 'b'),
+    mk.ee('c', 'd'),
+    mk.ee('e', 'f')
+  ]));
+
+  testEE('a b or and(c d, e f)', mk.eventOp('or', [
+    mk.ee('a', 'b'),
+    mk.eventOp('and', [
       mk.ee('c', 'd'),
       mk.ee('e', 'f')
-    ]
-  });
-
-  testEE('a b not\n  between ( c d,e f )', {
-    type: 'EventOperator',
-    op: 'not between',
-    args: [
-      mk.ee('a', 'b'),
-      mk.ee('c', 'd'),
-      mk.ee('e', 'f')
-    ]
-  });
-
-  testEE('any 2 (a b, c d, e f)', {
-    type: 'EventOperator',
-    op: 'any',
-    args: [
-      mk(2),
-      mk.ee('a', 'b'),
-      mk.ee('c', 'd'),
-      mk.ee('e', 'f')
-    ]
-  });
-
-  testEE('count 2 (a b)', {
-    type: 'EventOperator',
-    op: 'count',
-    args: [
-      mk(2),
-      mk.ee('a', 'b')
-    ]
-  });
-
-  testEE('repeat 2(a b)', {
-    type: 'EventOperator',
-    op: 'repeat',
-    args: [
-      mk(2),
-      mk.ee('a', 'b')
-    ]
-  });
-
-  testEE('and(a b, c d, e f)', {
-    type: 'EventOperator',
-    op: 'and',
-    args: [
-      mk.ee('a', 'b'),
-      mk.ee('c', 'd'),
-      mk.ee('e', 'f')
-    ]
-  });
-
-  testEE('a b or and(c d, e f)', {
-    type: 'EventOperator',
-    op: 'or',
-    args: [
-      mk.ee('a', 'b'),
-      {
-        type: 'EventOperator',
-        op: 'and',
-        args: [
-          mk.ee('c', 'd'),
-          mk.ee('e', 'f')
-        ]
-      }
-    ]
-  });
+    ])
+  ]));
 
   //TODO only after count and repeat??
-  testEE('a b max(d)', {
-    type: 'EventOperator',
-    op: 'max',
-    args: [
-      mk.ee('a', 'b'),
-      mk.id('d')
-    ]
-  });
+  testEE('a b max(d)', mk.eventOp('max', [
+    mk.ee('a', 'b'),
+    mk.id('d')
+  ]));
 
-  testEE('repeat 5 (a b) max(d)', {
-    type: 'EventOperator',
-    op: 'max',
-    args: [
-      {
-        type: 'EventOperator',
-        op: 'repeat',
-        args: [
-          mk(5),
-          mk.ee('a', 'b')
-        ]
-      },
-      mk.id('d')
-    ]
-  });
-
-  testEE('a b min(c, d)', {
-    type: 'EventOperator',
-    op: 'min',
-    args: [mk.ee('a', 'b'), mk.id('c'), mk.id('d')]
-  });
-  testEE('a b sum(c, d)', {
-    type: 'EventOperator',
-    op: 'sum',
-    args: [mk.ee('a', 'b'), mk.id('c'), mk.id('d')]
-  });
-  testEE('a b avg(c, d)', {
-    type: 'EventOperator',
-    op: 'avg',
-    args: [mk.ee('a', 'b'), mk.id('c'), mk.id('d')]
-  });
-  testEE('a b push(c, d)', {
-    type: 'EventOperator',
-    op: 'push',
-    args: [mk.ee('a', 'b'), mk.id('c'), mk.id('d')]
-  });
-
-  testEE('a b within 5 minutes', {
-    type: 'EventOperator',
-    op: 'within',
-    args: [
-      mk.ee('a', 'b'),
+  testEE('repeat 5 (a b) max(d)', mk.eventOp('max', [
+    mk.eventOp('repeat', [
       mk(5),
-      mk('minutes')
-    ]
-  });
+      mk.ee('a', 'b')
+    ]),
+    mk.id('d')
+  ]));
 
-  testEE('a b before c d within 5 minutes', {
-    type: 'EventOperator',
-    op: 'within',
-    args: [
-      {
-        type: 'EventOperator',
-        op: 'before',
-        args: [
-          mk.ee('a', 'b'),
-          mk.ee('c', 'd')
-        ]
-      },
-      mk(5),
-      mk('minutes')
-    ]
-  });
+  testEE('a b min(c, d)', mk.eventOp('min', [
+    mk.ee('a', 'b'),
+    mk.id('c'),
+    mk.id('d')
+  ]));
+  testEE('a b sum(c, d)', mk.eventOp('sum', [
+    mk.ee('a', 'b'),
+    mk.id('c'),
+    mk.id('d')
+  ]));
+  testEE('a b avg(c, d)', mk.eventOp('avg', [
+    mk.ee('a', 'b'),
+    mk.id('c'),
+    mk.id('d')
+  ]));
+  testEE('a b push(c, d)', mk.eventOp('push', [
+    mk.ee('a', 'b'),
+    mk.id('c'),
+    mk.id('d')
+  ]));
 
-  testEE('before (a b, c d)', {
-    type: 'EventOperator',
-    op: 'before',
-    args: [
+  testEE('a b within 5 minutes', mk.eventOp('within', [
+    mk.ee('a', 'b'),
+    mk(5),
+    mk('minutes')
+  ]));
+
+  testEE('a b before c d within 5 minutes', mk.eventOp('within', [
+    mk.eventOp('before', [
       mk.ee('a', 'b'),
       mk.ee('c', 'd')
-    ]
-  });
-  testEE('then (a b, c d)', {
-    type: 'EventOperator',
-    op: 'then',
-    args: [
-      mk.ee('a', 'b'),
-      mk.ee('c', 'd')
-    ]
-  });
-  testEE('after (a b, c d)', {
-    type: 'EventOperator',
-    op: 'after',
-    args: [
-      mk.ee('a', 'b'),
-      mk.ee('c', 'd')
-    ]
-  });
+    ]),
+    mk(5),
+    mk('minutes')
+  ]));
+
+  testEE('before (a b, c d)', mk.eventOp('before', [
+    mk.ee('a', 'b'),
+    mk.ee('c', 'd')
+  ]));
+  testEE('then (a b, c d)', mk.eventOp('then', [
+    mk.ee('a', 'b'),
+    mk.ee('c', 'd')
+  ]));
+  testEE('after (a b, c d)', mk.eventOp('after', [
+    mk.ee('a', 'b'),
+    mk.ee('c', 'd')
+  ]));
 
   t.end();
 });
