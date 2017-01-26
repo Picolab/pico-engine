@@ -345,10 +345,12 @@ var event_ops = {
       return s;
     }
   },
+};
+
+var event_group_ops = {
   "count": {
     toLispArgs: function(ast, traverse){
-      var num = _.head(ast.args);
-      return [num.value].concat(_.map(_.tail(ast.args), traverse));
+      return [ast.n.value].concat(_.map([ast.event], traverse));
     },
     mkStateMachine: function(args, evalEELisp){
       var s = StateMachine();
@@ -377,8 +379,7 @@ var event_ops = {
   },
   "repeat": {
     toLispArgs: function(ast, traverse){
-      var num = _.head(ast.args);
-      return [num.value].concat(_.map(_.tail(ast.args), traverse));
+      return [ast.n.value].concat(_.map([ast.event], traverse));
     },
     mkStateMachine: function(args, evalEELisp){
       var s = StateMachine();
@@ -436,6 +437,11 @@ module.exports = function(ast, comp, e){
         return [ast.op].concat(event_ops[ast.op].toLispArgs(ast, traverse));
       }
       throw new Error("EventOperator.op not supported: " + ast.op);
+    }else if(ast.type === "EventGroupOperator"){
+      if(_.has(event_group_ops, ast.op)){
+        return [ast.op].concat(event_group_ops[ast.op].toLispArgs(ast, traverse));
+      }
+      throw new Error("EventGroupOperator.op not supported: " + ast.op);
     }
     throw new Error("invalid event ast node: " + ast.type);
   };
@@ -449,6 +455,10 @@ module.exports = function(ast, comp, e){
     }
     if(_.has(event_ops, lisp[0])){
       s = event_ops[lisp[0]].mkStateMachine(lisp.slice(1), evalEELisp);
+      s.optimize();
+      return s;
+    }else if(_.has(event_group_ops, lisp[0])){
+      s = event_group_ops[lisp[0]].mkStateMachine(lisp.slice(1), evalEELisp);
       s.optimize();
       return s;
     }else{
