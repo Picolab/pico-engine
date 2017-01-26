@@ -566,9 +566,9 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("not between", 0, 4, 6) %}
     | %tok_any PositiveInteger %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
       {% complexEventOp("any", 1, 3) %}
-    | %tok_count PositiveInteger %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN
+    | %tok_count PositiveInteger %tok_OPEN_PAREN IndividualEventExpression %tok_CLSE_PAREN
       {% complexEventOp("count", 1, 3) %}
-    | %tok_repeat PositiveInteger %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN
+    | %tok_repeat PositiveInteger %tok_OPEN_PAREN IndividualEventExpression %tok_CLSE_PAREN
       {% complexEventOp("repeat", 1, 3) %}
     | %tok_and %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
       {% complexEventOp("and", 2) %}
@@ -592,7 +592,9 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("push", 0, 3) %}
 
 event_exp_base -> %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN {% getN(1) %}
-  | Identifier Identifier
+    | IndividualEventExpression {% id %}
+
+IndividualEventExpression -> Identifier Identifier
     event_exp_attribute_pair:*
     (%tok_where event_exp_where):?
     (%tok_setting %tok_OPEN_PAREN function_params %tok_CLSE_PAREN):? {%
