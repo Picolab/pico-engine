@@ -92,6 +92,15 @@ mk.eventOp = function(op, args){
     args: args
   };
 };
+mk.eventGroupOp = function(op, n, event, aggregator){
+  return {
+    type: 'EventGroupOperator',
+    op: op,
+    n: n,
+    event: event,
+    aggregator: aggregator || null
+  };
+};
 mk.declare = function(op, left, right){
   return {type: 'Declaration', op: op, left: left, right: right};
 };
@@ -1050,15 +1059,9 @@ test('EventExpression', function(t){
     mk.ee('e', 'f')
   ]));
 
-  testEE('count 2 (a b)', mk.eventOp('count', [
-    mk(2),
-    mk.ee('a', 'b')
-  ]));
+  testEE('count 2 (a b)', mk.eventGroupOp('count', mk(2), mk.ee('a', 'b')));
 
-  testEE('repeat 2(a b)', mk.eventOp('repeat', [
-    mk(2),
-    mk.ee('a', 'b')
-  ]));
+  testEE('repeat 2(a b)', mk.eventGroupOp('repeat', mk(2), mk.ee('a', 'b')));
 
   testEE('and(a b, c d, e f)', mk.eventOp('and', [
     mk.ee('a', 'b'),
@@ -1074,40 +1077,29 @@ test('EventExpression', function(t){
     ])
   ]));
 
-  //TODO only after count and repeat??
-  testEE('a b max(d)', mk.eventOp('max', [
-    mk.ee('a', 'b'),
-    mk.id('d')
-  ]));
+  testEE('count 5 (a b) max(d)', mk.eventGroupOp(
+        'count',
+        mk(5),
+        mk.ee('a', 'b'),
+        {
+          type: 'EventAggregator',
+          op: 'max',
+          args: [mk.id('d')]
+        }
+  ));
 
-  testEE('repeat 5 (a b) max(d)', mk.eventOp('max', [
-    mk.eventOp('repeat', [
-      mk(5),
-      mk.ee('a', 'b')
-    ]),
-    mk.id('d')
-  ]));
-
-  testEE('a b min(c, d)', mk.eventOp('min', [
-    mk.ee('a', 'b'),
-    mk.id('c'),
-    mk.id('d')
-  ]));
-  testEE('a b sum(c, d)', mk.eventOp('sum', [
-    mk.ee('a', 'b'),
-    mk.id('c'),
-    mk.id('d')
-  ]));
-  testEE('a b avg(c, d)', mk.eventOp('avg', [
-    mk.ee('a', 'b'),
-    mk.id('c'),
-    mk.id('d')
-  ]));
-  testEE('a b push(c, d)', mk.eventOp('push', [
-    mk.ee('a', 'b'),
-    mk.id('c'),
-    mk.id('d')
-  ]));
+  _.each(['min', 'max', 'sum', 'avg', 'push'], function(op){
+    testEE('repeat 5 (a b) ' + op + '(c)', mk.eventGroupOp(
+          'repeat',
+          mk(5),
+          mk.ee('a', 'b'),
+          {
+            type: 'EventAggregator',
+            op: op,
+            args: [mk.id('c')]
+          }
+    ));
+  });
 
   testEE('a b within 5 minutes', mk.eventOp('within', [
     mk.ee('a', 'b'),

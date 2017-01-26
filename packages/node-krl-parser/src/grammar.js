@@ -84,6 +84,19 @@ var complexEventOp = function(op){
   };
 };
 
+var eventGroupOp = function(op, i_n, i_ee, i_ag){
+  return function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'EventGroupOperator',
+      op: op,
+      n: data[i_n],
+      event: data[i_ee],
+      aggregator: data[i_ag]
+    };
+  };
+};
+
 var booleanAST = function(value){
   return function(data){
     return {
@@ -554,18 +567,17 @@ var grammar = {
     {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_between, tok_OPEN_PAREN, "EventExpression", tok_COMMA, "EventExpression", tok_CLSE_PAREN], "postprocess": complexEventOp("between", 0, 3, 5)},
     {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_not, tok_between, tok_OPEN_PAREN, "EventExpression", tok_COMMA, "EventExpression", tok_CLSE_PAREN], "postprocess": complexEventOp("not between", 0, 4, 6)},
     {"name": "event_exp_fns", "symbols": [tok_any, "PositiveInteger", tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("any", 1, 3)},
-    {"name": "event_exp_fns", "symbols": [tok_count, "PositiveInteger", tok_OPEN_PAREN, "IndividualEventExpression", tok_CLSE_PAREN], "postprocess": complexEventOp("count", 1, 3)},
-    {"name": "event_exp_fns", "symbols": [tok_repeat, "PositiveInteger", tok_OPEN_PAREN, "IndividualEventExpression", tok_CLSE_PAREN], "postprocess": complexEventOp("repeat", 1, 3)},
     {"name": "event_exp_fns", "symbols": [tok_and, tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("and", 2)},
     {"name": "event_exp_fns", "symbols": [tok_or, tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("or", 2)},
     {"name": "event_exp_fns", "symbols": [tok_before, tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("before", 2)},
     {"name": "event_exp_fns", "symbols": [tok_then, tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("then", 2)},
     {"name": "event_exp_fns", "symbols": [tok_after, tok_OPEN_PAREN, "EventExpression_list", tok_CLSE_PAREN], "postprocess": complexEventOp("after", 2)},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_max, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": complexEventOp("max", 0, 3)},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_min, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": complexEventOp("min", 0, 3)},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_sum, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": complexEventOp("sum", 0, 3)},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_avg, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": complexEventOp("avg", 0, 3)},
-    {"name": "event_exp_fns", "symbols": ["event_exp_fns", tok_push, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": complexEventOp("push", 0, 3)},
+    {"name": "event_exp_fns$ebnf$1", "symbols": ["EventAggregator"], "postprocess": id},
+    {"name": "event_exp_fns$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "event_exp_fns", "symbols": [tok_count, "PositiveInteger", tok_OPEN_PAREN, "IndividualEventExpression", tok_CLSE_PAREN, "event_exp_fns$ebnf$1"], "postprocess": eventGroupOp("count", 1, 3, 5)},
+    {"name": "event_exp_fns$ebnf$2", "symbols": ["EventAggregator"], "postprocess": id},
+    {"name": "event_exp_fns$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "event_exp_fns", "symbols": [tok_repeat, "PositiveInteger", tok_OPEN_PAREN, "IndividualEventExpression", tok_CLSE_PAREN, "event_exp_fns$ebnf$2"], "postprocess": eventGroupOp("repeat", 1, 3, 5)},
     {"name": "event_exp_base", "symbols": [tok_OPEN_PAREN, "EventExpression", tok_CLSE_PAREN], "postprocess": getN(1)},
     {"name": "event_exp_base", "symbols": ["IndividualEventExpression"], "postprocess": id},
     {"name": "IndividualEventExpression$ebnf$1", "symbols": []},
@@ -616,6 +628,26 @@ var grammar = {
             type: 'String',
             value: d.src
           };
+        }
+        },
+    {"name": "EventAggregator", "symbols": ["EventAggregators_ops", tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: 'EventAggregator',
+            op: data[0].src,
+            args: data[2]
+          };
+        }
+        },
+    {"name": "EventAggregators_ops$subexpression$1", "symbols": [tok_max]},
+    {"name": "EventAggregators_ops$subexpression$1", "symbols": [tok_min]},
+    {"name": "EventAggregators_ops$subexpression$1", "symbols": [tok_sum]},
+    {"name": "EventAggregators_ops$subexpression$1", "symbols": [tok_avg]},
+    {"name": "EventAggregators_ops$subexpression$1", "symbols": [tok_push]},
+    {"name": "EventAggregators_ops", "symbols": ["EventAggregators_ops$subexpression$1"], "postprocess": 
+        function(data){
+          return data[0][0];
         }
         },
     {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1", "symbols": ["action_block_type"], "postprocess": id},

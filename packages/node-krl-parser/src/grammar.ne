@@ -80,6 +80,19 @@ var complexEventOp = function(op){
   };
 };
 
+var eventGroupOp = function(op, i_n, i_ee, i_ag){
+  return function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'EventGroupOperator',
+      op: op,
+      n: data[i_n],
+      event: data[i_ee],
+      aggregator: data[i_ag]
+    };
+  };
+};
+
 var booleanAST = function(value){
   return function(data){
     return {
@@ -566,30 +579,19 @@ event_exp_fns -> event_exp_base {% id %}
       {% complexEventOp("not between", 0, 4, 6) %}
     | %tok_any PositiveInteger %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
       {% complexEventOp("any", 1, 3) %}
-    | %tok_count PositiveInteger %tok_OPEN_PAREN IndividualEventExpression %tok_CLSE_PAREN
-      {% complexEventOp("count", 1, 3) %}
-    | %tok_repeat PositiveInteger %tok_OPEN_PAREN IndividualEventExpression %tok_CLSE_PAREN
-      {% complexEventOp("repeat", 1, 3) %}
     | %tok_and %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
       {% complexEventOp("and", 2) %}
-    | %tok_or %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
-      {% complexEventOp("or", 2) %}
+    | %tok_or %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN {% complexEventOp("or", 2) %}
     | %tok_before %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
       {% complexEventOp("before", 2) %}
     | %tok_then %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
       {% complexEventOp("then", 2) %}
     | %tok_after %tok_OPEN_PAREN EventExpression_list %tok_CLSE_PAREN
       {% complexEventOp("after", 2) %}
-    | event_exp_fns %tok_max %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
-      {% complexEventOp("max", 0, 3) %}
-    | event_exp_fns %tok_min %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
-      {% complexEventOp("min", 0, 3) %}
-    | event_exp_fns %tok_sum %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
-      {% complexEventOp("sum", 0, 3) %}
-    | event_exp_fns %tok_avg %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
-      {% complexEventOp("avg", 0, 3) %}
-    | event_exp_fns %tok_push %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
-      {% complexEventOp("push", 0, 3) %}
+    | %tok_count PositiveInteger %tok_OPEN_PAREN IndividualEventExpression %tok_CLSE_PAREN EventAggregator:?
+      {% eventGroupOp("count", 1, 3, 5) %}
+    | %tok_repeat PositiveInteger %tok_OPEN_PAREN IndividualEventExpression %tok_CLSE_PAREN EventAggregator:?
+      {% eventGroupOp("repeat", 1, 3, 5) %}
 
 event_exp_base -> %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN {% getN(1) %}
     | IndividualEventExpression {% id %}
@@ -641,6 +643,26 @@ time_period -> %tok_TIME_PERIOD_ENUM {%
       type: 'String',
       value: d.src
     };
+  }
+%}
+
+EventAggregator -> EventAggregators_ops
+  %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'EventAggregator',
+      op: data[0].src,
+      args: data[2]
+    };
+  }
+%}
+
+EventAggregators_ops -> (%tok_max|%tok_min|%tok_sum|%tok_avg|%tok_push)
+{%
+  function(data){
+    return data[0][0];
   }
 %}
 
