@@ -86,13 +86,14 @@ var complexEventOp = function(op){
 
 var eventGroupOp = function(op, i_n, i_ee, i_ag){
   return function(data){
+    var event = data[i_ee];
+    event.aggregator = data[i_ag];
     return {
       loc: mkLoc(data),
       type: 'EventGroupOperator',
       op: op,
       n: data[i_n],
-      event: data[i_ee],
-      aggregator: data[i_ag]
+      event: event
     };
   };
 };
@@ -597,7 +598,8 @@ var grammar = {
             event_type: data[1],
             attributes: data[2],
             where: data[3] && data[3][1],
-            setting: (data[4] && data[4][2]) || []
+            setting: (data[4] && data[4][2]) || [],
+            aggregator: null//this is set by EventAggregator
           };
         }
         },

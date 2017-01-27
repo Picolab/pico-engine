@@ -75,14 +75,15 @@ mk.unary = function(op, arg){
     arg: arg
   };
 };
-mk.ee = function(domain, type, attrs, where, setting){
+mk.ee = function(domain, type, attrs, where, setting, aggregator){
   return {
     type: 'EventExpression',
     event_domain: mk.id(domain),
     event_type: mk.id(type),
     attributes: attrs || [],
     where: where || null,
-    setting: setting ? setting.map(mk.id) : []
+    setting: setting ? setting.map(mk.id) : [],
+    aggregator: aggregator || null
   };
 };
 mk.eventOp = function(op, args){
@@ -92,13 +93,12 @@ mk.eventOp = function(op, args){
     args: args
   };
 };
-mk.eventGroupOp = function(op, n, event, aggregator){
+mk.eventGroupOp = function(op, n, event){
   return {
     type: 'EventGroupOperator',
     op: op,
     n: n,
-    event: event,
-    aggregator: aggregator || null
+    event: event
   };
 };
 mk.declare = function(op, left, right){
@@ -214,7 +214,8 @@ test('select when', function(t){
     event_type: {type: 'Identifier', value: 't'},
     attributes: [],
     where: null,
-    setting: []
+    setting: [],
+    aggregator: null
   });
 
   src = 'select when d a or d b';
@@ -225,7 +226,8 @@ test('select when', function(t){
       event_type: {type: 'Identifier', value: 'a'},
       attributes: [],
       where: null,
-      setting: []
+      setting: [],
+      aggregator: null
     },
     {
       type: 'EventExpression',
@@ -233,7 +235,8 @@ test('select when', function(t){
       event_type: {type: 'Identifier', value: 'b'},
       attributes: [],
       where: null,
-      setting: []
+      setting: [],
+      aggregator: null
     }
   ]));
 
@@ -464,7 +467,8 @@ test('locations', function(t){
     },
     attributes: [],
     where: null,
-    setting: []
+    setting: [],
+    aggregator: null
   });
 
   src = 'select when a b or c d';
@@ -488,7 +492,8 @@ test('locations', function(t){
         },
         attributes: [],
         where: null,
-        setting: []
+        setting: [],
+        aggregator: null
       },
       {
         loc: {start: 42, end: 45},
@@ -505,7 +510,8 @@ test('locations', function(t){
         },
         attributes: [],
         where: null,
-        setting: []
+        setting: [],
+        aggregator: null
       }
     ]
   });
@@ -961,7 +967,8 @@ test('EventExpression', function(t){
     event_type: mk.id('b'),
     attributes: [],
     where: null,
-    setting: []
+    setting: [],
+    aggregator: null
   });
 
   testEE('a b where c', {
@@ -970,7 +977,8 @@ test('EventExpression', function(t){
     event_type: mk.id('b'),
     attributes: [],
     where: mk.id('c'),
-    setting: []
+    setting: [],
+    aggregator: null
   });
 
   testEE('a b where 1 / (c - 2)', {
@@ -979,7 +987,8 @@ test('EventExpression', function(t){
     event_type: mk.id('b'),
     attributes: [],
     where: mk.op('/', mk(1), mk.op('-', mk.id('c'), mk(2))),
-    setting: []
+    setting: [],
+    aggregator: null
   });
 
   testEE('a b amt re#[0-9]{4}#', {
@@ -994,7 +1003,8 @@ test('EventExpression', function(t){
       }
     ],
     where: null,
-    setting: []
+    setting: [],
+    aggregator: null
   });
 
   testEE('a b amt re#([0-9]+)# setting(amt_n)', {
@@ -1009,7 +1019,8 @@ test('EventExpression', function(t){
       }
     ],
     where: null,
-    setting: [mk.id('amt_n')]
+    setting: [mk.id('amt_n')],
+    aggregator: null
   });
 
   testEE('a b c re#(.*)# d re#(.*)# setting(e,f)', {
@@ -1029,7 +1040,8 @@ test('EventExpression', function(t){
       }
     ],
     where: null,
-    setting: [mk.id('e'), mk.id('f')]
+    setting: [mk.id('e'), mk.id('f')],
+    aggregator: null
   });
 
   testEE('a b setting(c) or d e setting(f) before g h', mk.eventOp('or', [
@@ -1080,24 +1092,22 @@ test('EventExpression', function(t){
   testEE('count 5 (a b) max(d)', mk.eventGroupOp(
         'count',
         mk(5),
-        mk.ee('a', 'b'),
-        {
+        mk.ee('a', 'b', [], null, [], {
           type: 'EventAggregator',
           op: 'max',
           args: [mk.id('d')]
-        }
+        })
   ));
 
   _.each(['min', 'max', 'sum', 'avg', 'push'], function(op){
     testEE('repeat 5 (a b) ' + op + '(c)', mk.eventGroupOp(
           'repeat',
           mk(5),
-          mk.ee('a', 'b'),
-          {
+          mk.ee('a', 'b', [], null, [], {
             type: 'EventAggregator',
             op: op,
             args: [mk.id('c')]
-          }
+          })
     ));
   });
 

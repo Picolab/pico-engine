@@ -143,7 +143,8 @@ rule hello {
       "event_type": TYPE,
       "attributes": [  ],
       "where": null,
-      "setting": [  ]
+      "setting": [  ],
+      "aggregator": null
     }
   },
   "foreach": [  ],
@@ -204,7 +205,8 @@ select when A B
   "event_type": B,
   "attributes": [  ],
   "where": null,
-  "setting": [  ]
+  "setting": [  ],
+  "aggregator": null
 }
 
 select when A B attr re#^(.*)$# setting(val)
@@ -222,7 +224,8 @@ select when A B attr re#^(.*)$# setting(val)
   "where": null,
   "setting": [
     {value: "val", type:"Identifier"}
-  ]
+  ],
+  "aggregator": null
 }
 
 select when A A or B B
@@ -236,7 +239,8 @@ select when A A or B B
       "event_type": A,
       "attributes": [  ],
       "where": null,
-      "setting": [  ]
+      "setting": [  ],
+      "aggregator": null
     },
     {
       "type": "EventExpression",
@@ -244,7 +248,8 @@ select when A A or B B
       "event_type": B,
       "attributes": [  ],
       "where": null,
-      "setting": [  ]
+      "setting": [  ],
+      "aggregator": null
     }
   ]
 }
@@ -261,7 +266,8 @@ select when any 2 (A A, B B, C C)
       "event_type": A,
       "attributes": [  ],
       "where": null,
-      "setting": [  ]
+      "setting": [  ],
+      "aggregator": null
     },
     {
       "type": "EventExpression",
@@ -269,7 +275,8 @@ select when any 2 (A A, B B, C C)
       "event_type": B,
       "attributes": [  ],
       "where": null,
-      "setting": [  ]
+      "setting": [  ],
+      "aggregator": null
     },
     {
       "type": "EventExpression",
@@ -277,7 +284,8 @@ select when any 2 (A A, B B, C C)
       "event_type": C,
       "attributes": [  ],
       "where": null,
-      "setting": [  ]
+      "setting": [  ],
+      "aggregator": null
     }
   ]
 }
