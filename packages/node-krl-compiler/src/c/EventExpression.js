@@ -35,6 +35,19 @@ module.exports = function(ast, comp, e){
       ], s.loc), s.loc));
   });
 
+  if(ast.aggregator){
+    fn_body.push(e(";",
+            callModuleFn(e, "event", "aggregateEvent", [
+              e("string", ast.aggregator.op, ast.aggregator.loc),
+              e("array", _.map(ast.aggregator.args, function(a){
+                return e("array", [
+                  e("string", a.value, a.loc),
+                  e("get", e("id", "matches", a.loc), e("num", 0, a.loc), a.loc)
+                ], a.loc);
+              }), ast.aggregator.loc)
+            ], ast.aggregator.loc), ast.aggregator.loc));
+  }
+
   fn_body.push(e("return", e(true)));
 
   return e("fn", ["ctx"], fn_body);

@@ -345,9 +345,6 @@ var event_ops = {
       return s;
     }
   },
-};
-
-var event_group_ops = {
   "count": {
     toLispArgs: function(ast, traverse){
       return [ast.n.value].concat(_.map([ast.event], traverse));
@@ -438,8 +435,8 @@ module.exports = function(ast, comp, e){
       }
       throw new Error("EventOperator.op not supported: " + ast.op);
     }else if(ast.type === "EventGroupOperator"){
-      if(_.has(event_group_ops, ast.op)){
-        return [ast.op].concat(event_group_ops[ast.op].toLispArgs(ast, traverse));
+      if(_.has(event_ops, ast.op)){
+        return [ast.op].concat(event_ops[ast.op].toLispArgs(ast, traverse));
       }
       throw new Error("EventGroupOperator.op not supported: " + ast.op);
     }
@@ -455,10 +452,6 @@ module.exports = function(ast, comp, e){
     }
     if(_.has(event_ops, lisp[0])){
       s = event_ops[lisp[0]].mkStateMachine(lisp.slice(1), evalEELisp);
-      s.optimize();
-      return s;
-    }else if(_.has(event_group_ops, lisp[0])){
-      s = event_group_ops[lisp[0]].mkStateMachine(lisp.slice(1), evalEELisp);
       s.optimize();
       return s;
     }else{
