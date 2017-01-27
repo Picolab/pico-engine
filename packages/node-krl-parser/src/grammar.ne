@@ -559,8 +559,8 @@ RulePrelude -> %tok_pre declaration_block {% getN(1) %}
 EventExpression -> event_exp_within {% id %}
 
 event_exp_within -> event_exp_or {% id %}
-    | event_exp_within %tok_within PositiveInteger time_period
-      {% complexEventOp("within", 0, 2, 3) %}
+    | event_exp_within EventWithin
+      {% complexEventOp("within", 0, 1) %}
 
 event_exp_or -> event_exp_and {% id %}
     | event_exp_or %tok_or event_exp_and {% infixEventOp %}
@@ -665,6 +665,12 @@ EventAggregators_ops -> (%tok_max|%tok_min|%tok_sum|%tok_avg|%tok_push)
 {%
   function(data){
     return data[0][0];
+  }
+%}
+
+EventWithin -> %tok_within PositiveInteger time_period {%
+  function(data){
+    return [data[1], data[2]];
   }
 %}
 

@@ -555,7 +555,7 @@ var grammar = {
     {"name": "RulePrelude", "symbols": [tok_pre, "declaration_block"], "postprocess": getN(1)},
     {"name": "EventExpression", "symbols": ["event_exp_within"], "postprocess": id},
     {"name": "event_exp_within", "symbols": ["event_exp_or"], "postprocess": id},
-    {"name": "event_exp_within", "symbols": ["event_exp_within", tok_within, "PositiveInteger", "time_period"], "postprocess": complexEventOp("within", 0, 2, 3)},
+    {"name": "event_exp_within", "symbols": ["event_exp_within", "EventWithin"], "postprocess": complexEventOp("within", 0, 1)},
     {"name": "event_exp_or", "symbols": ["event_exp_and"], "postprocess": id},
     {"name": "event_exp_or", "symbols": ["event_exp_or", tok_or, "event_exp_and"], "postprocess": infixEventOp},
     {"name": "event_exp_and", "symbols": ["event_exp_infix_op"], "postprocess": id},
@@ -650,6 +650,11 @@ var grammar = {
     {"name": "EventAggregators_ops", "symbols": ["EventAggregators_ops$subexpression$1"], "postprocess": 
         function(data){
           return data[0][0];
+        }
+        },
+    {"name": "EventWithin", "symbols": [tok_within, "PositiveInteger", "time_period"], "postprocess": 
+        function(data){
+          return [data[1], data[2]];
         }
         },
     {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1", "symbols": ["action_block_type"], "postprocess": id},
