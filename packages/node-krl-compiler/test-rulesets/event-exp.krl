@@ -92,7 +92,7 @@ ruleset io.picolabs.event-exp {
     send_directive("count")
   }
   rule repeat {
-    select when repeat 3 (ee_repeat a)
+    select when repeat 3 (ee_repeat a name re#bob#)
     send_directive("repeat")
   }
 
@@ -109,6 +109,49 @@ ruleset io.picolabs.event-exp {
     ) min(m);
     send_directive("repeat_min") with
       m = m
+  }
+  rule repeat_sum {
+    select when repeat 3 (
+      ee_repeat_sum a b re#(\d+)#
+    ) sum(m);
+    send_directive("repeat_sum") with
+      m = m
+  }
+  rule repeat_avg {
+    select when repeat 3 (
+      ee_repeat_avg a b re#(\d+)#
+    ) avg(m);
+    send_directive("repeat_avg") with
+      m = m
+  }
+  rule repeat_push {
+    select when repeat 3 (
+      ee_repeat_push a b re#(\d+)#
+    ) push(m);
+    send_directive("repeat_push") with
+      m = m
+  }
+  rule repeat_push_multi {
+    select when repeat 5 (
+      ee_repeat_push_multi a
+        a re#(\d+)#
+        b re#(\d+) (.*)#
+    ) push(a, b, c, d);
+    send_directive("repeat_push_multi") with
+      a = a
+      b = b
+      c = c
+      d = d
+  }
+  rule repeat_sum_multi {
+    select when repeat 3 (
+      ee_repeat_sum_multi a
+        a re#(\d+)#
+        b re#(\d+)#
+    ) sum(a, b);
+    send_directive("repeat_sum_multi") with
+      a = a
+      b = b
   }
 
 }

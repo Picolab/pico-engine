@@ -39,10 +39,10 @@ module.exports = function(ast, comp, e){
     fn_body.push(e(";",
             callModuleFn(e, "event", "aggregateEvent", [
               e("string", ast.aggregator.op, ast.aggregator.loc),
-              e("array", _.map(ast.aggregator.args, function(a){
+              e("array", _.map(ast.aggregator.args, function(a, i){
                 return e("array", [
                   e("string", a.value, a.loc),
-                  e("get", e("id", "matches", a.loc), e("num", 0, a.loc), a.loc)
+                  e("get", e("id", "matches", a.loc), e("num", i, a.loc), a.loc)
                 ], a.loc);
               }), ast.aggregator.loc)
             ], ast.aggregator.loc), ast.aggregator.loc));
