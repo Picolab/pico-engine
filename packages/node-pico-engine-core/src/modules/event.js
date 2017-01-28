@@ -14,6 +14,13 @@ var aggregateWrap = function(ctx, value_pairs, fn){
     var name = pair[0];
     var value = pair[1];
     var val = ctx.db.updateAggregatorVarFuture(ctx.pico_id, ctx.rule, name, function(val){
+      if(ctx.current_state_machine_state === "start"){
+        //reset the aggregated values every time the state machine resets
+        return [value];
+      }else if(ctx.current_state_machine_state === "end"){
+        //keep a sliding window every time the state machine hits end again i.e. select when repeat ..
+        return _.tail(val.concat([value]));
+      }
       return val.concat([value]);
     }).wait();
     ctx.scope.set(name, fn(val));

@@ -863,19 +863,28 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
       ["ee_count_max", "a", {b: "3"}],
       ["ee_count_max", "a", {b: "8"}],
       ["ee_count_max", "a", {b: "5"}, {name: "count_max", options: {m: 8}}],
-
-      /*
-      //TODO need to reset aggregator
       ["ee_count_max", "a", {b: "1"}],
       ["ee_count_max", "a", {b: "0"}],
       ["ee_count_max", "a", {b: "0"}, {name: "count_max", options: {m: 1}}],
-      */
+      ["ee_count_max", "a", {b: "0"}],
+      ["ee_count_max", "a", {b: "0"}],
+      ["ee_count_max", "a", {b: "7"}, {name: "count_max", options: {m: 7}}],
 
       ["ee_repeat_min", "a", {b: "5"}],
       ["ee_repeat_min", "a", {b: "3"}],
       ["ee_repeat_min", "a", {b: "4"}, {name: "repeat_min", options: {m: 3}}],
       ["ee_repeat_min", "a", {b: "5"}, {name: "repeat_min", options: {m: 3}}],
-      //TODO ["ee_repeat_min", "a", {b: "6"}, {name: "repeat_min", options: {m: 4}}],
+      ["ee_repeat_min", "a", {b: "6"}, {name: "repeat_min", options: {m: 4}}],
+      ["ee_repeat_min", "a", {b: null}],
+      ["ee_repeat_min", "a", {b: "3"}],
+      ["ee_repeat_min", "a", {b: "8"}],
+      ["ee_repeat_min", "a", {b: "1"}, {name: "repeat_min", options: {m: 1}}],
+      ["ee_repeat_min", "a", {b: "2"}, {name: "repeat_min", options: {m: 1}}],
+      ["ee_repeat_min", "a", {b: "3"}, {name: "repeat_min", options: {m: 1}}],
+      ["ee_repeat_min", "a", {b: "4"}, {name: "repeat_min", options: {m: 2}}],
+      ["ee_repeat_min", "a", {b: "5"}, {name: "repeat_min", options: {m: 3}}],
+      ["ee_repeat_min", "a", {b: "6"}, {name: "repeat_min", options: {m: 4}}],
+      ["ee_repeat_min", "a", {b: "7"}, {name: "repeat_min", options: {m: 5}}],
 
     ], function(p){
       var ans = [];

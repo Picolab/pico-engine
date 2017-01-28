@@ -44,7 +44,8 @@ var shouldRuleSelect = function(ctx, rule){
   //this ctx will be passed to the compiled code for evaluting event exp
   var ctx_for_eventexp = _.assign({}, ctx, {
     rule: rule,
-    scope: rule.scope
+    scope: rule.scope,
+    current_state_machine_state: curr_state
   });
   var next_state = getNextState(ctx_for_eventexp, curr_state);
 
