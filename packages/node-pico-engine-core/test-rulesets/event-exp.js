@@ -1228,6 +1228,92 @@ module.exports = {
             }
           }]
       }
+    },
+    "repeat_push_multi": {
+      "name": "repeat_push_multi",
+      "select": {
+        "graph": { "ee_repeat_push_multi": { "a": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[
+                [
+                  "a",
+                  new RegExp("(\\d+)", "")
+                ],
+                [
+                  "b",
+                  new RegExp("(\\d+) (.*)", "")
+                ]
+              ]]);
+            if (!matches)
+              return false;
+            ctx.modules.get(ctx, "event", "aggregateEvent")(ctx, [
+              "push",
+              [
+                [
+                  "a",
+                  matches[0]
+                ],
+                [
+                  "b",
+                  matches[1]
+                ],
+                [
+                  "c",
+                  matches[2]
+                ],
+                [
+                  "d",
+                  matches[3]
+                ]
+              ]
+            ]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "s0"
+            ]],
+          "s0": [[
+              "expr_0",
+              "s1"
+            ]],
+          "s1": [[
+              "expr_0",
+              "s2"
+            ]],
+          "s2": [[
+              "expr_0",
+              "s3"
+            ]],
+          "s3": [[
+              "expr_0",
+              "end"
+            ]],
+          "end": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "repeat_push_multi",
+                "options": {
+                  "a": ctx.scope.get("a"),
+                  "b": ctx.scope.get("b"),
+                  "c": ctx.scope.get("c"),
+                  "d": ctx.scope.get("d")
+                }
+              };
+            }
+          }]
+      }
     }
   }
 };

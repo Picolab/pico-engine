@@ -8,7 +8,9 @@ var toFloat = function(v){
 var aggregateWrap = function(ctx, value_pairs, fn){
   _.each(value_pairs, function(pair){
     var name = pair[0];
-    var value = pair[1];
+    var value = pair[1] === void 0
+      ? null//leveldb doesnt support undefined
+      : pair[1];
     var val = ctx.db.updateAggregatorVarFuture(ctx.pico_id, ctx.rule, name, function(val){
       if(ctx.current_state_machine_state === "start"){
         //reset the aggregated values every time the state machine resets
@@ -57,7 +59,7 @@ var fns = {
   attrMatches: function(ctx, args){
     var pairs = getArg(args, "pairs", 0);
     var matches = [];
-    var i, attr, m, pair;
+    var i, j, attr, m, pair;
     for(i = 0; i < pairs.length; i++){
       pair = pairs[i];
       attr = ctx.event.attrs[pair[0]];
@@ -65,7 +67,9 @@ var fns = {
       if(!m){
         return undefined;
       }
-      matches.push(m[1]);
+      for(j = 1; j < m.length; j++){
+        matches.push(m[j]);
+      }
     }
     return matches;
   },

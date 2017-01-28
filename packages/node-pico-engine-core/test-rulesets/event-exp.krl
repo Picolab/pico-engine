@@ -131,5 +131,17 @@ ruleset io.picolabs.event-exp {
     send_directive("repeat_push") with
       m = m
   }
+  rule repeat_push_multi {
+    select when repeat 5 (
+      ee_repeat_push_multi a
+        a re#(\d+)#
+        b re#(\d+) (.*)#
+    ) push(a, b, c, d);
+    send_directive("repeat_push_multi") with
+      a = a
+      b = b
+      c = c
+      d = d
+  }
 
 }

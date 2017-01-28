@@ -905,6 +905,17 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
       ["ee_repeat_push", "a", {b: "7"}],
       ["ee_repeat_push", "a", {b: "8"}, {name: "repeat_push", options: {m: ["6", "7", "8"]}}],
 
+      ["ee_repeat_push_multi", "a", {a: "1", b: "2 three"}],
+      ["ee_repeat_push_multi", "a", {a: "2", b: "3 four"}],
+      ["ee_repeat_push_multi", "a", {a: "3", b: "4 five"}],
+      ["ee_repeat_push_multi", "a", {a: "4", b: "5 six"}],
+      ["ee_repeat_push_multi", "a", {a: "5", b: "6 seven"}, {name: "repeat_push_multi", options: {
+        a: ["1", "2", "3", "4", "5"],
+        b: ["2", "3", "4", "5", "6"],
+        c: ["three", "four", "five", "six", "seven"],
+        d: [null, null, null, null, null],
+      }}],
+
     ], function(p){
       var ans = [];
       if(_.isString(p[3])){
