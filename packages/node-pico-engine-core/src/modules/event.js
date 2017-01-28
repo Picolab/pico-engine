@@ -28,15 +28,11 @@ var aggregateWrap = function(ctx, value_pairs, fn){
 };
 
 var aggregators = {
-  max: function(ctx, value_pairs){
-    aggregateWrap(ctx, value_pairs, function(values){
-      return _.max(_.map(values, toFloat));
-    });
+  max: function(values){
+    return _.max(_.map(values, toFloat));
   },
-  min: function(ctx, value_pairs){
-    aggregateWrap(ctx, value_pairs, function(values){
-      return _.min(_.map(values, toFloat));
-    });
+  min: function(values){
+    return _.min(_.map(values, toFloat));
   }
 };
 
@@ -83,7 +79,8 @@ var fns = {
     var aggregator = getArg(args, "aggregator", 0);
     var value_pairs = getArg(args, "value_pairs", 1);
     if(_.has(aggregators, aggregator)){
-      return aggregators[aggregator](ctx, value_pairs);
+      aggregateWrap(ctx, value_pairs, aggregators[aggregator]);
+      return;
     }
     throw new Error("Unsupported aggregator: " + aggregator);
   }
