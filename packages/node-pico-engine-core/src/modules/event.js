@@ -2,11 +2,7 @@ var _ = require("lodash");
 var getArg = require("../getArg");
 
 var toFloat = function(v){
-  v = parseFloat(v);
-  if(_.isNaN(v)){
-    v = void 0;
-  }
-  return v;
+  return parseFloat(v) || 0;
 };
 
 var aggregateWrap = function(ctx, value_pairs, fn){
@@ -33,6 +29,20 @@ var aggregators = {
   },
   min: function(values){
     return _.min(_.map(values, toFloat));
+  },
+  sum: function(values){
+    return _.reduce(_.map(values, toFloat), function(sum, n){
+      return sum + n;
+    }, 0);
+  },
+  avg: function(values){
+    var sum = _.reduce(_.map(values, toFloat), function(sum, n){
+      return sum + n;
+    }, 0);
+    return sum / _.size(values);
+  },
+  push: function(values){
+    return values;
   }
 };
 

@@ -886,6 +886,25 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
       ["ee_repeat_min", "a", {b: "6"}, {name: "repeat_min", options: {m: 4}}],
       ["ee_repeat_min", "a", {b: "7"}, {name: "repeat_min", options: {m: 5}}],
 
+      ["ee_repeat_sum", "a", {b: "1"}],
+      ["ee_repeat_sum", "a", {b: "2"}],
+      ["ee_repeat_sum", "a", {b: "3"}, {name: "repeat_sum", options: {m: 6}}],
+      ["ee_repeat_sum", "a", {b: "4"}, {name: "repeat_sum", options: {m: 9}}],
+
+      ["ee_repeat_avg", "a", {b: "1"}],
+      ["ee_repeat_avg", "a", {b: "2"}],
+      ["ee_repeat_avg", "a", {b: "3"}, {name: "repeat_avg", options: {m: 2}}],
+      ["ee_repeat_avg", "a", {b: "100"}, {name: "repeat_avg", options: {m: 35}}],
+
+      ["ee_repeat_push", "a", {b: "1"}],
+      ["ee_repeat_push", "a", {b: "2"}],
+      ["ee_repeat_push", "a", {b: "3"}, {name: "repeat_push", options: {m: ["1", "2", "3"]}}],
+      ["ee_repeat_push", "a", {b: "4"}, {name: "repeat_push", options: {m: ["2", "3", "4"]}}],
+      ["ee_repeat_push", "a", {b: "five"}],
+      ["ee_repeat_push", "a", {b: "6"}],
+      ["ee_repeat_push", "a", {b: "7"}],
+      ["ee_repeat_push", "a", {b: "8"}, {name: "repeat_push", options: {m: ["6", "7", "8"]}}],
+
     ], function(p){
       var ans = [];
       if(_.isString(p[3])){

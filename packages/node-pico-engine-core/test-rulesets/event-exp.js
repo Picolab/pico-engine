@@ -1069,6 +1069,165 @@ module.exports = {
             }
           }]
       }
+    },
+    "repeat_sum": {
+      "name": "repeat_sum",
+      "select": {
+        "graph": { "ee_repeat_sum": { "a": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "b",
+                  new RegExp("(\\d+)", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.modules.get(ctx, "event", "aggregateEvent")(ctx, [
+              "sum",
+              [[
+                  "m",
+                  matches[0]
+                ]]
+            ]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "s0"
+            ]],
+          "s0": [[
+              "expr_0",
+              "s1"
+            ]],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]],
+          "end": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "repeat_sum",
+                "options": { "m": ctx.scope.get("m") }
+              };
+            }
+          }]
+      }
+    },
+    "repeat_avg": {
+      "name": "repeat_avg",
+      "select": {
+        "graph": { "ee_repeat_avg": { "a": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "b",
+                  new RegExp("(\\d+)", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.modules.get(ctx, "event", "aggregateEvent")(ctx, [
+              "avg",
+              [[
+                  "m",
+                  matches[0]
+                ]]
+            ]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "s0"
+            ]],
+          "s0": [[
+              "expr_0",
+              "s1"
+            ]],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]],
+          "end": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "repeat_avg",
+                "options": { "m": ctx.scope.get("m") }
+              };
+            }
+          }]
+      }
+    },
+    "repeat_push": {
+      "name": "repeat_push",
+      "select": {
+        "graph": { "ee_repeat_push": { "a": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "b",
+                  new RegExp("(\\d+)", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.modules.get(ctx, "event", "aggregateEvent")(ctx, [
+              "push",
+              [[
+                  "m",
+                  matches[0]
+                ]]
+            ]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "s0"
+            ]],
+          "s0": [[
+              "expr_0",
+              "s1"
+            ]],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]],
+          "end": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "repeat_push",
+                "options": { "m": ctx.scope.get("m") }
+              };
+            }
+          }]
+      }
     }
   }
 };

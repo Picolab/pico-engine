@@ -110,5 +110,26 @@ ruleset io.picolabs.event-exp {
     send_directive("repeat_min") with
       m = m
   }
+  rule repeat_sum {
+    select when repeat 3 (
+      ee_repeat_sum a b re#(\d+)#
+    ) sum(m);
+    send_directive("repeat_sum") with
+      m = m
+  }
+  rule repeat_avg {
+    select when repeat 3 (
+      ee_repeat_avg a b re#(\d+)#
+    ) avg(m);
+    send_directive("repeat_avg") with
+      m = m
+  }
+  rule repeat_push {
+    select when repeat 3 (
+      ee_repeat_push a b re#(\d+)#
+    ) push(m);
+    send_directive("repeat_push") with
+      m = m
+  }
 
 }
