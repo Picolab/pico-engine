@@ -143,5 +143,15 @@ ruleset io.picolabs.event-exp {
       c = c
       d = d
   }
+  rule repeat_sum_multi {
+    select when repeat 3 (
+      ee_repeat_sum_multi a
+        a re#(\d+)#
+        b re#(\d+)#
+    ) sum(a, b);
+    send_directive("repeat_sum_multi") with
+      a = a
+      b = b
+  }
 
 }

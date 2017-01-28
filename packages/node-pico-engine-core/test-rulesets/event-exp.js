@@ -1314,6 +1314,74 @@ module.exports = {
             }
           }]
       }
+    },
+    "repeat_sum_multi": {
+      "name": "repeat_sum_multi",
+      "select": {
+        "graph": { "ee_repeat_sum_multi": { "a": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[
+                [
+                  "a",
+                  new RegExp("(\\d+)", "")
+                ],
+                [
+                  "b",
+                  new RegExp("(\\d+)", "")
+                ]
+              ]]);
+            if (!matches)
+              return false;
+            ctx.modules.get(ctx, "event", "aggregateEvent")(ctx, [
+              "sum",
+              [
+                [
+                  "a",
+                  matches[0]
+                ],
+                [
+                  "b",
+                  matches[1]
+                ]
+              ]
+            ]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "s0"
+            ]],
+          "s0": [[
+              "expr_0",
+              "s1"
+            ]],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]],
+          "end": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "repeat_sum_multi",
+                "options": {
+                  "a": ctx.scope.get("a"),
+                  "b": ctx.scope.get("b")
+                }
+              };
+            }
+          }]
+      }
     }
   }
 };

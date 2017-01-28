@@ -916,6 +916,13 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
         d: [null, null, null, null, null],
       }}],
 
+      ["ee_repeat_sum_multi", "a", {a: "1", b: "2"}],
+      ["ee_repeat_sum_multi", "a", {a: "2", b: "3"}],
+      ["ee_repeat_sum_multi", "a", {a: "3", b: "4"}, {name: "repeat_sum_multi", options: {
+        a: 6,
+        b: 9,
+      }}],
+
     ], function(p){
       var ans = [];
       if(_.isString(p[3])){
