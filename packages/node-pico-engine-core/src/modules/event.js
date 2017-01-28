@@ -1,6 +1,38 @@
 var _ = require("lodash");
 var getArg = require("../getArg");
 
+var toFloat = function(v){
+  v = parseFloat(v);
+  if(_.isNaN(v)){
+    v = void 0;
+  }
+  return v;
+};
+
+var aggregateWrap = function(ctx, value_pairs, fn){
+  _.each(value_pairs, function(pair){
+    var name = pair[0];
+    var value = pair[1];
+    var val = ctx.db.updateAggregatorVarFuture(ctx.pico_id, ctx.rule, name, function(val){
+      return val.concat([value]);
+    }).wait();
+    ctx.scope.set(name, fn(val));
+  });
+};
+
+var aggregators = {
+  max: function(ctx, value_pairs){
+    aggregateWrap(ctx, value_pairs, function(values){
+      return _.max(_.map(values, toFloat));
+    });
+  },
+  min: function(ctx, value_pairs){
+    aggregateWrap(ctx, value_pairs, function(values){
+      return _.min(_.map(values, toFloat));
+    });
+  }
+};
+
 var fns = {
   attrs: function(ctx, args){
     return _.cloneDeep(ctx.event.attrs);//the user may mutate their copy
@@ -39,6 +71,14 @@ var fns = {
       type: "event:send",
       event: event
     };
+  },
+  aggregateEvent: function(ctx, args){
+    var aggregator = getArg(args, "aggregator", 0);
+    var value_pairs = getArg(args, "value_pairs", 1);
+    if(_.has(aggregators, aggregator)){
+      return aggregators[aggregator](ctx, value_pairs);
+    }
+    throw new Error("Unsupported aggregator: " + aggregator);
   }
 };
 

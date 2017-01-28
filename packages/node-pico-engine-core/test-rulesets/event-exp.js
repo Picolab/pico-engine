@@ -967,6 +967,108 @@ module.exports = {
             }
           }]
       }
+    },
+    "count_max": {
+      "name": "count_max",
+      "select": {
+        "graph": { "ee_count_max": { "a": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "b",
+                  new RegExp("(\\d+)", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.modules.get(ctx, "event", "aggregateEvent")(ctx, [
+              "max",
+              [[
+                  "m",
+                  matches[0]
+                ]]
+            ]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "s0"
+            ]],
+          "s0": [[
+              "expr_0",
+              "s1"
+            ]],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "count_max",
+                "options": { "m": ctx.scope.get("m") }
+              };
+            }
+          }]
+      }
+    },
+    "repeat_min": {
+      "name": "repeat_min",
+      "select": {
+        "graph": { "ee_repeat_min": { "a": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+                  "b",
+                  new RegExp("(\\d+)", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.modules.get(ctx, "event", "aggregateEvent")(ctx, [
+              "min",
+              [[
+                  "m",
+                  matches[0]
+                ]]
+            ]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "s0"
+            ]],
+          "s0": [[
+              "expr_0",
+              "s1"
+            ]],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]],
+          "end": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return {
+                "type": "directive",
+                "name": "repeat_min",
+                "options": { "m": ctx.scope.get("m") }
+              };
+            }
+          }]
+      }
     }
   }
 };

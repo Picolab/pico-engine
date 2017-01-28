@@ -171,6 +171,30 @@ module.exports = function(opts){
       var key = ["state_machine", pico_id, rule.rid, rule.name];
       ldb.put(key, state || "start", callback);
     },
+    updateAggregatorVar: function(pico_id, rule, var_key, updater, callback){
+      var key = [
+        "aggregator_var",
+        pico_id,
+        rule.rid,
+        rule.name,
+        var_key
+      ];
+      ldb.get(key, function(err, val){
+        if(err && !err.notFound){
+          return callback(err);
+        }
+        if(!_.isArray(val)){
+          val = [];
+        }
+        val = updater(val);
+        if(!_.isArray(val)){
+          val = [];
+        }
+        ldb.put(key, val, function(err){
+          callback(err, val);
+        });
+      });
+    },
     registerRuleset: function(krl_src, callback){
       var timestamp = (new Date()).toISOString();
       if(arguments.length === 3 && _.isString(arguments[2])){//for testing only

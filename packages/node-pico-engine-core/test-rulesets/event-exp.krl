@@ -96,4 +96,19 @@ ruleset io.picolabs.event-exp {
     send_directive("repeat")
   }
 
+  rule count_max {
+    select when count 3 (
+      ee_count_max a b re#(\d+)#
+    ) max(m);
+    send_directive("count_max") with
+      m = m
+  }
+  rule repeat_min {
+    select when repeat 3 (
+      ee_repeat_min a b re#(\d+)#
+    ) min(m);
+    send_directive("repeat_min") with
+      m = m
+  }
+
 }

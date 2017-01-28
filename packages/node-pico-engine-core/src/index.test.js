@@ -860,10 +860,29 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
       ["ee_repeat", "a", {name: "..."}],
       ["ee_repeat", "a", {name: "bob"}],
 
+      ["ee_count_max", "a", {b: "3"}],
+      ["ee_count_max", "a", {b: "8"}],
+      ["ee_count_max", "a", {b: "5"}, {name: "count_max", options: {m: 8}}],
+
+      /*
+      //TODO need to reset aggregator
+      ["ee_count_max", "a", {b: "1"}],
+      ["ee_count_max", "a", {b: "0"}],
+      ["ee_count_max", "a", {b: "0"}, {name: "count_max", options: {m: 1}}],
+      */
+
+      ["ee_repeat_min", "a", {b: "5"}],
+      ["ee_repeat_min", "a", {b: "3"}],
+      ["ee_repeat_min", "a", {b: "4"}, {name: "repeat_min", options: {m: 3}}],
+      ["ee_repeat_min", "a", {b: "5"}, {name: "repeat_min", options: {m: 3}}],
+      //TODO ["ee_repeat_min", "a", {b: "6"}, {name: "repeat_min", options: {m: 4}}],
+
     ], function(p){
       var ans = [];
-      if(p[3]){
+      if(_.isString(p[3])){
         ans.push({name: p[3], options: {}});
+      }else if(p[3]){
+        ans.push(p[3]);
       }
       return [signal(p[0], p[1], p[2]), ans];
     })), t.end);
