@@ -1,7 +1,11 @@
 $(document).ready(function() {
-  var $pre = $('pre');
+  var $pre = $('#operations pre');
   var log = function(m) {
     $pre.append(m).append("\r\n");
+  }
+  var logProblem = function(m) {
+    log("*Problem "+m);
+    $("#review").addClass("problem");
   }
   var get = // adapted from lodash.get, with thanks
     function(o,p,v) {
@@ -21,12 +25,12 @@ $(document).ready(function() {
                 log("Owner Pico ECI: "+c.id);
                 callback(d.id,c.id);
               } else {
-                log("*Problem creating owner pico channel");
+                logProblem("creating owner pico channel");
               }
             }
         );
       } else {
-        log("*Problem creating owner pico");
+        logProblem("creating owner pico");
       }
     });
   };
@@ -45,7 +49,7 @@ $(document).ready(function() {
           return;
         }
       }
-      log("*Problem getting hash for "+rid);
+      logProblem("getting hash for "+rid);
     });
   };
   var installAndAddRuleset = function(rid,id,callback){
@@ -72,26 +76,26 @@ $(document).ready(function() {
                           log(rid+" added to pico "+id);
                           callback();
                         } else {
-                          log("*Problem adding "+rid);
+                          logProblem("adding "+rid);
                         }
                       });
                     } else {
-                      log("*Problem installing "+rid);
+                      logProblem("installing "+rid);
                     }
                   }).fail(function() {
-                    log("*Problem installing "+rid+": failed to compile");
+                    logProblem("installing "+rid+": failed to compile");
                   });
                 } else {
-                  log("*Problem enabling "+rid);
+                  logProblem("enabling "+rid);
                 }
               });
             });
           } else {
-            log("*Problem registering "+rid);
+            logProblem("registering "+rid);
           }
         });
       } else {
-        log("*Problem getting "+rid);
+        logProblem("getting "+rid);
       }
     },"text");
   };
@@ -102,31 +106,33 @@ $(document).ready(function() {
       log("Database has an owner pico");
       if (db_dump.rulesets) {
         log("Database has rulesets");
+        $("#done").addClass("okay");
       } else {
-        log("*Problem");
+        logProblem("finding rulesets");
       }
     } else {
       log("Creating owner pico");
       createOwnerPico(function(id,eci){
         log("Registering rulesets");
         installAndAddRuleset("io.picolabs.pico",id,function(){
+          log("Sending event pico/root_created");
+          $.getJSON("/sky/event/"+eci+"/19/pico/root_created",
+            {"id":id,"eci":eci},function(d){
+              if (d && d.directives) {
+                log("Event pico/root_created processed");
+              } else {
+                logProblem("with event pico/root_created");
+              }
+          });
           installAndAddRuleset("io.picolabs.visual_params",id,function(){
-            log("Sending event pico/root_created");
-            $.getJSON("/sky/event/"+eci+"/19/pico/root_created",
-              {"id":id,"eci":eci},function(d){
-                if (d && d.directives) {
-                  log("Event pico/root_created processed");
-                } else {
-                  log("*Problem with event pico/root_created");
-                }
-            });
             log("Sending event visual/update");
             $.getJSON("/sky/event/"+eci+"/31/visual/update",
               {"dname":"Owner Pico","color":"#87cefa"},function(d){
                 if (d && d.directives) {
                   log("Event visual/update processed");
+                  $("#done").addClass("okay");
                 } else {
-                  log("*Problem with event visual/update");
+                  logProblem("with event visual/update");
                 }
             });
           });

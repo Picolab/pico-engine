@@ -18,13 +18,28 @@ a.logo img {
 a.logo {
   cursor: pointer;
 }
+#review {
+  display: none;
+}
+#review.problem {
+  display: block;
+}
+#done {
+  display: none;
+}
+#done.okay {
+  display: block;
+}
 </style>
 </head>
 <body>
 <a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
 <h1 class="title">Pico Bootstrap</h1>
+<div id="operations">
 <h2>Operations log</h2>
 <pre></pre>
+</div>
+<div id="review">
 <h3>Review operations log</h3>
 <p>
 Check the operations log, above.
@@ -32,6 +47,8 @@ Any problems will appear as
 "*Problem..."
 Please report any problems.
 </p>
+</div>
+<div id="done">
 <h2>Done</h2>
 <p>
 The bootstrap is now complete.
@@ -53,11 +70,13 @@ page.
 <p>
 If you wish to start over,
 remove the database.
+</p>
+<p>
 First, stop your
 HTTP server (use <code>Ctrl-C</code>).
 Use <code>rm -r ~/.pico-engine/db</code>
 to clear the database.
-Then restart the HTTP server
+Then, restart the HTTP server
 (use <code>pico-engine</code>)
 which will create an empty
 database.
@@ -65,5 +84,6 @@ Refresh this Bootstrap page
 each time you
 clear the database.
 </p>
+</div>
 </body>
 </html>
