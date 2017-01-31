@@ -52,7 +52,9 @@ module.exports = function(conf){
       }
       var js_src;
       try{
-        js_src = compiler(krl_src).code;
+        js_src = compiler(krl_src, {
+            inline_source_map: true
+        }).code;
       }catch(err){
         return callback(err);
       }
