@@ -262,6 +262,7 @@ var comp_by_type = {
   },
   "RuleSelect": require("./c/RuleSelect"),
   "RuleForEach": require("./c/RuleForEach"),
+  "EventWithin": require("./c/EventWithin"),
   "EventExpression": require("./c/EventExpression"),
   "RuleActionBlock": function(ast, comp, e){
     var block = {};

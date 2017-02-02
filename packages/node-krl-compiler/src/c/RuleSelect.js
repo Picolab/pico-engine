@@ -462,9 +462,13 @@ module.exports = function(ast, comp, e){
   var lisp = traverse(ast.event);
   var state_machine = evalEELisp(lisp);
 
-  return e("obj", {
+  var r = {
     graph: e("json", graph),
     eventexprs: e("obj", eventexprs),
     state_machine: e("json", state_machine.compile())
-  });
+  };
+  if(ast.within){
+    r.within = comp(ast.within);
+  }
+  return e("obj", r);
 };
