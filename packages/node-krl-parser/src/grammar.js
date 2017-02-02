@@ -532,13 +532,16 @@ var grammar = {
         },
     {"name": "rule_state", "symbols": [tok_active], "postprocess": id},
     {"name": "rule_state", "symbols": [tok_inactive], "postprocess": id},
-    {"name": "RuleSelect", "symbols": [tok_select, tok_when, "EventExpression"], "postprocess": 
+    {"name": "RuleSelect$ebnf$1", "symbols": ["EventWithin"], "postprocess": id},
+    {"name": "RuleSelect$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RuleSelect", "symbols": [tok_select, tok_when, "EventExpression", "RuleSelect$ebnf$1"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: 'RuleSelect',
             kind: 'when',
-            event: data[2]
+            event: data[2],
+            within: data[3]
           };
         }
         },
@@ -553,9 +556,7 @@ var grammar = {
         }
         },
     {"name": "RulePrelude", "symbols": [tok_pre, "declaration_block"], "postprocess": getN(1)},
-    {"name": "EventExpression", "symbols": ["event_exp_within"], "postprocess": id},
-    {"name": "event_exp_within", "symbols": ["event_exp_or"], "postprocess": id},
-    {"name": "event_exp_within", "symbols": ["event_exp_within", "EventWithin"], "postprocess": complexEventOp("within", 0, 1)},
+    {"name": "EventExpression", "symbols": ["event_exp_or"], "postprocess": id},
     {"name": "event_exp_or", "symbols": ["event_exp_and"], "postprocess": id},
     {"name": "event_exp_or", "symbols": ["event_exp_or", tok_or, "event_exp_and"], "postprocess": infixEventOp},
     {"name": "event_exp_and", "symbols": ["event_exp_infix_op"], "postprocess": id},
@@ -622,16 +623,6 @@ var grammar = {
         },
     {"name": "EventExpression_list", "symbols": ["EventExpression"], "postprocess": idArr},
     {"name": "EventExpression_list", "symbols": ["EventExpression_list", tok_COMMA, "EventExpression"], "postprocess": concatArr(2)},
-    {"name": "time_period", "symbols": [tok_TIME_PERIOD_ENUM], "postprocess": 
-        function(data){
-          var d = data[0];
-          return {
-            loc: d.loc,
-            type: 'String',
-            value: d.src
-          };
-        }
-        },
     {"name": "EventAggregator", "symbols": ["EventAggregators_ops", tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": 
         function(data){
           return {
@@ -652,9 +643,14 @@ var grammar = {
           return data[0][0];
         }
         },
-    {"name": "EventWithin", "symbols": [tok_within, "PositiveInteger", "time_period"], "postprocess": 
+    {"name": "EventWithin", "symbols": [tok_within, "Expression", tok_TIME_PERIOD_ENUM], "postprocess": 
         function(data){
-          return [data[1], data[2]];
+          return {
+            loc: mkLoc(data),
+            type: 'EventWithin',
+            expression: data[1],
+            time_period: data[2].src
+          };
         }
         },
     {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1", "symbols": ["action_block_type"], "postprocess": id},

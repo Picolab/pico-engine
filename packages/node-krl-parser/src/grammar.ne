@@ -527,13 +527,14 @@ rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
 
 rule_state -> %tok_active {% id %} | %tok_inactive {% id %}
 
-RuleSelect -> %tok_select %tok_when EventExpression {%
+RuleSelect -> %tok_select %tok_when EventExpression EventWithin:? {%
   function(data){
     return {
       loc: mkLoc(data),
       type: 'RuleSelect',
       kind: 'when',
-      event: data[2]
+      event: data[2],
+      within: data[3]
     };
   }
 %}
@@ -556,11 +557,7 @@ RulePrelude -> %tok_pre declaration_block {% getN(1) %}
 # EventExpression
 #
 
-EventExpression -> event_exp_within {% id %}
-
-event_exp_within -> event_exp_or {% id %}
-    | event_exp_within EventWithin
-      {% complexEventOp("within", 0, 1) %}
+EventExpression -> event_exp_or {% id %}
 
 event_exp_or -> event_exp_and {% id %}
     | event_exp_or %tok_or event_exp_and {% infixEventOp %}
@@ -637,17 +634,6 @@ event_exp_where -> Expression {%
 EventExpression_list -> EventExpression {% idArr %}
     | EventExpression_list %tok_COMMA EventExpression {% concatArr(2) %}
 
-time_period -> %tok_TIME_PERIOD_ENUM {%
-  function(data){
-    var d = data[0];
-    return {
-      loc: d.loc,
-      type: 'String',
-      value: d.src
-    };
-  }
-%}
-
 EventAggregator -> EventAggregators_ops
   %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
 {%
@@ -668,9 +654,14 @@ EventAggregators_ops -> (%tok_max|%tok_min|%tok_sum|%tok_avg|%tok_push)
   }
 %}
 
-EventWithin -> %tok_within PositiveInteger time_period {%
+EventWithin -> %tok_within Expression %tok_TIME_PERIOD_ENUM {%
   function(data){
-    return [data[1], data[2]];
+    return {
+      loc: mkLoc(data),
+      type: 'EventWithin',
+      expression: data[1],
+      time_period: data[2].src
+    };
   }
 %}
 

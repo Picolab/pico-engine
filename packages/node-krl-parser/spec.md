@@ -145,7 +145,8 @@ rule hello {
       "where": null,
       "setting": [  ],
       "aggregator": null
-    }
+    },
+    "within": null
   },
   "foreach": [  ],
   "prelude": [

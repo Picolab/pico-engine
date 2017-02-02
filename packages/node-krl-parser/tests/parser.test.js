@@ -1111,21 +1111,6 @@ test('EventExpression', function(t){
     ));
   });
 
-  testEE('a b within 5 minutes', mk.eventOp('within', [
-    mk.ee('a', 'b'),
-    mk(5),
-    mk('minutes')
-  ]));
-
-  testEE('a b before c d within 5 minutes', mk.eventOp('within', [
-    mk.eventOp('before', [
-      mk.ee('a', 'b'),
-      mk.ee('c', 'd')
-    ]),
-    mk(5),
-    mk('minutes')
-  ]));
-
   testEE('before (a b, c d)', mk.eventOp('before', [
     mk.ee('a', 'b'),
     mk.ee('c', 'd')
@@ -1138,6 +1123,42 @@ test('EventExpression', function(t){
     mk.ee('a', 'b'),
     mk.ee('c', 'd')
   ]));
+
+  var testWithin = function(rule_body, expected){
+    var ast = normalizeAST(rmLoc(parseRuleBody('select when ' + rule_body)));
+    t.deepEquals(ast.select, normalizeAST(expected));
+  };
+
+  testWithin('a a before b b within 5 minutes', {
+    type: 'RuleSelect',
+    kind: 'when',
+    event: mk.eventOp('before', [mk.ee('a', 'a'), mk.ee('b', 'b')]),
+    within: {
+      type: 'EventWithin',
+      expression: mk(5),
+      time_period: 'minutes'
+    }
+  });
+  testWithin('a a before b b within 1 + 3 minutes', {
+    type: 'RuleSelect',
+    kind: 'when',
+    event: mk.eventOp('before', [mk.ee('a', 'a'), mk.ee('b', 'b')]),
+    within: {
+      type: 'EventWithin',
+      expression: mk.op('+', mk(1), mk(3)),
+      time_period: 'minutes'
+    }
+  });
+  testWithin('a a or (b b and c c) within 1 hour', {
+    type: 'RuleSelect',
+    kind: 'when',
+    event: mk.eventOp('or', [mk.ee('a', 'a'), mk.eventOp('and', [mk.ee('b', 'b'), mk.ee('c', 'c')])]),
+    within: {
+      type: 'EventWithin',
+      expression: mk(1),
+      time_period: 'hour'
+    }
+  });
 
   t.end();
 });
