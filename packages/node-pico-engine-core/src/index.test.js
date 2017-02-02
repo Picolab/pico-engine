@@ -934,3 +934,35 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
     })), t.end);
   });
 });
+
+test("PicoEngine - io.picolabs.within ruleset", function(t){
+  mkTestPicoEngine({}, function(err, pe){
+    if(err)return t.end(err);
+
+    var signal = mkSignalTask(pe, "id1");
+
+    testOutputs(t, [
+      λ.curry(pe.db.newPico, {}),
+      λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+      λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.within"}),
+    ].concat(_.map([
+
+      ["foo", "a"],
+      ["foo", "b", {}, "foo"],
+      ["foo", "b"],
+      ["foo", "b"],
+      ["foo", "a"],
+      ["foo", "a"],
+      ["foo", "b", {}, "foo"],
+
+    ], function(p){
+      var ans = [];
+      if(_.isString(p[3])){
+        ans.push({name: p[3], options: {}});
+      }else if(p[3]){
+        ans.push(p[3]);
+      }
+      return [signal(p[0], p[1], p[2]), ans];
+    })), t.end);
+  });
+});
