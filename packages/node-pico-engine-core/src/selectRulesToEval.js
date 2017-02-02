@@ -41,6 +41,13 @@ var shouldRuleSelect = function(ctx, rule){
 
   var curr_state = ctx.db.getStateMachineStateFuture(ctx.pico_id, rule).wait();
 
+  if(_.isFunction(rule.select && rule.select.within)){
+    if(ctx.event.timestamp.getTime() === 10000000555555){
+      //time has expired, reset the state machine
+      curr_state = "start";
+    }
+  }
+
   //this ctx will be passed to the compiled code for evaluting event exp
   var ctx_for_eventexp = _.assign({}, ctx, {
     rule: rule,

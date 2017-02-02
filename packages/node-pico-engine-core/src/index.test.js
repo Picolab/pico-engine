@@ -13,13 +13,14 @@ var omitMeta = function(resp){
 };
 
 var mkSignalTask = function(pe, eci){
-  return function(domain, type, attrs){
+  return function(domain, type, attrs, timestamp){
     return λ.curry(pe.signalEvent, {
       eci: eci,
       eid: "1234",
       domain: domain,
       type: type,
-      attrs: attrs || {}
+      attrs: attrs || {},
+      timestamp: timestamp
     });
   };
 };
@@ -947,22 +948,21 @@ test("PicoEngine - io.picolabs.within ruleset", function(t){
       λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.within"}),
     ].concat(_.map([
 
-      ["foo", "a"],
-      ["foo", "b", {}, "foo"],
-      ["foo", "b"],
-      ["foo", "b"],
-      ["foo", "a"],
-      ["foo", "a"],
-      ["foo", "b", {}, "foo"],
+      [10000000000000, "foo", "a"],
+      [10000000000001, "foo", "b", {}, "foo"],
+      [10000000000002, "foo", "a"],
+      [10000000555555, "foo", "b"],
+      [10000000555556, "foo", "a"],
+      [10000000255557, "foo", "b", {}, "foo"],
 
     ], function(p){
       var ans = [];
-      if(_.isString(p[3])){
-        ans.push({name: p[3], options: {}});
-      }else if(p[3]){
-        ans.push(p[3]);
+      if(_.isString(p[4])){
+        ans.push({name: p[4], options: {}});
+      }else if(p[4]){
+        ans.push(p[4]);
       }
-      return [signal(p[0], p[1], p[2]), ans];
+      return [signal(p[1], p[2], p[3], new Date(p[0])), ans];
     })), t.end);
   });
 });

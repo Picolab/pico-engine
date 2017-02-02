@@ -189,7 +189,9 @@ module.exports = function(conf, callback){
   });
 
   var signalEvent = function(event, callback){
-    event.timestamp = new Date();
+    if(!_.isDate(event.timestamp) || !conf.allow_event_time_override){
+      event.timestamp = new Date();
+    }
 
     var emit = mkCTX({event: event}).emit;
     emit("episode_start");
