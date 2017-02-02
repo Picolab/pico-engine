@@ -42,9 +42,21 @@ var shouldRuleSelect = function(ctx, rule){
   var curr_state = ctx.db.getStateMachineStateFuture(ctx.pico_id, rule).wait();
 
   if(_.isFunction(rule.select && rule.select.within)){
-    if(ctx.event.timestamp.getTime() === 10000000555555){
+
+    var last_restart = ctx.db.getStateMachineStartTimeFuture(ctx.pico_id, rule).wait();
+    if(!_.isNumber(last_restart)){
+      last_restart = ctx.event.timestamp.getTime();
+    }
+    var diff = ctx.event.timestamp.getTime() - last_restart;
+    var time_limit = rule.select.within(ctx);
+
+    if(diff > time_limit){
       //time has expired, reset the state machine
       curr_state = "start";
+    }
+
+    if(curr_state === "start"){
+      ctx.db.putStateMachineStartTimeFuture(ctx.pico_id, rule, ctx.event.timestamp.getTime()).wait();
     }
   }
 

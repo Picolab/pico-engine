@@ -171,6 +171,25 @@ module.exports = function(opts){
       var key = ["state_machine", pico_id, rule.rid, rule.name];
       ldb.put(key, state || "start", callback);
     },
+
+    getStateMachineStartTime: function(pico_id, rule, callback){
+      var key = ["state_machine_starttime", pico_id, rule.rid, rule.name];
+      ldb.get(key, function(err, time){
+        if(err){
+          if(err.notFound){
+            time = undefined;
+          }else{
+            return callback(err);
+          }
+        }
+        callback(undefined, time);
+      });
+    },
+    putStateMachineStartTime: function(pico_id, rule, time, callback){
+      var key = ["state_machine_starttime", pico_id, rule.rid, rule.name];
+      ldb.put(key, time, callback);
+    },
+
     updateAggregatorVar: function(pico_id, rule, var_key, updater, callback){
       var key = [
         "aggregator_var",
