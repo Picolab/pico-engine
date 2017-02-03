@@ -992,3 +992,58 @@ test("PicoEngine - io.picolabs.within ruleset", function(t){
     })), t.end);
   });
 });
+
+test("PicoEngine - io.picolabs.guard-conditions ruleset", function(t){
+  mkTestPicoEngine({}, function(err, pe){
+    if(err)return t.end(err);
+
+    var query = mkQueryTask(pe, "id1", "io.picolabs.guard-conditions");
+    var signal = mkSignalTask(pe, "id1");
+
+    testOutputs(t, [
+      λ.curry(pe.db.newPico, {}),
+      λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+      λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.guard-conditions"}),
+      [
+        query("getB"),
+        undefined
+      ],
+      [
+        signal("foo", "a", {b: "foo"}),
+        [{name: "foo", options: {b: "foo"}}]
+      ],
+      [
+        query("getB"),
+        "foo"
+      ],
+      [
+        signal("foo", "a", {b: "bar"}),
+        [{name: "foo", options: {b: "bar"}}]
+      ],
+      [
+        query("getB"),
+        "foo"
+      ],
+      [
+        signal("foo", "a", {b: "foo bar"}),
+        [{name: "foo", options: {b: "foo bar"}}]
+      ],
+      [
+        query("getB"),
+        "foo bar"
+      ],
+      [
+        signal("bar", "a", {}),
+        [
+          {name: "bar", options: {x: 1, b: "foo bar"}},
+          {name: "bar", options: {x: 2, b: "foo bar"}},
+          {name: "bar", options: {x: 3, b: "foo bar"}}
+        ]
+      ],
+      [
+        query("getB"),
+        3
+      ],
+    ], t.end);
+  });
+});
