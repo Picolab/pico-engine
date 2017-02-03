@@ -18,7 +18,16 @@ var runEvent = function(scheduled){
 
   var r = [];
   if(rule.foreach){
-    rule.foreach(ctx, function(ctx){
+    rule.foreach(ctx, function(val, iter){
+      var counter = _.size(val);
+      return _.mapValues(val, function(){
+        var args = _.toArray(arguments);
+        counter--;
+        return iter(_.assign({}, ctx, {
+          foreach_is_final: counter === 0
+        }), args);
+      });
+    }, function(ctx){
       r.push(evalRuleInFiber(rule, ctx));
     });
   }else{

@@ -27,8 +27,8 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function (ctx, iter) {
-        ctx.callKRLstdlib("map", [
+      "foreach": function (ctx, foreach, iter) {
+        foreach([
           1,
           2,
           3
@@ -65,8 +65,8 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function (ctx, iter) {
-        ctx.callKRLstdlib("map", {
+      "foreach": function (ctx, foreach, iter) {
+        foreach({
           "a": 1,
           "b": 2,
           "c": 3
@@ -107,14 +107,14 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function (ctx, iter) {
-        ctx.callKRLstdlib("map", [
+      "foreach": function (ctx, foreach, iter) {
+        foreach([
           1,
           2,
           3
         ], ctx.KRLClosure(ctx, function (ctx) {
           ctx.scope.set("x", ctx.getArg(ctx.args, "value", 0));
-          ctx.callKRLstdlib("map", [
+          foreach([
             "a",
             "b",
             "c"
@@ -155,16 +155,16 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function (ctx, iter) {
-        ctx.callKRLstdlib("map", ctx.scope.get("doubleThis")(ctx, [[
+      "foreach": function (ctx, foreach, iter) {
+        foreach(ctx.scope.get("doubleThis")(ctx, [[
             1,
             2,
             3
           ]]), ctx.KRLClosure(ctx, function (ctx) {
           ctx.scope.set("arr", ctx.getArg(ctx.args, "value", 0));
-          ctx.callKRLstdlib("map", ctx.scope.get("arr"), ctx.KRLClosure(ctx, function (ctx) {
+          foreach(ctx.scope.get("arr"), ctx.KRLClosure(ctx, function (ctx) {
             ctx.scope.set("foo", ctx.getArg(ctx.args, "value", 0));
-            ctx.callKRLstdlib("map", ctx.callKRLstdlib("range", 0, ctx.scope.get("foo")), ctx.KRLClosure(ctx, function (ctx) {
+            foreach(ctx.callKRLstdlib("range", 0, ctx.scope.get("foo")), ctx.KRLClosure(ctx, function (ctx) {
               ctx.scope.set("bar", ctx.getArg(ctx.args, "value", 0));
               iter(ctx);
             }));

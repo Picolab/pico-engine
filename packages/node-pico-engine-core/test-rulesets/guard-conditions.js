@@ -66,17 +66,14 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function (ctx, iter) {
-        ctx.callKRLstdlib("map", [
+      "foreach": function (ctx, foreach, iter) {
+        foreach([
           1,
           2,
           3
         ], ctx.KRLClosure(ctx, function (ctx) {
           ctx.scope.set("x", ctx.getArg(ctx.args, "value", 0));
-          var i = ctx.getArg(ctx.args, "i", 1);
-          iter(Object.assign({}, ctx, {
-            foreach_is_final: i === 2
-          }));
+          iter(ctx);
         }));
       },
       "action_block": {
