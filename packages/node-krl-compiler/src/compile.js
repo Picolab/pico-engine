@@ -197,6 +197,7 @@ var comp_by_type = {
   "ExpressionStatement": function(ast, comp, e){
     return e(";", comp(ast.expression));
   },
+  "GuardCondition": require("./c/GuardCondition"),
   "Ruleset": function(ast, comp, e){
     var rules_obj = {};
     _.each(ast.rules, function(rule){
