@@ -1758,3 +1758,85 @@ test("select when ... foreach ...", function(t){
 
   t.end();
 });
+
+test("GuardCondition", function(t){
+  var testPost = function(postlude, expected){
+    var src = 'ruleset rs{rule r1{fired{' + postlude + '}}}';
+    var ast = normalizeAST(rmLoc(parser(src)));
+    t.deepEquals(ast.rules[0].postlude.fired, normalizeAST(expected));
+  };
+
+  testPost('raise domain event \"type\" on final', [
+    {
+      type: 'GuardCondition',
+      condition: 'on final',
+      statement: {
+        type: "RaiseEventStatement",
+        event_domain: mk.id("domain"),
+        event_type: mk("type"),
+        for_rid: null,
+        attributes: null
+      }
+    }
+  ]);
+
+  testPost('ent:foo := bar on final', [
+    {
+      type: 'GuardCondition',
+      condition: 'on final',
+      statement: {
+        type: "PersistentVariableAssignment",
+        op: ":=",
+        left: mk.dID("ent", "foo"),
+        path_expression: null,
+        right: mk.id("bar")
+      }
+    }
+  ]);
+
+  testPost('foo = bar on final', [
+    {
+      type: 'GuardCondition',
+      condition: 'on final',
+      statement: mk.declare('=', mk.id('foo'), mk.id('bar'))
+    }
+  ]);
+
+  testPost('foo = bar if baz > 0', [
+    {
+      type: 'GuardCondition',
+      condition: mk.op(">", mk.id("baz"), mk(0)),
+      statement: mk.declare('=', mk.id('foo'), mk.id('bar'))
+    }
+  ]);
+
+  testPost('ent:foo := bar if baz > 0', [
+    {
+      type: 'GuardCondition',
+      condition: mk.op(">", mk.id("baz"), mk(0)),
+      statement: {
+        type: "PersistentVariableAssignment",
+        op: ":=",
+        left: mk.dID("ent", "foo"),
+        path_expression: null,
+        right: mk.id("bar")
+      }
+    }
+  ]);
+
+  testPost('raise domain event \"type\" if baz > 0', [
+    {
+      type: 'GuardCondition',
+      condition: mk.op(">", mk.id("baz"), mk(0)),
+      statement: {
+        type: "RaiseEventStatement",
+        event_domain: mk.id("domain"),
+        event_type: mk("type"),
+        for_rid: null,
+        attributes: null
+      }
+    }
+  ]);
+
+  t.end();
+});

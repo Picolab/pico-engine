@@ -296,6 +296,7 @@ var tok_eq = tok("SYMBOL", "eq");
 var tok_else = tok("SYMBOL", "else");
 var tok_false = tok("SYMBOL", "false");
 var tok_fired = tok("SYMBOL", "fired");
+var tok_final = tok("SYMBOL", "final");
 var tok_finally = tok("SYMBOL", "finally");
 var tok_for = tok("SYMBOL", "for");
 var tok_foreach = tok("SYMBOL", "foreach");
@@ -705,9 +706,30 @@ var grammar = {
     {"name": "PostludeStatements", "symbols": ["PostludeStatements_body"], "postprocess": id},
     {"name": "PostludeStatements_body", "symbols": ["PostludeStatement"], "postprocess": idArr},
     {"name": "PostludeStatements_body", "symbols": ["PostludeStatements_body", tok_SEMI, "PostludeStatement"], "postprocess": concatArr(2)},
-    {"name": "PostludeStatement", "symbols": ["Statement"], "postprocess": id},
-    {"name": "PostludeStatement", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
-    {"name": "PostludeStatement", "symbols": ["RaiseEventStatement"], "postprocess": id},
+    {"name": "PostludeStatement", "symbols": ["PostludeStatement_core"], "postprocess": id},
+    {"name": "PostludeStatement", "symbols": ["PostludeStatement_core", tok_on, tok_final], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: 'GuardCondition',
+            condition: 'on final',
+            statement: data[0]
+          };
+        }
+        },
+    {"name": "PostludeStatement", "symbols": ["PostludeStatement_core", tok_if, "Expression"], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: 'GuardCondition',
+            condition: data[2],
+            statement: data[0]
+          };
+        }
+        },
+    {"name": "PostludeStatement_core", "symbols": ["Statement"], "postprocess": id},
+    {"name": "PostludeStatement_core", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
+    {"name": "PostludeStatement_core", "symbols": ["RaiseEventStatement"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},

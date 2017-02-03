@@ -292,6 +292,7 @@ var tok_eq = tok("SYMBOL", "eq");
 var tok_else = tok("SYMBOL", "else");
 var tok_false = tok("SYMBOL", "false");
 var tok_fired = tok("SYMBOL", "fired");
+var tok_final = tok("SYMBOL", "final");
 var tok_finally = tok("SYMBOL", "finally");
 var tok_for = tok("SYMBOL", "for");
 var tok_foreach = tok("SYMBOL", "foreach");
@@ -727,6 +728,29 @@ PostludeStatements_body ->
     | PostludeStatements_body %tok_SEMI PostludeStatement {% concatArr(2) %}
 
 PostludeStatement ->
+      PostludeStatement_core {% id %}
+    | PostludeStatement_core %tok_on %tok_final {%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'GuardCondition',
+      condition: 'on final',
+      statement: data[0]
+    };
+  }
+%}
+    | PostludeStatement_core %tok_if Expression {%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'GuardCondition',
+      condition: data[2],
+      statement: data[0]
+    };
+  }
+%}
+
+PostludeStatement_core ->
       Statement {% id %}
     | PersistentVariableAssignment {% id %}
     | RaiseEventStatement {% id %}
