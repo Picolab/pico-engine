@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var callStdLibFn = require("../utils/callStdLibFn");
 
 module.exports = function(ast, comp, e, context){
 
@@ -17,7 +16,7 @@ module.exports = function(ast, comp, e, context){
     ], loc), loc);
   });
 
-  return e(";", callStdLibFn(e, "map", [
+  return e(";", e("call", e("id", "foreach"), [
       comp(ast.expression),
       e("call", e("id", "ctx.KRLClosure"), [
         e("id", "ctx"),
@@ -25,5 +24,5 @@ module.exports = function(ast, comp, e, context){
           context.iter
         ]))
       ])
-  ], ast.loc));
+  ]));
 };

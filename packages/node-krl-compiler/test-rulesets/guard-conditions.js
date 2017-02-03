@@ -66,8 +66,8 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function (ctx, iter) {
-        ctx.callKRLstdlib("map", [
+      "foreach": function (ctx, foreach, iter) {
+        foreach([
           1,
           2,
           3
@@ -82,7 +82,10 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "bar",
-                "options": { "x": ctx.scope.get("x") }
+                "options": {
+                  "x": ctx.scope.get("x"),
+                  "b": ctx.modules.get(ctx, "ent", "b")
+                }
               };
             }
           }]

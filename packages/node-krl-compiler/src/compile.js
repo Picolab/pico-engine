@@ -246,7 +246,7 @@ var comp_by_type = {
         var rest = _.initial(arr);
         return nestedForeach(rest, comp(last, {iter: iter}));
       };
-      rule.foreach = e("fn", ["ctx", "iter"], [
+      rule.foreach = e("fn", ["ctx", "foreach", "iter"], [
         nestedForeach(ast.foreach, e(";", e("call", e("id", "iter"), [e("id", "ctx")])))
       ]);
     }

@@ -23,6 +23,7 @@ ruleset io.picolabs.guard-conditions {
 
     send_directive("bar") with
       x = x
+      b = ent:b
 
     always {
       ent:b := x on final
