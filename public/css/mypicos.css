@@ -208,3 +208,6 @@ li.legend {
   border-left: 1px dashed silver;
   padding-left: 4px;
 }
+div.oplog {
+  display: none;
+}

@@ -208,6 +208,99 @@ $.getJSON("/api/db-dump", function(db_dump){
         $(".pico-edit .krlrid").click(displayKrl);
         d = theDB.pico_id+"-Rulesets";
         location.hash = d;
+        $theSection.find('.rulesetFromURL').submit(function(e){
+  var installAndAddRuleset = function(url,eci,callback){
+    var log = function(m) {
+      $(".rfuops").append(m).append("\r\n");
+    }
+    var logProblem = function(m) {
+      log("*Problem: "+m);
+      $(".rfuops").parent().toggleClass("oplog");
+    }
+    var hashForRid = function(rid,callback){
+      log("Getting hash for: "+rid);
+      $.getJSON("/api/db-dump", function(db_dump){
+        var hashobj;
+        for (var vds in db_dump.rulesets.versions[rid]) {
+          hashobj = db_dump.rulesets.versions[rid][vds];
+        }
+        if (hashobj) {
+          for(var hash in hashobj)
+          {
+            log(rid+" hash is "+hash);
+            callback(hash);
+            return;
+          }
+        }
+        logProblem("getting hash for "+rid);
+      });
+    };
+    log("Loading ruleset source code");
+    log("URL: "+url);
+    $.get(url,function(k){
+      if (k && k.length > 0) {
+        log("Length: "+k.length);
+        $.getJSON("/api/ruleset/compile",{"src":k},function(rc){
+          if (rc.code) {
+            var rid = rc.code.split(/"/)[3];
+            log("Registering: "+rid);
+            $.getJSON("/api/ruleset/register",{"src":k},function(rr){
+              if (rr && rr.ok) {
+                log(rid+" registered");
+                hashForRid(rid,function(hash){
+                  log("Enabling: "+rid);
+                  $.getJSON("/api/ruleset/enable/"+hash,function(re){
+                    if (re && re.ok) {
+                      log(rid+" enabled");
+                      log("Installing: "+rid);
+                      $.getJSON("/api/ruleset/install/"+rid,function(ri){
+                        if (ri && ri.ok) {
+                          log(rid+" installed");
+                          log("Adding "+rid+" to pico: "+eci);
+                          $.getJSON(
+                            "/sky/event/"+eci+"/add-ruleset/pico/new_ruleset"
+                              +"?rid="+rid,
+                            function(ra){
+                              if (ra && ra.directives) {
+                                log(rid+" added to pico");
+                                callback();
+                              } else {
+                                logProblem("adding "+rid);
+                              }
+                          });
+                        } else {
+                          logProblem("installing "+rid);
+                        }
+                      }).fail(function() {
+                        logProblem("installing "+rid+": failed to compile");
+                      });
+                    } else {
+                      logProblem("enabling "+rid);
+                    }
+                  });
+                });
+              } else {
+                logProblem("registering "+rid);
+              }
+            });
+          } else {
+            logProblem("failed to validate");
+            if (rc.error) {
+              log(rc.error);
+            }
+          }
+        });
+      } else {
+        logProblem("getting "+rid);
+      }
+    },"text");
+  };
+          e.preventDefault();
+          var args = formToJSON(this);
+          installAndAddRuleset(args.url,args.eci,function(){
+            location.reload();
+          });
+        });
       } else if(liContent === "testing") {
         $(".pico-edit .krlrid").click(displayKrl);
         location.hash = theDB.pico_id+"-Testing";
