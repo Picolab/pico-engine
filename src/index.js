@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var url = require("url");
 var path = require("path");
 var express = require("express");
 var leveldown = require("leveldown");
@@ -293,18 +292,25 @@ PicoEngine({
   });
 
   app.all("/api/ruleset/compile", function(req, res){
-    var src = _.get(url.parse(req.url, true), ["query", "src"]);
     try{
-      res.json({ code: compiler(src).code});
+      res.json({ code: compiler(req.query.src).code});
     }catch(err){
       res.json({ error: err.toString() });
     }
   });
 
-  app.all("/api/ruleset/register", function(req, res){
-    var src = _.get(url.parse(req.url, true), ["query", "src"]);
+  app.all("/api/ruleset/register-and-enable", function(req, res){
+    pe.db.registerRuleset(req.query.src, function(err, hash){
+      if(err) return errResp(res, err);
+      pe.db.enableRuleset(hash, function(err){
+        if(err) return errResp(res, err);
+        res.json({ok: true});
+      });
+    });
+  });
 
-    pe.db.registerRuleset(src, function(err){
+  app.all("/api/ruleset/register", function(req, res){
+    pe.db.registerRuleset(req.query.src, function(err){
       if(err) return errResp(res, err);
       res.json({ok: true});
     });
