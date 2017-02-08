@@ -108,7 +108,17 @@ Pico Rulesets
 </li>
 {{/each}}
 </ul>
+<form class="rulesetFromURL" method="POST">
+<input type="hidden" name="eci" value="{{eci}}">
+<button type="submit">add ruleset from URL:</button>
+<input name="url" size="100">
+</form>
+<div class="oplog">
+Operations Log <button class="oplog-x">x</button>
+<pre class="rfuops"></pre>
+</div>
 {{#if avail}}
+<hr>
 Available Rulesets
 <p></p>
 <form class="js-ajax-form" action="/sky/event/{{eci}}/add-ruleset/pico/new_ruleset" method="GET">
@@ -120,16 +130,6 @@ Available Rulesets
 <button type="submit">add ruleset</button>
 </form>
 {{/if}}
-<hr>
-<form class="rulesetFromURL" method="POST">
-<input type="hidden" name="eci" value="{{eci}}">
-<button type="submit">add ruleset from URL</button>
-<input name="url" size="100">
-</form>
-<div class="oplog">
-Operations Log
-<pre class="rfuops"></pre>
-</div>
 </script>
 <script id="channels-template" type="text/x-handlebars-template">
 Channels

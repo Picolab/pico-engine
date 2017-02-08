@@ -215,26 +215,13 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
     var logProblem = function(m) {
       log("*Problem: "+m);
-      $(".rfuops").parent().toggleClass("oplog");
-    }
-    var hashForRid = function(rid,callback){
-      log("Getting hash for: "+rid);
-      $.getJSON("/api/db-dump", function(db_dump){
-        var hashobj;
-        for (var vds in db_dump.rulesets.versions[rid]) {
-          hashobj = db_dump.rulesets.versions[rid][vds];
-        }
-        if (hashobj) {
-          for(var hash in hashobj)
-          {
-            log(rid+" hash is "+hash);
-            callback(hash);
-            return;
-          }
-        }
-        logProblem("getting hash for "+rid);
+      var $oplogDiv = $(".rfuops").parent();
+      $oplogDiv.removeClass("oplog");
+      $oplogDiv.find("button.oplog-x").click(function(){
+        $(".rfuops").text("");
+        $oplogDiv.addClass("oplog");
       });
-    };
+    }
     log("Loading ruleset source code");
     log("URL: "+url);
     $.get(url,function(k){
@@ -244,40 +231,30 @@ $.getJSON("/api/db-dump", function(db_dump){
           if (rc.code) {
             var rid = rc.code.split(/"/)[3];
             log("Registering: "+rid);
-            $.getJSON("/api/ruleset/register",{"src":k},function(rr){
+            $.getJSON("/api/ruleset/register-and-enable",{"src":k},function(rr){
               if (rr && rr.ok) {
-                log(rid+" registered");
-                hashForRid(rid,function(hash){
-                  log("Enabling: "+rid);
-                  $.getJSON("/api/ruleset/enable/"+hash,function(re){
-                    if (re && re.ok) {
-                      log(rid+" enabled");
-                      log("Installing: "+rid);
-                      $.getJSON("/api/ruleset/install/"+rid,function(ri){
-                        if (ri && ri.ok) {
-                          log(rid+" installed");
-                          log("Adding "+rid+" to pico: "+eci);
-                          $.getJSON(
-                            "/sky/event/"+eci+"/add-ruleset/pico/new_ruleset"
-                              +"?rid="+rid,
-                            function(ra){
-                              if (ra && ra.directives) {
-                                log(rid+" added to pico");
-                                callback();
-                              } else {
-                                logProblem("adding "+rid);
-                              }
-                          });
+                log(rid+" registered and enabled");
+                log("Installing: "+rid);
+                $.getJSON("/api/ruleset/install/"+rid,function(ri){
+                  if (ri && ri.ok) {
+                    log(rid+" installed");
+                    log("Adding "+rid+" to pico: "+eci);
+                    $.getJSON(
+                      "/sky/event/"+eci+"/add-ruleset/pico/new_ruleset"
+                        +"?rid="+rid,
+                      function(ra){
+                        if (ra && ra.directives) {
+                          log(rid+" added to pico");
+                          callback();
                         } else {
-                          logProblem("installing "+rid);
+                          logProblem("adding "+rid);
                         }
-                      }).fail(function() {
-                        logProblem("installing "+rid+": failed to compile");
-                      });
-                    } else {
-                      logProblem("enabling "+rid);
-                    }
-                  });
+                    });
+                  } else {
+                    logProblem("installing "+rid);
+                  }
+                }).fail(function() {
+                  logProblem("installing "+rid+": failed to compile");
                 });
               } else {
                 logProblem("registering "+rid);
