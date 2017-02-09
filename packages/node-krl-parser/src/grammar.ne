@@ -284,6 +284,7 @@ var tok_choose = tok("SYMBOL", "choose");
 var tok_configure = tok("SYMBOL", "configure");
 var tok_count = tok("SYMBOL", "count");
 var tok_cmp = tok("SYMBOL", "cmp");
+var tok_defaction = tok("SYMBOL", "defaction");
 var tok_description = tok("SYMBOL", "description");
 var tok_errors = tok("SYMBOL", "errors");
 var tok_event = tok("SYMBOL", "event");
@@ -350,7 +351,7 @@ main -> Ruleset {% id %}
 
 Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
   RulesetMeta:?
-  (%tok_global declaration_block):?
+  RulesetGlobal:?
   rule:*
 %tok_CLSE_CURLY {%
   function(data){
@@ -359,7 +360,7 @@ Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
       type: 'Ruleset',
       rid: data[1],
       meta: data[3] || void 0,
-      global: data[4] ? data[4][1] : [],
+      global: data[4] || [],
       rules: data[5]
     };
   }
@@ -497,6 +498,28 @@ RulesetID_list -> RulesetID {% idArr %}
 OnOrOff -> %tok_on  {% booleanAST(true ) %}
          | %tok_off {% booleanAST(false) %}
 
+RulesetGlobal -> %tok_global %tok_OPEN_CURLY DeclarationOrDefAction:* %tok_CLSE_CURLY {% getN(2) %}
+
+DeclarationOrDefAction -> Declaration {% id %}
+    | DefAction {% id %}
+
+DefAction -> Identifier %tok_EQ %tok_defaction
+  %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
+%tok_OPEN_CURLY
+  Declaration:*
+%tok_CLSE_CURLY
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'DefAction',
+      id: data[0],
+      params: data[4],
+      body: data[7]
+    };
+  }
+%}
+
 ################################################################################
 #
 # Rule
@@ -551,7 +574,7 @@ RuleForEach -> %tok_foreach Expression %tok_setting %tok_OPEN_PAREN function_par
   }
 %}
 
-RulePrelude -> %tok_pre declaration_block {% getN(1) %}
+RulePrelude -> %tok_pre %tok_OPEN_CURLY declaration_list:? %tok_CLSE_CURLY {% getN(2) %}
 
 ################################################################################
 #
@@ -844,9 +867,6 @@ Statement_list -> Statement_list_body {% id %}
 Statement_list_body ->
       Statement {% idArr %}
     | Statement_list_body %tok_SEMI Statement {% concatArr(2) %}
-
-declaration_block -> %tok_OPEN_CURLY %tok_CLSE_CURLY {% noopArr %}
-    | %tok_OPEN_CURLY declaration_list %tok_CLSE_CURLY {% getN(1) %}
 
 declaration_list -> Declaration {% idArr %}
     | declaration_list Declaration {% concatArr(1) %}

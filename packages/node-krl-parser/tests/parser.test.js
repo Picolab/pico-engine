@@ -1840,3 +1840,41 @@ test("GuardCondition", function(t){
 
   t.end();
 });
+
+test("DefAction", function(t){
+  var testPost = function(global, pre, expected){
+    var src = 'ruleset rs{global{'+ global +'}rule r1{pre{'+pre+'}}}';
+    var ast = normalizeAST(rmLoc(parser(src)));
+    t.deepEquals([
+        ast.global,
+        ast.rules[0].prelude
+    ], normalizeAST(expected));
+  };
+
+  testPost('a = defaction(){}', '', [
+    [
+      {
+        type: 'DefAction',
+        id: mk.id('a'),
+        params: [],
+        body: []
+      }
+    ],
+    []
+  ]);
+
+  testPost('a = defaction(b, c){}', '', [
+    [
+      {
+        type: 'DefAction',
+        id: mk.id('a'),
+        params: [mk.id('b'), mk.id('c')],
+        body: []
+      }
+    ],
+    []
+  ]);
+
+
+  t.end();
+});
