@@ -35,7 +35,6 @@
     "diff-lines": "^1.1.0",
     "eslint": "^3.3.1",
     "onchange": "^3.0.0",
-    "tap-min": "^1.1.0",
     "tape": "^4.6.0"
   },
   "dependencies": {
