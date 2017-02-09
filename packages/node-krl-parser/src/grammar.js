@@ -37,6 +37,7 @@ var get = function(o, path, dflt){
 };
 
 var reserved_identifiers = {
+  "defaction": true,
   "function": true,
   "not": true,
   "true": true,
@@ -811,14 +812,17 @@ var grammar = {
     {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
     {"name": "DefAction$ebnf$1", "symbols": []},
     {"name": "DefAction$ebnf$1", "symbols": ["Declaration", "DefAction$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "DefAction$ebnf$1", tok_CLSE_CURLY], "postprocess": 
+    {"name": "DefAction$ebnf$2", "symbols": ["RuleAction"]},
+    {"name": "DefAction$ebnf$2", "symbols": ["RuleAction", "DefAction$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "DefAction$ebnf$1", "DefAction$ebnf$2", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: 'DefAction',
             id: data[0],
             params: data[4],
-            body: data[7]
+            body: data[7],
+            actions: data[8]
           };
         }
         },

@@ -1842,7 +1842,7 @@ test("GuardCondition", function(t){
 });
 
 test("DefAction", function(t){
-  var testPost = function(global, pre, expected){
+  var tstDA = function(global, pre, expected){
     var src = 'ruleset rs{global{'+ global +'}rule r1{pre{'+pre+'}}}';
     var ast = normalizeAST(rmLoc(parser(src)));
     t.deepEquals([
@@ -1851,31 +1851,49 @@ test("DefAction", function(t){
     ], normalizeAST(expected));
   };
 
-  testPost('a = defaction(){}', '', [
+  tstDA('a = defaction(){send_directive("foo")}', '', [
     [
       {
         type: 'DefAction',
         id: mk.id('a'),
         params: [],
-        body: []
+        body: [],
+        actions: [
+          {
+            type: 'RuleAction',
+            label: null,
+            action: mk.id('send_directive'),
+            args: [mk('foo')],
+            "with": []
+          }
+        ]
       }
     ],
     []
   ]);
 
-  testPost('', 'a = defaction(){}', [
+  tstDA('', 'a = defaction(){send_directive("foo")}', [
     [],
     [
       {
         type: 'DefAction',
         id: mk.id('a'),
         params: [],
-        body: []
+        body: [],
+        actions: [
+          {
+            type: 'RuleAction',
+            label: null,
+            action: mk.id('send_directive'),
+            args: [mk('foo')],
+            "with": []
+          }
+        ]
       }
     ]
   ]);
 
-  testPost('a = defaction(b, c){d = 2 e = 3}', '', [
+  tstDA('a = defaction(b, c){d = 2 e = 3 send_directive("foo") with f = 4 g=5 noop()}', '', [
     [
       {
         type: 'DefAction',
@@ -1884,6 +1902,25 @@ test("DefAction", function(t){
         body: [
           mk.declare('=', mk.id('d'), mk(2)),
           mk.declare('=', mk.id('e'), mk(3))
+        ],
+        actions: [
+          {
+            type: 'RuleAction',
+            label: null,
+            action: mk.id('send_directive'),
+            args: [mk('foo')],
+            "with": [
+              mk.declare('=', mk.id('f'), mk(4)),
+              mk.declare('=', mk.id('g'), mk(5))
+            ]
+          },
+          {
+            type: 'RuleAction',
+            label: null,
+            action: mk.id('noop'),
+            args: [],
+            "with": []
+          }
         ]
       }
     ],

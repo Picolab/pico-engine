@@ -33,6 +33,7 @@ var get = function(o, path, dflt){
 };
 
 var reserved_identifiers = {
+  "defaction": true,
   "function": true,
   "not": true,
   "true": true,
@@ -846,6 +847,7 @@ DeclarationOrDefAction ->
 DefAction -> Identifier %tok_EQ %tok_defaction
   %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_OPEN_CURLY
   Declaration:*
+  RuleAction:+
 %tok_CLSE_CURLY
 {%
   function(data){
@@ -854,7 +856,8 @@ DefAction -> Identifier %tok_EQ %tok_defaction
       type: 'DefAction',
       id: data[0],
       params: data[4],
-      body: data[7]
+      body: data[7],
+      actions: data[8]
     };
   }
 %}
