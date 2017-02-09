@@ -15,6 +15,9 @@ div.pico {
   padding: 10px;
   z-index: 1000;
 }
+div.pico:hover {
+  cursor: pointer;
+}
 div.resize-handle {
   position: absolute;
   bottom: 0;
