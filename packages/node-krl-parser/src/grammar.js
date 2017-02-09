@@ -503,21 +503,6 @@ var grammar = {
     {"name": "RulesetGlobal$ebnf$1", "symbols": []},
     {"name": "RulesetGlobal$ebnf$1", "symbols": ["DeclarationOrDefAction", "RulesetGlobal$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "RulesetGlobal", "symbols": [tok_global, tok_OPEN_CURLY, "RulesetGlobal$ebnf$1", tok_CLSE_CURLY], "postprocess": getN(2)},
-    {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
-    {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
-    {"name": "DefAction$ebnf$1", "symbols": []},
-    {"name": "DefAction$ebnf$1", "symbols": ["Declaration", "DefAction$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "DefAction$ebnf$1", tok_CLSE_CURLY], "postprocess": 
-        function(data){
-          return {
-            loc: mkLoc(data),
-            type: 'DefAction',
-            id: data[0],
-            params: data[4],
-            body: data[7]
-          };
-        }
-        },
     {"name": "rule$ebnf$1$subexpression$1", "symbols": [tok_is, "rule_state"]},
     {"name": "rule$ebnf$1", "symbols": ["rule$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
@@ -574,8 +559,8 @@ var grammar = {
           };
         }
         },
-    {"name": "RulePrelude$ebnf$1", "symbols": ["declaration_list"], "postprocess": id},
-    {"name": "RulePrelude$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RulePrelude$ebnf$1", "symbols": []},
+    {"name": "RulePrelude$ebnf$1", "symbols": ["DeclarationOrDefAction", "RulePrelude$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "RulePrelude", "symbols": [tok_pre, tok_OPEN_CURLY, "RulePrelude$ebnf$1", tok_CLSE_CURLY], "postprocess": getN(2)},
     {"name": "EventExpression", "symbols": ["event_exp_or"], "postprocess": id},
     {"name": "event_exp_or", "symbols": ["event_exp_and"], "postprocess": id},
@@ -819,6 +804,21 @@ var grammar = {
             op: "=",
             left: data[0],
             right: data[2]
+          };
+        }
+        },
+    {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
+    {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
+    {"name": "DefAction$ebnf$1", "symbols": []},
+    {"name": "DefAction$ebnf$1", "symbols": ["Declaration", "DefAction$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "DefAction$ebnf$1", tok_CLSE_CURLY], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: 'DefAction',
+            id: data[0],
+            params: data[4],
+            body: data[7]
           };
         }
         },

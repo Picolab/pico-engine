@@ -500,26 +500,6 @@ OnOrOff -> %tok_on  {% booleanAST(true ) %}
 
 RulesetGlobal -> %tok_global %tok_OPEN_CURLY DeclarationOrDefAction:* %tok_CLSE_CURLY {% getN(2) %}
 
-DeclarationOrDefAction -> Declaration {% id %}
-    | DefAction {% id %}
-
-DefAction -> Identifier %tok_EQ %tok_defaction
-  %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
-%tok_OPEN_CURLY
-  Declaration:*
-%tok_CLSE_CURLY
-{%
-  function(data){
-    return {
-      loc: mkLoc(data),
-      type: 'DefAction',
-      id: data[0],
-      params: data[4],
-      body: data[7]
-    };
-  }
-%}
-
 ################################################################################
 #
 # Rule
@@ -574,7 +554,7 @@ RuleForEach -> %tok_foreach Expression %tok_setting %tok_OPEN_PAREN function_par
   }
 %}
 
-RulePrelude -> %tok_pre %tok_OPEN_CURLY declaration_list:? %tok_CLSE_CURLY {% getN(2) %}
+RulePrelude -> %tok_pre %tok_OPEN_CURLY DeclarationOrDefAction:* %tok_CLSE_CURLY {% getN(2) %}
 
 ################################################################################
 #
@@ -858,6 +838,27 @@ Declaration -> left_side_of_declaration %tok_EQ Expression {%
     };
   }
 %}
+
+DeclarationOrDefAction ->
+      Declaration {% id %}
+    | DefAction {% id %}
+
+DefAction -> Identifier %tok_EQ %tok_defaction
+  %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_OPEN_CURLY
+  Declaration:*
+%tok_CLSE_CURLY
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'DefAction',
+      id: data[0],
+      params: data[4],
+      body: data[7]
+    };
+  }
+%}
+
 
 # Later we may add destructuring
 left_side_of_declaration -> MemberExpression {% id %}

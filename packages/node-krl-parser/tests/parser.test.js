@@ -1863,13 +1863,28 @@ test("DefAction", function(t){
     []
   ]);
 
-  testPost('a = defaction(b, c){}', '', [
+  testPost('', 'a = defaction(){}', [
+    [],
+    [
+      {
+        type: 'DefAction',
+        id: mk.id('a'),
+        params: [],
+        body: []
+      }
+    ]
+  ]);
+
+  testPost('a = defaction(b, c){d = 2 e = 3}', '', [
     [
       {
         type: 'DefAction',
         id: mk.id('a'),
         params: [mk.id('b'), mk.id('c')],
-        body: []
+        body: [
+          mk.declare('=', mk.id('d'), mk(2)),
+          mk.declare('=', mk.id('e'), mk(3))
+        ]
       }
     ],
     []
