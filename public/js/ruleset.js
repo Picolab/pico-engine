@@ -37,21 +37,6 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
     return ifnone;
   }
-  var hashFromVersions = function(rid,ifnone) {
-    var hashobj;
-    if (db_dump.rulesets) {
-      for (var vds in db_dump.rulesets.versions[rid]) {
-        hashobj = db_dump.rulesets.versions[rid][vds];
-      }
-    }
-    if (hashobj) {
-      for(var hash in hashobj)
-      {
-        return hash;
-      }
-    }
-    return ifnone;
-  }
   var krlSrcInvite = "//click on a ruleset name to see its source here";
   var displayKrl = function() {
     $(this).parent().siblings(".krl-showing").toggleClass("krl-showing");
@@ -143,45 +128,43 @@ $.getJSON("/api/db-dump", function(db_dump){
   });
   $("div.krlsrc").on("submit","form.ruleset-action",function(e){
     e.preventDefault();
-    var formAction = $(".clicked").attr("formaction");
+    var formAction = $(".clicked").text();
     $(".clicked").toggleClass("clicked");
-    if (formAction === "/api/ruleset/enable") {
-      if (!this.rid.value) {
-        alert("Please select a registered ruleset");
-        return;
-      }
-      var rsHash = hashFromVersions(this.rid.value,undefined);
-      if (rsHash) {
-        formAction += "/" + rsHash;
-      }
-    }
-    if (formAction === "/api/ruleset/install") {
-      formAction += "/" + this.rid.value;
-    }
     var $feedback = $("pre#feedback");
     $feedback.html("working...");
-    var reportError = function(msg) {
-      $feedback.html(
-        "<span style=\"color:red\">"
-        + JSON.stringify(msg,undefined,2)
-        + "</span>")
-    }
-    $.getJSON(formAction,formToJSON(this),function(result){
-      if(result.error){
-        $feedback.html(result.error);
-      } else if(result.code){
-        $feedback.html("ok");
-        var m = /^  "rid": "([^"]+)",$/m.exec(result.code);
-        if (m && m[1]) {
-          location.hash = m[1];
+    var src = this.src.value;
+    $.getJSON("/api/ruleset/compile",{"src":src},function(rc){
+      if (rc.code) {
+        if (formAction === "validate") {
+          $feedback.html("ok");
+          return;
         }
-      } else if(result.ok){
-        location.reload();
+        var rid = rc.code.split(/"/)[3];
+        $.getJSON("/api/ruleset/register-and-enable",{"src":src},function(rr){
+          if (rr && rr.ok) {
+            $.getJSON("/api/ruleset/install/"+rid,function(ri){
+              if (ri && ri.ok) {
+                location.reload();
+              } else {
+                $feedback.html("Problem installing "+rid);
+              }
+            }).fail(function() {
+              $feedback.html("Problem installing "+rid+": failed to compile");
+            });
+          } else {
+            $feedback.html("Problem registering "+rid);
+          }
+        });
       } else {
-        reportError(result);
+        if (rc.error) {
+          $feedback.html(rc.error);
+        }
       }
     }).fail(function(err){
-      reportError(err);
+      $feedback.html(
+        "<span style=\"color:red\">"
+        + JSON.stringify(err,undefined,2)
+        + "</span>");
     });
   });
 });
