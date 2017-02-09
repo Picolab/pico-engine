@@ -38,7 +38,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function (ctx) {
-              return "TODO";
+              return ctx.callAction(ctx, "foo", ["bar"]);
             }
           }]
       }
