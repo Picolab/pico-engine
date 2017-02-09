@@ -24,6 +24,8 @@ module.exports = function(ast, comp, e){
             ast.action.value,
             comp(ast.args),
             ast.loc)));
+  }else if(ast.action && ast.action.type === "Identifier"){
+    fn_body.push(e("return", e("str", "TODO")));
   }else{
     throw new Error("Unsuported RuleAction.action");
   }

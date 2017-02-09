@@ -194,6 +194,7 @@ var comp_by_type = {
     ]));
   },
   "Declaration": require("./c/Declaration"),
+  "DefAction": require("./c/DefAction"),
   "ExpressionStatement": function(ast, comp, e){
     return e(";", comp(ast.expression));
   },
@@ -210,11 +211,6 @@ var comp_by_type = {
       rs.meta = comp(ast.meta);
     }
     if(!_.isEmpty(ast.global)){
-      _.each(ast.global, function(g){
-        if(!g || g.type !== "Declaration"){
-          throw new Error("Ruleset.global should only be declarations");
-        }
-      });
       rs.global = e("fn", ["ctx"], comp(ast.global));
     }
     rs.rules = e("obj", rules_obj);
