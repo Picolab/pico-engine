@@ -50,11 +50,12 @@ mk.get = function(object, property, method){
     method: method || 'dot'
   };
 };
-mk.app = function(callee, args){
+mk.app = function(callee, args, with_){
   return {
     type: 'Application',
     callee: callee,
-    args: args || []
+    args: args || [],
+    "with": with_ || []
   };
 };
 mk.key = function(value){
@@ -391,7 +392,8 @@ test('action', function(t){
     condition: {
       type: 'Application',
       callee: mk.id('exp'),
-      args: []
+      args: [],
+      "with": []
     },
     block_type: "choose",
     actions: [
@@ -764,17 +766,29 @@ test('expressions', function(t){
   testExp('one()', {
     type: 'Application',
     callee: {type: 'Identifier', value: 'one'},
-    args: []
+    args: [],
+    "with": []
   });
   testExp('one ( 1 , 2 )', {
     type: 'Application',
     callee: {type: 'Identifier', value: 'one'},
-    args: [{type: 'Number', value: 1}, {type: 'Number', value: 2}]
+    args: [{type: 'Number', value: 1}, {type: 'Number', value: 2}],
+    "with": []
   });
   testExp('one(1,2)', {
     type: 'Application',
     callee: {type: 'Identifier', value: 'one'},
-    args: [{type: 'Number', value: 1}, {type: 'Number', value: 2}]
+    args: [{type: 'Number', value: 1}, {type: 'Number', value: 2}],
+    "with": []
+  });
+  testExp('one(1, 2) with a = 3 b = 4', {
+    type: 'Application',
+    callee: mk.id('one'),
+    args: [mk(1), mk(2)],
+    "with": [
+      mk.declare('=', mk.id('a'), mk(3)),
+      mk.declare('=', mk.id('b'), mk(4))
+    ]
   });
 
   testExp('1 + "two"', {
@@ -879,7 +893,8 @@ test('expressions', function(t){
       property: mk('bar'),
       method: 'path'
     },
-    args: []
+    args: [],
+    "with": []
   });
 
   testExp('one.two', {
@@ -897,7 +912,8 @@ test('expressions', function(t){
       property: mk.id('two'),
       method: 'dot'
     },
-    args: []
+    args: [],
+    "with": []
   });
 
   testExp('one().two', {
@@ -905,7 +921,8 @@ test('expressions', function(t){
     object: {
       type: 'Application',
       callee: mk.id('one'),
-      args: []
+      args: [],
+      "with": []
     },
     property: mk.id('two'),
     method: 'dot'
@@ -918,12 +935,14 @@ test('expressions', function(t){
       object: {
         type: 'Application',
         callee: mk.id('one'),
-        args: []
+        args: [],
+        "with": []
       },
       property: mk.id('two'),
       method: 'dot'
     },
-    args: []
+    args: [],
+    "with": []
   });
 
   testExp('1.isnull()', {
@@ -934,7 +953,8 @@ test('expressions', function(t){
       property: mk.id('isnull'),
       method: 'dot'
     },
-    args: []
+    args: [],
+    "with": []
   });
 
   testExp("not a", mk.unary("not", mk.id("a")));
@@ -1386,7 +1406,8 @@ test('RulePostlude', function(t){
             type: 'Identifier',
             value: 'one'
           },
-          args: []
+          args: [],
+          "with": []
         }
       },
       {
@@ -1400,7 +1421,8 @@ test('RulePostlude', function(t){
             type: 'Identifier',
             value: 'two'
           },
-          args: []
+          args: [],
+          "with": []
         }
       }
     ]

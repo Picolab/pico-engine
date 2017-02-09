@@ -909,13 +909,17 @@ var grammar = {
     {"name": "function_params", "symbols": [], "postprocess": noopArr},
     {"name": "function_params", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "function_params", "symbols": ["function_params", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
-    {"name": "Application", "symbols": ["MemberExpression", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN], "postprocess": 
+    {"name": "Application$ebnf$1$subexpression$1", "symbols": [tok_with, "declaration_list"]},
+    {"name": "Application$ebnf$1", "symbols": ["Application$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "Application$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Application", "symbols": ["MemberExpression", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "Application$ebnf$1"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: 'Application',
             callee: data[0],
-            args: data[2]
+            args: data[2],
+            "with": data[4] ? data[4][1] : []
           };
         }
         },

@@ -979,13 +979,14 @@ function_params -> null {% noopArr %}
     | Identifier {% idArr %}
     | function_params %tok_COMMA Identifier {% concatArr(2) %}
 
-Application -> MemberExpression %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN {%
+Application -> MemberExpression %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN (%tok_with declaration_list):? {%
   function(data){
     return {
       loc: mkLoc(data),
       type: 'Application',
       callee: data[0],
-      args: data[2]
+      args: data[2],
+      "with": data[4] ? data[4][1] : []
     };
   }
 %}

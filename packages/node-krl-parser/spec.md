@@ -503,7 +503,8 @@ A(B,C)
 {
   "type": "Application",
   "callee": A,
-  "args": [ B , C ]
+  "args": [ B , C ],
+  "with": [  ]
 }
 ```
 
