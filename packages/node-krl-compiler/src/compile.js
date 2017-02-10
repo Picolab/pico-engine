@@ -105,9 +105,25 @@ var comp_by_type = {
       var args = [comp(ast.callee.object)].concat(comp(ast.args));
       return callStdLibFn(e, operator.value, args, operator.loc);
     }
+    var args_obj;
+    if(_.isEmpty(ast.with)){
+      args_obj = e("array", comp(ast.args));
+    }else{
+      var obj = {};
+      _.each(ast.args, function(arg, i){
+        obj[i] = comp(arg);
+      });
+      _.each(ast.with, function(w){
+        if(w.left.type !== "Identifier"){
+          throw new Error("`with` only allows keys to be identifiers");
+        }
+        obj[w.left.value] = comp(w.right);
+      });
+      args_obj = e("obj", obj);
+    }
     return e("call", comp(ast.callee), [
       e("id", "ctx"),
-      e("array", comp(ast.args))
+      args_obj
     ]);
   },
   "UnaryOperator": function(ast, comp, e){
