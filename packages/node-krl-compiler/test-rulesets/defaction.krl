@@ -6,6 +6,12 @@ ruleset io.picolabs.defaction {
         a = a
         b = b + 3
     }
+    bar = defaction(one, two, three){
+      send_directive("bar") with
+        a = one
+        b = two
+        c = three
+    }
   }
   rule foo {
     select when foo a;

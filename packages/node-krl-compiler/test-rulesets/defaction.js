@@ -19,6 +19,26 @@ module.exports = {
         return a.action(ctx);
       });
     }));
+    ctx.scope.set("bar", ctx.KRLClosure(ctx, function (ctx) {
+      ctx.scope.set("one", ctx.getArg(ctx.args, "one", 0));
+      ctx.scope.set("two", ctx.getArg(ctx.args, "two", 1));
+      ctx.scope.set("three", ctx.getArg(ctx.args, "three", 2));
+      return [{
+          "action": function (ctx) {
+            return {
+              "type": "directive",
+              "name": "bar",
+              "options": {
+                "a": ctx.scope.get("one"),
+                "b": ctx.scope.get("two"),
+                "c": ctx.scope.get("three")
+              }
+            };
+          }
+        }].map(function (a) {
+        return a.action(ctx);
+      });
+    }));
   },
   "rules": {
     "foo": {
