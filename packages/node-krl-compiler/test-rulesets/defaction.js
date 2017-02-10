@@ -44,6 +44,34 @@ module.exports = {
             }
           }]
       }
+    },
+    "bar": {
+      "name": "bar",
+      "select": {
+        "graph": { "bar": { "a": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function (ctx) {
+              return ctx.scope.get("bar")(ctx, {
+                "0": "baz",
+                "two": "qux",
+                "three": "quux"
+              });
+            }
+          }]
+      }
     }
   }
 };
