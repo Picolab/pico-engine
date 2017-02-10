@@ -1064,3 +1064,21 @@ test("PicoEngine - io.picolabs.with ruleset", function(t){
     ], t.end);
   });
 });
+
+test("PicoEngine - io.picolabs.defaction ruleset", function(t){
+  mkTestPicoEngine({}, function(err, pe){
+    if(err)return t.end(err);
+
+    var signal = mkSignalTask(pe, "id1");
+
+    testOutputs(t, [
+      λ.curry(pe.db.newPico, {}),
+      λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+      λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.defaction"}),
+      [
+        signal("foo", "a", {}),
+        [{name: "foo", options: {a: "bar", b: 5}}]
+      ],
+    ], t.end);
+  });
+});

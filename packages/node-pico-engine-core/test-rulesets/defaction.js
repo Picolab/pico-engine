@@ -15,7 +15,9 @@ module.exports = {
               }
             };
           }
-        }];
+        }].map(function(a){
+          return a.action(ctx);
+        });
     }));
   },
   "rules": {
@@ -38,7 +40,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function (ctx) {
-              return ctx.callAction(ctx, "foo", ["bar"]);
+              return ctx.scope.get("foo")(ctx, ["bar"]);
             }
           }]
       }
