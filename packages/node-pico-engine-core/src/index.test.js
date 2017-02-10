@@ -1079,6 +1079,10 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
         signal("foo", "a", {}),
         [{name: "foo", options: {a: "bar", b: 5}}]
       ],
+      [
+        signal("bar", "a", {}),
+        [{name: "bar", options: {a: "baz", b: "qux", c: "quux"}}]
+      ],
     ], t.end);
   });
 });
