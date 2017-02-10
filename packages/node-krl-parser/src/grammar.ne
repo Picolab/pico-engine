@@ -415,13 +415,13 @@ ruleset_meta_prop ->
     | %tok_use %tok_module RulesetID
         (%tok_version String):?
         (%tok_alias Identifier):?
-        (%tok_with declaration_list):?
+        WithArguments:?
       {% metaProp(function(data){return {
         kind: data[1].src,
         rid: data[2],
         version: data[3] && data[3][1],
         alias:   data[4] && data[4][1],
-        'with':  data[5] && data[5][1]
+        'with':  data[5]
       }}, true) %}
     | %tok_errors %tok_to RulesetID (%tok_version String):?
       {% metaProp(function(data){return {
@@ -693,7 +693,7 @@ action_block_type -> %tok_choose {% id %}
 RuleAction ->
     (Identifier %tok_FAT_ARROW_RIGHT):?
     Identifier_or_DomainIdentifier %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN
-    (%tok_with declaration_list):? {%
+    WithArguments:? {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -701,7 +701,7 @@ RuleAction ->
       label: data[0] && data[0][0],
       action: data[1],
       args: data[3],
-      "with": data[5] ? data[5][1] : []
+      "with": data[5] || []
     };
   }
 %}
@@ -788,13 +788,13 @@ RaiseEventStatement -> %tok_raise Identifier %tok_event Expression
   }
 %}
 
-RaiseEventAttributes -> %tok_with declaration_list
+RaiseEventAttributes -> WithArguments
 {%
   function(data){
     return {
       loc: mkLoc(data),
       type: "RaiseEventAttributes",
-      with: data[1]
+      with: data[0]
     };
   }
 %}
@@ -840,6 +840,19 @@ Declaration -> left_side_of_declaration %tok_EQ Expression {%
   }
 %}
 
+#Declaration that only allows Identifier on the left side
+IdentifierDeclaration -> Identifier %tok_EQ Expression {%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'Declaration',
+      op: "=",
+      left: data[0],
+      right: data[2]
+    };
+  }
+%}
+
 DeclarationOrDefAction ->
       Declaration {% id %}
     | DefAction {% id %}
@@ -874,6 +887,8 @@ Statement_list_body ->
 
 declaration_list -> Declaration {% idArr %}
     | declaration_list Declaration {% concatArr(1) %}
+
+WithArguments -> %tok_with IdentifierDeclaration:+ {% getN(1)  %}
 
 ################################################################################
 #
@@ -979,14 +994,14 @@ function_params -> null {% noopArr %}
     | Identifier {% idArr %}
     | function_params %tok_COMMA Identifier {% concatArr(2) %}
 
-Application -> MemberExpression %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN (%tok_with declaration_list):? {%
+Application -> MemberExpression %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN WithArguments:? {%
   function(data){
     return {
       loc: mkLoc(data),
       type: 'Application',
       callee: data[0],
       args: data[2],
-      "with": data[4] ? data[4][1] : []
+      "with": data[4] || []
     };
   }
 %}

@@ -420,15 +420,14 @@ var grammar = {
     {"name": "ruleset_meta_prop$ebnf$2$subexpression$1", "symbols": [tok_alias, "Identifier"]},
     {"name": "ruleset_meta_prop$ebnf$2", "symbols": ["ruleset_meta_prop$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "ruleset_meta_prop$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ruleset_meta_prop$ebnf$3$subexpression$1", "symbols": [tok_with, "declaration_list"]},
-    {"name": "ruleset_meta_prop$ebnf$3", "symbols": ["ruleset_meta_prop$ebnf$3$subexpression$1"], "postprocess": id},
+    {"name": "ruleset_meta_prop$ebnf$3", "symbols": ["WithArguments"], "postprocess": id},
     {"name": "ruleset_meta_prop$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "ruleset_meta_prop", "symbols": [tok_use, tok_module, "RulesetID", "ruleset_meta_prop$ebnf$1", "ruleset_meta_prop$ebnf$2", "ruleset_meta_prop$ebnf$3"], "postprocess":  metaProp(function(data){return {
           kind: data[1].src,
           rid: data[2],
           version: data[3] && data[3][1],
           alias:   data[4] && data[4][1],
-          'with':  data[5] && data[5][1]
+          'with':  data[5]
         }}, true) },
     {"name": "ruleset_meta_prop$ebnf$4$subexpression$1", "symbols": [tok_version, "String"]},
     {"name": "ruleset_meta_prop$ebnf$4", "symbols": ["ruleset_meta_prop$ebnf$4$subexpression$1"], "postprocess": id},
@@ -683,8 +682,7 @@ var grammar = {
     {"name": "RuleAction$ebnf$1$subexpression$1", "symbols": ["Identifier", tok_FAT_ARROW_RIGHT]},
     {"name": "RuleAction$ebnf$1", "symbols": ["RuleAction$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction$ebnf$2$subexpression$1", "symbols": [tok_with, "declaration_list"]},
-    {"name": "RuleAction$ebnf$2", "symbols": ["RuleAction$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "RuleAction$ebnf$2", "symbols": ["WithArguments"], "postprocess": id},
     {"name": "RuleAction$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier_or_DomainIdentifier", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "RuleAction$ebnf$2"], "postprocess": 
         function(data){
@@ -694,7 +692,7 @@ var grammar = {
             label: data[0] && data[0][0],
             action: data[1],
             args: data[3],
-            "with": data[5] ? data[5][1] : []
+            "with": data[5] || []
           };
         }
         },
@@ -768,12 +766,12 @@ var grammar = {
           };
         }
         },
-    {"name": "RaiseEventAttributes", "symbols": [tok_with, "declaration_list"], "postprocess": 
+    {"name": "RaiseEventAttributes", "symbols": ["WithArguments"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: "RaiseEventAttributes",
-            with: data[1]
+            with: data[0]
           };
         }
         },
@@ -808,6 +806,17 @@ var grammar = {
           };
         }
         },
+    {"name": "IdentifierDeclaration", "symbols": ["Identifier", tok_EQ, "Expression"], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: 'Declaration',
+            op: "=",
+            left: data[0],
+            right: data[2]
+          };
+        }
+        },
     {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
     {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
     {"name": "DefAction$ebnf$1", "symbols": []},
@@ -832,6 +841,9 @@ var grammar = {
     {"name": "Statement_list_body", "symbols": ["Statement_list_body", tok_SEMI, "Statement"], "postprocess": concatArr(2)},
     {"name": "declaration_list", "symbols": ["Declaration"], "postprocess": idArr},
     {"name": "declaration_list", "symbols": ["declaration_list", "Declaration"], "postprocess": concatArr(1)},
+    {"name": "WithArguments$ebnf$1", "symbols": ["IdentifierDeclaration"]},
+    {"name": "WithArguments$ebnf$1", "symbols": ["IdentifierDeclaration", "WithArguments$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "WithArguments", "symbols": [tok_with, "WithArguments$ebnf$1"], "postprocess": getN(1)},
     {"name": "Expression", "symbols": ["exp_conditional"], "postprocess": id},
     {"name": "exp_conditional", "symbols": ["exp_or"], "postprocess": id},
     {"name": "exp_conditional", "symbols": ["exp_or", tok_FAT_ARROW_RIGHT, "exp_or", tok_PIPE, "exp_conditional"], "postprocess": 
@@ -909,8 +921,7 @@ var grammar = {
     {"name": "function_params", "symbols": [], "postprocess": noopArr},
     {"name": "function_params", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "function_params", "symbols": ["function_params", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
-    {"name": "Application$ebnf$1$subexpression$1", "symbols": [tok_with, "declaration_list"]},
-    {"name": "Application$ebnf$1", "symbols": ["Application$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "Application$ebnf$1", "symbols": ["WithArguments"], "postprocess": id},
     {"name": "Application$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Application", "symbols": ["MemberExpression", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "Application$ebnf$1"], "postprocess": 
         function(data){
@@ -919,7 +930,7 @@ var grammar = {
             type: 'Application',
             callee: data[0],
             args: data[2],
-            "with": data[4] ? data[4][1] : []
+            "with": data[4] || []
           };
         }
         },
