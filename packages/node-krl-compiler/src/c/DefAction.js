@@ -21,9 +21,11 @@ module.exports = function(ast, comp, e){
     body.push(comp(d));
   });
 
-  body.push(e("return", e("arr", _.map(ast.actions, function(action){
+  body.push(e("return", e("call", e(".", e("arr", _.map(ast.actions, function(action){
     return comp(action);
-  }))));
+  })), e("id", "map")), [e("fn", ["a"], [
+    e("return", e("call", e("id", "a.action"), [e("id", "ctx")]))
+  ])])));
 
   return e(";", e("call", e("id", "ctx.scope.set"), [
     e("str", ast.id.value, ast.id.loc),

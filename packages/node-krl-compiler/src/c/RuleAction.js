@@ -27,10 +27,9 @@ module.exports = function(ast, comp, e){
   }else if(ast.action && ast.action.type === "Identifier"){
     fn_body.push(e("return", e(
       "call",
-      e("id", "ctx.callAction"),
+      e("call", e("id", "ctx.scope.get"), [e("str", ast.action.value)]),
       [
         e("id", "ctx"),
-        e("str", ast.action.value),
         e("arr", comp(ast.args))
       ]
     )));
