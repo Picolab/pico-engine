@@ -1047,3 +1047,20 @@ test("PicoEngine - io.picolabs.guard-conditions ruleset", function(t){
     ], t.end);
   });
 });
+
+test("PicoEngine - io.picolabs.with ruleset", function(t){
+  mkTestPicoEngine({}, function(err, pe){
+    if(err)return t.end(err);
+
+    var query = mkQueryTask(pe, "id1", "io.picolabs.with");
+
+    testOutputs(t, [
+      λ.curry(pe.db.newPico, {}),
+      λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+      λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.with"}),
+      [query("add", {a: -2, b: 5}), 3],
+      [query("inc", {n: 4}), 5],
+      [query("foo", {a: 3}), 9],
+    ], t.end);
+  });
+});
