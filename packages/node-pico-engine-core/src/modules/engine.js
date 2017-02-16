@@ -18,9 +18,9 @@ var fns = {
         var opts = getArg(args, "opts", 0);
         return ctx.db.addRulesetFuture(opts).wait();
     },
-    installRID: function(ctx, args){
+    registerRID: function(ctx, args){
         var rid = getArg(args, "rid", 0);
-        return ctx.engine.installRIDFuture(rid).wait();
+        return ctx.engine.registerRIDFuture(rid).wait();
     },
     signalEvent: function(ctx, args){
         var event = getArg(args, "event", 0);

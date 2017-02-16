@@ -73,7 +73,7 @@ module.exports = function(conf, callback){
         return ctx;
     };
 
-    var installRulesetInFiber = function(rs, loadDepRS){
+    var registerRulesetInFiber = function(rs, loadDepRS){
         rs.scope = SymbolTable();
         var ctx = mkCTX({
             rid: rs.rid,
@@ -125,8 +125,8 @@ module.exports = function(conf, callback){
         rulesets[rs.rid] = rs;
     };
 
-    var installRuleset = function(rs, loadDepRS, callback){
-        applyInFiber(installRulesetInFiber, null, [rs, loadDepRS], callback);
+    var registerRuleset = function(rs, loadDepRS, callback){
+        applyInFiber(registerRulesetInFiber, null, [rs, loadDepRS], callback);
     };
 
     var getRulesetForRID = function(rid, callback){
@@ -148,10 +148,10 @@ module.exports = function(conf, callback){
         });
     };
 
-    var installRID = function(rid, callback){
+    var registerRID = function(rid, callback){
         getRulesetForRID(rid, function(err, rs){
             if(err) return callback(err);
-            installRuleset(rs, function(rid){
+            registerRuleset(rs, function(rid){
                 return rulesets[rid];
             }, callback);
         });
@@ -228,11 +228,11 @@ module.exports = function(conf, callback){
     };
 
     var engine = Future.wrap({
-        installRID: installRID,
+        registerRID: registerRID,
         signalEvent: signalEvent
     });
 
-    var installAllEnableRulesets = function(callback){
+    var registerAllEnableRulesets = function(callback){
         db.getAllEnableRulesets(function(err, rids){
             if(err)return callback(err);
             λ.map(rids, getRulesetForRID, function(err, rs_list){
@@ -245,21 +245,18 @@ module.exports = function(conf, callback){
                     return rs_by_rid[rid];
                 };
                 λ.each(rs_list, function(rs, next){
-                    installRuleset(rs, loadDepRS, next);
+                    registerRuleset(rs, loadDepRS, next);
                 }, callback);
             });
         });
     };
 
-    installAllEnableRulesets(function(err){
+    registerAllEnableRulesets(function(err){
         if(err) return callback(err);
         callback(void 0, {
             db: db,
             emitter: emitter,
-            isInstalled: function(rid){
-                return _.has(rulesets, rid);
-            },
-            installRID: installRID,
+            registerRID: registerRID,
             signalEvent: signalEvent,
             runQuery: runQuery
         });

@@ -48,7 +48,7 @@ module.exports = function(opts, callback){
                 if(err)return next(err);
                 pe.db.enableRuleset(hash, function(err){
                     if(err)return next(err);
-                    pe.installRID(rid, next);
+                    pe.registerRID(rid, next);
                 });
             });
         }, function(err){
