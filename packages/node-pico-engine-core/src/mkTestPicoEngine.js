@@ -8,51 +8,51 @@ var PicoEngine = require("./");
 var test_rulesets = {};
 var test_dir = path.resolve(__dirname, "../test-rulesets");
 _.each(fs.readdirSync(test_dir), function(file){
-  if(!/\.js$/.test(file)){
-    return;
-  }
-  var rs = require(path.resolve(test_dir, file));
-  if(!rs.rid){
-    return;
-  }
-  test_rulesets[rs.rid] = rs;
+    if(!/\.js$/.test(file)){
+        return;
+    }
+    var rs = require(path.resolve(test_dir, file));
+    if(!rs.rid){
+        return;
+    }
+    test_rulesets[rs.rid] = rs;
 });
 
 module.exports = function(opts, callback){
-  opts = opts || {};
-  PicoEngine({
-    allow_event_time_override: true,
-    compileAndLoadRuleset: function(rs_info, callback){
-      var rs = test_rulesets[rs_info.rid];
-      callback(undefined, rs);
-    },
-    db: {
-      db: memdown,
-      newID: (function(){
-        var i = 0;
-        return function(){
-          return "id" + i++;
-        };
-      }())
-    }
-  }, function(err, pe){
-    if(err)return callback(err);
-    if(opts.dont_register_rulesets){
-      callback(void 0, pe);
-      return;
-    }
-    λ.each(_.keys(test_rulesets), function(rid, next){
-      //hack since compileAndLoadRuleset doesn't actually compile
-      var krl_src = "ruleset " + rid + "{}";
-      pe.db.registerRuleset(krl_src, function(err, hash){
-        if(err)return next(err);
-        pe.db.enableRuleset(hash, function(err){
-          if(err)return next(err);
-          pe.installRID(rid, next);
+    opts = opts || {};
+    PicoEngine({
+        allow_event_time_override: true,
+        compileAndLoadRuleset: function(rs_info, callback){
+            var rs = test_rulesets[rs_info.rid];
+            callback(undefined, rs);
+        },
+        db: {
+            db: memdown,
+            newID: (function(){
+                var i = 0;
+                return function(){
+                    return "id" + i++;
+                };
+            }())
+        }
+    }, function(err, pe){
+        if(err)return callback(err);
+        if(opts.dont_register_rulesets){
+            callback(void 0, pe);
+            return;
+        }
+        λ.each(_.keys(test_rulesets), function(rid, next){
+            //hack since compileAndLoadRuleset doesn't actually compile
+            var krl_src = "ruleset " + rid + "{}";
+            pe.db.registerRuleset(krl_src, function(err, hash){
+                if(err)return next(err);
+                pe.db.enableRuleset(hash, function(err){
+                    if(err)return next(err);
+                    pe.installRID(rid, next);
+                });
+            });
+        }, function(err){
+            callback(err, pe);
         });
-      });
-    }, function(err){
-      callback(err, pe);
     });
-  });
 };
