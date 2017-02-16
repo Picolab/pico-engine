@@ -74,14 +74,14 @@ test("DB - registerRuleset", function(t){
 
         λ.series({
             start_db: λ.curry(pe.db.toObj),
-            install: function(next){
+            register: function(next){
                 pe.db.registerRuleset(krl_src, next, timestamp);
             },
             end_db: λ.curry(pe.db.toObj)
         }, function(err, data){
             if(err) return t.end(err);
             t.deepEquals(data.start_db, {});
-            t.deepEquals(data.install, hash);
+            t.deepEquals(data.register, hash);
             t.deepEquals(data.end_db, expected);
             t.end();
         });
