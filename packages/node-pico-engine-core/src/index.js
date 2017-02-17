@@ -3,7 +3,7 @@ var λ = require("contra");
 var DB = require("./DB");
 var getArg = require("./getArg");
 var Future = require("fibers/future");
-var modules = require("./modules");
+var modules = Future.wrap(require("./modules"));
 var PicoQueue = require("./PicoQueue");
 var krl_stdlib = require("krl-stdlib");
 var KRLClosure = require("./KRLClosure");
@@ -12,6 +12,15 @@ var applyInFiber = require("./applyInFiber");
 var EventEmitter = require("events");
 var runQueryInFiber = require("./runQueryInFiber");
 var processEventInFiber = require("./processEventInFiber");
+
+var modulesSync = {
+    get: function(ctx, domain, id){
+        return modules.getFuture(ctx, domain, id).wait();
+    },
+    set: function(ctx, domain, id, value){
+        modules.setFuture(ctx, domain, id, value).wait();
+    }
+};
 
 module.exports = function(conf, callback){
     var db = Future.wrap(DB(conf.db));
@@ -26,7 +35,7 @@ module.exports = function(conf, callback){
         ctx.db = db;
         ctx.getArg = getArg;
         ctx.signalEvent = signalEvent;
-        ctx.modules = modules;
+        ctx.modules = modulesSync;
         ctx.rulesets = rulesets;
         ctx.salience_graph = salience_graph;
         ctx.KRLClosure = KRLClosure;
