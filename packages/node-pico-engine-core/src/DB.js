@@ -6,18 +6,39 @@ var bytewise = require("bytewise");
 var safeJsonCodec = require("level-json-coerce-null");
 var extractRulesetID = require("./extractRulesetID");
 
+var dbRange = function(ldb, opts, onData, callback_orig){
+    var has_calledback = false;
+    var callback = function(){
+        if(has_calledback) return;
+        has_calledback = true;
+        callback_orig.apply(this, arguments);
+    };
+
+    if(_.has(opts, "prefix")){
+        opts = _.assign({}, opts, {
+            gte: opts.prefix,
+            lte: opts.prefix.concat([undefined])//bytewise sorts with null at the bottom and undefined at the top
+        });
+        delete opts.prefix;
+    }
+    ldb.createReadStream(opts)
+        .on("data", onData)
+        .on("error", function(err){
+            callback(err);
+        })
+        .on("end", callback);
+};
+
 var dbToObj = function(ldb, callback){
     var db_data = {};
-    ldb.createReadStream()
-        .on("data", function(data){
-            if(!_.isArray(data.key)){
-                return;
-            }
-            _.set(db_data, data.key, data.value);
-        })
-        .on("end", function(){
-            callback(undefined, db_data);
-        });
+    dbRange(ldb, {}, function(data){
+        if(!_.isArray(data.key)){
+            return;
+        }
+        _.set(db_data, data.key, data.value);
+    }, function(err){
+        callback(err, db_data);
+    });
 };
 
 module.exports = function(opts){
@@ -39,30 +60,25 @@ module.exports = function(opts){
         },
         getOwnerECI: function(callback){
             var eci = undefined;
-            ldb.createReadStream({
-                gte: ["channel"],
-                lte: ["channel", undefined],//bytewise sorts with null at the bottom and undefined at the top
+            dbRange(ldb, {
+                prefix: ["channel"],
+                values: false,
                 limit: 1
-            })
-                .on("data", function(data){
-                    eci = data.key[1];
-                })
-                .on("end", function(){
-                    callback(undefined, eci);
-                });
+            }, function(key){
+                eci = key[1];
+            }, function(err){
+                callback(err, eci);
+            });
         },
         getPico: function(id, callback){
             var pico = {};
-            ldb.createReadStream({
-                gte: ["pico", id],
-                lte: ["pico", id, undefined]//bytewise sorts with null at the bottom and undefined at the top
-            })
-                .on("data", function(data){
-                    _.set(pico, data.key, data.value);
-                })
-                .on("end", function(){
-                    callback(undefined, pico.pico[id]);
-                });
+            dbRange(ldb, {
+                prefix: ["pico", id]
+            }, function(data){
+                _.set(pico, data.key, data.value);
+            }, function(err){
+                callback(err, pico.pico[id]);
+            });
         },
         newPico: function(opts, callback){
             var new_pico = {
@@ -75,23 +91,19 @@ module.exports = function(opts){
         },
         removePico: function(id, callback){
             var to_batch = [];
-            ldb.createKeyStream({
-                gte: ["pico", id],
-                lte: ["pico", id, undefined]//bytewise sorts with null at the bottom and undefined at the top
-            })
-                .on("error", function(err){
-                    callback(err);
-                })
-                .on("data", function(key){
-                    to_batch.push({type: "del", key: key});
-                    if(key[2] === "channel"){
-                        //remove this index
-                        to_batch.push({type: "del", key: ["channel", key[3], "pico_id"]});
-                    }
-                })
-                .on("end", function(){
-                    ldb.batch(to_batch, callback);
-                });
+            dbRange(ldb, {
+                prefix: ["pico", id],
+                values: false
+            }, function(key){
+                to_batch.push({type: "del", key: key});
+                if(key[2] === "channel"){
+                    //remove this index
+                    to_batch.push({type: "del", key: ["channel", key[3], "pico_id"]});
+                }
+            }, function(err){
+                if(err)return callback(err);
+                ldb.batch(to_batch, callback);
+            });
         },
         newChannel: function(opts, callback){
             var new_channel = {

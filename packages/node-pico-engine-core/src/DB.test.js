@@ -166,10 +166,15 @@ test("DB - getOwnerECI", function(t){
             eci_0: λ.curry(pe.db.getOwnerECI),
             new_chan: λ.curry(pe.db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
             eci_1: λ.curry(pe.db.getOwnerECI),
+            new_chan1: λ.curry(pe.db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
+            new_chan2: λ.curry(pe.db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
+            new_chan3: λ.curry(pe.db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
+            eci_2: λ.curry(pe.db.getOwnerECI),
         }, function(err, data){
             if(err) return t.end(err);
             t.deepEquals(data.eci_0, undefined);
             t.deepEquals(data.eci_1, "id0");
+            t.deepEquals(data.eci_2, "id0");
             t.end();
         });
     });
