@@ -45,7 +45,7 @@ module.exports = function(opts, callback){
         λ.each(_.keys(test_rulesets), function(rid, next){
             //hack since compileAndLoadRuleset doesn't actually compile
             var krl_src = "ruleset " + rid + "{}";
-            pe.registerRulesetSrc(krl_src, {}, next);
+            pe.registerRuleset(krl_src, {}, next);
         }, function(err){
             callback(err, pe);
         });

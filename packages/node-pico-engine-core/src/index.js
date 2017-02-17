@@ -160,7 +160,12 @@ module.exports = function(conf, callback){
                     if(err) return callback(err);
                     registerRuleset(rs, function(rid){
                         return rulesets[rid];
-                    }, callback);
+                    }, function(err){
+                        callback(err, {
+                            rid: rs.rid,
+                            hash: hash
+                        });
+                    });
                 });
             });
         });
@@ -260,7 +265,7 @@ module.exports = function(conf, callback){
         callback(void 0, {
             db: db,
             emitter: emitter,
-            registerRulesetSrc: registerRulesetSrc,
+            registerRuleset: registerRulesetSrc,
             signalEvent: signalEvent,
             runQuery: runQuery
         });
