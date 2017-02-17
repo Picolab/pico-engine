@@ -255,20 +255,6 @@ startPicoEngine(function(err, pe){
         });
     });
 
-    app.all("/api/new-pico", function(req, res){
-        pe.db.newPico({}, function(err, new_pico){
-            if(err) return errResp(res, err);
-            res.end(JSON.stringify(new_pico, undefined, 2));
-        });
-    });
-
-    app.all("/api/rm-pico/:id", function(req, res){
-        pe.db.removePico(req.params.id, function(err){
-            if(err) return errResp(res, err);
-            res.json({ok: true});
-        });
-    });
-
     app.all("/api/pico/:id/new-channel", function(req, res){
         pe.db.newChannel({
             pico_id: req.params.id,
@@ -289,13 +275,6 @@ startPicoEngine(function(err, pe){
 
     app.all("/api/pico/:id/rm-ruleset/:rid", function(req, res){
         pe.db.removeRuleset(req.params.id, req.params.rid, function(err){
-            if(err) return errResp(res, err);
-            res.json({ok: true});
-        });
-    });
-
-    app.all("/api/pico/:id/add-ruleset", function(req, res){
-        pe.db.addRuleset({pico_id: req.params.id, rid: req.query.rid}, function(err){
             if(err) return errResp(res, err);
             res.json({ok: true});
         });
