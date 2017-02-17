@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "body-parser": "^1.15.2",
+    "contra": "^1.9.4",
     "express": "^4.14.0",
     "home-dir": "^1.0.0",
     "krl-compiler": "^0.25.1",

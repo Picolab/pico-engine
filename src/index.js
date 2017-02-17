@@ -1,4 +1,6 @@
 var _ = require("lodash");
+var λ = require("contra");
+var fs = require("fs");
 var path = require("path");
 var express = require("express");
 var leveldown = require("leveldown");
@@ -12,15 +14,42 @@ var port = process.env.PORT || 8080;
 var pico_engine_home = process.env.PICO_ENGINE_HOME || path.resolve(__dirname, "..");
 ////////////////////////////////////////////////////////////////////////////////
 
-PicoEngine({
-  compileAndLoadRuleset: RulesetLoader({
-    rulesets_dir: path.resolve(pico_engine_home, "rulesets")
-  }),
-  db: {
-    db: leveldown,
-    location: path.join(pico_engine_home, "db")
-  }
-}, function(err, pe){
+var registerBuiltInRulesets = function(pe, callback){
+    var krl_dir = path.resolve(__dirname, "../krl");
+    fs.readdir(krl_dir, function(err, files){
+        if(err) return callback(err);
+        λ.each(files, function(filename, next){
+            var file = path.resolve(krl_dir, filename);
+            fs.readFile(file, "utf8", function(err, src){
+                if(err) return next(err);
+                pe.registerRulesetSrc(src, {}, function(err){
+                    if(err) return next(err);
+                    next();
+                });
+            });
+        }, callback);
+    });
+};
+
+var startPicoEngine = function(callback){
+    PicoEngine({
+        compileAndLoadRuleset: RulesetLoader({
+            rulesets_dir: path.resolve(pico_engine_home, "rulesets")
+        }),
+        db: {
+            db: leveldown,
+            location: path.join(pico_engine_home, "db")
+        }
+    }, function(err, pe){
+        if(err) return callback(err);
+        registerBuiltInRulesets(pe, function(err){
+            if(err) return callback(err);
+            callback(null, pe);
+        });
+    });
+};
+
+startPicoEngine(function(err, pe){
   if(err){
     throw err;
   }
