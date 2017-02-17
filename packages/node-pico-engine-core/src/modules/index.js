@@ -31,7 +31,7 @@ module.exports = {
     set: function(ctx, domain, id, value, callback){
         if(_.has(modules, domain)){
             if(_.has(modules[domain], "set")){
-                callback(null, modules[domain].set(ctx, id, value));
+                modules[domain].set(ctx, id, value, callback);
                 return;
             }
             callback(new Error("Cannot assign to `" + domain + ":*`"));
