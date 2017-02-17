@@ -2,6 +2,7 @@ var _ = require("lodash");
 var mkTree = require("estree-builder");
 var callStdLibFn = require("./utils/callStdLibFn");
 var callModuleFn = require("./utils/callModuleFn");
+var mkKRLClosure = require("./utils/mkKRLClosure");
 
 var comp_by_type = {
   "String": function(ast, comp, e){
@@ -175,10 +176,7 @@ var comp_by_type = {
       }
       return body.push(e("return", comp(part)));
     });
-    return e("call", e("id", "ctx.KRLClosure"), [
-      e("id", "ctx"),
-      e("fn", ["ctx"], body)
-    ]);
+    return mkKRLClosure(e, body);
   },
   "PersistentVariableAssignment": function(ast, comp, e){
     if(ast.op !== ":="){

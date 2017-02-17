@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var mkKRLClosure = require("../utils/mkKRLClosure");
 
 module.exports = function(ast, comp, e){
   var body = _.map(ast.params, function(param, i){
@@ -29,9 +30,6 @@ module.exports = function(ast, comp, e){
 
   return e(";", e("call", e("id", "ctx.scope.set"), [
     e("str", ast.id.value, ast.id.loc),
-    e("call", e("id", "ctx.KRLClosure"), [
-      e("id", "ctx"),
-      e("fn", ["ctx"], body)
-    ])
+    mkKRLClosure(e, body)
   ]));
 };

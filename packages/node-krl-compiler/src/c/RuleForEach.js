@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var mkKRLClosure = require("../utils/mkKRLClosure");
 
 module.exports = function(ast, comp, e, context){
 
@@ -18,11 +19,6 @@ module.exports = function(ast, comp, e, context){
 
   return e(";", e("call", e("id", "foreach"), [
       comp(ast.expression),
-      e("call", e("id", "ctx.KRLClosure"), [
-        e("id", "ctx"),
-        e("fn", ["ctx"], setting.concat([
-          context.iter
-        ]))
-      ])
+      mkKRLClosure(e, setting.concat([context.iter]))
   ]));
 };
