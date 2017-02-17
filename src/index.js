@@ -260,10 +260,10 @@ startPicoEngine(function(err, pe){
         });
     });
 
-    app.all("/api/owner-channel", function(req, res){
-        pe.db.getFirstChannel(function(err, first_channel){
+    app.all("/api/owner-eci", function(req, res){
+        pe.db.getOwnerECI(function(err, eci){
             if(err) return errResp(res, err);
-            res.end(JSON.stringify(first_channel, undefined, 2));
+            res.json({ok: true, eci: eci});
         });
     });
 
