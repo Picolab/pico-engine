@@ -25,7 +25,7 @@ module.exports = function(conf, callback){
     var mkCTX = function(ctx){
         ctx.db = db;
         ctx.getArg = getArg;
-        ctx.engine = engine;
+        ctx.signalEvent = signalEvent;
         ctx.modules = modules;
         ctx.rulesets = rulesets;
         ctx.salience_graph = salience_graph;
@@ -235,10 +235,6 @@ module.exports = function(conf, callback){
             emit("debug", "query added to pico queue: " + pico_id);
         });
     };
-
-    var engine = Future.wrap({
-        signalEvent: signalEvent
-    });
 
     var registerAllEnableRulesets = function(callback){
         db.getAllEnableRulesets(function(err, rids){

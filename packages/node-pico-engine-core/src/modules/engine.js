@@ -18,14 +18,10 @@ var fns = {
         var opts = getArg(args, "opts", 0);
         return ctx.db.addRulesetFuture(opts).wait();
     },
-    registerRID: function(ctx, args){
-        var rid = getArg(args, "rid", 0);
-        return ctx.engine.registerRIDFuture(rid).wait();
-    },
     signalEvent: function(ctx, args){
         var event = getArg(args, "event", 0);
         //this should enqueue the event and not wait for the response
-        ctx.engine.signalEvent(event, _.noop);//ingore the response to the event
+        ctx.signalEvent(event, _.noop);//ingore the response to the event
     }
 };
 
