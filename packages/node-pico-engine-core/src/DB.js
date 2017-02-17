@@ -216,8 +216,8 @@ module.exports = function(opts){
         },
         registerRuleset: function(krl_src, meta, callback){
             var timestamp = (new Date()).toISOString();
-            if(arguments.length === 3 && _.isString(arguments[2])){//for testing only
-                timestamp = arguments[2];//for testing only
+            if(arguments.length === 4 && _.isString(arguments[3])){//for testing only
+                timestamp = arguments[3];//for testing only
             }//for testing only
 
             var rid = extractRulesetID(krl_src);
