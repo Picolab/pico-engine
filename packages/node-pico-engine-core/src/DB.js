@@ -29,18 +29,6 @@ var dbRange = function(ldb, opts, onData, callback_orig){
         .on("end", callback);
 };
 
-var dbToObj = function(ldb, callback){
-    var db_data = {};
-    dbRange(ldb, {}, function(data){
-        if(!_.isArray(data.key)){
-            return;
-        }
-        _.set(db_data, data.key, data.value);
-    }, function(err){
-        callback(err, db_data);
-    });
-};
-
 module.exports = function(opts){
 
     var ldb = levelup(opts.location, {
@@ -53,7 +41,15 @@ module.exports = function(opts){
 
     return {
         toObj: function(callback){
-            dbToObj(ldb, callback);
+            var db_data = {};
+            dbRange(ldb, {}, function(data){
+                if(!_.isArray(data.key)){
+                    return;
+                }
+                _.set(db_data, data.key, data.value);
+            }, function(err){
+                callback(err, db_data);
+            });
         },
         getPicoIDByECI: function(eci, callback){
             ldb.get(["channel", eci, "pico_id"], callback);
@@ -294,11 +290,14 @@ module.exports = function(opts){
             });
         },
         getAllEnabledRulesets: function(callback){
-            //TODO optimize
-            dbToObj(ldb, function(err, db){
-                if(err) return callback(err);
-                var enabled = _.get(db, ["rulesets", "enabled"], {});
-                callback(undefined, _.keys(enabled));
+            var rids = [];
+            dbRange(ldb, {
+                prefix: ["rulesets", "enabled"],
+                values: false
+            }, function(key){
+                rids.push(key[2]);
+            }, function(err){
+                callback(err, rids);
             });
         }
     };
