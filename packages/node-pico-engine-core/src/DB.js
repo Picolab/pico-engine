@@ -37,17 +37,18 @@ module.exports = function(opts){
         getPicoIDByECI: function(eci, callback){
             ldb.get(["channel", eci, "pico_id"], callback);
         },
-        getFirstChannel: function(callback){
-            var channel = {};
+        getOwnerECI: function(callback){
+            var eci = undefined;
             ldb.createReadStream({
-                gte: ["channel", ""],
+                gte: ["channel"],
+                lte: ["channel", undefined],//bytewise sorts with null at the bottom and undefined at the top
                 limit: 1
             })
                 .on("data", function(data){
-                    _.set(channel, data.key, data.value);
+                    eci = data.key[1];
                 })
                 .on("end", function(){
-                    callback(undefined, channel);
+                    callback(undefined, eci);
                 });
         },
         getPico: function(id, callback){
