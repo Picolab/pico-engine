@@ -55,7 +55,7 @@ test("DB - write and read", function(t){
     });
 });
 
-test("DB - registerRuleset", function(t){
+test("DB - storeRuleset", function(t){
     mkTestPicoEngine({dont_register_rulesets: true}, function(err, pe){
         if(err)return t.end(err);
 
@@ -77,8 +77,8 @@ test("DB - registerRuleset", function(t){
 
         λ.series({
             start_db: λ.curry(pe.db.toObj),
-            register: function(next){
-                pe.db.registerRuleset(krl_src, {
+            store: function(next){
+                pe.db.storeRuleset(krl_src, {
                     url: "some-url-to-src"
                 }, next, timestamp);
             },
@@ -86,7 +86,7 @@ test("DB - registerRuleset", function(t){
         }, function(err, data){
             if(err) return t.end(err);
             t.deepEquals(data.start_db, {});
-            t.deepEquals(data.register, hash);
+            t.deepEquals(data.store, hash);
             t.deepEquals(data.end_db, expected);
             t.end();
         });
@@ -105,7 +105,7 @@ test("DB - enableRuleset", function(t){
             },
             function(db, callback){
                 t.deepEquals(_.omit(db, "rulesets"), {});
-                pe.db.registerRuleset(krl_src, {}, callback);
+                pe.db.storeRuleset(krl_src, {}, callback);
             },
             function(hash, callback){
                 pe.db.enableRuleset(hash, function(err){
@@ -124,7 +124,7 @@ test("DB - enableRuleset", function(t){
                     "io.picolabs.cool",
                     "hash"
                 ]), hash);
-                pe.db.getEnableRuleset("io.picolabs.cool", function(err, data){
+                pe.db.getEnabledRuleset("io.picolabs.cool", function(err, data){
                     if(err) return callback(err);
                     t.equals(data.src, krl_src);
                     t.equals(data.hash, hash);

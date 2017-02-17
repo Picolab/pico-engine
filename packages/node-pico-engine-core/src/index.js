@@ -130,7 +130,7 @@ module.exports = function(conf, callback){
     };
 
     var getRulesetForRID = function(rid, callback){
-        db.getEnableRuleset(rid, function(err, data){
+        db.getEnabledRuleset(rid, function(err, data){
             if(err) return callback(err);
             compileAndLoadRuleset({
                 rid: rid,
@@ -149,7 +149,7 @@ module.exports = function(conf, callback){
     };
 
     var registerRulesetSrc = function(krl_src, meta_data, callback){
-        db.registerRuleset(krl_src, meta_data, function(err, hash){
+        db.storeRuleset(krl_src, meta_data, function(err, hash){
             if(err) return callback(err);
             compileAndLoadRuleset({
                 src: krl_src,
@@ -236,8 +236,8 @@ module.exports = function(conf, callback){
         });
     };
 
-    var registerAllEnableRulesets = function(callback){
-        db.getAllEnableRulesets(function(err, rids){
+    var registerAllEnabledRulesets = function(callback){
+        db.getAllEnabledRulesets(function(err, rids){
             if(err)return callback(err);
             λ.map(rids, getRulesetForRID, function(err, rs_list){
                 if(err)return callback(err);
@@ -255,7 +255,7 @@ module.exports = function(conf, callback){
         });
     };
 
-    registerAllEnableRulesets(function(err){
+    registerAllEnabledRulesets(function(err){
         if(err) return callback(err);
         callback(void 0, {
             db: db,

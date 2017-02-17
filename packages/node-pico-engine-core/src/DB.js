@@ -214,7 +214,7 @@ module.exports = function(opts){
                 });
             });
         },
-        registerRuleset: function(krl_src, meta, callback){
+        storeRuleset: function(krl_src, meta, callback){
             var timestamp = (new Date()).toISOString();
             if(arguments.length === 4 && _.isString(arguments[3])){//for testing only
                 timestamp = arguments[3];//for testing only
@@ -265,7 +265,7 @@ module.exports = function(opts){
         disableRuleset: function(rid, callback){
             ldb.del(["rulesets", "enabled", rid], callback);
         },
-        getEnableRuleset: function(rid, callback){
+        getEnabledRuleset: function(rid, callback){
             ldb.get(["rulesets", "enabled", rid], function(err, data_e){
                 if(err) return callback(err);
                 ldb.get(["rulesets", "krl", data_e.hash], function(err, data_k){
@@ -274,13 +274,13 @@ module.exports = function(opts){
                         src: data_k.src,
                         hash: data_e.hash,
                         rid: data_k.rid,
-                        timestamp_register: data_k.timestamp,
+                        timestamp_stored: data_k.timestamp,
                         timestamp_enable: data_e.timestamp
                     });
                 });
             });
         },
-        getAllEnableRulesets: function(callback){
+        getAllEnabledRulesets: function(callback){
             //TODO optimize
             dbToObj(ldb, function(err, db){
                 if(err) return callback(err);
