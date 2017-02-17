@@ -227,38 +227,27 @@ $.getJSON("/api/db-dump", function(db_dump){
     $.get(url,function(k){
       if (k && k.length > 0) {
         log("Length: "+k.length);
-        $.getJSON("/api/ruleset/compile",{"src":k},function(rc){
-          if (rc.code) {
-            var rid = rc.code.split(/"/)[3];
-            log("Registering: "+rid);
-            $.getJSON("/api/ruleset/register",{"src":k},function(rr){
-              if (rr && rr.ok) {
-                log(rid+" registered");
-                log("Adding "+rid+" to pico: "+eci);
-                $.getJSON(
-                  "/sky/event/"+eci+"/add-ruleset/pico/new_ruleset"
-                    +"?rid="+rid,
-                  function(ra){
-                    if (ra && ra.directives) {
-                      log(rid+" added to pico");
-                      callback();
-                    } else {
-                      logProblem("adding "+rid);
-                    }
-                });
-              } else {
-                logProblem("registering "+rid);
-              }
+        $.getJSON("/api/ruleset/register",{"src":k},function(rr){
+          if (rr && rr.ok) {
+            log(rr.rid+" registered");
+            log("Adding "+rr.rid+" to pico: "+eci);
+            $.getJSON(
+              "/sky/event/"+eci+"/add-ruleset/pico/new_ruleset"
+                +"?rid="+rr.rid,
+              function(ra){
+                if (ra && ra.directives) {
+                  log(rr.rid+" added to pico");
+                  callback();
+                } else {
+                  logProblem("adding "+rr.rid);
+                }
             });
           } else {
-            logProblem("failed to validate");
-            if (rc.error) {
-              log(rc.error);
-            }
+            logProblem("registering");
           }
         });
       } else {
-        logProblem("getting "+rid);
+        logProblem("getting src");
       }
     },"text");
   };

@@ -22,7 +22,7 @@ var registerBuiltInRulesets = function(pe, callback){
             var file = path.resolve(krl_dir, filename);
             fs.readFile(file, "utf8", function(err, src){
                 if(err) return next(err);
-                pe.registerRulesetSrc(src, {}, function(err){
+                pe.registerRuleset(src, {}, function(err){
                     if(err) return next(err);
                     next();
                 });
@@ -289,9 +289,9 @@ startPicoEngine(function(err, pe){
     });
 
     app.all("/api/ruleset/register", function(req, res){
-        pe.registerRulesetSrc(req.query.src, {}, function(err){
+        pe.registerRuleset(req.query.src, {}, function(err, data){
             if(err) return errResp(res, err);
-            res.json({ok: true});
+            res.json({ok: true, rid: data.rid, hash: data.hash});
         });
     });
 
