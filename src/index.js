@@ -31,6 +31,78 @@ var registerBuiltInRulesets = function(pe, callback){
     });
 };
 
+var setupOwnerPico = function(pe, callback){
+    pe.db.toObj(function(err, db_data){
+        if(err) return callback(err);
+        if(db_data.pico){
+            //already setup
+            return callback();
+        }
+        λ.waterfall([
+            λ.curry(pe.db.newPico, {}),
+            function(pico, callback){
+                pe.db.newChannel({
+                    pico_id: pico.id,
+                    name: "main",
+                    type: "secret"
+                }, function(err, channel){
+                    if(err) return callback(err);
+                    callback(null, {
+                        pico_id: pico.id,
+                        eci: channel.id
+                    });
+                });
+            },
+            function(info, callback){
+                pe.db.addRuleset({
+                    pico_id: info.pico_id,
+                    rid: "io.picolabs.pico"
+                }, function(err){
+                    callback(err, info);
+                });
+            },
+            function(info, callback){
+                pe.db.addRuleset({
+                    pico_id: info.pico_id,
+                    rid: "io.picolabs.visual_params"
+                }, function(err){
+                    callback(err, info);
+                });
+            },
+            function(info, callback){
+                pe.signalEvent({
+                    eci: info.eci,
+                    eid: "19",
+                    domain: "pico",
+                    type: "root_created",
+                    attrs: {
+                        id: info.pico_id,
+                        eci: info.eci
+                    }
+                }, function(err){
+                    callback(err, info);
+                });
+            },
+            function(info, callback){
+                pe.signalEvent({
+                    eci: info.eci,
+                    eid: "31",
+                    domain: "visual",
+                    type: "update",
+                    attrs: {
+                        dname: "Owner Pico",
+                        color: "#87cefa"
+                    }
+                }, function(err){
+                    callback(err, info);
+                });
+            }
+        ], function(err){
+            callback(err, pe);
+        });
+    });
+};
+
 var startPicoEngine = function(callback){
     PicoEngine({
         compileAndLoadRuleset: RulesetLoader({
@@ -44,7 +116,10 @@ var startPicoEngine = function(callback){
         if(err) return callback(err);
         registerBuiltInRulesets(pe, function(err){
             if(err) return callback(err);
-            callback(null, pe);
+            setupOwnerPico(pe, function(err){
+                if(err) return callback(err);
+                callback(null, pe);
+            });
         });
     });
 };
