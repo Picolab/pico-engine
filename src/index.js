@@ -44,10 +44,9 @@ var registerBuiltInRulesets = function(pe, callback){
 };
 
 var setupOwnerPico = function(pe, callback){
-    pe.db.toObj(function(err, db_data){
+    pe.db.getOwnerECI(function(err, eci){
         if(err) return callback(err);
-        if(db_data.pico){
-            //already setup
+        if(eci){//already setup
             return callback();
         }
         λ.waterfall([
