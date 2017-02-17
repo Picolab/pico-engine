@@ -205,39 +205,8 @@ PicoEngine({
     }
   });
 
-  app.all("/api/ruleset/register-and-enable", function(req, res){
-    pe.db.registerRuleset(req.query.src, function(err, hash){
-      if(err) return errResp(res, err);
-      pe.db.enableRuleset(hash, function(err){
-        if(err) return errResp(res, err);
-        res.json({ok: true});
-      });
-    });
-  });
-
   app.all("/api/ruleset/register", function(req, res){
-    pe.db.registerRuleset(req.query.src, function(err){
-      if(err) return errResp(res, err);
-      res.json({ok: true});
-    });
-  });
-
-  app.all("/api/ruleset/enable/:hash", function(req, res){
-    pe.db.enableRuleset(req.params.hash, function(err){
-      if(err) return errResp(res, err);
-      res.json({ok: true});
-    });
-  });
-
-  app.all("/api/ruleset/install/:rid", function(req, res){
-    pe.installRID(req.params.rid, function(err){
-      if(err) return errResp(res, err);
-      res.json({ok: true});
-    });
-  });
-
-  app.all("/api/ruleset/disable/:rid", function(req, res){
-    pe.db.disableRuleset(req.params.rid, function(err){
+    pe.registerRulesetSrc(req.query.src, {}, function(err){
       if(err) return errResp(res, err);
       res.json({ok: true});
     });

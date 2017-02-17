@@ -231,30 +231,20 @@ $.getJSON("/api/db-dump", function(db_dump){
           if (rc.code) {
             var rid = rc.code.split(/"/)[3];
             log("Registering: "+rid);
-            $.getJSON("/api/ruleset/register-and-enable",{"src":k},function(rr){
+            $.getJSON("/api/ruleset/register",{"src":k},function(rr){
               if (rr && rr.ok) {
-                log(rid+" registered and enabled");
-                log("Installing: "+rid);
-                $.getJSON("/api/ruleset/install/"+rid,function(ri){
-                  if (ri && ri.ok) {
-                    log(rid+" installed");
-                    log("Adding "+rid+" to pico: "+eci);
-                    $.getJSON(
-                      "/sky/event/"+eci+"/add-ruleset/pico/new_ruleset"
-                        +"?rid="+rid,
-                      function(ra){
-                        if (ra && ra.directives) {
-                          log(rid+" added to pico");
-                          callback();
-                        } else {
-                          logProblem("adding "+rid);
-                        }
-                    });
-                  } else {
-                    logProblem("installing "+rid);
-                  }
-                }).fail(function() {
-                  logProblem("installing "+rid+": failed to compile");
+                log(rid+" registered");
+                log("Adding "+rid+" to pico: "+eci);
+                $.getJSON(
+                  "/sky/event/"+eci+"/add-ruleset/pico/new_ruleset"
+                    +"?rid="+rid,
+                  function(ra){
+                    if (ra && ra.directives) {
+                      log(rid+" added to pico");
+                      callback();
+                    } else {
+                      logProblem("adding "+rid);
+                    }
                 });
               } else {
                 logProblem("registering "+rid);

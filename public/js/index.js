@@ -40,27 +40,17 @@ $(document).ready(function() {
       if (k && k.length > 0) {
         log(rid+".krl length: "+k.length);
         log("Registering "+rid);
-        $.getJSON("/api/ruleset/register-and-enable",{"src":k},function(rr){
+        $.getJSON("/api/ruleset/register",{"src":k},function(rr){
           if (rr && rr.ok) {
-            log(rid+" registered and enabled");
-            log("Installing "+rid);
-            $.getJSON("/api/ruleset/install/"+rid,function(ri){
-              if (ri && ri.ok) {
-                log(rid+" installed");
-                log("Adding "+rid+" to pico "+id);
-                $.getJSON("/api/pico/"+id+"/add-ruleset?rid="+rid,function(ra){
-                  if (ra && ra.ok) {
-                    log(rid+" added to pico "+id);
-                    callback();
-                  } else {
-                    logProblem("adding "+rid);
-                  }
-                });
+            log(rid+" registered");
+            log("Adding "+rid+" to pico "+id);
+            $.getJSON("/api/pico/"+id+"/add-ruleset?rid="+rid,function(ra){
+              if (ra && ra.ok) {
+                log(rid+" added to pico "+id);
+                callback();
               } else {
-                logProblem("installing "+rid);
+                logProblem("adding "+rid);
               }
-            }).fail(function() {
-              logProblem("installing "+rid+": failed to compile");
             });
           } else {
             logProblem("registering "+rid);
