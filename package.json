@@ -44,11 +44,11 @@
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
     "home-dir": "^1.0.0",
-    "krl-compiler": "^0.20.0",
+    "krl-compiler": "^0.25.1",
     "leveldown": "^1.4.6",
     "lodash": "^4.11.2",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "pico-engine-core": "^0.15.6"
+    "pico-engine-core": "^0.19.0"
   }
 }
