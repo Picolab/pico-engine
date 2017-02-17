@@ -148,12 +148,21 @@ module.exports = function(conf, callback){
         });
     };
 
-    var registerRID = function(rid, callback){
-        getRulesetForRID(rid, function(err, rs){
+    var registerRulesetSrc = function(krl_src, meta_data, callback){
+        db.registerRuleset(krl_src, meta_data, function(err, hash){
             if(err) return callback(err);
-            registerRuleset(rs, function(rid){
-                return rulesets[rid];
-            }, callback);
+            compileAndLoadRuleset({
+                src: krl_src,
+                hash: hash
+            }, function(err, rs){
+                if(err) return callback(err);
+                db.enableRuleset(hash, function(err){
+                    if(err) return callback(err);
+                    registerRuleset(rs, function(rid){
+                        return rulesets[rid];
+                    }, callback);
+                });
+            });
         });
     };
 
@@ -228,7 +237,6 @@ module.exports = function(conf, callback){
     };
 
     var engine = Future.wrap({
-        registerRID: registerRID,
         signalEvent: signalEvent
     });
 
@@ -256,7 +264,7 @@ module.exports = function(conf, callback){
         callback(void 0, {
             db: db,
             emitter: emitter,
-            registerRID: registerRID,
+            registerRulesetSrc: registerRulesetSrc,
             signalEvent: signalEvent,
             runQuery: runQuery
         });

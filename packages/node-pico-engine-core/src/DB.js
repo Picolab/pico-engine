@@ -214,7 +214,7 @@ module.exports = function(opts){
                 });
             });
         },
-        registerRuleset: function(krl_src, callback){
+        registerRuleset: function(krl_src, meta, callback){
             var timestamp = (new Date()).toISOString();
             if(arguments.length === 3 && _.isString(arguments[2])){//for testing only
                 timestamp = arguments[2];//for testing only
@@ -237,6 +237,7 @@ module.exports = function(opts){
                     value: {
                         src: krl_src,
                         rid: rid,
+                        meta: meta,
                         timestamp: timestamp
                     }
                 },

@@ -23,7 +23,8 @@ module.exports = function(opts, callback){
     PicoEngine({
         allow_event_time_override: true,
         compileAndLoadRuleset: function(rs_info, callback){
-            var rs = test_rulesets[rs_info.rid];
+            var rid = rs_info.src.substring(8, rs_info.src.length - 2);
+            var rs = test_rulesets[rid];
             callback(undefined, rs);
         },
         db: {
@@ -44,13 +45,7 @@ module.exports = function(opts, callback){
         λ.each(_.keys(test_rulesets), function(rid, next){
             //hack since compileAndLoadRuleset doesn't actually compile
             var krl_src = "ruleset " + rid + "{}";
-            pe.db.registerRuleset(krl_src, function(err, hash){
-                if(err)return next(err);
-                pe.db.enableRuleset(hash, function(err){
-                    if(err)return next(err);
-                    pe.registerRID(rid, next);
-                });
-            });
+            pe.registerRulesetSrc(krl_src, {}, next);
         }, function(err){
             callback(err, pe);
         });

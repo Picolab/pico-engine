@@ -68,6 +68,9 @@ test("DB - registerRuleset", function(t){
         _.set(expected, ["rulesets", "krl", hash], {
             src: krl_src,
             rid: rid,
+            meta: {
+                url: "some-url-to-src"
+            },
             timestamp: timestamp
         });
         _.set(expected, ["rulesets", "versions", rid, timestamp, hash], true);
@@ -75,7 +78,9 @@ test("DB - registerRuleset", function(t){
         λ.series({
             start_db: λ.curry(pe.db.toObj),
             register: function(next){
-                pe.db.registerRuleset(krl_src, next, timestamp);
+                pe.db.registerRuleset(krl_src, {
+                    url: "some-url-to-src"
+                }, next, timestamp);
             },
             end_db: λ.curry(pe.db.toObj)
         }, function(err, data){
@@ -100,7 +105,7 @@ test("DB - enableRuleset", function(t){
             },
             function(db, callback){
                 t.deepEquals(_.omit(db, "rulesets"), {});
-                pe.db.registerRuleset(krl_src, callback);
+                pe.db.registerRuleset(krl_src, {}, callback);
             },
             function(hash, callback){
                 pe.db.enableRuleset(hash, function(err){
