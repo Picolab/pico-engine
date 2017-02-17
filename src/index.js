@@ -3,6 +3,7 @@ var λ = require("contra");
 var fs = require("fs");
 var path = require("path");
 var express = require("express");
+var request = require("request");
 var leveldown = require("leveldown");
 var bodyParser = require("body-parser");
 var PicoEngine = require("pico-engine-core");
@@ -13,6 +14,17 @@ var compiler = require("krl-compiler");
 var port = process.env.PORT || 8080;
 var pico_engine_home = process.env.PICO_ENGINE_HOME || path.resolve(__dirname, "..");
 ////////////////////////////////////////////////////////////////////////////////
+
+var httpGetKRL = function(url, callback){
+    request(url, function(err, resp, body){
+        if(err)
+            return callback(err);
+        if(resp.statusCode !== 200)
+            return callback(new Error("Got a statusCode=" + resp.statusCode + " for: " + url));
+
+        callback(null, body);
+    });
+};
 
 var registerBuiltInRulesets = function(pe, callback){
     var krl_dir = path.resolve(__dirname, "../krl");
@@ -289,10 +301,22 @@ startPicoEngine(function(err, pe){
     });
 
     app.all("/api/ruleset/register", function(req, res){
-        pe.registerRuleset(req.query.src, {}, function(err, data){
-            if(err) return errResp(res, err);
-            res.json({ok: true, rid: data.rid, hash: data.hash});
-        });
+        var register = function(src, meta){
+            pe.registerRuleset(src, meta || {}, function(err, data){
+                if(err) return errResp(res, err);
+                res.json({ok: true, rid: data.rid, hash: data.hash});
+            });
+        };
+        if(_.isString(req.query.src)){
+            register(req.query.src);
+        }else if(_.isString(req.query.url)){
+            httpGetKRL(req.query.url, function(err, src){
+                if(err) return errResp(res, err);
+                register(src, {url: req.query.url});
+            });
+        }else{
+            errResp(res, new Error("expected `src` or `url`"));
+        }
     });
 
     app.listen(port, function () {

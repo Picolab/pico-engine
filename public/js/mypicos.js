@@ -224,32 +224,25 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
     log("Loading ruleset source code");
     log("URL: "+url);
-    $.get(url,function(k){
-      if (k && k.length > 0) {
-        log("Length: "+k.length);
-        $.getJSON("/api/ruleset/register",{"src":k},function(rr){
-          if (rr && rr.ok) {
-            log(rr.rid+" registered");
-            log("Adding "+rr.rid+" to pico: "+eci);
-            $.getJSON(
-              "/sky/event/"+eci+"/add-ruleset/pico/new_ruleset"
-                +"?rid="+rr.rid,
-              function(ra){
-                if (ra && ra.directives) {
-                  log(rr.rid+" added to pico");
-                  callback();
-                } else {
-                  logProblem("adding "+rr.rid);
-                }
-            });
-          } else {
-            logProblem("registering");
-          }
+    $.getJSON("/api/ruleset/register",{"url": url},function(rr){
+      if (rr && rr.ok) {
+        log(rr.rid+" registered");
+        log("Adding "+rr.rid+" to pico: "+eci);
+        $.getJSON(
+          "/sky/event/"+eci+"/add-ruleset/pico/new_ruleset"
+            +"?rid="+rr.rid,
+          function(ra){
+            if (ra && ra.directives) {
+              log(rr.rid+" added to pico");
+              callback();
+            } else {
+              logProblem("adding "+rr.rid);
+            }
         });
       } else {
-        logProblem("getting src");
+        logProblem("registering");
       }
-    },"text");
+    });
   };
           e.preventDefault();
           var args = formToJSON(this);
