@@ -42,7 +42,7 @@ module.exports = function(opts, callback){
             callback(void 0, pe);
             return;
         }
-        λ.each(_.keys(test_rulesets), function(rid, next){
+        λ.each.series(_.keys(test_rulesets), function(rid, next){
             //hack since compileAndLoadRuleset doesn't actually compile
             var krl_src = "ruleset " + rid + "{}";
             pe.registerRuleset(krl_src, {}, next);

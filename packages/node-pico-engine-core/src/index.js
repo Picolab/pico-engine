@@ -2,6 +2,7 @@ var _ = require("lodash");
 var λ = require("contra");
 var DB = require("./DB");
 var cocb = require("co-callback");
+var runKRL = require("./runKRL");
 var getArg = require("./getArg");
 var Future = require("fibers/future");
 var modules = Future.wrap(require("./modules"));
@@ -9,7 +10,6 @@ var PicoQueue = require("./PicoQueue");
 var krl_stdlib = require("krl-stdlib");
 var KRLClosure = require("./KRLClosure");
 var SymbolTable = require("symbol-table");
-var applyInFiber = require("./applyInFiber");
 var EventEmitter = require("events");
 var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
@@ -89,17 +89,17 @@ module.exports = function(conf, callback){
         return ctx;
     };
 
-    var initializeRulest = function(rs, loadDepRS){
+    var initializeRulest = cocb.wrap(function*(rs, loadDepRS){
         rs.scope = SymbolTable();
         var ctx = mkCTX({
             rid: rs.rid,
             scope: rs.scope
         });
         if(_.isFunction(rs.meta && rs.meta.configure)){
-            rs.meta.configure(ctx);
+            yield runKRL(rs.meta.configure, ctx);
         }
         if(_.isFunction(rs.global)){
-            rs.global(ctx);
+            yield runKRL(rs.global, ctx);
         }
         rs.modules_used = {};
         var use_array = _.values(rs.meta && rs.meta.use);
@@ -118,13 +118,13 @@ module.exports = function(conf, callback){
                 scope: SymbolTable()
             });
             if(_.isFunction(dep_rs.meta && dep_rs.meta.configure)){
-                dep_rs.meta.configure(ctx2);
+                yield runKRL(dep_rs.meta.configure, ctx2);
             }
             if(_.isFunction(use["with"])){
-                use["with"](ctx2);
+                yield runKRL(use["with"], ctx2);
             }
             if(_.isFunction(dep_rs.global)){
-                dep_rs.global(ctx2);
+                yield runKRL(dep_rs.global, ctx2);
             }
             rs.modules_used[use.alias] = {
                 rid: use.rid,
@@ -132,12 +132,10 @@ module.exports = function(conf, callback){
                 provides: dep_rs.meta.provides
             };
         }
-    };
+    });
 
     var registerRuleset = function(rs, loadDepRS, callback){
-        applyInFiber(function(){
-            initializeRulest(rs, loadDepRS);
-        }, null, [], function(err){
+        cocb.run(initializeRulest(rs, loadDepRS), function(err){
             if(err) return callback(err);
 
             //now setup `salience_graph` and `rulesets`
@@ -276,7 +274,7 @@ module.exports = function(conf, callback){
                 var loadDepRS = function(rid){
                     return rs_by_rid[rid];
                 };
-                λ.each(rs_list, function(rs, next){
+                λ.each.series(rs_list, function(rs, next){
                     registerRuleset(rs, loadDepRS, next);
                 }, callback);
             });
