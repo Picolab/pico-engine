@@ -188,15 +188,14 @@ module.exports = function(conf, callback){
     };
 
     var picoQ = PicoQueue(function(pico_id, data, callback){
-        var ctx;
         if(data.type === "event"){
             var event = data.event;
             event.timestamp = new Date(event.timestamp);//convert from JSON string to date
-            ctx = mkCTX({
+            processEvent(mkCTX({
+                mkCTX: mkCTX,
                 event: event,
                 pico_id: pico_id
-            });
-            processEvent(ctx, mkCTX, function(err, data){
+            }), function(err, data){
                 if(err) return callback(err);
                 if(_.has(data, "event:send")){
                     _.each(data["event:send"], function(o){
@@ -206,15 +205,14 @@ module.exports = function(conf, callback){
                 }
                 callback(void 0, data);
             });
-            return;
         }else if(data.type === "query"){
             processQuery(mkCTX({
                 query: data.query,
                 pico_id: pico_id
             }), callback);
-            return;
+        }else{
+            callback(new Error("invalid PicoQueue type:" + data.type));
         }
-        callback(new Error("invalid PicoQueue type:" + data.type));
     });
 
     var signalEvent = function(event, callback){

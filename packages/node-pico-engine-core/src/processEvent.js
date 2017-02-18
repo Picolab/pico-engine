@@ -103,7 +103,7 @@ var runEvent = function(scheduled){
     return r;
 };
 
-var processEvent = function(ctx, mkCTX){
+var processEvent = function(ctx){
     ctx.emit("debug", "event being processed");
 
     var schedule = [];
@@ -129,7 +129,7 @@ var processEvent = function(ctx, mkCTX){
             timestamp: new Date()
         };
         //must make a new ctx for this raise b/c it's a different event
-        var raise_ctx = mkCTX({
+        var raise_ctx = ctx.mkCTX({
             event: event,
             pico_id: ctx.pico_id//raise event is always to the same pico
         });
@@ -171,6 +171,6 @@ var processEvent = function(ctx, mkCTX){
     return r;
 };
 
-module.exports = function(ctx, mkCTX, callback){
-    applyInFiber(processEvent, void 0, [ctx, mkCTX], callback);
+module.exports = function(ctx, callback){
+    applyInFiber(processEvent, void 0, [ctx], callback);
 };
