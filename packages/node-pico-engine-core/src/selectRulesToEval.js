@@ -1,7 +1,6 @@
 var _ = require("lodash");
 var λ = require("contra");
 var cocb = require("co-callback");
-var Future = require("fibers/future");
 var applyInFiber = require("./applyInFiber");
 
 var runKRL = function(fn, args){
@@ -32,38 +31,34 @@ var evalExpr = cocb.wrap(function*(ctx, exp){
     return yield runKRL(ctx.rule.select.eventexprs[exp], [ctx]);
 });
 
-var getNextState = function(ctx, curr_state, callback){
-    cocb.run(function*(){
-        var stm = ctx.rule.select.state_machine[curr_state];
+var getNextState = cocb.wrap(function*(ctx, curr_state){
+    var stm = ctx.rule.select.state_machine[curr_state];
 
-        var i;
-        for(i=0; i < stm.length; i++){
-            if(yield evalExpr(ctx, stm[i][0])){
-                //found a match
-                return stm[i][1];
-            }
+    var i;
+    for(i=0; i < stm.length; i++){
+        if(yield evalExpr(ctx, stm[i][0])){
+            //found a match
+            return stm[i][1];
         }
-        if(curr_state === "end"){
-            return "start";
-        }
-        return curr_state;//by default, stay on the current state
-    }, callback);
-};
+    }
+    if(curr_state === "end"){
+        return "start";
+    }
+    return curr_state;//by default, stay on the current state
+});
 
-var getNextStateFuture = Future.wrap(getNextState);
+var shouldRuleSelect = cocb.wrap(function*(ctx, rule){
 
-var shouldRuleSelect = function(ctx, rule){
-
-    var curr_state = ctx.db.getStateMachineStateFuture(ctx.pico_id, rule).wait();
+    var curr_state = yield ctx.db.getStateMachineStateYieldable(ctx.pico_id, rule);
 
     if(_.isFunction(rule.select && rule.select.within)){
 
-        var last_restart = ctx.db.getStateMachineStartTimeFuture(ctx.pico_id, rule).wait();
+        var last_restart = yield ctx.db.getStateMachineStartTimeYieldable(ctx.pico_id, rule);
         if(!_.isNumber(last_restart)){
             last_restart = ctx.event.timestamp.getTime();
         }
         var diff = ctx.event.timestamp.getTime() - last_restart;
-        var time_limit = rule.select.within(ctx);
+        var time_limit = yield runKRL(rule.select.within, [ctx]);
 
         if(diff > time_limit){
             //time has expired, reset the state machine
@@ -71,7 +66,7 @@ var shouldRuleSelect = function(ctx, rule){
         }
 
         if(curr_state === "start"){
-            ctx.db.putStateMachineStartTimeFuture(ctx.pico_id, rule, ctx.event.timestamp.getTime()).wait();
+            yield ctx.db.putStateMachineStartTimeYieldable(ctx.pico_id, rule, ctx.event.timestamp.getTime());
         }
     }
 
@@ -81,12 +76,12 @@ var shouldRuleSelect = function(ctx, rule){
         scope: rule.scope,
         current_state_machine_state: curr_state
     });
-    var next_state = getNextStateFuture(ctx_for_eventexp, curr_state).wait();
+    var next_state = yield getNextState(ctx_for_eventexp, curr_state);
 
-    ctx.db.putStateMachineStateFuture(ctx.pico_id, rule, next_state).wait();
+    yield ctx.db.putStateMachineStateYieldable(ctx.pico_id, rule, next_state);
 
     return next_state === "end";
-};
+});
 
 var selectForPico = function(ctx, pico, callback){
 
@@ -116,7 +111,7 @@ var selectForPico = function(ctx, pico, callback){
     });
 
     λ.filter(rules_to_select, function(rule, next){
-        applyInFiber(shouldRuleSelect, null, [ctx, rule], next);
+        cocb.run(shouldRuleSelect(ctx, rule), next);
     }, function(err, rules){
         if(err) return callback(err);
         //rules in the same ruleset must fire in order

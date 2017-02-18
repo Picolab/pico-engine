@@ -1,6 +1,7 @@
 var _ = require("lodash");
 var λ = require("contra");
 var DB = require("./DB");
+var cocb = require("co-callback");
 var getArg = require("./getArg");
 var Future = require("fibers/future");
 var modules = Future.wrap(require("./modules"));
@@ -23,7 +24,13 @@ var modulesSync = {
 };
 
 module.exports = function(conf, callback){
-    var db = Future.wrap(DB(conf.db));
+    var db = DB(conf.db);
+    _.each(db, function(val, key){
+        if(_.isFunction(val)){
+            db[key + "Future"] = Future.wrap(val);
+            db[key + "Yieldable"] = cocb.toYieldable(val);
+        }
+    });
     var compileAndLoadRuleset = conf.compileAndLoadRuleset;
 
     var rulesets = {};
