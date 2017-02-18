@@ -1,4 +1,6 @@
 var _ = require("lodash");
+var cocb = require("co-callback");
+var runKRL = require("./runKRL");
 var Future = require("fibers/future");
 var applyInFiber = require("./applyInFiber");
 var selectRulesToEvalFuture = Future.wrap(require("./selectRulesToEval"));
@@ -6,13 +8,13 @@ var noopTrue = function(){
     return true;
 };
 
-var evalRuleInFiber = function(ctx, rule){
+var evalRule = cocb.wrap(function*(ctx, rule){
     if(_.isFunction(rule.prelude)){
-        rule.prelude(ctx);
+        yield runKRL(rule.prelude, ctx);
     }
     var did_fire = true;
 
-    var cond = _.get(rule, ["action_block", "condition"], noopTrue)(ctx);
+    var cond = yield runKRL(_.get(rule, ["action_block", "condition"], noopTrue), ctx);
     var actions = _.get(rule, ["action_block", "actions"], []);
     var block_type = _.get(rule, ["action_block", "block_type"], "every");
     if(block_type === "choose"){
@@ -31,10 +33,7 @@ var evalRuleInFiber = function(ctx, rule){
     }
 
     //TODO handle more than one response type
-    var responses = _.compact(_.map(actions, function(action){
-        //TODO collect errors and respond individually to the client
-        //TODO try{}catch(e){}
-        var response = action.action(ctx);
+    var mapResp = function(response){
         if((response === void 0) || (response === null)){
             return;//noop
         }
@@ -52,7 +51,15 @@ var evalRuleInFiber = function(ctx, rule){
                 eid: ctx.event.eid
             }
         };
-    }));
+    };
+    var responses = [];
+    var i;
+    for(i = 0; i < actions.length; i++){
+        //TODO collect errors and respond individually to the client
+        //TODO try{}catch(e){}
+        responses.push(mapResp(yield runKRL(actions[i].action, ctx)));
+    }
+    responses = _.compact(responses);
 
     var getPostFn = function(name){
         var fn = _.get(rule, ["postlude", name]);
@@ -60,14 +67,22 @@ var evalRuleInFiber = function(ctx, rule){
     };
     if(did_fire){
         ctx.emit("debug", "fired");
-        getPostFn("fired")(ctx);
+        yield runKRL(getPostFn("fired"), ctx);
     }else{
         ctx.emit("debug", "not fired");
-        getPostFn("notfired")(ctx);
+        yield runKRL(getPostFn("notfired"), ctx);
     }
-    getPostFn("always")(ctx);
+    yield runKRL(getPostFn("always"), ctx);
 
     return responses;
+});
+
+var evalRuleInFuture = Future.wrap(function(ctx, rule, callback){
+    cocb.run(evalRule(ctx, rule), callback);
+});
+
+var evalRuleInFiber = function(ctx, rule){
+    return evalRuleInFuture(ctx, rule).wait();
 };
 
 var runEvent = function(scheduled){
