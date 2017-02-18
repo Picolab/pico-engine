@@ -11,7 +11,7 @@ var KRLClosure = require("./KRLClosure");
 var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
 var EventEmitter = require("events");
-var runQueryInFiber = require("./runQueryInFiber");
+var executeQuery = require("./executeQuery");
 var processEventInFiber = require("./processEventInFiber");
 
 var modulesSync = {
@@ -208,11 +208,10 @@ module.exports = function(conf, callback){
             });
             return;
         }else if(data.type === "query"){
-            ctx = mkCTX({
+            executeQuery(mkCTX({
                 query: data.query,
                 pico_id: pico_id
-            });
-            applyInFiber(runQueryInFiber, void 0, [ctx], callback);
+            }), callback);
             return;
         }
         callback(new Error("invalid PicoQueue type:" + data.type));
