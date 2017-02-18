@@ -1,15 +1,26 @@
 var _ = require("lodash");
 var λ = require("contra");
+var cocb = require("co-callback");
+var Future = require("fibers/future");
 var applyInFiber = require("./applyInFiber");
 
-var evalExpr = function(ctx, exp, callback){
+var runKRL = function(fn, args){
+    return new Promise(function(resolve, reject){
+        applyInFiber(fn, null, args, function(err, data){
+            if(err) reject(err);
+            else resolve(data);
+        });
+    });
+};
+
+var evalExpr = cocb.wrap(function*(ctx, exp){
     if(_.isArray(exp)){
         if(exp[0] === "not"){
-            return !evalExpr(ctx, exp[1]);
+            return !(yield evalExpr(ctx, exp[1]));
         }else if(exp[0] === "and"){
-            return evalExpr(ctx, exp[1]) && evalExpr(ctx, exp[2]);
+            return (yield evalExpr(ctx, exp[1])) && (yield evalExpr(ctx, exp[2]));
         }else if(exp[0] === "or"){
-            return evalExpr(ctx, exp[1]) || evalExpr(ctx, exp[2]);
+            return (yield evalExpr(ctx, exp[1])) || (yield evalExpr(ctx, exp[2]));
         }
     }
     //only run the function if the domain and type match
@@ -18,24 +29,28 @@ var evalExpr = function(ctx, exp, callback){
     if(_.get(ctx, ["rule", "select", "graph", domain, type, exp]) !== true){
         return false;
     }
-    return ctx.rule.select.eventexprs[exp](ctx);
+    return yield runKRL(ctx.rule.select.eventexprs[exp], [ctx]);
+});
+
+var getNextState = function(ctx, curr_state, callback){
+    cocb.run(function*(){
+        var stm = ctx.rule.select.state_machine[curr_state];
+
+        var i;
+        for(i=0; i < stm.length; i++){
+            if(yield evalExpr(ctx, stm[i][0])){
+                //found a match
+                return stm[i][1];
+            }
+        }
+        if(curr_state === "end"){
+            return "start";
+        }
+        return curr_state;//by default, stay on the current state
+    }, callback);
 };
 
-var getNextState = function(ctx, curr_state){
-    var stm = ctx.rule.select.state_machine[curr_state];
-
-    var matching_pair = _.find(stm, function(s){
-        return evalExpr(ctx, s[0]);
-    });
-
-    if(matching_pair){
-        return matching_pair[1];
-    }
-    if(curr_state === "end"){
-        return "start";
-    }
-    return curr_state;//by default, stay on the current state
-};
+var getNextStateFuture = Future.wrap(getNextState);
 
 var shouldRuleSelect = function(ctx, rule){
 
@@ -66,7 +81,7 @@ var shouldRuleSelect = function(ctx, rule){
         scope: rule.scope,
         current_state_machine_state: curr_state
     });
-    var next_state = getNextState(ctx_for_eventexp, curr_state);
+    var next_state = getNextStateFuture(ctx_for_eventexp, curr_state).wait();
 
     ctx.db.putStateMachineStateFuture(ctx.pico_id, rule, next_state).wait();
 
