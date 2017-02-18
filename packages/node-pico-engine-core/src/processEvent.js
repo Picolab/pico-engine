@@ -1,5 +1,6 @@
 var _ = require("lodash");
 var Future = require("fibers/future");
+var applyInFiber = require("./applyInFiber");
 var selectRulesToEvalFuture = Future.wrap(require("./selectRulesToEval"));
 var noopTrue = function(){
     return true;
@@ -102,7 +103,7 @@ var runEvent = function(scheduled){
     return r;
 };
 
-module.exports = function(ctx, mkCTX){
+var processEvent = function(ctx, mkCTX){
     ctx.emit("debug", "event being processed");
 
     var schedule = [];
@@ -168,4 +169,8 @@ module.exports = function(ctx, mkCTX){
     ctx.emit("episode_stop");
 
     return r;
+};
+
+module.exports = function(ctx, mkCTX, callback){
+    applyInFiber(processEvent, void 0, [ctx, mkCTX], callback);
 };

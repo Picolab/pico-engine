@@ -11,8 +11,8 @@ var KRLClosure = require("./KRLClosure");
 var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
 var EventEmitter = require("events");
+var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
-var processEventInFiber = require("./processEventInFiber");
 
 var modulesSync = {
     get: function(ctx, domain, id){
@@ -196,7 +196,7 @@ module.exports = function(conf, callback){
                 event: event,
                 pico_id: pico_id
             });
-            applyInFiber(processEventInFiber, void 0, [ctx, mkCTX], function(err, data){
+            processEvent(ctx, mkCTX, function(err, data){
                 if(err) return callback(err);
                 if(_.has(data, "event:send")){
                     _.each(data["event:send"], function(o){
