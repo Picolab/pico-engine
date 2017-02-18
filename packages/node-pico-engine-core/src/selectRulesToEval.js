@@ -1,16 +1,7 @@
 var _ = require("lodash");
 var λ = require("contra");
 var cocb = require("co-callback");
-var applyInFiber = require("./applyInFiber");
-
-var runKRL = function(fn, args){
-    return new Promise(function(resolve, reject){
-        applyInFiber(fn, null, args, function(err, data){
-            if(err) reject(err);
-            else resolve(data);
-        });
-    });
-};
+var runKRL = require("./runKRL");
 
 var evalExpr = cocb.wrap(function*(ctx, exp){
     if(_.isArray(exp)){
@@ -28,7 +19,7 @@ var evalExpr = cocb.wrap(function*(ctx, exp){
     if(_.get(ctx, ["rule", "select", "graph", domain, type, exp]) !== true){
         return false;
     }
-    return yield runKRL(ctx.rule.select.eventexprs[exp], [ctx]);
+    return yield runKRL(ctx.rule.select.eventexprs[exp], ctx);
 });
 
 var getNextState = cocb.wrap(function*(ctx, curr_state){
@@ -58,7 +49,7 @@ var shouldRuleSelect = cocb.wrap(function*(ctx, rule){
             last_restart = ctx.event.timestamp.getTime();
         }
         var diff = ctx.event.timestamp.getTime() - last_restart;
-        var time_limit = yield runKRL(rule.select.within, [ctx]);
+        var time_limit = yield runKRL(rule.select.within, ctx);
 
         if(diff > time_limit){
             //time has expired, reset the state machine
