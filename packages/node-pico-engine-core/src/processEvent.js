@@ -2,7 +2,6 @@ var _ = require("lodash");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
 var Future = require("fibers/future");
-var applyInFiber = require("./applyInFiber");
 var selectRulesToEval = require("./selectRulesToEval");
 var noopTrue = function(){
     return true;
@@ -81,7 +80,7 @@ var evalRuleInFuture = Future.wrap(function(ctx, rule, callback){
     cocb.run(evalRule(ctx, rule), callback);
 });
 
-var runEventYieldable = cocb.wrap(function*(scheduled){
+var runEvent = cocb.wrap(function*(scheduled){
     var rule = scheduled.rule;
     var ctx = scheduled.ctx;
 
@@ -114,15 +113,7 @@ var runEventYieldable = cocb.wrap(function*(scheduled){
     return r;
 });
 
-var runEventFuture = Future.wrap(function(scheduled, callback){
-    cocb.run(runEventYieldable(scheduled), callback);
-});
-
-var runEvent = function(scheduled){
-    return runEventFuture(scheduled).wait();
-};
-
-var processEvent = function(ctx){
+var processEvent = cocb.wrap(function*(ctx){
     ctx.emit("debug", "event being processed");
 
     var schedule = [];
@@ -136,9 +127,9 @@ var processEvent = function(ctx){
             callback();
         });
     };
-    var scheduleEvent = Future.wrap(scheduleEventRAW);
+    var scheduleEvent = cocb.toYieldable(scheduleEventRAW);
 
-    scheduleEvent(ctx).wait();
+    yield scheduleEvent(ctx);
 
     ctx.raiseEvent = Future.wrap(function(revent, callback){
         //shape the revent like a normal event
@@ -166,7 +157,7 @@ var processEvent = function(ctx){
     //using a while loop b/c schedule is MUTABLE
     //Durring execution new events may be `raised` that will mutate the schedule
     while(schedule.length > 0){
-        responses.push(runEvent(schedule.shift()));
+        responses.push(yield runEvent(schedule.shift()));
     }
 
     var res_by_type = _.groupBy(_.flattenDeep(_.values(responses)), "type");
@@ -192,8 +183,8 @@ var processEvent = function(ctx){
     ctx.emit("episode_stop");
 
     return r;
-};
+});
 
 module.exports = function(ctx, callback){
-    applyInFiber(processEvent, void 0, [ctx], callback);
+    cocb.run(processEvent(ctx), callback);
 };
