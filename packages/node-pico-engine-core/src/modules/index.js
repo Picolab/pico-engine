@@ -12,11 +12,13 @@ var modules = {
 
 module.exports = {
     get: function(ctx, domain, id, callback){
-        if(_.has(modules, domain)){
-            if(_.has(modules[domain], "get")){
-                modules[domain].get(ctx, id, callback);
-                return;
-            }
+        if(_.has(modules, [domain, "def", id])){
+            callback(null, modules[domain].def[id]);
+            return;
+        }
+        if(_.has(modules, [domain, "get"])){
+            modules[domain].get(ctx, id, callback);
+            return;
         }
         if(_.has(ctx, ["modules_used", domain, "scope"])){
             if(ctx.modules_used[domain].scope.has(id)){

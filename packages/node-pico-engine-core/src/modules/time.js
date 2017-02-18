@@ -1,11 +1,7 @@
-var fns = {
-    now: function(ctx, args){
-        return (new Date()).toISOString();
-    }
-};
-
 module.exports = {
-    get: function(ctx, id, callback){
-        callback(null, fns[id]);
+    def: {
+        now: function(ctx, args){
+            return (new Date()).toISOString();
+        }
     }
 };
