@@ -81,11 +81,7 @@ var evalRuleInFuture = Future.wrap(function(ctx, rule, callback){
     cocb.run(evalRule(ctx, rule), callback);
 });
 
-var evalRuleInFiber = function(ctx, rule){
-    return evalRuleInFuture(ctx, rule).wait();
-};
-
-var runEvent = function(scheduled){
+var runEventYieldable = cocb.wrap(function*(scheduled){
     var rule = scheduled.rule;
     var ctx = scheduled.ctx;
 
@@ -100,7 +96,7 @@ var runEvent = function(scheduled){
 
     var r = [];
     if(rule.foreach){
-        rule.foreach(ctx, function(val, iter){
+        yield runKRL(rule.foreach, ctx, function(val, iter){
             var counter = _.size(val);
             return _.mapValues(val, function(){
                 var args = _.toArray(arguments);
@@ -110,12 +106,20 @@ var runEvent = function(scheduled){
                 }), args);
             });
         }, function(ctx){
-            r.push(evalRuleInFiber(ctx, rule));
+            r.push(evalRuleInFuture(ctx, rule).wait());
         });
     }else{
-        r.push(evalRuleInFiber(ctx, rule));
+        r.push(yield evalRule(ctx, rule));
     }
     return r;
+});
+
+var runEventFuture = Future.wrap(function(scheduled, callback){
+    cocb.run(runEventYieldable(scheduled), callback);
+});
+
+var runEvent = function(scheduled){
+    return runEventFuture(scheduled).wait();
 };
 
 var processEvent = function(ctx){
