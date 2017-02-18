@@ -3,7 +3,7 @@ var cocb = require("co-callback");
 var runKRL = require("./runKRL");
 var Future = require("fibers/future");
 var applyInFiber = require("./applyInFiber");
-var selectRulesToEvalFuture = Future.wrap(require("./selectRulesToEval"));
+var selectRulesToEval = require("./selectRulesToEval");
 var noopTrue = function(){
     return true;
 };
@@ -126,17 +126,21 @@ var processEvent = function(ctx){
     ctx.emit("debug", "event being processed");
 
     var schedule = [];
-    var scheduleEvent = function(ctx){
-        var rules = selectRulesToEvalFuture(ctx).wait();
-        _.each(rules, function(rule){
-            ctx.emit("debug", "rule added to schedule: " + rule.rid + " -> " + rule.name);
-            schedule.push({rule: rule, ctx: ctx});
+    var scheduleEventRAW = function(ctx, callback){
+        selectRulesToEval(ctx, function(err, rules){
+            if(err) return callback(err);
+            _.each(rules, function(rule){
+                ctx.emit("debug", "rule added to schedule: " + rule.rid + " -> " + rule.name);
+                schedule.push({rule: rule, ctx: ctx});
+            });
+            callback();
         });
     };
+    var scheduleEvent = Future.wrap(scheduleEventRAW);
 
-    scheduleEvent(ctx);
+    scheduleEvent(ctx).wait();
 
-    ctx.raiseEvent = function(revent){
+    ctx.raiseEvent = Future.wrap(function(revent, callback){
         //shape the revent like a normal event
         var event = {
             eci: ctx.event.eci,//raise event is always to the same pico
@@ -154,8 +158,8 @@ var processEvent = function(ctx){
         });
         raise_ctx.raiseEvent = ctx.raiseEvent;
         raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
-        scheduleEvent(raise_ctx);
-    };
+        scheduleEventRAW(raise_ctx, callback);
+    });
 
 
     var responses = [];

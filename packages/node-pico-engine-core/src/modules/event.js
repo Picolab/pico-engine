@@ -76,7 +76,7 @@ var fns = {
 
     raise: function(ctx, args){
         var revent = getArg(args, "revent", 0);
-        ctx.raiseEvent(revent);
+        ctx.raiseEvent(revent).wait();
     },
 
     //TODO this is technically a RuleAction
