@@ -39,7 +39,7 @@ var fns = {
 };
 
 module.exports = {
-    get: function(ctx, id){
-        return fns[id];
+    get: function(ctx, id, callback){
+        callback(null, fns[id]);
     }
 };

@@ -14,7 +14,7 @@ module.exports = {
     get: function(ctx, domain, id, callback){
         if(_.has(modules, domain)){
             if(_.has(modules[domain], "get")){
-                callback(null, modules[domain].get(ctx, id));
+                modules[domain].get(ctx, id, callback);
                 return;
             }
         }
