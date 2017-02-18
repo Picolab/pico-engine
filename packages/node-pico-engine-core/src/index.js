@@ -89,7 +89,7 @@ module.exports = function(conf, callback){
         return ctx;
     };
 
-    var registerRulesetInFiber = function(rs, loadDepRS){
+    var initializeRulest = function(rs, loadDepRS){
         rs.scope = SymbolTable();
         var ctx = mkCTX({
             rid: rs.rid,
@@ -102,47 +102,57 @@ module.exports = function(conf, callback){
             rs.global(ctx);
         }
         rs.modules_used = {};
-        _.each(rs.meta && rs.meta.use, function(use){
+        var use_array = _.values(rs.meta && rs.meta.use);
+        var i, use, dep_rs, ctx2;
+        for(i = 0; i < use_array.length; i++){
+            use = use_array[i];
             if(use.kind !== "module"){
                 throw new Error("Unsupported 'use' kind: " + use.kind);
             }
-            var dep_rs = loadDepRS(use.rid);
+            dep_rs = loadDepRS(use.rid);
             if(!dep_rs){
                 throw new Error("Dependant module not loaded: " + use.rid);
             }
-            var ctx = mkCTX({
+            ctx2 = mkCTX({
                 rid: dep_rs.rid,
-                scope: SymbolTable()//or dep_rs.scope.push() ??? TODO
+                scope: SymbolTable()
             });
             if(_.isFunction(dep_rs.meta && dep_rs.meta.configure)){
-                dep_rs.meta.configure(ctx);
+                dep_rs.meta.configure(ctx2);
             }
             if(_.isFunction(use["with"])){
-                use["with"](ctx);
+                use["with"](ctx2);
             }
             if(_.isFunction(dep_rs.global)){
-                dep_rs.global(ctx);
+                dep_rs.global(ctx2);
             }
             rs.modules_used[use.alias] = {
                 rid: use.rid,
-                scope: ctx.scope,
+                scope: ctx2.scope,
                 provides: dep_rs.meta.provides
             };
-        });
-        _.each(rs.rules, function(rule){
-            rule.rid = rs.rid;
-
-            _.each(rule.select && rule.select.graph, function(g, domain){
-                _.each(g, function(exprs, type){
-                    _.set(salience_graph, [domain, type, rule.rid, rule.name], true);
-                });
-            });
-        });
-        rulesets[rs.rid] = rs;
+        }
     };
 
     var registerRuleset = function(rs, loadDepRS, callback){
-        applyInFiber(registerRulesetInFiber, null, [rs, loadDepRS], callback);
+        applyInFiber(function(){
+            initializeRulest(rs, loadDepRS);
+        }, null, [], function(err){
+            if(err) return callback(err);
+
+            //now setup `salience_graph` and `rulesets`
+            _.each(rs.rules, function(rule){
+                rule.rid = rs.rid;
+                _.each(rule.select && rule.select.graph, function(g, domain){
+                    _.each(g, function(exprs, type){
+                        _.set(salience_graph, [domain, type, rule.rid, rule.name], true);
+                    });
+                });
+            });
+            rulesets[rs.rid] = rs;
+
+            callback();
+        });
     };
 
     var getRulesetForRID = function(rid, callback){
