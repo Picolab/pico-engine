@@ -11,7 +11,7 @@ var KRLClosure = require("./KRLClosure");
 var SymbolTable = require("symbol-table");
 var applyInFiber = require("./applyInFiber");
 var EventEmitter = require("events");
-var executeQuery = require("./executeQuery");
+var processQuery = require("./processQuery");
 var processEventInFiber = require("./processEventInFiber");
 
 var modulesSync = {
@@ -208,7 +208,7 @@ module.exports = function(conf, callback){
             });
             return;
         }else if(data.type === "query"){
-            executeQuery(mkCTX({
+            processQuery(mkCTX({
                 query: data.query,
                 pico_id: pico_id
             }), callback);
