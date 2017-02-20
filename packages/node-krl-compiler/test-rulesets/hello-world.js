@@ -8,9 +8,9 @@ module.exports = {
     "shares": ["hello"]
   },
   "global": function* (ctx) {
-    ctx.scope.set("hello", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("hello", yield ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
-      ctx.scope.set("msg", ctx.callKRLstdlib("+", "Hello ", ctx.scope.get("obj")));
+      ctx.scope.set("msg", yield ctx.callKRLstdlib("+", "Hello ", ctx.scope.get("obj")));
       return ctx.scope.get("msg");
     }));
   },

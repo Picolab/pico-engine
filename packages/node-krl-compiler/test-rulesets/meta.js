@@ -5,7 +5,7 @@ module.exports = {
     "shares": ["eci"]
   },
   "global": function* (ctx) {
-    ctx.scope.set("eci", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("eci", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "meta", "eci");
     }));
   },

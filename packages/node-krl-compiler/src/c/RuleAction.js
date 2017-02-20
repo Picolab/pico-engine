@@ -42,7 +42,7 @@ module.exports = function(ast, comp, e){
             args_obj = e("obj", a_obj);
         }
         fn_body.push(e("return", e(
-            "call",
+            "ycall",
             e("call", e("id", "ctx.scope.get"), [e("str", ast.action.value)]),
             [e("id", "ctx"), args_obj]
         )));

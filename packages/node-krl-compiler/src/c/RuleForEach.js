@@ -17,7 +17,7 @@ module.exports = function(ast, comp, e, context){
         ], loc), loc);
     });
 
-    return e(";", e("call", e("id", "foreach"), [
+    return e(";", e("ycall", e("id", "foreach"), [
         comp(ast.expression),
         mkKRLClosure(e, setting.concat([context.iter]))
     ]));

@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.foreach",
   "meta": { "name": "testing foreach" },
   "global": function* (ctx) {
-    ctx.scope.set("doubleThis", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("doubleThis", yield ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("arr", ctx.getArg(ctx.args, "arr", 0));
       return [
         ctx.scope.get("arr"),
@@ -28,13 +28,13 @@ module.exports = {
         }
       },
       "foreach": function* (ctx, foreach, iter) {
-        foreach([
+        yield foreach([
           1,
           2,
           3
-        ], ctx.KRLClosure(ctx, function* (ctx) {
+        ], yield ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("x", ctx.getArg(ctx.args, "value", 0));
-          iter(ctx);
+          yield iter(ctx);
         }));
       },
       "action_block": {
@@ -66,14 +66,14 @@ module.exports = {
         }
       },
       "foreach": function* (ctx, foreach, iter) {
-        foreach({
+        yield foreach({
           "a": 1,
           "b": 2,
           "c": 3
-        }, ctx.KRLClosure(ctx, function* (ctx) {
+        }, yield ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("v", ctx.getArg(ctx.args, "value", 0));
           ctx.scope.set("k", ctx.getArg(ctx.args, "key", 1));
-          iter(ctx);
+          yield iter(ctx);
         }));
       },
       "action_block": {
@@ -108,19 +108,19 @@ module.exports = {
         }
       },
       "foreach": function* (ctx, foreach, iter) {
-        foreach([
+        yield foreach([
           1,
           2,
           3
-        ], ctx.KRLClosure(ctx, function* (ctx) {
+        ], yield ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("x", ctx.getArg(ctx.args, "value", 0));
-          foreach([
+          yield foreach([
             "a",
             "b",
             "c"
-          ], ctx.KRLClosure(ctx, function* (ctx) {
+          ], yield ctx.KRLClosure(ctx, function* (ctx) {
             ctx.scope.set("y", ctx.getArg(ctx.args, "value", 0));
-            iter(ctx);
+            yield iter(ctx);
           }));
         }));
       },
@@ -156,23 +156,23 @@ module.exports = {
         }
       },
       "foreach": function* (ctx, foreach, iter) {
-        foreach(ctx.scope.get("doubleThis")(ctx, [[
+        yield foreach(yield ctx.scope.get("doubleThis")(ctx, [[
             1,
             2,
             3
-          ]]), ctx.KRLClosure(ctx, function* (ctx) {
+          ]]), yield ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("arr", ctx.getArg(ctx.args, "value", 0));
-          foreach(ctx.scope.get("arr"), ctx.KRLClosure(ctx, function* (ctx) {
+          yield foreach(ctx.scope.get("arr"), yield ctx.KRLClosure(ctx, function* (ctx) {
             ctx.scope.set("foo", ctx.getArg(ctx.args, "value", 0));
-            foreach(ctx.callKRLstdlib("range", 0, ctx.scope.get("foo")), ctx.KRLClosure(ctx, function* (ctx) {
+            yield foreach(yield ctx.callKRLstdlib("range", 0, ctx.scope.get("foo")), yield ctx.KRLClosure(ctx, function* (ctx) {
               ctx.scope.set("bar", ctx.getArg(ctx.args, "value", 0));
-              iter(ctx);
+              yield iter(ctx);
             }));
           }));
         }));
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("baz", ctx.callKRLstdlib("*", ctx.scope.get("foo"), ctx.scope.get("bar")));
+        ctx.scope.set("baz", yield ctx.callKRLstdlib("*", ctx.scope.get("foo"), ctx.scope.get("bar")));
       },
       "action_block": {
         "actions": [{

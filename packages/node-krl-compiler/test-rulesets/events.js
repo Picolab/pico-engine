@@ -9,16 +9,16 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getOnChooseFired", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getOnChooseFired", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "ent", "on_choose_fired");
     }));
-    ctx.scope.set("getNoActionFired", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getNoActionFired", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "ent", "no_action_fired");
     }));
-    ctx.scope.set("getSentAttrs", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getSentAttrs", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "ent", "sent_attrs");
     }));
-    ctx.scope.set("getSentName", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getSentName", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "ent", "sent_name");
     }));
   },
@@ -29,7 +29,7 @@ module.exports = {
         "graph": { "events": { "bind": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -75,7 +75,7 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("thing", ctx.modules.get(ctx, "event", "attr")(ctx, ["thing"]));
+        ctx.scope.set("thing", yield ctx.modules.get(ctx, "event", "attr")(ctx, ["thing"]));
       },
       "action_block": {
         "actions": [{
@@ -136,7 +136,7 @@ module.exports = {
         "graph": { "events": { "ifthen": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -174,7 +174,7 @@ module.exports = {
         "graph": { "events": { "on_fired": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -216,7 +216,7 @@ module.exports = {
         "graph": { "events": { "on_choose": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "thing",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -277,7 +277,7 @@ module.exports = {
         "graph": { "events": { "select_where": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            if (!ctx.callKRLstdlib("match", ctx.modules.get(ctx, "event", "attr")(ctx, ["something"]), new RegExp("^wat", "")))
+            if (!(yield ctx.callKRLstdlib("match", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["something"]), new RegExp("^wat", ""))))
               return false;
             return true;
           }
@@ -307,7 +307,7 @@ module.exports = {
         "graph": { "events": { "no_action": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "fired",
                   new RegExp("^yes$", "i")
                 ]]]);
@@ -339,7 +339,7 @@ module.exports = {
         "graph": { "events": { "action_send": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -359,7 +359,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx) {
-              return ctx.modules.get(ctx, "event", "send")(ctx, [{
+              return yield (yield ctx.modules.get(ctx, "event", "send"))(ctx, [{
                   "eci": ctx.modules.get(ctx, "meta", "eci"),
                   "eid": "0",
                   "domain": "events",
@@ -376,7 +376,7 @@ module.exports = {
         "graph": { "events": { "store_sent_name": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -395,7 +395,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "sent_attrs", ctx.modules.get(ctx, "event", "attrs")(ctx, []));
+          ctx.modules.set(ctx, "ent", "sent_attrs", yield ctx.modules.get(ctx, "event", "attrs")(ctx, []));
           ctx.modules.set(ctx, "ent", "sent_name", ctx.scope.get("my_name"));
         },
         "notfired": undefined,
@@ -408,7 +408,7 @@ module.exports = {
         "graph": { "events": { "raise_set_name": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -427,7 +427,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.get(ctx, "event", "raise")(ctx, [{
+          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, [{
               "domain": "events",
               "type": "store_sent_name",
               "for_rid": undefined,
@@ -444,7 +444,7 @@ module.exports = {
         "graph": { "events": { "raise_set_name_attr": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -463,7 +463,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.get(ctx, "event", "raise")(ctx, [{
+          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, [{
               "domain": "events",
               "type": "store_sent_name",
               "for_rid": undefined,
@@ -480,7 +480,7 @@ module.exports = {
         "graph": { "events": { "raise_set_name_rid": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -502,7 +502,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.get(ctx, "event", "raise")(ctx, [{
+          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, [{
               "domain": "events",
               "type": "store_sent_name",
               "for_rid": ctx.scope.get("rid"),

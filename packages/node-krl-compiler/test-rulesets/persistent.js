@@ -9,17 +9,17 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getName", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getName", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "ent", "name");
     }));
-    ctx.scope.set("getAppVar", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getAppVar", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "app", "appvar");
     }));
-    ctx.scope.set("getUser", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getUser", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "ent", "user");
     }));
-    ctx.scope.set("getUserFirstname", ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.callKRLstdlib("get", ctx.modules.get(ctx, "ent", "user"), ["firstname"]);
+    ctx.scope.set("getUserFirstname", yield ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.callKRLstdlib("get", ctx.modules.get(ctx, "ent", "user"), ["firstname"]);
     }));
   },
   "rules": {
@@ -29,7 +29,7 @@ module.exports = {
         "graph": { "store": { "name": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -71,7 +71,7 @@ module.exports = {
         "graph": { "store": { "appvar": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "appvar",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -113,7 +113,7 @@ module.exports = {
         "graph": { "store": { "user_firstname": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "firstname",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -146,7 +146,7 @@ module.exports = {
         "notfired": undefined,
         "always": function* (ctx) {
           ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
-          ctx.modules.set(ctx, "ent", "user", ctx.callKRLstdlib("set", ctx.modules.get(ctx, "ent", "user"), ["firstname"], ctx.scope.get("firstname")));
+          ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", ctx.modules.get(ctx, "ent", "user"), ["firstname"], ctx.scope.get("firstname")));
         }
       }
     }

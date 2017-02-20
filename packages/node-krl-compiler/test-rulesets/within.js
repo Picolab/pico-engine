@@ -72,7 +72,7 @@ module.exports = {
             ]]
         },
         "within": function* (ctx) {
-          return ctx.callKRLstdlib("+", 1, 3) * 1000;
+          return (yield ctx.callKRLstdlib("+", 1, 3)) * 1000;
         }
       },
       "action_block": {
@@ -154,7 +154,7 @@ module.exports = {
         "graph": { "qux": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "b",
                   new RegExp("c", "")
                 ]]]);

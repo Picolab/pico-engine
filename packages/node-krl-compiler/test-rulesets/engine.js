@@ -19,7 +19,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.get(ctx, "engine", "newPico")(ctx, []);
+          yield ctx.modules.get(ctx, "engine", "newPico")(ctx, []);
         },
         "notfired": undefined,
         "always": undefined
@@ -43,10 +43,10 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.get(ctx, "engine", "newChannel")(ctx, [{
-              "name": ctx.modules.get(ctx, "event", "attr")(ctx, ["name"]),
-              "type": ctx.modules.get(ctx, "event", "attr")(ctx, ["type"]),
-              "pico_id": ctx.modules.get(ctx, "event", "attr")(ctx, ["pico_id"])
+          yield ctx.modules.get(ctx, "engine", "newChannel")(ctx, [{
+              "name": yield ctx.modules.get(ctx, "event", "attr")(ctx, ["name"]),
+              "type": yield ctx.modules.get(ctx, "event", "attr")(ctx, ["type"]),
+              "pico_id": yield ctx.modules.get(ctx, "event", "attr")(ctx, ["pico_id"])
             }]);
         },
         "notfired": undefined,

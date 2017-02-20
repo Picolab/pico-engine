@@ -14,36 +14,36 @@ module.exports = {
   "global": function* (ctx) {
     ctx.scope.set("g0", "global 0");
     ctx.scope.set("g1", 1);
-    ctx.scope.set("getVals", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getVals", yield ctx.KRLClosure(ctx, function* (ctx) {
       return {
         "name": ctx.modules.get(ctx, "ent", "ent_var_name"),
         "p0": ctx.modules.get(ctx, "ent", "ent_var_p0"),
         "p1": ctx.modules.get(ctx, "ent", "ent_var_p1")
       };
     }));
-    ctx.scope.set("add", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("add", yield ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("a", ctx.getArg(ctx.args, "a", 0));
       ctx.scope.set("b", ctx.getArg(ctx.args, "b", 1));
-      return ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("b"));
+      return yield ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("b"));
     }));
-    ctx.scope.set("sum", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("sum", yield ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("arr", ctx.getArg(ctx.args, "arr", 0));
-      return ctx.callKRLstdlib("reduce", ctx.scope.get("arr"), ctx.scope.get("add"), 0);
+      return yield ctx.callKRLstdlib("reduce", ctx.scope.get("arr"), ctx.scope.get("add"), 0);
     }));
-    ctx.scope.set("incByN", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("incByN", yield ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("n", ctx.getArg(ctx.args, "n", 0));
-      return ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.KRLClosure(ctx, function* (ctx) {
         ctx.scope.set("a", ctx.getArg(ctx.args, "a", 0));
-        return ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("n"));
+        return yield ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("n"));
       });
     }));
-    ctx.scope.set("mapped", ctx.callKRLstdlib("map", [
+    ctx.scope.set("mapped", yield ctx.callKRLstdlib("map", [
       1,
       2,
       3
-    ], ctx.KRLClosure(ctx, function* (ctx) {
+    ], yield ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("n", ctx.getArg(ctx.args, "n", 0));
-      return ctx.callKRLstdlib("+", ctx.scope.get("n"), ctx.scope.get("g1"));
+      return yield ctx.callKRLstdlib("+", ctx.scope.get("n"), ctx.scope.get("g1"));
     })));
   },
   "rules": {
@@ -58,7 +58,7 @@ module.exports = {
         },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -102,7 +102,7 @@ module.exports = {
         "graph": { "scope": { "prelude": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -167,7 +167,7 @@ module.exports = {
       },
       "prelude": function* (ctx) {
         ctx.scope.set("g0", "overrided g0!");
-        ctx.scope.set("inc5", ctx.scope.get("incByN")(ctx, [5]));
+        ctx.scope.set("inc5", yield ctx.scope.get("incByN")(ctx, [5]));
       },
       "action_block": {
         "actions": [{
@@ -176,11 +176,11 @@ module.exports = {
                 "type": "directive",
                 "name": "say",
                 "options": {
-                  "add_one_two": ctx.scope.get("add")(ctx, [
+                  "add_one_two": yield ctx.scope.get("add")(ctx, [
                     1,
                     2
                   ]),
-                  "inc5_3": ctx.scope.get("inc5")(ctx, [3]),
+                  "inc5_3": yield ctx.scope.get("inc5")(ctx, [3]),
                   "g0": ctx.scope.get("g0")
                 }
               };

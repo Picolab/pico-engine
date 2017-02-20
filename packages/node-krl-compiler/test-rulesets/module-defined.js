@@ -11,17 +11,17 @@ module.exports = {
     }
   },
   "global": function* (ctx) {
-    ctx.scope.set("privateFn", ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", "privateFn = name: ", ctx.scope.get("configured_name")), " memo: "), ctx.modules.get(ctx, "ent", "memo"));
+    ctx.scope.set("privateFn", yield ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", "privateFn = name: ", ctx.scope.get("configured_name")), " memo: "), ctx.modules.get(ctx, "ent", "memo"));
     }));
-    ctx.scope.set("getName", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getName", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.scope.get("configured_name");
     }));
-    ctx.scope.set("getInfo", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getInfo", yield ctx.KRLClosure(ctx, function* (ctx) {
       return {
-        "name": ctx.scope.get("getName")(ctx, []),
+        "name": yield ctx.scope.get("getName")(ctx, []),
         "memo": ctx.modules.get(ctx, "ent", "memo"),
-        "privateFn": ctx.scope.get("privateFn")(ctx, [])
+        "privateFn": yield ctx.scope.get("privateFn")(ctx, [])
       };
     }));
   },
@@ -32,7 +32,7 @@ module.exports = {
         "graph": { "module_defined": { "store_memo": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "memo",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -67,7 +67,7 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "memo", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", "[\"", ctx.scope.get("text")), "\" by "), ctx.scope.get("configured_name")), "]"));
+          ctx.modules.set(ctx, "ent", "memo", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", "[\"", ctx.scope.get("text")), "\" by "), ctx.scope.get("configured_name")), "]"));
         }
       }
     }

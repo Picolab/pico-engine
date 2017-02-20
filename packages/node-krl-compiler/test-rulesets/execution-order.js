@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.execution-order",
   "meta": { "shares": ["getOrder"] },
   "global": function* (ctx) {
-    ctx.scope.set("getOrder", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getOrder", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "ent", "order");
     }));
   },
@@ -36,11 +36,11 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "order", ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "first-fired"));
+          ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "first-fired"));
         },
         "notfired": undefined,
         "always": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "order", ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "first-finally"));
+          ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "first-finally"));
         }
       }
     },
@@ -73,11 +73,11 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "order", ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "second-fired"));
+          ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "second-fired"));
         },
         "notfired": undefined,
         "always": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "order", ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "second-finally"));
+          ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "second-finally"));
         }
       }
     }

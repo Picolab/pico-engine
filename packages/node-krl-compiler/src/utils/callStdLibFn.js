@@ -1,5 +1,5 @@
 module.exports = function(e, name, args, loc){
-    return e("call",
+    return e("ycall",
         e("id", "ctx.callKRLstdlib", loc),
         [
             e("string", name, loc)

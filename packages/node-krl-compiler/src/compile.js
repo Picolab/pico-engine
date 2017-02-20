@@ -122,7 +122,7 @@ var comp_by_type = {
             });
             args_obj = e("obj", obj);
         }
-        return e("call", comp(ast.callee), [
+        return e("ycall", comp(ast.callee), [
             e("id", "ctx"),
             args_obj
         ]);
@@ -257,7 +257,7 @@ var comp_by_type = {
                 return nestedForeach(rest, comp(last, {iter: iter}));
             };
             rule.foreach = e("genfn", ["ctx", "foreach", "iter"], [
-                nestedForeach(ast.foreach, e(";", e("call", e("id", "iter"), [e("id", "ctx")])))
+                nestedForeach(ast.foreach, e(";", e("ycall", e("id", "iter"), [e("id", "ctx")])))
             ]);
         }
         if(!_.isEmpty(ast.prelude)){
@@ -319,6 +319,12 @@ module.exports = function(ast, options){
                 args[last_i] = toLoc(last.start, last.end);
             }else{
                 args.push(default_loc);
+            }
+            if(args[0] === "ycall"){
+                return mkTree("yield",
+                    mkTree.apply(null, ["call"].concat(_.tail(args))),
+                    args[args.length - 1]
+                );
             }
             return mkTree.apply(null, args);
         };

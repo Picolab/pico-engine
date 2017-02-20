@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.guard-conditions",
   "meta": { "shares": ["getB"] },
   "global": function* (ctx) {
-    ctx.scope.set("getB", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getB", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "ent", "b");
     }));
   },
@@ -13,7 +13,7 @@ module.exports = {
         "graph": { "foo": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "b",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -45,7 +45,7 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function* (ctx) {
-          if (ctx.callKRLstdlib("match", ctx.scope.get("b"), new RegExp("foo", "")))
+          if (yield ctx.callKRLstdlib("match", ctx.scope.get("b"), new RegExp("foo", "")))
             ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
         }
       }
@@ -67,13 +67,13 @@ module.exports = {
         }
       },
       "foreach": function* (ctx, foreach, iter) {
-        foreach([
+        yield foreach([
           1,
           2,
           3
-        ], ctx.KRLClosure(ctx, function* (ctx) {
+        ], yield ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("x", ctx.getArg(ctx.args, "value", 0));
-          iter(ctx);
+          yield iter(ctx);
         }));
       },
       "action_block": {

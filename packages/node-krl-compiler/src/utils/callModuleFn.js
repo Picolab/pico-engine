@@ -1,6 +1,6 @@
 module.exports = function(e, domain, id, args, loc){
-    return e("call",
-        e("call",
+    return e("ycall",
+        e("ycall",
             e("id", "ctx.modules.get", loc),
             [
                 e("id", "ctx", loc),
