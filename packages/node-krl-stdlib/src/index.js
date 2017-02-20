@@ -27,6 +27,25 @@ var krlLambda = function(ctx, fn){
     };
 };
 
+var iterBase = function*(val, iter){
+    var should_continue;
+    if(_.isArray(val)){
+        var i;
+        for(i = 0; i < val.length; i++){
+            should_continue = yield iter(val[i], i, val);
+            if(!should_continue) break;
+        }
+    }else{
+        var key;
+        for(key in val){
+            if(_.has(val, key)){
+                should_continue = yield iter(val[key], key, val);
+                if(!should_continue) break;
+            }
+        }
+    }
+};
+
 defVarArgOp("<", function(r, a){
     return r < a;
 });
@@ -219,21 +238,35 @@ stdlib.uc = function(ctx, val){
 };
 
 //Collection operators//////////////////////////////////////////////////////////
-stdlib.all = function(ctx, val, iter){
-    iter = krlLambda(ctx, iter);
-    return _.every(val, iter);
+stdlib.all = function*(ctx, val, iter){
+    var broke = false;
+    yield iterBase(val, function*(v, k, obj){
+        var r = yield iter(ctx, [v, k, obj]);
+        if(!r){
+            broke = true;
+            return false;//stop
+        }
+        return true;
+    });
+    return !broke;
 };
-stdlib.notall = function(ctx, val, iter){
-    iter = krlLambda(ctx, iter);
-    return _.some(val, _.negate(iter));
+stdlib.notall = function*(ctx, val, iter){
+    return !(yield stdlib.all(ctx, val, iter));
 };
-stdlib.any = function(ctx, val, iter){
-    iter = krlLambda(ctx, iter);
-    return _.some(val, iter);
+stdlib.any = function*(ctx, val, iter){
+    var broke = false;
+    yield iterBase(val, function*(v, k, obj){
+        var r = yield iter(ctx, [v, k, obj]);
+        if(r){
+            broke = true;
+            return false;//stop
+        }
+        return true;
+    });
+    return broke;
 };
-stdlib.none = function(ctx, val, iter){
-    iter = krlLambda(ctx, iter);
-    return _.every(val, _.negate(iter));
+stdlib.none = function*(ctx, val, iter){
+    return !(yield stdlib.any(ctx, val, iter));
 };
 stdlib.append = function(ctx, val, others){
     return _.concat.apply(void 0, _.tail(_.toArray(arguments)));

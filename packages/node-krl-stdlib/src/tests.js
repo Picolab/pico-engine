@@ -234,17 +234,19 @@ ytest("Collection operators", function*(t, ytf, tf){
     tf("><",[[5, 6, 7],6],true);
     tf("><",[[5, 6, 7],3],false);
 
-    _.each({
-        "all":    [ true, false, false],
-        "notall": [false,  true,  true],
-        "any":    [ true,  true, false],
-        "none":   [false, false,  true]
-    }, function(expected, fn){
-        tf(fn, [a, function(x){return x < 10;}], expected[0]);
-        tf(fn, [a, function(x){return x >  3;}], expected[1]);
-        tf(fn, [a, function(x){return x > 10;}], expected[2]);
+    var exp = [
+        ["all",     true, false, false],
+        ["notall", false,  true,  true],
+        ["any",     true,  true, false],
+        ["none",   false, false,  true]
+    ];
+    var i;
+    for(i=0; i < exp.length; i++){
+        yield ytf(exp[i][0], [a, function(x){return x < 10;}], exp[i][1]);
+        yield ytf(exp[i][0], [a, function(x){return x >  3;}], exp[i][2]);
+        yield ytf(exp[i][0], [a, function(x){return x > 10;}], exp[i][3]);
         t.deepEquals(a, [3, 4, 5], "should not be mutated");
-    });
+    }
 
     tf("append", [a, [6]], [3, 4, 5, 6]);
     t.deepEquals(a, [3, 4, 5], "should not be mutated");
