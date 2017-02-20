@@ -271,22 +271,33 @@ stdlib.none = function*(ctx, val, iter){
 stdlib.append = function(ctx, val, others){
     return _.concat.apply(void 0, _.tail(_.toArray(arguments)));
 };
-stdlib.collect = function(ctx, val, iter){
-    iter = krlLambda(ctx, iter);
-    return _.groupBy(val, iter);
+stdlib.collect = function*(ctx, val, iter){
+    var grouped = {};
+    yield iterBase(val, function*(v, k, obj){
+        var r = yield iter(ctx, [v, k, obj]);
+        if(!grouped.hasOwnProperty(r)){
+            grouped[r] = [];
+        }
+        grouped[r].push(v);
+        return true;
+    });
+    return grouped;
 };
-stdlib.filter = function(ctx, val, iter){
-    iter = krlLambda(ctx, iter);
-    if(_.isPlainObject(val)){
-        var r = {};
-        _.each(val, function(v, k, o){
-            if(iter(v, k, o)){
-                r[k] = v;
+stdlib.filter = function*(ctx, val, iter){
+    var is_array = _.isArray(val);
+    var rslt = is_array ? [] : {};
+    yield iterBase(val, function*(v, k, obj){
+        var r = yield iter(ctx, [v, k, obj]);
+        if(r){
+            if(is_array){
+                rslt.push(v);
+            }else{
+                rslt[k] = v;
             }
-        });
-        return r;
-    }
-    return _.filter(val, iter);
+        }
+        return true;
+    });
+    return rslt;
 };
 stdlib.head = function(ctx, val){
     return _.head(val);
@@ -304,27 +315,40 @@ stdlib.length = function(ctx, val){
     return _.size(val);
 };
 stdlib.map = function*(ctx, val, iter){
-    if(_.isArray(val)){
-        var a = [];
-        var i;
-        for(i = 0; i < val.length; i++){
-            a.push(yield iter(ctx, [val[i], i, val]));
+    var is_array = _.isArray(val);
+    var rslt = is_array ? [] : {};
+    yield iterBase(val, function*(v, k, obj){
+        var r = yield iter(ctx, [v, k, obj]);
+        if(is_array){
+            rslt.push(r);
+        }else{
+            rslt[k] = r;
         }
-        return a;
-    }
-    var r = {};
-    var key;
-    for(key in val){
-        if(_.has(val, key)){
-            r[key] = yield iter(ctx, [val[key], key, val]);
+        return true;
+    });
+    return rslt;
+};
+stdlib.pairwise = function*(/*ctx, val..., iter*/){
+    var args = _.toArray(arguments);
+    var ctx = args[0];
+    var iter = args[args.length - 1];
+    args = args.slice(1, args.length - 1);
+
+    var max_len = _.max(_.map(args, _.size));
+
+    var r = [];
+
+    var i;
+    var j;
+    var args2;
+    for(i = 0; i < max_len; i++){
+        args2 = [];
+        for(j = 0; j < args.length; j++){
+            args2.push(args[j][i]);
         }
+        r.push(yield iter(ctx, args2));
     }
     return r;
-};
-stdlib.pairwise = function(ctx){
-    var args = _.tail(_.toArray(arguments));
-    args[args.length - 1] = krlLambda(ctx, args[args.length - 1]);
-    return _.zipWith.apply(void 0, args);
 };
 stdlib.reduce = function(ctx, val, iter, dflt){
     iter = krlLambda(ctx, iter);

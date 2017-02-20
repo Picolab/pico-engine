@@ -254,18 +254,18 @@ ytest("Collection operators", function*(t, ytf, tf){
     tf("append", [["a", "b"], 10, 11], ["a", "b", 10, 11]);
     tf("append", [10, 11], [10, 11]);
 
-    tf("collect", [[7, 4, 3, 5, 2, 1, 6], function(a){
+    yield ytf("collect", [[7, 4, 3, 5, 2, 1, 6], function(a){
         return (a < 5) ? "x" : "y";
     }], {
         "x": [4,3,2,1],
         "y": [7,5,6]
     });
 
-    tf("filter", [a, function(x){return x < 5;}], [3, 4]);
-    tf("filter", [a, function(x){return x !== 4;}], [3, 5]);
+    yield ytf("filter", [a, function(x){return x < 5;}], [3, 4]);
+    yield ytf("filter", [a, function(x){return x !== 4;}], [3, 5]);
     t.deepEquals(a, [3, 4, 5], "should not be mutated");
-    tf("filter", [obj2, function(v, k){return v < 3;}], {"a":1,"b":2});
-    tf("filter", [obj2, function(v, k){return k === "b";}], {"b":2});
+    yield ytf("filter", [obj2, function(v, k){return v < 3;}], {"a":1,"b":2});
+    yield ytf("filter", [obj2, function(v, k){return k === "b";}], {"b":2});
     assertObjNotMutated();
 
     tf("head", [a], 3);
@@ -289,7 +289,15 @@ ytest("Collection operators", function*(t, ytf, tf){
     yield ytf("map", [obj2, function(x){return x + 2;}], {"a":3,"b":4,"c":5});
     assertObjNotMutated();
 
-    tf("pairwise", [a, [6, 7, 8], function(x, y){return x + y;}], [9, 11, 13]);
+    yield ytf("pairwise", [a, [6, 7, 8], function(x, y){return x + y;}], [9, 11, 13]);
+    yield ytf("pairwise", [a, "abcdef".split(""), function(x, y){return x + y;}], [
+        "3a",
+        "4b",
+        "5c",
+        "undefinedd",
+        "undefinede",
+        "undefinedf",
+    ]);
     t.deepEquals(a, [3, 4, 5], "should not be mutated");
 
     tf("reduce", [a, function(a,b){return a+b;}], 12);
