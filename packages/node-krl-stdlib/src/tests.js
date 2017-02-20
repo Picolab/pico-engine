@@ -300,14 +300,14 @@ ytest("Collection operators", function*(t, ytf, tf){
     ]);
     t.deepEquals(a, [3, 4, 5], "should not be mutated");
 
-    tf("reduce", [a, function(a,b){return a+b;}], 12);
-    tf("reduce", [a, function(a,b){return a+b;}, 10], 22);
-    tf("reduce", [a, function(a,b){return a-b;}], -6);
+    yield ytf("reduce", [a, function(a,b){return a+b;}], 12);
+    yield ytf("reduce", [a, function(a,b){return a+b;}, 10], 22);
+    yield ytf("reduce", [a, function(a,b){return a-b;}], -6);
     t.deepEquals(a, [3, 4, 5], "should not be mutated");
-    tf("reduce", [[], function(a,b){return a+b;}], 0);
-    tf("reduce", [[], function(a,b){return a+b;}, 15], 15);
-    tf("reduce", [[76], function(a,b){return a+b;}], 76);
-    tf("reduce", [[76], function(a,b){return a+b;}, 15], 91);
+    yield ytf("reduce", [[], function(a,b){return a+b;}], 0);
+    yield ytf("reduce", [[], function(a,b){return a+b;}, 15], 15);
+    yield ytf("reduce", [[76], function(a,b){return a+b;}], 76);
+    yield ytf("reduce", [[76], function(a,b){return a+b;}, 15], 91);
 
     tf("reverse", [a], [5, 4, 3]);
     t.deepEquals(a, [3, 4, 5], "should not be mutated");
@@ -327,11 +327,11 @@ ytest("Collection operators", function*(t, ytf, tf){
     t.deepEquals(vegies, ["corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"], "should not be mutated");
 
     var to_sort = [5, 3, 4, 1, 12];
-    tf("sort", [to_sort], [1, 12, 3, 4, 5]);
-    tf("sort", [to_sort, "reverse"], [5, 4, 3, 12, 1]);
-    tf("sort", [to_sort, "numeric"], [1, 3, 4, 5, 12]);
-    tf("sort", [to_sort, "ciremun"], [12, 5, 4, 3, 1]);
-    tf("sort", [to_sort, function(a, b){
+    yield ytf("sort", [to_sort], [1, 12, 3, 4, 5]);
+    yield ytf("sort", [to_sort, "reverse"], [5, 4, 3, 12, 1]);
+    yield ytf("sort", [to_sort, "numeric"], [1, 3, 4, 5, 12]);
+    yield ytf("sort", [to_sort, "ciremun"], [12, 5, 4, 3, 1]);
+    yield ytf("sort", [to_sort, function(a, b){
         return a < b ? -1 : (a == b ? 0 : 1);
     }], [1, 3, 4, 5, 12]);
     t.deepEquals(to_sort, [5, 3, 4, 1, 12], "should not be mutated");
