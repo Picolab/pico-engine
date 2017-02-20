@@ -12,7 +12,7 @@ var prop_use = function(ast, comp, e){
     obj.version = comp(ast.version);
   }
   if(ast["with"]){
-    obj["with"] = e("fn", ["ctx"], comp(ast["with"]), ast["with"].loc);
+    obj["with"] = e("genfn", ["ctx"], comp(ast["with"]), ast["with"].loc);
   }
   return e("obj", obj, ast.loc);
 };
@@ -31,7 +31,7 @@ module.exports = function(ast, comp, e){
       ];
     }
   }else if(key === "configure"){
-    val = e("fn", ["ctx"], comp(ast.value.declarations), ast.value.loc);
+    val = e("genfn", ["ctx"], comp(ast.value.declarations), ast.value.loc);
   }else if(ast.value.type === "String"){
     val = e("string", ast.value.value, ast.value.loc);
   }else if(ast.value.type === "Chevron"){

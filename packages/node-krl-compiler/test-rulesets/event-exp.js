@@ -11,10 +11,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           }
         },
@@ -31,7 +31,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "before",
@@ -51,10 +51,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           }
         },
@@ -71,7 +71,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "after",
@@ -91,10 +91,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
                   "name",
                   new RegExp("bob", "")
@@ -126,7 +126,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "then",
@@ -146,10 +146,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           }
         },
@@ -176,7 +176,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "and",
@@ -196,10 +196,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           }
         },
@@ -218,7 +218,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "or",
@@ -239,13 +239,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           },
-          "expr_2": function (ctx) {
+          "expr_2": function* (ctx) {
             return true;
           }
         },
@@ -266,7 +266,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "between",
@@ -287,13 +287,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           },
-          "expr_2": function (ctx) {
+          "expr_2": function* (ctx) {
             return true;
           }
         },
@@ -316,7 +316,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "not between",
@@ -337,13 +337,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           },
-          "expr_2": function (ctx) {
+          "expr_2": function* (ctx) {
             return true;
           }
         },
@@ -374,7 +374,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "(a and b) or c",
@@ -395,13 +395,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           },
-          "expr_2": function (ctx) {
+          "expr_2": function* (ctx) {
             return true;
           }
         },
@@ -438,7 +438,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "a and (b or c)",
@@ -459,13 +459,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           },
-          "expr_2": function (ctx) {
+          "expr_2": function* (ctx) {
             return true;
           }
         },
@@ -486,7 +486,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "before_n",
@@ -507,13 +507,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           },
-          "expr_2": function (ctx) {
+          "expr_2": function* (ctx) {
             return true;
           }
         },
@@ -534,7 +534,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "after_n",
@@ -555,13 +555,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           },
-          "expr_2": function (ctx) {
+          "expr_2": function* (ctx) {
             return true;
           }
         },
@@ -600,7 +600,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "then_n",
@@ -621,13 +621,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           },
-          "expr_2": function (ctx) {
+          "expr_2": function* (ctx) {
             return true;
           }
         },
@@ -704,7 +704,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "and_n",
@@ -726,16 +726,16 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           },
-          "expr_2": function (ctx) {
+          "expr_2": function* (ctx) {
             return true;
           },
-          "expr_3": function (ctx) {
+          "expr_3": function* (ctx) {
             return true;
           }
         },
@@ -762,7 +762,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "or_n",
@@ -784,16 +784,16 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           },
-          "expr_2": function (ctx) {
+          "expr_2": function* (ctx) {
             return true;
           },
-          "expr_3": function (ctx) {
+          "expr_3": function* (ctx) {
             return true;
           }
         },
@@ -876,7 +876,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "any",
@@ -891,7 +891,7 @@ module.exports = {
       "select": {
         "graph": { "ee_count": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -912,7 +912,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "count",
@@ -927,7 +927,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
                   "name",
                   new RegExp("bob", "")
@@ -958,7 +958,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "repeat",
@@ -973,7 +973,7 @@ module.exports = {
       "select": {
         "graph": { "ee_count_max": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
@@ -1007,7 +1007,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "count_max",
@@ -1022,7 +1022,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_min": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
@@ -1060,7 +1060,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "repeat_min",
@@ -1075,7 +1075,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_sum": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
@@ -1113,7 +1113,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "repeat_sum",
@@ -1128,7 +1128,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_avg": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
@@ -1166,7 +1166,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "repeat_avg",
@@ -1181,7 +1181,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_push": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
@@ -1219,7 +1219,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "repeat_push",
@@ -1234,7 +1234,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_push_multi": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[
                 [
                   "a",
@@ -1300,7 +1300,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "repeat_push_multi",
@@ -1320,7 +1320,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_sum_multi": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[
                 [
                   "a",
@@ -1370,7 +1370,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "repeat_sum_multi",

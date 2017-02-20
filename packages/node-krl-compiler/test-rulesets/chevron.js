@@ -4,7 +4,7 @@ module.exports = {
     "description": "\nHello Chevrons!\n    ",
     "shares": ["d"]
   },
-  "global": function (ctx) {
+  "global": function* (ctx) {
     ctx.scope.set("a", 1);
     ctx.scope.set("b", 2);
     ctx.scope.set("c", "<h1>some<b>html</b></h1>");

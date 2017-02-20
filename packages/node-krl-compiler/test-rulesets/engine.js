@@ -6,7 +6,7 @@ module.exports = {
       "select": {
         "graph": { "engine": { "newPico": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -18,7 +18,7 @@ module.exports = {
         }
       },
       "postlude": {
-        "fired": function (ctx) {
+        "fired": function* (ctx) {
           ctx.modules.get(ctx, "engine", "newPico")(ctx, []);
         },
         "notfired": undefined,
@@ -30,7 +30,7 @@ module.exports = {
       "select": {
         "graph": { "engine": { "newChannel": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -42,7 +42,7 @@ module.exports = {
         }
       },
       "postlude": {
-        "fired": function (ctx) {
+        "fired": function* (ctx) {
           ctx.modules.get(ctx, "engine", "newChannel")(ctx, [{
               "name": ctx.modules.get(ctx, "event", "attr")(ctx, ["name"]),
               "type": ctx.modules.get(ctx, "event", "attr")(ctx, ["type"]),

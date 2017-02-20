@@ -24,7 +24,7 @@ module.exports = function(ast, comp, e){
 
   body.push(e("return", e("call", e(".", e("arr", _.map(ast.actions, function(action){
     return comp(action);
-  })), e("id", "map")), [e("fn", ["a"], [
+  })), e("id", "map")), [e("genfn", ["a"], [
     e("return", e("call", e("id", "a.action"), [e("id", "ctx")]))
   ])])));
 

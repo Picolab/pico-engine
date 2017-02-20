@@ -53,6 +53,6 @@ module.exports = function(ast, comp, e){
   if(ast.label && ast.label.type === "Identifier"){
     obj.label = e("str", ast.label.value, ast.label.loc);
   }
-  obj.action = e("fn", ["ctx"], fn_body);
+  obj.action = e("genfn", ["ctx"], fn_body);
   return e("obj", obj);
 };

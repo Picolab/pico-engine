@@ -6,18 +6,18 @@ module.exports = {
       "getName"
     ],
     "shares": ["getInfo"],
-    "configure": function (ctx) {
+    "configure": function* (ctx) {
       ctx.scope.set("configured_name", "Bob");
     }
   },
-  "global": function (ctx) {
-    ctx.scope.set("privateFn", ctx.KRLClosure(ctx, function (ctx) {
+  "global": function* (ctx) {
+    ctx.scope.set("privateFn", ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", "privateFn = name: ", ctx.scope.get("configured_name")), " memo: "), ctx.modules.get(ctx, "ent", "memo"));
     }));
-    ctx.scope.set("getName", ctx.KRLClosure(ctx, function (ctx) {
+    ctx.scope.set("getName", ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.scope.get("configured_name");
     }));
-    ctx.scope.set("getInfo", ctx.KRLClosure(ctx, function (ctx) {
+    ctx.scope.set("getInfo", ctx.KRLClosure(ctx, function* (ctx) {
       return {
         "name": ctx.scope.get("getName")(ctx, []),
         "memo": ctx.modules.get(ctx, "ent", "memo"),
@@ -31,7 +31,7 @@ module.exports = {
       "select": {
         "graph": { "module_defined": { "store_memo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
                   "memo",
                   new RegExp("^(.*)$", "")
@@ -51,7 +51,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "store_memo",
@@ -66,7 +66,7 @@ module.exports = {
       "postlude": {
         "fired": undefined,
         "notfired": undefined,
-        "always": function (ctx) {
+        "always": function* (ctx) {
           ctx.modules.set(ctx, "ent", "memo", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", ctx.callKRLstdlib("+", "[\"", ctx.scope.get("text")), "\" by "), ctx.scope.get("configured_name")), "]"));
         }
       }

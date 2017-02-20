@@ -50,5 +50,5 @@ module.exports = function(ast, comp, e){
 
   fn_body.push(e("return", e(true)));
 
-  return e("fn", ["ctx"], fn_body);
+  return e("genfn", ["ctx"], fn_body);
 };

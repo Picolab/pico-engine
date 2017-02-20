@@ -7,7 +7,7 @@ module.exports = {
       "returnArrayAfterKlog"
     ]
   },
-  "global": function (ctx) {
+  "global": function* (ctx) {
     ctx.scope.set("nothing", void 0);
     ctx.scope.set("some_string", "foo");
     ctx.scope.set("results", {
@@ -51,10 +51,10 @@ module.exports = {
       ".substr(25)": ctx.callKRLstdlib("substr", "This is a string", 25),
       ".uc()": ctx.callKRLstdlib("uc", "Hello World")
     });
-    ctx.scope.set("returnMapAfterKlog", ctx.KRLClosure(ctx, function (ctx) {
+    ctx.scope.set("returnMapAfterKlog", ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.callKRLstdlib("klog", { "a": 1 }, "hi:");
     }));
-    ctx.scope.set("returnArrayAfterKlog", ctx.KRLClosure(ctx, function (ctx) {
+    ctx.scope.set("returnArrayAfterKlog", ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.callKRLstdlib("klog", [
         1,
         2

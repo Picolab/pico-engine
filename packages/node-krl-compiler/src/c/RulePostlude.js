@@ -2,7 +2,7 @@ var postludeBlock = function(stmts, comp, e){
   if(!stmts){
     return e("nil");
   }
-  return e("fn", ["ctx"], comp(stmts));
+  return e("genfn", ["ctx"], comp(stmts));
 };
 
 module.exports = function(ast, comp, e){

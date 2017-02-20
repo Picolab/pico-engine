@@ -225,7 +225,7 @@ var comp_by_type = {
       rs.meta = comp(ast.meta);
     }
     if(!_.isEmpty(ast.global)){
-      rs.global = e("fn", ["ctx"], comp(ast.global));
+      rs.global = e("genfn", ["ctx"], comp(ast.global));
     }
     rs.rules = e("obj", rules_obj);
     return [
@@ -256,12 +256,12 @@ var comp_by_type = {
         var rest = _.initial(arr);
         return nestedForeach(rest, comp(last, {iter: iter}));
       };
-      rule.foreach = e("fn", ["ctx", "foreach", "iter"], [
+      rule.foreach = e("genfn", ["ctx", "foreach", "iter"], [
         nestedForeach(ast.foreach, e(";", e("call", e("id", "iter"), [e("id", "ctx")])))
       ]);
     }
     if(!_.isEmpty(ast.prelude)){
-      rule.prelude = e("fn", ["ctx"], comp(ast.prelude));
+      rule.prelude = e("genfn", ["ctx"], comp(ast.prelude));
     }
     if(ast.action_block){
       rule.action_block = comp(ast.action_block);
@@ -281,7 +281,7 @@ var comp_by_type = {
       block.block_type = e("string", ast.block_type);
     }
     if(ast.condition){
-      block.condition = e("fn", ["ctx"], [
+      block.condition = e("genfn", ["ctx"], [
         e("return", comp(ast.condition))
       ]);
     }

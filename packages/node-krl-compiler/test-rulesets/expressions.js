@@ -9,7 +9,7 @@ module.exports = {
       "index2"
     ]
   },
-  "global": function (ctx) {
+  "global": function* (ctx) {
     ctx.scope.set("cond_exp_1", true ? 1 : 2);
     ctx.scope.set("cond_exp_2", false ? 1 : 2);
     ctx.scope.set("obj", {

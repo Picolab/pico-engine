@@ -11,15 +11,15 @@ module.exports = {
         "kind": "module",
         "rid": "io.picolabs.module-defined",
         "alias": "my_module_conf",
-        "with": function (ctx) {
+        "with": function* (ctx) {
           ctx.scope.set("configured_name", "Jim");
         }
       }
     ],
     "shares": ["now"]
   },
-  "global": function (ctx) {
-    ctx.scope.set("now", ctx.KRLClosure(ctx, function (ctx) {
+  "global": function* (ctx) {
+    ctx.scope.set("now", ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "time", "now")(ctx, []);
     }));
   },
@@ -29,7 +29,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "dflt_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -42,7 +42,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "dflt_name",
@@ -57,7 +57,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "conf_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -70,7 +70,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "conf_name",
@@ -85,7 +85,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "dflt_info": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -98,7 +98,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "dflt_info",
@@ -113,7 +113,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "conf_info": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -126,7 +126,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "conf_info",

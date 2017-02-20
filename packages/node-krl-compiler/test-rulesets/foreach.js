@@ -1,8 +1,8 @@
 module.exports = {
   "rid": "io.picolabs.foreach",
   "meta": { "name": "testing foreach" },
-  "global": function (ctx) {
-    ctx.scope.set("doubleThis", ctx.KRLClosure(ctx, function (ctx) {
+  "global": function* (ctx) {
+    ctx.scope.set("doubleThis", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("arr", ctx.getArg(ctx.args, "arr", 0));
       return [
         ctx.scope.get("arr"),
@@ -16,7 +16,7 @@ module.exports = {
       "select": {
         "graph": { "foreach": { "basic": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -27,19 +27,19 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function (ctx, foreach, iter) {
+      "foreach": function* (ctx, foreach, iter) {
         foreach([
           1,
           2,
           3
-        ], ctx.KRLClosure(ctx, function (ctx) {
+        ], ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("x", ctx.getArg(ctx.args, "value", 0));
           iter(ctx);
         }));
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "basic",
@@ -54,7 +54,7 @@ module.exports = {
       "select": {
         "graph": { "foreach": { "map": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -65,12 +65,12 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function (ctx, foreach, iter) {
+      "foreach": function* (ctx, foreach, iter) {
         foreach({
           "a": 1,
           "b": 2,
           "c": 3
-        }, ctx.KRLClosure(ctx, function (ctx) {
+        }, ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("v", ctx.getArg(ctx.args, "value", 0));
           ctx.scope.set("k", ctx.getArg(ctx.args, "key", 1));
           iter(ctx);
@@ -78,7 +78,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "map",
@@ -96,7 +96,7 @@ module.exports = {
       "select": {
         "graph": { "foreach": { "nested": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -107,18 +107,18 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function (ctx, foreach, iter) {
+      "foreach": function* (ctx, foreach, iter) {
         foreach([
           1,
           2,
           3
-        ], ctx.KRLClosure(ctx, function (ctx) {
+        ], ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("x", ctx.getArg(ctx.args, "value", 0));
           foreach([
             "a",
             "b",
             "c"
-          ], ctx.KRLClosure(ctx, function (ctx) {
+          ], ctx.KRLClosure(ctx, function* (ctx) {
             ctx.scope.set("y", ctx.getArg(ctx.args, "value", 0));
             iter(ctx);
           }));
@@ -126,7 +126,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "nested",
@@ -144,7 +144,7 @@ module.exports = {
       "select": {
         "graph": { "foreach": { "scope": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -155,28 +155,28 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function (ctx, foreach, iter) {
+      "foreach": function* (ctx, foreach, iter) {
         foreach(ctx.scope.get("doubleThis")(ctx, [[
             1,
             2,
             3
-          ]]), ctx.KRLClosure(ctx, function (ctx) {
+          ]]), ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("arr", ctx.getArg(ctx.args, "value", 0));
-          foreach(ctx.scope.get("arr"), ctx.KRLClosure(ctx, function (ctx) {
+          foreach(ctx.scope.get("arr"), ctx.KRLClosure(ctx, function* (ctx) {
             ctx.scope.set("foo", ctx.getArg(ctx.args, "value", 0));
-            foreach(ctx.callKRLstdlib("range", 0, ctx.scope.get("foo")), ctx.KRLClosure(ctx, function (ctx) {
+            foreach(ctx.callKRLstdlib("range", 0, ctx.scope.get("foo")), ctx.KRLClosure(ctx, function* (ctx) {
               ctx.scope.set("bar", ctx.getArg(ctx.args, "value", 0));
               iter(ctx);
             }));
           }));
         }));
       },
-      "prelude": function (ctx) {
+      "prelude": function* (ctx) {
         ctx.scope.set("baz", ctx.callKRLstdlib("*", ctx.scope.get("foo"), ctx.scope.get("bar")));
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "scope",

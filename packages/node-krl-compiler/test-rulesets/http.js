@@ -1,8 +1,8 @@
 module.exports = {
   "rid": "io.picolabs.http",
   "meta": { "shares": ["getResp"] },
-  "global": function (ctx) {
-    ctx.scope.set("getResp", ctx.KRLClosure(ctx, function (ctx) {
+  "global": function* (ctx) {
+    ctx.scope.set("getResp", ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.modules.get(ctx, "ent", "get_resp");
     }));
   },
@@ -12,7 +12,7 @@ module.exports = {
       "select": {
         "graph": { "http": { "get": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -24,7 +24,7 @@ module.exports = {
         }
       },
       "postlude": {
-        "fired": function (ctx) {
+        "fired": function* (ctx) {
           ctx.scope.set("resp", ctx.modules.get(ctx, "http", "get")(ctx, [
             "https://httpbin.org/get",
             { "foo": "bar" },
