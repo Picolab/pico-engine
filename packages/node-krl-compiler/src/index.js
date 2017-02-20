@@ -6,40 +6,40 @@ var escodegen = require("escodegen");
 var EStreeLoc = require("estree-loc");
 
 module.exports = function(input, options){
-  options = options || {};
+    options = options || {};
 
-  var src = _.isString(input) ? input : null;
-  var toLoc = src ? EStreeLoc(src, options.filepath) : _.noop;
-  var ast = src ? parser(src) : input;
+    var src = _.isString(input) ? input : null;
+    var toLoc = src ? EStreeLoc(src, options.filepath) : _.noop;
+    var ast = src ? parser(src) : input;
 
-  var body = compile(ast, {
-    toLoc: toLoc
-  });
+    var body = compile(ast, {
+        toLoc: toLoc
+    });
 
-  var out = escodegen.generate({
-    "loc": toLoc(0, src.length - 1),
-    "type": "Program",
-    "body": _.isArray(body) ? body : []
-  }, {
-    format: {
-      quotes: "double",
-      indent: {
-        style: "  "
-      }
-    },
-    sourceMap: true,
-    sourceContent: src,
-    sourceMapWithCode: true
-  });
+    var out = escodegen.generate({
+        "loc": toLoc(0, src.length - 1),
+        "type": "Program",
+        "body": _.isArray(body) ? body : []
+    }, {
+        format: {
+            quotes: "double",
+            indent: {
+                style: "  "
+            }
+        },
+        sourceMap: true,
+        sourceContent: src,
+        sourceMapWithCode: true
+    });
 
-  var r = {
-    code: out.code
-  };
+    var r = {
+        code: out.code
+    };
 
-  if(options.inline_source_map){
-    r.code += "\n//# sourceMappingURL=data:application/json;base64,"
-      + btoa(out.map.toString())
-      + "\n";
-  }
-  return r;
+    if(options.inline_source_map){
+        r.code += "\n//# sourceMappingURL=data:application/json;base64,"
+            + btoa(out.map.toString())
+            + "\n";
+    }
+    return r;
 };
