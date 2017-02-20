@@ -6,7 +6,7 @@
   "scripts": {
     "start": "onchange -i src/ -- npm test -s",
     "lint": "eslint src/ && echo lint-ok",
-    "test": "npm run lint -s && node src/tests.js | tap-min"
+    "test": "npm run lint -s && node src/tests.js"
   },
   "repository": {
     "type": "git",
@@ -24,9 +24,9 @@
   },
   "homepage": "https://github.com/Picolab/node-krl-stdlib#readme",
   "devDependencies": {
+    "co-callback": "^1.1.0",
     "eslint": "^3.0.1",
     "onchange": "^2.5.0",
-    "tap-min": "^1.1.0",
     "tape": "^4.6.0"
   },
   "dependencies": {

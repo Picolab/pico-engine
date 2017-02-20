@@ -1,5 +1,6 @@
 module.exports = {
   "env": {
+    "es6": true,//only for generator functions
     "browser": true,
     "node": true,
     "commonjs": true
