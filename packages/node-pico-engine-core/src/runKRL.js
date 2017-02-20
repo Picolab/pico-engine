@@ -1,15 +1,9 @@
-var Fiber = require("fibers");
+var co = require("co");
 
 module.exports = function(){
     var args = Array.prototype.slice.call(arguments);
     var fn = args.shift();
-    return new Promise(function(resolve, reject){
-        Fiber(function(){
-            try{
-                resolve(fn.apply(null, args));
-            }catch(err){
-                reject(err);
-            }
-        }).run();
+    return co(function*(){
+        return yield fn.apply(null, args);
     });
 };

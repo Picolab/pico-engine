@@ -8,18 +8,18 @@ module.exports = {
       "getUserFirstname"
     ]
   },
-  "global": function (ctx) {
-    ctx.scope.set("getName", ctx.KRLClosure(ctx, function (ctx) {
-      return ctx.modules.get(ctx, "ent", "name");
+  "global": function* (ctx) {
+    ctx.scope.set("getName", ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.modules.get(ctx, "ent", "name");
     }));
-    ctx.scope.set("getAppVar", ctx.KRLClosure(ctx, function (ctx) {
-      return ctx.modules.get(ctx, "app", "appvar");
+    ctx.scope.set("getAppVar", ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.modules.get(ctx, "app", "appvar");
     }));
-    ctx.scope.set("getUser", ctx.KRLClosure(ctx, function (ctx) {
-      return ctx.modules.get(ctx, "ent", "user");
+    ctx.scope.set("getUser", ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.modules.get(ctx, "ent", "user");
     }));
-    ctx.scope.set("getUserFirstname", ctx.KRLClosure(ctx, function (ctx) {
-      return ctx.callKRLstdlib("get", ctx.modules.get(ctx, "ent", "user"), ["firstname"]);
+    ctx.scope.set("getUserFirstname", ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.callKRLstdlib("get", yield ctx.modules.get(ctx, "ent", "user"), ["firstname"]);
     }));
   },
   "rules": {
@@ -28,8 +28,8 @@ module.exports = {
       "select": {
         "graph": { "store": { "name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+          "expr_0": function* (ctx) {
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -48,7 +48,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "store_name",
@@ -60,8 +60,8 @@ module.exports = {
       "postlude": {
         "fired": undefined,
         "notfired": undefined,
-        "always": function (ctx) {
-          ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
+        "always": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
         }
       }
     },
@@ -70,8 +70,8 @@ module.exports = {
       "select": {
         "graph": { "store": { "appvar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+          "expr_0": function* (ctx) {
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "appvar",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -90,7 +90,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "store_appvar",
@@ -102,8 +102,8 @@ module.exports = {
       "postlude": {
         "fired": undefined,
         "notfired": undefined,
-        "always": function (ctx) {
-          ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
+        "always": function* (ctx) {
+          yield ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
         }
       }
     },
@@ -112,8 +112,8 @@ module.exports = {
       "select": {
         "graph": { "store": { "user_firstname": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+          "expr_0": function* (ctx) {
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "firstname",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -132,7 +132,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "store_user_firstname",
@@ -144,9 +144,9 @@ module.exports = {
       "postlude": {
         "fired": undefined,
         "notfired": undefined,
-        "always": function (ctx) {
-          ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
-          ctx.modules.set(ctx, "ent", "user", ctx.callKRLstdlib("set", ctx.modules.get(ctx, "ent", "user"), ["firstname"], ctx.scope.get("firstname")));
+        "always": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
+          yield ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", yield ctx.modules.get(ctx, "ent", "user"), ["firstname"], ctx.scope.get("firstname")));
         }
       }
     }

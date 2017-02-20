@@ -6,7 +6,7 @@ module.exports = {
       "select": {
         "graph": { "engine": { "newPico": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -18,8 +18,8 @@ module.exports = {
         }
       },
       "postlude": {
-        "fired": function (ctx) {
-          ctx.modules.get(ctx, "engine", "newPico")(ctx, []);
+        "fired": function* (ctx) {
+          yield (yield ctx.modules.get(ctx, "engine", "newPico"))(ctx, []);
         },
         "notfired": undefined,
         "always": undefined
@@ -30,7 +30,7 @@ module.exports = {
       "select": {
         "graph": { "engine": { "newChannel": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -42,11 +42,11 @@ module.exports = {
         }
       },
       "postlude": {
-        "fired": function (ctx) {
-          ctx.modules.get(ctx, "engine", "newChannel")(ctx, [{
-              "name": ctx.modules.get(ctx, "event", "attr")(ctx, ["name"]),
-              "type": ctx.modules.get(ctx, "event", "attr")(ctx, ["type"]),
-              "pico_id": ctx.modules.get(ctx, "event", "attr")(ctx, ["pico_id"])
+        "fired": function* (ctx) {
+          yield (yield ctx.modules.get(ctx, "engine", "newChannel"))(ctx, [{
+              "name": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["name"]),
+              "type": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["type"]),
+              "pico_id": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["pico_id"])
             }]);
         },
         "notfired": undefined,

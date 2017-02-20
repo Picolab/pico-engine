@@ -7,10 +7,10 @@ module.exports = {
     "logging": true,
     "shares": ["hello"]
   },
-  "global": function (ctx) {
-    ctx.scope.set("hello", ctx.KRLClosure(ctx, function (ctx) {
+  "global": function* (ctx) {
+    ctx.scope.set("hello", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("obj", ctx.getArg(ctx.args, "obj", 0));
-      ctx.scope.set("msg", ctx.callKRLstdlib("+", "Hello ", ctx.scope.get("obj")));
+      ctx.scope.set("msg", yield ctx.callKRLstdlib("+", "Hello ", ctx.scope.get("obj")));
       return ctx.scope.get("msg");
     }));
   },
@@ -20,7 +20,7 @@ module.exports = {
       "select": {
         "graph": { "echo": { "hello": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -33,7 +33,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "say",

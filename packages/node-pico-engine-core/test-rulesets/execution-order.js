@@ -1,9 +1,9 @@
 module.exports = {
   "rid": "io.picolabs.execution-order",
   "meta": { "shares": ["getOrder"] },
-  "global": function (ctx) {
-    ctx.scope.set("getOrder", ctx.KRLClosure(ctx, function (ctx) {
-      return ctx.modules.get(ctx, "ent", "order");
+  "global": function* (ctx) {
+    ctx.scope.set("getOrder", ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.modules.get(ctx, "ent", "order");
     }));
   },
   "rules": {
@@ -12,7 +12,7 @@ module.exports = {
       "select": {
         "graph": { "execution_order": { "all": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -25,7 +25,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "first",
@@ -35,12 +35,12 @@ module.exports = {
           }]
       },
       "postlude": {
-        "fired": function (ctx) {
-          ctx.modules.set(ctx, "ent", "order", ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "first-fired"));
+        "fired": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "order"), "first-fired"));
         },
         "notfired": undefined,
-        "always": function (ctx) {
-          ctx.modules.set(ctx, "ent", "order", ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "first-finally"));
+        "always": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "order"), "first-finally"));
         }
       }
     },
@@ -49,7 +49,7 @@ module.exports = {
       "select": {
         "graph": { "execution_order": { "all": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -62,7 +62,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "second",
@@ -72,12 +72,12 @@ module.exports = {
           }]
       },
       "postlude": {
-        "fired": function (ctx) {
-          ctx.modules.set(ctx, "ent", "order", ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "second-fired"));
+        "fired": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "order"), "second-fired"));
         },
         "notfired": undefined,
-        "always": function (ctx) {
-          ctx.modules.set(ctx, "ent", "order", ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "second-finally"));
+        "always": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "order"), "second-finally"));
         }
       }
     }

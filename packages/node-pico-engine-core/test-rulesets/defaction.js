@@ -1,30 +1,30 @@
 module.exports = {
   "rid": "io.picolabs.defaction",
-  "global": function (ctx) {
-    ctx.scope.set("foo", ctx.KRLClosure(ctx, function (ctx) {
+  "global": function* (ctx) {
+    ctx.scope.set("foo", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("a", ctx.getArg(ctx.args, "a", 0));
       ctx.scope.set("b", 2);
       return [{
-          "action": function (ctx) {
+          "action": function* (ctx) {
             return {
               "type": "directive",
               "name": "foo",
               "options": {
                 "a": ctx.scope.get("a"),
-                "b": ctx.callKRLstdlib("+", ctx.scope.get("b"), 3)
+                "b": yield ctx.callKRLstdlib("+", ctx.scope.get("b"), 3)
               }
             };
           }
-        }].map(function (a) {
-        return a.action(ctx);
+        }].map(function* (a) {
+        return yield a.action(ctx);
       });
     }));
-    ctx.scope.set("bar", ctx.KRLClosure(ctx, function (ctx) {
+    ctx.scope.set("bar", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("one", ctx.getArg(ctx.args, "one", 0));
       ctx.scope.set("two", ctx.getArg(ctx.args, "two", 1));
       ctx.scope.set("three", ctx.getArg(ctx.args, "three", 2));
       return [{
-          "action": function (ctx) {
+          "action": function* (ctx) {
             return {
               "type": "directive",
               "name": "bar",
@@ -35,8 +35,8 @@ module.exports = {
               }
             };
           }
-        }].map(function (a) {
-        return a.action(ctx);
+        }].map(function* (a) {
+        return yield a.action(ctx);
       });
     }));
   },
@@ -46,7 +46,7 @@ module.exports = {
       "select": {
         "graph": { "foo": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -59,8 +59,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
-              return ctx.scope.get("foo")(ctx, ["bar"]);
+            "action": function* (ctx) {
+              return yield ctx.scope.get("foo")(ctx, ["bar"]);
             }
           }]
       }
@@ -70,7 +70,7 @@ module.exports = {
       "select": {
         "graph": { "bar": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -83,8 +83,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
-              return ctx.scope.get("bar")(ctx, {
+            "action": function* (ctx) {
+              return yield ctx.scope.get("bar")(ctx, {
                 "0": "baz",
                 "two": "qux",
                 "three": "quux"

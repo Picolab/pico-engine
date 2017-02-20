@@ -11,10 +11,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           }
         },
@@ -28,13 +28,13 @@ module.exports = {
               "end"
             ]]
         },
-        "within": function (ctx) {
+        "within": function* (ctx) {
           return 5 * 60000;
         }
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "foo",
@@ -54,10 +54,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           }
         },
@@ -71,13 +71,13 @@ module.exports = {
               "end"
             ]]
         },
-        "within": function (ctx) {
-          return ctx.callKRLstdlib("+", 1, 3) * 1000;
+        "within": function* (ctx) {
+          return (yield ctx.callKRLstdlib("+", 1, 3)) * 1000;
         }
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "bar",
@@ -98,13 +98,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           },
-          "expr_1": function (ctx) {
+          "expr_1": function* (ctx) {
             return true;
           },
-          "expr_2": function (ctx) {
+          "expr_2": function* (ctx) {
             return true;
           }
         },
@@ -132,13 +132,13 @@ module.exports = {
               "end"
             ]]
         },
-        "within": function (ctx) {
+        "within": function* (ctx) {
           return 1 * 31536000000;
         }
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "baz",
@@ -153,8 +153,8 @@ module.exports = {
       "select": {
         "graph": { "qux": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+          "expr_0": function* (ctx) {
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "b",
                   new RegExp("c", "")
                 ]]]);
@@ -181,13 +181,13 @@ module.exports = {
               "end"
             ]]
         },
-        "within": function (ctx) {
+        "within": function* (ctx) {
           return 2 * 1000;
         }
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "qux",

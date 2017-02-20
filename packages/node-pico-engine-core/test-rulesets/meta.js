@@ -4,9 +4,9 @@ module.exports = {
     "name": "testing meta module",
     "shares": ["eci"]
   },
-  "global": function (ctx) {
-    ctx.scope.set("eci", ctx.KRLClosure(ctx, function (ctx) {
-      return ctx.modules.get(ctx, "meta", "eci");
+  "global": function* (ctx) {
+    ctx.scope.set("eci", ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.modules.get(ctx, "meta", "eci");
     }));
   },
   "rules": {
@@ -15,7 +15,7 @@ module.exports = {
       "select": {
         "graph": { "meta": { "eci": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -28,11 +28,11 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "eci",
-                "options": { "eci": ctx.modules.get(ctx, "meta", "eci") }
+                "options": { "eci": yield ctx.modules.get(ctx, "meta", "eci") }
               };
             }
           }]

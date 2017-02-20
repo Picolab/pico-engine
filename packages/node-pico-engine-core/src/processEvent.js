@@ -1,11 +1,7 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
-var Future = require("fibers/future");
 var selectRulesToEval = require("./selectRulesToEval");
-var noopTrue = function(){
-    return true;
-};
 
 var evalRule = cocb.wrap(function*(ctx, rule){
     if(_.isFunction(rule.prelude)){
@@ -13,7 +9,8 @@ var evalRule = cocb.wrap(function*(ctx, rule){
     }
     var did_fire = true;
 
-    var cond = yield runKRL(_.get(rule, ["action_block", "condition"], noopTrue), ctx);
+    var condFn = _.get(rule, ["action_block", "condition"]);
+    var cond = condFn ? yield runKRL(condFn, ctx) : true;
     var actions = _.get(rule, ["action_block", "actions"], []);
     var block_type = _.get(rule, ["action_block", "block_type"], "every");
     if(block_type === "choose"){
@@ -60,24 +57,22 @@ var evalRule = cocb.wrap(function*(ctx, rule){
     }
     responses = _.compact(responses);
 
-    var getPostFn = function(name){
-        var fn = _.get(rule, ["postlude", name]);
-        return _.isFunction(fn) ? fn : _.noop;
-    };
     if(did_fire){
         ctx.emit("debug", "fired");
-        yield runKRL(getPostFn("fired"), ctx);
+        if(_.get(rule, ["postlude", "fired"])){
+            yield runKRL(_.get(rule, ["postlude", "fired"]), ctx);
+        }
     }else{
         ctx.emit("debug", "not fired");
-        yield runKRL(getPostFn("notfired"), ctx);
+        if(_.get(rule, ["postlude", "notfired"])){
+            yield runKRL(_.get(rule, ["postlude", "notfired"]), ctx);
+        }
     }
-    yield runKRL(getPostFn("always"), ctx);
+    if(_.get(rule, ["postlude", "always"])){
+        yield runKRL(_.get(rule, ["postlude", "always"]), ctx);
+    }
 
     return responses;
-});
-
-var evalRuleInFuture = Future.wrap(function(ctx, rule, callback){
-    cocb.run(evalRule(ctx, rule), callback);
 });
 
 var runEvent = cocb.wrap(function*(scheduled){
@@ -104,8 +99,8 @@ var runEvent = cocb.wrap(function*(scheduled){
                     foreach_is_final: counter === 0
                 }), args);
             });
-        }, function(ctx){
-            r.push(evalRuleInFuture(ctx, rule).wait());
+        }, function*(ctx){
+            r.push(yield evalRule(ctx, rule));
         });
     }else{
         r.push(yield evalRule(ctx, rule));
@@ -131,7 +126,7 @@ var processEvent = cocb.wrap(function*(ctx){
 
     yield scheduleEvent(ctx);
 
-    ctx.raiseEvent = Future.wrap(function(revent, callback){
+    ctx.raiseEvent = function(revent, callback){
         //shape the revent like a normal event
         var event = {
             eci: ctx.event.eci,//raise event is always to the same pico
@@ -150,7 +145,7 @@ var processEvent = cocb.wrap(function*(ctx){
         raise_ctx.raiseEvent = ctx.raiseEvent;
         raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
         scheduleEventRAW(raise_ctx, callback);
-    });
+    };
 
 
     var responses = [];

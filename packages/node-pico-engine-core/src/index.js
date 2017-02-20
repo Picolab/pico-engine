@@ -1,11 +1,11 @@
 var _ = require("lodash");
 var λ = require("contra");
 var DB = require("./DB");
+var co = require("co");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
 var getArg = require("./getArg");
-var Future = require("fibers/future");
-var modules = Future.wrap(require("./modules"));
+var modules = require("./modules");
 var PicoQueue = require("./PicoQueue");
 var krl_stdlib = require("krl-stdlib");
 var KRLClosure = require("./KRLClosure");
@@ -14,20 +14,25 @@ var EventEmitter = require("events");
 var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
 
+function isGenerator(obj) {
+    return "function" == typeof obj.next && "function" == typeof obj.throw;
+}
+function isGeneratorFunction(obj) {
+    var constructor = obj.constructor;
+    if (!constructor) return false;
+    if ("GeneratorFunction" === constructor.name || "GeneratorFunction" === constructor.displayName) return true;
+    return isGenerator(constructor.prototype);
+}
+
 var modulesSync = {
-    get: function(ctx, domain, id){
-        return modules.getFuture(ctx, domain, id).wait();
-    },
-    set: function(ctx, domain, id, value){
-        modules.setFuture(ctx, domain, id, value).wait();
-    }
+    get: cocb.toYieldable(modules.get),
+    set: cocb.toYieldable(modules.set),
 };
 
 module.exports = function(conf, callback){
     var db = DB(conf.db);
     _.each(db, function(val, key){
         if(_.isFunction(val)){
-            db[key + "Future"] = Future.wrap(val);
             db[key + "Yieldable"] = cocb.toYieldable(val);
         }
     });
@@ -84,7 +89,19 @@ module.exports = function(conf, callback){
         ctx.callKRLstdlib = function(fn_name){
             var args = _.toArray(arguments);
             args[0] = ctx;
-            return krl_stdlib[fn_name].apply(void 0, args);
+            var fn = krl_stdlib[fn_name];
+            if(isGeneratorFunction(fn)){
+                return co(function*(){
+                    return yield fn.apply(void 0, args);
+                });
+            }
+            return new Promise(function(resolve, reject){
+                try{
+                    resolve(fn.apply(void 0, args));
+                }catch(err){
+                    reject(err);
+                }
+            });
         };
         return ctx;
     };

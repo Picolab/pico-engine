@@ -1,9 +1,9 @@
 module.exports = {
   "rid": "io.picolabs.guard-conditions",
   "meta": { "shares": ["getB"] },
-  "global": function (ctx) {
-    ctx.scope.set("getB", ctx.KRLClosure(ctx, function (ctx) {
-      return ctx.modules.get(ctx, "ent", "b");
+  "global": function* (ctx) {
+    ctx.scope.set("getB", ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.modules.get(ctx, "ent", "b");
     }));
   },
   "rules": {
@@ -12,8 +12,8 @@ module.exports = {
       "select": {
         "graph": { "foo": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
-            var matches = ctx.modules.get(ctx, "event", "attrMatches")(ctx, [[[
+          "expr_0": function* (ctx) {
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "b",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -32,7 +32,7 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "foo",
@@ -44,9 +44,9 @@ module.exports = {
       "postlude": {
         "fired": undefined,
         "notfired": undefined,
-        "always": function (ctx) {
-          if (ctx.callKRLstdlib("match", ctx.scope.get("b"), new RegExp("foo", "")))
-            ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
+        "always": function* (ctx) {
+          if (yield ctx.callKRLstdlib("match", ctx.scope.get("b"), new RegExp("foo", "")))
+            yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
         }
       }
     },
@@ -55,7 +55,7 @@ module.exports = {
       "select": {
         "graph": { "bar": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function (ctx) {
+          "expr_0": function* (ctx) {
             return true;
           }
         },
@@ -66,25 +66,25 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function (ctx, foreach, iter) {
-        foreach([
+      "foreach": function* (ctx, foreach, iter) {
+        yield foreach([
           1,
           2,
           3
-        ], ctx.KRLClosure(ctx, function (ctx) {
+        ], ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("x", ctx.getArg(ctx.args, "value", 0));
-          iter(ctx);
+          yield iter(ctx);
         }));
       },
       "action_block": {
         "actions": [{
-            "action": function (ctx) {
+            "action": function* (ctx) {
               return {
                 "type": "directive",
                 "name": "bar",
                 "options": {
                   "x": ctx.scope.get("x"),
-                  "b": ctx.modules.get(ctx, "ent", "b")
+                  "b": yield ctx.modules.get(ctx, "ent", "b")
                 }
               };
             }
@@ -93,9 +93,9 @@ module.exports = {
       "postlude": {
         "fired": undefined,
         "notfired": undefined,
-        "always": function (ctx) {
+        "always": function* (ctx) {
           if (ctx.foreach_is_final)
-            ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
+            yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
         }
       }
     }
