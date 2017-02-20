@@ -12,7 +12,7 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("privateFn", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", "privateFn = name: ", ctx.scope.get("configured_name")), " memo: "), ctx.modules.get(ctx, "ent", "memo"));
+      return yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", "privateFn = name: ", ctx.scope.get("configured_name")), " memo: "), yield ctx.modules.get(ctx, "ent", "memo"));
     }));
     ctx.scope.set("getName", yield ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.scope.get("configured_name");
@@ -20,7 +20,7 @@ module.exports = {
     ctx.scope.set("getInfo", yield ctx.KRLClosure(ctx, function* (ctx) {
       return {
         "name": yield ctx.scope.get("getName")(ctx, []),
-        "memo": ctx.modules.get(ctx, "ent", "memo"),
+        "memo": yield ctx.modules.get(ctx, "ent", "memo"),
         "privateFn": yield ctx.scope.get("privateFn")(ctx, [])
       };
     }));
@@ -67,7 +67,7 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "memo", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", "[\"", ctx.scope.get("text")), "\" by "), ctx.scope.get("configured_name")), "]"));
+          yield ctx.modules.set(ctx, "ent", "memo", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", "[\"", ctx.scope.get("text")), "\" by "), ctx.scope.get("configured_name")), "]"));
         }
       }
     }

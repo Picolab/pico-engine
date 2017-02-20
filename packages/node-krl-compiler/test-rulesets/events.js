@@ -10,16 +10,16 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("getOnChooseFired", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.modules.get(ctx, "ent", "on_choose_fired");
+      return yield ctx.modules.get(ctx, "ent", "on_choose_fired");
     }));
     ctx.scope.set("getNoActionFired", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.modules.get(ctx, "ent", "no_action_fired");
+      return yield ctx.modules.get(ctx, "ent", "no_action_fired");
     }));
     ctx.scope.set("getSentAttrs", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.modules.get(ctx, "ent", "sent_attrs");
+      return yield ctx.modules.get(ctx, "ent", "sent_attrs");
     }));
     ctx.scope.set("getSentName", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.modules.get(ctx, "ent", "sent_name");
+      return yield ctx.modules.get(ctx, "ent", "sent_name");
     }));
   },
   "rules": {
@@ -75,7 +75,7 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("thing", yield ctx.modules.get(ctx, "event", "attr")(ctx, ["thing"]));
+        ctx.scope.set("thing", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["thing"]));
       },
       "action_block": {
         "actions": [{
@@ -197,14 +197,14 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "on_fired",
-                "options": { "previous_name": ctx.modules.get(ctx, "ent", "on_fired_prev_name") }
+                "options": { "previous_name": yield ctx.modules.get(ctx, "ent", "on_fired_prev_name") }
               };
             }
           }]
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "on_fired_prev_name", ctx.scope.get("my_name"));
+          yield ctx.modules.set(ctx, "ent", "on_fired_prev_name", ctx.scope.get("my_name"));
         },
         "notfired": undefined,
         "always": undefined
@@ -263,10 +263,10 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "on_choose_fired", true);
+          yield ctx.modules.set(ctx, "ent", "on_choose_fired", true);
         },
         "notfired": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "on_choose_fired", false);
+          yield ctx.modules.set(ctx, "ent", "on_choose_fired", false);
         },
         "always": undefined
       }
@@ -325,10 +325,10 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "no_action_fired", true);
+          yield ctx.modules.set(ctx, "ent", "no_action_fired", true);
         },
         "notfired": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "no_action_fired", false);
+          yield ctx.modules.set(ctx, "ent", "no_action_fired", false);
         },
         "always": undefined
       }
@@ -360,7 +360,7 @@ module.exports = {
         "actions": [{
             "action": function* (ctx) {
               return yield (yield ctx.modules.get(ctx, "event", "send"))(ctx, [{
-                  "eci": ctx.modules.get(ctx, "meta", "eci"),
+                  "eci": yield ctx.modules.get(ctx, "meta", "eci"),
                   "eid": "0",
                   "domain": "events",
                   "type": "store_sent_name",
@@ -395,8 +395,8 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "sent_attrs", yield ctx.modules.get(ctx, "event", "attrs")(ctx, []));
-          ctx.modules.set(ctx, "ent", "sent_name", ctx.scope.get("my_name"));
+          yield ctx.modules.set(ctx, "ent", "sent_attrs", yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, []));
+          yield ctx.modules.set(ctx, "ent", "sent_name", ctx.scope.get("my_name"));
         },
         "notfired": undefined,
         "always": undefined

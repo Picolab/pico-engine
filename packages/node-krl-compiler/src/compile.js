@@ -60,7 +60,7 @@ var comp_by_type = {
         ]);
     },
     "DomainIdentifier": function(ast, comp, e){
-        return e("call", e("id", "ctx.modules.get"), [
+        return e("ycall", e("id", "ctx.modules.get"), [
             e("id", "ctx"),
             e("str", ast.domain),
             e("str", ast.value)
@@ -190,7 +190,7 @@ var comp_by_type = {
 
         if(ast.path_expression){
             value_to_store = callStdLibFn(e, "set", [
-                e("call", e("id", "ctx.modules.get"), [
+                e("ycall", e("id", "ctx.modules.get"), [
                     e("id", "ctx"),
                     e("str", ast.left.domain),
                     e("str", ast.left.value)
@@ -200,7 +200,7 @@ var comp_by_type = {
             ], ast.loc);
         }
 
-        return e(";", e("call", e("id", "ctx.modules.set"), [
+        return e(";", e("ycall", e("id", "ctx.modules.set"), [
             e("id", "ctx"),
             e("str", ast.left.domain, ast.left.loc),
             e("str", ast.left.value, ast.left.loc),

@@ -3,7 +3,7 @@ module.exports = {
   "meta": { "shares": ["getOrder"] },
   "global": function* (ctx) {
     ctx.scope.set("getOrder", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.modules.get(ctx, "ent", "order");
+      return yield ctx.modules.get(ctx, "ent", "order");
     }));
   },
   "rules": {
@@ -36,11 +36,11 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "first-fired"));
+          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "order"), "first-fired"));
         },
         "notfired": undefined,
         "always": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "first-finally"));
+          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "order"), "first-finally"));
         }
       }
     },
@@ -73,11 +73,11 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "second-fired"));
+          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "order"), "second-fired"));
         },
         "notfired": undefined,
         "always": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", ctx.modules.get(ctx, "ent", "order"), "second-finally"));
+          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "order"), "second-finally"));
         }
       }
     }

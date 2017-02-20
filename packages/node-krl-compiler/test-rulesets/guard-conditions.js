@@ -3,7 +3,7 @@ module.exports = {
   "meta": { "shares": ["getB"] },
   "global": function* (ctx) {
     ctx.scope.set("getB", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.modules.get(ctx, "ent", "b");
+      return yield ctx.modules.get(ctx, "ent", "b");
     }));
   },
   "rules": {
@@ -46,7 +46,7 @@ module.exports = {
         "notfired": undefined,
         "always": function* (ctx) {
           if (yield ctx.callKRLstdlib("match", ctx.scope.get("b"), new RegExp("foo", "")))
-            ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
+            yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
         }
       }
     },
@@ -84,7 +84,7 @@ module.exports = {
                 "name": "bar",
                 "options": {
                   "x": ctx.scope.get("x"),
-                  "b": ctx.modules.get(ctx, "ent", "b")
+                  "b": yield ctx.modules.get(ctx, "ent", "b")
                 }
               };
             }
@@ -95,7 +95,7 @@ module.exports = {
         "notfired": undefined,
         "always": function* (ctx) {
           if (ctx.foreach_is_final)
-            ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
+            yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
         }
       }
     }

@@ -6,7 +6,7 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("eci", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.modules.get(ctx, "meta", "eci");
+      return yield ctx.modules.get(ctx, "meta", "eci");
     }));
   },
   "rules": {
@@ -32,7 +32,7 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "eci",
-                "options": { "eci": ctx.modules.get(ctx, "meta", "eci") }
+                "options": { "eci": yield ctx.modules.get(ctx, "meta", "eci") }
               };
             }
           }]

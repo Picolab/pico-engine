@@ -10,16 +10,16 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("getName", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.modules.get(ctx, "ent", "name");
+      return yield ctx.modules.get(ctx, "ent", "name");
     }));
     ctx.scope.set("getAppVar", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.modules.get(ctx, "app", "appvar");
+      return yield ctx.modules.get(ctx, "app", "appvar");
     }));
     ctx.scope.set("getUser", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return ctx.modules.get(ctx, "ent", "user");
+      return yield ctx.modules.get(ctx, "ent", "user");
     }));
     ctx.scope.set("getUserFirstname", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return yield ctx.callKRLstdlib("get", ctx.modules.get(ctx, "ent", "user"), ["firstname"]);
+      return yield ctx.callKRLstdlib("get", yield ctx.modules.get(ctx, "ent", "user"), ["firstname"]);
     }));
   },
   "rules": {
@@ -61,7 +61,7 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
+          yield ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
         }
       }
     },
@@ -103,7 +103,7 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function* (ctx) {
-          ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
+          yield ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
         }
       }
     },
@@ -145,8 +145,8 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
-          ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", ctx.modules.get(ctx, "ent", "user"), ["firstname"], ctx.scope.get("firstname")));
+          yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
+          yield ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", yield ctx.modules.get(ctx, "ent", "user"), ["firstname"], ctx.scope.get("firstname")));
         }
       }
     }

@@ -20,7 +20,7 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("now", yield ctx.KRLClosure(ctx, function* (ctx) {
-      return yield ctx.modules.get(ctx, "time", "now")(ctx, []);
+      return yield (yield ctx.modules.get(ctx, "time", "now"))(ctx, []);
     }));
   },
   "rules": {
@@ -46,7 +46,7 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "dflt_name",
-                "options": { "name": yield ctx.modules.get(ctx, "my_module_dflt", "getName")(ctx, []) }
+                "options": { "name": yield (yield ctx.modules.get(ctx, "my_module_dflt", "getName"))(ctx, []) }
               };
             }
           }]
@@ -74,7 +74,7 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "conf_name",
-                "options": { "name": yield ctx.modules.get(ctx, "my_module_conf", "getName")(ctx, []) }
+                "options": { "name": yield (yield ctx.modules.get(ctx, "my_module_conf", "getName"))(ctx, []) }
               };
             }
           }]
@@ -102,7 +102,7 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "dflt_info",
-                "options": { "info": yield ctx.modules.get(ctx, "my_module_dflt", "getInfo")(ctx, []) }
+                "options": { "info": yield (yield ctx.modules.get(ctx, "my_module_dflt", "getInfo"))(ctx, []) }
               };
             }
           }]
@@ -130,7 +130,7 @@ module.exports = {
               return {
                 "type": "directive",
                 "name": "conf_info",
-                "options": { "info": yield ctx.modules.get(ctx, "my_module_conf", "getInfo")(ctx, []) }
+                "options": { "info": yield (yield ctx.modules.get(ctx, "my_module_conf", "getInfo"))(ctx, []) }
               };
             }
           }]

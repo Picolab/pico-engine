@@ -16,9 +16,9 @@ module.exports = {
     ctx.scope.set("g1", 1);
     ctx.scope.set("getVals", yield ctx.KRLClosure(ctx, function* (ctx) {
       return {
-        "name": ctx.modules.get(ctx, "ent", "ent_var_name"),
-        "p0": ctx.modules.get(ctx, "ent", "ent_var_p0"),
-        "p1": ctx.modules.get(ctx, "ent", "ent_var_p1")
+        "name": yield ctx.modules.get(ctx, "ent", "ent_var_name"),
+        "p0": yield ctx.modules.get(ctx, "ent", "ent_var_p0"),
+        "p1": yield ctx.modules.get(ctx, "ent", "ent_var_p1")
       };
     }));
     ctx.scope.set("add", yield ctx.KRLClosure(ctx, function* (ctx) {
@@ -143,9 +143,9 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function* (ctx) {
-          ctx.modules.set(ctx, "ent", "ent_var_name", ctx.scope.get("name"));
-          ctx.modules.set(ctx, "ent", "ent_var_p0", ctx.scope.get("p0"));
-          ctx.modules.set(ctx, "ent", "ent_var_p1", ctx.scope.get("p1"));
+          yield ctx.modules.set(ctx, "ent", "ent_var_name", ctx.scope.get("name"));
+          yield ctx.modules.set(ctx, "ent", "ent_var_p0", ctx.scope.get("p0"));
+          yield ctx.modules.set(ctx, "ent", "ent_var_p1", ctx.scope.get("p1"));
         }
       }
     },
