@@ -1,6 +1,34 @@
 var _ = require("lodash");
+var co = require("co");
+var cocb = require("co-callback");
 var test = require("tape");
 var stdlib = require("./");
+
+function isGenerator(obj) {
+    return "function" == typeof obj.next && "function" == typeof obj.throw;
+}
+function isGeneratorFunction(obj) {
+    var constructor = obj.constructor;
+    if (!constructor) return false;
+    if ("GeneratorFunction" === constructor.name || "GeneratorFunction" === constructor.displayName) return true;
+    return isGenerator(constructor.prototype);
+}
+var ylibFn = function(fn_name, args){
+    args = [defaultCTX].concat(args);
+    var fn = stdlib[fn_name];
+    if(isGeneratorFunction(fn)){
+        return co(function*(){
+            return yield fn.apply(void 0, args);
+        });
+    }
+    return new Promise(function(resolve, reject){
+        try{
+            resolve(fn.apply(void 0, args));
+        }catch(err){
+            reject(err);
+        }
+    });
+};
 
 var assertThrows = function(t, fn, args){
     try{
@@ -146,216 +174,242 @@ test("String operators", function(t){
 
 test("Collection operators", function(t){
     var tf = _.partial(testFn, t);
-
-    var a = [3, 4, 5];
-
-    var obj = {
-        "colors": "many",
-        "pi": [3, 1, 4, 1, 5, 6, 9],
-        "foo": {"bar": {"10": "I like cheese"}}
+    var ytf = function*(fn, args, expected, message){
+        args = _.map(args, function(arg){
+            if(isGeneratorFunction(arg)){
+                return function*(ctx, args){
+                    return yield arg.apply(this, args);
+                };
+            }else if(_.isFunction(arg)){
+                return cocb.toYieldable(function(ctx, args, callback){
+                    var data;
+                    try{
+                        data = arg.apply(this, args);
+                    }catch(err){
+                        callback(err);
+                        return;
+                    }
+                    callback(null, data);
+                });
+            }
+            return arg;
+        });
+        t.deepEquals(
+            yield ylibFn(fn, args),
+            expected,
+            message
+        );
     };
-    var obj2 = {"a": 1, "b": 2, "c": 3};
-    var assertObjNotMutated = function(){
-        t.deepEquals(obj, {
+    cocb.run(function*(){
+        var a = [3, 4, 5];
+
+        var obj = {
             "colors": "many",
             "pi": [3, 1, 4, 1, 5, 6, 9],
             "foo": {"bar": {"10": "I like cheese"}}
-        }, "should not be mutated");
-        t.deepEquals(obj2, {"a": 1, "b": 2, "c": 3}, "should not be mutated");
-    };
+        };
+        var obj2 = {"a": 1, "b": 2, "c": 3};
+        var assertObjNotMutated = function(){
+            t.deepEquals(obj, {
+                "colors": "many",
+                "pi": [3, 1, 4, 1, 5, 6, 9],
+                "foo": {"bar": {"10": "I like cheese"}}
+            }, "should not be mutated");
+            t.deepEquals(obj2, {"a": 1, "b": 2, "c": 3}, "should not be mutated");
+        };
 
-    tf("><",[obj,"pi"],true);
-    tf("><",[obj,"a"],false);
-    assertObjNotMutated();
-    tf("><",[[5, 6, 7],6],true);
-    tf("><",[[5, 6, 7],3],false);
+        tf("><",[obj,"pi"],true);
+        tf("><",[obj,"a"],false);
+        assertObjNotMutated();
+        tf("><",[[5, 6, 7],6],true);
+        tf("><",[[5, 6, 7],3],false);
 
-    _.each({
-        "all":    [ true, false, false],
-        "notall": [false,  true,  true],
-        "any":    [ true,  true, false],
-        "none":   [false, false,  true]
-    }, function(expected, fn){
-        tf(fn, [a, function(x){return x < 10;}], expected[0]);
-        tf(fn, [a, function(x){return x >  3;}], expected[1]);
-        tf(fn, [a, function(x){return x > 10;}], expected[2]);
+        _.each({
+            "all":    [ true, false, false],
+            "notall": [false,  true,  true],
+            "any":    [ true,  true, false],
+            "none":   [false, false,  true]
+        }, function(expected, fn){
+            tf(fn, [a, function(x){return x < 10;}], expected[0]);
+            tf(fn, [a, function(x){return x >  3;}], expected[1]);
+            tf(fn, [a, function(x){return x > 10;}], expected[2]);
+            t.deepEquals(a, [3, 4, 5], "should not be mutated");
+        });
+
+        tf("append", [a, [6]], [3, 4, 5, 6]);
         t.deepEquals(a, [3, 4, 5], "should not be mutated");
-    });
+        tf("append", [["a", "b"], ["c", "d"]], ["a", "b", "c", "d"]);
+        tf("append", [["a", "b"], 10, 11], ["a", "b", 10, 11]);
+        tf("append", [10, 11], [10, 11]);
 
-    tf("append", [a, [6]], [3, 4, 5, 6]);
-    t.deepEquals(a, [3, 4, 5], "should not be mutated");
-    tf("append", [["a", "b"], ["c", "d"]], ["a", "b", "c", "d"]);
-    tf("append", [["a", "b"], 10, 11], ["a", "b", 10, 11]);
-    tf("append", [10, 11], [10, 11]);
+        tf("collect", [[7, 4, 3, 5, 2, 1, 6], function(a){
+            return (a < 5) ? "x" : "y";
+        }], {
+            "x": [4,3,2,1],
+            "y": [7,5,6]
+        });
 
-    tf("collect", [[7, 4, 3, 5, 2, 1, 6], function(a){
-        return (a < 5) ? "x" : "y";
-    }], {
-        "x": [4,3,2,1],
-        "y": [7,5,6]
-    });
+        tf("filter", [a, function(x){return x < 5;}], [3, 4]);
+        tf("filter", [a, function(x){return x !== 4;}], [3, 5]);
+        t.deepEquals(a, [3, 4, 5], "should not be mutated");
+        tf("filter", [obj2, function(v, k){return v < 3;}], {"a":1,"b":2});
+        tf("filter", [obj2, function(v, k){return k === "b";}], {"b":2});
+        assertObjNotMutated();
 
-    tf("filter", [a, function(x){return x < 5;}], [3, 4]);
-    tf("filter", [a, function(x){return x !== 4;}], [3, 5]);
-    t.deepEquals(a, [3, 4, 5], "should not be mutated");
-    tf("filter", [obj2, function(v, k){return v < 3;}], {"a":1,"b":2});
-    tf("filter", [obj2, function(v, k){return k === "b";}], {"b":2});
-    assertObjNotMutated();
+        tf("head", [a], 3);
+        t.deepEquals(a, [3, 4, 5], "should not be mutated");
+        tf("head", [[]], void 0);
 
-    tf("head", [a], 3);
-    t.deepEquals(a, [3, 4, 5], "should not be mutated");
-    tf("head", [[]], void 0);
+        tf("tail", [a], [4, 5]);
+        t.deepEquals(a, [3, 4, 5], "should not be mutated");
+        tf("tail", [[]], []);
 
-    tf("tail", [a], [4, 5]);
-    t.deepEquals(a, [3, 4, 5], "should not be mutated");
-    tf("tail", [[]], []);
+        tf("index", [a, 5], 2);
+        t.deepEquals(a, [3, 4, 5], "should not be mutated");
 
-    tf("index", [a, 5], 2);
-    t.deepEquals(a, [3, 4, 5], "should not be mutated");
+        tf("join", [a, ";"], "3;4;5");
+        t.deepEquals(a, [3, 4, 5], "should not be mutated");
 
-    tf("join", [a, ";"], "3;4;5");
-    t.deepEquals(a, [3, 4, 5], "should not be mutated");
+        tf("length", [a], 3);
 
-    tf("length", [a], 3);
+        yield ytf("map", [a, function(x){return x + 2;}], [5, 6, 7]);
+        t.deepEquals(a, [3, 4, 5], "should not be mutated");
+        yield ytf("map", [obj2, function(x){return x + 2;}], {"a":3,"b":4,"c":5});
+        assertObjNotMutated();
 
-    tf("map", [a, function(x){return x + 2;}], [5, 6, 7]);
-    t.deepEquals(a, [3, 4, 5], "should not be mutated");
-    tf("map", [obj2, function(x){return x + 2;}], {"a":3,"b":4,"c":5});
-    assertObjNotMutated();
+        tf("pairwise", [a, [6, 7, 8], function(x, y){return x + y;}], [9, 11, 13]);
+        t.deepEquals(a, [3, 4, 5], "should not be mutated");
 
-    tf("pairwise", [a, [6, 7, 8], function(x, y){return x + y;}], [9, 11, 13]);
-    t.deepEquals(a, [3, 4, 5], "should not be mutated");
+        tf("reduce", [a, function(a,b){return a+b;}], 12);
+        tf("reduce", [a, function(a,b){return a+b;}, 10], 22);
+        tf("reduce", [a, function(a,b){return a-b;}], -6);
+        t.deepEquals(a, [3, 4, 5], "should not be mutated");
+        tf("reduce", [[], function(a,b){return a+b;}], 0);
+        tf("reduce", [[], function(a,b){return a+b;}, 15], 15);
+        tf("reduce", [[76], function(a,b){return a+b;}], 76);
+        tf("reduce", [[76], function(a,b){return a+b;}, 15], 91);
 
-    tf("reduce", [a, function(a,b){return a+b;}], 12);
-    tf("reduce", [a, function(a,b){return a+b;}, 10], 22);
-    tf("reduce", [a, function(a,b){return a-b;}], -6);
-    t.deepEquals(a, [3, 4, 5], "should not be mutated");
-    tf("reduce", [[], function(a,b){return a+b;}], 0);
-    tf("reduce", [[], function(a,b){return a+b;}, 15], 15);
-    tf("reduce", [[76], function(a,b){return a+b;}], 76);
-    tf("reduce", [[76], function(a,b){return a+b;}, 15], 91);
+        tf("reverse", [a], [5, 4, 3]);
+        t.deepEquals(a, [3, 4, 5], "should not be mutated");
 
-    tf("reverse", [a], [5, 4, 3]);
-    t.deepEquals(a, [3, 4, 5], "should not be mutated");
+        var vegies = ["corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"];
+        tf("slice", [vegies, 1, 4], ["tomato","tomato","tomato","sprouts"]);
+        tf("slice", [vegies, 2], ["corn","tomato","tomato"]);
+        tf("slice", [vegies, 14], void 0);
+        tf("slice", [vegies, 0, 0], ["corn"]);
 
-    var vegies = ["corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"];
-    tf("slice", [vegies, 1, 4], ["tomato","tomato","tomato","sprouts"]);
-    tf("slice", [vegies, 2], ["corn","tomato","tomato"]);
-    tf("slice", [vegies, 14], void 0);
-    tf("slice", [vegies, 0, 0], ["corn"]);
+        tf("splice", [vegies, 1, 4], ["corn","lettuce","sprouts"]);
+        tf("splice", [vegies, 2, 0, ["corn", "tomato"]], ["corn","tomato","corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"]);
+        tf("splice", [vegies, 2, 0, "liver"], ["corn","tomato","liver","tomato","tomato","sprouts","lettuce","sprouts"]);
+        tf("splice", [vegies, 2, 2, "liver"], ["corn","tomato","liver","sprouts","lettuce","sprouts"]);
+        tf("splice", [vegies, 1, 10], ["corn"]);
+        tf("splice", [vegies, 1, 10, "liver"], ["corn", "liver"]);
+        t.deepEquals(vegies, ["corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"], "should not be mutated");
 
-    tf("splice", [vegies, 1, 4], ["corn","lettuce","sprouts"]);
-    tf("splice", [vegies, 2, 0, ["corn", "tomato"]], ["corn","tomato","corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"]);
-    tf("splice", [vegies, 2, 0, "liver"], ["corn","tomato","liver","tomato","tomato","sprouts","lettuce","sprouts"]);
-    tf("splice", [vegies, 2, 2, "liver"], ["corn","tomato","liver","sprouts","lettuce","sprouts"]);
-    tf("splice", [vegies, 1, 10], ["corn"]);
-    tf("splice", [vegies, 1, 10, "liver"], ["corn", "liver"]);
-    t.deepEquals(vegies, ["corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"], "should not be mutated");
+        var to_sort = [5, 3, 4, 1, 12];
+        tf("sort", [to_sort], [1, 12, 3, 4, 5]);
+        tf("sort", [to_sort, "reverse"], [5, 4, 3, 12, 1]);
+        tf("sort", [to_sort, "numeric"], [1, 3, 4, 5, 12]);
+        tf("sort", [to_sort, "ciremun"], [12, 5, 4, 3, 1]);
+        tf("sort", [to_sort, function(a, b){
+            return a < b ? -1 : (a == b ? 0 : 1);
+        }], [1, 3, 4, 5, 12]);
+        t.deepEquals(to_sort, [5, 3, 4, 1, 12], "should not be mutated");
 
-    var to_sort = [5, 3, 4, 1, 12];
-    tf("sort", [to_sort], [1, 12, 3, 4, 5]);
-    tf("sort", [to_sort, "reverse"], [5, 4, 3, 12, 1]);
-    tf("sort", [to_sort, "numeric"], [1, 3, 4, 5, 12]);
-    tf("sort", [to_sort, "ciremun"], [12, 5, 4, 3, 1]);
-    tf("sort", [to_sort, function(a, b){
-        return a < b ? -1 : (a == b ? 0 : 1);
-    }], [1, 3, 4, 5, 12]);
-    t.deepEquals(to_sort, [5, 3, 4, 1, 12], "should not be mutated");
+        tf("delete", [obj, ["foo", "bar", 10]], {
+            "colors": "many",
+            "pi": [3, 1, 4, 1, 5, 6, 9],
+            "foo": {"bar": {}}//or "foo": {} ???
+        });
+        assertObjNotMutated();
 
-    tf("delete", [obj, ["foo", "bar", 10]], {
-        "colors": "many",
-        "pi": [3, 1, 4, 1, 5, 6, 9],
-        "foo": {"bar": {}}//or "foo": {} ???
-    });
-    assertObjNotMutated();
+        tf("encode", [{blah: 1}], "{\"blah\":1}");
+        tf("encode", [[1, 2]], "[1,2]");
 
-    tf("encode", [{blah: 1}], "{\"blah\":1}");
-    tf("encode", [[1, 2]], "[1,2]");
+        tf("keys", [obj], ["colors", "pi", "foo"]);
+        tf("keys", [obj, ["foo", "bar"]], ["10"]);
+        assertObjNotMutated();
 
-    tf("keys", [obj], ["colors", "pi", "foo"]);
-    tf("keys", [obj, ["foo", "bar"]], ["10"]);
-    assertObjNotMutated();
+        tf("values", [obj], [
+            "many",
+            [3, 1, 4, 1, 5, 6, 9],
+            {"bar": {"10": "I like cheese"}}
+        ]);
+        tf("values", [obj, ["foo", "bar"]], ["I like cheese"]);
+        assertObjNotMutated();
 
-    tf("values", [obj], [
-        "many",
-        [3, 1, 4, 1, 5, 6, 9],
-        {"bar": {"10": "I like cheese"}}
-    ]);
-    tf("values", [obj, ["foo", "bar"]], ["I like cheese"]);
-    assertObjNotMutated();
+        tf("put", [obj, ["foo"], {baz: "qux"}], {
+            "colors": "many",
+            "pi": [3, 1, 4, 1, 5, 6, 9],
+            "foo": {
+                "bar": {"10": "I like cheese"},
+                "baz": "qux"
+            }
+        });
+        tf("put", [obj, {flop: 12}], {
+            "colors": "many",
+            "pi": [3, 1, 4, 1, 5, 6, 9],
+            "foo": {"bar": {"10": "I like cheese"}},
+            "flop": 12
+        });
+        assertObjNotMutated();
 
-    tf("put", [obj, ["foo"], {baz: "qux"}], {
-        "colors": "many",
-        "pi": [3, 1, 4, 1, 5, 6, 9],
-        "foo": {
-            "bar": {"10": "I like cheese"},
-            "baz": "qux"
-        }
-    });
-    tf("put", [obj, {flop: 12}], {
-        "colors": "many",
-        "pi": [3, 1, 4, 1, 5, 6, 9],
-        "foo": {"bar": {"10": "I like cheese"}},
-        "flop": 12
-    });
-    assertObjNotMutated();
+        tf("get", [obj, ["foo", "bar", "10"]], "I like cheese");
+        tf("get", [obj, "colors"], "many");
+        assertObjNotMutated();
 
-    tf("get", [obj, ["foo", "bar", "10"]], "I like cheese");
-    tf("get", [obj, "colors"], "many");
-    assertObjNotMutated();
+        tf("set", [obj, ["foo", "baz"], "qux"], {
+            "colors": "many",
+            "pi": [3, 1, 4, 1, 5, 6, 9],
+            "foo": {
+                "bar": {"10": "I like cheese"},
+                "baz": "qux"
+            }
+        });
+        tf("set", [obj, "flop", 12], {
+            "colors": "many",
+            "pi": [3, 1, 4, 1, 5, 6, 9],
+            "foo": {
+                "bar": {"10": "I like cheese"}
+            },
+            "flop": 12
+        });
+        tf("set", [obj, "colors", ["R", "G", "B"]], {
+            "colors": ["R", "G", "B"],
+            "pi": [3, 1, 4, 1, 5, 6, 9],
+            "foo": {
+                "bar": {"10": "I like cheese"}
+            }
+        });
+        tf("set", [obj, ["foo", "bar", "10"], "modified a sub object"], {
+            "colors": "many",
+            "pi": [3, 1, 4, 1, 5, 6, 9],
+            "foo": {
+                "bar": {"10": "modified a sub object"}
+            }
+        });
+        assertObjNotMutated();
 
-    tf("set", [obj, ["foo", "baz"], "qux"], {
-        "colors": "many",
-        "pi": [3, 1, 4, 1, 5, 6, 9],
-        "foo": {
-            "bar": {"10": "I like cheese"},
-            "baz": "qux"
-        }
-    });
-    tf("set", [obj, "flop", 12], {
-        "colors": "many",
-        "pi": [3, 1, 4, 1, 5, 6, 9],
-        "foo": {
-            "bar": {"10": "I like cheese"}
-        },
-        "flop": 12
-    });
-    tf("set", [obj, "colors", ["R", "G", "B"]], {
-        "colors": ["R", "G", "B"],
-        "pi": [3, 1, 4, 1, 5, 6, 9],
-        "foo": {
-            "bar": {"10": "I like cheese"}
-        }
-    });
-    tf("set", [obj, ["foo", "bar", "10"], "modified a sub object"], {
-        "colors": "many",
-        "pi": [3, 1, 4, 1, 5, 6, 9],
-        "foo": {
-            "bar": {"10": "modified a sub object"}
-        }
-    });
-    assertObjNotMutated();
+        tf("intersection", [[2, 1], [2, 3]], [2]);
 
-    tf("intersection", [[2, 1], [2, 3]], [2]);
+        tf("union", [[2], [1, 2]], [2, 1]);
+        tf("union", [[1, 2], [1, 4]], [1, 2, 4]);
+        tf("union", [[{"x":2}], [{"x":1}, {"x":2}]], [{"x":2}, {"x":1}]);
 
-    tf("union", [[2], [1, 2]], [2, 1]);
-    tf("union", [[1, 2], [1, 4]], [1, 2, 4]);
-    tf("union", [[{"x":2}], [{"x":1}, {"x":2}]], [{"x":2}, {"x":1}]);
+        tf("difference", [[2, 1], [2, 3]], [1]);
+        tf("difference", [[{"x":2}, {"x":1}], [{"x":2}, {"x":3}]], [{"x":1}]);
 
-    tf("difference", [[2, 1], [2, 3]], [1]);
-    tf("difference", [[{"x":2}, {"x":1}], [{"x":2}, {"x":3}]], [{"x":1}]);
+        tf("has", [[1, 2, 3, 4], [4, 2]], true);
+        tf("has", [[1, 2, 3, 4], [4, 5]], false);
 
-    tf("has", [[1, 2, 3, 4], [4, 2]], true);
-    tf("has", [[1, 2, 3, 4], [4, 5]], false);
+        tf("once", [[1, 2, 1, 3, 4, 4]], [2, 3]);
 
-    tf("once", [[1, 2, 1, 3, 4, 4]], [2, 3]);
+        tf("duplicates", [[1, 2, 1, 3, 4, 4]], [1, 4]);
 
-    tf("duplicates", [[1, 2, 1, 3, 4, 4]], [1, 4]);
-
-    tf("unique", [[1, 2, 1, 3, 4, 4]], [1, 2, 3, 4]);
+        tf("unique", [[1, 2, 1, 3, 4, 4]], [1, 2, 3, 4]);
 
 
-    t.end();
+    }, t.end);
 });
 
 test("Random functions", function(t){

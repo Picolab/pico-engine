@@ -270,12 +270,23 @@ stdlib.join = function(ctx, val, str){
 stdlib.length = function(ctx, val){
     return _.size(val);
 };
-stdlib.map = function(ctx, val, iter){
-    iter = krlLambda(ctx, iter);
-    if(_.isPlainObject(val)){
-        return _.mapValues(val, iter);
+stdlib.map = function*(ctx, val, iter){
+    if(_.isArray(val)){
+        var a = [];
+        var i;
+        for(i = 0; i < val.length; i++){
+            a.push(yield iter(ctx, [val[i], i, val]));
+        }
+        return a;
     }
-    return _.map(val, iter);
+    var r = {};
+    var key;
+    for(key in val){
+        if(_.has(val, key)){
+            r[key] = yield iter(ctx, [val[key], key, val]);
+        }
+    }
+    return r;
 };
 stdlib.pairwise = function(ctx){
     var args = _.tail(_.toArray(arguments));
