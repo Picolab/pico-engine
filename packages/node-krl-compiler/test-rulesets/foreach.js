@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.foreach",
   "meta": { "name": "testing foreach" },
   "global": function* (ctx) {
-    ctx.scope.set("doubleThis", yield ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("doubleThis", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("arr", ctx.getArg(ctx.args, "arr", 0));
       return [
         ctx.scope.get("arr"),
@@ -32,7 +32,7 @@ module.exports = {
           1,
           2,
           3
-        ], yield ctx.KRLClosure(ctx, function* (ctx) {
+        ], ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("x", ctx.getArg(ctx.args, "value", 0));
           yield iter(ctx);
         }));
@@ -70,7 +70,7 @@ module.exports = {
           "a": 1,
           "b": 2,
           "c": 3
-        }, yield ctx.KRLClosure(ctx, function* (ctx) {
+        }, ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("v", ctx.getArg(ctx.args, "value", 0));
           ctx.scope.set("k", ctx.getArg(ctx.args, "key", 1));
           yield iter(ctx);
@@ -112,13 +112,13 @@ module.exports = {
           1,
           2,
           3
-        ], yield ctx.KRLClosure(ctx, function* (ctx) {
+        ], ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("x", ctx.getArg(ctx.args, "value", 0));
           yield foreach([
             "a",
             "b",
             "c"
-          ], yield ctx.KRLClosure(ctx, function* (ctx) {
+          ], ctx.KRLClosure(ctx, function* (ctx) {
             ctx.scope.set("y", ctx.getArg(ctx.args, "value", 0));
             yield iter(ctx);
           }));
@@ -160,11 +160,11 @@ module.exports = {
             1,
             2,
             3
-          ]]), yield ctx.KRLClosure(ctx, function* (ctx) {
+          ]]), ctx.KRLClosure(ctx, function* (ctx) {
           ctx.scope.set("arr", ctx.getArg(ctx.args, "value", 0));
-          yield foreach(ctx.scope.get("arr"), yield ctx.KRLClosure(ctx, function* (ctx) {
+          yield foreach(ctx.scope.get("arr"), ctx.KRLClosure(ctx, function* (ctx) {
             ctx.scope.set("foo", ctx.getArg(ctx.args, "value", 0));
-            yield foreach(yield ctx.callKRLstdlib("range", 0, ctx.scope.get("foo")), yield ctx.KRLClosure(ctx, function* (ctx) {
+            yield foreach(yield ctx.callKRLstdlib("range", 0, ctx.scope.get("foo")), ctx.KRLClosure(ctx, function* (ctx) {
               ctx.scope.set("bar", ctx.getArg(ctx.args, "value", 0));
               yield iter(ctx);
             }));

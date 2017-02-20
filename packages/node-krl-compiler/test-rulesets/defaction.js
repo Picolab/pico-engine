@@ -1,7 +1,7 @@
 module.exports = {
   "rid": "io.picolabs.defaction",
   "global": function* (ctx) {
-    ctx.scope.set("foo", yield ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("foo", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("a", ctx.getArg(ctx.args, "a", 0));
       ctx.scope.set("b", 2);
       return [{
@@ -19,7 +19,7 @@ module.exports = {
         return yield a.action(ctx);
       });
     }));
-    ctx.scope.set("bar", yield ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("bar", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("one", ctx.getArg(ctx.args, "one", 0));
       ctx.scope.set("two", ctx.getArg(ctx.args, "two", 1));
       ctx.scope.set("three", ctx.getArg(ctx.args, "three", 2));

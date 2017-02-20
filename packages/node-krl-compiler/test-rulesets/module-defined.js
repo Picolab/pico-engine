@@ -11,13 +11,13 @@ module.exports = {
     }
   },
   "global": function* (ctx) {
-    ctx.scope.set("privateFn", yield ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("privateFn", ctx.KRLClosure(ctx, function* (ctx) {
       return yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", yield ctx.callKRLstdlib("+", "privateFn = name: ", ctx.scope.get("configured_name")), " memo: "), yield ctx.modules.get(ctx, "ent", "memo"));
     }));
-    ctx.scope.set("getName", yield ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getName", ctx.KRLClosure(ctx, function* (ctx) {
       return ctx.scope.get("configured_name");
     }));
-    ctx.scope.set("getInfo", yield ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getInfo", ctx.KRLClosure(ctx, function* (ctx) {
       return {
         "name": yield ctx.scope.get("getName")(ctx, []),
         "memo": yield ctx.modules.get(ctx, "ent", "memo"),

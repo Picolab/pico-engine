@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.http",
   "meta": { "shares": ["getResp"] },
   "global": function* (ctx) {
-    ctx.scope.set("getResp", yield ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getResp", ctx.KRLClosure(ctx, function* (ctx) {
       return yield ctx.modules.get(ctx, "ent", "get_resp");
     }));
   },
