@@ -635,6 +635,16 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
             [
                 query("eci"),
                 "id1"
+            ],
+            [
+                signal("meta", "rulesetURI"),
+                [{name: "rulesetURI", options: {
+                    rulesetURI: "https://github.com/Picolab/node-pico-engine-core/blob/master/test-rulesets/meta.krl"
+                }}]
+            ],
+            [
+                query("rulesetURI"),
+                "https://github.com/Picolab/node-pico-engine-core/blob/master/test-rulesets/meta.krl"
             ]
         ], t.end);
     });

@@ -63,7 +63,7 @@ test("DB - storeRuleset", function(t){
         var rid = "io.picolabs.cool";
         var hash = "7d71c05bc934b0d41fdd2055c7644fc4d0d3eabf303d67fb97f604eaab2c0aa1";
         var timestamp = (new Date()).toISOString();
-        var url = "some-url-to-src";
+        var url = "Some-URL-to-src ";
 
         var expected = {};
         _.set(expected, ["rulesets", "krl", hash], {
@@ -73,7 +73,7 @@ test("DB - storeRuleset", function(t){
             timestamp: timestamp
         });
         _.set(expected, ["rulesets", "versions", rid, timestamp, hash], true);
-        _.set(expected, ["rulesets", "url", url, rid, hash], true);
+        _.set(expected, ["rulesets", "url", url.toLowerCase().trim(), rid, hash], true);
 
         λ.series({
             start_db: λ.curry(pe.db.toObj),
@@ -89,7 +89,6 @@ test("DB - storeRuleset", function(t){
             t.deepEquals(data.start_db, {});
             t.deepEquals(data.store, hash);
             t.deepEquals(data.findRulesetsByURL, [{
-                url: url,
                 rid: rid,
                 hash: hash
             }]);

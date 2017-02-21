@@ -239,7 +239,7 @@ module.exports = function(opts){
             var hash = shasum.digest("hex");
 
             var url = _.has(meta, "url") && _.isString(meta.url)
-                ? meta.url.toLowerCase().trim()
+                ? meta.url
                 : null;
 
             var ops = [
@@ -265,7 +265,7 @@ module.exports = function(opts){
                 //index to lookup by url
                 ops.push({
                     type: "put",
-                    key: ["rulesets", "url", url, rid, hash],
+                    key: ["rulesets", "url", url.toLowerCase().trim(), rid, hash],
                     value: true
                 });
             }
@@ -277,11 +277,10 @@ module.exports = function(opts){
         findRulesetsByURL: function(url, callback){
             var r = [];
             dbRange(ldb, {
-                prefix: ["rulesets", "url", url],
+                prefix: ["rulesets", "url", url.toLowerCase().trim()],
             }, function(data){
                 if(data.value){
                     r.push({
-                        url: data.key[2],
                         rid: data.key[3],
                         hash: data.key[4],
                     });
@@ -312,6 +311,7 @@ module.exports = function(opts){
                         src: data_k.src,
                         hash: data_e.hash,
                         rid: data_k.rid,
+                        url: data_k.url,
                         timestamp_stored: data_k.timestamp,
                         timestamp_enable: data_e.timestamp
                     });
