@@ -22,11 +22,32 @@ module.exports = function(ast, comp, e){
         body.push(comp(d));
     });
 
-    body.push(e("return", e("call", e(".", e("arr", _.map(ast.actions, function(action){
+    body.push(e("var", "actions", e("arr", _.map(ast.actions, function(action){
         return comp(action);
-    })), e("id", "map")), [e("genfn", ["a"], [
-        e("return", e("ycall", e("id", "a.action"), [e("id", "ctx")]))
-    ])])));
+    }))));
+
+    body.push(e("var", "r", e("arr", [])));
+    body.push(e("var", "i"));
+    body.push(e(
+        "for",
+        e("=", e("id", "i"), e("number", 0)),
+        e("<", e("id", "i"), e("id", "actions.length")),
+        e("++", e("id", "i")),
+        e(";", e("call", e("id", "r.push"), [
+            e("yield",
+                e("call", e(".",
+                    e("get",
+                        e("id", "actions"),
+                        e("id", "i")
+                    ),
+                    e("id", "action")
+                ), [
+                    e("id", "ctx")
+                ])
+            )
+        ]))
+    ));
+    body.push(e("return", e("id", "r")));
 
     return e(";", e("call", e("id", "ctx.scope.set"), [
         e("str", ast.id.value, ast.id.loc),
