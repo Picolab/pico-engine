@@ -82,11 +82,17 @@ test("DB - storeRuleset", function(t){
                     url: url
                 }, next, timestamp);
             },
+            findRulesetsByURL: λ.curry(pe.db.findRulesetsByURL, url),
             end_db: λ.curry(pe.db.toObj)
         }, function(err, data){
             if(err) return t.end(err);
             t.deepEquals(data.start_db, {});
             t.deepEquals(data.store, hash);
+            t.deepEquals(data.findRulesetsByURL, [{
+                url: url,
+                rid: rid,
+                hash: hash
+            }]);
             t.deepEquals(data.end_db, expected);
             t.end();
         });

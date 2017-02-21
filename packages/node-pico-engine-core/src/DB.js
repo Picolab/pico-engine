@@ -274,6 +274,23 @@ module.exports = function(opts){
                 callback(undefined, hash);
             });
         },
+        findRulesetsByURL: function(url, callback){
+            var r = [];
+            dbRange(ldb, {
+                prefix: ["rulesets", "url", url],
+            }, function(data){
+                if(data.value){
+                    r.push({
+                        url: data.key[2],
+                        rid: data.key[3],
+                        hash: data.key[4],
+                    });
+                }
+            }, function(err){
+                if(err)return callback(err);
+                callback(null, r);
+            });
+        },
         enableRuleset: function(hash, callback){
             ldb.get(["rulesets", "krl", hash], function(err, data){
                 if(err) return callback(err);
