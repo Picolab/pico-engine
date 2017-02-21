@@ -8,6 +8,7 @@
   },
   "files": [
     "bin",
+    "krl",
     "public",
     "src"
   ],
