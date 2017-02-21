@@ -63,23 +63,23 @@ test("DB - storeRuleset", function(t){
         var rid = "io.picolabs.cool";
         var hash = "7d71c05bc934b0d41fdd2055c7644fc4d0d3eabf303d67fb97f604eaab2c0aa1";
         var timestamp = (new Date()).toISOString();
+        var url = "some-url-to-src";
 
         var expected = {};
         _.set(expected, ["rulesets", "krl", hash], {
             src: krl_src,
             rid: rid,
-            meta: {
-                url: "some-url-to-src"
-            },
+            url: url,
             timestamp: timestamp
         });
         _.set(expected, ["rulesets", "versions", rid, timestamp, hash], true);
+        _.set(expected, ["rulesets", "url", url, rid, hash], true);
 
         λ.series({
             start_db: λ.curry(pe.db.toObj),
             store: function(next){
                 pe.db.storeRuleset(krl_src, {
-                    url: "some-url-to-src"
+                    url: url
                 }, next, timestamp);
             },
             end_db: λ.curry(pe.db.toObj)

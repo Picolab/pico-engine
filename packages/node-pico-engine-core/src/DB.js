@@ -238,6 +238,10 @@ module.exports = function(opts){
             shasum.update(krl_src);
             var hash = shasum.digest("hex");
 
+            var url = _.has(meta, "url") && _.isString(meta.url)
+                ? meta.url.toLowerCase().trim()
+                : null;
+
             var ops = [
                 {
                     //the source of truth for a ruleset version
@@ -246,7 +250,7 @@ module.exports = function(opts){
                     value: {
                         src: krl_src,
                         rid: rid,
-                        meta: meta,
+                        url: url,
                         timestamp: timestamp
                     }
                 },
@@ -257,6 +261,14 @@ module.exports = function(opts){
                     value: true
                 }
             ];
+            if(url){
+                //index to lookup by url
+                ops.push({
+                    type: "put",
+                    key: ["rulesets", "url", url, rid, hash],
+                    value: true
+                });
+            }
             ldb.batch(ops, function(err){
                 if(err) return callback(err);
                 callback(undefined, hash);
