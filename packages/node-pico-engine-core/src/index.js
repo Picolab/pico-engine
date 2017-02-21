@@ -1,7 +1,6 @@
 var _ = require("lodash");
 var λ = require("contra");
 var DB = require("./DB");
-var co = require("co");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
 var getArg = require("./getArg");
@@ -13,16 +12,6 @@ var SymbolTable = require("symbol-table");
 var EventEmitter = require("events");
 var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
-
-function isGenerator(obj) {
-    return "function" == typeof obj.next && "function" == typeof obj.throw;
-}
-function isGeneratorFunction(obj) {
-    var constructor = obj.constructor;
-    if (!constructor) return false;
-    if ("GeneratorFunction" === constructor.name || "GeneratorFunction" === constructor.displayName) return true;
-    return isGenerator(constructor.prototype);
-}
 
 var modulesSync = {
     get: cocb.toYieldable(modules.get),
@@ -90,8 +79,8 @@ module.exports = function(conf, callback){
             var args = _.toArray(arguments);
             args[0] = ctx;
             var fn = krl_stdlib[fn_name];
-            if(isGeneratorFunction(fn)){
-                return co(function*(){
+            if(cocb.isGeneratorFunction(fn)){
+                return cocb.promiseRun(function*(){
                     return yield fn.apply(void 0, args);
                 });
             }
