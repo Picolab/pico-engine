@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/Picolab/node-krl-stdlib#readme",
   "devDependencies": {
-    "co-callback": "^1.1.0",
+    "co-callback": "^1.2.0",
     "eslint": "^3.0.1",
     "onchange": "^2.5.0",
     "tape": "^4.6.0"

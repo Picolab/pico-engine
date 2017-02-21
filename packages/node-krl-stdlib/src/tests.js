@@ -1,23 +1,13 @@
 var _ = require("lodash");
-var co = require("co");
 var cocb = require("co-callback");
 var test = require("tape");
 var stdlib = require("./");
 
-function isGenerator(obj) {
-    return "function" == typeof obj.next && "function" == typeof obj.throw;
-}
-function isGeneratorFunction(obj) {
-    var constructor = obj.constructor;
-    if (!constructor) return false;
-    if ("GeneratorFunction" === constructor.name || "GeneratorFunction" === constructor.displayName) return true;
-    return isGenerator(constructor.prototype);
-}
 var ylibFn = function(fn_name, args){
     args = [defaultCTX].concat(args);
     var fn = stdlib[fn_name];
-    if(isGeneratorFunction(fn)){
-        return co(function*(){
+    if(cocb.isGeneratorFunction(fn)){
+        return cocb.promiseRun(function*(){
             return yield fn.apply(void 0, args);
         });
     }
@@ -59,7 +49,7 @@ var testFn = function(t, fn, args, expected, message){
 var mkTf = function(t){
     return function*(fn, args, expected, message){
         args = _.map(args, function(arg){
-            if(isGeneratorFunction(arg)){
+            if(cocb.isGeneratorFunction(arg)){
                 return function*(ctx, args){
                     return yield arg.apply(this, args);
                 };

@@ -2,25 +2,6 @@ var _ = require("lodash");
 var cuid = require("cuid");
 var randomWords = require("random-words");
 
-var stdlib = {};
-
-var defVarArgOp = function(op, reducer){
-    stdlib[op] = function(){
-        if(arguments.length === 1){
-            return;
-        }
-        var r = arguments[1];
-        if(op === "-" && arguments.length === 2){
-            return -r;
-        }
-        var i;
-        for(i = 2; i < arguments.length; i++){
-            r = reducer(r, arguments[i]);
-        }
-        return r;
-    };
-};
-
 var iterBase = function*(val, iter){
     var should_continue;
     if(_.isArray(val)){
@@ -38,6 +19,26 @@ var iterBase = function*(val, iter){
             }
         }
     }
+};
+
+
+var stdlib = {};
+
+var defVarArgOp = function(op, reducer){
+    stdlib[op] = function(){
+        if(arguments.length === 1){
+            return;
+        }
+        var r = arguments[1];
+        if(op === "-" && arguments.length === 2){
+            return -r;
+        }
+        var i;
+        for(i = 2; i < arguments.length; i++){
+            r = reducer(r, arguments[i]);
+        }
+        return r;
+    };
 };
 
 defVarArgOp("<", function(r, a){
