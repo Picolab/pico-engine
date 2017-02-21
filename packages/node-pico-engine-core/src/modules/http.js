@@ -1,10 +1,16 @@
 var _ = require("lodash");
+var cocb = require("co-callback");
 var getArg = require("../getArg");
-var Future = require("fibers/future");
 var request = require("request");
 
-var reqWrap = Future.wrap({
-    get: function(url, parameters, headers, callback){
+var fns = {
+    get: cocb.toYieldable(function(ctx, args, callback){
+        var url = getArg(args, "url", 0);
+        var parameters = getArg(args, "parameters", 1);
+        var headers = getArg(args, "headers", 2);
+        //TODO
+        //var response_headers = getArg(args, "response_headers", 3);
+
         request({
             method: "GET",
             url: url,
@@ -23,19 +29,7 @@ var reqWrap = Future.wrap({
                 status_line: response.statusMessage
             });
         });
-    }
-});
-
-var fns = {
-    get: function(ctx, args){
-        var url = getArg(args, "url", 0);
-        var parameters = getArg(args, "parameters", 1);
-        var headers = getArg(args, "headers", 2);
-        //TODO
-        //var response_headers = getArg(args, "response_headers", 3);
-
-        return reqWrap.getFuture(url, parameters, headers).wait();
-    }
+    })
 };
 
 module.exports = {

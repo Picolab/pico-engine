@@ -9,6 +9,7 @@ module.exports = {
   "rules": {
     "indent":  ["error", 4],
     "no-console": "off",
+    "require-yield": "off",
     "quotes": ["error", "double"],
     "no-trailing-spaces": "error",
     "linebreak-style": [

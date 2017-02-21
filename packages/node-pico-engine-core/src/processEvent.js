@@ -90,15 +90,17 @@ var runEvent = cocb.wrap(function*(scheduled){
 
     var r = [];
     if(rule.foreach){
-        yield runKRL(rule.foreach, ctx, function(val, iter){
+        yield runKRL(rule.foreach, ctx, function*(val, iter){
             var counter = _.size(val);
-            return _.mapValues(val, function(){
-                var args = _.toArray(arguments);
-                counter--;
-                return iter(_.assign({}, ctx, {
-                    foreach_is_final: counter === 0
-                }), args);
-            });
+            var key;
+            for(key in val){
+                if(_.has(val, key)){
+                    counter--;
+                    yield iter(_.assign({}, ctx, {
+                        foreach_is_final: counter === 0
+                    }), [val[key], key, val]);
+                }
+            }
         }, function*(ctx){
             r.push(yield evalRule(ctx, rule));
         });
