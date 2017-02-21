@@ -140,17 +140,9 @@ $.getJSON("/api/db-dump", function(db_dump){
           return;
         }
         var rid = rc.code.split(/"/)[3];
-        $.getJSON("/api/ruleset/register-and-enable",{"src":src},function(rr){
+        $.getJSON("/api/ruleset/register",{"src":src},function(rr){
           if (rr && rr.ok) {
-            $.getJSON("/api/ruleset/install/"+rid,function(ri){
-              if (ri && ri.ok) {
-                location.reload();
-              } else {
-                $feedback.html("Problem installing "+rid);
-              }
-            }).fail(function() {
-              $feedback.html("Problem installing "+rid+": failed to compile");
-            });
+            location.reload();
           } else {
             $feedback.html("Problem registering "+rid);
           }

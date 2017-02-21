@@ -224,53 +224,25 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
     log("Loading ruleset source code");
     log("URL: "+url);
-    $.get(url,function(k){
-      if (k && k.length > 0) {
-        log("Length: "+k.length);
-        $.getJSON("/api/ruleset/compile",{"src":k},function(rc){
-          if (rc.code) {
-            var rid = rc.code.split(/"/)[3];
-            log("Registering: "+rid);
-            $.getJSON("/api/ruleset/register-and-enable",{"src":k},function(rr){
-              if (rr && rr.ok) {
-                log(rid+" registered and enabled");
-                log("Installing: "+rid);
-                $.getJSON("/api/ruleset/install/"+rid,function(ri){
-                  if (ri && ri.ok) {
-                    log(rid+" installed");
-                    log("Adding "+rid+" to pico: "+eci);
-                    $.getJSON(
-                      "/sky/event/"+eci+"/add-ruleset/pico/new_ruleset"
-                        +"?rid="+rid,
-                      function(ra){
-                        if (ra && ra.directives) {
-                          log(rid+" added to pico");
-                          callback();
-                        } else {
-                          logProblem("adding "+rid);
-                        }
-                    });
-                  } else {
-                    logProblem("installing "+rid);
-                  }
-                }).fail(function() {
-                  logProblem("installing "+rid+": failed to compile");
-                });
-              } else {
-                logProblem("registering "+rid);
-              }
-            });
-          } else {
-            logProblem("failed to validate");
-            if (rc.error) {
-              log(rc.error);
+    $.getJSON("/api/ruleset/register",{"url": url},function(rr){
+      if (rr && rr.ok) {
+        log(rr.rid+" registered");
+        log("Adding "+rr.rid+" to pico: "+eci);
+        $.getJSON(
+          "/sky/event/"+eci+"/add-ruleset/pico/new_ruleset"
+            +"?rid="+rr.rid,
+          function(ra){
+            if (ra && ra.directives) {
+              log(rr.rid+" added to pico");
+              callback();
+            } else {
+              logProblem("adding "+rr.rid);
             }
-          }
         });
       } else {
-        logProblem("getting "+rid);
+        logProblem("registering");
       }
-    },"text");
+    });
   };
           e.preventDefault();
           var args = formToJSON(this);

@@ -39,10 +39,9 @@ $(document).ready(function() {
       callback(own_eci);
     } else {
       log("Finding owner pico");
-      $.getJSON("/api/owner-channel", function(owner){
-        if (owner.channel) {
-          for (var k in owner.channel) { own_eci = k; break; }
-          log("Owner pico id is "+get(owner.channel,[own_eci,"pico_id"]));
+      $.getJSON("/api/owner-eci", function(owner){
+        if (owner.ok && owner.eci) {
+          own_eci = owner.eci;
           $("#own_eci").val(own_eci);
           callback(own_eci);
         } else {
