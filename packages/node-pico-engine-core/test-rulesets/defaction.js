@@ -4,7 +4,7 @@ module.exports = {
     ctx.scope.set("foo", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("a", ctx.getArg(ctx.args, "a", 0));
       ctx.scope.set("b", 2);
-      return [{
+      var actions = [{
           "action": function* (ctx) {
             return {
               "type": "directive",
@@ -15,15 +15,18 @@ module.exports = {
               }
             };
           }
-        }].map(function* (a) {
-        return yield a.action(ctx);
-      });
+        }];
+      var r = [];
+      var i;
+      for (i = 0; i < actions.length; i++)
+        r.push(yield actions[i].action(ctx));
+      return r;
     }));
     ctx.scope.set("bar", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("one", ctx.getArg(ctx.args, "one", 0));
       ctx.scope.set("two", ctx.getArg(ctx.args, "two", 1));
       ctx.scope.set("three", ctx.getArg(ctx.args, "three", 2));
-      return [{
+      var actions = [{
           "action": function* (ctx) {
             return {
               "type": "directive",
@@ -35,9 +38,12 @@ module.exports = {
               }
             };
           }
-        }].map(function* (a) {
-        return yield a.action(ctx);
-      });
+        }];
+      var r = [];
+      var i;
+      for (i = 0; i < actions.length; i++)
+        r.push(yield actions[i].action(ctx));
+      return r;
     }));
   },
   "rules": {
