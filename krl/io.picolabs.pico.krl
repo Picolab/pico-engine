@@ -165,9 +165,12 @@ ruleset io.picolabs.pico {
     select when pico new_ruleset
     pre {
       rid = event:attr("rid")
+      base = event:attr("base")
+      url = event:attr("url")
     }
     always {
-      engine:installRuleset( { "pico_id": ent:id, "rid": rid } );
+      engine:installRuleset(
+        { "pico_id": ent:id, "rid": rid, "base": base, "url": url } );
       raise pico event "ruleset_added" for rid
         attributes event:attrs()
     }
