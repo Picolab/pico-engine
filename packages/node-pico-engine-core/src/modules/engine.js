@@ -65,12 +65,6 @@ var fns = {
             }
             doIt(_.head(rids));
         });
-    }),
-    signalEvent: cocb.toYieldable(function(ctx, args, callback){
-        var event = getArg(args, "event", 0);
-        //this should enqueue the event and not wait for the response
-        ctx.signalEvent(event, _.noop);//ingore the response to the event
-        callback();
     })
 };
 

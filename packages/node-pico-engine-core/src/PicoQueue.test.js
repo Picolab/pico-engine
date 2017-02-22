@@ -61,7 +61,7 @@ test("PicoQueue - error", function(t){
     var pq = PicoQueue(function(pico_id, data, callback){
         process.nextTick(function(){
             if(data === "foobar"){
-                callback("ERROR: foobar");
+                callback(new Error(data));
                 return;
             }
             callback(null, data);
@@ -73,7 +73,7 @@ test("PicoQueue - error", function(t){
         t.equals(data, "baz");
     });
     pq.enqueue("A", "foobar", function(err, data){
-        t.equals(err, "ERROR: foobar");
+        t.equals(err + "", "Error: foobar");
         t.equals(data, void 0);
     });
     pq.enqueue("A", "qux", function(err, data){

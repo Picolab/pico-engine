@@ -213,7 +213,7 @@ module.exports = function(conf, callback){
                 if(err) return callback(err);
                 if(_.has(data, "event:send")){
                     _.each(data["event:send"], function(o){
-                        signalEvent(o.event,callback);
+                        signalEvent(o.event);
                     });
                     data = _.omit(data, "event:send");
                 }
@@ -237,6 +237,17 @@ module.exports = function(conf, callback){
         var emit = mkCTX({event: event}).emit;
         emit("episode_start");
         emit("debug", "event received: " + event.domain + "/" + event.type);
+
+        if(!_.isFunction(callback)){
+            //if interal signalEvent or just no callback was given...
+            callback = function(err, resp){
+                if(err){
+                    emit("error", err);
+                }else{
+                    emit("debug", resp);
+                }
+            };
+        }
 
         db.getPicoIDByECI(event.eci, function(err, pico_id){
             if(err) return callback(err);
