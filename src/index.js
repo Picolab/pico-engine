@@ -26,15 +26,23 @@ var httpGetKRL = function(url, callback){
     });
 };
 
+var github_prefix = "https://raw.githubusercontent.com/Picolab/node-pico-engine/master/krl/";
+
 var registerBuiltInRulesets = function(pe, callback){
     var krl_dir = path.resolve(__dirname, "../krl");
     fs.readdir(krl_dir, function(err, files){
         if(err) return callback(err);
         λ.each(files, function(filename, next){
             var file = path.resolve(krl_dir, filename);
+            if(!/\.krl$/.test(file)){
+                //only auto-load krl files in the top level
+                return next();
+            }
             fs.readFile(file, "utf8", function(err, src){
                 if(err) return next(err);
-                pe.registerRuleset(src, {}, function(err){
+                pe.registerRuleset(src, {
+                    url: github_prefix + filename
+                }, function(err){
                     if(err) return next(err);
                     next();
                 });
