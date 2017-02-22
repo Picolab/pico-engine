@@ -56,3 +56,28 @@ test("PicoQueue", function(t){
         t.end();
     });
 });
+
+test("PicoQueue - error", function(t){
+    var pq = PicoQueue(function(pico_id, data, callback){
+        process.nextTick(function(){
+            if(data === "foobar"){
+                callback("ERROR: foobar");
+                return;
+            }
+            callback(null, data);
+        });
+    });
+    t.plan(6);
+    pq.enqueue("A", "baz", function(err, data){
+        t.equals(err, null);
+        t.equals(data, "baz");
+    });
+    pq.enqueue("A", "foobar", function(err, data){
+        t.equals(err, "ERROR: foobar");
+        t.equals(data, void 0);
+    });
+    pq.enqueue("A", "qux", function(err, data){
+        t.equals(err, null);
+        t.equals(data, "qux");
+    });
+});
