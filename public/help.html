@@ -1,0 +1,55 @@
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
+<title>Pico Engine Help</title>
+<style type="text/css">
+a.logo img {
+  vertical-align: top;
+}
+a.logo {
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+<h1><a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a></h1>
+<h2>Pico Engine Help</h2>
+<h3>Managing Picos</h3>
+<p>
+Visit the <a href="index.html" target="mypicos">My Picos</a>
+page to see your owner pico.
+On the My Picos page you can create a hierarchy of
+picos.
+</p>
+<h3>Managing rulesets</h3>
+<p>
+To create your own rulesets,
+use the <a href="ruleset.html" target="ruleset">Engine Rulesets</a>
+page.
+</p>
+<h3>Reset database</h2>
+<p>
+If you wish to start over,
+remove the database.
+</p>
+<ol>
+<li>
+Stop your
+HTTP server (use <code>Ctrl-C</code>).
+</li>
+<li>
+Use <code>rm -r ~/.pico-engine/db</code>
+to clear the database.
+This action will remove all picos,
+and is not reversible.
+</li>
+<li>
+Restart the HTTP server
+(use <code>pico-engine</code>)
+which will re-create the database,
+and create a new owner pico.
+</li>
+</ol>
+</body>
+</html>

@@ -51,7 +51,7 @@ ruleset io.picolabs.pico {
           "domain": "pico", "type": "child_created",
           "attrs": attrs })
     always {
-      engine:addRuleset(
+      engine:installRuleset(
         { "pico_id": new_child.id, "rid": "io.picolabs.pico" });
       ent:children := children().union([new_child])
     }
@@ -167,7 +167,7 @@ ruleset io.picolabs.pico {
       rid = event:attr("rid")
     }
     always {
-      engine:addRuleset( { "pico_id": ent:id, "rid": rid } );
+      engine:installRuleset( { "pico_id": ent:id, "rid": rid } );
       raise pico event "ruleset_added" for rid
         attributes event:attrs()
     }

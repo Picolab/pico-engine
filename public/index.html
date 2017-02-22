@@ -2,49 +2,245 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
 <link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
-<title>Pico Bootstrap</title>
+<title>TITLE</title>
+<link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/jquery.minicolors.css">
 <script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
-<style type="text/css">
-a.logo img {
-  vertical-align: top;
-}
-a.logo {
-  cursor: pointer;
-}
-</style>
+<script src="js/jquery-ui-1.11.4.min.js" type="text/javascript"></script>
+<script src="js/jquery.minicolors.js"></script>
+<script src="js/handlebars.min.js" type="text/javascript"></script>
+<script src="js/index.js" type="text/javascript"></script>
+<script id="the-template" type="text/x-handlebars-template">
+<a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
+<h1 class="title">{{title}}</h1>
+<div id="container" style="position:relative">
+<p class="description">
+{{descr}}
+</p>
+{{#picos}}
+<div class="pico" id="{{id}}" style="{{style}}">
+{{dname}}
+<div class="resize-handle ui-resizable-handle ui-resizable-se"></div>
+</div>
+<div class="pico-edit" style="{{style}}">
+{{dname}}
+<ul class="horiz-menu">
+<li>About</li>
+<li>Rulesets</li>
+<li>Channels</li>
+<li>Subscriptions</li>
+<li>Logging</li>
+<li>Testing</li>
+</ul>
+<div class="pico-section"></div>
+</div>
+{{/picos}}
+{{#if chans}}
+<svg>
+{{#chans}}
+  <line class="{{class}}"></line>
+{{/chans}}
+</svg>
+{{/if}}
+</div>
+</script>
+<script id="about-template" type="text/x-handlebars-template">
+<h2>Pico</h2>
+<p>
+<b>ID: </b>
+<span id="about-pico-name">{{id}}</span>
+<b>ECI: </b>
+<span id="about-eci">{{eci}}</span>
+<em>"{{dname}}"</em>
+</p>
+<p>
+<b>Note: </b>
+the ECI is the path into your pico and should be treated as a
+<em>shared secret</em> between the pico and the application using
+the pico's Event-Query API.
+Do not disclose it or check it into a repository like Github.
+</p>
+<form class="js-ajax-form" action="/sky/event/{{eci}}/31/visual/update" method="GET">
+<input type="text" name="dname" value="{{dname}}" placeholder="display name">
+<input type="text" name="color" class="use-minicolors" value="{{color}}">
+<button type="submit">send event visual/update</button>
+</form>
+{{#if parent}}
+<h2>Parent</h2>
+<p>
+<b>ID: </b><a class="js-nav" href="#{{parent.id}}-About">{{parent.id}}</a>
+<b>ECI: </b>{{parent.eci}}
+<em>"{{parent.dname}}"</em>
+</p>
+{{/if}}
+<h2>Children</h2>
+{{#each children}}
+<p>
+<b>ID: </b><a class="js-nav" href="#{{this.id}}-About">{{this.id}}</a>
+<b>ECI: </b>{{this.eci}}
+{{#if canDel}}
+<a class="js-ajax-link" href="/sky/event/{{../eci}}/delete-child/pico/delete_child_request?id={{this.id}}&eci={{this.eci}}">del</a>
+{{/if}}
+<em>"{{this.dname}}"</em>
+</p>
+{{/each}}
+<p>
+<form class="js-ajax-form" action="/sky/event/{{eci}}/new-child/pico/new_child_request" method="GET">
+<input type="text" name="dname" placeholder="display name">
+<input type="text" name="color" class="use-minicolors" value="{{color}}">
+<button type="submit">add child pico</button>
+</form>
+</p>
+</script>
+<script id="rulesets-template" type="text/x-handlebars-template">
+Pico Rulesets
+<ul id="ruleset-list" style="list-style: none;padding:0">
+{{#each installed}}
+<li><input type="checkbox"><span class="krlrid">{{@key}}</span>
+{{#if canDel}}
+<a class="js-ajax-link" href="/api/pico/{{../pico_id}}/rm-ruleset/{{@key}}">del</a>
+{{/if}}
+<ul>
+{{#each vars}}
+<li>ent:{{@key}}={{this}}</li>
+{{/each}}
+</ul>
+</li>
+{{/each}}
+</ul>
+<form class="rulesetFromURL" method="POST">
+<input type="hidden" name="eci" value="{{eci}}">
+<button type="submit">install ruleset from URL:</button>
+<input name="url" size="100">
+</form>
+<div class="oplog">
+Operations Log <button class="oplog-x">x</button>
+<pre class="rfuops"></pre>
+</div>
+{{#if avail}}
+<hr>
+Available Rulesets
+<p></p>
+<form class="js-ajax-form" action="/sky/event/{{eci}}/add-ruleset/pico/new_ruleset" method="GET">
+<select name="rid">
+{{#each avail}}
+<option>{{this}}</option>
+{{/each}}
+</select>
+<button type="submit">install ruleset</button>
+</form>
+{{/if}}
+</script>
+<script id="channels-template" type="text/x-handlebars-template">
+Channels
+<table class="channel-table">
+<tr><th>id</th><th>name</th><th>type</th><th>&nbsp;</th></tr>
+{{#each channel}}
+<tr>
+<td>{{id}}</td><td>{{name}}</td><td>{{type}}</td>
+<td>
+{{#if canDel}}
+<a class="js-ajax-link" href="/api/pico/{{../id}}/rm-channel/{{id}}">del</a>
+{{/if}}
+</td>
+</tr>
+{{/each}}
+</table>
+<p></p>
+<form class="js-ajax-form" action="/api/pico/{{id}}/new-channel" method="GET">
+<input type="text" name="name" placeholder="name...">
+<input type="text" name="type" placeholder="type...">
+<button type="submit">add channel</button>
+</form>
+</script>
+<script id="subscriptions-template" type="text/x-handlebars-template">
+Subscriptions
+</script>
+<script id="logging-template" type="text/x-handlebars-template">
+<div>
+Logging
+{{#if disabled}}
+is disabled.
+To enable, add the ruleset "io.picolabs.logging" to this pico.
+{{else}}
+<span id="switch">
+<input id="logging-off" type="radio" name="status" value="off"{{#unless status}} checked=""{{/unless}}>
+<label for="logging-off"> Off </label>
+<input id="logging-on" type="radio" name="status" value="on"{{#if status}} checked=""{{/if}}>
+<label for="logging-on"> On </label>
+</span>
+<div id="logging-list">
+<p>
+Select an episode from the list of timestamp - event channel identifier - event identifier to see the log entries for that episode.
+</p>
+{{#if logs}}
+<ul>
+{{#each logs}}
+<li><input type="checkbox" id="episode-{{@index}}">
+<label for="episode-{{@index}}">{{@key}}</label>
+<pre class="logging-detail">
+{{#each this}}
+{{this}}
+{{/each}}
+</pre>
+</li>
+{{/each}}
+</ul>
+{{/if}}
+{{/if}}
+</div>
+</script>
+<script id="testing-template" type="text/x-handlebars-template">
+<div style="float:left;width:40%;height=100%">
+Testing
+<ul class="testing-rids">
+{{#each testing}}
+<li><input type="checkbox" checked=""><span class="krlrid">{{this.rid}}</span>
+{{#if capabilities.queries}}
+<ul class="testing-queries">
+{{#each capabilities.queries}}
+<li><form class="js-test sky-cloud" action="sky/cloud/{{../eci}}/{{../rid}}/{{this.name}}">
+{{#if this.args}}
+{{#each this.args}}
+<input type="text" name="{{this}}" placeholder="{{this}}">
+{{/each}}
+{{/if}}
+<button type="submit">{{this.name}}</button></form></li>
+{{/each}}
+</ul>
+{{/if}}
+{{#if capabilities.events}}
+<ul class="testing-events">
+{{#each capabilities.events}}
+<li><form class="js-test sky-event" action="sky/event/{{../eci}}/__testing/{{this.domain}}/{{this.type}}">
+{{#if this.attrs}}
+{{#each this.attrs}}
+<input type="text" name="{{this}}" placeholder="{{this}}">
+{{/each}}
+{{/if}}
+<button type="submit">{{this.domain}}/{{this.type}}</button></form></li>
+{{/each}}
+</ul>
+{{/if}}
+</li>
+{{/each}}
+<li class="legend">Legend
+<ul>
+<li class="testing-queries sky-cloud"><button>query</button></li>
+<li class="testing-events sky-event"><button>event</button></li>
+</ul>
+</li>
+</ul>
+</div>
+{{#if testing}}
+<div id="test-results" style="margin-left:40%">
+Results
+<pre></pre>
+</div>
+{{/if}}
+</script>
 </head>
 <body>
-<a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
-<h3>Managing Picos</h3>
-<p>
-Visit the <a href="mypicos.html" target="mypicos">My Picos</a>
-page to see your owner pico.
-On the My Picos page you can create a hierarchy of
-picos.
-</p>
-<h3>Managing rulesets</h3>
-<p>
-To create your own rulesets,
-use the <a href="ruleset.html" target="ruleset">Engine Rulesets</a>
-page.
-</p>
-<h2>Reset database</h2>
-<p>
-If you wish to start over,
-remove the database.
-</p>
-<p>
-First, stop your
-HTTP server (use <code>Ctrl-C</code>).
-Use <code>rm -r ~/.pico-engine/db</code>
-to clear the database.
-Then, restart the HTTP server
-(use <code>pico-engine</code>)
-which will create an empty
-database.
-Refresh this Bootstrap page
-each time you
-clear the database.
-</p>
+<p>Loading...</p>
 </body>
 </html>
