@@ -5,7 +5,7 @@ var path = require("path");
 var memdown = require("memdown");
 var PicoEngine = require("./");
 
-var url_prefix = "https://github.com/Picolab/node-pico-engine-core/blob/master/test-rulesets/";
+var url_prefix = "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/";
 
 var test_rulesets = {};
 var test_dir = path.resolve(__dirname, "../test-rulesets");

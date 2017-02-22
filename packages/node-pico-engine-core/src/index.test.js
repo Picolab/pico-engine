@@ -471,7 +471,7 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
             }),[]],
             [signal("engine", "installRuleset", {
                 pico_id: "id2",
-                url: "https://github.com/Picolab/node-pico-engine-core/blob/master/test-rulesets/",
+                url: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/",
                 base: "scope.krl",
             }),[]],
             function(done){
@@ -652,12 +652,12 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
             [
                 signal("meta", "rulesetURI"),
                 [{name: "rulesetURI", options: {
-                    rulesetURI: "https://github.com/Picolab/node-pico-engine-core/blob/master/test-rulesets/meta.krl"
+                    rulesetURI: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
                 }}]
             ],
             [
                 query("rulesetURI"),
-                "https://github.com/Picolab/node-pico-engine-core/blob/master/test-rulesets/meta.krl"
+                "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
             ]
         ], t.end);
     });
