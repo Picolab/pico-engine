@@ -9,8 +9,9 @@ An implementation of the [pico-engine](http://www.windley.com/archives/2016/03/r
 ### Installing
 
 You'll need [node.js](https://nodejs.org/) v4 or later.
- * Windows - use the installer provided at [nodejs.org](https://nodejs.org/)
- * Mac/Linux - we recommend the [n bash script](https://github.com/tj/n) which will allow you to install and manage your node versions.
+ * Windows - use the installer at [nodejs.org](https://nodejs.org/en/download/)
+ * Mac - use the installer at [nodejs.org](https://nodejs.org/en/download/) or use [n bash script](https://github.com/tj/n)
+ * Linux - we recommend the [n bash script](https://github.com/tj/n) which will allow you to easily install and switch between node versions.
 
 Once you have node installed, use npm to install the `pico-engine`;
 
@@ -22,27 +23,12 @@ Now your system has a new command called `pico-engine`.
 To start the engine simply run this command
 ```sh
 $ pico-engine
-```
-
-### UI
-Once you have started the pico-engine, 
-there is a web server running on your local machine.
-You will see a line showing the "document root" of the web server.
-
-For example:
-```sh
-$ pico-engine
 http://localhost:8080
 ```
-
-As you exercise the system, you will also see logging information
-produced by your activity.
+Copy the url into a browser and see the UI.
 
 ### Bootstrap
-Visit the Pico Bootstrap page at `localhost:8080`
-As it loads, the page will automatically perform
-all the operations necessary to
-create a root Pico and install two rulesets.
+The first time you run the system it will create a root Pico and install two rulesets.
 
 There are two rulesets used by all Picos:
  * `io.picolabs.pico` is used by each Pico to keep track of itself and its children
@@ -95,7 +81,7 @@ $ npm install
 $ npm start
 ```
 
-That will start the `pico-engine` server and run the test. Anytime you make a change in the `src/` folder it will restart the server and re-run the tests.
+That will start the server and run the test. Anytime you make a change in the `src/` folder it will restart the server and re-run the tests.
 
 NOTE: When running via `npm start` the `PICO_ENGINE_HOME` will default to your current directory i.e. your clone of this repository.
 
