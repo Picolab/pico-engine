@@ -205,6 +205,10 @@ startPicoEngine(function(err, pe){
         console.log("[DEBUG]", context, message);
         logEntry(context,message);
     });
+    pe.emitter.on("error", function(context, message){
+        console.error("[ERROR]", context, message);
+        logEntry(context,message);
+    });
     pe.emitter.on("episode_stop", function(context){
         console.log("EPISODE_STOP",context);
         var callback = function(outcome){
