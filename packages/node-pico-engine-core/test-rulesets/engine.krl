@@ -15,4 +15,15 @@ ruleset io.picolabs.engine {
       })
     }
   }
+  rule installRuleset {
+    select when engine installRuleset;
+    fired {
+      engine:installRuleset({
+        "pico_id": event:attr("pico_id"),
+        "rid": event:attr("rid"),
+        "url": event:attr("url"),
+        "base": event:attr("base")
+      })
+    }
+  }
 }

@@ -465,6 +465,15 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
                 }),
                 []
             ],
+            [signal("engine", "installRuleset", {
+                pico_id: "id2",
+                rid: "io.picolabs.meta",
+            }),[]],
+            [signal("engine", "installRuleset", {
+                pico_id: "id2",
+                url: "https://github.com/Picolab/node-pico-engine-core/blob/master/test-rulesets/",
+                base: "scope.krl",
+            }),[]],
             function(done){
                 pe.db.toObj(function(err, data){
                     if(err)return done(err);
@@ -476,6 +485,10 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
                                 name: "krl created chan",
                                 type: "some type?"
                             }
+                        },
+                        ruleset: {
+                            "io.picolabs.meta": {on: true},
+                            "io.picolabs.scope": {on: true},
                         }
                     });
                     done();

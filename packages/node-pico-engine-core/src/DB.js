@@ -73,7 +73,7 @@ module.exports = function(opts){
             }, function(data){
                 _.set(pico, data.key, data.value);
             }, function(err){
-                callback(err, pico.pico[id]);
+                callback(err, _.get(pico, ["pico", id]));
             });
         },
         newPico: function(opts, callback){
@@ -272,6 +272,18 @@ module.exports = function(opts){
             ldb.batch(ops, function(err){
                 if(err) return callback(err);
                 callback(undefined, hash);
+            });
+        },
+        hasEnabledRid: function(rid, callback){
+            var has_found = undefined;
+            dbRange(ldb, {
+                prefix: ["rulesets", "enabled", rid],
+                values: false,
+                limit: 1
+            }, function(key){
+                has_found = true;
+            }, function(err){
+                callback(err, has_found);
             });
         },
         findRulesetsByURL: function(url, callback){
