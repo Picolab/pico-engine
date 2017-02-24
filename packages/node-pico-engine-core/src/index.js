@@ -92,6 +92,7 @@ module.exports = function(conf, callback){
                 }
             });
         };
+        ctx.registerRulesetSrc = registerRulesetSrc;
         return ctx;
     };
 

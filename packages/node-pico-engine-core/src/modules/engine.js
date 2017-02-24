@@ -2,6 +2,7 @@ var _ = require("lodash");
 var url = require("url");
 var cocb = require("co-callback");
 var getArg = require("../getArg");
+var request = require("request");
 
 var installRulesetAndValidateIds = function(db, pico_id, rid, callback){
     db.getPico(pico_id, function(err, pico){
@@ -20,6 +21,29 @@ var installRulesetAndValidateIds = function(db, pico_id, rid, callback){
     });
 };
 
+var httpGetKRL = function(url, callback){
+    request(url, function(err, resp, body){
+        if(err)
+            return callback(err);
+        if(resp.statusCode !== 200)
+            return callback(new Error("Got a statusCode=" + resp.statusCode + " for: " + url));
+
+        callback(null, body);
+    });
+};
+
+var registerURL = function(ctx, url, callback){
+    httpGetKRL(url, function(err, src){
+        if(err) return callback(err);
+        ctx.registerRulesetSrc(src, {
+            url: url
+        }, function(err, data){
+            if(err) return callback(err);
+            callback(null, data.rid);
+        });
+    });
+};
+
 var fns = {
     newPico: cocb.toYieldable(function(ctx, args, callback){
         var opts = getArg(args, "opts", 0);
@@ -32,6 +56,19 @@ var fns = {
     newChannel: cocb.toYieldable(function(ctx, args, callback){
         var opts = getArg(args, "opts", 0);
         ctx.db.newChannel(opts, callback);
+    }),
+    registerRuleset: cocb.toYieldable(function(ctx, args, callback){
+        var opts = getArg(args, "opts", 0);
+        var uri;
+        if(_.isString(opts.url)){
+            uri = _.isString(opts.base)
+                ? url.resolve(opts.url, opts.base)
+                : opts.url;
+        }
+        if(!_.isString(uri)){
+            return callback(new Error("registerRuleset expects, pico_id and rid or url+base"));
+        }
+        registerURL(ctx, uri, callback);
     }),
     installRuleset: cocb.toYieldable(function(ctx, args, callback){
         var opts = getArg(args, "opts", 0);
@@ -61,7 +98,11 @@ var fns = {
             if(err) return callback(err);
             var rids = _.uniq(_.map(results, "rid"));
             if(_.size(rids) === 0){
-                return callback(new Error("No rid found for given url: " + uri));
+                registerURL(ctx, uri, function(err, rid){
+                    if(err) return callback(err);
+                    doIt(rid);
+                });
+                return;
             }
             if(_.size(rids) !== 1){
                 return callback(new Error("More than one rid found for the given url: " + rids.join(" , ")));
