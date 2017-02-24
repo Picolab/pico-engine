@@ -471,8 +471,8 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
             }),[]],
             [signal("engine", "installRuleset", {
                 pico_id: "id2",
-                url: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/",
-                base: "scope.krl",
+                base: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/",
+                url: "scope.krl",
             }),[]],
             function(done){
                 pe.db.toObj(function(err, data){

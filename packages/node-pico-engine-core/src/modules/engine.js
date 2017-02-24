@@ -62,7 +62,7 @@ var fns = {
         var uri;
         if(_.isString(opts.url)){
             uri = _.isString(opts.base)
-                ? url.resolve(opts.url, opts.base)
+                ? url.resolve(opts.base, opts.url)
                 : opts.url;
         }
         if(!_.isString(uri)){
@@ -78,7 +78,7 @@ var fns = {
         var uri;
         if(_.isString(opts.url)){
             uri = _.isString(opts.base)
-                ? url.resolve(opts.url, opts.base)
+                ? url.resolve(opts.base, opts.url)
                 : opts.url;
         }
         if(!_.isString(pico_id) || (!_.isString(rid) && !_.isString(uri))){
