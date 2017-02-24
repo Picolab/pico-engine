@@ -330,6 +330,24 @@ startPicoEngine(function(err, pe){
         }
     });
 
+    app.all("/api/ruleset/flush/:rid", function(req, res){
+        var rid = req.params.rid;
+        pe.db.getEnabledRuleset(rid, function(err, rs_data){
+            if(err) return errResp(res, err);
+
+            var url = rs_data.url;
+            httpGetKRL(url, function(err, src){
+                if(err) return errResp(res, err);
+
+                pe.registerRuleset(src, {url: url}, function(err, data){
+                    if(err) return errResp(res, err);
+
+                    res.json({ok: true, rid: data.rid, hash: data.hash});
+                });
+            });
+        });
+    });
+
     app.listen(port, function () {
         console.log("http://localhost:" + port);
     });
