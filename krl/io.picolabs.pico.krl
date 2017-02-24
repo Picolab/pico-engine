@@ -167,11 +167,12 @@ ruleset io.picolabs.pico {
       rid = event:attr("rid")
       base = event:attr("base")
       url = event:attr("url")
+      new_attrs = rid => { "pico_id": ent:id, "rid": rid }
+                       | { "pico_id": ent:id, "base": base, "url": url }
     }
     always {
-      engine:installRuleset(
-        { "pico_id": ent:id, "rid": rid, "base": base, "url": url } );
-      raise pico event "ruleset_added" for rid
+      real_rid = engine:installRuleset( new_attrs );
+      raise pico event "ruleset_added" for real_rid
         attributes event:attrs()
     }
   }
