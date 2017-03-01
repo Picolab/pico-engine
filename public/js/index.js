@@ -432,6 +432,9 @@ $.getJSON("/api/db-dump", function(db_dump){
       }
     walkPico(ownerPico,0,"300","50");
     renderGraph(db_graph);
+    $.getJSON("/api/engine-version",function(data){
+      $("#version").text(data ? data.version : "undefined");
+    });
   }
 });
 });

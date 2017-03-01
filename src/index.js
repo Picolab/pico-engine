@@ -9,6 +9,7 @@ var bodyParser = require("body-parser");
 var PicoEngine = require("pico-engine-core");
 var RulesetLoader = require("./RulesetLoader");
 var compiler = require("krl-compiler");
+var version = require("../package.json").version;
 
 ////////////////////////////////////////////////////////////////////////////////
 var port = process.env.PORT || 8080;
@@ -262,6 +263,10 @@ startPicoEngine(function(err, pe){
                 res.json(data);
             }
         });
+    });
+
+    app.all("/api/engine-version", function(req, res){
+        res.json({"version": version});
     });
 
     app.all("/api/db-dump", function(req, res){
