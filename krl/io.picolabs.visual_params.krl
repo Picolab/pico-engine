@@ -10,12 +10,31 @@ ruleset io.picolabs.visual_params {
       };
       info.klog("Visual Info:")
     }
+    hexdec1 = function(h) {
+      h > "9" => h.ord() - "a".ord() + 10
+               | h.ord() - "0".ord()
+    }
+    hexdec2 = function(twohexchars) {
+      c1 = twohexchars.substr(0,1);
+      c2 = twohexchars.substr(1,1);
+      hexdec1(c1) * 16 + hexdec1(c2)
+    }
+    colorP = re#.([a-f0-9][a-f0-9])([a-f0-9][a-f0-9])([a-f0-9][a-f0-9])#
+    color = function() {
+      rgb = ent:color.lc().extract(colorP);
+      r = hexdec2(rgb[0]);
+      g = hexdec2(rgb[0]);
+      b = hexdec2(rgb[0]);
+      yiq = (r*0.299)+(g*0.587)+(b*0.114);
+      yiq < 128 => "#ffffff" | "#000000"
+    }
     style = function() {
-      stuff = "width:" + ent:width + "px;"
-            + "left:" + ent:left + "px;"
-            + "top:" + ent:top + "px;"
-            + "background-color:" + ent:color;
-      stuff.klog("style:")
+      (ent:width => "width:" + ent:width + "px;" | "")
+      + (ent:height => "height:" + ent:height + "px;" | "")
+      + (ent:left => "left:" + ent:left + "px;" | "")
+      + (ent:top => "top:" + ent:top + "px;" | "")
+      + "background-color:" + ent:color + ";"
+      + "color:" + color()
     }
 
     __testing = { "queries": [ { "name": "visualInfo" },
@@ -39,7 +58,7 @@ ruleset io.picolabs.visual_params {
       noop()
     fired {
       ent:dname := dname;
-      ent:color := color.defaultsTo("#ccc")
+      ent:color := color.defaultsTo("#cccccc")
     }
   }
 

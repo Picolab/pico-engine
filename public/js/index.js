@@ -332,9 +332,11 @@ $.getJSON("/api/db-dump", function(db_dump){
     stop: function(event,ui) {
       if(!renderDemo) {
         var nodeId = ui.helper[0].getAttribute("id");
+        var width = Math.round(ui.size.width);
+        var height = Math.round(ui.size.height);
         $.getJSON(
           "/sky/event/"+findEciById(nodeId)+"/25/visual/config",
-          { width: ui.size.width, height: ui.size.height });
+          { width: width, height: height });
       }
     }
   };
@@ -405,6 +407,16 @@ $.getJSON("/api/db-dump", function(db_dump){
     db_graph.descr = getV(ownerPico,"descr", "These picos are hosted on this pico engine.");
     db_graph.picos = [];
     db_graph.chans = [];
+    var yiq = function(hexcolor){
+      if (hexcolor.startsWith("#") && hexcolor.length === 7) {
+        var r = parseInt(hexcolor.substr(1,2),16);
+        var g = parseInt(hexcolor.substr(3,2),16);
+        var b = parseInt(hexcolor.substr(5,2),16);
+        return (r*0.299)+(g*.587)+(b*0.114);
+      } else {
+        return 255;
+      }
+    };
     var walkPico =
       function(pico,dNumber,dLeft,dTop){
         pico.dname = getV(pico,"dname",dNumber?"Child "+dNumber:"Owner Pico");
@@ -418,7 +430,8 @@ $.getJSON("/api/db-dump", function(db_dump){
           +"height:"+height+"px;"
           +"left:"+left+"px;"
           +"top:"+top+"px;"
-          +"background-color:"+color);
+          +"background-color:"+color+";"
+          +"color:"+(yiq(color) < 128 ? "white" : "black"));
         db_graph.picos.push(pico);
         var children = getP(pico,"children",[]);
         var i=0, l=children.length;
