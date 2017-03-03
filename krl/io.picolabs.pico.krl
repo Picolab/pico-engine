@@ -154,7 +154,8 @@ ruleset io.picolabs.pico {
     then noop()
     fired {
       ent:children := left_with_children;
-      engine:removePico(child_id)
+      engine:removePico(child_id);
+      raise pico event "child_deleted" attributes child
     }
   }
 
