@@ -23,8 +23,8 @@ ruleset io.picolabs.visual_params {
     color = function() {
       rgb = ent:color.lc().extract(colorP);
       r = hexdec2(rgb[0]);
-      g = hexdec2(rgb[0]);
-      b = hexdec2(rgb[0]);
+      g = hexdec2(rgb[1]);
+      b = hexdec2(rgb[2]);
       yiq = (r*0.299)+(g*0.587)+(b*0.114);
       yiq < 128 => "#ffffff" | "#000000"
     }
