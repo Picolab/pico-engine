@@ -417,6 +417,13 @@ $.getJSON("/api/db-dump", function(db_dump){
         return 255;
       }
     };
+    var contrast = function(hexcolor){
+      var luma = yiq(hexcolor);
+      if (luma < 32) return "#CCCCCC";
+      else if (luma < 128) return "#FFFFFF";
+      else if (luma < 224) return "#000000";
+      else return "#333333";
+    };
     var walkPico =
       function(pico,dNumber,dLeft,dTop){
         pico.dname = getV(pico,"dname",dNumber?"Child "+dNumber:"Owner Pico");
@@ -431,7 +438,7 @@ $.getJSON("/api/db-dump", function(db_dump){
           +"left:"+left+"px;"
           +"top:"+top+"px;"
           +"background-color:"+color+";"
-          +"color:"+(yiq(color) < 128 ? "white" : "black"));
+          +"color:"+contrast(color));
         db_graph.picos.push(pico);
         var children = getP(pico,"children",[]);
         var i=0, l=children.length;
