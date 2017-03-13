@@ -1,3 +1,25 @@
+var picoAPI = function(url, params, callback){
+    $.getJSON(url, params, function(data){
+        if(data && data.ok === true){
+            callback(null, data);
+        }else{
+            var err = new Error((data.error || "unknown cause") + "");
+            err.data = data;
+            callback(err);
+        }
+    }).fail(function(ajax_err){
+        var err;
+        if(ajax_err && ajax_err.responseJSON && ajax_err.responseJSON.error){
+            err = new Error(ajax_err.responseJSON.error);
+            err.data = ajax_err.responseJSON;
+        }else{
+            err = new Error(ajax_err.status + " " + ajax_err.statusText);
+            err.data = ajax_err;
+        }
+        callback(err);
+    });
+};
+
 $(document).ready(function() {
   var rid = location.hash.substring(1);
   var get = // adapted from lodash.get, with thanks
@@ -113,7 +135,11 @@ $.getJSON("/api/db-dump", function(db_dump){
           + "                  \"events\": [ ] }\n"
           + "  }\n"
           + "}\n";
-        $.getJSON("/api/ruleset/register",{"src":src},function(result){
+        picoAPI("/api/ruleset/register",{"src":src},function(err, result){
+          if(err){
+            alert("Error: " + err);
+            return;
+          }
           location.hash = rid;
           location.reload();
         });
@@ -133,30 +159,24 @@ $.getJSON("/api/db-dump", function(db_dump){
     var $feedback = $("pre#feedback");
     $feedback.html("working...");
     var src = this.src.value;
-    $.getJSON("/api/ruleset/compile",{"src":src},function(rc){
-      if (rc.code) {
-        if (formAction === "validate") {
-          $feedback.html("ok");
+    picoAPI("/api/ruleset/compile",{"src":src},function(err, data){
+      if(err){
+        $feedback.html("<span style=\"color:red\">" + err + "</span>");
+        return;
+      }
+      if (formAction === "validate") {
+        $feedback.html("ok");
+        return;
+      }
+      var rid = data.code.split(/"/)[3];
+      picoAPI("/api/ruleset/register",{"src":src},function(err){
+        if(err){
+          $feedback.html("<span style=\"color:red\">Problem registering "
+                  + rid + " " + err + "</span>");
           return;
         }
-        var rid = rc.code.split(/"/)[3];
-        $.getJSON("/api/ruleset/register",{"src":src},function(rr){
-          if (rr && rr.ok) {
-            location.reload();
-          } else {
-            $feedback.html("Problem registering "+rid);
-          }
-        });
-      } else {
-        if (rc.error) {
-          $feedback.html(rc.error);
-        }
-      }
-    }).fail(function(err){
-      $feedback.html(
-        "<span style=\"color:red\">"
-        + JSON.stringify(err,undefined,2)
-        + "</span>");
+        location.reload();
+      });
     });
   });
 });

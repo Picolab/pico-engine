@@ -229,8 +229,7 @@ startPicoEngine(function(err, pe){
     app.use(bodyParser.urlencoded({type: "application/x-www-form-urlencoded", extended: false}));
 
     var errResp = function(res, err){
-        res.statusCode = err.statusCode || 500;
-        res.end(err.message);
+        res.status(err.statusCode || 500).json({error: err.message});
     };
 
 
@@ -310,9 +309,9 @@ startPicoEngine(function(err, pe){
 
     app.all("/api/ruleset/compile", function(req, res){
         try{
-            res.json({ code: compiler(req.query.src).code});
+            res.json({ok: true, code: compiler(req.query.src).code});
         }catch(err){
-            res.json({ error: err.toString() });
+            res.status(400).json({ error: err.toString() });
         }
     });
 
