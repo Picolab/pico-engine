@@ -162,8 +162,8 @@ stdlib.sprintf = function(ctx, val, template){
     return template;
 };
 
-stdlib.defaultsTo = function(ctx, val,defaultVal,message){
-    if(_.size(val) === 0){
+stdlib.defaultsTo = function(ctx, val, defaultVal, message){
+    if(stdlib.isnull(ctx, val)){
         if(message !== undefined) ctx.emit("debug", "[DEFAULTSTO] " + message);
         return defaultVal;
     } else {

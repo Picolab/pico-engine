@@ -448,6 +448,6 @@ test("defaultsTo - testing debug logging", function(t){
     };
 
     t.equals(stdlib.defaultsTo(ctx, "not needed", 42, "message 2"), "not needed");
-    t.equals(stdlib.defaultsTo(ctx, "", 42), 42, "no message to log");
-    t.equals(stdlib.defaultsTo(ctx, "", 42, "message 2"), 42, "should emit debug");
+    t.equals(stdlib.defaultsTo(ctx, null, 42), 42, "no message to log");
+    t.equals(stdlib.defaultsTo(ctx, null, 42, "message 2"), 42, "should emit debug");
 });
