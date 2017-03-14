@@ -1,23 +1,42 @@
 #!/usr/bin/env node
 
-var args = require('minimist')(process.argv.slice(2), {
-  'boolean': ['source-map'],
-  'default': {
-    'source-map': true
-  }
+var args = require("minimist")(process.argv.slice(2), {
+    "boolean": [
+        "source-map",
+        "verify",
+    ],
+    "default": {
+        "source-map": true,
+        "verify": false,
+    }
 });
 
 var opts = {
-  inline_source_map: !!args['source-map']
+    inline_source_map: !!args["source-map"]
 };
 
-var compiler = require('../src');
+var compiler = require("../src");
 
-var src = '';
-process.stdin.on('data', function(data){
-  src += data.toString();
+var src = "";
+process.stdin.on("data", function(data){
+    src += data.toString();
 });
 
-process.stdin.on('end', function(){
-  process.stdout.write(compiler(src, opts).code);
+process.stdin.on("end", function(){
+    var out;
+    try{
+        out = compiler(src, opts);
+    }catch(err){
+        if(args.verify){
+            console.log(err + "");
+            process.exit(1);
+            return;
+        }
+        throw err;
+    }
+    if(args.verify){
+        process.exit(0);
+        return;
+    }
+    process.stdout.write(out.code);
 });
