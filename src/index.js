@@ -144,6 +144,11 @@ var startPicoEngine = function(callback){
     });
 };
 
+var mergeGetPost = function(req){
+    //give preference to post body params
+    return _.assign({}, req.query, req.body);
+};
+
 startPicoEngine(function(err, pe){
     if(err){
         throw err;
@@ -239,7 +244,7 @@ startPicoEngine(function(err, pe){
             eid: req.params.eid,
             domain: req.params.domain,
             type: req.params.type,
-            attrs: _.assign({}, req.query, req.body)
+            attrs: mergeGetPost(req)
         };
         pe.signalEvent(event, function(err, response){
             if(err) return errResp(res, err);
@@ -252,7 +257,7 @@ startPicoEngine(function(err, pe){
             eci: req.params.eci,
             rid: req.params.rid,
             name: req.params["function"],
-            args: _.assign({}, req.query, req.body)
+            args: mergeGetPost(req)
         };
         pe.runQuery(query, function(err, data){
             if(err) return errResp(res, err);
@@ -283,10 +288,12 @@ startPicoEngine(function(err, pe){
     });
 
     app.all("/api/pico/:id/new-channel", function(req, res){
+        var args = mergeGetPost(req);
+
         pe.db.newChannel({
             pico_id: req.params.id,
-            name: req.query.name,
-            type: req.query.type
+            name: args.name,
+            type: args.type
         }, function(err, new_channel){
             if(err) return errResp(res, err);
             res.json(new_channel);
@@ -308,26 +315,30 @@ startPicoEngine(function(err, pe){
     });
 
     app.all("/api/ruleset/compile", function(req, res){
+        var args = mergeGetPost(req);
+
         try{
-            res.json({ok: true, code: compiler(req.query.src).code});
+            res.json({ok: true, code: compiler(args.src).code});
         }catch(err){
             res.status(400).json({ error: err.toString() });
         }
     });
 
     app.all("/api/ruleset/register", function(req, res){
+        var args = mergeGetPost(req);
+
         var register = function(src, meta){
             pe.registerRuleset(src, meta || {}, function(err, data){
                 if(err) return errResp(res, err);
                 res.json({ok: true, rid: data.rid, hash: data.hash});
             });
         };
-        if(_.isString(req.query.src)){
-            register(req.query.src);
-        }else if(_.isString(req.query.url)){
-            httpGetKRL(req.query.url, function(err, src){
+        if(_.isString(args.src)){
+            register(args.src);
+        }else if(_.isString(args.url)){
+            httpGetKRL(args.url, function(err, src){
                 if(err) return errResp(res, err);
-                register(src, {url: req.query.url});
+                register(src, {url: args.url});
             });
         }else{
             errResp(res, new Error("expected `src` or `url`"));
