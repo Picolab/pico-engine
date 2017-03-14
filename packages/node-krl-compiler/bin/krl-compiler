@@ -4,12 +4,47 @@ var args = require("minimist")(process.argv.slice(2), {
     "boolean": [
         "source-map",
         "verify",
+        "help",
+        "version",
     ],
+    "alias": {
+        "h": "help",
+        "v": "version",
+    },
     "default": {
         "source-map": true,
         "verify": false,
     }
 });
+
+if(args.help){
+    console.log("USAGE");
+    console.log("    krl-compiler [--verify] [--no-source-map] [--help, -h]");
+    console.log();
+    console.log("DESCRIPTION");
+    console.log("    Take krl as stdin and will give js as stdout");
+    console.log("    $ krl-compiler < in.krl > out.js");
+    console.log();
+    console.log("OPTIONS");
+    console.log("    --no-source-map");
+    console.log("        Don't append an inline source map in the output");
+    console.log();
+    console.log("    --verify");
+    console.log("        On valid compilation silently exit with 0");
+    console.log("        On failure write the error to stdout and exit with 1");
+    console.log();
+    console.log("    --version, -v");
+    console.log("        output the version");
+    console.log();
+    console.log("    --help, -h");
+    console.log("        Display this message");
+    console.log();
+    return;
+}
+if(args.version){
+    console.log("v" + require("../package.json").version);
+    return;
+}
 
 var opts = {
     inline_source_map: !!args["source-map"]

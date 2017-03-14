@@ -22,5 +22,29 @@ $ npm install -g krl-compiler
 $ krl-compiler < in.krl > out.js
 ```
 
+```
+USAGE
+    krl-compiler [--verify] [--no-source-map] [--help, -h]
+
+DESCRIPTION
+    Take krl as stdin and will give js as stdout
+    $ krl-compiler < in.krl > out.js
+
+OPTIONS
+    --no-source-map
+        Don't append an inline source map in the output
+
+    --verify
+        On valid compilation silently exit with 0
+        On failure write the error to stdout and exit with 1
+
+    --version, -v
+        output the version
+
+    --help, -h
+        Display this message
+
+```
+
 ## License
 MIT
