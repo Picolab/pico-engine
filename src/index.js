@@ -1,20 +1,11 @@
 var _ = require("lodash");
-var λ = require("contra");
-var fs = require("fs");
 var path = require("path");
 var express = require("express");
 var request = require("request");
-var leveldown = require("leveldown");
 var bodyParser = require("body-parser");
-var PicoEngine = require("pico-engine-core");
-var RulesetLoader = require("./RulesetLoader");
 var compiler = require("krl-compiler");
 var version = require("../package.json").version;
-
-////////////////////////////////////////////////////////////////////////////////
-var port = process.env.PORT || 8080;
-var pico_engine_home = process.env.PICO_ENGINE_HOME || path.resolve(__dirname, "..");
-////////////////////////////////////////////////////////////////////////////////
+var startPicoEngine = require("./startPicoEngine");
 
 var httpGetKRL = function(url, callback){
     request(url, function(err, resp, body){
@@ -27,133 +18,12 @@ var httpGetKRL = function(url, callback){
     });
 };
 
-var github_prefix = "https://raw.githubusercontent.com/Picolab/node-pico-engine/master/krl/";
-
-var registerBuiltInRulesets = function(pe, callback){
-    var krl_dir = path.resolve(__dirname, "../krl");
-    fs.readdir(krl_dir, function(err, files){
-        if(err) return callback(err);
-        λ.each(files, function(filename, next){
-            var file = path.resolve(krl_dir, filename);
-            if(!/\.krl$/.test(file)){
-                //only auto-load krl files in the top level
-                return next();
-            }
-            fs.readFile(file, "utf8", function(err, src){
-                if(err) return next(err);
-                pe.registerRuleset(src, {
-                    url: github_prefix + filename
-                }, function(err){
-                    if(err) return next(err);
-                    next();
-                });
-            });
-        }, callback);
-    });
-};
-
-var setupOwnerPico = function(pe, callback){
-    pe.db.getOwnerECI(function(err, eci){
-        if(err) return callback(err);
-        if(eci){//already setup
-            return callback();
-        }
-        λ.waterfall([
-            λ.curry(pe.db.newPico, {}),
-            function(pico, callback){
-                pe.db.newChannel({
-                    pico_id: pico.id,
-                    name: "main",
-                    type: "secret"
-                }, function(err, channel){
-                    if(err) return callback(err);
-                    callback(null, {
-                        pico_id: pico.id,
-                        eci: channel.id
-                    });
-                });
-            },
-            function(info, callback){
-                pe.db.addRuleset({
-                    pico_id: info.pico_id,
-                    rid: "io.picolabs.pico"
-                }, function(err){
-                    callback(err, info);
-                });
-            },
-            function(info, callback){
-                pe.db.addRuleset({
-                    pico_id: info.pico_id,
-                    rid: "io.picolabs.visual_params"
-                }, function(err){
-                    callback(err, info);
-                });
-            },
-            function(info, callback){
-                pe.signalEvent({
-                    eci: info.eci,
-                    eid: "19",
-                    domain: "pico",
-                    type: "root_created",
-                    attrs: {
-                        id: info.pico_id,
-                        eci: info.eci
-                    }
-                }, function(err){
-                    callback(err, info);
-                });
-            },
-            function(info, callback){
-                pe.signalEvent({
-                    eci: info.eci,
-                    eid: "31",
-                    domain: "visual",
-                    type: "update",
-                    attrs: {
-                        dname: "Owner Pico",
-                        color: "#87cefa"
-                    }
-                }, function(err){
-                    callback(err, info);
-                });
-            }
-        ], function(err){
-            callback(err, pe);
-        });
-    });
-};
-
-var startPicoEngine = function(callback){
-    PicoEngine({
-        compileAndLoadRuleset: RulesetLoader({
-            rulesets_dir: path.resolve(pico_engine_home, "rulesets")
-        }),
-        db: {
-            db: leveldown,
-            location: path.join(pico_engine_home, "db")
-        }
-    }, function(err, pe){
-        if(err) return callback(err);
-        registerBuiltInRulesets(pe, function(err){
-            if(err) return callback(err);
-            setupOwnerPico(pe, function(err){
-                if(err) return callback(err);
-                callback(null, pe);
-            });
-        });
-    });
-};
-
 var mergeGetPost = function(req){
     //give preference to post body params
     return _.assign({}, req.query, req.body);
 };
 
-startPicoEngine(function(err, pe){
-    if(err){
-        throw err;
-    }
-
+var setupServer = function(pe){
     var logs = {};
     var logRID = "io.picolabs.logging";
     var logEntry = function(context,message){
@@ -363,7 +233,22 @@ startPicoEngine(function(err, pe){
         });
     });
 
-    app.listen(port, function () {
-        console.log("http://localhost:" + port);
+    return app;
+};
+
+module.exports = function(opts){
+    opts = opts || {};
+    var port = opts.port || 8080;
+    var pico_engine_home = opts.pico_engine_home || path.resolve(__dirname, "..");
+
+    startPicoEngine(pico_engine_home, function(err, pe){
+        if(err){
+            throw err;
+        }
+        var app = setupServer(pe);
+
+        app.listen(port, function () {
+            console.log("http://localhost:" + port);
+        });
     });
-});
+};

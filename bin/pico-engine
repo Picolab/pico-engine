@@ -27,10 +27,13 @@ if(args.version){
   return;
 }
 
-if(!process.env.PICO_ENGINE_HOME){
-  process.env.PICO_ENGINE_HOME = require("home-dir")(".pico-engine");
-}
+var port = process.env.PORT || 8080;
+var home = process.env.PICO_ENGINE_HOME || require("home-dir")(".pico-engine");
 
-mkdirp.sync(process.env.PICO_ENGINE_HOME);
+//make the home dir if it doesn't exist
+mkdirp.sync(home);
 
-require("../");
+require("../")({
+    port: port,
+    pico_engine_home: home,
+});
