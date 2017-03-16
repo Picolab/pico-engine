@@ -39,7 +39,8 @@
     "eslint": "^3.0.1",
     "onchange": "^3.0.0",
     "scriptsp": "^0.3.0",
-    "tape": "^4.5.1"
+    "tape": "^4.5.1",
+    "temp-fs": "^0.9.9"
   },
   "dependencies": {
     "body-parser": "^1.15.2",
