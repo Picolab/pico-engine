@@ -150,7 +150,7 @@ $.getJSON("/api/db-dump", function(db_dump){
       picoAPI("/api/ruleset/register",{"src":src},function(err){
         if(err){
           $feedback.html("<span style=\"color:red\">Problem registering "
-                  + rid + " " + err + "</span>");
+                  + rid + "\n" + err + "</span>");
           return;
         }
         location.reload();
