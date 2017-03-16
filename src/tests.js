@@ -3,12 +3,13 @@ var tempfs = require("temp-fs");
 var setupServer = require("./setupServer");
 var startPicoEngine = require("./startPicoEngine");
 
+var is_windows = /^win/.test(process.platform);
 
 tempfs.mkdir({
     dir: path.resolve(__dirname, ".."),
     prefix: "pico-engine_test",
     recursive: true,//It and its content will be remove recursively.
-    track: true//Auto-delete it on fail.
+    track: !is_windows//Auto-delete it on fail.
 }, function (err, dir) {
     if(err) throw err;//fail the test
 
@@ -20,7 +21,9 @@ tempfs.mkdir({
         setupServer(pe);
 
         console.log("passed!");
-        dir.unlink();
+        if(!is_windows){
+            dir.unlink();
+        }
         process.exit(0);//success
     });
 });
