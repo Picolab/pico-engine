@@ -14,7 +14,10 @@ tempfs.mkdir({
     if(err) throw err;//fail the test
 
     //try setting up the engine including registering rulesets
-    startPicoEngine(dir.path, function(err, pe){
+    startPicoEngine({
+        host: "http://localhost:8080",
+        home: dir.path,
+    }, function(err, pe){
         if(err) throw err;//fail the test
 
         //setup the server without throwing up

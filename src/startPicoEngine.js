@@ -101,14 +101,16 @@ var registerBuiltInRulesets = function(pe, callback){
     });
 };
 
-module.exports = function(home_dir, callback){
+module.exports = function(opts, callback){
+    opts = opts || {};
     PicoEngine({
+        host: opts.host,
         compileAndLoadRuleset: RulesetLoader({
-            rulesets_dir: path.resolve(home_dir, "rulesets")
+            rulesets_dir: path.resolve(opts.home, "rulesets")
         }),
         db: {
             db: leveldown,
-            location: path.join(home_dir, "db")
+            location: path.join(opts.home, "db")
         }
     }, function(err, pe){
         if(err) return callback(err);

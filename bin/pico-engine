@@ -28,12 +28,14 @@ if(args.version){
 }
 
 var port = process.env.PORT || 8080;
+var host = process.env.PICO_ENGINE_HOST || "http://localhost:" + port;
 var home = process.env.PICO_ENGINE_HOME || require("home-dir")(".pico-engine");
 
 //make the home dir if it doesn't exist
 mkdirp.sync(home);
 
 require("../")({
+    host: host,
     port: port,
     pico_engine_home: home,
 });
