@@ -385,6 +385,9 @@ $.getJSON("/api/db-dump", function(db_dump){
      };
   if (renderDemo) {
     $.getJSON( json_name + ".json", renderGraph);
+    $.getJSON("/api/engine-version",function(data){
+      $("#version").text(data ? data.version : "undefined");
+    });
   } else {
     var get = // adapted from lodash.get, with thanks
       function(o,p,v) {

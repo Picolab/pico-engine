@@ -217,3 +217,7 @@ li.legend {
 div.oplog {
   display: none;
 }
+svg line.subscription {
+  stroke-dasharray: 2;
+  stroke: magenta;
+}

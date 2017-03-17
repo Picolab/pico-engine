@@ -154,9 +154,6 @@ Channels
 <button type="submit">add channel</button>
 </form>
 </script>
-<script id="subscriptions-template" type="text/x-handlebars-template">
-Subscriptions
-</script>
 <script id="logging-template" type="text/x-handlebars-template">
 <div>
 Logging
@@ -239,6 +236,21 @@ Results
 <pre></pre>
 </div>
 {{/if}}
+</script>
+<script id="subscriptions-template" type="text/x-handlebars-template">
+Subscriptions
+<!--
+<p></p>
+<form class="js-ajax-form" action="/sky/event/{{eci}}/subscr/wrangler/subscription" method="GET">
+<input type="text" name="name" placeholder="name..."><br>
+<input type="text" name="name_space" placeholder="name_space..."><br>
+<input type="text" name="my_role" placeholder="my_role..."><br>
+<input type="text" name="subscriber_role" placeholder="subscriber_role..."><br>
+<input type="text" name="channel_type" placeholder="channel_type..." value="subscription"><br>
+<input type="text" name="subscriber_eci" placeholder="subscriber_eci..."><br>
+<button type="submit">add subscription</button>
+</form>
+-->
 </script>
 </head>
 <body>

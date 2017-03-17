@@ -1,0 +1,33 @@
+{
+  "title": "Subscription example",
+  "descr": "Example of pico to pico subscriptions.", 
+  "picos": [
+    {
+      "id": "p1", 
+      "dname": "Owner Pico",
+      "style": "width:80px;left:800px;top:10px;background-color:lightskyblue"
+    },
+    {
+      "id": "p2", 
+      "dname": "Mischief Pico",
+      "style": "width:120px;left:450px;top:150px;background-color:aquamarine"
+    },
+    {
+      "id": "p7", 
+      "dname": "Thing1 Pico",
+      "style": "left:600px;top:300px;background-color:lightsteelblue"
+    },
+    {
+      "id": "p8", 
+      "dname": "Thing2 Pico",
+      "style": "left:800px;top:200px;background-color:lightsteelblue"
+    }
+  ],
+  "chans": [
+    { "class": "p1-origin p2-target"},
+    { "class": "p1-origin p7-target"},
+    { "class": "p1-origin p8-target"},
+    { "class": "p2-origin p7-target subscription"},
+    { "class": "p2-origin p8-target subscription"}
+  ]
+}
