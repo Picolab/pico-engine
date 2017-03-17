@@ -8,6 +8,9 @@ module.exports = {
         }else if(id === "rid"){
             callback(null, ctx.rid);
             return;
+        }else if(id === "host"){
+            callback(null, ctx.host);
+            return;
         }else if(id === "rulesetURI"){
             ctx.db.getEnabledRuleset(ctx.rid, function(err, data){
                 if(err) return callback(err);

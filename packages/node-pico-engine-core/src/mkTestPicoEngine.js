@@ -24,6 +24,7 @@ _.each(fs.readdirSync(test_dir), function(file){
 module.exports = function(opts, callback){
     opts = opts || {};
     PicoEngine({
+        host: "https://test-host",
         allow_event_time_override: true,
         compileAndLoadRuleset: function(rs_info, callback){
             var rid = rs_info.src.substring(8, rs_info.src.length - 2);

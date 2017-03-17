@@ -4,7 +4,8 @@ module.exports = {
     "name": "testing meta module",
     "shares": [
       "eci",
-      "rulesetURI"
+      "rulesetURI",
+      "host"
     ]
   },
   "global": function* (ctx) {
@@ -13,6 +14,9 @@ module.exports = {
     }));
     ctx.scope.set("rulesetURI", ctx.KRLClosure(ctx, function* (ctx) {
       return yield ctx.modules.get(ctx, "meta", "rulesetURI");
+    }));
+    ctx.scope.set("host", ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.modules.get(ctx, "meta", "host");
     }));
   },
   "rules": {

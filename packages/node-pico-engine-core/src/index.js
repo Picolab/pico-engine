@@ -25,6 +25,7 @@ module.exports = function(conf, callback){
             db[key + "Yieldable"] = cocb.toYieldable(val);
         }
     });
+    var host = conf.host;
     var compileAndLoadRuleset = conf.compileAndLoadRuleset;
 
     var rulesets = {};
@@ -34,6 +35,7 @@ module.exports = function(conf, callback){
 
     var mkCTX = function(ctx){
         ctx.db = db;
+        ctx.host = host;
         ctx.getArg = getArg;
         ctx.signalEvent = signalEvent;
         ctx.modules = modulesSync;

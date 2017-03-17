@@ -1,7 +1,7 @@
 ruleset io.picolabs.meta {
   meta {
     name "testing meta module"
-    shares eci, rulesetURI
+    shares eci, rulesetURI, host
   }
   global {
     eci = function() {
@@ -9,6 +9,9 @@ ruleset io.picolabs.meta {
     }
     rulesetURI = function() {
       meta:rulesetURI
+    }
+    host = function() {
+      meta:host
     }
   }
   rule meta_eci {

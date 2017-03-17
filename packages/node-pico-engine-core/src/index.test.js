@@ -658,6 +658,10 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
             [
                 query("rulesetURI"),
                 "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
+            ],
+            [
+                query("host"),
+                "https://test-host",
             ]
         ], t.end);
     });
