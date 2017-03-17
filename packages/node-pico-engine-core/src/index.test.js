@@ -506,7 +506,7 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
                     if(err)return done(err);
                     t.deepEquals(data.pico.id2, {
                         id: "id2",
-                        channel: {},//channel is removed
+                        //channel: {}, channel is removed
                         ruleset: {
                             "io.picolabs.meta": {on: true},
                             "io.picolabs.scope": {on: true},
@@ -708,7 +708,6 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                 {
                     content: {
                         args: {foo: "bar"},
-                        headers: {Baz: "quix", Host: "httpbin.org"},
                         origin: "-",
                         url: "https://httpbin.org/get?foo=bar"
                     },

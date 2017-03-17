@@ -25,7 +25,9 @@ ruleset io.picolabs.http {
            | resp["content_length"]
       );
 
-      ent:get_resp := resp3
+      resp4 = resp3.delete(["content", "headers"]);
+
+      ent:get_resp := resp4
     }
   }
 }
