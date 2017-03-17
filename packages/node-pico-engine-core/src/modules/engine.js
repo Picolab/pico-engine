@@ -57,6 +57,10 @@ var fns = {
         var opts = getArg(args, "opts", 0);
         ctx.db.newChannel(opts, callback);
     }),
+    removeChannel: cocb.toYieldable(function(ctx, args, callback){
+        var opts = getArg(args, "opts", 0);
+        ctx.db.removeChannel(opts.pico_id, opts.eci, callback);
+    }),
     registerRuleset: cocb.toYieldable(function(ctx, args, callback){
         var opts = getArg(args, "opts", 0);
         var uri;

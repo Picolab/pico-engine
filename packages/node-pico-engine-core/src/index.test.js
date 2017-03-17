@@ -493,7 +493,28 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
                     });
                     done();
                 });
-            }
+            },
+            [
+                signal("engine", "removeChannel", {
+                    pico_id: "id2",
+                    eci: "id3",
+                }),
+                []
+            ],
+            function(done){
+                pe.db.toObj(function(err, data){
+                    if(err)return done(err);
+                    t.deepEquals(data.pico.id2, {
+                        id: "id2",
+                        channel: {},//channel is removed
+                        ruleset: {
+                            "io.picolabs.meta": {on: true},
+                            "io.picolabs.scope": {on: true},
+                        }
+                    });
+                    done();
+                });
+            },
         ], t.end);
     });
 });
