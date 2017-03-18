@@ -82,7 +82,8 @@ var registerBuiltInRulesets = function(pe, callback){
     var krl_dir = path.resolve(__dirname, "../krl");
     fs.readdir(krl_dir, function(err, files){
         if(err) return callback(err);
-        λ.each(files, function(filename, next){
+        //.series b/c dependent modules must be registered in order
+        λ.each.series(files, function(filename, next){
             var file = path.resolve(krl_dir, filename);
             if(!/\.krl$/.test(file)){
                 //only auto-load krl files in the top level
