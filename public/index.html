@@ -239,6 +239,15 @@ Results
 </script>
 <script id="subscriptions-template" type="text/x-handlebars-template">
 Subscriptions
+{{#if subscriptions}}
+<ul class="subscriptions-list" style="list-style: none;padding:0">
+{{#each subscriptions}}
+<li><input type="checkbox">{{@key}}
+<pre>{{this}}</pre>
+</li>
+{{/each}}
+</ul>
+{{/if}}
 <!--
 <p></p>
 <form class="js-ajax-form" action="/sky/event/{{eci}}/subscr/wrangler/subscription" method="GET">

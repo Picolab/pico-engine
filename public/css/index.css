@@ -221,3 +221,10 @@ svg line.subscription {
   stroke-dasharray: 2;
   stroke: magenta;
 }
+.subscriptions-list pre {
+  padding-left: 30px;
+  display: none;
+}
+.subscriptions-list input[type="checkbox"]:checked ~ pre {
+  display: block;
+}
