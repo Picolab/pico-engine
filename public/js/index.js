@@ -452,6 +452,19 @@ $.getJSON("/api/db-dump", function(db_dump){
           var limitI = Math.min(i,45);
           walkPico(cp,dNumber*10+i+1,left+(limitI*10)+20,top+20);
         }
+        var subscriptions = get(db_dump.pico,[pico.id,"Subscriptions","vars","subscriptions"]);
+        if (subscriptions) {
+          for ( var k in subscriptions ) {
+            var subs_status = get(subscriptions,[k,"attributes","status"]);
+            var subs_eci = get(subscriptions,[k,"attributes","subscriber_eci"]);
+            if (subs_status && subs_status==="subscribed" && subs_eci) {
+              var subs_id = get(db_dump.channel,[subs_eci,"pico_id"]);
+              if (subs_id) {
+                db_graph.chans.push({ class: pico.id +"-origin "+ subs_id +"-target subscription" });
+              }
+            }
+          }
+        }
       }
     walkPico(ownerPico,0,"300","50");
     renderGraph(db_graph);
