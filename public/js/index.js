@@ -356,13 +356,13 @@ $.getJSON("/api/db-dump", function(db_dump){
                   var $pediv = $(this).next('.pico-edit');
                   var fadeAway = function(ev) {
                                    $pediv.find('button.x').remove();
-                                   $pediv.animate(fadeOutOptions);
+                                   $pediv.animate(fadeOutOptions,400);
                                    $pediv.fadeOut();
                                    ev.stopPropagation();
                                    location.hash = "";
                                  };
                   $pediv.fadeIn();
-                  $pediv.animate(fadeInOptions,
+                  $pediv.animate(fadeInOptions,400,
                                  function(){
                                    $pediv.prepend("<button class=\"x\">&ndash;</button>");
                                    $pediv.find('button.x').click(fadeAway);
