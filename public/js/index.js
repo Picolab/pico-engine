@@ -189,9 +189,11 @@ $.getJSON("/api/db-dump", function(db_dump){
     } else if (label == "Subscriptions") {
       var theSubscriptions = {};
       var subscriptions = get(db_dump.pico,[thePicoInp.id,"Subscriptions","vars","subscriptions"]);
-      Object.keys(subscriptions).forEach(function(id){
-        theSubscriptions[id] = JSON.stringify(subscriptions[id],undefined,2);
-      });
+      if (subscriptions) {
+        Object.keys(subscriptions).forEach(function(id){
+          theSubscriptions[id] = JSON.stringify(subscriptions[id],undefined,2);
+        });
+      }
       callback({"subscriptions":theSubscriptions});
     } else {
       callback(thePicoInp);
