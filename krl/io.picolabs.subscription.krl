@@ -6,16 +6,51 @@ ruleset Subscriptions {
     >>
     author "CS462 TA"
     use module io.picolabs.pico alias wrangler
-    provides getSubscriptions, createChannel , klogtesting
-    shares getSubscriptions, createChannel ,klogtesting
+    provides getSubscriptions, createSubscriptionChannel , klogtesting, skyQuery
+    shares getSubscriptions, createSubscriptionChannel , klogtesting, skyQuery
     logging on
   }
 
  global{
+
+    skyQuery = function(eci, mod, func, params,_host,_path,_root_url) { // path must start with "/""
+      //.../sky/cloud/<eci>/<rid>/<name>?name0=value0&...&namen=valuen
+      createRootUrl = function (_host,_path){
+        host = _host || "localhost:8080" || meta:host();// <-------------hard coded host------------
+        path = _path || "/sky/cloud/";
+        root_url = "http://"+host+path; //<==================================hard coded http not https========
+        root_url
+      };
+      root_url = _root_url || createRootUrl(_host,_path) || _root_url ;
+      web_hook = root_url + eci + "/"+mod+"/" + func;
+
+      response = http:get(web_hook.klog("URL"), {}.put(params)).klog("response ");
+      status = response{"status_code"};// pass along the status 
+      error_info = {
+        "error": "sky query request was unsuccesful.",
+        "httpStatus": {
+            "code": status,
+            "message": response{"status_line"}
+        }
+      };
+      // clean up http return
+      response_content = response{"content"}.decode();
+      response_error = (response_content.typeof() == "Map" && response_content{"error"}) => response_content{"error"} | 0;
+      response_error_str = (response_content.typeof() == "Map" && response_content{"error_str"}) => response_content{"error_str"} | 0;
+      error = error_info.put({"skyQueryError": response_error,
+                              "skyQueryErrorMsg": response_error_str, 
+                              "skyQueryReturnValue": response_content});
+      is_bad_response = (response_content.isnull() || response_content == "null" || response_error || response_error_str);
+      // if HTTP status was OK & the response was not null and there were no errors...
+      (status == 200 && not is_bad_response ) => response_content | error
+    }
+
+
     getSelf = function(){
        wrangler:myself() // must be wrapped in a function
     }
-    createChannel = function(options){
+    createSubscriptionChannel = function(options){
+      //subsID = null.uuid();
       logs = options.klog("parameters ");
       self = getSelf().klog("self");
       id = self.id;
@@ -24,7 +59,22 @@ ruleset Subscriptions {
       eci = channel.id;
       {"eci": eci, "name": options.name,"type": options.eci_type, "attributes": options.attributes }
     }
-    
+/*
+    createSubscriptionChannel = defaction(options){
+      subsID = null.uuid()
+      logs = options.klog("parameters ")
+      self = getSelf().klog("self")
+      id = self.id
+      channel = engine:newChannel(
+        { "name": options.name, "type": options.eci_type, "pico_id": id }).klog("newchannel")
+      eci = channel.id
+      newSubscription = {"eci": eci, "name": options.name,"type": options.eci_type, "attributes": options.attributes }
+      null = ent:subscriptions.pset(getSubscriptions().put([newSubscription.name] , newSubscription.put(["attributes"],{"sid" : newSubscription.name})))
+      send_directive("subscription created") with
+        subscription = newSubscription
+
+    }
+    */
     getSubscriptions = function(){
       ent:subscriptions.defaultsTo({})
     }
@@ -51,11 +101,10 @@ ruleset Subscriptions {
           (subscriptions{name_space + ":" + name}) => "unique" | "taken"
         });
         name = names{"unique"} || [];
-
-        unique_name =  name.head().defaultsTo("",standardError("unique name failed")).klog("uniqueName")
+        unique_name =  name.head().defaultsTo("",standardError("unique name failed")).klog("uniqueName");
         (unique_name)
     }
-    checkSubscriptionName = function(name , name_space){
+    checkSubscriptionName = function(name , name_space, subscriptions){
       (subscriptions{name_space + ":" + name}) => false | true 
     }
   }
@@ -67,10 +116,7 @@ ruleset Subscriptions {
       attr = event:attrs()
       attrs = attr.put({"name":name}).klog("attrs")
     }
-    if(checkSubscriptionName(name,name_space)) then
-    //{
-      noop()
-    //}
+    if(checkSubscriptionName(name , name_space, getSubscriptions())) then noop()
     fired{
       raise wrangler event "checked_name_subscription"
        attributes attrs
@@ -82,7 +128,7 @@ ruleset Subscriptions {
     }
   }
 
-  rule subscribe {
+  rule createMySubscription {
     select when wrangler checked_name_subscription
    pre {
       // attributes for inbound attrs 
@@ -116,12 +162,49 @@ ruleset Subscriptions {
           "attributes" : pending_entry
           //"policy" : ,
       }.klog("options")
-    newSubscription = (subscriber_eci != "no_subscriber_eci").klog("True?") => createChannel(options) | {}
-    updatedSubs = getSubscriptions().put([newSubscription.name] , newSubscription)
+    newSubscription = (subscriber_eci != "no_subscriber_eci").klog("True?") => createSubscriptionChannel(options) | {}
+    updatedSubs = getSubscriptions().put([newSubscription.name] , newSubscription.put(["attributes"],{"sid" : newSubscription.name})) // key should be a subscriptions UUID, also stored inside structure. UUID is assumed unique
+    }
+    if(subscriber_eci != "no_subscriber_eci") // check if we have someone to send a request too
+    then noop()
+    fired {
+      newSubscription.klog(">> successful created subscription request >>");
+      ent:subscriptions := updatedSubs;
+      raise wrangler event "pending_subscription"
+        with status = pending_entry{"status"}
+        channel_name = unique_name
+        channel_type = channel_type
+        subscription_name = pending_entry{"subscription_name"}
+        name_space = pending_entry{"name_space"}
+        relationship = pending_entry{"relationship"}  
+        my_role = pending_entry{"my_role"}
+        subscriber_role = pending_entry{"subscriber_role"}
+        subscriber_eci  = pending_entry{"subscriber_eci"}
+        inbound_eci = newSubscription.eci
+        attributes = pending_entry{"attributes"}  
+    } 
+    else {
+      logs.klog(">> failed to create subscription request, no subscriber_eci provieded >>")
+    }
+  }
+
+  
+  rule sendSubscribersSubscribe {
+    select when wrangler pending_subscription status re#outbound#
+   pre {
+      logs = event:attrs().klog("attrs")
+      name   = event:attr("name")//.defaultsTo("standard",standardError("channel_name"))
+      name_space     = event:attr("name_space")//.defaultsTo("shared", standardError("name_space"))
+      my_role  = event:attr("my_role")//.defaultsTo("peer", standardError("my_role"))
+      subscriber_role  = event:attr("subscriber_role")//.defaultsTo("peer", standardError("subscriber_role"))
+      subscriber_eci = event:attr("subscriber_eci").defaultsTo("no_subscriber_eci", standardError("subscriber_eci"))
+      channel_type      = event:attr("channel_type")//.defaultsTo("subs", standardError("type"))
+      attributes = event:attr("attributes")//.defaultsTo("status", standardError("attributes "))
+      inbound_eci = event:attr("inbound_eci")
+      channel_name = event:attr("channel_name")
     }
     if(subscriber_eci != "no_subscriber_eci") // check if we have someone to send a request too
     then
-    //{      
       event:send({
           "eci": subscriber_eci, "eid": "subscriptionsRequest",
           "domain": "wrangler", "type": "pending_subscription",
@@ -130,40 +213,62 @@ ruleset Subscriptions {
              "relationship" : subscriber_role +"<->"+ my_role ,
              "my_role" : subscriber_role,
              "subscriber_role" : my_role,
-             "outbound_eci"  :  newSubscription.eci, 
+             "outbound_eci"  :  inbound_eci, 
              "status" : "inbound",
              "channel_type" : channel_type,
-             "channel_name" : unique_name,
+             "channel_name" : channel_name,
              "attributes" : attributes } 
       })
-    //}
     fired {
-      logs.klog(standardOut("success"));
-      logs.klog(">> successful >>");
-      ent:subscriptions := updatedSubs;
-      raise wrangler event pending_subscription
-        with status = pending_entry{"status"}
-        channel_name = unique_name
-        subscription_name = pending_entry{"subscription_name"}
-        name_space = pending_entry{"name_space"}
-        relationship = pending_entry{"relationship"}  
-        my_role = pending_entry{"my_role"}
-        subscriber_role = pending_entry{"subscriber_role"}
-        subscriber_eci  = pending_entry{"subscriber_eci"}
-        attributes = pending_entry{"attributes"}  
+      subscriber_eci.klog(">> sent subscription request to >>")
     } 
     else {
-      logs.klog(">> failure >>")
+      logs.klog(">> failed to send subscription request >>")
     }
   }
 
- rule addPendingSubscription { // depends on wether or not a channel_name is being passed as an attribute
-    select when wrangler pending_subscription
+ rule addOutboundPendingSubscription {
+    select when wrangler pending_subscription status re#outbound#
+   pre {}
+    if(true) then noop()
+    always { 
+      logs.klog(standardOut("successful outgoing pending subscription >>"));
+      raise wrangler event "outbound_pending_subscription_added" // event to nothing
+        attributes event:attrs()
+    } 
+  }
+
+  rule InboundNameCheck {
+    select when wrangler pending_subscription status re#inbound#
+    pre {
+      name_space = event:attr("name_space")
+      name   = event:attr("name") 
+      attr = event:attrs()
+      attrs = attr.put({"name":name}).klog("attrs")
+    }
+    if(checkSubscriptionName(name , name_space, getSubscriptions()) != true ) then noop()
+    fired{
+        logs.klog(">> could not accept request #{name} >>");
+        event:send({ "eci": event:attr("outbound_eci"), "eid": "pending_subscription",
+          "domain": "wrangler", "type": "outbound_subscription_cancellation",
+          "attrs": event:attrs().put({"failed_request":"not a unique subscription"})})
+    }
+    else{
+      logs.klog(">> unique name suggested request #{name} pending >>");
+      raise wrangler event "checked_name_inbound"
+       attributes attrs
+  
+    }
+  }
+
+
+  rule addInboundPendingSubscription { 
+    select when wrangler checked_name_inbound
    pre {
         channel_name = event:attr("channel_name")//.defaultsTo("SUBSCRIPTION", standardError("channel_name")) 
         channel_type = event:attr("channel_type")//.defaultsTo("SUBSCRIPTION", standardError("type")) 
         status = event:attr("status").defaultsTo("", standardError("status"))
-      pending_subscriptions = (status == "inbound") =>
+      pending_subscriptions = 
          {
             "subscription_name"  : event:attr("name").defaultsTo("", standardError("")),
             "name_space"    : event:attr("name_space").defaultsTo("", standardError("name_space")),
@@ -173,8 +278,8 @@ ruleset Subscriptions {
             "outbound_eci"  : event:attr("outbound_eci").defaultsTo("", standardError("outbound_eci")),
             "status"  : event:attr("status").defaultsTo("", standardError("status")),
             "attributes" : event:attr("attributes").defaultsTo("", standardError("attributes"))
-          } |
-          {}
+          }
+          
       unique_name = channel_name
       options = {
         "name" : unique_name, 
@@ -182,57 +287,30 @@ ruleset Subscriptions {
         "attributes" : pending_subscriptions
           //"policy" : ,
       }
-      newSubscription = (status == "inbound") => ( 
-                        (checkSubscriptionName(unique_name)) => createChannel(options) | {} ) | {}
+      newSubscription = ((checkSubscriptionName(unique_name)) => createSubscriptionChannel(options) | {} )
     }
-    if(status == "inbound") 
+    if(true) 
     then
-    //{
-    //  (checkSubscriptionName(unique_name)) => noop() | event:send({
-    //      "eci": pending_subscriptions{"outbound_eci"}, "eid": "pending_subscription",
-    //      "domain": "wrangler", "type": "outbound_subscription_cancellation",
-    //      "attrs": {"subscription_name"  : pending_subscriptions{"subscription_name"}})
       noop()
-      
-    //}
     fired { 
-      //(checkSubscriptionName(unique_name)) => noop() | 
-      //raise wrangler event "inbound_subscription_rejection" 
-      //    with subscription_name = pending_subscriptions{"subscription_name"} 
       logs.klog(standardOut("successful pending incoming"));
-      ent:subscriptions := getSubscriptions().put( [newSubscription.name] , newSubscription );
+      ent:subscriptions := getSubscriptions().put( [newSubscription.name] , newSubscription.put(["attributes"],{"sid":newSubscription.name}) );
       raise wrangler event "inbound_pending_subscription_added" // event to nothing
-          with status = pending_subscriptions{"status"} // could this be replaced with all of the attrs pasted in?
-             name = pending_subscriptions{"subscription_name"}
-             channel_name = unique_name
-             name_space = pending_subscriptions{"name_space"}
-             relationship = pending_subscriptions{"relationship"}
-             subscriber_role = pending_subscriptions{"subscriber_role"}
-             my_role = pending_subscriptions{"my_role"}
-             attributes = pending_subscriptions{"attributes"}
-             outbound_eci = pending_subscriptions{"outbound_eci"}
-             channel_type = channel_type
-      //log(standardOut("failure >>")) if (channel_name == "")
+          attributes event:attrs()
     } 
-    else { 
-      //log (standardOut("success pending outgoing >>"))
-      logs.klog(standardOut("success pending outgoing >>"));
-      raise wrangler event "outbound_pending_subscription_added" // event to nothing
-        attributes event:attrs()
-    }
   }
 
-rule approvePendingSubscription { 
+
+rule approveInboundPendingSubscription { 
     select when wrangler pending_subscription_approval
     pre{
       logs = event:attrs().klog("attrs")
-      subscription_name = event:attr("subscription_name").klog("sub name")
+      subscription_name = event:attr("subscription_name").defaultsTo(event:attr("channel_name"), "channel_name used ")
       subs = getSubscriptions().klog("subscriptions")
       inbound_eci = subs{[subscription_name,"eci"]}.klog("subscription inbound") //{[subscription_name,"eci"]}
       outbound_eci = subs{[subscription_name,"attributes","outbound_eci"]}.klog("subscriptions outbound")
     }
     if (outbound_eci) then
-    //{
       event:send({
           "eci": outbound_eci, "eid": "approvePendingSubscription",
           "domain": "wrangler", "type": "pending_subscription_approved",
@@ -240,11 +318,9 @@ rule approvePendingSubscription {
                       "status" : "outbound",
                       "subscription_name" : subscription_name }
           })
-    //}
     fired 
     {
-      logs.klog(standardOut("success >>"));
-      //log (standardOut("success"));
+      logs.klog(standardOut(">> Sent accepted subscription events >>"));
       raise wrangler event "pending_subscription_approved"   
         with channel_name = channel_name
              status = "inbound"
@@ -252,61 +328,66 @@ rule approvePendingSubscription {
     } 
     else 
     {
-      logs.klog(standardOut(">> failure >>"))
-      //log(">> failure >>");
+      logs.klog(standardOut(">> Failed to send accepted subscription events >>"))
     }
   }
 
 
 
 
-  rule addSubscription { // changes attribute status value to subscribed
-    select when wrangler pending_subscription_approved
+  rule addOutboundSubscription { 
+    select when wrangler pending_subscription_approved status re#outbound#
     pre{
-      status = event:attr("status") //.defaultsTo("", standardError("status"))
+      status = event:attr("status") 
       subscription_name = event:attr("subscription_name")
       subs = getSubscriptions()
       subscription = subs{subscription_name}.klog("subscription addSubscription")
       attributes = subscription{["attributes"]}.klog("attributes subscriptions")
       attr = attributes.put({"status":"subscribed"}) // over write original status
+      attrs = attr.put({"outbound_eci": event:attr("outbound_eci")}).klog("put outgoing outbound_eci: ") // add outbound_eci
 
-      outGoing = function(){
-        attrs = attr.put({"outbound_eci": event:attr("outbound_eci")}).klog("put outgoing outbound_eci: "); // add outbound_eci
-        attrs
-      }
-
-      atttrs = (status == "outbound" ) => 
-            outGoing() | 
-            attr
-      updatedSubscription = subscription.put({"attributes":atttrs}).klog("updated subscriptions")
+      updatedSubscription = subscription.put({"attributes":attrs}).klog("updated subscriptions")
     }
-    if (true) then 
-    //{
-     noop()
-    //}
+    if (true) then noop()
     fired {
       logs.klog(standardOut(">> success >>"));
       ent:subscriptions := getSubscriptions().put([updatedSubscription.name],updatedSubscription);
       raise wrangler event "subscription_added" // event to nothing
         with subscription_name = event:attr("subscription_name")
       } 
-    else {
-      logs.klog(standardOut(">> failure >>"))
-    }
   }
+
+rule addInboundSubscription { 
+    select when wrangler pending_subscription_approved status re#inbound#
+    pre{
+      status = event:attr("status") 
+      subscription_name = event:attr("subscription_name")
+      subs = getSubscriptions()
+      subscription = subs{subscription_name}.klog("subscription addSubscription")
+      attributes = subscription{["attributes"]}.klog("attributes subscriptions")
+      attr = attributes.put({"status":"subscribed"}) // over write original status
+      atttrs = attr
+      updatedSubscription = subscription.put({"attributes":atttrs}).klog("updated subscriptions")
+    }
+    if (true) then noop()
+    fired {
+      ent:subscriptions := getSubscriptions().put([updatedSubscription.name],updatedSubscription);
+      raise wrangler event "subscription_added" // event to nothing
+        with subscription_name = event:attr("subscription_name")
+      } 
+  }
+
 
   rule cancelSubscription {
     select when wrangler subscription_cancellation
             or  wrangler inbound_subscription_rejection
             or  wrangler outbound_subscription_cancellation
     pre{
-      subscription_name = event:attr("subscription_name")//.defaultsTo( "No channel_name", standardError("channel_name"))
+      subscription_name = event:attr("subscription_name").defaultsTo(event:attr("channel_name"), "channel_name used ") //.defaultsTo( "No channel_name", standardError("channel_name"))
       subs = getSubscriptions()
       outbound_eci = subs{[subscription_name,"attributes","outbound_eci"]}.klog("outboundEci")
     }
-    //if( eci != "No outbound_eci") then // always try to notify other party
     if(true) then
-    //{
       event:send({
           "eci": outbound_eci, "eid": "cancelSubscription1",
           "domain": "wrangler", "type": "subscription_removal",
@@ -314,7 +395,6 @@ rule approvePendingSubscription {
                     "subscription_name": subscription_name
                   }
           })
-    //}
     fired {
       logs.klog(standardOut(">> success >>"));
       raise wrangler event "subscription_removal" 
@@ -325,6 +405,8 @@ rule approvePendingSubscription {
     }
   } 
 
+
+
   rule removeSubscription {
     select when wrangler subscription_removal
     pre{
@@ -333,10 +415,7 @@ rule approvePendingSubscription {
       subscription = subs{subscription_name}
       updatedSubscription = subs.delete(subscription_name).klog("delete")
     }
-    if(true) then
-    //{
-     noop()
-    //}
+    if(true) then noop()
     always {
       ent:subscriptions := updatedSubscription;
       logs.klog(standardOut("success, attemped to remove subscription"));
