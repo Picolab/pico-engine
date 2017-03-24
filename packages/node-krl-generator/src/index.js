@@ -195,6 +195,7 @@ var gen_by_type = {
         }
         return src;
     },
+    "DefAction": require("./g/DefAction"),
     "EventAggregator": require("./g/EventAggregator"),
     "EventGroupOperator": require("./g/EventGroupOperator"),
     "RulePostlude": require("./g/RulePostlude")
