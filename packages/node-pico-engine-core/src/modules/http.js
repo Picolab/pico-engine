@@ -45,14 +45,24 @@ var fns = {
         var body = getArg(args, "body", 4);
         var credentials = getArg(args, "credentials", 5);
 
-        doHTTP({
+        var opts = {
             method: "POST",
             url: url,
             qs: params || {},
             headers: headers || {},
-            auth: credentials || {},
-            body: body || {},
-        }, response_headers, callback);
+        };
+
+        if(_.isPlainObject(body)){
+            opts.form = body;
+        }else if(_.isString(body)){
+            opts.body = body;
+        }
+
+        if(_.isPlainObject(credentials)){
+            opts.auth = credentials;
+        }
+
+        doHTTP(opts, response_headers, callback);
     })
 };
 
