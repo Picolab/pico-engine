@@ -23,10 +23,13 @@ module.exports = {
             ]]
         }
       },
+      "prelude": function* (ctx) {
+        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
+      },
       "postlude": {
         "fired": function* (ctx) {
           ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "get"))(ctx, [
-            "https://httpbin.org/get",
+            ctx.scope.get("url"),
             { "foo": "bar" },
             { "baz": "quix" }
           ]));

@@ -9,8 +9,11 @@ ruleset io.picolabs.http {
   }
   rule http_get {
     select when http get;
+    pre {
+        url = event:attr("url")
+    }
     fired {
-      resp = http:get("https://httpbin.org/get", {
+      resp = http:get(url, {
         "foo": "bar"
       }, {
         "baz": "quix"

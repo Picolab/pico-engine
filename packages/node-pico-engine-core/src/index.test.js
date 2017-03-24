@@ -700,7 +700,7 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
             λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.http"}),
             [
-                signal("http", "get"),
+                signal("http", "get", {url: "https://httpbin.org/get"}),
                 []
             ],
             [
