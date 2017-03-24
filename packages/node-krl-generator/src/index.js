@@ -163,14 +163,16 @@ var gen_by_type = {
     },
     "EventOperator": require("./g/EventOperator"),
     "EventWithin": require("./g/EventWithin"),
-    "RuleActionBlock": function(ast, ind, gen){
-        var src = "";
-        src += gen(ast.actions);
-        return src;
-    },
+    "RuleActionBlock": require("./g/RuleActionBlock"),
     "RuleAction": function(ast, ind, gen){
         var src = "";
-        src += ind() + gen(ast.action) + "(" + gen(ast.args) + ")";
+        if(ast.label){
+            src += ind() + gen(ast.label) + " =>\n";
+            src += ind(1);
+        }else{
+            src += ind();
+        }
+        src += gen(ast.action) + "(" + gen(ast.args) + ")";
         src += genWith(ast["with"], ind, gen);
         return src;
     },
@@ -178,6 +180,8 @@ var gen_by_type = {
     "EventAggregator": require("./g/EventAggregator"),
     "EventGroupOperator": require("./g/EventGroupOperator"),
     "PersistentVariableAssignment": require("./g/PersistentVariableAssignment"),
+    "RaiseEventStatement": require("./g/RaiseEventStatement"),
+    "RaiseEventAttributes": require("./g/RaiseEventAttributes"),
     "RulePostlude": require("./g/RulePostlude")
 };
 
