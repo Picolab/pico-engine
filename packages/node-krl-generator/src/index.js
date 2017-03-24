@@ -11,6 +11,7 @@ var gen_by_type = {
     "Identifier": function(ast, ind, gen){
         return ast.value;
     },
+    "DomainIdentifier": require("./g/DomainIdentifier"),
     "Boolean": function(ast, ind, gen){
         return ast.value ? "true" : "false";
     },
@@ -35,11 +36,7 @@ var gen_by_type = {
             return gen(ast);
         }).join(", ") + "]";
     },
-    "Map": function(ast, ind, gen){
-        return "{" + _.map(ast.value, function(ast){
-            return gen(ast);
-        }).join(", ") + "}";
-    },
+    "Map": require("./g/Map"),
     "MapKeyValuePair": function(ast, ind, gen){
         return gen(ast.key) + ": " + gen(ast.value);
     },
@@ -160,24 +157,7 @@ var gen_by_type = {
         return src;
     },
     "RuleSelect": require("./g/RuleSelect"),
-    "EventExpression": function(ast, ind, gen){
-        var src = "";
-        src += gen(ast.event_domain) + " " + gen(ast.event_type);
-        if(!_.isEmpty(ast.attributes)){
-            src += " " + _.map(ast.attributes, function(a){
-                return gen(a, 1);
-            }).join(" ");
-        }
-        if(ast.where){
-            src += " where " + gen(ast.where);
-        }
-        if(!_.isEmpty(ast.setting)){
-            src += " setting(" + _.map(ast.setting, function(a){
-                return gen(a, 1);
-            }).join(", ") + ")";
-        }
-        return src;
-    },
+    "EventExpression": require("./g/EventExpression"),
     "AttributeMatch": function(ast, ind, gen){
         return gen(ast.key) + " " + gen(ast.value);
     },
@@ -197,6 +177,7 @@ var gen_by_type = {
     "DefAction": require("./g/DefAction"),
     "EventAggregator": require("./g/EventAggregator"),
     "EventGroupOperator": require("./g/EventGroupOperator"),
+    "PersistentVariableAssignment": require("./g/PersistentVariableAssignment"),
     "RulePostlude": require("./g/RulePostlude")
 };
 

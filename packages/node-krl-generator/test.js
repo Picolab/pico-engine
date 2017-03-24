@@ -36,8 +36,9 @@ fs.readdir(files_dir, function(err, files){
         next();
       }else{
         console.log('');
-        console.log(diff(expected, out));
+        console.log(diff(expected, out, {n_surrounding: 3}));
         console.log('');
+        console.log('testing: ' + path.basename(file));
         next(new Error('see diff'));
       }
     });

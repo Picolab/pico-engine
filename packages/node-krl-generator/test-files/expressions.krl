@@ -10,7 +10,10 @@ escape close: >\>
     select when a b;
     always {
       ["1", true, three, 4, false];
-      {"one": 1, "two": 2}
+      {
+        "one": 1,
+        "two": 2
+      }
     }
   }
   rule MemberExpression {
