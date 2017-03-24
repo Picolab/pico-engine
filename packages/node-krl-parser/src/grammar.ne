@@ -888,7 +888,16 @@ Statement_list_body ->
 declaration_list -> Declaration {% idArr %}
     | declaration_list Declaration {% concatArr(1) %}
 
-WithArguments -> %tok_with IdentifierDeclaration:+ {% getN(1)  %}
+WithArguments -> %tok_with With_body {% getN(1) %}
+
+With_body ->
+      IdentifierDeclaration {% idArr %}
+    | (IdentifierDeclaration) IdentifierDeclaration:+ {% concatArr(1) %}
+    | (IdentifierDeclaration) %tok_and With_and_body {% concatArr(2) %}
+
+With_and_body ->
+      IdentifierDeclaration {% idArr %}
+    | With_and_body %tok_and IdentifierDeclaration {% concatArr(2) %}
 
 ################################################################################
 #

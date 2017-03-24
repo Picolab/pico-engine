@@ -1952,3 +1952,50 @@ test("DefAction", function(t){
 
   t.end();
 });
+
+test("with", function(t){
+  var tst = function(src, expected){
+    var ast = parser("foo() " + src);
+    ast = ast[0].expression.with;
+    t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+  };
+  try{
+      tst('with', []);
+      t.fail();
+  }catch(e){
+      t.ok("should fail");
+  }
+  tst('with a = "b"', [
+      mk.declare('=', mk.id('a'), mk('b'))
+  ]);
+  tst('with a = "b" c = "d"', [
+      mk.declare('=', mk.id('a'), mk('b')),
+      mk.declare('=', mk.id('c'), mk('d')),
+  ]);
+  tst('with a = "b" and = "d"', [
+      mk.declare('=', mk.id('a'), mk('b')),
+      mk.declare('=', mk.id('and'), mk('d')),
+  ]);
+  tst('with a = "b" and c = "d"', [
+      mk.declare('=', mk.id('a'), mk('b')),
+      mk.declare('=', mk.id('c'), mk('d')),
+  ]);
+  tst('with a = "b" and c = "d" and e = 1', [
+      mk.declare('=', mk.id('a'), mk('b')),
+      mk.declare('=', mk.id('c'), mk('d')),
+      mk.declare('=', mk.id('e'), mk(1)),
+  ]);
+  try{
+      tst('with a = "b" and c = "d" e = 1', []);
+      t.fail();
+  }catch(e){
+      t.ok("should fail: don't use and for all, or not at all");
+  }
+  try{
+      tst('with a = "b" c = "d" and e = 1', []);
+      t.fail();
+  }catch(e){
+      t.ok("should fail: don't use and for all, or not at all");
+  }
+  t.end();
+});
