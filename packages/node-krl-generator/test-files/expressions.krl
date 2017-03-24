@@ -7,14 +7,14 @@ escape close: >\>
     >>
   }
   rule ArrayAndMapLiterals {
-    select when a b
+    select when a b;
     always {
       ["1", true, three, 4, false];
       {"one": 1, "two": 2}
     }
   }
   rule MemberExpression {
-    select when a b
+    select when a b;
     always {
       a.b.c.d();
       obj{["some", "path"]};
@@ -23,7 +23,7 @@ escape close: >\>
     }
   }
   rule ConditionalExpression {
-    select when a b
+    select when a b;
     always {
       a => b |
         not c;
@@ -34,7 +34,7 @@ escape close: >\>
     }
   }
   rule Functions {
-    select when a b
+    select when a b;
     always {
       add = function(a, b){
         other = b;
@@ -44,7 +44,7 @@ escape close: >\>
     }
   }
   rule OperatorPrecedence {
-    select when a b
+    select when a b;
     always {
       a + (b * c);
       (a * b) + c;

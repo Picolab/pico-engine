@@ -7,8 +7,5 @@ module.exports = function(ast, ind, gen){
     if(ast.within){
         src += "\n" + ind(1) + gen(ast.within);
     }
-    if(/\)/.test(src)){
-        src += ";";
-    }
-    return src;
+    return src + ";";
 };

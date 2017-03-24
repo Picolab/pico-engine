@@ -56,7 +56,7 @@ ruleset eventexps {
     select when web aaa
       before
       web bbb
-      within 3 hours
+      within 3 hours;
     noop()
   }
   rule test10 {
@@ -76,7 +76,7 @@ ruleset eventexps {
       and
       web bbb
       and
-      web ccc
+      web ccc;
     noop()
   }
   rule test13 {
@@ -86,7 +86,7 @@ ruleset eventexps {
       and
       web ccc
       before
-      web ddd
+      web ddd;
     noop()
   }
   rule test14 {

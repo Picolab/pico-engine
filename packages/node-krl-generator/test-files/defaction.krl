@@ -15,11 +15,11 @@ ruleset io.picolabs.defaction {
     }
   }
   rule foo {
-    select when foo a
+    select when foo a;
     foo("bar")
   }
   rule bar {
-    select when bar a
+    select when bar a;
     bar("baz") with
       two = "qux"
       three = "quux"

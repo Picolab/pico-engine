@@ -1,12 +1,12 @@
 ruleset postlude {
   rule test0 {
-    select when a b
+    select when a b;
     fired {
       one()
     }
   }
   rule test1 {
-    select when a b
+    select when a b;
     fired {
       one()
     } else {
@@ -14,7 +14,7 @@ ruleset postlude {
     }
   }
   rule test2 {
-    select when a b
+    select when a b;
     fired {
       one()
     } finally {
@@ -22,7 +22,7 @@ ruleset postlude {
     }
   }
   rule test3 {
-    select when a b
+    select when a b;
     fired {
       one()
     } else {
@@ -32,13 +32,13 @@ ruleset postlude {
     }
   }
   rule test4 {
-    select when a b
+    select when a b;
     always {
       one()
     }
   }
   rule test5 {
-    select when a b
+    select when a b;
     always {
       one();
       two();

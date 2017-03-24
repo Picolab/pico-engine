@@ -1,6 +1,6 @@
 ruleset hello.pre {
   rule say_hello {
-    select when echo hello
+    select when echo hello;
     pre {
       one = 2
       div = function(a, b){

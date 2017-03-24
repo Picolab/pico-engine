@@ -3,14 +3,14 @@ ruleset io.picolabs.within {
     select when foo a
       before
       foo b
-      within 5 minutes
+      within 5 minutes;
     send_directive("foo")
   }
   rule bar {
     select when bar a
       before
       bar b
-      within 1 + 3 second
+      within 1 + 3 second;
     send_directive("bar")
   }
   rule baz {
@@ -19,7 +19,7 @@ ruleset io.picolabs.within {
       baz b
       and
       baz c
-      within 1 year
+      within 1 year;
     send_directive("baz")
   }
   rule qux {
