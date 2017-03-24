@@ -2004,3 +2004,31 @@ test("with", function(t){
   }
   t.end();
 });
+
+test("LogStatement", function(t){
+  var testPostlude = function(src_core, expected){
+    var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+    var ast = parser(src).rules[0].postlude.fired;
+    t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+  };
+
+  testPostlude("log \"foo\"", [{
+    type: "LogStatement",
+    level: null,
+    expression: mk("foo")
+  }]);
+
+  testPostlude("log info \"foo\"", [{
+    type: "LogStatement",
+    level: "info",
+    expression: mk("foo")
+  }]);
+
+  testPostlude("log error {\"baz\": [1, 2]}", [{
+    type: "LogStatement",
+    level: "error",
+    expression: mk({baz: mk([1, 2])})
+  }]);
+
+  t.end();
+});

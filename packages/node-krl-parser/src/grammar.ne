@@ -191,8 +191,19 @@ var mkLoc = function(d){
   return loc;
 };
 
+var defEnum = function(vals){
+  return {
+    test: function(x){
+      if(!x || x.type !== "SYMBOL"){
+        return false;
+      }
+      return vals.indexOf(x.src) >= 0;
+    }
+  };
+};
 
-var time_period_enum = [
+
+var tok_TIME_PERIOD_ENUM = defEnum([
   "years",
   "months",
   "weeks",
@@ -207,13 +218,14 @@ var time_period_enum = [
   "hour",
   "minute",
   "second",
-];
-var tok_TIME_PERIOD_ENUM = {test: function(x){
-  if(!x || x.type !== "SYMBOL"){
-    return false;
-  }
-  return time_period_enum.indexOf(x.src) >= 0;
-}};
+]);
+
+var tok_LOG_LEVEL_ENUM = defEnum([
+  "error",
+  "warn",
+  "info",
+  "debug",
+]);
 
 var tok = function(type, value){
   return {test: function(x){
@@ -306,6 +318,7 @@ var tok_is = tok("SYMBOL", "is");
 var tok_key = tok("SYMBOL", "key");
 var tok_keys = tok("SYMBOL", "keys");
 var tok_like = tok("SYMBOL", "like");
+var tok_log = tok("SYMBOL", "log");
 var tok_logging = tok("SYMBOL", "logging");
 var tok_max = tok("SYMBOL", "max");
 var tok_min = tok("SYMBOL", "min");
@@ -769,6 +782,7 @@ PostludeStatement_core ->
       Statement {% id %}
     | PersistentVariableAssignment {% id %}
     | RaiseEventStatement {% id %}
+    | LogStatement {% id %}
 
 PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
   function(data){
@@ -816,6 +830,18 @@ RaiseEventAttributes -> WithArguments
       loc: mkLoc(data),
       type: "RaiseEventAttributes",
       expression: data[1]
+    };
+  }
+%}
+
+LogStatement -> %tok_log %tok_LOG_LEVEL_ENUM:? Expression
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: "LogStatement",
+      level: data[1] ? data[1].src : null,
+      expression: data[2]
     };
   }
 %}
