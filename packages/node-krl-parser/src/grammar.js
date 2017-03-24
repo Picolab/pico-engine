@@ -307,6 +307,7 @@ var tok_global = tok("SYMBOL", "global");
 var tok_if = tok("SYMBOL", "if");
 var tok_inactive = tok("SYMBOL", "inactive");
 var tok_is = tok("SYMBOL", "is");
+var tok_key = tok("SYMBOL", "key");
 var tok_keys = tok("SYMBOL", "keys");
 var tok_like = tok("SYMBOL", "like");
 var tok_logging = tok("SYMBOL", "logging");
@@ -413,7 +414,7 @@ var grammar = {
     {"name": "ruleset_meta_prop", "symbols": [tok_logging, "OnOrOff"], "postprocess": metaProp2part},
     {"name": "ruleset_meta_prop$subexpression$1", "symbols": ["String"]},
     {"name": "ruleset_meta_prop$subexpression$1", "symbols": ["Map"]},
-    {"name": "ruleset_meta_prop", "symbols": [tok_keys, "Keyword", "ruleset_meta_prop$subexpression$1"], "postprocess": metaProp(function(data){return [data[1], data[2][0]]})},
+    {"name": "ruleset_meta_prop", "symbols": ["KEYs", "Keyword", "ruleset_meta_prop$subexpression$1"], "postprocess": metaProp(function(data){return [data[1], data[2][0]]})},
     {"name": "ruleset_meta_prop$ebnf$1$subexpression$1", "symbols": [tok_version, "String"]},
     {"name": "ruleset_meta_prop$ebnf$1", "symbols": ["ruleset_meta_prop$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "ruleset_meta_prop$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
@@ -467,6 +468,18 @@ var grammar = {
             loc: d.loc,
             type: 'Keyword',
             value: d.src
+          };
+        }
+        },
+    {"name": "KEYs$subexpression$1", "symbols": [tok_key]},
+    {"name": "KEYs$subexpression$1", "symbols": [tok_keys]},
+    {"name": "KEYs", "symbols": ["KEYs$subexpression$1"], "postprocess": 
+        function(data){
+          var d = data[0][0];
+          return {
+            loc: d.loc,
+            type: "Keyword",
+            value: "keys"
           };
         }
         },
