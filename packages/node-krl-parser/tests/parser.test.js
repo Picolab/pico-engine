@@ -1243,6 +1243,11 @@ test('Ruleset meta', function(t){
     mk.meta('keys', [mk.key('one'), mk('one string')]),
     mk.meta('keys', [mk.key('two'), mk({'some': mk('map')})])
   ]);
+  //"key" is the same as "keys"
+  testMeta('key one "one string"\n key two {"some": "map"}', [
+    mk.meta('keys', [mk.key('one'), mk('one string')]),
+    mk.meta('keys', [mk.key('two'), mk({'some': mk('map')})])
+  ]);
 
   testMeta('logging on', [mk.meta('logging', mk(true))]);
   testMeta('logging off', [mk.meta('logging', mk(false))]);
