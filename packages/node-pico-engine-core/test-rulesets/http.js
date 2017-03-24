@@ -33,13 +33,7 @@ module.exports = {
             { "foo": "bar" },
             { "baz": "quix" }
           ]));
-          ctx.scope.set("resp2", yield ctx.callKRLstdlib("set", ctx.scope.get("resp"), "content", yield ctx.callKRLstdlib("set", yield ctx.callKRLstdlib("decode", yield ctx.callKRLstdlib("get", ctx.scope.get("resp"), ["content"])), "origin", "-")));
-          ctx.scope.set("resp3", yield ctx.callKRLstdlib("set", ctx.scope.get("resp2"), "content_length", (yield ctx.callKRLstdlib(">", yield ctx.callKRLstdlib("get", ctx.scope.get("resp"), ["content_length"]), 160)) && (yield ctx.callKRLstdlib("<", yield ctx.callKRLstdlib("get", ctx.scope.get("resp"), ["content_length"]), 400)) ? 175 : yield ctx.callKRLstdlib("get", ctx.scope.get("resp"), ["content_length"])));
-          ctx.scope.set("resp4", yield ctx.callKRLstdlib("delete", ctx.scope.get("resp3"), [
-            "content",
-            "headers"
-          ]));
-          yield ctx.modules.set(ctx, "ent", "get_resp", ctx.scope.get("resp4"));
+          yield ctx.modules.set(ctx, "ent", "get_resp", yield ctx.callKRLstdlib("set", ctx.scope.get("resp"), "content", yield ctx.callKRLstdlib("decode", yield ctx.callKRLstdlib("get", ctx.scope.get("resp"), ["content"]))));
         },
         "notfired": undefined,
         "always": undefined

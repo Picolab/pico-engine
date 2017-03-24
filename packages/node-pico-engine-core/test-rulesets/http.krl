@@ -19,18 +19,7 @@ ruleset io.picolabs.http {
         "baz": "quix"
       });
 
-      resp2 = resp.set("content", resp["content"].decode().set("origin", "-"));
-
-      resp3 = resp2.set(
-        "content_length",
-        resp["content_length"] > 160 && resp["content_length"] < 400
-          => 175
-           | resp["content_length"]
-      );
-
-      resp4 = resp3.delete(["content", "headers"]);
-
-      ent:get_resp := resp4
+      ent:get_resp := resp.set("content", resp["content"].decode())
     }
   }
 }

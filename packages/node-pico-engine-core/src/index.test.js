@@ -1,6 +1,7 @@
 var _ = require("lodash");
 var λ = require("contra");
 var test = require("tape");
+var http = require("http");
 var mkTestPicoEngine = require("./mkTestPicoEngine");
 
 var omitMeta = function(resp){
@@ -695,29 +696,51 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
         var query = mkQueryTask(pe, "id1", "io.picolabs.http");
         var signal = mkSignalTask(pe, "id1");
 
-        testOutputs(t, [
-            λ.curry(pe.db.newPico, {}),
-            λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.http"}),
-            [
-                signal("http", "get", {url: "https://httpbin.org/get"}),
-                []
-            ],
-            [
-                query("getResp"),
-                {
-                    content: {
-                        args: {foo: "bar"},
-                        origin: "-",
-                        url: "https://httpbin.org/get?foo=bar"
-                    },
-                    content_length: 175,
-                    content_type: "application/json",
-                    status_code: 200,
-                    status_line: "OK"
-                }
-            ]
-        ], t.end);
+        var server = http.createServer(function(req, res){
+            var out = JSON.stringify({
+                url: req.url,
+                headers: req.headers,
+            }, false, 2);
+            res.writeHead(200, {
+                "Content-Type": "application/json",
+                "Content-Length": Buffer.byteLength(out),
+            });
+            res.end(out);
+        });
+
+        server.listen(0, function(){
+            var url = "http://localhost:" + server.address().port;
+            testOutputs(t, [
+                λ.curry(pe.db.newPico, {}),
+                λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+                λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.http"}),
+                [
+                    signal("http", "get", {url: url}),
+                    []
+                ],
+                [
+                    query("getResp"),
+                    {
+                        content: {
+                            url: "/?foo=bar",
+                            headers: {
+                                baz: "quix",
+                                connection: "close",
+                                host: "localhost:" + server.address().port
+                            }
+                        },
+                        content_length: 120,
+                        content_type: "application/json",
+                        status_code: 200,
+                        status_line: "OK"
+                    }
+                ]
+            ], function(err){
+                //stop the server so it doesn't hang forever
+                server.close();
+                t.end(err);
+            });
+        });
     });
 });
 
