@@ -146,13 +146,7 @@ var gen_by_type = {
         }
         src += " {\n";
         if(ast.select){
-            var select_when = gen(ast.select.event, 1);
-            if(/\)/.test(select_when)){
-                select_when += ";";
-            }
-            src += ind(1) + "select " + ast.select.kind;
-            src += select_when[0] === "\n" ? "" : " ";
-            src += select_when + "\n";
+            src += ind(1) + gen(ast.select, 1) + "\n";
         }
         if(!_.isEmpty(ast.prelude)){
             src += ind(1) + "pre {\n";
@@ -168,6 +162,7 @@ var gen_by_type = {
         src += ind() + "}";
         return src;
     },
+    "RuleSelect": require("./g/RuleSelect"),
     "EventExpression": function(ast, ind, gen){
         var src = "";
         src += gen(ast.event_domain) + " " + gen(ast.event_type);
@@ -190,6 +185,7 @@ var gen_by_type = {
         return gen(ast.key) + " " + gen(ast.value);
     },
     "EventOperator": require("./g/EventOperator"),
+    "EventWithin": require("./g/EventWithin"),
     "RuleActionBlock": function(ast, ind, gen){
         var src = "";
         src += gen(ast.actions);
@@ -203,6 +199,8 @@ var gen_by_type = {
         }
         return src;
     },
+    "EventAggregator": require("./g/EventAggregator"),
+    "EventGroupOperator": require("./g/EventGroupOperator"),
     "RulePostlude": require("./g/RulePostlude")
 };
 
