@@ -33,7 +33,7 @@ module.exports = {
             { "foo": "bar" },
             { "baz": "quix" }
           ]));
-          yield ctx.modules.set(ctx, "ent", "get_resp", yield ctx.callKRLstdlib("set", ctx.scope.get("resp"), "content", yield ctx.callKRLstdlib("decode", yield ctx.callKRLstdlib("get", ctx.scope.get("resp"), ["content"]))));
+          yield ctx.modules.set(ctx, "ent", "get_resp", yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("set", ctx.scope.get("resp"), "content", yield ctx.callKRLstdlib("decode", yield ctx.callKRLstdlib("get", ctx.scope.get("resp"), ["content"]))), ["content_length"]));
         },
         "notfired": undefined,
         "always": undefined

@@ -703,7 +703,7 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
             }, false, 2);
             res.writeHead(200, {
                 "Content-Type": "application/json",
-                "Content-Length": out.length,
+                "Content-Length": Buffer.byteLength(out),
             });
             res.end(out);
         });
@@ -729,7 +729,6 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                                 host: "localhost:" + server.address().port
                             }
                         },
-                        content_length: 120,
                         content_type: "application/json",
                         status_code: 200,
                         status_line: "OK"

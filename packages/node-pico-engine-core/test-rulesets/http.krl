@@ -19,7 +19,7 @@ ruleset io.picolabs.http {
         "baz": "quix"
       });
 
-      ent:get_resp := resp.set("content", resp["content"].decode())
+      ent:get_resp := resp.set("content", resp["content"].decode()).delete(["content_length"])
     }
   }
 }

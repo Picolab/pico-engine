@@ -1,3 +1,4 @@
+var _ = require("lodash");
 var test = require("tape");
 var http = require("http");
 var cocb = require("co-callback");
@@ -17,7 +18,7 @@ test("http module", function(t){
             }, false, 2);
             res.writeHead(200, {
                 "Content-Type": "application/json",
-                "Content-Length": out.length,
+                "Content-Length": Buffer.byteLength(out),
                 "da-extra-header": "wat?",
             });
             res.end(out);
@@ -31,6 +32,9 @@ test("http module", function(t){
 
             resp = yield khttp.get({}, [url, {a: 1}]);
             resp.content = JSON.parse(resp.content);
+            t.ok(_.isNumber(resp.content_length));
+            t.ok(!_.isNaN(resp.content_length));
+            delete resp.content_length;//windows can return off by 1 so it breaks tests
             t.deepEquals(resp, {
                 content: {
                     "url": "/?a=1",
@@ -41,7 +45,6 @@ test("http module", function(t){
                     body: ""
                 },
                 content_type: "application/json",
-                content_length: 111,
                 status_code: 200,
                 status_line: "OK"
             });
@@ -58,6 +61,9 @@ test("http module", function(t){
                     password: "nopass",
                 }
             });
+            t.ok(_.isNumber(resp.content_length));
+            t.ok(!_.isNaN(resp.content_length));
+            delete resp.content_length;//windows can return off by 1 so it breaks tests
             resp.content = JSON.parse(resp.content);
             t.deepEquals(resp, {
                 content: {
@@ -73,7 +79,6 @@ test("http module", function(t){
                     body: "formkey=formval&foo%5B0%5D=bar&foo%5B1%5D=baz"
                 },
                 content_type: "application/json",
-                content_length: 314,
                 status_code: 200,
                 status_line: "OK",
                 "da-extra-header": "wat?"
