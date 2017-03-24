@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var genWith = require("./genWith");
 
 var gen_by_type = {
     "String": function(ast, ind, gen){
@@ -190,9 +191,7 @@ var gen_by_type = {
     "RuleAction": function(ast, ind, gen){
         var src = "";
         src += ind() + gen(ast.action) + "(" + gen(ast.args) + ")";
-        if(!_.isEmpty(ast["with"])){
-            src += " with\n" + gen(ast["with"], 1);
-        }
+        src += genWith(ast["with"], ind, gen);
         return src;
     },
     "DefAction": require("./g/DefAction"),

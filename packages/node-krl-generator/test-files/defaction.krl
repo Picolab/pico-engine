@@ -4,13 +4,16 @@ ruleset io.picolabs.defaction {
       b = 2
       send_directive("foo") with
         a = a
+        and
         b = b + 3
     }
     bar = defaction(one, two, three){
 
       send_directive("bar") with
         a = one
+        and
         b = two
+        and
         c = three
     }
   }
@@ -22,6 +25,7 @@ ruleset io.picolabs.defaction {
     select when bar a;
     bar("baz") with
       two = "qux"
+      and
       three = "quux"
   }
 }
