@@ -197,6 +197,7 @@ var mkLoc = function(d){
 
 var defEnum = function(vals){
   return {
+    unparse_hint_enum: vals,//hint for KaRL42 "unparsing"
     test: function(x){
       if(!x || x.type !== "SYMBOL"){
         return false;
@@ -232,15 +233,19 @@ var tok_LOG_LEVEL_ENUM = defEnum([
 ]);
 
 var tok = function(type, value){
-  return {test: function(x){
-    if(!x || x.type !== type){
-      return false;
+  return {
+    unparse_hint_type: type,//hint for KaRL42 "unparsing"
+    unparse_hint_value: value,//hint for KaRL42 "unparsing"
+    test: function(x){
+      if(!x || x.type !== type){
+        return false;
+      }
+      if(value){
+        return x.src === value;
+      }
+      return true;
     }
-    if(value){
-      return x.src === value;
-    }
-    return true;
-  }};
+  };
 };
 
 var tok_RAW = tok("RAW");
