@@ -703,7 +703,7 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
             }, false, 2);
             res.writeHead(200, {
                 "Content-Type": "application/json",
-                "Content-Length": Buffer.byteLength(out),
+                "Content-Length": out.length,
             });
             res.end(out);
         });

@@ -17,7 +17,7 @@ test("http module", function(t){
             }, false, 2);
             res.writeHead(200, {
                 "Content-Type": "application/json",
-                "Content-Length": Buffer.byteLength(out),
+                "Content-Length": out.length,
                 "da-extra-header": "wat?",
             });
             res.end(out);
