@@ -12,16 +12,39 @@ ruleset Subscriptions {
   }
 
  global{
-
-    skyQuery = function(eci, mod, func, params,_host,_path,_root_url) { // path must start with "/""
+    /*
+      skyQuery is used to programmatically call function inside of other picos from inside a rule.
+      parameters;
+         eci - The eci of the pico which contains the function to be called
+         mod - The ruleset ID or alias of the module  
+         func - The name of the function in the module 
+         params - The parameters to be passed to function being called
+         optional parameters 
+         _host - The host of the pico engine being queried. 
+                 Note this must include protocol (http:// or https://) being used and port number if not 80.
+                 For example "http://localhost:8080", which also is the default.
+         _path - The sub path of the url which does not include mod or func.
+                 For example "/sky/cloud/", which also is the default.
+         _root_url - The entire url except eci, mod , func.
+                 For example, dependent on _host and _path is 
+                 "http://localhost:8080/sky/cloud/", which also is the default.  
+      skyQuery on success (if status code of request is 200) returns results of the called function. 
+      skyQuery on failure (if status code of request is not 200) returns a Map of error information which contains;
+              error - general error message.
+              httpStatus - status code returned from http get command.
+              skyQueryError - The value of the "error key", if it exist, of the function results.   
+              skyQueryErrorMsg - The value of the "error_str", if it exist, of the function results.
+              skyQueryReturnValue - The function call results.
+    */
+    skyQuery = function(eci, mod, func, params,_host,_path,_root_url) { // path must start with "/"", _host must include protocol(http:// or https://)
       //.../sky/cloud/<eci>/<rid>/<name>?name0=value0&...&namen=valuen
       createRootUrl = function (_host,_path){
-        host = _host || "localhost:8080" || meta:host();// <-------------hard coded host------------
+        host = _host || meta:host;
         path = _path || "/sky/cloud/";
-        root_url = "http://"+host+path; //<==================================hard coded http not https========
+        root_url = host+path;
         root_url
       };
-      root_url = _root_url || createRootUrl(_host,_path) || _root_url ;
+      root_url = _root_url || createRootUrl(_host,_path);
       web_hook = root_url + eci + "/"+mod+"/" + func;
 
       response = http:get(web_hook.klog("URL"), {}.put(params)).klog("response ");
@@ -35,12 +58,12 @@ ruleset Subscriptions {
       };
       // clean up http return
       response_content = response{"content"}.decode();
-      response_error = (response_content.typeof() == "Map" && response_content{"error"}) => response_content{"error"} | 0;
-      response_error_str = (response_content.typeof() == "Map" && response_content{"error_str"}) => response_content{"error_str"} | 0;
+      response_error = (response_content.typeof() == "Map" && (not response_content{"error"}.isnull())) => response_content{"error"} | 0;
+      response_error_str = (response_content.typeof() == "Map" && (not response_content{"error_str"}.isnull())) => response_content{"error_str"} | 0;
       error = error_info.put({"skyQueryError": response_error,
                               "skyQueryErrorMsg": response_error_str, 
                               "skyQueryReturnValue": response_content});
-      is_bad_response = (response_content.isnull() || response_content == "null" || response_error || response_error_str);
+      is_bad_response = (response_content.isnull() || (response_content == "null") || response_error || response_error_str);
       // if HTTP status was OK & the response was not null and there were no errors...
       (status == 200 && not is_bad_response ) => response_content | error
     }
@@ -61,7 +84,6 @@ ruleset Subscriptions {
     }
 /*
     createSubscriptionChannel = defaction(options){
-      subsID = null.uuid()
       logs = options.klog("parameters ")
       self = getSelf().klog("self")
       id = self.id
@@ -76,7 +98,7 @@ ruleset Subscriptions {
     }
     */
     getSubscriptions = function(){
-      ent:subscriptions.defaultsTo({})
+      ent:subscriptions.defaultsTo({},"no subscriptions")
     }
 
     standardOut = function(message) {
@@ -98,21 +120,21 @@ ruleset Subscriptions {
           (word.randomWord())
           }).klog("randomWords");
         names= array.collect(function(name){
-          (subscriptions{name_space + ":" + name}) => "unique" | "taken"
+          (subscriptions{name_space + ":" + name}.isnull()) => "unique" | "taken"
         });
-        name = names{"unique"} || [];
+        name = names{"unique"}.klog("randomUniqueWords") || [];
         unique_name =  name.head().defaultsTo("",standardError("unique name failed")).klog("uniqueName");
         (unique_name)
     }
     checkSubscriptionName = function(name , name_space, subscriptions){
-      (subscriptions{name_space + ":" + name}) => false | true 
+      (subscriptions{name_space + ":" + name}.isnull())
     }
   }
   rule subscribeNameCheck {
     select when wrangler subscription
     pre {
       name_space = event:attr("name_space")
-      name   = event:attr("name") || randomSubscriptionName(name_space).klog("testing should not get here") //.defaultsTo(randomSubscriptionName(name_space), standardError("channel_name"))
+      name   = event:attr("name") || randomSubscriptionName(name_space).klog("random name") //.defaultsTo(randomSubscriptionName(name_space), standardError("channel_name"))
       attr = event:attrs()
       attrs = attr.put({"name":name}).klog("attrs")
     }
@@ -163,7 +185,7 @@ ruleset Subscriptions {
           //"policy" : ,
       }.klog("options")
     newSubscription = (subscriber_eci != "no_subscriber_eci").klog("True?") => createSubscriptionChannel(options) | {}
-    updatedSubs = getSubscriptions().put([newSubscription.name] , newSubscription.put(["attributes"],{"sid" : newSubscription.name})) // key should be a subscriptions UUID, also stored inside structure. UUID is assumed unique
+    updatedSubs = getSubscriptions().put([newSubscription.name] , newSubscription.put(["attributes"],{"sid" : newSubscription.name})) 
     }
     if(subscriber_eci != "no_subscriber_eci") // check if we have someone to send a request too
     then noop()
@@ -174,7 +196,7 @@ ruleset Subscriptions {
         with status = pending_entry{"status"}
         channel_name = unique_name
         channel_type = channel_type
-        subscription_name = pending_entry{"subscription_name"}
+        name = pending_entry{"subscription_name"}
         name_space = pending_entry{"name_space"}
         relationship = pending_entry{"relationship"}  
         my_role = pending_entry{"my_role"}
@@ -242,7 +264,7 @@ ruleset Subscriptions {
     select when wrangler pending_subscription status re#inbound#
     pre {
       name_space = event:attr("name_space")
-      name   = event:attr("name") 
+      name   = event:attr("name").klog("InboundNameCheck name") 
       attr = event:attrs()
       attrs = attr.put({"name":name}).klog("attrs")
     }
@@ -270,7 +292,7 @@ ruleset Subscriptions {
         status = event:attr("status").defaultsTo("", standardError("status"))
       pending_subscriptions = 
          {
-            "subscription_name"  : event:attr("name").defaultsTo("", standardError("")),
+            "subscription_name"  : event:attr("name"),//.defaultsTo("", standardError("")),
             "name_space"    : event:attr("name_space").defaultsTo("", standardError("name_space")),
             "relationship" : event:attr("relationship").defaultsTo("", standardError("relationship")),
             "my_role" : event:attr("my_role").defaultsTo("", standardError("my_role")),
@@ -305,10 +327,10 @@ rule approveInboundPendingSubscription {
     select when wrangler pending_subscription_approval
     pre{
       logs = event:attrs().klog("attrs")
-      subscription_name = event:attr("subscription_name").defaultsTo(event:attr("channel_name"), "channel_name used ")
+      channel_name = event:attr("subscription_name").defaultsTo(event:attr("channel_name"), "channel_name used ")
       subs = getSubscriptions().klog("subscriptions")
-      inbound_eci = subs{[subscription_name,"eci"]}.klog("subscription inbound") //{[subscription_name,"eci"]}
-      outbound_eci = subs{[subscription_name,"attributes","outbound_eci"]}.klog("subscriptions outbound")
+      inbound_eci = subs{[channel_name,"eci"]}.klog("subscription inbound")
+      outbound_eci = subs{[channel_name,"attributes","outbound_eci"]}.klog("subscriptions outbound")
     }
     if (outbound_eci) then
       event:send({
@@ -316,7 +338,7 @@ rule approveInboundPendingSubscription {
           "domain": "wrangler", "type": "pending_subscription_approved",
           "attrs": {"outbound_eci" : inbound_eci , 
                       "status" : "outbound",
-                      "subscription_name" : subscription_name }
+                      "channel_name" : channel_name }
           })
     fired 
     {
@@ -324,7 +346,7 @@ rule approveInboundPendingSubscription {
       raise wrangler event "pending_subscription_approved"   
         with channel_name = channel_name
              status = "inbound"
-             subscription_name = subscription_name
+             channel_name = channel_name
     } 
     else 
     {
@@ -339,9 +361,9 @@ rule approveInboundPendingSubscription {
     select when wrangler pending_subscription_approved status re#outbound#
     pre{
       status = event:attr("status") 
-      subscription_name = event:attr("subscription_name")
+      channel_name = event:attr("channel_name")
       subs = getSubscriptions()
-      subscription = subs{subscription_name}.klog("subscription addSubscription")
+      subscription = subs{channel_name}.klog("subscription addSubscription")
       attributes = subscription{["attributes"]}.klog("attributes subscriptions")
       attr = attributes.put({"status":"subscribed"}) // over write original status
       attrs = attr.put({"outbound_eci": event:attr("outbound_eci")}).klog("put outgoing outbound_eci: ") // add outbound_eci
@@ -350,10 +372,10 @@ rule approveInboundPendingSubscription {
     }
     if (true) then noop()
     fired {
-      logs.klog(standardOut(">> success >>"));
+      subscription.klog(standardOut(">> success >>"));
       ent:subscriptions := getSubscriptions().put([updatedSubscription.name],updatedSubscription);
       raise wrangler event "subscription_added" // event to nothing
-        with subscription_name = event:attr("subscription_name")
+        with channel_name = event:attr("channel_name")
       } 
   }
 
@@ -361,9 +383,9 @@ rule addInboundSubscription {
     select when wrangler pending_subscription_approved status re#inbound#
     pre{
       status = event:attr("status") 
-      subscription_name = event:attr("subscription_name")
+      channel_name = event:attr("channel_name")
       subs = getSubscriptions()
-      subscription = subs{subscription_name}.klog("subscription addSubscription")
+      subscription = subs{channel_name}.klog("subscription addSubscription")
       attributes = subscription{["attributes"]}.klog("attributes subscriptions")
       attr = attributes.put({"status":"subscribed"}) // over write original status
       atttrs = attr
@@ -373,7 +395,7 @@ rule addInboundSubscription {
     fired {
       ent:subscriptions := getSubscriptions().put([updatedSubscription.name],updatedSubscription);
       raise wrangler event "subscription_added" // event to nothing
-        with subscription_name = event:attr("subscription_name")
+        with channel_name = event:attr("channel_name")
       } 
   }
 
@@ -383,42 +405,46 @@ rule addInboundSubscription {
             or  wrangler inbound_subscription_rejection
             or  wrangler outbound_subscription_cancellation
     pre{
-      subscription_name = event:attr("subscription_name").defaultsTo(event:attr("channel_name"), "channel_name used ") //.defaultsTo( "No channel_name", standardError("channel_name"))
+      channel_name = event:attr("subscription_name").defaultsTo(event:attr("channel_name"), "channel_name used ") //.defaultsTo( "No channel_name", standardError("channel_name"))
       subs = getSubscriptions()
-      outbound_eci = subs{[subscription_name,"attributes","outbound_eci"]}.klog("outboundEci")
+      outbound_eci = subs{[channel_name,"attributes","outbound_eci"]}.klog("outboundEci")
     }
     if(true) then
       event:send({
           "eci": outbound_eci, "eid": "cancelSubscription1",
           "domain": "wrangler", "type": "subscription_removal",
           "attrs": {
-                    "subscription_name": subscription_name
+                    "channel_name": channel_name
                   }
           })
     fired {
-      logs.klog(standardOut(">> success >>"));
+      channel_name.klog(standardOut(">> success >>"));
       raise wrangler event "subscription_removal" 
-        with subscription_name = subscription_name
+        with channel_name = channel_name
           } 
     else {
-      logs.klog(standardOut(">> failure >>"))
+      channel_name.klog(standardOut(">> failure >>"))
     }
   } 
-
-
 
   rule removeSubscription {
     select when wrangler subscription_removal
     pre{
-      subscription_name = event:attr("subscription_name").klog("subsname")
+      channel_name = event:attr("channel_name").klog("channel_name")
       subs = getSubscriptions().klog("subscriptions")
-      subscription = subs{subscription_name}
-      updatedSubscription = subs.delete(subscription_name).klog("delete")
+      subscription = subs{channel_name}
+      eci = subs{[channel_name,"eci"]}.klog("subscription inbound")
+      updatedSubscription = subs.delete(channel_name).klog("delete")
     }
     if(true) then noop()
     always {
       ent:subscriptions := updatedSubscription;
-      logs.klog(standardOut("success, attemped to remove subscription"));
+      self = getSelf();
+      engine:removeChannel({
+        "pico_id": self.id,
+        "eci": subscription{"eci"}.klog("eci to be removed")
+      });
+      subscription.klog(standardOut("success, attemped to remove subscription"));
       raise wrangler event "subscription_removed" // event to nothing
         with removed_subscription = subscription
     } 
