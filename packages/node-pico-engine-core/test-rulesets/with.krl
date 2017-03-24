@@ -13,7 +13,9 @@ ruleset io.picolabs.with {
     foo = function(a){
       add() with
         a = a * 2
+        and
         b = a
     }
   }
+
 }
