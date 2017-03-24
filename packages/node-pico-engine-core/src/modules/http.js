@@ -3,32 +3,56 @@ var cocb = require("co-callback");
 var getArg = require("../getArg");
 var request = require("request");
 
+var doHTTP = function(opts, response_headers, callback){
+    request(opts, function(err, response, body){
+        if(err){
+            callback(err);
+            return;
+        }
+        var r = {
+            content: body,
+            content_type: response.headers["content-type"],
+            content_length: _.parseInt(response.headers["content-length"], 0) || 0,
+            status_code: response.statusCode,
+            status_line: response.statusMessage
+        };
+        _.each(response_headers, function(header){
+            r[header] = response.headers[header];
+        });
+        callback(void 0, r);
+    });
+};
+
 var fns = {
     get: cocb.toYieldable(function(ctx, args, callback){
         var url = getArg(args, "url", 0);
-        var parameters = getArg(args, "parameters", 1);
+        var params = getArg(args, "params", 1);
         var headers = getArg(args, "headers", 2);
-        //TODO
-        //var response_headers = getArg(args, "response_headers", 3);
+        var response_headers = getArg(args, "response_headers", 3);
 
-        request({
+        doHTTP({
             method: "GET",
             url: url,
-            qs: parameters || {},
+            qs: params || {},
             headers: headers || {}
-        }, function(err, response, body){
-            if(err){
-                callback(err);
-                return;
-            }
-            callback(void 0, {
-                content: body,
-                content_type: response.headers["content-type"],
-                content_length: _.parseInt(response.headers["content-length"], 0) || 0,
-                status_code: response.statusCode,
-                status_line: response.statusMessage
-            });
-        });
+        }, response_headers, callback);
+    }),
+    post: cocb.toYieldable(function(ctx, args, callback){
+        var url = getArg(args, "url", 0);
+        var params = getArg(args, "params", 1);
+        var headers = getArg(args, "headers", 2);
+        var response_headers = getArg(args, "response_headers", 3);
+        var body = getArg(args, "body", 4);
+        var credentials = getArg(args, "credentials", 5);
+
+        doHTTP({
+            method: "POST",
+            url: url,
+            qs: params || {},
+            headers: headers || {},
+            auth: credentials || {},
+            body: body || {},
+        }, response_headers, callback);
     })
 };
 
