@@ -84,11 +84,7 @@ var gen_by_type = {
             return gen(stmt, 1);
         }).join(";\n") + "\n" + ind() + "}";
     },
-    "Application": function(ast, ind, gen){
-        return gen(ast.callee) + "(" + _.map(ast.args, function(arg){
-            return gen(arg);
-        }).join(", ") + ")";
-    },
+    "Application": require("./g/Application"),
     "ExpressionStatement": function(ast, ind, gen){
         return ind() + gen(ast.expression);
     },
