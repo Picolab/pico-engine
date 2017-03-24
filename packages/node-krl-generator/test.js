@@ -4,7 +4,7 @@ var fs = require('fs');
 var diff = require('diff-lines');
 var path = require('path');
 var parser = require('krl-parser');
-var generator = require('./');
+var generator = require('./src/');
 var commentsRegExp = require('comment-regex');
 
 var files_dir = path.resolve(__dirname, './test-files');

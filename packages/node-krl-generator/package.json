@@ -2,10 +2,10 @@
   "name": "krl-generator",
   "version": "0.4.0",
   "description": "Generate KRL code given krl-ast as input. (pretty printer)",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "start": "onchange '*.js' 'test-files/*' -i -- npm test -s",
-    "test": "node tests.js"
+    "test": "eslint src/ && node test.js"
   },
   "repository": {
     "type": "git",
@@ -27,7 +27,8 @@
     "comment-regex": "^1.0.0",
     "contra": "^1.9.4",
     "diff-lines": "^1.0.0",
-    "krl-parser": "^0.13.0",
+    "eslint": "^3.18.0",
+    "krl-parser": "^0.18.2",
     "onchange": "^3.2.0"
   },
   "dependencies": {
