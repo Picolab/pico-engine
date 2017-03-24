@@ -16,9 +16,11 @@ ruleset io.picolabs.within {
   rule baz {
     select when baz a
       or
-      baz b
-      and
-      baz c
+      (
+        baz b
+        and
+        baz c
+      )
       within 1 year;
     send_directive("baz")
   }

@@ -44,9 +44,11 @@ ruleset io.picolabs.event-exp {
     send_directive("not between")
   }
   rule and_or {
-    select when ee_andor a
-      and
-      ee_andor b
+    select when (
+        ee_andor a
+        and
+        ee_andor b
+      )
       or
       ee_andor c;
     send_directive("(a and b) or c")
@@ -54,9 +56,11 @@ ruleset io.picolabs.event-exp {
   rule or_and {
     select when ee_orand a
       and
-      ee_orand b
-      and
-      ee_orand c;
+      (
+        ee_orand b
+        or
+        ee_orand c
+      );
     send_directive("a and (b or c)")
   }
   rule before_n {
