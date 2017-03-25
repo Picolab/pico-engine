@@ -127,6 +127,11 @@ var gen_by_type = {
             }).join(", ");
         }else if(_.get(ast, "value.type") === "Boolean"){
             src += ast.value.value ? "on" : "off";
+        }else if(key === "errors"){
+            src += "to " + gen(ast.value.rid);
+            if(ast.value.version){
+                src += " version " + gen(ast.value.version);
+            }
         }else{
             src += gen(ast.value);
         }
