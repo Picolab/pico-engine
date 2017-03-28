@@ -366,11 +366,11 @@ $.getJSON("/api/db-dump", function(db_dump){
                   var fadeAway = function(ev) {
                                    $pediv.find('button.x').remove();
                                    $pediv.animate(fadeOutOptions,400);
-                                   $pediv.fadeOut();
+                                   $pediv.fadeOut(400);
                                    ev.stopPropagation();
                                    location.hash = "";
                                  };
-                  $pediv.fadeIn();
+                  $pediv.fadeIn(400);
                   $pediv.animate(fadeInOptions,400,
                                  function(){
                                    $pediv.prepend("<button class=\"x\">&ndash;</button>");
