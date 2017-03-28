@@ -9,5 +9,5 @@ module.exports = function(ast, comp, e){
         attributes: ast.attributes ? comp(ast.attributes) : e("nil")
     })];
 
-    return e(";", callModuleFn(e, "event", "raise", args, ast.loc));
+    return e(";", callModuleFn(e, "event", "raise", e("array", args), ast.loc));
 };

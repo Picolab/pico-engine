@@ -8,14 +8,14 @@ module.exports = function(ast, comp, e){
 
     if(!_.isEmpty(ast.attributes)){
         fn_body.push(e("var", "matches",
-                        callModuleFn(e, "event", "attrMatches", [
+                        callModuleFn(e, "event", "attrMatches", e("array", [
                             e("array", _.map(ast.attributes, function(a){
                                 return e("array", [
                                     e("string", a.key.value, a.key.loc),
                                     comp(a.value)
                                 ], a.loc);
                             }))
-                        ], ast.loc)));
+                        ]), ast.loc)));
         fn_body.push(e("if", e("!", e("id", "matches")), e("return", e("false"))));
     }else if(!_.isEmpty(ast.setting)){
         fn_body.push(e("var", "matches", e("array", [])));
@@ -37,7 +37,7 @@ module.exports = function(ast, comp, e){
 
     if(ast.aggregator){
         fn_body.push(e(";",
-                        callModuleFn(e, "event", "aggregateEvent", [
+                        callModuleFn(e, "event", "aggregateEvent", e("array", [
                             e("string", ast.aggregator.op, ast.aggregator.loc),
                             e("array", _.map(ast.aggregator.args, function(a, i){
                                 return e("array", [
@@ -45,7 +45,7 @@ module.exports = function(ast, comp, e){
                                     e("get", e("id", "matches", a.loc), e("num", i, a.loc), a.loc)
                                 ], a.loc);
                             }), ast.aggregator.loc)
-                        ], ast.aggregator.loc), ast.aggregator.loc));
+                        ]), ast.aggregator.loc), ast.aggregator.loc));
     }
 
     fn_body.push(e("return", e(true)));

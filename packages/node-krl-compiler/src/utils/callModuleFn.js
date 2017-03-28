@@ -11,7 +11,7 @@ module.exports = function(e, domain, id, args, loc){
         ),
         [
             e("id", "ctx", loc),
-            e("arr", args, loc)
+            args
         ],
         loc
     );
