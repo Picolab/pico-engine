@@ -1,31 +1,31 @@
 var _ = require("lodash");
-var cocb = require("co-callback");
-var getArg = require("../getArg");
+var mkKRLfn = require("../mkKRLfn");
 var request = require("request");
 
 var mkMethod = function(method){
-    return cocb.toYieldable(function(ctx, args, callback){
-        var url = getArg(args, "url", 0);
-        var qs = getArg(args, "qs", 1);
-        var headers = getArg(args, "headers", 2);
-        var body = getArg(args, "body", 3);
-        var credentials = getArg(args, "credentials", 4);
+    return mkKRLfn([
+        "url",
+        "qs",
+        "headers",
+        "body",
+        "auth",
+    ], function(args, ctx, callback){
 
         var opts = {
             method: method,
-            url: url,
-            qs: qs || {},
-            headers: headers || {},
+            url: args.url,
+            qs: args.qs || {},
+            headers: args.headers || {},
         };
 
-        if(_.isPlainObject(body)){
-            opts.form = body;
-        }else if(_.isString(body)){
-            opts.body = body;
+        if(_.isPlainObject(args.body)){
+            opts.form = args.body;
+        }else if(_.isString(args.body)){
+            opts.body = args.body;
         }
 
-        if(_.isPlainObject(credentials)){
-            opts.auth = credentials;
+        if(_.isPlainObject(args.auth)){
+            opts.auth = args.auth;
         }
 
         request(opts, function(err, res, body){

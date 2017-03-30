@@ -61,9 +61,8 @@ test("http module", function(t){
                 url: url,
                 qs: {"baz": "qux"},
                 headers: {"some": "header"},
-                response_headers: ["da-extra-header"],
                 body: {formkey: "formval", foo: ["bar", "baz"]},
-                credentials: {
+                auth: {
                     username: "bob",
                     password: "nopass",
                 }
