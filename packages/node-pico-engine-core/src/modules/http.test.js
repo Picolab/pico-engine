@@ -78,7 +78,6 @@ test("http module", function(t){
                 body: "some post data",
                 json: {"json": "get's overriden by raw body"},
                 form: {"form": "get's overriden by raw body"},
-                formData: {"formData": "get's overriden by raw body"},
                 auth: {
                     username: "bob",
                     password: "nopass",

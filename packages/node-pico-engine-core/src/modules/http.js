@@ -12,7 +12,6 @@ var mkMethod = function(method){
         "auth",
         "json",
         "form",
-        "formData",
         "parseJSON",
     ], function(args, ctx, callback){
 
@@ -33,8 +32,6 @@ var mkMethod = function(method){
             }
         }else if(args.form){
             opts.form = args.form;
-        }else if(args.formData){
-            opts.formData = args.formData;
         }
 
         request(opts, function(err, res, body){
