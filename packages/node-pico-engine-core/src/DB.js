@@ -164,6 +164,9 @@ module.exports = function(opts){
                 callback(err, data);
             });
         },
+        removeAppVar: function(rid, var_name, callback){
+            ldb.del(["resultset", rid, "vars", var_name], callback);
+        },
         getStateMachineState: function(pico_id, rule, callback){
             var key = ["state_machine", pico_id, rule.rid, rule.name];
             ldb.get(key, function(err, curr_state){
