@@ -4,11 +4,16 @@ var request = require("request");
 
 var mkMethod = function(method){
     return mkKRLfn([
+        //NOTE: order is significant so it's a breaking API change to change argument ordering
         "url",
         "qs",
         "headers",
         "body",
         "auth",
+        "json",
+        "form",
+        "formData",
+        "parseJSON",
     ], function(args, ctx, callback){
 
         var opts = {
@@ -16,16 +21,20 @@ var mkMethod = function(method){
             url: args.url,
             qs: args.qs || {},
             headers: args.headers || {},
+            auth: args.auth || void 0,
         };
 
-        if(_.isPlainObject(args.body)){
-            opts.form = args.body;
-        }else if(_.isString(args.body)){
+        if(args.body){
             opts.body = args.body;
-        }
-
-        if(_.isPlainObject(args.auth)){
-            opts.auth = args.auth;
+        }else if(args.json){
+            opts.body = JSON.stringify(args.json);
+            if(!_.has(opts.headers, "content-type")){
+                opts.headers["content-type"] = "application/json";
+            }
+        }else if(args.form){
+            opts.form = args.form;
+        }else if(args.formData){
+            opts.formData = args.formData;
         }
 
         request(opts, function(err, res, body){
@@ -41,6 +50,13 @@ var mkMethod = function(method){
                 status_code: res.statusCode,
                 status_line: res.statusMessage
             };
+            if(args.parseJSON === true){
+                try{
+                    r.content = JSON.parse(r.content);
+                }catch(e){
+                    //just leave the content as is
+                }
+            }
             callback(void 0, r);
         });
     });
