@@ -7,7 +7,10 @@ ruleset io.picolabs.http {
       ent:get_resp
     }
     fmtResp = function(r){
-        r.set("content", r["content"].decode()).delete(["content_length"])
+        r.set("content", r["content"].decode())
+            .delete(["content_length"])
+            .delete(["headers", "content-length"])
+            .delete(["headers", "date"])
     }
     doPost = defaction(base_url, to, msg){
       http:post(url + "/msg.json")

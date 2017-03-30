@@ -6,16 +6,15 @@ var request = require("request");
 var mkMethod = function(method){
     return cocb.toYieldable(function(ctx, args, callback){
         var url = getArg(args, "url", 0);
-        var params = getArg(args, "params", 1);
+        var qs = getArg(args, "qs", 1);
         var headers = getArg(args, "headers", 2);
-        var response_headers = getArg(args, "response_headers", 3);
-        var body = getArg(args, "body", 4);
-        var credentials = getArg(args, "credentials", 5);
+        var body = getArg(args, "body", 3);
+        var credentials = getArg(args, "credentials", 4);
 
         var opts = {
             method: method,
             url: url,
-            qs: params || {},
+            qs: qs || {},
             headers: headers || {},
         };
 
@@ -38,12 +37,10 @@ var mkMethod = function(method){
                 content: body,
                 content_type: res.headers["content-type"],
                 content_length: _.parseInt(res.headers["content-length"], 0) || 0,
+                headers: res.headers,
                 status_code: res.statusCode,
                 status_line: res.statusMessage
             };
-            _.each(response_headers, function(header){
-                r[header] = res.headers[header];
-            });
             callback(void 0, r);
         });
     });

@@ -731,7 +731,11 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                         },
                         content_type: "application/json",
                         status_code: 200,
-                        status_line: "OK"
+                        status_line: "OK",
+                        headers: {
+                            "content-type": "application/json",
+                            "connection": "close",
+                        }
                     }
                 ]
             ], function(err){

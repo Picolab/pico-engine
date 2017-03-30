@@ -7,7 +7,13 @@ module.exports = {
     }));
     ctx.scope.set("fmtResp", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("r", ctx.getArg(ctx.args, "r", 0));
-      return yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("set", ctx.scope.get("r"), "content", yield ctx.callKRLstdlib("decode", yield ctx.callKRLstdlib("get", ctx.scope.get("r"), ["content"]))), ["content_length"]);
+      return yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("set", ctx.scope.get("r"), "content", yield ctx.callKRLstdlib("decode", yield ctx.callKRLstdlib("get", ctx.scope.get("r"), ["content"]))), ["content_length"]), [
+        "headers",
+        "content-length"
+      ]), [
+        "headers",
+        "date"
+      ]);
     }));
     ctx.scope.set("doPost", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("base_url", ctx.getArg(ctx.args, "base_url", 0));

@@ -35,6 +35,8 @@ test("http module", function(t){
             t.ok(_.isNumber(resp.content_length));
             t.ok(!_.isNaN(resp.content_length));
             delete resp.content_length;//windows can return off by 1 so it breaks tests
+            delete resp.headers["content-length"];//windows can return off by 1 so it breaks tests
+            delete resp.headers["date"];
             t.deepEquals(resp, {
                 content: {
                     "url": "/?a=1",
@@ -46,13 +48,18 @@ test("http module", function(t){
                 },
                 content_type: "application/json",
                 status_code: 200,
-                status_line: "OK"
+                status_line: "OK",
+                headers: {
+                    "content-type": "application/json",
+                    "connection": "close",
+                    "da-extra-header": "wat?",
+                }
             });
 
 
             resp = yield khttp.post({}, {
                 url: url,
-                params: {"baz": "qux"},
+                qs: {"baz": "qux"},
                 headers: {"some": "header"},
                 response_headers: ["da-extra-header"],
                 body: {formkey: "formval", foo: ["bar", "baz"]},
@@ -64,6 +71,8 @@ test("http module", function(t){
             t.ok(_.isNumber(resp.content_length));
             t.ok(!_.isNaN(resp.content_length));
             delete resp.content_length;//windows can return off by 1 so it breaks tests
+            delete resp.headers["content-length"];//windows can return off by 1 so it breaks tests
+            delete resp.headers["date"];
             resp.content = JSON.parse(resp.content);
             t.deepEquals(resp, {
                 content: {
@@ -81,7 +90,11 @@ test("http module", function(t){
                 content_type: "application/json",
                 status_code: 200,
                 status_line: "OK",
-                "da-extra-header": "wat?"
+                headers: {
+                    "content-type": "application/json",
+                    "connection": "close",
+                    "da-extra-header": "wat?",
+                }
             });
 
         }, function(err){
