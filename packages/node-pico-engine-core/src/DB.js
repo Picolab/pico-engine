@@ -150,6 +150,9 @@ module.exports = function(opts){
                 callback(err, data);
             });
         },
+        removeEntVar: function(pico_id, rid, var_name, callback){
+            ldb.del(["pico", pico_id, rid, "vars", var_name], callback);
+        },
         putAppVar: function(rid, var_name, val, callback){
             ldb.put(["resultset", rid, "vars", var_name], val, callback);
         },
