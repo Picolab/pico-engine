@@ -103,7 +103,11 @@ Pico Rulesets
 {{/if}}
 <ul>
 {{#each vars}}
-<li>ent:{{@key}}={{this}}</li>
+<li>ent:{{@key}}={{this}}
+{{#if ../canDel}}
+<a class="js-ajax-link" href="/api/pico/{{../../pico_id}}/rm-ent-var/{{@../key}}/{{@key}}">del</a>
+{{/if}}
+</li>
 {{/each}}
 </ul>
 </li>

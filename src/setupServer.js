@@ -183,6 +183,13 @@ module.exports = function(pe){
         });
     });
 
+    app.all("/api/pico/:id/rm-ent-var/:rid/:var_name", function(req, res){
+        pe.db.removeEntVar(req.params.id, req.params.rid, req.params.var_name, function(err){
+            if(err) return errResp(res, err);
+            res.json({ok: true});
+        });
+    });
+
     app.all("/api/ruleset/compile", function(req, res){
         var args = mergeGetPost(req);
 
