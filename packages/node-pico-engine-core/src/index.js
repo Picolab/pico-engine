@@ -88,6 +88,7 @@ module.exports = function(conf, callback){
             var l = _.has(log_levels, level)
                 ? level
                 : _.head(_.keys(log_levels));
+            l = "log-" + l;//this 'log-' prefix distinguishes user declared log events from other system generated events
             ctx.emit(l, val);
         };
         ctx.callKRLstdlib = function(fn_name){

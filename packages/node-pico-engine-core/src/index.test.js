@@ -1168,10 +1168,10 @@ test("PicoEngine - io.picolabs.log ruleset", function(t){
 
         var log_events = [];
         _.each([
-            "info",
-            "debug",
-            "warn",
-            "error",
+            "log-info",
+            "log-debug",
+            "log-warn",
+            "log-error",
         ], function(level){
             pe.emitter.on(level, function(info, val){
                 log_events.push([level, val]);
@@ -1185,21 +1185,11 @@ test("PicoEngine - io.picolabs.log ruleset", function(t){
             [signal("log", "levels"), []],
             function(done){
                 t.deepEquals(log_events, [
-                    ["debug", "event received: log/levels"],
-                    ["debug", "event added to pico queue: id0"],
-                    ["debug", "event being processed"],
-                    ["debug", "rule added to schedule: io.picolabs.log -> levels"],
-                    ["debug", "rule selected: io.picolabs.log -> levels"],
-                    ["debug", "fired"],
-
-                    //here's the log outputs
-                    ["info", "hello default"],
-                    ["error", "hello error"],
-                    ["warn", "hello warn"],
-                    ["info", "hello info"],
-                    ["debug", "hello debug"],
-
-                    ["debug", "event finished processing"],
+                    ["log-info", "hello default"],
+                    ["log-error", "hello error"],
+                    ["log-warn", "hello warn"],
+                    ["log-info", "hello info"],
+                    ["log-debug", "hello debug"],
                 ]);
                 done();
             },
