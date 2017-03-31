@@ -18,6 +18,13 @@ var modulesSync = {
     set: cocb.toYieldable(modules.set),
 };
 
+var log_levels = {
+    "info": true,
+    "debug": true,
+    "warn": true,
+    "error": true,
+};
+
 module.exports = function(conf, callback){
     var db = DB(conf.db);
     _.each(db, function(val, key){
@@ -76,6 +83,12 @@ module.exports = function(conf, callback){
                 }
             }
             emitter.emit(type, info, val, message);
+        };
+        ctx.log = function(level, val){
+            var l = _.has(log_levels, level)
+                ? level
+                : _.head(_.keys(log_levels));
+            ctx.emit(l, val);
         };
         ctx.callKRLstdlib = function(fn_name){
             var args = _.toArray(arguments);

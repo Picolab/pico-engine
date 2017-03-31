@@ -1159,3 +1159,50 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
         ], t.end);
     });
 });
+
+test("PicoEngine - io.picolabs.log ruleset", function(t){
+    mkTestPicoEngine({}, function(err, pe){
+        if(err)return t.end(err);
+
+        var signal = mkSignalTask(pe, "id1");
+
+        var log_events = [];
+        _.each([
+            "info",
+            "debug",
+            "warn",
+            "error",
+        ], function(level){
+            pe.emitter.on(level, function(info, val){
+                log_events.push([level, val]);
+            });
+        });
+
+        testOutputs(t, [
+            λ.curry(pe.db.newPico, {}),
+            λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.log"}),
+            [signal("log", "levels"), []],
+            function(done){
+                t.deepEquals(log_events, [
+                    ["debug", "event received: log/levels"],
+                    ["debug", "event added to pico queue: id0"],
+                    ["debug", "event being processed"],
+                    ["debug", "rule added to schedule: io.picolabs.log -> levels"],
+                    ["debug", "rule selected: io.picolabs.log -> levels"],
+                    ["debug", "fired"],
+
+                    //here's the log outputs
+                    ["info", "hello default"],
+                    ["error", "hello error"],
+                    ["warn", "hello warn"],
+                    ["info", "hello info"],
+                    ["debug", "hello debug"],
+
+                    ["debug", "event finished processing"],
+                ]);
+                done();
+            },
+        ], t.end);
+    });
+});
