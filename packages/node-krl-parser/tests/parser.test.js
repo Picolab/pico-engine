@@ -1963,6 +1963,11 @@ test("with", function(t){
     var ast = parser("foo() " + src);
     ast = ast[0].expression.with;
     t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+
+    //try with on raise
+    ast = parser("ruleset rs{rule r1{fired{raise domain event \"type\"" + src + "}}}");
+    ast = ast.rules[0].postlude.fired[0].attributes.with;
+    t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
   };
   try{
       tst('with', []);
@@ -2001,6 +2006,12 @@ test("with", function(t){
       t.fail();
   }catch(e){
       t.ok("should fail: don't use and for all, or not at all");
+  }
+  try{
+      tst('with a = "b" with c = "d"', []);
+      t.fail();
+  }catch(e){
+      t.ok("should fail: only one 'with' is allowed");
   }
   t.end();
 });

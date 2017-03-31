@@ -372,7 +372,7 @@ var grammar = {
     {"name": "Ruleset$ebnf$2", "symbols": ["RulesetGlobal"], "postprocess": id},
     {"name": "Ruleset$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Ruleset$ebnf$3", "symbols": []},
-    {"name": "Ruleset$ebnf$3", "symbols": ["rule", "Ruleset$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "Ruleset$ebnf$3", "symbols": ["Ruleset$ebnf$3", "rule"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "Ruleset", "symbols": [tok_ruleset, "RulesetID", tok_OPEN_CURLY, "Ruleset$ebnf$1", "Ruleset$ebnf$2", "Ruleset$ebnf$3", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
@@ -416,7 +416,7 @@ var grammar = {
     {"name": "RulesetID_parts$subexpression$2", "symbols": [tok_NUMBER]},
     {"name": "RulesetID_parts", "symbols": ["RulesetID_parts", tok_MINUS, "RulesetID_parts$subexpression$2"]},
     {"name": "RulesetMeta$ebnf$1", "symbols": []},
-    {"name": "RulesetMeta$ebnf$1", "symbols": ["ruleset_meta_prop", "RulesetMeta$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "RulesetMeta$ebnf$1", "symbols": ["RulesetMeta$ebnf$1", "ruleset_meta_prop"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "RulesetMeta", "symbols": [tok_meta, tok_OPEN_CURLY, "RulesetMeta$ebnf$1", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
@@ -532,7 +532,7 @@ var grammar = {
     {"name": "OnOrOff", "symbols": [tok_on], "postprocess": booleanAST(true )},
     {"name": "OnOrOff", "symbols": [tok_off], "postprocess": booleanAST(false)},
     {"name": "RulesetGlobal$ebnf$1", "symbols": []},
-    {"name": "RulesetGlobal$ebnf$1", "symbols": ["DeclarationOrDefAction", "RulesetGlobal$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "RulesetGlobal$ebnf$1", "symbols": ["RulesetGlobal$ebnf$1", "DeclarationOrDefAction"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "RulesetGlobal", "symbols": [tok_global, tok_OPEN_CURLY, "RulesetGlobal$ebnf$1", tok_CLSE_CURLY], "postprocess": getN(2)},
     {"name": "rule$ebnf$1$subexpression$1", "symbols": [tok_is, "rule_state"]},
     {"name": "rule$ebnf$1", "symbols": ["rule$ebnf$1$subexpression$1"], "postprocess": id},
@@ -543,7 +543,7 @@ var grammar = {
     {"name": "rule$ebnf$2", "symbols": ["rule$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "rule$ebnf$3", "symbols": []},
-    {"name": "rule$ebnf$3", "symbols": ["RuleForEach", "rule$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "rule$ebnf$3", "symbols": ["rule$ebnf$3", "RuleForEach"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "rule$ebnf$4", "symbols": ["RulePrelude"], "postprocess": id},
     {"name": "rule$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "rule$ebnf$5", "symbols": ["RuleActionBlock"], "postprocess": id},
@@ -591,7 +591,7 @@ var grammar = {
         }
         },
     {"name": "RulePrelude$ebnf$1", "symbols": []},
-    {"name": "RulePrelude$ebnf$1", "symbols": ["DeclarationOrDefAction", "RulePrelude$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "RulePrelude$ebnf$1", "symbols": ["RulePrelude$ebnf$1", "DeclarationOrDefAction"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "RulePrelude", "symbols": [tok_pre, tok_OPEN_CURLY, "RulePrelude$ebnf$1", tok_CLSE_CURLY], "postprocess": getN(2)},
     {"name": "EventExpression", "symbols": ["event_exp_or"], "postprocess": id},
     {"name": "event_exp_or", "symbols": ["event_exp_and"], "postprocess": id},
@@ -620,7 +620,7 @@ var grammar = {
     {"name": "event_exp_base", "symbols": [tok_OPEN_PAREN, "EventExpression", tok_CLSE_PAREN], "postprocess": getN(1)},
     {"name": "event_exp_base", "symbols": ["IndividualEventExpression"], "postprocess": id},
     {"name": "IndividualEventExpression$ebnf$1", "symbols": []},
-    {"name": "IndividualEventExpression$ebnf$1", "symbols": ["event_exp_attribute_pair", "IndividualEventExpression$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "IndividualEventExpression$ebnf$1", "symbols": ["IndividualEventExpression$ebnf$1", "event_exp_attribute_pair"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "IndividualEventExpression$ebnf$2$subexpression$1", "symbols": [tok_where, "event_exp_where"]},
     {"name": "IndividualEventExpression$ebnf$2", "symbols": ["IndividualEventExpression$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "IndividualEventExpression$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
@@ -696,7 +696,7 @@ var grammar = {
     {"name": "RuleActionBlock$ebnf$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleActionBlock$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RuleActionBlock$ebnf$2", "symbols": ["RuleAction"]},
-    {"name": "RuleActionBlock$ebnf$2", "symbols": ["RuleAction", "RuleActionBlock$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "RuleActionBlock$ebnf$2", "symbols": ["RuleActionBlock$ebnf$2", "RuleAction"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "RuleActionBlock", "symbols": ["RuleActionBlock$ebnf$1", "RuleActionBlock$ebnf$2"], "postprocess": 
         function(data){
           return {
@@ -864,9 +864,9 @@ var grammar = {
     {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
     {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
     {"name": "DefAction$ebnf$1", "symbols": []},
-    {"name": "DefAction$ebnf$1", "symbols": ["Declaration", "DefAction$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "DefAction$ebnf$1", "symbols": ["DefAction$ebnf$1", "Declaration"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "DefAction$ebnf$2", "symbols": ["RuleAction"]},
-    {"name": "DefAction$ebnf$2", "symbols": ["RuleAction", "DefAction$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "DefAction$ebnf$2", "symbols": ["DefAction$ebnf$2", "RuleAction"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "DefAction$ebnf$1", "DefAction$ebnf$2", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
@@ -889,7 +889,7 @@ var grammar = {
     {"name": "With_body", "symbols": ["IdentifierDeclaration"], "postprocess": idArr},
     {"name": "With_body$subexpression$1", "symbols": ["IdentifierDeclaration"]},
     {"name": "With_body$ebnf$1", "symbols": ["IdentifierDeclaration"]},
-    {"name": "With_body$ebnf$1", "symbols": ["IdentifierDeclaration", "With_body$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "With_body$ebnf$1", "symbols": ["With_body$ebnf$1", "IdentifierDeclaration"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "With_body", "symbols": ["With_body$subexpression$1", "With_body$ebnf$1"], "postprocess": concatArr(1)},
     {"name": "With_body$subexpression$2", "symbols": ["IdentifierDeclaration"]},
     {"name": "With_body", "symbols": ["With_body$subexpression$2", tok_and, "With_and_body"], "postprocess": concatArr(2)},
@@ -1074,7 +1074,7 @@ var grammar = {
         }
         },
     {"name": "Chevron$ebnf$1", "symbols": []},
-    {"name": "Chevron$ebnf$1", "symbols": ["ChevronPart", "Chevron$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "Chevron$ebnf$1", "symbols": ["Chevron$ebnf$1", "ChevronPart"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "Chevron", "symbols": [tok_CHEVRON_OPEN, "Chevron$ebnf$1", tok_CHEVRON_CLOSE], "postprocess": 
         function(data){
           return {
