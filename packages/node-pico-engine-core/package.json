@@ -1,6 +1,6 @@
 {
   "name": "pico-engine-core",
-  "version": "0.22.0",
+  "version": "0.22.1",
   "description": "The core javascript api for the pico-engine. (no http, logging, process management etc...)",
   "main": "src/index.js",
   "files": [
