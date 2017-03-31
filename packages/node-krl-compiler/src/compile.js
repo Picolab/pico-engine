@@ -237,7 +237,6 @@ var comp_by_type = {
         return e("string", ast.value);
     },
     "RulesetMeta": require("./c/RulesetMeta"),
-    "RulesetMetaProperty": require("./c/RulesetMetaProperty"),
     "Rule": function(ast, comp, e){
         var rule = {
             name: e("string", ast.name.value, ast.name.loc)
