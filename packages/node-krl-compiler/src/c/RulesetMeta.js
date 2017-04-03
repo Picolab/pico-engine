@@ -62,6 +62,28 @@ var prop_types = {
         return e("arr", _.map(ids, function(id){
             return e("str", id.value, id.loc);
         }));
+    },
+    "provides_keys": function(props, comp, e){
+        var json = {};
+        _.each(props, function(p){
+            _.each(p.value.ids, function(id_ast){
+                var id = id_ast.value;
+                if(!_.has(json, id)){
+                    json[id] = {to: []};
+                }
+                _.each(p.value.rulesets, function(r){
+                    json[id].to.push(r.value);
+                });
+            });
+        });
+        return e("json", json);
+    },
+    "keys": function(props, comp, e){
+        var obj = {};
+        _.each(props, function(p){
+            obj[p.value[0].value] = comp(p.value[1]);
+        });
+        return e("obj", obj);
     }
 };
 
@@ -72,6 +94,12 @@ module.exports = function(ast, comp, e){
         }
         if(p.key.type !== "Keyword"){
             throw new Error("RulesetMetaProperty.key should a Keyword");
+        }
+        if(_.has(p.value, "operator")){
+            if(p.value.operator.type !== "Keyword"){
+                throw new Error("RulesetMetaProperty.operator should a Keyword");
+            }
+            return p.key.value + "_" + p.value.operator.value;
         }
         return p.key.value;
     }), function(props, key){
