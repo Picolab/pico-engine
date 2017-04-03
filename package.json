@@ -38,7 +38,7 @@
   "devDependencies": {
     "eslint": "^3.0.1",
     "onchange": "^3.0.0",
-    "scriptsp": "^0.3.0",
+    "scriptsp": "^1.0.1",
     "tape": "^4.5.1",
     "temp-fs": "^0.9.9"
   },
