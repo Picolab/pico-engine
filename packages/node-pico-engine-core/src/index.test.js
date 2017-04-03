@@ -1196,3 +1196,27 @@ test("PicoEngine - io.picolabs.log ruleset", function(t){
         ], t.end);
     });
 });
+
+test("PicoEngine - io.picolabs.key* ruleset", function(t){
+    mkTestPicoEngine({}, function(err, pe){
+        if(err)return t.end(err);
+
+        var query1 = mkQueryTask(pe, "id1", "io.picolabs.key-used");
+        var query2 = mkQueryTask(pe, "id1", "io.picolabs.key-used2");
+        var query3 = mkQueryTask(pe, "id1", "io.picolabs.key-used3");
+
+        testOutputs(t, [
+            λ.curry(pe.db.newPico, {}),
+            λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.key-defined"}),
+            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.key-used"}),
+            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.key-used2"}),
+            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.key-used3"}),
+
+            [query1("getFoo"), 1],
+            [query2("getFoo"), 1],
+            [query3("getFoo"), 1],
+
+        ], t.end);
+    });
+});

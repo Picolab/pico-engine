@@ -6,6 +6,7 @@ var modules = {
     event: require("./event"),
     engine: require("./engine"),
     http: require("./http"),
+    keys: require("./keys"),
     meta: require("./meta"),
     time: require("./time")
 };
