@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.key-defined",
   "meta": {
     "name": "key-defined",
-    "description": "\nThese is a test file for a module that only stores API keys\n    ",
+    "description": "\nThis is a test file for a module that only stores API keys\n    ",
     "keys": {
       "foo": "foo key just a string",
       "bar": {
@@ -18,13 +18,15 @@ module.exports = {
       "foo": {
         "to": [
           "io.picolabs.key-used",
-          "io.picolabs.key-used2"
+          "io.picolabs.key-used2",
+          "io.picolabs.key-used3"
         ]
       },
       "bar": {
         "to": [
           "io.picolabs.key-used",
-          "io.picolabs.key-used2"
+          "io.picolabs.key-used2",
+          "io.picolabs.key-used3"
         ]
       }
     }
