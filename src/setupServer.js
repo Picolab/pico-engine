@@ -76,6 +76,22 @@ module.exports = function(pe){
         console.log("[KLOG]", message, val);
         logEntry(context,"[KLOG] "+message+" "+JSON.stringify(val));
     });
+    pe.emitter.on("log-error", function(context_info, expression){
+        console.log("[LOG-ERROR]",context_info,expression);
+        logEntry(context_info,"[LOG-ERROR] "+JSON.stringify(expression));
+    });
+    pe.emitter.on("log-warn", function(context_info, expression){
+        console.log("[LOG-WARN]",context_info,expression);
+        logEntry(context_info,"[LOG-WARN] "+JSON.stringify(expression));
+    });
+    pe.emitter.on("log-info", function(context_info, expression){
+        console.log("[LOG-INFO]",context_info,expression);
+        logEntry(context_info,"[LOG-INFO] "+JSON.stringify(expression));
+    });
+    pe.emitter.on("log-debug", function(context_info, expression){
+        console.log("[LOG-DEBUG]",context_info,expression);
+        logEntry(context_info,"[LOG-DEBUG] "+JSON.stringify(expression));
+    });
     pe.emitter.on("debug", function(context, message){
         console.log("[DEBUG]", context, message);
         logEntry(context,message);
