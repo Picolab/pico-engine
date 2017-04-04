@@ -37,6 +37,7 @@ module.exports = function(conf, callback){
 
     var rulesets = {};
     var salience_graph = {};
+    var keys_module_data = {};
 
     var emitter = new EventEmitter();
 
@@ -109,6 +110,10 @@ module.exports = function(conf, callback){
             });
         };
         ctx.registerRulesetSrc = registerRulesetSrc;
+        var rid = ctx.rid || (ctx.query && ctx.query.rid);
+        if(_.has(rulesets, [rid, "my_keys"])){
+            ctx.my_keys = rulesets[rid].my_keys;
+        }
         return ctx;
     };
 
@@ -154,12 +159,38 @@ module.exports = function(conf, callback){
                 scope: ctx2.scope,
                 provides: dep_rs.meta.provides
             };
+            if(_.has(keys_module_data, [use.rid, rs.rid])){
+                rs.my_keys = keys_module_data[use.rid][rs.rid];
+            }
         }
     });
 
     var registerRuleset = function(rs, loadDepRS, callback){
         cocb.run(initializeRulest(rs, loadDepRS), function(err){
             if(err) return callback(err);
+
+            if(true
+                && _.has(rs, "meta.keys")
+                && _.has(rs, "meta.provides_keys")
+            ){
+                _.each(rs.meta.provides_keys, function(p, key){
+                    _.each(p.to, function(to_rid){
+                        _.set(keys_module_data, [
+                            rs.rid,
+                            to_rid,
+                            key
+                        ], _.cloneDeep(rs.meta.keys[key]));
+                    });
+                });
+            }
+
+            if(_.has(rs, "meta.keys")){
+                //"remove" keys so they don't leak out
+                //don't use delete b/c it mutates the loaded rs
+                rs = _.assign({}, rs, {
+                    meta: _.omit(rs.meta, "keys")
+                });
+            }
 
             //now setup `salience_graph` and `rulesets`
             _.each(rs.rules, function(rule){

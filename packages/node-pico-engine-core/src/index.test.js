@@ -1213,9 +1213,14 @@ test("PicoEngine - io.picolabs.key* ruleset", function(t){
             λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.key-used2"}),
             λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.key-used3"}),
 
-            [query1("getFoo"), 1],
-            [query2("getFoo"), 1],
-            [query3("getFoo"), 1],
+            [query1("getFoo"), "foo key just a string"],
+            [query2("getFoo"), "foo key just a string"],
+            function(next){
+                query3("getFoo")(function(err, resp){
+                    t.equals(err+"", "Error: keys:foo not defined");
+                    next();
+                });
+            },
 
         ], t.end);
     });
