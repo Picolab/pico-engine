@@ -121,6 +121,9 @@ var processEvent = cocb.wrap(function*(ctx){
                 ctx.emit("debug", "rule added to schedule: " + rule.rid + " -> " + rule.name);
                 schedule.push({rule: rule, ctx: ctx});
             });
+            if(schedule.length === 0){
+                ctx.emit("debug", "no rules added to schedule");
+            }
             callback();
         });
     };
