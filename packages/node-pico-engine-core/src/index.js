@@ -243,6 +243,9 @@ module.exports = function(conf, callback){
                     registerRuleset(rs, function(rid){
                         return rulesets[rid];
                     }, function(err){
+                        if(err){
+                            db.disableRuleset(rs.rid, _.noop);//undo enable if failed
+                        }
                         callback(err, {
                             rid: rs.rid,
                             hash: hash
