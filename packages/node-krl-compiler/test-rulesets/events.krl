@@ -21,6 +21,15 @@ ruleset io.picolabs.events {
     send_directive("bound") with
       name = my_name
   }
+  rule set_attr2 {
+    select when events set_attr2
+      number re#[Nn]0*(\d*)#
+      name re#(.*)#
+      setting(number, name);
+    send_directive("set_attr2") with
+      number = number
+      name = name
+  }
   rule get_attr {
     select when events get;
     pre {
@@ -30,7 +39,7 @@ ruleset io.picolabs.events {
       thing = thing
   }
   rule noop {
-    select when events noop
+    select when events noop;
   }
   rule noop2 {
     select when events noop2;
@@ -41,6 +50,7 @@ ruleset io.picolabs.events {
 
     if my_name then
       send_directive("ifthen")
+
   }
   rule on_fired {
     select when events on_fired name re#^(.*)$# setting(my_name);
@@ -55,8 +65,10 @@ ruleset io.picolabs.events {
 
     if thing then
     choose
-      one => send_directive("on_choose - one")
-      two => send_directive("on_choose - two")
+      one =>
+        send_directive("on_choose - one")
+      two =>
+        send_directive("on_choose - two")
 
     fired {
       ent:on_choose_fired := true
@@ -69,7 +81,7 @@ ruleset io.picolabs.events {
     send_directive("select_where")
   }
   rule no_action {
-    select when events no_action fired re#^yes$#i
+    select when events no_action fired re#^yes$#i;
     fired {
       ent:no_action_fired := true
     } else {
@@ -88,20 +100,21 @@ ruleset io.picolabs.events {
   }
   rule store_sent_name {
     select when events store_sent_name name re#^(.*)$# setting(my_name);
-    fired{
+    fired {
       ent:sent_attrs := event:attrs();
       ent:sent_name := my_name
     }
   }
   rule raise_set_name {
     select when events raise_set_name name re#^(.*)$# setting(my_name);
-    fired{
-      raise events event "store_sent_name" with name = my_name
+    fired {
+      raise events event "store_sent_name" with
+        name = my_name
     }
   }
   rule raise_set_name_attr {
     select when events raise_set_name_attr name re#^(.*)$# setting(my_name);
-    fired{
+    fired {
       raise events event "store_sent_name" attributes {"name": my_name}
     }
   }
@@ -110,10 +123,9 @@ ruleset io.picolabs.events {
     pre {
       rid = "io.picolabs.events"
     }
-    fired{
-      raise events event "store_sent_name"
-        for rid
-        with name = my_name
+    fired {
+      raise events event "store_sent_name" for rid with
+        name = my_name
     }
   }
 }
