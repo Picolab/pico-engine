@@ -3,17 +3,29 @@ module.exports = {
   "meta": {
     "name": "key-used",
     "description": "\nThis is a test file for a module that uses keys\n    ",
-    "use": [{
+    "use": [
+      {
         "kind": "module",
         "rid": "io.picolabs.key-defined",
         "alias": "io.picolabs.key-defined"
-      }],
+      },
+      {
+        "kind": "module",
+        "rid": "io.picolabs.key-configurable",
+        "alias": "api",
+        "with": function* (ctx) {
+          ctx.scope.set("key1", yield (yield ctx.modules.get(ctx, "keys", "foo"))(ctx, []));
+          ctx.scope.set("key2", yield (yield ctx.modules.get(ctx, "keys", "bar"))(ctx, ["baz"]));
+        }
+      }
+    ],
     "shares": [
       "getFoo",
       "getBar",
       "getBarN",
       "getQuux",
-      "getQuuz"
+      "getQuuz",
+      "getAPIKeys"
     ]
   },
   "global": function* (ctx) {
@@ -32,6 +44,9 @@ module.exports = {
     }));
     ctx.scope.set("getQuuz", ctx.KRLClosure(ctx, function* (ctx) {
       return yield (yield ctx.modules.get(ctx, "keys", "quuz"))(ctx, []);
+    }));
+    ctx.scope.set("getAPIKeys", ctx.KRLClosure(ctx, function* (ctx) {
+      return yield (yield ctx.modules.get(ctx, "api", "getKeys"))(ctx, []);
     }));
   },
   "rules": {}

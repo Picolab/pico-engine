@@ -149,7 +149,10 @@ module.exports = function(conf, callback){
                 yield runKRL(dep_rs.meta.configure, ctx2);
             }
             if(_.isFunction(use["with"])){
-                yield runKRL(use["with"], ctx2);
+                yield runKRL(use["with"], mkCTX({
+                    rid: rs.rid,//switch rid
+                    scope: ctx2.scope//must share scope
+                }));
             }
             if(_.isFunction(dep_rs.global)){
                 yield runKRL(dep_rs.global, ctx2);

@@ -1239,6 +1239,10 @@ test("PicoEngine - io.picolabs.key* rulesets", function(t){
             qError(query1("getQuuz"), "Error: keys:quuz not defined"),
             [query2("getQuuz"), "this is shared to someone else"],
 
+            //testing configured module
+            [query1("getAPIKeys"), ["foo key just a string", "baz subkey for bar key"]],
+            [query2("getAPIKeys"), ["default-key1", "default-key2"]],
+
         ], t.end);
     });
 });
