@@ -11,6 +11,7 @@ module.exports = {
     "shares": [
       "getFoo",
       "getBar",
+      "getBarN",
       "getQuux",
       "getQuuz"
     ]
@@ -20,12 +21,11 @@ module.exports = {
       return yield (yield ctx.modules.get(ctx, "keys", "foo"))(ctx, []);
     }));
     ctx.scope.set("getBar", ctx.KRLClosure(ctx, function* (ctx) {
-      return [
-        yield (yield ctx.modules.get(ctx, "keys", "bar"))(ctx, []),
-        yield (yield ctx.modules.get(ctx, "keys", "bar"))(ctx, ["baz"]),
-        yield (yield ctx.modules.get(ctx, "keys", "bar"))(ctx, ["qux"]),
-        yield (yield ctx.modules.get(ctx, "keys", "bar"))(ctx, ["not_here"])
-      ];
+      return yield (yield ctx.modules.get(ctx, "keys", "bar"))(ctx, []);
+    }));
+    ctx.scope.set("getBarN", ctx.KRLClosure(ctx, function* (ctx) {
+      ctx.scope.set("name", ctx.getArg(ctx.args, "name", 0));
+      return yield (yield ctx.modules.get(ctx, "keys", "bar"))(ctx, [ctx.scope.get("name")]);
     }));
     ctx.scope.set("getQuux", ctx.KRLClosure(ctx, function* (ctx) {
       return yield (yield ctx.modules.get(ctx, "keys", "quux"))(ctx, []);

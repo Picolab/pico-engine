@@ -1197,13 +1197,22 @@ test("PicoEngine - io.picolabs.log ruleset", function(t){
     });
 });
 
-test("PicoEngine - io.picolabs.key* ruleset", function(t){
+test("PicoEngine - io.picolabs.key* rulesets", function(t){
     mkTestPicoEngine({}, function(err, pe){
         if(err)return t.end(err);
 
         var query1 = mkQueryTask(pe, "id1", "io.picolabs.key-used");
         var query2 = mkQueryTask(pe, "id1", "io.picolabs.key-used2");
         var query3 = mkQueryTask(pe, "id1", "io.picolabs.key-used3");
+
+        var qError = function(q, error_msg){
+            return function(next){
+                q(function(err, resp){
+                    t.equals(err+"", error_msg);
+                    next();
+                });
+            };
+        };
 
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
@@ -1215,12 +1224,20 @@ test("PicoEngine - io.picolabs.key* ruleset", function(t){
 
             [query1("getFoo"), "foo key just a string"],
             [query2("getFoo"), "foo key just a string"],
-            function(next){
-                query3("getFoo")(function(err, resp){
-                    t.equals(err+"", "Error: keys:foo not defined");
-                    next();
-                });
-            },
+            qError(query3("getFoo"), "Error: keys:foo not defined"),//b/c used3 never requires it
+
+            [query1("getBar"), {baz: "baz subkey for bar key", qux: "qux subkey for bar key"}],
+            [query1("getBarN", {name: "baz"}), "baz subkey for bar key"],
+            [query1("getBarN", {name: "qux"}), "qux subkey for bar key"],
+            qError(query1("getBarN", {name: "blah"}), "Error: keys:bar(\"blah\") not defined"),
+
+            //not shared with either
+            qError(query1("getQuux"), "Error: keys:quux not defined"),
+            qError(query2("getQuux"), "Error: keys:quux not defined"),
+
+            //only shared with 2
+            qError(query1("getQuuz"), "Error: keys:quuz not defined"),
+            [query2("getQuuz"), "this is shared to someone else"],
 
         ], t.end);
     });
