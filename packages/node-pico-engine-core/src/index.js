@@ -111,8 +111,8 @@ module.exports = function(conf, callback){
         };
         ctx.registerRulesetSrc = registerRulesetSrc;
         var rid = ctx.rid || (ctx.query && ctx.query.rid);
-        if(_.has(rulesets, [rid, "my_keys"])){
-            ctx.my_keys = rulesets[rid].my_keys;
+        if(_.has(keys_module_data, ["used_keys", rid])){
+            ctx.my_keys = keys_module_data.used_keys[rid];
         }
         return ctx;
     };
@@ -159,8 +159,11 @@ module.exports = function(conf, callback){
                 scope: ctx2.scope,
                 provides: dep_rs.meta.provides
             };
-            if(_.has(keys_module_data, [use.rid, rs.rid])){
-                rs.my_keys = keys_module_data[use.rid][rs.rid];
+            if(_.has(keys_module_data, ["provided", use.rid, rs.rid])){
+                _.set(keys_module_data, [
+                    "used_keys",
+                    rs.rid,
+                ], keys_module_data.provided[use.rid][rs.rid]);
             }
         }
     });
@@ -176,6 +179,7 @@ module.exports = function(conf, callback){
                 _.each(rs.meta.provides_keys, function(p, key){
                     _.each(p.to, function(to_rid){
                         _.set(keys_module_data, [
+                            "provided",
                             rs.rid,
                             to_rid,
                             key
