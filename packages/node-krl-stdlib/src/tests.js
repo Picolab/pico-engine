@@ -363,6 +363,11 @@ ytest("Collection operators", function*(t, ytf, tf){
         "flop": 12
     });
     assertObjNotMutated();
+    tf("put", [{}, ["key1"], "value2"], {key1: "value2"});
+    tf("put", [{}, [], {key2: "value3"}], {key2: "value3"});
+    tf("put", [{key: 5}, "foo", {key2: "value3"}], {key: 5, "foo": {key2: "value3"}});
+    tf("put", [{key: 5}, "key", 7], {key: 7});
+    tf("put", [{key: 5}, ["key"], 9], {key: 9});
 
     tf("get", [obj, ["foo", "bar", "10"]], "I like cheese");
     tf("get", [obj, "colors"], "many");

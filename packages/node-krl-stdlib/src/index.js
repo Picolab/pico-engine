@@ -440,10 +440,16 @@ stdlib.put = function(ctx, val, path, to_set){
     if(arguments.length < 4){
         return _.assign({}, val, path);
     }
+    if(_.isArray(path) && _.isEmpty(path)){
+        return to_set;
+    }
     //TODO optimize
     var n_val = _.cloneDeep(val);
     _.update(n_val, path, function(at_p){
-        return _.assign(at_p, to_set);
+        if(_.isPlainObject(to_set)){
+            return _.assign(at_p, to_set);
+        }
+        return to_set;
     });
     return n_val;
 };
