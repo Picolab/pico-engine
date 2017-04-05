@@ -12,7 +12,7 @@ This is a test file for a module that uses keys
       with key1 = keys:foo()
        and key2 = keys:bar("baz")
 
-    shares getFoo, getBar, getBarN, getQuux, getQuuz, getAPIKeys
+    shares getFoo, getBar, getBarN, getQuux, getQuuz, getAPIKeys, getFooPostlude
   }
   global {
     getFoo = function(){
@@ -32,6 +32,22 @@ This is a test file for a module that uses keys
     }
     getAPIKeys = function(){
       api:getKeys()
+    }
+    getFooPostlude = function(){
+      ent:foo_postlude
+    }
+  }
+  rule key_used_foo {
+    select when key_used foo;
+    pre {
+      foo_pre = keys:foo()
+    }
+    send_directive("foo") with
+      foo = keys:foo()
+      and
+      foo_pre = foo_pre
+    always {
+      ent:foo_postlude := keys:foo()
     }
   }
 }

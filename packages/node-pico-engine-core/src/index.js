@@ -110,10 +110,10 @@ module.exports = function(conf, callback){
             });
         };
         ctx.registerRulesetSrc = registerRulesetSrc;
-        var rid = ctx.rid || (ctx.query && ctx.query.rid);
-        if(_.has(keys_module_data, ["used_keys", rid])){
-            ctx.my_keys = keys_module_data.used_keys[rid];
-        }
+        ctx.getMyKey = function(id){
+            var rid = ctx.rid;
+            return _.get(keys_module_data, ["used_keys", rid, id]);
+        };
         return ctx;
     };
 

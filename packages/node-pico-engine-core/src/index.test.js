@@ -1201,6 +1201,7 @@ test("PicoEngine - io.picolabs.key* rulesets", function(t){
     mkTestPicoEngine({}, function(err, pe){
         if(err)return t.end(err);
 
+        var signal = mkSignalTask(pe, "id1");
         var query1 = mkQueryTask(pe, "id1", "io.picolabs.key-used");
         var query2 = mkQueryTask(pe, "id1", "io.picolabs.key-used2");
         var query3 = mkQueryTask(pe, "id1", "io.picolabs.key-used3");
@@ -1242,6 +1243,19 @@ test("PicoEngine - io.picolabs.key* rulesets", function(t){
             //testing configured module
             [query1("getAPIKeys"), ["foo key just a string", "baz subkey for bar key"]],
             [query2("getAPIKeys"), ["default-key1", "default-key2"]],
+
+            //test keys: work in different execution areas
+            [
+                signal("key_used", "foo"),
+                [{
+                    name: "foo",
+                    options: {
+                        foo: "foo key just a string",
+                        foo_pre: "foo key just a string"
+                    }
+                }]
+            ],
+            [query1("getFooPostlude"), "foo key just a string"],
 
         ], t.end);
     });

@@ -4,11 +4,11 @@ var getArg = require("../getArg");
 
 module.exports = {
     get: function(ctx, id, callback){
-        if(!_.has(ctx.my_keys, id)){
+        var key = ctx.getMyKey(id);
+        if(key === void 0 || key === null){
             callback(new Error("keys:" + id + " not defined"));
             return;
         }
-        var key = ctx.my_keys[id];
         callback(null, cocb.toYieldable(function(ctx, args, callback){
             var name = getArg(args, "name", 0);
             if(name === null || name === void 0){
