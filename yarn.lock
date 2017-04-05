@@ -1297,8 +1297,8 @@ js-tokens@^3.0.0:
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.1.tgz#08e9f132484a2c45a30907e9dc4d5567b7f114d7"
 
 js-yaml@^3.5.1:
-  version "3.8.2"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.8.2.tgz#02d3e2c0f6beab20248d412c352203827d786721"
+  version "3.8.3"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.8.3.tgz#33a05ec481c850c8875929166fe1beb61c728766"
   dependencies:
     argparse "^1.0.7"
     esprima "^3.1.1"
@@ -1345,8 +1345,8 @@ kind-of@^3.0.2:
     is-buffer "^1.0.2"
 
 krl-compiler@^0.26.3:
-  version "0.26.7"
-  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.26.7.tgz#6699d6f3a258dfe0997bfeaf7c0f32b3a60a1dff"
+  version "0.26.8"
+  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.26.8.tgz#d0d457ef2fac87f18c1a3b9197798f77dd766f7b"
   dependencies:
     btoa "^1.1.2"
     escodegen "^1.8.0"
@@ -1702,8 +1702,8 @@ performance-now@^0.2.0:
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-0.2.0.tgz#33ef30c5c77d4ea21c5a53869d91b56d8f2555e5"
 
 pico-engine-core@^0.23.0:
-  version "0.23.0"
-  resolved "https://registry.yarnpkg.com/pico-engine-core/-/pico-engine-core-0.23.0.tgz#3771c70fa0acc6723f3dce5b932e57620bf7bcb9"
+  version "0.23.1"
+  resolved "https://registry.yarnpkg.com/pico-engine-core/-/pico-engine-core-0.23.1.tgz#603321c603929b482f9ab3c7ad26fc4f8f3fdac9"
   dependencies:
     bytewise "^1.1.0"
     co-callback "^1.2.0"
