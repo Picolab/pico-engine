@@ -7,25 +7,29 @@ This is a test file for a module that uses keys
 
     use module io.picolabs.key-defined
 
-    shares getFoo, getBar, getQuux, getQuuz
+    use module io.picolabs.key-configurable
+      alias api
+
+    shares getFoo, getBar, getBarN, getQuux, getQuuz, getAPIKeys
   }
   global {
     getFoo = function(){
       keys:foo()
     }
     getBar = function(){
-      [
-        keys:bar(),
-        keys:bar("baz"),
-        keys:bar("qux"),
-        keys:bar("not_here")
-      ]
+      keys:bar()
+    }
+    getBarN = function(name){
+      keys:bar(name)
     }
     getQuux = function(){
       keys:quux()
     }
     getQuuz = function(){
       keys:quuz()
+    }
+    getAPIKeys = function(){
+      api:getKeys()
     }
   }
 }
