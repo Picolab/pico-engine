@@ -271,7 +271,7 @@ test('action', function(t){
         label: null,
         action: mk.id('send_directive'),
         args: [mk('say')],
-        setting: [],
+        setting: null,
         "with": []
       }
     ]
@@ -289,7 +289,7 @@ test('action', function(t){
         label: null,
         action: mk.id('send_directive'),
         args: [mk('say')],
-        setting: [],
+        setting: null,
         "with": [
           mk.declare('=', mk.id('something'), mk('hello world'))
         ]
@@ -312,7 +312,7 @@ test('action', function(t){
         label: null,
         action: mk.id('send_directive'),
         args: [mk('say')],
-        setting: [],
+        setting: null,
         "with": [
           mk.declare('=', mk.id('one'), mk(1)),
           mk.declare('=', mk.id('two'), mk(2)),
@@ -333,7 +333,7 @@ test('action', function(t){
         label: null,
         action: mk.id('blah'),
         args: [],
-        setting: [],
+        setting: null,
         "with": []
       }
     ]
@@ -350,7 +350,7 @@ test('action', function(t){
         label: mk.id('lbl'),
         action: mk.id('blah'),
         args: [],
-        setting: [],
+        setting: null,
         "with": []
       }
     ]
@@ -369,7 +369,7 @@ test('action', function(t){
         label: mk.id('one'),
         action: mk.id('blah'),
         args: [mk(1)],
-        setting: [],
+        setting: null,
         "with": []
       },
       {
@@ -377,7 +377,7 @@ test('action', function(t){
         label: mk.id('two'),
         action: mk.id('blah'),
         args: [mk(2)],
-        setting: [],
+        setting: null,
         "with": []
       },
       {
@@ -385,7 +385,7 @@ test('action', function(t){
         label: null,
         action: mk.id('noop'),
         args: [],
-        setting: [],
+        setting: null,
         "with": []
       }
     ]
@@ -410,7 +410,7 @@ test('action', function(t){
         label: mk.id('one'),
         action: mk.id('blah'),
         args: [mk(1)],
-        setting: [],
+        setting: null,
         "with": []
       },
       {
@@ -418,7 +418,7 @@ test('action', function(t){
         label: mk.id('two'),
         action: mk.id('blah'),
         args: [mk(2)],
-        setting: [],
+        setting: null,
         "with": []
       }
     ]
@@ -544,7 +544,7 @@ test('locations', function(t){
         value: 'say'
       }
     ],
-    setting: [],
+    setting: null,
     "with": []
   });
   src = 'select when a b\nsend_directive("say") with\nblah = 1';
@@ -564,7 +564,7 @@ test('locations', function(t){
         value: 'say'
       }
     ],
-    setting: [],
+    setting: null,
     'with': [
       {
         loc: {start: 66, end: 74},
@@ -1897,7 +1897,7 @@ test("DefAction", function(t){
             label: null,
             action: mk.id('send_directive'),
             args: [mk('foo')],
-            setting: [],
+            setting: null,
             "with": []
           }
         ]
@@ -1920,7 +1920,7 @@ test("DefAction", function(t){
             label: null,
             action: mk.id('send_directive'),
             args: [mk('foo')],
-            setting: [],
+            setting: null,
             "with": []
           }
         ]
@@ -1944,7 +1944,7 @@ test("DefAction", function(t){
             label: null,
             action: mk.id('send_directive'),
             args: [mk('foo')],
-            setting: [],
+            setting: null,
             "with": [
               mk.declare('=', mk.id('f'), mk(4)),
               mk.declare('=', mk.id('g'), mk(5))
@@ -1955,7 +1955,7 @@ test("DefAction", function(t){
             label: null,
             action: mk.id('noop'),
             args: [],
-            setting: [],
+            setting: null,
             "with": []
           }
         ]
@@ -2071,7 +2071,7 @@ test("Action setting", function(t){
       label: null,
       action: mk.dID("http", "post"),
       args: [mk("url")],
-      setting: [],
+      setting: null,
       "with": [
           mk.declare("=", mk.id("qs"), mk({foo: mk("bar")}))
       ]
@@ -2082,7 +2082,7 @@ test("Action setting", function(t){
       label: null,
       action: mk.dID("http", "post"),
       args: [mk("url")],
-      setting: [mk.id("resp")],
+      setting: mk.id("resp"),
       "with": []
   });
 
@@ -2091,7 +2091,7 @@ test("Action setting", function(t){
       label: null,
       action: mk.dID("http", "post"),
       args: [mk("url")],
-      setting: [mk.id("resp")],
+      setting: mk.id("resp"),
       "with": [
           mk.declare("=", mk.id("qs"), mk({foo: mk("bar")}))
       ]

@@ -169,7 +169,7 @@ rule hello {
         "args": [
           {value: 1, type:"Number"}
         ],
-        "setting": [  ],
+        "setting": null,
         "with": [  ]
       },
       {
@@ -179,7 +179,7 @@ rule hello {
         "args": [
           {value: 2, type:"Number"}
         ],
-        "setting": [  ],
+        "setting": null,
         "with": [  ]
       }
     ]
