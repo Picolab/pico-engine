@@ -2059,6 +2059,11 @@ test("Action setting", function(t){
     var src = "ruleset rs{rule r1{select when a b; "+src_action+"}}";
     var ast = parser(src).rules[0].action_block.actions[0];
     t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+
+    //test it also in defaction
+    src = "ruleset rs{global{a=defaction(){"+src_action+"}}}";
+    ast = parser(src).global[0].actions[0];
+    t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
   };
 
   testAction("http:post(\"url\") with qs = {\"foo\": \"bar\"}", {
