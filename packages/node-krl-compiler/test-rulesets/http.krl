@@ -4,7 +4,7 @@ ruleset io.picolabs.http {
   }
   global {
     getResp = function(){
-      ent:get_resp
+      ent:resp
     }
     fmtResp = function(r){
         r.set("content", r["content"].decode())
@@ -34,7 +34,7 @@ ruleset io.picolabs.http {
             "baz": "quix"
           };
 
-      ent:get_resp := fmtResp(resp)
+      ent:resp := fmtResp(resp)
     }
   }
   rule http_post {
@@ -56,5 +56,20 @@ ruleset io.picolabs.http {
       to = "bob"
       and
       msg = "foobar"
+  }
+  rule http_post_setting {
+    select when http post_setting;
+    pre {
+        url = event:attr("url")
+    }
+    http:post(url)
+      setting(resp)
+      with
+        qs = {"foo": "bar"}
+        and
+        form = {"baz": "qux"}
+    fired {
+      ent:resp := fmtResp(resp)
+    }
   }
 }

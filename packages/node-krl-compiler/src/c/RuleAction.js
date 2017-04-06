@@ -36,11 +36,20 @@ module.exports = function(ast, comp, e){
         fn_body.push(e("return", e("void", e("number", 0))));
     }else if(ast.action
             && ast.action.type === "DomainIdentifier"){
-        fn_body.push(e("return", callModuleFn(e,
-                        ast.action.domain,
-                        ast.action.value,
-                        buildArgsObj(ast, comp, e),
-                        ast.loc)));
+        var module_call = callModuleFn(e,
+            ast.action.domain,
+            ast.action.value,
+            buildArgsObj(ast, comp, e),
+            ast.loc
+        );
+        if(ast.setting){
+            fn_body.push(e(";", e("call", e("id", "ctx.scope.set", ast.setting.loc), [
+                e("str", ast.setting.value, ast.setting.loc),
+                module_call,
+            ], ast.setting.loc), ast.setting.loc));
+        }else{
+            fn_body.push(e("return", module_call));
+        }
     }else if(ast.action && ast.action.type === "Identifier"){
         fn_body.push(e("return", e(
             "ycall",
