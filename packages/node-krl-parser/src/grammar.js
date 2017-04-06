@@ -40,6 +40,7 @@ var reserved_identifiers = {
   "defaction": true,
   "function": true,
   "not": true,
+  "setting": true,
   "true": true,
   "false": true
 };
@@ -713,9 +714,12 @@ var grammar = {
     {"name": "RuleAction$ebnf$1$subexpression$1", "symbols": ["Identifier", tok_FAT_ARROW_RIGHT]},
     {"name": "RuleAction$ebnf$1", "symbols": ["RuleAction$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction$ebnf$2", "symbols": ["WithArguments"], "postprocess": id},
+    {"name": "RuleAction$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN]},
+    {"name": "RuleAction$ebnf$2", "symbols": ["RuleAction$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier_or_DomainIdentifier", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "RuleAction$ebnf$2"], "postprocess": 
+    {"name": "RuleAction$ebnf$3", "symbols": ["WithArguments"], "postprocess": id},
+    {"name": "RuleAction$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier_or_DomainIdentifier", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "RuleAction$ebnf$2", "RuleAction$ebnf$3"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -723,7 +727,8 @@ var grammar = {
             label: data[0] && data[0][0],
             action: data[1],
             args: data[3],
-            "with": data[5] || []
+            setting: (data[5] && data[5][2]) || [],
+            "with": data[6] || []
           };
         }
         },

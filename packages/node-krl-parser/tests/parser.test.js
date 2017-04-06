@@ -271,6 +271,7 @@ test('action', function(t){
         label: null,
         action: mk.id('send_directive'),
         args: [mk('say')],
+        setting: [],
         "with": []
       }
     ]
@@ -288,6 +289,7 @@ test('action', function(t){
         label: null,
         action: mk.id('send_directive'),
         args: [mk('say')],
+        setting: [],
         "with": [
           mk.declare('=', mk.id('something'), mk('hello world'))
         ]
@@ -310,6 +312,7 @@ test('action', function(t){
         label: null,
         action: mk.id('send_directive'),
         args: [mk('say')],
+        setting: [],
         "with": [
           mk.declare('=', mk.id('one'), mk(1)),
           mk.declare('=', mk.id('two'), mk(2)),
@@ -330,6 +333,7 @@ test('action', function(t){
         label: null,
         action: mk.id('blah'),
         args: [],
+        setting: [],
         "with": []
       }
     ]
@@ -346,6 +350,7 @@ test('action', function(t){
         label: mk.id('lbl'),
         action: mk.id('blah'),
         args: [],
+        setting: [],
         "with": []
       }
     ]
@@ -364,6 +369,7 @@ test('action', function(t){
         label: mk.id('one'),
         action: mk.id('blah'),
         args: [mk(1)],
+        setting: [],
         "with": []
       },
       {
@@ -371,6 +377,7 @@ test('action', function(t){
         label: mk.id('two'),
         action: mk.id('blah'),
         args: [mk(2)],
+        setting: [],
         "with": []
       },
       {
@@ -378,6 +385,7 @@ test('action', function(t){
         label: null,
         action: mk.id('noop'),
         args: [],
+        setting: [],
         "with": []
       }
     ]
@@ -402,6 +410,7 @@ test('action', function(t){
         label: mk.id('one'),
         action: mk.id('blah'),
         args: [mk(1)],
+        setting: [],
         "with": []
       },
       {
@@ -409,6 +418,7 @@ test('action', function(t){
         label: mk.id('two'),
         action: mk.id('blah'),
         args: [mk(2)],
+        setting: [],
         "with": []
       }
     ]
@@ -534,6 +544,7 @@ test('locations', function(t){
         value: 'say'
       }
     ],
+    setting: [],
     "with": []
   });
   src = 'select when a b\nsend_directive("say") with\nblah = 1';
@@ -553,6 +564,7 @@ test('locations', function(t){
         value: 'say'
       }
     ],
+    setting: [],
     'with': [
       {
         loc: {start: 66, end: 74},
@@ -1529,14 +1541,8 @@ test('parse errors', function(t){
   src += '    select when a b setting(c)\n';
   src += '  }\n';
   src += '}';
-  try{
-    parser(src, {filename: 'ruleset-ambiguity.krl'});
-    t.fail();
-  }catch(e){
-    var emsg = '';
-    emsg += 'Parsing Ambiguity: 2 parsings found';
-    t.equals(e.message, emsg);
-  }
+  parser(src, {filename: 'ruleset-ambiguity.krl'});
+  t.ok("should not throw up");
   t.end();
 });
 
@@ -1891,6 +1897,7 @@ test("DefAction", function(t){
             label: null,
             action: mk.id('send_directive'),
             args: [mk('foo')],
+            setting: [],
             "with": []
           }
         ]
@@ -1913,6 +1920,7 @@ test("DefAction", function(t){
             label: null,
             action: mk.id('send_directive'),
             args: [mk('foo')],
+            setting: [],
             "with": []
           }
         ]
@@ -1936,6 +1944,7 @@ test("DefAction", function(t){
             label: null,
             action: mk.id('send_directive'),
             args: [mk('foo')],
+            setting: [],
             "with": [
               mk.declare('=', mk.id('f'), mk(4)),
               mk.declare('=', mk.id('g'), mk(5))
@@ -1946,6 +1955,7 @@ test("DefAction", function(t){
             label: null,
             action: mk.id('noop'),
             args: [],
+            setting: [],
             "with": []
           }
         ]
@@ -2040,6 +2050,47 @@ test("LogStatement", function(t){
     level: "error",
     expression: mk({baz: mk([1, 2])})
   }]);
+
+  t.end();
+});
+
+test("Action setting", function(t){
+  var testAction = function(src_action, expected){
+    var src = "ruleset rs{rule r1{select when a b; "+src_action+"}}";
+    var ast = parser(src).rules[0].action_block.actions[0];
+    t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+  };
+
+  testAction("http:post(\"url\") with qs = {\"foo\": \"bar\"}", {
+      type: "RuleAction",
+      label: null,
+      action: mk.dID("http", "post"),
+      args: [mk("url")],
+      setting: [],
+      "with": [
+          mk.declare("=", mk.id("qs"), mk({foo: mk("bar")}))
+      ]
+  });
+
+  testAction("http:post(\"url\") setting(resp)", {
+      type: "RuleAction",
+      label: null,
+      action: mk.dID("http", "post"),
+      args: [mk("url")],
+      setting: [mk.id("resp")],
+      "with": []
+  });
+
+  testAction("http:post(\"url\") setting(resp) with qs = {\"foo\": \"bar\"}", {
+      type: "RuleAction",
+      label: null,
+      action: mk.dID("http", "post"),
+      args: [mk("url")],
+      setting: [mk.id("resp")],
+      "with": [
+          mk.declare("=", mk.id("qs"), mk({foo: mk("bar")}))
+      ]
+  });
 
   t.end();
 });

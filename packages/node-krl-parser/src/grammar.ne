@@ -36,6 +36,7 @@ var reserved_identifiers = {
   "defaction": true,
   "function": true,
   "not": true,
+  "setting": true,
   "true": true,
   "false": true
 };
@@ -722,6 +723,7 @@ action_block_type -> %tok_choose {% id %}
 RuleAction ->
     (Identifier %tok_FAT_ARROW_RIGHT):?
     Identifier_or_DomainIdentifier %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN
+    (%tok_setting %tok_OPEN_PAREN function_params %tok_CLSE_PAREN):?
     WithArguments:? {%
   function(data){
     return {
@@ -730,7 +732,8 @@ RuleAction ->
       label: data[0] && data[0][0],
       action: data[1],
       args: data[3],
-      "with": data[5] || []
+      setting: (data[5] && data[5][2]) || [],
+      "with": data[6] || []
     };
   }
 %}

@@ -169,6 +169,7 @@ rule hello {
         "args": [
           {value: 1, type:"Number"}
         ],
+        "setting": [  ],
         "with": [  ]
       },
       {
@@ -178,6 +179,7 @@ rule hello {
         "args": [
           {value: 2, type:"Number"}
         ],
+        "setting": [  ],
         "with": [  ]
       }
     ]
