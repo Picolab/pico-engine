@@ -58,6 +58,51 @@ module.exports = {
           }]
       }
     },
+    "set_attr2": {
+      "name": "set_attr2",
+      "select": {
+        "graph": { "events": { "set_attr2": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx) {
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[
+                [
+                  "number",
+                  new RegExp("[Nn]0*(\\d*)", "")
+                ],
+                [
+                  "name",
+                  new RegExp("(.*)", "")
+                ]
+              ]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("number", matches[0]);
+            ctx.scope.set("name", matches[1]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return {
+                "type": "directive",
+                "name": "set_attr2",
+                "options": {
+                  "number": ctx.scope.get("number"),
+                  "name": ctx.scope.get("name")
+                }
+              };
+            }
+          }]
+      }
+    },
     "get_attr": {
       "name": "get_attr",
       "select": {

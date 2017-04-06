@@ -21,6 +21,15 @@ ruleset io.picolabs.events {
     send_directive("bound") with
       name = my_name
   }
+  rule set_attr2 {
+    select when events set_attr2
+      number re#[Nn]0*(\d*)#
+      name re#(.*)#
+      setting(number, name);
+    send_directive("set_attr2") with
+      number = number
+      name = name
+  }
   rule get_attr {
     select when events get;
     pre {
