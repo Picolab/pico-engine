@@ -243,15 +243,19 @@ module.exports = function(pe){
             if(err) return errResp(res, err);
 
             var url = rs_data.url;
-            httpGetKRL(url, function(err, src){
-                if(err) return errResp(res, err);
-
-                pe.registerRuleset(src, {url: url}, function(err, data){
+            if(_.isString(url)){
+                httpGetKRL(url, function(err, src){
                     if(err) return errResp(res, err);
 
-                    res.json({ok: true, rid: data.rid, hash: data.hash});
+                    pe.registerRuleset(src, {url: url}, function(err, data){
+                        if(err) return errResp(res, err);
+
+                        res.json({ok: true, rid: data.rid, hash: data.hash});
+                    });
                 });
-            });
+            }else{
+                errResp(res, new Error("cannot flush a locally registered ruleset"));
+            }
         });
     });
 
