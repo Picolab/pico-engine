@@ -160,7 +160,14 @@ var processEvent = cocb.wrap(function*(ctx){
         responses.push(yield runEvent(schedule.shift()));
     }
 
-    var res_by_type = _.groupBy(_.flattenDeep(_.values(responses)), "type");
+    responses = _.flattenDeep(_.values(responses));
+
+    //TODO remove this hack when compiler is selective about which actions return values
+    responses = _.filter(responses, function(resp){
+        return _.has(resp, "type");
+    });
+
+    var res_by_type = _.groupBy(responses, "type");
 
     var r = _.mapValues(res_by_type, function(responses, key){
         if(key === "directive"){

@@ -8,9 +8,15 @@ var omitMeta = function(resp){
     if(!_.has(resp, "directives")){
         return resp;
     }
-    return _.map(resp.directives, function(d){
-        return _.omit(d, "meta");
+    var r = _.assign({}, resp, {
+        directives: _.map(resp.directives, function(d){
+            return _.omit(d, "meta");
+        })
     });
+    if(_.isEqual(_.keys(r), ["directives"])){
+        return r.directives;
+    }
+    return r;
 };
 
 var mkSignalTask = function(pe, eci){
@@ -737,7 +743,11 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                             "connection": "close",
                         }
                     }
-                ]
+                ],
+                [
+                    signal("http", "post", {url: url}),
+                    []//nothing should be returned
+                ],
             ], function(err){
                 //stop the server so it doesn't hang forever
                 server.close();

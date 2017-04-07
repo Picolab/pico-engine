@@ -3,7 +3,7 @@ module.exports = {
   "meta": { "shares": ["getResp"] },
   "global": function* (ctx) {
     ctx.scope.set("getResp", ctx.KRLClosure(ctx, function* (ctx) {
-      return yield ctx.modules.get(ctx, "ent", "get_resp");
+      return yield ctx.modules.get(ctx, "ent", "resp");
     }));
     ctx.scope.set("fmtResp", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("r", ctx.getArg(ctx.args, "r", 0));
@@ -23,7 +23,7 @@ module.exports = {
           "action": function* (ctx) {
             return yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
               "0": yield ctx.callKRLstdlib("+", ctx.scope.get("url"), "/msg.json"),
-              "body": {
+              "form": {
                 "To": ctx.scope.get("to"),
                 "Msg": ctx.scope.get("msg")
               }
@@ -64,7 +64,7 @@ module.exports = {
             "qs": { "foo": "bar" },
             "headers": { "baz": "quix" }
           }));
-          yield ctx.modules.set(ctx, "ent", "get_resp", yield ctx.scope.get("fmtResp")(ctx, [ctx.scope.get("resp")]));
+          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.scope.get("fmtResp")(ctx, [ctx.scope.get("resp")]));
         },
         "notfired": undefined,
         "always": undefined
@@ -94,7 +94,7 @@ module.exports = {
             "action": function* (ctx) {
               return yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
                 "0": ctx.scope.get("url"),
-                "body": { "foo": "bar" }
+                "json": { "foo": "bar" }
               });
             }
           }]
@@ -129,6 +129,44 @@ module.exports = {
               });
             }
           }]
+      }
+    },
+    "http_post_setting": {
+      "name": "http_post_setting",
+      "select": {
+        "graph": { "http": { "post_setting": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "prelude": function* (ctx) {
+        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
+                "0": ctx.scope.get("url"),
+                "qs": { "foo": "bar" },
+                "form": { "baz": "qux" }
+              }));
+            }
+          }]
+      },
+      "postlude": {
+        "fired": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.scope.get("fmtResp")(ctx, [ctx.scope.get("resp")]));
+        },
+        "notfired": undefined,
+        "always": undefined
       }
     }
   }
