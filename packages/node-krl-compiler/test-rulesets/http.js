@@ -7,12 +7,16 @@ module.exports = {
     }));
     ctx.scope.set("fmtResp", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("r", ctx.getArg(ctx.args, "r", 0));
-      return yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("set", ctx.scope.get("r"), "content", yield ctx.callKRLstdlib("decode", yield ctx.callKRLstdlib("get", ctx.scope.get("r"), ["content"]))), ["content_length"]), [
+      return yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("set", ctx.scope.get("r"), "content", yield ctx.callKRLstdlib("decode", yield ctx.callKRLstdlib("get", ctx.scope.get("r"), ["content"]))), ["content_length"]), [
         "headers",
         "content-length"
       ]), [
         "headers",
         "date"
+      ]), [
+        "content",
+        "headers",
+        "content-length"
       ]);
     }));
     ctx.scope.set("doPost", ctx.KRLClosure(ctx, function* (ctx) {
@@ -23,7 +27,7 @@ module.exports = {
           "action": function* (ctx) {
             return yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
               "0": yield ctx.callKRLstdlib("+", ctx.scope.get("url"), "/msg.json"),
-              "body": {
+              "form": {
                 "To": ctx.scope.get("to"),
                 "Msg": ctx.scope.get("msg")
               }
@@ -94,7 +98,7 @@ module.exports = {
             "action": function* (ctx) {
               return yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
                 "0": ctx.scope.get("url"),
-                "body": { "foo": "bar" }
+                "json": { "foo": "bar" }
               });
             }
           }]

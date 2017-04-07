@@ -11,10 +11,11 @@ ruleset io.picolabs.http {
             .delete(["content_length"])
             .delete(["headers", "content-length"])
             .delete(["headers", "date"])
+            .delete(["content", "headers", "content-length"])
     }
     doPost = defaction(base_url, to, msg){
       http:post(url + "/msg.json")
-        with body = {
+        with form = {
           "To": to,
           "Msg": msg
         }
@@ -43,7 +44,7 @@ ruleset io.picolabs.http {
         url = event:attr("url")
     }
     http:post(url)
-      with body = {
+      with json = {
           "foo": "bar"
       }
   }
