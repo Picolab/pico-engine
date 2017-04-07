@@ -1473,6 +1473,34 @@ test('RulePostlude', function(t){
     always: []
   });
 
+  testPost("notfired{}", {
+    type: "RulePostlude",
+    fired: null,
+    notfired: [],
+    always: null
+  });
+
+  testPost("notfired{}else{}", {
+    type: "RulePostlude",
+    fired: [],
+    notfired: [],
+    always: null
+  });
+
+  testPost("notfired{}else{}finally{}", {
+    type: "RulePostlude",
+    fired: [],
+    notfired: [],
+    always: []
+  });
+
+  testPost("notfired{}finally{}", {
+    type: "RulePostlude",
+    fired: null,
+    notfired: [],
+    always: []
+  });
+
   t.end();
 });
 

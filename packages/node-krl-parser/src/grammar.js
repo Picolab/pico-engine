@@ -337,6 +337,7 @@ var tok_module = tok("SYMBOL", "module");
 var tok_name = tok("SYMBOL", "name");
 var tok_neq = tok("SYMBOL", "neq");
 var tok_not = tok("SYMBOL", "not");
+var tok_notfired = tok("SYMBOL", "notfired");
 var tok_or = tok("SYMBOL", "or");
 var tok_off = tok("SYMBOL", "off");
 var tok_on = tok("SYMBOL", "on");
@@ -742,6 +743,13 @@ var grammar = {
     {"name": "RulePostlude$ebnf$2", "symbols": ["RulePostlude$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "RulePostlude$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RulePostlude", "symbols": [tok_fired, tok_OPEN_CURLY, "PostludeStatements", tok_CLSE_CURLY, "RulePostlude$ebnf$1", "RulePostlude$ebnf$2"], "postprocess": RulePostlude_by_paths([2], [4, 2], [5, 2])},
+    {"name": "RulePostlude$ebnf$3$subexpression$1", "symbols": [tok_else, tok_OPEN_CURLY, "PostludeStatements", tok_CLSE_CURLY]},
+    {"name": "RulePostlude$ebnf$3", "symbols": ["RulePostlude$ebnf$3$subexpression$1"], "postprocess": id},
+    {"name": "RulePostlude$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RulePostlude$ebnf$4$subexpression$1", "symbols": [tok_finally, tok_OPEN_CURLY, "PostludeStatements", tok_CLSE_CURLY]},
+    {"name": "RulePostlude$ebnf$4", "symbols": ["RulePostlude$ebnf$4$subexpression$1"], "postprocess": id},
+    {"name": "RulePostlude$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RulePostlude", "symbols": [tok_notfired, tok_OPEN_CURLY, "PostludeStatements", tok_CLSE_CURLY, "RulePostlude$ebnf$3", "RulePostlude$ebnf$4"], "postprocess": RulePostlude_by_paths([4, 2], [2], [5, 2])},
     {"name": "PostludeStatements", "symbols": [], "postprocess": noopArr},
     {"name": "PostludeStatements", "symbols": ["PostludeStatements_body"], "postprocess": id},
     {"name": "PostludeStatements_body", "symbols": ["PostludeStatement"], "postprocess": idArr},

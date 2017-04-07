@@ -333,6 +333,7 @@ var tok_module = tok("SYMBOL", "module");
 var tok_name = tok("SYMBOL", "name");
 var tok_neq = tok("SYMBOL", "neq");
 var tok_not = tok("SYMBOL", "not");
+var tok_notfired = tok("SYMBOL", "notfired");
 var tok_or = tok("SYMBOL", "or");
 var tok_off = tok("SYMBOL", "off");
 var tok_on = tok("SYMBOL", "on");
@@ -754,6 +755,10 @@ RulePostlude ->
       (%tok_else %tok_OPEN_CURLY PostludeStatements %tok_CLSE_CURLY):?
       (%tok_finally %tok_OPEN_CURLY PostludeStatements %tok_CLSE_CURLY):?
       {% RulePostlude_by_paths([2], [4, 2], [5, 2]) %}
+    | %tok_notfired %tok_OPEN_CURLY PostludeStatements %tok_CLSE_CURLY
+      (%tok_else %tok_OPEN_CURLY PostludeStatements %tok_CLSE_CURLY):?
+      (%tok_finally %tok_OPEN_CURLY PostludeStatements %tok_CLSE_CURLY):?
+      {% RulePostlude_by_paths([4, 2], [2], [5, 2]) %}
 
 PostludeStatements ->
       null {% noopArr %}
