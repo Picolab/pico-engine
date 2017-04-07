@@ -703,15 +703,22 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
         var signal = mkSignalTask(pe, "id1");
 
         var server = http.createServer(function(req, res){
-            var out = JSON.stringify({
-                url: req.url,
-                headers: req.headers,
-            }, false, 2);
-            res.writeHead(200, {
-                "Content-Type": "application/json",
-                "Content-Length": Buffer.byteLength(out),
+            var body = "";
+            req.on("data", function(buffer){
+                body += buffer.toString();
             });
-            res.end(out);
+            req.on("end", function(){
+                var out = JSON.stringify({
+                    url: req.url,
+                    headers: req.headers,
+                    body: body,
+                }, false, 2);
+                res.writeHead(200, {
+                    "Content-Type": "application/json",
+                    "Content-Length": Buffer.byteLength(out),
+                });
+                res.end(out);
+            });
         });
 
         server.listen(0, function(){
@@ -733,7 +740,8 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                                 baz: "quix",
                                 connection: "close",
                                 host: "localhost:" + server.address().port
-                            }
+                            },
+                            body: ""
                         },
                         content_type: "application/json",
                         status_code: 200,
@@ -747,6 +755,31 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                 [
                     signal("http", "post", {url: url}),
                     []//nothing should be returned
+                ],
+                [
+                    signal("http", "post_setting", {url: url}),
+                    []//nothing should be returned
+                ],
+                [
+                    query("getResp"),
+                    {
+                        content: {
+                            url: "/?foo=bar",
+                            headers: {
+                                connection: "close",
+                                "content-type": "application/x-www-form-urlencoded",
+                                host: "localhost:" + server.address().port
+                            },
+                            body: "baz=qux"
+                        },
+                        content_type: "application/json",
+                        status_code: 200,
+                        status_line: "OK",
+                        headers: {
+                            "content-type": "application/json",
+                            "connection": "close",
+                        }
+                    }
                 ],
             ], function(err){
                 //stop the server so it doesn't hang forever
