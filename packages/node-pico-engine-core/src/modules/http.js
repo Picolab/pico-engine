@@ -13,6 +13,7 @@ var mkMethod = function(method){
         "json",
         "form",
         "parseJSON",
+        "autoraise",
     ], function(args, ctx, callback){
 
         var opts = {
@@ -54,7 +55,19 @@ var mkMethod = function(method){
                     //just leave the content as is
                 }
             }
-            callback(void 0, r);
+            if(_.isString(args.autoraise)){
+                r.label = args.autoraise;
+                ctx.raiseEvent({
+                    domain: "http",
+                    type: method.toLowerCase(),
+                    attributes: r,
+                    //for_rid: "",
+                }, function(err){
+                    callback(err, r);
+                });
+            }else{
+                callback(void 0, r);
+            }
         });
     });
 };

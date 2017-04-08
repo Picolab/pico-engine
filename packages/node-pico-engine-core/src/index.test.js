@@ -728,7 +728,7 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                 λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
                 λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.http"}),
                 [
-                    signal("http", "get", {url: url}),
+                    signal("http_test", "get", {url: url}),
                     []
                 ],
                 [
@@ -753,11 +753,11 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                     }
                 ],
                 [
-                    signal("http", "post", {url: url}),
+                    signal("http_test", "post", {url: url}),
                     []//nothing should be returned
                 ],
                 [
-                    signal("http", "post_setting", {url: url}),
+                    signal("http_test", "post_setting", {url: url}),
                     []//nothing should be returned
                 ],
                 [
@@ -779,6 +779,56 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                             "content-type": "application/json",
                             "connection": "close",
                         }
+                    }
+                ],
+
+                //testing autoraise
+                [
+                    signal("http_test", "autoraise", {url: url}),
+                    //autoraise happens on the same event schedule
+                    [{
+                        name: "http_post_event_handler",
+                        options: {attrs: {
+                            content: {
+                                body: "baz=qux",
+                                headers: {
+                                    connection: "close",
+                                    "content-type": "application/x-www-form-urlencoded",
+                                    host: "localhost:" + server.address().port
+                                },
+                                url: "/?foo=bar"
+                            },
+                            content_type: "application/json",
+                            headers: {
+                                connection: "close",
+                                "content-type": "application/json"
+                            },
+                            label: "foobar",
+                            status_code: 200,
+                            status_line: "OK"
+                        }}
+                    }]
+                ],
+                [
+                    query("getLastPostEvent"),
+                    {
+                        content: {
+                            body: "baz=qux",
+                            headers: {
+                                connection: "close",
+                                "content-type": "application/x-www-form-urlencoded",
+                                host: "localhost:" + server.address().port
+                            },
+                            url: "/?foo=bar"
+                        },
+                        content_type: "application/json",
+                        headers: {
+                            connection: "close",
+                            "content-type": "application/json"
+                        },
+                        label: "foobar",
+                        status_code: 200,
+                        status_line: "OK"
                     }
                 ],
             ], function(err){

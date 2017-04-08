@@ -1,10 +1,13 @@
 ruleset io.picolabs.http {
   meta {
-    shares getResp
+    shares getResp, getLastPostEvent
   }
   global {
     getResp = function(){
       ent:resp
+    }
+    getLastPostEvent = function(){
+      ent:last_post_event
     }
     fmtResp = function(r){
         r.set("content", r["content"].decode())
@@ -22,7 +25,7 @@ ruleset io.picolabs.http {
     }
   }
   rule http_get {
-    select when http get;
+    select when http_test get;
     pre {
         url = event:attr("url")
     }
@@ -39,7 +42,7 @@ ruleset io.picolabs.http {
     }
   }
   rule http_post {
-    select when http post;
+    select when http_test post;
     pre {
         url = event:attr("url")
     }
@@ -49,7 +52,7 @@ ruleset io.picolabs.http {
       }
   }
   rule http_post_action {
-    select when http post_action;
+    select when http_test post_action;
     pre {
         url = event:attr("url")
     }
@@ -59,7 +62,7 @@ ruleset io.picolabs.http {
       msg = "foobar"
   }
   rule http_post_setting {
-    select when http post_setting;
+    select when http_test post_setting;
     pre {
         url = event:attr("url")
     }
@@ -71,6 +74,30 @@ ruleset io.picolabs.http {
         form = {"baz": "qux"}
     fired {
       ent:resp := fmtResp(resp)
+    }
+  }
+  rule http_autorase {
+    select when http_test autoraise;
+    pre {
+        url = event:attr("url")
+    }
+    http:post(url)
+      with
+        qs = {"foo": "bar"}
+        and
+        form = {"baz": "qux"}
+        and
+        autoraise = "foobar"
+  }
+  rule http_post_event_handler {
+    select when http post;
+    pre {
+      resp = fmtResp(event:attrs())
+    }
+    send_directive("http_post_event_handler") with
+      attrs = resp
+    fired {
+      ent:last_post_event := resp
     }
   }
 }
