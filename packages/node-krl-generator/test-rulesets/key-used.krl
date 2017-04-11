@@ -9,8 +9,10 @@ This is a test file for a module that uses keys
 
     use module io.picolabs.key-configurable
       alias api
-      with key1 = keys:foo()
-       and key2 = keys:bar("baz")
+      with
+        key1 = keys:foo()
+        and
+        key2 = keys:bar("baz")
 
     shares getFoo, getBar, getBarN, getQuux, getQuuz, getAPIKeys, getFooPostlude
   }

@@ -32,4 +32,5 @@ This is a test file for a module that uses keys
       api:getKeys()
     }
   }
+
 }

@@ -4,6 +4,7 @@ ruleset io.picolabs.hello_world {
     description <<
 A first ruleset for the Quickstart
     >>
+
     author "Phil Windley"
     logging on
     shares hello

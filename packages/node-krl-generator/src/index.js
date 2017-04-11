@@ -53,14 +53,7 @@ var gen_by_type = {
             : gen(ast.right);
         return src;
     },
-    "MemberExpression": function(ast, ind, gen){
-        if(ast.method === "path"){
-            return gen(ast.object) + "{" + gen(ast.property) + "}";
-        }else if(ast.method === "index"){
-            return gen(ast.object) + "[" + gen(ast.property) + "]";
-        }
-        return gen(ast.object) + "." + gen(ast.property);
-    },
+    "MemberExpression": require("./g/MemberExpression"),
     "ConditionalExpression": require("./g/ConditionalExpression"),
     "Function": function(ast, ind, gen){
         return "function(" + _.map(ast.params, function(param){
@@ -102,29 +95,7 @@ var gen_by_type = {
         src += ind() + "}";
         return src;
     },
-    "RulesetMetaProperty": function(ast, ind, gen){
-        var src = ind() + gen(ast.key) + " ";
-        var key = ast.key.value;
-        if(key === "shares"){
-            src += _.map(ast.value.ids, function(id){
-                return gen(id);
-            }).join(", ");
-        }else if(key === "provides"){
-            src += _.map(ast.value.ids, function(id){
-                return gen(id);
-            }).join(", ");
-        }else if(_.get(ast, "value.type") === "Boolean"){
-            src += ast.value.value ? "on" : "off";
-        }else if(key === "errors"){
-            src += "to " + gen(ast.value.rid);
-            if(ast.value.version){
-                src += " version " + gen(ast.value.version);
-            }
-        }else{
-            src += gen(ast.value);
-        }
-        return src;
-    },
+    "RulesetMetaProperty": require("./g/RulesetMetaProperty"),
     "Rule": require("./g/Rule"),
     "RuleSelect": require("./g/RuleSelect"),
     "RuleForEach": require("./g/RuleForEach"),

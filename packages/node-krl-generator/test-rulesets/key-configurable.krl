@@ -6,9 +6,8 @@ This is a test for api libraries that depend on keys as input
     >>
 
     configure using
-        key1 = "default-key1"
-        key2 = "default-key2"
-
+      key1 = "default-key1"
+      key2 = "default-key2"
     provides getKeys
   }
   global {
@@ -16,4 +15,5 @@ This is a test for api libraries that depend on keys as input
       [key1, key2]
     }
   }
+
 }
