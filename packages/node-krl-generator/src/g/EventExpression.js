@@ -17,7 +17,12 @@ module.exports = function(ast, ind, gen){
         src += " where " + gen(ast.where);
     }
     if(!_.isEmpty(ast.setting)){
-        src += " setting(" + _.map(ast.setting, function(a){
+        if(_.size(pairs) > 1){
+            src += "\n" + ind(2);
+        }else{
+            src += " ";
+        }
+        src += "setting(" + _.map(ast.setting, function(a){
             return gen(a, 1);
         }).join(", ") + ")";
     }

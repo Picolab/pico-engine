@@ -6,7 +6,7 @@ var parser = require("krl-parser");
 var generator = require("./");
 var commentsRegExp = require("comment-regex");
 
-var files_dir = path.resolve(__dirname, "../test-files");
+var files_dir = path.resolve(__dirname, "../test-rulesets");
 
 var allDone = function(err){
     if(err){

@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var genWith = require("./genWith");
 
 var gen_by_type = {
     "String": function(ast, ind, gen){
@@ -62,19 +61,7 @@ var gen_by_type = {
         }
         return gen(ast.object) + "." + gen(ast.property);
     },
-    "ConditionalExpression": function(ast, ind, gen){
-        var src = "";
-        src += gen(ast.test);
-        src += " => ";
-        src += gen(ast.consequent);
-        src += " |\n";
-        if(ast.alternate.type === "ConditionalExpression"){
-            src += ind() + gen(ast.alternate);
-        }else{
-            src += ind(1) + gen(ast.alternate);
-        }
-        return src;
-    },
+    "ConditionalExpression": require("./g/ConditionalExpression"),
     "Function": function(ast, ind, gen){
         return "function(" + _.map(ast.params, function(param){
             return gen(param);
@@ -89,6 +76,7 @@ var gen_by_type = {
     "Declaration": function(ast, ind, gen){
         return ind() + gen(ast.left) + " " + ast.op + " " + gen(ast.right);
     },
+    "GuardCondition": require("./g/GuardCondition"),
     "Ruleset": function(ast, ind, gen){
         var src = "";
         src += ind() + "ruleset " + gen(ast.rid) + " {\n";
@@ -137,31 +125,9 @@ var gen_by_type = {
         }
         return src;
     },
-    "Rule": function(ast, ind, gen){
-        var src = "";
-        src += ind() + "rule " + gen(ast.name);
-        if(ast.rule_state !== "active"){
-            src += " is " + ast.rule_state;
-        }
-        src += " {\n";
-        if(ast.select){
-            src += ind(1) + gen(ast.select, 1) + "\n";
-        }
-        if(!_.isEmpty(ast.prelude)){
-            src += ind(1) + "pre {\n";
-            src += gen(ast.prelude, 2) + "\n";
-            src += ind(1) + "}\n";
-        }
-        if(ast.action_block){
-            src += gen(ast.action_block, 1) + "\n";
-        }
-        if(ast.postlude){
-            src += gen(ast.postlude, 1) + "\n";
-        }
-        src += ind() + "}";
-        return src;
-    },
+    "Rule": require("./g/Rule"),
     "RuleSelect": require("./g/RuleSelect"),
+    "RuleForEach": require("./g/RuleForEach"),
     "EventExpression": require("./g/EventExpression"),
     "AttributeMatch": function(ast, ind, gen){
         return gen(ast.key) + " " + gen(ast.value);
@@ -169,18 +135,7 @@ var gen_by_type = {
     "EventOperator": require("./g/EventOperator"),
     "EventWithin": require("./g/EventWithin"),
     "RuleActionBlock": require("./g/RuleActionBlock"),
-    "RuleAction": function(ast, ind, gen){
-        var src = "";
-        if(ast.label){
-            src += ind() + gen(ast.label) + " =>\n";
-            src += ind(1);
-        }else{
-            src += ind();
-        }
-        src += gen(ast.action) + "(" + gen(ast.args) + ")";
-        src += genWith(ast["with"], ind, gen);
-        return src;
-    },
+    "RuleAction": require("./g/RuleAction"),
     "DefAction": require("./g/DefAction"),
     "EventAggregator": require("./g/EventAggregator"),
     "EventGroupOperator": require("./g/EventGroupOperator"),

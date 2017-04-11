@@ -17,8 +17,9 @@ ruleset io.picolabs.http {
             .delete(["content", "headers", "content-length"])
     }
     doPost = defaction(base_url, to, msg){
-      http:post(url + "/msg.json")
-        with form = {
+
+      http:post(url + "/msg.json") with
+        form = {
           "To": to,
           "Msg": msg
         }
@@ -27,34 +28,28 @@ ruleset io.picolabs.http {
   rule http_get {
     select when http_test get;
     pre {
-        url = event:attr("url")
+      url = event:attr("url")
     }
     fired {
       resp = http:get(url) with
-          qs = {
-            "foo": "bar"
-          }
-          headers = {
-            "baz": "quix"
-          };
-
+        qs = {"foo": "bar"}
+        and
+        headers = {"baz": "quix"};
       ent:resp := fmtResp(resp)
     }
   }
   rule http_post {
     select when http_test post;
     pre {
-        url = event:attr("url")
+      url = event:attr("url")
     }
-    http:post(url)
-      with json = {
-          "foo": "bar"
-      }
+    http:post(url) with
+      json = {"foo": "bar"}
   }
   rule http_post_action {
     select when http_test post_action;
     pre {
-        url = event:attr("url")
+      url = event:attr("url")
     }
     doPost(url) with
       to = "bob"
@@ -64,14 +59,12 @@ ruleset io.picolabs.http {
   rule http_post_setting {
     select when http_test post_setting;
     pre {
-        url = event:attr("url")
+      url = event:attr("url")
     }
-    http:post(url)
-      setting(resp)
-      with
-        qs = {"foo": "bar"}
-        and
-        form = {"baz": "qux"}
+    http:post(url) setting(resp) with
+      qs = {"foo": "bar"}
+      and
+      form = {"baz": "qux"}
     fired {
       ent:resp := fmtResp(resp)
     }
@@ -79,15 +72,14 @@ ruleset io.picolabs.http {
   rule http_autorase {
     select when http_test autoraise;
     pre {
-        url = event:attr("url")
+      url = event:attr("url")
     }
-    http:post(url)
-      with
-        qs = {"foo": "bar"}
-        and
-        form = {"baz": "qux"}
-        and
-        autoraise = "foobar"
+    http:post(url) with
+      qs = {"foo": "bar"}
+      and
+      form = {"baz": "qux"}
+      and
+      autoraise = "foobar"
   }
   rule http_post_event_handler {
     select when http post;
