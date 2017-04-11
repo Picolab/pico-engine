@@ -12,4 +12,5 @@ This is a test file who was shared a key, but doesn't "use" it
       keys:foo()
     }
   }
+
 }

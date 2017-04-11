@@ -53,4 +53,5 @@ ruleset io.picolabs.operators {
       [1, 2].klog("hi:")
     }
   }
+
 }
