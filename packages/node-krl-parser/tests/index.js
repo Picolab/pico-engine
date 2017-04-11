@@ -1,2 +1,2 @@
-require('./tokenizer.test');
-require('./parser.test');
+require("./tokenizer.test");
+require("./parser.test");

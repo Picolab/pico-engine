@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "start": "onchange 'src/' 'tests/' -e 'src/grammar.js' -i -- npm test",
-    "test": "npm run build -s && node tests",
+    "lint": "eslint src/ tests/ && echo lint-ok",
+    "test": "npm run lint -s && npm run build -s && node tests",
     "build": "npm run build:grammar -s && npm run build:spec -s",
     "build:grammar": "nearleyc src/grammar.ne > src/grammar.js",
     "build:spec": "node tests/genSpec.js > spec.md"
@@ -37,6 +38,7 @@
     "tape": "^4.5.1"
   },
   "dependencies": {
+    "eslint": "^3.19.0",
     "excerpt-at-line-col": "^1.0.0",
     "line-column": "^1.0.2",
     "nearley": "^2.5.0"
