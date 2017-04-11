@@ -51,11 +51,27 @@ var isParenRule = function(rule){
     return true;
 };
 
+var isOptionalSemiColon = function(rules){
+    if(rules.length !== 2){
+        return false;
+    }
+    if((rules[0].symbols.length + rules[1].symbols.length) !== 1){
+        return false;
+    }
+    var semi_rule = rules[0].symbols.length > 0
+        ? rules[0]
+        : rules[1];
+    return semi_rule.symbols[0].unparse_hint_value === ";";
+};
+
 module.exports = function(options){
     options = options || {};
 
     var grammar = options.grammar || default_grammar;
     var start = options.start || grammar.ParserStart;
+    var always_semicolons = _.has(options, "always_semicolons")
+        ? options.always_semicolons
+        : false;
 
     var stack = [start];
     var output = "";
@@ -67,6 +83,11 @@ module.exports = function(options){
         });
         if(rules.length === 0){
             throw new Error("Nothing matches rule: "+currentname+"!");
+        }
+        if(isOptionalSemiColon(rules)){
+            if(always_semicolons){
+                return {symbols: [{literal: ";"}]};
+            }
         }
         return _.sample(_.filter(rules, function(rule){
             if(isParenRule(rule)){

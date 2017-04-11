@@ -1,4 +1,5 @@
 var diff = require("diff-lines");
+var rmLoc = require("./rmLoc");
 var parser = require("../src/");
 var unparse = require("./unparse");
 var nearley = require("nearley");
@@ -31,8 +32,8 @@ var onAmbiguousProgram = function(src){
     if(str.trim().length === 0){
         console.log(generator(ast0));
         str = diff(
-            JSON.stringify(ast0, false, 2),
-            JSON.stringify(ast1, false, 2),
+            JSON.stringify(rmLoc(ast0), false, 2),
+            JSON.stringify(rmLoc(ast1), false, 2),
             {n_surrounding: 3}
         );
     }
