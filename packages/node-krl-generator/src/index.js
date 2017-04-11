@@ -42,17 +42,7 @@ var gen_by_type = {
     "UnaryOperator": function(ast, ind, gen){
         return ast.op + (/^[a-z]/i.test(ast.op) ? " " : "") +  gen(ast.arg);
     },
-    "InfixOperator": function(ast, ind, gen){
-        var src = "";
-        src += ast.left.type === "InfixOperator"
-            ? "(" + gen(ast.left) + ")"
-            : gen(ast.left);
-        src += " " + ast.op + " ";
-        src += ast.right.type === "InfixOperator"
-            ? "(" + gen(ast.right) + ")"
-            : gen(ast.right);
-        return src;
-    },
+    "InfixOperator": require("./g/InfixOperator"),
     "MemberExpression": require("./g/MemberExpression"),
     "ConditionalExpression": require("./g/ConditionalExpression"),
     "Function": function(ast, ind, gen){
@@ -111,6 +101,7 @@ var gen_by_type = {
     "EventAggregator": require("./g/EventAggregator"),
     "EventGroupOperator": require("./g/EventGroupOperator"),
     "PersistentVariableAssignment": require("./g/PersistentVariableAssignment"),
+    "LogStatement": require("./g/LogStatement"),
     "RaiseEventStatement": require("./g/RaiseEventStatement"),
     "RaiseEventAttributes": require("./g/RaiseEventAttributes"),
     "RulePostlude": require("./g/RulePostlude")

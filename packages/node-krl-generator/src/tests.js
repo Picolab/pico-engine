@@ -1,10 +1,10 @@
+var _ = require("lodash");
 var λ = require("contra");
 var fs = require("fs");
 var diff = require("diff-lines");
 var path = require("path");
 var parser = require("krl-parser");
 var generator = require("./");
-var commentsRegExp = require("comment-regex");
 
 var files_dir = path.resolve(__dirname, "../test-rulesets");
 
@@ -28,7 +28,9 @@ fs.readdir(files_dir, function(err, files){
             console.log("testing: " + path.basename(file));
 
             var out = generator(parser(src, {filename: file}));
-            var expected = src.replace(commentsRegExp(), "").trim();
+            var expected = _.filter(src.split("\n"), function(line){
+                return line.trim().indexOf("//") !== 0;
+            }).join("\n").trim();
 
             if(out === expected){
                 console.log("  ...passed");

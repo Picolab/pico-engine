@@ -2,9 +2,11 @@ ruleset io.picolabs.module-used {
   meta {
     use module io.picolabs.module-defined
       alias my_module_dflt
+
     use module io.picolabs.module-defined
       alias my_module_conf
-      with configured_name = "Jim"
+      with
+        configured_name = "Jim"
 
     shares now
   }
@@ -13,7 +15,6 @@ ruleset io.picolabs.module-used {
       time:now()
     }
   }
-
   rule dflt_name {
     select when module_used dflt_name;
     send_directive("dflt_name") with
@@ -24,7 +25,6 @@ ruleset io.picolabs.module-used {
     send_directive("conf_name") with
       name = my_module_conf:getName()
   }
-
   rule dflt_info {
     select when module_used dflt_info;
     send_directive("dflt_info") with
