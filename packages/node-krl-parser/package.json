@@ -31,10 +31,10 @@
   "homepage": "https://github.com/Picolab/node-krl-parser#readme",
   "devDependencies": {
     "diff-lines": "^1.1.0",
-    "karl42": "^3.0.0",
     "krl-generator": "^0.5.2",
     "lodash": "^4.13.1",
     "onchange": "^3.2.1",
+    "phonetic": "^0.1.1",
     "tape": "^4.5.1"
   },
   "dependencies": {

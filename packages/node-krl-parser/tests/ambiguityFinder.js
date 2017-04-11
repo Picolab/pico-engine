@@ -1,6 +1,6 @@
 var diff = require("diff-lines");
-var KaRL42 = require("karl42");
 var parser = require("../src/");
+var unparse = require("./unparse");
 var nearley = require("nearley");
 var grammar = require("../src/grammar.js");
 var generator = require("krl-generator");
@@ -12,13 +12,16 @@ var onAmbiguousProgram = function(src){
     console.error(src);
     console.error("--------------------------------");
 
+    var tokens = tokenizer(src).filter(function(t){
+        return true
+            && t.type !== "WHITESPACE"
+            && t.type !== "LINE-COMMENT"
+            && t.type !== "BLOCK-COMMENT"
+            ;
+    });
+
     var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
-    p.feed(tokenizer(src).map(function(t){
-        if(t.type === "BLOCK-COMMENT" || t.type === "LINE-COMMENT" || t.type === "WHITESPACE"){
-            return t.src.replace(/[^\n]/g, " ");
-        }
-        return t.src;
-    }).join(""));
+    p.feed(tokens);
 
     console.log(p.results.length, " parsings found. Here is the diff for the first two");
 
@@ -41,8 +44,7 @@ var n = 0;
 while(true){//eslint-disable-line
     n++;
     console.log("attempt", n);
-    var src = KaRL42({
-        grammar: grammar
+    var src = unparse({
     });
     try{
         parser(src);
