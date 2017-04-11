@@ -30,11 +30,7 @@ var gen_by_type = {
             + (r.global ? "g" : "")
             + (r.ignoreCase ? "i" : "");
     },
-    "Array": function(ast, ind, gen){
-        return "[" + _.map(ast.value, function(ast){
-            return gen(ast);
-        }).join(", ") + "]";
-    },
+    "Array": require("./g/Array"),
     "Map": require("./g/Map"),
     "MapKeyValuePair": function(ast, ind, gen){
         return gen(ast.key) + ": " + gen(ast.value);
