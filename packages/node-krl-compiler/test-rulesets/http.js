@@ -1,9 +1,17 @@
 module.exports = {
   "rid": "io.picolabs.http",
-  "meta": { "shares": ["getResp"] },
+  "meta": {
+    "shares": [
+      "getResp",
+      "getLastPostEvent"
+    ]
+  },
   "global": function* (ctx) {
     ctx.scope.set("getResp", ctx.KRLClosure(ctx, function* (ctx) {
       return yield ctx.modules.get(ctx, "ent", "resp");
+    }));
+    ctx.scope.set("getLastPostEvent", ctx.KRLClosure(ctx, function* (ctx) {
+      return yield ctx.modules.get(ctx, "ent", "last_post_event");
     }));
     ctx.scope.set("fmtResp", ctx.KRLClosure(ctx, function* (ctx) {
       ctx.scope.set("r", ctx.getArg(ctx.args, "r", 0));
@@ -45,7 +53,7 @@ module.exports = {
     "http_get": {
       "name": "http_get",
       "select": {
-        "graph": { "http": { "get": { "expr_0": true } } },
+        "graph": { "http_test": { "get": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
             return true;
@@ -77,7 +85,7 @@ module.exports = {
     "http_post": {
       "name": "http_post",
       "select": {
-        "graph": { "http": { "post": { "expr_0": true } } },
+        "graph": { "http_test": { "post": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
             return true;
@@ -107,7 +115,7 @@ module.exports = {
     "http_post_action": {
       "name": "http_post_action",
       "select": {
-        "graph": { "http": { "post_action": { "expr_0": true } } },
+        "graph": { "http_test": { "post_action": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
             return true;
@@ -138,7 +146,7 @@ module.exports = {
     "http_post_setting": {
       "name": "http_post_setting",
       "select": {
-        "graph": { "http": { "post_setting": { "expr_0": true } } },
+        "graph": { "http_test": { "post_setting": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx) {
             return true;
@@ -168,6 +176,76 @@ module.exports = {
       "postlude": {
         "fired": function* (ctx) {
           yield ctx.modules.set(ctx, "ent", "resp", yield ctx.scope.get("fmtResp")(ctx, [ctx.scope.get("resp")]));
+        },
+        "notfired": undefined,
+        "always": undefined
+      }
+    },
+    "http_autorase": {
+      "name": "http_autorase",
+      "select": {
+        "graph": { "http_test": { "autoraise": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "prelude": function* (ctx) {
+        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
+                "0": ctx.scope.get("url"),
+                "qs": { "foo": "bar" },
+                "form": { "baz": "qux" },
+                "autoraise": "foobar"
+              });
+            }
+          }]
+      }
+    },
+    "http_post_event_handler": {
+      "name": "http_post_event_handler",
+      "select": {
+        "graph": { "http": { "post": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "prelude": function* (ctx) {
+        ctx.scope.set("resp", yield ctx.scope.get("fmtResp")(ctx, [yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [])]));
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return {
+                "type": "directive",
+                "name": "http_post_event_handler",
+                "options": { "attrs": ctx.scope.get("resp") }
+              };
+            }
+          }]
+      },
+      "postlude": {
+        "fired": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "last_post_event", ctx.scope.get("resp"));
         },
         "notfired": undefined,
         "always": undefined
