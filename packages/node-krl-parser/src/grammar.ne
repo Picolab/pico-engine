@@ -530,7 +530,7 @@ RulesetID_list -> RulesetID {% idArr %}
 OnOrOff -> %tok_on  {% booleanAST(true ) %}
          | %tok_off {% booleanAST(false) %}
 
-RulesetGlobal -> %tok_global %tok_OPEN_CURLY DeclarationOrDefAction:* %tok_CLSE_CURLY {% getN(2) %}
+RulesetGlobal -> %tok_global %tok_OPEN_CURLY DeclarationList %tok_CLSE_CURLY {% getN(2) %}
 
 ################################################################################
 #
@@ -586,7 +586,7 @@ RuleForEach -> %tok_foreach Expression %tok_setting %tok_OPEN_PAREN function_par
   }
 %}
 
-RulePrelude -> %tok_pre %tok_OPEN_CURLY DeclarationOrDefAction:* %tok_CLSE_CURLY {% getN(2) %}
+RulePrelude -> %tok_pre %tok_OPEN_CURLY DeclarationList %tok_CLSE_CURLY {% getN(2) %}
 
 ################################################################################
 #
@@ -762,7 +762,7 @@ RulePostlude ->
 
 PostludeStatements ->
       null {% noopArr %}
-    | PostludeStatements_body {% id %}
+    | PostludeStatements_body %tok_SEMI:? {% id %}
 
 PostludeStatements_body ->
       PostludeStatement {% idArr %}
@@ -847,13 +847,13 @@ RaiseEventAttributes -> WithArguments
   }
 %}
 
-LogStatement -> %tok_log %tok_LOG_LEVEL_ENUM:? Expression
+LogStatement -> %tok_log %tok_LOG_LEVEL_ENUM Expression
 {%
   function(data){
     return {
       loc: mkLoc(data),
       type: "LogStatement",
-      level: data[1] ? data[1].src : null,
+      level: data[1].src,
       expression: data[2]
     };
   }
@@ -903,6 +903,13 @@ IdentifierDeclaration -> Identifier %tok_EQ Expression {%
   }
 %}
 
+DeclarationList -> (DeclarationOrDefAction %tok_SEMI:?):*
+{% function(d){
+    return d[0].map(function(dec){
+        return dec[0];
+    });
+} %}
+
 DeclarationOrDefAction ->
       Declaration {% id %}
     | DefAction {% id %}
@@ -929,7 +936,7 @@ DefAction -> Identifier %tok_EQ %tok_defaction
 # Later we may add destructuring
 left_side_of_declaration -> MemberExpression {% id %}
 
-Statement_list -> Statement_list_body {% id %}
+Statement_list -> Statement_list_body %tok_SEMI:? {% id %}
 
 Statement_list_body ->
       Statement {% idArr %}

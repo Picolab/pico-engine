@@ -533,9 +533,7 @@ var grammar = {
     {"name": "RulesetID_list", "symbols": ["RulesetID_list", tok_COMMA, "RulesetID"], "postprocess": concatArr(2)},
     {"name": "OnOrOff", "symbols": [tok_on], "postprocess": booleanAST(true )},
     {"name": "OnOrOff", "symbols": [tok_off], "postprocess": booleanAST(false)},
-    {"name": "RulesetGlobal$ebnf$1", "symbols": []},
-    {"name": "RulesetGlobal$ebnf$1", "symbols": ["RulesetGlobal$ebnf$1", "DeclarationOrDefAction"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "RulesetGlobal", "symbols": [tok_global, tok_OPEN_CURLY, "RulesetGlobal$ebnf$1", tok_CLSE_CURLY], "postprocess": getN(2)},
+    {"name": "RulesetGlobal", "symbols": [tok_global, tok_OPEN_CURLY, "DeclarationList", tok_CLSE_CURLY], "postprocess": getN(2)},
     {"name": "rule$ebnf$1$subexpression$1", "symbols": [tok_is, "rule_state"]},
     {"name": "rule$ebnf$1", "symbols": ["rule$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "rule$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
@@ -592,9 +590,7 @@ var grammar = {
           };
         }
         },
-    {"name": "RulePrelude$ebnf$1", "symbols": []},
-    {"name": "RulePrelude$ebnf$1", "symbols": ["RulePrelude$ebnf$1", "DeclarationOrDefAction"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "RulePrelude", "symbols": [tok_pre, tok_OPEN_CURLY, "RulePrelude$ebnf$1", tok_CLSE_CURLY], "postprocess": getN(2)},
+    {"name": "RulePrelude", "symbols": [tok_pre, tok_OPEN_CURLY, "DeclarationList", tok_CLSE_CURLY], "postprocess": getN(2)},
     {"name": "EventExpression", "symbols": ["event_exp_or"], "postprocess": id},
     {"name": "event_exp_or", "symbols": ["event_exp_and"], "postprocess": id},
     {"name": "event_exp_or", "symbols": ["event_exp_or", tok_or, "event_exp_and"], "postprocess": infixEventOp},
@@ -751,7 +747,9 @@ var grammar = {
     {"name": "RulePostlude$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RulePostlude", "symbols": [tok_notfired, tok_OPEN_CURLY, "PostludeStatements", tok_CLSE_CURLY, "RulePostlude$ebnf$3", "RulePostlude$ebnf$4"], "postprocess": RulePostlude_by_paths([4, 2], [2], [5, 2])},
     {"name": "PostludeStatements", "symbols": [], "postprocess": noopArr},
-    {"name": "PostludeStatements", "symbols": ["PostludeStatements_body"], "postprocess": id},
+    {"name": "PostludeStatements$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
+    {"name": "PostludeStatements$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "PostludeStatements", "symbols": ["PostludeStatements_body", "PostludeStatements$ebnf$1"], "postprocess": id},
     {"name": "PostludeStatements_body", "symbols": ["PostludeStatement"], "postprocess": idArr},
     {"name": "PostludeStatements_body", "symbols": ["PostludeStatements_body", tok_SEMI, "PostludeStatement"], "postprocess": concatArr(2)},
     {"name": "PostludeStatement", "symbols": ["PostludeStatement_core"], "postprocess": id},
@@ -829,14 +827,12 @@ var grammar = {
           };
         }
         },
-    {"name": "LogStatement$ebnf$1", "symbols": [tok_LOG_LEVEL_ENUM], "postprocess": id},
-    {"name": "LogStatement$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "LogStatement", "symbols": [tok_log, "LogStatement$ebnf$1", "Expression"], "postprocess": 
+    {"name": "LogStatement", "symbols": [tok_log, tok_LOG_LEVEL_ENUM, "Expression"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: "LogStatement",
-            level: data[1] ? data[1].src : null,
+            level: data[1].src,
             expression: data[2]
           };
         }
@@ -874,6 +870,16 @@ var grammar = {
           };
         }
         },
+    {"name": "DeclarationList$ebnf$1", "symbols": []},
+    {"name": "DeclarationList$ebnf$1$subexpression$1$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
+    {"name": "DeclarationList$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "DeclarationList$ebnf$1$subexpression$1", "symbols": ["DeclarationOrDefAction", "DeclarationList$ebnf$1$subexpression$1$ebnf$1"]},
+    {"name": "DeclarationList$ebnf$1", "symbols": ["DeclarationList$ebnf$1", "DeclarationList$ebnf$1$subexpression$1"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "DeclarationList", "symbols": ["DeclarationList$ebnf$1"], "postprocess":  function(d){
+            return d[0].map(function(dec){
+                return dec[0];
+            });
+        } },
     {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
     {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
     {"name": "DefAction$ebnf$1", "symbols": []},
@@ -893,7 +899,9 @@ var grammar = {
         }
         },
     {"name": "left_side_of_declaration", "symbols": ["MemberExpression"], "postprocess": id},
-    {"name": "Statement_list", "symbols": ["Statement_list_body"], "postprocess": id},
+    {"name": "Statement_list$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
+    {"name": "Statement_list$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Statement_list", "symbols": ["Statement_list_body", "Statement_list$ebnf$1"], "postprocess": id},
     {"name": "Statement_list_body", "symbols": ["Statement"], "postprocess": idArr},
     {"name": "Statement_list_body", "symbols": ["Statement_list_body", tok_SEMI, "Statement"], "postprocess": concatArr(2)},
     {"name": "declaration_list", "symbols": ["Declaration"], "postprocess": idArr},

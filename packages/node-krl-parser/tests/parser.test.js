@@ -1633,6 +1633,9 @@ test("no ambiguity!", function(t){
     //ambiguity on the provides operator
     testAmb("ruleset rs{meta { provides notanop errors to i}}");
 
+    //log info (-1) or log(info-1) i.e. log default level
+    testAmb("ruleset a{rule b{always{log info - 1}}}");
+
     t.end();
 });
 
@@ -2060,12 +2063,6 @@ test("LogStatement", function(t){
         var ast = parser(src).rules[0].postlude.fired;
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
-
-    testPostlude("log \"foo\"", [{
-        type: "LogStatement",
-        level: null,
-        expression: mk("foo")
-    }]);
 
     testPostlude("log info \"foo\"", [{
         type: "LogStatement",

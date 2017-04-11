@@ -46,6 +46,7 @@ while(true){//eslint-disable-line
     n++;
     console.log("attempt", n);
     var src = unparse({
+        always_semicolons: true,
     });
     try{
         parser(src);
