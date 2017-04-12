@@ -117,6 +117,22 @@ test("tokenizer", function(t){
         "[CHEVRON-CLOSE]>>",
     ]);
 
+    //nested chevrons
+    tst("<<one#{<<two#{three}>>}>>", [
+        "[CHEVRON-OPEN]<<",
+        "[CHEVRON-STRING]one",
+        "[CHEVRON-BEESTING-OPEN]#{",
+        "[CHEVRON-OPEN]<<",
+        "[CHEVRON-STRING]two",
+        "[CHEVRON-BEESTING-OPEN]#{",
+        "[SYMBOL]three",
+        "[CHEVRON-BEESTING-CLOSE]}",
+        "[CHEVRON-CLOSE]>>",
+        "[CHEVRON-BEESTING-CLOSE]}",
+        "[CHEVRON-CLOSE]>>",
+    ]);
+
+
     tst("123", [
         "[NUMBER]123",
     ]);

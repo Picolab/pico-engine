@@ -15,9 +15,6 @@ var gen = {
     "String": function(){
         return JSON.stringify(phonetic.generate());
     },
-    "Chevron": function(){
-        return "<<blah>>";
-    },
     "RegExp": function(){
         return "re#(.*)#";
     },
@@ -29,8 +26,8 @@ var gen = {
     },
 
 
-    "Expression": function(){//TODO remove
-        return "\"expression\"";//TODO remove
+    "WithArguments": function(){//TODO remove
+        return " ";//TODO remove
     },//TODO remove
 };
 
@@ -116,6 +113,10 @@ module.exports = function(options){
         }
         if(gen[currentname]){
             stack.push({literal: gen[currentname]()});
+        }else if(currentname === "Chevron"){
+            stack.push({literal: "<<hello #{"});
+            stack.push("Expression");
+            stack.push({literal: "}!>>"});
         }else if(typeof currentname === "string"){
             _.each(selectRule(currentname).symbols, function(symbol){
                 stack.push(symbol);

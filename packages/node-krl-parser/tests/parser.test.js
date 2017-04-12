@@ -733,6 +733,40 @@ test("literals", function(t){
         ]
     });
 
+    testLiteral("<<one#{<<two#{three}>>}>>", {
+        type: "Chevron",
+        value: [
+            {type: "String", value: "one"},
+            {type: "Chevron", value: [
+                {type: "String", value: "two"},
+                {type: "Identifier", value: "three"},
+            ]},
+        ]
+    });
+
+    testLiteral("<<one#{{\"two\":function(){<<#{three{four}}five>>}}}>>", {
+        type: "Chevron",
+        value: [
+            {type: "String", value: "one"},
+            mk({two: {
+                type: "Function",
+                params: [],
+                body: [
+                    {
+                        type: "ExpressionStatement",
+                        expression: {
+                            type: "Chevron",
+                            value: [
+                                mk.get(mk.id("three"), mk.id("four"), "path"),
+                                {type: "String", value: "five"},
+                            ],
+                        }
+                    }
+                ],
+            }}),
+        ]
+    });
+
     t.end();
 });
 

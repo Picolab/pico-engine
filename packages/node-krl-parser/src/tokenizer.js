@@ -6,8 +6,7 @@ module.exports = function(src, opts){
     var c;
     var next_is_escaped;
 
-    var is_in_beesting = false;
-    var beesting_curly_count = 0;
+    var beesting_stack = [];
 
     var buff = "";
     var i = 0;
@@ -74,13 +73,13 @@ module.exports = function(src, opts){
         //chevron
         }else if(false
                 || (c === "<" && (src[i + 1] === "<"))
-                || (c === "}" && is_in_beesting && beesting_curly_count === 0)
+                || (c === "}" && (beesting_stack.length > 0) && (beesting_stack[beesting_stack.length-1].curly_count === 0))
                 ){
             ctxChange();
-            if(is_in_beesting){
+            if(c === "}" && beesting_stack.length > 0){
                 pushTok("CHEVRON-BEESTING-CLOSE");
                 i++;
-                is_in_beesting = false;
+                beesting_stack.pop();
             }else{
                 buff = src.substring(i, i + 2);
                 i += 2;
@@ -111,8 +110,7 @@ module.exports = function(src, opts){
                         buff = src.substring(i, i + 2);
                         i += 1;
                         pushTok("CHEVRON-BEESTING-OPEN");
-                        is_in_beesting = true;
-                        beesting_curly_count = 0;
+                        beesting_stack.push({curly_count: 0});
                         break;
                     }
                 }
@@ -239,11 +237,11 @@ module.exports = function(src, opts){
         }else if("(){}[];".indexOf(c) >= 0){//single char groups
             ctxChange();
             pushTok("RAW");
-            if(is_in_beesting){
+            if(beesting_stack.length > 0){
                 if(c === "{"){
-                    beesting_curly_count++;
+                    beesting_stack[beesting_stack.length-1].curly_count++;
                 }else if(c === "}"){
-                    beesting_curly_count--;
+                    beesting_stack[beesting_stack.length-1].curly_count--;
                 }
             }
         }else{
