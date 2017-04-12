@@ -58,7 +58,7 @@ Sometimes you may unwittingly introduce an ambiguity into the grammar. Run this 
 ```sh
 $ node tests/ambiguityFinder.js
 ```
-It will generate and try to parse random KRL programs (using [KaRL42](https://www.npmjs.com/package/karl42). When it finds an ambiguity it will stop and diff the outputs to help you spot the ambiguity.
+It will generate and try to parse random KRL programs (using tests/unparse.js). When it finds an ambiguity it will stop and diff the outputs to help you spot the ambiguity.
 
 ## License
 MIT
