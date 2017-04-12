@@ -126,6 +126,19 @@ $.getJSON("/api/db-dump", function(db_dump){
       alert("invalid ruleset id");
     }
   });
+  $("form.registerFromURL").submit(function(e){
+    e.preventDefault();
+    var url = this.url.value;
+    picoAPI("/api/ruleset/register",{"url":url},"GET",function(err, data){
+      if(err){
+        $("pre#feedback").html("<span style=\"color:red\">Problem registering "
+                + url + "\n" + err + "</span>");
+        return;
+      }
+      location.hash = data.rid;
+      location.reload();
+    });
+  });
   $("div.krlsrc form button").click(function(){
     $(this).siblings(".clicked").toggleClass("clicked")
     $(this).toggleClass("clicked");

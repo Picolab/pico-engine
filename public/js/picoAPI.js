@@ -1,5 +1,5 @@
-window.picoAPI = function(url, params, callback){
-    $.post(url, params, function(data){
+window.picoAPI = function(url, params, httpMethod, callback){
+    onSucceed = function(data){
         if(data && data.ok === true){
             callback(null, data);
         }else{
@@ -7,7 +7,8 @@ window.picoAPI = function(url, params, callback){
             err.data = data;
             callback(err);
         }
-    },"json").fail(function(ajax_err){
+    };
+    onFail = function(ajax_err){
         var err;
         if(ajax_err && ajax_err.responseJSON && ajax_err.responseJSON.error){
             err = new Error(ajax_err.responseJSON.error);
@@ -17,5 +18,10 @@ window.picoAPI = function(url, params, callback){
             err.data = ajax_err;
         }
         callback(err);
-    });
+    };
+    if(httpMethod === "GET") {
+        $.getJSON(url, params, onSucceed, "json").fail(onFail);
+    } else {
+        $.post(url, params, onSucceed, "json").fail(onFail);
+    }
 };
