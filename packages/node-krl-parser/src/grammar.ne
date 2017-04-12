@@ -449,7 +449,7 @@ ruleset_meta_prop ->
         rid: data[2],
         version: data[3] && data[3][1]
       }}, true) %}
-    | %tok_configure %tok_using declaration_list
+    | %tok_configure %tok_using declaration_list_body
       {% metaProp(function(data){return {
         declarations: data[2]
       }}, true) %}
@@ -530,7 +530,7 @@ RulesetID_list -> RulesetID {% idArr %}
 OnOrOff -> %tok_on  {% booleanAST(true ) %}
          | %tok_off {% booleanAST(false) %}
 
-RulesetGlobal -> %tok_global %tok_OPEN_CURLY DeclarationList %tok_CLSE_CURLY {% getN(2) %}
+RulesetGlobal -> %tok_global %tok_OPEN_CURLY DeclarationOrDefActionList %tok_CLSE_CURLY {% getN(2) %}
 
 ################################################################################
 #
@@ -586,7 +586,7 @@ RuleForEach -> %tok_foreach Expression %tok_setting %tok_OPEN_PAREN function_par
   }
 %}
 
-RulePrelude -> %tok_pre %tok_OPEN_CURLY DeclarationList %tok_CLSE_CURLY {% getN(2) %}
+RulePrelude -> %tok_pre %tok_OPEN_CURLY DeclarationOrDefActionList %tok_CLSE_CURLY {% getN(2) %}
 
 ################################################################################
 #
@@ -903,12 +903,19 @@ IdentifierDeclaration -> Identifier %tok_EQ Expression {%
   }
 %}
 
-DeclarationList -> (DeclarationOrDefAction %tok_SEMI:?):*
+DeclarationOrDefActionList -> (DeclarationOrDefAction %tok_SEMI:?):*
 {% function(d){
     return d[0].map(function(dec){
         return dec[0];
     });
 } %}
+
+DeclarationList ->
+      null {% noopArr %}
+    | declaration_list_body {% id %}
+
+declaration_list_body -> Declaration {% idArr %}
+    | declaration_list_body %tok_SEMI:? Declaration %tok_SEMI:? {% concatArr(2) %}
 
 DeclarationOrDefAction ->
       Declaration {% id %}
@@ -916,7 +923,7 @@ DeclarationOrDefAction ->
 
 DefAction -> Identifier %tok_EQ %tok_defaction
   %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_OPEN_CURLY
-  Declaration:*
+  DeclarationList
   RuleAction:+
 %tok_CLSE_CURLY
 {%
@@ -941,9 +948,6 @@ Statement_list -> Statement_list_body %tok_SEMI:? {% id %}
 Statement_list_body ->
       Statement {% idArr %}
     | Statement_list_body %tok_SEMI Statement {% concatArr(2) %}
-
-declaration_list -> Declaration {% idArr %}
-    | declaration_list Declaration {% concatArr(1) %}
 
 WithArguments -> %tok_with With_body {% getN(1) %}
 

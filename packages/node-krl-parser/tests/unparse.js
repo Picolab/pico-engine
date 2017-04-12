@@ -109,6 +109,7 @@ module.exports = function(options){
             currentname = "With_and_body";
         }
         if(currentname === "left_side_of_declaration"){
+        //if(currentname === "PrimaryExpression"){
             currentname = "Identifier";
         }
         if(gen[currentname]){

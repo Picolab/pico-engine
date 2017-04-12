@@ -1,3 +1,4 @@
+var _ = require("lodash");
 var diff = require("diff-lines");
 var rmLoc = require("./rmLoc");
 var parser = require("../src/");
@@ -41,21 +42,26 @@ var onAmbiguousProgram = function(src){
     console.log(str);
 };
 
-var n = 0;
-while(true){//eslint-disable-line
-    n++;
-    console.log("attempt", n);
+var n_tests = 10000;
+var n;
+for(n=0; n < n_tests; n++){//eslint-disable-line
+    if(n % 500 === 0){
+        console.log(_.padStart(n + "", 10), "/", n_tests);
+    }
     var src = unparse({
         always_semicolons: true,
     });
     try{
         parser(src);
     }catch(e){
+        console.log("FAILED", n, "/", n_tests);
         if(/Parsing Ambiguity/.test(e + "")){
             onAmbiguousProgram(src);
-            break;
+            throw (e + "");//don't print the whole stack trace
         }else{
+            console.error(src);
             throw e;
         }
     }
 }
+console.log("DONE!", n_tests);
