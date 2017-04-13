@@ -2,7 +2,7 @@ var _ = require("lodash");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
 
-module.exports = function(ctx, callback){
+module.exports = function(ctx, engine_state, callback){
     cocb.run(function*(){
         var pico = yield ctx.db.getPicoYieldable(ctx.pico_id);
         if(!pico){
@@ -11,10 +11,10 @@ module.exports = function(ctx, callback){
         if(!_.has(pico.ruleset, ctx.query.rid)){
             throw new Error("Pico does not have that rid");
         }
-        if(!_.has(ctx.rulesets, ctx.query.rid)){
+        if(!_.has(engine_state.rulesets, ctx.query.rid)){
             throw new Error("Not found: rid");
         }
-        var rs = ctx.rulesets[ctx.query.rid];
+        var rs = engine_state.rulesets[ctx.query.rid];
         var shares = _.get(rs, ["meta", "shares"]);
         if(!_.isArray(shares) || !_.includes(shares, ctx.query.name)){
             throw new Error("Not shared");

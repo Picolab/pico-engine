@@ -74,9 +74,9 @@ var shouldRuleSelect = cocb.wrap(function*(ctx, rule){
     return next_state === "end";
 });
 
-var selectForPico = function(ctx, pico, callback){
+var selectForPico = function(ctx, engine_state, pico, callback){
 
-    var to_run = _.get(ctx.salience_graph, [ctx.event.domain, ctx.event.type], {});
+    var to_run = _.get(engine_state.salience_graph, [ctx.event.domain, ctx.event.type], {});
 
     var rules_to_select = [];
     _.each(to_run, function(rules, rid){
@@ -90,11 +90,11 @@ var selectForPico = function(ctx, pico, callback){
         }
         _.each(rules, function(is_on, rule_name){
             if(is_on){
-                var rule = _.get(ctx.rulesets, [rid, "rules", rule_name]);
+                var rule = _.get(engine_state.rulesets, [rid, "rules", rule_name]);
                 if(rule){
                     //shallow clone with it"s own scope for this run
                     rules_to_select.push(_.assign({}, rule, {
-                        scope: ctx.rulesets[rid].scope.push()
+                        scope: engine_state.rulesets[rid].scope.push()
                     }));
                 }
             }
@@ -112,10 +112,10 @@ var selectForPico = function(ctx, pico, callback){
     });
 };
 
-module.exports = function(ctx, callback){
+module.exports = function(ctx, engine_state, callback){
     //read this fresh everytime we select, b/c it might have changed during event processing
     ctx.db.getPico(ctx.pico_id, function(err, pico){
         if(err) return callback(err);
-        selectForPico(ctx, pico, callback);
+        selectForPico(ctx, engine_state, pico, callback);
     });
 };

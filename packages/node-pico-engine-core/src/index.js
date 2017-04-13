@@ -3,7 +3,6 @@ var λ = require("contra");
 var DB = require("./DB");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
-var getArg = require("./getArg");
 var modules = require("./modules");
 var PicoQueue = require("./PicoQueue");
 var krl_stdlib = require("krl-stdlib");
@@ -44,11 +43,14 @@ module.exports = function(conf, callback){
     var mkCTX = function(ctx){
         ctx.db = db;
         ctx.host = host;
-        ctx.getArg = getArg;
         ctx.signalEvent = signalEvent;
+        ctx.registerRulesetSrc = registerRulesetSrc;
+        ctx.getMyKey = function(id){
+            var rid = ctx.rid;
+            return _.get(keys_module_data, ["used_keys", rid, id]);
+        };
+
         ctx.modules = modulesSync;
-        ctx.rulesets = rulesets;
-        ctx.salience_graph = salience_graph;
         ctx.KRLClosure = KRLClosure;
         ctx.emit = function(type, val, message){//for stdlib
             var info = {};
@@ -108,11 +110,6 @@ module.exports = function(conf, callback){
                     reject(err);
                 }
             });
-        };
-        ctx.registerRulesetSrc = registerRulesetSrc;
-        ctx.getMyKey = function(id){
-            var rid = ctx.rid;
-            return _.get(keys_module_data, ["used_keys", rid, id]);
         };
         return ctx;
     };
@@ -267,7 +264,10 @@ module.exports = function(conf, callback){
                 mkCTX: mkCTX,
                 event: event,
                 pico_id: pico_id
-            }), function(err, data){
+            }), {
+                rulesets: rulesets,
+                salience_graph: salience_graph,
+            }, function(err, data){
                 if(err) return callback(err);
                 if(_.has(data, "event:send")){
                     _.each(data["event:send"], function(o){
@@ -281,7 +281,9 @@ module.exports = function(conf, callback){
             processQuery(mkCTX({
                 query: data.query,
                 pico_id: pico_id
-            }), callback);
+            }), {
+                rulesets: rulesets,
+            }, callback);
         }else{
             callback(new Error("invalid PicoQueue type:" + data.type));
         }
