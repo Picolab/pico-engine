@@ -3,7 +3,7 @@ var λ = require("contra");
 var DB = require("./DB");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
-var modules = require("./modules");
+var Modules = require("./modules");
 var PicoQueue = require("./PicoQueue");
 var krl_stdlib = require("krl-stdlib");
 var KRLClosure = require("./KRLClosure");
@@ -11,11 +11,6 @@ var SymbolTable = require("symbol-table");
 var EventEmitter = require("events");
 var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
-
-var modulesSync = {
-    get: cocb.toYieldable(modules.get),
-    set: cocb.toYieldable(modules.set),
-};
 
 var log_levels = {
     "info": true,
@@ -39,6 +34,9 @@ module.exports = function(conf, callback){
     var keys_module_data = {};
 
     var emitter = new EventEmitter();
+    var modules = Modules({
+        db: db,
+    });
 
     var mkCTX = function(ctx){
         ctx.db = db;
@@ -50,7 +48,7 @@ module.exports = function(conf, callback){
             return _.get(keys_module_data, ["used_keys", rid, id]);
         };
 
-        ctx.modules = modulesSync;
+        ctx.modules = modules;
         ctx.KRLClosure = KRLClosure;
         ctx.emit = function(type, val, message){//for stdlib
             var info = {};

@@ -1,7 +1,7 @@
 var _ = require("lodash");
 
 module.exports = {
-    get: function(ctx, id, callback){
+    get: function(ctx, core, id, callback){
         if(id === "eci"){
             callback(null, _.get(ctx,["event","eci"],_.get(ctx,["query","eci"])));
             return;
@@ -12,7 +12,7 @@ module.exports = {
             callback(null, ctx.host);
             return;
         }else if(id === "rulesetURI"){
-            ctx.db.getEnabledRuleset(ctx.rid, function(err, data){
+            core.db.getEnabledRuleset(ctx.rid, function(err, data){
                 if(err) return callback(err);
                 callback(null, data.url);
             });

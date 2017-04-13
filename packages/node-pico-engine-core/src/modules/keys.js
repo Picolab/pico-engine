@@ -3,7 +3,7 @@ var cocb = require("co-callback");
 var getArg = require("../getArg");
 
 module.exports = {
-    get: function(ctx, id, callback){
+    get: function(ctx, core, id, callback){
         var key = ctx.getMyKey(id);
         if(key === void 0 || key === null){
             callback(new Error("keys:" + id + " not defined"));
