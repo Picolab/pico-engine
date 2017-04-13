@@ -2,7 +2,7 @@ var _ = require("lodash");
 var test = require("tape");
 var http = require("http");
 var cocb = require("co-callback");
-var khttp = require("./http").def;
+var khttp = require("./http")().def;
 
 test("http module", function(t){
     var server = http.createServer(function(req, res){

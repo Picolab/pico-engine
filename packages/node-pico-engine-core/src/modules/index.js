@@ -1,7 +1,7 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 
-var modules = {
+var sub_modules = {
     ent: require("./ent"),
     app: require("./app"),
     event: require("./event"),
@@ -13,6 +13,9 @@ var modules = {
 };
 
 module.exports = function(core){
+    var modules = _.mapValues(sub_modules, function(m){
+        return m(core);
+    });
     return {
         get: cocb.toYieldable(function(ctx, domain, id, callback){
             if(_.has(modules, [domain, "def", id])){
@@ -20,7 +23,7 @@ module.exports = function(core){
                 return;
             }
             if(_.has(modules, [domain, "get"])){
-                modules[domain].get(ctx, core, id, callback);
+                modules[domain].get(ctx, id, callback);
                 return;
             }
             if(_.has(ctx, ["modules_used", domain, "scope"])){
@@ -36,7 +39,7 @@ module.exports = function(core){
         set: cocb.toYieldable(function(ctx, domain, id, value, callback){
             if(_.has(modules, domain)){
                 if(_.has(modules[domain], "set")){
-                    modules[domain].set(ctx, core, id, value, callback);
+                    modules[domain].set(ctx, id, value, callback);
                     return;
                 }
                 callback(new Error("Cannot assign to `" + domain + ":*`"));

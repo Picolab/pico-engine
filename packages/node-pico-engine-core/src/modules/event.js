@@ -105,6 +105,8 @@ var fns = {
     })
 };
 
-module.exports = {
-    def: fns
+module.exports = function(core){
+    return {
+        def: fns
+    };
 };

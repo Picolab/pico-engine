@@ -81,6 +81,8 @@ var fns = {
     head: mkMethod("HEAD"),
 };
 
-module.exports = {
-    def: fns
+module.exports = function(core){
+    return {
+        def: fns
+    };
 };
