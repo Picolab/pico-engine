@@ -397,12 +397,7 @@ test("action", function(t){
     src += "two => blah(2)";
     testAction(src, {
         type: "RuleActionBlock",
-        condition: {
-            type: "Application",
-            callee: mk.id("exp"),
-            args: [],
-            "with": []
-        },
+        condition: mk.app(mk.id("exp")),
         block_type: "choose",
         actions: [
             {
@@ -815,27 +810,12 @@ test("expressions", function(t){
         args: [],
         "with": []
     });
-    testExp("one ( 1 , 2 )", {
-        type: "Application",
-        callee: {type: "Identifier", value: "one"},
-        args: [{type: "Number", value: 1}, {type: "Number", value: 2}],
-        "with": []
-    });
-    testExp("one(1,2)", {
-        type: "Application",
-        callee: {type: "Identifier", value: "one"},
-        args: [{type: "Number", value: 1}, {type: "Number", value: 2}],
-        "with": []
-    });
-    testExp("one(1, 2) with a = 3 b = 4", {
-        type: "Application",
-        callee: mk.id("one"),
-        args: [mk(1), mk(2)],
-        "with": [
-            mk.declare("=", mk.id("a"), mk(3)),
-            mk.declare("=", mk.id("b"), mk(4))
-        ]
-    });
+    testExp("one ( 1 , 2 )", mk.app(mk.id("one"), [mk(1), mk(2)]));
+    testExp("one (1,2)", mk.app(mk.id("one"), [mk(1), mk(2)]));
+    testExp("one(1, 2) with a = 3 b = 4", mk.app(mk.id("one"), [mk(1), mk(2)], [
+        mk.declare("=", mk.id("a"), mk(3)),
+        mk.declare("=", mk.id("b"), mk(4))
+    ]));
 
     testExp('1 + "two"', {
         type: "InfixOperator",
@@ -931,17 +911,12 @@ test("expressions", function(t){
         method: "path"
     });
 
-    testExp('foo{"bar"}()', {
-        type: "Application",
-        callee: {
-            type: "MemberExpression",
-            object: mk.id("foo"),
-            property: mk("bar"),
-            method: "path"
-        },
-        args: [],
-        "with": []
-    });
+    testExp('foo{"bar"}()', mk.app({
+        type: "MemberExpression",
+        object: mk.id("foo"),
+        property: mk("bar"),
+        method: "path"
+    }));
 
     testExp("one.two", {
         type: "MemberExpression",
@@ -950,58 +925,33 @@ test("expressions", function(t){
         method: "dot"
     });
 
-    testExp("one.two()", {
-        type: "Application",
-        callee: {
-            type: "MemberExpression",
-            object: mk.id("one"),
-            property: mk.id("two"),
-            method: "dot"
-        },
-        args: [],
-        "with": []
-    });
+    testExp("one.two()", mk.app({
+        type: "MemberExpression",
+        object: mk.id("one"),
+        property: mk.id("two"),
+        method: "dot"
+    }));
 
     testExp("one().two", {
         type: "MemberExpression",
-        object: {
-            type: "Application",
-            callee: mk.id("one"),
-            args: [],
-            "with": []
-        },
+        object: mk.app(mk.id("one")),
         property: mk.id("two"),
         method: "dot"
     });
 
-    testExp("one().two()", {
-        type: "Application",
-        callee: {
-            type: "MemberExpression",
-            object: {
-                type: "Application",
-                callee: mk.id("one"),
-                args: [],
-                "with": []
-            },
-            property: mk.id("two"),
-            method: "dot"
-        },
-        args: [],
-        "with": []
-    });
+    testExp("one().two()", mk.app({
+        type: "MemberExpression",
+        object: mk.app(mk.id("one")),
+        property: mk.id("two"),
+        method: "dot"
+    }));
 
-    testExp("1.isnull()", {
-        type: "Application",
-        callee: {
-            type: "MemberExpression",
-            object: mk(1),
-            property: mk.id("isnull"),
-            method: "dot"
-        },
-        args: [],
-        "with": []
-    });
+    testExp("1.isnull()", mk.app({
+        type: "MemberExpression",
+        object: mk(1),
+        property: mk.id("isnull"),
+        method: "dot"
+    }));
 
     testExp("not a", mk.unary("not", mk.id("a")));
     testExp("nota", mk.id("nota"));
