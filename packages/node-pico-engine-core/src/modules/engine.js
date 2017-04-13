@@ -32,91 +32,91 @@ var httpGetKRL = function(url, callback){
     });
 };
 
-var registerURL = function(ctx, url, callback){
-    httpGetKRL(url, function(err, src){
-        if(err) return callback(err);
-        ctx.registerRulesetSrc(src, {
-            url: url
-        }, function(err, data){
-            if(err) return callback(err);
-            callback(null, data.rid);
-        });
-    });
-};
-
-var fns = {
-    newPico: cocb.toYieldable(function(ctx, args, callback){
-        var opts = getArg(args, "opts", 0);
-        ctx.db.newPico(opts, callback);
-    }),
-    removePico: cocb.toYieldable(function(ctx, args, callback){
-        var id = getArg(args, "id", 0);
-        ctx.db.removePico(id, callback);
-    }),
-    newChannel: cocb.toYieldable(function(ctx, args, callback){
-        var opts = getArg(args, "opts", 0);
-        ctx.db.newChannel(opts, callback);
-    }),
-    removeChannel: cocb.toYieldable(function(ctx, args, callback){
-        var opts = getArg(args, "opts", 0);
-        ctx.db.removeChannel(opts.pico_id, opts.eci, callback);
-    }),
-    registerRuleset: cocb.toYieldable(function(ctx, args, callback){
-        var opts = getArg(args, "opts", 0);
-        var uri;
-        if(_.isString(opts.url)){
-            uri = _.isString(opts.base)
-                ? url.resolve(opts.base, opts.url)
-                : opts.url;
-        }
-        if(!_.isString(uri)){
-            return callback(new Error("registerRuleset expects, pico_id and rid or url+base"));
-        }
-        registerURL(ctx, uri, callback);
-    }),
-    installRuleset: cocb.toYieldable(function(ctx, args, callback){
-        var opts = getArg(args, "opts", 0);
-
-        var pico_id = opts.pico_id;
-        var rid = opts.rid;
-        var uri;
-        if(_.isString(opts.url)){
-            uri = _.isString(opts.base)
-                ? url.resolve(opts.base, opts.url)
-                : opts.url;
-        }
-        if(!_.isString(pico_id) || (!_.isString(rid) && !_.isString(uri))){
-            return callback(new Error("installRuleset expects, pico_id and rid or url+base"));
-        }
-
-        var doIt = function(rid){
-            installRulesetAndValidateIds(ctx.db, pico_id, rid, function(err){
-                callback(err, rid);
-            });
-        };
-
-        if(_.isString(rid)){
-            return doIt(rid);
-        }
-        ctx.db.findRulesetsByURL(uri, function(err, results){
-            if(err) return callback(err);
-            var rids = _.uniq(_.map(results, "rid"));
-            if(_.size(rids) === 0){
-                registerURL(ctx, uri, function(err, rid){
-                    if(err) return callback(err);
-                    doIt(rid);
-                });
-                return;
-            }
-            if(_.size(rids) !== 1){
-                return callback(new Error("More than one rid found for the given url: " + rids.join(" , ")));
-            }
-            doIt(_.head(rids));
-        });
-    })
-};
-
 module.exports = function(core){
+    var registerURL = function(url, callback){
+        httpGetKRL(url, function(err, src){
+            if(err) return callback(err);
+            core.registerRulesetSrc(src, {
+                url: url
+            }, function(err, data){
+                if(err) return callback(err);
+                callback(null, data.rid);
+            });
+        });
+    };
+
+    var fns = {
+        newPico: cocb.toYieldable(function(ctx, args, callback){
+            var opts = getArg(args, "opts", 0);
+            core.db.newPico(opts, callback);
+        }),
+        removePico: cocb.toYieldable(function(ctx, args, callback){
+            var id = getArg(args, "id", 0);
+            core.db.removePico(id, callback);
+        }),
+        newChannel: cocb.toYieldable(function(ctx, args, callback){
+            var opts = getArg(args, "opts", 0);
+            core.db.newChannel(opts, callback);
+        }),
+        removeChannel: cocb.toYieldable(function(ctx, args, callback){
+            var opts = getArg(args, "opts", 0);
+            core.db.removeChannel(opts.pico_id, opts.eci, callback);
+        }),
+        registerRuleset: cocb.toYieldable(function(ctx, args, callback){
+            var opts = getArg(args, "opts", 0);
+            var uri;
+            if(_.isString(opts.url)){
+                uri = _.isString(opts.base)
+                    ? url.resolve(opts.base, opts.url)
+                    : opts.url;
+            }
+            if(!_.isString(uri)){
+                return callback(new Error("registerRuleset expects, pico_id and rid or url+base"));
+            }
+            registerURL(uri, callback);
+        }),
+        installRuleset: cocb.toYieldable(function(ctx, args, callback){
+            var opts = getArg(args, "opts", 0);
+
+            var pico_id = opts.pico_id;
+            var rid = opts.rid;
+            var uri;
+            if(_.isString(opts.url)){
+                uri = _.isString(opts.base)
+                    ? url.resolve(opts.base, opts.url)
+                    : opts.url;
+            }
+            if(!_.isString(pico_id) || (!_.isString(rid) && !_.isString(uri))){
+                return callback(new Error("installRuleset expects, pico_id and rid or url+base"));
+            }
+
+            var doIt = function(rid){
+                installRulesetAndValidateIds(core.db, pico_id, rid, function(err){
+                    callback(err, rid);
+                });
+            };
+
+            if(_.isString(rid)){
+                return doIt(rid);
+            }
+            core.db.findRulesetsByURL(uri, function(err, results){
+                if(err) return callback(err);
+                var rids = _.uniq(_.map(results, "rid"));
+                if(_.size(rids) === 0){
+                    registerURL(uri, function(err, rid){
+                        if(err) return callback(err);
+                        doIt(rid);
+                    });
+                    return;
+                }
+                if(_.size(rids) !== 1){
+                    return callback(new Error("More than one rid found for the given url: " + rids.join(" , ")));
+                }
+                doIt(_.head(rids));
+            });
+        })
+    };
+
     return {
         def: fns
     };

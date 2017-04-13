@@ -36,13 +36,13 @@ module.exports = function(conf, callback){
     var emitter = new EventEmitter();
     var modules = Modules({
         db: db,
+        registerRulesetSrc: registerRulesetSrc,
     });
 
     var mkCTX = function(ctx){
         ctx.db = db;
         ctx.host = host;
         ctx.signalEvent = signalEvent;
-        ctx.registerRulesetSrc = registerRulesetSrc;
         ctx.getMyKey = function(id){
             var rid = ctx.rid;
             return _.get(keys_module_data, ["used_keys", rid, id]);
