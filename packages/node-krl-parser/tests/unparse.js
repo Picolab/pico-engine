@@ -27,6 +27,12 @@ var gen = {
 
 
     "WithArguments": function(){//TODO remove
+        //TODO a() with b = (c()) -NOT- (a() with b = c)()
+        //parens or changing how app works would fix it
+        //
+        //TODO (... with b = c d = e) -NOT- (... with b = c) (d = e)
+        //semi-colons fix this
+        //
         return " ";//TODO remove
     },//TODO remove
 };
@@ -105,9 +111,6 @@ module.exports = function(options){
             stop_recusive_rules = true;
         }
         var currentname = stack.pop();
-        if(/^With_/.test(currentname)){
-            currentname = "With_and_body";
-        }
         if(currentname === "left_side_of_declaration"){
         //if(currentname === "PrimaryExpression"){
             currentname = "Identifier";
