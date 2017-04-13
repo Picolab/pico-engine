@@ -87,8 +87,12 @@ $.getJSON("/api/db-dump", function(db_dump){
   if (db_dump.rulesets && db_dump.rulesets.versions) {
     for(var aRid in db_dump.rulesets.versions) {
       rs_data.rulesets[aRid] = {};
-      if (get(db_dump.rulesets,["enabled",aRid],undefined)) {
+      rs_info = get(db_dump.rulesets,["enabled",aRid],undefined);
+      if (rs_info) {
         rs_data.rulesets[aRid].enabled = true;
+        if (get(db_dump.rulesets,["krl",rs_info.hash,"url"],undefined)) {
+          rs_data.rulesets[aRid].hasURL = true;
+        }
       }
     }
   }
@@ -113,7 +117,7 @@ $.getJSON("/api/db-dump", function(db_dump){
           + "                  \"events\": [ ] }\n"
           + "  }\n"
           + "}\n";
-        picoAPI("/api/ruleset/register",{"src":src},function(err, result){
+        picoAPI("/api/ruleset/register",{"src":src},"POST",function(err, result){
           if(err){
             alert("Error: " + err);
             return;
@@ -125,6 +129,17 @@ $.getJSON("/api/db-dump", function(db_dump){
     } else {
       alert("invalid ruleset id");
     }
+  });
+  $(".flush").click(function(e){
+    e.preventDefault();
+    picoAPI($(this).attr("href"),undefined,"GET",function(err, data){
+      if(err){
+        $("pre#feedback").html("<span style=\"color:red\">" + err + "</span>");
+        return;
+      }
+      location.hash = data.rid;
+      location.reload();
+    });
   });
   $("form.registerFromURL").submit(function(e){
     e.preventDefault();
@@ -150,7 +165,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     var $feedback = $("pre#feedback");
     $feedback.html("working...");
     var src = this.src.value;
-    picoAPI("/api/ruleset/compile",{"src":src},function(err, data){
+    picoAPI("/api/ruleset/compile",{"src":src},"POST",function(err, data){
       if(err){
         $feedback.html("<span style=\"color:red\">" + err + "</span>");
         return;
@@ -160,7 +175,7 @@ $.getJSON("/api/db-dump", function(db_dump){
         return;
       }
       var rid = data.code.split(/"/)[3];
-      picoAPI("/api/ruleset/register",{"src":src},function(err){
+      picoAPI("/api/ruleset/register",{"src":src},"POST",function(err){
         if(err){
           $feedback.html("<span style=\"color:red\">Problem registering "
                   + rid + "\n" + err + "</span>");

@@ -23,7 +23,11 @@
 Registered Rulesets
 <ul>
 {{#each rulesets}}
-<li class="krlrid{{#unless enabled}} disabled{{/unless}}"><span>{{@key}}</span></li>
+<li class="krlrid{{#unless enabled}} disabled{{/unless}}"><span>{{@key}}</span>
+{{#if hasURL}}
+<a class="flush" href="/api/ruleset/flush/{{@key}}">flush</a>
+{{/if}}
+</li>
 {{/each}}
 </ul>
 <hr>
