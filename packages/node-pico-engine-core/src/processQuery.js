@@ -2,19 +2,19 @@ var _ = require("lodash");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
 
-module.exports = function(ctx, engine_state, callback){
+module.exports = function(core, ctx, callback){
     cocb.run(function*(){
-        var pico = yield ctx.db.getPicoYieldable(ctx.pico_id);
+        var pico = yield core.db.getPicoYieldable(ctx.pico_id);
         if(!pico){
             throw new Error("Invalid eci: " + ctx.query.eci);
         }
         if(!_.has(pico.ruleset, ctx.query.rid)){
             throw new Error("Pico does not have that rid");
         }
-        if(!_.has(engine_state.rulesets, ctx.query.rid)){
+        if(!_.has(core.rulesets, ctx.query.rid)){
             throw new Error("Not found: rid");
         }
-        var rs = engine_state.rulesets[ctx.query.rid];
+        var rs = core.rulesets[ctx.query.rid];
         var shares = _.get(rs, ["meta", "shares"]);
         if(!_.isArray(shares) || !_.includes(shares, ctx.query.name)){
             throw new Error("Not shared");

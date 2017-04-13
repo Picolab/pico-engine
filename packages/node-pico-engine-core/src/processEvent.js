@@ -78,15 +78,15 @@ var evalRule = cocb.wrap(function*(ctx, rule){
 var runEvent = cocb.wrap(function*(scheduled){
     var rule = scheduled.rule;
     var ctx = scheduled.ctx;
-    var engine_state = scheduled.engine_state;
+    var core = scheduled.core;
 
     ctx.emit("debug", "rule selected: " + rule.rid + " -> " + rule.name);
 
     ctx.rid = rule.rid;
     ctx.rule = rule;
     ctx.scope = rule.scope;
-    if(_.has(engine_state.rulesets, rule.rid)){
-        ctx.modules_used = engine_state.rulesets[rule.rid].modules_used;
+    if(_.has(core.rulesets, rule.rid)){
+        ctx.modules_used = core.rulesets[rule.rid].modules_used;
     }
 
     var r = [];
@@ -111,19 +111,19 @@ var runEvent = cocb.wrap(function*(scheduled){
     return r;
 });
 
-var processEvent = cocb.wrap(function*(ctx, engine_state){
+var processEvent = cocb.wrap(function*(core, ctx){
     ctx.emit("debug", "event being processed");
 
     var schedule = [];
     var scheduleEventRAW = function(ctx, callback){
-        selectRulesToEval(ctx, engine_state, function(err, rules){
+        selectRulesToEval(core, ctx, function(err, rules){
             if(err) return callback(err);
             _.each(rules, function(rule){
                 ctx.emit("debug", "rule added to schedule: " + rule.rid + " -> " + rule.name);
                 schedule.push({
                     ctx: ctx,
                     rule: rule,
-                    engine_state: engine_state,
+                    core: core,
                 });
             });
             if(schedule.length === 0){
@@ -197,6 +197,6 @@ var processEvent = cocb.wrap(function*(ctx, engine_state){
     return r;
 });
 
-module.exports = function(ctx, engine_state, callback){
-    cocb.run(processEvent(ctx, engine_state), callback);
+module.exports = function(core, ctx, callback){
+    cocb.run(processEvent(core, ctx), callback);
 };

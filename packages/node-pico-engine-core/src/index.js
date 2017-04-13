@@ -33,16 +33,18 @@ module.exports = function(conf, callback){
     var salience_graph = {};
     var keys_module_data = {};
 
-    var emitter = new EventEmitter();
-    var modules = Modules({
+    var core = {
         db: db,
+        rulesets: rulesets,
+        salience_graph: salience_graph,
         registerRulesetSrc: registerRulesetSrc,
-    });
+    };
+
+    var emitter = new EventEmitter();
+    var modules = Modules(core);
 
     var mkCTX = function(ctx){
-        ctx.db = db;
         ctx.host = host;
-        ctx.signalEvent = signalEvent;
         ctx.getMyKey = function(id){
             var rid = ctx.rid;
             return _.get(keys_module_data, ["used_keys", rid, id]);
@@ -258,14 +260,11 @@ module.exports = function(conf, callback){
         if(data.type === "event"){
             var event = data.event;
             event.timestamp = new Date(event.timestamp);//convert from JSON string to date
-            processEvent(mkCTX({
+            processEvent(core, mkCTX({
                 mkCTX: mkCTX,
                 event: event,
                 pico_id: pico_id
-            }), {
-                rulesets: rulesets,
-                salience_graph: salience_graph,
-            }, function(err, data){
+            }), function(err, data){
                 if(err) return callback(err);
                 if(_.has(data, "event:send")){
                     _.each(data["event:send"], function(o){
@@ -276,12 +275,10 @@ module.exports = function(conf, callback){
                 callback(void 0, data);
             });
         }else if(data.type === "query"){
-            processQuery(mkCTX({
+            processQuery(core, mkCTX({
                 query: data.query,
                 pico_id: pico_id
-            }), {
-                rulesets: rulesets,
-            }, callback);
+            }), callback);
         }else{
             callback(new Error("invalid PicoQueue type:" + data.type));
         }
