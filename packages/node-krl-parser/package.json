@@ -32,6 +32,7 @@
   "homepage": "https://github.com/Picolab/node-krl-parser#readme",
   "devDependencies": {
     "diff-lines": "^1.1.0",
+    "eslint": "^3.19.0",
     "krl-generator": "^0.5.2",
     "lodash": "^4.13.1",
     "onchange": "^3.2.1",
@@ -39,7 +40,6 @@
     "tape": "^4.5.1"
   },
   "dependencies": {
-    "eslint": "^3.19.0",
     "excerpt-at-line-col": "^1.0.0",
     "line-column": "^1.0.2",
     "nearley": "^2.5.0"
