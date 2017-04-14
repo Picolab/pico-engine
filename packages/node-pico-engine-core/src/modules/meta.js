@@ -10,7 +10,7 @@ module.exports = function(core){
                 callback(null, ctx.rid);
                 return;
             }else if(id === "host"){
-                callback(null, ctx.host);
+                callback(null, core.host);
                 return;
             }else if(id === "rulesetURI"){
                 core.db.getEnabledRuleset(ctx.rid, function(err, data){

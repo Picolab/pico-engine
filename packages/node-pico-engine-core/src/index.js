@@ -35,6 +35,7 @@ module.exports = function(conf, callback){
 
     var core = {
         db: db,
+        host: host,
         rulesets: rulesets,
         salience_graph: salience_graph,
         registerRulesetSrc: registerRulesetSrc,
@@ -44,7 +45,6 @@ module.exports = function(conf, callback){
     var modules = Modules(core);
 
     var mkCTX = function(ctx){
-        ctx.host = host;
         ctx.getMyKey = function(id){
             var rid = ctx.rid;
             return _.get(keys_module_data, ["used_keys", rid, id]);
@@ -88,11 +88,11 @@ module.exports = function(conf, callback){
             emitter.emit(type, info, val, message);
         };
         ctx.log = function(level, val){
-            var l = _.has(log_levels, level)
-                ? level
-                : _.head(_.keys(log_levels));
-            l = "log-" + l;//this 'log-' prefix distinguishes user declared log events from other system generated events
-            ctx.emit(l, val);
+            if(!_.has(log_levels, level)){
+                throw new Error("Unsupported log level: " + level);
+            }
+            //this 'log-' prefix distinguishes user declared log events from other system generated events
+            ctx.emit("log-" + level, val);
         };
         ctx.callKRLstdlib = function(fn_name){
             var args = _.toArray(arguments);
@@ -111,8 +111,12 @@ module.exports = function(conf, callback){
                 }
             });
         };
+
+        //don't allow anyone to mutate ctx on the fly
+        //Object.freeze(ctx);
         return ctx;
     };
+    core.mkCTX = mkCTX;
 
     var initializeRulest = cocb.wrap(function*(rs, loadDepRS){
         rs.scope = SymbolTable();
@@ -261,7 +265,6 @@ module.exports = function(conf, callback){
             var event = data.event;
             event.timestamp = new Date(event.timestamp);//convert from JSON string to date
             processEvent(core, mkCTX({
-                mkCTX: mkCTX,
                 event: event,
                 pico_id: pico_id
             }), function(err, data){

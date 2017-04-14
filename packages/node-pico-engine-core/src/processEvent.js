@@ -148,7 +148,7 @@ var processEvent = cocb.wrap(function*(core, ctx){
             timestamp: new Date()
         };
         //must make a new ctx for this raise b/c it's a different event
-        var raise_ctx = ctx.mkCTX({
+        var raise_ctx = core.mkCTX({
             event: event,
             pico_id: ctx.pico_id//raise event is always to the same pico
         });
