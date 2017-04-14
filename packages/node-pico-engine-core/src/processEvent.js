@@ -82,12 +82,17 @@ var runEvent = cocb.wrap(function*(scheduled){
 
     ctx.emit("debug", "rule selected: " + rule.rid + " -> " + rule.name);
 
-    ctx.rid = rule.rid;
-    ctx.rule = rule;
-    ctx.scope = rule.scope;
-    if(_.has(core.rulesets, rule.rid)){
-        ctx.modules_used = core.rulesets[rule.rid].modules_used;
-    }
+    ctx = core.mkCTX({
+        event: ctx.event,
+        pico_id: ctx.pico_id,
+        raiseEvent: ctx.raiseEvent,
+        rid: rule.rid,
+        rule: rule,
+        scope: rule.scope,
+        modules_used: _.has(core.rulesets, rule.rid)
+            ? core.rulesets[rule.rid].modules_used
+            : void 0,
+    });
 
     var r = [];
     if(rule.foreach){
@@ -132,31 +137,33 @@ var processEvent = cocb.wrap(function*(core, ctx){
             callback();
         });
     };
-    var scheduleEvent = cocb.toYieldable(scheduleEventRAW);
 
-    yield scheduleEvent(ctx);
+    ctx = core.mkCTX({
+        event: ctx.event,
+        pico_id: ctx.pico_id,
+        raiseEvent: function(revent, callback){
+            //shape the revent like a normal event
+            var event = {
+                eci: ctx.event.eci,//raise event is always to the same pico
+                eid: ctx.event.eid,//inherit from parent event to aid in debugging
+                domain: revent.domain,
+                type: revent.type,
+                attrs: revent.attributes,
+                for_rid: revent.for_rid,
+                timestamp: new Date()
+            };
+            //must make a new ctx for this raise b/c it's a different event
+            var raise_ctx = core.mkCTX({
+                event: event,
+                pico_id: ctx.pico_id,//raise event is always to the same pico
+                raiseEvent: ctx.raiseEvent,
+            });
+            raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
+            scheduleEventRAW(raise_ctx, callback);
+        }
+    });
 
-    ctx.raiseEvent = function(revent, callback){
-        //shape the revent like a normal event
-        var event = {
-            eci: ctx.event.eci,//raise event is always to the same pico
-            eid: ctx.event.eid,//inherit from parent event to aid in debugging
-            domain: revent.domain,
-            type: revent.type,
-            attrs: revent.attributes,
-            for_rid: revent.for_rid,
-            timestamp: new Date()
-        };
-        //must make a new ctx for this raise b/c it's a different event
-        var raise_ctx = core.mkCTX({
-            event: event,
-            pico_id: ctx.pico_id//raise event is always to the same pico
-        });
-        raise_ctx.raiseEvent = ctx.raiseEvent;
-        raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
-        scheduleEventRAW(raise_ctx, callback);
-    };
-
+    yield cocb.toYieldable(scheduleEventRAW)(ctx);
 
     var responses = [];
     //using a while loop b/c schedule is MUTABLE

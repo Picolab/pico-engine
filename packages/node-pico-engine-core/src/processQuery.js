@@ -24,9 +24,13 @@ module.exports = function(core, ctx, callback){
         }
 
         ////////////////////////////////////////////////////////////////////////
-        ctx.rid = rs.rid;
-        ctx.modules_used = rs.modules_used;
-        ctx.scope = rs.scope;
+        ctx = core.mkCTX({
+            query: ctx.query,
+            pico_id: ctx.pico_id,
+            rid: rs.rid,
+            scope: rs.scope,
+            modules_used: rs.modules_used,
+        });
         var val = ctx.scope.get(ctx.query.name);
         if(_.isFunction(val)){
             return yield runKRL(val, ctx, ctx.query.args);

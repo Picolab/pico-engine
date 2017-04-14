@@ -113,7 +113,7 @@ module.exports = function(conf, callback){
         };
 
         //don't allow anyone to mutate ctx on the fly
-        //Object.freeze(ctx);
+        Object.freeze(ctx);
         return ctx;
     };
     core.mkCTX = mkCTX;
@@ -318,14 +318,16 @@ module.exports = function(conf, callback){
     };
 
     var runQuery = function(query, callback){
-        var ctx = mkCTX({query: query});
-        var emit = ctx.emit;
+        var emit = mkCTX({query: query}).emit;
         emit("episode_start");
         emit("debug", "query received: " + query.rid + "/" + query.name);
 
         db.getPicoIDByECI(query.eci, function(err, pico_id){
             if(err) return callback(err);
-            ctx.pico_id = pico_id;
+            var emit = mkCTX({
+                query: query,
+                pico_id: pico_id,
+            }).emit;
             picoQ.enqueue(pico_id, {
                 type: "query",
                 query: query
