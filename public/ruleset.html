@@ -27,6 +27,9 @@ Registered Rulesets
 {{#if hasURL}}
 <a class="flush" href="/api/ruleset/flush/{{@key}}">flush</a>
 {{/if}}
+{{#if canDel}}
+<a class="unregister" href="/api/ruleset/unregister/{{@key}}">del</a>
+{{/if}}
 </li>
 {{/each}}
 </ul>

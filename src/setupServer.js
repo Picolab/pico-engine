@@ -259,5 +259,12 @@ module.exports = function(pe){
         });
     });
 
+    app.all("/api/ruleset/unregister/:rid", function(req, res){
+        pe.db.unregisterRuleset(req.params.rid, function(err){
+            if(err) return errResp(res, err);
+            res.json({ok: true});
+        });
+    });
+
     return app;
 };
