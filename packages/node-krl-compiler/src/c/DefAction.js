@@ -7,9 +7,8 @@ module.exports = function(ast, comp, e){
         return e(";", e("call", e("id", "ctx.scope.set", loc), [
             e("str", param.value, loc),
             e("call",
-                e("id", "ctx.getArg", loc),
+                e("id", "getArg", loc),
                 [
-                    e("id", "ctx.args", loc),
                     e("string", param.value, loc),
                     e("number", i, loc)
                 ],

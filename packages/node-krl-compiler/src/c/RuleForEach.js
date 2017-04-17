@@ -9,8 +9,7 @@ module.exports = function(ast, comp, e, context){
         var loc = id.loc;
         return e(";", e("call", e("id", "ctx.scope.set"), [
             e("str", id.value, loc),
-            e("call", e("id", "ctx.getArg", loc), [
-                e("id", "ctx.args", loc),
+            e("call", e("id", "getArg", loc), [
                 e("string", param_name, loc),
                 e("number", i, loc)
             ], loc)
