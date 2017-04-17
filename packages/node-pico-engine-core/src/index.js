@@ -289,7 +289,9 @@ module.exports = function(conf, callback){
         }
     });
 
-    var signalEvent = function(event, callback){
+    var signalEvent = function(event_orig, callback){
+        //ensure that event is not mutated
+        var event = _.cloneDeep(event_orig);//TODO optimize
         if(!_.isDate(event.timestamp) || !conf.allow_event_time_override){
             event.timestamp = new Date();
         }
@@ -319,7 +321,9 @@ module.exports = function(conf, callback){
         });
     };
 
-    var runQuery = function(query, callback){
+    var runQuery = function(query_orig, callback){
+        //ensure that query is not mutated
+        var query = _.cloneDeep(query_orig);//TODO optimize
         var emit = mkCTX({query: query}).emit;
         emit("episode_start");
         emit("debug", "query received: " + query.rid + "/" + query.name);
