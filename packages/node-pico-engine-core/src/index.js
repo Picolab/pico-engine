@@ -45,10 +45,12 @@ module.exports = function(conf, callback){
     var modules = Modules(core);
 
     var mkCTX = function(ctx){
-        ctx.getMyKey = function(id){
-            var rid = ctx.rid;
-            return _.get(keys_module_data, ["used_keys", rid, id]);
-        };
+        ctx.getMyKey = (function(rid){
+            //we do it this way so all the keys are not leaked out to other built in modules or rulesets
+            return function(id){
+                return _.get(keys_module_data, ["used_keys", rid, id]);
+            };
+        }(ctx.rid));//pass in the rid at mkCTX creation so it is not later mutated
 
         ctx.modules = modules;
         ctx.KRLClosure = KRLClosure;
