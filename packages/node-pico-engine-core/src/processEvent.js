@@ -88,9 +88,6 @@ var runEvent = cocb.wrap(function*(scheduled){
         raiseEvent: ctx.raiseEvent,
         rid: rule.rid,
         scope: rule.scope,
-        modules_used: _.has(core.rulesets, rule.rid)
-            ? core.rulesets[rule.rid].modules_used
-            : void 0,
     });
 
     var r = [];

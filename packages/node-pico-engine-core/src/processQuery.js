@@ -29,7 +29,6 @@ module.exports = function(core, ctx, callback){
             pico_id: ctx.pico_id,
             rid: rs.rid,
             scope: rs.scope,
-            modules_used: rs.modules_used,
         });
         var val = ctx.scope.get(ctx.query.name);
         if(_.isFunction(val)){

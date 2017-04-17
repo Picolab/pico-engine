@@ -26,13 +26,13 @@ module.exports = function(core){
                 modules[domain].get(ctx, id, callback);
                 return;
             }
-            if(_.has(ctx, ["modules_used", domain, "scope"])){
-                if(ctx.modules_used[domain].scope.has(id)){
-                    if(_.includes(ctx.modules_used[domain].provides, id)){
-                        callback(null, ctx.modules_used[domain].scope.get(id));
-                        return;
-                    }
-                }
+            var umod = _.get(core.rulesets, [ctx.rid, "modules_used", domain]);
+            if(_.has(umod, "scope")
+                && umod.scope.has(id)
+                && _.includes(umod.provides, id)
+            ){
+                callback(null, umod.scope.get(id));
+                return;
             }
             callback(new Error("Not defined `" + domain + ":" + id + "`"));
         }),
