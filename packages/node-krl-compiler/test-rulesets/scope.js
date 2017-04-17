@@ -57,7 +57,7 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
@@ -67,7 +67,7 @@ module.exports = {
             ctx.scope.set("my_name", matches[0]);
             return true;
           },
-          "expr_1": function* (ctx) {
+          "expr_1": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -101,7 +101,7 @@ module.exports = {
       "select": {
         "graph": { "scope": { "prelude": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
@@ -154,7 +154,7 @@ module.exports = {
       "select": {
         "graph": { "scope": { "functions": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },

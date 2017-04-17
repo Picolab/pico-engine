@@ -31,7 +31,7 @@ module.exports = {
       "select": {
         "graph": { "module_defined": { "store_memo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "memo",
                   new RegExp("^(.*)$", "")

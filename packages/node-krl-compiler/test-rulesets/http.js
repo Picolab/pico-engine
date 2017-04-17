@@ -55,7 +55,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "get": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -87,7 +87,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "post": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -117,7 +117,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "post_action": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -148,7 +148,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "post_setting": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -186,7 +186,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "autoraise": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -218,7 +218,7 @@ module.exports = {
       "select": {
         "graph": { "http": { "post": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },

@@ -29,7 +29,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "dflt_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -57,7 +57,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "conf_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -85,7 +85,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "dflt_info": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -113,7 +113,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "conf_info": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },

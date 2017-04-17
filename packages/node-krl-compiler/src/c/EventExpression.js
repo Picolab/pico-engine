@@ -4,7 +4,6 @@ var callModuleFn = require("../utils/callModuleFn");
 module.exports = function(ast, comp, e){
     //FYI the graph allready vetted the domain and type
 
-    var fn_params = ["ctx"];
     var fn_body = [];
 
     if(!_.isEmpty(ast.attributes)){
@@ -37,7 +36,6 @@ module.exports = function(ast, comp, e){
     });
 
     if(ast.aggregator){
-        fn_params.push("aggregateEvent");
         fn_body.push(e(";",
                         e("ycall",
                             e("id", "aggregateEvent", ast.aggregator.loc),
@@ -57,5 +55,5 @@ module.exports = function(ast, comp, e){
 
     fn_body.push(e("return", e(true)));
 
-    return e("genfn", fn_params, fn_body);
+    return e("genfn", ["ctx", "aggregateEvent"], fn_body);
 };
