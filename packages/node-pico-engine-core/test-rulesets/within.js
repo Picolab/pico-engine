@@ -11,10 +11,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           },
-          "expr_1": function* (ctx) {
+          "expr_1": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -54,10 +54,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           },
-          "expr_1": function* (ctx) {
+          "expr_1": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -98,13 +98,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           },
-          "expr_1": function* (ctx) {
+          "expr_1": function* (ctx, aggregateEvent) {
             return true;
           },
-          "expr_2": function* (ctx) {
+          "expr_2": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -153,7 +153,7 @@ module.exports = {
       "select": {
         "graph": { "qux": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "b",
                   new RegExp("c", "")

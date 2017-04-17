@@ -28,7 +28,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "bind": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
@@ -63,7 +63,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "set_attr2": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[
                 [
                   "number",
@@ -108,7 +108,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "get": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -139,7 +139,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "noop": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -156,7 +156,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "noop2": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -180,7 +180,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "ifthen": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
@@ -218,7 +218,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "on_fired": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
@@ -260,7 +260,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "on_choose": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "thing",
                   new RegExp("^(.*)$", "")
@@ -321,7 +321,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "select_where": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             if (!(yield ctx.callKRLstdlib("match", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["something"]), new RegExp("^wat", ""))))
               return false;
             return true;
@@ -351,7 +351,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "no_action": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "fired",
                   new RegExp("^yes$", "i")
@@ -383,7 +383,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "action_send": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
@@ -420,7 +420,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "store_sent_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
@@ -452,7 +452,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "raise_set_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
@@ -488,7 +488,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "raise_set_name_attr": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
@@ -524,7 +524,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "raise_set_name_rid": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")

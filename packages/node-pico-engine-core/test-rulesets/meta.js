@@ -25,7 +25,7 @@ module.exports = {
       "select": {
         "graph": { "meta": { "eci": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },
@@ -53,7 +53,7 @@ module.exports = {
       "select": {
         "graph": { "meta": { "rulesetURI": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             return true;
           }
         },

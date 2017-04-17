@@ -65,7 +65,6 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
         }
     }
 
-    //this ctx will be passed to the compiled code for evaluting event exp
     var next_state = yield getNextState(core.mkCTX({
         scope: rule.scope,
         event: ctx.event,
