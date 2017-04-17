@@ -980,12 +980,10 @@ module.exports = {
                 ]]]);
             if (!matches)
               return false;
-            yield aggregateEvent(ctx, "max",
-              [[
-                  "m",
-                  matches[0]
-                ]]
-            );
+            yield aggregateEvent(ctx, "max", [[
+                "m",
+                matches[0]
+              ]]);
             return true;
           }
         },
@@ -1028,12 +1026,10 @@ module.exports = {
                 ]]]);
             if (!matches)
               return false;
-            yield aggregateEvent(ctx, "min",
-              [[
-                  "m",
-                  matches[0]
-                ]]
-            );
+            yield aggregateEvent(ctx, "min", [[
+                "m",
+                matches[0]
+              ]]);
             return true;
           }
         },
@@ -1080,12 +1076,10 @@ module.exports = {
                 ]]]);
             if (!matches)
               return false;
-            yield aggregateEvent(ctx, "sum",
-              [[
-                  "m",
-                  matches[0]
-                ]]
-            );
+            yield aggregateEvent(ctx, "sum", [[
+                "m",
+                matches[0]
+              ]]);
             return true;
           }
         },
@@ -1132,12 +1126,10 @@ module.exports = {
                 ]]]);
             if (!matches)
               return false;
-            yield aggregateEvent(ctx, "avg",
-              [[
-                  "m",
-                  matches[0]
-                ]]
-            );
+            yield aggregateEvent(ctx, "avg", [[
+                "m",
+                matches[0]
+              ]]);
             return true;
           }
         },
@@ -1184,12 +1176,10 @@ module.exports = {
                 ]]]);
             if (!matches)
               return false;
-            yield aggregateEvent(ctx, "push",
-              [[
-                  "m",
-                  matches[0]
-                ]]
-            );
+            yield aggregateEvent(ctx, "push", [[
+                "m",
+                matches[0]
+              ]]);
             return true;
           }
         },
@@ -1242,26 +1232,24 @@ module.exports = {
               ]]);
             if (!matches)
               return false;
-            yield aggregateEvent(ctx, "push",
+            yield aggregateEvent(ctx, "push", [
               [
-                [
-                  "a",
-                  matches[0]
-                ],
-                [
-                  "b",
-                  matches[1]
-                ],
-                [
-                  "c",
-                  matches[2]
-                ],
-                [
-                  "d",
-                  matches[3]
-                ]
+                "a",
+                matches[0]
+              ],
+              [
+                "b",
+                matches[1]
+              ],
+              [
+                "c",
+                matches[2]
+              ],
+              [
+                "d",
+                matches[3]
               ]
-            );
+            ]);
             return true;
           }
         },
@@ -1327,18 +1315,16 @@ module.exports = {
               ]]);
             if (!matches)
               return false;
-            yield aggregateEvent(ctx, "sum",
+            yield aggregateEvent(ctx, "sum", [
               [
-                [
-                  "a",
-                  matches[0]
-                ],
-                [
-                  "b",
-                  matches[1]
-                ]
+                "a",
+                matches[0]
+              ],
+              [
+                "b",
+                matches[1]
               ]
-            );
+            ]);
             return true;
           }
         },

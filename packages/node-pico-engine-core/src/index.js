@@ -2,11 +2,11 @@ var _ = require("lodash");
 var λ = require("contra");
 var DB = require("./DB");
 var cocb = require("co-callback");
+var getArg = require("./getArg");
 var runKRL = require("./runKRL");
 var Modules = require("./modules");
 var PicoQueue = require("./PicoQueue");
 var krl_stdlib = require("krl-stdlib");
-var KRLClosure = require("./KRLClosure");
 var SymbolTable = require("symbol-table");
 var EventEmitter = require("events");
 var processEvent = require("./processEvent");
@@ -53,7 +53,16 @@ module.exports = function(conf, callback){
         }(ctx.rid));//pass in the rid at mkCTX creation so it is not later mutated
 
         ctx.modules = modules;
-        ctx.KRLClosure = KRLClosure;
+        ctx.KRLClosure = function(fn){
+            return function(ctx2, args){
+                return fn(mkCTX(_.assign({}, ctx2, {
+                    rid: ctx.rid,//keep your original rid
+                    scope: ctx.scope.push(),
+                })), function(name, index){
+                    return getArg(args, name, index);
+                });
+            };
+        };
         ctx.emit = function(type, val, message){//for stdlib
             var info = {};
             if(ctx.rid){

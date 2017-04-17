@@ -9,13 +9,13 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("eci", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("eci", ctx.KRLClosure(function* (ctx, getArg) {
       return yield ctx.modules.get(ctx, "meta", "eci");
     }));
-    ctx.scope.set("rulesetURI", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("rulesetURI", ctx.KRLClosure(function* (ctx, getArg) {
       return yield ctx.modules.get(ctx, "meta", "rulesetURI");
     }));
-    ctx.scope.set("host", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("host", ctx.KRLClosure(function* (ctx, getArg) {
       return yield ctx.modules.get(ctx, "meta", "host");
     }));
   },

@@ -19,7 +19,7 @@ module.exports = {
     "shares": ["now"]
   },
   "global": function* (ctx) {
-    ctx.scope.set("now", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("now", ctx.KRLClosure(function* (ctx, getArg) {
       return yield (yield ctx.modules.get(ctx, "time", "now"))(ctx, []);
     }));
   },

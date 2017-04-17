@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.execution-order",
   "meta": { "shares": ["getOrder"] },
   "global": function* (ctx) {
-    ctx.scope.set("getOrder", ctx.KRLClosure(ctx, function* (ctx) {
+    ctx.scope.set("getOrder", ctx.KRLClosure(function* (ctx, getArg) {
       return yield ctx.modules.get(ctx, "ent", "order");
     }));
   },
