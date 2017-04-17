@@ -4,31 +4,34 @@ var cocb = require("co-callback");
 var runKRL = require("./runKRL");
 var aggregateEvent = require("./aggregateEvent");
 
-var evalExpr = cocb.wrap(function*(ctx, exp, aggFn){
+var evalExpr = cocb.wrap(function*(ctx, rule, aggFn, exp){
+    var recur = function*(e){
+        return yield evalExpr(ctx, rule, aggFn, e);
+    };
     if(_.isArray(exp)){
         if(exp[0] === "not"){
-            return !(yield evalExpr(ctx, exp[1], aggFn));
+            return !(yield recur(exp[1]));
         }else if(exp[0] === "and"){
-            return (yield evalExpr(ctx, exp[1], aggFn)) && (yield evalExpr(ctx, exp[2], aggFn));
+            return (yield recur(exp[1])) && (yield recur(exp[2]));
         }else if(exp[0] === "or"){
-            return (yield evalExpr(ctx, exp[1], aggFn)) || (yield evalExpr(ctx, exp[2], aggFn));
+            return (yield recur(exp[1])) || (yield recur(exp[2]));
         }
     }
     //only run the function if the domain and type match
     var domain = ctx.event.domain;
     var type = ctx.event.type;
-    if(_.get(ctx, ["rule", "select", "graph", domain, type, exp]) !== true){
+    if(_.get(rule, ["select", "graph", domain, type, exp]) !== true){
         return false;
     }
-    return yield runKRL(ctx.rule.select.eventexprs[exp], ctx, aggFn);
+    return yield runKRL(rule.select.eventexprs[exp], ctx, aggFn);
 });
 
-var getNextState = cocb.wrap(function*(ctx, curr_state, aggFn){
-    var stm = ctx.rule.select.state_machine[curr_state];
+var getNextState = cocb.wrap(function*(ctx, rule, curr_state, aggFn){
+    var stm = rule.select.state_machine[curr_state];
 
     var i;
     for(i=0; i < stm.length; i++){
-        if(yield evalExpr(ctx, stm[i][0], aggFn)){
+        if(yield evalExpr(ctx, rule, aggFn, stm[i][0])){
             //found a match
             return stm[i][1];
         }
@@ -64,11 +67,10 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
 
     //this ctx will be passed to the compiled code for evaluting event exp
     var next_state = yield getNextState(core.mkCTX({
-        rule: rule,
         scope: rule.scope,
         event: ctx.event,
         pico_id: ctx.pico_id,
-    }), curr_state, aggregateEvent(core, curr_state));
+    }), rule, curr_state, aggregateEvent(core, curr_state, rule));
 
     yield core.db.putStateMachineStateYieldable(ctx.pico_id, rule, next_state);
 

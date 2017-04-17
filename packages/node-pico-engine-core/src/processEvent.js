@@ -87,7 +87,6 @@ var runEvent = cocb.wrap(function*(scheduled){
         pico_id: ctx.pico_id,
         raiseEvent: ctx.raiseEvent,
         rid: rule.rid,
-        rule: rule,
         scope: rule.scope,
         modules_used: _.has(core.rulesets, rule.rid)
             ? core.rulesets[rule.rid].modules_used

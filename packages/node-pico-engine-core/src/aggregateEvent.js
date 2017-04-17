@@ -6,13 +6,13 @@ var toFloat = function(v){
     return parseFloat(v) || 0;
 };
 
-var aggregateWrap = function(core, current_state_machine_state, ctx, value_pairs, fn, callback){
+var aggregateWrap = function(core, current_state_machine_state, rule, ctx, value_pairs, fn, callback){
     λ.each(value_pairs, function(pair, next){
         var name = pair[0];
         var value = pair[1] === void 0
             ? null//leveldb doesnt support undefined
             : pair[1];
-        core.db.updateAggregatorVar(ctx.pico_id, ctx.rule, name, function(val){
+        core.db.updateAggregatorVar(ctx.pico_id, rule, name, function(val){
             if(current_state_machine_state === "start"){
                 //reset the aggregated values every time the state machine resets
                 return [value];
@@ -52,10 +52,10 @@ var aggregators = {
     }
 };
 
-module.exports = function(core, current_state_machine_state){
+module.exports = function(core, current_state_machine_state, rule){
     return cocb.toYieldable(function(ctx, aggregator, value_pairs, callback){
         if(_.has(aggregators, aggregator)){
-            aggregateWrap(core, current_state_machine_state, ctx, value_pairs, aggregators[aggregator], callback);
+            aggregateWrap(core, current_state_machine_state, rule, ctx, value_pairs, aggregators[aggregator], callback);
             return;
         }
         throw new Error("Unsupported aggregator: " + aggregator);
