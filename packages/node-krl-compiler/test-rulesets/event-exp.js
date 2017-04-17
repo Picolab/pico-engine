@@ -973,20 +973,17 @@ module.exports = {
       "select": {
         "graph": { "ee_count_max": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
                 ]]]);
             if (!matches)
               return false;
-            yield (yield ctx.modules.get(ctx, "event", "aggregateEvent"))(ctx, [
-              "max",
-              [[
-                  "m",
-                  matches[0]
-                ]]
-            ]);
+            yield aggregateEvent(ctx, "max", [[
+                "m",
+                matches[0]
+              ]]);
             return true;
           }
         },
@@ -1022,20 +1019,17 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_min": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
                 ]]]);
             if (!matches)
               return false;
-            yield (yield ctx.modules.get(ctx, "event", "aggregateEvent"))(ctx, [
-              "min",
-              [[
-                  "m",
-                  matches[0]
-                ]]
-            ]);
+            yield aggregateEvent(ctx, "min", [[
+                "m",
+                matches[0]
+              ]]);
             return true;
           }
         },
@@ -1075,20 +1069,17 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_sum": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
                 ]]]);
             if (!matches)
               return false;
-            yield (yield ctx.modules.get(ctx, "event", "aggregateEvent"))(ctx, [
-              "sum",
-              [[
-                  "m",
-                  matches[0]
-                ]]
-            ]);
+            yield aggregateEvent(ctx, "sum", [[
+                "m",
+                matches[0]
+              ]]);
             return true;
           }
         },
@@ -1128,20 +1119,17 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_avg": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
                 ]]]);
             if (!matches)
               return false;
-            yield (yield ctx.modules.get(ctx, "event", "aggregateEvent"))(ctx, [
-              "avg",
-              [[
-                  "m",
-                  matches[0]
-                ]]
-            ]);
+            yield aggregateEvent(ctx, "avg", [[
+                "m",
+                matches[0]
+              ]]);
             return true;
           }
         },
@@ -1181,20 +1169,17 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_push": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
                 ]]]);
             if (!matches)
               return false;
-            yield (yield ctx.modules.get(ctx, "event", "aggregateEvent"))(ctx, [
-              "push",
-              [[
-                  "m",
-                  matches[0]
-                ]]
-            ]);
+            yield aggregateEvent(ctx, "push", [[
+                "m",
+                matches[0]
+              ]]);
             return true;
           }
         },
@@ -1234,7 +1219,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_push_multi": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[
                 [
                   "a",
@@ -1247,25 +1232,22 @@ module.exports = {
               ]]);
             if (!matches)
               return false;
-            yield (yield ctx.modules.get(ctx, "event", "aggregateEvent"))(ctx, [
-              "push",
+            yield aggregateEvent(ctx, "push", [
               [
-                [
-                  "a",
-                  matches[0]
-                ],
-                [
-                  "b",
-                  matches[1]
-                ],
-                [
-                  "c",
-                  matches[2]
-                ],
-                [
-                  "d",
-                  matches[3]
-                ]
+                "a",
+                matches[0]
+              ],
+              [
+                "b",
+                matches[1]
+              ],
+              [
+                "c",
+                matches[2]
+              ],
+              [
+                "d",
+                matches[3]
               ]
             ]);
             return true;
@@ -1320,7 +1302,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_sum_multi": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx) {
+          "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[
                 [
                   "a",
@@ -1333,17 +1315,14 @@ module.exports = {
               ]]);
             if (!matches)
               return false;
-            yield (yield ctx.modules.get(ctx, "event", "aggregateEvent"))(ctx, [
-              "sum",
+            yield aggregateEvent(ctx, "sum", [
               [
-                [
-                  "a",
-                  matches[0]
-                ],
-                [
-                  "b",
-                  matches[1]
-                ]
+                "a",
+                matches[0]
+              ],
+              [
+                "b",
+                matches[1]
               ]
             ]);
             return true;

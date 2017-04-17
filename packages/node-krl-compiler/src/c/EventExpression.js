@@ -4,6 +4,7 @@ var callModuleFn = require("../utils/callModuleFn");
 module.exports = function(ast, comp, e){
     //FYI the graph allready vetted the domain and type
 
+    var fn_params = ["ctx"];
     var fn_body = [];
 
     if(!_.isEmpty(ast.attributes)){
@@ -36,19 +37,25 @@ module.exports = function(ast, comp, e){
     });
 
     if(ast.aggregator){
+        fn_params.push("aggregateEvent");
         fn_body.push(e(";",
-                        callModuleFn(e, "event", "aggregateEvent", e("array", [
-                            e("string", ast.aggregator.op, ast.aggregator.loc),
-                            e("array", _.map(ast.aggregator.args, function(a, i){
-                                return e("array", [
-                                    e("string", a.value, a.loc),
-                                    e("get", e("id", "matches", a.loc), e("num", i, a.loc), a.loc)
-                                ], a.loc);
-                            }), ast.aggregator.loc)
-                        ]), ast.aggregator.loc), ast.aggregator.loc));
+                        e("ycall",
+                            e("id", "aggregateEvent", ast.aggregator.loc),
+                            [
+                                e("id", "ctx", ast.aggregator.loc),
+                                e("string", ast.aggregator.op, ast.aggregator.loc),
+                                e("array", _.map(ast.aggregator.args, function(a, i){
+                                    return e("array", [
+                                        e("string", a.value, a.loc),
+                                        e("get", e("id", "matches", a.loc), e("num", i, a.loc), a.loc)
+                                    ], a.loc);
+                                }), ast.aggregator.loc)
+                            ],
+                            ast.aggregator.loc
+                        ), ast.aggregator.loc));
     }
 
     fn_body.push(e("return", e(true)));
 
-    return e("genfn", ["ctx"], fn_body);
+    return e("genfn", fn_params, fn_body);
 };
