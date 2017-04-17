@@ -2,15 +2,16 @@ var _ = require("lodash");
 var λ = require("contra");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
+var aggregateEvent = require("./aggregateEvent");
 
-var evalExpr = cocb.wrap(function*(ctx, exp){
+var evalExpr = cocb.wrap(function*(ctx, exp, aggFn){
     if(_.isArray(exp)){
         if(exp[0] === "not"){
-            return !(yield evalExpr(ctx, exp[1]));
+            return !(yield evalExpr(ctx, exp[1], aggFn));
         }else if(exp[0] === "and"){
-            return (yield evalExpr(ctx, exp[1])) && (yield evalExpr(ctx, exp[2]));
+            return (yield evalExpr(ctx, exp[1], aggFn)) && (yield evalExpr(ctx, exp[2], aggFn));
         }else if(exp[0] === "or"){
-            return (yield evalExpr(ctx, exp[1])) || (yield evalExpr(ctx, exp[2]));
+            return (yield evalExpr(ctx, exp[1], aggFn)) || (yield evalExpr(ctx, exp[2], aggFn));
         }
     }
     //only run the function if the domain and type match
@@ -19,15 +20,15 @@ var evalExpr = cocb.wrap(function*(ctx, exp){
     if(_.get(ctx, ["rule", "select", "graph", domain, type, exp]) !== true){
         return false;
     }
-    return yield runKRL(ctx.rule.select.eventexprs[exp], ctx);
+    return yield runKRL(ctx.rule.select.eventexprs[exp], ctx, aggFn);
 });
 
-var getNextState = cocb.wrap(function*(ctx, curr_state){
+var getNextState = cocb.wrap(function*(ctx, curr_state, aggFn){
     var stm = ctx.rule.select.state_machine[curr_state];
 
     var i;
     for(i=0; i < stm.length; i++){
-        if(yield evalExpr(ctx, stm[i][0])){
+        if(yield evalExpr(ctx, stm[i][0], aggFn)){
             //found a match
             return stm[i][1];
         }
@@ -62,14 +63,12 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
     }
 
     //this ctx will be passed to the compiled code for evaluting event exp
-    var ctx_for_eventexp = core.mkCTX({
+    var next_state = yield getNextState(core.mkCTX({
         rule: rule,
         scope: rule.scope,
         event: ctx.event,
         pico_id: ctx.pico_id,
-        current_state_machine_state: curr_state
-    });
-    var next_state = yield getNextState(ctx_for_eventexp, curr_state);
+    }), curr_state, aggregateEvent(core, curr_state));
 
     yield core.db.putStateMachineStateYieldable(ctx.pico_id, rule, next_state);
 
