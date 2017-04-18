@@ -84,7 +84,7 @@ ruleset io.picolabs.http {
   rule http_post_event_handler {
     select when http post;
     pre {
-      resp = fmtResp(event:attrs())
+      resp = fmtResp(event:attrs)
     }
     send_directive("http_post_event_handler") with
       attrs = resp

@@ -230,7 +230,7 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("resp", yield ctx.scope.get("fmtResp")(ctx, [yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [])]));
+        ctx.scope.set("resp", yield ctx.scope.get("fmtResp")(ctx, [yield ctx.modules.get(ctx, "event", "attrs")]));
       },
       "action_block": {
         "actions": [{

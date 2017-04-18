@@ -440,7 +440,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "sent_attrs", yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, []));
+          yield ctx.modules.set(ctx, "ent", "sent_attrs", yield ctx.modules.get(ctx, "event", "attrs"));
           yield ctx.modules.set(ctx, "ent", "sent_name", ctx.scope.get("my_name"));
         },
         "notfired": undefined,
@@ -556,6 +556,34 @@ module.exports = {
         },
         "notfired": undefined,
         "always": undefined
+      }
+    },
+    "event_eid": {
+      "name": "event_eid",
+      "select": {
+        "graph": { "events": { "event_eid": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return {
+                "type": "directive",
+                "name": "event_eid",
+                "options": { "eid": yield ctx.modules.get(ctx, "event", "eid") }
+              };
+            }
+          }]
       }
     }
   }

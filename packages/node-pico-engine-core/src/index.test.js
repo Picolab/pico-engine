@@ -20,10 +20,10 @@ var omitMeta = function(resp){
 };
 
 var mkSignalTask = function(pe, eci){
-    return function(domain, type, attrs, timestamp){
+    return function(domain, type, attrs, timestamp, eid){
         return λ.curry(pe.signalEvent, {
             eci: eci,
-            eid: "1234",
+            eid: eid || "1234",
             domain: domain,
             type: type,
             attrs: attrs || {},
@@ -275,8 +275,13 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
 
             [signal("events", "raise_set_name_rid", {name: "Raised-3"}), []],
             [query("getSentAttrs"), {name: "Raised-3"}],
-            [query("getSentName"), "Raised-3"]
+            [query("getSentName"), "Raised-3"],
 
+            //////////////////////////////////////////////////////////////////////////
+            [
+                signal("events", "event_eid", {}, void 0, "some eid for this test"),
+                [{name: "event_eid", options: {eid: "some eid for this test"}}]
+            ],
         ], t.end);
     });
 });

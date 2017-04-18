@@ -4,9 +4,6 @@ var getArg = require("../getArg");
 
 module.exports = function(core){
     var fns = {
-        attrs: function*(ctx, args){
-            return _.cloneDeep(ctx.event.attrs);//the user may mutate their copy
-        },
         attr: function*(ctx, args){
             var name = getArg(args, "name", 0);
             return ctx.event.attrs[name];
@@ -46,6 +43,17 @@ module.exports = function(core){
         },
     };
     return {
-        def: fns
+        def: fns,
+        get: function(ctx, id, callback){
+            if(id === "eid"){
+                callback(null, _.get(ctx, ["event", "eid"]));
+                return;
+            }else if(id === "attrs"){
+                //the user may mutate their copy
+                callback(null, _.cloneDeep(ctx.event.attrs));
+                return;
+            }
+            callback(new Error("Not defined `event:" + id + "`"));
+        }
     };
 };
