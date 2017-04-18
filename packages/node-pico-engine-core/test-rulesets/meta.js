@@ -15,6 +15,7 @@ module.exports = {
         "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
         "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
         "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
+        "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
         "eci": yield ctx.modules.get(ctx, "meta", "eci")
       };
     }));
@@ -49,6 +50,7 @@ module.exports = {
                   "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
                   "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
                   "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
+                  "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
                   "eci": yield ctx.modules.get(ctx, "meta", "eci")
                 }
               };

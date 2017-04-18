@@ -41,6 +41,7 @@ module.exports = function(){
             ]), [
                 "event",
                 "pico_id",
+                "rule_name",
             ]);
         }else if(_.has(ctx, "query")){
             assertCTX_keys(ctx, [

@@ -19,6 +19,9 @@ var getCoreCTXval = {
     "rulesetAuthor": function(core, ctx){
         return _.get(core.rulesets, [ctx.rid, "meta", "author"]);
     },
+    "ruleName": function(core, ctx){
+        return ctx.rule_name;
+    },
 };
 
 module.exports = function(core){

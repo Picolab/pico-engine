@@ -678,6 +678,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetDescription: "\nsome description for the meta test module\n    ",
                     rulesetAuthor: "meta author",
                     rulesetURI: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
+                    ruleName: "meta_event",
                     eci: "id1",
                 }}]
             ],
@@ -690,6 +691,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetDescription: "\nsome description for the meta test module\n    ",
                     rulesetAuthor: "meta author",
                     rulesetURI: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
+                    ruleName: void 0,
                     eci: "id1",
                 }
             ],

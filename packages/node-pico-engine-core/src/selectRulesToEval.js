@@ -58,6 +58,7 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
             scope: rule.scope,
             event: ctx.event,
             pico_id: ctx.pico_id,
+            rule_name: rule.name,
         }));
 
         if(diff > time_limit){
@@ -75,6 +76,7 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
         scope: rule.scope,
         event: ctx.event,
         pico_id: ctx.pico_id,
+        rule_name: rule.name,
     }), rule, curr_state, aggregateEvent(core, curr_state, rule));
 
     yield core.db.putStateMachineStateYieldable(ctx.pico_id, rule, next_state);

@@ -87,6 +87,7 @@ var runEvent = cocb.wrap(function*(scheduled){
         pico_id: ctx.pico_id,
         raiseEvent: ctx.raiseEvent,
         rid: rule.rid,
+        rule_name: rule.name,
         scope: rule.scope,
     });
 

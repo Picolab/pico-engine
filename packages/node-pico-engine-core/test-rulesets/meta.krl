@@ -16,6 +16,7 @@ some description for the meta test module
         "rulesetDescription": meta:rulesetDescription,
         "rulesetAuthor": meta:rulesetAuthor,
         "rulesetURI": meta:rulesetURI,
+        "ruleName": meta:ruleName,
         "eci": meta:eci
       }
     }
@@ -34,6 +35,8 @@ some description for the meta test module
       rulesetAuthor = meta:rulesetAuthor
       and
       rulesetURI = meta:rulesetURI
+      and
+      ruleName = meta:ruleName
       and
       eci = meta:eci
   }
