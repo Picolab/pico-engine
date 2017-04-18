@@ -1,18 +1,34 @@
 var _ = require("lodash");
 
+var getCoreCTXval = {
+    "eci": function(core, ctx){
+        return _.get(ctx, ["event", "eci"], _.get(ctx, ["query", "eci"]));
+    },
+    "rid": function(core, ctx){
+        return ctx.rid;
+    },
+    "host": function(core, ctx){
+        return core.host;
+    },
+    "rulesetName": function(core, ctx){
+        return _.get(core.rulesets, [ctx.rid, "meta", "name"]);
+    },
+    "rulesetDescription": function(core, ctx){
+        return _.get(core.rulesets, [ctx.rid, "meta", "description"]);
+    },
+    "rulesetAuthor": function(core, ctx){
+        return _.get(core.rulesets, [ctx.rid, "meta", "author"]);
+    },
+};
+
 module.exports = function(core){
     return {
         get: function(ctx, id, callback){
-            if(id === "eci"){
-                callback(null, _.get(ctx,["event","eci"],_.get(ctx,["query","eci"])));
+            if(_.has(getCoreCTXval, id)){
+                callback(null, getCoreCTXval[id](core, ctx));
                 return;
-            }else if(id === "rid"){
-                callback(null, ctx.rid);
-                return;
-            }else if(id === "host"){
-                callback(null, core.host);
-                return;
-            }else if(id === "rulesetURI"){
+            }
+            if(id === "rulesetURI"){
                 core.db.getEnabledRuleset(ctx.rid, function(err, data){
                     if(err) return callback(err);
                     callback(null, data.url);

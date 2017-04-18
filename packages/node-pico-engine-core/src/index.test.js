@@ -670,27 +670,29 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
             λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.meta"}),
             [
-                signal("meta", "eci"),
-                [{name: "eci", options: {eci: "id1"}}]
-            ],
-            [
-                query("eci"),
-                "id1"
-            ],
-            [
-                signal("meta", "rulesetURI"),
-                [{name: "rulesetURI", options: {
+                signal("meta", "event"),
+                [{name: "event", options: {
+                    rid: "io.picolabs.meta",
+                    host: "https://test-host",
+                    rulesetName: "testing meta module",
+                    rulesetDescription: "\nsome description for the meta test module\n    ",
+                    rulesetAuthor: "meta author",
                     rulesetURI: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
+                    eci: "id1",
                 }}]
             ],
             [
-                query("rulesetURI"),
-                "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
+                query("metaQuery"),
+                {
+                    rid: "io.picolabs.meta",
+                    host: "https://test-host",
+                    rulesetName: "testing meta module",
+                    rulesetDescription: "\nsome description for the meta test module\n    ",
+                    rulesetAuthor: "meta author",
+                    rulesetURI: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
+                    eci: "id1",
+                }
             ],
-            [
-                query("host"),
-                "https://test-host",
-            ]
         ], t.end);
     });
 });
