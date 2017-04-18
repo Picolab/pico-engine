@@ -53,7 +53,12 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
             last_restart = ctx.event.timestamp.getTime();
         }
         var diff = ctx.event.timestamp.getTime() - last_restart;
-        var time_limit = yield runKRL(rule.select.within, ctx);
+        var time_limit = yield runKRL(rule.select.within, core.mkCTX({
+            rid: rule.rid,
+            scope: rule.scope,
+            event: ctx.event,
+            pico_id: ctx.pico_id,
+        }));
 
         if(diff > time_limit){
             //time has expired, reset the state machine
@@ -66,6 +71,7 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
     }
 
     var next_state = yield getNextState(core.mkCTX({
+        rid: rule.rid,
         scope: rule.scope,
         event: ctx.event,
         pico_id: ctx.pico_id,
