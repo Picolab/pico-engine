@@ -102,7 +102,7 @@ ruleset io.picolabs.events {
   rule store_sent_name {
     select when events store_sent_name name re#^(.*)$# setting(my_name);
     fired {
-      ent:sent_attrs := event:attrs;
+      ent:sent_attrs := event:attrs();
       ent:sent_name := my_name
     }
   }

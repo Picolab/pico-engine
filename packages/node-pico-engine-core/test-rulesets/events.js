@@ -440,7 +440,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "sent_attrs", yield ctx.modules.get(ctx, "event", "attrs"));
+          yield ctx.modules.set(ctx, "ent", "sent_attrs", yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, []));
           yield ctx.modules.set(ctx, "ent", "sent_name", ctx.scope.get("my_name"));
         },
         "notfired": undefined,
