@@ -437,6 +437,7 @@ test("PicoEngine - io.picolabs.execution-order ruleset", function(t){
 
         var query = mkQueryTask(pe, "id1", "io.picolabs.execution-order");
         var signal = mkSignalTask(pe, "id1");
+        var query2 = mkQueryTask(pe, "id1", "io.picolabs.execution-order2");
 
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
@@ -473,6 +474,28 @@ test("PicoEngine - io.picolabs.execution-order ruleset", function(t){
             [
                 query("getOrder"),
                 ["foo_or_bar", "foo", "foo_or_bar", "bar"]
+            ],
+            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.execution-order2"}),
+            [
+                signal("execution_order", "reset_order"),
+                [{name: "reset_order", options: {}}, {name: "2 - reset_order", options: {}}]
+            ],
+            [
+                signal("execution_order", "bar"),
+                [
+                    {name: "foo_or_bar", options: {}},
+                    {name: "bar", options: {}},
+                    {name: "2 - foo_or_bar", options: {}},
+                    {name: "2 - bar", options: {}},
+                ]
+            ],
+            [
+                query("getOrder"),
+                ["foo_or_bar", "bar"]
+            ],
+            [
+                query2("getOrder"),
+                ["2 - foo_or_bar", "2 - bar"]
             ],
         ], t.end);
     });
