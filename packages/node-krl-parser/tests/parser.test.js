@@ -356,9 +356,11 @@ test("action", function(t){
         ]
     });
 
-    src  = "one=>blah(1) ";
-    src += "two => blah(2)";
+    src  = "every {";
+    src += " one=>blah(1)";
+    src += " two => blah(2)";
     src += " noop()";
+    src += "}";
     testAction(src, {
         type: "RuleActionBlock",
         condition: null,
@@ -391,14 +393,42 @@ test("action", function(t){
         ]
     });
 
-    src  = "if exp() then\n";
-    src += "choose\n";
-    src += "one => blah(1)\n";
-    src += "two => blah(2)";
+    src  = "choose exp() {\n";
+    src += "  one => blah(1)\n";
+    src += "  two => blah(2)\n";
+    src += "}";
     testAction(src, {
         type: "RuleActionBlock",
         condition: mk.app(mk.id("exp")),
         block_type: "choose",
+        actions: [
+            {
+                type: "RuleAction",
+                label: mk.id("one"),
+                action: mk.id("blah"),
+                args: [mk(1)],
+                setting: null,
+                "with": []
+            },
+            {
+                type: "RuleAction",
+                label: mk.id("two"),
+                action: mk.id("blah"),
+                args: [mk(2)],
+                setting: null,
+                "with": []
+            }
+        ]
+    });
+
+    src  = "if foo == 2 then every {\n";
+    src += "  one => blah(1)\n";
+    src += "  two => blah(2)\n";
+    src += "}";
+    testAction(src, {
+        type: "RuleActionBlock",
+        condition: mk.op("==", mk.id("foo"), mk(2)),
+        block_type: "every",
         actions: [
             {
                 type: "RuleAction",

@@ -96,6 +96,18 @@ var eventGroupOp = function(op, i_n, i_ee, i_ag){
   };
 };
 
+var ruleActionBlock = function(condition_path, type_path, actions_path){
+  return function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'RuleActionBlock',
+      condition: get(data, condition_path, null),
+      block_type: get(data, type_path, "every"),
+      actions: flatten([get(data, actions_path, null)]),
+    };
+  };
+};
+
 var booleanAST = function(value){
   return function(data){
     return {
@@ -706,20 +718,17 @@ EventWithin -> %tok_within Expression %tok_TIME_PERIOD_ENUM {%
 # RuleActionBlock
 #
 
-RuleActionBlock -> (%tok_if Expression %tok_then action_block_type:?):? RuleAction:+ {%
-  function(data){
-    return {
-      loc: mkLoc(data),
-      type: 'RuleActionBlock',
-      condition: data[0] && data[0][1],
-      block_type: (data[0] && data[0][3] && data[0][3].src) || "every",
-      actions: data[1]
-    };
-  }
-%}
-
-action_block_type -> %tok_choose {% id %}
-    | %tok_every {% id %}
+RuleActionBlock ->
+      RuleAction
+      {% ruleActionBlock([], [], [0]) %}
+    | %tok_if Expression %tok_then RuleAction
+      {% ruleActionBlock([1], [], [3]) %}
+    | %tok_if Expression %tok_then %tok_every %tok_OPEN_CURLY RuleAction:+ %tok_CLSE_CURLY
+      {% ruleActionBlock([1], [3, "src"], [5]) %}
+    | %tok_every %tok_OPEN_CURLY RuleAction:+ %tok_CLSE_CURLY
+      {% ruleActionBlock([], [0, "src"], [2]) %}
+    | %tok_choose Expression %tok_OPEN_CURLY RuleAction:+ %tok_CLSE_CURLY
+      {% ruleActionBlock([1], [0, "src"], [3]) %}
 
 RuleAction ->
     (Identifier %tok_FAT_ARROW_RIGHT):?

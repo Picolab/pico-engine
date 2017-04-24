@@ -100,6 +100,18 @@ var eventGroupOp = function(op, i_n, i_ee, i_ag){
   };
 };
 
+var ruleActionBlock = function(condition_path, type_path, actions_path){
+  return function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'RuleActionBlock',
+      condition: get(data, condition_path, null),
+      block_type: get(data, type_path, "every"),
+      actions: flatten([get(data, actions_path, null)]),
+    };
+  };
+};
+
 var booleanAST = function(value){
   return function(data){
     return {
@@ -688,26 +700,17 @@ var grammar = {
           };
         }
         },
-    {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1", "symbols": ["action_block_type"], "postprocess": id},
-    {"name": "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleActionBlock$ebnf$1$subexpression$1", "symbols": [tok_if, "Expression", tok_then, "RuleActionBlock$ebnf$1$subexpression$1$ebnf$1"]},
-    {"name": "RuleActionBlock$ebnf$1", "symbols": ["RuleActionBlock$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "RuleActionBlock$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RuleActionBlock", "symbols": ["RuleAction"], "postprocess": ruleActionBlock([], [], [0])},
+    {"name": "RuleActionBlock", "symbols": [tok_if, "Expression", tok_then, "RuleAction"], "postprocess": ruleActionBlock([1], [], [3])},
+    {"name": "RuleActionBlock$ebnf$1", "symbols": ["RuleAction"]},
+    {"name": "RuleActionBlock$ebnf$1", "symbols": ["RuleActionBlock$ebnf$1", "RuleAction"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "RuleActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_every, tok_OPEN_CURLY, "RuleActionBlock$ebnf$1", tok_CLSE_CURLY], "postprocess": ruleActionBlock([1], [3, "src"], [5])},
     {"name": "RuleActionBlock$ebnf$2", "symbols": ["RuleAction"]},
     {"name": "RuleActionBlock$ebnf$2", "symbols": ["RuleActionBlock$ebnf$2", "RuleAction"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "RuleActionBlock", "symbols": ["RuleActionBlock$ebnf$1", "RuleActionBlock$ebnf$2"], "postprocess": 
-        function(data){
-          return {
-            loc: mkLoc(data),
-            type: 'RuleActionBlock',
-            condition: data[0] && data[0][1],
-            block_type: (data[0] && data[0][3] && data[0][3].src) || "every",
-            actions: data[1]
-          };
-        }
-        },
-    {"name": "action_block_type", "symbols": [tok_choose], "postprocess": id},
-    {"name": "action_block_type", "symbols": [tok_every], "postprocess": id},
+    {"name": "RuleActionBlock", "symbols": [tok_every, tok_OPEN_CURLY, "RuleActionBlock$ebnf$2", tok_CLSE_CURLY], "postprocess": ruleActionBlock([], [0, "src"], [2])},
+    {"name": "RuleActionBlock$ebnf$3", "symbols": ["RuleAction"]},
+    {"name": "RuleActionBlock$ebnf$3", "symbols": ["RuleActionBlock$ebnf$3", "RuleAction"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "RuleActionBlock", "symbols": [tok_choose, "Expression", tok_OPEN_CURLY, "RuleActionBlock$ebnf$3", tok_CLSE_CURLY], "postprocess": ruleActionBlock([1], [0, "src"], [3])},
     {"name": "RuleAction$ebnf$1$subexpression$1", "symbols": ["Identifier", tok_FAT_ARROW_RIGHT]},
     {"name": "RuleAction$ebnf$1", "symbols": ["RuleAction$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RuleAction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},

@@ -119,12 +119,12 @@ rule hello {
     a = 1
   }
 
-  if COND then
-    choose
-      one =>
-         action(1)
-      two =>
-         action(2)
+  choose COND {
+    one =>
+      action(1)
+    two =>
+      action(2)
+  }
 
   fired {
     FIRED
