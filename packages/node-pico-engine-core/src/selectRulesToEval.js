@@ -102,7 +102,7 @@ var selectForPico = function(core, ctx, pico, callback){
             if(is_on){
                 var rule = _.get(core.rulesets, [rid, "rules", rule_name]);
                 if(rule){
-                    //shallow clone with it"s own scope for this run
+                    //shallow clone with it's own scope for this run
                     rules_to_select.push(_.assign({}, rule, {
                         scope: core.rulesets[rid].scope.push()
                     }));

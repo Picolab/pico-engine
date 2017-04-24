@@ -453,7 +453,27 @@ test("PicoEngine - io.picolabs.execution-order ruleset", function(t){
             [
                 query("getOrder"),
                 [null, "first-fired", "first-finally", "second-fired", "second-finally"]
-            ]
+            ],
+            [
+                signal("execution_order", "reset_order"),
+                [{name: "reset_order", options: {}}]
+            ],
+            [
+                query("getOrder"),
+                []
+            ],
+            [
+                signal("execution_order", "foo"),
+                [{name: "foo_or_bar", options: {}}, {name: "foo", options: {}}]
+            ],
+            [
+                signal("execution_order", "bar"),
+                [{name: "foo_or_bar", options: {}}, {name: "bar", options: {}}]
+            ],
+            [
+                query("getOrder"),
+                ["foo_or_bar", "foo", "foo_or_bar", "bar"]
+            ],
         ], t.end);
     });
 });
