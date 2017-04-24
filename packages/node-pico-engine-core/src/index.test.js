@@ -684,6 +684,8 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetAuthor: "meta author",
                     rulesetURI: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
                     ruleName: "meta_event",
+                    inEvent: true,
+                    inQuery: false,
                     eci: "id1",
                 }}]
             ],
@@ -697,6 +699,8 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetAuthor: "meta author",
                     rulesetURI: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
                     ruleName: void 0,
+                    inEvent: false,
+                    inQuery: true,
                     eci: "id1",
                 }
             ],

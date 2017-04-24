@@ -22,6 +22,12 @@ var getCoreCTXval = {
     "ruleName": function(core, ctx){
         return ctx.rule_name;
     },
+    "inEvent": function(core, ctx){
+        return _.has(ctx, "event");
+    },
+    "inQuery": function(core, ctx){
+        return _.has(ctx, "query");
+    },
 };
 
 module.exports = function(core){

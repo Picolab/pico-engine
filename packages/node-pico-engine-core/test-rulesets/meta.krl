@@ -17,6 +17,8 @@ some description for the meta test module
         "rulesetAuthor": meta:rulesetAuthor,
         "rulesetURI": meta:rulesetURI,
         "ruleName": meta:ruleName,
+        "inEvent": meta:inEvent,
+        "inQuery": meta:inQuery,
         "eci": meta:eci
       }
     }
@@ -37,6 +39,10 @@ some description for the meta test module
       rulesetURI = meta:rulesetURI
       and
       ruleName = meta:ruleName
+      and
+      inEvent = meta:inEvent
+      and
+      inQuery = meta:inQuery
       and
       eci = meta:eci
   }
