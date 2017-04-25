@@ -51,6 +51,7 @@ module.exports = function(){
         }else{
             assertCTX_keys(ctx, [
                 //no extra keys when registering a ruleset
+                //TODO use a pico_id when registering rulesets
             ]);
         }
     }
