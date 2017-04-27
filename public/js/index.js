@@ -121,7 +121,7 @@ $.getJSON("/api/db-dump", function(db_dump){
       var installedRS = {};
       for (var rs in theRulesetInp.ruleset) {
         installedRS[rs] = theRulesetInp.ruleset[rs];
-        if (rs !== "io.picolabs.pico" && rs !== "io.picolabs.visual_params") {
+        if (rid !== "io.picolabs.pico" && rid !== "io.picolabs.visual_params") {
           installedRS[rs].canDel = true;
         }
         if (theRulesetInp[rs]) {
@@ -365,13 +365,13 @@ $.getJSON("/api/db-dump", function(db_dump){
                   var $pediv = $(this).next('.pico-edit');
                   var fadeAway = function(ev) {
                                    $pediv.find('button.x').remove();
-                                   $pediv.animate(fadeOutOptions,400);
-                                   $pediv.fadeOut(400);
+                                   $pediv.animate(fadeOutOptions,200);
+                                   $pediv.fadeOut(200);
                                    ev.stopPropagation();
                                    location.hash = "";
                                  };
-                  $pediv.fadeIn(400);
-                  $pediv.animate(fadeInOptions,400,
+                  $pediv.fadeIn(200);
+                  $pediv.animate(fadeInOptions,200,
                                  function(){
                                    $pediv.prepend("<button class=\"x\">&ndash;</button>");
                                    $pediv.find('button.x').click(fadeAway);
