@@ -38,7 +38,6 @@ module.exports = function(conf, callback){
         host: host,
         rulesets: rulesets,
         salience_graph: salience_graph,
-        registerRulesetSrc: registerRulesetSrc,
     };
 
     var emitter = new EventEmitter();
@@ -245,7 +244,7 @@ module.exports = function(conf, callback){
         });
     };
 
-    var registerRulesetSrc = function(krl_src, meta_data, callback){
+    core.registerRulesetSrc = function(krl_src, meta_data, callback){
         db.storeRuleset(krl_src, meta_data, function(err, hash){
             if(err) return callback(err);
             compileAndLoadRuleset({
@@ -378,7 +377,7 @@ module.exports = function(conf, callback){
         callback(void 0, {
             db: db,
             emitter: emitter,
-            registerRuleset: registerRulesetSrc,
+            registerRuleset: core.registerRulesetSrc,
             signalEvent: signalEvent,
             runQuery: runQuery
         });
