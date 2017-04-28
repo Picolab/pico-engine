@@ -1,5 +1,7 @@
 var _ = require("lodash");
+var fs = require("fs");
 var path = require("path");
+var urllib = require("url");
 var express = require("express");
 var request = require("request");
 var bodyParser = require("body-parser");
@@ -15,6 +17,18 @@ var httpGetKRL = function(url, callback){
 
         callback(null, body);
     });
+};
+
+var getKRLByURL = function(url, callback){
+    var url_parsed = urllib.parse(url);
+    if(url_parsed.protocol === "file:"){
+        fs.readFile(url_parsed.path, function(err, data){
+            if(err) return callback(err);
+            callback(null, data.toString());
+        });
+        return;
+    }
+    httpGetKRL(url, callback);
 };
 
 var mergeGetPost = function(req){
@@ -228,7 +242,7 @@ module.exports = function(pe){
         if(_.isString(args.src)){
             register(args.src);
         }else if(_.isString(args.url)){
-            httpGetKRL(args.url, function(err, src){
+            getKRLByURL(args.url, function(err, src){
                 if(err) return errResp(res, err);
                 register(src, {url: args.url});
             });
@@ -244,7 +258,7 @@ module.exports = function(pe){
 
             var url = rs_data.url;
             if(_.isString(url)){
-                httpGetKRL(url, function(err, src){
+                getKRLByURL(url, function(err, src){
                     if(err) return errResp(res, err);
 
                     pe.registerRuleset(src, {url: url}, function(err, data){
