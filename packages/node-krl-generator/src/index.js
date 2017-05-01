@@ -98,6 +98,8 @@ var gen_by_type = {
     "EventGroupOperator": require("./g/EventGroupOperator"),
     "PersistentVariableAssignment": require("./g/PersistentVariableAssignment"),
     "LogStatement": require("./g/LogStatement"),
+    "ScheduleEventAtStatement": require("./g/ScheduleEventAtStatement"),
+    "ScheduleEventRepeatStatement": require("./g/ScheduleEventRepeatStatement"),
     "RaiseEventStatement": require("./g/RaiseEventStatement"),
     "RaiseEventAttributes": require("./g/RaiseEventAttributes"),
     "RulePostlude": require("./g/RulePostlude")
