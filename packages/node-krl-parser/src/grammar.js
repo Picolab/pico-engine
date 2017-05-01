@@ -310,6 +310,7 @@ var tok_alias = tok("SYMBOL", "alias");
 var tok_always = tok("SYMBOL", "always");
 var tok_and = tok("SYMBOL", "and");
 var tok_any = tok("SYMBOL", "any");
+var tok_at = tok("SYMBOL", "at");
 var tok_attributes = tok("SYMBOL", "attributes");
 var tok_author = tok("SYMBOL", "author");
 var tok_avg = tok("SYMBOL", "avg");
@@ -361,6 +362,7 @@ var tok_raise = tok("SYMBOL", "raise");
 var tok_repeat = tok("SYMBOL", "repeat");
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
+var tok_schedule = tok("SYMBOL", "schedule");
 var tok_share  = tok("SYMBOL", "share");
 var tok_shares = tok("SYMBOL", "shares");
 var tok_select = tok("SYMBOL", "select");
@@ -779,6 +781,7 @@ var grammar = {
     {"name": "PostludeStatement_core", "symbols": ["Statement"], "postprocess": id},
     {"name": "PostludeStatement_core", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
     {"name": "PostludeStatement_core", "symbols": ["RaiseEventStatement"], "postprocess": id},
+    {"name": "PostludeStatement_core", "symbols": ["ScheduleEventAtStatement"], "postprocess": id},
     {"name": "PostludeStatement_core", "symbols": ["LogStatement"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
@@ -809,6 +812,24 @@ var grammar = {
             event_type: data[3],
             for_rid: data[4] ? data[4][1] : null,
             attributes: data[5]
+          };
+        }
+        },
+    {"name": "ScheduleEventAtStatement$ebnf$1", "symbols": ["RaiseEventAttributes"], "postprocess": id},
+    {"name": "ScheduleEventAtStatement$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ScheduleEventAtStatement$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
+    {"name": "ScheduleEventAtStatement$ebnf$2", "symbols": ["ScheduleEventAtStatement$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "ScheduleEventAtStatement$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ScheduleEventAtStatement", "symbols": [tok_schedule, "Identifier", tok_event, "Expression", tok_at, "Expression", "ScheduleEventAtStatement$ebnf$1", "ScheduleEventAtStatement$ebnf$2"], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: "ScheduleEventAtStatement",
+            event_domain: data[1],
+            event_type: data[3],
+            at: data[5],
+            attributes: data[6],
+            setting: (data[7] && data[7][2]) || null,
           };
         }
         },

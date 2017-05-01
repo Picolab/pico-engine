@@ -306,6 +306,7 @@ var tok_alias = tok("SYMBOL", "alias");
 var tok_always = tok("SYMBOL", "always");
 var tok_and = tok("SYMBOL", "and");
 var tok_any = tok("SYMBOL", "any");
+var tok_at = tok("SYMBOL", "at");
 var tok_attributes = tok("SYMBOL", "attributes");
 var tok_author = tok("SYMBOL", "author");
 var tok_avg = tok("SYMBOL", "avg");
@@ -357,6 +358,7 @@ var tok_raise = tok("SYMBOL", "raise");
 var tok_repeat = tok("SYMBOL", "repeat");
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
+var tok_schedule = tok("SYMBOL", "schedule");
 var tok_share  = tok("SYMBOL", "share");
 var tok_shares = tok("SYMBOL", "shares");
 var tok_select = tok("SYMBOL", "select");
@@ -804,6 +806,7 @@ PostludeStatement_core ->
       Statement {% id %}
     | PersistentVariableAssignment {% id %}
     | RaiseEventStatement {% id %}
+    | ScheduleEventAtStatement {% id %}
     | LogStatement {% id %}
 
 PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
@@ -831,6 +834,24 @@ RaiseEventStatement -> %tok_raise Identifier %tok_event Expression
       event_type: data[3],
       for_rid: data[4] ? data[4][1] : null,
       attributes: data[5]
+    };
+  }
+%}
+
+ScheduleEventAtStatement -> %tok_schedule Identifier %tok_event Expression
+  %tok_at Expression
+  RaiseEventAttributes:?
+  (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: "ScheduleEventAtStatement",
+      event_domain: data[1],
+      event_type: data[3],
+      at: data[5],
+      attributes: data[6],
+      setting: (data[7] && data[7][2]) || null,
     };
   }
 %}

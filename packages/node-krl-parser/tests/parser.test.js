@@ -2156,3 +2156,81 @@ test("Action setting", function(t){
 
     t.end();
 });
+
+test("schedule event", function(t){
+
+    var testPostlude = function(src_core, expected){
+        var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+        var ast = parser(src).rules[0].postlude.fired;
+        t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+    };
+
+    testPostlude("schedule domain event \"type\" at \"time\"", [
+        {
+            type: "ScheduleEventAtStatement",
+            event_domain: mk.id("domain"),
+            event_type: mk("type"),
+            at: mk("time"),
+            attributes: null,
+            setting: null,
+        }
+    ]);
+
+    testPostlude("schedule domain event \"type\" at \"time\" with a = 1 and b = 2", [
+        {
+            type: "ScheduleEventAtStatement",
+            event_domain: mk.id("domain"),
+            event_type: mk("type"),
+            at: mk("time"),
+            attributes: {
+                type: "RaiseEventAttributes",
+                "with": [
+                    mk.declare("=", mk.id("a"), mk(1)),
+                    mk.declare("=", mk.id("b"), mk(2))
+                ]
+            },
+            setting: null,
+        }
+    ]);
+
+    testPostlude("schedule domain event \"type\" at \"time\" attributes {\"a\":1,\"b\":2}", [
+        {
+            type: "ScheduleEventAtStatement",
+            event_domain: mk.id("domain"),
+            event_type: mk("type"),
+            at: mk("time"),
+            attributes: {
+                type: "RaiseEventAttributes",
+                expression: mk({a: mk(1), b: mk(2)})
+            },
+            setting: null,
+        }
+    ]);
+
+    testPostlude("schedule domain event \"type\" at \"time\" setting(foo)", [
+        {
+            type: "ScheduleEventAtStatement",
+            event_domain: mk.id("domain"),
+            event_type: mk("type"),
+            at: mk("time"),
+            attributes: null,
+            setting: mk.id("foo"),
+        }
+    ]);
+
+    testPostlude("schedule domain event \"type\" at \"time\" attributes {} setting(foo)", [
+        {
+            type: "ScheduleEventAtStatement",
+            event_domain: mk.id("domain"),
+            event_type: mk("type"),
+            at: mk("time"),
+            attributes: {
+                type: "RaiseEventAttributes",
+                expression: mk({})
+            },
+            setting: mk.id("foo"),
+        }
+    ]);
+
+    t.end();
+});
