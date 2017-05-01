@@ -1,7 +1,8 @@
 var _ = require("lodash");
-var url = require("url");
+var fs = require("fs");
 var cocb = require("co-callback");
 var getArg = require("../getArg");
+var urllib = require("url");
 var request = require("request");
 
 var installRulesetAndValidateIds = function(db, pico_id, rid, callback){
@@ -32,9 +33,21 @@ var httpGetKRL = function(url, callback){
     });
 };
 
+var getKRLByURL = function(url, callback){
+    var url_parsed = urllib.parse(url);
+    if(url_parsed.protocol === "file:"){
+        fs.readFile(url_parsed.path, function(err, data){
+            if(err) return callback(err);
+            callback(null, data.toString());
+        });
+        return;
+    }
+    httpGetKRL(url, callback);
+};
+
 module.exports = function(core){
     var registerURL = function(url, callback){
-        httpGetKRL(url, function(err, src){
+        getKRLByURL(url, function(err, src){
             if(err) return callback(err);
             core.registerRulesetSrc(src, {
                 url: url
@@ -67,7 +80,7 @@ module.exports = function(core){
             var uri;
             if(_.isString(opts.url)){
                 uri = _.isString(opts.base)
-                    ? url.resolve(opts.base, opts.url)
+                    ? urllib.resolve(opts.base, opts.url)
                     : opts.url;
             }
             if(!_.isString(uri)){
@@ -83,7 +96,7 @@ module.exports = function(core){
             var uri;
             if(_.isString(opts.url)){
                 uri = _.isString(opts.base)
-                    ? url.resolve(opts.base, opts.url)
+                    ? urllib.resolve(opts.base, opts.url)
                     : opts.url;
             }
             if(!_.isString(pico_id) || (!_.isString(rid) && !_.isString(uri))){
