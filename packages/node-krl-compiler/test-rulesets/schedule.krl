@@ -21,6 +21,8 @@ ruleset io.picolabs.schedule {
       schedule schedule event "push_log"
         at time:add(time:now(), {"minutes": 5})
         attributes {"from": "in_5min"}
+        setting(foo);
+      ent:log := ent:log.append({"scheduled in_5min": foo})
     }
   }
   rule every_1min {
@@ -29,7 +31,10 @@ ruleset io.picolabs.schedule {
     fired {
       schedule schedule event "push_log"
         repeat "*/5 * * * *"
-        with from = "every_1min"
+        with
+          from = "every_1min"
+        setting(foo);
+      ent:log := ent:log.append({"scheduled every_1min": foo})
     }
   }
 }
