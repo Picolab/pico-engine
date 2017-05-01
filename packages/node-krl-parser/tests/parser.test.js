@@ -2232,5 +2232,72 @@ test("schedule event", function(t){
         }
     ]);
 
+    testPostlude("schedule domain event \"type\" repeat \"5 0 * * *\"", [
+        {
+            type: "ScheduleEventRepeatStatement",
+            event_domain: mk.id("domain"),
+            event_type: mk("type"),
+            timespec: mk("5 0 * * *"),
+            attributes: null,
+            setting: null,
+        }
+    ]);
+
+    testPostlude("schedule domain event \"type\" repeat \"5 0 * * *\" with a = 1 and b = 2", [
+        {
+            type: "ScheduleEventRepeatStatement",
+            event_domain: mk.id("domain"),
+            event_type: mk("type"),
+            timespec: mk("5 0 * * *"),
+            attributes: {
+                type: "RaiseEventAttributes",
+                "with": [
+                    mk.declare("=", mk.id("a"), mk(1)),
+                    mk.declare("=", mk.id("b"), mk(2))
+                ]
+            },
+            setting: null,
+        }
+    ]);
+
+    testPostlude("schedule domain event \"type\" repeat \"5 0 * * *\" attributes {\"a\":1,\"b\":2}", [
+        {
+            type: "ScheduleEventRepeatStatement",
+            event_domain: mk.id("domain"),
+            event_type: mk("type"),
+            timespec: mk("5 0 * * *"),
+            attributes: {
+                type: "RaiseEventAttributes",
+                expression: mk({a: mk(1), b: mk(2)})
+            },
+            setting: null,
+        }
+    ]);
+
+    testPostlude("schedule domain event \"type\" repeat \"5 0 * * *\" setting(foo)", [
+        {
+            type: "ScheduleEventRepeatStatement",
+            event_domain: mk.id("domain"),
+            event_type: mk("type"),
+            timespec: mk("5 0 * * *"),
+            attributes: null,
+            setting: mk.id("foo"),
+        }
+    ]);
+
+    testPostlude("schedule domain event \"type\" repeat \"5 0 * * *\" attributes {} setting(foo)", [
+        {
+            type: "ScheduleEventRepeatStatement",
+            event_domain: mk.id("domain"),
+            event_type: mk("type"),
+            timespec: mk("5 0 * * *"),
+            attributes: {
+                type: "RaiseEventAttributes",
+                expression: mk({})
+            },
+            setting: mk.id("foo"),
+        }
+    ]);
+
     t.end();
 });

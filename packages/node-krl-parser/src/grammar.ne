@@ -807,6 +807,7 @@ PostludeStatement_core ->
     | PersistentVariableAssignment {% id %}
     | RaiseEventStatement {% id %}
     | ScheduleEventAtStatement {% id %}
+    | ScheduleEventRepeatStatement {% id %}
     | LogStatement {% id %}
 
 PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
@@ -850,6 +851,24 @@ ScheduleEventAtStatement -> %tok_schedule Identifier %tok_event Expression
       event_domain: data[1],
       event_type: data[3],
       at: data[5],
+      attributes: data[6],
+      setting: (data[7] && data[7][2]) || null,
+    };
+  }
+%}
+
+ScheduleEventRepeatStatement -> %tok_schedule Identifier %tok_event Expression
+  %tok_repeat Expression
+  RaiseEventAttributes:?
+  (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: "ScheduleEventRepeatStatement",
+      event_domain: data[1],
+      event_type: data[3],
+      timespec: data[5],
       attributes: data[6],
       setting: (data[7] && data[7][2]) || null,
     };

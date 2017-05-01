@@ -782,6 +782,7 @@ var grammar = {
     {"name": "PostludeStatement_core", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
     {"name": "PostludeStatement_core", "symbols": ["RaiseEventStatement"], "postprocess": id},
     {"name": "PostludeStatement_core", "symbols": ["ScheduleEventAtStatement"], "postprocess": id},
+    {"name": "PostludeStatement_core", "symbols": ["ScheduleEventRepeatStatement"], "postprocess": id},
     {"name": "PostludeStatement_core", "symbols": ["LogStatement"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
@@ -828,6 +829,24 @@ var grammar = {
             event_domain: data[1],
             event_type: data[3],
             at: data[5],
+            attributes: data[6],
+            setting: (data[7] && data[7][2]) || null,
+          };
+        }
+        },
+    {"name": "ScheduleEventRepeatStatement$ebnf$1", "symbols": ["RaiseEventAttributes"], "postprocess": id},
+    {"name": "ScheduleEventRepeatStatement$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ScheduleEventRepeatStatement$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
+    {"name": "ScheduleEventRepeatStatement$ebnf$2", "symbols": ["ScheduleEventRepeatStatement$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "ScheduleEventRepeatStatement$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ScheduleEventRepeatStatement", "symbols": [tok_schedule, "Identifier", tok_event, "Expression", tok_repeat, "Expression", "ScheduleEventRepeatStatement$ebnf$1", "ScheduleEventRepeatStatement$ebnf$2"], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: "ScheduleEventRepeatStatement",
+            event_domain: data[1],
+            event_type: data[3],
+            timespec: data[5],
             attributes: data[6],
             setting: (data[7] && data[7][2]) || null,
           };
