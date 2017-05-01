@@ -29,6 +29,7 @@ test("compiler", function(t){
                 try{
                     compiled = compiler(srcs.krl).code;
                 }catch(e){
+                    console.log(f_krl);
                     console.log(e.stack);
                     process.exit(1);//end asap, so they can easily see the error
                 }
