@@ -9,6 +9,9 @@ module.exports = function(ast, ind, gen){
     if(ast.attributes){
         src += "\n" + ind(1) + gen(ast.attributes, 1);
     }
+    if(ast.setting){
+        src += "\n" + ind(1) + "setting(" + gen(ast.setting, 1) + ")";
+    }
 
     return src;
 };
