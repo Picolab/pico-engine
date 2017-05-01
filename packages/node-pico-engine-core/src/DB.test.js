@@ -184,3 +184,94 @@ test("DB - getOwnerECI", function(t){
         });
     });
 });
+
+test("DB - isRulesetUsed", function(t){
+    mkTestPicoEngine({}, function(err, pe){
+        if(err)return t.end(err);
+
+        λ.series({
+            pico0: λ.curry(pe.db.newPico, {}),
+            pico1: λ.curry(pe.db.newPico, {}),
+
+            foo0: λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "rs-foo"}),
+            foo1: λ.curry(pe.db.addRuleset, {pico_id: "id1", rid: "rs-foo"}),
+            bar0: λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "rs-bar"}),
+
+            is_foo: λ.curry(pe.db.isRulesetUsed, "rs-foo"),
+            is_bar: λ.curry(pe.db.isRulesetUsed, "rs-bar"),
+            is_baz: λ.curry(pe.db.isRulesetUsed, "rs-baz"),
+            is_qux: λ.curry(pe.db.isRulesetUsed, "rs-qux"),
+        }, function(err, data){
+            if(err) return t.end(err);
+            t.equals(data.is_foo, true);
+            t.equals(data.is_bar, true);
+            t.equals(data.is_baz, false);
+            t.equals(data.is_qux, false);
+            t.end();
+        });
+    });
+});
+
+test("DB - deleteRuleset", function(t){
+    mkTestPicoEngine({
+        dont_register_rulesets: true,
+    }, function(err, pe){
+        if(err)return t.end(err);
+
+        var storeRuleset = function(name){
+            return function(callback){
+                var rid = "io.picolabs." + name;
+                var krl = "ruleset " + rid + " {}";
+                pe.db.storeRuleset(krl, {
+                    url: "file:///" + name + ".krl"
+                }, function(err, hash){
+                    if(err) return callback(err);
+                    pe.db.enableRuleset(hash, function(err){
+                        if(err) return callback(err);
+                        pe.db.putAppVar(rid, "my_var", "appvar value", function(err){
+                            callback(err, hash);
+                        });
+                    });
+                });
+            };
+        };
+
+        λ.series({
+            store_foo: storeRuleset("foo"),
+            store_bar: storeRuleset("bar"),
+
+            init_db: λ.curry(pe.db.toObj),
+
+            del_foo: λ.curry(pe.db.deleteRuleset, "io.picolabs.foo"),
+
+            end_db: λ.curry(pe.db.toObj),
+        }, function(err, data){
+            if(err) return t.end(err);
+
+            t.deepEquals(_.keys(data.init_db.rulesets.versions), [
+                "io.picolabs.bar",
+                "io.picolabs.foo",
+            ], "ensure all were actually stored in the db");
+
+            t.deepEquals(_.keys(data.end_db.rulesets.versions), [
+                "io.picolabs.bar",
+            ], "ensure io.picolabs.foo was removed");
+
+
+            //make the `init_db` look like the expected `end_db`
+            var expected_db = _.cloneDeep(data.init_db);
+            t.deepEqual(expected_db, data.init_db, "sanity check");
+
+            delete expected_db.rulesets.enabled["io.picolabs.foo"];
+            delete expected_db.rulesets.krl[data.store_foo];
+            delete expected_db.rulesets.url["file:///foo.krl"];
+            delete expected_db.rulesets.versions["io.picolabs.foo"];
+            delete expected_db.resultset["io.picolabs.foo"];
+
+            t.notDeepEqual(expected_db, data.init_db, "sanity check");
+            t.deepEquals(data.end_db, expected_db);
+
+            t.end();
+        });
+    });
+});

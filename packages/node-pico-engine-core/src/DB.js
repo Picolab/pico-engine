@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var λ = require("contra");
 var cuid = require("cuid");
 var crypto = require("crypto");
 var levelup = require("levelup");
@@ -21,12 +22,18 @@ var dbRange = function(ldb, opts, onData, callback_orig){
         });
         delete opts.prefix;
     }
-    ldb.createReadStream(opts)
-        .on("data", onData)
-        .on("error", function(err){
-            callback(err);
-        })
-        .on("end", callback);
+    var s = ldb.createReadStream(opts);
+    var stopRange = function(){
+        s.destroy();
+        callback();
+    };
+    s.on("error", function(err){
+        callback(err);
+    });
+    s.on("end", callback);
+    s.on("data", function(data){
+        onData(data, stopRange);
+    });
 };
 
 module.exports = function(opts){
@@ -126,9 +133,11 @@ module.exports = function(opts){
                 callback(undefined, new_channel);
             });
         },
+        //TODO rename addRulesetToPico
         addRuleset: function(opts, callback){
             ldb.put(["pico", opts.pico_id, "ruleset", opts.rid], {on: true}, callback);
         },
+        //TODO rename removeRulesetFromPico
         removeRuleset: function(pico_id, rid, callback){
             ldb.del(["pico", pico_id, "ruleset", rid], callback);
         },
@@ -345,6 +354,72 @@ module.exports = function(opts){
                 rids.push(key[2]);
             }, function(err){
                 callback(err, rids);
+            });
+        },
+        isRulesetUsed: function(rid, callback){
+            var is_used = false;
+            dbRange(ldb, {
+                prefix: ["pico"],
+                values: false
+            }, function(key, stopRange){
+                if(is_used){
+                    throw new Error("dbRange should have stopped");
+                }
+                if(key[2] === "ruleset" && key[3] === rid){
+                    is_used = true;
+                    stopRange();
+                }
+            }, function(err){
+                callback(err, is_used);
+            });
+        },
+        deleteRuleset: function(rid, callback){
+            var to_del = [
+                ["rulesets", "enabled", rid],
+            ];
+
+            var hashes = [];
+            dbRange(ldb, {
+                prefix: ["rulesets", "versions", rid],
+                values: false
+            }, function(key){
+                var hash = key[4];
+
+                to_del.push(key);
+                to_del.push(["rulesets", "krl", hash]);
+                hashes.push(hash);
+            }, function(err){
+                if(err) return callback(err);
+                λ.each(hashes, function(hash, next){
+                    ldb.get(["rulesets", "krl", hash], function(err, data){
+                        if(err) return next(err);
+                        if(_.isString(data.url)){
+                            to_del.push([
+                                "rulesets",
+                                "url",
+                                data.url.toLowerCase().trim(),
+                                data.rid,
+                                hash
+                            ]);
+                        }
+                        next();
+                    });
+                }, function(err){
+                    if(err) return callback(err);
+
+                    dbRange(ldb, {
+                        prefix: ["resultset", rid, "vars"],
+                        values: false
+                    }, function(key){
+                        to_del.push(key);
+                    }, function(err){
+                        if(err) return callback(err);
+
+                        ldb.batch(_.map(to_del, function(key){
+                            return {type: "del", key: key};
+                        }), callback);
+                    });
+                });
             });
         }
     };

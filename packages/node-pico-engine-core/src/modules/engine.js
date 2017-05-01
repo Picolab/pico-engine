@@ -3,6 +3,7 @@ var fs = require("fs");
 var cocb = require("co-callback");
 var getArg = require("../getArg");
 var urllib = require("url");
+var mkKRLfn = require("../mkKRLfn");
 var request = require("request");
 
 var installRulesetAndValidateIds = function(db, pico_id, rid, callback){
@@ -127,7 +128,10 @@ module.exports = function(core){
                 }
                 doIt(_.head(rids));
             });
-        })
+        }),
+        unregisterRuleset: mkKRLfn(["rid"], function(args, ctx, callback){
+            core.unregisterRuleset(args.rid, callback);
+        }),
     };
 
     return {
