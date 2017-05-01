@@ -4,6 +4,7 @@ ruleset io.picolabs.meta {
     description <<
 some description for the meta test module
     >>
+
     author "meta author"
     shares metaQuery
   }

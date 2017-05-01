@@ -16,7 +16,8 @@ ruleset io.picolabs.execution-order2 {
   }
   rule foo_or_bar {
     select when execution_order foo
-             or execution_order bar;
+      or
+      execution_order bar;
     send_directive("2 - foo_or_bar")
     always {
       ent:order := ent:order.append("2 - foo_or_bar")
