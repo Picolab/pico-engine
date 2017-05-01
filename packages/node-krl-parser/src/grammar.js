@@ -985,21 +985,27 @@ var grammar = {
     {"name": "Expression_list", "symbols": ["Expression_list_body"], "postprocess": id},
     {"name": "Expression_list_body", "symbols": ["Expression"], "postprocess": idArr},
     {"name": "Expression_list_body", "symbols": ["Expression_list_body", tok_COMMA, "Expression"], "postprocess": concatArr(2)},
-    {"name": "Function$ebnf$1", "symbols": ["Statement_list"], "postprocess": id},
-    {"name": "Function$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Function", "symbols": [tok_function, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "Function$ebnf$1", tok_CLSE_CURLY], "postprocess": 
+    {"name": "Function", "symbols": [tok_function, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "function_body", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: 'Function',
             params: data[2],
-            body: data[5] || []
+            body: data[5]
           };
         }
         },
     {"name": "function_params", "symbols": [], "postprocess": noopArr},
     {"name": "function_params", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "function_params", "symbols": ["function_params", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
+    {"name": "function_body", "symbols": [], "postprocess": noopArr},
+    {"name": "function_body$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
+    {"name": "function_body$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "function_body", "symbols": ["function_body_parts", "function_body$ebnf$1"], "postprocess": id},
+    {"name": "function_body_parts", "symbols": ["ExpressionStatement"], "postprocess": idArr},
+    {"name": "function_body_parts", "symbols": ["Statement", tok_SEMI, "function_body_parts"], "postprocess":  function(data){
+            return [data[0]].concat(data[2]);
+        } },
     {"name": "Application$ebnf$1", "symbols": ["WithArguments"], "postprocess": id},
     {"name": "Application$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Application", "symbols": ["MemberExpression", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "Application$ebnf$1"], "postprocess": 

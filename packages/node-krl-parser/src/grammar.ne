@@ -1058,13 +1058,13 @@ Expression_list_body ->
 ################################################################################
 # Functions
 
-Function -> %tok_function %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_OPEN_CURLY Statement_list:? %tok_CLSE_CURLY {%
+Function -> %tok_function %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_OPEN_CURLY function_body %tok_CLSE_CURLY {%
   function(data){
     return {
       loc: mkLoc(data),
       type: 'Function',
       params: data[2],
-      body: data[5] || []
+      body: data[5]
     };
   }
 %}
@@ -1072,6 +1072,17 @@ Function -> %tok_function %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_O
 function_params -> null {% noopArr %}
     | Identifier {% idArr %}
     | function_params %tok_COMMA Identifier {% concatArr(2) %}
+
+function_body -> null {% noopArr %}
+    | function_body_parts %tok_SEMI:? {% id %}
+
+#function_body must end with an expression
+function_body_parts ->
+      ExpressionStatement {% idArr %}
+    | Statement %tok_SEMI function_body_parts
+      {% function(data){
+          return [data[0]].concat(data[2]);
+      } %}
 
 Application -> MemberExpression %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN WithArguments:? {%
   function(data){

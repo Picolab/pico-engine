@@ -112,6 +112,9 @@ mk.meta = function(key, value){
         value: value
     };
 };
+mk.estmt = function(e){
+    return {type: "ExpressionStatement", expression: e};
+};
 
 test("parser", function(t){
     var assertAST = function(t, src, ast){
@@ -994,6 +997,21 @@ test("expressions", function(t){
     testExp("not (not a || b)",
         mk.unary("not", mk.op("||", mk.unary("not", mk.id("a")), mk.id("b")))
     );
+
+    try{
+        testExp("function(a){b = 1;a = 1}", {});
+        t.fail("functions must end with an expression");
+    }catch(e){
+        t.ok(true, "should not parse b/c functions must end with an expression");
+    }
+    testExp("function(a){b = 1;a(b);}", {
+        type: "Function",
+        params: [mk.id("a")],
+        body: [
+            mk.declare("=", mk.id("b"), mk(1)),
+            mk.estmt(mk.app(mk.id("a"), [mk.id("b")])),
+        ]
+    });
 
     t.end();
 });
