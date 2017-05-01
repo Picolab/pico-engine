@@ -7,7 +7,7 @@ module.exports = function(ast, ind, gen){
     src += "\n" + ind(1) + "repeat " + gen(ast.timespec);
 
     if(ast.attributes){
-        src += "\n" + ind(1) + gen(ast.attributes);
+        src += "\n" + ind(1) + gen(ast.attributes, 1);
     }
 
     return src;

@@ -7,7 +7,7 @@ module.exports = function(ast, ind, gen){
     src += "\n" + ind(1) + "at " + gen(ast.at);
 
     if(ast.attributes){
-        src += "\n" + ind(1) + gen(ast.attributes);
+        src += "\n" + ind(1) + gen(ast.attributes, 1);
     }
 
     return src;

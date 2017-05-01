@@ -30,7 +30,7 @@ ruleset io.picolabs.schedule {
       schedule schedule event "push_log"
         repeat "*/5 * * * *"
         with
-        from = "every_1min"
+          from = "every_1min"
     }
   }
 }
