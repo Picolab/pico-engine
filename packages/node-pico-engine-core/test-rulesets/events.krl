@@ -64,18 +64,27 @@ ruleset io.picolabs.events {
   rule on_choose {
     select when events on_choose thing re#^(.*)$# setting(thing);
 
-    if thing then
-    choose
+    choose thing {
       one =>
         send_directive("on_choose - one")
       two =>
         send_directive("on_choose - two")
+    }
 
     fired {
       ent:on_choose_fired := true
     } else {
       ent:on_choose_fired := false
     }
+  }
+  rule on_every {
+    select when events on_every;
+
+    every {
+      send_directive("on_every - one")
+      send_directive("on_every - two")
+    }
+
   }
   rule select_where {
     select when events select_where where something.match(re#^wat#);
@@ -109,14 +118,16 @@ ruleset io.picolabs.events {
   rule raise_set_name {
     select when events raise_set_name name re#^(.*)$# setting(my_name);
     fired {
-      raise events event "store_sent_name" with
-        name = my_name
+      raise events event "store_sent_name"
+        with
+          name = my_name
     }
   }
   rule raise_set_name_attr {
     select when events raise_set_name_attr name re#^(.*)$# setting(my_name);
     fired {
-      raise events event "store_sent_name" attributes {"name": my_name}
+      raise events event "store_sent_name"
+        attributes {"name": my_name}
     }
   }
   rule raise_set_name_rid {
@@ -125,8 +136,9 @@ ruleset io.picolabs.events {
       rid = "io.picolabs.events"
     }
     fired {
-      raise events event "store_sent_name" for rid with
-        name = my_name
+      raise events event "store_sent_name" for rid
+        with
+          name = my_name
     }
   }
   rule event_eid {
