@@ -257,19 +257,20 @@ module.exports = function(pe){
             if(err) return errResp(res, err);
 
             var url = rs_data.url;
-            if(_.isString(url)){
-                getKRLByURL(url, function(err, src){
-                    if(err) return errResp(res, err);
-
-                    pe.registerRuleset(src, {url: url}, function(err, data){
-                        if(err) return errResp(res, err);
-
-                        res.json({ok: true, rid: data.rid, hash: data.hash});
-                    });
-                });
-            }else{
+            if(!_.isString(url)){
                 errResp(res, new Error("cannot flush a locally registered ruleset"));
             }
+            getKRLByURL(url, function(err, src){
+                if(err) return errResp(res, err);
+
+                pe.registerRuleset(src, {url: url}, function(err, data){
+                    if(err) return errResp(res, err);
+
+                    console.log("Ruleset successfully flushed: " + data.rid);
+
+                    res.json({ok: true, rid: data.rid, hash: data.hash});
+                });
+            });
         });
     });
 
