@@ -316,6 +316,45 @@ module.exports = {
         "always": undefined
       }
     },
+    "on_every": {
+      "name": "on_every",
+      "select": {
+        "graph": { "events": { "on_every": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [
+          {
+            "action": function* (ctx) {
+              return {
+                "type": "directive",
+                "name": "on_every - one",
+                "options": {}
+              };
+            }
+          },
+          {
+            "action": function* (ctx) {
+              return {
+                "type": "directive",
+                "name": "on_every - two",
+                "options": {}
+              };
+            }
+          }
+        ]
+      }
+    },
     "select_where": {
       "name": "select_where",
       "select": {

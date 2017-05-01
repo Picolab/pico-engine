@@ -77,6 +77,15 @@ ruleset io.picolabs.events {
       ent:on_choose_fired := false
     }
   }
+  rule on_every {
+    select when events on_every;
+
+    every {
+      send_directive("on_every - one")
+      send_directive("on_every - two")
+    }
+
+  }
   rule select_where {
     select when events select_where where something.match(re#^wat#);
     send_directive("select_where")
