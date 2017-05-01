@@ -141,4 +141,9 @@ ruleset io.picolabs.events {
           name = my_name
     }
   }
+  rule event_eid {
+    select when events event_eid;
+    send_directive("event_eid") with
+      eid = event:eid
+  }
 }
