@@ -121,7 +121,7 @@ $.getJSON("/api/db-dump", function(db_dump){
       var installedRS = {};
       for (var rs in theRulesetInp.ruleset) {
         installedRS[rs] = theRulesetInp.ruleset[rs];
-        if (rid !== "io.picolabs.pico" && rid !== "io.picolabs.visual_params") {
+        if (rs !== "io.picolabs.pico" && rs !== "io.picolabs.visual_params") {
           installedRS[rs].canDel = true;
         }
         if (theRulesetInp[rs]) {
