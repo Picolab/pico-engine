@@ -421,6 +421,11 @@ module.exports = function(opts){
                     });
                 });
             });
-        }
+        },
+        storeScheduleEventAt: function(event, callback){
+            var id = newID();
+            //TODO
+            callback(null, id);
+        },
     };
 };

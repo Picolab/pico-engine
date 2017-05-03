@@ -9,6 +9,7 @@ var sub_modules = {
     http: require("./http"),
     keys: require("./keys"),
     meta: require("./meta"),
+    schedule: require("./schedule"),
     time: require("./time")
 };
 

@@ -1409,3 +1409,33 @@ test("PicoEngine - io.picolabs.key* rulesets", function(t){
         ], t.end);
     });
 });
+
+test("PicoEngine - io.picolabs.schedule rulesets", function(t){
+    mkTestPicoEngine({}, function(err, pe){
+        if(err)return t.end(err);
+
+        var signal = mkSignalTask(pe, "id1");
+        var query = mkQueryTask(pe, "id1", "io.picolabs.schedule");
+
+        testOutputs(t, [
+            λ.curry(pe.db.newPico, {}),
+            λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.schedule"}),
+
+            [query("getLog"), void 0],
+            [
+                signal("schedule", "in_5min"),
+                [{name: "in_5min", options: {}}]
+            ],
+            [query("getLog"), [
+                null,
+                {"scheduled in_5min": "id2"},
+            ]],
+            //TODO check the schedule info
+            //TODO change pe time to trigger the event
+            //TODO check the log to see if the event fired
+
+            //TODO ensure events only signal on the same rid and pico_id
+        ], t.end);
+    });
+});
