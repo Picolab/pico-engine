@@ -6,7 +6,13 @@ test("time module", function(t){
     cocb.run(function*(){
         var ctx = {};
 
-        t.ok(/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\dZ$/.test(yield time.now(ctx, [])));
+
+        var now0 = yield time.now(ctx, []);
+        var now1 = yield time.now(ctx, [
+            {tz: "Australia/Sydney"}
+        ]);
+        t.ok(/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\dZ$/.test(now0));
+        t.ok(/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\dZ$/.test(now1));
 
         t.equals(
           yield time["new"](ctx, ["2010-08-08"]),

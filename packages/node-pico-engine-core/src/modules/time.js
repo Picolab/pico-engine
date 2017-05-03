@@ -1,4 +1,5 @@
-var moment = require("moment");
+var _ = require("lodash");
+var moment = require("moment-timezone");
 var mkKRLfn = require("../mkKRLfn");
 var strftime = require("strftime");
 
@@ -26,9 +27,13 @@ module.exports = function(core){
     return {
         def: {
             now: mkKRLfn([
+                "opts",
             ], function(args, ctx, callback){
-                var time_str = (new Date()).toISOString();
-                callback(null, time_str);
+                var d = moment();
+                if(_.has(args, ["opts", "tz"])){
+                    d.tz(args.opts.tz);
+                }
+                callback(null, d.toISOString());
             }),
             "new": mkKRLfn([
                 "date",
