@@ -1,11 +1,24 @@
-var _ = require("lodash");
+var moment = require("moment");
 var mkKRLfn = require("../mkKRLfn");
 var strftime = require("strftime");
 
-var newDate = function(date_str){
-    var d = new Date(date_str);
-    //TODO a string formatted as described in ISO8601 (v2000).
-    //TODO http://www.probabilityof.com/iso/8601v2000.pdf
+var newDate = function(date_str, parse_utc){
+    var parse = function(str){
+        return parse_utc
+            ? moment.utc(str, moment.ISO_8601)
+            : moment(str, moment.ISO_8601);
+    };
+    var d = parse(date_str);
+    if(!d.isValid()){
+        var today = (new Date()).toISOString().split("T")[0];
+        d = parse(today + "T" + date_str);
+        if(!d.isValid()){
+            d = parse(today.replace(/-/g, "") + "T" + date_str);
+        }
+    }
+    if(!d.isValid()){
+        throw new Error("Invalid date string: " + date_str);
+    }
     return d;
 };
 
@@ -20,41 +33,16 @@ module.exports = function(core){
             "new": mkKRLfn([
                 "date",
             ], function(args, ctx, callback){
-                callback(null, newDate(args.date).toISOString());
+                callback(null, newDate(args.date, true).toISOString());
             }),
             "add": mkKRLfn([
                 "date",
                 "spec",
             ], function(args, ctx, callback){
-                var d = newDate(args.date);
+                var d = newDate(args.date, true);
 
-                var has = function(key){
-                    return _.has(args.spec, key)
-                        && _.isNumber(args.spec[key])
-                        && !_.isNaN(args.spec[key]);
-                };
+                d.add(args.spec);
 
-                if(has("years")){
-                    d.setFullYear(d.getFullYear() + args.spec.years);
-                }
-                if(has("months")){
-                    d.setMonth(d.getMonth() + args.spec.months);
-                }
-                if(has("weeks")){
-                    d.setDate(d.getDate() + (7 * args.spec.weeks));
-                }
-                if(has("days")){
-                    d.setDate(d.getDate() + args.spec.days);
-                }
-                if(has("hours")){
-                    d.setHours(d.getHours() + args.spec.hours);
-                }
-                if(has("minutes")){
-                    d.setMinutes(d.getMinutes() + args.spec.minutes);
-                }
-                if(has("seconds")){
-                    d.setSeconds(d.getSeconds() + args.spec.seconds);
-                }
                 callback(null, d.toISOString());
             }),
             "strftime": mkKRLfn([
@@ -63,7 +51,7 @@ module.exports = function(core){
             ], function(args, ctx, callback){
                 var d = newDate(args.date);
 
-                callback(null, strftime(args.fmt, d));
+                callback(null, strftime(args.fmt, d.toDate()));
             }),
         }
     };
