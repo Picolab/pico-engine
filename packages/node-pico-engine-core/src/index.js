@@ -6,6 +6,7 @@ var getArg = require("./getArg");
 var runKRL = require("./runKRL");
 var Modules = require("./modules");
 var PicoQueue = require("./PicoQueue");
+var Scheduler = require("./Scheduler");
 var krl_stdlib = require("krl-stdlib");
 var SymbolTable = require("symbol-table");
 var EventEmitter = require("events");
@@ -397,6 +398,17 @@ module.exports = function(conf, callback){
             });
         });
     };
+
+    core.scheduler = Scheduler({
+        db: db,
+        onError: function(err){
+            var info = {scheduler: true};
+            emitter.emit("error", info, err);
+        },
+        onEvent: function(info){
+            console.log("SCHEDULER---TODO---HANDLE", info);
+        },
+    });
 
     registerAllEnabledRulesets(function(err){
         if(err) return callback(err);
