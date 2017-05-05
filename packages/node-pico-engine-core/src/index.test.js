@@ -1424,19 +1424,45 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
 
             [query("getLog"), void 0],
             [
-                signal("schedule", "in_5min"),
+                signal("schedule", "in_5min", {name: "foo"}),
                 [{name: "in_5min", options: {}}]
             ],
-            /*
             [query("getLog"), [
                 null,
                 {"scheduled in_5min": "id2"},
             ]],
-            */
-            //TODO check the schedule info
-            //TODO change pe time to trigger the event
-            //TODO check the log to see if the event fired
-
+            [
+                signal("schedule", "in_5min", {name: "bar"}),
+                [{name: "in_5min", options: {}}]
+            ],
+            [query("getLog"), [
+                null,
+                {"scheduled in_5min": "id2"},
+                {"scheduled in_5min": "id3"},
+            ]],
+            function(done){
+                //trigger that it's been 5 minutes
+                pe.scheduler.test_mode_trigger();
+                done();
+            },
+            [query("getLog"), [
+                null,
+                {"scheduled in_5min": "id2"},
+                {"scheduled in_5min": "id3"},
+                {"from": "in_5min", "name": "foo"},
+            ]],
+            function(done){
+                //trigger that it's been the other 5 minutes
+                pe.scheduler.test_mode_trigger();
+                done();
+            },
+            [query("getLog"), [
+                null,
+                {"scheduled in_5min": "id2"},
+                {"scheduled in_5min": "id3"},
+                {"from": "in_5min", "name": "foo"},
+                {"from": "in_5min", "name": "bar"},
+            ]],
             //TODO ensure events only signal on the same rid and pico_id
         ], t.end);
     });

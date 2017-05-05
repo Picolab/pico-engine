@@ -405,20 +405,25 @@ module.exports = function(conf, callback){
             var info = {scheduler: true};
             emitter.emit("error", info, err);
         },
-        onEvent: function(info){
-            console.log("SCHEDULER---TODO---HANDLE", info);
+        onEvent: function(info, callback){
+            signalEvent(info.event, callback);
         },
+        is_test_mode: !!conf.scheduler_is_test_mode,
     });
 
     registerAllEnabledRulesets(function(err){
         if(err) return callback(err);
-        callback(void 0, {
+        var pe = {
             db: db,
             emitter: emitter,
             registerRuleset: core.registerRulesetSrc,
             unregisterRuleset: core.unregisterRuleset,
             signalEvent: signalEvent,
             runQuery: runQuery
-        });
+        };
+        if(conf.scheduler_is_test_mode){
+            pe.scheduler = core.scheduler;
+        }
+        callback(void 0, pe);
     });
 };

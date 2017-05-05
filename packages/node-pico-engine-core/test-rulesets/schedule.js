@@ -78,7 +78,10 @@ module.exports = {
                 yield (yield ctx.modules.get(ctx, "time", "now"))(ctx, []),
                 { "minutes": 5 }
               ]),
-              "attributes": { "from": "in_5min" }
+              "attributes": {
+                "from": "in_5min",
+                "name": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["name"])
+              }
             }]));
           yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "log"), { "scheduled in_5min": ctx.scope.get("foo") }));
         },
@@ -119,7 +122,10 @@ module.exports = {
               "domain": "schedule",
               "type": "push_log",
               "timespec": "*/5 * * * *",
-              "attributes": { "from": "every_1min" }
+              "attributes": {
+                "from": "every_1min",
+                "name": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["name"])
+              }
             }]));
           yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "log"), { "scheduled every_1min": ctx.scope.get("foo") }));
         },
