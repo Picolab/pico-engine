@@ -275,3 +275,82 @@ test("DB - deleteRuleset", function(t){
         });
     });
 });
+
+test("DB - scheduleEventAt", function(t){
+    mkTestPicoEngine({
+        dont_register_rulesets: true,
+    }, function(err, pe){
+        if(err)return t.end(err);
+
+        var eventAt = function(date, type){
+            return function(callback){
+                pe.db.scheduleEventAt(new Date(date), {
+                    domain: "foobar",
+                    type: type,
+                    attributes: {some: "attr"},
+                }, callback);
+            };
+        };
+        var rmAt = function(id, date){
+            return function(callback){
+                pe.db.removeScheduleEventAt(id, new Date(date), callback);
+            };
+        };
+
+        var getNext = λ.curry(pe.db.nextScheduleEventAt);
+
+        λ.series({
+            init_db: λ.curry(pe.db.toObj),
+            next0: getNext,
+            at0: eventAt("Feb 22, 2222", "foo"),
+            next1: getNext,
+            at1: eventAt("Feb 23, 2222", "bar"),
+            next2: getNext,
+            at2: eventAt("Feb  2, 2222", "baz"),
+            next3: getNext,
+
+            rm0: rmAt("id0", "Feb 22, 2222"),
+            next4: getNext,
+            rm2: rmAt("id2", "Feb  2, 2222"),
+            next5: getNext,
+            rm1: rmAt("id1", "Feb 23, 2222"),
+            next6: getNext,
+
+            end_db: λ.curry(pe.db.toObj),
+        }, function(err, data){
+            if(err) return t.end(err);
+
+            t.deepEquals(data.init_db, {});
+
+            t.deepEquals(data.at0, {
+                id: "id0",
+                at: new Date("Feb 22, 2222"),
+                event: {domain: "foobar", type: "foo", attributes: {some: "attr"}},
+            });
+            t.deepEquals(data.at1, {
+                id: "id1",
+                at: new Date("Feb 23, 2222"),
+                event: {domain: "foobar", type: "bar", attributes: {some: "attr"}},
+            });
+            t.deepEquals(data.at2, {
+                id: "id2",
+                at: new Date("Feb  2, 2222"),
+                event: {domain: "foobar", type: "baz", attributes: {some: "attr"}},
+            });
+
+            t.deepEquals(data.next0, void 0, "nothing scheduled");
+            t.ok(_.has(data, "next0"), "ensure next0 was actually tested");
+            t.deepEquals(data.next1, data.at0, "only one scheduled");
+            t.deepEquals(data.next2, data.at0, "at0 is still sooner than at1");
+            t.deepEquals(data.next3, data.at2, "at2 is sooner than at0");
+            t.deepEquals(data.next4, data.at2);
+            t.deepEquals(data.next5, data.at1, "at1 is soonest now that at0 and at2 were removed");
+            t.deepEquals(data.next6, void 0, "nothing scheduled");
+            t.ok(_.has(data, "next6"), "ensure next6 was actually tested");
+
+            t.deepEquals(data.end_db, {}, "should be nothing left in the db");
+
+            t.end();
+        });
+    });
+});

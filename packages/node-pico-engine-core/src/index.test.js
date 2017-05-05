@@ -1427,10 +1427,12 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
                 signal("schedule", "in_5min"),
                 [{name: "in_5min", options: {}}]
             ],
+            /*
             [query("getLog"), [
                 null,
                 {"scheduled in_5min": "id2"},
             ]],
+            */
             //TODO check the schedule info
             //TODO change pe time to trigger the event
             //TODO check the log to see if the event fired

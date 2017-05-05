@@ -422,10 +422,44 @@ module.exports = function(opts){
                 });
             });
         },
-        storeScheduleEventAt: function(event, callback){
+        scheduleEventAt: function(at, event, callback){
             var id = newID();
-            //TODO
-            callback(null, id);
+
+            var val = {
+                id: id,
+                at: at,
+                event: event
+            };
+
+            ldb.batch([
+                {type: "put", key: ["scheduleAt_by_id", id], value: val},
+                {type: "put", key: ["scheduleAt_by_at", at, id], value: val},
+            ], function(err){
+                if(err) return callback(err);
+
+                callback(null, val);
+            });
+        },
+        nextScheduleEventAt: function(callback){
+            var r;
+            dbRange(ldb, {
+                prefix: ["scheduleAt_by_at"],
+                limit: 1,//peek the first one
+            }, function(data){
+                r = {
+                    id: data.value.id,
+                    at: data.key[1],
+                    event: data.value.event,
+                };
+            }, function(err){
+                callback(err, r);
+            });
+        },
+        removeScheduleEventAt: function(id, at, callback){
+            ldb.batch([
+                {type: "del", key: ["scheduleAt_by_id", id]},
+                {type: "del", key: ["scheduleAt_by_at", at, id]},
+            ], callback);
         },
     };
 };
