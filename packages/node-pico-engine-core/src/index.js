@@ -424,6 +424,13 @@ module.exports = function(conf, callback){
         if(conf.scheduler_is_test_mode){
             pe.scheduler = core.scheduler;
         }
-        callback(void 0, pe);
+        //restart "cron"
+        db.scheduleEventRepeatGetAll(function(err, repeats){
+            if(err) return callback(err);
+            _.each(repeats, function(val){
+                core.scheduler.addCron(val.timespec, val.id, val.event);
+            });
+            callback(void 0, pe);
+        });
     });
 };

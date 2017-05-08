@@ -33,7 +33,7 @@ module.exports = function(opts, callback){
             callback(undefined, rs);
         },
         db: {
-            db: memdown,
+            db: opts.ldb || memdown,
             newID: (function(){
                 var i = 0;
                 return function(){

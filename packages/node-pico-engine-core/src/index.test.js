@@ -1,7 +1,10 @@
 var _ = require("lodash");
 var λ = require("contra");
+var DB = require("./DB");
+var cuid = require("cuid");
 var test = require("tape");
 var http = require("http");
+var memdown = require("memdown");
 var mkTestPicoEngine = require("./mkTestPicoEngine");
 
 var omitMeta = function(resp){
@@ -1411,11 +1414,40 @@ test("PicoEngine - io.picolabs.key* rulesets", function(t){
 });
 
 test("PicoEngine - io.picolabs.schedule rulesets", function(t){
-    mkTestPicoEngine({}, function(err, pe){
-        if(err)return t.end(err);
 
-        var signal = mkSignalTask(pe, "id1");
-        var query = mkQueryTask(pe, "id1", "io.picolabs.schedule");
+    //before starting the engine, write some test data to the db
+    var memdb = memdown(cuid());
+    var db = DB({
+        db: function(){return memdb;},
+        newID: (function(){
+            var i = 0;
+            return function(){
+                return "init" + i++;
+            };
+        }()),
+    });
+    λ.series([
+        λ.curry(db.newPico, {}),
+        λ.curry(db.newChannel, {pico_id: "init0", name: "one", type: "t"}),
+        λ.curry(db.addRuleset, {pico_id: "init0", rid: "io.picolabs.schedule"}),
+        λ.curry(db.scheduleEventRepeat, "10 * * * * *", {
+            eci: "init1",
+            eid: "1234",
+            domain: "schedule",
+            type: "push_log",
+            attrs: {from: "startup_event", name: "qux"},
+        }),
+        λ.curry(mkTestPicoEngine, {
+            ldb: function(){return memdb;},
+        })
+    ], function(err, results){
+        if(err)return t.end(err);
+        testPE(_.last(results));
+    });
+
+    function testPE(pe){
+        var signal = mkSignalTask(pe, "init1");
+        var query = mkQueryTask(pe, "init1", "io.picolabs.schedule");
 
         var triggerTimeout = function(){
             return function(done){
@@ -1436,43 +1468,39 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
         ];
 
         testOutputs(t, [
-            λ.curry(pe.db.newPico, {}),
-            λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.schedule"}),
-
             clearLog,
             [
                 signal("schedule", "in_5min", {name: "foo"}),
                 [{name: "in_5min", options: {}}]
             ],
             [query("getLog"), [
-                {"scheduled in_5min": "id2"},
+                {"scheduled in_5min": "id0"},
             ]],
             [
                 signal("schedule", "in_5min", {name: "bar"}),
                 [{name: "in_5min", options: {}}]
             ],
             [query("getLog"), [
-                {"scheduled in_5min": "id2"},
-                {"scheduled in_5min": "id3"},
+                {"scheduled in_5min": "id0"},
+                {"scheduled in_5min": "id1"},
             ]],
             triggerTimeout(),//it's been 5 minutes
             [query("getLog"), [
-                {"scheduled in_5min": "id2"},
-                {"scheduled in_5min": "id3"},
+                {"scheduled in_5min": "id0"},
+                {"scheduled in_5min": "id1"},
                 {"from": "in_5min", "name": "foo"},
             ]],
             triggerTimeout(),//it's been 5 more minutes
             [query("getLog"), [
-                {"scheduled in_5min": "id2"},
-                {"scheduled in_5min": "id3"},
+                {"scheduled in_5min": "id0"},
+                {"scheduled in_5min": "id1"},
                 {"from": "in_5min", "name": "foo"},
                 {"from": "in_5min", "name": "bar"},
             ]],
             triggerTimeout(),//it's been 5 more minutes
             [query("getLog"), [
-                {"scheduled in_5min": "id2"},
-                {"scheduled in_5min": "id3"},
+                {"scheduled in_5min": "id0"},
+                {"scheduled in_5min": "id1"},
                 {"from": "in_5min", "name": "foo"},
                 {"from": "in_5min", "name": "bar"},
                 //nothing changed
@@ -1486,22 +1514,30 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
                 [{name: "every_1min", options: {}}]
             ],
             [query("getLog"), [
-                {"scheduled every_1min": "id4"},
+                {"scheduled every_1min": "id2"},
             ]],
-            triggerCron("id4"),
+            triggerCron("id2"),
             [query("getLog"), [
-                {"scheduled every_1min": "id4"},
+                {"scheduled every_1min": "id2"},
                 {from: "every_1min", name: "baz"},
             ]],
-            triggerCron("id4"),
-            triggerCron("id4"),
+            triggerCron("id2"),
+            triggerCron("id2"),
             [query("getLog"), [
-                {"scheduled every_1min": "id4"},
+                {"scheduled every_1min": "id2"},
                 {from: "every_1min", name: "baz"},
                 {from: "every_1min", name: "baz"},
                 {from: "every_1min", name: "baz"},
+            ]],
+            triggerCron("init2"),//trigger a cron from startup
+            [query("getLog"), [
+                {"scheduled every_1min": "id2"},
+                {from: "every_1min", name: "baz"},
+                {from: "every_1min", name: "baz"},
+                {from: "every_1min", name: "baz"},
+                {from: "startup_event", name: "qux"},
             ]],
 
         ], t.end);
-    });
+    }
 });
