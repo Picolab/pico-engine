@@ -1,3 +1,5 @@
+var lt = require("long-timeout");//makes it possible to have a timeout longer than 24.8 days (2^31-1 milliseconds)
+
 module.exports = function(conf){
 
     var curr_timeout;
@@ -10,7 +12,7 @@ module.exports = function(conf){
             if(curr_timeout){
                 //always clear the timeout since we're about to re-schedule it
                 if(!conf.is_test_mode){
-                    clearTimeout(curr_timeout);
+                    lt.clearTimeout(curr_timeout);
                 }
                 curr_timeout = null;
             }
@@ -39,7 +41,7 @@ module.exports = function(conf){
             }else{
                 //Execute the event by milliseconds from now.
                 //If it's in the past it will happen on the next tick
-                curr_timeout = setTimeout(onTime, next.at.getTime() - Date.now());
+                curr_timeout = lt.setTimeout(onTime, next.at.getTime() - Date.now());
             }
         });
     };
