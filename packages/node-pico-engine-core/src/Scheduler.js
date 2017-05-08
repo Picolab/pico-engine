@@ -1,8 +1,11 @@
+var _ = require("lodash");
 var lt = require("long-timeout");//makes it possible to have a timeout longer than 24.8 days (2^31-1 milliseconds)
+var schedule = require("node-schedule");
 
 module.exports = function(conf){
 
     var curr_timeout;
+    var cron_by_id = {};
 
     /**
      * call update everytime the schedule in the db changes
@@ -22,7 +25,7 @@ module.exports = function(conf){
             }
             var onTime = function(){
                 //run the scheduled task
-                conf.onEvent(next, function(err){
+                conf.onEvent(next.event, function(err){
                     if(err){
                         conf.onError(err);
                         //handle the error
@@ -50,6 +53,36 @@ module.exports = function(conf){
 
     var r = {
         update: update,
+        addCron: function(timespec, id, event_orig){
+            //clone in case event_orig get's mutated
+            var event = _.cloneDeep(event_orig);
+
+            if(_.has(cron_by_id, id)){
+                if(true
+                    && timespec === cron_by_id[id].timespec
+                    && _.isEqual(event, cron_by_id[id].event)
+                ){
+                    return;//nothing changed
+                }
+                cron_by_id[id].job.cancel();//kill this cron so we can start a new on
+            }
+            cron_by_id[id] = {
+                timespec: timespec,
+                event: event,
+                job: schedule.scheduleJob(timespec, function(){
+                    conf.onEvent(event, function(err){
+                        if(err) conf.onError(err);
+                    });
+                })
+            };
+        },
+        rmCron: function(id){
+            if(!_.has(cron_by_id, id)){
+                return;
+            }
+            cron_by_id[id].job.cancel();
+            delete cron_by_id[id];
+        },
     };
     if(conf.is_test_mode){
         r.test_mode_trigger = function(){

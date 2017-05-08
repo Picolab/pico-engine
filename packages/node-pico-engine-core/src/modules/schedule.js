@@ -32,6 +32,34 @@ module.exports = function(core){
                     callback(null, val.id);
                 });
             }),
+            eventRepeat: mkKRLfn([
+                "opts",
+            ], function(args, ctx, callback){
+                var opts = args.opts;
+
+                if(!_.isString(opts.timespec)){
+                    //TODO parse it to ensure it's shaped right
+                    callback(new Error("schedule:eventRepeat `timespec` must be a cron format string"));
+                    return;
+                }
+                if(!_.has(ctx, ["event", "eci"])){
+                    callback(new Error("schedule:eventRepeat must be executed in response to an event"));
+                    return;
+                }
+
+                var event = {
+                    eci: ctx.event.eci,//in theory we are only running in an event postlude
+                    eid: ctx.event.eid,
+                    domain: opts.domain,
+                    type: opts.type,
+                    attrs: opts.attributes,
+                };
+                core.db.scheduleEventRepeat(opts.timespec, event, function(err, val){
+                    if(err) return callback(err);
+                    core.scheduler.addCron(val.timespec, val.id, val.event);
+                    callback(null, val.id);
+                });
+            }),
         }
     };
 };

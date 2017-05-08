@@ -405,8 +405,8 @@ module.exports = function(conf, callback){
             var info = {scheduler: true};
             emitter.emit("error", info, err);
         },
-        onEvent: function(info, callback){
-            signalEvent(info.event, callback);
+        onEvent: function(event, callback){
+            signalEvent(event, callback);
         },
         is_test_mode: !!conf.scheduler_is_test_mode,
     });
