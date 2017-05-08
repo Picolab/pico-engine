@@ -432,8 +432,8 @@ module.exports = function(opts){
             };
 
             ldb.batch([
-                {type: "put", key: ["scheduleAt_by_id", id], value: val},
-                {type: "put", key: ["scheduleAt_by_at", at, id], value: val},
+                {type: "put", key: ["scheduled", id], value: val},
+                {type: "put", key: ["scheduled_by_at", at, id], value: val},
             ], function(err){
                 if(err) return callback(err);
 
@@ -443,12 +443,12 @@ module.exports = function(opts){
         nextScheduleEventAt: function(callback){
             var r;
             dbRange(ldb, {
-                prefix: ["scheduleAt_by_at"],
+                prefix: ["scheduled_by_at"],
                 limit: 1,//peek the first one
             }, function(data){
                 r = {
                     id: data.value.id,
-                    at: data.key[1],
+                    at: data.key[1],//Date object
                     event: data.value.event,
                 };
             }, function(err){
@@ -457,8 +457,8 @@ module.exports = function(opts){
         },
         removeScheduleEventAt: function(id, at, callback){
             ldb.batch([
-                {type: "del", key: ["scheduleAt_by_id", id]},
-                {type: "del", key: ["scheduleAt_by_at", at, id]},
+                {type: "del", key: ["scheduled", id]},
+                {type: "del", key: ["scheduled_by_at", at, id]},
             ], callback);
         },
         scheduleEventRepeat: function(timespec, event, callback){
@@ -471,7 +471,7 @@ module.exports = function(opts){
             };
 
             ldb.batch([
-                {type: "put", key: ["scheduleRepeat", id], value: val},
+                {type: "put", key: ["scheduled", id], value: val},
             ], function(err){
                 if(err) return callback(err);
 
@@ -481,17 +481,29 @@ module.exports = function(opts){
         scheduleEventRepeatGetAll: function(callback){
             var r = {};
             dbRange(ldb, {
-                prefix: ["scheduleRepeat"],
+                prefix: ["scheduled"],
             }, function(data){
-                r[data.key[1]] = data.value;
+                if(_.has(data.value, "timespec")){
+                    r[data.key[1]] = data.value;
+                }
             }, function(err){
                 callback(err, r);
             });
         },
-        removeScheduleEventRepeat: function(id, callback){
-            ldb.batch([
-                {type: "del", key: ["scheduleRepeat", id]},
-            ], callback);
+        removeScheduled: function(id, callback){
+            ldb.get(["scheduled", id], function(err, info){
+                if(err) return callback(err);
+
+                var to_batch = [
+                    {type: "del", key: ["scheduled", id]},
+                ];
+                if(_.has(info, "at")){
+                    //also remove the `at` index
+                    to_batch.push({type: "del", key: ["scheduled_by_at", new Date(info.at), id]});
+                }
+
+                ldb.batch(to_batch, callback);
+            });
         },
     };
 };

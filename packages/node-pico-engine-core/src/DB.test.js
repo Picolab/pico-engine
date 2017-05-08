@@ -291,9 +291,9 @@ test("DB - scheduleEventAt", function(t){
                 }, callback);
             };
         };
-        var rmAt = function(id, date){
+        var rmAt = function(id){
             return function(callback){
-                pe.db.removeScheduleEventAt(id, new Date(date), callback);
+                pe.db.removeScheduled(id, callback);
             };
         };
 
@@ -309,11 +309,11 @@ test("DB - scheduleEventAt", function(t){
             at2: eventAt("Feb  2, 2222", "baz"),
             next3: getNext,
 
-            rm0: rmAt("id0", "Feb 22, 2222"),
+            rm0: rmAt("id0"),
             next4: getNext,
-            rm2: rmAt("id2", "Feb  2, 2222"),
+            rm2: rmAt("id2"),
             next5: getNext,
-            rm1: rmAt("id1", "Feb 23, 2222"),
+            rm1: rmAt("id1"),
             next6: getNext,
 
             end_db: λ.curry(pe.db.toObj),
@@ -380,8 +380,8 @@ test("DB - scheduleEventRepeat", function(t){
 
             getAll: λ.curry(pe.db.scheduleEventRepeatGetAll),
 
-            rm0: λ.curry(pe.db.removeScheduleEventRepeat, "id0"),
-            rm1: λ.curry(pe.db.removeScheduleEventRepeat, "id1"),
+            rm0: λ.curry(pe.db.removeScheduled, "id0"),
+            rm1: λ.curry(pe.db.removeScheduled, "id1"),
 
             end_db: λ.curry(pe.db.toObj),
         }, function(err, data){
@@ -400,7 +400,7 @@ test("DB - scheduleEventRepeat", function(t){
                 event: {domain: "foobar", type: "bar", attributes: {some: "attr"}},
             });
 
-            t.deepEquals(data.mid_db, {scheduleRepeat: {
+            t.deepEquals(data.mid_db, {scheduled: {
                 id0: data.rep0,
                 id1: data.rep1,
             }});
