@@ -93,6 +93,9 @@ $.getJSON("/api/db-dump", function(db_dump){
         if (get(db_dump.rulesets,["krl",rs_info.hash,"url"],undefined)) {
           rs_data.rulesets[aRid].canFlush = !isSysRid(aRid);
         }
+        if (aRid !== "io.picolabs.pico" && aRid !== "io.picolabs.visual_params") {
+          rs_data.rulesets[aRid].canDel = true;
+        }
       }
     }
   }
@@ -138,6 +141,17 @@ $.getJSON("/api/db-dump", function(db_dump){
         return;
       }
       location.hash = data.rid;
+      location.reload();
+    });
+  });
+  $(".unregister").click(function(e){
+    e.preventDefault();
+    picoAPI($(this).attr("href"),undefined,"GET",function(err, data){
+      if(err){
+        $("pre#feedback").html("<span style=\"color:red\">" + err + "</span>");
+        return;
+      }
+      location.hash = "";
       location.reload();
     });
   });
