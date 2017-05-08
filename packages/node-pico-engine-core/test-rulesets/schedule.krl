@@ -27,7 +27,10 @@ ruleset io.picolabs.schedule {
     fired {
       schedule schedule event "push_log"
         at time:add(time:now(), {"minutes": 5})
-        attributes {"from": "in_5min", "name": event:attr("name")}
+        attributes {
+          "from": "in_5min",
+          "name": event:attr("name")
+        }
         setting(foo);
       ent:log := ent:log.append({"scheduled in_5min": foo})
     }
