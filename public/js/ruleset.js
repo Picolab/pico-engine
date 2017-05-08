@@ -93,9 +93,7 @@ $.getJSON("/api/db-dump", function(db_dump){
         if (get(db_dump.rulesets,["krl",rs_info.hash,"url"],undefined)) {
           rs_data.rulesets[aRid].canFlush = !isSysRid(aRid);
         }
-        if (aRid !== "io.picolabs.pico" && aRid !== "io.picolabs.visual_params") {
-          rs_data.rulesets[aRid].canDel = true;
-        }
+        rs_data.rulesets[aRid].canDel = !isSysRid(aRid);
       }
     }
   }
