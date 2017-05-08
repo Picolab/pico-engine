@@ -7,6 +7,41 @@ module.exports = {
     }));
   },
   "rules": {
+    "clear_log": {
+      "name": "clear_log",
+      "select": {
+        "graph": { "schedule": { "clear_log": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return {
+                "type": "directive",
+                "name": "clear_log",
+                "options": {}
+              };
+            }
+          }]
+      },
+      "postlude": {
+        "fired": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "log", []);
+        },
+        "notfired": undefined,
+        "always": undefined
+      }
+    },
     "push_log": {
       "name": "push_log",
       "select": {
@@ -121,7 +156,7 @@ module.exports = {
           ctx.scope.set("foo", yield (yield ctx.modules.get(ctx, "schedule", "eventRepeat"))(ctx, [{
               "domain": "schedule",
               "type": "push_log",
-              "timespec": "*/5 * * * *",
+              "timespec": "* */1 * * * *",
               "attributes": {
                 "from": "every_1min",
                 "name": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["name"])

@@ -66,14 +66,17 @@ module.exports = function(conf){
                 }
                 cron_by_id[id].job.cancel();//kill this cron so we can start a new on
             }
+            var handler = function(){
+                conf.onEvent(event, function(err){
+                    if(err) conf.onError(err);
+                });
+            };
             cron_by_id[id] = {
                 timespec: timespec,
                 event: event,
-                job: schedule.scheduleJob(timespec, function(){
-                    conf.onEvent(event, function(err){
-                        if(err) conf.onError(err);
-                    });
-                })
+                job: conf.is_test_mode
+                    ? {handler: handler, cancel: _.noop}
+                    : schedule.scheduleJob(timespec, handler)
             };
         },
         rmCron: function(id){
@@ -85,10 +88,13 @@ module.exports = function(conf){
         },
     };
     if(conf.is_test_mode){
-        r.test_mode_trigger = function(){
+        r.test_mode_triggerTimeout = function(){
             if(curr_timeout){
                 curr_timeout();
             }
+        };
+        r.test_mode_triggerCron = function(id){
+            cron_by_id[id].job.handler();
         };
     }
     return r;

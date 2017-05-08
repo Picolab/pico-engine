@@ -1417,18 +1417,35 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
         var signal = mkSignalTask(pe, "id1");
         var query = mkQueryTask(pe, "id1", "io.picolabs.schedule");
 
+        var triggerTimeout = function(){
+            return function(done){
+                pe.scheduler.test_mode_triggerTimeout();
+                done();
+            };
+        };
+        var triggerCron = function(id){
+            return function(done){
+                pe.scheduler.test_mode_triggerCron(id);
+                done();
+            };
+        };
+
+        var clearLog = [
+            signal("schedule", "clear_log"),
+            [{name: "clear_log", options: {}}]
+        ];
+
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
             λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.schedule"}),
 
-            [query("getLog"), void 0],
+            clearLog,
             [
                 signal("schedule", "in_5min", {name: "foo"}),
                 [{name: "in_5min", options: {}}]
             ],
             [query("getLog"), [
-                null,
                 {"scheduled in_5min": "id2"},
             ]],
             [
@@ -1436,34 +1453,55 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
                 [{name: "in_5min", options: {}}]
             ],
             [query("getLog"), [
-                null,
                 {"scheduled in_5min": "id2"},
                 {"scheduled in_5min": "id3"},
             ]],
-            function(done){
-                //trigger that it's been 5 minutes
-                pe.scheduler.test_mode_trigger();
-                done();
-            },
+            triggerTimeout(),//it's been 5 minutes
             [query("getLog"), [
-                null,
                 {"scheduled in_5min": "id2"},
                 {"scheduled in_5min": "id3"},
                 {"from": "in_5min", "name": "foo"},
             ]],
-            function(done){
-                //trigger that it's been the other 5 minutes
-                pe.scheduler.test_mode_trigger();
-                done();
-            },
+            triggerTimeout(),//it's been 5 more minutes
             [query("getLog"), [
-                null,
                 {"scheduled in_5min": "id2"},
                 {"scheduled in_5min": "id3"},
                 {"from": "in_5min", "name": "foo"},
                 {"from": "in_5min", "name": "bar"},
             ]],
-            //TODO ensure events only signal on the same rid and pico_id
+            triggerTimeout(),//it's been 5 more minutes
+            [query("getLog"), [
+                {"scheduled in_5min": "id2"},
+                {"scheduled in_5min": "id3"},
+                {"from": "in_5min", "name": "foo"},
+                {"from": "in_5min", "name": "bar"},
+                //nothing changed
+            ]],
+
+
+            //Start testing repeat
+            clearLog,
+            [
+                signal("schedule", "every_1min", {name: "baz"}),
+                [{name: "every_1min", options: {}}]
+            ],
+            [query("getLog"), [
+                {"scheduled every_1min": "id4"},
+            ]],
+            triggerCron("id4"),
+            [query("getLog"), [
+                {"scheduled every_1min": "id4"},
+                {from: "every_1min", name: "baz"},
+            ]],
+            triggerCron("id4"),
+            triggerCron("id4"),
+            [query("getLog"), [
+                {"scheduled every_1min": "id4"},
+                {from: "every_1min", name: "baz"},
+                {from: "every_1min", name: "baz"},
+                {from: "every_1min", name: "baz"},
+            ]],
+
         ], t.end);
     });
 });

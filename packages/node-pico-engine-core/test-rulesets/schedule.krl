@@ -7,6 +7,13 @@ ruleset io.picolabs.schedule {
       ent:log
     }
   }
+  rule clear_log {
+    select when schedule clear_log;
+    send_directive("clear_log")
+    fired {
+      ent:log := []
+    }
+  }
   rule push_log {
     select when schedule push_log;
     send_directive("push_log")
@@ -30,7 +37,7 @@ ruleset io.picolabs.schedule {
     send_directive("every_1min")
     fired {
       schedule schedule event "push_log"
-        repeat "*/5 * * * *"
+        repeat "* */1 * * * *"
         with
           from = "every_1min"
           and
