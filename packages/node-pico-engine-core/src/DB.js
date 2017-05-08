@@ -461,5 +461,37 @@ module.exports = function(opts){
                 {type: "del", key: ["scheduleAt_by_at", at, id]},
             ], callback);
         },
+        scheduleEventRepeat: function(timespec, event, callback){
+            var id = newID();
+
+            var val = {
+                id: id,
+                timespec: timespec,
+                event: event
+            };
+
+            ldb.batch([
+                {type: "put", key: ["scheduleRepeat", id], value: val},
+            ], function(err){
+                if(err) return callback(err);
+
+                callback(null, val);
+            });
+        },
+        scheduleEventRepeatGetAll: function(callback){
+            var r = {};
+            dbRange(ldb, {
+                prefix: ["scheduleRepeat"],
+            }, function(data){
+                r[data.key[1]] = data.value;
+            }, function(err){
+                callback(err, r);
+            });
+        },
+        removeScheduleEventRepeat: function(id, callback){
+            ldb.batch([
+                {type: "del", key: ["scheduleRepeat", id]},
+            ], callback);
+        },
     };
 };

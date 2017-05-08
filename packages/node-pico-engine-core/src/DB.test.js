@@ -354,3 +354,65 @@ test("DB - scheduleEventAt", function(t){
         });
     });
 });
+
+test("DB - scheduleEventRepeat", function(t){
+    mkTestPicoEngine({
+        dont_register_rulesets: true,
+    }, function(err, pe){
+        if(err)return t.end(err);
+
+        var eventRep = function(timespec, type){
+            return function(callback){
+                pe.db.scheduleEventRepeat(timespec, {
+                    domain: "foobar",
+                    type: type,
+                    attributes: {some: "attr"},
+                }, callback);
+            };
+        };
+        λ.series({
+            init_db: λ.curry(pe.db.toObj),
+
+            rep0: eventRep("*/5 * * * * *", "foo"),
+            rep1: eventRep("* */5 * * * *", "bar"),
+
+            mid_db: λ.curry(pe.db.toObj),
+
+            getAll: λ.curry(pe.db.scheduleEventRepeatGetAll),
+
+            rm0: λ.curry(pe.db.removeScheduleEventRepeat, "id0"),
+            rm1: λ.curry(pe.db.removeScheduleEventRepeat, "id1"),
+
+            end_db: λ.curry(pe.db.toObj),
+        }, function(err, data){
+            if(err) return t.end(err);
+
+            t.deepEquals(data.init_db, {});
+
+            t.deepEquals(data.rep0, {
+                id: "id0",
+                timespec: "*/5 * * * * *",
+                event: {domain: "foobar", type: "foo", attributes: {some: "attr"}},
+            });
+            t.deepEquals(data.rep1, {
+                id: "id1",
+                timespec: "* */5 * * * *",
+                event: {domain: "foobar", type: "bar", attributes: {some: "attr"}},
+            });
+
+            t.deepEquals(data.mid_db, {scheduleRepeat: {
+                id0: data.rep0,
+                id1: data.rep1,
+            }});
+
+            t.deepEquals(data.getAll, {
+                id0: data.rep0,
+                id1: data.rep1,
+            });
+
+            t.deepEquals(data.end_db, {}, "should be nothing left in the db");
+
+            t.end();
+        });
+    });
+});
