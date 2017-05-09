@@ -425,9 +425,12 @@ module.exports = function(conf, callback){
             pe.scheduler = core.scheduler;
         }
         //restart "cron"
-        db.scheduleEventRepeatGetAll(function(err, repeats){
+        db.listScheduled(function(err, vals){
             if(err) return callback(err);
-            _.each(repeats, function(val){
+            _.each(vals, function(val){
+                if(!_.isString(val.timespec)){
+                    return;
+                }
                 core.scheduler.addCron(val.timespec, val.id, val.event);
             });
             callback(void 0, pe);

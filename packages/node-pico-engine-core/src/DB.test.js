@@ -309,6 +309,8 @@ test("DB - scheduleEventAt", function(t){
             at2: eventAt("Feb  2, 2222", "baz"),
             next3: getNext,
 
+            list: λ.curry(pe.db.listScheduled),
+
             rm0: rmAt("id0"),
             next4: getNext,
             rm2: rmAt("id2"),
@@ -337,6 +339,16 @@ test("DB - scheduleEventAt", function(t){
                 at: new Date("Feb  2, 2222"),
                 event: {domain: "foobar", type: "baz", attributes: {some: "attr"}},
             });
+
+            t.deepEquals(data.list, [
+                data.at2,
+                data.at0,
+                data.at1,
+            ].map(function(val){
+                return _.assign({}, val, {
+                    at: val.at.toISOString(),
+                });
+            }));
 
             t.deepEquals(data.next0, void 0, "nothing scheduled");
             t.ok(_.has(data, "next0"), "ensure next0 was actually tested");
@@ -378,7 +390,7 @@ test("DB - scheduleEventRepeat", function(t){
 
             mid_db: λ.curry(pe.db.toObj),
 
-            getAll: λ.curry(pe.db.scheduleEventRepeatGetAll),
+            list: λ.curry(pe.db.listScheduled),
 
             rm0: λ.curry(pe.db.removeScheduled, "id0"),
             rm1: λ.curry(pe.db.removeScheduled, "id1"),
@@ -405,10 +417,10 @@ test("DB - scheduleEventRepeat", function(t){
                 id1: data.rep1,
             }});
 
-            t.deepEquals(data.getAll, {
-                id0: data.rep0,
-                id1: data.rep1,
-            });
+            t.deepEquals(data.list, [
+                data.rep0,
+                data.rep1,
+            ]);
 
             t.deepEquals(data.end_db, {}, "should be nothing left in the db");
 

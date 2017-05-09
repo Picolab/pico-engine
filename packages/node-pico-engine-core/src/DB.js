@@ -478,18 +478,6 @@ module.exports = function(opts){
                 callback(null, val);
             });
         },
-        scheduleEventRepeatGetAll: function(callback){
-            var r = {};
-            dbRange(ldb, {
-                prefix: ["scheduled"],
-            }, function(data){
-                if(_.has(data.value, "timespec")){
-                    r[data.key[1]] = data.value;
-                }
-            }, function(err){
-                callback(err, r);
-            });
-        },
         listScheduled: function(callback){
             var r = [];
             dbRange(ldb, {

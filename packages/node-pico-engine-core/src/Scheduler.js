@@ -94,7 +94,9 @@ module.exports = function(conf){
             }
         };
         r.test_mode_triggerCron = function(id){
-            cron_by_id[id].job.handler();
+            if(_.has(cron_by_id, id)){
+                cron_by_id[id].job.handler();
+            }
         };
     }
     return r;
