@@ -22,6 +22,17 @@ var omitMeta = function(resp){
     return r;
 };
 
+var mkEvent = function (spec, attrs){
+    var parts = spec.split("/");
+    return {
+        eci: parts[0],
+        eid: parts[1],
+        domain: parts[2],
+        type: parts[3],
+        attrs: attrs || {},
+    };
+};
+
 var mkSignalTask = function(pe, eci){
     return function(domain, type, attrs, timestamp, eid){
         return λ.curry(pe.signalEvent, {
@@ -1538,6 +1549,70 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
                 {from: "startup_event", name: "qux"},
             ]],
 
+            //schedule:list() and schedule:remove(id)
+            [
+                signal("schedule", "in_5min", {name: "blah-1"}),
+                [{name: "in_5min", options: {}}]
+            ],
+            [
+                signal("schedule", "in_5min", {name: "blah-2"}),
+                [{name: "in_5min", options: {}}]
+            ],
+            clearLog,
+            [function(next){
+                query("listScheduled")(function(err, list){
+                    if(err) return next(err);
+                    //so we can test dates
+                    next(null, _.map(list, function(e){
+                        if(_.has(e, "at")){
+                            e.at = "some-fake-date";
+                        }
+                        return e;
+                    }));
+                });
+            }, [
+                {
+                    id: "id3",
+                    at: "some-fake-date",
+                    event: mkEvent("init1/1234/schedule/push_log", {from: "in_5min", name: "blah-1"}),
+                },
+                {
+                    id: "id4",
+                    at: "some-fake-date",
+                    event: mkEvent("init1/1234/schedule/push_log", {from: "in_5min", name: "blah-2"}),
+                },
+                {
+                    id: "id2",
+                    timespec: "* */1 * * * *",
+                    event: mkEvent("init1/1234/schedule/push_log", {from: "every_1min", name: "baz"}),
+                },
+                {
+                    id: "init2",
+                    timespec: "10 * * * * *",
+                    event: mkEvent("init1/1234/schedule/push_log", {from: "startup_event", name: "qux"}),
+                },
+            ]],
+            [query("getLog"), [
+                //nothing happened yet
+            ]],
+            triggerTimeout(),
+            [query("getLog"), [
+                {from: "in_5min", name: "blah-1"},
+            ]],
+            [query("rmScheduled", {id: "id4"}), void 0],//remove blah-2
+            triggerTimeout(),
+            [query("getLog"), [
+                {from: "in_5min", name: "blah-1"},
+                //nothing new b/c we removed blah-2
+            ]],
+            [query("rmScheduled", {id: "init2"}), void 0],//remove a cron
+            [query("listScheduled"), [
+                {
+                    id: "id2",
+                    timespec: "* */1 * * * *",
+                    event: mkEvent("init1/1234/schedule/push_log", {from: "every_1min", name: "baz"}),
+                },
+            ]],
         ], t.end);
     }
 });

@@ -456,8 +456,8 @@ es-to-primitive@^1.1.1:
     is-symbol "^1.0.1"
 
 es5-ext@^0.10.14, es5-ext@^0.10.9, es5-ext@~0.10.14:
-  version "0.10.15"
-  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.15.tgz#c330a5934c1ee21284a7c081a86e5fd937c91ea6"
+  version "0.10.16"
+  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.16.tgz#1ef1b04f3d09db6a5d630226d62202f2e425e45a"
   dependencies:
     es6-iterator "2"
     es6-symbol "~3.1"
@@ -1144,8 +1144,8 @@ kind-of@^3.0.2:
     is-buffer "^1.1.5"
 
 krl-compiler@>=0.26.2:
-  version "0.29.1"
-  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.29.1.tgz#3de4a090c47984cc16a49c39ac0af5632c7a9d01"
+  version "0.29.2"
+  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.29.2.tgz#c79a3b66081467e042bc3d00077af5d0f724ca95"
   dependencies:
     btoa "^1.1.2"
     escodegen "^1.8.0"
@@ -1156,12 +1156,12 @@ krl-compiler@>=0.26.2:
     minimist "^1.2.0"
 
 krl-parser@^0.20.0:
-  version "0.20.0"
-  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.20.0.tgz#fa83d2c114c2c0963d298b28d3f996e41ea0bd6a"
+  version "0.20.1"
+  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.20.1.tgz#fecab5d2e668c2e8b958d9c752a68a353004c57f"
   dependencies:
     excerpt-at-line-col "^1.0.0"
     line-column "^1.0.2"
-    nearley "^2.5.0"
+    nearley "2.9.x"
 
 krl-stdlib@^0.6.0:
   version "0.6.2"
@@ -1323,7 +1323,7 @@ natural-compare@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
 
-nearley@^2.5.0:
+nearley@2.9.x:
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/nearley/-/nearley-2.9.0.tgz#496dfae56b256241e4329a76d32453fdcc74b22d"
   dependencies:

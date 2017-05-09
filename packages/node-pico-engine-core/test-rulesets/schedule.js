@@ -1,9 +1,22 @@
 module.exports = {
   "rid": "io.picolabs.schedule",
-  "meta": { "shares": ["getLog"] },
+  "meta": {
+    "shares": [
+      "getLog",
+      "rmScheduled",
+      "listScheduled"
+    ]
+  },
   "global": function* (ctx) {
     ctx.scope.set("getLog", ctx.KRLClosure(function* (ctx, getArg) {
       return yield ctx.modules.get(ctx, "ent", "log");
+    }));
+    ctx.scope.set("listScheduled", ctx.KRLClosure(function* (ctx, getArg) {
+      return yield (yield ctx.modules.get(ctx, "schedule", "list"))(ctx, []);
+    }));
+    ctx.scope.set("rmScheduled", ctx.KRLClosure(function* (ctx, getArg) {
+      ctx.scope.set("id", getArg("id", 0));
+      return yield (yield ctx.modules.get(ctx, "schedule", "remove"))(ctx, [ctx.scope.get("id")]);
     }));
   },
   "rules": {
@@ -106,17 +119,17 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.scope.set("foo", yield (yield ctx.modules.get(ctx, "schedule", "eventAt"))(ctx, {
-            "at": yield (yield ctx.modules.get(ctx, "time", "add"))(ctx, [
-              yield (yield ctx.modules.get(ctx, "time", "now"))(ctx, []),
-              { "minutes": 5 }
-            ]),
+          ctx.scope.set("foo", yield (yield ctx.modules.get(ctx, "schedule", "event"))(ctx, {
             "domain": "schedule",
             "type": "push_log",
             "attributes": {
               "from": "in_5min",
               "name": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["name"])
-            }
+            },
+            "at": yield (yield ctx.modules.get(ctx, "time", "add"))(ctx, [
+              yield (yield ctx.modules.get(ctx, "time", "now"))(ctx, []),
+              { "minutes": 5 }
+            ])
           }));
           yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "log"), { "scheduled in_5min": ctx.scope.get("foo") }));
         },
@@ -153,14 +166,14 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.scope.set("foo", yield (yield ctx.modules.get(ctx, "schedule", "eventRepeat"))(ctx, {
-            "timespec": "* */1 * * * *",
+          ctx.scope.set("foo", yield (yield ctx.modules.get(ctx, "schedule", "event"))(ctx, {
             "domain": "schedule",
             "type": "push_log",
             "attributes": {
               "from": "every_1min",
               "name": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["name"])
-            }
+            },
+            "timespec": "* */1 * * * *"
           }));
           yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "log"), { "scheduled every_1min": ctx.scope.get("foo") }));
         },

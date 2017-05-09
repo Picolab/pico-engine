@@ -490,6 +490,17 @@ module.exports = function(opts){
                 callback(err, r);
             });
         },
+        listScheduled: function(callback){
+            var r = [];
+            dbRange(ldb, {
+                prefix: ["scheduled"],
+            }, function(data){
+                var val = data.value;
+                r.push(val);
+            }, function(err){
+                callback(err, _.sortBy(r, "at"));
+            });
+        },
         removeScheduled: function(id, callback){
             ldb.get(["scheduled", id], function(err, info){
                 if(err) return callback(err);
