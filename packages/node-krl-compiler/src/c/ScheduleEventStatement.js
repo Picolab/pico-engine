@@ -1,16 +1,22 @@
+var _ = require("lodash");
 var callModuleFn = require("../utils/callModuleFn");
 
 module.exports = function(ast, comp, e){
 
-    var args = e("obj", {
-        at: comp(ast.at),
-
+    var args = {
         domain: e("string", ast.event_domain.value, ast.event_domain.loc),
         type: comp(ast.event_type),
-        attributes: ast.attributes ? comp(ast.attributes) : e("nil")
-    });
+        attributes: ast.event_attrs ? comp(ast.event_attrs) : e("nil")
+    };
 
-    var module_call = callModuleFn(e, "schedule", "eventAt", args, ast.loc);
+    if(_.has(ast, "at")){
+        args.at = comp(ast.at);
+    }
+    if(_.has(ast, "timespec")){
+        args.timespec = comp(ast.timespec);
+    }
+
+    var module_call = callModuleFn(e, "schedule", "event", e("obj", args), ast.loc);
 
     if(ast.setting){
         return e(";", e("call", e("id", "ctx.scope.set", ast.setting.loc), [

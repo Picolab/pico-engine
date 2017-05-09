@@ -291,8 +291,7 @@ var comp_by_type = {
     },
     "RuleAction": require("./c/RuleAction"),
     "RulePostlude": require("./c/RulePostlude"),
-    "ScheduleEventAtStatement": require("./c/ScheduleEventAtStatement"),
-    "ScheduleEventRepeatStatement": require("./c/ScheduleEventRepeatStatement"),
+    "ScheduleEventStatement": require("./c/ScheduleEventStatement"),
     "RaiseEventStatement": require("./c/RaiseEventStatement"),
     "RaiseEventAttributes": require("./c/RaiseEventAttributes")
 };

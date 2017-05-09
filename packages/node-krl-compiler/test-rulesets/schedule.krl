@@ -1,10 +1,16 @@
 ruleset io.picolabs.schedule {
   meta {
-    shares getLog
+    shares getLog, rmScheduled, listScheduled
   }
   global {
     getLog = function(){
       ent:log
+    }
+    listScheduled = function(){
+      schedule:list()
+    }
+    rmScheduled = function(id){
+      schedule:remove(id)
     }
   }
   rule clear_log {
