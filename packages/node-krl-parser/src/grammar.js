@@ -380,6 +380,7 @@ var tok_with = tok("SYMBOL", "with");
 var tok_within = tok("SYMBOL", "within");
 
 var grammar = {
+    Lexer: undefined,
     ParserRules: [
     {"name": "main", "symbols": ["Ruleset"], "postprocess": id},
     {"name": "main", "symbols": ["Statement_list"], "postprocess": id},

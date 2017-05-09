@@ -6,11 +6,11 @@ var excerptAtLineCol = require("excerpt-at-line-col");
 
 var mkParseError = function(src, line, col, orig_err, filename){
     var msg = "" + orig_err;
-    msg = msg.replace(/Error\s*:/g, "");
-    msg = msg.replace(/nearley\s*:/g, "");
-    msg = msg.replace(/\(@.*\)/g, "");
-    msg = msg.replace(/\./g, "");
     msg = msg.trim();
+
+    if(/Error: invalid syntax at/.test(orig_err)){
+        msg = "No possible parsings";
+    }
 
     msg += "\n" + (filename  || "") + ":" + line + ":" + col;
 
