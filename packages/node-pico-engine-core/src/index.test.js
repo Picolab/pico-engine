@@ -1565,6 +1565,7 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
                     //so we can test dates
                     next(null, _.map(list, function(e){
                         if(_.has(e, "at")){
+                            t.ok(/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\dZ$/.test(e.at));
                             e.at = "some-fake-date";
                         }
                         return e;
