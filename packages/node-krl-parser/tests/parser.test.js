@@ -2167,22 +2167,22 @@ test("schedule event", function(t){
 
     testPostlude("schedule domain event \"type\" at \"time\"", [
         {
-            type: "ScheduleEventAtStatement",
+            type: "ScheduleEventStatement",
+            at: mk("time"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            at: mk("time"),
-            attributes: null,
+            event_attrs: null,
             setting: null,
         }
     ]);
 
     testPostlude("schedule domain event \"type\" at \"time\" with a = 1 and b = 2", [
         {
-            type: "ScheduleEventAtStatement",
+            type: "ScheduleEventStatement",
+            at: mk("time"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            at: mk("time"),
-            attributes: {
+            event_attrs: {
                 type: "RaiseEventAttributes",
                 "with": [
                     mk.declare("=", mk.id("a"), mk(1)),
@@ -2195,11 +2195,11 @@ test("schedule event", function(t){
 
     testPostlude("schedule domain event \"type\" at \"time\" attributes {\"a\":1,\"b\":2}", [
         {
-            type: "ScheduleEventAtStatement",
+            type: "ScheduleEventStatement",
+            at: mk("time"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            at: mk("time"),
-            attributes: {
+            event_attrs: {
                 type: "RaiseEventAttributes",
                 expression: mk({a: mk(1), b: mk(2)})
             },
@@ -2209,22 +2209,22 @@ test("schedule event", function(t){
 
     testPostlude("schedule domain event \"type\" at \"time\" setting(foo)", [
         {
-            type: "ScheduleEventAtStatement",
+            type: "ScheduleEventStatement",
+            at: mk("time"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            at: mk("time"),
-            attributes: null,
+            event_attrs: null,
             setting: mk.id("foo"),
         }
     ]);
 
     testPostlude("schedule domain event \"type\" at \"time\" attributes {} setting(foo)", [
         {
-            type: "ScheduleEventAtStatement",
+            type: "ScheduleEventStatement",
+            at: mk("time"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            at: mk("time"),
-            attributes: {
+            event_attrs: {
                 type: "RaiseEventAttributes",
                 expression: mk({})
             },
@@ -2234,22 +2234,22 @@ test("schedule event", function(t){
 
     testPostlude("schedule domain event \"type\" repeat \"5 0 * * *\"", [
         {
-            type: "ScheduleEventRepeatStatement",
+            type: "ScheduleEventStatement",
+            timespec: mk("5 0 * * *"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            timespec: mk("5 0 * * *"),
-            attributes: null,
+            event_attrs: null,
             setting: null,
         }
     ]);
 
     testPostlude("schedule domain event \"type\" repeat \"5 0 * * *\" with a = 1 and b = 2", [
         {
-            type: "ScheduleEventRepeatStatement",
+            type: "ScheduleEventStatement",
+            timespec: mk("5 0 * * *"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            timespec: mk("5 0 * * *"),
-            attributes: {
+            event_attrs: {
                 type: "RaiseEventAttributes",
                 "with": [
                     mk.declare("=", mk.id("a"), mk(1)),
@@ -2262,11 +2262,11 @@ test("schedule event", function(t){
 
     testPostlude("schedule domain event \"type\" repeat \"5 0 * * *\" attributes {\"a\":1,\"b\":2}", [
         {
-            type: "ScheduleEventRepeatStatement",
+            type: "ScheduleEventStatement",
+            timespec: mk("5 0 * * *"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            timespec: mk("5 0 * * *"),
-            attributes: {
+            event_attrs: {
                 type: "RaiseEventAttributes",
                 expression: mk({a: mk(1), b: mk(2)})
             },
@@ -2276,22 +2276,22 @@ test("schedule event", function(t){
 
     testPostlude("schedule domain event \"type\" repeat \"5 0 * * *\" setting(foo)", [
         {
-            type: "ScheduleEventRepeatStatement",
+            type: "ScheduleEventStatement",
+            timespec: mk("5 0 * * *"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            timespec: mk("5 0 * * *"),
-            attributes: null,
+            event_attrs: null,
             setting: mk.id("foo"),
         }
     ]);
 
     testPostlude("schedule domain event \"type\" repeat \"5 0 * * *\" attributes {} setting(foo)", [
         {
-            type: "ScheduleEventRepeatStatement",
+            type: "ScheduleEventStatement",
+            timespec: mk("5 0 * * *"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            timespec: mk("5 0 * * *"),
-            attributes: {
+            event_attrs: {
                 type: "RaiseEventAttributes",
                 expression: mk({})
             },

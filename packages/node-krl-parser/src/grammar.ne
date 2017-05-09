@@ -806,8 +806,7 @@ PostludeStatement_core ->
       Statement {% id %}
     | PersistentVariableAssignment {% id %}
     | RaiseEventStatement {% id %}
-    | ScheduleEventAtStatement {% id %}
-    | ScheduleEventRepeatStatement {% id %}
+    | ScheduleEventStatement {% id %}
     | LogStatement {% id %}
 
 PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
@@ -839,7 +838,11 @@ RaiseEventStatement -> %tok_raise Identifier %tok_event Expression
   }
 %}
 
-ScheduleEventAtStatement -> %tok_schedule Identifier %tok_event Expression
+ScheduleEventStatement ->
+      ScheduleEventStatement_at {% id %}
+    | ScheduleEventStatement_repeat {% id %}
+
+ScheduleEventStatement_at -> %tok_schedule Identifier %tok_event Expression
   %tok_at Expression
   RaiseEventAttributes:?
   (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
@@ -847,17 +850,20 @@ ScheduleEventAtStatement -> %tok_schedule Identifier %tok_event Expression
   function(data){
     return {
       loc: mkLoc(data),
-      type: "ScheduleEventAtStatement",
+      type: "ScheduleEventStatement",
+
+      at: data[5],
+
       event_domain: data[1],
       event_type: data[3],
-      at: data[5],
-      attributes: data[6],
+      event_attrs: data[6],
+
       setting: (data[7] && data[7][2]) || null,
     };
   }
 %}
 
-ScheduleEventRepeatStatement -> %tok_schedule Identifier %tok_event Expression
+ScheduleEventStatement_repeat -> %tok_schedule Identifier %tok_event Expression
   %tok_repeat Expression
   RaiseEventAttributes:?
   (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
@@ -865,11 +871,14 @@ ScheduleEventRepeatStatement -> %tok_schedule Identifier %tok_event Expression
   function(data){
     return {
       loc: mkLoc(data),
-      type: "ScheduleEventRepeatStatement",
+      type: "ScheduleEventStatement",
+
+      timespec: data[5],
+
       event_domain: data[1],
       event_type: data[3],
-      timespec: data[5],
-      attributes: data[6],
+      event_attrs: data[6],
+
       setting: (data[7] && data[7][2]) || null,
     };
   }

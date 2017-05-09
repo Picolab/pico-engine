@@ -782,8 +782,7 @@ var grammar = {
     {"name": "PostludeStatement_core", "symbols": ["Statement"], "postprocess": id},
     {"name": "PostludeStatement_core", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
     {"name": "PostludeStatement_core", "symbols": ["RaiseEventStatement"], "postprocess": id},
-    {"name": "PostludeStatement_core", "symbols": ["ScheduleEventAtStatement"], "postprocess": id},
-    {"name": "PostludeStatement_core", "symbols": ["ScheduleEventRepeatStatement"], "postprocess": id},
+    {"name": "PostludeStatement_core", "symbols": ["ScheduleEventStatement"], "postprocess": id},
     {"name": "PostludeStatement_core", "symbols": ["LogStatement"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
@@ -817,38 +816,46 @@ var grammar = {
           };
         }
         },
-    {"name": "ScheduleEventAtStatement$ebnf$1", "symbols": ["RaiseEventAttributes"], "postprocess": id},
-    {"name": "ScheduleEventAtStatement$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ScheduleEventAtStatement$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
-    {"name": "ScheduleEventAtStatement$ebnf$2", "symbols": ["ScheduleEventAtStatement$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "ScheduleEventAtStatement$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ScheduleEventAtStatement", "symbols": [tok_schedule, "Identifier", tok_event, "Expression", tok_at, "Expression", "ScheduleEventAtStatement$ebnf$1", "ScheduleEventAtStatement$ebnf$2"], "postprocess": 
+    {"name": "ScheduleEventStatement", "symbols": ["ScheduleEventStatement_at"], "postprocess": id},
+    {"name": "ScheduleEventStatement", "symbols": ["ScheduleEventStatement_repeat"], "postprocess": id},
+    {"name": "ScheduleEventStatement_at$ebnf$1", "symbols": ["RaiseEventAttributes"], "postprocess": id},
+    {"name": "ScheduleEventStatement_at$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ScheduleEventStatement_at$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
+    {"name": "ScheduleEventStatement_at$ebnf$2", "symbols": ["ScheduleEventStatement_at$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "ScheduleEventStatement_at$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ScheduleEventStatement_at", "symbols": [tok_schedule, "Identifier", tok_event, "Expression", tok_at, "Expression", "ScheduleEventStatement_at$ebnf$1", "ScheduleEventStatement_at$ebnf$2"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
-            type: "ScheduleEventAtStatement",
+            type: "ScheduleEventStatement",
+        
+            at: data[5],
+        
             event_domain: data[1],
             event_type: data[3],
-            at: data[5],
-            attributes: data[6],
+            event_attrs: data[6],
+        
             setting: (data[7] && data[7][2]) || null,
           };
         }
         },
-    {"name": "ScheduleEventRepeatStatement$ebnf$1", "symbols": ["RaiseEventAttributes"], "postprocess": id},
-    {"name": "ScheduleEventRepeatStatement$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ScheduleEventRepeatStatement$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
-    {"name": "ScheduleEventRepeatStatement$ebnf$2", "symbols": ["ScheduleEventRepeatStatement$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "ScheduleEventRepeatStatement$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ScheduleEventRepeatStatement", "symbols": [tok_schedule, "Identifier", tok_event, "Expression", tok_repeat, "Expression", "ScheduleEventRepeatStatement$ebnf$1", "ScheduleEventRepeatStatement$ebnf$2"], "postprocess": 
+    {"name": "ScheduleEventStatement_repeat$ebnf$1", "symbols": ["RaiseEventAttributes"], "postprocess": id},
+    {"name": "ScheduleEventStatement_repeat$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ScheduleEventStatement_repeat$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
+    {"name": "ScheduleEventStatement_repeat$ebnf$2", "symbols": ["ScheduleEventStatement_repeat$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "ScheduleEventStatement_repeat$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ScheduleEventStatement_repeat", "symbols": [tok_schedule, "Identifier", tok_event, "Expression", tok_repeat, "Expression", "ScheduleEventStatement_repeat$ebnf$1", "ScheduleEventStatement_repeat$ebnf$2"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
-            type: "ScheduleEventRepeatStatement",
+            type: "ScheduleEventStatement",
+        
+            timespec: data[5],
+        
             event_domain: data[1],
             event_type: data[3],
-            timespec: data[5],
-            attributes: data[6],
+            event_attrs: data[6],
+        
             setting: (data[7] && data[7][2]) || null,
           };
         }
