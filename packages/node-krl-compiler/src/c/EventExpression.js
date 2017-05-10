@@ -6,10 +6,10 @@ module.exports = function(ast, comp, e){
 
     var fn_body = [];
 
-    if(!_.isEmpty(ast.attributes)){
+    if(!_.isEmpty(ast.event_attrs)){
         fn_body.push(e("var", "matches",
                         callModuleFn(e, "event", "attrMatches", e("array", [
-                            e("array", _.map(ast.attributes, function(a){
+                            e("array", _.map(ast.event_attrs, function(a){
                                 return e("array", [
                                     e("string", a.key.value, a.key.loc),
                                     comp(a.value)

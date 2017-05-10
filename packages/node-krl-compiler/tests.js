@@ -46,6 +46,8 @@ test("compiler", function(t){
                     console.log(diff(expected, compiled, {
                         n_surrounding: 3
                     }));
+                    console.log("");
+                    console.log(path.basename(f_krl) + " -> " + path.basename(f_js));
                     process.exit(1);//end asap, so they can easily see the diff
                 }
 

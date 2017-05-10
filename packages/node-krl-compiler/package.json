@@ -42,7 +42,7 @@
     "escodegen": "^1.8.0",
     "estree-builder": "^1.6.0",
     "estree-loc": "^2.0.0",
-    "krl-parser": "^0.20.0",
+    "krl-parser": "^0.20.2",
     "lodash": "^4.13.1",
     "minimist": "^1.2.0"
   }

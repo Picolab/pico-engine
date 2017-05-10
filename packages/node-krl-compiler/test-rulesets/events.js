@@ -511,12 +511,12 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, [{
-              "domain": "events",
-              "type": "store_sent_name",
-              "for_rid": undefined,
-              "attributes": { "name": ctx.scope.get("my_name") }
-            }]);
+          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, {
+            "domain": "events",
+            "type": "store_sent_name",
+            "attributes": { "name": ctx.scope.get("my_name") },
+            "for_rid": undefined
+          });
         },
         "notfired": undefined,
         "always": undefined
@@ -547,12 +547,12 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, [{
-              "domain": "events",
-              "type": "store_sent_name",
-              "for_rid": undefined,
-              "attributes": { "name": ctx.scope.get("my_name") }
-            }]);
+          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, {
+            "domain": "events",
+            "type": "store_sent_name",
+            "attributes": { "name": ctx.scope.get("my_name") },
+            "for_rid": undefined
+          });
         },
         "notfired": undefined,
         "always": undefined
@@ -586,12 +586,12 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, [{
-              "domain": "events",
-              "type": "store_sent_name",
-              "for_rid": ctx.scope.get("rid"),
-              "attributes": { "name": ctx.scope.get("my_name") }
-            }]);
+          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, {
+            "domain": "events",
+            "type": "store_sent_name",
+            "attributes": { "name": ctx.scope.get("my_name") },
+            "for_rid": ctx.scope.get("rid")
+          });
         },
         "notfired": undefined,
         "always": undefined
