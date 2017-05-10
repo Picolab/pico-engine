@@ -1,6 +1,5 @@
 var _ = require("lodash");
-var cocb = require("co-callback");
-var getArg = require("../getArg");
+var mkKRLfn = require("../mkKRLfn");
 
 module.exports = function(core){
     return {
@@ -10,8 +9,10 @@ module.exports = function(core){
                 callback(new Error("keys:" + id + " not defined"));
                 return;
             }
-            callback(null, cocb.toYieldable(function(ctx, args, callback){
-                var name = getArg(args, "name", 0);
+            callback(null, mkKRLfn([
+                "name",
+            ], function(args, ctx, callback){
+                var name = args.name;
                 if(name === null || name === void 0){
                     //if no name given, just return the whole key
                     callback(null, key);

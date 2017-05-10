@@ -1,7 +1,5 @@
 var _ = require("lodash");
 var fs = require("fs");
-var cocb = require("co-callback");
-var getArg = require("../getArg");
 var urllib = require("url");
 var mkKRLfn = require("../mkKRLfn");
 var request = require("request");
@@ -60,24 +58,31 @@ module.exports = function(core){
     };
 
     var fns = {
-        newPico: cocb.toYieldable(function(ctx, args, callback){
-            var opts = getArg(args, "opts", 0);
-            core.db.newPico(opts, callback);
+        newPico: mkKRLfn([
+            "opts",
+        ], function(args, ctx, callback){
+            core.db.newPico(args.opts, callback);
         }),
-        removePico: cocb.toYieldable(function(ctx, args, callback){
-            var id = getArg(args, "id", 0);
-            core.db.removePico(id, callback);
+        removePico: mkKRLfn([
+            "id",
+        ], function(args, ctx, callback){
+            core.db.removePico(args.id, callback);
         }),
-        newChannel: cocb.toYieldable(function(ctx, args, callback){
-            var opts = getArg(args, "opts", 0);
-            core.db.newChannel(opts, callback);
+        newChannel: mkKRLfn([
+            "opts",
+        ], function(args, ctx, callback){
+            core.db.newChannel(args.opts, callback);
         }),
-        removeChannel: cocb.toYieldable(function(ctx, args, callback){
-            var opts = getArg(args, "opts", 0);
+        removeChannel: mkKRLfn([
+            "opts",
+        ], function(args, ctx, callback){
+            var opts = args.opts;
             core.db.removeChannel(opts.pico_id, opts.eci, callback);
         }),
-        registerRuleset: cocb.toYieldable(function(ctx, args, callback){
-            var opts = getArg(args, "opts", 0);
+        registerRuleset: mkKRLfn([
+            "opts",
+        ], function(args, ctx, callback){
+            var opts = args.opts;
             var uri;
             if(_.isString(opts.url)){
                 uri = _.isString(opts.base)
@@ -89,8 +94,10 @@ module.exports = function(core){
             }
             registerURL(uri, callback);
         }),
-        installRuleset: cocb.toYieldable(function(ctx, args, callback){
-            var opts = getArg(args, "opts", 0);
+        installRuleset: mkKRLfn([
+            "opts",
+        ], function(args, ctx, callback){
+            var opts = args.opts;
 
             var pico_id = opts.pico_id;
             var rid = opts.rid;
@@ -129,7 +136,9 @@ module.exports = function(core){
                 doIt(_.head(rids));
             });
         }),
-        unregisterRuleset: mkKRLfn(["rid"], function(args, ctx, callback){
+        unregisterRuleset: mkKRLfn([
+            "rid",
+        ], function(args, ctx, callback){
             core.unregisterRuleset(args.rid, callback);
         }),
     };

@@ -1,19 +1,23 @@
 var _ = require("lodash");
-var cocb = require("co-callback");
-var getArg = require("../getArg");
+var mkKRLfn = require("../mkKRLfn");
 
 module.exports = function(core){
     var fns = {
-        attrs: function*(ctx, args){
+        attr: mkKRLfn([
+            "name",
+        ], function(args, ctx, callback){
+            callback(null, ctx.event.attrs[args.name]);
+        }),
+        attrs: mkKRLfn([
+        ], function(args, ctx, callback){
             //the user may mutate their copy
-            return _.cloneDeep(ctx.event.attrs);
-        },
-        attr: function*(ctx, args){
-            var name = getArg(args, "name", 0);
-            return ctx.event.attrs[name];
-        },
-        attrMatches: function*(ctx, args){
-            var pairs = getArg(args, "pairs", 0);
+            var attrs = _.cloneDeep(ctx.event.attrs);
+            callback(null, attrs);
+        }),
+        attrMatches: mkKRLfn([
+            "pairs",
+        ], function(args, ctx, callback){
+            var pairs = args.pairs;
             var matches = [];
             var i, j, attr, m, pair;
             for(i = 0; i < pairs.length; i++){
@@ -21,30 +25,33 @@ module.exports = function(core){
                 attr = ctx.event.attrs[pair[0]];
                 m = pair[1].exec(attr || "");
                 if(!m){
-                    return undefined;
+                    callback();
+                    return;
                 }
                 for(j = 1; j < m.length; j++){
                     matches.push(m[j]);
                 }
             }
-            return matches;
-        },
+            callback(null, matches);
+        }),
 
-        raise: cocb.toYieldable(function(ctx, args, callback){
-            var revent = getArg(args, "revent", 0);
-            ctx.raiseEvent(revent, callback);
+        raise: mkKRLfn([
+            "revent",
+        ], function(args, ctx, callback){
+            ctx.raiseEvent(args.revent, callback);
         }),
 
         //TODO this is technically a RuleAction
         //TODO should this rather return info for event to be signaled?
         //TODO is this allowed other places in the code?
-        send: function*(ctx, args){
-            var event = getArg(args, "event", 0);
-            return {
+        send: mkKRLfn([
+            "event",
+        ], function(args, ctx, callback){
+            callback(null, {
                 type: "event:send",
-                event: event
-            };
-        },
+                event: args.event
+            });
+        }),
     };
     return {
         def: fns,

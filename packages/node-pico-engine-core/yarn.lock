@@ -1195,8 +1195,8 @@ level-json-coerce-null@^1.0.0:
   resolved "https://registry.yarnpkg.com/level-json-coerce-null/-/level-json-coerce-null-1.0.1.tgz#943240828be0ba1d1eb2cd0782365b3f006ae1bc"
 
 levelup@^1.3.2:
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/levelup/-/levelup-1.3.5.tgz#fa80a972b74011f2537c8b65678bd8b5188e4e66"
+  version "1.3.6"
+  resolved "https://registry.yarnpkg.com/levelup/-/levelup-1.3.6.tgz#0616ab742cc65d3a3fa9db6f5640c9760824bf64"
   dependencies:
     deferred-leveldown "~1.2.1"
     level-codec "~6.1.0"
