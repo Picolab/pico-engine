@@ -406,7 +406,9 @@ module.exports = function(conf, callback){
             emitter.emit("error", info, err);
         },
         onEvent: function(event, callback){
-            signalEvent(event, callback);
+            signalEvent(event);
+            //signal event then immediately continue on so schedule doesn't block
+            callback();
         },
         is_test_mode: !!conf.scheduler_is_test_mode,
     });
