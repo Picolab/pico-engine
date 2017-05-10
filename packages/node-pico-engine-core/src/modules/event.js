@@ -36,9 +36,12 @@ module.exports = function(core){
         }),
 
         raise: mkKRLfn([
-            "revent",
+            "domain",
+            "type",
+            "attributes",
+            "for_rid",
         ], function(args, ctx, callback){
-            ctx.raiseEvent(args.revent, callback);
+            ctx.raiseEvent(args, callback);
         }),
 
         //TODO this is technically a RuleAction
