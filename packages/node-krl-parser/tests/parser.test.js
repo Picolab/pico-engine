@@ -81,7 +81,7 @@ mk.ee = function(domain, type, attrs, where, setting, aggregator){
         type: "EventExpression",
         event_domain: mk.id(domain),
         event_type: mk.id(type),
-        attributes: attrs || [],
+        event_attrs: attrs || [],
         where: where || null,
         setting: setting ? setting.map(mk.id) : [],
         aggregator: aggregator || null
@@ -216,7 +216,7 @@ test("select when", function(t){
         type: "EventExpression",
         event_domain: {type: "Identifier", value: "d"},
         event_type: {type: "Identifier", value: "t"},
-        attributes: [],
+        event_attrs: [],
         where: null,
         setting: [],
         aggregator: null
@@ -228,7 +228,7 @@ test("select when", function(t){
             type: "EventExpression",
             event_domain: {type: "Identifier", value: "d"},
             event_type: {type: "Identifier", value: "a"},
-            attributes: [],
+            event_attrs: [],
             where: null,
             setting: [],
             aggregator: null
@@ -237,7 +237,7 @@ test("select when", function(t){
             type: "EventExpression",
             event_domain: {type: "Identifier", value: "d"},
             event_type: {type: "Identifier", value: "b"},
-            attributes: [],
+            event_attrs: [],
             where: null,
             setting: [],
             aggregator: null
@@ -505,7 +505,7 @@ test("locations", function(t){
             type: "Identifier",
             value: "b"
         },
-        attributes: [],
+        event_attrs: [],
         where: null,
         setting: [],
         aggregator: null
@@ -530,7 +530,7 @@ test("locations", function(t){
                     type: "Identifier",
                     value: "b"
                 },
-                attributes: [],
+                event_attrs: [],
                 where: null,
                 setting: [],
                 aggregator: null
@@ -548,7 +548,7 @@ test("locations", function(t){
                     type: "Identifier",
                     value: "d"
                 },
-                attributes: [],
+                event_attrs: [],
                 where: null,
                 setting: [],
                 aggregator: null
@@ -1029,7 +1029,7 @@ test("EventExpression", function(t){
         type: "EventExpression",
         event_domain: mk.id("a"),
         event_type: mk.id("b"),
-        attributes: [],
+        event_attrs: [],
         where: null,
         setting: [],
         aggregator: null
@@ -1039,7 +1039,7 @@ test("EventExpression", function(t){
         type: "EventExpression",
         event_domain: mk.id("a"),
         event_type: mk.id("b"),
-        attributes: [],
+        event_attrs: [],
         where: mk.id("c"),
         setting: [],
         aggregator: null
@@ -1049,7 +1049,7 @@ test("EventExpression", function(t){
         type: "EventExpression",
         event_domain: mk.id("a"),
         event_type: mk.id("b"),
-        attributes: [],
+        event_attrs: [],
         where: mk.op("/", mk(1), mk.op("-", mk.id("c"), mk(2))),
         setting: [],
         aggregator: null
@@ -1059,7 +1059,7 @@ test("EventExpression", function(t){
         type: "EventExpression",
         event_domain: mk.id("a"),
         event_type: mk.id("b"),
-        attributes: [
+        event_attrs: [
             {
                 type: "AttributeMatch",
                 key: mk.id("amt"),
@@ -1075,7 +1075,7 @@ test("EventExpression", function(t){
         type: "EventExpression",
         event_domain: mk.id("a"),
         event_type: mk.id("b"),
-        attributes: [
+        event_attrs: [
             {
                 type: "AttributeMatch",
                 key: mk.id("amt"),
@@ -1091,7 +1091,7 @@ test("EventExpression", function(t){
         type: "EventExpression",
         event_domain: mk.id("a"),
         event_type: mk.id("b"),
-        attributes: [
+        event_attrs: [
             {
                 type: "AttributeMatch",
                 key: mk.id("c"),
@@ -1771,7 +1771,7 @@ test("raise event", function(t){
             event_domain: mk.id("domain"),
             event_type: mk("type"),
             for_rid: null,
-            attributes: null
+            event_attrs: null
         }
     ]);
 
@@ -1781,7 +1781,7 @@ test("raise event", function(t){
             event_domain: mk.id("domain"),
             event_type: mk("type"),
             for_rid: mk("io.picolabs.test"),
-            attributes: null
+            event_attrs: null
         }
     ]);
 
@@ -1791,7 +1791,7 @@ test("raise event", function(t){
             event_domain: mk.id("domain"),
             event_type: mk("type"),
             for_rid: null,
-            attributes: {
+            event_attrs: {
                 type: "RaiseEventAttributes",
                 "with": [
                     mk.declare("=", mk.id("a"), mk(1)),
@@ -1807,7 +1807,7 @@ test("raise event", function(t){
             event_domain: mk.id("domain"),
             event_type: mk("type"),
             for_rid: null,
-            attributes: {
+            event_attrs: {
                 type: "RaiseEventAttributes",
                 expression: mk({a: mk(1), b: mk(2)})
             }
@@ -1871,7 +1871,7 @@ test("GuardCondition", function(t){
                 event_domain: mk.id("domain"),
                 event_type: mk("type"),
                 for_rid: null,
-                attributes: null
+                event_attrs: null
             }
         }
     ]);
@@ -1929,7 +1929,7 @@ test("GuardCondition", function(t){
                 event_domain: mk.id("domain"),
                 event_type: mk("type"),
                 for_rid: null,
-                attributes: null
+                event_attrs: null
             }
         }
     ]);
@@ -2039,7 +2039,7 @@ test("with", function(t){
 
         //try with on raise
         ast = parser("ruleset rs{rule r1{fired{raise domain event \"type\"" + src + "}}}");
-        ast = ast.rules[0].postlude.fired[0].attributes.with;
+        ast = ast.rules[0].postlude.fired[0].event_attrs.with;
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
     try{

@@ -141,7 +141,7 @@ rule hello {
       "type": "EventExpression",
       "event_domain": DOMAIN,
       "event_type": TYPE,
-      "attributes": [  ],
+      "event_attrs": [  ],
       "where": null,
       "setting": [  ],
       "aggregator": null
@@ -206,7 +206,7 @@ select when A B
   "type": "EventExpression",
   "event_domain": A,
   "event_type": B,
-  "attributes": [  ],
+  "event_attrs": [  ],
   "where": null,
   "setting": [  ],
   "aggregator": null
@@ -217,7 +217,7 @@ select when A B attr re#^(.*)$# setting(val)
   "type": "EventExpression",
   "event_domain": A,
   "event_type": B,
-  "attributes": [
+  "event_attrs": [
     {
       "type": "AttributeMatch",
       "key": {value: "attr", type:"Identifier"},
@@ -240,7 +240,7 @@ select when A A or B B
       "type": "EventExpression",
       "event_domain": A,
       "event_type": A,
-      "attributes": [  ],
+      "event_attrs": [  ],
       "where": null,
       "setting": [  ],
       "aggregator": null
@@ -249,7 +249,7 @@ select when A A or B B
       "type": "EventExpression",
       "event_domain": B,
       "event_type": B,
-      "attributes": [  ],
+      "event_attrs": [  ],
       "where": null,
       "setting": [  ],
       "aggregator": null
@@ -267,7 +267,7 @@ select when any 2 (A A, B B, C C)
       "type": "EventExpression",
       "event_domain": A,
       "event_type": A,
-      "attributes": [  ],
+      "event_attrs": [  ],
       "where": null,
       "setting": [  ],
       "aggregator": null
@@ -276,7 +276,7 @@ select when any 2 (A A, B B, C C)
       "type": "EventExpression",
       "event_domain": B,
       "event_type": B,
-      "attributes": [  ],
+      "event_attrs": [  ],
       "where": null,
       "setting": [  ],
       "aggregator": null
@@ -285,7 +285,7 @@ select when any 2 (A A, B B, C C)
       "type": "EventExpression",
       "event_domain": C,
       "event_type": C,
-      "attributes": [  ],
+      "event_attrs": [  ],
       "where": null,
       "setting": [  ],
       "aggregator": null

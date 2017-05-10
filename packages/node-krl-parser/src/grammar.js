@@ -647,7 +647,7 @@ var grammar = {
             loc: mkLoc(data),
             event_domain: data[0],
             event_type: data[1],
-            attributes: data[2],
+            event_attrs: data[2],
             where: data[3] && data[3][1],
             setting: (data[4] && data[4][2]) || [],
             aggregator: null//this is set by EventAggregator
@@ -811,8 +811,9 @@ var grammar = {
             type: 'RaiseEventStatement',
             event_domain: data[1],
             event_type: data[3],
+            event_attrs: data[5],
+        
             for_rid: data[4] ? data[4][1] : null,
-            attributes: data[5]
           };
         }
         },
