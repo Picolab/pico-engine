@@ -1,10 +1,23 @@
 ruleset io.picolabs.schedule {
   meta {
-    shares getLog
+    shares getLog, rmScheduled, listScheduled
   }
   global {
     getLog = function(){
       ent:log
+    }
+    listScheduled = function(){
+      schedule:list()
+    }
+    rmScheduled = function(id){
+      schedule:remove(id)
+    }
+  }
+  rule clear_log {
+    select when schedule clear_log;
+    send_directive("clear_log")
+    fired {
+      ent:log := []
     }
   }
   rule push_log {
@@ -20,7 +33,10 @@ ruleset io.picolabs.schedule {
     fired {
       schedule schedule event "push_log"
         at time:add(time:now(), {"minutes": 5})
-        attributes {"from": "in_5min"}
+        attributes {
+          "from": "in_5min",
+          "name": event:attr("name")
+        }
         setting(foo);
       ent:log := ent:log.append({"scheduled in_5min": foo})
     }
@@ -30,9 +46,11 @@ ruleset io.picolabs.schedule {
     send_directive("every_1min")
     fired {
       schedule schedule event "push_log"
-        repeat "*/5 * * * *"
+        repeat "* */1 * * * *"
         with
           from = "every_1min"
+          and
+          name = event:attr("name")
         setting(foo);
       ent:log := ent:log.append({"scheduled every_1min": foo})
     }
