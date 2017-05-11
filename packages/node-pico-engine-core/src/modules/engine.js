@@ -1,8 +1,7 @@
 var _ = require("lodash");
-var fs = require("fs");
 var urllib = require("url");
 var mkKRLfn = require("../mkKRLfn");
-var request = require("request");
+var getKRLByURL = require("../getKRLByURL");
 
 var installRulesetAndValidateIds = function(db, pico_id, rid, callback){
     db.getPico(pico_id, function(err, pico){
@@ -16,29 +15,6 @@ var installRulesetAndValidateIds = function(db, pico_id, rid, callback){
             db.addRulesetToPico(pico_id, rid, callback);
         });
     });
-};
-
-var httpGetKRL = function(url, callback){
-    request(url, function(err, resp, body){
-        if(err)
-            return callback(err);
-        if(resp.statusCode !== 200)
-            return callback(new Error("Got a statusCode=" + resp.statusCode + " for: " + url));
-
-        callback(null, body);
-    });
-};
-
-var getKRLByURL = function(url, callback){
-    var url_parsed = urllib.parse(url);
-    if(url_parsed.protocol === "file:"){
-        fs.readFile(url_parsed.path, function(err, data){
-            if(err) return callback(err);
-            callback(null, data.toString());
-        });
-        return;
-    }
-    httpGetKRL(url, callback);
 };
 
 module.exports = function(core){

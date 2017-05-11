@@ -8,6 +8,7 @@ var Modules = require("./modules");
 var PicoQueue = require("./PicoQueue");
 var Scheduler = require("./Scheduler");
 var krl_stdlib = require("krl-stdlib");
+var getKRLByURL = require("./getKRLByURL");
 var SymbolTable = require("symbol-table");
 var EventEmitter = require("events");
 var processEvent = require("./processEvent");
@@ -427,6 +428,23 @@ module.exports = function(conf, callback){
         is_test_mode: !!conf.scheduler_is_test_mode,
     });
 
+    core.registerRulesetURL = function(url, callback){
+        getKRLByURL(url, function(err, src){
+            core.registerRulesetSrc(src, {url: url}, callback);
+        });
+    };
+    core.flushRuleset = function(rid, callback){
+        db.getEnabledRuleset(rid, function(err, rs_data){
+            if(err) return callback(err);
+            var url = rs_data.url;
+            if(!_.isString(url)){
+                callback(new Error("cannot flush a locally registered ruleset"));
+                return;
+            }
+            core.registerRulesetURL(url, callback);
+        });
+    };
+
     registerAllEnabledRulesets(function(err){
         if(err) return callback(err);
         var pe = {
@@ -434,10 +452,22 @@ module.exports = function(conf, callback){
 
             newPico: db.newPico,
             newChannel: db.newChannel,
+            removeChannel: db.removeChannel,
+            getOwnerECI: db.getOwnerECI,
+
+            putEntVar: db.putEntVar,
+            getEntVar: db.getEntVar,
+            removeEntVar: db.removeEntVar,
+
             installRuleset: db.addRulesetToPico,//TODO engine module installRulesetAndValidateIds
+            uninstallRuleset: db.removeRulesetFromPico,
+
             removePico: db.removePico,
 
             dbDump: db.toObj,
+
+            flushRuleset: core.flushRuleset,
+            registerRulesetURL: core.registerRulesetURL,
 
             registerRuleset: core.registerRulesetSrc,
             unregisterRuleset: core.unregisterRuleset,
