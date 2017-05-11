@@ -184,7 +184,7 @@ module.exports = function(conf, callback){
         }
     });
 
-    var registerRuleset = function(rs, loadDepRS, callback){
+    var initializeAndEngageRuleset = function(rs, loadDepRS, callback){
         cocb.run(initializeRulest(rs, loadDepRS), function(err){
             if(err) return callback(err);
 
@@ -246,7 +246,7 @@ module.exports = function(conf, callback){
         });
     };
 
-    core.registerRulesetSrc = function(krl_src, meta_data, callback){
+    core.registerRuleset = function(krl_src, meta_data, callback){
         db.storeRuleset(krl_src, meta_data, function(err, hash){
             if(err) return callback(err);
             compileAndLoadRuleset({
@@ -256,7 +256,7 @@ module.exports = function(conf, callback){
                 if(err) return callback(err);
                 db.enableRuleset(hash, function(err){
                     if(err) return callback(err);
-                    registerRuleset(rs, function(rid){
+                    initializeAndEngageRuleset(rs, function(rid){
                         return rulesets[rid];
                     }, function(err){
                         if(err){
@@ -368,7 +368,7 @@ module.exports = function(conf, callback){
                     return rs_by_rid[rid];
                 };
                 λ.each.series(rs_list, function(rs, next){
-                    registerRuleset(rs, loadDepRS, next);
+                    initializeAndEngageRuleset(rs, loadDepRS, next);
                 }, callback);
             });
         });
@@ -430,7 +430,7 @@ module.exports = function(conf, callback){
 
     core.registerRulesetURL = function(url, callback){
         getKRLByURL(url, function(err, src){
-            core.registerRulesetSrc(src, {url: url}, callback);
+            core.registerRuleset(src, {url: url}, callback);
         });
     };
     core.flushRuleset = function(rid, callback){
@@ -469,7 +469,7 @@ module.exports = function(conf, callback){
             flushRuleset: core.flushRuleset,
             registerRulesetURL: core.registerRulesetURL,
 
-            registerRuleset: core.registerRulesetSrc,
+            registerRuleset: core.registerRuleset,
             unregisterRuleset: core.unregisterRuleset,
 
             signalEvent: signalEvent,

@@ -1,7 +1,6 @@
 var _ = require("lodash");
 var urllib = require("url");
 var mkKRLfn = require("../mkKRLfn");
-var getKRLByURL = require("../getKRLByURL");
 
 var installRulesetAndValidateIds = function(db, pico_id, rid, callback){
     db.getPico(pico_id, function(err, pico){
@@ -18,18 +17,6 @@ var installRulesetAndValidateIds = function(db, pico_id, rid, callback){
 };
 
 module.exports = function(core){
-    var registerURL = function(url, callback){
-        getKRLByURL(url, function(err, src){
-            if(err) return callback(err);
-            core.registerRulesetSrc(src, {
-                url: url
-            }, function(err, data){
-                if(err) return callback(err);
-                callback(null, data.rid);
-            });
-        });
-    };
-
     var fns = {
         newPico: mkKRLfn([
             "opts",
@@ -65,7 +52,10 @@ module.exports = function(core){
             if(!_.isString(uri)){
                 return callback(new Error("registerRuleset expects, pico_id and rid or url+base"));
             }
-            registerURL(uri, callback);
+            core.registerRulesetURL(uri, function(err, data){
+                if(err) return callback(err);
+                callback(null, data.rid);
+            });
         }),
         installRuleset: mkKRLfn([
             "opts",
@@ -97,9 +87,9 @@ module.exports = function(core){
                 if(err) return callback(err);
                 var rids = _.uniq(_.map(results, "rid"));
                 if(_.size(rids) === 0){
-                    registerURL(uri, function(err, rid){
+                    core.registerRulesetURL(uri, function(err, data){
                         if(err) return callback(err);
-                        doIt(rid);
+                        doIt(data.rid);
                     });
                     return;
                 }
