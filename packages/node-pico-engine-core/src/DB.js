@@ -137,9 +137,19 @@ module.exports = function(opts){
         addRuleset: function(opts, callback){
             ldb.put(["pico", opts.pico_id, "ruleset", opts.rid], {on: true}, callback);
         },
-        //TODO rename removeRulesetFromPico
-        removeRuleset: function(pico_id, rid, callback){
-            ldb.del(["pico", pico_id, "ruleset", rid], callback);
+        removeRulesetFromPico: function(pico_id, rid, callback){
+            var ops = [
+                {type: "del", key: ["pico", pico_id, "ruleset", rid]},
+            ];
+            dbRange(ldb, {
+                prefix: ["pico", pico_id, rid],
+                values: false,
+            }, function(key){
+                ops.push({type: "del", key: key});
+            }, function(err){
+                if(err) return callback(err);
+                ldb.batch(ops, callback);
+            });
         },
         removeChannel: function(pico_id, eci, callback){
             var ops = [

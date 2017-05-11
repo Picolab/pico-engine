@@ -428,3 +428,37 @@ test("DB - scheduleEventRepeat", function(t){
         });
     });
 });
+
+test("DB - removeRulesetFromPico", function(t){
+    mkTestPicoEngine({
+        dont_register_rulesets: true,
+    }, function(err, pe){
+        if(err)return t.end(err);
+
+        λ.series({
+            addRS: λ.curry(pe.db.addRuleset, {pico_id: "pico0", rid: "rid0"}),
+            ent0: λ.curry(pe.db.putEntVar, "pico0", "rid0", "foo", "val0"),
+            ent1: λ.curry(pe.db.putEntVar, "pico0", "rid0", "bar", "val1"),
+            db_before: λ.curry(pe.db.toObj),
+
+            rmRS: λ.curry(pe.db.removeRulesetFromPico, "pico0", "rid0"),
+
+            db_after: λ.curry(pe.db.toObj),
+        }, function(err, data){
+            if(err) return t.end(err);
+
+            t.deepEquals(data.db_before, {
+                pico: {
+                    pico0: {
+                        rid0: {vars: {foo: "val0", bar: "val1"}},
+                        ruleset: {rid0: {on: true}}
+                    }
+                }
+            });
+
+            t.deepEquals(data.db_after, {}, "should all be gone");
+
+            t.end();
+        });
+    });
+});
