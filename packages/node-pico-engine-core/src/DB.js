@@ -133,9 +133,8 @@ module.exports = function(opts){
                 callback(undefined, new_channel);
             });
         },
-        //TODO rename addRulesetToPico
-        addRuleset: function(opts, callback){
-            ldb.put(["pico", opts.pico_id, "ruleset", opts.rid], {on: true}, callback);
+        addRulesetToPico: function(pico_id, rid, callback){
+            ldb.put(["pico", pico_id, "ruleset", rid], {on: true}, callback);
         },
         removeRulesetFromPico: function(pico_id, rid, callback){
             var ops = [

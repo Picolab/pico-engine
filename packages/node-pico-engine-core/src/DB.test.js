@@ -11,7 +11,7 @@ test("DB - write and read", function(t){
             start_db: λ.curry(pe.db.toObj),
             pico0: λ.curry(pe.db.newPico, {}),
             chan1: λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            rule0: λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "rs0"}),
+            rule0: λ.curry(pe.db.addRulesetToPico, "id0", "rs0"),
             chan2: λ.curry(pe.db.newChannel, {pico_id: "id0", name: "two", type: "t"}),
             end_db: λ.curry(pe.db.toObj),
             rmpico0: λ.curry(pe.db.removePico, "id0"),
@@ -193,9 +193,9 @@ test("DB - isRulesetUsed", function(t){
             pico0: λ.curry(pe.db.newPico, {}),
             pico1: λ.curry(pe.db.newPico, {}),
 
-            foo0: λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "rs-foo"}),
-            foo1: λ.curry(pe.db.addRuleset, {pico_id: "id1", rid: "rs-foo"}),
-            bar0: λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "rs-bar"}),
+            foo0: λ.curry(pe.db.addRulesetToPico, "id0", "rs-foo"),
+            foo1: λ.curry(pe.db.addRulesetToPico, "id1", "rs-foo"),
+            bar0: λ.curry(pe.db.addRulesetToPico, "id0", "rs-bar"),
 
             is_foo: λ.curry(pe.db.isRulesetUsed, "rs-foo"),
             is_bar: λ.curry(pe.db.isRulesetUsed, "rs-bar"),
@@ -436,7 +436,7 @@ test("DB - removeRulesetFromPico", function(t){
         if(err)return t.end(err);
 
         λ.series({
-            addRS: λ.curry(pe.db.addRuleset, {pico_id: "pico0", rid: "rid0"}),
+            addRS: λ.curry(pe.db.addRulesetToPico, "pico0", "rid0"),
             ent0: λ.curry(pe.db.putEntVar, "pico0", "rid0", "foo", "val0"),
             ent1: λ.curry(pe.db.putEntVar, "pico0", "rid0", "bar", "val1"),
             db_before: λ.curry(pe.db.toObj),

@@ -13,10 +13,7 @@ var installRulesetAndValidateIds = function(db, pico_id, rid, callback){
             if(err) return callback(err);
             if(!has) return callback(new Error("This rid is not found and/or enabled: " + rid));
 
-            db.addRuleset({
-                pico_id: pico_id,
-                rid: rid
-            }, callback);
+            db.addRulesetToPico(pico_id, rid, callback);
         });
     });
 };

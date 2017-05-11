@@ -85,7 +85,7 @@ test("PicoEngine - hello_world ruleset", function(t){
         λ.series({
             npico: λ.curry(pe.db.newPico, {}),
             chan0: λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            rid1x: λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.hello_world"}),
+            rid1x: λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.hello_world"),
 
             hello_event: λ.curry(pe.signalEvent, {
                 eci: "id1",
@@ -142,8 +142,8 @@ test("PicoEngine - io.picolabs.persistent", function(t){
             λ.curry(pe.db.newPico, {}),//id1 - pico B
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),//id2
             λ.curry(pe.db.newChannel, {pico_id: "id1", name: "one", type: "t"}),//id3
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.persistent"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id1", rid: "io.picolabs.persistent"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.persistent"),
+            λ.curry(pe.db.addRulesetToPico, "id1", "io.picolabs.persistent"),
 
             //////////////////////////////////////////////////////////////////////////
             //if not set, the var should return undefined
@@ -202,7 +202,7 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.events"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.events"),
             [
                 signal("events", "bind", {name: "blah?!"}),
                 [{name: "bound", options: {name: "blah?!"}}]
@@ -310,7 +310,7 @@ test("PicoEngine - io.picolabs.scope ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.scope"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.scope"),
             [
                 signal("scope", "event0", {name: "name 0"}),
                 [{name: "say", options: {name: "name 0"}}]
@@ -373,7 +373,7 @@ test("PicoEngine - io.picolabs.operators ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.operators"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.operators"),
             [
                 query("results"),
                 {
@@ -436,7 +436,7 @@ test("PicoEngine - io.picolabs.chevron ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.chevron"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.chevron"),
             [
                 query("d"),
                 "\n      hi 1 + 2 = 3\n      <h1>some<b>html</b></h1>\n    "
@@ -456,7 +456,7 @@ test("PicoEngine - io.picolabs.execution-order ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.execution-order"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.execution-order"),
             [
                 query("getOrder"),
                 void 0
@@ -489,7 +489,7 @@ test("PicoEngine - io.picolabs.execution-order ruleset", function(t){
                 query("getOrder"),
                 ["foo_or_bar", "foo", "foo_or_bar", "bar"]
             ],
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.execution-order2"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.execution-order2"),
             [
                 signal("execution_order", "reset_order"),
                 [{name: "reset_order", options: {}}, {name: "2 - reset_order", options: {}}]
@@ -524,7 +524,7 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.engine"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.engine"),
             [signal("engine", "newPico"), []],
             [
                 signal("engine", "newChannel", {
@@ -598,7 +598,7 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.module-used"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.module-used"),
 
             // Test overiding module configurations
             [
@@ -634,7 +634,7 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
                 signal("module_defined", "store_memo", {memo: "foo"}),
                 []//should not respond to this event
             ],
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.module-defined"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.module-defined"),
             [
                 signal("module_defined", "store_memo", {memo: "foo"}),
                 [{name: "store_memo", options: {
@@ -706,7 +706,7 @@ test("PicoEngine - io.picolabs.expressions ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.expressions"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.expressions"),
             [
                 query("obj"),
                 {
@@ -744,7 +744,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.meta"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.meta"),
             [
                 signal("meta", "event"),
                 [{name: "event", options: {
@@ -810,7 +810,7 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
             testOutputs(t, [
                 λ.curry(pe.db.newPico, {}),
                 λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-                λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.http"}),
+                λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.http"),
                 [
                     signal("http_test", "get", {url: url}),
                     []
@@ -933,7 +933,7 @@ test("PicoEngine - io.picolabs.foreach ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.foreach"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.foreach"),
             [
                 signal("foreach", "basic"),
                 [
@@ -1005,7 +1005,7 @@ test("PicoEngine - io.picolabs.event-exp ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.event-exp"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.event-exp"),
         ].concat(_.map([
 
             ["ee_before", "a"],
@@ -1195,7 +1195,7 @@ test("PicoEngine - io.picolabs.within ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.within"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.within"),
         ].concat(_.map([
 
             [10000000000000, "foo", "a"],
@@ -1253,7 +1253,7 @@ test("PicoEngine - io.picolabs.guard-conditions ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.guard-conditions"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.guard-conditions"),
             [
                 query("getB"),
                 undefined
@@ -1307,7 +1307,7 @@ test("PicoEngine - io.picolabs.with ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.with"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.with"),
             [query("add", {a: -2, b: 5}), 3],
             [query("inc", {n: 4}), 5],
             [query("foo", {a: 3}), 9],
@@ -1324,7 +1324,7 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.defaction"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.defaction"),
             [
                 signal("foo", "a", {}),
                 [{name: "foo", options: {a: "bar", b: 5}}]
@@ -1358,7 +1358,7 @@ test("PicoEngine - io.picolabs.log ruleset", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.log"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.log"),
             [signal("log", "levels"), []],
             function(done){
                 t.deepEquals(log_events, [
@@ -1395,10 +1395,10 @@ test("PicoEngine - io.picolabs.key* rulesets", function(t){
         testOutputs(t, [
             λ.curry(pe.db.newPico, {}),
             λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.key-defined"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.key-used"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.key-used2"}),
-            λ.curry(pe.db.addRuleset, {pico_id: "id0", rid: "io.picolabs.key-used3"}),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.key-defined"),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.key-used"),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.key-used2"),
+            λ.curry(pe.db.addRulesetToPico, "id0", "io.picolabs.key-used3"),
 
             [query1("getFoo"), "foo key just a string"],
             [query2("getFoo"), "foo key just a string"],
@@ -1454,7 +1454,7 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
     λ.series([
         λ.curry(db.newPico, {}),
         λ.curry(db.newChannel, {pico_id: "init0", name: "one", type: "t"}),
-        λ.curry(db.addRuleset, {pico_id: "init0", rid: "io.picolabs.schedule"}),
+        λ.curry(db.addRulesetToPico, "init0", "io.picolabs.schedule"),
         λ.curry(db.scheduleEventRepeat, "10 * * * * *", {
             eci: "init1",
             eid: "1234",
