@@ -1,464 +1,449 @@
 var _ = require("lodash");
 var λ = require("contra");
+var DB = require("./DB");
 var test = require("tape");
-var mkTestPicoEngine = require("./mkTestPicoEngine");
+var memdown = require("memdown");
+
+var mkTestDB = function(opts){
+    opts = opts || {};
+    return DB({
+        db: opts.ldb || memdown,
+        newID: (function(){
+            var i = 0;
+            return function(){
+                return "id" + i++;
+            };
+        }())
+    });
+};
 
 test("DB - write and read", function(t){
-    mkTestPicoEngine({dont_register_rulesets: true}, function(err, pe){
-        if(err)return t.end(err);
+    var db = mkTestDB();
+    λ.series({
+        start_db: λ.curry(db.toObj),
+        pico0: λ.curry(db.newPico, {}),
+        chan1: λ.curry(db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+        rule0: λ.curry(db.addRulesetToPico, "id0", "rs0"),
+        chan2: λ.curry(db.newChannel, {pico_id: "id0", name: "two", type: "t"}),
+        end_db: λ.curry(db.toObj),
+        rmpico0: λ.curry(db.removePico, "id0"),
+        post_del_db: λ.curry(db.toObj)
+    }, function(err, data){
+        if(err) return t.end(err);
 
-        λ.series({
-            start_db: λ.curry(pe.db.toObj),
-            pico0: λ.curry(pe.db.newPico, {}),
-            chan1: λ.curry(pe.db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
-            rule0: λ.curry(pe.db.addRulesetToPico, "id0", "rs0"),
-            chan2: λ.curry(pe.db.newChannel, {pico_id: "id0", name: "two", type: "t"}),
-            end_db: λ.curry(pe.db.toObj),
-            rmpico0: λ.curry(pe.db.removePico, "id0"),
-            post_del_db: λ.curry(pe.db.toObj)
-        }, function(err, data){
-            if(err) return t.end(err);
+        t.deepEquals(data.start_db, {});
 
-            t.deepEquals(data.start_db, {});
-
-            t.deepEquals(data.end_db, {
-                channel: {
-                    id1: {pico_id: "id0"},
-                    id2: {pico_id: "id0"}
-                },
-                pico: {
-                    "id0": {
-                        id: "id0",
-                        channel: {
-                            "id1": {
-                                id: "id1",
-                                name: "one",
-                                type: "t"
-                            },
-                            "id2": {
-                                id: "id2",
-                                name: "two",
-                                type: "t"
-                            }
+        t.deepEquals(data.end_db, {
+            channel: {
+                id1: {pico_id: "id0"},
+                id2: {pico_id: "id0"}
+            },
+            pico: {
+                "id0": {
+                    id: "id0",
+                    channel: {
+                        "id1": {
+                            id: "id1",
+                            name: "one",
+                            type: "t"
                         },
-                        ruleset: {
-                            "rs0": {on: true}
+                        "id2": {
+                            id: "id2",
+                            name: "two",
+                            type: "t"
                         }
+                    },
+                    ruleset: {
+                        "rs0": {on: true}
                     }
                 }
-            });
-
-            t.deepEquals(data.post_del_db, {});
-
-            t.end();
+            }
         });
+
+        t.deepEquals(data.post_del_db, {});
+
+        t.end();
     });
 });
 
 test("DB - storeRuleset", function(t){
-    mkTestPicoEngine({dont_register_rulesets: true}, function(err, pe){
-        if(err)return t.end(err);
+    var db = mkTestDB();
 
-        var krl_src = "ruleset io.picolabs.cool {}";
-        var rid = "io.picolabs.cool";
-        var hash = "7d71c05bc934b0d41fdd2055c7644fc4d0d3eabf303d67fb97f604eaab2c0aa1";
-        var timestamp = (new Date()).toISOString();
-        var url = "Some-URL-to-src ";
+    var krl_src = "ruleset io.picolabs.cool {}";
+    var rid = "io.picolabs.cool";
+    var hash = "7d71c05bc934b0d41fdd2055c7644fc4d0d3eabf303d67fb97f604eaab2c0aa1";
+    var timestamp = (new Date()).toISOString();
+    var url = "Some-URL-to-src ";
 
-        var expected = {};
-        _.set(expected, ["rulesets", "krl", hash], {
-            src: krl_src,
+    var expected = {};
+    _.set(expected, ["rulesets", "krl", hash], {
+        src: krl_src,
+        rid: rid,
+        url: url,
+        timestamp: timestamp
+    });
+    _.set(expected, ["rulesets", "versions", rid, timestamp, hash], true);
+    _.set(expected, ["rulesets", "url", url.toLowerCase().trim(), rid, hash], true);
+
+    λ.series({
+        start_db: λ.curry(db.toObj),
+        store: function(next){
+            db.storeRuleset(krl_src, {
+                url: url
+            }, next, timestamp);
+        },
+        findRulesetsByURL: λ.curry(db.findRulesetsByURL, url),
+        end_db: λ.curry(db.toObj)
+    }, function(err, data){
+        if(err) return t.end(err);
+        t.deepEquals(data.start_db, {});
+        t.deepEquals(data.store, hash);
+        t.deepEquals(data.findRulesetsByURL, [{
             rid: rid,
-            url: url,
-            timestamp: timestamp
-        });
-        _.set(expected, ["rulesets", "versions", rid, timestamp, hash], true);
-        _.set(expected, ["rulesets", "url", url.toLowerCase().trim(), rid, hash], true);
-
-        λ.series({
-            start_db: λ.curry(pe.db.toObj),
-            store: function(next){
-                pe.db.storeRuleset(krl_src, {
-                    url: url
-                }, next, timestamp);
-            },
-            findRulesetsByURL: λ.curry(pe.db.findRulesetsByURL, url),
-            end_db: λ.curry(pe.db.toObj)
-        }, function(err, data){
-            if(err) return t.end(err);
-            t.deepEquals(data.start_db, {});
-            t.deepEquals(data.store, hash);
-            t.deepEquals(data.findRulesetsByURL, [{
-                rid: rid,
-                hash: hash
-            }]);
-            t.deepEquals(data.end_db, expected);
-            t.end();
-        });
+            hash: hash
+        }]);
+        t.deepEquals(data.end_db, expected);
+        t.end();
     });
 });
 
 test("DB - enableRuleset", function(t){
-    mkTestPicoEngine({}, function(err, pe){
-        if(err)return t.end(err);
+    var db = mkTestDB();
 
-        var krl_src = "ruleset io.picolabs.cool {}";
-        //TODO
-        λ.waterfall([
-            function(callback){
-                pe.db.toObj(callback);
-            },
-            function(db, callback){
-                t.deepEquals(_.omit(db, "rulesets"), {});
-                pe.db.storeRuleset(krl_src, {}, callback);
-            },
-            function(hash, callback){
-                pe.db.enableRuleset(hash, function(err){
-                    callback(err, hash);
-                });
-            },
-            function(hash, callback){
-                pe.db.toObj(function(err, db){
-                    callback(err, db, hash);
-                });
-            },
-            function(db, hash, callback){
-                t.deepEquals(_.get(db, [
+    var krl_src = "ruleset io.picolabs.cool {}";
+    //TODO
+    λ.waterfall([
+        function(callback){
+            db.toObj(callback);
+        },
+        function(db_json, callback){
+            t.deepEquals(_.omit(db_json, "rulesets"), {});
+            db.storeRuleset(krl_src, {}, callback);
+        },
+        function(hash, callback){
+            db.enableRuleset(hash, function(err){
+                callback(err, hash);
+            });
+        },
+        function(hash, callback){
+            db.toObj(function(err, db){
+                callback(err, db, hash);
+            });
+        },
+        function(db_json, hash, callback){
+            t.deepEquals(_.get(db_json, [
+                "rulesets",
+                "enabled",
+                "io.picolabs.cool",
+                "hash"
+            ]), hash);
+            db.getEnabledRuleset("io.picolabs.cool", function(err, data){
+                if(err) return callback(err);
+                t.equals(data.src, krl_src);
+                t.equals(data.hash, hash);
+                t.equals(data.rid, "io.picolabs.cool");
+                t.equals(data.timestamp_enable, _.get(db_json, [
                     "rulesets",
                     "enabled",
                     "io.picolabs.cool",
-                    "hash"
-                ]), hash);
-                pe.db.getEnabledRuleset("io.picolabs.cool", function(err, data){
-                    if(err) return callback(err);
-                    t.equals(data.src, krl_src);
-                    t.equals(data.hash, hash);
-                    t.equals(data.rid, "io.picolabs.cool");
-                    t.equals(data.timestamp_enable, _.get(db, [
-                        "rulesets",
-                        "enabled",
-                        "io.picolabs.cool",
-                        "timestamp"
-                    ]));
-                    callback();
-                });
-            }
-        ], t.end);
-    });
+                    "timestamp"
+                ]));
+                callback();
+            });
+        }
+    ], t.end);
 });
 
 test("DB - read keys that don't exist", function(t){
-    mkTestPicoEngine({}, function(err, pe){
-        if(err)return t.end(err);
+    var db = mkTestDB();
 
-        λ.series({
-            ent: λ.curry(pe.db.getEntVar, "pico0", "rid0", "var that doesn't exisit"),
-            app: λ.curry(pe.db.getAppVar, "rid0", "var that doesn't exisit")
-        }, function(err, data){
-            if(err) return t.end(err);
-            t.deepEquals(data.ent, undefined);
-            t.deepEquals(data.app, undefined);
-            t.end();
-        });
+    λ.series({
+        ent: λ.curry(db.getEntVar, "pico0", "rid0", "var that doesn't exisit"),
+        app: λ.curry(db.getAppVar, "rid0", "var that doesn't exisit")
+    }, function(err, data){
+        if(err) return t.end(err);
+        t.deepEquals(data.ent, undefined);
+        t.deepEquals(data.app, undefined);
+        t.end();
     });
 });
 
 test("DB - getOwnerECI", function(t){
-    mkTestPicoEngine({}, function(err, pe){
-        if(err)return t.end(err);
+    var db = mkTestDB();
 
-        λ.series({
-            eci_0: λ.curry(pe.db.getOwnerECI),
-            new_chan: λ.curry(pe.db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
-            eci_1: λ.curry(pe.db.getOwnerECI),
-            new_chan1: λ.curry(pe.db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
-            new_chan2: λ.curry(pe.db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
-            new_chan3: λ.curry(pe.db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
-            eci_2: λ.curry(pe.db.getOwnerECI),
-        }, function(err, data){
-            if(err) return t.end(err);
-            t.deepEquals(data.eci_0, undefined);
-            t.deepEquals(data.eci_1, "id0");
-            t.deepEquals(data.eci_2, "id0");
-            t.end();
-        });
+    λ.series({
+        eci_0: λ.curry(db.getOwnerECI),
+        new_chan: λ.curry(db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
+        eci_1: λ.curry(db.getOwnerECI),
+        new_chan1: λ.curry(db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
+        new_chan2: λ.curry(db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
+        new_chan3: λ.curry(db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
+        eci_2: λ.curry(db.getOwnerECI),
+    }, function(err, data){
+        if(err) return t.end(err);
+        t.deepEquals(data.eci_0, undefined);
+        t.deepEquals(data.eci_1, "id0");
+        t.deepEquals(data.eci_2, "id0");
+        t.end();
     });
 });
 
 test("DB - isRulesetUsed", function(t){
-    mkTestPicoEngine({}, function(err, pe){
-        if(err)return t.end(err);
+    var db = mkTestDB();
 
-        λ.series({
-            pico0: λ.curry(pe.db.newPico, {}),
-            pico1: λ.curry(pe.db.newPico, {}),
+    λ.series({
+        pico0: λ.curry(db.newPico, {}),
+        pico1: λ.curry(db.newPico, {}),
 
-            foo0: λ.curry(pe.db.addRulesetToPico, "id0", "rs-foo"),
-            foo1: λ.curry(pe.db.addRulesetToPico, "id1", "rs-foo"),
-            bar0: λ.curry(pe.db.addRulesetToPico, "id0", "rs-bar"),
+        foo0: λ.curry(db.addRulesetToPico, "id0", "rs-foo"),
+        foo1: λ.curry(db.addRulesetToPico, "id1", "rs-foo"),
+        bar0: λ.curry(db.addRulesetToPico, "id0", "rs-bar"),
 
-            is_foo: λ.curry(pe.db.isRulesetUsed, "rs-foo"),
-            is_bar: λ.curry(pe.db.isRulesetUsed, "rs-bar"),
-            is_baz: λ.curry(pe.db.isRulesetUsed, "rs-baz"),
-            is_qux: λ.curry(pe.db.isRulesetUsed, "rs-qux"),
-        }, function(err, data){
-            if(err) return t.end(err);
-            t.equals(data.is_foo, true);
-            t.equals(data.is_bar, true);
-            t.equals(data.is_baz, false);
-            t.equals(data.is_qux, false);
-            t.end();
-        });
+        is_foo: λ.curry(db.isRulesetUsed, "rs-foo"),
+        is_bar: λ.curry(db.isRulesetUsed, "rs-bar"),
+        is_baz: λ.curry(db.isRulesetUsed, "rs-baz"),
+        is_qux: λ.curry(db.isRulesetUsed, "rs-qux"),
+    }, function(err, data){
+        if(err) return t.end(err);
+        t.equals(data.is_foo, true);
+        t.equals(data.is_bar, true);
+        t.equals(data.is_baz, false);
+        t.equals(data.is_qux, false);
+        t.end();
     });
 });
 
 test("DB - deleteRuleset", function(t){
-    mkTestPicoEngine({
-        dont_register_rulesets: true,
-    }, function(err, pe){
-        if(err)return t.end(err);
+    var db = mkTestDB();
 
-        var storeRuleset = function(name){
-            return function(callback){
-                var rid = "io.picolabs." + name;
-                var krl = "ruleset " + rid + " {}";
-                pe.db.storeRuleset(krl, {
-                    url: "file:///" + name + ".krl"
-                }, function(err, hash){
+    var storeRuleset = function(name){
+        return function(callback){
+            var rid = "io.picolabs." + name;
+            var krl = "ruleset " + rid + " {}";
+            db.storeRuleset(krl, {
+                url: "file:///" + name + ".krl"
+            }, function(err, hash){
+                if(err) return callback(err);
+                db.enableRuleset(hash, function(err){
                     if(err) return callback(err);
-                    pe.db.enableRuleset(hash, function(err){
-                        if(err) return callback(err);
-                        pe.db.putAppVar(rid, "my_var", "appvar value", function(err){
-                            callback(err, hash);
-                        });
+                    db.putAppVar(rid, "my_var", "appvar value", function(err){
+                        callback(err, hash);
                     });
                 });
-            };
+            });
         };
+    };
 
-        λ.series({
-            store_foo: storeRuleset("foo"),
-            store_bar: storeRuleset("bar"),
+    λ.series({
+        store_foo: storeRuleset("foo"),
+        store_bar: storeRuleset("bar"),
 
-            init_db: λ.curry(pe.db.toObj),
+        init_db: λ.curry(db.toObj),
 
-            del_foo: λ.curry(pe.db.deleteRuleset, "io.picolabs.foo"),
+        del_foo: λ.curry(db.deleteRuleset, "io.picolabs.foo"),
 
-            end_db: λ.curry(pe.db.toObj),
-        }, function(err, data){
-            if(err) return t.end(err);
+        end_db: λ.curry(db.toObj),
+    }, function(err, data){
+        if(err) return t.end(err);
 
-            t.deepEquals(_.keys(data.init_db.rulesets.versions), [
-                "io.picolabs.bar",
-                "io.picolabs.foo",
-            ], "ensure all were actually stored in the db");
+        t.deepEquals(_.keys(data.init_db.rulesets.versions), [
+            "io.picolabs.bar",
+            "io.picolabs.foo",
+        ], "ensure all were actually stored in the db");
 
-            t.deepEquals(_.keys(data.end_db.rulesets.versions), [
-                "io.picolabs.bar",
-            ], "ensure io.picolabs.foo was removed");
+        t.deepEquals(_.keys(data.end_db.rulesets.versions), [
+            "io.picolabs.bar",
+        ], "ensure io.picolabs.foo was removed");
 
 
-            //make the `init_db` look like the expected `end_db`
-            var expected_db = _.cloneDeep(data.init_db);
-            t.deepEqual(expected_db, data.init_db, "sanity check");
+        //make the `init_db` look like the expected `end_db`
+        var expected_db = _.cloneDeep(data.init_db);
+        t.deepEqual(expected_db, data.init_db, "sanity check");
 
-            delete expected_db.rulesets.enabled["io.picolabs.foo"];
-            delete expected_db.rulesets.krl[data.store_foo];
-            delete expected_db.rulesets.url["file:///foo.krl"];
-            delete expected_db.rulesets.versions["io.picolabs.foo"];
-            delete expected_db.resultset["io.picolabs.foo"];
+        delete expected_db.rulesets.enabled["io.picolabs.foo"];
+        delete expected_db.rulesets.krl[data.store_foo];
+        delete expected_db.rulesets.url["file:///foo.krl"];
+        delete expected_db.rulesets.versions["io.picolabs.foo"];
+        delete expected_db.resultset["io.picolabs.foo"];
 
-            t.notDeepEqual(expected_db, data.init_db, "sanity check");
-            t.deepEquals(data.end_db, expected_db);
+        t.notDeepEqual(expected_db, data.init_db, "sanity check");
+        t.deepEquals(data.end_db, expected_db);
 
-            t.end();
-        });
+        t.end();
     });
 });
 
 test("DB - scheduleEventAt", function(t){
-    mkTestPicoEngine({
-        dont_register_rulesets: true,
-    }, function(err, pe){
-        if(err)return t.end(err);
+    var db = mkTestDB();
 
-        var eventAt = function(date, type){
-            return function(callback){
-                pe.db.scheduleEventAt(new Date(date), {
-                    domain: "foobar",
-                    type: type,
-                    attributes: {some: "attr"},
-                }, callback);
-            };
+    var eventAt = function(date, type){
+        return function(callback){
+            db.scheduleEventAt(new Date(date), {
+                domain: "foobar",
+                type: type,
+                attributes: {some: "attr"},
+            }, callback);
         };
-        var rmAt = function(id){
-            return function(callback){
-                pe.db.removeScheduled(id, callback);
-            };
+    };
+    var rmAt = function(id){
+        return function(callback){
+            db.removeScheduled(id, callback);
         };
+    };
 
-        var getNext = λ.curry(pe.db.nextScheduleEventAt);
+    var getNext = λ.curry(db.nextScheduleEventAt);
 
-        λ.series({
-            init_db: λ.curry(pe.db.toObj),
-            next0: getNext,
-            at0: eventAt("Feb 22, 2222", "foo"),
-            next1: getNext,
-            at1: eventAt("Feb 23, 2222", "bar"),
-            next2: getNext,
-            at2: eventAt("Feb  2, 2222", "baz"),
-            next3: getNext,
+    λ.series({
+        init_db: λ.curry(db.toObj),
+        next0: getNext,
+        at0: eventAt("Feb 22, 2222", "foo"),
+        next1: getNext,
+        at1: eventAt("Feb 23, 2222", "bar"),
+        next2: getNext,
+        at2: eventAt("Feb  2, 2222", "baz"),
+        next3: getNext,
 
-            list: λ.curry(pe.db.listScheduled),
+        list: λ.curry(db.listScheduled),
 
-            rm0: rmAt("id0"),
-            next4: getNext,
-            rm2: rmAt("id2"),
-            next5: getNext,
-            rm1: rmAt("id1"),
-            next6: getNext,
+        rm0: rmAt("id0"),
+        next4: getNext,
+        rm2: rmAt("id2"),
+        next5: getNext,
+        rm1: rmAt("id1"),
+        next6: getNext,
 
-            end_db: λ.curry(pe.db.toObj),
-        }, function(err, data){
-            if(err) return t.end(err);
+        end_db: λ.curry(db.toObj),
+    }, function(err, data){
+        if(err) return t.end(err);
 
-            t.deepEquals(data.init_db, {});
+        t.deepEquals(data.init_db, {});
 
-            t.deepEquals(data.at0, {
-                id: "id0",
-                at: new Date("Feb 22, 2222"),
-                event: {domain: "foobar", type: "foo", attributes: {some: "attr"}},
-            });
-            t.deepEquals(data.at1, {
-                id: "id1",
-                at: new Date("Feb 23, 2222"),
-                event: {domain: "foobar", type: "bar", attributes: {some: "attr"}},
-            });
-            t.deepEquals(data.at2, {
-                id: "id2",
-                at: new Date("Feb  2, 2222"),
-                event: {domain: "foobar", type: "baz", attributes: {some: "attr"}},
-            });
-
-            t.deepEquals(data.list, [
-                data.at2,
-                data.at0,
-                data.at1,
-            ].map(function(val){
-                return _.assign({}, val, {
-                    at: val.at.toISOString(),
-                });
-            }));
-
-            t.deepEquals(data.next0, void 0, "nothing scheduled");
-            t.ok(_.has(data, "next0"), "ensure next0 was actually tested");
-            t.deepEquals(data.next1, data.at0, "only one scheduled");
-            t.deepEquals(data.next2, data.at0, "at0 is still sooner than at1");
-            t.deepEquals(data.next3, data.at2, "at2 is sooner than at0");
-            t.deepEquals(data.next4, data.at2);
-            t.deepEquals(data.next5, data.at1, "at1 is soonest now that at0 and at2 were removed");
-            t.deepEquals(data.next6, void 0, "nothing scheduled");
-            t.ok(_.has(data, "next6"), "ensure next6 was actually tested");
-
-            t.deepEquals(data.end_db, {}, "should be nothing left in the db");
-
-            t.end();
+        t.deepEquals(data.at0, {
+            id: "id0",
+            at: new Date("Feb 22, 2222"),
+            event: {domain: "foobar", type: "foo", attributes: {some: "attr"}},
         });
+        t.deepEquals(data.at1, {
+            id: "id1",
+            at: new Date("Feb 23, 2222"),
+            event: {domain: "foobar", type: "bar", attributes: {some: "attr"}},
+        });
+        t.deepEquals(data.at2, {
+            id: "id2",
+            at: new Date("Feb  2, 2222"),
+            event: {domain: "foobar", type: "baz", attributes: {some: "attr"}},
+        });
+
+        t.deepEquals(data.list, [
+            data.at2,
+            data.at0,
+            data.at1,
+        ].map(function(val){
+            return _.assign({}, val, {
+                at: val.at.toISOString(),
+            });
+        }));
+
+        t.deepEquals(data.next0, void 0, "nothing scheduled");
+        t.ok(_.has(data, "next0"), "ensure next0 was actually tested");
+        t.deepEquals(data.next1, data.at0, "only one scheduled");
+        t.deepEquals(data.next2, data.at0, "at0 is still sooner than at1");
+        t.deepEquals(data.next3, data.at2, "at2 is sooner than at0");
+        t.deepEquals(data.next4, data.at2);
+        t.deepEquals(data.next5, data.at1, "at1 is soonest now that at0 and at2 were removed");
+        t.deepEquals(data.next6, void 0, "nothing scheduled");
+        t.ok(_.has(data, "next6"), "ensure next6 was actually tested");
+
+        t.deepEquals(data.end_db, {}, "should be nothing left in the db");
+
+        t.end();
     });
 });
 
 test("DB - scheduleEventRepeat", function(t){
-    mkTestPicoEngine({
-        dont_register_rulesets: true,
-    }, function(err, pe){
-        if(err)return t.end(err);
+    var db = mkTestDB();
 
-        var eventRep = function(timespec, type){
-            return function(callback){
-                pe.db.scheduleEventRepeat(timespec, {
-                    domain: "foobar",
-                    type: type,
-                    attributes: {some: "attr"},
-                }, callback);
-            };
+    var eventRep = function(timespec, type){
+        return function(callback){
+            db.scheduleEventRepeat(timespec, {
+                domain: "foobar",
+                type: type,
+                attributes: {some: "attr"},
+            }, callback);
         };
-        λ.series({
-            init_db: λ.curry(pe.db.toObj),
+    };
+    λ.series({
+        init_db: λ.curry(db.toObj),
 
-            rep0: eventRep("*/5 * * * * *", "foo"),
-            rep1: eventRep("* */5 * * * *", "bar"),
+        rep0: eventRep("*/5 * * * * *", "foo"),
+        rep1: eventRep("* */5 * * * *", "bar"),
 
-            mid_db: λ.curry(pe.db.toObj),
+        mid_db: λ.curry(db.toObj),
 
-            list: λ.curry(pe.db.listScheduled),
+        list: λ.curry(db.listScheduled),
 
-            rm0: λ.curry(pe.db.removeScheduled, "id0"),
-            rm1: λ.curry(pe.db.removeScheduled, "id1"),
+        rm0: λ.curry(db.removeScheduled, "id0"),
+        rm1: λ.curry(db.removeScheduled, "id1"),
 
-            end_db: λ.curry(pe.db.toObj),
-        }, function(err, data){
-            if(err) return t.end(err);
+        end_db: λ.curry(db.toObj),
+    }, function(err, data){
+        if(err) return t.end(err);
 
-            t.deepEquals(data.init_db, {});
+        t.deepEquals(data.init_db, {});
 
-            t.deepEquals(data.rep0, {
-                id: "id0",
-                timespec: "*/5 * * * * *",
-                event: {domain: "foobar", type: "foo", attributes: {some: "attr"}},
-            });
-            t.deepEquals(data.rep1, {
-                id: "id1",
-                timespec: "* */5 * * * *",
-                event: {domain: "foobar", type: "bar", attributes: {some: "attr"}},
-            });
-
-            t.deepEquals(data.mid_db, {scheduled: {
-                id0: data.rep0,
-                id1: data.rep1,
-            }});
-
-            t.deepEquals(data.list, [
-                data.rep0,
-                data.rep1,
-            ]);
-
-            t.deepEquals(data.end_db, {}, "should be nothing left in the db");
-
-            t.end();
+        t.deepEquals(data.rep0, {
+            id: "id0",
+            timespec: "*/5 * * * * *",
+            event: {domain: "foobar", type: "foo", attributes: {some: "attr"}},
         });
+        t.deepEquals(data.rep1, {
+            id: "id1",
+            timespec: "* */5 * * * *",
+            event: {domain: "foobar", type: "bar", attributes: {some: "attr"}},
+        });
+
+        t.deepEquals(data.mid_db, {scheduled: {
+            id0: data.rep0,
+            id1: data.rep1,
+        }});
+
+        t.deepEquals(data.list, [
+            data.rep0,
+            data.rep1,
+        ]);
+
+        t.deepEquals(data.end_db, {}, "should be nothing left in the db");
+
+        t.end();
     });
 });
 
 test("DB - removeRulesetFromPico", function(t){
-    mkTestPicoEngine({
-        dont_register_rulesets: true,
-    }, function(err, pe){
-        if(err)return t.end(err);
+    var db = mkTestDB();
 
-        λ.series({
-            addRS: λ.curry(pe.db.addRulesetToPico, "pico0", "rid0"),
-            ent0: λ.curry(pe.db.putEntVar, "pico0", "rid0", "foo", "val0"),
-            ent1: λ.curry(pe.db.putEntVar, "pico0", "rid0", "bar", "val1"),
-            db_before: λ.curry(pe.db.toObj),
+    λ.series({
+        addRS: λ.curry(db.addRulesetToPico, "pico0", "rid0"),
+        ent0: λ.curry(db.putEntVar, "pico0", "rid0", "foo", "val0"),
+        ent1: λ.curry(db.putEntVar, "pico0", "rid0", "bar", "val1"),
+        db_before: λ.curry(db.toObj),
 
-            rmRS: λ.curry(pe.db.removeRulesetFromPico, "pico0", "rid0"),
+        rmRS: λ.curry(db.removeRulesetFromPico, "pico0", "rid0"),
 
-            db_after: λ.curry(pe.db.toObj),
-        }, function(err, data){
-            if(err) return t.end(err);
+        db_after: λ.curry(db.toObj),
+    }, function(err, data){
+        if(err) return t.end(err);
 
-            t.deepEquals(data.db_before, {
-                pico: {
-                    pico0: {
-                        rid0: {vars: {foo: "val0", bar: "val1"}},
-                        ruleset: {rid0: {on: true}}
-                    }
+        t.deepEquals(data.db_before, {
+            pico: {
+                pico0: {
+                    rid0: {vars: {foo: "val0", bar: "val1"}},
+                    ruleset: {rid0: {on: true}}
                 }
-            });
-
-            t.deepEquals(data.db_after, {}, "should all be gone");
-
-            t.end();
+            }
         });
+
+        t.deepEquals(data.db_after, {}, "should all be gone");
+
+        t.end();
     });
 });

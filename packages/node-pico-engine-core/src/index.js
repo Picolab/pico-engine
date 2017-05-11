@@ -430,10 +430,18 @@ module.exports = function(conf, callback){
     registerAllEnabledRulesets(function(err){
         if(err) return callback(err);
         var pe = {
-            db: db,
             emitter: emitter,
+
+            newPico: db.newPico,
+            newChannel: db.newChannel,
+            installRuleset: db.addRulesetToPico,//TODO engine module installRulesetAndValidateIds
+            removePico: db.removePico,
+
+            dbDump: db.toObj,
+
             registerRuleset: core.registerRulesetSrc,
             unregisterRuleset: core.unregisterRuleset,
+
             signalEvent: signalEvent,
             runQuery: runQuery
         };
