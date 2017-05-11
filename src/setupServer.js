@@ -130,12 +130,15 @@ module.exports = function(pe){
     });
     app.use(express.static(path.resolve(__dirname, "..", "public")));
     app.use(bodyParser.json({type: "application/json"}));
-    app.use(bodyParser.urlencoded({type: "application/x-www-form-urlencoded", extended: false}));
+    app.use(bodyParser.urlencoded({limit: "512mb", type: "application/x-www-form-urlencoded", extended: false}));
 
     var errResp = function(res, err){
         res.status(err.statusCode || 500).json({error: err.message});
     };
 
+    app.use(function(err, req, res, next){
+        errResp(res, err);
+    });
 
     app.all("/sky/event/:eci/:eid/:domain/:type", function(req, res){
         var event = {
