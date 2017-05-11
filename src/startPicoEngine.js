@@ -6,15 +6,15 @@ var PicoEngine = require("pico-engine-core");
 var RulesetLoader = require("./RulesetLoader");
 
 var setupOwnerPico = function(pe, callback){
-    pe.db.getOwnerECI(function(err, eci){
+    pe.getOwnerECI(function(err, eci){
         if(err) return callback(err);
         if(eci){//already setup
             return callback();
         }
         λ.waterfall([
-            λ.curry(pe.db.newPico, {}),
+            λ.curry(pe.newPico, {}),
             function(pico, callback){
-                pe.db.newChannel({
+                pe.newChannel({
                     pico_id: pico.id,
                     name: "main",
                     type: "secret"
@@ -27,18 +27,12 @@ var setupOwnerPico = function(pe, callback){
                 });
             },
             function(info, callback){
-                pe.db.addRuleset({
-                    pico_id: info.pico_id,
-                    rid: "io.picolabs.pico"
-                }, function(err){
+                pe.installRuleset(info.pico_id, "io.picolabs.pico", function(err){
                     callback(err, info);
                 });
             },
             function(info, callback){
-                pe.db.addRuleset({
-                    pico_id: info.pico_id,
-                    rid: "io.picolabs.visual_params"
-                }, function(err){
+                pe.installRuleset(info.pico_id, "io.picolabs.visual_params", function(err){
                     callback(err, info);
                 });
             },

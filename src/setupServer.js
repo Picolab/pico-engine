@@ -1,35 +1,9 @@
 var _ = require("lodash");
-var fs = require("fs");
 var path = require("path");
-var urllib = require("url");
 var express = require("express");
-var request = require("request");
 var bodyParser = require("body-parser");
 var compiler = require("krl-compiler");
 var version = require("../package.json").version;
-
-var httpGetKRL = function(url, callback){
-    request(url, function(err, resp, body){
-        if(err)
-            return callback(err);
-        if(resp.statusCode !== 200)
-            return callback(new Error("Got a statusCode=" + resp.statusCode + " for: " + url));
-
-        callback(null, body);
-    });
-};
-
-var getKRLByURL = function(url, callback){
-    var url_parsed = urllib.parse(url);
-    if(url_parsed.protocol === "file:"){
-        fs.readFile(url_parsed.path, function(err, data){
-            if(err) return callback(err);
-            callback(null, data.toString());
-        });
-        return;
-    }
-    httpGetKRL(url, callback);
-};
 
 var mergeGetPost = function(req){
     //give preference to post body params
@@ -56,11 +30,11 @@ module.exports = function(pe){
             console.log("[ERROR]","no episode found for",eci);
             return;
         }
-        pe.db.getEntVar(pico_id,logRID,"status",function(e,status){
+        pe.getEntVar(pico_id,logRID,"status",function(e,status){
             if (status) {
-                pe.db.getEntVar(pico_id,logRID,"logs",function(e,data){
+                pe.getEntVar(pico_id,logRID,"logs",function(e,data){
                     data[episode.key] = episode.logs;
-                    pe.db.putEntVar(pico_id,logRID,"logs",data,function(e){
+                    pe.putEntVar(pico_id,logRID,"logs",data,function(e){
                         callback(delete logs[eci]);
                     });
                 });
@@ -176,14 +150,14 @@ module.exports = function(pe){
     });
 
     app.all("/api/db-dump", function(req, res){
-        pe.db.toObj(function(err, db_data){
+        pe.dbDump(function(err, db_data){
             if(err) return errResp(res, err);
             res.json(db_data);
         });
     });
 
     app.all("/api/owner-eci", function(req, res){
-        pe.db.getOwnerECI(function(err, eci){
+        pe.getOwnerECI(function(err, eci){
             if(err) return errResp(res, err);
             res.json({ok: true, eci: eci});
         });
@@ -192,7 +166,7 @@ module.exports = function(pe){
     app.all("/api/pico/:id/new-channel", function(req, res){
         var args = mergeGetPost(req);
 
-        pe.db.newChannel({
+        pe.newChannel({
             pico_id: req.params.id,
             name: args.name,
             type: args.type
@@ -203,21 +177,21 @@ module.exports = function(pe){
     });
 
     app.all("/api/pico/:id/rm-channel/:eci", function(req, res){
-        pe.db.removeChannel(req.params.id, req.params.eci, function(err){
+        pe.removeChannel(req.params.id, req.params.eci, function(err){
             if(err) return errResp(res, err);
             res.json({ok: true});
         });
     });
 
     app.all("/api/pico/:id/rm-ruleset/:rid", function(req, res){
-        pe.db.removeRuleset(req.params.id, req.params.rid, function(err){
+        pe.uninstallRuleset(req.params.id, req.params.rid, function(err){
             if(err) return errResp(res, err);
             res.json({ok: true});
         });
     });
 
     app.all("/api/pico/:id/rm-ent-var/:rid/:var_name", function(req, res){
-        pe.db.removeEntVar(req.params.id, req.params.rid, req.params.var_name, function(err){
+        pe.removeEntVar(req.params.id, req.params.rid, req.params.var_name, function(err){
             if(err) return errResp(res, err);
             res.json({ok: true});
         });
@@ -236,49 +210,29 @@ module.exports = function(pe){
     app.all("/api/ruleset/register", function(req, res){
         var args = mergeGetPost(req);
 
-        var register = function(src, meta){
-            pe.registerRuleset(src, meta || {}, function(err, data){
-                if(err) return errResp(res, err);
-                res.json({ok: true, rid: data.rid, hash: data.hash});
-            });
+        var onRegister = function(err, data){
+            if(err) return errResp(res, err);
+            res.json({ok: true, rid: data.rid, hash: data.hash});
         };
         if(_.isString(args.src)){
-            register(args.src);
+            pe.registerRuleset(args.src, {}, onRegister);
         }else if(_.isString(args.url)){
-            getKRLByURL(args.url, function(err, src){
-                if(err) return errResp(res, err);
-                register(src, {url: args.url});
-            });
+            pe.registerRulesetURL(args.url, onRegister);
         }else{
             errResp(res, new Error("expected `src` or `url`"));
         }
     });
 
     app.all("/api/ruleset/flush/:rid", function(req, res){
-        var rid = req.params.rid;
-        pe.db.getEnabledRuleset(rid, function(err, rs_data){
+        pe.flushRuleset(req.params.rid, function(err, data){
             if(err) return errResp(res, err);
-
-            var url = rs_data.url;
-            if(!_.isString(url)){
-                errResp(res, new Error("cannot flush a locally registered ruleset"));
-            }
-            getKRLByURL(url, function(err, src){
-                if(err) return errResp(res, err);
-
-                pe.registerRuleset(src, {url: url}, function(err, data){
-                    if(err) return errResp(res, err);
-
-                    console.log("Ruleset successfully flushed: " + data.rid);
-
-                    res.json({ok: true, rid: data.rid, hash: data.hash});
-                });
-            });
+            console.log("Ruleset successfully flushed: " + data.rid);
+            res.json({ok: true, rid: data.rid, hash: data.hash});
         });
     });
 
     app.all("/api/ruleset/unregister/:rid", function(req, res){
-        pe.db.deleteRuleset(req.params.rid, function(err){
+        pe.unregisterRuleset(req.params.rid, function(err){
             if(err) return errResp(res, err);
             res.json({ok: true});
         });
