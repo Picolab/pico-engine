@@ -1631,3 +1631,33 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
         ], t.end);
     }
 });
+
+test("PicoEngine - installRuleset", function(t){
+    mkTestPicoEngine({}, function(err, pe){
+        if(err)return t.end(err);
+
+        var rid_to_use = "io.picolabs.hello_world";
+
+        λ.series([
+            λ.curry(pe.newPico, {}),
+            function(next){
+                pe.installRuleset("id404", rid_to_use, function(err){
+                    t.equals(err + "", "Error: Invalid pico_id: id404");
+                    next();
+                });
+            },
+            function(next){
+                pe.installRuleset("id0", "foo.not.an.rid", function(err){
+                    t.equals(err + "", "Error: This rid is not found and/or enabled: foo.not.an.rid");
+                    next();
+                });
+            },
+            function(next){
+                pe.installRuleset("id0", rid_to_use, function(err){
+                    t.notOk(err);
+                    next();
+                });
+            },
+        ], t.end);
+    });
+});

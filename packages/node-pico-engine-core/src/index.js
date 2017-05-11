@@ -444,6 +444,19 @@ module.exports = function(conf, callback){
             core.registerRulesetURL(url, callback);
         });
     };
+    core.installRuleset = function(pico_id, rid, callback){
+        db.getPico(pico_id, function(err, pico){
+            if(err) return callback(err);
+            if(!pico) return callback(new Error("Invalid pico_id: " + pico_id));
+
+            db.hasEnabledRid(rid, function(err, has){
+                if(err) return callback(err);
+                if(!has) return callback(new Error("This rid is not found and/or enabled: " + rid));
+
+                db.addRulesetToPico(pico_id, rid, callback);
+            });
+        });
+    };
 
     registerAllEnabledRulesets(function(err){
         if(err) return callback(err);
@@ -459,7 +472,7 @@ module.exports = function(conf, callback){
             getEntVar: db.getEntVar,
             removeEntVar: db.removeEntVar,
 
-            installRuleset: db.addRulesetToPico,//TODO engine module installRulesetAndValidateIds
+            installRuleset: core.installRuleset,
             uninstallRuleset: db.removeRulesetFromPico,
 
             removePico: db.removePico,

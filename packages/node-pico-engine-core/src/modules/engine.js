@@ -2,20 +2,6 @@ var _ = require("lodash");
 var urllib = require("url");
 var mkKRLfn = require("../mkKRLfn");
 
-var installRulesetAndValidateIds = function(db, pico_id, rid, callback){
-    db.getPico(pico_id, function(err, pico){
-        if(err) return callback(err);
-        if(!pico) return callback(new Error("Invalid pico_id: " + pico_id));
-
-        db.hasEnabledRid(rid, function(err, has){
-            if(err) return callback(err);
-            if(!has) return callback(new Error("This rid is not found and/or enabled: " + rid));
-
-            db.addRulesetToPico(pico_id, rid, callback);
-        });
-    });
-};
-
 module.exports = function(core){
     var fns = {
         newPico: mkKRLfn([
@@ -75,7 +61,7 @@ module.exports = function(core){
             }
 
             var doIt = function(rid){
-                installRulesetAndValidateIds(core.db, pico_id, rid, function(err){
+                core.installRuleset(pico_id, rid, function(err){
                     callback(err, rid);
                 });
             };
