@@ -463,30 +463,27 @@ module.exports = function(conf, callback){
         var pe = {
             emitter: emitter,
 
+            signalEvent: signalEvent,
+            runQuery: runQuery,
+
+            registerRuleset: core.registerRuleset,
+            registerRulesetURL: core.registerRulesetURL,
+            flushRuleset: core.flushRuleset,
+            unregisterRuleset: core.unregisterRuleset,
+
             newPico: db.newPico,
             newChannel: db.newChannel,
             removeChannel: db.removeChannel,
             getOwnerECI: db.getOwnerECI,
+            installRuleset: core.installRuleset,
+            uninstallRuleset: db.removeRulesetFromPico,
+            removePico: db.removePico,
 
             putEntVar: db.putEntVar,
             getEntVar: db.getEntVar,
             removeEntVar: db.removeEntVar,
 
-            installRuleset: core.installRuleset,
-            uninstallRuleset: db.removeRulesetFromPico,
-
-            removePico: db.removePico,
-
             dbDump: db.toObj,
-
-            flushRuleset: core.flushRuleset,
-            registerRulesetURL: core.registerRulesetURL,
-
-            registerRuleset: core.registerRuleset,
-            unregisterRuleset: core.unregisterRuleset,
-
-            signalEvent: signalEvent,
-            runQuery: runQuery
         };
         if(conf.scheduler_is_test_mode){
             pe.scheduler = core.scheduler;
