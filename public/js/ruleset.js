@@ -1,5 +1,10 @@
 $(document).ready(function() {
   var rid = location.hash.substring(1);
+  if (!String.prototype.escapeHTML) {
+    String.prototype.escapeHTML = function() {
+      return this.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+    };
+  }
   var get = // adapted from lodash.get, with thanks
     function(o,p,v) {
       var i=0, l=p.length;
@@ -159,7 +164,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     picoAPI("/api/ruleset/register",{"url":url},"GET",function(err, data){
       if(err){
         $("pre#feedback").html("<span style=\"color:red\">Problem registering "
-                + url + "\n" + err + "</span>");
+                + url.escapeHTML() + "\n" + err.toString().escapeHTML() + "</span>");
         return;
       }
       location.hash = data.rid;
@@ -179,7 +184,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     var src = this.src.value;
     picoAPI("/api/ruleset/compile",{"src":src},"POST",function(err, data){
       if(err){
-        $feedback.html("<span style=\"color:red\">" + err + "</span>");
+        $feedback.html("<span style=\"color:red\">" + err.toString().escapeHTML() + "</span>");
         return;
       }
       if (formAction === "validate") {

@@ -1,6 +1,11 @@
 $(document).ready(function() {
   var json_name = location.search.substring(1);
   var renderDemo = (json_name.length > 0);
+  if (!String.prototype.escapeHTML) {
+    String.prototype.escapeHTML = function() {
+      return this.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+    };
+  }
   var leftRadius = function(nodeId) {
     var theNode = $('#'+nodeId);
     return Math.floor(
@@ -314,11 +319,11 @@ $.getJSON("/api/db-dump", function(db_dump){
       $theSection.find('form.js-test').submit(function(e){
         e.preventDefault();
         $.getJSON($(this).attr("action"),formToJSON(this),function(ans){
-          $theResultsPre.html(JSON.stringify(ans,undefined,2));
+          $theResultsPre.html(JSON.stringify(ans,undefined,2).escapeHTML());
         }).fail(function(err){
           $theResultsPre.html(
             "<span style=\"color:red\">"
-            + JSON.stringify(err,undefined,2)
+            + JSON.stringify(err,undefined,2).escapeHTML()
             + "</span>");
         });
       });
