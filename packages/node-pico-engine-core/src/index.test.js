@@ -665,21 +665,35 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
                     memo: "[\"foo\" by Bob]",//the memo was stored on the pico ruleset with default config
                     privateFn: "privateFn = name: Jim memo: [\"foo\" by Bob]"
                 }}}]
-            ]
-        ], function(err){
-            if(err) return t.end(err);
+            ],
+            function(next){
+                pe.runQuery({
+                    eci: "id1",
+                    rid: "io.picolabs.module-used",
+                    name: "now",
+                    args: {}
+                }, function(err, ts){
+                    if(err) return next(err);
+                    t.ok(/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T/.test(ts));
+                    next();
+                });
+            },
 
-            pe.runQuery({
-                eci: "id1",
-                rid: "io.picolabs.module-used",
-                name: "now",
-                args: {}
-            }, function(err, ts){
-                if(err) return t.end(err);
-                t.ok(/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T/.test(ts));
-                t.end();
-            });
-        });
+
+            //Test unregisterRuleset checks
+            function(next){
+                pe.unregisterRuleset("io.picolabs.module-defined", function(err){
+                    t.equals(err + "", "Error: unregisterRuleset(\"io.picolabs.module-defined\")- it is depended on by \"io.picolabs.module-used\"");
+                    next();
+                });
+            },
+            function(next){
+                pe.unregisterRuleset("io.picolabs.module-used", function(err){
+                    t.equals(err + "", "Error: unregisterRuleset(\"io.picolabs.module-used\")- it is installed by at least one pico");
+                    next();
+                });
+            },
+        ], t.end);
     });
 });
 

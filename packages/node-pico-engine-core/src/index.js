@@ -374,10 +374,24 @@ module.exports = function(conf, callback){
     };
 
     core.unregisterRuleset = function(rid, callback){
+        var err_prefix = "unregisterRuleset(\"" + rid + "\")- ";
+        //first assert rid is not depended on as a module
+        try{
+            _.each(rulesets, function(rs){
+                _.each(rs.modules_used, function(info){
+                    if(info.rid === rid){
+                        throw new Error(err_prefix + "it is depended on by \"" + rs.rid + "\"");
+                    }
+                });
+            });
+        }catch(err){
+            callback(err);
+            return;
+        }
         db.isRulesetUsed(rid, function(err, is_used){
             if(err) return callback(err);
             if(is_used){
-                callback(new Error("Unable to unregisterRuleset: " + rid + " it is used by at least one pico"));
+                callback(new Error(err_prefix + "it is installed by at least one pico"));
                 return;
             }
             db.deleteRuleset(rid, function(err){
