@@ -7,9 +7,10 @@ module.exports = function(ast, comp, e){
     if(ast.rule_state !== "active"){
         rule.rule_state = e("string", ast.rule_state);
     }
-    if(ast.select){
-        rule.select = comp(ast.select);
+    if(!ast.select){
+        throw new Error("Rule missing `select`");
     }
+    rule.select = comp(ast.select);
     if(!_.isEmpty(ast.foreach)){
         var nestedForeach = function(arr, iter){
             if(_.isEmpty(arr)){
