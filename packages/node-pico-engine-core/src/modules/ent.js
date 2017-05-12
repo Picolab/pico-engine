@@ -7,6 +7,11 @@ module.exports = function(core){
             core.db.putEntVar(ctx.pico_id, ctx.rid, id, value, function(err){
                 callback(err);
             });
-        }
+        },
+        del: function(ctx, id, callback){
+            core.db.removeEntVar(ctx.pico_id, ctx.rid, id, function(err){
+                callback(err);
+            });
+        },
     };
 };

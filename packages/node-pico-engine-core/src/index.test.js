@@ -186,8 +186,36 @@ test("PicoEngine - io.picolabs.persistent", function(t){
                 [{name: "store_user_firstname", options: {name: "Leonard"}}]
             ],
             [A_query("getUser"), {firstname: "Leonard", "lastname": "McCoy"}],
-            [A_query("getUserFirstname"), "Leonard"]
+            [A_query("getUserFirstname"), "Leonard"],
 
+            //////////////////////////////////////////////////////////////////////////
+            //clear vars
+            function(done){
+                pe.dbDump(function(err, data){
+                    if(err)return done(err);
+                    t.ok(_.has(data, ["pico", "id0", "io.picolabs.persistent", "vars", "user"]));
+                    t.ok(_.has(data, ["resultset", "io.picolabs.persistent", "vars", "appvar"]));
+                    done();
+                });
+            },
+            [A_signal("store", "clear_user"), [{name: "clear_user", options: {}}]],
+            function(done){
+                pe.dbDump(function(err, data){
+                    if(err)return done(err);
+                    t.notOk(_.has(data, ["pico", "id0", "io.picolabs.persistent", "vars", "user"]));
+                    t.ok(_.has(data, ["resultset", "io.picolabs.persistent", "vars", "appvar"]));
+                    done();
+                });
+            },
+            [A_signal("store", "clear_appvar"), [{name: "clear_appvar", options: {}}]],
+            function(done){
+                pe.dbDump(function(err, data){
+                    if(err)return done(err);
+                    t.notOk(_.has(data, ["pico", "id0", "io.picolabs.persistent", "vars", "user"]));
+                    t.notOk(_.has(data, ["resultset", "io.picolabs.persistent", "vars", "appvar"]));
+                    done();
+                });
+            },
         ], t.end);
     });
 });

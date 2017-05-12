@@ -47,6 +47,18 @@ module.exports = function(core){
                 return;
             }
             callback(new Error("Not defined `" + domain + ":" + id + "`"));
-        })
+        }),
+        del: cocb.toYieldable(function(ctx, domain, id, callback){
+            if(!_.has(modules, domain)){
+                callback(new Error("Module not defined `" + domain + ":" + id + "`"));
+                return;
+            }
+            if(!_.has(modules[domain], "del")){
+                callback(new Error("Cannot clear/delete to `" + domain + ":*`"));
+                return;
+            }
+            modules[domain].del(ctx, id, callback);
+            return;
+        }),
     };
 };

@@ -41,4 +41,18 @@ ruleset io.picolabs.persistent {
       ent:user{["firstname"]} := firstname
     }
   }
+  rule clear_user {
+    select when store clear_user;
+    send_directive("clear_user")
+    always {
+      clear ent:user
+    }
+  }
+  rule clear_appvar {
+    select when store clear_appvar;
+    send_directive("clear_appvar")
+    always {
+      clear app:appvar
+    }
+  }
 }

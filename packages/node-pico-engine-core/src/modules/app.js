@@ -7,6 +7,11 @@ module.exports = function(core){
             core.db.putAppVar(ctx.rid, id, value, function(err){
                 callback(err);
             });
-        }
+        },
+        del: function(ctx, id, callback){
+            core.db.removeAppVar(ctx.rid, id, function(err){
+                callback(err);
+            });
+        },
     };
 };
