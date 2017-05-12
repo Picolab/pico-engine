@@ -6,6 +6,7 @@ var comp_by_type = _.fromPairs(_.map([
     "Array",
     "Boolean",
     "Chevron",
+    "ClearPersistentVariable",
     "ConditionalExpression",
     "Declaration",
     "DefAction",

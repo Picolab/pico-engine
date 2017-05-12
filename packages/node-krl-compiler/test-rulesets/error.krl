@@ -13,10 +13,18 @@ ruleset io.picolabs.error {
       ent:error_log := ent:error_log.append(event:attrs())
     }
   }
-  rule basic {
+  rule basic0 {
     select when error basic;
+    send_directive("basic0")
     fired {
       error info "some info error";
+    }
+  }
+  rule basic1 {
+    select when error basic;
+    send_directive("basic1")
+    fired {
+      error info "this should not fire, b/c basic0 stopped execution";
     }
   }
 }

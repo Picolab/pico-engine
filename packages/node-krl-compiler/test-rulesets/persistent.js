@@ -149,6 +149,76 @@ module.exports = {
           yield ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", yield ctx.modules.get(ctx, "ent", "user"), ["firstname"], ctx.scope.get("firstname")));
         }
       }
+    },
+    "clear_user": {
+      "name": "clear_user",
+      "select": {
+        "graph": { "store": { "clear_user": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return {
+                "type": "directive",
+                "name": "clear_user",
+                "options": {}
+              };
+            }
+          }]
+      },
+      "postlude": {
+        "fired": undefined,
+        "notfired": undefined,
+        "always": function* (ctx) {
+          yield ctx.modules.del(ctx, "ent", "user");
+        }
+      }
+    },
+    "clear_appvar": {
+      "name": "clear_appvar",
+      "select": {
+        "graph": { "store": { "clear_appvar": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return {
+                "type": "directive",
+                "name": "clear_appvar",
+                "options": {}
+              };
+            }
+          }]
+      },
+      "postlude": {
+        "fired": undefined,
+        "notfired": undefined,
+        "always": function* (ctx) {
+          yield ctx.modules.del(ctx, "app", "appvar");
+        }
+      }
     }
   }
 };
