@@ -10,6 +10,7 @@ var comp_by_type = _.fromPairs(_.map([
     "Declaration",
     "DefAction",
     "DomainIdentifier",
+    "ErrorStatement",
     "EventExpression",
     "EventWithin",
     "ExpressionStatement",
