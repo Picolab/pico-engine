@@ -2111,6 +2111,40 @@ test("LogStatement", function(t){
     t.end();
 });
 
+test("ErrorStatement", function(t){
+    var testPostlude = function(src_core, expected){
+        var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+        var ast = parser(src).rules[0].postlude.fired;
+        t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+    };
+
+    testPostlude("error error \"foo\"", [{
+        type: "ErrorStatement",
+        level: "error",
+        expression: mk("foo")
+    }]);
+
+    testPostlude("error warn {\"baz\": [1, 2]}", [{
+        type: "ErrorStatement",
+        level: "warn",
+        expression: mk({baz: mk([1, 2])})
+    }]);
+
+    testPostlude("error info info", [{
+        type: "ErrorStatement",
+        level: "info",
+        expression: mk.id("info")
+    }]);
+
+    testPostlude("error debug debug()", [{
+        type: "ErrorStatement",
+        level: "debug",
+        expression: mk.app(mk.id("debug"))
+    }]);
+
+    t.end();
+});
+
 test("Action setting", function(t){
     var testAction = function(src_action, expected){
         var src = "ruleset rs{rule r1{select when a b; "+src_action+"}}";

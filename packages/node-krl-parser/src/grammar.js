@@ -238,7 +238,7 @@ var tok_TIME_PERIOD_ENUM = defEnum([
   "second",
 ]);
 
-var tok_LOG_LEVEL_ENUM = defEnum([
+var tok_LOG_or_ERROR_LEVEL_ENUM = defEnum([
   "error",
   "warn",
   "info",
@@ -322,6 +322,7 @@ var tok_count = tok("SYMBOL", "count");
 var tok_cmp = tok("SYMBOL", "cmp");
 var tok_defaction = tok("SYMBOL", "defaction");
 var tok_description = tok("SYMBOL", "description");
+var tok_error = tok("SYMBOL", "error");
 var tok_errors = tok("SYMBOL", "errors");
 var tok_event = tok("SYMBOL", "event");
 var tok_every = tok("SYMBOL", "every");
@@ -797,6 +798,7 @@ var grammar = {
     {"name": "PostludeStatement_core_parts", "symbols": ["RaiseEventStatement"], "postprocess": id},
     {"name": "PostludeStatement_core_parts", "symbols": ["ScheduleEventStatement"], "postprocess": id},
     {"name": "PostludeStatement_core_parts", "symbols": ["LogStatement"], "postprocess": id},
+    {"name": "PostludeStatement_core_parts", "symbols": ["ErrorStatement"], "postprocess": id},
     {"name": "PostludeStatement_core_parts", "symbols": ["LastStatement"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
@@ -893,11 +895,21 @@ var grammar = {
           };
         }
         },
-    {"name": "LogStatement", "symbols": [tok_log, tok_LOG_LEVEL_ENUM, "Expression"], "postprocess": 
+    {"name": "LogStatement", "symbols": [tok_log, tok_LOG_or_ERROR_LEVEL_ENUM, "Expression"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: "LogStatement",
+            level: data[1].src,
+            expression: data[2]
+          };
+        }
+        },
+    {"name": "ErrorStatement", "symbols": [tok_error, tok_LOG_or_ERROR_LEVEL_ENUM, "Expression"], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: "ErrorStatement",
             level: data[1].src,
             expression: data[2]
           };

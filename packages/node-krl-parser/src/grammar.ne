@@ -234,7 +234,7 @@ var tok_TIME_PERIOD_ENUM = defEnum([
   "second",
 ]);
 
-var tok_LOG_LEVEL_ENUM = defEnum([
+var tok_LOG_or_ERROR_LEVEL_ENUM = defEnum([
   "error",
   "warn",
   "info",
@@ -318,6 +318,7 @@ var tok_count = tok("SYMBOL", "count");
 var tok_cmp = tok("SYMBOL", "cmp");
 var tok_defaction = tok("SYMBOL", "defaction");
 var tok_description = tok("SYMBOL", "description");
+var tok_error = tok("SYMBOL", "error");
 var tok_errors = tok("SYMBOL", "errors");
 var tok_event = tok("SYMBOL", "event");
 var tok_every = tok("SYMBOL", "every");
@@ -822,6 +823,7 @@ PostludeStatement_core_parts ->
     | RaiseEventStatement {% id %}
     | ScheduleEventStatement {% id %}
     | LogStatement {% id %}
+    | ErrorStatement {% id %}
     | LastStatement {% id %}
 
 PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
@@ -921,12 +923,24 @@ RaiseEventAttributes -> WithArguments
   }
 %}
 
-LogStatement -> %tok_log %tok_LOG_LEVEL_ENUM Expression
+LogStatement -> %tok_log %tok_LOG_or_ERROR_LEVEL_ENUM Expression
 {%
   function(data){
     return {
       loc: mkLoc(data),
       type: "LogStatement",
+      level: data[1].src,
+      expression: data[2]
+    };
+  }
+%}
+
+ErrorStatement -> %tok_error %tok_LOG_or_ERROR_LEVEL_ENUM Expression
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: "ErrorStatement",
       level: data[1].src,
       expression: data[2]
     };
