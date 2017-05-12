@@ -168,6 +168,11 @@ var processEvent = cocb.wrap(function*(core, ctx){
             scheduleEventRAW(raise_ctx, callback);
         }),
         raiseError: function*(ctx, level, msg){
+
+            //Because one error often cascades into others,
+            //limit the number of errors from a single event to just one
+            schedule = [];
+
             return yield ctx.raiseEvent({
                 domain: "system",
                 type: "error",

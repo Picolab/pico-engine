@@ -31,8 +31,8 @@ module.exports = {
         "always": undefined
       }
     },
-    "basic": {
-      "name": "basic",
+    "basic0": {
+      "name": "basic0",
       "select": {
         "graph": { "error": { "basic": { "expr_0": true } } },
         "eventexprs": {
@@ -47,9 +47,55 @@ module.exports = {
             ]]
         }
       },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return {
+                "type": "directive",
+                "name": "basic0",
+                "options": {}
+              };
+            }
+          }]
+      },
       "postlude": {
         "fired": function* (ctx) {
           yield ctx.raiseError(ctx, "info", "some info error");
+        },
+        "notfired": undefined,
+        "always": undefined
+      }
+    },
+    "basic1": {
+      "name": "basic1",
+      "select": {
+        "graph": { "error": { "basic": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return {
+                "type": "directive",
+                "name": "basic1",
+                "options": {}
+              };
+            }
+          }]
+      },
+      "postlude": {
+        "fired": function* (ctx) {
+          yield ctx.raiseError(ctx, "info", "this should not fire, b/c basic0 stopped execution");
         },
         "notfired": undefined,
         "always": undefined

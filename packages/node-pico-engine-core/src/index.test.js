@@ -1717,7 +1717,10 @@ test("PicoEngine - io.picolabs.error rulesets", function(t){
                 void 0
             ],
 
-            [signal("error", "basic"), []],
+            [signal("error", "basic"), [
+                {name: "basic0", options: {}},
+                //NOTE basic1 should not execute b/c basic0 raised an error
+            ]],
 
             [
                 query("getErrors"),
@@ -1727,7 +1730,7 @@ test("PicoEngine - io.picolabs.error rulesets", function(t){
                         level: "info",
                         msg: "some info error",
                         error_rid: "io.picolabs.error",
-                        rule_name: "basic",
+                        rule_name: "basic0",
                         genus: "user",
                     },
                 ]
