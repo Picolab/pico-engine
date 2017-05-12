@@ -90,6 +90,7 @@ var runEvent = cocb.wrap(function*(scheduled){
         event: ctx.event,
 
         raiseEvent: ctx.raiseEvent,
+        raiseError: ctx.raiseError,
         stopRulesetExecution: ctx.stopRulesetExecution,
     });
 
@@ -160,10 +161,27 @@ var processEvent = cocb.wrap(function*(core, ctx){
                 event: event,
                 pico_id: ctx.pico_id,//raise event is always to the same pico
                 raiseEvent: ctx.raiseEvent,
+                raiseError: ctx.raiseError,
+                stopRulesetExecution: ctx.stopRulesetExecution,
             });
             raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
             scheduleEventRAW(raise_ctx, callback);
-        })
+        }),
+        raiseError: function*(ctx, level, msg){
+            return yield ctx.raiseEvent({
+                domain: "system",
+                type: "error",
+                attributes: {
+                    level: level,
+                    msg: msg,
+                    error_rid: ctx.rid,
+                    rule_name: ctx.rule_name,
+                    genus: "user",
+                    //species: ??,
+                },
+                //for_rid: ctx.rid,
+            });
+        }
     });
 
     yield cocb.toYieldable(scheduleEventRAW)(ctx);

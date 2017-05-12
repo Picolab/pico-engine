@@ -1699,3 +1699,40 @@ test("PicoEngine - io.picolabs.last rulesets", function(t){
         ], t.end);
     });
 });
+
+test("PicoEngine - io.picolabs.error rulesets", function(t){
+    mkTestPicoEngine({}, function(err, pe){
+        if(err)return t.end(err);
+
+        var signal = mkSignalTask(pe, "id1");
+        var query = mkQueryTask(pe, "id1", "io.picolabs.error");
+
+        testOutputs(t, [
+            λ.curry(pe.newPico, {}),
+            λ.curry(pe.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+            λ.curry(pe.installRuleset, "id0", "io.picolabs.error"),
+
+            [
+                query("getErrors"),
+                void 0
+            ],
+
+            [signal("error", "basic"), []],
+
+            [
+                query("getErrors"),
+                [
+                    null,
+                    {
+                        level: "info",
+                        msg: "some info error",
+                        error_rid: "io.picolabs.error",
+                        rule_name: "basic",
+                        genus: "user",
+                    },
+                ]
+            ],
+
+        ], t.end);
+    });
+});

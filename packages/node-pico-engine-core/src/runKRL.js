@@ -14,7 +14,12 @@ var assertCTX_keys = function(ctx, keys){
     ];
 
     var expected = _.cloneDeep(keys).sort().join(",");
-    var actual = _.pullAll(_.keys(ctx), std_ctx_keys).sort().join(",");
+    var actual = _.pullAll(_.map(ctx, function(v, k){
+        if(v === void 0 || v === null || _.isNaN(v)){
+            throw new Error("Invalid ctx." + k + " is not defined");
+        }
+        return k;
+    }), std_ctx_keys).sort().join(",");
 
     if(actual !== expected){
         throw new Error("Invalid ctx expected " + expected + " but was " + actual);
@@ -49,6 +54,7 @@ module.exports = function(){
                 "rule_name",
 
                 "raiseEvent",
+                "raiseError",
                 "stopRulesetExecution",
             ]);
         }else if(_.has(ctx, "query")){
