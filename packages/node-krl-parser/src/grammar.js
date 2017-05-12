@@ -783,7 +783,7 @@ var grammar = {
         }
         },
     {"name": "PostludeStatement_core", "symbols": ["PostludeStatement_core_parts"], "postprocess": 
-        function(data, l, reject){
+        function(data, start, reject){
           if(true
             && data[0].type === "ExpressionStatement"
             && data[0].expression.type === "Identifier"
@@ -805,7 +805,7 @@ var grammar = {
     {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "PersistentVariableAssignment", "symbols": ["DomainIdentifier", "PersistentVariableAssignment$ebnf$1", tok_COLON_EQ, "Expression"], "postprocess": 
+    {"name": "PersistentVariableAssignment", "symbols": ["PersistentVariable", "PersistentVariableAssignment$ebnf$1", tok_COLON_EQ, "Expression"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -817,13 +817,21 @@ var grammar = {
           };
         }
         },
-    {"name": "ClearPersistentVariable", "symbols": [tok_clear, "DomainIdentifier"], "postprocess": 
+    {"name": "ClearPersistentVariable", "symbols": [tok_clear, "PersistentVariable"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: "ClearPersistentVariable",
             variable: data[1],
           };
+        }
+        },
+    {"name": "PersistentVariable", "symbols": ["DomainIdentifier"], "postprocess": 
+        function(data, start, reject){
+          if(data[0].domain === "ent" || data[0].domain === "app"){
+            return data[0];
+          }
+          return reject;
         }
         },
     {"name": "RaiseEventStatement$ebnf$1$subexpression$1", "symbols": [tok_for, "Expression"]},

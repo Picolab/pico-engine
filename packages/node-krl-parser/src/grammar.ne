@@ -806,7 +806,7 @@ PostludeStatement ->
 %}
 
 PostludeStatement_core -> PostludeStatement_core_parts {%
-  function(data, l, reject){
+  function(data, start, reject){
     if(true
       && data[0].type === "ExpressionStatement"
       && data[0].expression.type === "Identifier"
@@ -828,7 +828,7 @@ PostludeStatement_core_parts ->
     | ErrorStatement {% id %}
     | LastStatement {% id %}
 
-PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
+PersistentVariableAssignment -> PersistentVariable (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -841,13 +841,22 @@ PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %to
   }
 %}
 
-ClearPersistentVariable -> %tok_clear DomainIdentifier {%
+ClearPersistentVariable -> %tok_clear PersistentVariable {%
   function(data){
     return {
       loc: mkLoc(data),
       type: "ClearPersistentVariable",
       variable: data[1],
     };
+  }
+%}
+
+PersistentVariable -> DomainIdentifier {%
+  function(data, start, reject){
+    if(data[0].domain === "ent" || data[0].domain === "app"){
+      return data[0];
+    }
+    return reject;
   }
 %}
 
