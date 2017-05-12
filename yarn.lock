@@ -1348,21 +1348,21 @@ kind-of@^3.0.2:
   dependencies:
     is-buffer "^1.1.5"
 
-krl-compiler@^0.29.3:
-  version "0.29.3"
-  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.29.3.tgz#b9b462e44ee848d77ea6d2d431c0912af752c8bd"
+krl-compiler@^0.30.2:
+  version "0.30.2"
+  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.30.2.tgz#72087a265f3578fa0bca19c766b9a591218bb578"
   dependencies:
     btoa "^1.1.2"
     escodegen "^1.8.0"
     estree-builder "^1.6.0"
     estree-loc "^2.0.0"
-    krl-parser "^0.20.2"
+    krl-parser "^0.20.5"
     lodash "^4.13.1"
     minimist "^1.2.0"
 
-krl-parser@^0.20.2:
-  version "0.20.2"
-  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.20.2.tgz#f9eb8a79e201eeb4452f7d305e2f5047ebcdb1b8"
+krl-parser@^0.20.5:
+  version "0.20.5"
+  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.20.5.tgz#76546500f1dfc08ed0bea0341905d2b201d8ac01"
   dependencies:
     excerpt-at-line-col "^1.0.0"
     line-column "^1.0.2"
@@ -1549,8 +1549,8 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
 
 nearley@2.9.x:
-  version "2.9.0"
-  resolved "https://registry.yarnpkg.com/nearley/-/nearley-2.9.0.tgz#496dfae56b256241e4329a76d32453fdcc74b22d"
+  version "2.9.2"
+  resolved "https://registry.yarnpkg.com/nearley/-/nearley-2.9.2.tgz#b06e36b2341403a43e20b7da1f1d6a553f7389ea"
   dependencies:
     nomnom "~1.6.2"
     railroad-diagrams "^1.0.0"
@@ -1731,9 +1731,9 @@ performance-now@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-0.2.0.tgz#33ef30c5c77d4ea21c5a53869d91b56d8f2555e5"
 
-pico-engine-core@^0.26.0:
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/pico-engine-core/-/pico-engine-core-0.26.0.tgz#5751f1dc51e5c3eee811e00fcc16a7287040499a"
+pico-engine-core@^0.27.0:
+  version "0.27.0"
+  resolved "https://registry.yarnpkg.com/pico-engine-core/-/pico-engine-core-0.27.0.tgz#3ee0a7e22d5ea827f08f734cf854ae00e1ec96ed"
   dependencies:
     bytewise "^1.1.0"
     co-callback "^1.2.0"
