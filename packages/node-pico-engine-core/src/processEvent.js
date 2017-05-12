@@ -138,7 +138,7 @@ var processEvent = cocb.wrap(function*(core, ctx){
     ctx = core.mkCTX({
         event: ctx.event,
         pico_id: ctx.pico_id,
-        raiseEvent: function(revent, callback){
+        raiseEvent: cocb.toYieldable(function(revent, callback){
             //shape the revent like a normal event
             var event = {
                 eci: ctx.event.eci,//raise event is always to the same pico
@@ -157,7 +157,7 @@ var processEvent = cocb.wrap(function*(core, ctx){
             });
             raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
             scheduleEventRAW(raise_ctx, callback);
-        }
+        })
     });
 
     yield cocb.toYieldable(scheduleEventRAW)(ctx);

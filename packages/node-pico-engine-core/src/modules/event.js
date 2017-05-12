@@ -35,15 +35,6 @@ module.exports = function(core){
             callback(null, matches);
         }),
 
-        raise: mkKRLfn([
-            "domain",
-            "type",
-            "attributes",
-            "for_rid",
-        ], function(args, ctx, callback){
-            ctx.raiseEvent(args, callback);
-        }),
-
         //TODO this is technically a RuleAction
         //TODO should this rather return info for event to be signaled?
         //TODO is this allowed other places in the code?
