@@ -34,14 +34,22 @@ module.exports = function(){
         if(!_.has(ctx, "scope")){
             throw new Error("ctx must always have `scope`");
         }
-        if(_.has(ctx, "event")){
+        if(_.has(ctx, "event") && !_.has(ctx, "raiseEvent")){//event durring select/eval event exp
+            assertCTX_keys(ctx, [
+                "event",
+                "pico_id",
+                "rule_name",
+            ]);
+        }else if(_.has(ctx, "event")){//event durring rule body
             assertCTX_keys(_.omit(ctx, [
-                "raiseEvent",//not during select/eval event exp
                 "foreach_is_final",//only when doing foreach
             ]), [
                 "event",
                 "pico_id",
                 "rule_name",
+
+                "raiseEvent",
+                "stopRulesetExecution",
             ]);
         }else if(_.has(ctx, "query")){
             assertCTX_keys(ctx, [

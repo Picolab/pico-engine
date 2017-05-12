@@ -1661,3 +1661,41 @@ test("PicoEngine - installRuleset", function(t){
         ], t.end);
     });
 });
+
+test("PicoEngine - io.picolabs.last rulesets", function(t){
+    mkTestPicoEngine({}, function(err, pe){
+        if(err)return t.end(err);
+
+        var signal = mkSignalTask(pe, "id1");
+
+        testOutputs(t, [
+            λ.curry(pe.newPico, {}),
+            λ.curry(pe.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+            λ.curry(pe.installRuleset, "id0", "io.picolabs.last"),
+
+            [
+                signal("last", "all", {}),
+                [
+                    {name: "foo", options: {}},
+                    {name: "bar", options: {}},
+                    {name: "baz", options: {}},
+                    //qux doesn't run b/c baz stopped it
+                ]
+            ],
+            [
+                signal("last", "all", {stop: "bar"}),
+                [
+                    {name: "foo", options: {}},
+                    {name: "bar", options: {}},
+                ]
+            ],
+            [
+                signal("last", "all", {stop: "foo"}),
+                [
+                    {name: "foo", options: {}},
+                ]
+            ],
+
+        ], t.end);
+    });
+});

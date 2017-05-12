@@ -83,12 +83,14 @@ var runEvent = cocb.wrap(function*(scheduled){
     ctx.emit("debug", "rule selected: " + rule.rid + " -> " + rule.name);
 
     ctx = core.mkCTX({
-        event: ctx.event,
-        pico_id: ctx.pico_id,
-        raiseEvent: ctx.raiseEvent,
         rid: rule.rid,
         rule_name: rule.name,
         scope: rule.scope,
+        pico_id: ctx.pico_id,
+        event: ctx.event,
+
+        raiseEvent: ctx.raiseEvent,
+        stopRulesetExecution: ctx.stopRulesetExecution,
     });
 
     var r = [];
@@ -138,6 +140,10 @@ var processEvent = cocb.wrap(function*(core, ctx){
     ctx = core.mkCTX({
         event: ctx.event,
         pico_id: ctx.pico_id,
+        stopRulesetExecution: function(){
+            ctx.emit("debug", "`last` control statement is stopping ruleset execution");
+            schedule = [];
+        },
         raiseEvent: cocb.toYieldable(function(revent, callback){
             //shape the revent like a normal event
             var event = {
