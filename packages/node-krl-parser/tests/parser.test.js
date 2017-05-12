@@ -2301,3 +2301,33 @@ test("schedule event", function(t){
 
     t.end();
 });
+
+test("LastStatement", function(t){
+    var testPostlude = function(src_core, expected){
+        var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+        var ast = parser(src).rules[0].postlude.fired;
+        t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+    };
+
+    testPostlude("last", [{
+        type: "LastStatement",
+    }]);
+
+    testPostlude("last if(x==4)", [{
+        type: "GuardCondition",
+        condition: mk.op("==", mk.id("x"), mk(4)),
+        statement: {
+            type: "LastStatement",
+        }
+    }]);
+
+    testPostlude("last if x == 4", [{
+        type: "GuardCondition",
+        condition: mk.op("==", mk.id("x"), mk(4)),
+        statement: {
+            type: "LastStatement",
+        }
+    }]);
+
+    t.end();
+});

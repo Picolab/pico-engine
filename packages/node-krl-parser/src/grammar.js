@@ -341,6 +341,7 @@ var tok_is = tok("SYMBOL", "is");
 var tok_key = tok("SYMBOL", "key");
 var tok_keys = tok("SYMBOL", "keys");
 var tok_like = tok("SYMBOL", "like");
+var tok_last = tok("SYMBOL", "last");
 var tok_log = tok("SYMBOL", "log");
 var tok_logging = tok("SYMBOL", "logging");
 var tok_max = tok("SYMBOL", "max");
@@ -779,11 +780,24 @@ var grammar = {
           };
         }
         },
-    {"name": "PostludeStatement_core", "symbols": ["Statement"], "postprocess": id},
-    {"name": "PostludeStatement_core", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
-    {"name": "PostludeStatement_core", "symbols": ["RaiseEventStatement"], "postprocess": id},
-    {"name": "PostludeStatement_core", "symbols": ["ScheduleEventStatement"], "postprocess": id},
-    {"name": "PostludeStatement_core", "symbols": ["LogStatement"], "postprocess": id},
+    {"name": "PostludeStatement_core", "symbols": ["PostludeStatement_core_parts"], "postprocess": 
+        function(data, l, reject){
+          if(true
+            && data[0].type === "ExpressionStatement"
+            && data[0].expression.type === "Identifier"
+            && data[0].expression.value === "last"
+          ){
+            return reject;
+          }
+          return data[0];
+        }
+        },
+    {"name": "PostludeStatement_core_parts", "symbols": ["Statement"], "postprocess": id},
+    {"name": "PostludeStatement_core_parts", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
+    {"name": "PostludeStatement_core_parts", "symbols": ["RaiseEventStatement"], "postprocess": id},
+    {"name": "PostludeStatement_core_parts", "symbols": ["ScheduleEventStatement"], "postprocess": id},
+    {"name": "PostludeStatement_core_parts", "symbols": ["LogStatement"], "postprocess": id},
+    {"name": "PostludeStatement_core_parts", "symbols": ["LastStatement"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
@@ -886,6 +900,14 @@ var grammar = {
             type: "LogStatement",
             level: data[1].src,
             expression: data[2]
+          };
+        }
+        },
+    {"name": "LastStatement", "symbols": [tok_last], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: 'LastStatement',
           };
         }
         },

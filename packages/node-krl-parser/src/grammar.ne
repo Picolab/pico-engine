@@ -337,6 +337,7 @@ var tok_is = tok("SYMBOL", "is");
 var tok_key = tok("SYMBOL", "key");
 var tok_keys = tok("SYMBOL", "keys");
 var tok_like = tok("SYMBOL", "like");
+var tok_last = tok("SYMBOL", "last");
 var tok_log = tok("SYMBOL", "log");
 var tok_logging = tok("SYMBOL", "logging");
 var tok_max = tok("SYMBOL", "max");
@@ -802,12 +803,26 @@ PostludeStatement ->
   }
 %}
 
-PostludeStatement_core ->
+PostludeStatement_core -> PostludeStatement_core_parts {%
+  function(data, l, reject){
+    if(true
+      && data[0].type === "ExpressionStatement"
+      && data[0].expression.type === "Identifier"
+      && data[0].expression.value === "last"
+    ){
+      return reject;
+    }
+    return data[0];
+  }
+%}
+
+PostludeStatement_core_parts ->
       Statement {% id %}
     | PersistentVariableAssignment {% id %}
     | RaiseEventStatement {% id %}
     | ScheduleEventStatement {% id %}
     | LogStatement {% id %}
+    | LastStatement {% id %}
 
 PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
   function(data){
@@ -914,6 +929,15 @@ LogStatement -> %tok_log %tok_LOG_LEVEL_ENUM Expression
       type: "LogStatement",
       level: data[1].src,
       expression: data[2]
+    };
+  }
+%}
+
+LastStatement -> %tok_last {%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: 'LastStatement',
     };
   }
 %}
