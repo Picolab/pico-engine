@@ -1,295 +1,39 @@
 var _ = require("lodash");
 var mkTree = require("estree-builder");
-var callStdLibFn = require("./utils/callStdLibFn");
-var callModuleFn = require("./utils/callModuleFn");
-var mkKRLClosure = require("./utils/mkKRLClosure");
 
 var comp_by_type = {
-    "String": function(ast, comp, e){
-        return e("string", ast.value);
-    },
-    "Number": function(ast, comp, e){
-        if(ast.value < 0){
-            return e("-", e("number", -ast.value));
-        }
-        return e("number", ast.value);
-    },
-    "Identifier": function(ast, comp, e, context){
-        if(ast.value === "null"){
-            //undefined is the true "null" in javascript
-            //however, undefined can be re-assigned. So `void 0` returns undefined but can"t be re-assigned
-            return e("void", e("number", 0));
-        }
-        if(context && context.identifiers_are_event_attributes){
-            return callModuleFn(e, "event", "attr", e("array", [e("str", ast.value)]), ast.loc);
-        }
-        return e("call", e("id", "ctx.scope.get"), [e("str", ast.value)]);
-    },
-    "Chevron": function(ast, comp, e){
-        if(ast.value.length < 1){
-            return e("string", "");
-        }
-        var compElm = function(elm){
-            if(elm.type === "String"){
-                return e("string", elm.value, elm.loc);
-            }
-            return callStdLibFn(e, "beesting", [comp(elm)], elm.loc);
-        };
-        var curr = compElm(ast.value[0]);
-        var i = 1;
-        while(i < ast.value.length){
-            curr = e("+", curr, compElm(ast.value[i]));
-            i++;
-        }
-        return curr;
-    },
-    "Boolean": function(ast, comp, e){
-        return e(ast.value ? "true" : "false");
-    },
-    "RegExp": function(ast, comp, e){
-        var flags = "";
-        if(ast.value.global){
-            flags += "g";
-        }
-        if(ast.value.ignoreCase){
-            flags += "i";
-        }
-        return e("new", e("id", "RegExp"), [
-            e("str", ast.value.source),
-            e("str", flags)
-        ]);
-    },
-    "DomainIdentifier": function(ast, comp, e){
-        return e("ycall", e("id", "ctx.modules.get"), [
-            e("id", "ctx"),
-            e("str", ast.domain),
-            e("str", ast.value)
-        ]);
-    },
-    "MemberExpression": function(ast, comp, e){
-        if(ast.method === "dot"){
-            if(ast.property.type === "Identifier"){
-                //using "get" rather than . b/c we don"t want to mess
-                //with reserved javascript properties i.e. "prototype"
-                return e("get", comp(ast.object), e("str", ast.property.value, ast.property.loc));
-            }
-            return e("get", comp(ast.object), comp(ast.property));
-        }else if(ast.method === "path"){
-            return callStdLibFn(e, "get", [
-                comp(ast.object),
-                comp(ast.property)
-            ], ast.loc);
-        }else if(ast.method === "index"){
-            return callStdLibFn(e, "get", [
-                comp(ast.object),
-                e("array", [comp(ast.property)], ast.property.loc)
-            ], ast.loc);
-        }
-        throw new Error("Unsupported MemberExpression method: " + ast.method);
-    },
-    "Array": function(ast, comp, e){
-        return e("array", comp(ast.value));
-    },
-    "Map": function(ast, comp, e){
-        return e("obj-raw", comp(ast.value));
-    },
-    "MapKeyValuePair": function(ast, comp, e){
-        return e("obj-prop", e("string", ast.key.value + "", ast.key.loc), comp(ast.value));
-    },
-    "Application": function(ast, comp, e){
-        if(ast.callee.type === "MemberExpression"
-                && ast.callee.method === "dot"
-                && ast.callee.property.type === "Identifier"
-                ){
-            //operator syntax is just sugar for stdlib functions
-            var operator = ast.callee.property;
-            var args = [comp(ast.callee.object)].concat(comp(ast.args));
-            return callStdLibFn(e, operator.value, args, operator.loc);
-        }
-        var args_obj;
-        if(_.isEmpty(ast.with)){
-            args_obj = e("array", comp(ast.args));
-        }else{
-            var obj = {};
-            _.each(ast.args, function(arg, i){
-                obj[i] = comp(arg);
-            });
-            _.each(ast.with, function(w){
-                if(w.left.type !== "Identifier"){
-                    throw new Error("`with` only allows keys to be identifiers");
-                }
-                obj[w.left.value] = comp(w.right);
-            });
-            args_obj = e("obj", obj);
-        }
-        return e("ycall", comp(ast.callee), [
-            e("id", "ctx"),
-            args_obj
-        ]);
-    },
-    "UnaryOperator": function(ast, comp, e){
-        if(ast.op === "not"){
-            return e("!", comp(ast.arg));
-        }
-        return callStdLibFn(e, ast.op, [
-            comp(ast.arg)
-        ], ast.loc);
-    },
-    "InfixOperator": function(ast, comp, e){
-        if((ast.op === "||") || (ast.op === "&&")){
-            return e(ast.op, comp(ast.left), comp(ast.right));
-        }
-        return callStdLibFn(e, ast.op, [
-            comp(ast.left),
-            comp(ast.right)
-        ], ast.loc);
-    },
-    "ConditionalExpression": function(ast, comp, e){
-        return e("ternary",
-            comp(ast.test),
-            comp(ast.consequent),
-            comp(ast.alternate)
-        );
-    },
-    "Function": function(ast, comp, e){
-        var body = _.map(ast.params, function(param, i){
-            var loc = param.loc;
-            return e(";", e("call", e("id", "ctx.scope.set", loc), [
-                e("str", param.value, loc),
-                e("call",
-                    e("id", "getArg", loc),
-                    [
-                        e("string", param.value, loc),
-                        e("number", i, loc)
-                    ],
-                    loc
-                )
-            ], loc), loc);
-        });
-        _.each(ast.body, function(part, i){
-            if(i < (ast.body.length - 1)){
-                return body.push(comp(part));
-            }
-            if(part.type === "ExpressionStatement"){
-                part = part.expression;
-            }
-            return body.push(e("return", comp(part)));
-        });
-        return mkKRLClosure(e, body);
-    },
-    "PersistentVariableAssignment": function(ast, comp, e){
-        if(ast.op !== ":="){
-            throw new Error("Unsuported PersistentVariableAssignment.op: " + ast.op);
-        }
-        if(ast.left.type !== "DomainIdentifier" || !/^(ent|app)$/.test(ast.left.domain)){
-            throw new Error("PersistentVariableAssignment - only works on ent:* or app:* variables");
-        }
-
-        var value_to_store = comp(ast.right);
-
-        if(ast.path_expression){
-            value_to_store = callStdLibFn(e, "set", [
-                e("ycall", e("id", "ctx.modules.get"), [
-                    e("id", "ctx"),
-                    e("str", ast.left.domain),
-                    e("str", ast.left.value)
-                ]),
-                comp(ast.path_expression),
-                value_to_store
-            ], ast.loc);
-        }
-
-        return e(";", e("ycall", e("id", "ctx.modules.set"), [
-            e("id", "ctx"),
-            e("str", ast.left.domain, ast.left.loc),
-            e("str", ast.left.value, ast.left.loc),
-            value_to_store
-        ]));
-    },
+    "String": require("./c/String"),
+    "Number": require("./c/Number"),
+    "Identifier": require("./c/Identifier"),
+    "Chevron": require("./c/Chevron"),
+    "Boolean": require("./c/Boolean"),
+    "RegExp": require("./c/RegExp"),
+    "DomainIdentifier": require("./c/DomainIdentifier"),
+    "MemberExpression": require("./c/MemberExpression"),
+    "Array": require("./c/Array"),
+    "Map": require("./c/Map"),
+    "MapKeyValuePair": require("./c/MapKeyValuePair"),
+    "Application": require("./c/Application"),
+    "UnaryOperator": require("./c/UnaryOperator"),
+    "InfixOperator": require("./c/InfixOperator"),
+    "ConditionalExpression": require("./c/ConditionalExpression"),
+    "Function": require("./c/Function"),
+    "PersistentVariableAssignment": require("./c/PersistentVariableAssignment"),
     "Declaration": require("./c/Declaration"),
     "DefAction": require("./c/DefAction"),
     "LastStatement": require("./c/LastStatement"),
     "LogStatement": require("./c/LogStatement"),
-    "ExpressionStatement": function(ast, comp, e){
-        return e(";", comp(ast.expression));
-    },
+    "ExpressionStatement": require("./c/ExpressionStatement"),
     "GuardCondition": require("./c/GuardCondition"),
-    "Ruleset": function(ast, comp, e){
-        var rules_obj = {};
-        _.each(ast.rules, function(rule){
-            rules_obj[rule.name.value] = comp(rule);
-        });
-        var rs = {
-            rid: comp(ast.rid)
-        };
-        if(ast.meta){
-            rs.meta = comp(ast.meta);
-        }
-        if(!_.isEmpty(ast.global)){
-            rs.global = e("genfn", ["ctx"], comp(ast.global));
-        }
-        rs.rules = e("obj", rules_obj);
-        return [
-            e(";", e("=", e("id", "module.exports"), e("obj", rs)))
-        ];
-    },
-    "RulesetID": function(ast, comp, e){
-        return e("string", ast.value);
-    },
+    "Ruleset": require("./c/Ruleset"),
+    "RulesetID": require("./c/RulesetID"),
     "RulesetMeta": require("./c/RulesetMeta"),
-    "Rule": function(ast, comp, e){
-        var rule = {
-            name: e("string", ast.name.value, ast.name.loc)
-        };
-        if(ast.rule_state !== "active"){
-            rule.rule_state = e("string", ast.rule_state);
-        }
-        if(ast.select){
-            rule.select = comp(ast.select);
-        }
-        if(!_.isEmpty(ast.foreach)){
-            var nestedForeach = function(arr, iter){
-                if(_.isEmpty(arr)){
-                    return iter;
-                }
-                var last = _.last(arr);
-                var rest = _.initial(arr);
-                return nestedForeach(rest, comp(last, {iter: iter}));
-            };
-            rule.foreach = e("genfn", ["ctx", "foreach", "iter"], [
-                nestedForeach(ast.foreach, e(";", e("ycall", e("id", "iter"), [e("id", "ctx")])))
-            ]);
-        }
-        if(!_.isEmpty(ast.prelude)){
-            rule.prelude = e("genfn", ["ctx"], comp(ast.prelude));
-        }
-        if(ast.action_block){
-            rule.action_block = comp(ast.action_block);
-        }
-        if(ast.postlude){
-            rule.postlude = comp(ast.postlude);
-        }
-        return e("obj", rule);
-    },
+    "Rule": require("./c/Rule"),
     "RuleSelect": require("./c/RuleSelect"),
     "RuleForEach": require("./c/RuleForEach"),
     "EventWithin": require("./c/EventWithin"),
     "EventExpression": require("./c/EventExpression"),
-    "RuleActionBlock": function(ast, comp, e){
-        var block = {};
-        if(_.isString(ast.block_type) && ast.block_type !== "every"){
-            block.block_type = e("string", ast.block_type);
-        }
-        if(ast.condition){
-            block.condition = e("genfn", ["ctx"], [
-                e("return", comp(ast.condition))
-            ]);
-        }
-        block.actions = e("arr", _.map(ast.actions, function(action){
-            return comp(action);
-        }));
-        return e("obj", block);
-    },
+    "RuleActionBlock": require("./c/RuleActionBlock"),
     "RuleAction": require("./c/RuleAction"),
     "RulePostlude": require("./c/RulePostlude"),
     "ScheduleEventStatement": require("./c/ScheduleEventStatement"),
