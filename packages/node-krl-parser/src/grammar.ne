@@ -313,6 +313,7 @@ var tok_avg = tok("SYMBOL", "avg");
 var tok_before = tok("SYMBOL", "before");
 var tok_between = tok("SYMBOL", "between");
 var tok_choose = tok("SYMBOL", "choose");
+var tok_clear = tok("SYMBOL", "clear");
 var tok_configure = tok("SYMBOL", "configure");
 var tok_count = tok("SYMBOL", "count");
 var tok_cmp = tok("SYMBOL", "cmp");
@@ -820,6 +821,7 @@ PostludeStatement_core -> PostludeStatement_core_parts {%
 PostludeStatement_core_parts ->
       Statement {% id %}
     | PersistentVariableAssignment {% id %}
+    | ClearPersistentVariable {% id %}
     | RaiseEventStatement {% id %}
     | ScheduleEventStatement {% id %}
     | LogStatement {% id %}
@@ -835,6 +837,16 @@ PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %to
       left: data[0],
       path_expression: data[1] ? data[1][1] : null,
       right: data[3]
+    };
+  }
+%}
+
+ClearPersistentVariable -> %tok_clear DomainIdentifier {%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: "ClearPersistentVariable",
+      variable: data[1],
     };
   }
 %}

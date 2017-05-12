@@ -317,6 +317,7 @@ var tok_avg = tok("SYMBOL", "avg");
 var tok_before = tok("SYMBOL", "before");
 var tok_between = tok("SYMBOL", "between");
 var tok_choose = tok("SYMBOL", "choose");
+var tok_clear = tok("SYMBOL", "clear");
 var tok_configure = tok("SYMBOL", "configure");
 var tok_count = tok("SYMBOL", "count");
 var tok_cmp = tok("SYMBOL", "cmp");
@@ -795,6 +796,7 @@ var grammar = {
         },
     {"name": "PostludeStatement_core_parts", "symbols": ["Statement"], "postprocess": id},
     {"name": "PostludeStatement_core_parts", "symbols": ["PersistentVariableAssignment"], "postprocess": id},
+    {"name": "PostludeStatement_core_parts", "symbols": ["ClearPersistentVariable"], "postprocess": id},
     {"name": "PostludeStatement_core_parts", "symbols": ["RaiseEventStatement"], "postprocess": id},
     {"name": "PostludeStatement_core_parts", "symbols": ["ScheduleEventStatement"], "postprocess": id},
     {"name": "PostludeStatement_core_parts", "symbols": ["LogStatement"], "postprocess": id},
@@ -812,6 +814,15 @@ var grammar = {
             left: data[0],
             path_expression: data[1] ? data[1][1] : null,
             right: data[3]
+          };
+        }
+        },
+    {"name": "ClearPersistentVariable", "symbols": [tok_clear, "DomainIdentifier"], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: "ClearPersistentVariable",
+            variable: data[1],
           };
         }
         },

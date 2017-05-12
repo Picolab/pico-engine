@@ -1757,6 +1757,36 @@ test("PersistentVariableAssignment", function(t){
     t.end();
 });
 
+test("ClearPersistentVariable", function(t){
+    var testPostlude = function(src_core, expected){
+        var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+        var ast = parser(src).rules[0].postlude.fired;
+        t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
+    };
+    try{
+        parser("clear ent:foo");
+        t.fail();
+    }catch(e){
+        t.ok(true, "ClearPersistentVariable should only be allowed in the postlude");
+    }
+
+    testPostlude("clear ent:foo", [
+        {
+            type: "ClearPersistentVariable",
+            variable: mk.dID("ent", "foo"),
+        }
+    ]);
+
+    testPostlude("clear app:bar", [
+        {
+            type: "ClearPersistentVariable",
+            variable: mk.dID("app", "bar"),
+        }
+    ]);
+
+    t.end();
+});
+
 test("raise event", function(t){
 
     var testPostlude = function(src_core, expected){
