@@ -511,7 +511,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, {
+          yield ctx.raiseEvent({
             "domain": "events",
             "type": "store_sent_name",
             "attributes": { "name": ctx.scope.get("my_name") },
@@ -547,7 +547,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, {
+          yield ctx.raiseEvent({
             "domain": "events",
             "type": "store_sent_name",
             "attributes": { "name": ctx.scope.get("my_name") },
@@ -586,7 +586,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "event", "raise"))(ctx, {
+          yield ctx.raiseEvent({
             "domain": "events",
             "type": "store_sent_name",
             "attributes": { "name": ctx.scope.get("my_name") },

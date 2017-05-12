@@ -1,5 +1,3 @@
-var callModuleFn = require("../utils/callModuleFn");
-
 module.exports = function(ast, comp, e){
 
     var args = {
@@ -10,5 +8,5 @@ module.exports = function(ast, comp, e){
         for_rid: ast.for_rid ? comp(ast.for_rid) : e("nil"),
     };
 
-    return e(";", callModuleFn(e, "event", "raise", e("obj", args), ast.loc));
+    return e(";", e("ycall", e("id", "ctx.raiseEvent"), [e("obj", args)]));
 };
