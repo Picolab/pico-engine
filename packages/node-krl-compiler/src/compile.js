@@ -208,6 +208,7 @@ var comp_by_type = {
     },
     "Declaration": require("./c/Declaration"),
     "DefAction": require("./c/DefAction"),
+    "LastStatement": require("./c/LastStatement"),
     "LogStatement": require("./c/LogStatement"),
     "ExpressionStatement": function(ast, comp, e){
         return e(";", comp(ast.expression));
