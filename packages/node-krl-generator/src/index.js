@@ -1,111 +1,54 @@
 var _ = require("lodash");
 
-var gen_by_type = {
-    "String": function(ast, ind, gen){
-        return JSON.stringify(ast.value);
-    },
-    "Number": function(ast, ind, gen){
-        return JSON.stringify(ast.value);
-    },
-    "Identifier": function(ast, ind, gen){
-        return ast.value;
-    },
-    "DomainIdentifier": require("./g/DomainIdentifier"),
-    "Boolean": function(ast, ind, gen){
-        return ast.value ? "true" : "false";
-    },
-    "Keyword": function(ast, ind, gen){
-        return ast.value;
-    },
-    "Chevron": function(ast, ind, gen){
-        return "<<" + _.map(ast.value, function(v){
-            return v.type === "String"
-                ? v.value.replace(/>>/g, ">\\>")
-                : "#{" + gen(v) + "}";
-        }).join("") + ">>";
-    },
-    "RegExp": function(ast, ind, gen){
-        var r = ast.value;
-        return "re#" + r.source + "#"
-            + (r.global ? "g" : "")
-            + (r.ignoreCase ? "i" : "");
-    },
-    "Array": require("./g/Array"),
-    "Map": require("./g/Map"),
-    "MapKeyValuePair": function(ast, ind, gen){
-        return gen(ast.key) + ": " + gen(ast.value);
-    },
-    "UnaryOperator": function(ast, ind, gen){
-        return ast.op + (/^[a-z]/i.test(ast.op) ? " " : "") +  gen(ast.arg);
-    },
-    "InfixOperator": require("./g/InfixOperator"),
-    "MemberExpression": require("./g/MemberExpression"),
-    "ConditionalExpression": require("./g/ConditionalExpression"),
-    "Function": function(ast, ind, gen){
-        return "function(" + _.map(ast.params, function(param){
-            return gen(param);
-        }).join(", ") + "){\n" + _.map(ast.body, function(stmt){
-            return gen(stmt, 1);
-        }).join(";\n") + "\n" + ind() + "}";
-    },
-    "Application": require("./g/Application"),
-    "ExpressionStatement": function(ast, ind, gen){
-        return ind() + gen(ast.expression);
-    },
-    "Declaration": function(ast, ind, gen){
-        return ind() + gen(ast.left) + " " + ast.op + " " + gen(ast.right);
-    },
-    "GuardCondition": require("./g/GuardCondition"),
-    "Ruleset": function(ast, ind, gen){
-        var src = "";
-        src += ind() + "ruleset " + gen(ast.rid) + " {\n";
-        if(!_.isEmpty(ast.meta)){
-            src += ind() + gen(ast.meta, 1) + "\n";
-        }
-        if(!_.isEmpty(ast.global)){
-            src += ind(1) + "global {\n";
-            src += gen(ast.global, 2) + "\n";
-            src += ind(1) + "}\n";
-        }
-        src += gen(ast.rules, 1) + "\n";
-        src += ind() + "}";
-        return src;
-    },
-    "RulesetID": function(ast, ind, gen){
-        return ast.value;
-    },
-    "RulesetMeta": function(ast, ind, gen){
-        var src = "";
-        src += ind() + "meta {\n";
-        src += gen(ast.properties, 1) + "\n";
-        src += ind() + "}";
-        return src;
-    },
-    "RulesetMetaProperty": require("./g/RulesetMetaProperty"),
-    "Rule": require("./g/Rule"),
-    "RuleSelect": require("./g/RuleSelect"),
-    "RuleForEach": require("./g/RuleForEach"),
-    "EventExpression": require("./g/EventExpression"),
-    "AttributeMatch": function(ast, ind, gen){
-        return gen(ast.key) + " " + gen(ast.value);
-    },
-    "EventOperator": require("./g/EventOperator"),
-    "EventWithin": require("./g/EventWithin"),
-    "RuleActionBlock": require("./g/RuleActionBlock"),
-    "RuleAction": require("./g/RuleAction"),
-    "DefAction": require("./g/DefAction"),
-    "EventAggregator": require("./g/EventAggregator"),
-    "EventGroupOperator": require("./g/EventGroupOperator"),
-    "PersistentVariableAssignment": require("./g/PersistentVariableAssignment"),
-    "ErrorStatement": require("./g/ErrorStatement"),
-    "LogStatement": require("./g/LogStatement"),
-    "LastStatement": require("./g/LastStatement"),
-    "ClearPersistentVariable": require("./g/ClearPersistentVariable"),
-    "ScheduleEventStatement": require("./g/ScheduleEventStatement"),
-    "RaiseEventStatement": require("./g/RaiseEventStatement"),
-    "RaiseEventAttributes": require("./g/RaiseEventAttributes"),
-    "RulePostlude": require("./g/RulePostlude")
-};
+var gen_by_type = _.fromPairs(_.map([
+    "Application",
+    "Array",
+    "AttributeMatch",
+    "Boolean",
+    "Chevron",
+    "ClearPersistentVariable",
+    "ConditionalExpression",
+    "Declaration",
+    "DefAction",
+    "DomainIdentifier",
+    "ErrorStatement",
+    "EventAggregator",
+    "EventExpression",
+    "EventGroupOperator",
+    "EventOperator",
+    "EventWithin",
+    "ExpressionStatement",
+    "Function",
+    "GuardCondition",
+    "Identifier",
+    "InfixOperator",
+    "Keyword",
+    "LastStatement",
+    "LogStatement",
+    "Map",
+    "MapKeyValuePair",
+    "MemberExpression",
+    "Number",
+    "PersistentVariableAssignment",
+    "RaiseEventAttributes",
+    "RaiseEventStatement",
+    "RegExp",
+    "Rule",
+    "RuleAction",
+    "RuleActionBlock",
+    "RuleForEach",
+    "RulePostlude",
+    "RuleSelect",
+    "Ruleset",
+    "RulesetID",
+    "RulesetMeta",
+    "RulesetMetaProperty",
+    "ScheduleEventStatement",
+    "String",
+    "UnaryOperator",
+], function(type){
+    return [type, require("./g/" + type)];
+}));
 
 module.exports = function(ast, options){
     options = options || {};
