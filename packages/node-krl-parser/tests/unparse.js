@@ -24,6 +24,9 @@ var gen = {
     "PositiveInteger": function(){
         return _.random(0, 100) + "";
     },
+    "PersistentVariable": function(){
+        return _.sample(["app", "ent"]) + ":" + phonetic.generate();
+    },
 
 
     "WithArguments": function(){//TODO remove
