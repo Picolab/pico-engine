@@ -4,7 +4,7 @@ module.exports = function(ast, ind, gen){
     var src = "";
     src += gen(ast.event_domain) + " " + gen(ast.event_type);
 
-    var pairs = _.map(ast.attributes, function(a){
+    var pairs = _.map(ast.event_attrs, function(a){
         return gen(a, 1);
     });
     if(_.size(pairs) > 1){

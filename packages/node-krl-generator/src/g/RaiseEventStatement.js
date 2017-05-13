@@ -8,8 +8,8 @@ module.exports = function(ast, ind, gen){
         src += " for " + gen(ast.for_rid);
     }
 
-    if(ast.attributes){
-        src += "\n" + ind(1) + gen(ast.attributes, 1);
+    if(ast.event_attrs){
+        src += "\n" + ind(1) + gen(ast.event_attrs, 1);
     }
 
     return src;

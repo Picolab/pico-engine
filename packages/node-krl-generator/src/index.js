@@ -97,9 +97,11 @@ var gen_by_type = {
     "EventAggregator": require("./g/EventAggregator"),
     "EventGroupOperator": require("./g/EventGroupOperator"),
     "PersistentVariableAssignment": require("./g/PersistentVariableAssignment"),
+    "ErrorStatement": require("./g/ErrorStatement"),
     "LogStatement": require("./g/LogStatement"),
-    "ScheduleEventAtStatement": require("./g/ScheduleEventAtStatement"),
-    "ScheduleEventRepeatStatement": require("./g/ScheduleEventRepeatStatement"),
+    "LastStatement": require("./g/LastStatement"),
+    "ClearPersistentVariable": require("./g/ClearPersistentVariable"),
+    "ScheduleEventStatement": require("./g/ScheduleEventStatement"),
     "RaiseEventStatement": require("./g/RaiseEventStatement"),
     "RaiseEventAttributes": require("./g/RaiseEventAttributes"),
     "RulePostlude": require("./g/RulePostlude")
