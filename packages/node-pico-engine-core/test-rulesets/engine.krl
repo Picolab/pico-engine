@@ -7,12 +7,13 @@ ruleset io.picolabs.engine {
   }
   rule newChannel {
     select when engine newChannel;
+    pre {
+      pico_id = event:attr("pico_id")
+      name = event:attr("name")
+      type = event:attr("type")
+    }
     fired {
-      engine:newChannel({
-        "name": event:attr("name"),
-        "type": event:attr("type"),
-        "pico_id": event:attr("pico_id")
-      })
+      engine:newChannel(pico_id, name, type)
     }
   }
   rule removeChannel {

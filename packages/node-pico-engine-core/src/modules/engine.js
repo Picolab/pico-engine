@@ -6,19 +6,20 @@ var mkKRLfn = require("../mkKRLfn");
 module.exports = function(core){
     var fns = {
         newPico: mkKRLfn([
-            "opts",
         ], function(args, ctx, callback){
-            core.db.newPico(args.opts, callback);
+            core.db.newPico({}, callback);
         }),
         removePico: mkKRLfn([
-            "id",
+            "pico_id",
         ], function(args, ctx, callback){
-            core.db.removePico(args.id, callback);
+            core.db.removePico(args.pico_id, callback);
         }),
         newChannel: mkKRLfn([
-            "opts",
+            "pico_id",
+            "name",
+            "type",
         ], function(args, ctx, callback){
-            core.db.newChannel(args.opts, callback);
+            core.db.newChannel(args, callback);
         }),
         removeChannel: mkKRLfn([
             "eci",
