@@ -479,3 +479,41 @@ test("DB - getPicoIDByECI", function(t){
         });
     });
 });
+
+test("DB - listChannels", function(t){
+    var db = mkTestDB();
+    λ.series({
+        pico0: λ.curry(db.newPico, {}),
+        pico1: λ.curry(db.newPico, {}),
+
+        c2_p0: λ.curry(db.newChannel, {pico_id: "id0", name: "two", type: "t2"}),
+        c3_p1: λ.curry(db.newChannel, {pico_id: "id1", name: "three", type: "t3"}),
+        c4_p0: λ.curry(db.newChannel, {pico_id: "id0", name: "four", type: "t4"}),
+        c5_p1: λ.curry(db.newChannel, {pico_id: "id1", name: "five", type: "t5"}),
+
+        list0: λ.curry(db.listChannels, "id0"),
+        list1: λ.curry(db.listChannels, "id1"),
+        list404: λ.curry(db.listChannels, "id404"),
+
+    }, function(err, data){
+        if(err) return t.end(err);
+
+
+        var c2 = {id: "id2", name: "two", type: "t2"};
+        var c3 = {id: "id3", name: "three", type: "t3"};
+        var c4 = {id: "id4", name: "four", type: "t4"};
+        var c5 = {id: "id5", name: "five", type: "t5"};
+
+
+        t.deepEquals(data.c2_p0, c2);
+        t.deepEquals(data.c3_p1, c3);
+        t.deepEquals(data.c4_p0, c4);
+        t.deepEquals(data.c5_p1, c5);
+
+        t.deepEquals(data.list0, [c2, c4]);
+        t.deepEquals(data.list1, [c3, c5]);
+        t.deepEquals(data.list404, []);
+
+        t.end();
+    });
+});

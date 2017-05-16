@@ -150,6 +150,16 @@ module.exports = function(opts){
                 ldb.batch(ops, callback);
             });
         },
+        listChannels: function(pico_id, callback){
+            var channels = [];
+            dbRange(ldb, {
+                prefix: ["pico", pico_id, "channel"],
+            }, function(data){
+                channels.push(data.value);
+            }, function(err){
+                callback(err, channels);
+            });
+        },
         removeChannel: function(pico_id, eci, callback){
             var ops = [
                 {type: "del", key: ["pico", pico_id, "channel", eci]},
