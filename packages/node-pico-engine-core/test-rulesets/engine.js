@@ -71,10 +71,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "engine", "removeChannel"))(ctx, [{
-              "pico_id": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["pico_id"]),
-              "eci": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["eci"])
-            }]);
+          yield (yield ctx.modules.get(ctx, "engine", "removeChannel"))(ctx, [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["eci"])]);
         },
         "notfired": undefined,
         "always": undefined

@@ -21,10 +21,13 @@ module.exports = function(core){
             core.db.newChannel(args.opts, callback);
         }),
         removeChannel: mkKRLfn([
-            "opts",
+            "eci",
         ], function(args, ctx, callback){
-            var opts = args.opts;
-            core.db.removeChannel(opts.pico_id, opts.eci, callback);
+            core.db.getPicoIDByECI(args.eci, function(err, pico_id){
+                if(err) return callback(err);
+
+                core.db.removeChannel(pico_id, args.eci, callback);
+            });
         }),
         getPicoIDByECI: mkKRLfn([
             "eci",

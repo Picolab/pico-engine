@@ -593,7 +593,6 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
             },
             [
                 signal("engine", "removeChannel", {
-                    pico_id: "id2",
                     eci: "id3",
                 }),
                 []

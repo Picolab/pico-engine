@@ -9,7 +9,6 @@ var mockEngine = function(core){
 
 test("engine:getPicoIDByECI", function(t){
     cocb.run(function*(){
-
         var engine = mockEngine({
             db: {
                 getPicoIDByECI: function(eci, callback){
@@ -33,6 +32,43 @@ test("engine:getPicoIDByECI", function(t){
 
         try{
             yield get("quux");
+            t.fail("should throw b/c not found");
+        }catch(err){
+            t.equals(err, "NOT FOUND:quux");
+        }
+
+    }, t.end);
+});
+
+test("engine:removeChannel", function(t){
+    cocb.run(function*(){
+        var engine = mockEngine({
+            db: {
+                getPicoIDByECI: function(eci, callback){
+                    process.nextTick(function(){
+                        if(eci === "foo"){
+                            return callback(null, "bar");
+                        }
+                        callback("NOT FOUND:" + eci);
+                    });
+                },
+                removeChannel: function(pico_id, eci, callback){
+                    process.nextTick(function(){
+                        if(pico_id === "bar" && eci === "foo"){
+                            return callback();
+                        }
+                        callback("cannot removeChannel " + pico_id + "," + eci);
+                    });
+                }
+            }
+        });
+        var rm = function*(eci){
+            return yield engine.removeChannel({}, {eci: eci,});
+        };
+
+        t.equals(yield rm("foo"), void 0);
+        try{
+            yield rm("quux");
             t.fail("should throw b/c not found");
         }catch(err){
             t.equals(err, "NOT FOUND:quux");

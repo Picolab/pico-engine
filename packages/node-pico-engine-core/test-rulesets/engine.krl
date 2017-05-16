@@ -18,10 +18,7 @@ ruleset io.picolabs.engine {
   rule removeChannel {
     select when engine removeChannel;
     fired {
-      engine:removeChannel({
-        "pico_id": event:attr("pico_id"),
-        "eci": event:attr("eci")
-      })
+      engine:removeChannel(event:attr("eci"))
     }
   }
   rule installRuleset {
