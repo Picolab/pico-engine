@@ -447,3 +447,35 @@ test("DB - removeRulesetFromPico", function(t){
         t.end();
     });
 });
+
+test("DB - getPicoIDByECI", function(t){
+    var db = mkTestDB();
+    λ.series({
+        pico0: λ.curry(db.newPico, {}),
+        pico1: λ.curry(db.newPico, {}),
+
+        c2_p0: λ.curry(db.newChannel, {pico_id: "id0", name: "two", type: "t"}),
+        c3_p1: λ.curry(db.newChannel, {pico_id: "id1", name: "three", type: "t"}),
+        c4_p0: λ.curry(db.newChannel, {pico_id: "id0", name: "four", type: "t"}),
+        c5_p1: λ.curry(db.newChannel, {pico_id: "id1", name: "five", type: "t"}),
+
+        get_c2: λ.curry(db.getPicoIDByECI, "id2"),
+        get_c3: λ.curry(db.getPicoIDByECI, "id3"),
+        get_c4: λ.curry(db.getPicoIDByECI, "id4"),
+        get_c5: λ.curry(db.getPicoIDByECI, "id5"),
+
+    }, function(err, data){
+        if(err) return t.end(err);
+
+        t.deepEquals(data.get_c2, "id0");
+        t.deepEquals(data.get_c3, "id1");
+        t.deepEquals(data.get_c4, "id0");
+        t.deepEquals(data.get_c5, "id1");
+
+        db.getPicoIDByECI("bad-id", function(err, id){
+            t.ok(err);
+            t.notOk(id);
+            t.end();
+        });
+    });
+});

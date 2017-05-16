@@ -7,6 +7,40 @@ var mockEngine = function(core){
     return kengine(core).def;
 };
 
+test("engine:getPicoIDByECI", function(t){
+    cocb.run(function*(){
+
+        var engine = mockEngine({
+            db: {
+                getPicoIDByECI: function(eci, callback){
+                    process.nextTick(function(){
+                        if(eci === "foo"){
+                            return callback(null, "bar");
+                        }else if(eci === "baz"){
+                            return callback(null, "qux");
+                        }
+                        callback("NOT FOUND:" + eci);
+                    });
+                }
+            }
+        });
+        var get = function*(eci){
+            return yield engine.getPicoIDByECI({}, {eci: eci,});
+        };
+
+        t.equals(yield get("foo"), "bar");
+        t.equals(yield get("baz"), "qux");
+
+        try{
+            yield get("quux");
+            t.fail("should throw b/c not found");
+        }catch(err){
+            t.equals(err, "NOT FOUND:quux");
+        }
+
+    }, t.end);
+});
+
 test("engine:registerRuleset", function(t){
     cocb.run(function*(){
 

@@ -26,6 +26,11 @@ module.exports = function(core){
             var opts = args.opts;
             core.db.removeChannel(opts.pico_id, opts.eci, callback);
         }),
+        getPicoIDByECI: mkKRLfn([
+            "eci",
+        ], function(args, ctx, callback){
+            core.db.getPicoIDByECI(args.eci, callback);
+        }),
         registerRuleset: mkKRLfn([
             "url",
             "base",
