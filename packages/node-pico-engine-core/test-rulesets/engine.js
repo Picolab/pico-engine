@@ -98,14 +98,20 @@ module.exports = {
             ]]
         }
       },
+      "prelude": function* (ctx) {
+        ctx.scope.set("pico_id", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["pico_id"]));
+        ctx.scope.set("rid", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["rid"]));
+        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
+        ctx.scope.set("base", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["base"]));
+      },
       "postlude": {
         "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "engine", "installRuleset"))(ctx, [{
-              "pico_id": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["pico_id"]),
-              "rid": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["rid"]),
-              "url": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]),
-              "base": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["base"])
-            }]);
+          yield (yield ctx.modules.get(ctx, "engine", "installRuleset"))(ctx, [
+            ctx.scope.get("pico_id"),
+            ctx.scope.get("rid"),
+            ctx.scope.get("url"),
+            ctx.scope.get("base")
+          ]);
         },
         "notfired": undefined,
         "always": undefined

@@ -3,6 +3,16 @@ var test = require("tape");
 var cocb = require("co-callback");
 var kengine = require("./engine");
 
+//wrap stubbed functions in this to simulate async
+var tick = function(fn){
+    return function(){
+        var args = _.toArray(arguments);
+        process.nextTick(function(){
+            fn.apply(null, args);
+        });
+    };
+};
+
 var mockEngine = function(core){
     return kengine(core).def;
 };
@@ -11,16 +21,14 @@ test("engine:getPicoIDByECI", function(t){
     cocb.run(function*(){
         var engine = mockEngine({
             db: {
-                getPicoIDByECI: function(eci, callback){
-                    process.nextTick(function(){
-                        if(eci === "foo"){
-                            return callback(null, "bar");
-                        }else if(eci === "baz"){
-                            return callback(null, "qux");
-                        }
-                        callback("NOT FOUND:" + eci);
-                    });
-                }
+                getPicoIDByECI: tick(function(eci, callback){
+                    if(eci === "foo"){
+                        return callback(null, "bar");
+                    }else if(eci === "baz"){
+                        return callback(null, "qux");
+                    }
+                    callback("NOT FOUND:" + eci);
+                })
             }
         });
         var get = function*(eci){
@@ -44,22 +52,18 @@ test("engine:removeChannel", function(t){
     cocb.run(function*(){
         var engine = mockEngine({
             db: {
-                getPicoIDByECI: function(eci, callback){
-                    process.nextTick(function(){
-                        if(eci === "foo"){
-                            return callback(null, "bar");
-                        }
-                        callback("NOT FOUND:" + eci);
-                    });
-                },
-                removeChannel: function(pico_id, eci, callback){
-                    process.nextTick(function(){
-                        if(pico_id === "bar" && eci === "foo"){
-                            return callback();
-                        }
-                        callback("cannot removeChannel " + pico_id + "," + eci);
-                    });
-                }
+                getPicoIDByECI: tick(function(eci, callback){
+                    if(eci === "foo"){
+                        return callback(null, "bar");
+                    }
+                    callback("NOT FOUND:" + eci);
+                }),
+                removeChannel: tick(function(pico_id, eci, callback){
+                    if(pico_id === "bar" && eci === "foo"){
+                        return callback();
+                    }
+                    callback("cannot removeChannel " + pico_id + "," + eci);
+                })
             }
         });
         var rm = function*(eci){
@@ -81,13 +85,11 @@ test("engine:registerRuleset", function(t){
     cocb.run(function*(){
 
         var engine = mockEngine({
-            registerRulesetURL: function(url, callback){
-                process.nextTick(function(){
-                    callback(null, {
-                        rid: "rid for: " + url
-                    });
+            registerRulesetURL: tick(function(url, callback){
+                callback(null, {
+                    rid: "rid for: " + url
                 });
-            }
+            })
         });
 
         t.equals(yield engine.registerRuleset({}, {
@@ -109,6 +111,61 @@ test("engine:registerRuleset", function(t){
     }, t.end);
 });
 
+test("engine:installRuleset", function(t){
+    cocb.run(function*(){
+        var engine = mockEngine({
+            installRuleset: tick(function(pico_id, rid, callback){
+                callback();
+            }),
+            registerRulesetURL: tick(function(url, callback){
+                callback(null, {
+                    rid: "REG:" + /\/([^\/]*)\.krl$/.exec(url)[1]
+                });
+            }),
+            db: {
+                findRulesetsByURL: tick(function(url, callback){
+                    if(url === "http://foo.bar/baz/qux.krl"){
+                        return callback(null, [{rid: "found"}]);
+                    }else if(url === "file:///too/many.krl"){
+                        return callback(null, [{rid: "a"}, {rid: "b"}, {rid: "c"}]);
+                    }
+                    callback(null, []);
+                }),
+            }
+        });
+
+        var inst = function*(id, rid, url, base){
+            return yield engine.installRuleset({}, {
+                pico_id: id,
+                rid: rid,
+                url: url,
+                base: base,
+            });
+        };
+
+        try{
+            yield inst("pico0");
+            t.fail("should throw b/c missing args");
+        }catch(err){
+            t.equals(err + "", "Error: installRuleset expects `rid` or `url`+`base`");
+        }
+
+        t.equals(yield inst("pico0", "foo.bar"), "foo.bar");
+        t.deepEquals(yield inst("pico0", ["foo.bar", "foo.qux"]), ["foo.bar", "foo.qux"]);
+        t.deepEquals(yield inst("pico0", []), []);
+        t.deepEquals(yield inst("pico0", null, "file:///foo/bar.krl"), "REG:bar");
+        t.deepEquals(yield inst("pico0", null, "qux.krl", "http://foo.bar/baz/"), "found");
+
+        try{
+            yield inst("pico0", null, "file:///too/many.krl");
+            t.fail("should throw b/c too many matched");
+        }catch(err){
+            t.equals(err + "", "Error: More than one rid found for the given url: a , b , c");
+        }
+
+    }, t.end);
+});
+
 test("engine:uninstallRuleset", function(t){
     cocb.run(function*(){
 
@@ -116,18 +173,16 @@ test("engine:uninstallRuleset", function(t){
         var order = 0;
 
         var engine = mockEngine({
-            uninstallRuleset: function(id, rid, callback){
+            uninstallRuleset: tick(function(id, rid, callback){
                 if(id !== "pico0"){
                     return callback(new Error("invalid pico_id"));
                 }
                 if(!_.isString(rid)){
                     return callback(new Error("invalid rid"));
                 }
-                process.nextTick(function(){
-                    _.set(uninstalled, [id, rid], order++);
-                    callback();
-                });
-            }
+                _.set(uninstalled, [id, rid], order++);
+                callback();
+            })
         });
 
         t.equals(yield engine.uninstallRuleset({}, {
