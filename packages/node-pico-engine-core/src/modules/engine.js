@@ -21,6 +21,11 @@ module.exports = function(core){
         ], function(args, ctx, callback){
             core.db.newChannel(args, callback);
         }),
+        listChannels: mkKRLfn([
+            "pico_id",
+        ], function(args, ctx, callback){
+            core.db.listChannels(args.pico_id, callback);
+        }),
         removeChannel: mkKRLfn([
             "eci",
         ], function(args, ctx, callback){
