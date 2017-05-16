@@ -113,7 +113,11 @@ module.exports = function(core){
         unregisterRuleset: mkKRLfn([
             "rid",
         ], function(args, ctx, callback){
-            core.unregisterRuleset(args.rid, callback);
+            var rids = _.isArray(args.rid)
+                ? _.uniq(args.rid)
+                : [args.rid];
+
+            λ.each(rids, core.unregisterRuleset, callback);
         }),
     };
 

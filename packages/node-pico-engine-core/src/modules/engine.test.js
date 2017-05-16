@@ -205,3 +205,42 @@ test("engine:uninstallRuleset", function(t){
 
     }, t.end);
 });
+
+test("engine:unregisterRuleset", function(t){
+    cocb.run(function*(){
+        var log = [];
+        var engine = mockEngine({
+            unregisterRuleset: tick(function(rid, callback){
+                if(!_.isString(rid)){
+                    return callback("invalid rid");
+                }
+                log.push(rid);
+                callback();
+            }),
+        });
+
+        t.equals(yield engine.unregisterRuleset({}, {
+            rid: "foo.bar",
+        }), void 0);
+
+        t.equals(yield engine.unregisterRuleset({}, {
+            rid: ["baz", "qux"],
+        }), void 0);
+
+        t.deepEquals(log, [
+            "foo.bar",
+            "baz",
+            "qux",
+        ]);
+
+        try{
+            yield engine.unregisterRuleset({}, {
+                rid: ["baz", 2, "qux"],
+            });
+            t.fail();
+        }catch(err){
+            t.equals(err, "invalid rid");
+        }
+
+    }, t.end);
+});
