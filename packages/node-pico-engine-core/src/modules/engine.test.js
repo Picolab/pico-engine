@@ -281,6 +281,12 @@ test("engine:describeRuleset", function(t){
                 author: "Phil Windley",
             });
 
+            try{
+                yield descRID(ctx, {rid: "not.found"});
+                t.fail("should fail b/c not found");
+            }catch(err){
+                t.ok(err && err.notFound);
+            }
         }, t.end);
     });
 });

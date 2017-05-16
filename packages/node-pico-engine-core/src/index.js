@@ -425,7 +425,7 @@ module.exports = function(conf, callback){
             //signal event then immediately continue on so schedule doesn't block
             callback();
         },
-        is_test_mode: !!conf.scheduler_is_test_mode,
+        is_test_mode: !!conf.___core_testing_mode,
     });
 
     core.registerRulesetURL = function(url, callback){
@@ -489,10 +489,8 @@ module.exports = function(conf, callback){
 
             dbDump: db.toObj,
         };
-        if(conf.scheduler_is_test_mode){
+        if(conf.___core_testing_mode){
             pe.scheduler = core.scheduler;
-        }
-        if(conf._testing_expose_modules){
             pe.modules = modules;
         }
         //restart "cron"

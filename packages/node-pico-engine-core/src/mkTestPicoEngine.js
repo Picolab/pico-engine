@@ -25,9 +25,8 @@ module.exports = function(opts, callback){
     opts = opts || {};
     PicoEngine({
         host: "https://test-host",
-        scheduler_is_test_mode: true,
         allow_event_time_override: true,
-        _testing_expose_modules: true,
+        ___core_testing_mode: true,
         compileAndLoadRuleset: function(rs_info, callback){
             var rid = rs_info.src.substring(8, rs_info.src.length - 2);
             var rs = test_rulesets[rid];
