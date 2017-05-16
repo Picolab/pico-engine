@@ -492,6 +492,9 @@ module.exports = function(conf, callback){
         if(conf.scheduler_is_test_mode){
             pe.scheduler = core.scheduler;
         }
+        if(conf._testing_expose_modules){
+            pe.modules = modules;
+        }
         //restart "cron"
         db.listScheduled(function(err, vals){
             if(err) return callback(err);

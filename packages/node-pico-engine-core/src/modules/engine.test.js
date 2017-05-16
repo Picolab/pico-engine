@@ -2,6 +2,7 @@ var _ = require("lodash");
 var test = require("tape");
 var cocb = require("co-callback");
 var kengine = require("./engine");
+var mkTestPicoEngine = require("../mkTestPicoEngine");
 
 //wrap stubbed functions in this to simulate async
 var tick = function(fn){
@@ -243,4 +244,43 @@ test("engine:unregisterRuleset", function(t){
         }
 
     }, t.end);
+});
+
+test("engine:describeRuleset", function(t){
+    mkTestPicoEngine({}, function(err, pe){
+        if(err) return t.end(err);
+
+        cocb.run(function*(){
+            var ctx = {};
+            var descRID = yield pe.modules.get(ctx, "engine", "describeRuleset");
+
+            var desc = yield descRID(ctx, {rid: "io.picolabs.hello_world"});
+
+            var isIsoString = function(str){
+                return str === (new Date(str)).toISOString();
+            };
+
+            t.deepEquals(_.keys(desc), [
+                "rid",
+                "src",
+                "hash",
+                "url",
+                "timestamp_stored",
+                "timestamp_enable",
+                "meta",
+            ]);
+            t.equals(desc.rid, "io.picolabs.hello_world");
+            t.ok(_.isString(desc.src));
+            t.ok(_.isString(desc.hash));
+            t.ok(_.isString(desc.url));
+            t.ok(isIsoString(desc.timestamp_stored));
+            t.ok(isIsoString(desc.timestamp_enable));
+            t.deepEquals(desc.meta, {
+                name: "Hello World",
+                description: "\nA first ruleset for the Quickstart\n    ",
+                author: "Phil Windley",
+            });
+
+        }, t.end);
+    });
 });
