@@ -564,8 +564,8 @@ es-to-primitive@^1.1.1:
     is-symbol "^1.0.1"
 
 es5-ext@^0.10.14, es5-ext@^0.10.9, es5-ext@~0.10.14:
-  version "0.10.16"
-  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.16.tgz#1ef1b04f3d09db6a5d630226d62202f2e425e45a"
+  version "0.10.18"
+  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.18.tgz#dc239d3dce4c22b9c939aa180878837a3c0b5c92"
   dependencies:
     es6-iterator "2"
     es6-symbol "~3.1"
@@ -1361,8 +1361,8 @@ krl-compiler@^0.30.2:
     minimist "^1.2.0"
 
 krl-parser@^0.20.5:
-  version "0.20.5"
-  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.20.5.tgz#76546500f1dfc08ed0bea0341905d2b201d8ac01"
+  version "0.20.6"
+  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.20.6.tgz#12e653fc5f738e068dc2033fdaf1f748dba7ae60"
   dependencies:
     excerpt-at-line-col "^1.0.0"
     line-column "^1.0.2"
@@ -1561,8 +1561,8 @@ negotiator@0.6.1:
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
 
 node-abi@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-2.0.0.tgz#443bfd151b599231028ae425e592e76cd31cb537"
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-2.0.2.tgz#00f3e0a58100eb480133b48c99a32cc1f9e6c93e"
 
 node-fingerprint@0.0.2:
   version "0.0.2"

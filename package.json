@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "start": "scriptsp watch:http watch:test",
-    "watch:http": "onchange -i src/ public/ -- node src/run.js",
+    "watch:http": "onchange -i src/ krl/ public/ -- node src/run.js",
     "watch:test": "onchange -i src/ -- npm run test -s",
     "lint": "eslint src/ && echo lint-ok",
     "test": "npm run lint && node src/tests.js"
