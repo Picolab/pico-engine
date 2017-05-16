@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var λ = require("contra");
 var urllib = require("url");
 var mkKRLfn = require("../mkKRLfn");
 
@@ -84,6 +85,18 @@ module.exports = function(core){
                 }
                 doIt(_.head(rids));
             });
+        }),
+        uninstallRuleset: mkKRLfn([
+            "pico_id",
+            "rid",
+        ], function(args, ctx, callback){
+            var rids = _.isArray(args.rid)
+                ? args.rid
+                : [args.rid];
+
+            λ.each(rids, function(rid, next){
+                core.uninstallRuleset(args.pico_id, rid, next);
+            }, callback);
         }),
         unregisterRuleset: mkKRLfn([
             "rid",

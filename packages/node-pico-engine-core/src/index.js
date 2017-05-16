@@ -458,6 +458,10 @@ module.exports = function(conf, callback){
         });
     };
 
+    core.uninstallRuleset = function(pico_id, rid, callback){
+        db.removeRulesetFromPico(pico_id, rid, callback);
+    };
+
     registerAllEnabledRulesets(function(err){
         if(err) return callback(err);
         var pe = {
@@ -476,7 +480,7 @@ module.exports = function(conf, callback){
             removeChannel: db.removeChannel,
             getOwnerECI: db.getOwnerECI,
             installRuleset: core.installRuleset,
-            uninstallRuleset: db.removeRulesetFromPico,
+            uninstallRuleset: core.uninstallRuleset,
             removePico: db.removePico,
 
             putEntVar: db.putEntVar,

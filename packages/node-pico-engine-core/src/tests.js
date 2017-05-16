@@ -4,3 +4,4 @@ require("./DB.test");
 require("./PicoQueue.test");
 require("./modules/http.test");
 require("./modules/time.test");
+require("./modules/engine.test");
