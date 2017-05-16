@@ -7,6 +7,38 @@ var mockEngine = function(core){
     return kengine(core).def;
 };
 
+test("engine:registerRuleset", function(t){
+    cocb.run(function*(){
+
+        var engine = mockEngine({
+            registerRulesetURL: function(url, callback){
+                process.nextTick(function(){
+                    callback(null, {
+                        rid: "rid for: " + url
+                    });
+                });
+            }
+        });
+
+        t.equals(yield engine.registerRuleset({}, {
+            url: "http://foo.bar/qux.krl",
+        }), "rid for: http://foo.bar/qux.krl");
+
+        t.equals(yield engine.registerRuleset({}, {
+            url: "qux.krl",
+            base: "https://foo.bar/baz/",
+        }), "rid for: https://foo.bar/baz/qux.krl");
+
+        try{
+            yield engine.registerRuleset({}, []);
+            t.fail("should throw b/c no url is given");
+        }catch(err){
+            t.equals(err + "", "Error: registerRuleset expects `url`");
+        }
+
+    }, t.end);
+});
+
 test("engine:uninstallRuleset", function(t){
     cocb.run(function*(){
 

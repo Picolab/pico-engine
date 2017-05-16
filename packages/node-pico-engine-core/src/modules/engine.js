@@ -27,18 +27,15 @@ module.exports = function(core){
             core.db.removeChannel(opts.pico_id, opts.eci, callback);
         }),
         registerRuleset: mkKRLfn([
-            "opts",
+            "url",
+            "base",
         ], function(args, ctx, callback){
-            var opts = args.opts;
-            var uri;
-            if(_.isString(opts.url)){
-                uri = _.isString(opts.base)
-                    ? urllib.resolve(opts.base, opts.url)
-                    : opts.url;
+            if(!_.isString(args.url)){
+                return callback(new Error("registerRuleset expects `url`"));
             }
-            if(!_.isString(uri)){
-                return callback(new Error("registerRuleset expects, pico_id and rid or url+base"));
-            }
+            var uri = _.isString(args.base)
+                ? urllib.resolve(args.base, args.url)
+                : args.url;
             core.registerRulesetURL(uri, function(err, data){
                 if(err) return callback(err);
                 callback(null, data.rid);
