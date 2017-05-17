@@ -187,7 +187,11 @@ stdlib.decode = function(ctx, val){
     if(!_.isString(val)){
         return val;
     }
-    return JSON.parse(val);
+    try{
+        return JSON.parse(val);
+    }catch(e){
+        return val;
+    }
 };
 stdlib.extract = function(ctx, val, regex){
     var r = val.match(regex);
