@@ -1369,8 +1369,8 @@ krl-parser@^0.20.5:
     nearley "2.9.x"
 
 krl-stdlib@^0.6.0:
-  version "0.6.3"
-  resolved "https://registry.yarnpkg.com/krl-stdlib/-/krl-stdlib-0.6.3.tgz#280442cdda9affde9a1cf3540886b475e188311c"
+  version "0.6.4"
+  resolved "https://registry.yarnpkg.com/krl-stdlib/-/krl-stdlib-0.6.4.tgz#364963aa83031bacba652ab144b55169c3149610"
   dependencies:
     cuid "^1.3.8"
     lodash "^4.13.1"
