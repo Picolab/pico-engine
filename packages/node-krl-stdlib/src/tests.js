@@ -168,6 +168,8 @@ test("String operators", function(t){
     tf("capitalize", ["lower"], "Lower");
 
     tf("decode", ["[1,2,3]"], [1, 2, 3]);
+    tf("decode", [[1,2,3]], [1, 2, 3], "if not a string, just return it");
+    tf("decode", [void 0], void 0, "if not a string, just return it");
 
     tf("extract", ["3 + 2 - 1", /([0-9])/g], ["3", "2", "1"]);
     tf("extract", ["no-match", /([0-9])/g], []);

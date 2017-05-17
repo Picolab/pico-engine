@@ -184,6 +184,9 @@ stdlib.capitalize = function(ctx, val){
     return val[0].toUpperCase() + val.slice(1);
 };
 stdlib.decode = function(ctx, val){
+    if(!_.isString(val)){
+        return val;
+    }
     return JSON.parse(val);
 };
 stdlib.extract = function(ctx, val, regex){
