@@ -77,8 +77,7 @@ ruleset Subscriptions {
       logs = options.klog("parameters ");
       self = getSelf().klog("self");
       id = self.id;
-      channel = engine:newChannel(
-        { "name": options.name, "type": options.eci_type, "pico_id": id }).klog("newchannel");
+      channel = engine:newChannel(id, options.name, options.eci_type).klog("newchannel");
       eci = channel.id;
       {"eci": eci, "name": options.name,"type": options.eci_type, "attributes": options.attributes }
     }
@@ -87,8 +86,7 @@ ruleset Subscriptions {
       logs = options.klog("parameters ")
       self = getSelf().klog("self")
       id = self.id
-      channel = engine:newChannel(
-        { "name": options.name, "type": options.eci_type, "pico_id": id }).klog("newchannel")
+      channel = engine:newChannel(id, options.name, options.eci_type).klog("newchannel")
       eci = channel.id
       newSubscription = {"eci": eci, "name": options.name,"type": options.eci_type, "attributes": options.attributes }
       null = ent:subscriptions.pset(getSubscriptions().put([newSubscription.name] , newSubscription.put(["attributes"],{"sid" : newSubscription.name})))
@@ -440,10 +438,7 @@ rule addInboundSubscription {
     always {
       ent:subscriptions := updatedSubscription;
       self = getSelf();
-      engine:removeChannel({
-        "pico_id": self.id,
-        "eci": subscription{"eci"}.klog("eci to be removed")
-      });
+      engine:removeChannel(subscription{"eci"}.klog("eci to be removed"));
       subscription.klog(standardOut("success, attemped to remove subscription"));
       raise wrangler event "subscription_removed" // event to nothing
         with removed_subscription = subscription
