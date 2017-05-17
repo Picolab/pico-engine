@@ -101,6 +101,19 @@ test("general operators", function(t){
     tf("/", [4, 2], 2);
     tf("%", [4, 2], 0);
 
+    tf("==", [2, 2], true);
+    tf("==", ["abc", "def"], false);
+    tf("==", ["abc", "abc"], true);
+    tf("==", [null, NaN], true);
+    tf("==", [NaN, undefined], true);
+    tf("==", [null, undefined], true);
+    tf("==", [NaN, NaN], true);
+
+    tf("!=", [1, 2], true);
+    tf("!=", [1, 1], false);
+    tf("!=", [1, NaN], true);
+    tf("!=", [null, NaN], false);
+
     t.end();
 });
 

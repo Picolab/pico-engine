@@ -2,6 +2,10 @@ var _ = require("lodash");
 var cuid = require("cuid");
 var randomWords = require("random-words");
 
+var isnull = function(val){
+    return val === null || val === undefined || _.isNaN(val);
+};
+
 var iterBase = function*(val, iter){
     var should_continue;
     if(_.isArray(val)){
@@ -54,10 +58,16 @@ defVarArgOp(">=", function(r, a){
     return r >= a;
 });
 defVarArgOp("==", function(r, a){
-    return r === a;
+    if(r === a){
+        return true;
+    }
+    return isnull(r) && isnull(a);
 });
 defVarArgOp("!=", function(r, a){
-    return r !== a;
+    if(r === a){
+        return false;
+    }
+    return !(isnull(r) && isnull(a));
 });
 defVarArgOp("+", function(r, a){
     return r + a;
@@ -126,7 +136,7 @@ stdlib.as = function(ctx, val, type){
 };
 
 stdlib.isnull = function(ctx, val){
-    return val === null || val === undefined || _.isNaN(val);
+    return isnull(val);
 };
 
 stdlib.klog = function(ctx, val, message){
