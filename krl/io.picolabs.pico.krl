@@ -27,8 +27,7 @@ ruleset io.picolabs.pico {
     newPico = function(){
       child = engine:newPico();
       child_id = child.id;
-      channel = engine:newChannel(
-        { "name": "main", "type": "secret", "pico_id": child_id });
+      channel = engine:newChannel(child_id, "main", "secret");
       child_eci = channel.id;
       { "id": child_id, "eci": child_eci }
     }
@@ -51,8 +50,7 @@ ruleset io.picolabs.pico {
           "domain": "pico", "type": "child_created",
           "attrs": attrs })
     always {
-      engine:installRuleset(
-        { "pico_id": new_child.id, "rid": "io.picolabs.pico" });
+      engine:installRuleset(new_child.id, "io.picolabs.pico");
       ent:children := children().union([new_child])
     }
   }
@@ -168,11 +166,9 @@ ruleset io.picolabs.pico {
       rid = event:attr("rid")
       base = event:attr("base")
       url = event:attr("url")
-      new_attrs = rid => { "pico_id": ent:id, "rid": rid }
-                       | { "pico_id": ent:id, "base": base, "url": url }
     }
     always {
-      real_rid = engine:installRuleset( new_attrs );
+      real_rid = engine:installRuleset(ent:id, rid, url, base);
       raise pico event "ruleset_added" for real_rid
         attributes event:attrs()
     }
