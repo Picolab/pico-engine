@@ -364,7 +364,7 @@ module.exports = function(opts){
                 });
             });
         },
-        getAllEnabledRulesets: function(callback){
+        listAllEnabledRIDs: function(callback){
             var rids = [];
             dbRange(ldb, {
                 prefix: ["rulesets", "enabled"],

@@ -119,6 +119,10 @@ module.exports = function(core){
 
             λ.each(rids, core.unregisterRuleset, callback);
         }),
+        listAllEnabledRIDs: mkKRLfn([
+        ], function(args, ctx, callback){
+            core.db.listAllEnabledRIDs(callback);
+        }),
         describeRuleset: mkKRLfn([
             "rid",
         ], function(args, ctx, callback){

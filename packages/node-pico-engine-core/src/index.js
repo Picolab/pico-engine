@@ -356,7 +356,7 @@ module.exports = function(conf, callback){
     };
 
     var registerAllEnabledRulesets = function(callback){
-        db.getAllEnabledRulesets(function(err, rids){
+        db.listAllEnabledRIDs(function(err, rids){
             if(err)return callback(err);
             λ.map(rids, getRulesetForRID, function(err, rs_list){
                 if(err)return callback(err);
