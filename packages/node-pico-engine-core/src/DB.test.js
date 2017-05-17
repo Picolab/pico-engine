@@ -517,3 +517,52 @@ test("DB - listChannels", function(t){
         t.end();
     });
 });
+
+test("DB - listAllEnabledRIDs", function(t){
+    var db = mkTestDB();
+
+    var hashes = {};
+    var store = function(rid){
+        return function(done){
+            db.storeRuleset("ruleset " + rid + "{}", {}, function(err, hash){
+                hashes[rid] = hash;
+                done();
+            });
+        };
+    };
+
+    var enable = function(rid){
+        return function(done){
+            db.enableRuleset(hashes[rid], done);
+        };
+    };
+
+    λ.series({
+        list0: λ.curry(db.listAllEnabledRIDs),
+
+        s_foo: store("foo"),
+        s_bar: store("bar"),
+        s_baz: store("baz"),
+        list1: λ.curry(db.listAllEnabledRIDs),
+
+        e_foo: enable("foo"),
+        list2: λ.curry(db.listAllEnabledRIDs),
+
+        e_bar: enable("bar"),
+        e_baz: enable("baz"),
+        list3: λ.curry(db.listAllEnabledRIDs),
+
+        d_foo: λ.curry(db.disableRuleset, "foo"),
+        list4: λ.curry(db.listAllEnabledRIDs),
+    }, function(err, data){
+        if(err) return t.end(err);
+
+        t.deepEquals(data.list0, []);
+        t.deepEquals(data.list1, []);
+        t.deepEquals(data.list2, ["foo"]);
+        t.deepEquals(data.list3, ["bar", "baz", "foo"]);
+        t.deepEquals(data.list4, ["bar", "baz"]);
+
+        t.end();
+    });
+});
