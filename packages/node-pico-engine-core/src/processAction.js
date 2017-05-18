@@ -4,7 +4,9 @@ var runKRL = require("./runKRL");
 
 var runSubAction = cocb.wrap(function*(ctx, name, args){
     var definedAction = ctx.scope.get(name);
-    //TODO assert it's an action
+    if(definedAction.is_a_defaction !== true){
+        throw new Error("not `" + name + "` is not an action");
+    }
     return yield definedAction(ctx, args);
 });
 

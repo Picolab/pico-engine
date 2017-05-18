@@ -1393,6 +1393,17 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
                 signal("defa", "ifAnotB", {a: "true", b: "true"}),
                 []
             ],
+            [
+                query("add", {a: 1, b: 2}),//try and fake an action
+                {type: "directive", name: "add", options: {resp: 3}}
+            ],
+            function(next){
+                signal("defa", "add")(function(err, resp){
+                    t.equals(err + "", "Error: not `add` is not an action");
+                    t.notOk(resp);
+                    next();
+                });
+            },
         ], t.end);
     });
 });

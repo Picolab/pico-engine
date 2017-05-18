@@ -1,6 +1,11 @@
 module.exports = {
   "rid": "io.picolabs.defaction",
-  "meta": { "shares": ["getSettingVal"] },
+  "meta": {
+    "shares": [
+      "getSettingVal",
+      "add"
+    ]
+  },
   "global": function* (ctx) {
     ctx.defaction(ctx, "foo", function* (ctx, getArg) {
       ctx.scope.set("a", getArg("a", 0));
@@ -99,6 +104,15 @@ module.exports = {
         ]
       };
     });
+    ctx.scope.set("add", ctx.KRLClosure(function* (ctx, getArg) {
+      ctx.scope.set("a", getArg("a", 0));
+      ctx.scope.set("b", getArg("b", 1));
+      return {
+        "type": "directive",
+        "name": "add",
+        "options": { "resp": yield ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("b")) }
+      };
+    }));
   },
   "rules": {
     "foo": {
@@ -234,6 +248,33 @@ module.exports = {
               return yield runAction(ctx, "ifAnotB", [
                 yield ctx.callKRLstdlib("==", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["a"]), "true"),
                 yield ctx.callKRLstdlib("==", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["b"]), "true")
+              ]);
+            }
+          }]
+      }
+    },
+    "add": {
+      "name": "add",
+      "select": {
+        "graph": { "defa": { "add": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "add", [
+                1,
+                2
               ]);
             }
           }]

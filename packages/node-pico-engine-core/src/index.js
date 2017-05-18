@@ -77,6 +77,7 @@ module.exports = function(conf, callback){
                 var r = yield processAction(ctx3, action_block);
                 return r.responses;
             });
+            actionFn.is_a_defaction = true;
             return ctx.scope.set(name, actionFn);
         };
 

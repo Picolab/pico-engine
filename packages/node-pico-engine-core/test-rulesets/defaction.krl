@@ -1,6 +1,6 @@
 ruleset io.picolabs.defaction {
   meta {
-    shares getSettingVal
+    shares getSettingVal, add
   }
   global {
     foo = defaction(a){
@@ -23,16 +23,30 @@ ruleset io.picolabs.defaction {
       ent:setting_val
     }
     chooser = defaction(val){
-        choose val {
-            asdf => foo(val)
-            fdsa => bar(val, "ok", "done")
-        }
+
+
+      choose val {
+        asdf =>
+          foo(val)
+        fdsa =>
+          bar(val, "ok", "done")
+      }
     }
     ifAnotB = defaction(a, b){
-        if a && (not b) then {
-            send_directive("yes a")
-            send_directive("not b")
-        }
+
+
+      if a && not b then
+      every {
+        send_directive("yes a")
+        send_directive("not b")
+      }
+    }
+    add = function(a, b){
+      {
+        "type": "directive",
+        "name": "add",
+        "options": {"resp": a + b}
+      }
     }
   }
   rule foo {
@@ -63,5 +77,9 @@ ruleset io.picolabs.defaction {
   rule ifAnotB {
     select when defa ifAnotB;
     ifAnotB(event:attr("a") == "true", event:attr("b") == "true")
+  }
+  rule add {
+    select when defa add;
+    add(1, 2)
   }
 }
