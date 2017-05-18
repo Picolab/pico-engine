@@ -1347,6 +1347,7 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
         if(err)return t.end(err);
 
         var signal = mkSignalTask(pe, "id1");
+        var query = mkQueryTask(pe, "id1", "io.picolabs.defaction");
 
         testOutputs(t, [
             λ.curry(pe.newPico, {}),
@@ -1359,6 +1360,38 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
             [
                 signal("defa", "bar", {}),
                 [{name: "bar", options: {a: "baz", b: "qux", c: "quux"}}]
+            ],
+            [
+                query("getSettingVal"),
+                void 0
+            ],
+            [
+                signal("defa", "bar_setting", {}),
+                [{name: "bar", options: {a: "baz", b: "qux", c: "quux"}}]
+            ],
+            [
+                query("getSettingVal"),
+                [{name: "bar", type: "directive", options: {a: "baz", b: "qux", c: "quux"},  meta: {eid: "1234", rid: "io.picolabs.defaction", rule_name: "bar_setting", txn_id: "TODO"}}]
+            ],
+            [
+                signal("defa", "chooser", {val: "asdf"}),
+                [{name: "foo", options: {a: "asdf", b: 5}}]
+            ],
+            [
+                signal("defa", "chooser", {val: "fdsa"}),
+                [{name: "bar", options: {a: "fdsa", b: "ok", c: "done"}}]
+            ],
+            [
+                signal("defa", "chooser", {}),
+                []
+            ],
+            [
+                signal("defa", "ifAnotB", {a: "true", b: "false"}),
+                [{name: "yes a", options: {}}, {name: "not b", options: {}}]
+            ],
+            [
+                signal("defa", "ifAnotB", {a: "true", b: "true"}),
+                []
             ],
         ], t.end);
     });

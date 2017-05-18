@@ -22,6 +22,18 @@ ruleset io.picolabs.defaction {
     getSettingVal = function(){
       ent:setting_val
     }
+    chooser = defaction(val){
+        choose val {
+            asdf => foo(val)
+            fdsa => bar(val, "ok", "done")
+        }
+    }
+    ifAnotB = defaction(a, b){
+        if a && (not b) then {
+            send_directive("yes a")
+            send_directive("not b")
+        }
+    }
   }
   rule foo {
     select when defa foo;
@@ -43,5 +55,13 @@ ruleset io.picolabs.defaction {
     fired {
       ent:setting_val := val
     }
+  }
+  rule chooser {
+    select when defa chooser;
+    chooser(event:attr("val"))
+  }
+  rule ifAnotB {
+    select when defa ifAnotB;
+    ifAnotB(event:attr("a") == "true", event:attr("b") == "true")
   }
 }
