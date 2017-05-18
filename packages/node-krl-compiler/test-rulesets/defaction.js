@@ -12,15 +12,12 @@ module.exports = {
       ctx.scope.set("b", 2);
       return {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "foo",
-                "options": {
-                  "a": ctx.scope.get("a"),
-                  "b": yield ctx.callKRLstdlib("+", ctx.scope.get("b"), 3)
-                }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "foo",
+                "a": ctx.scope.get("a"),
+                "b": yield ctx.callKRLstdlib("+", ctx.scope.get("b"), 3)
+              });
             }
           }]
       };
@@ -31,16 +28,13 @@ module.exports = {
       ctx.scope.set("three", getArg("three", 2));
       return {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "bar",
-                "options": {
-                  "a": ctx.scope.get("one"),
-                  "b": ctx.scope.get("two"),
-                  "c": ctx.scope.get("three")
-                }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "bar",
+                "a": ctx.scope.get("one"),
+                "b": ctx.scope.get("two"),
+                "c": ctx.scope.get("three")
+              });
             }
           }]
       };
@@ -59,13 +53,13 @@ module.exports = {
           {
             "label": "asdf",
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "foo", [ctx.scope.get("val")]);
+              return yield runAction(ctx, void 0, "foo", [ctx.scope.get("val")]);
             }
           },
           {
             "label": "fdsa",
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "bar", [
+              return yield runAction(ctx, void 0, "bar", [
                 ctx.scope.get("val"),
                 "ok",
                 "done"
@@ -84,21 +78,13 @@ module.exports = {
         },
         "actions": [
           {
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "yes a",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["yes a"]);
             }
           },
           {
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "not b",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["not b"]);
             }
           }
         ]
@@ -134,7 +120,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "foo", ["bar"]);
+              return yield runAction(ctx, void 0, "foo", ["bar"]);
             }
           }]
       }
@@ -158,7 +144,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "bar", {
+              return yield runAction(ctx, void 0, "bar", {
                 "0": "baz",
                 "two": "qux",
                 "three": "quux"
@@ -186,7 +172,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return ctx.scope.set("val", yield runAction(ctx, "bar", {
+              return ctx.scope.set("val", yield runAction(ctx, void 0, "bar", {
                 "0": "baz",
                 "two": "qux",
                 "three": "quux"
@@ -221,7 +207,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "chooser", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["val"])]);
+              return yield runAction(ctx, void 0, "chooser", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["val"])]);
             }
           }]
       }
@@ -245,7 +231,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "ifAnotB", [
+              return yield runAction(ctx, void 0, "ifAnotB", [
                 yield ctx.callKRLstdlib("==", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["a"]), "true"),
                 yield ctx.callKRLstdlib("==", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["b"]), "true")
               ]);
@@ -272,7 +258,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "add", [
+              return yield runAction(ctx, void 0, "add", [
                 1,
                 2
               ]);

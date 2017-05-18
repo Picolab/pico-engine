@@ -75,15 +75,12 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "foo",
-                "options": {
-                  "foo": yield (yield ctx.modules.get(ctx, "keys", "foo"))(ctx, []),
-                  "foo_pre": ctx.scope.get("foo_pre")
-                }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "foo",
+                "foo": yield (yield ctx.modules.get(ctx, "keys", "foo"))(ctx, []),
+                "foo_pre": ctx.scope.get("foo_pre")
+              });
             }
           }]
       },
