@@ -728,7 +728,7 @@ RuleActionBlock ->
       {% ruleActionBlock([], [], [0]) %}
     | %tok_if Expression %tok_then RuleAction
       {% ruleActionBlock([1], [], [3]) %}
-    | %tok_if Expression %tok_then %tok_every %tok_OPEN_CURLY RuleAction:+ %tok_CLSE_CURLY
+    | %tok_if Expression %tok_then %tok_every:? %tok_OPEN_CURLY RuleAction:+ %tok_CLSE_CURLY
       {% ruleActionBlock([1], [3, "src"], [5]) %}
     | %tok_every %tok_OPEN_CURLY RuleAction:+ %tok_CLSE_CURLY
       {% ruleActionBlock([], [0, "src"], [2]) %}

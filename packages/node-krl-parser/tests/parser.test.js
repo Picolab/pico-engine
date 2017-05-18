@@ -452,6 +452,34 @@ test("action", function(t){
         ]
     });
 
+    src  = "if foo == 2 then {\n";
+    src += "  one => blah(1)\n";
+    src += "  two => blah(2)\n";
+    src += "}";
+    testAction(src, {
+        type: "RuleActionBlock",
+        condition: mk.op("==", mk.id("foo"), mk(2)),
+        block_type: "every",
+        actions: [
+            {
+                type: "RuleAction",
+                label: mk.id("one"),
+                action: mk.id("blah"),
+                args: [mk(1)],
+                setting: null,
+                "with": []
+            },
+            {
+                type: "RuleAction",
+                label: mk.id("two"),
+                action: mk.id("blah"),
+                args: [mk(2)],
+                setting: null,
+                "with": []
+            }
+        ]
+    });
+
     t.end();
 });
 
@@ -2095,6 +2123,38 @@ test("DefAction", function(t){
     ]);
 
     tstDA("a = defaction(b, c){if b && c then every{foo() bar()}}", [
+        {
+            type: "DefAction",
+            id: mk.id("a"),
+            params: [mk.id("b"), mk.id("c")],
+            body: [],
+            action_block: {
+                type: "RuleActionBlock",
+                condition: mk.op("&&", mk.id("b"), mk.id("c")),
+                block_type: "every",
+                actions: [
+                    {
+                        type: "RuleAction",
+                        label: null,
+                        action: mk.id("foo"),
+                        args: [],
+                        setting: null,
+                        "with": []
+                    },
+                    {
+                        type: "RuleAction",
+                        label: null,
+                        action: mk.id("bar"),
+                        args: [],
+                        setting: null,
+                        "with": []
+                    }
+                ]
+            }
+        }
+    ]);
+
+    tstDA("a = defaction(b, c){if b && c then{foo() bar()}}", [
         {
             type: "DefAction",
             id: mk.id("a"),
