@@ -1975,110 +1975,188 @@ test("GuardCondition", function(t){
 });
 
 test("DefAction", function(t){
-    var tstDA = function(global, pre, expected){
-        var src = "ruleset rs{global{"+ global +"}rule r1{pre{"+pre+"}}}";
+    var tstDA = function(da_src, expected){
+        var src = "ruleset rs{global{"+ da_src +"}rule r1{pre{"+da_src+"}}}";
         var ast = normalizeAST(rmLoc(parser(src)));
-        t.deepEquals([
-            ast.global,
-            ast.rules[0].prelude
-        ], normalizeAST(expected));
+        var exp_ast = normalizeAST(expected);
+
+        t.deepEquals(ast.global, exp_ast);
+        t.deepEquals(ast.rules[0].prelude, exp_ast);
     };
 
-    tstDA('a = defaction(){send_directive("foo")}', "", [
-        [
-            {
-                type: "DefAction",
-                id: mk.id("a"),
-                params: [],
-                body: [],
-                action_block: {
-                    type: "RuleActionBlock",
-                    condition: null,
-                    block_type: "every",
-                    actions: [
-                        {
-                            type: "RuleAction",
-                            label: null,
-                            action: mk.id("send_directive"),
-                            args: [mk("foo")],
-                            setting: null,
-                            "with": []
-                        }
-                    ]
-                }
+    tstDA('a = defaction(){send_directive("foo")}', [
+        {
+            type: "DefAction",
+            id: mk.id("a"),
+            params: [],
+            body: [],
+            action_block: {
+                type: "RuleActionBlock",
+                condition: null,
+                block_type: "every",
+                actions: [
+                    {
+                        type: "RuleAction",
+                        label: null,
+                        action: mk.id("send_directive"),
+                        args: [mk("foo")],
+                        setting: null,
+                        "with": []
+                    }
+                ]
             }
-        ],
-        []
+        }
     ]);
 
-    tstDA("", 'a = defaction(){send_directive("foo")}', [
-        [],
-        [
-            {
-                type: "DefAction",
-                id: mk.id("a"),
-                params: [],
-                body: [],
-                action_block: {
-                    type: "RuleActionBlock",
-                    condition: null,
-                    block_type: "every",
-                    actions: [
-                        {
-                            type: "RuleAction",
-                            label: null,
-                            action: mk.id("send_directive"),
-                            args: [mk("foo")],
-                            setting: null,
-                            "with": []
-                        }
-                    ]
-                }
+    tstDA('a = defaction(){send_directive("foo")}', [
+        {
+            type: "DefAction",
+            id: mk.id("a"),
+            params: [],
+            body: [],
+            action_block: {
+                type: "RuleActionBlock",
+                condition: null,
+                block_type: "every",
+                actions: [
+                    {
+                        type: "RuleAction",
+                        label: null,
+                        action: mk.id("send_directive"),
+                        args: [mk("foo")],
+                        setting: null,
+                        "with": []
+                    }
+                ]
             }
-        ]
+        }
     ]);
 
-    tstDA('a = defaction(b, c){d = 2 e = 3 every { send_directive("foo") with f = 4 g=5 noop()}}', "", [
-        [
-            {
-                type: "DefAction",
-                id: mk.id("a"),
-                params: [mk.id("b"), mk.id("c")],
-                body: [
-                    mk.declare("=", mk.id("d"), mk(2)),
-                    mk.declare("=", mk.id("e"), mk(3))
-                ],
-                action_block: {
-                    type: "RuleActionBlock",
-                    condition: null,
-                    block_type: "every",
-                    actions: [
-                        {
-                            type: "RuleAction",
-                            label: null,
-                            action: mk.id("send_directive"),
-                            args: [mk("foo")],
-                            setting: null,
-                            "with": [
-                                mk.declare("=", mk.id("f"), mk(4)),
-                                mk.declare("=", mk.id("g"), mk(5))
-                            ]
-                        },
-                        {
-                            type: "RuleAction",
-                            label: null,
-                            action: mk.id("noop"),
-                            args: [],
-                            setting: null,
-                            "with": []
-                        }
-                    ]
-                }
+    tstDA('a = defaction(b, c){d = 2 e = 3 every { send_directive("foo") with f = 4 g=5 noop()}}', [
+        {
+            type: "DefAction",
+            id: mk.id("a"),
+            params: [mk.id("b"), mk.id("c")],
+            body: [
+                mk.declare("=", mk.id("d"), mk(2)),
+                mk.declare("=", mk.id("e"), mk(3))
+            ],
+            action_block: {
+                type: "RuleActionBlock",
+                condition: null,
+                block_type: "every",
+                actions: [
+                    {
+                        type: "RuleAction",
+                        label: null,
+                        action: mk.id("send_directive"),
+                        args: [mk("foo")],
+                        setting: null,
+                        "with": [
+                            mk.declare("=", mk.id("f"), mk(4)),
+                            mk.declare("=", mk.id("g"), mk(5))
+                        ]
+                    },
+                    {
+                        type: "RuleAction",
+                        label: null,
+                        action: mk.id("noop"),
+                        args: [],
+                        setting: null,
+                        "with": []
+                    }
+                ]
             }
-        ],
-        []
+        }
     ]);
 
+    tstDA("a = defaction(b, c){if b || c then blah()}", [
+        {
+            type: "DefAction",
+            id: mk.id("a"),
+            params: [mk.id("b"), mk.id("c")],
+            body: [],
+            action_block: {
+                type: "RuleActionBlock",
+                condition: mk.op("||", mk.id("b"), mk.id("c")),
+                block_type: "every",
+                actions: [
+                    {
+                        type: "RuleAction",
+                        label: null,
+                        action: mk.id("blah"),
+                        args: [],
+                        setting: null,
+                        "with": []
+                    }
+                ]
+            }
+        }
+    ]);
+
+    tstDA("a = defaction(b, c){if b && c then every{foo() bar()}}", [
+        {
+            type: "DefAction",
+            id: mk.id("a"),
+            params: [mk.id("b"), mk.id("c")],
+            body: [],
+            action_block: {
+                type: "RuleActionBlock",
+                condition: mk.op("&&", mk.id("b"), mk.id("c")),
+                block_type: "every",
+                actions: [
+                    {
+                        type: "RuleAction",
+                        label: null,
+                        action: mk.id("foo"),
+                        args: [],
+                        setting: null,
+                        "with": []
+                    },
+                    {
+                        type: "RuleAction",
+                        label: null,
+                        action: mk.id("bar"),
+                        args: [],
+                        setting: null,
+                        "with": []
+                    }
+                ]
+            }
+        }
+    ]);
+
+    tstDA("a = defaction(b, c){choose b(c){one => foo() two => bar()}}", [
+        {
+            type: "DefAction",
+            id: mk.id("a"),
+            params: [mk.id("b"), mk.id("c")],
+            body: [],
+            action_block: {
+                type: "RuleActionBlock",
+                condition: mk.app(mk.id("b"), [mk.id("c")]),
+                block_type: "choose",
+                actions: [
+                    {
+                        type: "RuleAction",
+                        label: mk.id("one"),
+                        action: mk.id("foo"),
+                        args: [],
+                        setting: null,
+                        "with": []
+                    },
+                    {
+                        type: "RuleAction",
+                        label: mk.id("two"),
+                        action: mk.id("bar"),
+                        args: [],
+                        setting: null,
+                        "with": []
+                    }
+                ]
+            }
+        }
+    ]);
 
     t.end();
 });
