@@ -361,10 +361,10 @@ dashdash@^1.12.0:
     assert-plus "^1.0.0"
 
 debug@^2.1.1, debug@^2.2.0:
-  version "2.6.6"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.6.tgz#a9fa6fbe9ca43cf1e79f73b75c0189cbb7d6db5a"
+  version "2.6.7"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.7.tgz#92bad1f6d05bbb6bba22cca88bcd0ec894c2861e"
   dependencies:
-    ms "0.7.3"
+    ms "2.0.0"
 
 deep-equal@~1.0.1:
   version "1.0.1"
@@ -456,8 +456,8 @@ es-to-primitive@^1.1.1:
     is-symbol "^1.0.1"
 
 es5-ext@^0.10.14, es5-ext@^0.10.9, es5-ext@~0.10.14:
-  version "0.10.16"
-  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.16.tgz#1ef1b04f3d09db6a5d630226d62202f2e425e45a"
+  version "0.10.20"
+  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.20.tgz#72a9b4fd5832797ba1bb65dceb2e25c04241c492"
   dependencies:
     es6-iterator "2"
     es6-symbol "~3.1"
@@ -1138,34 +1138,34 @@ jsprim@^1.2.2:
     verror "1.3.6"
 
 kind-of@^3.0.2:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-3.2.0.tgz#b58abe4d5c044ad33726a8c1525b48cf891bff07"
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-3.2.2.tgz#31ea21a734bab9bbb0f32466d893aea51e4a3c64"
   dependencies:
     is-buffer "^1.1.5"
 
 krl-compiler@>=0.26.2:
-  version "0.30.2"
-  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.30.2.tgz#72087a265f3578fa0bca19c766b9a591218bb578"
+  version "0.31.0"
+  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.31.0.tgz#81ee061de621cf32b18763fd3b996bcbeb9b8e8b"
   dependencies:
     btoa "^1.1.2"
     escodegen "^1.8.0"
     estree-builder "^1.6.0"
     estree-loc "^2.0.0"
-    krl-parser "^0.20.5"
+    krl-parser "^0.21.2"
     lodash "^4.13.1"
     minimist "^1.2.0"
 
-krl-parser@^0.20.5:
-  version "0.20.5"
-  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.20.5.tgz#76546500f1dfc08ed0bea0341905d2b201d8ac01"
+krl-parser@^0.21.2:
+  version "0.21.2"
+  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.21.2.tgz#78f400a9a91ed4de753f35a821f64feb78c4b778"
   dependencies:
     excerpt-at-line-col "^1.0.0"
     line-column "^1.0.2"
     nearley "2.9.x"
 
 krl-stdlib@^0.6.0:
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/krl-stdlib/-/krl-stdlib-0.6.2.tgz#401774cd34342e69e81335e5284ca7971b46f887"
+  version "0.6.4"
+  resolved "https://registry.yarnpkg.com/krl-stdlib/-/krl-stdlib-0.6.4.tgz#364963aa83031bacba652ab144b55169c3149610"
   dependencies:
     cuid "^1.3.8"
     lodash "^4.13.1"
@@ -1307,9 +1307,9 @@ moment-timezone@^0.5.13:
   version "2.18.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
 
-ms@0.7.3:
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/ms/-/ms-0.7.3.tgz#708155a5e44e33f5fd0fc53e81d0d40a91be1fff"
+ms@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
 
 mute-stream@0.0.5:
   version "0.0.5"

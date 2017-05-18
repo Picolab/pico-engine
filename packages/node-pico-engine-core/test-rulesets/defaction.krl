@@ -1,4 +1,7 @@
 ruleset io.picolabs.defaction {
+  meta {
+    shares getSettingVal
+  }
   global {
     foo = defaction(a){
       b = 2
@@ -16,16 +19,29 @@ ruleset io.picolabs.defaction {
         and
         c = three
     }
+    getSettingVal = function(){
+      ent:setting_val
+    }
   }
   rule foo {
-    select when foo a;
+    select when defa foo;
     foo("bar")
   }
   rule bar {
-    select when bar a;
+    select when defa bar;
     bar("baz") with
       two = "qux"
       and
       three = "quux"
+  }
+  rule bar_setting {
+    select when defa bar_setting;
+    bar("baz") setting(val) with
+      two = "qux"
+      and
+      three = "quux"
+    fired {
+      ent:setting_val := val
+    }
   }
 }

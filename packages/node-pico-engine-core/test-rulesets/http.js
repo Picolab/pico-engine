@@ -27,27 +27,24 @@ module.exports = {
         "content-length"
       ]);
     }));
-    ctx.scope.set("doPost", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.defaction(ctx, "doPost", function* (ctx, getArg) {
       ctx.scope.set("base_url", getArg("base_url", 0));
       ctx.scope.set("to", getArg("to", 1));
       ctx.scope.set("msg", getArg("msg", 2));
-      var actions = [{
-          "action": function* (ctx) {
-            return yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
-              "0": yield ctx.callKRLstdlib("+", ctx.scope.get("url"), "/msg.json"),
-              "form": {
-                "To": ctx.scope.get("to"),
-                "Msg": ctx.scope.get("msg")
-              }
-            });
-          }
-        }];
-      var r = [];
-      var i;
-      for (i = 0; i < actions.length; i++)
-        r.push(yield actions[i].action(ctx));
-      return r;
-    }));
+      return {
+        "actions": [{
+            "action": function* (ctx) {
+              return yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
+                "0": yield ctx.callKRLstdlib("+", ctx.scope.get("url"), "/msg.json"),
+                "form": {
+                  "To": ctx.scope.get("to"),
+                  "Msg": ctx.scope.get("msg")
+                }
+              });
+            }
+          }]
+      };
+    });
   },
   "rules": {
     "http_get": {
@@ -133,8 +130,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.scope.get("doPost")(ctx, {
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "doPost", {
                 "0": ctx.scope.get("url"),
                 "to": "bob",
                 "msg": "foobar"
@@ -165,7 +162,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx) {
-              ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
+              return ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
                 "0": ctx.scope.get("url"),
                 "qs": { "foo": "bar" },
                 "form": { "baz": "qux" }

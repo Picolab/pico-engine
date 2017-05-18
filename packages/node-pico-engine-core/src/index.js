@@ -13,6 +13,7 @@ var SymbolTable = require("symbol-table");
 var EventEmitter = require("events");
 var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
+var processAction = require("./processAction");
 
 var log_levels = {
     "info": true,
@@ -54,16 +55,31 @@ module.exports = function(conf, callback){
         }(ctx.rid));//pass in the rid at mkCTX creation so it is not later mutated
 
         ctx.modules = modules;
+        var pushCTXScope = function(ctx2){
+            return mkCTX(_.assign({}, ctx2, {
+                rid: ctx.rid,//keep your original rid
+                scope: ctx.scope.push(),
+            }));
+        };
         ctx.KRLClosure = function(fn){
             return function(ctx2, args){
-                return fn(mkCTX(_.assign({}, ctx2, {
-                    rid: ctx.rid,//keep your original rid
-                    scope: ctx.scope.push(),
-                })), function(name, index){
+                return fn(pushCTXScope(ctx2), function(name, index){
                     return getArg(args, name, index);
                 });
             };
         };
+        ctx.defaction = function(ctx, name, fn){
+            var actionFn = cocb.wrap(function*(ctx2, args){
+                var ctx3 = pushCTXScope(ctx2);
+                var action_block = yield fn(ctx3, function(name, index){
+                    return getArg(args, name, index);
+                });
+                var r = yield processAction(ctx3, action_block);
+                return r.responses;
+            });
+            return ctx.scope.set(name, actionFn);
+        };
+
         ctx.emit = function(type, val, message){//for stdlib
             var info = {};
             if(ctx.rid){

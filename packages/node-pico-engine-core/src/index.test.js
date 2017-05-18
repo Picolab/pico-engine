@@ -1353,11 +1353,11 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
             λ.curry(pe.newChannel, {pico_id: "id0", name: "one", type: "t"}),
             λ.curry(pe.installRuleset, "id0", "io.picolabs.defaction"),
             [
-                signal("foo", "a", {}),
+                signal("defa", "foo", {}),
                 [{name: "foo", options: {a: "bar", b: 5}}]
             ],
             [
-                signal("bar", "a", {}),
+                signal("defa", "bar", {}),
                 [{name: "bar", options: {a: "baz", b: "qux", c: "quux"}}]
             ],
         ], t.end);

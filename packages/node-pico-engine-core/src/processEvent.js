@@ -1,63 +1,17 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
+var processAction = require("./processAction");
 var selectRulesToEval = require("./selectRulesToEval");
 
 var evalRule = cocb.wrap(function*(ctx, rule){
     if(_.isFunction(rule.prelude)){
         yield runKRL(rule.prelude, ctx);
     }
-    var did_fire = true;
 
-    var condFn = _.get(rule, ["action_block", "condition"]);
-    var cond = condFn ? yield runKRL(condFn, ctx) : true;
-    var actions = _.get(rule, ["action_block", "actions"], []);
-    var block_type = _.get(rule, ["action_block", "block_type"], "every");
-    if(block_type === "choose"){
-        actions = _.filter(actions, function(action){
-            return action.label === cond;
-        });
-        if(_.isEmpty(actions)){
-            did_fire = false;//not fired b/c nothing matched
-        }
-    }else if(!cond){
-        did_fire = false;//not fired b/c falsey cond
-    }
+    var action_r = yield processAction(ctx, rule.action_block);
 
-    if(!did_fire){
-        actions = [];//don't run anything
-    }
-
-    //TODO handle more than one response type
-    var mapResp = function(response){
-        if((response === void 0) || (response === null)){
-            return;//noop
-        }
-        if(response.type !== "directive"){
-            return response;
-        }
-        return {
-            type: "directive",
-            options: response.options,
-            name: response.name,
-            meta: {
-                rid: rule.rid,
-                rule_name: rule.name,
-                txn_id: "TODO",//TODO transactions
-                eid: ctx.event.eid
-            }
-        };
-    };
-    var responses = [];
-    var i;
-    for(i = 0; i < actions.length; i++){
-        //TODO collect errors and respond individually to the client
-        //TODO try{}catch(e){}
-        responses.push(mapResp(yield runKRL(actions[i].action, ctx)));
-    }
-    responses = _.compact(responses);
-
-    if(did_fire){
+    if(action_r.did_fire){
         ctx.emit("debug", "fired");
         if(_.get(rule, ["postlude", "fired"])){
             yield runKRL(_.get(rule, ["postlude", "fired"]), ctx);
@@ -72,7 +26,7 @@ var evalRule = cocb.wrap(function*(ctx, rule){
         yield runKRL(_.get(rule, ["postlude", "always"]), ctx);
     }
 
-    return responses;
+    return action_r.responses;
 });
 
 var runEvent = cocb.wrap(function*(scheduled){
