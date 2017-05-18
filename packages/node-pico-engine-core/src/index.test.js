@@ -1685,13 +1685,13 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
             [query("getLog"), [
                 {from: "in_5min", name: "blah-1"},
             ]],
-            [query("rmScheduled", {id: "id4"}), void 0],//remove blah-2
+            [signal("schedule", "rm_from_schedule", {id: "id4"}),[]],//remove blah-2
             triggerTimeout(),
             [query("getLog"), [
                 {from: "in_5min", name: "blah-1"},
                 //nothing new b/c we removed blah-2
             ]],
-            [query("rmScheduled", {id: "init2"}), void 0],//remove a cron
+            [signal("schedule", "rm_from_schedule", {id: "init2"}),[]],//remove a cron
             [query("listScheduled"), [
                 {
                     id: "id2",

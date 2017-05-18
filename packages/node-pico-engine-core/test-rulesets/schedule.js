@@ -3,7 +3,6 @@ module.exports = {
   "meta": {
     "shares": [
       "getLog",
-      "rmScheduled",
       "listScheduled"
     ]
   },
@@ -13,10 +12,6 @@ module.exports = {
     }));
     ctx.scope.set("listScheduled", ctx.KRLClosure(function* (ctx, getArg) {
       return yield (yield ctx.modules.get(ctx, "schedule", "list"))(ctx, []);
-    }));
-    ctx.scope.set("rmScheduled", ctx.KRLClosure(function* (ctx, getArg) {
-      ctx.scope.set("id", getArg("id", 0));
-      return yield (yield ctx.modules.get(ctx, "schedule", "remove"))(ctx, [ctx.scope.get("id")]);
     }));
   },
   "rules": {
@@ -179,6 +174,30 @@ module.exports = {
         },
         "notfired": undefined,
         "always": undefined
+      }
+    },
+    "rm_from_schedule": {
+      "name": "rm_from_schedule",
+      "select": {
+        "graph": { "schedule": { "rm_from_schedule": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return yield ctx.modules.action(ctx, "schedule", "remove", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["id"])]);
+            }
+          }]
       }
     }
   }

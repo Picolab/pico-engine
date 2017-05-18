@@ -60,6 +60,8 @@ module.exports = function(core){
             ], function(args, ctx, callback){
                 core.db.listScheduled(callback);
             }),
+        },
+        actions: {
             remove: mkKRLfn([
                 "id",
             ], function(args, ctx, callback){

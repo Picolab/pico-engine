@@ -1,6 +1,6 @@
 ruleset io.picolabs.schedule {
   meta {
-    shares getLog, rmScheduled, listScheduled
+    shares getLog, listScheduled
   }
   global {
     getLog = function(){
@@ -8,9 +8,6 @@ ruleset io.picolabs.schedule {
     }
     listScheduled = function(){
       schedule:list()
-    }
-    rmScheduled = function(id){
-      schedule:remove(id)
     }
   }
   rule clear_log {
@@ -54,5 +51,9 @@ ruleset io.picolabs.schedule {
         setting(foo);
       ent:log := ent:log.append({"scheduled every_1min": foo})
     }
+  }
+  rule rm_from_schedule {
+    select when schedule rm_from_schedule;
+    schedule:remove(event:attr("id"))
   }
 }
