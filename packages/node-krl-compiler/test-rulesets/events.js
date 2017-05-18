@@ -443,7 +443,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx) {
-              return yield (yield ctx.modules.get(ctx, "event", "send"))(ctx, [{
+              return yield ctx.modules.action(ctx, "event", "send", [{
                   "eci": yield ctx.modules.get(ctx, "meta", "eci"),
                   "eid": "0",
                   "domain": "events",

@@ -34,7 +34,7 @@ module.exports = {
       return {
         "actions": [{
             "action": function* (ctx) {
-              return yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
+              return yield ctx.modules.action(ctx, "http", "post", {
                 "0": yield ctx.callKRLstdlib("+", ctx.scope.get("url"), "/msg.json"),
                 "form": {
                   "To": ctx.scope.get("to"),
@@ -101,7 +101,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx) {
-              return yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
+              return yield ctx.modules.action(ctx, "http", "post", {
                 "0": ctx.scope.get("url"),
                 "json": { "foo": "bar" }
               });
@@ -162,7 +162,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx) {
-              return ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
+              return ctx.scope.set("resp", yield ctx.modules.action(ctx, "http", "post", {
                 "0": ctx.scope.get("url"),
                 "qs": { "foo": "bar" },
                 "form": { "baz": "qux" }
@@ -200,7 +200,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx) {
-              return yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
+              return yield ctx.modules.action(ctx, "http", "post", {
                 "0": ctx.scope.get("url"),
                 "qs": { "foo": "bar" },
                 "form": { "baz": "qux" },

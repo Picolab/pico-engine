@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var callModuleFn = require("../utils/callModuleFn");
 
 var buildArgsObj = function(ast, comp, e){
     if(_.isEmpty(ast.with)){
@@ -37,11 +36,15 @@ module.exports = function(ast, comp, e){
         return_value = e("void", e("number", 0));
     }else if(ast.action
             && ast.action.type === "DomainIdentifier"){
-        return_value = callModuleFn(e,
-            ast.action.domain,
-            ast.action.value,
-            buildArgsObj(ast, comp, e),
-            ast.loc
+        return_value = e("ycall",
+            e("id", "ctx.modules.action", ast.action.loc),
+            [
+                e("id", "ctx", ast.action.loc),
+                e("str", ast.action.domain, ast.action.loc),
+                e("str", ast.action.value, ast.action.loc),
+                buildArgsObj(ast, comp, e),
+            ],
+            ast.action.loc
         );
     }else if(ast.action && ast.action.type === "Identifier"){
         is_runAction_used = true;
