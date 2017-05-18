@@ -165,7 +165,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx) {
-              ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
+              return ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "post"))(ctx, {
                 "0": ctx.scope.get("url"),
                 "qs": { "foo": "bar" },
                 "form": { "baz": "qux" }

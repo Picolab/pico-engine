@@ -1,5 +1,6 @@
 module.exports = {
   "rid": "io.picolabs.defaction",
+  "meta": { "shares": ["getSettingVal"] },
   "global": function* (ctx) {
     ctx.scope.set("foo", ctx.KRLClosure(function* (ctx, getArg) {
       ctx.scope.set("a", getArg("a", 0));
@@ -44,6 +45,9 @@ module.exports = {
       for (i = 0; i < actions.length; i++)
         r.push(yield actions[i].action(ctx));
       return r;
+    }));
+    ctx.scope.set("getSettingVal", ctx.KRLClosure(function* (ctx, getArg) {
+      return yield ctx.modules.get(ctx, "ent", "setting_val");
     }));
   },
   "rules": {
@@ -97,6 +101,41 @@ module.exports = {
               });
             }
           }]
+      }
+    },
+    "bar_setting": {
+      "name": "bar_setting",
+      "select": {
+        "graph": { "bar": { "a": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return ctx.scope.set("val", yield ctx.scope.get("bar")(ctx, {
+                "0": "baz",
+                "two": "qux",
+                "three": "quux"
+              }));
+            }
+          }]
+      },
+      "postlude": {
+        "fired": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "setting_val", ctx.scope.get("val"));
+        },
+        "notfired": undefined,
+        "always": undefined
       }
     }
   }

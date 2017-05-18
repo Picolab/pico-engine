@@ -19,46 +19,47 @@ var buildArgsObj = function(ast, comp, e){
 };
 
 module.exports = function(ast, comp, e){
-    var fn_body = [];
+    var return_value;
     if(ast.action
             && ast.action.type === "Identifier"
             && ast.action.value === "send_directive"){
-        fn_body.push(e("return", e("obj", {
+        return_value = e("obj", {
             type: e("str", "directive"),
             name: e("str", ast.args[0].value),
             options: e("obj", _.fromPairs(_.map(ast["with"], function(dec){
                 return [dec.left.value, comp(dec.right)];
             })))
-        })));
+        });
     }else if(ast.action
             && ast.action.type === "Identifier"
             && ast.action.value === "noop"){
-        fn_body.push(e("return", e("void", e("number", 0))));
+        return_value = e("void", e("number", 0));
     }else if(ast.action
             && ast.action.type === "DomainIdentifier"){
-        var module_call = callModuleFn(e,
+        return_value = callModuleFn(e,
             ast.action.domain,
             ast.action.value,
             buildArgsObj(ast, comp, e),
             ast.loc
         );
-        if(ast.setting){
-            fn_body.push(e(";", e("call", e("id", "ctx.scope.set", ast.setting.loc), [
-                e("str", ast.setting.value, ast.setting.loc),
-                module_call,
-            ], ast.setting.loc), ast.setting.loc));
-        }else{
-            fn_body.push(e("return", module_call));
-        }
     }else if(ast.action && ast.action.type === "Identifier"){
-        fn_body.push(e("return", e(
+        return_value = e(
             "ycall",
             e("call", e("id", "ctx.scope.get"), [e("str", ast.action.value)]),
             [e("id", "ctx"), buildArgsObj(ast, comp, e)]
-        )));
+        );
     }else{
         throw new Error("Unsuported RuleAction.action");
     }
+    var fn_body = [];
+    if(ast.setting){
+        return_value = e("call", e("id", "ctx.scope.set", ast.setting.loc), [
+            e("str", ast.setting.value, ast.setting.loc),
+            return_value,
+        ], ast.setting.loc);
+    }
+    fn_body.push(e("return", return_value));
+
     var obj = {};
     if(ast.label && ast.label.type === "Identifier"){
         obj.label = e("str", ast.label.value, ast.label.loc);
