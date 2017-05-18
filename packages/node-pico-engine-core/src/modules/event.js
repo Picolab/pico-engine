@@ -34,18 +34,6 @@ module.exports = function(core){
             }
             callback(null, matches);
         }),
-
-        //TODO this is technically a RuleAction
-        //TODO should this rather return info for event to be signaled?
-        //TODO is this allowed other places in the code?
-        send: mkKRLfn([
-            "event",
-        ], function(args, ctx, callback){
-            callback(null, {
-                type: "event:send",
-                event: args.event
-            });
-        }),
     };
     return {
         def: fns,
@@ -55,6 +43,16 @@ module.exports = function(core){
                 return;
             }
             callback(new Error("Not defined `event:" + id + "`"));
-        }
+        },
+        action: {
+            send: mkKRLfn([
+                "event",
+            ], function(args, ctx, callback){
+                callback(null, {
+                    type: "event:send",
+                    event: args.event
+                });
+            }),
+        },
     };
 };

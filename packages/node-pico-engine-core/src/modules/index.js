@@ -58,7 +58,12 @@ module.exports = function(core){
                 return;
             }
             modules[domain].del(ctx, id, callback);
-            return;
+        }),
+        action: cocb.wrap(function*(ctx, domain, id, args){
+            if(!_.has(modules, [domain, "action", id])){
+                throw new Error("Not an action `" + domain + ":" + id + "`");
+            }
+            return yield modules[domain].action[id](ctx, args);
         }),
     };
 };
