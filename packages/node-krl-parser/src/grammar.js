@@ -995,9 +995,7 @@ var grammar = {
     {"name": "declaration_list_body", "symbols": ["declaration_list_body", "declaration_list_body$ebnf$1", "Declaration", "declaration_list_body$ebnf$2"], "postprocess": concatArr(2)},
     {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
     {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
-    {"name": "DefAction$ebnf$1", "symbols": ["RuleAction"]},
-    {"name": "DefAction$ebnf$1", "symbols": ["DefAction$ebnf$1", "RuleAction"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "DeclarationList", "DefAction$ebnf$1", tok_CLSE_CURLY], "postprocess": 
+    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "DeclarationList", "RuleActionBlock", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1005,7 +1003,7 @@ var grammar = {
             id: data[0],
             params: data[4],
             body: data[7],
-            actions: data[8]
+            action_block: data[8]
           };
         }
         },

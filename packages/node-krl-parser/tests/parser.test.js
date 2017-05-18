@@ -1991,16 +1991,21 @@ test("DefAction", function(t){
                 id: mk.id("a"),
                 params: [],
                 body: [],
-                actions: [
-                    {
-                        type: "RuleAction",
-                        label: null,
-                        action: mk.id("send_directive"),
-                        args: [mk("foo")],
-                        setting: null,
-                        "with": []
-                    }
-                ]
+                action_block: {
+                    type: "RuleActionBlock",
+                    condition: null,
+                    block_type: "every",
+                    actions: [
+                        {
+                            type: "RuleAction",
+                            label: null,
+                            action: mk.id("send_directive"),
+                            args: [mk("foo")],
+                            setting: null,
+                            "with": []
+                        }
+                    ]
+                }
             }
         ],
         []
@@ -2014,21 +2019,26 @@ test("DefAction", function(t){
                 id: mk.id("a"),
                 params: [],
                 body: [],
-                actions: [
-                    {
-                        type: "RuleAction",
-                        label: null,
-                        action: mk.id("send_directive"),
-                        args: [mk("foo")],
-                        setting: null,
-                        "with": []
-                    }
-                ]
+                action_block: {
+                    type: "RuleActionBlock",
+                    condition: null,
+                    block_type: "every",
+                    actions: [
+                        {
+                            type: "RuleAction",
+                            label: null,
+                            action: mk.id("send_directive"),
+                            args: [mk("foo")],
+                            setting: null,
+                            "with": []
+                        }
+                    ]
+                }
             }
         ]
     ]);
 
-    tstDA('a = defaction(b, c){d = 2 e = 3 send_directive("foo") with f = 4 g=5 noop()}', "", [
+    tstDA('a = defaction(b, c){d = 2 e = 3 every { send_directive("foo") with f = 4 g=5 noop()}}', "", [
         [
             {
                 type: "DefAction",
@@ -2038,27 +2048,32 @@ test("DefAction", function(t){
                     mk.declare("=", mk.id("d"), mk(2)),
                     mk.declare("=", mk.id("e"), mk(3))
                 ],
-                actions: [
-                    {
-                        type: "RuleAction",
-                        label: null,
-                        action: mk.id("send_directive"),
-                        args: [mk("foo")],
-                        setting: null,
-                        "with": [
-                            mk.declare("=", mk.id("f"), mk(4)),
-                            mk.declare("=", mk.id("g"), mk(5))
-                        ]
-                    },
-                    {
-                        type: "RuleAction",
-                        label: null,
-                        action: mk.id("noop"),
-                        args: [],
-                        setting: null,
-                        "with": []
-                    }
-                ]
+                action_block: {
+                    type: "RuleActionBlock",
+                    condition: null,
+                    block_type: "every",
+                    actions: [
+                        {
+                            type: "RuleAction",
+                            label: null,
+                            action: mk.id("send_directive"),
+                            args: [mk("foo")],
+                            setting: null,
+                            "with": [
+                                mk.declare("=", mk.id("f"), mk(4)),
+                                mk.declare("=", mk.id("g"), mk(5))
+                            ]
+                        },
+                        {
+                            type: "RuleAction",
+                            label: null,
+                            action: mk.id("noop"),
+                            args: [],
+                            setting: null,
+                            "with": []
+                        }
+                    ]
+                }
             }
         ],
         []
@@ -2190,7 +2205,7 @@ test("Action setting", function(t){
 
         //test it also in defaction
         src = "ruleset rs{global{a=defaction(){"+src_action+"}}}";
-        ast = parser(src).global[0].actions[0];
+        ast = parser(src).global[0].action_block.actions[0];
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
 

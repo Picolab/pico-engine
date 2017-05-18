@@ -1042,7 +1042,7 @@ DeclarationOrDefAction ->
 DefAction -> Identifier %tok_EQ %tok_defaction
   %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_OPEN_CURLY
   DeclarationList
-  RuleAction:+
+  RuleActionBlock
 %tok_CLSE_CURLY
 {%
   function(data){
@@ -1052,7 +1052,7 @@ DefAction -> Identifier %tok_EQ %tok_defaction
       id: data[0],
       params: data[4],
       body: data[7],
-      actions: data[8]
+      action_block: data[8]
     };
   }
 %}
