@@ -2098,7 +2098,7 @@ test("DefAction", function(t){
         }
     ]);
 
-    tstDA("a = defaction(b, c){if b || c then blah()}", [
+    tstDA("a = defaction(b, c){if b || c then blah();}", [
         {
             type: "DefAction",
             id: mk.id("a"),
@@ -2154,7 +2154,7 @@ test("DefAction", function(t){
         }
     ]);
 
-    tstDA("a = defaction(b, c){if b && c then{foo() bar()}}", [
+    tstDA("a = defaction(b, c){if b && c then{foo(); bar();}}", [
         {
             type: "DefAction",
             id: mk.id("a"),

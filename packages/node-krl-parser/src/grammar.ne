@@ -726,14 +726,22 @@ EventWithin -> %tok_within Expression %tok_TIME_PERIOD_ENUM {%
 RuleActionBlock ->
       RuleAction
       {% ruleActionBlock([], [], [0]) %}
-    | %tok_if Expression %tok_then RuleAction
+    | %tok_if Expression %tok_then RuleAction %tok_SEMI:?
       {% ruleActionBlock([1], [], [3]) %}
-    | %tok_if Expression %tok_then %tok_every:? %tok_OPEN_CURLY RuleAction:+ %tok_CLSE_CURLY
-      {% ruleActionBlock([1], [3, "src"], [5]) %}
-    | %tok_every %tok_OPEN_CURLY RuleAction:+ %tok_CLSE_CURLY
-      {% ruleActionBlock([], [0, "src"], [2]) %}
-    | %tok_choose Expression %tok_OPEN_CURLY RuleAction:+ %tok_CLSE_CURLY
-      {% ruleActionBlock([1], [0, "src"], [3]) %}
+    | %tok_if Expression %tok_then %tok_every:? RuleAction_in_curlies
+      {% ruleActionBlock([1], [3, "src"], [4]) %}
+    | %tok_every RuleAction_in_curlies
+      {% ruleActionBlock([], [0, "src"], [1]) %}
+    | %tok_choose Expression RuleAction_in_curlies
+      {% ruleActionBlock([1], [0, "src"], [2]) %}
+
+RuleAction_in_curlies -> %tok_OPEN_CURLY (RuleAction %tok_SEMI:?):+ %tok_CLSE_CURLY
+{%
+  function(data){
+    return data[1].map(function(d){return d[0];})
+  }
+%}
+
 
 RuleAction ->
     (Identifier %tok_FAT_ARROW_RIGHT):?
