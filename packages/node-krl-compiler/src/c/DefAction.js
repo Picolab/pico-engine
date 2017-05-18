@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var mkKRLClosure = require("../utils/mkKRLClosure");
 
 module.exports = function(ast, comp, e){
     var body = _.map(ast.params, function(param, i){
@@ -21,35 +20,11 @@ module.exports = function(ast, comp, e){
         body.push(comp(d));
     });
 
-    body.push(e("var", "actions", e("arr", _.map(ast.actions, function(action){
-        return comp(action);
-    }))));
+    body.push(e("return", comp(ast.action_block), ast.action_block.loc));
 
-    body.push(e("var", "r", e("arr", [])));
-    body.push(e("var", "i"));
-    body.push(e(
-        "for",
-        e("=", e("id", "i"), e("number", 0)),
-        e("<", e("id", "i"), e("id", "actions.length")),
-        e("++", e("id", "i")),
-        e(";", e("call", e("id", "r.push"), [
-            e("yield",
-                e("call", e(".",
-                    e("get",
-                        e("id", "actions"),
-                        e("id", "i")
-                    ),
-                    e("id", "action")
-                ), [
-                    e("id", "ctx")
-                ])
-            )
-        ]))
-    ));
-    body.push(e("return", e("id", "r")));
-
-    return e(";", e("call", e("id", "ctx.scope.set"), [
+    return e(";", e("call", e("id", "ctx.defaction"), [
+        e("id", "ctx"),
         e("str", ast.id.value, ast.id.loc),
-        mkKRLClosure(e, body)
+        e("genfn", ["ctx", "getArg"], body),
     ]));
 };
