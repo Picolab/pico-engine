@@ -16,7 +16,9 @@ module.exports = function(ast, ind, gen){
         src += ind() + "if " + gen(ast.condition) + " then\n";
     }
     if(_.size(ast.actions) > 1){
-        src += "\n";
+        if(!ast.condition){
+            src += "\n";
+        }
         src += ind() + ast.block_type + " {\n";
         src += gen(ast.actions, 1);
         src += "\n";
