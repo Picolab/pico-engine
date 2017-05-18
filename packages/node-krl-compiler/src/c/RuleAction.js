@@ -19,6 +19,7 @@ var buildArgsObj = function(ast, comp, e){
 };
 
 module.exports = function(ast, comp, e){
+    var is_runAction_used = false;
     var return_value;
     if(ast.action
             && ast.action.type === "Identifier"
@@ -43,11 +44,12 @@ module.exports = function(ast, comp, e){
             ast.loc
         );
     }else if(ast.action && ast.action.type === "Identifier"){
-        return_value = e(
-            "ycall",
-            e("call", e("id", "ctx.scope.get"), [e("str", ast.action.value)]),
-            [e("id", "ctx"), buildArgsObj(ast, comp, e)]
-        );
+        is_runAction_used = true;
+        return_value = e("ycall",  e("id", "runAction"), [
+            e("id", "ctx"),
+            e("str", ast.action.value),
+            buildArgsObj(ast, comp, e),
+        ]);
     }else{
         throw new Error("Unsuported RuleAction.action");
     }
@@ -64,6 +66,10 @@ module.exports = function(ast, comp, e){
     if(ast.label && ast.label.type === "Identifier"){
         obj.label = e("str", ast.label.value, ast.label.loc);
     }
-    obj.action = e("genfn", ["ctx"], fn_body);
+    var args = ["ctx"];
+    if(is_runAction_used){
+        args.push("runAction");
+    }
+    obj.action = e("genfn", args, fn_body);
     return e("obj", obj);
 };

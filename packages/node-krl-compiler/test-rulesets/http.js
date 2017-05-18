@@ -130,8 +130,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.scope.get("doPost")(ctx, {
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "doPost", {
                 "0": ctx.scope.get("url"),
                 "to": "bob",
                 "msg": "foobar"

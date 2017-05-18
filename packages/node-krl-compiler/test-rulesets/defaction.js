@@ -63,8 +63,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.scope.get("foo")(ctx, ["bar"]);
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "foo", ["bar"]);
             }
           }]
       }
@@ -87,8 +87,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.scope.get("bar")(ctx, {
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "bar", {
                 "0": "baz",
                 "two": "qux",
                 "three": "quux"
@@ -115,8 +115,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return ctx.scope.set("val", yield ctx.scope.get("bar")(ctx, {
+            "action": function* (ctx, runAction) {
+              return ctx.scope.set("val", yield runAction(ctx, "bar", {
                 "0": "baz",
                 "two": "qux",
                 "three": "quux"
