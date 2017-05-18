@@ -17,12 +17,12 @@ module.exports = {
             ]]
         }
       },
-      "postlude": {
-        "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "engine", "newPico"))(ctx, []);
-        },
-        "notfired": undefined,
-        "always": undefined
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return yield ctx.modules.action(ctx, "engine", "newPico", []);
+            }
+          }]
       }
     },
     "newChannel": {
@@ -46,16 +46,16 @@ module.exports = {
         ctx.scope.set("name", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["name"]));
         ctx.scope.set("type", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["type"]));
       },
-      "postlude": {
-        "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "engine", "newChannel"))(ctx, [
-            ctx.scope.get("pico_id"),
-            ctx.scope.get("name"),
-            ctx.scope.get("type")
-          ]);
-        },
-        "notfired": undefined,
-        "always": undefined
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return yield ctx.modules.action(ctx, "engine", "newChannel", [
+                ctx.scope.get("pico_id"),
+                ctx.scope.get("name"),
+                ctx.scope.get("type")
+              ]);
+            }
+          }]
       }
     },
     "removeChannel": {
@@ -74,12 +74,12 @@ module.exports = {
             ]]
         }
       },
-      "postlude": {
-        "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "engine", "removeChannel"))(ctx, [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["eci"])]);
-        },
-        "notfired": undefined,
-        "always": undefined
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return yield ctx.modules.action(ctx, "engine", "removeChannel", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["eci"])]);
+            }
+          }]
       }
     },
     "installRuleset": {
@@ -104,17 +104,17 @@ module.exports = {
         ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
         ctx.scope.set("base", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["base"]));
       },
-      "postlude": {
-        "fired": function* (ctx) {
-          yield (yield ctx.modules.get(ctx, "engine", "installRuleset"))(ctx, [
-            ctx.scope.get("pico_id"),
-            ctx.scope.get("rid"),
-            ctx.scope.get("url"),
-            ctx.scope.get("base")
-          ]);
-        },
-        "notfired": undefined,
-        "always": undefined
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx) {
+              return yield ctx.modules.action(ctx, "engine", "installRuleset", [
+                ctx.scope.get("pico_id"),
+                ctx.scope.get("rid"),
+                ctx.scope.get("url"),
+                ctx.scope.get("base")
+              ]);
+            }
+          }]
       }
     }
   }

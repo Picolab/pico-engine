@@ -14,13 +14,9 @@ var tick = function(fn){
     };
 };
 
-var mockEngine = function(core){
-    return kengine(core).def;
-};
-
 test("engine:getPicoIDByECI", function(t){
     cocb.run(function*(){
-        var engine = mockEngine({
+        var engine = kengine({
             db: {
                 getPicoIDByECI: tick(function(eci, callback){
                     if(eci === "foo"){
@@ -33,7 +29,7 @@ test("engine:getPicoIDByECI", function(t){
             }
         });
         var get = function*(eci){
-            return yield engine.getPicoIDByECI({}, {eci: eci,});
+            return yield engine.def.getPicoIDByECI({}, {eci: eci,});
         };
 
         t.equals(yield get("foo"), "bar");
@@ -51,7 +47,7 @@ test("engine:getPicoIDByECI", function(t){
 
 test("engine:removeChannel", function(t){
     cocb.run(function*(){
-        var engine = mockEngine({
+        var engine = kengine({
             db: {
                 getPicoIDByECI: tick(function(eci, callback){
                     if(eci === "foo"){
@@ -68,7 +64,7 @@ test("engine:removeChannel", function(t){
             }
         });
         var rm = function*(eci){
-            return yield engine.removeChannel({}, {eci: eci,});
+            return yield engine.actions.removeChannel({}, {eci: eci,});
         };
 
         t.equals(yield rm("foo"), void 0);
@@ -85,7 +81,7 @@ test("engine:removeChannel", function(t){
 test("engine:registerRuleset", function(t){
     cocb.run(function*(){
 
-        var engine = mockEngine({
+        var engine = kengine({
             registerRulesetURL: tick(function(url, callback){
                 callback(null, {
                     rid: "rid for: " + url
@@ -93,17 +89,17 @@ test("engine:registerRuleset", function(t){
             })
         });
 
-        t.equals(yield engine.registerRuleset({}, {
+        t.equals(yield engine.actions.registerRuleset({}, {
             url: "http://foo.bar/qux.krl",
         }), "rid for: http://foo.bar/qux.krl");
 
-        t.equals(yield engine.registerRuleset({}, {
+        t.equals(yield engine.actions.registerRuleset({}, {
             url: "qux.krl",
             base: "https://foo.bar/baz/",
         }), "rid for: https://foo.bar/baz/qux.krl");
 
         try{
-            yield engine.registerRuleset({}, []);
+            yield engine.actions.registerRuleset({}, []);
             t.fail("should throw b/c no url is given");
         }catch(err){
             t.equals(err + "", "Error: registerRuleset expects `url`");
@@ -114,7 +110,7 @@ test("engine:registerRuleset", function(t){
 
 test("engine:installRuleset", function(t){
     cocb.run(function*(){
-        var engine = mockEngine({
+        var engine = kengine({
             installRuleset: tick(function(pico_id, rid, callback){
                 callback();
             }),
@@ -136,7 +132,7 @@ test("engine:installRuleset", function(t){
         });
 
         var inst = function*(id, rid, url, base){
-            return yield engine.installRuleset({}, {
+            return yield engine.actions.installRuleset({}, {
                 pico_id: id,
                 rid: rid,
                 url: url,
@@ -173,7 +169,7 @@ test("engine:uninstallRuleset", function(t){
         var uninstalled = {};
         var order = 0;
 
-        var engine = mockEngine({
+        var engine = kengine({
             uninstallRuleset: tick(function(id, rid, callback){
                 if(id !== "pico0"){
                     return callback(new Error("invalid pico_id"));
@@ -186,12 +182,12 @@ test("engine:uninstallRuleset", function(t){
             })
         });
 
-        t.equals(yield engine.uninstallRuleset({}, {
+        t.equals(yield engine.actions.uninstallRuleset({}, {
             pico_id: "pico0",
             rid: "foo.bar",
         }), void 0);
 
-        t.equals(yield engine.uninstallRuleset({}, {
+        t.equals(yield engine.actions.uninstallRuleset({}, {
             pico_id: "pico0",
             rid: ["baz", "qux"],
         }), void 0);
@@ -210,7 +206,7 @@ test("engine:uninstallRuleset", function(t){
 test("engine:unregisterRuleset", function(t){
     cocb.run(function*(){
         var log = [];
-        var engine = mockEngine({
+        var engine = kengine({
             unregisterRuleset: tick(function(rid, callback){
                 if(!_.isString(rid)){
                     return callback("invalid rid");
@@ -220,11 +216,11 @@ test("engine:unregisterRuleset", function(t){
             }),
         });
 
-        t.equals(yield engine.unregisterRuleset({}, {
+        t.equals(yield engine.actions.unregisterRuleset({}, {
             rid: "foo.bar",
         }), void 0);
 
-        t.equals(yield engine.unregisterRuleset({}, {
+        t.equals(yield engine.actions.unregisterRuleset({}, {
             rid: ["baz", "qux"],
         }), void 0);
 
@@ -235,7 +231,7 @@ test("engine:unregisterRuleset", function(t){
         ]);
 
         try{
-            yield engine.unregisterRuleset({}, {
+            yield engine.actions.unregisterRuleset({}, {
                 rid: ["baz", 2, "qux"],
             });
             t.fail();

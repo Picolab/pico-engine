@@ -44,7 +44,7 @@ module.exports = function(core){
             }
             callback(new Error("Not defined `event:" + id + "`"));
         },
-        action: {
+        actions: {
             send: mkKRLfn([
                 "event",
             ], function(args, ctx, callback){

@@ -5,6 +5,44 @@ var mkKRLfn = require("../mkKRLfn");
 
 module.exports = function(core){
     var fns = {
+        getPicoIDByECI: mkKRLfn([
+            "eci",
+        ], function(args, ctx, callback){
+            core.db.getPicoIDByECI(args.eci, callback);
+        }),
+        listChannels: mkKRLfn([
+            "pico_id",
+        ], function(args, ctx, callback){
+            core.db.listChannels(args.pico_id, callback);
+        }),
+        listAllEnabledRIDs: mkKRLfn([
+        ], function(args, ctx, callback){
+            core.db.listAllEnabledRIDs(callback);
+        }),
+        describeRuleset: mkKRLfn([
+            "rid",
+        ], function(args, ctx, callback){
+            core.db.getEnabledRuleset(args.rid, function(err, data){
+                if(err) return callback(err);
+                var rid = data.rid;
+                callback(null, {
+                    rid: rid,
+                    src: data.src,
+                    hash: data.hash,
+                    url: data.url,
+                    timestamp_stored: data.timestamp_stored,
+                    timestamp_enable: data.timestamp_enable,
+                    meta: {
+                        name:        _.get(core.rulesets, [rid, "meta", "name"]),
+                        description: _.get(core.rulesets, [rid, "meta", "description"]),
+                        author:      _.get(core.rulesets, [rid, "meta", "author"]),
+                    },
+                });
+            });
+        }),
+    };
+
+    var actions = {
         newPico: mkKRLfn([
         ], function(args, ctx, callback){
             core.db.newPico({}, callback);
@@ -21,11 +59,6 @@ module.exports = function(core){
         ], function(args, ctx, callback){
             core.db.newChannel(args, callback);
         }),
-        listChannels: mkKRLfn([
-            "pico_id",
-        ], function(args, ctx, callback){
-            core.db.listChannels(args.pico_id, callback);
-        }),
         removeChannel: mkKRLfn([
             "eci",
         ], function(args, ctx, callback){
@@ -34,11 +67,6 @@ module.exports = function(core){
 
                 core.db.removeChannel(pico_id, args.eci, callback);
             });
-        }),
-        getPicoIDByECI: mkKRLfn([
-            "eci",
-        ], function(args, ctx, callback){
-            core.db.getPicoIDByECI(args.eci, callback);
         }),
         registerRuleset: mkKRLfn([
             "url",
@@ -54,6 +82,15 @@ module.exports = function(core){
                 if(err) return callback(err);
                 callback(null, data.rid);
             });
+        }),
+        unregisterRuleset: mkKRLfn([
+            "rid",
+        ], function(args, ctx, callback){
+            var rids = _.isArray(args.rid)
+                ? _.uniq(args.rid)
+                : [args.rid];
+
+            λ.each(rids, core.unregisterRuleset, callback);
         }),
         installRuleset: mkKRLfn([
             "pico_id",
@@ -110,43 +147,10 @@ module.exports = function(core){
                 core.uninstallRuleset(args.pico_id, rid, next);
             }, callback);
         }),
-        unregisterRuleset: mkKRLfn([
-            "rid",
-        ], function(args, ctx, callback){
-            var rids = _.isArray(args.rid)
-                ? _.uniq(args.rid)
-                : [args.rid];
-
-            λ.each(rids, core.unregisterRuleset, callback);
-        }),
-        listAllEnabledRIDs: mkKRLfn([
-        ], function(args, ctx, callback){
-            core.db.listAllEnabledRIDs(callback);
-        }),
-        describeRuleset: mkKRLfn([
-            "rid",
-        ], function(args, ctx, callback){
-            core.db.getEnabledRuleset(args.rid, function(err, data){
-                if(err) return callback(err);
-                var rid = data.rid;
-                callback(null, {
-                    rid: rid,
-                    src: data.src,
-                    hash: data.hash,
-                    url: data.url,
-                    timestamp_stored: data.timestamp_stored,
-                    timestamp_enable: data.timestamp_enable,
-                    meta: {
-                        name:        _.get(core.rulesets, [rid, "meta", "name"]),
-                        description: _.get(core.rulesets, [rid, "meta", "description"]),
-                        author:      _.get(core.rulesets, [rid, "meta", "author"]),
-                    },
-                });
-            });
-        }),
     };
 
     return {
-        def: fns
+        def: fns,
+        actions: actions,
     };
 };

@@ -84,6 +84,6 @@ var fns = {
 module.exports = function(core){
     return {
         def: fns,
-        action: fns,
+        actions: fns,
     };
 };

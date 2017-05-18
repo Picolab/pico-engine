@@ -60,10 +60,10 @@ module.exports = function(core){
             modules[domain].del(ctx, id, callback);
         }),
         action: cocb.wrap(function*(ctx, domain, id, args){
-            if(!_.has(modules, [domain, "action", id])){
+            if(!_.has(modules, [domain, "actions", id])){
                 throw new Error("Not an action `" + domain + ":" + id + "`");
             }
-            return yield modules[domain].action[id](ctx, args);
+            return yield modules[domain].actions[id](ctx, args);
         }),
     };
 };
