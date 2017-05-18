@@ -1399,7 +1399,7 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
             ],
             function(next){
                 signal("defa", "add")(function(err, resp){
-                    t.equals(err + "", "Error: not `add` is not an action");
+                    t.equals(err + "", "Error: `add` is not defined as an action");
                     t.notOk(resp);
                     next();
                 });

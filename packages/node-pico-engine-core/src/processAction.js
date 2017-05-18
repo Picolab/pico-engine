@@ -2,15 +2,30 @@ var _ = require("lodash");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
 
-var runSubAction = cocb.wrap(function*(ctx, name, args){
-    var definedAction = ctx.scope.get(name);
+var runSubAction = cocb.wrap(function*(ctx, domain, id, args){
+    if(domain){
+        return yield ctx.modules.action(ctx, domain, id, args);
+    }
+    if(id === "noop"){
+        return;
+    }
+    if(id === "send_directive"){
+        return ctx.addActionResponse(ctx, "directive", {
+            name: args[0],
+            options: _.omit(args, "0")
+        });
+    }
+    if(!ctx.scope.has(id)){
+        throw new Error("`" + id + "` is not defined");
+    }
+    var definedAction = ctx.scope.get(id);
     if(definedAction.is_a_defaction !== true){
-        throw new Error("not `" + name + "` is not an action");
+        throw new Error("`" + id + "` is not defined as an action");
     }
     return yield definedAction(ctx, args);
 });
 
-var runAction = cocb.wrap(function*(ctx, action_block){
+var processAction = cocb.wrap(function*(ctx, action_block){
     var did_fire = true;
 
     var condFn = _.get(action_block, ["condition"]);
@@ -32,37 +47,18 @@ var runAction = cocb.wrap(function*(ctx, action_block){
         actions = [];//don't run anything
     }
 
-    var mapResp = function(response){
-        if((response === void 0) || (response === null)){
-            return;//noop
-        }
-        if(response.type !== "directive"){
-            return response;
-        }
-        return {
-            type: "directive",
-            options: response.options,
-            name: response.name,
-            meta: {
-                rid: ctx.rid,
-                rule_name: ctx.rule_name,
-                txn_id: "TODO",//TODO transactions
-                eid: ctx.event.eid
-            }
-        };
-    };
-    var responses = [];
+    var returns = [];
+
     var i;
     for(i = 0; i < actions.length; i++){
         //TODO collect errors and respond individually to the client
         //TODO try{}catch(e){}
-        responses.push(mapResp(yield runKRL(actions[i].action, ctx, runSubAction)));
+        returns.push(yield runKRL(actions[i].action, ctx, runSubAction));
     }
-    responses = _.compact(responses);
     return {
         did_fire: did_fire,
-        responses: _.compact(responses),
+        returns: returns,
     };
 });
 
-module.exports = runAction;
+module.exports = processAction;

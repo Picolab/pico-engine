@@ -32,12 +32,11 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "foo",
-                "options": { "b": ctx.scope.get("b") }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "foo",
+                "b": ctx.scope.get("b")
+              });
             }
           }]
       },
@@ -78,15 +77,12 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "bar",
-                "options": {
-                  "x": ctx.scope.get("x"),
-                  "b": yield ctx.modules.get(ctx, "ent", "b")
-                }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "bar",
+                "x": ctx.scope.get("x"),
+                "b": yield ctx.modules.get(ctx, "ent", "b")
+              });
             }
           }]
       },

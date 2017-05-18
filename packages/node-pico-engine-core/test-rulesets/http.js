@@ -33,8 +33,8 @@ module.exports = {
       ctx.scope.set("msg", getArg("msg", 2));
       return {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.modules.action(ctx, "http", "post", {
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "http", "post", {
                 "0": yield ctx.callKRLstdlib("+", ctx.scope.get("url"), "/msg.json"),
                 "form": {
                   "To": ctx.scope.get("to"),
@@ -100,8 +100,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.modules.action(ctx, "http", "post", {
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "http", "post", {
                 "0": ctx.scope.get("url"),
                 "json": { "foo": "bar" }
               });
@@ -131,7 +131,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "doPost", {
+              return yield runAction(ctx, void 0, "doPost", {
                 "0": ctx.scope.get("url"),
                 "to": "bob",
                 "msg": "foobar"
@@ -161,8 +161,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return ctx.scope.set("resp", yield ctx.modules.action(ctx, "http", "post", {
+            "action": function* (ctx, runAction) {
+              return ctx.scope.set("resp", yield runAction(ctx, "http", "post", {
                 "0": ctx.scope.get("url"),
                 "qs": { "foo": "bar" },
                 "form": { "baz": "qux" }
@@ -199,8 +199,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.modules.action(ctx, "http", "post", {
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "http", "post", {
                 "0": ctx.scope.get("url"),
                 "qs": { "foo": "bar" },
                 "form": { "baz": "qux" },
@@ -231,12 +231,11 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "http_post_event_handler",
-                "options": { "attrs": ctx.scope.get("resp") }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "http_post_event_handler",
+                "attrs": ctx.scope.get("resp")
+              });
             }
           }]
       },

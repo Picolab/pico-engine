@@ -42,12 +42,11 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "dflt_name",
-                "options": { "name": yield (yield ctx.modules.get(ctx, "my_module_dflt", "getName"))(ctx, []) }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "dflt_name",
+                "name": yield (yield ctx.modules.get(ctx, "my_module_dflt", "getName"))(ctx, [])
+              });
             }
           }]
       }
@@ -70,12 +69,11 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "conf_name",
-                "options": { "name": yield (yield ctx.modules.get(ctx, "my_module_conf", "getName"))(ctx, []) }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "conf_name",
+                "name": yield (yield ctx.modules.get(ctx, "my_module_conf", "getName"))(ctx, [])
+              });
             }
           }]
       }
@@ -98,12 +96,11 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "dflt_info",
-                "options": { "info": yield (yield ctx.modules.get(ctx, "my_module_dflt", "getInfo"))(ctx, []) }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "dflt_info",
+                "info": yield (yield ctx.modules.get(ctx, "my_module_dflt", "getInfo"))(ctx, [])
+              });
             }
           }]
       }
@@ -126,12 +123,11 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "conf_info",
-                "options": { "info": yield (yield ctx.modules.get(ctx, "my_module_conf", "getInfo"))(ctx, []) }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "conf_info",
+                "info": yield (yield ctx.modules.get(ctx, "my_module_conf", "getInfo"))(ctx, [])
+              });
             }
           }]
       }

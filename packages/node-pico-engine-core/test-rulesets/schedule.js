@@ -33,12 +33,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "clear_log",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["clear_log"]);
             }
           }]
       },
@@ -68,12 +64,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "push_log",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["push_log"]);
             }
           }]
       },
@@ -103,12 +95,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "in_5min",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["in_5min"]);
             }
           }]
       },
@@ -150,12 +138,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "every_1min",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["every_1min"]);
             }
           }]
       },
@@ -194,8 +178,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.modules.action(ctx, "schedule", "remove", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["id"])]);
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "schedule", "remove", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["id"])]);
             }
           }]
       }

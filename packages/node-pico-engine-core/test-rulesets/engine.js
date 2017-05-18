@@ -19,8 +19,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.modules.action(ctx, "engine", "newPico", []);
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "engine", "newPico", []);
             }
           }]
       }
@@ -48,8 +48,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.modules.action(ctx, "engine", "newChannel", [
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "engine", "newChannel", [
                 ctx.scope.get("pico_id"),
                 ctx.scope.get("name"),
                 ctx.scope.get("type")
@@ -76,8 +76,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.modules.action(ctx, "engine", "removeChannel", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["eci"])]);
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "engine", "removeChannel", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["eci"])]);
             }
           }]
       }
@@ -106,8 +106,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return yield ctx.modules.action(ctx, "engine", "installRuleset", [
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, "engine", "installRuleset", [
                 ctx.scope.get("pico_id"),
                 ctx.scope.get("rid"),
                 ctx.scope.get("url"),

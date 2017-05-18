@@ -56,6 +56,7 @@ module.exports = function(){
 
                 "raiseEvent",
                 "raiseError",
+                "addActionResponse",
                 "stopRulesetExecution",
             ]);
         }else if(_.has(ctx, "query")){

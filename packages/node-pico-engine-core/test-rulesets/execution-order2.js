@@ -25,12 +25,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "2 - reset_order",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["2 - reset_order"]);
             }
           }]
       },
@@ -74,12 +70,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "2 - foo_or_bar",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["2 - foo_or_bar"]);
             }
           }]
       },
@@ -109,12 +101,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "2 - foo",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["2 - foo"]);
             }
           }]
       },
@@ -144,12 +132,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "2 - bar",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["2 - bar"]);
             }
           }]
       },

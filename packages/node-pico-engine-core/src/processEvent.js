@@ -4,6 +4,30 @@ var runKRL = require("./runKRL");
 var processAction = require("./processAction");
 var selectRulesToEval = require("./selectRulesToEval");
 
+var toResponse = function(ctx, type, val){
+    if(type === "directive"){
+        return {
+            type: "directive",
+            options: val.options,
+            name: val.name,
+            meta: {
+                rid: ctx.rid,
+                rule_name: ctx.rule_name,
+                txn_id: "TODO",//TODO transactions
+                eid: ctx.event.eid
+            }
+        };
+    }
+    if(type === "event:send"){
+        return {
+            type: "event:send",
+            event: val.event,
+        };
+    }
+    throw new Error("Unsupported action response type: " + type);
+};
+
+
 var evalRule = cocb.wrap(function*(ctx, rule){
     if(_.isFunction(rule.prelude)){
         yield runKRL(rule.prelude, ctx);
@@ -25,8 +49,6 @@ var evalRule = cocb.wrap(function*(ctx, rule){
     if(_.get(rule, ["postlude", "always"])){
         yield runKRL(_.get(rule, ["postlude", "always"]), ctx);
     }
-
-    return action_r.responses;
 });
 
 var runEvent = cocb.wrap(function*(scheduled){
@@ -46,6 +68,7 @@ var runEvent = cocb.wrap(function*(scheduled){
         raiseEvent: ctx.raiseEvent,
         raiseError: ctx.raiseError,
         stopRulesetExecution: ctx.stopRulesetExecution,
+        addActionResponse: ctx.addActionResponse,
     });
 
     var r = [];
@@ -92,6 +115,8 @@ var processEvent = cocb.wrap(function*(core, ctx){
         });
     };
 
+    var responses = [];
+
     ctx = core.mkCTX({
         event: ctx.event,
         pico_id: ctx.pico_id,
@@ -117,6 +142,7 @@ var processEvent = cocb.wrap(function*(core, ctx){
                 raiseEvent: ctx.raiseEvent,
                 raiseError: ctx.raiseError,
                 stopRulesetExecution: ctx.stopRulesetExecution,
+                addActionResponse: ctx.addActionResponse,
             });
             raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
             scheduleEventRAW(raise_ctx, callback);
@@ -140,24 +166,21 @@ var processEvent = cocb.wrap(function*(core, ctx){
                 },
                 //for_rid: ctx.rid,
             });
-        }
+        },
+        addActionResponse: function(ctx, type, val){
+            var resp = toResponse(ctx, type, val);
+            responses.push(resp);
+            return resp;
+        },
     });
 
     yield cocb.toYieldable(scheduleEventRAW)(ctx);
 
-    var responses = [];
     //using a while loop b/c schedule is MUTABLE
     //Durring execution new events may be `raised` that will mutate the schedule
     while(schedule.length > 0){
-        responses.push(yield runEvent(schedule.shift()));
+        yield runEvent(schedule.shift());
     }
-
-    responses = _.flattenDeep(_.values(responses));
-
-    //TODO remove this hack when compiler is selective about which actions return values
-    responses = _.filter(responses, function(resp){
-        return _.has(resp, "type");
-    });
 
     var res_by_type = _.groupBy(responses, "type");
 

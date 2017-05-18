@@ -1144,8 +1144,8 @@ kind-of@^3.0.2:
     is-buffer "^1.1.5"
 
 krl-compiler@>=0.26.2:
-  version "0.31.1"
-  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.31.1.tgz#8c24e99f6880dc4058b86cc36bd17c70609d9410"
+  version "0.31.2"
+  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.31.2.tgz#96f114335c6ac5651bc25d0ddaa18bd32df317f4"
   dependencies:
     btoa "^1.1.2"
     escodegen "^1.8.0"

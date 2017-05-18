@@ -48,12 +48,11 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "store_name",
-                "options": { "name": ctx.scope.get("my_name") }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "store_name",
+                "name": ctx.scope.get("my_name")
+              });
             }
           }]
       },
@@ -90,12 +89,11 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "store_appvar",
-                "options": { "appvar": ctx.scope.get("my_appvar") }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "store_appvar",
+                "appvar": ctx.scope.get("my_appvar")
+              });
             }
           }]
       },
@@ -132,12 +130,11 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "store_user_firstname",
-                "options": { "name": ctx.scope.get("firstname") }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "store_user_firstname",
+                "name": ctx.scope.get("firstname")
+              });
             }
           }]
       },
@@ -168,12 +165,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "clear_user",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["clear_user"]);
             }
           }]
       },
@@ -203,12 +196,8 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "clear_appvar",
-                "options": {}
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", ["clear_appvar"]);
             }
           }]
       },

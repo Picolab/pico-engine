@@ -41,23 +41,20 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "event",
-                "options": {
-                  "rid": yield ctx.modules.get(ctx, "meta", "rid"),
-                  "host": yield ctx.modules.get(ctx, "meta", "host"),
-                  "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName"),
-                  "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
-                  "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
-                  "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
-                  "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
-                  "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent"),
-                  "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery"),
-                  "eci": yield ctx.modules.get(ctx, "meta", "eci")
-                }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "event",
+                "rid": yield ctx.modules.get(ctx, "meta", "rid"),
+                "host": yield ctx.modules.get(ctx, "meta", "host"),
+                "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName"),
+                "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
+                "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
+                "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
+                "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
+                "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent"),
+                "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery"),
+                "eci": yield ctx.modules.get(ctx, "meta", "eci")
+              });
             }
           }]
       }

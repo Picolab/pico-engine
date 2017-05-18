@@ -48,10 +48,10 @@ module.exports = function(core){
             send: mkKRLfn([
                 "event",
             ], function(args, ctx, callback){
-                callback(null, {
-                    type: "event:send",
-                    event: args.event
+                ctx.addActionResponse(ctx, "event:send", {
+                    event: args.event,
                 });
+                callback();
             }),
         },
     };

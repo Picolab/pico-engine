@@ -33,12 +33,11 @@ module.exports = {
       },
       "action_block": {
         "actions": [{
-            "action": function* (ctx) {
-              return {
-                "type": "directive",
-                "name": "say",
-                "options": { "something": "Hello World" }
-              };
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "send_directive", {
+                "0": "say",
+                "something": "Hello World"
+              });
             }
           }]
       }
