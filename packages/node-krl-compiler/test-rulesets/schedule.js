@@ -102,7 +102,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.scope.set("foo", yield (yield ctx.modules.get(ctx, "schedule", "event"))(ctx, {
+          ctx.scope.set("foo", yield ctx.scheduleEvent({
             "domain": "schedule",
             "type": "push_log",
             "attributes": {
@@ -145,7 +145,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.scope.set("foo", yield (yield ctx.modules.get(ctx, "schedule", "event"))(ctx, {
+          ctx.scope.set("foo", yield ctx.scheduleEvent({
             "domain": "schedule",
             "type": "push_log",
             "attributes": {

@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var callModuleFn = require("../utils/callModuleFn");
 
 module.exports = function(ast, comp, e){
 
@@ -16,7 +15,7 @@ module.exports = function(ast, comp, e){
         args.timespec = comp(ast.timespec);
     }
 
-    var module_call = callModuleFn(e, "schedule", "event", e("obj", args), ast.loc);
+    var module_call = e("ycall", e("id", "ctx.scheduleEvent"), [e("obj", args)]);
 
     if(ast.setting){
         return e(";", e("call", e("id", "ctx.scope.set", ast.setting.loc), [
