@@ -1004,7 +1004,7 @@ var grammar = {
     {"name": "declaration_list_body", "symbols": ["declaration_list_body", "declaration_list_body$ebnf$1", "Declaration", "declaration_list_body$ebnf$2"], "postprocess": concatArr(2)},
     {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
     {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
-    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN, tok_OPEN_CURLY, "DeclarationList", "RuleActionBlock", tok_CLSE_CURLY], "postprocess": 
+    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "Parameter_list", tok_CLSE_PAREN, tok_OPEN_CURLY, "DeclarationList", "RuleActionBlock", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1098,16 +1098,29 @@ var grammar = {
     {"name": "Identifier_list", "symbols": ["Identifier_list_body"], "postprocess": id},
     {"name": "Identifier_list_body", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "Identifier_list_body", "symbols": ["Identifier_list_body", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
-    {"name": "Function", "symbols": [tok_function, tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN, tok_OPEN_CURLY, "function_body", tok_CLSE_CURLY], "postprocess": 
+    {"name": "Function", "symbols": [tok_function, tok_OPEN_PAREN, "Parameter_list", tok_CLSE_PAREN, tok_OPEN_CURLY, "function_body", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
-            type: 'Function',
+            type: "Function",
             params: data[2],
             body: data[5]
           };
         }
         },
+    {"name": "Parameter", "symbols": ["Identifier"], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: "Parameter",
+            id: data[0],
+          };
+        }
+        },
+    {"name": "Parameter_list", "symbols": [], "postprocess": noopArr},
+    {"name": "Parameter_list", "symbols": ["Parameter_list_body"], "postprocess": id},
+    {"name": "Parameter_list_body", "symbols": ["Parameter"], "postprocess": idArr},
+    {"name": "Parameter_list_body", "symbols": ["Parameter_list_body", tok_COMMA, "Parameter"], "postprocess": concatArr(2)},
     {"name": "function_body", "symbols": [], "postprocess": noopArr},
     {"name": "function_body$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
     {"name": "function_body$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},

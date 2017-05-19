@@ -930,7 +930,12 @@ test("expressions", function(t){
     });
     testExp("function(a){b}", {
         type: "Function",
-        params: [mk.id("a")],
+        params: [
+            {
+                type: "Parameter",
+                id: mk.id("a"),
+            }
+        ],
         body: [
             {
                 type: "ExpressionStatement",
@@ -1034,7 +1039,12 @@ test("expressions", function(t){
     }
     testExp("function(a){b = 1;a(b);}", {
         type: "Function",
-        params: [mk.id("a")],
+        params: [
+            {
+                type: "Parameter",
+                id: mk.id("a"),
+            }
+        ],
         body: [
             mk.declare("=", mk.id("b"), mk(1)),
             mk.estmt(mk.app(mk.id("a"), [mk.id("b")])),
@@ -2036,35 +2046,20 @@ test("DefAction", function(t){
         }
     ]);
 
-    tstDA('a = defaction(){send_directive("foo")}', [
-        {
-            type: "DefAction",
-            id: mk.id("a"),
-            params: [],
-            body: [],
-            action_block: {
-                type: "RuleActionBlock",
-                condition: null,
-                block_type: "every",
-                actions: [
-                    {
-                        type: "RuleAction",
-                        label: null,
-                        action: mk.id("send_directive"),
-                        args: [mk("foo")],
-                        setting: null,
-                        "with": []
-                    }
-                ]
-            }
-        }
-    ]);
-
     tstDA('a = defaction(b, c){d = 2 e = 3 every { send_directive("foo") with f = 4 g=5 noop()}}', [
         {
             type: "DefAction",
             id: mk.id("a"),
-            params: [mk.id("b"), mk.id("c")],
+            params: [
+                {
+                    type: "Parameter",
+                    id: mk.id("b"),
+                },
+                {
+                    type: "Parameter",
+                    id: mk.id("c"),
+                },
+            ],
             body: [
                 mk.declare("=", mk.id("d"), mk(2)),
                 mk.declare("=", mk.id("e"), mk(3))
@@ -2102,7 +2097,16 @@ test("DefAction", function(t){
         {
             type: "DefAction",
             id: mk.id("a"),
-            params: [mk.id("b"), mk.id("c")],
+            params: [
+                {
+                    type: "Parameter",
+                    id: mk.id("b"),
+                },
+                {
+                    type: "Parameter",
+                    id: mk.id("c"),
+                },
+            ],
             body: [],
             action_block: {
                 type: "RuleActionBlock",
@@ -2122,11 +2126,11 @@ test("DefAction", function(t){
         }
     ]);
 
-    tstDA("a = defaction(b, c){if b && c then every{foo() bar()}}", [
+    tstDA("a = defaction(){if b && c then every{foo() bar()}}", [
         {
             type: "DefAction",
             id: mk.id("a"),
-            params: [mk.id("b"), mk.id("c")],
+            params: [],
             body: [],
             action_block: {
                 type: "RuleActionBlock",
@@ -2154,11 +2158,11 @@ test("DefAction", function(t){
         }
     ]);
 
-    tstDA("a = defaction(b, c){if b && c then{foo(); bar();}}", [
+    tstDA("a = defaction(){if b && c then{foo(); bar();}}", [
         {
             type: "DefAction",
             id: mk.id("a"),
-            params: [mk.id("b"), mk.id("c")],
+            params: [],
             body: [],
             action_block: {
                 type: "RuleActionBlock",
@@ -2186,11 +2190,11 @@ test("DefAction", function(t){
         }
     ]);
 
-    tstDA("a = defaction(b, c){choose b(c){one => foo() two => bar()}}", [
+    tstDA("a = defaction(){choose b(c){one => foo() two => bar()}}", [
         {
             type: "DefAction",
             id: mk.id("a"),
-            params: [mk.id("b"), mk.id("c")],
+            params: [],
             body: [],
             action_block: {
                 type: "RuleActionBlock",

@@ -492,7 +492,12 @@ function(A){
 }
 {
   "type": "Function",
-  "params": [ A ],
+  "params": [
+    {
+      "type": "Parameter",
+      "id": A
+    }
+  ],
   "body": [
     {
       "type": "ExpressionStatement",

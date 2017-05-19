@@ -1045,7 +1045,7 @@ DeclarationOrDefAction ->
     | DefAction {% id %}
 
 DefAction -> Identifier %tok_EQ %tok_defaction
-  %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN %tok_OPEN_CURLY
+  %tok_OPEN_PAREN Parameter_list %tok_CLSE_PAREN %tok_OPEN_CURLY
   DeclarationList
   RuleActionBlock
 %tok_CLSE_CURLY
@@ -1181,16 +1181,36 @@ Identifier_list_body ->
 ################################################################################
 # Functions
 
-Function -> %tok_function %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN %tok_OPEN_CURLY function_body %tok_CLSE_CURLY {%
+Function -> %tok_function %tok_OPEN_PAREN Parameter_list %tok_CLSE_PAREN %tok_OPEN_CURLY function_body %tok_CLSE_CURLY {%
   function(data){
     return {
       loc: mkLoc(data),
-      type: 'Function',
+      type: "Function",
       params: data[2],
       body: data[5]
     };
   }
 %}
+
+Parameter -> Identifier
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: "Parameter",
+      id: data[0],
+    };
+  }
+%}
+
+Parameter_list ->
+      null {% noopArr %}
+    | Parameter_list_body {% id %}
+
+Parameter_list_body ->
+      Parameter {% idArr %}
+    | Parameter_list_body %tok_COMMA Parameter {% concatArr(2) %}
+
 
 function_body -> null {% noopArr %}
     | function_body_parts %tok_SEMI:? {% id %}
