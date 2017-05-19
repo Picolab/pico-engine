@@ -11,7 +11,7 @@ module.exports = function(core, ctx, callback){
         if(!_.has(pico.ruleset, ctx.query.rid)){
             throw new Error("Pico does not have that rid");
         }
-        var rs = core.rsreg.getRuleset(ctx.query.rid);
+        var rs = core.rsreg.get(ctx.query.rid);
         if(!rs){
             throw new Error("Not found: rid");
         }

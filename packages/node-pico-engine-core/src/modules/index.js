@@ -27,7 +27,7 @@ module.exports = function(core){
                 modules[domain].get(ctx, id, callback);
                 return;
             }
-            var umod = _.get(core.rsreg.getRuleset(ctx.rid), ["modules_used", domain]);
+            var umod = _.get(core.rsreg.get(ctx.rid), ["modules_used", domain]);
             if(_.has(umod, "scope")
                 && umod.scope.has(id)
                 && _.includes(umod.provides, id)

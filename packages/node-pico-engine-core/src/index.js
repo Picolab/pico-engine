@@ -219,7 +219,7 @@ module.exports = function(conf, callback){
                 });
             }
 
-            core.rsreg.putRuleset(rs);
+            core.rsreg.put(rs);
 
             callback();
         });
@@ -254,7 +254,7 @@ module.exports = function(conf, callback){
                 if(err) return callback(err);
                 db.enableRuleset(hash, function(err){
                     if(err) return callback(err);
-                    initializeAndEngageRuleset(rs, core.rsreg.getRuleset, function(err){
+                    initializeAndEngageRuleset(rs, core.rsreg.get, function(err){
                         if(err){
                             db.disableRuleset(rs.rid, _.noop);//undo enable if failed
                         }
@@ -388,7 +388,7 @@ module.exports = function(conf, callback){
             db.deleteRuleset(rid, function(err){
                 if(err) return callback(err);
 
-                core.rsreg.delRuleset(rid);
+                core.rsreg.del(rid);
 
                 callback();
             });

@@ -104,7 +104,7 @@ var selectForPico = function(core, ctx, pico, callback){
                 if(rule){
                     //shallow clone with it's own scope for this run
                     rules_to_select.push(_.assign({}, rule, {
-                        scope: core.rsreg.getRuleset(rid).scope.push()
+                        scope: core.rsreg.get(rid).scope.push()
                     }));
                 }
             }

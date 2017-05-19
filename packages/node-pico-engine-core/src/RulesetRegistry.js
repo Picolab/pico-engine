@@ -7,13 +7,10 @@ module.exports = function(){
     //TODO var keys_module_data = {};
 
     return Object.freeze({
-        getRuleset: function(rid){
+        get: function(rid){
             return rulesets[rid];
         },
-        salient: function(domain, type){
-            return _.get(salience_graph, [domain, type], {});
-        },
-        putRuleset: function(rs){
+        put: function(rs){
             if(_.has(rs, "meta.keys")){
                 //"remove" keys so they don't leak out
                 //don't use delete b/c it mutates the loaded rs
@@ -39,7 +36,7 @@ module.exports = function(){
             });
             rulesets[rs.rid] = rs;
         },
-        delRuleset: function(rid){
+        del: function(rid){
             if(_.has(rulesets, rid)){
                 _.each(rulesets[rid].rules, function(rule){
                     _.each(rule.select && rule.select.graph, function(g, domain){
@@ -53,6 +50,9 @@ module.exports = function(){
         },
         getRule: function(rid, name){
             return _.get(rulesets, [rid, "rules", name]);
+        },
+        salient: function(domain, type){
+            return _.get(salience_graph, [domain, type], {});
         },
         assertNoDependants: function(rid){
             _.each(rulesets, function(rs){
