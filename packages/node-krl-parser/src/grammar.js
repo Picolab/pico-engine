@@ -478,15 +478,15 @@ var grammar = {
     {"name": "ruleset_meta_prop", "symbols": [tok_configure, tok_using, "declaration_list_body"], "postprocess":  metaProp(function(data){return {
           declarations: data[2]
         }}, true) },
-    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "Identifier_list"], "postprocess":  metaProp(function(d){return {
+    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "Identifier_list_body"], "postprocess":  metaProp(function(d){return {
           ids: d[1]
         }}, true) },
-    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "ProvidesOperator", "Identifier_list", tok_to, "RulesetID_list"], "postprocess":  metaProp(function(d){return {
+    {"name": "ruleset_meta_prop", "symbols": ["PROVIDEs", "ProvidesOperator", "Identifier_list_body", tok_to, "RulesetID_list"], "postprocess":  metaProp(function(d){return {
           operator: d[1],
           ids: d[2],
           rulesets: d[4]
         }}, true) },
-    {"name": "ruleset_meta_prop", "symbols": ["SHAREs", "Identifier_list"], "postprocess":  metaProp(function(d){return {
+    {"name": "ruleset_meta_prop", "symbols": ["SHAREs", "Identifier_list_body"], "postprocess":  metaProp(function(d){return {
           ids: d[1]
         }}, true) },
     {"name": "ProvidesOperator", "symbols": [tok_keys], "postprocess": 
@@ -545,8 +545,6 @@ var grammar = {
           };
         }
         },
-    {"name": "Identifier_list", "symbols": ["Identifier"], "postprocess": idArr},
-    {"name": "Identifier_list", "symbols": ["Identifier_list", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
     {"name": "RulesetID_list", "symbols": ["RulesetID"], "postprocess": idArr},
     {"name": "RulesetID_list", "symbols": ["RulesetID_list", tok_COMMA, "RulesetID"], "postprocess": concatArr(2)},
     {"name": "OnOrOff", "symbols": [tok_on], "postprocess": booleanAST(true )},
@@ -598,7 +596,7 @@ var grammar = {
           };
         }
         },
-    {"name": "RuleForEach", "symbols": [tok_foreach, "Expression", tok_setting, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": 
+    {"name": "RuleForEach", "symbols": [tok_foreach, "Expression", tok_setting, tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -640,7 +638,7 @@ var grammar = {
     {"name": "IndividualEventExpression$ebnf$2$subexpression$1", "symbols": [tok_where, "event_exp_where"]},
     {"name": "IndividualEventExpression$ebnf$2", "symbols": ["IndividualEventExpression$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "IndividualEventExpression$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "IndividualEventExpression$ebnf$3$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN]},
+    {"name": "IndividualEventExpression$ebnf$3$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN]},
     {"name": "IndividualEventExpression$ebnf$3", "symbols": ["IndividualEventExpression$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "IndividualEventExpression$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "IndividualEventExpression", "symbols": ["Identifier", "Identifier", "IndividualEventExpression$ebnf$1", "IndividualEventExpression$ebnf$2", "IndividualEventExpression$ebnf$3"], "postprocess": 
@@ -676,7 +674,7 @@ var grammar = {
         },
     {"name": "EventExpression_list", "symbols": ["EventExpression"], "postprocess": idArr},
     {"name": "EventExpression_list", "symbols": ["EventExpression_list", tok_COMMA, "EventExpression"], "postprocess": concatArr(2)},
-    {"name": "EventAggregator", "symbols": ["EventAggregators_ops", tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN], "postprocess": 
+    {"name": "EventAggregator", "symbols": ["EventAggregators_ops", tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1006,7 +1004,7 @@ var grammar = {
     {"name": "declaration_list_body", "symbols": ["declaration_list_body", "declaration_list_body$ebnf$1", "Declaration", "declaration_list_body$ebnf$2"], "postprocess": concatArr(2)},
     {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
     {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
-    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "DeclarationList", "RuleActionBlock", tok_CLSE_CURLY], "postprocess": 
+    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN, tok_OPEN_CURLY, "DeclarationList", "RuleActionBlock", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1096,7 +1094,11 @@ var grammar = {
     {"name": "Expression_list", "symbols": ["Expression_list_body"], "postprocess": id},
     {"name": "Expression_list_body", "symbols": ["Expression"], "postprocess": idArr},
     {"name": "Expression_list_body", "symbols": ["Expression_list_body", tok_COMMA, "Expression"], "postprocess": concatArr(2)},
-    {"name": "Function", "symbols": [tok_function, tok_OPEN_PAREN, "function_params", tok_CLSE_PAREN, tok_OPEN_CURLY, "function_body", tok_CLSE_CURLY], "postprocess": 
+    {"name": "Identifier_list", "symbols": [], "postprocess": noopArr},
+    {"name": "Identifier_list", "symbols": ["Identifier_list_body"], "postprocess": id},
+    {"name": "Identifier_list_body", "symbols": ["Identifier"], "postprocess": idArr},
+    {"name": "Identifier_list_body", "symbols": ["Identifier_list_body", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
+    {"name": "Function", "symbols": [tok_function, tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN, tok_OPEN_CURLY, "function_body", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1106,9 +1108,6 @@ var grammar = {
           };
         }
         },
-    {"name": "function_params", "symbols": [], "postprocess": noopArr},
-    {"name": "function_params", "symbols": ["Identifier"], "postprocess": idArr},
-    {"name": "function_params", "symbols": ["function_params", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
     {"name": "function_body", "symbols": [], "postprocess": noopArr},
     {"name": "function_body$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
     {"name": "function_body$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},

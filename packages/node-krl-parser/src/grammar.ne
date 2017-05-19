@@ -470,17 +470,17 @@ ruleset_meta_prop ->
       {% metaProp(function(data){return {
         declarations: data[2]
       }}, true) %}
-    | PROVIDEs Identifier_list
+    | PROVIDEs Identifier_list_body
       {% metaProp(function(d){return {
         ids: d[1]
       }}, true) %}
-    | PROVIDEs ProvidesOperator Identifier_list %tok_to RulesetID_list
+    | PROVIDEs ProvidesOperator Identifier_list_body %tok_to RulesetID_list
       {% metaProp(function(d){return {
         operator: d[1],
         ids: d[2],
         rulesets: d[4]
       }}, true) %}
-    | SHAREs Identifier_list
+    | SHAREs Identifier_list_body
       {% metaProp(function(d){return {
         ids: d[1]
       }}, true) %}
@@ -538,9 +538,6 @@ SHAREs -> (%tok_shares | %tok_share) {%
   }
 %}
 
-Identifier_list -> Identifier {% idArr %}
-    | Identifier_list %tok_COMMA Identifier {% concatArr(2) %}
-
 RulesetID_list -> RulesetID {% idArr %}
     | RulesetID_list %tok_COMMA RulesetID {% concatArr(2) %}
 
@@ -592,7 +589,7 @@ RuleSelect -> %tok_select %tok_when EventExpression EventWithin:? {%
   }
 %}
 
-RuleForEach -> %tok_foreach Expression %tok_setting %tok_OPEN_PAREN function_params %tok_CLSE_PAREN {%
+RuleForEach -> %tok_foreach Expression %tok_setting %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -650,7 +647,7 @@ event_exp_base -> %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN {% getN(1) %}
 IndividualEventExpression -> Identifier Identifier
     event_exp_attribute_pair:*
     (%tok_where event_exp_where):?
-    (%tok_setting %tok_OPEN_PAREN function_params %tok_CLSE_PAREN):? {%
+    (%tok_setting %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN):? {%
   function(data){
     return {
       type: 'EventExpression',
@@ -688,7 +685,7 @@ EventExpression_list -> EventExpression {% idArr %}
     | EventExpression_list %tok_COMMA EventExpression {% concatArr(2) %}
 
 EventAggregator -> EventAggregators_ops
-  %tok_OPEN_PAREN function_params %tok_CLSE_PAREN
+  %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN
 {%
   function(data){
     return {
@@ -1048,7 +1045,7 @@ DeclarationOrDefAction ->
     | DefAction {% id %}
 
 DefAction -> Identifier %tok_EQ %tok_defaction
-  %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_OPEN_CURLY
+  %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN %tok_OPEN_CURLY
   DeclarationList
   RuleActionBlock
 %tok_CLSE_CURLY
@@ -1165,17 +1162,26 @@ Literal ->
     | Array {% id %}
     | Map {% id %}
 
-Expression_list -> null {% noopArr %}
+Expression_list ->
+      null {% noopArr %}
     | Expression_list_body {% id %}
 
 Expression_list_body ->
       Expression {% idArr %}
     | Expression_list_body %tok_COMMA Expression {% concatArr(2) %}
 
+Identifier_list ->
+      null {% noopArr %}
+    | Identifier_list_body {% id %}
+
+Identifier_list_body ->
+      Identifier {% idArr %}
+    | Identifier_list_body %tok_COMMA Identifier {% concatArr(2) %}
+
 ################################################################################
 # Functions
 
-Function -> %tok_function %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_OPEN_CURLY function_body %tok_CLSE_CURLY {%
+Function -> %tok_function %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN %tok_OPEN_CURLY function_body %tok_CLSE_CURLY {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -1185,10 +1191,6 @@ Function -> %tok_function %tok_OPEN_PAREN function_params %tok_CLSE_PAREN %tok_O
     };
   }
 %}
-
-function_params -> null {% noopArr %}
-    | Identifier {% idArr %}
-    | function_params %tok_COMMA Identifier {% concatArr(2) %}
 
 function_body -> null {% noopArr %}
     | function_body_parts %tok_SEMI:? {% id %}
