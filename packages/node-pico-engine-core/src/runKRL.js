@@ -56,6 +56,7 @@ module.exports = function(){
 
                 "raiseEvent",
                 "raiseError",
+                "scheduleEvent",
                 "addActionResponse",
                 "stopRulesetExecution",
             ]);

@@ -896,8 +896,8 @@ http-signature@~1.1.0:
     sshpk "^1.7.0"
 
 ignore@^3.2.0:
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/ignore/-/ignore-3.3.0.tgz#3812d22cbe9125f2c2b4915755a1b8abd745a001"
+  version "3.3.3"
+  resolved "https://registry.yarnpkg.com/ignore/-/ignore-3.3.3.tgz#432352e57accd87ab3110e82d3fea0e47812156d"
 
 immediate@^3.2.3:
   version "3.2.3"
@@ -1144,8 +1144,8 @@ kind-of@^3.0.2:
     is-buffer "^1.1.5"
 
 krl-compiler@>=0.26.2:
-  version "0.31.2"
-  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.31.2.tgz#96f114335c6ac5651bc25d0ddaa18bd32df317f4"
+  version "0.31.3"
+  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.31.3.tgz#6e4f417c30838e3d063bc6545e996c7ebe4ec8e6"
   dependencies:
     btoa "^1.1.2"
     escodegen "^1.8.0"
@@ -1806,10 +1806,10 @@ string_decoder@~0.10.x:
   resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-0.10.31.tgz#62e203bc41766c6c28c9fc84301dab1c5310fa94"
 
 string_decoder@~1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-1.0.0.tgz#f06f41157b664d86069f84bdbdc9b0d8ab281667"
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-1.0.1.tgz#62e200f039955a6810d8df0a33ffc0f013662d98"
   dependencies:
-    buffer-shims "~1.0.0"
+    safe-buffer "^5.0.1"
 
 stringstream@~0.0.4:
   version "0.0.5"
