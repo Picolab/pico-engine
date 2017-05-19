@@ -4,11 +4,11 @@ module.exports = function(ast, comp, e){
     var body = _.map(ast.params, function(param, i){
         var loc = param.loc;
         return e(";", e("call", e("id", "ctx.scope.set", loc), [
-            e("str", param.value, loc),
+            e("string", param.id.value, loc),
             e("call",
                 e("id", "getArg", loc),
                 [
-                    e("string", param.value, loc),
+                    e("string", param.id.value, loc),
                     e("number", i, loc)
                 ],
                 loc
