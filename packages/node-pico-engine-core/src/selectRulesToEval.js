@@ -86,29 +86,16 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
 
 var selectForPico = function(core, ctx, pico, callback){
 
-    var to_run = core.rsreg.salient(ctx.event.domain, ctx.event.type);
-
-    var rules_to_select = [];
-    _.each(to_run, function(rules, rid){
+    var rules_to_select = core.rsreg.salientRules(ctx.event.domain, ctx.event.type, function(rid){
         if(!_.has(pico.ruleset, rid)){
-            return;
+            return false;
         }
         if(_.has(ctx.event, "for_rid") && _.isString(ctx.event.for_rid)){
             if(rid !== ctx.event.for_rid){
-                return;
+                return false;
             }
         }
-        _.each(rules, function(is_on, rule_name){
-            if(is_on){
-                var rule = core.rsreg.getRule(rid, rule_name);
-                if(rule){
-                    //shallow clone with it's own scope for this run
-                    rules_to_select.push(_.assign({}, rule, {
-                        scope: core.rsreg.get(rid).scope.push()
-                    }));
-                }
-            }
-        });
+        return true;
     });
 
     λ.filter(rules_to_select, function(rule, next){

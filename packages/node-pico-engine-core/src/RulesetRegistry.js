@@ -64,9 +64,6 @@ module.exports = function(){
                 delete rulesets[rid];
             }
         },
-        getRule: function(rid, name){
-            return _.get(rulesets, [rid, "rules", name]);
-        },
         provideKey: function(rid, use_rid){
             if(_.has(keys_module_data, ["provided", use_rid, rid])){
                 _.set(keys_module_data, [
@@ -78,8 +75,27 @@ module.exports = function(){
         getKey: function(rid, key_id){
             return _.get(keys_module_data, ["used_keys", rid, key_id]);
         },
-        salient: function(domain, type){
-            return _.get(salience_graph, [domain, type], {});
+        salientRules: function(domain, type, ridFilter){
+            var to_run = _.get(salience_graph, [domain, type], {});
+
+            var rules_to_select = [];
+            _.each(to_run, function(rules, rid){
+                if(!ridFilter(rid)){
+                    return;
+                }
+                _.each(rules, function(is_on, rule_name){
+                    if(is_on){
+                        var rule = _.get(rulesets, [rid, "rules", rule_name]);
+                        if(rule){
+                            //shallow clone with it's own scope for this run
+                            rules_to_select.push(_.assign({}, rule, {
+                                scope: rulesets[rid].scope.push()
+                            }));
+                        }
+                    }
+                });
+            });
+            return rules_to_select;
         },
         assertNoDependants: function(rid){
             _.each(rulesets, function(rs){
