@@ -1,6 +1,6 @@
 ruleset io.picolabs.expressions {
   meta {
-    shares obj, path1, path2, index1, index2
+    shares obj, path1, path2, index1, index2, paramFnTest
   }
   global {
     cond_exp_1 = true => 1 |
@@ -21,6 +21,26 @@ ruleset io.picolabs.expressions {
     not_null = not null
     true_or_false = true || false
     true_and_false = true && false
+    incByN = function(n){
+      function(a){
+        a + n
+      }
+    }
+    paramFn = function(
+      foo = incByN(3),
+      bar = foo(1),
+      baz = bar + 2,
+      qux = baz + "?",
+    ){
+      [bar, baz, qux]
+    }
+    paramFnTest = function(){
+      [
+        paramFn(),
+        paramFn(incByN(100), "one"),
+        paramFn(null, 3, 4, 5)
+      ]
+    }
   }
 
 }

@@ -1,9 +1,7 @@
 ruleset io.picolabs.engine {
   rule newPico {
     select when engine newPico;
-    fired {
-      engine:newPico()
-    }
+    engine:newPico()
   }
   rule newChannel {
     select when engine newChannel;
@@ -12,15 +10,11 @@ ruleset io.picolabs.engine {
       name = event:attr("name")
       type = event:attr("type")
     }
-    fired {
-      engine:newChannel(pico_id, name, type)
-    }
+    engine:newChannel(pico_id, name, type)
   }
   rule removeChannel {
     select when engine removeChannel;
-    fired {
-      engine:removeChannel(event:attr("eci"))
-    }
+    engine:removeChannel(event:attr("eci"))
   }
   rule installRuleset {
     select when engine installRuleset;
@@ -30,8 +24,6 @@ ruleset io.picolabs.engine {
       url = event:attr("url")
       base = event:attr("base")
     }
-    fired {
-      engine:installRuleset(pico_id, rid, url, base)
-    }
+    engine:installRuleset(pico_id, rid, url, base)
   }
 }

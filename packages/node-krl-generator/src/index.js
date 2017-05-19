@@ -29,6 +29,7 @@ var gen_by_type = _.fromPairs(_.map([
     "MapKeyValuePair",
     "MemberExpression",
     "Number",
+    "Parameter",
     "PersistentVariableAssignment",
     "RaiseEventAttributes",
     "RaiseEventStatement",
