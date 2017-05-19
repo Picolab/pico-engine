@@ -33,9 +33,9 @@ module.exports = function(core){
                     timestamp_stored: data.timestamp_stored,
                     timestamp_enable: data.timestamp_enable,
                     meta: {
-                        name:        _.get(core.rulesets, [rid, "meta", "name"]),
-                        description: _.get(core.rulesets, [rid, "meta", "description"]),
-                        author:      _.get(core.rulesets, [rid, "meta", "author"]),
+                        name:        _.get(core.rsreg.getRuleset(rid), ["meta", "name"]),
+                        description: _.get(core.rsreg.getRuleset(rid), ["meta", "description"]),
+                        author:      _.get(core.rsreg.getRuleset(rid), ["meta", "author"]),
                     },
                 });
             });

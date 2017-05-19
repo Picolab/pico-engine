@@ -15,13 +15,13 @@ var getCoreCTXval = {
         return ctx.pico_id;
     },
     "rulesetName": function(core, ctx){
-        return _.get(core.rulesets, [ctx.rid, "meta", "name"]);
+        return _.get(core.rsreg.getRuleset(ctx.rid), ["meta", "name"]);
     },
     "rulesetDescription": function(core, ctx){
-        return _.get(core.rulesets, [ctx.rid, "meta", "description"]);
+        return _.get(core.rsreg.getRuleset(ctx.rid), ["meta", "description"]);
     },
     "rulesetAuthor": function(core, ctx){
-        return _.get(core.rulesets, [ctx.rid, "meta", "author"]);
+        return _.get(core.rsreg.getRuleset(ctx.rid), ["meta", "author"]);
     },
     "ruleName": function(core, ctx){
         return ctx.rule_name;

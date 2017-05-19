@@ -712,7 +712,7 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
             //Test unregisterRuleset checks
             function(next){
                 pe.unregisterRuleset("io.picolabs.module-defined", function(err){
-                    t.equals(err + "", "Error: unregisterRuleset(\"io.picolabs.module-defined\")- it is depended on by \"io.picolabs.module-used\"");
+                    t.equals(err + "", "Error: \"io.picolabs.module-defined\" is depended on by \"io.picolabs.module-used\"");
                     next();
                 });
             },

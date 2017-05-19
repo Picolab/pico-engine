@@ -14,6 +14,7 @@ var EventEmitter = require("events");
 var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
 var processAction = require("./processAction");
+var RulesetRegistry = require("./RulesetRegistry");
 
 var log_levels = {
     "info": true,
@@ -32,15 +33,12 @@ module.exports = function(conf, callback){
     var host = conf.host;
     var compileAndLoadRuleset = conf.compileAndLoadRuleset;
 
-    var rulesets = {};
-    var salience_graph = {};
     var keys_module_data = {};
 
     var core = {
         db: db,
         host: host,
-        rulesets: rulesets,
-        salience_graph: salience_graph,
+        rsreg: RulesetRegistry()
     };
 
     var emitter = new EventEmitter();
@@ -221,30 +219,7 @@ module.exports = function(conf, callback){
                 });
             }
 
-            if(_.has(rs, "meta.keys")){
-                //"remove" keys so they don't leak out
-                //don't use delete b/c it mutates the loaded rs
-                rs = _.assign({}, rs, {
-                    meta: _.omit(rs.meta, "keys")
-                });
-            }
-
-            //now setup `salience_graph` and `rulesets`
-            _.each(salience_graph, function(data_d, domain){
-                _.each(data_d, function(data_t, type){
-                    //clear out any old versions graph
-                    _.unset(salience_graph, [domain, type, rs.rid]);
-                });
-            });
-            _.each(rs.rules, function(rule){
-                rule.rid = rs.rid;
-                _.each(rule.select && rule.select.graph, function(g, domain){
-                    _.each(g, function(exprs, type){
-                        _.set(salience_graph, [domain, type, rule.rid, rule.name], true);
-                    });
-                });
-            });
-            rulesets[rs.rid] = rs;
+            core.rsreg.putRuleset(rs);
 
             callback();
         });
@@ -279,9 +254,7 @@ module.exports = function(conf, callback){
                 if(err) return callback(err);
                 db.enableRuleset(hash, function(err){
                     if(err) return callback(err);
-                    initializeAndEngageRuleset(rs, function(rid){
-                        return rulesets[rid];
-                    }, function(err){
+                    initializeAndEngageRuleset(rs, core.rsreg.getRuleset, function(err){
                         if(err){
                             db.disableRuleset(rs.rid, _.noop);//undo enable if failed
                         }
@@ -401,13 +374,7 @@ module.exports = function(conf, callback){
         var err_prefix = "unregisterRuleset(\"" + rid + "\")- ";
         //first assert rid is not depended on as a module
         try{
-            _.each(rulesets, function(rs){
-                _.each(rs.modules_used, function(info){
-                    if(info.rid === rid){
-                        throw new Error(err_prefix + "it is depended on by \"" + rs.rid + "\"");
-                    }
-                });
-            });
+            core.rsreg.assertNoDependants(rid);
         }catch(err){
             callback(err);
             return;
@@ -421,16 +388,7 @@ module.exports = function(conf, callback){
             db.deleteRuleset(rid, function(err){
                 if(err) return callback(err);
 
-                if(_.has(rulesets, rid)){
-                    _.each(rulesets[rid].rules, function(rule){
-                        _.each(rule.select && rule.select.graph, function(g, domain){
-                            _.each(g, function(exprs, type){
-                                _.unset(salience_graph, [domain, type, rid]);
-                            });
-                        });
-                    });
-                    delete rulesets[rid];
-                }
+                core.rsreg.delRuleset(rid);
 
                 callback();
             });

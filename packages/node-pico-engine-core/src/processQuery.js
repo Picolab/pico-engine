@@ -11,10 +11,10 @@ module.exports = function(core, ctx, callback){
         if(!_.has(pico.ruleset, ctx.query.rid)){
             throw new Error("Pico does not have that rid");
         }
-        if(!_.has(core.rulesets, ctx.query.rid)){
+        var rs = core.rsreg.getRuleset(ctx.query.rid);
+        if(!rs){
             throw new Error("Not found: rid");
         }
-        var rs = core.rulesets[ctx.query.rid];
         var shares = _.get(rs, ["meta", "shares"]);
         if(!_.isArray(shares) || !_.includes(shares, ctx.query.name)){
             throw new Error("Not shared");

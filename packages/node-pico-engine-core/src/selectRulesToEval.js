@@ -86,7 +86,7 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
 
 var selectForPico = function(core, ctx, pico, callback){
 
-    var to_run = _.get(core.salience_graph, [ctx.event.domain, ctx.event.type], {});
+    var to_run = core.rsreg.salient(ctx.event.domain, ctx.event.type);
 
     var rules_to_select = [];
     _.each(to_run, function(rules, rid){
@@ -100,11 +100,11 @@ var selectForPico = function(core, ctx, pico, callback){
         }
         _.each(rules, function(is_on, rule_name){
             if(is_on){
-                var rule = _.get(core.rulesets, [rid, "rules", rule_name]);
+                var rule = core.rsreg.getRule(rid, rule_name);
                 if(rule){
                     //shallow clone with it's own scope for this run
                     rules_to_select.push(_.assign({}, rule, {
-                        scope: core.rulesets[rid].scope.push()
+                        scope: core.rsreg.getRuleset(rid).scope.push()
                     }));
                 }
             }
