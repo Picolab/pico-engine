@@ -5,6 +5,8 @@ var cuid = require("cuid");
 var test = require("tape");
 var http = require("http");
 var memdown = require("memdown");
+var compiler = require("krl-compiler");
+var PicoEngine = require("./");
 var mkTestPicoEngine = require("./mkTestPicoEngine");
 
 var omitMeta = function(resp){
@@ -1808,5 +1810,71 @@ test("PicoEngine - io.picolabs.error rulesets", function(t){
             ],
 
         ], t.end);
+    });
+});
+
+test("PicoEngine - (re)registering ruleset shouldn't mess up state", function(t){
+    PicoEngine({
+        host: "https://test-host",
+        ___core_testing_mode: true,
+        compileAndLoadRuleset: function(rs_info, callback){
+            var js;
+            try{
+                var js_src = compiler(rs_info.src, {
+                    inline_source_map: true
+                }).code;
+                js = eval(js_src);
+            }catch(err){
+                return callback(err);
+            }
+            callback(null, js);
+        },
+        db: {
+            db: memdown,
+            newID: (function(){
+                var i = 0;
+                return function(){
+                    return "id" + i++;
+                };
+            }())
+        }
+    }, function(err, pe){
+        if(err)return t.end(err);
+
+        var krl_0 = "ruleset foo.rid {rule aa {select when foo all} rule bb {select when foo all}}";
+        var krl_1 = "ruleset foo.rid {rule ab {select when foo all} rule bb {select when foo all}}";
+
+        var signal = mkSignalTask(pe, "id1");
+
+        var order = [];
+        pe.emitter.on("debug", function(info, val){
+            if("event being processed" === val){
+                order.push("EVENT: " + info.event.domain + "/" + info.event.type);
+            }else if(/^rule selected/.test(val)){
+                order.push(val);
+            }
+        });
+        λ.series([
+            λ.curry(pe.newPico, {}),
+            λ.curry(pe.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+            λ.curry(pe.registerRuleset, krl_0, {}),
+            λ.curry(pe.installRuleset, "id0", "foo.rid"),
+            signal("foo", "all"),
+            λ.curry(pe.registerRuleset, krl_1, {}),
+            signal("foo", "all"),
+        ], function(err){
+            if(err) return t.end(err);
+
+            t.deepEquals(order, [
+                "EVENT: foo/all",
+                "rule selected: foo.rid -> aa",
+                "rule selected: foo.rid -> bb",
+                "EVENT: foo/all",
+                "rule selected: foo.rid -> ab",
+                "rule selected: foo.rid -> bb",
+            ]);
+
+            t.end();
+        });
     });
 });

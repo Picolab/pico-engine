@@ -230,6 +230,12 @@ module.exports = function(conf, callback){
             }
 
             //now setup `salience_graph` and `rulesets`
+            _.each(salience_graph, function(data_d, domain){
+                _.each(data_d, function(data_t, type){
+                    //clear out any old versions graph
+                    _.unset(salience_graph, [domain, type, rs.rid]);
+                });
+            });
             _.each(rs.rules, function(rule){
                 rule.rid = rs.rid;
                 _.each(rule.select && rule.select.graph, function(g, domain){
