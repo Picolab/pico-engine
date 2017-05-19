@@ -93,7 +93,7 @@ var examples = {
         "A => B |\nC => D |\n     E"
     ],
     "#### Functions": [
-        "function(A){\n  B\n}",
+        "function(A, B = 3){\n  C\n}",
         "A(B,C)"
     ],
     "#### Accessing data": [

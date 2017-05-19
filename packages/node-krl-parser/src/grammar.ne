@@ -1192,20 +1192,21 @@ Function -> %tok_function %tok_OPEN_PAREN Parameter_list %tok_CLSE_PAREN %tok_OP
   }
 %}
 
-Parameter -> Identifier
+Parameter -> Identifier (%tok_EQ Expression):?
 {%
   function(data){
     return {
       loc: mkLoc(data),
       type: "Parameter",
       id: data[0],
+      default: data[1] && data[1][1],
     };
   }
 %}
 
 Parameter_list ->
       null {% noopArr %}
-    | Parameter_list_body {% id %}
+    | Parameter_list_body %tok_COMMA:? {% id %}
 
 Parameter_list_body ->
       Parameter {% idArr %}

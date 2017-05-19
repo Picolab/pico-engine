@@ -1108,17 +1108,23 @@ var grammar = {
           };
         }
         },
-    {"name": "Parameter", "symbols": ["Identifier"], "postprocess": 
+    {"name": "Parameter$ebnf$1$subexpression$1", "symbols": [tok_EQ, "Expression"]},
+    {"name": "Parameter$ebnf$1", "symbols": ["Parameter$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "Parameter$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Parameter", "symbols": ["Identifier", "Parameter$ebnf$1"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: "Parameter",
             id: data[0],
+            default: data[1] && data[1][1],
           };
         }
         },
     {"name": "Parameter_list", "symbols": [], "postprocess": noopArr},
-    {"name": "Parameter_list", "symbols": ["Parameter_list_body"], "postprocess": id},
+    {"name": "Parameter_list$ebnf$1", "symbols": [tok_COMMA], "postprocess": id},
+    {"name": "Parameter_list$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Parameter_list", "symbols": ["Parameter_list_body", "Parameter_list$ebnf$1"], "postprocess": id},
     {"name": "Parameter_list_body", "symbols": ["Parameter"], "postprocess": idArr},
     {"name": "Parameter_list_body", "symbols": ["Parameter_list_body", tok_COMMA, "Parameter"], "postprocess": concatArr(2)},
     {"name": "function_body", "symbols": [], "postprocess": noopArr},

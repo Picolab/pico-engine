@@ -934,6 +934,7 @@ test("expressions", function(t){
             {
                 type: "Parameter",
                 id: mk.id("a"),
+                default: null,
             }
         ],
         body: [
@@ -1043,6 +1044,7 @@ test("expressions", function(t){
             {
                 type: "Parameter",
                 id: mk.id("a"),
+                default: null,
             }
         ],
         body: [
@@ -2054,10 +2056,12 @@ test("DefAction", function(t){
                 {
                     type: "Parameter",
                     id: mk.id("b"),
+                    default: null,
                 },
                 {
                     type: "Parameter",
                     id: mk.id("c"),
+                    default: null,
                 },
             ],
             body: [
@@ -2101,10 +2105,12 @@ test("DefAction", function(t){
                 {
                     type: "Parameter",
                     id: mk.id("b"),
+                    default: null,
                 },
                 {
                     type: "Parameter",
                     id: mk.id("c"),
+                    default: null,
                 },
             ],
             body: [],
@@ -2556,6 +2562,57 @@ test("LastStatement", function(t){
             type: "LastStatement",
         }
     }]);
+
+    t.end();
+});
+
+test("Parameter_list", function(t){
+    var tstParams = function(params_src, expected){
+        var src = "ruleset rs{global{";
+        src += " a = defaction(" + params_src + "){noop()}; ";
+        src += " b = function(" + params_src + "){}; ";
+        src += "}}";
+
+        var ast = normalizeAST(rmLoc(parser(src)));
+        var exp_ast = normalizeAST(expected);
+
+        t.deepEquals(ast.global[0].params, exp_ast);
+        t.deepEquals(ast.global[1].right.params, exp_ast);
+    };
+
+    var mkP = function(id, dflt){
+        return {
+            type: "Parameter",
+            id: mk.id(id),
+            default: dflt || null,
+        };
+    };
+
+    tstParams(" asdf ", [
+        mkP("asdf"),
+    ]);
+
+    tstParams("a, b, c", [
+        mkP("a"),
+        mkP("b"),
+        mkP("c"),
+    ]);
+
+    tstParams("\n    foo,\n    bar,\n    ", [
+        mkP("foo"),
+        mkP("bar"),
+    ]);
+
+    tstParams("a, b = 2", [
+        mkP("a"),
+        mkP("b", mk(2)),
+    ]);
+
+    tstParams("a, b = \"wat\", c = b + \" da\"", [
+        mkP("a"),
+        mkP("b", mk("wat")),
+        mkP("c", mk.op("+", mk.id("b"), mk(" da"))),
+    ]);
 
     t.end();
 });

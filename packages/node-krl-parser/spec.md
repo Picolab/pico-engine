@@ -487,21 +487,27 @@ C => D |
 #### Functions
 
 ```js
-function(A){
-  B
+function(A, B = 3){
+  C
 }
 {
   "type": "Function",
   "params": [
     {
       "type": "Parameter",
-      "id": A
+      "id": A,
+      "default": null
+    },
+    {
+      "type": "Parameter",
+      "id": B,
+      "default": {value: 3, type:"Number"}
     }
   ],
   "body": [
     {
       "type": "ExpressionStatement",
-      "expression": B
+      "expression": C
     }
   ]
 }
