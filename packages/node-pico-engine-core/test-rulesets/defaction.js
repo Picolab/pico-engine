@@ -22,10 +22,22 @@ module.exports = {
           }]
       };
     });
-    ctx.defaction(ctx, "bar", function* (ctx, getArg) {
+    ctx.defaction(ctx, "bar", function* (ctx, getArg, hasArg) {
       ctx.scope.set("one", getArg("one", 0));
-      ctx.scope.set("two", getArg("two", 1));
-      ctx.scope.set("three", getArg("three", 2));
+      ctx.scope.set("two", hasArg("two", 1)
+             ?  getArg("two", 1)
+             : yield ctx.callKRLstdlib("get", yield ctx.scope.get("add")(ctx, [
+          1,
+          1
+        ]), [
+          "options",
+          "resp"
+        ])
+      );
+      ctx.scope.set("three", hasArg("three", 2)
+        ? getArg("three", 2)
+        : "3 by default"
+      );
       return {
         "actions": [{
             "action": function* (ctx, runAction) {

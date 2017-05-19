@@ -758,7 +758,15 @@ test("PicoEngine - io.picolabs.expressions ruleset", function(t){
             [
                 query("index2"),
                 3
-            ]
+            ],
+            [
+                query("paramFnTest"),
+                [
+                    [4, 6, "6?"],
+                    ["one", "one2", "one2?"],
+                    [3, 4, 5],
+                ]
+            ],
         ], t.end);
     });
 });

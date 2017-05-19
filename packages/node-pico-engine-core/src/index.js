@@ -3,6 +3,7 @@ var λ = require("contra");
 var DB = require("./DB");
 var cocb = require("co-callback");
 var getArg = require("./getArg");
+var hasArg = require("./hasArg");
 var runKRL = require("./runKRL");
 var Modules = require("./modules");
 var PicoQueue = require("./PicoQueue");
@@ -61,6 +62,8 @@ module.exports = function(conf, callback){
             return function(ctx2, args){
                 return fn(pushCTXScope(ctx2), function(name, index){
                     return getArg(args, name, index);
+                }, function(name, index){
+                    return hasArg(args, name, index);
                 });
             };
         };
@@ -69,6 +72,8 @@ module.exports = function(conf, callback){
                 var ctx3 = pushCTXScope(ctx2);
                 var action_block = yield fn(ctx3, function(name, index){
                     return getArg(args, name, index);
+                }, function(name, index){
+                    return hasArg(args, name, index);
                 });
                 var r = yield processAction(ctx3, action_block);
                 return r.returns;

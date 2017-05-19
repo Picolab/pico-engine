@@ -10,7 +10,11 @@ ruleset io.picolabs.defaction {
         and
         b = b + 3
     }
-    bar = defaction(one, two, three){
+    bar = defaction(
+      one,
+      two = add(1, 1){["options", "resp"]},
+      three = "3 by default",
+    ){
 
       send_directive("bar") with
         a = one
