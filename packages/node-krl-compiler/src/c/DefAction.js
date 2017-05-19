@@ -2,18 +2,7 @@ var _ = require("lodash");
 
 module.exports = function(ast, comp, e){
     var body = _.map(ast.params, function(param, i){
-        var loc = param.loc;
-        return e(";", e("call", e("id", "ctx.scope.set", loc), [
-            e("string", param.id.value, loc),
-            e("call",
-                e("id", "getArg", loc),
-                [
-                    e("string", param.id.value, loc),
-                    e("number", i, loc)
-                ],
-                loc
-            )
-        ], loc), loc);
+        return comp(param, {index: i});
     });
 
     _.each(ast.body, function(d){

@@ -24,8 +24,18 @@ module.exports = {
     });
     ctx.defaction(ctx, "bar", function* (ctx, getArg) {
       ctx.scope.set("one", getArg("one", 0));
-      ctx.scope.set("two", getArg("two", 1));
-      ctx.scope.set("three", getArg("three", 2));
+      ctx.scope.set("two", getArg("two", 1, function () {
+        return yield ctx.callKRLstdlib("get", yield ctx.scope.get("add")(ctx, [
+          1,
+          1
+        ]), [
+          "options",
+          "resp"
+        ]);
+      }));
+      ctx.scope.set("three", getArg("three", 2, function () {
+        return "3 by default";
+      }));
       return {
         "actions": [{
             "action": function* (ctx, runAction) {
