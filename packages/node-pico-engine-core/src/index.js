@@ -33,8 +33,6 @@ module.exports = function(conf, callback){
     var host = conf.host;
     var compileAndLoadRuleset = conf.compileAndLoadRuleset;
 
-    var keys_module_data = {};
-
     var core = {
         db: db,
         host: host,
@@ -48,7 +46,7 @@ module.exports = function(conf, callback){
         ctx.getMyKey = (function(rid){
             //we do it this way so all the keys are not leaked out to other built in modules or rulesets
             return function(id){
-                return _.get(keys_module_data, ["used_keys", rid, id]);
+                return core.rsreg.getKey(rid, id);
             };
         }(ctx.rid));//pass in the rid at mkCTX creation so it is not later mutated
 
@@ -190,34 +188,13 @@ module.exports = function(conf, callback){
                 scope: ctx2.scope,
                 provides: dep_rs.meta.provides
             };
-            if(_.has(keys_module_data, ["provided", use.rid, rs.rid])){
-                _.set(keys_module_data, [
-                    "used_keys",
-                    rs.rid,
-                ], keys_module_data.provided[use.rid][rs.rid]);
-            }
+            core.rsreg.provideKey(rs.rid, use.rid);
         }
     });
 
     var initializeAndEngageRuleset = function(rs, loadDepRS, callback){
         cocb.run(initializeRulest(rs, loadDepRS), function(err){
             if(err) return callback(err);
-
-            if(true
-                && _.has(rs, "meta.keys")
-                && _.has(rs, "meta.provides_keys")
-            ){
-                _.each(rs.meta.provides_keys, function(p, key){
-                    _.each(p.to, function(to_rid){
-                        _.set(keys_module_data, [
-                            "provided",
-                            rs.rid,
-                            to_rid,
-                            key
-                        ], _.cloneDeep(rs.meta.keys[key]));
-                    });
-                });
-            }
 
             core.rsreg.put(rs);
 

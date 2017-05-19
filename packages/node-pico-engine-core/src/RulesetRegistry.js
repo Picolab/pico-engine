@@ -4,13 +4,29 @@ module.exports = function(){
 
     var rulesets = {};
     var salience_graph = {};
-    //TODO var keys_module_data = {};
+    var keys_module_data = {};
 
     return Object.freeze({
         get: function(rid){
             return rulesets[rid];
         },
         put: function(rs){
+            if(true
+                && _.has(rs, "meta.keys")
+                && _.has(rs, "meta.provides_keys")
+            ){
+                _.each(rs.meta.provides_keys, function(p, key){
+                    _.each(p.to, function(to_rid){
+                        _.set(keys_module_data, [
+                            "provided",
+                            rs.rid,
+                            to_rid,
+                            key
+                        ], _.cloneDeep(rs.meta.keys[key]));
+                    });
+                });
+            }
+
             if(_.has(rs, "meta.keys")){
                 //"remove" keys so they don't leak out
                 //don't use delete b/c it mutates the loaded rs
@@ -50,6 +66,17 @@ module.exports = function(){
         },
         getRule: function(rid, name){
             return _.get(rulesets, [rid, "rules", name]);
+        },
+        provideKey: function(rid, use_rid){
+            if(_.has(keys_module_data, ["provided", use_rid, rid])){
+                _.set(keys_module_data, [
+                    "used_keys",
+                    rid,
+                ], keys_module_data.provided[use_rid][rid]);
+            }
+        },
+        getKey: function(rid, key_id){
+            return _.get(keys_module_data, ["used_keys", rid, key_id]);
         },
         salient: function(domain, type){
             return _.get(salience_graph, [domain, type], {});
