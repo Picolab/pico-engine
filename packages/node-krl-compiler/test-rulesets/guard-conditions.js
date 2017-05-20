@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.guard-conditions",
   "meta": { "shares": ["getB"] },
   "global": function* (ctx) {
-    ctx.scope.set("getB", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("getB", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "b");
     }));
   },
@@ -70,7 +70,7 @@ module.exports = {
           1,
           2,
           3
-        ], ctx.KRLClosure(function* (ctx, getArg) {
+        ], ctx.KRLClosure(function* (ctx, getArg, hasArg) {
           ctx.scope.set("x", getArg("value", 0));
           yield iter(ctx);
         }));

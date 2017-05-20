@@ -7,10 +7,10 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getLog", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("getLog", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "log");
     }));
-    ctx.scope.set("listScheduled", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("listScheduled", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield (yield ctx.modules.get(ctx, "schedule", "list"))(ctx, []);
     }));
   },

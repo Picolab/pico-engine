@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.error",
   "meta": { "shares": ["getErrors"] },
   "global": function* (ctx) {
-    ctx.scope.set("getErrors", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("getErrors", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "error_log");
     }));
   },

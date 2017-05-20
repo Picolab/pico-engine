@@ -26,14 +26,19 @@ ruleset io.picolabs.expressions {
         a + n
       }
     }
-    paramFn = function(foo = incByN(3), bar = foo(1), baz = bar + 2, qux = baz + "?" ){
+    paramFn = function(
+      foo = incByN(3),
+      bar = foo(1),
+      baz = bar + 2,
+      qux = baz + "?",
+    ){
       [bar, baz, qux]
     }
     paramFnTest = function(){
       [
-          paramFn(),
-          paramFn(incByN(100), "one"),
-          paramFn(null, 3, 4, 5)
+        paramFn(),
+        paramFn(incByN(100), "one"),
+        paramFn(null, 3, 4, 5)
       ]
     }
   }

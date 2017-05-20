@@ -14,6 +14,6 @@ module.exports = function(ast, comp, e){
     return e(";", e("call", e("id", "ctx.defaction"), [
         e("id", "ctx"),
         e("str", ast.id.value, ast.id.loc),
-        e("genfn", ["ctx", "getArg"], body),
+        e("genfn", ["ctx", "getArg", "hasArg"], body),
     ]));
 };
