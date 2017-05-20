@@ -51,37 +51,25 @@ module.exports = {
     ctx.scope.set("not_null", !void 0);
     ctx.scope.set("true_or_false", true || false);
     ctx.scope.set("true_and_false", true && false);
-    ctx.scope.set("incByN", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("incByN", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("n", getArg("n", 0));
-      return ctx.KRLClosure(function* (ctx, getArg) {
+      return ctx.KRLClosure(function* (ctx, getArg, hasArg) {
         ctx.scope.set("a", getArg("a", 0));
         return yield ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("n"));
       });
     }));
     ctx.scope.set("paramFn", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("foo", hasArg("foo", 0)
-        ? getArg("foo", 0)
-        : yield ctx.scope.get("incByN")(ctx, [3])
-      );
-      ctx.scope.set("bar", hasArg("bar", 1)
-        ? getArg("bar", 1)
-        : yield ctx.scope.get("foo")(ctx, [1])
-      );
-      ctx.scope.set("baz", hasArg("baz", 2)
-        ? getArg("baz", 2)
-        : yield ctx.callKRLstdlib("+", ctx.scope.get("bar"), 2)
-      );
-      ctx.scope.set("qux", hasArg("qux", 3)
-        ? getArg("qux", 3)
-        : yield ctx.callKRLstdlib("+", ctx.scope.get("baz"), "?")
-      );
+      ctx.scope.set("foo", hasArg("foo", 0) ? getArg("foo", 0) : yield ctx.scope.get("incByN")(ctx, [3]));
+      ctx.scope.set("bar", hasArg("bar", 1) ? getArg("bar", 1) : yield ctx.scope.get("foo")(ctx, [1]));
+      ctx.scope.set("baz", hasArg("baz", 2) ? getArg("baz", 2) : yield ctx.callKRLstdlib("+", ctx.scope.get("bar"), 2));
+      ctx.scope.set("qux", hasArg("qux", 3) ? getArg("qux", 3) : yield ctx.callKRLstdlib("+", ctx.scope.get("baz"), "?"));
       return [
         ctx.scope.get("bar"),
         ctx.scope.get("baz"),
         ctx.scope.get("qux")
       ];
     }));
-    ctx.scope.set("paramFnTest", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("paramFnTest", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return [
         yield ctx.scope.get("paramFn")(ctx, []),
         yield ctx.scope.get("paramFn")(ctx, [

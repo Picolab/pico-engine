@@ -9,16 +9,16 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getOnChooseFired", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("getOnChooseFired", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "on_choose_fired");
     }));
-    ctx.scope.set("getNoActionFired", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("getNoActionFired", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "no_action_fired");
     }));
-    ctx.scope.set("getSentAttrs", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("getSentAttrs", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "sent_attrs");
     }));
-    ctx.scope.set("getSentName", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("getSentName", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "sent_name");
     }));
   },

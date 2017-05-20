@@ -7,7 +7,7 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.defaction(ctx, "foo", function* (ctx, getArg) {
+    ctx.defaction(ctx, "foo", function* (ctx, getArg, hasArg) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", 2);
       return {
@@ -24,20 +24,14 @@ module.exports = {
     });
     ctx.defaction(ctx, "bar", function* (ctx, getArg, hasArg) {
       ctx.scope.set("one", getArg("one", 0));
-      ctx.scope.set("two", hasArg("two", 1)
-             ?  getArg("two", 1)
-             : yield ctx.callKRLstdlib("get", yield ctx.scope.get("add")(ctx, [
-          1,
-          1
-        ]), [
-          "options",
-          "resp"
-        ])
-      );
-      ctx.scope.set("three", hasArg("three", 2)
-        ? getArg("three", 2)
-        : "3 by default"
-      );
+      ctx.scope.set("two", hasArg("two", 1) ? getArg("two", 1) : yield ctx.callKRLstdlib("get", yield ctx.scope.get("add")(ctx, [
+        1,
+        1
+      ]), [
+        "options",
+        "resp"
+      ]));
+      ctx.scope.set("three", hasArg("three", 2) ? getArg("three", 2) : "3 by default");
       return {
         "actions": [{
             "action": function* (ctx, runAction) {
@@ -51,10 +45,10 @@ module.exports = {
           }]
       };
     });
-    ctx.scope.set("getSettingVal", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("getSettingVal", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "setting_val");
     }));
-    ctx.defaction(ctx, "chooser", function* (ctx, getArg) {
+    ctx.defaction(ctx, "chooser", function* (ctx, getArg, hasArg) {
       ctx.scope.set("val", getArg("val", 0));
       return {
         "block_type": "choose",
@@ -81,7 +75,7 @@ module.exports = {
         ]
       };
     });
-    ctx.defaction(ctx, "ifAnotB", function* (ctx, getArg) {
+    ctx.defaction(ctx, "ifAnotB", function* (ctx, getArg, hasArg) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", getArg("b", 1));
       return {
@@ -102,7 +96,7 @@ module.exports = {
         ]
       };
     });
-    ctx.scope.set("add", ctx.KRLClosure(function* (ctx, getArg) {
+    ctx.scope.set("add", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", getArg("b", 1));
       return {
