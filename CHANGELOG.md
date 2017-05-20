@@ -1,24 +1,6 @@
 # 0.11.0 - May 19, 2017
 
-### BREAKING CHANGES
-
-* You can no longer use actions as functions
-
-```krl
-//the following are now actions and cannot be used as a function
-engine:newPico
-engine:removePico
-engine:newChannel
-engine:removeChannel
-engine:registerRuleset
-engine:unregisterRuleset
-engine:installRuleset
-engine:uninstallRuleset
-event:send
-schedule:remove
-```
-
-### Features
+### New Features
 
 * defaction can use full action blocks
 ```krl
@@ -33,6 +15,10 @@ schedule:remove
 For example
 ```krl
 chooser = defaction(val){
+
+    baz = "hello"
+    qux = "bye"
+
     choose val {
         asdf =>
             foo(val)
@@ -61,6 +47,24 @@ foo = function(
 
 
 //defaction parameters work the same way as functions
+```
+
+### BREAKING CHANGES
+
+* You can no longer use actions as functions
+
+```krl
+//the following are now actions and cannot be used as a function
+engine:newPico
+engine:removePico
+engine:newChannel
+engine:removeChannel
+engine:registerRuleset
+engine:unregisterRuleset
+engine:installRuleset
+engine:uninstallRuleset
+event:send
+schedule:remove
 ```
 
 ### Bug Fixes
