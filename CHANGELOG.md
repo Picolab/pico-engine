@@ -4,9 +4,22 @@
 
 * You can no longer use actions as functions
 
+```krl
+//the following are now actions and cannot be used as a function
+engine:newPico
+engine:removePico
+engine:newChannel
+engine:removeChannel
+engine:registerRuleset
+engine:unregisterRuleset
+engine:installRuleset
+engine:uninstallRuleset
+event:send
+schedule:remove
+```
+
 ### Features
 
-* modules can define actions
 * defaction can use full action blocks
 ```krl
 <name> = defaction(<params...>){
@@ -47,9 +60,9 @@ foo = function(
 }
 
 
-//defaction parameters work the same way as function
+//defaction parameters work the same way as functions
 ```
 
 ### Bug Fixes
 
-* re-registering rulesets
+* re-registering rulesets breaks the schedule order

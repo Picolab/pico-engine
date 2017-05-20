@@ -24,34 +24,30 @@ ruleset io.picolabs.pico {
       temp.length() == children().length()
     }
 
-    newPico = function(){
-      child = engine:newPico();
-      child_id = child.id;
-      channel = engine:newChannel(child_id, "main", "secret");
-      child_eci = channel.id;
-      { "id": child_id, "eci": child_eci }
-    }
   }
 
 // create a new pico and connect to it
 
   rule pico_new_child_request {
     select when pico new_child_request
-    pre {
-      new_child = newPico()
-      attrs = { "parent":    myself(),
-                "new_child": new_child,
-                "rs_attrs":  event:attrs() }
-    }
-    if true
-    then
+    every {
+      engine:newPico() setting(child);
+
+      engine:newChannel(child.id, "main", "secret") setting(channel);
+
+      engine:installRuleset(child.id, "io.picolabs.pico");
+
       event:send(
-        { "eci": new_child.eci, "eid": 151,
+        { "eci": channel.id, "eid": 151,
           "domain": "pico", "type": "child_created",
-          "attrs": attrs })
+          "attrs": {
+            "parent":    myself(),
+            "new_child": {"id": child.id, "eci": channel.id},
+            "rs_attrs":  event:attrs()
+          }});
+    }
     always {
-      engine:installRuleset(new_child.id, "io.picolabs.pico");
-      ent:children := children().union([new_child])
+      ent:children := children().union([{"id": child.id, "eci": channel.id}])
     }
   }
 
@@ -149,10 +145,10 @@ ruleset io.picolabs.pico {
     if left_with_children.length() < children().length()
       && event:attr("parent_id") == ent:id
       && event:attr("parent_eci") == ent:eci
-    then noop()
+    then
+      engine:removePico(child_id);
     fired {
       ent:children := left_with_children;
-      engine:removePico(child_id);
       raise pico event "child_deleted" attributes child
     }
   }
@@ -167,8 +163,8 @@ ruleset io.picolabs.pico {
       base = event:attr("base")
       url = event:attr("url")
     }
+    engine:installRuleset(ent:id, rid, url, base) setting(real_rid)
     always {
-      real_rid = engine:installRuleset(ent:id, rid, url, base);
       raise pico event "ruleset_added" for real_rid
         attributes event:attrs()
     }
