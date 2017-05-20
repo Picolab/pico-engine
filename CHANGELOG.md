@@ -1,8 +1,8 @@
-# 0.11.0 - May 19, 2017
+# 0.11.0 - May 20, 2017
 
 ### New Features
 
-* defaction can use full action blocks
+* defaction can do anything a rule action can
 ```krl
 <name> = defaction(<params...>){
      <declaration 0>
