@@ -86,5 +86,9 @@ That will start the server and run the test. Anytime you make a change in the `s
 
 NOTE: When running via `npm start` the `PICO_ENGINE_HOME` will default to your current directory i.e. your clone of this repository.
 
+## Changelog
+
+To view details about versions: [CHANGELOG.md](https://github.com/Picolab/node-pico-engine/blob/master/CHANGELOG.md)
+
 ## License
 MIT
