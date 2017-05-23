@@ -753,18 +753,17 @@ Actions_in_curlies -> %tok_OPEN_CURLY (Action %tok_SEMI:?):+ %tok_CLSE_CURLY
 
 Action ->
     (Identifier %tok_FAT_ARROW_RIGHT):?
-    Identifier_or_DomainIdentifier %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN
+    Identifier_or_DomainIdentifier Arguments
     (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
-    WithArguments:? {%
+{%
   function(data){
     return {
       loc: mkLoc(data),
       type: "Action",
       label: data[0] && data[0][0],
       action: data[1],
-      args: data[3],
-      setting: (data[5] && data[5][2]) || null,
-      "with": data[6] || []
+      args: data[2],
+      setting: (data[3] && data[3][2]) || null,
     };
   }
 %}
@@ -1283,7 +1282,7 @@ Argument ->
 
 Argument_list ->
       null {% noopArr %}
-    | Argument_list_body {% id %}
+    | Argument_list_body %tok_COMMA:? {% id %}
 
 Argument_list_body ->
       Argument {% idArr %}
