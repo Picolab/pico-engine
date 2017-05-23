@@ -733,18 +733,15 @@ var grammar = {
     {"name": "Action$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
     {"name": "Action$ebnf$2", "symbols": ["Action$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "Action$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Action$ebnf$3", "symbols": ["WithArguments"], "postprocess": id},
-    {"name": "Action$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Action", "symbols": ["Action$ebnf$1", "Identifier_or_DomainIdentifier", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "Action$ebnf$2", "Action$ebnf$3"], "postprocess": 
+    {"name": "Action", "symbols": ["Action$ebnf$1", "Identifier_or_DomainIdentifier", "Arguments", "Action$ebnf$2"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: "Action",
             label: data[0] && data[0][0],
             action: data[1],
-            args: data[3],
-            setting: (data[5] && data[5][2]) || null,
-            "with": data[6] || []
+            args: data[2],
+            setting: (data[3] && data[3][2]) || null,
           };
         }
         },
@@ -1176,7 +1173,9 @@ var grammar = {
         }
         },
     {"name": "Argument_list", "symbols": [], "postprocess": noopArr},
-    {"name": "Argument_list", "symbols": ["Argument_list_body"], "postprocess": id},
+    {"name": "Argument_list$ebnf$1", "symbols": [tok_COMMA], "postprocess": id},
+    {"name": "Argument_list$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Argument_list", "symbols": ["Argument_list_body", "Argument_list$ebnf$1"], "postprocess": id},
     {"name": "Argument_list_body", "symbols": ["Argument"], "postprocess": idArr},
     {"name": "Argument_list_body", "symbols": ["Argument_list_body", tok_COMMA, "Argument"], "postprocess": concatArr(2)},
     {"name": "Array", "symbols": [tok_OPEN_SQARE, "Expression_list", tok_CLSE_SQARE], "postprocess": 

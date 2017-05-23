@@ -166,21 +166,25 @@ rule hello {
         "type": "Action",
         "label": {value: "one", type:"Identifier"},
         "action": {value: "action", type:"Identifier"},
-        "args": [
-          {value: 1, type:"Number"}
-        ],
-        "setting": null,
-        "with": [  ]
+        "args": {
+          "type": "Arguments",
+          "args": [
+            {value: 1, type:"Number"}
+          ]
+        },
+        "setting": null
       },
       {
         "type": "Action",
         "label": {value: "two", type:"Identifier"},
         "action": {value: "action", type:"Identifier"},
-        "args": [
-          {value: 2, type:"Number"}
-        ],
-        "setting": null,
-        "with": [  ]
+        "args": {
+          "type": "Arguments",
+          "args": [
+            {value: 2, type:"Number"}
+          ]
+        },
+        "setting": null
       }
     ]
   },
