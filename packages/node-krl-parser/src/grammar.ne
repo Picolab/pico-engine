@@ -753,7 +753,7 @@ Actions_in_curlies -> %tok_OPEN_CURLY (Action %tok_SEMI:?):+ %tok_CLSE_CURLY
 
 Action ->
     (Identifier %tok_FAT_ARROW_RIGHT):?
-    Identifier_or_DomainIdentifier %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN
+    Identifier_or_DomainIdentifier %tok_OPEN_PAREN Arguments %tok_CLSE_PAREN
     (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
     WithArguments:? {%
   function(data){
@@ -1055,7 +1055,7 @@ DeclarationOrDefAction ->
       Declaration {% id %}
     | DefAction {% id %}
 
-DefAction -> Identifier %tok_EQ %tok_defaction ParameterList %tok_OPEN_CURLY
+DefAction -> Identifier %tok_EQ %tok_defaction Parameters %tok_OPEN_CURLY
   DeclarationList
   ActionBlock
 %tok_CLSE_CURLY
@@ -1191,7 +1191,7 @@ Identifier_list_body ->
 ################################################################################
 # Functions
 
-Function -> %tok_function ParameterList %tok_OPEN_CURLY function_body %tok_CLSE_CURLY {%
+Function -> %tok_function Parameters %tok_OPEN_CURLY function_body %tok_CLSE_CURLY {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -1214,12 +1214,12 @@ Parameter -> Identifier (%tok_EQ Expression):?
   }
 %}
 
-ParameterList -> %tok_OPEN_PAREN Parameter_list %tok_CLSE_PAREN
+Parameters -> %tok_OPEN_PAREN Parameter_list %tok_CLSE_PAREN
 {%
   function(data){
     return {
       loc: mkLoc(data),
-      type: "ParameterList",
+      type: "Parameters",
       params: data[1],
     };
   }
@@ -1245,7 +1245,7 @@ function_body_parts ->
           return [data[0]].concat(data[2]);
       } %}
 
-Application -> MemberExpression %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN WithArguments:? {%
+Application -> MemberExpression %tok_OPEN_PAREN Arguments %tok_CLSE_PAREN WithArguments:? {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -1256,6 +1256,8 @@ Application -> MemberExpression %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN 
     };
   }
 %}
+
+Arguments -> Expression_list {% id %}
 
 ################################################################################
 # Literal Datastructures

@@ -124,7 +124,7 @@ mk.param = function(id, dflt){
 };
 mk.params = function(params){
     return {
-        type: "ParameterList",
+        type: "Parameters",
         params: _.map(params, function(param){
             if(_.isString(param)){
                 return mk.param(param);
@@ -2597,7 +2597,7 @@ test("LastStatement", function(t){
     t.end();
 });
 
-test("ParameterList", function(t){
+test("Parameters", function(t){
     var tstParams = function(params_src, expected){
         var src = "ruleset rs{global{";
         src += " a = defaction(" + params_src + "){noop()}; ";

@@ -735,7 +735,7 @@ var grammar = {
     {"name": "Action$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Action$ebnf$3", "symbols": ["WithArguments"], "postprocess": id},
     {"name": "Action$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Action", "symbols": ["Action$ebnf$1", "Identifier_or_DomainIdentifier", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "Action$ebnf$2", "Action$ebnf$3"], "postprocess": 
+    {"name": "Action", "symbols": ["Action$ebnf$1", "Identifier_or_DomainIdentifier", tok_OPEN_PAREN, "Arguments", tok_CLSE_PAREN, "Action$ebnf$2", "Action$ebnf$3"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1005,7 +1005,7 @@ var grammar = {
     {"name": "declaration_list_body", "symbols": ["declaration_list_body", "declaration_list_body$ebnf$1", "Declaration", "declaration_list_body$ebnf$2"], "postprocess": concatArr(2)},
     {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
     {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
-    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, "ParameterList", tok_OPEN_CURLY, "DeclarationList", "ActionBlock", tok_CLSE_CURLY], "postprocess": 
+    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, "Parameters", tok_OPEN_CURLY, "DeclarationList", "ActionBlock", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1099,7 +1099,7 @@ var grammar = {
     {"name": "Identifier_list", "symbols": ["Identifier_list_body"], "postprocess": id},
     {"name": "Identifier_list_body", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "Identifier_list_body", "symbols": ["Identifier_list_body", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
-    {"name": "Function", "symbols": [tok_function, "ParameterList", tok_OPEN_CURLY, "function_body", tok_CLSE_CURLY], "postprocess": 
+    {"name": "Function", "symbols": [tok_function, "Parameters", tok_OPEN_CURLY, "function_body", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1122,11 +1122,11 @@ var grammar = {
           };
         }
         },
-    {"name": "ParameterList", "symbols": [tok_OPEN_PAREN, "Parameter_list", tok_CLSE_PAREN], "postprocess": 
+    {"name": "Parameters", "symbols": [tok_OPEN_PAREN, "Parameter_list", tok_CLSE_PAREN], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
-            type: "ParameterList",
+            type: "Parameters",
             params: data[1],
           };
         }
@@ -1147,7 +1147,7 @@ var grammar = {
         } },
     {"name": "Application$ebnf$1", "symbols": ["WithArguments"], "postprocess": id},
     {"name": "Application$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Application", "symbols": ["MemberExpression", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "Application$ebnf$1"], "postprocess": 
+    {"name": "Application", "symbols": ["MemberExpression", tok_OPEN_PAREN, "Arguments", tok_CLSE_PAREN, "Application$ebnf$1"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1158,6 +1158,7 @@ var grammar = {
           };
         }
         },
+    {"name": "Arguments", "symbols": ["Expression_list"], "postprocess": id},
     {"name": "Array", "symbols": [tok_OPEN_SQARE, "Expression_list", tok_CLSE_SQARE], "postprocess": 
         function(data){
           return {

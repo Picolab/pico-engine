@@ -493,7 +493,7 @@ function(A, B = 3){
 {
   "type": "Function",
   "params": {
-    "type": "ParameterList",
+    "type": "Parameters",
     "params": [
       {
         "type": "Parameter",
