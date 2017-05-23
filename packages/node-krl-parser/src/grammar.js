@@ -365,6 +365,7 @@ var tok_raise = tok("SYMBOL", "raise");
 var tok_repeat = tok("SYMBOL", "repeat");
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
+var tok_sample = tok("SYMBOL", "sample");
 var tok_schedule = tok("SYMBOL", "schedule");
 var tok_share  = tok("SYMBOL", "share");
 var tok_shares = tok("SYMBOL", "shares");
@@ -708,20 +709,20 @@ var grammar = {
     {"name": "RuleActionBlock$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
     {"name": "RuleActionBlock$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RuleActionBlock", "symbols": [tok_if, "Expression", tok_then, "RuleAction", "RuleActionBlock$ebnf$1"], "postprocess": ruleActionBlock([1], [], [3])},
-    {"name": "RuleActionBlock$ebnf$2", "symbols": [tok_every], "postprocess": id},
-    {"name": "RuleActionBlock$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleActionBlock", "symbols": [tok_if, "Expression", tok_then, "RuleActionBlock$ebnf$2", "RuleAction_in_curlies"], "postprocess": ruleActionBlock([1], [3, "src"], [4])},
-    {"name": "RuleActionBlock", "symbols": [tok_every, "RuleAction_in_curlies"], "postprocess": ruleActionBlock([], [0, "src"], [1])},
-    {"name": "RuleActionBlock", "symbols": [tok_choose, "Expression", "RuleAction_in_curlies"], "postprocess": ruleActionBlock([1], [0, "src"], [2])},
-    {"name": "RuleAction_in_curlies$ebnf$1$subexpression$1$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
-    {"name": "RuleAction_in_curlies$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction_in_curlies$ebnf$1$subexpression$1", "symbols": ["RuleAction", "RuleAction_in_curlies$ebnf$1$subexpression$1$ebnf$1"]},
-    {"name": "RuleAction_in_curlies$ebnf$1", "symbols": ["RuleAction_in_curlies$ebnf$1$subexpression$1"]},
-    {"name": "RuleAction_in_curlies$ebnf$1$subexpression$2$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
-    {"name": "RuleAction_in_curlies$ebnf$1$subexpression$2$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction_in_curlies$ebnf$1$subexpression$2", "symbols": ["RuleAction", "RuleAction_in_curlies$ebnf$1$subexpression$2$ebnf$1"]},
-    {"name": "RuleAction_in_curlies$ebnf$1", "symbols": ["RuleAction_in_curlies$ebnf$1", "RuleAction_in_curlies$ebnf$1$subexpression$2"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "RuleAction_in_curlies", "symbols": [tok_OPEN_CURLY, "RuleAction_in_curlies$ebnf$1", tok_CLSE_CURLY], "postprocess": 
+    {"name": "RuleActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_every, "Actions_in_curlies"], "postprocess": ruleActionBlock([1], [3, "src"], [4])},
+    {"name": "RuleActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_sample, "Actions_in_curlies"], "postprocess": ruleActionBlock([1], [3, "src"], [4])},
+    {"name": "RuleActionBlock", "symbols": [tok_every, "Actions_in_curlies"], "postprocess": ruleActionBlock([], [0, "src"], [1])},
+    {"name": "RuleActionBlock", "symbols": [tok_sample, "Actions_in_curlies"], "postprocess": ruleActionBlock([], [0, "src"], [1])},
+    {"name": "RuleActionBlock", "symbols": [tok_choose, "Expression", "Actions_in_curlies"], "postprocess": ruleActionBlock([1], [0, "src"], [2])},
+    {"name": "Actions_in_curlies$ebnf$1$subexpression$1$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
+    {"name": "Actions_in_curlies$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Actions_in_curlies$ebnf$1$subexpression$1", "symbols": ["RuleAction", "Actions_in_curlies$ebnf$1$subexpression$1$ebnf$1"]},
+    {"name": "Actions_in_curlies$ebnf$1", "symbols": ["Actions_in_curlies$ebnf$1$subexpression$1"]},
+    {"name": "Actions_in_curlies$ebnf$1$subexpression$2$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
+    {"name": "Actions_in_curlies$ebnf$1$subexpression$2$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Actions_in_curlies$ebnf$1$subexpression$2", "symbols": ["RuleAction", "Actions_in_curlies$ebnf$1$subexpression$2$ebnf$1"]},
+    {"name": "Actions_in_curlies$ebnf$1", "symbols": ["Actions_in_curlies$ebnf$1", "Actions_in_curlies$ebnf$1$subexpression$2"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "Actions_in_curlies", "symbols": [tok_OPEN_CURLY, "Actions_in_curlies$ebnf$1", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return data[1].map(function(d){return d[0];})
         }

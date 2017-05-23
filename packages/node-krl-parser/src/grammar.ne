@@ -361,6 +361,7 @@ var tok_raise = tok("SYMBOL", "raise");
 var tok_repeat = tok("SYMBOL", "repeat");
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
+var tok_sample = tok("SYMBOL", "sample");
 var tok_schedule = tok("SYMBOL", "schedule");
 var tok_share  = tok("SYMBOL", "share");
 var tok_shares = tok("SYMBOL", "shares");
@@ -723,16 +724,26 @@ EventWithin -> %tok_within Expression %tok_TIME_PERIOD_ENUM {%
 RuleActionBlock ->
       RuleAction
       {% ruleActionBlock([], [], [0]) %}
+
     | %tok_if Expression %tok_then RuleAction %tok_SEMI:?
       {% ruleActionBlock([1], [], [3]) %}
-    | %tok_if Expression %tok_then %tok_every:? RuleAction_in_curlies
+
+    | %tok_if Expression %tok_then %tok_every Actions_in_curlies
       {% ruleActionBlock([1], [3, "src"], [4]) %}
-    | %tok_every RuleAction_in_curlies
+
+    | %tok_if Expression %tok_then %tok_sample Actions_in_curlies
+      {% ruleActionBlock([1], [3, "src"], [4]) %}
+
+    | %tok_every Actions_in_curlies
       {% ruleActionBlock([], [0, "src"], [1]) %}
-    | %tok_choose Expression RuleAction_in_curlies
+
+    | %tok_sample Actions_in_curlies
+      {% ruleActionBlock([], [0, "src"], [1]) %}
+
+    | %tok_choose Expression Actions_in_curlies
       {% ruleActionBlock([1], [0, "src"], [2]) %}
 
-RuleAction_in_curlies -> %tok_OPEN_CURLY (RuleAction %tok_SEMI:?):+ %tok_CLSE_CURLY
+Actions_in_curlies -> %tok_OPEN_CURLY (RuleAction %tok_SEMI:?):+ %tok_CLSE_CURLY
 {%
   function(data){
     return data[1].map(function(d){return d[0];})

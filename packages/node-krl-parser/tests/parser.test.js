@@ -456,29 +456,12 @@ test("action", function(t){
     src += "  one => blah(1)\n";
     src += "  two => blah(2)\n";
     src += "}";
-    testAction(src, {
-        type: "RuleActionBlock",
-        condition: mk.op("==", mk.id("foo"), mk(2)),
-        block_type: "every",
-        actions: [
-            {
-                type: "RuleAction",
-                label: mk.id("one"),
-                action: mk.id("blah"),
-                args: [mk(1)],
-                setting: null,
-                "with": []
-            },
-            {
-                type: "RuleAction",
-                label: mk.id("two"),
-                action: mk.id("blah"),
-                args: [mk(2)],
-                setting: null,
-                "with": []
-            }
-        ]
-    });
+    try{
+        testAction(src, {});
+        t.fail("every is required");
+    }catch(err){
+        t.ok(err, "every is required");
+    }
 
     t.end();
 });
@@ -2164,38 +2147,6 @@ test("DefAction", function(t){
         }
     ]);
 
-    tstDA("a = defaction(){if b && c then{foo(); bar();}}", [
-        {
-            type: "DefAction",
-            id: mk.id("a"),
-            params: [],
-            body: [],
-            action_block: {
-                type: "RuleActionBlock",
-                condition: mk.op("&&", mk.id("b"), mk.id("c")),
-                block_type: "every",
-                actions: [
-                    {
-                        type: "RuleAction",
-                        label: null,
-                        action: mk.id("foo"),
-                        args: [],
-                        setting: null,
-                        "with": []
-                    },
-                    {
-                        type: "RuleAction",
-                        label: null,
-                        action: mk.id("bar"),
-                        args: [],
-                        setting: null,
-                        "with": []
-                    }
-                ]
-            }
-        }
-    ]);
-
     tstDA("a = defaction(){choose b(c){one => foo() two => bar()}}", [
         {
             type: "DefAction",
@@ -2614,5 +2565,41 @@ test("Parameter_list", function(t){
         mkP("c", mk.op("+", mk.id("b"), mk(" da"))),
     ]);
 
+    t.end();
+});
+
+test("ActionBlock", function(t){
+    var tstActionBlock = function(ab_src, expected){
+        var src = "ruleset rs{global{a = defaction(){"+ ab_src +"}}rule r1{select when foo bar;"+ab_src+"}}";
+        var ast = normalizeAST(rmLoc(parser(src)));
+        var exp_ast = normalizeAST(expected);
+
+        t.deepEquals(ast.global[0].action_block, exp_ast);
+        t.deepEquals(ast.rules[0].action_block, exp_ast);
+    };
+
+    tstActionBlock("choose b(c){one => foo() two => bar()}", {
+        type: "RuleActionBlock",
+        condition: mk.app(mk.id("b"), [mk.id("c")]),
+        block_type: "choose",
+        actions: [
+            {
+                type: "RuleAction",
+                label: mk.id("one"),
+                action: mk.id("foo"),
+                args: [],
+                setting: null,
+                "with": []
+            },
+            {
+                type: "RuleAction",
+                label: mk.id("two"),
+                action: mk.id("bar"),
+                args: [],
+                setting: null,
+                "with": []
+            }
+        ]
+    });
     t.end();
 });
