@@ -1055,8 +1055,7 @@ DeclarationOrDefAction ->
       Declaration {% id %}
     | DefAction {% id %}
 
-DefAction -> Identifier %tok_EQ %tok_defaction
-  %tok_OPEN_PAREN Parameter_list %tok_CLSE_PAREN %tok_OPEN_CURLY
+DefAction -> Identifier %tok_EQ %tok_defaction ParameterList %tok_OPEN_CURLY
   DeclarationList
   ActionBlock
 %tok_CLSE_CURLY
@@ -1066,9 +1065,9 @@ DefAction -> Identifier %tok_EQ %tok_defaction
       loc: mkLoc(data),
       type: 'DefAction',
       id: data[0],
-      params: data[4],
-      body: data[7],
-      action_block: data[8]
+      params: data[3],
+      body: data[5],
+      action_block: data[6]
     };
   }
 %}
@@ -1192,13 +1191,13 @@ Identifier_list_body ->
 ################################################################################
 # Functions
 
-Function -> %tok_function %tok_OPEN_PAREN Parameter_list %tok_CLSE_PAREN %tok_OPEN_CURLY function_body %tok_CLSE_CURLY {%
+Function -> %tok_function ParameterList %tok_OPEN_CURLY function_body %tok_CLSE_CURLY {%
   function(data){
     return {
       loc: mkLoc(data),
       type: "Function",
-      params: data[2],
-      body: data[5]
+      params: data[1],
+      body: data[3]
     };
   }
 %}
@@ -1211,6 +1210,17 @@ Parameter -> Identifier (%tok_EQ Expression):?
       type: "Parameter",
       id: data[0],
       default: data[1] && data[1][1],
+    };
+  }
+%}
+
+ParameterList -> %tok_OPEN_PAREN Parameter_list %tok_CLSE_PAREN
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: "ParameterList",
+      params: data[1],
     };
   }
 %}

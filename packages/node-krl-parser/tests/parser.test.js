@@ -115,6 +115,24 @@ mk.meta = function(key, value){
 mk.estmt = function(e){
     return {type: "ExpressionStatement", expression: e};
 };
+mk.param = function(id, dflt){
+    return {
+        type: "Parameter",
+        id: mk.id(id),
+        default: dflt || null,
+    };
+};
+mk.params = function(params){
+    return {
+        type: "ParameterList",
+        params: _.map(params, function(param){
+            if(_.isString(param)){
+                return mk.param(param);
+            }
+            return param;
+        }),
+    };
+};
 
 test("parser", function(t){
     var assertAST = function(t, src, ast){
@@ -885,7 +903,7 @@ test("literals", function(t){
             {type: "String", value: "one"},
             mk({two: {
                 type: "Function",
-                params: [],
+                params: mk.params([]),
                 body: [
                     {
                         type: "ExpressionStatement",
@@ -1004,18 +1022,12 @@ test("expressions", function(t){
 
     testExp("function (){}", {
         type: "Function",
-        params: [],
+        params: mk.params([]),
         body: []
     });
     testExp("function(a){b}", {
         type: "Function",
-        params: [
-            {
-                type: "Parameter",
-                id: mk.id("a"),
-                default: null,
-            }
-        ],
+        params: mk.params(["a"]),
         body: [
             {
                 type: "ExpressionStatement",
@@ -1119,13 +1131,7 @@ test("expressions", function(t){
     }
     testExp("function(a){b = 1;a(b);}", {
         type: "Function",
-        params: [
-            {
-                type: "Parameter",
-                id: mk.id("a"),
-                default: null,
-            }
-        ],
+        params: mk.params(["a"]),
         body: [
             mk.declare("=", mk.id("b"), mk(1)),
             mk.estmt(mk.app(mk.id("a"), [mk.id("b")])),
@@ -2107,7 +2113,7 @@ test("DefAction", function(t){
         {
             type: "DefAction",
             id: mk.id("a"),
-            params: [],
+            params: mk.params([]),
             body: [],
             action_block: {
                 type: "ActionBlock",
@@ -2131,18 +2137,7 @@ test("DefAction", function(t){
         {
             type: "DefAction",
             id: mk.id("a"),
-            params: [
-                {
-                    type: "Parameter",
-                    id: mk.id("b"),
-                    default: null,
-                },
-                {
-                    type: "Parameter",
-                    id: mk.id("c"),
-                    default: null,
-                },
-            ],
+            params: mk.params(["b", "c"]),
             body: [
                 mk.declare("=", mk.id("d"), mk(2)),
                 mk.declare("=", mk.id("e"), mk(3))
@@ -2180,18 +2175,7 @@ test("DefAction", function(t){
         {
             type: "DefAction",
             id: mk.id("a"),
-            params: [
-                {
-                    type: "Parameter",
-                    id: mk.id("b"),
-                    default: null,
-                },
-                {
-                    type: "Parameter",
-                    id: mk.id("c"),
-                    default: null,
-                },
-            ],
+            params: mk.params(["b", "c"]),
             body: [],
             action_block: {
                 type: "ActionBlock",
@@ -2215,7 +2199,7 @@ test("DefAction", function(t){
         {
             type: "DefAction",
             id: mk.id("a"),
-            params: [],
+            params: mk.params([]),
             body: [],
             action_block: {
                 type: "ActionBlock",
@@ -2247,7 +2231,7 @@ test("DefAction", function(t){
         {
             type: "DefAction",
             id: mk.id("a"),
-            params: [],
+            params: mk.params([]),
             body: [],
             action_block: {
                 type: "ActionBlock",
@@ -2613,7 +2597,7 @@ test("LastStatement", function(t){
     t.end();
 });
 
-test("Parameter_list", function(t){
+test("ParameterList", function(t){
     var tstParams = function(params_src, expected){
         var src = "ruleset rs{global{";
         src += " a = defaction(" + params_src + "){noop()}; ";
@@ -2621,44 +2605,36 @@ test("Parameter_list", function(t){
         src += "}}";
 
         var ast = normalizeAST(rmLoc(parser(src)));
-        var exp_ast = normalizeAST(expected);
+        var exp_ast = mk.params(normalizeAST(expected));
 
         t.deepEquals(ast.global[0].params, exp_ast);
         t.deepEquals(ast.global[1].right.params, exp_ast);
     };
 
-    var mkP = function(id, dflt){
-        return {
-            type: "Parameter",
-            id: mk.id(id),
-            default: dflt || null,
-        };
-    };
-
     tstParams(" asdf ", [
-        mkP("asdf"),
+        mk.param("asdf"),
     ]);
 
     tstParams("a, b, c", [
-        mkP("a"),
-        mkP("b"),
-        mkP("c"),
+        mk.param("a"),
+        mk.param("b"),
+        mk.param("c"),
     ]);
 
     tstParams("\n    foo,\n    bar,\n    ", [
-        mkP("foo"),
-        mkP("bar"),
+        mk.param("foo"),
+        mk.param("bar"),
     ]);
 
     tstParams("a, b = 2", [
-        mkP("a"),
-        mkP("b", mk(2)),
+        mk.param("a"),
+        mk.param("b", mk(2)),
     ]);
 
     tstParams("a, b = \"wat\", c = b + \" da\"", [
-        mkP("a"),
-        mkP("b", mk("wat")),
-        mkP("c", mk.op("+", mk.id("b"), mk(" da"))),
+        mk.param("a"),
+        mk.param("b", mk("wat")),
+        mk.param("c", mk.op("+", mk.id("b"), mk(" da"))),
     ]);
 
     t.end();

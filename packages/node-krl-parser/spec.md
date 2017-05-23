@@ -492,18 +492,21 @@ function(A, B = 3){
 }
 {
   "type": "Function",
-  "params": [
-    {
-      "type": "Parameter",
-      "id": A,
-      "default": null
-    },
-    {
-      "type": "Parameter",
-      "id": B,
-      "default": {value: 3, type:"Number"}
-    }
-  ],
+  "params": {
+    "type": "ParameterList",
+    "params": [
+      {
+        "type": "Parameter",
+        "id": A,
+        "default": null
+      },
+      {
+        "type": "Parameter",
+        "id": B,
+        "default": {value: 3, type:"Number"}
+      }
+    ]
+  },
   "body": [
     {
       "type": "ExpressionStatement",

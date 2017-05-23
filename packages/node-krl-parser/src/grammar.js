@@ -1005,15 +1005,15 @@ var grammar = {
     {"name": "declaration_list_body", "symbols": ["declaration_list_body", "declaration_list_body$ebnf$1", "Declaration", "declaration_list_body$ebnf$2"], "postprocess": concatArr(2)},
     {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
     {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
-    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "Parameter_list", tok_CLSE_PAREN, tok_OPEN_CURLY, "DeclarationList", "ActionBlock", tok_CLSE_CURLY], "postprocess": 
+    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, "ParameterList", tok_OPEN_CURLY, "DeclarationList", "ActionBlock", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: 'DefAction',
             id: data[0],
-            params: data[4],
-            body: data[7],
-            action_block: data[8]
+            params: data[3],
+            body: data[5],
+            action_block: data[6]
           };
         }
         },
@@ -1099,13 +1099,13 @@ var grammar = {
     {"name": "Identifier_list", "symbols": ["Identifier_list_body"], "postprocess": id},
     {"name": "Identifier_list_body", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "Identifier_list_body", "symbols": ["Identifier_list_body", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
-    {"name": "Function", "symbols": [tok_function, tok_OPEN_PAREN, "Parameter_list", tok_CLSE_PAREN, tok_OPEN_CURLY, "function_body", tok_CLSE_CURLY], "postprocess": 
+    {"name": "Function", "symbols": [tok_function, "ParameterList", tok_OPEN_CURLY, "function_body", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: "Function",
-            params: data[2],
-            body: data[5]
+            params: data[1],
+            body: data[3]
           };
         }
         },
@@ -1119,6 +1119,15 @@ var grammar = {
             type: "Parameter",
             id: data[0],
             default: data[1] && data[1][1],
+          };
+        }
+        },
+    {"name": "ParameterList", "symbols": [tok_OPEN_PAREN, "Parameter_list", tok_CLSE_PAREN], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: "ParameterList",
+            params: data[1],
           };
         }
         },
