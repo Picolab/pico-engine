@@ -158,12 +158,12 @@ rule hello {
     }
   ],
   "action_block": {
-    "type": "RuleActionBlock",
+    "type": "ActionBlock",
     "condition": COND,
     "block_type": "choose",
     "actions": [
       {
-        "type": "RuleAction",
+        "type": "Action",
         "label": {value: "one", type:"Identifier"},
         "action": {value: "action", type:"Identifier"},
         "args": [
@@ -173,7 +173,7 @@ rule hello {
         "with": [  ]
       },
       {
-        "type": "RuleAction",
+        "type": "Action",
         "label": {value: "two", type:"Identifier"},
         "action": {value: "action", type:"Identifier"},
         "args": [

@@ -96,11 +96,11 @@ var eventGroupOp = function(op, i_n, i_ee, i_ag){
   };
 };
 
-var ruleActionBlock = function(condition_path, type_path, actions_path){
+var actionBlock = function(condition_path, type_path, actions_path){
   return function(data){
     return {
       loc: mkLoc(data),
-      type: 'RuleActionBlock',
+      type: "ActionBlock",
       condition: get(data, condition_path, null),
       block_type: get(data, type_path, "every"),
       actions: flatten([get(data, actions_path, null)]),
@@ -557,7 +557,7 @@ rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
   (RuleSelect %tok_SEMI:?):?
   RuleForEach:*
   RulePrelude:?
-  RuleActionBlock:?
+  ActionBlock:?
   RulePostlude:?
 
 %tok_CLSE_CURLY {%
@@ -718,32 +718,32 @@ EventWithin -> %tok_within Expression %tok_TIME_PERIOD_ENUM {%
 
 ################################################################################
 #
-# RuleActionBlock
+# ActionBlock
 #
 
-RuleActionBlock ->
-      RuleAction
-      {% ruleActionBlock([], [], [0]) %}
+ActionBlock ->
+      Action
+      {% actionBlock(null, null, [0]) %}
 
-    | %tok_if Expression %tok_then RuleAction %tok_SEMI:?
-      {% ruleActionBlock([1], [], [3]) %}
+    | %tok_if Expression %tok_then Action %tok_SEMI:?
+      {% actionBlock([1], null, [3]) %}
 
     | %tok_if Expression %tok_then %tok_every Actions_in_curlies
-      {% ruleActionBlock([1], [3, "src"], [4]) %}
+      {% actionBlock([1], [3, "src"], [4]) %}
 
     | %tok_if Expression %tok_then %tok_sample Actions_in_curlies
-      {% ruleActionBlock([1], [3, "src"], [4]) %}
+      {% actionBlock([1], [3, "src"], [4]) %}
 
     | %tok_every Actions_in_curlies
-      {% ruleActionBlock([], [0, "src"], [1]) %}
+      {% actionBlock(null, [0, "src"], [1]) %}
 
     | %tok_sample Actions_in_curlies
-      {% ruleActionBlock([], [0, "src"], [1]) %}
+      {% actionBlock(null, [0, "src"], [1]) %}
 
     | %tok_choose Expression Actions_in_curlies
-      {% ruleActionBlock([1], [0, "src"], [2]) %}
+      {% actionBlock([1], [0, "src"], [2]) %}
 
-Actions_in_curlies -> %tok_OPEN_CURLY (RuleAction %tok_SEMI:?):+ %tok_CLSE_CURLY
+Actions_in_curlies -> %tok_OPEN_CURLY (Action %tok_SEMI:?):+ %tok_CLSE_CURLY
 {%
   function(data){
     return data[1].map(function(d){return d[0];})
@@ -751,7 +751,7 @@ Actions_in_curlies -> %tok_OPEN_CURLY (RuleAction %tok_SEMI:?):+ %tok_CLSE_CURLY
 %}
 
 
-RuleAction ->
+Action ->
     (Identifier %tok_FAT_ARROW_RIGHT):?
     Identifier_or_DomainIdentifier %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN
     (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
@@ -759,7 +759,7 @@ RuleAction ->
   function(data){
     return {
       loc: mkLoc(data),
-      type: 'RuleAction',
+      type: "Action",
       label: data[0] && data[0][0],
       action: data[1],
       args: data[3],
@@ -1058,7 +1058,7 @@ DeclarationOrDefAction ->
 DefAction -> Identifier %tok_EQ %tok_defaction
   %tok_OPEN_PAREN Parameter_list %tok_CLSE_PAREN %tok_OPEN_CURLY
   DeclarationList
-  RuleActionBlock
+  ActionBlock
 %tok_CLSE_CURLY
 {%
   function(data){

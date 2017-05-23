@@ -100,11 +100,11 @@ var eventGroupOp = function(op, i_n, i_ee, i_ag){
   };
 };
 
-var ruleActionBlock = function(condition_path, type_path, actions_path){
+var actionBlock = function(condition_path, type_path, actions_path){
   return function(data){
     return {
       loc: mkLoc(data),
-      type: 'RuleActionBlock',
+      type: "ActionBlock",
       condition: get(data, condition_path, null),
       block_type: get(data, type_path, "every"),
       actions: flatten([get(data, actions_path, null)]),
@@ -563,7 +563,7 @@ var grammar = {
     {"name": "rule$ebnf$3", "symbols": ["rule$ebnf$3", "RuleForEach"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "rule$ebnf$4", "symbols": ["RulePrelude"], "postprocess": id},
     {"name": "rule$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$5", "symbols": ["RuleActionBlock"], "postprocess": id},
+    {"name": "rule$ebnf$5", "symbols": ["ActionBlock"], "postprocess": id},
     {"name": "rule$ebnf$5", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "rule$ebnf$6", "symbols": ["RulePostlude"], "postprocess": id},
     {"name": "rule$ebnf$6", "symbols": [], "postprocess": function(d) {return null;}},
@@ -705,41 +705,41 @@ var grammar = {
           };
         }
         },
-    {"name": "RuleActionBlock", "symbols": ["RuleAction"], "postprocess": ruleActionBlock([], [], [0])},
-    {"name": "RuleActionBlock$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
-    {"name": "RuleActionBlock$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleActionBlock", "symbols": [tok_if, "Expression", tok_then, "RuleAction", "RuleActionBlock$ebnf$1"], "postprocess": ruleActionBlock([1], [], [3])},
-    {"name": "RuleActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_every, "Actions_in_curlies"], "postprocess": ruleActionBlock([1], [3, "src"], [4])},
-    {"name": "RuleActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_sample, "Actions_in_curlies"], "postprocess": ruleActionBlock([1], [3, "src"], [4])},
-    {"name": "RuleActionBlock", "symbols": [tok_every, "Actions_in_curlies"], "postprocess": ruleActionBlock([], [0, "src"], [1])},
-    {"name": "RuleActionBlock", "symbols": [tok_sample, "Actions_in_curlies"], "postprocess": ruleActionBlock([], [0, "src"], [1])},
-    {"name": "RuleActionBlock", "symbols": [tok_choose, "Expression", "Actions_in_curlies"], "postprocess": ruleActionBlock([1], [0, "src"], [2])},
+    {"name": "ActionBlock", "symbols": ["Action"], "postprocess": actionBlock(null, null, [0])},
+    {"name": "ActionBlock$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
+    {"name": "ActionBlock$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ActionBlock", "symbols": [tok_if, "Expression", tok_then, "Action", "ActionBlock$ebnf$1"], "postprocess": actionBlock([1], null, [3])},
+    {"name": "ActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_every, "Actions_in_curlies"], "postprocess": actionBlock([1], [3, "src"], [4])},
+    {"name": "ActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_sample, "Actions_in_curlies"], "postprocess": actionBlock([1], [3, "src"], [4])},
+    {"name": "ActionBlock", "symbols": [tok_every, "Actions_in_curlies"], "postprocess": actionBlock(null, [0, "src"], [1])},
+    {"name": "ActionBlock", "symbols": [tok_sample, "Actions_in_curlies"], "postprocess": actionBlock(null, [0, "src"], [1])},
+    {"name": "ActionBlock", "symbols": [tok_choose, "Expression", "Actions_in_curlies"], "postprocess": actionBlock([1], [0, "src"], [2])},
     {"name": "Actions_in_curlies$ebnf$1$subexpression$1$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
     {"name": "Actions_in_curlies$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Actions_in_curlies$ebnf$1$subexpression$1", "symbols": ["RuleAction", "Actions_in_curlies$ebnf$1$subexpression$1$ebnf$1"]},
+    {"name": "Actions_in_curlies$ebnf$1$subexpression$1", "symbols": ["Action", "Actions_in_curlies$ebnf$1$subexpression$1$ebnf$1"]},
     {"name": "Actions_in_curlies$ebnf$1", "symbols": ["Actions_in_curlies$ebnf$1$subexpression$1"]},
     {"name": "Actions_in_curlies$ebnf$1$subexpression$2$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
     {"name": "Actions_in_curlies$ebnf$1$subexpression$2$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Actions_in_curlies$ebnf$1$subexpression$2", "symbols": ["RuleAction", "Actions_in_curlies$ebnf$1$subexpression$2$ebnf$1"]},
+    {"name": "Actions_in_curlies$ebnf$1$subexpression$2", "symbols": ["Action", "Actions_in_curlies$ebnf$1$subexpression$2$ebnf$1"]},
     {"name": "Actions_in_curlies$ebnf$1", "symbols": ["Actions_in_curlies$ebnf$1", "Actions_in_curlies$ebnf$1$subexpression$2"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "Actions_in_curlies", "symbols": [tok_OPEN_CURLY, "Actions_in_curlies$ebnf$1", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return data[1].map(function(d){return d[0];})
         }
         },
-    {"name": "RuleAction$ebnf$1$subexpression$1", "symbols": ["Identifier", tok_FAT_ARROW_RIGHT]},
-    {"name": "RuleAction$ebnf$1", "symbols": ["RuleAction$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "RuleAction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
-    {"name": "RuleAction$ebnf$2", "symbols": ["RuleAction$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "RuleAction$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction$ebnf$3", "symbols": ["WithArguments"], "postprocess": id},
-    {"name": "RuleAction$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleAction", "symbols": ["RuleAction$ebnf$1", "Identifier_or_DomainIdentifier", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "RuleAction$ebnf$2", "RuleAction$ebnf$3"], "postprocess": 
+    {"name": "Action$ebnf$1$subexpression$1", "symbols": ["Identifier", tok_FAT_ARROW_RIGHT]},
+    {"name": "Action$ebnf$1", "symbols": ["Action$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "Action$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Action$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
+    {"name": "Action$ebnf$2", "symbols": ["Action$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "Action$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Action$ebnf$3", "symbols": ["WithArguments"], "postprocess": id},
+    {"name": "Action$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Action", "symbols": ["Action$ebnf$1", "Identifier_or_DomainIdentifier", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "Action$ebnf$2", "Action$ebnf$3"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
-            type: 'RuleAction',
+            type: "Action",
             label: data[0] && data[0][0],
             action: data[1],
             args: data[3],
@@ -1005,7 +1005,7 @@ var grammar = {
     {"name": "declaration_list_body", "symbols": ["declaration_list_body", "declaration_list_body$ebnf$1", "Declaration", "declaration_list_body$ebnf$2"], "postprocess": concatArr(2)},
     {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
     {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
-    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "Parameter_list", tok_CLSE_PAREN, tok_OPEN_CURLY, "DeclarationList", "RuleActionBlock", tok_CLSE_CURLY], "postprocess": 
+    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, tok_OPEN_PAREN, "Parameter_list", tok_CLSE_PAREN, tok_OPEN_CURLY, "DeclarationList", "ActionBlock", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),

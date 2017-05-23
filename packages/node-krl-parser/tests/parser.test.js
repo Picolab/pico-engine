@@ -256,21 +256,24 @@ test("select when", function(t){
     t.end();
 });
 
-test("action", function(t){
-    var testAction = function(action_body, expected){
-        var src = "ruleset rs{rule r1{select when a b "+action_body+"}}";
+test("ActionBlock", function(t){
+    var tstActionBlock = function(ab_src, expected){
+        var src = "ruleset rs{global{a = defaction(){"+ ab_src +"}}rule r1{select when foo bar;"+ab_src+"}}";
         var ast = normalizeAST(rmLoc(parser(src)));
-        t.deepEquals(ast.rules[0].action_block, normalizeAST(expected));
+        var exp_ast = normalizeAST(expected);
+
+        t.deepEquals(ast.global[0].action_block, exp_ast);
+        t.deepEquals(ast.rules[0].action_block, exp_ast);
     };
 
     var src ='send_directive("say")';
-    testAction(src, {
-        type: "RuleActionBlock",
+    tstActionBlock(src, {
+        type: "ActionBlock",
         condition: null,
         block_type: "every",
         actions: [
             {
-                type: "RuleAction",
+                type: "Action",
                 label: null,
                 action: mk.id("send_directive"),
                 args: [mk("say")],
@@ -282,13 +285,13 @@ test("action", function(t){
 
     src  = 'send_directive("say") with\n';
     src += '  something = "hello world"\n';
-    testAction(src, {
-        type: "RuleActionBlock",
+    tstActionBlock(src, {
+        type: "ActionBlock",
         condition: null,
         block_type: "every",
         actions: [
             {
-                type: "RuleAction",
+                type: "Action",
                 label: null,
                 action: mk.id("send_directive"),
                 args: [mk("say")],
@@ -305,13 +308,13 @@ test("action", function(t){
     src += "  one = 1\n";
     src += "  two = 2\n";
     src += "  three = 3\n";
-    testAction(src, {
-        type: "RuleActionBlock",
+    tstActionBlock(src, {
+        type: "ActionBlock",
         condition: null,
         block_type: "every",
         actions: [
             {
-                type: "RuleAction",
+                type: "Action",
                 label: null,
                 action: mk.id("send_directive"),
                 args: [mk("say")],
@@ -326,13 +329,13 @@ test("action", function(t){
     });
 
     src  = "if true then blah()";
-    testAction(src, {
-        type: "RuleActionBlock",
+    tstActionBlock(src, {
+        type: "ActionBlock",
         condition: mk(true),
         block_type: "every",
         actions: [
             {
-                type: "RuleAction",
+                type: "Action",
                 label: null,
                 action: mk.id("blah"),
                 args: [],
@@ -343,13 +346,13 @@ test("action", function(t){
     });
 
     src  = "lbl=>blah()";
-    testAction(src, {
-        type: "RuleActionBlock",
+    tstActionBlock(src, {
+        type: "ActionBlock",
         condition: null,
         block_type: "every",
         actions: [
             {
-                type: "RuleAction",
+                type: "Action",
                 label: mk.id("lbl"),
                 action: mk.id("blah"),
                 args: [],
@@ -364,13 +367,13 @@ test("action", function(t){
     src += " two => blah(2)";
     src += " noop()";
     src += "}";
-    testAction(src, {
-        type: "RuleActionBlock",
+    tstActionBlock(src, {
+        type: "ActionBlock",
         condition: null,
         block_type: "every",
         actions: [
             {
-                type: "RuleAction",
+                type: "Action",
                 label: mk.id("one"),
                 action: mk.id("blah"),
                 args: [mk(1)],
@@ -378,7 +381,7 @@ test("action", function(t){
                 "with": []
             },
             {
-                type: "RuleAction",
+                type: "Action",
                 label: mk.id("two"),
                 action: mk.id("blah"),
                 args: [mk(2)],
@@ -386,7 +389,7 @@ test("action", function(t){
                 "with": []
             },
             {
-                type: "RuleAction",
+                type: "Action",
                 label: null,
                 action: mk.id("noop"),
                 args: [],
@@ -400,13 +403,13 @@ test("action", function(t){
     src += "  one => blah(1)\n";
     src += "  two => blah(2)\n";
     src += "}";
-    testAction(src, {
-        type: "RuleActionBlock",
+    tstActionBlock(src, {
+        type: "ActionBlock",
         condition: mk.app(mk.id("exp")),
         block_type: "choose",
         actions: [
             {
-                type: "RuleAction",
+                type: "Action",
                 label: mk.id("one"),
                 action: mk.id("blah"),
                 args: [mk(1)],
@@ -414,7 +417,7 @@ test("action", function(t){
                 "with": []
             },
             {
-                type: "RuleAction",
+                type: "Action",
                 label: mk.id("two"),
                 action: mk.id("blah"),
                 args: [mk(2)],
@@ -428,13 +431,13 @@ test("action", function(t){
     src += "  one => blah(1)\n";
     src += "  two => blah(2)\n";
     src += "}";
-    testAction(src, {
-        type: "RuleActionBlock",
+    tstActionBlock(src, {
+        type: "ActionBlock",
         condition: mk.op("==", mk.id("foo"), mk(2)),
         block_type: "every",
         actions: [
             {
-                type: "RuleAction",
+                type: "Action",
                 label: mk.id("one"),
                 action: mk.id("blah"),
                 args: [mk(1)],
@@ -442,7 +445,7 @@ test("action", function(t){
                 "with": []
             },
             {
-                type: "RuleAction",
+                type: "Action",
                 label: mk.id("two"),
                 action: mk.id("blah"),
                 args: [mk(2)],
@@ -457,11 +460,35 @@ test("action", function(t){
     src += "  two => blah(2)\n";
     src += "}";
     try{
-        testAction(src, {});
+        tstActionBlock(src, {});
         t.fail("every is required");
     }catch(err){
         t.ok(err, "every is required");
     }
+
+    tstActionBlock("choose b(c){one => foo() two => bar()}", {
+        type: "ActionBlock",
+        condition: mk.app(mk.id("b"), [mk.id("c")]),
+        block_type: "choose",
+        actions: [
+            {
+                type: "Action",
+                label: mk.id("one"),
+                action: mk.id("foo"),
+                args: [],
+                setting: null,
+                "with": []
+            },
+            {
+                type: "Action",
+                label: mk.id("two"),
+                action: mk.id("bar"),
+                args: [],
+                setting: null,
+                "with": []
+            }
+        ]
+    });
 
     t.end();
 });
@@ -569,7 +596,7 @@ test("locations", function(t){
     src = 'select when a b\nsend_directive("say")';
     t.deepEquals(parser("ruleset one {rule two {" + src + "}}").rules[0].action_block.actions[0], {
         loc: {start: 39, end: 60},
-        type: "RuleAction",
+        type: "Action",
         label: null,
         action: {
             loc: {start: 39, end: 53},
@@ -589,7 +616,7 @@ test("locations", function(t){
     src = 'select when a b\nsend_directive("say") with\nblah = 1';
     t.deepEquals(parser("ruleset one {rule two {" + src + "}}").rules[0].action_block.actions[0], {
         loc: {start: 39, end: 74},
-        type: "RuleAction",
+        type: "Action",
         label: null,
         action: {
             loc: {start: 39, end: 53},
@@ -2014,12 +2041,12 @@ test("DefAction", function(t){
             params: [],
             body: [],
             action_block: {
-                type: "RuleActionBlock",
+                type: "ActionBlock",
                 condition: null,
                 block_type: "every",
                 actions: [
                     {
-                        type: "RuleAction",
+                        type: "Action",
                         label: null,
                         action: mk.id("send_directive"),
                         args: [mk("foo")],
@@ -2052,12 +2079,12 @@ test("DefAction", function(t){
                 mk.declare("=", mk.id("e"), mk(3))
             ],
             action_block: {
-                type: "RuleActionBlock",
+                type: "ActionBlock",
                 condition: null,
                 block_type: "every",
                 actions: [
                     {
-                        type: "RuleAction",
+                        type: "Action",
                         label: null,
                         action: mk.id("send_directive"),
                         args: [mk("foo")],
@@ -2068,7 +2095,7 @@ test("DefAction", function(t){
                         ]
                     },
                     {
-                        type: "RuleAction",
+                        type: "Action",
                         label: null,
                         action: mk.id("noop"),
                         args: [],
@@ -2098,12 +2125,12 @@ test("DefAction", function(t){
             ],
             body: [],
             action_block: {
-                type: "RuleActionBlock",
+                type: "ActionBlock",
                 condition: mk.op("||", mk.id("b"), mk.id("c")),
                 block_type: "every",
                 actions: [
                     {
-                        type: "RuleAction",
+                        type: "Action",
                         label: null,
                         action: mk.id("blah"),
                         args: [],
@@ -2122,12 +2149,12 @@ test("DefAction", function(t){
             params: [],
             body: [],
             action_block: {
-                type: "RuleActionBlock",
+                type: "ActionBlock",
                 condition: mk.op("&&", mk.id("b"), mk.id("c")),
                 block_type: "every",
                 actions: [
                     {
-                        type: "RuleAction",
+                        type: "Action",
                         label: null,
                         action: mk.id("foo"),
                         args: [],
@@ -2135,7 +2162,7 @@ test("DefAction", function(t){
                         "with": []
                     },
                     {
-                        type: "RuleAction",
+                        type: "Action",
                         label: null,
                         action: mk.id("bar"),
                         args: [],
@@ -2154,12 +2181,12 @@ test("DefAction", function(t){
             params: [],
             body: [],
             action_block: {
-                type: "RuleActionBlock",
+                type: "ActionBlock",
                 condition: mk.app(mk.id("b"), [mk.id("c")]),
                 block_type: "choose",
                 actions: [
                     {
-                        type: "RuleAction",
+                        type: "Action",
                         label: mk.id("one"),
                         action: mk.id("foo"),
                         args: [],
@@ -2167,7 +2194,7 @@ test("DefAction", function(t){
                         "with": []
                     },
                     {
-                        type: "RuleAction",
+                        type: "Action",
                         label: mk.id("two"),
                         action: mk.id("bar"),
                         args: [],
@@ -2309,7 +2336,7 @@ test("Action setting", function(t){
     };
 
     testAction("http:post(\"url\") with qs = {\"foo\": \"bar\"}", {
-        type: "RuleAction",
+        type: "Action",
         label: null,
         action: mk.dID("http", "post"),
         args: [mk("url")],
@@ -2320,7 +2347,7 @@ test("Action setting", function(t){
     });
 
     testAction("http:post(\"url\") setting(resp)", {
-        type: "RuleAction",
+        type: "Action",
         label: null,
         action: mk.dID("http", "post"),
         args: [mk("url")],
@@ -2329,7 +2356,7 @@ test("Action setting", function(t){
     });
 
     testAction("http:post(\"url\") setting(resp) with qs = {\"foo\": \"bar\"}", {
-        type: "RuleAction",
+        type: "Action",
         label: null,
         action: mk.dID("http", "post"),
         args: [mk("url")],
@@ -2565,41 +2592,5 @@ test("Parameter_list", function(t){
         mkP("c", mk.op("+", mk.id("b"), mk(" da"))),
     ]);
 
-    t.end();
-});
-
-test("ActionBlock", function(t){
-    var tstActionBlock = function(ab_src, expected){
-        var src = "ruleset rs{global{a = defaction(){"+ ab_src +"}}rule r1{select when foo bar;"+ab_src+"}}";
-        var ast = normalizeAST(rmLoc(parser(src)));
-        var exp_ast = normalizeAST(expected);
-
-        t.deepEquals(ast.global[0].action_block, exp_ast);
-        t.deepEquals(ast.rules[0].action_block, exp_ast);
-    };
-
-    tstActionBlock("choose b(c){one => foo() two => bar()}", {
-        type: "RuleActionBlock",
-        condition: mk.app(mk.id("b"), [mk.id("c")]),
-        block_type: "choose",
-        actions: [
-            {
-                type: "RuleAction",
-                label: mk.id("one"),
-                action: mk.id("foo"),
-                args: [],
-                setting: null,
-                "with": []
-            },
-            {
-                type: "RuleAction",
-                label: mk.id("two"),
-                action: mk.id("bar"),
-                args: [],
-                setting: null,
-                "with": []
-            }
-        ]
-    });
     t.end();
 });
