@@ -4,6 +4,7 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var compiler = require("krl-compiler");
 var version = require("../package.json").version;
+var oauth_server = require("./oauth_server");
 
 var mergeGetPost = function(req){
     //give preference to post body params
@@ -113,6 +114,11 @@ module.exports = function(pe){
     app.use(function(err, req, res, next){
         errResp(res, err);
     });
+    app.use(function(req, res, next){ // needed by oauth_server
+        req.pe = pe;
+        req.errResp = errResp;
+        next();
+    });
 
     app.all("/sky/event/:eci/:eid/:domain/:type", function(req, res){
         var event = {
@@ -144,6 +150,12 @@ module.exports = function(pe){
             }
         });
     });
+
+    app.get("/authorize", oauth_server.authorize);
+
+    app.post("/approve", oauth_server.approve);
+
+    app.post("/token", oauth_server.token);
 
     app.all("/api/engine-version", function(req, res){
         res.json({"version": version});
