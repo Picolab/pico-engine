@@ -50,12 +50,21 @@ mk.get = function(object, property, method){
         method: method || "dot"
     };
 };
-mk.app = function(callee, args, with_){
+mk.arg = function(id, val){
+    return {
+        type: "NamedArgument",
+        id: mk.id(id),
+        value: val,
+    };
+};
+mk.app = function(callee, args){
     return {
         type: "Application",
         callee: callee,
-        args: args || [],
-        "with": with_ || []
+        args: {
+            type: "Arguments",
+            args: args || [],
+        },
     };
 };
 mk.key = function(value){
@@ -965,14 +974,15 @@ test("expressions", function(t){
     testExp("one()", {
         type: "Application",
         callee: {type: "Identifier", value: "one"},
-        args: [],
-        "with": []
+        args: {type: "Arguments", args: []},
     });
     testExp("one ( 1 , 2 )", mk.app(mk.id("one"), [mk(1), mk(2)]));
     testExp("one (1,2)", mk.app(mk.id("one"), [mk(1), mk(2)]));
-    testExp("one(1, 2) with a = 3 b = 4", mk.app(mk.id("one"), [mk(1), mk(2)], [
-        mk.declare("=", mk.id("a"), mk(3)),
-        mk.declare("=", mk.id("b"), mk(4))
+    testExp("one(1, 2, a = 3, b = 4)", mk.app(mk.id("one"), [
+        mk(1),
+        mk(2),
+        mk.arg("a", mk(3)),
+        mk.arg("b", mk(4)),
     ]));
 
     testExp('1 + "two"', {
@@ -1580,8 +1590,11 @@ test("RulePostlude", function(t){
                         type: "Identifier",
                         value: "one"
                     },
-                    args: [],
-                    "with": []
+                    args: {
+                        loc: {start: 29, end: 31},
+                        type: "Arguments",
+                        args: []
+                    },
                 }
             },
             {
@@ -1595,8 +1608,11 @@ test("RulePostlude", function(t){
                         type: "Identifier",
                         value: "two"
                     },
-                    args: [],
-                    "with": []
+                    args: {
+                        loc: {start: 35, end: 37},
+                        type: "Arguments",
+                        args: []
+                    },
                 }
             }
         ]
@@ -2264,12 +2280,7 @@ test("DefAction", function(t){
 
 test("with", function(t){
     var tst = function(src, expected){
-        var ast = parser("foo() " + src);
-        ast = ast[0].expression.with;
-        t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
-
-        //try with on raise
-        ast = parser("ruleset rs{rule r1{fired{raise domain event \"type\"" + src + "}}}");
+        var ast = parser("ruleset rs{rule r1{fired{raise domain event \"type\"" + src + "}}}");
         ast = ast.rules[0].postlude.fired[0].event_attrs.with;
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };

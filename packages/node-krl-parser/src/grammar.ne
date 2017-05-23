@@ -753,7 +753,7 @@ Actions_in_curlies -> %tok_OPEN_CURLY (Action %tok_SEMI:?):+ %tok_CLSE_CURLY
 
 Action ->
     (Identifier %tok_FAT_ARROW_RIGHT):?
-    Identifier_or_DomainIdentifier %tok_OPEN_PAREN Arguments %tok_CLSE_PAREN
+    Identifier_or_DomainIdentifier %tok_OPEN_PAREN Expression_list %tok_CLSE_PAREN
     (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
     WithArguments:? {%
   function(data){
@@ -1245,19 +1245,49 @@ function_body_parts ->
           return [data[0]].concat(data[2]);
       } %}
 
-Application -> MemberExpression %tok_OPEN_PAREN Arguments %tok_CLSE_PAREN WithArguments:? {%
+Application -> MemberExpression Arguments {%
   function(data){
     return {
       loc: mkLoc(data),
-      type: 'Application',
+      type: "Application",
       callee: data[0],
-      args: data[2],
-      "with": data[4] || []
+      args: data[1],
     };
   }
 %}
 
-Arguments -> Expression_list {% id %}
+Arguments -> %tok_OPEN_PAREN Argument_list %tok_CLSE_PAREN
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: "Arguments",
+      args: data[1],
+    };
+  }
+%}
+
+Argument ->
+      Expression {% id %}
+    | Identifier %tok_EQ Expression
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: "NamedArgument",
+      id: data[0],
+      value: data[2],
+    };
+  }
+%}
+
+Argument_list ->
+      null {% noopArr %}
+    | Argument_list_body {% id %}
+
+Argument_list_body ->
+      Argument {% idArr %}
+    | Argument_list_body %tok_COMMA Argument {% concatArr(2) %}
 
 ################################################################################
 # Literal Datastructures

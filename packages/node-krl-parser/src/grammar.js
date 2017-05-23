@@ -735,7 +735,7 @@ var grammar = {
     {"name": "Action$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Action$ebnf$3", "symbols": ["WithArguments"], "postprocess": id},
     {"name": "Action$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Action", "symbols": ["Action$ebnf$1", "Identifier_or_DomainIdentifier", tok_OPEN_PAREN, "Arguments", tok_CLSE_PAREN, "Action$ebnf$2", "Action$ebnf$3"], "postprocess": 
+    {"name": "Action", "symbols": ["Action$ebnf$1", "Identifier_or_DomainIdentifier", tok_OPEN_PAREN, "Expression_list", tok_CLSE_PAREN, "Action$ebnf$2", "Action$ebnf$3"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1145,20 +1145,40 @@ var grammar = {
     {"name": "function_body_parts", "symbols": ["Statement", tok_SEMI, "function_body_parts"], "postprocess":  function(data){
             return [data[0]].concat(data[2]);
         } },
-    {"name": "Application$ebnf$1", "symbols": ["WithArguments"], "postprocess": id},
-    {"name": "Application$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Application", "symbols": ["MemberExpression", tok_OPEN_PAREN, "Arguments", tok_CLSE_PAREN, "Application$ebnf$1"], "postprocess": 
+    {"name": "Application", "symbols": ["MemberExpression", "Arguments"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
-            type: 'Application',
+            type: "Application",
             callee: data[0],
-            args: data[2],
-            "with": data[4] || []
+            args: data[1],
           };
         }
         },
-    {"name": "Arguments", "symbols": ["Expression_list"], "postprocess": id},
+    {"name": "Arguments", "symbols": [tok_OPEN_PAREN, "Argument_list", tok_CLSE_PAREN], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: "Arguments",
+            args: data[1],
+          };
+        }
+        },
+    {"name": "Argument", "symbols": ["Expression"], "postprocess": id},
+    {"name": "Argument", "symbols": ["Identifier", tok_EQ, "Expression"], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: "NamedArgument",
+            id: data[0],
+            value: data[2],
+          };
+        }
+        },
+    {"name": "Argument_list", "symbols": [], "postprocess": noopArr},
+    {"name": "Argument_list", "symbols": ["Argument_list_body"], "postprocess": id},
+    {"name": "Argument_list_body", "symbols": ["Argument"], "postprocess": idArr},
+    {"name": "Argument_list_body", "symbols": ["Argument_list_body", tok_COMMA, "Argument"], "postprocess": concatArr(2)},
     {"name": "Array", "symbols": [tok_OPEN_SQARE, "Expression_list", tok_CLSE_SQARE], "postprocess": 
         function(data){
           return {

@@ -519,8 +519,10 @@ A(B,C)
 {
   "type": "Application",
   "callee": A,
-  "args": [ B , C ],
-  "with": [  ]
+  "args": {
+    "type": "Arguments",
+    "args": [ B , C ]
+  }
 }
 ```
 
