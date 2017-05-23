@@ -754,7 +754,7 @@ Actions_in_curlies -> %tok_OPEN_CURLY (Action %tok_SEMI:?):+ %tok_CLSE_CURLY
 Action ->
     (Identifier %tok_FAT_ARROW_RIGHT):?
     Identifier_or_DomainIdentifier Arguments
-    (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
+    (%tok_setting %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN):?
 {%
   function(data){
     return {
@@ -763,7 +763,7 @@ Action ->
       label: data[0] && data[0][0],
       action: data[1],
       args: data[2],
-      setting: (data[3] && data[3][2]) || null,
+      setting: (data[3] && data[3][2]) || [],
     };
   }
 %}

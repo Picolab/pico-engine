@@ -76,7 +76,7 @@ mk.action = function(lbl, id, args, setting){
         label: lbl ? mk.id(lbl) : null,
         action: mk.id(id),
         args: mk.args(args),
-        setting: setting || null,
+        setting: setting || [],
     };
 };
 mk.key = function(value){
@@ -597,7 +597,7 @@ test("locations", function(t){
                 }
             ]
         },
-        setting: null,
+        setting: [],
     });
     src = 'select when a b\nsend_directive("say",\nblah = 1,)';
     t.deepEquals(parser("ruleset one {rule two {" + src + "}}").rules[0].action_block.actions[0], {
@@ -634,7 +634,7 @@ test("locations", function(t){
                 },
             ]
         },
-        setting: null,
+        setting: [],
     });
 
     t.deepEquals(parser("ruleset a{meta{shares b}}").meta.properties[0].key.loc, {start: 15, end: 21});
@@ -2240,7 +2240,7 @@ test("Action setting", function(t){
             mk("url"),
             mk.arg("qs", mk({foo: mk("bar")})),
         ]),
-        setting: null,
+        setting: [],
     });
 
     testAction("http:post(\"url\") setting(resp)", {
@@ -2248,7 +2248,7 @@ test("Action setting", function(t){
         label: null,
         action: mk.dID("http", "post"),
         args: mk.args([mk("url")]),
-        setting: mk.id("resp"),
+        setting: [mk.id("resp")],
     });
 
     testAction("http:post(\"url\", qs = {\"foo\": \"bar\"}) setting(resp)", {
@@ -2259,7 +2259,7 @@ test("Action setting", function(t){
             mk("url"),
             mk.arg("qs", mk({foo: mk("bar")})),
         ]),
-        setting: mk.id("resp"),
+        setting: [mk.id("resp")],
     });
 
     t.end();

@@ -730,7 +730,7 @@ var grammar = {
     {"name": "Action$ebnf$1$subexpression$1", "symbols": ["Identifier", tok_FAT_ARROW_RIGHT]},
     {"name": "Action$ebnf$1", "symbols": ["Action$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "Action$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Action$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
+    {"name": "Action$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN]},
     {"name": "Action$ebnf$2", "symbols": ["Action$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "Action$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Action", "symbols": ["Action$ebnf$1", "Identifier_or_DomainIdentifier", "Arguments", "Action$ebnf$2"], "postprocess": 
@@ -741,7 +741,7 @@ var grammar = {
             label: data[0] && data[0][0],
             action: data[1],
             args: data[2],
-            setting: (data[3] && data[3][2]) || null,
+            setting: (data[3] && data[3][2]) || [],
           };
         }
         },

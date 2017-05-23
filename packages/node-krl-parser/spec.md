@@ -172,7 +172,7 @@ rule hello {
             {value: 1, type:"Number"}
           ]
         },
-        "setting": null
+        "setting": [  ]
       },
       {
         "type": "Action",
@@ -184,7 +184,7 @@ rule hello {
             {value: 2, type:"Number"}
           ]
         },
-        "setting": null
+        "setting": [  ]
       }
     ]
   },
