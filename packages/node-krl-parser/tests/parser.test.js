@@ -466,6 +466,75 @@ test("ActionBlock", function(t){
         t.ok(err, "every is required");
     }
 
+    try{
+        tstActionBlock("if foo == 2 then choose { noop() }", {});
+        t.fail("cannot if then choose");
+    }catch(err){
+        t.ok(err, "cannot if then choose");
+    }
+    try{
+        tstActionBlock("if foo == 2 then choose bar { noop() }", {});
+        t.fail("cannot if then choose");
+    }catch(err){
+        t.ok(err, "cannot if then choose");
+    }
+
+    src  = "if foo == 2 then sample {\n";
+    src += "  one => blah(1)\n";
+    src += "  two => blah(2)\n";
+    src += "}";
+    tstActionBlock(src, {
+        type: "ActionBlock",
+        condition: mk.op("==", mk.id("foo"), mk(2)),
+        block_type: "sample",
+        actions: [
+            {
+                type: "Action",
+                label: mk.id("one"),
+                action: mk.id("blah"),
+                args: [mk(1)],
+                setting: null,
+                "with": []
+            },
+            {
+                type: "Action",
+                label: mk.id("two"),
+                action: mk.id("blah"),
+                args: [mk(2)],
+                setting: null,
+                "with": []
+            }
+        ]
+    });
+
+    src  = "sample {\n";
+    src += "  one => blah(1)\n";
+    src += "  two => blah(2)\n";
+    src += "}";
+    tstActionBlock(src, {
+        type: "ActionBlock",
+        condition: null,
+        block_type: "sample",
+        actions: [
+            {
+                type: "Action",
+                label: mk.id("one"),
+                action: mk.id("blah"),
+                args: [mk(1)],
+                setting: null,
+                "with": []
+            },
+            {
+                type: "Action",
+                label: mk.id("two"),
+                action: mk.id("blah"),
+                args: [mk(2)],
+                setting: null,
+                "with": []
+            }
+        ]
+    });
+
     tstActionBlock("choose b(c){one => foo() two => bar()}", {
         type: "ActionBlock",
         condition: mk.app(mk.id("b"), [mk.id("c")]),
