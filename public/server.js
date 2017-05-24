@@ -33,6 +33,6 @@ angular.module("myApp", ['ui.router'])
     $scope.reqid = $stateParams.reqid;
   })
 
-  .controller("errorCtrl", function($scope,entriesFactory,$stateParams) {
+  .controller("errorCtrl", function($scope,$stateParams) {
      $scope.error_message = $stateParams.error_message;
   });
