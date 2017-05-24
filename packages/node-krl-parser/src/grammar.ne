@@ -724,7 +724,7 @@ EventWithin -> %tok_within Expression %tok_TIME_PERIOD_ENUM {%
 #
 
 ActionBlock ->
-      Action
+      Action %tok_SEMI:?
       {% actionBlock(null, null, [0]) %}
 
     | %tok_if Expression %tok_then Action %tok_SEMI:?

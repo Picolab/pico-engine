@@ -707,10 +707,12 @@ var grammar = {
           };
         }
         },
-    {"name": "ActionBlock", "symbols": ["Action"], "postprocess": actionBlock(null, null, [0])},
     {"name": "ActionBlock$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
     {"name": "ActionBlock$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ActionBlock", "symbols": [tok_if, "Expression", tok_then, "Action", "ActionBlock$ebnf$1"], "postprocess": actionBlock([1], null, [3])},
+    {"name": "ActionBlock", "symbols": ["Action", "ActionBlock$ebnf$1"], "postprocess": actionBlock(null, null, [0])},
+    {"name": "ActionBlock$ebnf$2", "symbols": [tok_SEMI], "postprocess": id},
+    {"name": "ActionBlock$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ActionBlock", "symbols": [tok_if, "Expression", tok_then, "Action", "ActionBlock$ebnf$2"], "postprocess": actionBlock([1], null, [3])},
     {"name": "ActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_every, "Actions_in_curlies"], "postprocess": actionBlock([1], [3, "src"], [4])},
     {"name": "ActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_sample, "Actions_in_curlies"], "postprocess": actionBlock([1], [3, "src"], [4])},
     {"name": "ActionBlock", "symbols": [tok_every, "Actions_in_curlies"], "postprocess": actionBlock(null, [0, "src"], [1])},

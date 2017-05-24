@@ -1051,7 +1051,7 @@ test("EventExpression", function(t){
         if(/\)\s*$/.test(rule_body)){
             rule_body += ";";//TODO can remove this?
         }
-        var ast = normalizeAST(rmLoc(parseRuleBody("select when " + rule_body)));
+        var ast = normalizeAST(rmLoc(parseRuleBody("select when " + rule_body + " noop();")));
         t.deepEquals(ast.select.event, normalizeAST(expected));
     };
 
@@ -1684,8 +1684,8 @@ test("no ambiguity!", function(t){
     //whitespace ambiguity in function params
     testAmb("function(   ){}");
     testAmb("ruleset a{rule b{select when c d setting(  e  );}}");
-    testAmb("ruleset a{rule b{select when repeat 5 (c d) max(  e  );}}");
-    testAmb("ruleset a{rule b{select when repeat 5 (c d) push(  e  );}}");
+    testAmb("ruleset a{rule b{select when repeat 5 (c d) max(  e  );noop()}}");
+    testAmb("ruleset a{rule b{select when repeat 5 (c d) push(  e  );noop()}}");
 
     //whitespace ambiguity in statement list
     testAmb("function(){   }");
