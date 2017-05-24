@@ -27,17 +27,6 @@ var gen = {
     "PersistentVariable": function(){
         return _.sample(["app", "ent"]) + ":" + phonetic.generate();
     },
-
-
-    "WithArguments": function(){//TODO remove
-        //TODO a() with b = (c()) -NOT- (a() with b = c)()
-        //parens or changing how app works would fix it
-        //
-        //TODO (... with b = c d = e) -NOT- (... with b = c) (d = e)
-        //semi-colons fix this
-        //
-        return " ";//TODO remove
-    },//TODO remove
 };
 
 var isParenRule = function(rule){

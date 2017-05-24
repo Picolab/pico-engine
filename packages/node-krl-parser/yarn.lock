@@ -1032,9 +1032,9 @@ kind-of@^3.0.2:
   dependencies:
     is-buffer "^1.1.5"
 
-krl-generator@^0.6.2:
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/krl-generator/-/krl-generator-0.6.2.tgz#0d58b9ea4df229582dc78872865393b3078c94eb"
+krl-generator@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/krl-generator/-/krl-generator-0.7.0.tgz#990cd8487728b3e92d04088a713c2de4daa097be"
   dependencies:
     lodash "^4.13.1"
 
