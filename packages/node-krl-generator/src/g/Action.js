@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var genWith = require("../genWith");
 
 module.exports = function(ast, ind, gen){
     var src = "";
@@ -10,13 +9,10 @@ module.exports = function(ast, ind, gen){
         src += ind();
     }
     src += gen(ast.action) + "(";
-    src += _.map(ast.args, function(arg){
-        return gen(arg);
-    }).join(", ");
+    src += gen(ast.args);
     src += ")";
-    if(ast.setting){
+    if(!_.isEmpty(ast.setting)){
         src += " setting(" + gen(ast.setting) + ")";
     }
-    src += genWith(ast["with"], ind, gen);
     return src;
 };

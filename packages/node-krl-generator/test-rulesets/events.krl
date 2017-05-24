@@ -18,26 +18,24 @@ ruleset io.picolabs.events {
   }
   rule set_attr {
     select when events bind name re#^(.*)$# setting(my_name);
-    send_directive("bound") with
-      name = my_name
+    send_directive("bound", {"name": my_name})
   }
   rule set_attr2 {
     select when events set_attr2
         number re#[Nn]0*(\d*)#
         name re#(.*)#
         setting(number, name);
-    send_directive("set_attr2") with
-      number = number
-      and
-      name = name
+    send_directive("set_attr2", {
+      "number": number,
+      "name": name
+    })
   }
   rule get_attr {
     select when events get;
     pre {
       thing = event:attr("thing")
     }
-    send_directive("get") with
-      thing = thing
+    send_directive("get", {"thing": thing})
   }
   rule noop {
     select when events noop;
@@ -55,8 +53,7 @@ ruleset io.picolabs.events {
   }
   rule on_fired {
     select when events on_fired name re#^(.*)$# setting(my_name);
-    send_directive("on_fired") with
-      previous_name = ent:on_fired_prev_name
+    send_directive("on_fired", {"previous_name": ent:on_fired_prev_name})
     fired {
       ent:on_fired_prev_name := my_name
     }
@@ -119,8 +116,7 @@ ruleset io.picolabs.events {
     select when events raise_set_name name re#^(.*)$# setting(my_name);
     fired {
       raise events event "store_sent_name"
-        with
-          name = my_name
+        attributes {"name": my_name}
     }
   }
   rule raise_set_name_attr {
@@ -137,13 +133,11 @@ ruleset io.picolabs.events {
     }
     fired {
       raise events event "store_sent_name" for rid
-        with
-          name = my_name
+        attributes {"name": my_name}
     }
   }
   rule event_eid {
     select when events event_eid;
-    send_directive("event_eid") with
-      eid = event:eid
+    send_directive("event_eid", {"eid": event:eid})
   }
 }

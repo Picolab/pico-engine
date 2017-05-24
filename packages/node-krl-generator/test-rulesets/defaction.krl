@@ -5,10 +5,10 @@ ruleset io.picolabs.defaction {
   global {
     foo = defaction(a){
       b = 2
-      send_directive("foo") with
-        a = a
-        and
-        b = b + 3
+      send_directive("foo", {
+        "a": a,
+        "b": b + 3
+      })
     }
     bar = defaction(
       one,
@@ -16,12 +16,11 @@ ruleset io.picolabs.defaction {
       three = "3 by default",
     ){
 
-      send_directive("bar") with
-        a = one
-        and
-        b = two
-        and
-        c = three
+      send_directive("bar", {
+        "a": one,
+        "b": two,
+        "c": three
+      })
     }
     getSettingVal = function(){
       ent:setting_val
@@ -59,17 +58,17 @@ ruleset io.picolabs.defaction {
   }
   rule bar {
     select when defa bar;
-    bar("baz") with
-      two = "qux"
-      and
-      three = "quux"
+    bar("baz", {
+      "two": "qux",
+      "three": "quux"
+    })
   }
   rule bar_setting {
     select when defa bar_setting;
-    bar("baz") setting(val) with
-      two = "qux"
-      and
-      three = "quux"
+    bar("baz", {
+      "two": "qux",
+      "three": "quux"
+    }) setting(val)
     fired {
       ent:setting_val := val
     }

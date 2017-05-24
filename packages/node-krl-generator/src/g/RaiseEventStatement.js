@@ -9,7 +9,7 @@ module.exports = function(ast, ind, gen){
     }
 
     if(ast.event_attrs){
-        src += "\n" + ind(1) + gen(ast.event_attrs, 1);
+        src += "\n" + ind(1) + "attributes " +  gen(ast.event_attrs, 1);
     }
 
     return src;

@@ -7,14 +7,10 @@ ruleset io.picolabs.with {
       a + b
     }
     inc = function(n){
-      add(1) with
-        b = n
+      add(1, b = n)
     }
     foo = function(a){
-      add() with
-        a = a * 2
-        and
-        b = a
+      add(a = a * 2, b = a)
     }
   }
 

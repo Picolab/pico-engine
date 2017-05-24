@@ -1,10 +1,11 @@
 var _ = require("lodash");
 
-module.exports = function(params, ind, gen){
+module.exports = function(ast, ind, gen){
+
     var src = "";
 
     var newline_params = false;
-    var strs = _.map(params, function(param){
+    var strs = _.map(ast.params, function(param){
         if(param["default"]){
             newline_params = true;
         }

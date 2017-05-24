@@ -1,14 +1,11 @@
 var _ = require("lodash");
-var genParamList = require("../genParamList");
 
 module.exports = function(ast, ind, gen){
     var src = "";
     src += ind();
     src += gen(ast.id);
     src += " = defaction(";
-
-    src += genParamList(ast.params, ind, gen);
-
+    src += gen(ast.params);
     src += "){\n";
 
     src += _.map(ast.body, function(stmt){

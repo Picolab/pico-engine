@@ -129,36 +129,31 @@ ruleset io.picolabs.event-exp {
     select when count 3 (
       ee_count_max a b re#(\d+)#
     ) max(m);
-    send_directive("count_max") with
-      m = m
+    send_directive("count_max", {"m": m})
   }
   rule repeat_min {
     select when repeat 3 (
       ee_repeat_min a b re#(\d+)#
     ) min(m);
-    send_directive("repeat_min") with
-      m = m
+    send_directive("repeat_min", {"m": m})
   }
   rule repeat_sum {
     select when repeat 3 (
       ee_repeat_sum a b re#(\d+)#
     ) sum(m);
-    send_directive("repeat_sum") with
-      m = m
+    send_directive("repeat_sum", {"m": m})
   }
   rule repeat_avg {
     select when repeat 3 (
       ee_repeat_avg a b re#(\d+)#
     ) avg(m);
-    send_directive("repeat_avg") with
-      m = m
+    send_directive("repeat_avg", {"m": m})
   }
   rule repeat_push {
     select when repeat 3 (
       ee_repeat_push a b re#(\d+)#
     ) push(m);
-    send_directive("repeat_push") with
-      m = m
+    send_directive("repeat_push", {"m": m})
   }
   rule repeat_push_multi {
     select when repeat 5 (
@@ -166,14 +161,12 @@ ruleset io.picolabs.event-exp {
         a re#(\d+)#
         b re#(\d+) (.*)#
     ) push(a, b, c, d);
-    send_directive("repeat_push_multi") with
-      a = a
-      and
-      b = b
-      and
-      c = c
-      and
-      d = d
+    send_directive("repeat_push_multi", {
+      "a": a,
+      "b": b,
+      "c": c,
+      "d": d
+    })
   }
   rule repeat_sum_multi {
     select when repeat 3 (
@@ -181,9 +174,9 @@ ruleset io.picolabs.event-exp {
         a re#(\d+)#
         b re#(\d+)#
     ) sum(a, b);
-    send_directive("repeat_sum_multi") with
-      a = a
-      and
-      b = b
+    send_directive("repeat_sum_multi", {
+      "a": a,
+      "b": b
+    })
   }
 }

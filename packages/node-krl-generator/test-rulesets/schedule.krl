@@ -44,10 +44,10 @@ ruleset io.picolabs.schedule {
     fired {
       schedule schedule event "push_log"
         repeat "* */1 * * * *"
-        with
-          from = "every_1min"
-          and
-          name = event:attr("name")
+        attributes {
+          "from": "every_1min",
+          "name": event:attr("name")
+        }
         setting(foo);
       ent:log := ent:log.append({"scheduled every_1min": foo})
     }

@@ -27,7 +27,7 @@
     "contra": "^1.9.4",
     "diff-lines": "^1.0.0",
     "eslint": "^3.18.0",
-    "krl-parser": "^0.22.0",
+    "krl-parser": "^0.23.0",
     "onchange": "^3.2.0"
   },
   "dependencies": {

@@ -11,8 +11,7 @@ ruleset io.picolabs.foreach {
     select when foreach basic;
     foreach [1, 2, 3] setting(x)
 
-    send_directive("basic") with
-      x = x
+    send_directive("basic", {"x": x})
   }
   rule map {
     select when foreach map;
@@ -22,20 +21,20 @@ ruleset io.picolabs.foreach {
       "c": 3
     } setting(v, k)
 
-    send_directive("map") with
-      k = k
-      and
-      v = v
+    send_directive("map", {
+      "k": k,
+      "v": v
+    })
   }
   rule nested {
     select when foreach nested;
     foreach [1, 2, 3] setting(x)
       foreach ["a", "b", "c"] setting(y)
 
-    send_directive("nested") with
-      x = x
-      and
-      y = y
+    send_directive("nested", {
+      "x": x,
+      "y": y
+    })
   }
   rule scope {
     select when foreach scope;
@@ -46,11 +45,10 @@ ruleset io.picolabs.foreach {
     pre {
       baz = foo * bar
     }
-    send_directive("scope") with
-      foo = foo
-      and
-      bar = bar
-      and
-      baz = baz
+    send_directive("scope", {
+      "foo": foo,
+      "bar": bar,
+      "baz": baz
+    })
   }
 }

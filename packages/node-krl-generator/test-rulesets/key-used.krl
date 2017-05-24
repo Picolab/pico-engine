@@ -44,10 +44,10 @@ This is a test file for a module that uses keys
     pre {
       foo_pre = keys:foo()
     }
-    send_directive("foo") with
-      foo = keys:foo()
-      and
-      foo_pre = foo_pre
+    send_directive("foo", {
+      "foo": keys:foo(),
+      "foo_pre": foo_pre
+    })
     always {
       ent:foo_postlude := keys:foo()
     }

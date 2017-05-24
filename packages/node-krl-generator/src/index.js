@@ -1,7 +1,10 @@
 var _ = require("lodash");
 
 var gen_by_type = _.fromPairs(_.map([
+    "Action",
+    "ActionBlock",
     "Application",
+    "Arguments",
     "Array",
     "AttributeMatch",
     "Boolean",
@@ -28,15 +31,14 @@ var gen_by_type = _.fromPairs(_.map([
     "Map",
     "MapKeyValuePair",
     "MemberExpression",
+    "NamedArgument",
     "Number",
     "Parameter",
+    "Parameters",
     "PersistentVariableAssignment",
-    "RaiseEventAttributes",
     "RaiseEventStatement",
     "RegExp",
     "Rule",
-    "RuleAction",
-    "RuleActionBlock",
     "RuleForEach",
     "RulePostlude",
     "RuleSelect",

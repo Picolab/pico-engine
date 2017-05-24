@@ -17,7 +17,6 @@ A first ruleset for the Quickstart
   }
   rule say_hello {
     select when echo hello;
-    send_directive("say") with
-      something = "Hello World"
+    send_directive("say", {"something": "Hello World"})
   }
 }

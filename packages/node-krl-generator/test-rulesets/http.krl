@@ -18,11 +18,10 @@ ruleset io.picolabs.http {
     }
     doPost = defaction(base_url, to, msg){
 
-      http:post(url + "/msg.json") with
-        form = {
-          "To": to,
-          "Msg": msg
-        }
+      http:post(url + "/msg.json", {"from": {
+        "To": to,
+        "Msg": msg
+      }})
     }
   }
   rule http_get {
@@ -31,10 +30,10 @@ ruleset io.picolabs.http {
       url = event:attr("url")
     }
     fired {
-      resp = http:get(url) with
-        qs = {"foo": "bar"}
-        and
-        headers = {"baz": "quix"};
+      resp = http:get(url, {
+        "qs": {"foo": "bar"},
+        "headers": {"baz": "quix"}
+      });
       ent:resp := fmtResp(resp)
     }
   }
@@ -43,28 +42,27 @@ ruleset io.picolabs.http {
     pre {
       url = event:attr("url")
     }
-    http:post(url) with
-      json = {"foo": "bar"}
+    http:post(url, {"json": {"foo": "bar"}})
   }
   rule http_post_action {
     select when http_test post_action;
     pre {
       url = event:attr("url")
     }
-    doPost(url) with
-      to = "bob"
-      and
-      msg = "foobar"
+    doPost(url, {
+      "to": "bob",
+      "msg": "foobar"
+    })
   }
   rule http_post_setting {
     select when http_test post_setting;
     pre {
       url = event:attr("url")
     }
-    http:post(url) setting(resp) with
-      qs = {"foo": "bar"}
-      and
-      form = {"baz": "qux"}
+    http:post(url, {
+      "qs": {"foo": "bar"},
+      "form": {"baz": "qux"}
+    }) setting(resp)
     fired {
       ent:resp := fmtResp(resp)
     }
@@ -74,20 +72,18 @@ ruleset io.picolabs.http {
     pre {
       url = event:attr("url")
     }
-    http:post(url) with
-      qs = {"foo": "bar"}
-      and
-      form = {"baz": "qux"}
-      and
-      autoraise = "foobar"
+    http:post(url, {
+      "qs": {"foo": "bar"},
+      "form": {"baz": "qux"},
+      "autoraise": "foobar"
+    })
   }
   rule http_post_event_handler {
     select when http post;
     pre {
       resp = fmtResp(event:attrs())
     }
-    send_directive("http_post_event_handler") with
-      attrs = resp
+    send_directive("http_post_event_handler", {"attrs": resp})
     fired {
       ent:last_post_event := resp
     }
