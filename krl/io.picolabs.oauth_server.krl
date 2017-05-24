@@ -93,7 +93,7 @@ ruleset io.picolabs.oauth_server {
     }
     if not (ent:client{"redirect_uris"} >< redirect_uri) then
       send_directive("error") with error_message = "Invalid redirect URI"
-    fired { ent:client := null; last }
+    fired { clear ent:client; last }
   }   
   rule oauth_authorize_render_approve {
     select when oauth authorize
@@ -107,7 +107,7 @@ ruleset io.picolabs.oauth_server {
         reqid = reqid
     fired {
       ent:requests{reqid} := event:attrs();
-      ent:client := null; last
+      clear ent:client; last
     }
   }
 //
@@ -141,7 +141,7 @@ ruleset io.picolabs.oauth_server {
       send_directive("respond") with
         error = "access_denied"
         redirect_uri = ent:query{"redirect_uri"}
-    fired { last; ent:query := null }
+    fired { last; clear ent:query }
   }
   rule oauth_approve_check_response_type {
     select when oauth approve
@@ -149,7 +149,7 @@ ruleset io.picolabs.oauth_server {
       send_directive("respond") with
         error = "unsupported_response_type"
         redirect_uri = ent:query{"redirect_uri"}
-    fired { last; ent:query := null }
+    fired { last; clear ent:query }
   }
   rule oauth_approve_supply_code {
     select when oauth approve
@@ -160,7 +160,7 @@ ruleset io.picolabs.oauth_server {
       redirect_uri = ent:query{"redirect_uri"}
     fired {
       ent:codes{code} := { "request": ent:query };
-      ent:query := null;
+      clear ent:query;
       last
     }
   }
@@ -182,13 +182,13 @@ ruleset io.picolabs.oauth_server {
     select when oauth token
     if ent:client{"client_secret"} != event:attr("client_secret") then
       send_directive("error") with statusCode = 401 message = "invalid_client"
-    fired { last; ent:client := null }
+    fired { last; clear ent:client }
   }
   rule oauth_token_check_grant_type {
     select when oauth token
     if event:attr("grant_type") != "authorization_code" then
       send_directive("error") with statusCode = 400 message = "unsupported_grant_type"
-    fired { last; ent:client := null }
+    fired { last; clear ent:client }
   }
   rule oauth_token_check_code {
     select when oauth token
@@ -197,7 +197,7 @@ ruleset io.picolabs.oauth_server {
     }
     if not code then
       send_directive("error") with statusCode = 400 message = "invalid_grant"
-    fired { last; ent:client := null }
+    fired { last; clear ent:client }
     else { ent:code := code}
     finally { ent:codes{event:attr("code")} := null }
   }
@@ -205,7 +205,7 @@ ruleset io.picolabs.oauth_server {
     select when oauth token
     if ent:code{["request","client_id"]} != ent:client{"client_id"} then
       send_directive("error") with statusCode = 400 message = "invalid_grant"
-    fired { last; ent:code := null; ent:client := null }
+    fired { last; clear ent:code; clear ent:client }
   }
   rule oauth_token_access_token {
     select when oauth token
@@ -213,6 +213,6 @@ ruleset io.picolabs.oauth_server {
       access_token = meta:eci
     }
     send_directive("ok") with access_token = access_token token_type = "Bearer"
-    fired { last; ent:code := null; ent:client := null }
+    fired { last; clear ent:code; clear ent:client }
   }
 }
