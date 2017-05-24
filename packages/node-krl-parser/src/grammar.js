@@ -395,7 +395,7 @@ var grammar = {
     {"name": "Ruleset$ebnf$2", "symbols": ["RulesetGlobal"], "postprocess": id},
     {"name": "Ruleset$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Ruleset$ebnf$3", "symbols": []},
-    {"name": "Ruleset$ebnf$3", "symbols": ["Ruleset$ebnf$3", "rule"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "Ruleset$ebnf$3", "symbols": ["Ruleset$ebnf$3", "Rule"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "Ruleset", "symbols": [tok_ruleset, "RulesetID", tok_OPEN_CURLY, "Ruleset$ebnf$1", "Ruleset$ebnf$2", "Ruleset$ebnf$3", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
@@ -553,30 +553,27 @@ var grammar = {
     {"name": "OnOrOff", "symbols": [tok_on], "postprocess": booleanAST(true )},
     {"name": "OnOrOff", "symbols": [tok_off], "postprocess": booleanAST(false)},
     {"name": "RulesetGlobal", "symbols": [tok_global, tok_OPEN_CURLY, "DeclarationOrDefActionList", tok_CLSE_CURLY], "postprocess": getN(2)},
-    {"name": "rule$ebnf$1$subexpression$1", "symbols": [tok_is, "rule_state"]},
-    {"name": "rule$ebnf$1", "symbols": ["rule$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "rule$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$2$subexpression$1$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
-    {"name": "rule$ebnf$2$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$2$subexpression$1", "symbols": ["RuleSelect", "rule$ebnf$2$subexpression$1$ebnf$1"]},
-    {"name": "rule$ebnf$2", "symbols": ["rule$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "rule$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$3", "symbols": []},
-    {"name": "rule$ebnf$3", "symbols": ["rule$ebnf$3", "RuleForEach"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "rule$ebnf$4", "symbols": ["RulePrelude"], "postprocess": id},
-    {"name": "rule$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$5", "symbols": ["ActionBlock"], "postprocess": id},
-    {"name": "rule$ebnf$5", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule$ebnf$6", "symbols": ["RulePostlude"], "postprocess": id},
-    {"name": "rule$ebnf$6", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "rule", "symbols": [tok_rule, "Identifier", "rule$ebnf$1", tok_OPEN_CURLY, "rule$ebnf$2", "rule$ebnf$3", "rule$ebnf$4", "rule$ebnf$5", "rule$ebnf$6", tok_CLSE_CURLY], "postprocess": 
+    {"name": "Rule$ebnf$1$subexpression$1", "symbols": [tok_is, "Rule_state"]},
+    {"name": "Rule$ebnf$1", "symbols": ["Rule$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "Rule$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Rule$ebnf$2", "symbols": ["RuleSelect"], "postprocess": id},
+    {"name": "Rule$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Rule$ebnf$3", "symbols": []},
+    {"name": "Rule$ebnf$3", "symbols": ["Rule$ebnf$3", "RuleForEach"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "Rule$ebnf$4", "symbols": ["RulePrelude"], "postprocess": id},
+    {"name": "Rule$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Rule$ebnf$5", "symbols": ["ActionBlock"], "postprocess": id},
+    {"name": "Rule$ebnf$5", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Rule$ebnf$6", "symbols": ["RulePostlude"], "postprocess": id},
+    {"name": "Rule$ebnf$6", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Rule", "symbols": [tok_rule, "Identifier", "Rule$ebnf$1", tok_OPEN_CURLY, "Rule$ebnf$2", "Rule$ebnf$3", "Rule$ebnf$4", "Rule$ebnf$5", "Rule$ebnf$6", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
-            type: 'Rule',
+            type: "Rule",
             name: data[1],
             rule_state: data[2] ? data[2][1].src : "active",
-            select: data[4] && data[4][0],
+            select: data[4],
             foreach: data[5] || [],
             prelude: data[6] || [],
             action_block: data[7],
@@ -584,16 +581,18 @@ var grammar = {
           };
         }
         },
-    {"name": "rule_state", "symbols": [tok_active], "postprocess": id},
-    {"name": "rule_state", "symbols": [tok_inactive], "postprocess": id},
+    {"name": "Rule_state", "symbols": [tok_active], "postprocess": id},
+    {"name": "Rule_state", "symbols": [tok_inactive], "postprocess": id},
     {"name": "RuleSelect$ebnf$1", "symbols": ["EventWithin"], "postprocess": id},
     {"name": "RuleSelect$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleSelect", "symbols": [tok_select, tok_when, "EventExpression", "RuleSelect$ebnf$1"], "postprocess": 
+    {"name": "RuleSelect$ebnf$2", "symbols": [tok_SEMI], "postprocess": id},
+    {"name": "RuleSelect$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RuleSelect", "symbols": [tok_select, tok_when, "EventExpression", "RuleSelect$ebnf$1", "RuleSelect$ebnf$2"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
-            type: 'RuleSelect',
-            kind: 'when',
+            type: "RuleSelect",
+            kind: "when",
             event: data[2],
             within: data[3]
           };

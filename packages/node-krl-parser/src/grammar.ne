@@ -394,7 +394,7 @@ main -> Ruleset {% id %}
 Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
   RulesetMeta:?
   RulesetGlobal:?
-  rule:*
+  Rule:*
 %tok_CLSE_CURLY {%
   function(data){
     return {
@@ -554,9 +554,9 @@ RulesetGlobal -> %tok_global %tok_OPEN_CURLY DeclarationOrDefActionList %tok_CLS
 # Rule
 #
 
-rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
+Rule -> %tok_rule Identifier (%tok_is Rule_state):? %tok_OPEN_CURLY
 
-  (RuleSelect %tok_SEMI:?):?
+  RuleSelect:?
   RuleForEach:*
   RulePrelude:?
   ActionBlock:?
@@ -566,10 +566,10 @@ rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
   function(data){
     return {
       loc: mkLoc(data),
-      type: 'Rule',
+      type: "Rule",
       name: data[1],
       rule_state: data[2] ? data[2][1].src : "active",
-      select: data[4] && data[4][0],
+      select: data[4],
       foreach: data[5] || [],
       prelude: data[6] || [],
       action_block: data[7],
@@ -578,14 +578,14 @@ rule -> %tok_rule Identifier (%tok_is rule_state):? %tok_OPEN_CURLY
   }
 %}
 
-rule_state -> %tok_active {% id %} | %tok_inactive {% id %}
+Rule_state -> %tok_active {% id %} | %tok_inactive {% id %}
 
-RuleSelect -> %tok_select %tok_when EventExpression EventWithin:? {%
+RuleSelect -> %tok_select %tok_when EventExpression EventWithin:? %tok_SEMI:? {%
   function(data){
     return {
       loc: mkLoc(data),
-      type: 'RuleSelect',
-      kind: 'when',
+      type: "RuleSelect",
+      kind: "when",
       event: data[2],
       within: data[3]
     };
