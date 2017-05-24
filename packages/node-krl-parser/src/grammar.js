@@ -844,16 +844,17 @@ var grammar = {
     {"name": "RaiseEventStatement$ebnf$1$subexpression$1", "symbols": [tok_for, "Expression"]},
     {"name": "RaiseEventStatement$ebnf$1", "symbols": ["RaiseEventStatement$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "RaiseEventStatement$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RaiseEventStatement$ebnf$2", "symbols": ["RaiseEventAttributes"], "postprocess": id},
+    {"name": "RaiseEventStatement$ebnf$2$subexpression$1", "symbols": [tok_attributes, "Expression"]},
+    {"name": "RaiseEventStatement$ebnf$2", "symbols": ["RaiseEventStatement$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "RaiseEventStatement$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "RaiseEventStatement", "symbols": [tok_raise, "Identifier", tok_event, "Expression", "RaiseEventStatement$ebnf$1", "RaiseEventStatement$ebnf$2"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
-            type: 'RaiseEventStatement',
+            type: "RaiseEventStatement",
             event_domain: data[1],
             event_type: data[3],
-            event_attrs: data[5],
+            event_attrs: (data[5] && data[5][1]) || null,
         
             for_rid: data[4] ? data[4][1] : null,
           };
@@ -861,7 +862,8 @@ var grammar = {
         },
     {"name": "ScheduleEventStatement", "symbols": ["ScheduleEventStatement_at"], "postprocess": id},
     {"name": "ScheduleEventStatement", "symbols": ["ScheduleEventStatement_repeat"], "postprocess": id},
-    {"name": "ScheduleEventStatement_at$ebnf$1", "symbols": ["RaiseEventAttributes"], "postprocess": id},
+    {"name": "ScheduleEventStatement_at$ebnf$1$subexpression$1", "symbols": [tok_attributes, "Expression"]},
+    {"name": "ScheduleEventStatement_at$ebnf$1", "symbols": ["ScheduleEventStatement_at$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "ScheduleEventStatement_at$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "ScheduleEventStatement_at$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
     {"name": "ScheduleEventStatement_at$ebnf$2", "symbols": ["ScheduleEventStatement_at$ebnf$2$subexpression$1"], "postprocess": id},
@@ -876,13 +878,14 @@ var grammar = {
         
             event_domain: data[1],
             event_type: data[3],
-            event_attrs: data[6],
+            event_attrs: (data[6] && data[6][1]) || null,
         
             setting: (data[7] && data[7][2]) || null,
           };
         }
         },
-    {"name": "ScheduleEventStatement_repeat$ebnf$1", "symbols": ["RaiseEventAttributes"], "postprocess": id},
+    {"name": "ScheduleEventStatement_repeat$ebnf$1$subexpression$1", "symbols": [tok_attributes, "Expression"]},
+    {"name": "ScheduleEventStatement_repeat$ebnf$1", "symbols": ["ScheduleEventStatement_repeat$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "ScheduleEventStatement_repeat$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "ScheduleEventStatement_repeat$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier", tok_CLSE_PAREN]},
     {"name": "ScheduleEventStatement_repeat$ebnf$2", "symbols": ["ScheduleEventStatement_repeat$ebnf$2$subexpression$1"], "postprocess": id},
@@ -897,18 +900,9 @@ var grammar = {
         
             event_domain: data[1],
             event_type: data[3],
-            event_attrs: data[6],
+            event_attrs: (data[6] && data[6][1]) || null,
         
             setting: (data[7] && data[7][2]) || null,
-          };
-        }
-        },
-    {"name": "RaiseEventAttributes", "symbols": [tok_attributes, "Expression"], "postprocess": 
-        function(data){
-          return {
-            loc: mkLoc(data),
-            type: "RaiseEventAttributes",
-            expression: data[1]
           };
         }
         },

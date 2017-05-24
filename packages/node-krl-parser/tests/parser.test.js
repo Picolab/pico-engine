@@ -1857,10 +1857,7 @@ test("raise event", function(t){
             event_domain: mk.id("domain"),
             event_type: mk("type"),
             for_rid: null,
-            event_attrs: {
-                type: "RaiseEventAttributes",
-                expression: mk({a: mk(1), b: mk(2)})
-            }
+            event_attrs: mk({a: mk(1), b: mk(2)}),
         }
     ]);
 
@@ -2274,10 +2271,7 @@ test("schedule event", function(t){
             at: mk("time"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            event_attrs: {
-                type: "RaiseEventAttributes",
-                expression: mk({a: mk(1), b: mk(2)})
-            },
+            event_attrs: mk({a: mk(1), b: mk(2)}),
             setting: null,
         }
     ]);
@@ -2299,10 +2293,7 @@ test("schedule event", function(t){
             at: mk("time"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            event_attrs: {
-                type: "RaiseEventAttributes",
-                expression: mk({})
-            },
+            event_attrs: mk({}),
             setting: mk.id("foo"),
         }
     ]);
@@ -2324,10 +2315,7 @@ test("schedule event", function(t){
             timespec: mk("5 0 * * *"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            event_attrs: {
-                type: "RaiseEventAttributes",
-                expression: mk({a: mk(1), b: mk(2)})
-            },
+            event_attrs: mk({a: mk(1), b: mk(2)}),
             setting: null,
         }
     ]);
@@ -2349,10 +2337,7 @@ test("schedule event", function(t){
             timespec: mk("5 0 * * *"),
             event_domain: mk.id("domain"),
             event_type: mk("type"),
-            event_attrs: {
-                type: "RaiseEventAttributes",
-                expression: mk({})
-            },
+            event_attrs: mk({}),
             setting: mk.id("foo"),
         }
     ]);

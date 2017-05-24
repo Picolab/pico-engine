@@ -877,15 +877,15 @@ PersistentVariable -> DomainIdentifier {%
 
 RaiseEventStatement -> %tok_raise Identifier %tok_event Expression
   (%tok_for Expression):?
-  RaiseEventAttributes:?
+  (%tok_attributes Expression):?
 {%
   function(data){
     return {
       loc: mkLoc(data),
-      type: 'RaiseEventStatement',
+      type: "RaiseEventStatement",
       event_domain: data[1],
       event_type: data[3],
-      event_attrs: data[5],
+      event_attrs: (data[5] && data[5][1]) || null,
 
       for_rid: data[4] ? data[4][1] : null,
     };
@@ -898,7 +898,7 @@ ScheduleEventStatement ->
 
 ScheduleEventStatement_at -> %tok_schedule Identifier %tok_event Expression
   %tok_at Expression
-  RaiseEventAttributes:?
+  (%tok_attributes Expression):?
   (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
 {%
   function(data){
@@ -910,7 +910,7 @@ ScheduleEventStatement_at -> %tok_schedule Identifier %tok_event Expression
 
       event_domain: data[1],
       event_type: data[3],
-      event_attrs: data[6],
+      event_attrs: (data[6] && data[6][1]) || null,
 
       setting: (data[7] && data[7][2]) || null,
     };
@@ -919,7 +919,7 @@ ScheduleEventStatement_at -> %tok_schedule Identifier %tok_event Expression
 
 ScheduleEventStatement_repeat -> %tok_schedule Identifier %tok_event Expression
   %tok_repeat Expression
-  RaiseEventAttributes:?
+  (%tok_attributes Expression):?
   (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
 {%
   function(data){
@@ -931,20 +931,9 @@ ScheduleEventStatement_repeat -> %tok_schedule Identifier %tok_event Expression
 
       event_domain: data[1],
       event_type: data[3],
-      event_attrs: data[6],
+      event_attrs: (data[6] && data[6][1]) || null,
 
       setting: (data[7] && data[7][2]) || null,
-    };
-  }
-%}
-
-RaiseEventAttributes -> %tok_attributes Expression
-{%
-  function(data){
-    return {
-      loc: mkLoc(data),
-      type: "RaiseEventAttributes",
-      expression: data[1]
     };
   }
 %}
