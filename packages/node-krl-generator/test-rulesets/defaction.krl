@@ -44,6 +44,18 @@ ruleset io.picolabs.defaction {
         send_directive("not b")
       }
     }
+    echoAction = defaction(a, b, c){
+
+      noop()
+
+      returns a, b, c
+    }
+    addAction = defaction(a, b){
+
+      noop()
+
+      return a + b
+    }
     add = function(a, b){
       {
         "type": "directive",

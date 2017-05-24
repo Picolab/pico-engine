@@ -16,6 +16,18 @@ module.exports = function(ast, ind, gen){
 
     src += _.trimEnd(gen(ast.action_block, 1));
 
+    if(!_.isEmpty(ast.returns)){
+        src += "\n\n" + ind(1);
+        if(_.size(ast.returns) === 1){
+            src += "return ";
+        }else{
+            src += "returns ";
+        }
+        src += _.map(ast.returns, function(r){
+            return gen(r, 1);
+        }).join(", ");
+    }
+
     src += "\n" + ind() + "}";
 
     return src;
