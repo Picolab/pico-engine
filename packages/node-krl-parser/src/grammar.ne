@@ -359,6 +359,8 @@ var tok_provides = tok("SYMBOL", "provides");
 var tok_push = tok("SYMBOL", "push");
 var tok_raise = tok("SYMBOL", "raise");
 var tok_repeat = tok("SYMBOL", "repeat");
+var tok_return = tok("SYMBOL", "return");
+var tok_returns = tok("SYMBOL", "returns");
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
 var tok_sample = tok("SYMBOL", "sample");
@@ -1036,16 +1038,18 @@ DeclarationOrDefAction ->
 DefAction -> Identifier %tok_EQ %tok_defaction Parameters %tok_OPEN_CURLY
   DeclarationList
   ActionBlock
+  ((%tok_return | %tok_returns) Expression_list_body):?
 %tok_CLSE_CURLY
 {%
   function(data){
     return {
       loc: mkLoc(data),
-      type: 'DefAction',
+      type: "DefAction",
       id: data[0],
       params: data[3],
       body: data[5],
-      action_block: data[6]
+      action_block: data[6],
+      returns: (data[7] && data[7][1]) || [],
     };
   }
 %}

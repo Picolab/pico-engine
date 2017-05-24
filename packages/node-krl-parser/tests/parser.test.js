@@ -2011,7 +2011,8 @@ test("DefAction", function(t){
                 actions: [
                     mk.action(null, "send_directive", [mk("foo")])
                 ]
-            }
+            },
+            returns: [],
         }
     ]);
 
@@ -2036,7 +2037,8 @@ test("DefAction", function(t){
                     ]),
                     mk.action(null, "noop"),
                 ]
-            }
+            },
+            returns: [],
         }
     ]);
 
@@ -2053,7 +2055,8 @@ test("DefAction", function(t){
                 actions: [
                     mk.action(null, "blah")
                 ]
-            }
+            },
+            returns: [],
         }
     ]);
 
@@ -2071,7 +2074,8 @@ test("DefAction", function(t){
                     mk.action(null, "foo"),
                     mk.action(null, "bar"),
                 ]
-            }
+            },
+            returns: [],
         }
     ]);
 
@@ -2089,9 +2093,76 @@ test("DefAction", function(t){
                     mk.action("one", "foo"),
                     mk.action("two", "bar"),
                 ]
-            }
+            },
+            returns: [],
         }
     ]);
+
+    tstDA("a = defaction(b){c = b + 1 noop() return c}", [
+        {
+            type: "DefAction",
+            id: mk.id("a"),
+            params: mk.params(["b"]),
+            body: [
+                mk.declare("=", mk.id("c"), mk.op("+", mk.id("b"), mk(1))),
+            ],
+            action_block: {
+                type: "ActionBlock",
+                condition: null,
+                block_type: "every",
+                actions: [
+                    mk.action(null, "noop"),
+                ]
+            },
+            returns: [mk.id("c")],
+        }
+    ]);
+
+    var tstReturn = function(src, expected){
+        tstDA("a = defaction(){noop()" + src + "}", [
+            {
+                type: "DefAction",
+                id: mk.id("a"),
+                params: mk.params([]),
+                body: [],
+                action_block: {
+                    type: "ActionBlock",
+                    condition: null,
+                    block_type: "every",
+                    actions: [
+                        mk.action(null, "noop"),
+                    ]
+                },
+                returns: expected,
+            }
+        ]);
+    };
+
+    tstReturn("return a", [mk.id("a")]);
+    tstReturn("returns foo, 1 + bar, baz()", [
+        mk.id("foo"),
+        mk.op("+", mk(1), mk.id("bar")),
+        mk.app(mk.id("baz")),
+    ]);
+
+    try{
+        tstReturn("return ", []);
+        t.fail("no empty return");
+    }catch(e){
+        t.ok(true, "no empty return");
+    }
+    try{
+        tstReturn("returns ", []);
+        t.fail("no empty return");
+    }catch(e){
+        t.ok(true, "no empty return");
+    }
+    try{
+        tstReturn("returns a, b,", []);
+        t.fail("no dangling comma");
+    }catch(e){
+        t.ok(true, "no dangling comma");
+    }
 
     t.end();
 });

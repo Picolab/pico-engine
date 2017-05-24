@@ -363,6 +363,8 @@ var tok_provides = tok("SYMBOL", "provides");
 var tok_push = tok("SYMBOL", "push");
 var tok_raise = tok("SYMBOL", "raise");
 var tok_repeat = tok("SYMBOL", "repeat");
+var tok_return = tok("SYMBOL", "return");
+var tok_returns = tok("SYMBOL", "returns");
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
 var tok_sample = tok("SYMBOL", "sample");
@@ -987,15 +989,21 @@ var grammar = {
     {"name": "declaration_list_body", "symbols": ["declaration_list_body", "declaration_list_body$ebnf$1", "Declaration", "declaration_list_body$ebnf$2"], "postprocess": concatArr(2)},
     {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
     {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
-    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, "Parameters", tok_OPEN_CURLY, "DeclarationList", "ActionBlock", tok_CLSE_CURLY], "postprocess": 
+    {"name": "DefAction$ebnf$1$subexpression$1$subexpression$1", "symbols": [tok_return]},
+    {"name": "DefAction$ebnf$1$subexpression$1$subexpression$1", "symbols": [tok_returns]},
+    {"name": "DefAction$ebnf$1$subexpression$1", "symbols": ["DefAction$ebnf$1$subexpression$1$subexpression$1", "Expression_list_body"]},
+    {"name": "DefAction$ebnf$1", "symbols": ["DefAction$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "DefAction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, "Parameters", tok_OPEN_CURLY, "DeclarationList", "ActionBlock", "DefAction$ebnf$1", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
-            type: 'DefAction',
+            type: "DefAction",
             id: data[0],
             params: data[3],
             body: data[5],
-            action_block: data[6]
+            action_block: data[6],
+            returns: (data[7] && data[7][1]) || [],
           };
         }
         },
