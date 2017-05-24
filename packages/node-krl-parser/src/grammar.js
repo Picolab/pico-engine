@@ -1000,6 +1000,7 @@ var grammar = {
         }
         },
     {"name": "left_side_of_declaration", "symbols": ["MemberExpression"], "postprocess": id},
+    {"name": "Statement_list", "symbols": [], "postprocess": noopArr},
     {"name": "Statement_list$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
     {"name": "Statement_list$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Statement_list", "symbols": ["Statement_list_body", "Statement_list$ebnf$1"], "postprocess": id},
@@ -1081,7 +1082,7 @@ var grammar = {
     {"name": "Identifier_list", "symbols": ["Identifier_list_body"], "postprocess": id},
     {"name": "Identifier_list_body", "symbols": ["Identifier"], "postprocess": idArr},
     {"name": "Identifier_list_body", "symbols": ["Identifier_list_body", tok_COMMA, "Identifier"], "postprocess": concatArr(2)},
-    {"name": "Function", "symbols": [tok_function, "Parameters", tok_OPEN_CURLY, "function_body", tok_CLSE_CURLY], "postprocess": 
+    {"name": "Function", "symbols": [tok_function, "Parameters", tok_OPEN_CURLY, "Statement_list", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1119,14 +1120,6 @@ var grammar = {
     {"name": "Parameter_list", "symbols": ["Parameter_list_body", "Parameter_list$ebnf$1"], "postprocess": id},
     {"name": "Parameter_list_body", "symbols": ["Parameter"], "postprocess": idArr},
     {"name": "Parameter_list_body", "symbols": ["Parameter_list_body", tok_COMMA, "Parameter"], "postprocess": concatArr(2)},
-    {"name": "function_body", "symbols": [], "postprocess": noopArr},
-    {"name": "function_body$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
-    {"name": "function_body$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "function_body", "symbols": ["function_body_parts", "function_body$ebnf$1"], "postprocess": id},
-    {"name": "function_body_parts", "symbols": ["ExpressionStatement"], "postprocess": idArr},
-    {"name": "function_body_parts", "symbols": ["Statement", tok_SEMI, "function_body_parts"], "postprocess":  function(data){
-            return [data[0]].concat(data[2]);
-        } },
     {"name": "Application", "symbols": ["MemberExpression", "Arguments"], "postprocess": 
         function(data){
           return {

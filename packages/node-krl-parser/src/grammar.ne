@@ -1054,7 +1054,9 @@ DefAction -> Identifier %tok_EQ %tok_defaction Parameters %tok_OPEN_CURLY
 # Later we may add destructuring
 left_side_of_declaration -> MemberExpression {% id %}
 
-Statement_list -> Statement_list_body %tok_SEMI:? {% id %}
+Statement_list ->
+      null {% noopArr %}
+    | Statement_list_body %tok_SEMI:? {% id %}
 
 Statement_list_body ->
       Statement {% idArr %}
@@ -1169,7 +1171,7 @@ Identifier_list_body ->
 ################################################################################
 # Functions
 
-Function -> %tok_function Parameters %tok_OPEN_CURLY function_body %tok_CLSE_CURLY {%
+Function -> %tok_function Parameters %tok_OPEN_CURLY Statement_list %tok_CLSE_CURLY {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -1210,18 +1212,6 @@ Parameter_list ->
 Parameter_list_body ->
       Parameter {% idArr %}
     | Parameter_list_body %tok_COMMA Parameter {% concatArr(2) %}
-
-
-function_body -> null {% noopArr %}
-    | function_body_parts %tok_SEMI:? {% id %}
-
-#function_body must end with an expression
-function_body_parts ->
-      ExpressionStatement {% idArr %}
-    | Statement %tok_SEMI function_body_parts
-      {% function(data){
-          return [data[0]].concat(data[2]);
-      } %}
 
 Application -> MemberExpression Arguments {%
   function(data){

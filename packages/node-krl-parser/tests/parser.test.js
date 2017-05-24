@@ -1024,12 +1024,16 @@ test("expressions", function(t){
         mk.unary("not", mk.op("||", mk.unary("not", mk.id("a")), mk.id("b")))
     );
 
-    try{
-        testExp("function(a){b = 1;a = 1}", {});
-        t.fail("functions must end with an expression");
-    }catch(e){
-        t.ok(true, "should not parse b/c functions must end with an expression");
-    }
+    testExp("function(a){b = 1;a = 1;}", {
+        type: "Function",
+        params: mk.params(["a"]),
+        body: [
+            mk.declare("=", mk.id("b"), mk(1)),
+            mk.declare("=", mk.id("a"), mk(1)),
+            //Parser will allow this to end with a Declaration
+            //The compiler will catch this and give a better error message
+        ]
+    });
     testExp("function(a){b = 1;a(b);}", {
         type: "Function",
         params: mk.params(["a"]),
