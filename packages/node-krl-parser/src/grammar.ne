@@ -938,17 +938,7 @@ ScheduleEventStatement_repeat -> %tok_schedule Identifier %tok_event Expression
   }
 %}
 
-RaiseEventAttributes -> WithArguments
-{%
-  function(data){
-    return {
-      loc: mkLoc(data),
-      type: "RaiseEventAttributes",
-      with: data[0]
-    };
-  }
-%}
-    | %tok_attributes Expression
+RaiseEventAttributes -> %tok_attributes Expression
 {%
   function(data){
     return {

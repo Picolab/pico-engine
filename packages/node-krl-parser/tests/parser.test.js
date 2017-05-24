@@ -1851,22 +1851,6 @@ test("raise event", function(t){
         }
     ]);
 
-    testPostlude("raise domain event \"type\" with a = 1 b = 2", [
-        {
-            type: "RaiseEventStatement",
-            event_domain: mk.id("domain"),
-            event_type: mk("type"),
-            for_rid: null,
-            event_attrs: {
-                type: "RaiseEventAttributes",
-                "with": [
-                    mk.declare("=", mk.id("a"), mk(1)),
-                    mk.declare("=", mk.id("b"), mk(2))
-                ]
-            }
-        }
-    ]);
-
     testPostlude("raise domain event \"type\" attributes {\"a\":1,\"b\":2}", [
         {
             type: "RaiseEventStatement",
@@ -2113,8 +2097,8 @@ test("DefAction", function(t){
 
 test("with", function(t){
     var tst = function(src, expected){
-        var ast = parser("ruleset rs{rule r1{fired{raise domain event \"type\"" + src + "}}}");
-        ast = ast.rules[0].postlude.fired[0].event_attrs.with;
+        var ast = parser("ruleset rs{meta{use module m " + src + "}}");
+        ast = ast.meta.properties[0].value["with"];
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
     try{
@@ -2284,23 +2268,6 @@ test("schedule event", function(t){
         }
     ]);
 
-    testPostlude("schedule domain event \"type\" at \"time\" with a = 1 and b = 2", [
-        {
-            type: "ScheduleEventStatement",
-            at: mk("time"),
-            event_domain: mk.id("domain"),
-            event_type: mk("type"),
-            event_attrs: {
-                type: "RaiseEventAttributes",
-                "with": [
-                    mk.declare("=", mk.id("a"), mk(1)),
-                    mk.declare("=", mk.id("b"), mk(2))
-                ]
-            },
-            setting: null,
-        }
-    ]);
-
     testPostlude("schedule domain event \"type\" at \"time\" attributes {\"a\":1,\"b\":2}", [
         {
             type: "ScheduleEventStatement",
@@ -2347,23 +2314,6 @@ test("schedule event", function(t){
             event_domain: mk.id("domain"),
             event_type: mk("type"),
             event_attrs: null,
-            setting: null,
-        }
-    ]);
-
-    testPostlude("schedule domain event \"type\" repeat \"5 0 * * *\" with a = 1 and b = 2", [
-        {
-            type: "ScheduleEventStatement",
-            timespec: mk("5 0 * * *"),
-            event_domain: mk.id("domain"),
-            event_type: mk("type"),
-            event_attrs: {
-                type: "RaiseEventAttributes",
-                "with": [
-                    mk.declare("=", mk.id("a"), mk(1)),
-                    mk.declare("=", mk.id("b"), mk(2))
-                ]
-            },
             setting: null,
         }
     ]);

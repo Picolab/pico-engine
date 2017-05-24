@@ -903,15 +903,6 @@ var grammar = {
           };
         }
         },
-    {"name": "RaiseEventAttributes", "symbols": ["WithArguments"], "postprocess": 
-        function(data){
-          return {
-            loc: mkLoc(data),
-            type: "RaiseEventAttributes",
-            with: data[0]
-          };
-        }
-        },
     {"name": "RaiseEventAttributes", "symbols": [tok_attributes, "Expression"], "postprocess": 
         function(data){
           return {
