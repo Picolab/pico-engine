@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var genWith = require("../genWith");
 
 var by_key = {
     "shares": function(ast, ind, gen){
@@ -56,7 +55,12 @@ var by_key = {
             src += "\n" + ind(1);
             src += "alias " + gen(ast.value.alias);
         }
-        src += genWith(ast.value["with"], ind, gen, true);
+        if(!_.isEmpty(ast.value["with"])){
+            src += "\n" + ind(1) + "with\n";
+            src += _.map(ast.value["with"], function(w){
+                return gen(w, 2);
+            }).join("\n" + ind(2) + "and\n");
+        }
         src += "\n";
         return src;
     },
