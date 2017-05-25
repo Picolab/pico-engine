@@ -46,7 +46,7 @@ ruleset io.picolabs.visual_params {
 
   rule visual_update {
     select when visual update
-             or pico ruleset_added
+             or pico ruleset_added where rid == "io.picolabs.visual_params"
     pre {
       dname = event:attr("dname")
       color = event:attr("color")

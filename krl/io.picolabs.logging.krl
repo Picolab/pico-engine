@@ -59,7 +59,7 @@ ruleset io.picolabs.logging {
   }
 
   rule pico_ruleset_added {
-    select when pico ruleset_added
+    select when pico ruleset_added where rid == "io.picolabs.logging"
     noop()
     fired {
       ent:logs := {};
