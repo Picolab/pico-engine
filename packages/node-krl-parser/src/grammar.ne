@@ -563,8 +563,8 @@ Rule -> %tok_rule Identifier (%tok_is Rule_state):? %tok_OPEN_CURLY
   RulePostlude:?
 
 %tok_CLSE_CURLY {%
-  function(data){
-    return {
+  function(data, start, reject){
+    var ast = {
       loc: mkLoc(data),
       type: "Rule",
       name: data[1],
@@ -575,12 +575,35 @@ Rule -> %tok_rule Identifier (%tok_is Rule_state):? %tok_OPEN_CURLY
       action_block: data[7],
       postlude: data[8]
     };
+
+    //if select and nothing until postlude it's likely an ambiguity
+    // where the select aggregator looks like the rule action
+    if(ast.select
+      && ast.select.event.type === "EventGroupOperator"
+      && ast.select.event.event
+      && ast.select.event.event.type === "EventExpression"
+      && ast.select.event.event.aggregator//looks like an action
+      && ast.foreach.length === 0
+      && ast.prelude.length === 0
+
+      && ast.action_block
+      && !ast.action_block.condition
+      && ast.action_block.block_type === "every"
+      && ast.action_block.actions.length === 1
+      && !ast.action_block.actions[0].label
+
+      //here's the clincher, it thinks the aggregator is also the action
+      && ast.select.event.event.aggregator.op === ast.action_block.actions[0].action.value
+    ){
+      return reject;
+    }
+    return ast;
   }
 %}
 
 Rule_state -> %tok_active {% id %} | %tok_inactive {% id %}
 
-RuleSelect -> %tok_select %tok_when EventExpression EventWithin:? %tok_SEMI:? {%
+RuleSelect -> %tok_select %tok_when EventExpression EventWithin:? {%
   function(data){
     return {
       loc: mkLoc(data),

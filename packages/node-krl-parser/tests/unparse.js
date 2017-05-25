@@ -59,6 +59,19 @@ var isOptionalSemiColon = function(rules){
     return semi_rule.symbols[0].unparse_hint_value === ";";
 };
 
+var isOptionalActionBlock = function(rules){
+    if(rules.length !== 2){
+        return false;
+    }
+    if((rules[0].symbols.length + rules[1].symbols.length) !== 1){
+        return false;
+    }
+    var da_rule = rules[0].symbols.length > 0
+        ? rules[0]
+        : rules[1];
+    return da_rule.symbols[0] === "ActionBlock";
+};
+
 module.exports = function(options){
     options = options || {};
 
@@ -83,6 +96,10 @@ module.exports = function(options){
             if(always_semicolons){
                 return {symbols: [{literal: ";"}]};
             }
+        }
+        if(isOptionalActionBlock(rules)){
+            //always do an action block to avoid some strange ambiguities with event aggregator
+            return {symbols: ["ActionBlock"]};
         }
         return _.sample(_.filter(rules, function(rule){
             if(isParenRule(rule)){

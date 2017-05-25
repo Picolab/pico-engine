@@ -12,7 +12,7 @@ var ruleExample = function(src){
 
 var EventExpExample = function(src){
     return function(){
-        var ast = parser("ruleset rs{rule r0{" + src + ";}}");
+        var ast = parser("ruleset rs{rule r0{" + src + "}}");
         return [src, ast.rules[0].select.event];
     };
 };

@@ -567,8 +567,8 @@ var grammar = {
     {"name": "Rule$ebnf$6", "symbols": ["RulePostlude"], "postprocess": id},
     {"name": "Rule$ebnf$6", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Rule", "symbols": [tok_rule, "Identifier", "Rule$ebnf$1", tok_OPEN_CURLY, "Rule$ebnf$2", "Rule$ebnf$3", "Rule$ebnf$4", "Rule$ebnf$5", "Rule$ebnf$6", tok_CLSE_CURLY], "postprocess": 
-        function(data){
-          return {
+        function(data, start, reject){
+          var ast = {
             loc: mkLoc(data),
             type: "Rule",
             name: data[1],
@@ -579,15 +579,36 @@ var grammar = {
             action_block: data[7],
             postlude: data[8]
           };
+        
+          //if select and nothing until postlude it's likely an ambiguity
+          // where the select aggregator looks like the rule action
+          if(ast.select
+            && ast.select.event.type === "EventGroupOperator"
+            && ast.select.event.event
+            && ast.select.event.event.type === "EventExpression"
+            && ast.select.event.event.aggregator//looks like an action
+            && ast.foreach.length === 0
+            && ast.prelude.length === 0
+        
+            && ast.action_block
+            && !ast.action_block.condition
+            && ast.action_block.block_type === "every"
+            && ast.action_block.actions.length === 1
+            && !ast.action_block.actions[0].label
+        
+            //here's the clincher, it thinks the aggregator is also the action
+            && ast.select.event.event.aggregator.op === ast.action_block.actions[0].action.value
+          ){
+            return reject;
+          }
+          return ast;
         }
         },
     {"name": "Rule_state", "symbols": [tok_active], "postprocess": id},
     {"name": "Rule_state", "symbols": [tok_inactive], "postprocess": id},
     {"name": "RuleSelect$ebnf$1", "symbols": ["EventWithin"], "postprocess": id},
     {"name": "RuleSelect$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleSelect$ebnf$2", "symbols": [tok_SEMI], "postprocess": id},
-    {"name": "RuleSelect$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "RuleSelect", "symbols": [tok_select, tok_when, "EventExpression", "RuleSelect$ebnf$1", "RuleSelect$ebnf$2"], "postprocess": 
+    {"name": "RuleSelect", "symbols": [tok_select, tok_when, "EventExpression", "RuleSelect$ebnf$1"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),

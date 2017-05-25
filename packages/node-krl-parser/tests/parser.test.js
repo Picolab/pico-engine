@@ -297,7 +297,7 @@ test("select when", function(t){
 
 test("ActionBlock", function(t){
     var tstActionBlock = function(ab_src, expected){
-        var src = "ruleset rs{global{a = defaction(){"+ ab_src +"}}rule r1{select when foo bar;"+ab_src+"}}";
+        var src = "ruleset rs{global{a = defaction(){"+ ab_src +"}}rule r1{select when foo bar "+ab_src+"}}";
         var ast = normalizeAST(rmLoc(parser(src)));
         var exp_ast = normalizeAST(expected);
 
@@ -1048,9 +1048,6 @@ test("expressions", function(t){
 
 test("EventExpression", function(t){
     var testEE = function(rule_body, expected){
-        if(/\)\s*$/.test(rule_body)){
-            rule_body += ";";//TODO can remove this?
-        }
         var ast = normalizeAST(rmLoc(parseRuleBody("select when " + rule_body + " noop();")));
         t.deepEquals(ast.select.event, normalizeAST(expected));
     };
@@ -1679,13 +1676,13 @@ test("no ambiguity!", function(t){
     //whitespace ambiguity in expresion lists
     testAmb("[  ]");
     testAmb("hello(    )");
-    testAmb("ruleset a{rule b{select when a b;noop(     )}}");
+    testAmb("ruleset a{rule b{select when a b noop(     )}}");
 
     //whitespace ambiguity in function params
     testAmb("function(   ){}");
-    testAmb("ruleset a{rule b{select when c d setting(  e  );}}");
-    testAmb("ruleset a{rule b{select when repeat 5 (c d) max(  e  );noop()}}");
-    testAmb("ruleset a{rule b{select when repeat 5 (c d) push(  e  );noop()}}");
+    testAmb("ruleset a{rule b{select when c d setting(  e  )}}");
+    testAmb("ruleset a{rule b{select when repeat 5 (c d) max(  e  ) noop()}}");
+    testAmb("ruleset a{rule b{select when repeat 5 (c d) push(  e  ) noop()}}");
 
     //whitespace ambiguity in statement list
     testAmb("function(){   }");
@@ -1700,6 +1697,15 @@ test("no ambiguity!", function(t){
 
     //log info (-1) or log(info-1) i.e. log default level
     testAmb("ruleset a{rule b{always{log info - 1}}}");
+
+    //push(c) can look like an action, but should not be treated as an action
+    testAmb("ruleset a{rule b{select when repeat 1 (a b) push(c)}}");
+    testAmb("ruleset a{rule b{select when repeat 1 (a b) max(c)}}");
+    testAmb("ruleset a{rule b{select when count 1 (a b) min(c)}}");
+    testAmb("ruleset a{rule b{select when count 1 (a b) noop();}}");
+    testAmb("ruleset a{rule b{select when a b min(c);}}");
+    //TODO min(c); should be the action b/c it has a ';'
+    //TODO testAmb("ruleset a{rule b{select when count 1 (a b) min(c);}}");//min(c) is now the action
 
     t.end();
 });
@@ -2278,7 +2284,7 @@ test("ErrorStatement", function(t){
 
 test("Action setting", function(t){
     var testAction = function(src_action, expected){
-        var src = "ruleset rs{rule r1{select when a b; "+src_action+"}}";
+        var src = "ruleset rs{rule r1{select when a b "+src_action+"}}";
         var ast = parser(src).rules[0].action_block.actions[0];
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
 
