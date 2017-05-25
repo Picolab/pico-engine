@@ -55,7 +55,7 @@ var gen_by_type = _.fromPairs(_.map([
 
 module.exports = function(ast, options){
     options = options || {};
-    var indent_str = _.isString(options.indent) ? options.indent : "  ";
+    var indent_str = _.isString(options.indent) ? options.indent : "    ";
 
     var generate = function generate(ast, indent_level){
         indent_level = indent_level || 0;

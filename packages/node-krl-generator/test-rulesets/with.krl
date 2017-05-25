@@ -1,17 +1,17 @@
 ruleset io.picolabs.with {
-  meta {
-    shares add, inc, foo
-  }
-  global {
-    add = function(a, b){
-      a + b
+    meta {
+        shares add, inc, foo
     }
-    inc = function(n){
-      add(1, b = n)
+    global {
+        add = function(a, b){
+            a + b
+        }
+        inc = function(n){
+            add(1, b = n)
+        }
+        foo = function(a){
+            add(a = a * 2, b = a)
+        }
     }
-    foo = function(a){
-      add(a = a * 2, b = a)
-    }
-  }
 
 }
