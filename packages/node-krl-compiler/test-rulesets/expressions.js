@@ -26,27 +26,53 @@ module.exports = {
         ]
       }
     });
-    ctx.scope.set("obj", yield ctx.callKRLstdlib("set", ctx.scope.get("obj"), [
-      "b",
-      "c",
-      3,
-      "d",
-      "e"
-    ], "changed 5"));
-    ctx.scope.set("obj", yield ctx.callKRLstdlib("set", ctx.scope.get("obj"), ["a"], "changed 1"));
-    ctx.scope.set("path1", yield ctx.callKRLstdlib("get", ctx.scope.get("obj"), [
-      "b",
-      "c",
-      3,
-      "d"
+    ctx.scope.set("obj", yield ctx.callKRLstdlib("set", [
+      ctx.scope.get("obj"),
+      [
+        "b",
+        "c",
+        3,
+        "d",
+        "e"
+      ],
+      "changed 5"
     ]));
-    ctx.scope.set("path2", yield ctx.callKRLstdlib("get", ctx.scope.get("obj"), [
-      "b",
-      "c",
-      5
+    ctx.scope.set("obj", yield ctx.callKRLstdlib("set", [
+      ctx.scope.get("obj"),
+      ["a"],
+      "changed 1"
     ]));
-    ctx.scope.set("index1", yield ctx.callKRLstdlib("get", ctx.scope.get("obj"), ["a"]));
-    ctx.scope.set("index2", yield ctx.callKRLstdlib("get", yield ctx.callKRLstdlib("get", yield ctx.callKRLstdlib("get", ctx.scope.get("obj"), ["b"]), ["c"]), [1]));
+    ctx.scope.set("path1", yield ctx.callKRLstdlib("get", [
+      ctx.scope.get("obj"),
+      [
+        "b",
+        "c",
+        3,
+        "d"
+      ]
+    ]));
+    ctx.scope.set("path2", yield ctx.callKRLstdlib("get", [
+      ctx.scope.get("obj"),
+      [
+        "b",
+        "c",
+        5
+      ]
+    ]));
+    ctx.scope.set("index1", yield ctx.callKRLstdlib("get", [
+      ctx.scope.get("obj"),
+      ["a"]
+    ]));
+    ctx.scope.set("index2", yield ctx.callKRLstdlib("get", [
+      yield ctx.callKRLstdlib("get", [
+        yield ctx.callKRLstdlib("get", [
+          ctx.scope.get("obj"),
+          ["b"]
+        ]),
+        ["c"]
+      ]),
+      [1]
+    ]));
     ctx.scope.set("not_true", !true);
     ctx.scope.set("not_null", !void 0);
     ctx.scope.set("true_or_false", true || false);
@@ -55,14 +81,23 @@ module.exports = {
       ctx.scope.set("n", getArg("n", 0));
       return ctx.KRLClosure(function* (ctx, getArg, hasArg) {
         ctx.scope.set("a", getArg("a", 0));
-        return yield ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("n"));
+        return yield ctx.callKRLstdlib("+", [
+          ctx.scope.get("a"),
+          ctx.scope.get("n")
+        ]);
       });
     }));
     ctx.scope.set("paramFn", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("foo", hasArg("foo", 0) ? getArg("foo", 0) : yield ctx.scope.get("incByN")(ctx, [3]));
       ctx.scope.set("bar", hasArg("bar", 1) ? getArg("bar", 1) : yield ctx.scope.get("foo")(ctx, [1]));
-      ctx.scope.set("baz", hasArg("baz", 2) ? getArg("baz", 2) : yield ctx.callKRLstdlib("+", ctx.scope.get("bar"), 2));
-      ctx.scope.set("qux", hasArg("qux", 3) ? getArg("qux", 3) : yield ctx.callKRLstdlib("+", ctx.scope.get("baz"), "?"));
+      ctx.scope.set("baz", hasArg("baz", 2) ? getArg("baz", 2) : yield ctx.callKRLstdlib("+", [
+        ctx.scope.get("bar"),
+        2
+      ]));
+      ctx.scope.set("qux", hasArg("qux", 3) ? getArg("qux", 3) : yield ctx.callKRLstdlib("+", [
+        ctx.scope.get("baz"),
+        "?"
+      ]));
       return [
         ctx.scope.get("bar"),
         ctx.scope.get("baz"),

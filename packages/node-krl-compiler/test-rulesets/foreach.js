@@ -172,7 +172,10 @@ module.exports = {
         }));
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("baz", yield ctx.callKRLstdlib("*", ctx.scope.get("foo"), ctx.scope.get("bar")));
+        ctx.scope.set("baz", yield ctx.callKRLstdlib("*", [
+          ctx.scope.get("foo"),
+          ctx.scope.get("bar")
+        ]));
       },
       "action_block": {
         "actions": [{

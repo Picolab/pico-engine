@@ -91,7 +91,7 @@ module.exports = {
       ".substr(5, -5)": yield ctx.callKRLstdlib("substr", [
         "This is a string",
         5,
-        yield ctx.callKRLstdlib("-", 5)
+        yield ctx.callKRLstdlib("-", [5])
       ]),
       ".substr(25)": yield ctx.callKRLstdlib("substr", [
         "This is a string",

@@ -22,7 +22,10 @@ module.exports = {
               yield ctx.callKRLstdlib("set", [
                 ctx.scope.get("r"),
                 "content",
-                yield ctx.callKRLstdlib("decode", [yield ctx.callKRLstdlib("get", ctx.scope.get("r"), ["content"])])
+                yield ctx.callKRLstdlib("decode", [yield ctx.callKRLstdlib("get", [
+                    ctx.scope.get("r"),
+                    ["content"]
+                  ])])
               ]),
               ["content_length"]
             ]),
@@ -51,7 +54,10 @@ module.exports = {
         "actions": [{
             "action": function* (ctx, runAction) {
               return yield runAction(ctx, "http", "post", [
-                yield ctx.callKRLstdlib("+", ctx.scope.get("url"), "/msg.json"),
+                yield ctx.callKRLstdlib("+", [
+                  ctx.scope.get("url"),
+                  "/msg.json"
+                ]),
                 {
                   "from": {
                     "To": ctx.scope.get("to"),

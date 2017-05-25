@@ -68,7 +68,10 @@ module.exports = {
             ]]
         },
         "within": function* (ctx) {
-          return (yield ctx.callKRLstdlib("+", 1, 3)) * 1000;
+          return (yield ctx.callKRLstdlib("+", [
+            1,
+            3
+          ])) * 1000;
         }
       },
       "action_block": {

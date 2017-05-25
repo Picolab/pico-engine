@@ -24,7 +24,10 @@ module.exports = {
     ctx.scope.set("add", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", getArg("b", 1));
-      return yield ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("b"));
+      return yield ctx.callKRLstdlib("+", [
+        ctx.scope.get("a"),
+        ctx.scope.get("b")
+      ]);
     }));
     ctx.scope.set("sum", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("arr", getArg("arr", 0));
@@ -38,7 +41,10 @@ module.exports = {
       ctx.scope.set("n", getArg("n", 0));
       return ctx.KRLClosure(function* (ctx, getArg, hasArg) {
         ctx.scope.set("a", getArg("a", 0));
-        return yield ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("n"));
+        return yield ctx.callKRLstdlib("+", [
+          ctx.scope.get("a"),
+          ctx.scope.get("n")
+        ]);
       });
     }));
     ctx.scope.set("mapped", yield ctx.callKRLstdlib("map", [
@@ -49,7 +55,10 @@ module.exports = {
       ],
       ctx.KRLClosure(function* (ctx, getArg, hasArg) {
         ctx.scope.set("n", getArg("n", 0));
-        return yield ctx.callKRLstdlib("+", ctx.scope.get("n"), ctx.scope.get("g1"));
+        return yield ctx.callKRLstdlib("+", [
+          ctx.scope.get("n"),
+          ctx.scope.get("g1")
+        ]);
       })
     ]));
   },

@@ -19,7 +19,10 @@ module.exports = {
       return yield ctx.modules.get(ctx, "ent", "user");
     }));
     ctx.scope.set("getUserFirstname", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.callKRLstdlib("get", yield ctx.modules.get(ctx, "ent", "user"), ["firstname"]);
+      return yield ctx.callKRLstdlib("get", [
+        yield ctx.modules.get(ctx, "ent", "user"),
+        ["firstname"]
+      ]);
     }));
   },
   "rules": {
@@ -143,7 +146,11 @@ module.exports = {
         "notfired": undefined,
         "always": function* (ctx) {
           yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
-          yield ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", yield ctx.modules.get(ctx, "ent", "user"), ["firstname"], ctx.scope.get("firstname")));
+          yield ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", [
+            yield ctx.modules.get(ctx, "ent", "user"),
+            ["firstname"],
+            ctx.scope.get("firstname")
+          ]));
         }
       }
     },

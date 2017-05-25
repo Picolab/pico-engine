@@ -17,7 +17,10 @@ module.exports = {
                 "foo",
                 {
                   "a": ctx.scope.get("a"),
-                  "b": yield ctx.callKRLstdlib("+", ctx.scope.get("b"), 3)
+                  "b": yield ctx.callKRLstdlib("+", [
+                    ctx.scope.get("b"),
+                    3
+                  ])
                 }
               ]);
             }
@@ -26,12 +29,15 @@ module.exports = {
     });
     ctx.defaction(ctx, "bar", function* (ctx, getArg, hasArg) {
       ctx.scope.set("one", getArg("one", 0));
-      ctx.scope.set("two", hasArg("two", 1) ? getArg("two", 1) : yield ctx.callKRLstdlib("get", yield ctx.scope.get("add")(ctx, [
-        1,
-        1
-      ]), [
-        "options",
-        "resp"
+      ctx.scope.set("two", hasArg("two", 1) ? getArg("two", 1) : yield ctx.callKRLstdlib("get", [
+        yield ctx.scope.get("add")(ctx, [
+          1,
+          1
+        ]),
+        [
+          "options",
+          "resp"
+        ]
       ]));
       ctx.scope.set("three", hasArg("three", 2) ? getArg("three", 2) : "3 by default");
       return {
@@ -129,7 +135,12 @@ module.exports = {
       return {
         "type": "directive",
         "name": "add",
-        "options": { "resp": yield ctx.callKRLstdlib("+", ctx.scope.get("a"), ctx.scope.get("b")) }
+        "options": {
+          "resp": yield ctx.callKRLstdlib("+", [
+            ctx.scope.get("a"),
+            ctx.scope.get("b")
+          ])
+        }
       };
     }));
   },
@@ -269,8 +280,14 @@ module.exports = {
         "actions": [{
             "action": function* (ctx, runAction) {
               return yield runAction(ctx, void 0, "ifAnotB", [
-                yield ctx.callKRLstdlib("==", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["a"]), "true"),
-                yield ctx.callKRLstdlib("==", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["b"]), "true")
+                yield ctx.callKRLstdlib("==", [
+                  yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["a"]),
+                  "true"
+                ]),
+                yield ctx.callKRLstdlib("==", [
+                  yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["b"]),
+                  "true"
+                ])
               ]);
             }
           }]
