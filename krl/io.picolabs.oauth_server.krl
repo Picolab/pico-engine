@@ -211,10 +211,11 @@ ruleset io.picolabs.oauth_server {
     select when oauth token
     pre {
       client_id = ent:client{"client_id"}
-      new_channel = engine:newChannel(meta:picoId, client_id, "oauth")
-      access_token = new_channel{"id"}
     }
-    send_directive("ok") with access_token = access_token token_type = "Bearer"
+    every {
+      engine:newChannel(meta:picoId, client_id, "oauth") setting(new_channel)
+      send_directive("ok") with access_token = new_channel{"id"} token_type = "Bearer"
+    }
     fired { last; clear ent:code; clear ent:client }
   }
 }
