@@ -1,22 +1,5 @@
 var _ = require("lodash");
 
-var buildArgsObj = function(ast, comp, e){
-    if(_.isEmpty(ast.with)){
-        return e("array", comp(ast.args));
-    }
-    var a_obj = {};
-    _.each(ast.args, function(arg, i){
-        a_obj[i] = comp(arg);
-    });
-    _.each(ast.with, function(w){
-        if(w.left.type !== "Identifier"){
-            throw new Error("`with` only allows keys to be identifiers");
-        }
-        a_obj[w.left.value] = comp(w.right);
-    });
-    return e("obj", a_obj);
-};
-
 module.exports = function(ast, comp, e){
     if(!ast.action){
         throw new Error("Missing RuleAction.action");
@@ -30,14 +13,14 @@ module.exports = function(ast, comp, e){
             ? e("str", ast.action.domain, ast.action.loc)
             : e("void", e("number", 0)),
         e("str", ast.action.value),
-        buildArgsObj(ast, comp, e),
+        comp(ast.args),
     ]);
     var fn_body = [];
-    if(ast.setting){
-        return_value = e("call", e("id", "ctx.scope.set", ast.setting.loc), [
-            e("str", ast.setting.value, ast.setting.loc),
+    if(!_.isEmpty(ast.setting)){
+        return_value = e("call", e("id", "ctx.scope.set", ast.setting[0].loc), [
+            e("str", ast.setting[0].value, ast.setting[0].loc),
             return_value,
-        ], ast.setting.loc);
+        ], ast.setting[0].loc);
     }
     fn_body.push(e("return", return_value));
 

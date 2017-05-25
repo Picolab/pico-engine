@@ -49,10 +49,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "store_name",
-                "name": ctx.scope.get("my_name")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "store_name",
+                { "name": ctx.scope.get("my_name") }
+              ]);
             }
           }]
       },
@@ -90,10 +90,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "store_appvar",
-                "appvar": ctx.scope.get("my_appvar")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "store_appvar",
+                { "appvar": ctx.scope.get("my_appvar") }
+              ]);
             }
           }]
       },
@@ -131,10 +131,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "store_user_firstname",
-                "name": ctx.scope.get("firstname")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "store_user_firstname",
+                { "name": ctx.scope.get("firstname") }
+              ]);
             }
           }]
       },

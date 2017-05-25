@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.meta",
   "meta": {
     "name": "testing meta module",
-    "description": "\nsome description for the meta test module\n    ",
+    "description": "\nsome description for the meta test module\n        ",
     "author": "meta author",
     "shares": ["metaQuery"]
   },
@@ -42,19 +42,21 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "event",
-                "rid": yield ctx.modules.get(ctx, "meta", "rid"),
-                "host": yield ctx.modules.get(ctx, "meta", "host"),
-                "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName"),
-                "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
-                "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
-                "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
-                "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
-                "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent"),
-                "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery"),
-                "eci": yield ctx.modules.get(ctx, "meta", "eci")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "event",
+                {
+                  "rid": yield ctx.modules.get(ctx, "meta", "rid"),
+                  "host": yield ctx.modules.get(ctx, "meta", "host"),
+                  "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName"),
+                  "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
+                  "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
+                  "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
+                  "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
+                  "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent"),
+                  "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery"),
+                  "eci": yield ctx.modules.get(ctx, "meta", "eci")
+                }
+              ]);
             }
           }]
       }

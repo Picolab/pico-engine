@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.hello_world",
   "meta": {
     "name": "Hello World",
-    "description": "\nA first ruleset for the Quickstart\n    ",
+    "description": "\nA first ruleset for the Quickstart\n        ",
     "author": "Phil Windley",
     "logging": true,
     "shares": ["hello"]
@@ -34,10 +34,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "say",
-                "something": "Hello World"
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "say",
+                { "something": "Hello World" }
+              ]);
             }
           }]
       }

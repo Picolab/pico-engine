@@ -15,16 +15,32 @@ module.exports = {
     }));
     ctx.scope.set("fmtResp", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("r", getArg("r", 0));
-      return yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("delete", yield ctx.callKRLstdlib("set", ctx.scope.get("r"), "content", yield ctx.callKRLstdlib("decode", yield ctx.callKRLstdlib("get", ctx.scope.get("r"), ["content"]))), ["content_length"]), [
-        "headers",
-        "content-length"
-      ]), [
-        "headers",
-        "date"
-      ]), [
-        "content",
-        "headers",
-        "content-length"
+      return yield ctx.callKRLstdlib("delete", [
+        yield ctx.callKRLstdlib("delete", [
+          yield ctx.callKRLstdlib("delete", [
+            yield ctx.callKRLstdlib("delete", [
+              yield ctx.callKRLstdlib("set", [
+                ctx.scope.get("r"),
+                "content",
+                yield ctx.callKRLstdlib("decode", [yield ctx.callKRLstdlib("get", ctx.scope.get("r"), ["content"])])
+              ]),
+              ["content_length"]
+            ]),
+            [
+              "headers",
+              "content-length"
+            ]
+          ]),
+          [
+            "headers",
+            "date"
+          ]
+        ]),
+        [
+          "content",
+          "headers",
+          "content-length"
+        ]
       ]);
     }));
     ctx.defaction(ctx, "doPost", function* (ctx, getArg, hasArg) {
@@ -34,13 +50,15 @@ module.exports = {
       return {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "http", "post", {
-                "0": yield ctx.callKRLstdlib("+", ctx.scope.get("url"), "/msg.json"),
-                "form": {
-                  "To": ctx.scope.get("to"),
-                  "Msg": ctx.scope.get("msg")
+              return yield runAction(ctx, "http", "post", [
+                yield ctx.callKRLstdlib("+", ctx.scope.get("url"), "/msg.json"),
+                {
+                  "from": {
+                    "To": ctx.scope.get("to"),
+                    "Msg": ctx.scope.get("msg")
+                  }
                 }
-              });
+              ]);
             }
           }]
       };
@@ -68,11 +86,13 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "get"))(ctx, {
-            "0": ctx.scope.get("url"),
-            "qs": { "foo": "bar" },
-            "headers": { "baz": "quix" }
-          }));
+          ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "get"))(ctx, [
+            ctx.scope.get("url"),
+            {
+              "qs": { "foo": "bar" },
+              "headers": { "baz": "quix" }
+            }
+          ]));
           yield ctx.modules.set(ctx, "ent", "resp", yield ctx.scope.get("fmtResp")(ctx, [ctx.scope.get("resp")]));
         },
         "notfired": undefined,
@@ -101,10 +121,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "http", "post", {
-                "0": ctx.scope.get("url"),
-                "json": { "foo": "bar" }
-              });
+              return yield runAction(ctx, "http", "post", [
+                ctx.scope.get("url"),
+                { "json": { "foo": "bar" } }
+              ]);
             }
           }]
       }
@@ -131,11 +151,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "doPost", {
-                "0": ctx.scope.get("url"),
-                "to": "bob",
-                "msg": "foobar"
-              });
+              return yield runAction(ctx, void 0, "doPost", [
+                ctx.scope.get("url"),
+                {
+                  "to": "bob",
+                  "msg": "foobar"
+                }
+              ]);
             }
           }]
       }
@@ -162,11 +184,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return ctx.scope.set("resp", yield runAction(ctx, "http", "post", {
-                "0": ctx.scope.get("url"),
-                "qs": { "foo": "bar" },
-                "form": { "baz": "qux" }
-              }));
+              return ctx.scope.set("resp", yield runAction(ctx, "http", "post", [
+                ctx.scope.get("url"),
+                {
+                  "qs": { "foo": "bar" },
+                  "form": { "baz": "qux" }
+                }
+              ]));
             }
           }]
       },
@@ -200,12 +224,14 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "http", "post", {
-                "0": ctx.scope.get("url"),
-                "qs": { "foo": "bar" },
-                "form": { "baz": "qux" },
-                "autoraise": "foobar"
-              });
+              return yield runAction(ctx, "http", "post", [
+                ctx.scope.get("url"),
+                {
+                  "qs": { "foo": "bar" },
+                  "form": { "baz": "qux" },
+                  "autoraise": "foobar"
+                }
+              ]);
             }
           }]
       }
@@ -232,10 +258,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "http_post_event_handler",
-                "attrs": ctx.scope.get("resp")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "http_post_event_handler",
+                { "attrs": ctx.scope.get("resp") }
+              ]);
             }
           }]
       },

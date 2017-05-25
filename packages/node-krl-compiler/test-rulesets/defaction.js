@@ -13,11 +13,13 @@ module.exports = {
       return {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "foo",
-                "a": ctx.scope.get("a"),
-                "b": yield ctx.callKRLstdlib("+", ctx.scope.get("b"), 3)
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "foo",
+                {
+                  "a": ctx.scope.get("a"),
+                  "b": yield ctx.callKRLstdlib("+", ctx.scope.get("b"), 3)
+                }
+              ]);
             }
           }]
       };
@@ -35,12 +37,14 @@ module.exports = {
       return {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "bar",
-                "a": ctx.scope.get("one"),
-                "b": ctx.scope.get("two"),
-                "c": ctx.scope.get("three")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "bar",
+                {
+                  "a": ctx.scope.get("one"),
+                  "b": ctx.scope.get("two"),
+                  "c": ctx.scope.get("three")
+                }
+              ]);
             }
           }]
       };
@@ -94,6 +98,29 @@ module.exports = {
             }
           }
         ]
+      };
+    });
+    ctx.defaction(ctx, "echoAction", function* (ctx, getArg, hasArg) {
+      ctx.scope.set("a", getArg("a", 0));
+      ctx.scope.set("b", getArg("b", 1));
+      ctx.scope.set("c", getArg("c", 2));
+      return {
+        "actions": [{
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "noop", []);
+            }
+          }]
+      };
+    });
+    ctx.defaction(ctx, "addAction", function* (ctx, getArg, hasArg) {
+      ctx.scope.set("a", getArg("a", 0));
+      ctx.scope.set("b", getArg("b", 1));
+      return {
+        "actions": [{
+            "action": function* (ctx, runAction) {
+              return yield runAction(ctx, void 0, "noop", []);
+            }
+          }]
       };
     });
     ctx.scope.set("add", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
@@ -150,11 +177,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "bar", {
-                "0": "baz",
-                "two": "qux",
-                "three": "quux"
-              });
+              return yield runAction(ctx, void 0, "bar", [
+                "baz",
+                {
+                  "two": "qux",
+                  "three": "quux"
+                }
+              ]);
             }
           }]
       }
@@ -178,11 +207,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return ctx.scope.set("val", yield runAction(ctx, void 0, "bar", {
-                "0": "baz",
-                "two": "qux",
-                "three": "quux"
-              }));
+              return ctx.scope.set("val", yield runAction(ctx, void 0, "bar", [
+                "baz",
+                {
+                  "two": "qux",
+                  "three": "quux"
+                }
+              ]));
             }
           }]
       },

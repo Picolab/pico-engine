@@ -28,7 +28,11 @@ module.exports = {
     }));
     ctx.scope.set("sum", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("arr", getArg("arr", 0));
-      return yield ctx.callKRLstdlib("reduce", ctx.scope.get("arr"), ctx.scope.get("add"), 0);
+      return yield ctx.callKRLstdlib("reduce", [
+        ctx.scope.get("arr"),
+        ctx.scope.get("add"),
+        0
+      ]);
     }));
     ctx.scope.set("incByN", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("n", getArg("n", 0));
@@ -38,13 +42,16 @@ module.exports = {
       });
     }));
     ctx.scope.set("mapped", yield ctx.callKRLstdlib("map", [
-      1,
-      2,
-      3
-    ], ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("n", getArg("n", 0));
-      return yield ctx.callKRLstdlib("+", ctx.scope.get("n"), ctx.scope.get("g1"));
-    })));
+      [
+        1,
+        2,
+        3
+      ],
+      ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+        ctx.scope.set("n", getArg("n", 0));
+        return yield ctx.callKRLstdlib("+", ctx.scope.get("n"), ctx.scope.get("g1"));
+      })
+    ]));
   },
   "rules": {
     "eventex": {
@@ -87,10 +94,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "say",
-                "name": ctx.scope.get("my_name")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "say",
+                { "name": ctx.scope.get("my_name") }
+              ]);
             }
           }]
       }
@@ -125,13 +132,15 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "say",
-                "name": ctx.scope.get("name"),
-                "p0": ctx.scope.get("p0"),
-                "p1": ctx.scope.get("p1"),
-                "g0": ctx.scope.get("g0")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "say",
+                {
+                  "name": ctx.scope.get("name"),
+                  "p0": ctx.scope.get("p0"),
+                  "p1": ctx.scope.get("p1"),
+                  "g0": ctx.scope.get("g0")
+                }
+              ]);
             }
           }]
       },
@@ -168,15 +177,17 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "say",
-                "add_one_two": yield ctx.scope.get("add")(ctx, [
-                  1,
-                  2
-                ]),
-                "inc5_3": yield ctx.scope.get("inc5")(ctx, [3]),
-                "g0": ctx.scope.get("g0")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "say",
+                {
+                  "add_one_two": yield ctx.scope.get("add")(ctx, [
+                    1,
+                    2
+                  ]),
+                  "inc5_3": yield ctx.scope.get("inc5")(ctx, [3]),
+                  "g0": ctx.scope.get("g0")
+                }
+              ]);
             }
           }]
       }

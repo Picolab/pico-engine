@@ -2,7 +2,10 @@ var _ = require("lodash");
 var mkTree = require("estree-builder");
 
 var comp_by_type = _.fromPairs(_.map([
+    "Action",
+    "ActionBlock",
     "Application",
+    "Arguments",
     "Array",
     "Boolean",
     "Chevron",
@@ -26,13 +29,11 @@ var comp_by_type = _.fromPairs(_.map([
     "MemberExpression",
     "Number",
     "Parameter",
+    "Parameters",
     "PersistentVariableAssignment",
-    "RaiseEventAttributes",
     "RaiseEventStatement",
     "RegExp",
     "Rule",
-    "RuleAction",
-    "RuleActionBlock",
     "RuleForEach",
     "RulePostlude",
     "RuleSelect",

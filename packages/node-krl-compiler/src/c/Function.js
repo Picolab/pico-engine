@@ -2,9 +2,7 @@ var _ = require("lodash");
 var mkKRLClosure = require("../utils/mkKRLClosure");
 
 module.exports = function(ast, comp, e){
-    var body = _.map(ast.params, function(param, i){
-        return comp(param, {index: i});
-    });
+    var body = comp(ast.params);
 
     _.each(ast.body, function(part, i){
         if(i < (ast.body.length - 1)){

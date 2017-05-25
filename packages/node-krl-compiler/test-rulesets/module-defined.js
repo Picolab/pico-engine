@@ -52,11 +52,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "store_memo",
-                "name": ctx.scope.get("configured_name"),
-                "memo_to_store": ctx.scope.get("text")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "store_memo",
+                {
+                  "name": ctx.scope.get("configured_name"),
+                  "memo_to_store": ctx.scope.get("text")
+                }
+              ]);
             }
           }]
       },

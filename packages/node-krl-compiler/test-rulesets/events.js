@@ -49,10 +49,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "bound",
-                "name": ctx.scope.get("my_name")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "bound",
+                { "name": ctx.scope.get("my_name") }
+              ]);
             }
           }]
       }
@@ -90,11 +90,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "set_attr2",
-                "number": ctx.scope.get("number"),
-                "name": ctx.scope.get("name")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "set_attr2",
+                {
+                  "number": ctx.scope.get("number"),
+                  "name": ctx.scope.get("name")
+                }
+              ]);
             }
           }]
       }
@@ -121,10 +123,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "get",
-                "thing": ctx.scope.get("thing")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "get",
+                { "thing": ctx.scope.get("thing") }
+              ]);
             }
           }]
       }
@@ -230,10 +232,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "on_fired",
-                "previous_name": yield ctx.modules.get(ctx, "ent", "on_fired_prev_name")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "on_fired",
+                { "previous_name": yield ctx.modules.get(ctx, "ent", "on_fired_prev_name") }
+              ]);
             }
           }]
       },
@@ -335,7 +337,10 @@ module.exports = {
         "graph": { "events": { "select_where": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            if (!(yield ctx.callKRLstdlib("match", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["something"]), new RegExp("^wat", ""))))
+            if (!(yield ctx.callKRLstdlib("match", [
+                yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["something"]),
+                new RegExp("^wat", "")
+              ])))
               return false;
             return true;
           }
@@ -586,10 +591,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "event_eid",
-                "eid": yield ctx.modules.get(ctx, "event", "eid")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "event_eid",
+                { "eid": yield ctx.modules.get(ctx, "event", "eid") }
+              ]);
             }
           }]
       }

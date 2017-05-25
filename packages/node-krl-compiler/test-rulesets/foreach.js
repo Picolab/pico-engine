@@ -40,10 +40,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "basic",
-                "x": ctx.scope.get("x")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "basic",
+                { "x": ctx.scope.get("x") }
+              ]);
             }
           }]
       }
@@ -78,11 +78,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "map",
-                "k": ctx.scope.get("k"),
-                "v": ctx.scope.get("v")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "map",
+                {
+                  "k": ctx.scope.get("k"),
+                  "v": ctx.scope.get("v")
+                }
+              ]);
             }
           }]
       }
@@ -123,11 +125,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "nested",
-                "x": ctx.scope.get("x"),
-                "y": ctx.scope.get("y")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "nested",
+                {
+                  "x": ctx.scope.get("x"),
+                  "y": ctx.scope.get("y")
+                }
+              ]);
             }
           }]
       }
@@ -157,7 +161,10 @@ module.exports = {
           ctx.scope.set("arr", getArg("value", 0));
           yield foreach(ctx.scope.get("arr"), ctx.KRLClosure(function* (ctx, getArg, hasArg) {
             ctx.scope.set("foo", getArg("value", 0));
-            yield foreach(yield ctx.callKRLstdlib("range", 0, ctx.scope.get("foo")), ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+            yield foreach(yield ctx.callKRLstdlib("range", [
+              0,
+              ctx.scope.get("foo")
+            ]), ctx.KRLClosure(function* (ctx, getArg, hasArg) {
               ctx.scope.set("bar", getArg("value", 0));
               yield iter(ctx);
             }));
@@ -170,12 +177,14 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "scope",
-                "foo": ctx.scope.get("foo"),
-                "bar": ctx.scope.get("bar"),
-                "baz": ctx.scope.get("baz")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "scope",
+                {
+                  "foo": ctx.scope.get("foo"),
+                  "bar": ctx.scope.get("bar"),
+                  "baz": ctx.scope.get("baz")
+                }
+              ]);
             }
           }]
       }

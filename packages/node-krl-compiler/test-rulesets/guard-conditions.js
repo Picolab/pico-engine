@@ -33,10 +33,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "foo",
-                "b": ctx.scope.get("b")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "foo",
+                { "b": ctx.scope.get("b") }
+              ]);
             }
           }]
       },
@@ -44,7 +44,10 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function* (ctx) {
-          if (yield ctx.callKRLstdlib("match", ctx.scope.get("b"), new RegExp("foo", "")))
+          if (yield ctx.callKRLstdlib("match", [
+              ctx.scope.get("b"),
+              new RegExp("foo", "")
+            ]))
             yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
         }
       }
@@ -78,11 +81,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "bar",
-                "x": ctx.scope.get("x"),
-                "b": yield ctx.modules.get(ctx, "ent", "b")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "bar",
+                {
+                  "b": ctx.scope.get("x"),
+                  "b": yield ctx.modules.get(ctx, "ent", "b")
+                }
+              ]);
             }
           }]
       },

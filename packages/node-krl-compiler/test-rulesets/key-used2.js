@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.key-used2",
   "meta": {
     "name": "key-used2",
-    "description": "\nThis is a test file for a module that uses keys\n    ",
+    "description": "\nThis is a test file for a module that uses keys\n        ",
     "use": [
       {
         "kind": "module",

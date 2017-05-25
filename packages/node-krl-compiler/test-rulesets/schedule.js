@@ -71,7 +71,10 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "log"), yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [])));
+          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "log"),
+            yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [yield ctx.modules.get(ctx, "ent", "log")])
+          ]));
         },
         "notfired": undefined,
         "always": undefined
@@ -114,7 +117,10 @@ module.exports = {
               { "minutes": 5 }
             ])
           }));
-          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "log"), { "scheduled in_5min": ctx.scope.get("foo") }));
+          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "log"),
+            { "scheduled in_5min": ctx.scope.get("foo") }
+          ]));
         },
         "notfired": undefined,
         "always": undefined
@@ -154,7 +160,10 @@ module.exports = {
             },
             "timespec": "* */1 * * * *"
           }));
-          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "log"), { "scheduled every_1min": ctx.scope.get("foo") }));
+          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "log"),
+            { "scheduled every_1min": ctx.scope.get("foo") }
+          ]));
         },
         "notfired": undefined,
         "always": undefined

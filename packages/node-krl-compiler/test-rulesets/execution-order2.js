@@ -79,7 +79,10 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "order"), "2 - foo_or_bar"));
+          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "order"),
+            "2 - foo_or_bar"
+          ]));
         }
       }
     },
@@ -110,7 +113,10 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "order"), "2 - foo"));
+          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "order"),
+            "2 - foo"
+          ]));
         }
       }
     },
@@ -141,7 +147,10 @@ module.exports = {
         "fired": undefined,
         "notfired": undefined,
         "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "order"), "2 - bar"));
+          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "order"),
+            "2 - bar"
+          ]));
         }
       }
     }

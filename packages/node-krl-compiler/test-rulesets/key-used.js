@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.key-used",
   "meta": {
     "name": "key-used",
-    "description": "\nThis is a test file for a module that uses keys\n    ",
+    "description": "\nThis is a test file for a module that uses keys\n        ",
     "use": [
       {
         "kind": "module",
@@ -76,11 +76,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "foo",
-                "foo": yield (yield ctx.modules.get(ctx, "keys", "foo"))(ctx, []),
-                "foo_pre": ctx.scope.get("foo_pre")
-              });
+              return yield runAction(ctx, void 0, "send_directive", [
+                "foo",
+                {
+                  "foo": yield (yield ctx.modules.get(ctx, "keys", "foo"))(ctx, []),
+                  "foo_pre": ctx.scope.get("foo_pre")
+                }
+              ]);
             }
           }]
       },

@@ -1080,9 +1080,9 @@ kind-of@^3.0.2:
   dependencies:
     is-buffer "^1.1.5"
 
-krl-parser@^0.22.0:
-  version "0.22.0"
-  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.22.0.tgz#ac720f70ad8bcfb2ba3c20c8b02e7827d0a074f9"
+krl-parser@^0.23.1:
+  version "0.23.1"
+  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.23.1.tgz#a423cecb49924ec404d86dcb3f35deb47497584c"
   dependencies:
     excerpt-at-line-col "^1.0.0"
     line-column "^1.0.2"

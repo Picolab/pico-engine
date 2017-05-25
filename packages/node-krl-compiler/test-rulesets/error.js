@@ -25,7 +25,10 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "error_log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "error_log"), yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [])));
+          yield ctx.modules.set(ctx, "ent", "error_log", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "error_log"),
+            yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [yield ctx.modules.get(ctx, "ent", "error_log")])
+          ]));
         },
         "notfired": undefined,
         "always": undefined
