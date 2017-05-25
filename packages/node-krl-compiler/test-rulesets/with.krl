@@ -10,7 +10,10 @@ ruleset io.picolabs.with {
             add(1, b = n);
         }
         foo = function(a){
-            add(a = a * 2, b = a);
+            add(
+                a = a * 2,
+                b = a,
+            );
         }
     }
 

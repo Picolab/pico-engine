@@ -84,7 +84,7 @@ module.exports = {
               return yield runAction(ctx, void 0, "send_directive", [
                 "bar",
                 {
-                  "b": ctx.scope.get("x"),
+                  "x": ctx.scope.get("x"),
                   "b": yield ctx.modules.get(ctx, "ent", "b")
                 }
               ]);

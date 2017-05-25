@@ -46,28 +46,27 @@ module.exports = {
         ]
       ]);
     }));
-    ctx.defaction(ctx, "doPost", function* (ctx, getArg, hasArg) {
+    ctx.defaction(ctx, "doPost", function* (ctx, getArg, hasArg, processActionBlock) {
       ctx.scope.set("base_url", getArg("base_url", 0));
       ctx.scope.set("to", getArg("to", 1));
       ctx.scope.set("msg", getArg("msg", 2));
-      return {
+      processActionBlock(ctx, {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "http", "post", [
-                yield ctx.callKRLstdlib("+", [
+              return yield runAction(ctx, "http", "post", {
+                "0": yield ctx.callKRLstdlib("+", [
                   ctx.scope.get("url"),
                   "/msg.json"
                 ]),
-                {
-                  "from": {
-                    "To": ctx.scope.get("to"),
-                    "Msg": ctx.scope.get("msg")
-                  }
+                "from": {
+                  "To": ctx.scope.get("to"),
+                  "Msg": ctx.scope.get("msg")
                 }
-              ]);
+              });
             }
           }]
-      };
+      });
+      return [];
     });
   },
   "rules": {
@@ -92,13 +91,11 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "get"))(ctx, [
-            ctx.scope.get("url"),
-            {
-              "qs": { "foo": "bar" },
-              "headers": { "baz": "quix" }
-            }
-          ]));
+          ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "get"))(ctx, {
+            "0": ctx.scope.get("url"),
+            "qs": { "foo": "bar" },
+            "headers": { "baz": "quix" }
+          }));
           yield ctx.modules.set(ctx, "ent", "resp", yield ctx.scope.get("fmtResp")(ctx, [ctx.scope.get("resp")]));
         },
         "notfired": undefined,
@@ -127,10 +124,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "http", "post", [
-                ctx.scope.get("url"),
-                { "json": { "foo": "bar" } }
-              ]);
+              return yield runAction(ctx, "http", "post", {
+                "0": ctx.scope.get("url"),
+                "json": { "foo": "bar" }
+              });
             }
           }]
       }
@@ -159,10 +156,8 @@ module.exports = {
             "action": function* (ctx, runAction) {
               return yield runAction(ctx, void 0, "doPost", [
                 ctx.scope.get("url"),
-                {
-                  "to": "bob",
-                  "msg": "foobar"
-                }
+                "bob",
+                "foobar"
               ]);
             }
           }]
@@ -190,13 +185,11 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return ctx.scope.set("resp", yield runAction(ctx, "http", "post", [
-                ctx.scope.get("url"),
-                {
-                  "qs": { "foo": "bar" },
-                  "form": { "baz": "qux" }
-                }
-              ]));
+              return ctx.scope.set("resp", yield runAction(ctx, "http", "post", {
+                "0": ctx.scope.get("url"),
+                "qs": { "foo": "bar" },
+                "form": { "baz": "qux" }
+              }));
             }
           }]
       },
@@ -230,14 +223,12 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "http", "post", [
-                ctx.scope.get("url"),
-                {
-                  "qs": { "foo": "bar" },
-                  "form": { "baz": "qux" },
-                  "autoraise": "foobar"
-                }
-              ]);
+              return yield runAction(ctx, "http", "post", {
+                "0": ctx.scope.get("url"),
+                "qs": { "foo": "bar" },
+                "form": { "baz": "qux" },
+                "autoraise": "foobar"
+              });
             }
           }]
       }
