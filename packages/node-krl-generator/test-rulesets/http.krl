@@ -21,7 +21,7 @@ ruleset io.picolabs.http {
             http:post(url + "/msg.json", {"from": {
                 "To": to,
                 "Msg": msg
-            }})
+            }});
         }
     }
     rule http_get {
@@ -42,7 +42,7 @@ ruleset io.picolabs.http {
         pre {
             url = event:attr("url")
         }
-        http:post(url, {"json": {"foo": "bar"}})
+        http:post(url, {"json": {"foo": "bar"}});
     }
     rule http_post_action {
         select when http_test post_action;
@@ -52,7 +52,7 @@ ruleset io.picolabs.http {
         doPost(url, {
             "to": "bob",
             "msg": "foobar"
-        })
+        });
     }
     rule http_post_setting {
         select when http_test post_setting;
@@ -62,7 +62,7 @@ ruleset io.picolabs.http {
         http:post(url, {
             "qs": {"foo": "bar"},
             "form": {"baz": "qux"}
-        }) setting(resp)
+        }) setting(resp);
         fired {
             ent:resp := fmtResp(resp)
         }
@@ -76,14 +76,14 @@ ruleset io.picolabs.http {
             "qs": {"foo": "bar"},
             "form": {"baz": "qux"},
             "autoraise": "foobar"
-        })
+        });
     }
     rule http_post_event_handler {
         select when http post;
         pre {
             resp = fmtResp(event:attrs())
         }
-        send_directive("http_post_event_handler", {"attrs": resp})
+        send_directive("http_post_event_handler", {"attrs": resp});
         fired {
             ent:last_post_event := resp
         }

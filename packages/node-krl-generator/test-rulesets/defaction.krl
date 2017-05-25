@@ -8,7 +8,7 @@ ruleset io.picolabs.defaction {
             send_directive("foo", {
                 "a": a,
                 "b": b + 3
-            })
+            });
         }
         bar = defaction(
             one,
@@ -20,7 +20,7 @@ ruleset io.picolabs.defaction {
                 "a": one,
                 "b": two,
                 "c": three
-            })
+            });
         }
         getSettingVal = function(){
             ent:setting_val
@@ -30,9 +30,9 @@ ruleset io.picolabs.defaction {
 
             choose val {
                 asdf =>
-                    foo(val)
+                    foo(val);
                 fdsa =>
-                    bar(val, "ok", "done")
+                    bar(val, "ok", "done");
             }
         }
         ifAnotB = defaction(a, b){
@@ -40,19 +40,19 @@ ruleset io.picolabs.defaction {
 
             if a && not b then
             every {
-                send_directive("yes a")
-                send_directive("not b")
+                send_directive("yes a");
+                send_directive("not b");
             }
         }
         echoAction = defaction(a, b, c){
 
-            noop()
+            noop();
 
             returns a, b, c
         }
         addAction = defaction(a, b){
 
-            noop()
+            noop();
 
             return a + b
         }
@@ -66,35 +66,35 @@ ruleset io.picolabs.defaction {
     }
     rule foo {
         select when defa foo;
-        foo("bar")
+        foo("bar");
     }
     rule bar {
         select when defa bar;
         bar("baz", {
             "two": "qux",
             "three": "quux"
-        })
+        });
     }
     rule bar_setting {
         select when defa bar_setting;
         bar("baz", {
             "two": "qux",
             "three": "quux"
-        }) setting(val)
+        }) setting(val);
         fired {
             ent:setting_val := val
         }
     }
     rule chooser {
         select when defa chooser;
-        chooser(event:attr("val"))
+        chooser(event:attr("val"));
     }
     rule ifAnotB {
         select when defa ifAnotB;
-        ifAnotB(event:attr("a") == "true", event:attr("b") == "true")
+        ifAnotB(event:attr("a") == "true", event:attr("b") == "true");
     }
     rule add {
         select when defa add;
-        add(1, 2)
+        add(1, 2);
     }
 }

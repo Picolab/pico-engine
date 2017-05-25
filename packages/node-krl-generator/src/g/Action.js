@@ -14,5 +14,6 @@ module.exports = function(ast, ind, gen){
     if(!_.isEmpty(ast.setting)){
         src += " setting(" + gen(ast.setting) + ")";
     }
+    src += ";";
     return src;
 };

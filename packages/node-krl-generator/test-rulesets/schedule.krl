@@ -12,21 +12,21 @@ ruleset io.picolabs.schedule {
     }
     rule clear_log {
         select when schedule clear_log;
-        send_directive("clear_log")
+        send_directive("clear_log");
         fired {
             ent:log := []
         }
     }
     rule push_log {
         select when schedule push_log;
-        send_directive("push_log")
+        send_directive("push_log");
         fired {
             ent:log := ent:log.append(event:attrs())
         }
     }
     rule in_5min {
         select when schedule in_5min;
-        send_directive("in_5min")
+        send_directive("in_5min");
         fired {
             schedule schedule event "push_log"
                 at time:add(time:now(), {"minutes": 5})
@@ -40,7 +40,7 @@ ruleset io.picolabs.schedule {
     }
     rule every_1min {
         select when schedule every_1min;
-        send_directive("every_1min")
+        send_directive("every_1min");
         fired {
             schedule schedule event "push_log"
                 repeat "* */1 * * * *"
@@ -54,6 +54,6 @@ ruleset io.picolabs.schedule {
     }
     rule rm_from_schedule {
         select when schedule rm_from_schedule;
-        schedule:remove(event:attr("id"))
+        schedule:remove(event:attr("id"));
     }
 }

@@ -25,7 +25,7 @@ ruleset io.picolabs.module-defined {
         send_directive("store_memo", {
             "name": configured_name,
             "memo_to_store": text
-        })
+        });
         always {
             ent:memo := "[\"" + text + "\" by " + configured_name + "]"
         }

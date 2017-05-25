@@ -4,14 +4,14 @@ ruleset io.picolabs.within {
             before
             foo b
             within 5 minutes;
-        send_directive("foo")
+        send_directive("foo");
     }
     rule bar {
         select when bar a
             before
             bar b
             within 1 + 3 second;
-        send_directive("bar")
+        send_directive("bar");
     }
     rule baz {
         select when baz a
@@ -22,13 +22,13 @@ ruleset io.picolabs.within {
                 baz c
             )
             within 1 year;
-        send_directive("baz")
+        send_directive("baz");
     }
     rule qux {
         select when repeat 3 (
             qux a b re#c#
         )
             within 2 seconds;
-        send_directive("qux")
+        send_directive("qux");
     }
 }

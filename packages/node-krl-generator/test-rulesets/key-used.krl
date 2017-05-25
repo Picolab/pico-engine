@@ -47,7 +47,7 @@ This is a test file for a module that uses keys
         send_directive("foo", {
             "foo": keys:foo(),
             "foo_pre": foo_pre
-        })
+        });
         always {
             ent:foo_postlude := keys:foo()
         }

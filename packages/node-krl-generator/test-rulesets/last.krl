@@ -4,27 +4,27 @@ ruleset io.picolabs.last {
     }
     rule foo {
         select when last all;
-        send_directive("foo")
+        send_directive("foo");
         fired {
             last if event:attr("stop") == "foo"
         }
     }
     rule bar {
         select when last all;
-        send_directive("bar")
+        send_directive("bar");
         fired {
             last if event:attr("stop") == "bar"
         }
     }
     rule baz {
         select when last all;
-        send_directive("baz")
+        send_directive("baz");
         fired {
             last
         }
     }
     rule qux {
         select when last all;
-        send_directive("qux")
+        send_directive("qux");
     }
 }

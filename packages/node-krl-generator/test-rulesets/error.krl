@@ -15,14 +15,14 @@ ruleset io.picolabs.error {
     }
     rule basic0 {
         select when error basic;
-        send_directive("basic0")
+        send_directive("basic0");
         fired {
             error info "some info error"
         }
     }
     rule basic1 {
         select when error basic;
-        send_directive("basic1")
+        send_directive("basic1");
         fired {
             error info "this should not fire, b/c basic0 stopped execution"
         }
