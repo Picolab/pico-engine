@@ -47,12 +47,12 @@
     "contra": "^1.9.4",
     "express": "^4.14.0",
     "home-dir": "^1.0.0",
-    "krl-compiler": "^0.31.5",
+    "krl-compiler": "^0.32.3",
     "leveldown": "^1.4.6",
     "lodash": "^4.11.2",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "pico-engine-core": "^0.29.0",
+    "pico-engine-core": "^0.30.0",
     "request": "^2.79.0"
   }
 }
