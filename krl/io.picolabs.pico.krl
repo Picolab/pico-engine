@@ -166,7 +166,7 @@ ruleset io.picolabs.pico {
     engine:installRuleset(ent:id, rid, url, base) setting(real_rid)
     always {
       raise pico event "ruleset_added"
-        attributes event:attrs()
+        attributes event:attrs().put({"rid": real_rid})
     }
   }
 }
