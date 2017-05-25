@@ -8,7 +8,7 @@ ruleset io.picolabs.execution-order {
         }
     }
     rule first {
-        select when execution_order all;
+        select when execution_order all
 
         send_directive("first");
 
@@ -19,7 +19,7 @@ ruleset io.picolabs.execution-order {
         }
     }
     rule second {
-        select when execution_order all;
+        select when execution_order all
 
         send_directive("second");
 
@@ -30,7 +30,7 @@ ruleset io.picolabs.execution-order {
         }
     }
     rule reset_order {
-        select when execution_order reset_order;
+        select when execution_order reset_order
 
         send_directive("reset_order");
 
@@ -41,7 +41,7 @@ ruleset io.picolabs.execution-order {
     rule foo_or_bar {
         select when execution_order foo
             or
-            execution_order bar;
+            execution_order bar
 
         send_directive("foo_or_bar");
 
@@ -50,7 +50,7 @@ ruleset io.picolabs.execution-order {
         }
     }
     rule foo {
-        select when execution_order foo;
+        select when execution_order foo
 
         send_directive("foo");
 
@@ -59,7 +59,7 @@ ruleset io.picolabs.execution-order {
         }
     }
     rule bar {
-        select when execution_order bar;
+        select when execution_order bar
 
         send_directive("bar");
 

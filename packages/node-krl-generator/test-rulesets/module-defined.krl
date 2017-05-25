@@ -21,7 +21,7 @@ ruleset io.picolabs.module-defined {
         }
     }
     rule store_memo {
-        select when module_defined store_memo memo re#^(.*)$# setting(text);
+        select when module_defined store_memo memo re#^(.*)$# setting(text)
 
         send_directive("store_memo", {
             "name": configured_name,

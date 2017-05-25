@@ -11,7 +11,7 @@ ruleset io.picolabs.schedule {
         }
     }
     rule clear_log {
-        select when schedule clear_log;
+        select when schedule clear_log
 
         send_directive("clear_log");
 
@@ -20,7 +20,7 @@ ruleset io.picolabs.schedule {
         }
     }
     rule push_log {
-        select when schedule push_log;
+        select when schedule push_log
 
         send_directive("push_log");
 
@@ -29,7 +29,7 @@ ruleset io.picolabs.schedule {
         }
     }
     rule in_5min {
-        select when schedule in_5min;
+        select when schedule in_5min
 
         send_directive("in_5min");
 
@@ -45,7 +45,7 @@ ruleset io.picolabs.schedule {
         }
     }
     rule every_1min {
-        select when schedule every_1min;
+        select when schedule every_1min
 
         send_directive("every_1min");
 
@@ -61,7 +61,7 @@ ruleset io.picolabs.schedule {
         }
     }
     rule rm_from_schedule {
-        select when schedule rm_from_schedule;
+        select when schedule rm_from_schedule
 
         schedule:remove(event:attr("id"));
     }

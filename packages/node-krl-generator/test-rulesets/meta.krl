@@ -25,7 +25,7 @@ some description for the meta test module
         }
     }
     rule meta_event {
-        select when meta event;
+        select when meta event
 
         send_directive("event", {
             "rid": meta:rid,

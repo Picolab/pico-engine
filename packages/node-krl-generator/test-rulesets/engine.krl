@@ -1,11 +1,11 @@
 ruleset io.picolabs.engine {
     rule newPico {
-        select when engine newPico;
+        select when engine newPico
 
         engine:newPico();
     }
     rule newChannel {
-        select when engine newChannel;
+        select when engine newChannel
 
         pre {
             pico_id = event:attr("pico_id")
@@ -16,12 +16,12 @@ ruleset io.picolabs.engine {
         engine:newChannel(pico_id, name, type);
     }
     rule removeChannel {
-        select when engine removeChannel;
+        select when engine removeChannel
 
         engine:removeChannel(event:attr("eci"));
     }
     rule installRuleset {
-        select when engine installRuleset;
+        select when engine installRuleset
 
         pre {
             pico_id = event:attr("pico_id")

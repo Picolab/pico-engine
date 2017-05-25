@@ -8,7 +8,7 @@ ruleset io.picolabs.execution-order2 {
         }
     }
     rule reset_order {
-        select when execution_order reset_order;
+        select when execution_order reset_order
 
         send_directive("2 - reset_order");
 
@@ -19,7 +19,7 @@ ruleset io.picolabs.execution-order2 {
     rule foo_or_bar {
         select when execution_order foo
             or
-            execution_order bar;
+            execution_order bar
 
         send_directive("2 - foo_or_bar");
 
@@ -28,7 +28,7 @@ ruleset io.picolabs.execution-order2 {
         }
     }
     rule foo {
-        select when execution_order foo;
+        select when execution_order foo
 
         send_directive("2 - foo");
 
@@ -37,7 +37,7 @@ ruleset io.picolabs.execution-order2 {
         }
     }
     rule bar {
-        select when execution_order bar;
+        select when execution_order bar
 
         send_directive("2 - bar");
 

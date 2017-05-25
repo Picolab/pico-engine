@@ -3,7 +3,7 @@ ruleset io.picolabs.last {
         name "testing postlude `last` statement"
     }
     rule foo {
-        select when last all;
+        select when last all
 
         send_directive("foo");
 
@@ -12,7 +12,7 @@ ruleset io.picolabs.last {
         }
     }
     rule bar {
-        select when last all;
+        select when last all
 
         send_directive("bar");
 
@@ -21,7 +21,7 @@ ruleset io.picolabs.last {
         }
     }
     rule baz {
-        select when last all;
+        select when last all
 
         send_directive("baz");
 
@@ -30,7 +30,7 @@ ruleset io.picolabs.last {
         }
     }
     rule qux {
-        select when last all;
+        select when last all
 
         send_directive("qux");
     }

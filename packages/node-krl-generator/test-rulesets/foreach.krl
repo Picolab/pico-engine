@@ -8,13 +8,13 @@ ruleset io.picolabs.foreach {
         }
     }
     rule basic {
-        select when foreach basic;
+        select when foreach basic
         foreach [1, 2, 3] setting(x)
 
         send_directive("basic", {"x": x});
     }
     rule map {
-        select when foreach map;
+        select when foreach map
         foreach {
             "a": 1,
             "b": 2,
@@ -27,7 +27,7 @@ ruleset io.picolabs.foreach {
         });
     }
     rule nested {
-        select when foreach nested;
+        select when foreach nested
         foreach [1, 2, 3] setting(x)
             foreach ["a", "b", "c"] setting(y)
 
@@ -37,7 +37,7 @@ ruleset io.picolabs.foreach {
         });
     }
     rule scope {
-        select when foreach scope;
+        select when foreach scope
         foreach doubleThis([1, 2, 3]) setting(arr)
             foreach arr setting(foo)
                 foreach 0.range(foo) setting(bar)

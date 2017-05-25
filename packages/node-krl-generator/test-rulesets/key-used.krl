@@ -40,7 +40,7 @@ This is a test file for a module that uses keys
         }
     }
     rule key_used_foo {
-        select when key_used foo;
+        select when key_used foo
 
         pre {
             foo_pre = keys:foo()

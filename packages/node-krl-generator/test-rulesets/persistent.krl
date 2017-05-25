@@ -17,7 +17,7 @@ ruleset io.picolabs.persistent {
         }
     }
     rule store_my_name {
-        select when store name name re#^(.*)$# setting(my_name);
+        select when store name name re#^(.*)$# setting(my_name)
 
         send_directive("store_name", {"name": my_name});
 
@@ -26,7 +26,7 @@ ruleset io.picolabs.persistent {
         }
     }
     rule store_appvar {
-        select when store appvar appvar re#^(.*)$# setting(my_appvar);
+        select when store appvar appvar re#^(.*)$# setting(my_appvar)
 
         send_directive("store_appvar", {"appvar": my_appvar});
 
@@ -35,7 +35,7 @@ ruleset io.picolabs.persistent {
         }
     }
     rule store_user_firstname {
-        select when store user_firstname firstname re#^(.*)$# setting(firstname);
+        select when store user_firstname firstname re#^(.*)$# setting(firstname)
 
         send_directive("store_user_firstname", {"name": firstname});
 
@@ -45,7 +45,7 @@ ruleset io.picolabs.persistent {
         }
     }
     rule clear_user {
-        select when store clear_user;
+        select when store clear_user
 
         send_directive("clear_user");
 
@@ -54,7 +54,7 @@ ruleset io.picolabs.persistent {
         }
     }
     rule clear_appvar {
-        select when store clear_appvar;
+        select when store clear_appvar
 
         send_directive("clear_appvar");
 

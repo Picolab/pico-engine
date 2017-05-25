@@ -6,7 +6,6 @@ ruleset io.picolabs.operators {
         nothing = null
         some_string = "foo"
         results = {
-            //universal
             "str_as_num": "100.25".as("Number"),
             "num_as_str": 1.05.as("String"),
             "regex_as_str": re#blah#i.as("String"),
@@ -25,11 +24,9 @@ ruleset io.picolabs.operators {
                 nothing.typeof(),
                 null.typeof()
             ],
-            //numbers
             "75.chr()": 75.chr(),
             "0.range(10)": 0.range(10),
             "10.sprintf": 10.sprintf("< %d>"),
-            //string
             ".capitalize()": "Hello World".capitalize(),
             ".decode()": "[3, 4, 5]".decode(),
             ".extract": "This is a string".extract(re#(s.+).*(.ing)#),

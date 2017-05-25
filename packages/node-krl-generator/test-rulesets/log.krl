@@ -1,6 +1,6 @@
 ruleset io.picolabs.log {
     rule levels {
-        select when log levels;
+        select when log levels
         fired {
             log info "hello default";
             log error "hello error";

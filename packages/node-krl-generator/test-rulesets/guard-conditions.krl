@@ -8,7 +8,7 @@ ruleset io.picolabs.guard-conditions {
         }
     }
     rule foo {
-        select when foo a b re#^(.*)$# setting(b);
+        select when foo a b re#^(.*)$# setting(b)
 
         send_directive("foo", {"b": b});
 
@@ -17,7 +17,7 @@ ruleset io.picolabs.guard-conditions {
         }
     }
     rule bar {
-        select when bar a;
+        select when bar a
         foreach [1, 2, 3] setting(x)
 
         send_directive("bar", {

@@ -65,12 +65,12 @@ ruleset io.picolabs.defaction {
         }
     }
     rule foo {
-        select when defa foo;
+        select when defa foo
 
         foo("bar");
     }
     rule bar {
-        select when defa bar;
+        select when defa bar
 
         bar("baz", {
             "two": "qux",
@@ -78,7 +78,7 @@ ruleset io.picolabs.defaction {
         });
     }
     rule bar_setting {
-        select when defa bar_setting;
+        select when defa bar_setting
 
         bar("baz", {
             "two": "qux",
@@ -90,17 +90,17 @@ ruleset io.picolabs.defaction {
         }
     }
     rule chooser {
-        select when defa chooser;
+        select when defa chooser
 
         chooser(event:attr("val"));
     }
     rule ifAnotB {
-        select when defa ifAnotB;
+        select when defa ifAnotB
 
         ifAnotB(event:attr("a") == "true", event:attr("b") == "true");
     }
     rule add {
-        select when defa add;
+        select when defa add
 
         add(1, 2);
     }

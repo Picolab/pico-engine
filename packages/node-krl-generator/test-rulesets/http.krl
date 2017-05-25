@@ -25,7 +25,7 @@ ruleset io.picolabs.http {
         }
     }
     rule http_get {
-        select when http_test get;
+        select when http_test get
 
         pre {
             url = event:attr("url")
@@ -39,7 +39,7 @@ ruleset io.picolabs.http {
         }
     }
     rule http_post {
-        select when http_test post;
+        select when http_test post
 
         pre {
             url = event:attr("url")
@@ -48,7 +48,7 @@ ruleset io.picolabs.http {
         http:post(url, {"json": {"foo": "bar"}});
     }
     rule http_post_action {
-        select when http_test post_action;
+        select when http_test post_action
 
         pre {
             url = event:attr("url")
@@ -60,7 +60,7 @@ ruleset io.picolabs.http {
         });
     }
     rule http_post_setting {
-        select when http_test post_setting;
+        select when http_test post_setting
 
         pre {
             url = event:attr("url")
@@ -76,7 +76,7 @@ ruleset io.picolabs.http {
         }
     }
     rule http_autorase {
-        select when http_test autoraise;
+        select when http_test autoraise
 
         pre {
             url = event:attr("url")
@@ -89,7 +89,7 @@ ruleset io.picolabs.http {
         });
     }
     rule http_post_event_handler {
-        select when http post;
+        select when http post
 
         pre {
             resp = fmtResp(event:attrs())

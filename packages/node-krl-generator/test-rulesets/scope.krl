@@ -31,12 +31,12 @@ ruleset io.picolabs.scope {
     rule eventex {
         select when scope event0 name re#^(.*)$# setting(my_name)
             or
-            scope event1;
+            scope event1
 
         send_directive("say", {"name": my_name});
     }
     rule prelude_scope {
-        select when scope prelude name re#^(.*)$# setting(name);
+        select when scope prelude name re#^(.*)$# setting(name)
 
         pre {
             p0 = "prelude 0"
@@ -57,7 +57,7 @@ ruleset io.picolabs.scope {
         }
     }
     rule functions {
-        select when scope functions;
+        select when scope functions
 
         pre {
             g0 = "overrided g0!"
