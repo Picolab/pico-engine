@@ -331,6 +331,86 @@ module.exports = {
         ]
       }
     },
+    "on_sample": {
+      "name": "on_sample",
+      "select": {
+        "graph": { "events": { "on_sample": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "block_type": "sample",
+        "actions": [
+          {
+            "action": function* (ctx, runAction) {
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_sample - one"]);
+            }
+          },
+          {
+            "action": function* (ctx, runAction) {
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_sample - two"]);
+            }
+          },
+          {
+            "action": function* (ctx, runAction) {
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_sample - three"]);
+            }
+          }
+        ]
+      }
+    },
+    "on_sample_if": {
+      "name": "on_sample_if",
+      "select": {
+        "graph": { "events": { "on_sample_if": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "block_type": "sample",
+        "condition": function* (ctx) {
+          return yield ctx.callKRLstdlib("==", [
+            yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["fire"]),
+            "yes"
+          ]);
+        },
+        "actions": [
+          {
+            "action": function* (ctx, runAction) {
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_sample - one"]);
+            }
+          },
+          {
+            "action": function* (ctx, runAction) {
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_sample - two"]);
+            }
+          },
+          {
+            "action": function* (ctx, runAction) {
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_sample - three"]);
+            }
+          }
+        ]
+      }
+    },
     "select_where": {
       "name": "select_where",
       "select": {
