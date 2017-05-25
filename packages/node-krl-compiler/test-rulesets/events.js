@@ -49,7 +49,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", [
+              var returns = yield runAction(ctx, void 0, "send_directive", [
                 "bound",
                 { "name": ctx.scope.get("my_name") }
               ]);
@@ -90,7 +90,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", [
+              var returns = yield runAction(ctx, void 0, "send_directive", [
                 "set_attr2",
                 {
                   "number": ctx.scope.get("number"),
@@ -123,7 +123,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", [
+              var returns = yield runAction(ctx, void 0, "send_directive", [
                 "get",
                 { "thing": ctx.scope.get("thing") }
               ]);
@@ -167,7 +167,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "noop", []);
+              var returns = yield runAction(ctx, void 0, "noop", []);
             }
           }]
       }
@@ -201,7 +201,7 @@ module.exports = {
         },
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["ifthen"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["ifthen"]);
             }
           }]
       }
@@ -232,7 +232,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", [
+              var returns = yield runAction(ctx, void 0, "send_directive", [
                 "on_fired",
                 { "previous_name": yield ctx.modules.get(ctx, "ent", "on_fired_prev_name") }
               ]);
@@ -279,13 +279,13 @@ module.exports = {
           {
             "label": "one",
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["on_choose - one"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_choose - one"]);
             }
           },
           {
             "label": "two",
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["on_choose - two"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_choose - two"]);
             }
           }
         ]
@@ -320,12 +320,12 @@ module.exports = {
         "actions": [
           {
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["on_every - one"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_every - one"]);
             }
           },
           {
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["on_every - two"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_every - two"]);
             }
           }
         ]
@@ -355,7 +355,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["select_where"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["select_where"]);
             }
           }]
       }
@@ -418,7 +418,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "event", "send", [{
+              var returns = yield runAction(ctx, "event", "send", [{
                   "eci": yield ctx.modules.get(ctx, "meta", "eci"),
                   "eid": "0",
                   "domain": "events",
@@ -591,7 +591,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", [
+              var returns = yield runAction(ctx, void 0, "send_directive", [
                 "event_eid",
                 { "eid": yield ctx.modules.get(ctx, "event", "eid") }
               ]);

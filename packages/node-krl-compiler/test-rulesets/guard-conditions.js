@@ -33,7 +33,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", [
+              var returns = yield runAction(ctx, void 0, "send_directive", [
                 "foo",
                 { "b": ctx.scope.get("b") }
               ]);
@@ -81,7 +81,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", [
+              var returns = yield runAction(ctx, void 0, "send_directive", [
                 "bar",
                 {
                   "x": ctx.scope.get("x"),

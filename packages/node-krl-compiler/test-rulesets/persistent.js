@@ -52,7 +52,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", [
+              var returns = yield runAction(ctx, void 0, "send_directive", [
                 "store_name",
                 { "name": ctx.scope.get("my_name") }
               ]);
@@ -93,7 +93,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", [
+              var returns = yield runAction(ctx, void 0, "send_directive", [
                 "store_appvar",
                 { "appvar": ctx.scope.get("my_appvar") }
               ]);
@@ -134,7 +134,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", [
+              var returns = yield runAction(ctx, void 0, "send_directive", [
                 "store_user_firstname",
                 { "name": ctx.scope.get("firstname") }
               ]);
@@ -173,7 +173,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["clear_user"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["clear_user"]);
             }
           }]
       },
@@ -204,7 +204,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["clear_appvar"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["clear_appvar"]);
             }
           }]
       },

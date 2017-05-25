@@ -53,7 +53,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["basic0"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["basic0"]);
             }
           }]
       },
@@ -84,7 +84,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["basic1"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["basic1"]);
             }
           }]
       },

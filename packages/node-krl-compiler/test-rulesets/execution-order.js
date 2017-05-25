@@ -26,7 +26,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["first"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["first"]);
             }
           }]
       },
@@ -65,7 +65,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["second"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["second"]);
             }
           }]
       },
@@ -104,7 +104,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["reset_order"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["reset_order"]);
             }
           }]
       },
@@ -149,7 +149,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["foo_or_bar"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["foo_or_bar"]);
             }
           }]
       },
@@ -183,7 +183,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["foo"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["foo"]);
             }
           }]
       },
@@ -217,7 +217,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["bar"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["bar"]);
             }
           }]
       },

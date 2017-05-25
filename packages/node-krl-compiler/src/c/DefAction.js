@@ -7,7 +7,7 @@ module.exports = function(ast, comp, e){
         body.push(comp(d));
     });
 
-    body.push(e(";", e("call", e("id", "processActionBlock", ast.action_block.loc), [
+    body.push(e(";", e("ycall", e("id", "processActionBlock", ast.action_block.loc), [
         e("id", "ctx", ast.action_block),
         comp(ast.action_block),
     ], ast.action_block.loc), ast.action_block.loc));

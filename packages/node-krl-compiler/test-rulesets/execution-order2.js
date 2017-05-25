@@ -26,7 +26,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["2 - reset_order"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["2 - reset_order"]);
             }
           }]
       },
@@ -71,7 +71,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["2 - foo_or_bar"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["2 - foo_or_bar"]);
             }
           }]
       },
@@ -105,7 +105,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["2 - foo"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["2 - foo"]);
             }
           }]
       },
@@ -139,7 +139,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["2 - bar"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["2 - bar"]);
             }
           }]
       },

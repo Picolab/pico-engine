@@ -76,7 +76,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", [
+              var returns = yield runAction(ctx, void 0, "send_directive", [
                 "foo",
                 {
                   "foo": yield (yield ctx.modules.get(ctx, "keys", "foo"))(ctx, []),
