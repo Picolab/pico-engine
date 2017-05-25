@@ -281,6 +281,26 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
                 signal("events", "on_choose", {thing: "wat?"}),
                 []
             ],
+            function(next){
+                signal("events", "on_sample")(function(err, resp){
+                    if(err) return next(err);
+                    t.equals(_.size(resp.directives), 1, "only one action should be sampled");
+                    t.ok(/^on_sample - (one|two|three)$/.test(_.head(resp.directives).name));
+                    next();
+                });
+            },
+            [
+                signal("events", "on_sample_if"),
+                []//nothing b/c it did not fire
+            ],
+            function(next){
+                signal("events", "on_sample_if", {fire: "yes"})(function(err, resp){
+                    if(err) return next(err);
+                    t.equals(_.size(resp.directives), 1, "only one action should be sampled");
+                    t.ok(/^on_sample - (one|two|three)$/.test(_.head(resp.directives).name));
+                    next();
+                });
+            },
             [
                 query("getOnChooseFired"),
                 false
@@ -469,7 +489,7 @@ test("PicoEngine - io.picolabs.chevron ruleset", function(t){
             λ.curry(pe.installRuleset, "id0", "io.picolabs.chevron"),
             [
                 query("d"),
-                "\n      hi 1 + 2 = 3\n      <h1>some<b>html</b></h1>\n    "
+                "\n            hi 1 + 2 = 3\n            <h1>some<b>html</b></h1>\n        "
             ]
         ], t.end);
     });
@@ -788,7 +808,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rid: "io.picolabs.meta",
                     host: "https://test-host",
                     rulesetName: "testing meta module",
-                    rulesetDescription: "\nsome description for the meta test module\n    ",
+                    rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
                     rulesetURI: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
                     ruleName: "meta_event",
@@ -803,7 +823,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rid: "io.picolabs.meta",
                     host: "https://test-host",
                     rulesetName: "testing meta module",
-                    rulesetDescription: "\nsome description for the meta test module\n    ",
+                    rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
                     rulesetURI: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
                     ruleName: void 0,
@@ -1381,7 +1401,7 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
             ],
             [
                 query("getSettingVal"),
-                [{name: "bar", type: "directive", options: {a: "baz", b: "qux", c: "quux"},  meta: {eid: "1234", rid: "io.picolabs.defaction", rule_name: "bar_setting", txn_id: "TODO"}}]
+                {name: "bar", type: "directive", options: {a: "baz", b: "qux", c: "quux"},  meta: {eid: "1234", rid: "io.picolabs.defaction", rule_name: "bar_setting", txn_id: "TODO"}}
             ],
             [
                 signal("defa", "chooser", {val: "asdf"}),
@@ -1414,6 +1434,22 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
                     next();
                 });
             },
+            [
+                signal("defa", "returns"),
+                [{name: "wat:whereinthe", options: {b: 333}}]
+            ],
+            [
+                query("getSettingVal"),
+                ["where", "in", "the", "wat:whereinthe 433"]
+            ],
+            [
+                signal("defa", "scope"),
+                []
+            ],
+            [
+                query("getSettingVal"),
+                ["aint", "no", "echo", null, "send wat? noop returned: null"]
+            ],
         ], t.end);
     });
 });

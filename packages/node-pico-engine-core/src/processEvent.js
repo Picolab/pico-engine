@@ -1,8 +1,8 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
-var processAction = require("./processAction");
 var selectRulesToEval = require("./selectRulesToEval");
+var processActionBlock = require("./processActionBlock");
 
 var scheduleEvent = function(core, ctx, args, callback){
     if(!_.has(ctx, ["event", "eci"])){
@@ -78,7 +78,7 @@ var evalRule = cocb.wrap(function*(ctx, rule){
         yield runKRL(rule.prelude, ctx);
     }
 
-    var action_r = yield processAction(ctx, rule.action_block);
+    var action_r = yield processActionBlock(ctx, rule.action_block);
 
     if(action_r.did_fire){
         ctx.emit("debug", "fired");

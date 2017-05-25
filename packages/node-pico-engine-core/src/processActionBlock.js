@@ -1,21 +1,35 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
+var mkKRLfn = require("./mkKRLfn");
+
+var send_directive = mkKRLfn([
+    "name",
+    "options",
+], function(args, ctx, callback){
+    callback(null, ctx.addActionResponse(ctx, "directive", {
+        name: args.name,
+        options: args.options || {},
+    }));
+});
 
 var runSubAction = cocb.wrap(function*(ctx, domain, id, args){
     if(domain){
-        return yield ctx.modules.action(ctx, domain, id, args);
+        return [
+            //modules only return one value
+            yield ctx.modules.action(ctx, domain, id, args)
+        ];
     }
     if(id === "noop"){
-        return;
-    }
-    if(id === "send_directive"){
-        return ctx.addActionResponse(ctx, "directive", {
-            name: args[0],
-            options: _.omit(args, "0")
-        });
+        return [null];//returns nothing
     }
     if(!ctx.scope.has(id)){
+        if(id === "send_directive" || id === "sendDirective"){
+            return [
+                //returns only one value
+                yield send_directive(ctx, args)
+            ];
+        }
         throw new Error("`" + id + "` is not defined");
     }
     var definedAction = ctx.scope.get(id);
@@ -25,7 +39,7 @@ var runSubAction = cocb.wrap(function*(ctx, domain, id, args){
     return yield definedAction(ctx, args);
 });
 
-var processAction = cocb.wrap(function*(ctx, action_block){
+var processActionBlock = cocb.wrap(function*(ctx, action_block){
     var did_fire = true;
 
     var condFn = _.get(action_block, ["condition"]);
@@ -39,26 +53,34 @@ var processAction = cocb.wrap(function*(ctx, action_block){
         if(_.isEmpty(actions)){
             did_fire = false;//not fired b/c nothing matched
         }
-    }else if(!cond){
-        did_fire = false;//not fired b/c falsey cond
+    }else if(block_type === "sample"){
+        if(!cond){
+            did_fire = false;//not fired b/c falsey cond
+        }else if(!_.isEmpty(actions)){
+            //grab a random action
+            actions = [_.sample(actions)];
+        }
+    }else if(block_type === "every"){
+        if(!cond){
+            did_fire = false;//not fired b/c falsey cond
+        }
+    }else{
+        throw new Error("unsupported action block_type: " + block_type);
     }
 
     if(!did_fire){
         actions = [];//don't run anything
     }
 
-    var returns = [];
-
     var i;
     for(i = 0; i < actions.length; i++){
         //TODO collect errors and respond individually to the client
         //TODO try{}catch(e){}
-        returns.push(yield runKRL(actions[i].action, ctx, runSubAction));
+        yield runKRL(actions[i].action, ctx, runSubAction);
     }
     return {
         did_fire: did_fire,
-        returns: returns,
     };
 });
 
-module.exports = processAction;
+module.exports = processActionBlock;

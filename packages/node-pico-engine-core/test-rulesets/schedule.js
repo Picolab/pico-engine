@@ -34,7 +34,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["clear_log"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["clear_log"]);
             }
           }]
       },
@@ -65,13 +65,16 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["push_log"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["push_log"]);
             }
           }]
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "log"), yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [])));
+          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "log"),
+            yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [yield ctx.modules.get(ctx, "ent", "log")])
+          ]));
         },
         "notfired": undefined,
         "always": undefined
@@ -96,7 +99,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["in_5min"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["in_5min"]);
             }
           }]
       },
@@ -114,7 +117,10 @@ module.exports = {
               { "minutes": 5 }
             ])
           }));
-          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "log"), { "scheduled in_5min": ctx.scope.get("foo") }));
+          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "log"),
+            { "scheduled in_5min": ctx.scope.get("foo") }
+          ]));
         },
         "notfired": undefined,
         "always": undefined
@@ -139,7 +145,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["every_1min"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["every_1min"]);
             }
           }]
       },
@@ -154,7 +160,10 @@ module.exports = {
             },
             "timespec": "* */1 * * * *"
           }));
-          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "log"), { "scheduled every_1min": ctx.scope.get("foo") }));
+          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "log"),
+            { "scheduled every_1min": ctx.scope.get("foo") }
+          ]));
         },
         "notfired": undefined,
         "always": undefined
@@ -179,7 +188,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, "schedule", "remove", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["id"])]);
+              var returns = yield runAction(ctx, "schedule", "remove", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["id"])]);
             }
           }]
       }

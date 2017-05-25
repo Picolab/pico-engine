@@ -25,7 +25,10 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "error_log", yield ctx.callKRLstdlib("append", yield ctx.modules.get(ctx, "ent", "error_log"), yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [])));
+          yield ctx.modules.set(ctx, "ent", "error_log", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "error_log"),
+            yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [yield ctx.modules.get(ctx, "ent", "error_log")])
+          ]));
         },
         "notfired": undefined,
         "always": undefined
@@ -50,7 +53,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["basic0"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["basic0"]);
             }
           }]
       },
@@ -81,7 +84,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["basic1"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["basic1"]);
             }
           }]
       },

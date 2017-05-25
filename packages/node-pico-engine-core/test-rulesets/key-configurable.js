@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.key-configurable",
   "meta": {
     "name": "key-configurable",
-    "description": "\nThis is a test for api libraries that depend on keys as input\n    ",
+    "description": "\nThis is a test for api libraries that depend on keys as input\n        ",
     "configure": function* (ctx) {
       ctx.scope.set("key1", "default-key1");
       ctx.scope.set("key2", "default-key2");

@@ -21,13 +21,16 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["foo"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["foo"]);
             }
           }]
       },
       "postlude": {
         "fired": function* (ctx) {
-          if (yield ctx.callKRLstdlib("==", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["stop"]), "foo"))
+          if (yield ctx.callKRLstdlib("==", [
+              yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["stop"]),
+              "foo"
+            ]))
             ctx.stopRulesetExecution();
         },
         "notfired": undefined,
@@ -53,13 +56,16 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["bar"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["bar"]);
             }
           }]
       },
       "postlude": {
         "fired": function* (ctx) {
-          if (yield ctx.callKRLstdlib("==", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["stop"]), "bar"))
+          if (yield ctx.callKRLstdlib("==", [
+              yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["stop"]),
+              "bar"
+            ]))
             ctx.stopRulesetExecution();
         },
         "notfired": undefined,
@@ -85,7 +91,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["baz"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["baz"]);
             }
           }]
       },
@@ -116,7 +122,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", ["qux"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["qux"]);
             }
           }]
       }

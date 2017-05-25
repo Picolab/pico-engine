@@ -273,7 +273,7 @@ test("engine:describeRuleset", function(t){
             t.ok(isIsoString(desc.timestamp_enable));
             t.deepEquals(desc.meta, {
                 name: "Hello World",
-                description: "\nA first ruleset for the Quickstart\n    ",
+                description: "\nA first ruleset for the Quickstart\n        ",
                 author: "Phil Windley",
             });
 

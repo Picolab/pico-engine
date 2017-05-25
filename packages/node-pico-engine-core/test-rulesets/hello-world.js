@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.hello_world",
   "meta": {
     "name": "Hello World",
-    "description": "\nA first ruleset for the Quickstart\n    ",
+    "description": "\nA first ruleset for the Quickstart\n        ",
     "author": "Phil Windley",
     "logging": true,
     "shares": ["hello"]
@@ -10,7 +10,10 @@ module.exports = {
   "global": function* (ctx) {
     ctx.scope.set("hello", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("obj", getArg("obj", 0));
-      ctx.scope.set("msg", yield ctx.callKRLstdlib("+", "Hello ", ctx.scope.get("obj")));
+      ctx.scope.set("msg", yield ctx.callKRLstdlib("+", [
+        "Hello ",
+        ctx.scope.get("obj")
+      ]));
       return ctx.scope.get("msg");
     }));
   },
@@ -34,10 +37,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              return yield runAction(ctx, void 0, "send_directive", {
-                "0": "say",
-                "something": "Hello World"
-              });
+              var returns = yield runAction(ctx, void 0, "send_directive", [
+                "say",
+                { "something": "Hello World" }
+              ]);
             }
           }]
       }

@@ -323,9 +323,12 @@ core-util-is@~1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
 
-cron-parser@1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/cron-parser/-/cron-parser-1.1.0.tgz#075b84c459c155e8c482ab4d56aff99dae58352e"
+cron-parser@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/cron-parser/-/cron-parser-2.4.0.tgz#7c6be0693b90c92c3914fecdae16f88dcef2f437"
+  dependencies:
+    is-nan "^1.2.1"
+    moment-timezone "^0.5.0"
 
 cross-spawn@~4.0.0:
   version "4.0.2"
@@ -384,7 +387,7 @@ deferred-leveldown@~1.2.1:
   dependencies:
     abstract-leveldown "~2.4.0"
 
-define-properties@^1.1.2:
+define-properties@^1.1.1, define-properties@^1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/define-properties/-/define-properties-1.1.2.tgz#83a73f2fea569898fb737193c8f873caf6d45c94"
   dependencies:
@@ -456,8 +459,8 @@ es-to-primitive@^1.1.1:
     is-symbol "^1.0.1"
 
 es5-ext@^0.10.14, es5-ext@^0.10.9, es5-ext@~0.10.14:
-  version "0.10.20"
-  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.20.tgz#72a9b4fd5832797ba1bb65dceb2e25c04241c492"
+  version "0.10.21"
+  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.21.tgz#19a725f9e51d0300bbc1e8e821109fd9daf55925"
   dependencies:
     es6-iterator "2"
     es6-symbol "~3.1"
@@ -1009,6 +1012,12 @@ is-my-json-valid@^2.10.0:
     jsonpointer "^4.0.0"
     xtend "^4.0.0"
 
+is-nan@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/is-nan/-/is-nan-1.2.1.tgz#9faf65b6fb6db24b7f5c0628475ea71f988401e2"
+  dependencies:
+    define-properties "^1.1.1"
+
 is-number@^2.0.2, is-number@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/is-number/-/is-number-2.1.0.tgz#01fcbbb393463a548f2f466cce16dece49db908f"
@@ -1143,21 +1152,21 @@ kind-of@^3.0.2:
   dependencies:
     is-buffer "^1.1.5"
 
-krl-compiler@>=0.26.2:
-  version "0.31.5"
-  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.31.5.tgz#efafeafeacdfb87707e9edbbaf72e7220fd9a79f"
+krl-compiler@>=0.32.3:
+  version "0.32.3"
+  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.32.3.tgz#1138b0fb4fe9c42e0c339937c5f60ee05dcc3131"
   dependencies:
     btoa "^1.1.2"
     escodegen "^1.8.0"
     estree-builder "^1.6.0"
     estree-loc "^2.0.0"
-    krl-parser "^0.22.0"
+    krl-parser "^0.23.1"
     lodash "^4.13.1"
     minimist "^1.2.0"
 
-krl-parser@^0.22.0:
-  version "0.22.0"
-  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.22.0.tgz#ac720f70ad8bcfb2ba3c20c8b02e7827d0a074f9"
+krl-parser@^0.23.1:
+  version "0.23.1"
+  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.23.1.tgz#a423cecb49924ec404d86dcb3f35deb47497584c"
   dependencies:
     excerpt-at-line-col "^1.0.0"
     line-column "^1.0.2"
@@ -1195,8 +1204,8 @@ level-json-coerce-null@^1.0.0:
   resolved "https://registry.yarnpkg.com/level-json-coerce-null/-/level-json-coerce-null-1.0.1.tgz#943240828be0ba1d1eb2cd0782365b3f006ae1bc"
 
 levelup@^1.3.2:
-  version "1.3.6"
-  resolved "https://registry.yarnpkg.com/levelup/-/levelup-1.3.6.tgz#0616ab742cc65d3a3fa9db6f5640c9760824bf64"
+  version "1.3.7"
+  resolved "https://registry.yarnpkg.com/levelup/-/levelup-1.3.7.tgz#70df7c1116fbc8b9efc434f4cfa21f27e2eef9f9"
   dependencies:
     deferred-leveldown "~1.2.1"
     level-codec "~6.1.0"
@@ -1297,7 +1306,7 @@ minimist@^1.2.0, minimist@~1.2.0:
   dependencies:
     minimist "0.0.8"
 
-moment-timezone@^0.5.13:
+moment-timezone@^0.5.0, moment-timezone@^0.5.13:
   version "0.5.13"
   resolved "https://registry.yarnpkg.com/moment-timezone/-/moment-timezone-0.5.13.tgz#99ce5c7d827262eb0f1f702044177f60745d7b90"
   dependencies:
@@ -1350,10 +1359,10 @@ node-pre-gyp@^0.6.29:
     tar-pack "^3.4.0"
 
 node-schedule@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/node-schedule/-/node-schedule-1.2.1.tgz#8800b34d0cceb0ff0318432ef9f20b2499630e36"
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/node-schedule/-/node-schedule-1.2.3.tgz#8026f99bd9441dbcc89c765a629e76bc0a5fe79d"
   dependencies:
-    cron-parser "1.1.0"
+    cron-parser "^2.4.0"
     long-timeout "0.1.1"
     sorted-array-functions "^1.0.0"
 
