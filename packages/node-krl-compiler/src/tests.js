@@ -4,9 +4,9 @@ var fs = require("fs");
 var diff = require("diff-lines");
 var path = require("path");
 var test = require("tape");
-var compiler = require("./src/");
+var compiler = require("./");
 
-var files_dir = path.resolve(__dirname, "./test-rulesets");
+var files_dir = path.resolve(__dirname, "../test-rulesets");
 
 test("compiler", function(t){
     fs.readdir(files_dir, function(err, files){

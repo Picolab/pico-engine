@@ -11,9 +11,9 @@
     "src"
   ],
   "scripts": {
-    "start": "onchange -i src/ tests.js test-rulesets/ -- npm test -s",
-    "lint": "eslint src/ tests.js && echo lint-ok",
-    "test": "npm run lint -s && node tests.js"
+    "start": "onchange -i src/ test-rulesets/ -- npm test -s",
+    "lint": "eslint src/ && echo lint-ok",
+    "test": "npm run lint -s && node src/tests.js"
   },
   "repository": {
     "type": "git",
