@@ -41,13 +41,16 @@ This is a test file for a module that uses keys
     }
     rule key_used_foo {
         select when key_used foo;
+
         pre {
             foo_pre = keys:foo()
         }
+
         send_directive("foo", {
             "foo": keys:foo(),
             "foo_pre": foo_pre
         });
+
         always {
             ent:foo_postlude := keys:foo()
         }

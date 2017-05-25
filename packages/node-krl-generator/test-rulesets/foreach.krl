@@ -45,6 +45,7 @@ ruleset io.picolabs.foreach {
         pre {
             baz = foo * bar
         }
+
         send_directive("scope", {
             "foo": foo,
             "bar": bar,

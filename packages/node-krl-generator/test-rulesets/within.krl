@@ -4,6 +4,7 @@ ruleset io.picolabs.within {
             before
             foo b
             within 5 minutes;
+
         send_directive("foo");
     }
     rule bar {
@@ -11,6 +12,7 @@ ruleset io.picolabs.within {
             before
             bar b
             within 1 + 3 second;
+
         send_directive("bar");
     }
     rule baz {
@@ -22,6 +24,7 @@ ruleset io.picolabs.within {
                 baz c
             )
             within 1 year;
+
         send_directive("baz");
     }
     rule qux {
@@ -29,6 +32,7 @@ ruleset io.picolabs.within {
             qux a b re#c#
         )
             within 2 seconds;
+
         send_directive("qux");
     }
 }

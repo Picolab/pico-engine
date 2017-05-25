@@ -15,9 +15,9 @@ module.exports = function(ast, ind, gen){
             src += ind(i + 1);
             src += gen(f, i + 1) + "\n";
         });
-        src += "\n";
     }
     if(!_.isEmpty(ast.prelude)){
+        src += "\n";
         src += ind(1) + "pre {\n";
         src += gen(ast.prelude, 2) + "\n";
         src += ind(1) + "}\n";
@@ -28,6 +28,7 @@ module.exports = function(ast, ind, gen){
     if(ast.postlude){
         src += gen(ast.postlude, 1) + "\n";
     }
-    src += ind() + "}";
+    src = _.trimEnd(src);
+    src += "\n" + ind() + "}";
     return src;
 };

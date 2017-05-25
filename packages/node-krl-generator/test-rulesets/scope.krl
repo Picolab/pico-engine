@@ -32,20 +32,24 @@ ruleset io.picolabs.scope {
         select when scope event0 name re#^(.*)$# setting(my_name)
             or
             scope event1;
+
         send_directive("say", {"name": my_name});
     }
     rule prelude_scope {
         select when scope prelude name re#^(.*)$# setting(name);
+
         pre {
             p0 = "prelude 0"
             p1 = "prelude 1"
         }
+
         send_directive("say", {
             "name": name,
             "p0": p0,
             "p1": p1,
             "g0": g0
         });
+
         always {
             ent:ent_var_name := name;
             ent:ent_var_p0 := p0;
@@ -54,10 +58,12 @@ ruleset io.picolabs.scope {
     }
     rule functions {
         select when scope functions;
+
         pre {
             g0 = "overrided g0!"
             inc5 = incByN(5)
         }
+
         send_directive("say", {
             "add_one_two": add(1, 2),
             "inc5_3": inc5(3),

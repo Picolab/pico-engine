@@ -18,6 +18,7 @@ ruleset io.picolabs.events {
     }
     rule set_attr {
         select when events bind name re#^(.*)$# setting(my_name);
+
         send_directive("bound", {"name": my_name});
     }
     rule set_attr2 {
@@ -25,6 +26,7 @@ ruleset io.picolabs.events {
                 number re#[Nn]0*(\d*)#
                 name re#(.*)#
                 setting(number, name);
+
         send_directive("set_attr2", {
             "number": number,
             "name": name
@@ -32,9 +34,11 @@ ruleset io.picolabs.events {
     }
     rule get_attr {
         select when events get;
+
         pre {
             thing = event:attr("thing")
         }
+
         send_directive("get", {"thing": thing});
     }
     rule noop {
@@ -42,6 +46,7 @@ ruleset io.picolabs.events {
     }
     rule noop2 {
         select when events noop2;
+
         noop();
     }
     rule ifthen {
@@ -49,11 +54,12 @@ ruleset io.picolabs.events {
 
         if my_name then
             send_directive("ifthen");
-
     }
     rule on_fired {
         select when events on_fired name re#^(.*)$# setting(my_name);
+
         send_directive("on_fired", {"previous_name": ent:on_fired_prev_name});
+
         fired {
             ent:on_fired_prev_name := my_name
         }
@@ -64,6 +70,7 @@ ruleset io.picolabs.events {
         choose thing {
             one =>
                 send_directive("on_choose - one");
+
             two =>
                 send_directive("on_choose - two");
         }
@@ -79,12 +86,13 @@ ruleset io.picolabs.events {
 
         every {
             send_directive("on_every - one");
+
             send_directive("on_every - two");
         }
-
     }
     rule select_where {
         select when events select_where where something.match(re#^wat#);
+
         send_directive("select_where");
     }
     rule no_action {
@@ -97,6 +105,7 @@ ruleset io.picolabs.events {
     }
     rule action_send {
         select when events action_send name re#^(.*)$# setting(my_name);
+
         event:send({
             "eci": meta:eci,
             "eid": "0",
@@ -128,6 +137,7 @@ ruleset io.picolabs.events {
     }
     rule raise_set_name_rid {
         select when events raise_set_name_rid name re#^(.*)$# setting(my_name);
+
         pre {
             rid = "io.picolabs.events"
         }
@@ -138,6 +148,7 @@ ruleset io.picolabs.events {
     }
     rule event_eid {
         select when events event_eid;
+
         send_directive("event_eid", {"eid": event:eid});
     }
 }

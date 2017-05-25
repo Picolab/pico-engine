@@ -9,7 +9,9 @@ ruleset io.picolabs.guard-conditions {
     }
     rule foo {
         select when foo a b re#^(.*)$# setting(b);
+
         send_directive("foo", {"b": b});
+
         always {
             ent:b := b if b.match(re#foo#)
         }
@@ -22,6 +24,7 @@ ruleset io.picolabs.guard-conditions {
             "b": x,
             "b": ent:b
         });
+
         always {
             ent:b := x on final
         }

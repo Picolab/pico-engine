@@ -12,12 +12,10 @@ module.exports = function(ast, ind, gen){
         return gen(stmt, 1);
     }).join(";\n");
 
-    src += "\n";
-
-    src += _.trimEnd(gen(ast.action_block, 1));
+    src += gen(ast.action_block, 1);
 
     if(!_.isEmpty(ast.returns)){
-        src += "\n\n" + ind(1);
+        src += "\n" + ind(1);
         if(_.size(ast.returns) === 1){
             src += "return ";
         }else{
@@ -28,6 +26,7 @@ module.exports = function(ast, ind, gen){
         }).join(", ");
     }
 
+    src = _.trimEnd(src);
     src += "\n" + ind() + "}";
 
     return src;
