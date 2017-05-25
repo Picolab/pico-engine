@@ -37,8 +37,6 @@ Antonio Sanso.
             <h2>Approve this client?</h2>
             <p ng-if="client_name"><b>Name:</b> {{client_name}}</p>
             <p><b>ID:</b> {{client_id}}</p>
-            <p ng-if="client_uri"><b>URI:</b> {{client_uri}}</p>
-            <p ng-if="client_logo_uri"><b>logo:</b> <img src="{{client_logo_uri}}" alt="client logo"></p>
             <form class="form" action="/approve" method="POST">
                <input type="hidden" name="reqid" value="{{reqid}}">
                <input type="submit" class="button" name="approve" value="Approve">
