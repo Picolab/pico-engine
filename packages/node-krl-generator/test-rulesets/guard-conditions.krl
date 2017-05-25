@@ -21,7 +21,7 @@ ruleset io.picolabs.guard-conditions {
         foreach [1, 2, 3] setting(x)
 
         send_directive("bar", {
-            "b": x,
+            "x": x,
             "b": ent:b
         });
 

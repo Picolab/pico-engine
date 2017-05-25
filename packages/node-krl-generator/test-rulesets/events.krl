@@ -90,6 +90,29 @@ ruleset io.picolabs.events {
             send_directive("on_every - two");
         }
     }
+    rule on_sample {
+        select when events on_sample
+
+        sample {
+            send_directive("on_sample - one");
+
+            send_directive("on_sample - two");
+
+            send_directive("on_sample - three");
+        }
+    }
+    rule on_sample_if {
+        select when events on_sample_if
+
+        if event:attr("fire") == "yes" then
+        sample {
+            send_directive("on_sample - one");
+
+            send_directive("on_sample - two");
+
+            send_directive("on_sample - three");
+        }
+    }
     rule select_where {
         select when events select_where where something.match(re#^wat#)
 

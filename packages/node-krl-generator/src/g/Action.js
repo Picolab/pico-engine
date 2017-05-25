@@ -13,7 +13,11 @@ module.exports = function(ast, ind, gen){
     src += gen(ast.args);
     src += ")";
     if(!_.isEmpty(ast.setting)){
-        src += " setting(" + gen(ast.setting) + ")";
+        src += " setting(";
+        src += _.map(ast.setting, function(s){
+            return gen(s);
+        }).join(", ");
+        src += ")";
     }
     src += ";";
     src += "\n";

@@ -11,6 +11,9 @@ module.exports = function(ast, ind, gen){
     src += _.map(ast.body, function(stmt){
         return gen(stmt, 1);
     }).join(";\n");
+    if(!_.isEmpty(ast.body)){
+        src += "\n";
+    }
 
     src += gen(ast.action_block, 1);
 

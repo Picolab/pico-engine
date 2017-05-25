@@ -18,10 +18,10 @@ ruleset io.picolabs.http {
         }
         doPost = defaction(base_url, to, msg){
 
-            http:post(url + "/msg.json", {"from": {
+            http:post(url + "/msg.json", from = {
                 "To": to,
                 "Msg": msg
-            }});
+            });
         }
     }
     rule http_get {
@@ -31,10 +31,11 @@ ruleset io.picolabs.http {
             url = event:attr("url")
         }
         fired {
-            resp = http:get(url, {
-                "qs": {"foo": "bar"},
-                "headers": {"baz": "quix"}
-            });
+            resp = http:get(
+                url,
+                qs = {"foo": "bar"},
+                headers = {"baz": "quix"},
+            );
             ent:resp := fmtResp(resp)
         }
     }
@@ -45,7 +46,7 @@ ruleset io.picolabs.http {
             url = event:attr("url")
         }
 
-        http:post(url, {"json": {"foo": "bar"}});
+        http:post(url, json = {"foo": "bar"});
     }
     rule http_post_action {
         select when http_test post_action
@@ -54,10 +55,7 @@ ruleset io.picolabs.http {
             url = event:attr("url")
         }
 
-        doPost(url, {
-            "to": "bob",
-            "msg": "foobar"
-        });
+        doPost(url, "bob", "foobar");
     }
     rule http_post_setting {
         select when http_test post_setting
@@ -66,10 +64,11 @@ ruleset io.picolabs.http {
             url = event:attr("url")
         }
 
-        http:post(url, {
-            "qs": {"foo": "bar"},
-            "form": {"baz": "qux"}
-        }) setting(resp);
+        http:post(
+            url,
+            qs = {"foo": "bar"},
+            form = {"baz": "qux"},
+        ) setting(resp);
 
         fired {
             ent:resp := fmtResp(resp)
@@ -82,11 +81,12 @@ ruleset io.picolabs.http {
             url = event:attr("url")
         }
 
-        http:post(url, {
-            "qs": {"foo": "bar"},
-            "form": {"baz": "qux"},
-            "autoraise": "foobar"
-        });
+        http:post(
+            url,
+            qs = {"foo": "bar"},
+            form = {"baz": "qux"},
+            autoraise = "foobar",
+        );
     }
     rule http_post_event_handler {
         select when http post

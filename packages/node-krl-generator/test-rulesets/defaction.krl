@@ -5,6 +5,7 @@ ruleset io.picolabs.defaction {
     global {
         foo = defaction(a){
             b = 2
+
             send_directive("foo", {
                 "a": a,
                 "b": b + 3
@@ -20,7 +21,9 @@ ruleset io.picolabs.defaction {
                 "a": one,
                 "b": two,
                 "c": three
-            });
+            }) setting(dir);
+
+            return dir
         }
         getSettingVal = function(){
             ent:setting_val;
@@ -50,11 +53,14 @@ ruleset io.picolabs.defaction {
 
             returns a, b, c
         }
-        addAction = defaction(a, b){
+        complexAction = defaction(a, b){
+            c = 100;
+            d = c + b
 
-            noop();
+            if c > 0 then
+                send_directive("wat:" + a, {"b": b}) setting(dir);
 
-            return a + b
+            return dir["name"] + " " + d
         }
         add = function(a, b){
             {
@@ -72,18 +78,20 @@ ruleset io.picolabs.defaction {
     rule bar {
         select when defa bar
 
-        bar("baz", {
-            "two": "qux",
-            "three": "quux"
-        });
+        bar(
+            "baz",
+            two = "qux",
+            three = "quux",
+        );
     }
     rule bar_setting {
         select when defa bar_setting
 
-        bar("baz", {
-            "two": "qux",
-            "three": "quux"
-        }) setting(val);
+        bar(
+            "baz",
+            two = "qux",
+            three = "quux",
+        ) setting(val);
 
         fired {
             ent:setting_val := val
@@ -103,5 +111,54 @@ ruleset io.picolabs.defaction {
         select when defa add
 
         add(1, 2);
+    }
+    rule returns {
+        select when defa returns
+
+        every {
+            echoAction("where", "in", "the") setting(a, b, c);
+
+            complexAction(a + b + c, 333) setting(d);
+        }
+
+        fired {
+            ent:setting_val := [a, b, c, d]
+        }
+    }
+    rule scope {
+        select when defa scope
+
+        pre {
+            noop = defaction(){
+
+                noop();
+
+                return "did something!"
+            }
+            send_directive = defaction(){
+
+                noop() setting(foo);
+
+                return "send wat? noop returned: " + foo
+            }
+            echoAction = defaction(){
+
+                noop();
+
+                returns "aint", "no", "echo"
+            }
+        }
+
+        every {
+            echoAction("where", "in", "the") setting(a, b, c);
+
+            noop() setting(d);
+
+            send_directive() setting(e);
+        }
+
+        fired {
+            ent:setting_val := [a, b, c, d, e]
+        }
     }
 }
