@@ -8,9 +8,10 @@ module.exports = function(ast, comp, e){
         if(i < (ast.body.length - 1)){
             return body.push(comp(part));
         }
-        if(part.type === "ExpressionStatement"){
-            part = part.expression;
+        if(part.type !== "ExpressionStatement"){
+            throw new Error("function must end with an expression");
         }
+        part = part.expression;
         return body.push(e("return", comp(part)));
     });
 

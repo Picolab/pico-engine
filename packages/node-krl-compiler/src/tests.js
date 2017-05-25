@@ -64,5 +64,23 @@ test("compiler errors", function(t){
     }catch(err){
         t.ok(true);
     }
+    try{
+        compiler("function(a, b = 1, c){a}");
+        t.fail("once you have a default param, all following must have a default");
+    }catch(err){
+        t.equals(err + "", "Error: non-default argument follows default argument");
+    }
+    try{
+        compiler("add(b = 1, 2)");
+        t.fail("once you used a named arg, all following should be named");
+    }catch(err){
+        t.equals(err + "", "Error: non-named arg after named arg");
+    }
+    try{
+        compiler("function(){a = 1}");
+        t.fail("function must end with an expression");
+    }catch(err){
+        t.equals(err + "", "Error: function must end with an expression");
+    }
     t.end();
 });
