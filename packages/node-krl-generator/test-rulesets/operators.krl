@@ -47,10 +47,10 @@ ruleset io.picolabs.operators {
             ".uc()": "Hello World".uc()
         }
         returnMapAfterKlog = function(){
-            {"a": 1}.klog("hi:")
+            {"a": 1}.klog("hi:");
         }
         returnArrayAfterKlog = function(){
-            [1, 2].klog("hi:")
+            [1, 2].klog("hi:");
         }
     }
 

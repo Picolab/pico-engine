@@ -4,16 +4,16 @@ ruleset io.picolabs.events {
     }
     global {
         getOnChooseFired = function(){
-            ent:on_choose_fired
+            ent:on_choose_fired;
         }
         getNoActionFired = function(){
-            ent:no_action_fired
+            ent:no_action_fired;
         }
         getSentAttrs = function(){
-            ent:sent_attrs
+            ent:sent_attrs;
         }
         getSentName = function(){
-            ent:sent_name
+            ent:sent_name;
         }
     }
     rule set_attr {

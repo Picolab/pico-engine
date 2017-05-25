@@ -7,17 +7,17 @@ ruleset io.picolabs.module-defined {
     }
     global {
         privateFn = function(){
-            "privateFn = name: " + configured_name + " memo: " + ent:memo
+            "privateFn = name: " + configured_name + " memo: " + ent:memo;
         }
         getName = function(){
-            configured_name
+            configured_name;
         }
         getInfo = function(){
             {
                 "name": getName(),
                 "memo": ent:memo,
                 "privateFn": privateFn()
-            }
+            };
         }
     }
     rule store_memo {

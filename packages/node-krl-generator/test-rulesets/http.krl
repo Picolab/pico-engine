@@ -4,17 +4,17 @@ ruleset io.picolabs.http {
     }
     global {
         getResp = function(){
-            ent:resp
+            ent:resp;
         }
         getLastPostEvent = function(){
-            ent:last_post_event
+            ent:last_post_event;
         }
         fmtResp = function(r){
             r.set("content", r["content"].decode())
                 .delete(["content_length"])
                 .delete(["headers", "content-length"])
                 .delete(["headers", "date"])
-                .delete(["content", "headers", "content-length"])
+                .delete(["content", "headers", "content-length"]);
         }
         doPost = defaction(base_url, to, msg){
 

@@ -23,7 +23,7 @@ ruleset io.picolabs.defaction {
             });
         }
         getSettingVal = function(){
-            ent:setting_val
+            ent:setting_val;
         }
         chooser = defaction(val){
 
@@ -61,7 +61,7 @@ ruleset io.picolabs.defaction {
                 "type": "directive",
                 "name": "add",
                 "options": {"resp": a + b}
-            }
+            };
         }
     }
     rule foo {

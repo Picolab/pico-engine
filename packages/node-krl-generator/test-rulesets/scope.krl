@@ -11,21 +11,21 @@ ruleset io.picolabs.scope {
                 "name": ent:ent_var_name,
                 "p0": ent:ent_var_p0,
                 "p1": ent:ent_var_p1
-            }
+            };
         }
         add = function(a, b){
-            a + b
+            a + b;
         }
         sum = function(arr){
-            arr.reduce(add, 0)
+            arr.reduce(add, 0);
         }
         incByN = function(n){
             function(a){
-                a + n
-            }
+                a + n;
+            };
         }
         mapped = [1, 2, 3].map(function(n){
-            n + g1
+            n + g1;
         })
     }
     rule eventex {

@@ -4,7 +4,7 @@ ruleset io.picolabs.error {
     }
     global {
         getErrors = function(){
-            ent:error_log
+            ent:error_log;
         }
     }
     rule error_handle {

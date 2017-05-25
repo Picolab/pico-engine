@@ -21,7 +21,7 @@ some description for the meta test module
                 "inEvent": meta:inEvent,
                 "inQuery": meta:inQuery,
                 "eci": meta:eci
-            }
+            };
         }
     }
     rule meta_event {

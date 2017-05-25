@@ -23,8 +23,8 @@ ruleset io.picolabs.expressions {
         true_and_false = true && false
         incByN = function(n){
             function(a){
-                a + n
-            }
+                a + n;
+            };
         }
         paramFn = function(
             foo = incByN(3),
@@ -32,14 +32,14 @@ ruleset io.picolabs.expressions {
             baz = bar + 2,
             qux = baz + "?",
         ){
-            [bar, baz, qux]
+            [bar, baz, qux];
         }
         paramFnTest = function(){
             [
                 paramFn(),
                 paramFn(incByN(100), "one"),
                 paramFn(null, 3, 4, 5)
-            ]
+            ];
         }
     }
 

@@ -4,16 +4,16 @@ ruleset io.picolabs.persistent {
     }
     global {
         getName = function(){
-            ent:name
+            ent:name;
         }
         getAppVar = function(){
-            app:appvar
+            app:appvar;
         }
         getUser = function(){
-            ent:user
+            ent:user;
         }
         getUserFirstname = function(){
-            ent:user{["firstname"]}
+            ent:user{["firstname"]};
         }
     }
     rule store_my_name {

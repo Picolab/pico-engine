@@ -14,22 +14,22 @@ This is a test file for a module that uses keys
     }
     global {
         getFoo = function(){
-            keys:foo()
+            keys:foo();
         }
         getBar = function(){
-            keys:bar()
+            keys:bar();
         }
         getBarN = function(name){
-            keys:bar(name)
+            keys:bar(name);
         }
         getQuux = function(){
-            keys:quux()
+            keys:quux();
         }
         getQuuz = function(){
-            keys:quuz()
+            keys:quuz();
         }
         getAPIKeys = function(){
-            api:getKeys()
+            api:getKeys();
         }
     }
 

@@ -12,7 +12,7 @@ ruleset io.picolabs.module-used {
     }
     global {
         now = function(){
-            time:now()
+            time:now();
         }
     }
     rule dflt_name {

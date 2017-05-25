@@ -4,10 +4,10 @@ ruleset io.picolabs.schedule {
     }
     global {
         getLog = function(){
-            ent:log
+            ent:log;
         }
         listScheduled = function(){
-            schedule:list()
+            schedule:list();
         }
     }
     rule clear_log {

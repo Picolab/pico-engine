@@ -4,7 +4,7 @@ ruleset io.picolabs.guard-conditions {
     }
     global {
         getB = function(){
-            ent:b
+            ent:b;
         }
     }
     rule foo {

@@ -4,7 +4,7 @@ ruleset io.picolabs.foreach {
     }
     global {
         doubleThis = function(arr){
-            [arr, arr]
+            [arr, arr];
         }
     }
     rule basic {

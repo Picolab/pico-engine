@@ -12,7 +12,7 @@ This is a test for api libraries that depend on keys as input
     }
     global {
         getKeys = function(){
-            [key1, key2]
+            [key1, key2];
         }
     }
 

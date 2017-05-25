@@ -4,7 +4,7 @@ ruleset io.picolabs.execution-order {
     }
     global {
         getOrder = function(){
-            ent:order
+            ent:order;
         }
     }
     rule first {

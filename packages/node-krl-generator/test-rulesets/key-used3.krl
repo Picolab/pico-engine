@@ -9,7 +9,7 @@ This is a test file who was shared a key, but doesn't "use" it
     }
     global {
         getFoo = function(){
-            keys:foo()
+            keys:foo();
         }
     }
 
