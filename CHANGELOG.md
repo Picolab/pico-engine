@@ -2,30 +2,55 @@
 
 ### New Features
 
-* defaction can optionally return values
+* defaction can return values (expose values to `setting(..)`)
 ```krl
 <name> = defaction(<params...>){
      <declaration 0>
      <declaration 1>
      ...
+
      <action block (i.e. anything you would put in a rule action)>
-    returns <expr 0>, <expr 1>
+
+    returns <expr 0>, <expr 1>, ...
 }
 ```
+NOTE: `returns` is optional
 
 For example
 ```krl
-foo = defaction(){
-    every {
-        http:get(...) setting(resp)
+global {
+    foo = defaction(){
+
+        send_directive("foobar")
+
+        returns 1, 2, 3
     }
-    returns resp["content"]
 }
-...
 rule bar {
     select when ...
 
-    foo() setting(answer);
+    foo() setting(a, b, c)
+
+    fired {
+        //a = 1, b = 2, c = 3
+    }
+}
+```
+
+Another example
+```krl
+global {
+    foo = defaction(){
+        every {
+            http:get(...) setting(resp)
+        }
+        return resp["content"].decode()["msg"]
+    }
+}
+rule bar {
+    select when ...
+
+    foo() setting(message)
 }
 ```
 
@@ -34,18 +59,18 @@ rule bar {
 rule bar {
     select when ...
 
-    //randomly pick one of these 3 actions
+    //randomly pick one of these 3 actions to run
     sample {
-        foo()
+        send_directive("foo")
 
-        bar()
+        send_directive("bar")
 
-        baz()
+        send_directive("baz")
     }
 }
 ```
 
-* action block syntax. All semi-colons are optional but recommended
+* action block syntax. The semi-colons are optional.
 ```
 ActionBlock ->
       <action> ;
@@ -60,7 +85,7 @@ ActionBlock ->
 
 ### BREAKING CHANGES
 
-* `with` is no longer used for named arguments. Both functions and actions.
+* `with` is no longer used for named arguments. Both for **functions** and **actions**.
 ```krl
 //OLD WAY
 foo(1, 2) with a = 3 and b = 4
@@ -99,6 +124,15 @@ select when foo bar
 ### Bug Fixes
 
 * syntax ambiguities caused by `with`
+
+
+
+
+
+
+
+
+
 
 # 0.11.0 - May 20, 2017
 
