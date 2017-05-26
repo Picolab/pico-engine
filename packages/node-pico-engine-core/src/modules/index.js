@@ -10,7 +10,8 @@ var sub_modules = {
     keys: require("./keys"),
     meta: require("./meta"),
     schedule: require("./schedule"),
-    time: require("./time")
+    time: require("./time"),
+    random: require("./random"),
 };
 
 module.exports = function(core){

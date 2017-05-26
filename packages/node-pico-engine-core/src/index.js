@@ -2,12 +2,14 @@ var _ = require("lodash");
 var λ = require("contra");
 var DB = require("./DB");
 var cocb = require("co-callback");
+var cuid = require("cuid");
 var getArg = require("./getArg");
 var hasArg = require("./hasArg");
 var runKRL = require("./runKRL");
 var Modules = require("./modules");
 var PicoQueue = require("./PicoQueue");
 var Scheduler = require("./Scheduler");
+var cleanEvent = require("./cleanEvent");
 var krl_stdlib = require("krl-stdlib");
 var getKRLByURL = require("./getKRLByURL");
 var SymbolTable = require("symbol-table");
@@ -278,11 +280,20 @@ module.exports = function(conf, callback){
     });
 
     var signalEvent = function(event_orig, callback){
-        //ensure that event is not mutated
-        var event = _.cloneDeep(event_orig);//TODO optimize
-        if(!_.isDate(event.timestamp) || !conf.allow_event_time_override){
-            event.timestamp = new Date();
+        var event;
+        try{
+            //validate + normalize event, and make sure is not mutated
+            event = cleanEvent(event_orig);
+        }catch(err){
+            return callback(err);
         }
+
+        if(event.eid === "none"){
+            event.eid = cuid();
+        }
+        event.timestamp = conf.allow_event_time_override && _.isDate(event_orig.timestamp)
+            ? event_orig.timestamp
+            : new Date();
 
         var emit = mkCTX({event: event}).emit;
         emit("episode_start");

@@ -1,6 +1,6 @@
 {
   "name": "pico-engine-core",
-  "version": "0.30.0",
+  "version": "0.30.1",
   "description": "The core javascript api for the pico-engine. (no http, logging, process management etc...)",
   "main": "src/index.js",
   "files": [
@@ -28,7 +28,7 @@
   "homepage": "https://github.com/Picolab/node-pico-engine-core#readme",
   "devDependencies": {
     "eslint": "^3.0.1",
-    "krl-compiler": ">=0.32.3",
+    "krl-compiler": "^0.32.5",
     "memdown": "^1.2.0",
     "onchange": "^3.0.0",
     "tape": "^4.6.0"
@@ -46,6 +46,7 @@
     "long-timeout": "^0.1.1",
     "moment-timezone": "^0.5.13",
     "node-schedule": "^1.2.1",
+    "random-words": "0.0.1",
     "request": "^2.79.0",
     "strftime": "^0.10.0",
     "symbol-table": "^1.1.0"

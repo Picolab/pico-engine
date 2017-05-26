@@ -1152,21 +1152,21 @@ kind-of@^3.0.2:
   dependencies:
     is-buffer "^1.1.5"
 
-krl-compiler@>=0.32.3:
-  version "0.32.3"
-  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.32.3.tgz#1138b0fb4fe9c42e0c339937c5f60ee05dcc3131"
+krl-compiler@^0.32.5:
+  version "0.32.5"
+  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.32.5.tgz#cce3a55eb60eede456b93b5d31592a58fad2e95a"
   dependencies:
     btoa "^1.1.2"
     escodegen "^1.8.0"
     estree-builder "^1.6.0"
     estree-loc "^2.0.0"
-    krl-parser "^0.23.1"
+    krl-parser "^0.24.0"
     lodash "^4.13.1"
     minimist "^1.2.0"
 
-krl-parser@^0.23.1:
-  version "0.23.1"
-  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.23.1.tgz#a423cecb49924ec404d86dcb3f35deb47497584c"
+krl-parser@^0.24.0:
+  version "0.24.0"
+  resolved "https://registry.yarnpkg.com/krl-parser/-/krl-parser-0.24.0.tgz#7df5bb9a8ff4f25a9903ee9d5cb2f3823ff84a87"
   dependencies:
     excerpt-at-line-col "^1.0.0"
     line-column "^1.0.2"

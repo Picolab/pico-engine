@@ -272,7 +272,7 @@ module.exports = {
       },
       "action_block": {
         "block_type": "choose",
-        "condition": function* (ctx) {
+        "discriminant": function* (ctx) {
           return ctx.scope.get("thing");
         },
         "actions": [
@@ -286,6 +286,65 @@ module.exports = {
             "label": "two",
             "action": function* (ctx, runAction) {
               var returns = yield runAction(ctx, void 0, "send_directive", ["on_choose - two"]);
+            }
+          }
+        ]
+      },
+      "postlude": {
+        "fired": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "on_choose_fired", true);
+        },
+        "notfired": function* (ctx) {
+          yield ctx.modules.set(ctx, "ent", "on_choose_fired", false);
+        },
+        "always": undefined
+      }
+    },
+    "on_choose_if": {
+      "name": "on_choose_if",
+      "select": {
+        "graph": { "events": { "on_choose_if": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+                  "thing",
+                  new RegExp("^(.*)$", "")
+                ]]]);
+            if (!matches)
+              return false;
+            ctx.scope.set("thing", matches[0]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "action_block": {
+        "block_type": "choose",
+        "condition": function* (ctx) {
+          return yield ctx.callKRLstdlib("==", [
+            yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["fire"]),
+            "yes"
+          ]);
+        },
+        "discriminant": function* (ctx) {
+          return ctx.scope.get("thing");
+        },
+        "actions": [
+          {
+            "label": "one",
+            "action": function* (ctx, runAction) {
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_choose_if - one"]);
+            }
+          },
+          {
+            "label": "two",
+            "action": function* (ctx, runAction) {
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_choose_if - two"]);
             }
           }
         ]

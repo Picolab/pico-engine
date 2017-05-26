@@ -1,12 +1,14 @@
 var _ = require("lodash");
 var mkKRLfn = require("../mkKRLfn");
+var request = require("request");
+var cleanEvent = require("../cleanEvent");
 
 module.exports = function(core){
     var fns = {
         attr: mkKRLfn([
             "name",
         ], function(args, ctx, callback){
-            callback(null, ctx.event.attrs[args.name]);
+            callback(null, _.get(ctx, ["event", "attrs", args.name], null));
         }),
         attrs: mkKRLfn([
         ], function(args, ctx, callback){
@@ -47,9 +49,34 @@ module.exports = function(core){
         actions: {
             send: mkKRLfn([
                 "event",
+                "host",
             ], function(args, ctx, callback){
+                var event;
+                try{
+                    //validate + normalize event, and make sure is not mutated
+                    event = cleanEvent(args.event);
+                }catch(err){
+                    return callback(err);
+                }
+                if(args.host){
+                    var url = args.host;
+                    url += "/sky/event";
+                    url += "/" + event.eci;
+                    url += "/" + event.eid;
+                    url += "/" + event.domain;
+                    url += "/" + event.type;
+                    request({
+                        method: "GET",
+                        url: url,
+                        qs: event.attrs,
+                    }, function(err, res, body){
+                        //ignore it
+                    });
+                    callback();
+                    return;
+                }
                 ctx.addActionResponse(ctx, "event:send", {
-                    event: args.event,
+                    event: event,
                 });
                 callback();
             }),

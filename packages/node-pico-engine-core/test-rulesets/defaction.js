@@ -65,7 +65,7 @@ module.exports = {
       ctx.scope.set("val", getArg("val", 0));
       yield processActionBlock(ctx, {
         "block_type": "choose",
-        "condition": function* (ctx) {
+        "discriminant": function* (ctx) {
           return ctx.scope.get("val");
         },
         "actions": [
