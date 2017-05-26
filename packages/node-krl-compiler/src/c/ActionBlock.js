@@ -10,6 +10,11 @@ module.exports = function(ast, comp, e){
             e("return", comp(ast.condition))
         ]);
     }
+    if(ast.discriminant){
+        block.discriminant = e("genfn", ["ctx"], [
+            e("return", comp(ast.discriminant))
+        ]);
+    }
     block.actions = e("arr", _.map(ast.actions, function(action){
         return comp(action);
     }));
