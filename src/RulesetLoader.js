@@ -53,6 +53,9 @@ module.exports = function(conf){
             var js_src;
             try{
                 js_src = compiler(krl_src, {
+                    parser_options: {
+                        filename: rs_info.filename,
+                    },
                     inline_source_map: true
                 }).code;
             }catch(err){

@@ -161,7 +161,7 @@ ruleset Subscriptions {
       }.klog("options")
     }
     if(subscriber_eci != "no_subscriber_eci") // check if we have someone to send a request too
-    then {
+    then every {
        engine:newChannel(getSelf()["id"], options.name, options.eci_type) setting(channel);
     }
     fired {
@@ -169,18 +169,19 @@ ruleset Subscriptions {
       updatedSubs = getSubscriptions().put([newSubscription.name] , newSubscription.put(["attributes"],{"sid" : newSubscription.name})) ;
       newSubscription.klog(">> successful created subscription request >>");
       ent:subscriptions := updatedSubs;
-      raise wrangler event "pending_subscription"
-        with status = pending_entry{"status"}
-        channel_name = unique_name
-        channel_type = channel_type
-        name = pending_entry{"subscription_name"}
-        name_space = pending_entry{"name_space"}
-        relationship = pending_entry{"relationship"}  
-        my_role = pending_entry{"my_role"}
-        subscriber_role = pending_entry{"subscriber_role"}
-        subscriber_eci  = pending_entry{"subscriber_eci"}
-        inbound_eci = newSubscription.eci
-        attributes = pending_entry{"attributes"}  
+      raise wrangler event "pending_subscription" attributes {
+        "status": pending_entry{"status"},
+        "channel_name": unique_name,
+        "channel_type": channel_type,
+        "name": pending_entry{"subscription_name"},
+        "name_space": pending_entry{"name_space"},
+        "relationship": pending_entry{"relationship"},
+        "my_role": pending_entry{"my_role"},
+        "subscriber_role": pending_entry{"subscriber_role"},
+        "subscriber_eci": pending_entry{"subscriber_eci"},
+        "inbound_eci": newSubscription.eci,
+        "attributes": pending_entry{"attributes"}
+      }
     } 
     else {
       logs.klog(">> failed to create subscription request, no subscriber_eci provieded >>")
@@ -288,7 +289,7 @@ ruleset Subscriptions {
       }
     }
     if checkSubscriptionName(unique_name)
-    then {
+    then every {
        engine:newChannel(getSelf()["id"], options.name, options.eci_type) setting(channel);
     }
     fired { 
@@ -322,9 +323,10 @@ rule approveInboundPendingSubscription {
     {
       logs.klog(standardOut(">> Sent accepted subscription events >>"));
       raise wrangler event "pending_subscription_approved"   
-        with channel_name = channel_name
-             status = "inbound"
-             channel_name = channel_name
+        attributes {
+          "status": "inbound",
+          "channel_name": channel_name
+        }
     } 
     else 
     {
@@ -353,7 +355,7 @@ rule approveInboundPendingSubscription {
       subscription.klog(standardOut(">> success >>"));
       ent:subscriptions := getSubscriptions().put([updatedSubscription.name],updatedSubscription);
       raise wrangler event "subscription_added" // event to nothing
-        with channel_name = event:attr("channel_name")
+        attributes {"channel_name": event:attr("channel_name")}
       } 
   }
 
@@ -373,7 +375,7 @@ rule addInboundSubscription {
     fired {
       ent:subscriptions := getSubscriptions().put([updatedSubscription.name],updatedSubscription);
       raise wrangler event "subscription_added" // event to nothing
-        with channel_name = event:attr("channel_name")
+        attributes {"channel_name": event:attr("channel_name")}
       } 
   }
 
@@ -398,7 +400,7 @@ rule addInboundSubscription {
     fired {
       channel_name.klog(standardOut(">> success >>"));
       raise wrangler event "subscription_removal" 
-        with channel_name = channel_name
+        attributes {"channel_name": channel_name}
           } 
     else {
       channel_name.klog(standardOut(">> failure >>"))
@@ -420,7 +422,7 @@ rule addInboundSubscription {
       self = getSelf();
       subscription.klog(standardOut("success, attemped to remove subscription"));
       raise wrangler event "subscription_removed" // event to nothing
-        with removed_subscription = subscription
+        attributes {"removed_subscription": subscription}
     } 
   } 
 

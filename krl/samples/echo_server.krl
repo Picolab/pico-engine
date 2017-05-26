@@ -10,16 +10,18 @@ ruleset echo_server {
 
   rule hello_world is active {
     select when echo hello
-    send_directive("say") with
-      something = "Hello CS462 Again"
+    send_directive("say", {
+      "something": "Hello CS462 Again"
+    })
     always {
       "This is my log message".klog("")
     }
   }
   
   rule echo is active {
-    select when echo message input re#(.*)# setting(m);
-    send_directive("say") with
-      something = m
+    select when echo message input re#(.*)# setting(m)
+    send_directive("say", {
+      "something": m
+    })
   }
 }

@@ -89,7 +89,6 @@ ruleset io.picolabs.visual_params {
 
   rule info_directive {
     select when visual config
-    send_directive("visual_config")
-      with visual_info = visualInfo()
+    send_directive("visual_config", {"visual_info": visualInfo()})
   }
 }
