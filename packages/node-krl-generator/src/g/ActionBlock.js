@@ -12,15 +12,17 @@ var actionsInCurlies = function(actions, ind, gen){
 
 module.exports = function(ast, ind, gen){
     var src = "";
-    if(ast.block_type === "choose"){
-        src += "\n";
-        src += ind() + ast.block_type + " " + gen(ast.condition) + " ";
-        src += actionsInCurlies(ast.actions, ind, gen);
-        return src;
-    }
     if(ast.condition){
         src += "\n";
         src += ind() + "if " + gen(ast.condition) + " then\n";
+    }
+    if(ast.block_type === "choose"){
+        if(!ast.condition){
+            src += "\n";
+        }
+        src += ind() + ast.block_type + " " + gen(ast.discriminant) + " ";
+        src += actionsInCurlies(ast.actions, ind, gen);
+        return src;
     }
     if(_.size(ast.actions) > 1 || ast.block_type !== "every"){
         if(!ast.condition){
