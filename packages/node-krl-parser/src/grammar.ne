@@ -98,18 +98,14 @@ var eventGroupOp = function(op, i_n, i_ee, i_ag){
 
 var actionBlock = function(condition_path, type_path, actions_path, discriminant_path){
   return function(data){
-    var ast = {
+    return {
       loc: mkLoc(data),
       type: "ActionBlock",
       condition: get(data, condition_path, null),
       block_type: get(data, type_path, "every"),
+      discriminant: get(data, discriminant_path, null),//i.e. `choose <expr> {...}`
       actions: flatten([get(data, actions_path, null)]),
     };
-    var discriminant = get(data, discriminant_path, null);
-    if(discriminant){
-      ast.discriminant = discriminant;
-    }
-    return ast;
   };
 };
 
@@ -752,29 +748,19 @@ EventWithin -> %tok_within Expression %tok_TIME_PERIOD_ENUM {%
 #
 
 ActionBlock ->
-      Action %tok_SEMI:?
-      {% actionBlock(null, null, [0]) %}
+      ActionBlock_cond:? Action %tok_SEMI:?
+      {% actionBlock([0, 1], null, [1]) %}
 
-    | %tok_if Expression %tok_then Action %tok_SEMI:?
-      {% actionBlock([1], null, [3]) %}
+    | ActionBlock_cond:? %tok_every Actions_in_curlies
+      {% actionBlock([0, 1], [1, "src"], [2]) %}
 
-    | %tok_if Expression %tok_then %tok_every Actions_in_curlies
-      {% actionBlock([1], [3, "src"], [4]) %}
+    | ActionBlock_cond:? %tok_sample Actions_in_curlies
+      {% actionBlock([0, 1], [1, "src"], [2]) %}
 
-    | %tok_if Expression %tok_then %tok_sample Actions_in_curlies
-      {% actionBlock([1], [3, "src"], [4]) %}
+    | ActionBlock_cond:? %tok_choose Expression Actions_in_curlies
+      {% actionBlock([0, 1], [1, "src"], [3], [2]) %}
 
-    | %tok_if Expression %tok_then %tok_choose Expression Actions_in_curlies
-      {% actionBlock([1], [3, "src"], [5], [4]) %}
-
-    | %tok_every Actions_in_curlies
-      {% actionBlock(null, [0, "src"], [1]) %}
-
-    | %tok_sample Actions_in_curlies
-      {% actionBlock(null, [0, "src"], [1]) %}
-
-    | %tok_choose Expression Actions_in_curlies
-      {% actionBlock(null, [0, "src"], [2], [1]) %}
+ActionBlock_cond -> %tok_if Expression %tok_then # no postprocess b/c we want to preserve "loc"
 
 Actions_in_curlies -> %tok_OPEN_CURLY (Action %tok_SEMI:?):+ %tok_CLSE_CURLY
 {%

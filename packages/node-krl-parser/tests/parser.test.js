@@ -310,6 +310,7 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: null,
         block_type: "every",
+        discriminant: null,
         actions: [
             mk.action(null, "send_directive", [mk("say")])
         ]
@@ -320,6 +321,7 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: null,
         block_type: "every",
+        discriminant: null,
         actions: [
             mk.action(null, "foo", [
                 mk("say"),
@@ -338,6 +340,7 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: null,
         block_type: "every",
+        discriminant: null,
         actions: [
             mk.action(null, "hello", [
                 mk.arg("foo", mk(1)),
@@ -352,6 +355,7 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: mk(true),
         block_type: "every",
+        discriminant: null,
         actions: [
             mk.action(null, "blah"),
         ]
@@ -362,6 +366,7 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: null,
         block_type: "every",
+        discriminant: null,
         actions: [
             mk.action("lbl", "blah"),
         ]
@@ -376,6 +381,7 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: null,
         block_type: "every",
+        discriminant: null,
         actions: [
             mk.action("one", "blah", [mk(1)]),
             mk.action("two", "blah", [mk(2)]),
@@ -391,11 +397,11 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: null,
         block_type: "choose",
+        discriminant: mk.app(mk.id("exp")),
         actions: [
             mk.action("one", "blah", [mk(1)]),
             mk.action("two", "blah", [mk(2)]),
         ],
-        discriminant: mk.app(mk.id("exp")),
     });
 
     src  = "if foo == 2 then every {\n";
@@ -406,6 +412,7 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: mk.op("==", mk.id("foo"), mk(2)),
         block_type: "every",
+        discriminant: null,
         actions: [
             mk.action("one", "blah", [mk(1)]),
             mk.action("two", "blah", [mk(2)]),
@@ -438,11 +445,11 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: mk.op("==", mk.id("foo"), mk(2)),
         block_type: "choose",
+        discriminant: mk.app(mk.id("bar")),
         actions: [
             mk.action("one", "blah", [mk(1)]),
             mk.action("two", "blah", [mk(2)]),
         ],
-        discriminant: mk.app(mk.id("bar")),
     });
 
     src  = "if foo == 2 then sample {\n";
@@ -453,6 +460,7 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: mk.op("==", mk.id("foo"), mk(2)),
         block_type: "sample",
+        discriminant: null,
         actions: [
             mk.action("one", "blah", [mk(1)]),
             mk.action("two", "blah", [mk(2)]),
@@ -467,6 +475,7 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: null,
         block_type: "sample",
+        discriminant: null,
         actions: [
             mk.action("one", "blah", [mk(1)]),
             mk.action("two", "blah", [mk(2)]),
@@ -477,11 +486,11 @@ test("ActionBlock", function(t){
         type: "ActionBlock",
         condition: null,
         block_type: "choose",
+        discriminant: mk.app(mk.id("b"), [mk.id("c")]),
         actions: [
             mk.action("one", "foo", []),
             mk.action("two", "bar", []),
         ],
-        discriminant: mk.app(mk.id("b"), [mk.id("c")]),
     });
 
     t.end();
@@ -2025,6 +2034,7 @@ test("DefAction", function(t){
                 type: "ActionBlock",
                 condition: null,
                 block_type: "every",
+                discriminant: null,
                 actions: [
                     mk.action(null, "send_directive", [mk("foo")])
                 ]
@@ -2046,6 +2056,7 @@ test("DefAction", function(t){
                 type: "ActionBlock",
                 condition: null,
                 block_type: "every",
+                discriminant: null,
                 actions: [
                     mk.action(null, "notify", [
                         mk("foo"),
@@ -2069,6 +2080,7 @@ test("DefAction", function(t){
                 type: "ActionBlock",
                 condition: mk.op("||", mk.id("b"), mk.id("c")),
                 block_type: "every",
+                discriminant: null,
                 actions: [
                     mk.action(null, "blah")
                 ]
@@ -2087,6 +2099,7 @@ test("DefAction", function(t){
                 type: "ActionBlock",
                 condition: mk.op("&&", mk.id("b"), mk.id("c")),
                 block_type: "every",
+                discriminant: null,
                 actions: [
                     mk.action(null, "foo"),
                     mk.action(null, "bar"),
@@ -2106,11 +2119,11 @@ test("DefAction", function(t){
                 type: "ActionBlock",
                 condition: null,
                 block_type: "choose",
+                discriminant: mk.app(mk.id("b"), [mk.id("c")]),
                 actions: [
                     mk.action("one", "foo"),
                     mk.action("two", "bar"),
                 ],
-                discriminant: mk.app(mk.id("b"), [mk.id("c")]),
             },
             returns: [],
         }
@@ -2128,6 +2141,7 @@ test("DefAction", function(t){
                 type: "ActionBlock",
                 condition: null,
                 block_type: "every",
+                discriminant: null,
                 actions: [
                     mk.action(null, "noop"),
                 ]
@@ -2147,6 +2161,7 @@ test("DefAction", function(t){
                     type: "ActionBlock",
                     condition: null,
                     block_type: "every",
+                    discriminant: null,
                     actions: [
                         mk.action(null, "noop"),
                     ]
