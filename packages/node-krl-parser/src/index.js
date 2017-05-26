@@ -50,9 +50,15 @@ module.exports = function(src, opts){
         throw e;
     }
     if(p.results.length !== 1){
-        throw new Error(
-            "Parsing Ambiguity: " + p.results.length + " parsings found"
-        );
+        var msg = "Parsing Ambiguity: " + p.results.length + " parsings found";
+        if(opts.filename){
+            msg += "\n" + opts.filename;
+        }
+        var err = new Error(msg);
+        err.where = {
+            filename: opts.filename,
+        };
+        throw err;
     }
     return p.results[0];
 };
