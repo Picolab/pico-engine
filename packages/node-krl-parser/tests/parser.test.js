@@ -389,12 +389,13 @@ test("ActionBlock", function(t){
     src += "}";
     tstActionBlock(src, {
         type: "ActionBlock",
-        condition: mk.app(mk.id("exp")),
+        condition: null,
         block_type: "choose",
         actions: [
             mk.action("one", "blah", [mk(1)]),
             mk.action("two", "blah", [mk(2)]),
-        ]
+        ],
+        discriminant: mk.app(mk.id("exp")),
     });
 
     src  = "if foo == 2 then every {\n";
@@ -424,16 +425,25 @@ test("ActionBlock", function(t){
 
     try{
         tstActionBlock("if foo == 2 then choose { noop() }", {});
-        t.fail("cannot if then choose");
+        t.fail("cannot if then choose {..}");
     }catch(err){
-        t.ok(err, "cannot if then choose");
+        t.ok(err, "cannot if then choose {..}");
     }
-    try{
-        tstActionBlock("if foo == 2 then choose bar { noop() }", {});
-        t.fail("cannot if then choose");
-    }catch(err){
-        t.ok(err, "cannot if then choose");
-    }
+    src  = "if foo == 2 then\n";
+    src += "choose bar() {\n";
+    src += "  one => blah(1)\n";
+    src += "  two => blah(2)\n";
+    src += "}";
+    tstActionBlock(src, {
+        type: "ActionBlock",
+        condition: mk.op("==", mk.id("foo"), mk(2)),
+        block_type: "choose",
+        actions: [
+            mk.action("one", "blah", [mk(1)]),
+            mk.action("two", "blah", [mk(2)]),
+        ],
+        discriminant: mk.app(mk.id("bar")),
+    });
 
     src  = "if foo == 2 then sample {\n";
     src += "  one => blah(1)\n";
@@ -465,12 +475,13 @@ test("ActionBlock", function(t){
 
     tstActionBlock("choose b(c){one => foo() two => bar()}", {
         type: "ActionBlock",
-        condition: mk.app(mk.id("b"), [mk.id("c")]),
+        condition: null,
         block_type: "choose",
         actions: [
             mk.action("one", "foo", []),
             mk.action("two", "bar", []),
-        ]
+        ],
+        discriminant: mk.app(mk.id("b"), [mk.id("c")]),
     });
 
     t.end();
@@ -2093,12 +2104,13 @@ test("DefAction", function(t){
             body: [],
             action_block: {
                 type: "ActionBlock",
-                condition: mk.app(mk.id("b"), [mk.id("c")]),
+                condition: null,
                 block_type: "choose",
                 actions: [
                     mk.action("one", "foo"),
                     mk.action("two", "bar"),
-                ]
+                ],
+                discriminant: mk.app(mk.id("b"), [mk.id("c")]),
             },
             returns: [],
         }

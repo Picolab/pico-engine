@@ -100,15 +100,20 @@ var eventGroupOp = function(op, i_n, i_ee, i_ag){
   };
 };
 
-var actionBlock = function(condition_path, type_path, actions_path){
+var actionBlock = function(condition_path, type_path, actions_path, discriminant_path){
   return function(data){
-    return {
+    var ast = {
       loc: mkLoc(data),
       type: "ActionBlock",
       condition: get(data, condition_path, null),
       block_type: get(data, type_path, "every"),
       actions: flatten([get(data, actions_path, null)]),
     };
+    var discriminant = get(data, discriminant_path, null);
+    if(discriminant){
+      ast.discriminant = discriminant;
+    }
+    return ast;
   };
 };
 
@@ -735,9 +740,10 @@ var grammar = {
     {"name": "ActionBlock", "symbols": [tok_if, "Expression", tok_then, "Action", "ActionBlock$ebnf$2"], "postprocess": actionBlock([1], null, [3])},
     {"name": "ActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_every, "Actions_in_curlies"], "postprocess": actionBlock([1], [3, "src"], [4])},
     {"name": "ActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_sample, "Actions_in_curlies"], "postprocess": actionBlock([1], [3, "src"], [4])},
+    {"name": "ActionBlock", "symbols": [tok_if, "Expression", tok_then, tok_choose, "Expression", "Actions_in_curlies"], "postprocess": actionBlock([1], [3, "src"], [5], [4])},
     {"name": "ActionBlock", "symbols": [tok_every, "Actions_in_curlies"], "postprocess": actionBlock(null, [0, "src"], [1])},
     {"name": "ActionBlock", "symbols": [tok_sample, "Actions_in_curlies"], "postprocess": actionBlock(null, [0, "src"], [1])},
-    {"name": "ActionBlock", "symbols": [tok_choose, "Expression", "Actions_in_curlies"], "postprocess": actionBlock([1], [0, "src"], [2])},
+    {"name": "ActionBlock", "symbols": [tok_choose, "Expression", "Actions_in_curlies"], "postprocess": actionBlock(null, [0, "src"], [2], [1])},
     {"name": "Actions_in_curlies$ebnf$1$subexpression$1$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
     {"name": "Actions_in_curlies$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "Actions_in_curlies$ebnf$1$subexpression$1", "symbols": ["Action", "Actions_in_curlies$ebnf$1$subexpression$1$ebnf$1"]},

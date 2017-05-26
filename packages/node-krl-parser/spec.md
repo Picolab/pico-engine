@@ -159,7 +159,7 @@ rule hello {
   ],
   "action_block": {
     "type": "ActionBlock",
-    "condition": COND,
+    "condition": null,
     "block_type": "choose",
     "actions": [
       {
@@ -186,7 +186,8 @@ rule hello {
         },
         "setting": [  ]
       }
-    ]
+    ],
+    "discriminant": COND
   },
   "postlude": {
     "type": "RulePostlude",

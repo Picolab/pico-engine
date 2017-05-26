@@ -96,15 +96,20 @@ var eventGroupOp = function(op, i_n, i_ee, i_ag){
   };
 };
 
-var actionBlock = function(condition_path, type_path, actions_path){
+var actionBlock = function(condition_path, type_path, actions_path, discriminant_path){
   return function(data){
-    return {
+    var ast = {
       loc: mkLoc(data),
       type: "ActionBlock",
       condition: get(data, condition_path, null),
       block_type: get(data, type_path, "every"),
       actions: flatten([get(data, actions_path, null)]),
     };
+    var discriminant = get(data, discriminant_path, null);
+    if(discriminant){
+      ast.discriminant = discriminant;
+    }
+    return ast;
   };
 };
 
@@ -759,6 +764,9 @@ ActionBlock ->
     | %tok_if Expression %tok_then %tok_sample Actions_in_curlies
       {% actionBlock([1], [3, "src"], [4]) %}
 
+    | %tok_if Expression %tok_then %tok_choose Expression Actions_in_curlies
+      {% actionBlock([1], [3, "src"], [5], [4]) %}
+
     | %tok_every Actions_in_curlies
       {% actionBlock(null, [0, "src"], [1]) %}
 
@@ -766,7 +774,7 @@ ActionBlock ->
       {% actionBlock(null, [0, "src"], [1]) %}
 
     | %tok_choose Expression Actions_in_curlies
-      {% actionBlock([1], [0, "src"], [2]) %}
+      {% actionBlock(null, [0, "src"], [2], [1]) %}
 
 Actions_in_curlies -> %tok_OPEN_CURLY (Action %tok_SEMI:?):+ %tok_CLSE_CURLY
 {%
