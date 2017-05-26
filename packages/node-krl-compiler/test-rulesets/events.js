@@ -303,7 +303,7 @@ module.exports = {
     "on_choose_if": {
       "name": "on_choose_if",
       "select": {
-        "graph": { "events": { "on_choose": { "expr_0": true } } },
+        "graph": { "events": { "on_choose_if": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
             var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
@@ -338,13 +338,13 @@ module.exports = {
           {
             "label": "one",
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["on_choose - one"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_choose_if - one"]);
             }
           },
           {
             "label": "two",
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["on_choose - two"]);
+              var returns = yield runAction(ctx, void 0, "send_directive", ["on_choose_if - two"]);
             }
           }
         ]
