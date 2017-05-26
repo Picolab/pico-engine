@@ -47,7 +47,7 @@
     "contra": "^1.9.4",
     "express": "^4.14.0",
     "home-dir": "^1.0.0",
-    "krl-compiler": "^0.32.3",
+    "krl-compiler": "^0.32.4",
     "leveldown": "^1.4.6",
     "lodash": "^4.11.2",
     "minimist": "^1.2.0",
