@@ -10,7 +10,7 @@ module.exports = function(input, options){
 
     var src = _.isString(input) ? input : null;
     var toLoc = src ? EStreeLoc(src, options.filepath) : _.noop;
-    var ast = src ? parser(src) : input;
+    var ast = src ? parser(src, options.parser_options) : input;
 
     var body = compile(ast, {
         toLoc: toLoc
