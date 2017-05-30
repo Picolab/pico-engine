@@ -30,15 +30,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "foo",
-                { "b": ctx.scope.get("b") }
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "foo",
+            { "b": ctx.scope.get("b") }
+          ], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         if (yield ctx.callKRLstdlib("match", [
@@ -74,18 +74,18 @@ module.exports = {
           yield iter(ctx);
         }));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "bar",
-                {
-                  "x": ctx.scope.get("x"),
-                  "b": yield ctx.modules.get(ctx, "ent", "b")
-                }
-              ], []);
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "bar",
+            {
+              "x": ctx.scope.get("x"),
+              "b": yield ctx.modules.get(ctx, "ent", "b")
             }
-          }]
+          ], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         if (ctx.foreach_is_final)

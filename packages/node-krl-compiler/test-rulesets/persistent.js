@@ -49,15 +49,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "store_name",
-                { "name": ctx.scope.get("my_name") }
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "store_name",
+            { "name": ctx.scope.get("my_name") }
+          ], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         yield ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
@@ -86,15 +86,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "store_appvar",
-                { "appvar": ctx.scope.get("my_appvar") }
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "store_appvar",
+            { "appvar": ctx.scope.get("my_appvar") }
+          ], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         yield ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
@@ -123,15 +123,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "store_user_firstname",
-                { "name": ctx.scope.get("firstname") }
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "store_user_firstname",
+            { "name": ctx.scope.get("firstname") }
+          ], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
@@ -158,12 +158,12 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["clear_user"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["clear_user"], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         yield ctx.modules.del(ctx, "ent", "user");
@@ -185,12 +185,12 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["clear_appvar"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["clear_appvar"], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         yield ctx.modules.del(ctx, "app", "appvar");

@@ -7,28 +7,25 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.defaction(ctx, "foo", function* (ctx, getArg, hasArg, processActionBlock) {
+    ctx.defaction(ctx, "foo", function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", 2);
-      yield processActionBlock(ctx, {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "foo",
-                {
-                  "a": ctx.scope.get("a"),
-                  "b": yield ctx.callKRLstdlib("+", [
-                    ctx.scope.get("b"),
-                    3
-                  ])
-                }
-              ], []);
-            }
-          }]
-      });
+      var fired = true;
+      if (fired) {
+        yield runAction(ctx, void 0, "send_directive", [
+          "foo",
+          {
+            "a": ctx.scope.get("a"),
+            "b": yield ctx.callKRLstdlib("+", [
+              ctx.scope.get("b"),
+              3
+            ])
+          }
+        ], []);
+      }
       return [];
     });
-    ctx.defaction(ctx, "bar", function* (ctx, getArg, hasArg, processActionBlock) {
+    ctx.defaction(ctx, "bar", function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("one", getArg("one", 0));
       ctx.scope.set("two", hasArg("two", 1) ? getArg("two", 1) : yield ctx.callKRLstdlib("get", [
         yield ctx.applyFn(ctx.scope.get("add"), ctx, [
@@ -41,93 +38,66 @@ module.exports = {
         ]
       ]));
       ctx.scope.set("three", hasArg("three", 2) ? getArg("three", 2) : "3 by default");
-      yield processActionBlock(ctx, {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "bar",
-                {
-                  "a": ctx.scope.get("one"),
-                  "b": ctx.scope.get("two"),
-                  "c": ctx.scope.get("three")
-                }
-              ], ["dir"]);
-            }
-          }]
-      });
+      var fired = true;
+      if (fired) {
+        yield runAction(ctx, void 0, "send_directive", [
+          "bar",
+          {
+            "a": ctx.scope.get("one"),
+            "b": ctx.scope.get("two"),
+            "c": ctx.scope.get("three")
+          }
+        ], ["dir"]);
+      }
       return [ctx.scope.get("dir")];
     });
     ctx.scope.set("getSettingVal", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "setting_val");
     }));
-    ctx.defaction(ctx, "chooser", function* (ctx, getArg, hasArg, processActionBlock) {
+    ctx.defaction(ctx, "chooser", function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("val", getArg("val", 0));
-      yield processActionBlock(ctx, {
-        "block_type": "choose",
-        "discriminant": function* (ctx) {
-          return ctx.scope.get("val");
-        },
-        "actions": [
-          {
-            "label": "asdf",
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "foo", [ctx.scope.get("val")], []);
-            }
-          },
-          {
-            "label": "fdsa",
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "bar", [
-                ctx.scope.get("val"),
-                "ok",
-                "done"
-              ], []);
-            }
-          }
-        ]
-      });
+      var fired = true;
+      if (fired) {
+        switch (ctx.scope.get("val")) {
+        case "asdf":
+          yield runAction(ctx, void 0, "foo", [ctx.scope.get("val")], []);
+          break;
+        case "fdsa":
+          yield runAction(ctx, void 0, "bar", [
+            ctx.scope.get("val"),
+            "ok",
+            "done"
+          ], []);
+          break;
+        }
+      }
       return [];
     });
-    ctx.defaction(ctx, "ifAnotB", function* (ctx, getArg, hasArg, processActionBlock) {
+    ctx.defaction(ctx, "ifAnotB", function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", getArg("b", 1));
-      yield processActionBlock(ctx, {
-        "condition": function* (ctx) {
-          return ctx.scope.get("a") && !ctx.scope.get("b");
-        },
-        "actions": [
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["yes a"], []);
-            }
-          },
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["not b"], []);
-            }
-          }
-        ]
-      });
+      var fired = ctx.scope.get("a") && !ctx.scope.get("b");
+      if (fired) {
+        yield runAction(ctx, void 0, "send_directive", ["yes a"], []);
+        yield runAction(ctx, void 0, "send_directive", ["not b"], []);
+      }
       return [];
     });
-    ctx.defaction(ctx, "echoAction", function* (ctx, getArg, hasArg, processActionBlock) {
+    ctx.defaction(ctx, "echoAction", function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", getArg("b", 1));
       ctx.scope.set("c", getArg("c", 2));
-      yield processActionBlock(ctx, {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "noop", [], []);
-            }
-          }]
-      });
+      var fired = true;
+      if (fired) {
+        yield runAction(ctx, void 0, "noop", [], []);
+      }
       return [
         ctx.scope.get("a"),
         ctx.scope.get("b"),
         ctx.scope.get("c")
       ];
     });
-    ctx.defaction(ctx, "complexAction", function* (ctx, getArg, hasArg, processActionBlock) {
+    ctx.defaction(ctx, "complexAction", function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", getArg("b", 1));
       ctx.scope.set("c", 100);
@@ -135,25 +105,19 @@ module.exports = {
         ctx.scope.get("c"),
         ctx.scope.get("b")
       ]));
-      yield processActionBlock(ctx, {
-        "condition": function* (ctx) {
-          return yield ctx.callKRLstdlib(">", [
-            ctx.scope.get("c"),
-            0
-          ]);
-        },
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                yield ctx.callKRLstdlib("+", [
-                  "wat:",
-                  ctx.scope.get("a")
-                ]),
-                { "b": ctx.scope.get("b") }
-              ], ["dir"]);
-            }
-          }]
-      });
+      var fired = yield ctx.callKRLstdlib(">", [
+        ctx.scope.get("c"),
+        0
+      ]);
+      if (fired) {
+        yield runAction(ctx, void 0, "send_directive", [
+          yield ctx.callKRLstdlib("+", [
+            "wat:",
+            ctx.scope.get("a")
+          ]),
+          { "b": ctx.scope.get("b") }
+        ], ["dir"]);
+      }
       return [yield ctx.callKRLstdlib("+", [
           yield ctx.callKRLstdlib("+", [
             yield ctx.callKRLstdlib("get", [
@@ -197,12 +161,12 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "foo", ["bar"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "foo", ["bar"], []);
+        }
+        return fired;
       }
     },
     "bar": {
@@ -221,16 +185,16 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "bar", {
-                "0": "baz",
-                "two": "qux",
-                "three": "quux"
-              }, []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "bar", {
+            "0": "baz",
+            "two": "qux",
+            "three": "quux"
+          }, []);
+        }
+        return fired;
       }
     },
     "bar_setting": {
@@ -249,16 +213,16 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "bar", {
-                "0": "baz",
-                "two": "qux",
-                "three": "quux"
-              }, ["val"]);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "bar", {
+            "0": "baz",
+            "two": "qux",
+            "three": "quux"
+          }, ["val"]);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         if (fired) {
@@ -282,12 +246,12 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "chooser", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["val"])], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "chooser", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["val"])], []);
+        }
+        return fired;
       }
     },
     "ifAnotB": {
@@ -306,21 +270,21 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "ifAnotB", [
-                yield ctx.callKRLstdlib("==", [
-                  yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["a"]),
-                  "true"
-                ]),
-                yield ctx.callKRLstdlib("==", [
-                  yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["b"]),
-                  "true"
-                ])
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "ifAnotB", [
+            yield ctx.callKRLstdlib("==", [
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["a"]),
+              "true"
+            ]),
+            yield ctx.callKRLstdlib("==", [
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["b"]),
+              "true"
+            ])
+          ], []);
+        }
+        return fired;
       }
     },
     "add": {
@@ -339,15 +303,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "add", [
-                1,
-                2
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "add", [
+            1,
+            2
+          ], []);
+        }
+        return fired;
       }
     },
     "returns": {
@@ -366,36 +330,30 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "echoAction", [
-                "where",
-                "in",
-                "the"
-              ], [
-                "a",
-                "b",
-                "c"
-              ]);
-            }
-          },
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "complexAction", [
-                yield ctx.callKRLstdlib("+", [
-                  yield ctx.callKRLstdlib("+", [
-                    ctx.scope.get("a"),
-                    ctx.scope.get("b")
-                  ]),
-                  ctx.scope.get("c")
-                ]),
-                333
-              ], ["d"]);
-            }
-          }
-        ]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "echoAction", [
+            "where",
+            "in",
+            "the"
+          ], [
+            "a",
+            "b",
+            "c"
+          ]);
+          yield runAction(ctx, void 0, "complexAction", [
+            yield ctx.callKRLstdlib("+", [
+              yield ctx.callKRLstdlib("+", [
+                ctx.scope.get("a"),
+                ctx.scope.get("b")
+              ]),
+              ctx.scope.get("c")
+            ]),
+            333
+          ], ["d"]);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         if (fired) {
@@ -425,37 +383,28 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.defaction(ctx, "noop", function* (ctx, getArg, hasArg, processActionBlock) {
-          yield processActionBlock(ctx, {
-            "actions": [{
-                "action": function* (ctx, runAction) {
-                  yield runAction(ctx, void 0, "noop", [], []);
-                }
-              }]
-          });
+        ctx.defaction(ctx, "noop", function* (ctx, getArg, hasArg, runAction) {
+          var fired = true;
+          if (fired) {
+            yield runAction(ctx, void 0, "noop", [], []);
+          }
           return ["did something!"];
         });
-        ctx.defaction(ctx, "send_directive", function* (ctx, getArg, hasArg, processActionBlock) {
-          yield processActionBlock(ctx, {
-            "actions": [{
-                "action": function* (ctx, runAction) {
-                  yield runAction(ctx, void 0, "noop", [], ["foo"]);
-                }
-              }]
-          });
+        ctx.defaction(ctx, "send_directive", function* (ctx, getArg, hasArg, runAction) {
+          var fired = true;
+          if (fired) {
+            yield runAction(ctx, void 0, "noop", [], ["foo"]);
+          }
           return [yield ctx.callKRLstdlib("+", [
               "send wat? noop returned: ",
               ctx.scope.get("foo")
             ])];
         });
-        ctx.defaction(ctx, "echoAction", function* (ctx, getArg, hasArg, processActionBlock) {
-          yield processActionBlock(ctx, {
-            "actions": [{
-                "action": function* (ctx, runAction) {
-                  yield runAction(ctx, void 0, "noop", [], []);
-                }
-              }]
-          });
+        ctx.defaction(ctx, "echoAction", function* (ctx, getArg, hasArg, runAction) {
+          var fired = true;
+          if (fired) {
+            yield runAction(ctx, void 0, "noop", [], []);
+          }
           return [
             "aint",
             "no",
@@ -463,32 +412,22 @@ module.exports = {
           ];
         });
       },
-      "action_block": {
-        "actions": [
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "echoAction", [
-                "where",
-                "in",
-                "the"
-              ], [
-                "a",
-                "b",
-                "c"
-              ]);
-            }
-          },
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "noop", [], ["d"]);
-            }
-          },
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [], ["e"]);
-            }
-          }
-        ]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "echoAction", [
+            "where",
+            "in",
+            "the"
+          ], [
+            "a",
+            "b",
+            "c"
+          ]);
+          yield runAction(ctx, void 0, "noop", [], ["d"]);
+          yield runAction(ctx, void 0, "send_directive", [], ["e"]);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         if (fired) {
@@ -521,15 +460,15 @@ module.exports = {
       "prelude": function* (ctx) {
         ctx.scope.set("val", yield ctx.applyFn(ctx.scope.get("foo"), ctx, [100]));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "trying_to_use_action_as_fn",
-                { "val": ctx.scope.get("val") }
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "trying_to_use_action_as_fn",
+            { "val": ctx.scope.get("val") }
+          ], []);
+        }
+        return fired;
       }
     }
   }

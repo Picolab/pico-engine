@@ -18,12 +18,12 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["foo"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["foo"], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         if (fired) {
@@ -51,12 +51,12 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["bar"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["bar"], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         if (fired) {
@@ -84,12 +84,12 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["baz"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["baz"], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         if (fired) {
@@ -113,12 +113,12 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["qux"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["qux"], []);
+        }
+        return fired;
       }
     }
   }

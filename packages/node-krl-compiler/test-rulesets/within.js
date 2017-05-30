@@ -32,12 +32,12 @@ module.exports = {
           return 5 * 60000;
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["foo"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["foo"], []);
+        }
+        return fired;
       }
     },
     "bar": {
@@ -74,12 +74,12 @@ module.exports = {
           ])) * 1000;
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["bar"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["bar"], []);
+        }
+        return fired;
       }
     },
     "baz": {
@@ -131,12 +131,12 @@ module.exports = {
           return 1 * 31536000000;
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["baz"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["baz"], []);
+        }
+        return fired;
       }
     },
     "qux": {
@@ -176,12 +176,12 @@ module.exports = {
           return 2 * 1000;
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["qux"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["qux"], []);
+        }
+        return fired;
       }
     }
   }

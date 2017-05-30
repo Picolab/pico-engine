@@ -100,15 +100,15 @@ module.exports = {
           ]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "say",
-                { "name": ctx.scope.get("my_name") }
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "say",
+            { "name": ctx.scope.get("my_name") }
+          ], []);
+        }
+        return fired;
       }
     },
     "prelude_scope": {
@@ -138,20 +138,20 @@ module.exports = {
         ctx.scope.set("p0", "prelude 0");
         ctx.scope.set("p1", "prelude 1");
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "say",
-                {
-                  "name": ctx.scope.get("name"),
-                  "p0": ctx.scope.get("p0"),
-                  "p1": ctx.scope.get("p1"),
-                  "g0": ctx.scope.get("g0")
-                }
-              ], []);
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "say",
+            {
+              "name": ctx.scope.get("name"),
+              "p0": ctx.scope.get("p0"),
+              "p1": ctx.scope.get("p1"),
+              "g0": ctx.scope.get("g0")
             }
-          }]
+          ], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         yield ctx.modules.set(ctx, "ent", "ent_var_name", ctx.scope.get("name"));
@@ -179,22 +179,22 @@ module.exports = {
         ctx.scope.set("g0", "overrided g0!");
         ctx.scope.set("inc5", yield ctx.applyFn(ctx.scope.get("incByN"), ctx, [5]));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "say",
-                {
-                  "add_one_two": yield ctx.applyFn(ctx.scope.get("add"), ctx, [
-                    1,
-                    2
-                  ]),
-                  "inc5_3": yield ctx.applyFn(ctx.scope.get("inc5"), ctx, [3]),
-                  "g0": ctx.scope.get("g0")
-                }
-              ], []);
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "say",
+            {
+              "add_one_two": yield ctx.applyFn(ctx.scope.get("add"), ctx, [
+                1,
+                2
+              ]),
+              "inc5_3": yield ctx.applyFn(ctx.scope.get("inc5"), ctx, [3]),
+              "g0": ctx.scope.get("g0")
             }
-          }]
+          ], []);
+        }
+        return fired;
       }
     }
   }

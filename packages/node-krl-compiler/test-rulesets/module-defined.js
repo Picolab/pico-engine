@@ -58,18 +58,18 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "store_memo",
-                {
-                  "name": ctx.scope.get("configured_name"),
-                  "memo_to_store": ctx.scope.get("text")
-                }
-              ], []);
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "store_memo",
+            {
+              "name": ctx.scope.get("configured_name"),
+              "memo_to_store": ctx.scope.get("text")
             }
-          }]
+          ], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         yield ctx.modules.set(ctx, "ent", "memo", yield ctx.callKRLstdlib("+", [

@@ -28,7 +28,11 @@ module.exports = function(ast, comp, e){
         rule.prelude = e("genfn", ["ctx"], comp(ast.prelude));
     }
     if(ast.action_block){
-        rule.action_block = comp(ast.action_block);
+        rule.action_block = e("genfn", ["ctx", "runAction"],
+            comp(ast.action_block).concat([
+                e("return", e("id", "fired"))
+            ])
+        );
     }
     if(ast.postlude){
         rule.postlude = comp(ast.postlude);

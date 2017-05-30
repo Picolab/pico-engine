@@ -37,15 +37,15 @@ module.exports = {
           yield iter(ctx);
         }));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "basic",
-                { "x": ctx.scope.get("x") }
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "basic",
+            { "x": ctx.scope.get("x") }
+          ], []);
+        }
+        return fired;
       }
     },
     "map": {
@@ -75,18 +75,18 @@ module.exports = {
           yield iter(ctx);
         }));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "map",
-                {
-                  "k": ctx.scope.get("k"),
-                  "v": ctx.scope.get("v")
-                }
-              ], []);
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "map",
+            {
+              "k": ctx.scope.get("k"),
+              "v": ctx.scope.get("v")
             }
-          }]
+          ], []);
+        }
+        return fired;
       }
     },
     "nested": {
@@ -122,18 +122,18 @@ module.exports = {
           }));
         }));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "nested",
-                {
-                  "x": ctx.scope.get("x"),
-                  "y": ctx.scope.get("y")
-                }
-              ], []);
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "nested",
+            {
+              "x": ctx.scope.get("x"),
+              "y": ctx.scope.get("y")
             }
-          }]
+          ], []);
+        }
+        return fired;
       }
     },
     "scope": {
@@ -177,19 +177,19 @@ module.exports = {
           ctx.scope.get("bar")
         ]));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "scope",
-                {
-                  "foo": ctx.scope.get("foo"),
-                  "bar": ctx.scope.get("bar"),
-                  "baz": ctx.scope.get("baz")
-                }
-              ], []);
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "scope",
+            {
+              "foo": ctx.scope.get("foo"),
+              "bar": ctx.scope.get("bar"),
+              "baz": ctx.scope.get("baz")
             }
-          }]
+          ], []);
+        }
+        return fired;
       }
     }
   }

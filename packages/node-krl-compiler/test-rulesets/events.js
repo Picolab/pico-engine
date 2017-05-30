@@ -46,15 +46,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "bound",
-                { "name": ctx.scope.get("my_name") }
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "bound",
+            { "name": ctx.scope.get("my_name") }
+          ], []);
+        }
+        return fired;
       }
     },
     "set_attr2": {
@@ -87,18 +87,18 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "set_attr2",
-                {
-                  "number": ctx.scope.get("number"),
-                  "name": ctx.scope.get("name")
-                }
-              ], []);
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "set_attr2",
+            {
+              "number": ctx.scope.get("number"),
+              "name": ctx.scope.get("name")
             }
-          }]
+          ], []);
+        }
+        return fired;
       }
     },
     "get_attr": {
@@ -120,15 +120,15 @@ module.exports = {
       "prelude": function* (ctx) {
         ctx.scope.set("thing", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["thing"]));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "get",
-                { "thing": ctx.scope.get("thing") }
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "get",
+            { "thing": ctx.scope.get("thing") }
+          ], []);
+        }
+        return fired;
       }
     },
     "noop": {
@@ -164,12 +164,12 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "noop", [], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "noop", [], []);
+        }
+        return fired;
       }
     },
     "ifthen": {
@@ -195,15 +195,12 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "condition": function* (ctx) {
-          return ctx.scope.get("my_name");
-        },
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["ifthen"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = ctx.scope.get("my_name");
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["ifthen"], []);
+        }
+        return fired;
       }
     },
     "on_fired": {
@@ -229,15 +226,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "on_fired",
-                { "previous_name": yield ctx.modules.get(ctx, "ent", "on_fired_prev_name") }
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "on_fired",
+            { "previous_name": yield ctx.modules.get(ctx, "ent", "on_fired_prev_name") }
+          ], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         if (fired) {
@@ -268,25 +265,19 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "block_type": "choose",
-        "discriminant": function* (ctx) {
-          return ctx.scope.get("thing");
-        },
-        "actions": [
-          {
-            "label": "one",
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_choose - one"], []);
-            }
-          },
-          {
-            "label": "two",
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_choose - two"], []);
-            }
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          switch (ctx.scope.get("thing")) {
+          case "one":
+            yield runAction(ctx, void 0, "send_directive", ["on_choose - one"], []);
+            break;
+          case "two":
+            yield runAction(ctx, void 0, "send_directive", ["on_choose - two"], []);
+            break;
           }
-        ]
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         if (fired) {
@@ -320,31 +311,22 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "block_type": "choose",
-        "condition": function* (ctx) {
-          return yield ctx.callKRLstdlib("==", [
-            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["fire"]),
-            "yes"
-          ]);
-        },
-        "discriminant": function* (ctx) {
-          return ctx.scope.get("thing");
-        },
-        "actions": [
-          {
-            "label": "one",
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_choose_if - one"], []);
-            }
-          },
-          {
-            "label": "two",
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_choose_if - two"], []);
-            }
+      "action_block": function* (ctx, runAction) {
+        var fired = yield ctx.callKRLstdlib("==", [
+          yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["fire"]),
+          "yes"
+        ]);
+        if (fired) {
+          switch (ctx.scope.get("thing")) {
+          case "one":
+            yield runAction(ctx, void 0, "send_directive", ["on_choose_if - one"], []);
+            break;
+          case "two":
+            yield runAction(ctx, void 0, "send_directive", ["on_choose_if - two"], []);
+            break;
           }
-        ]
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         if (fired) {
@@ -371,19 +353,13 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_every - one"], []);
-            }
-          },
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_every - two"], []);
-            }
-          }
-        ]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["on_every - one"], []);
+          yield runAction(ctx, void 0, "send_directive", ["on_every - two"], []);
+        }
+        return fired;
       }
     },
     "on_sample": {
@@ -402,25 +378,22 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "block_type": "sample",
-        "actions": [
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_sample - one"], []);
-            }
-          },
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_sample - two"], []);
-            }
-          },
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_sample - three"], []);
-            }
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          switch (Math.floor(Math.random() * 3)) {
+          case 0:
+            yield runAction(ctx, void 0, "send_directive", ["on_sample - one"], []);
+            break;
+          case 1:
+            yield runAction(ctx, void 0, "send_directive", ["on_sample - two"], []);
+            break;
+          case 2:
+            yield runAction(ctx, void 0, "send_directive", ["on_sample - three"], []);
+            break;
           }
-        ]
+        }
+        return fired;
       }
     },
     "on_sample_if": {
@@ -439,31 +412,25 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "block_type": "sample",
-        "condition": function* (ctx) {
-          return yield ctx.callKRLstdlib("==", [
-            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["fire"]),
-            "yes"
-          ]);
-        },
-        "actions": [
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_sample - one"], []);
-            }
-          },
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_sample - two"], []);
-            }
-          },
-          {
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["on_sample - three"], []);
-            }
+      "action_block": function* (ctx, runAction) {
+        var fired = yield ctx.callKRLstdlib("==", [
+          yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["fire"]),
+          "yes"
+        ]);
+        if (fired) {
+          switch (Math.floor(Math.random() * 3)) {
+          case 0:
+            yield runAction(ctx, void 0, "send_directive", ["on_sample - one"], []);
+            break;
+          case 1:
+            yield runAction(ctx, void 0, "send_directive", ["on_sample - two"], []);
+            break;
+          case 2:
+            yield runAction(ctx, void 0, "send_directive", ["on_sample - three"], []);
+            break;
           }
-        ]
+        }
+        return fired;
       }
     },
     "select_where": {
@@ -487,12 +454,12 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", ["select_where"], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["select_where"], []);
+        }
+        return fired;
       }
     },
     "no_action": {
@@ -549,18 +516,18 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, "event", "send", [{
-                  "eci": yield ctx.modules.get(ctx, "meta", "eci"),
-                  "eid": "0",
-                  "domain": "events",
-                  "type": "store_sent_name",
-                  "attrs": { "name": ctx.scope.get("my_name") }
-                }], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, "event", "send", [{
+              "eci": yield ctx.modules.get(ctx, "meta", "eci"),
+              "eid": "0",
+              "domain": "events",
+              "type": "store_sent_name",
+              "attrs": { "name": ctx.scope.get("my_name") }
+            }], []);
+        }
+        return fired;
       }
     },
     "store_sent_name": {
@@ -714,15 +681,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "event_eid",
-                { "eid": yield ctx.modules.get(ctx, "event", "eid") }
-              ], []);
-            }
-          }]
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "event_eid",
+            { "eid": yield ctx.modules.get(ctx, "event", "eid") }
+          ], []);
+        }
+        return fired;
       }
     }
   }

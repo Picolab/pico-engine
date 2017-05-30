@@ -75,18 +75,18 @@ module.exports = {
       "prelude": function* (ctx) {
         ctx.scope.set("foo_pre", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              yield runAction(ctx, void 0, "send_directive", [
-                "foo",
-                {
-                  "foo": yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []),
-                  "foo_pre": ctx.scope.get("foo_pre")
-                }
-              ], []);
+      "action_block": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "foo",
+            {
+              "foo": yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []),
+              "foo_pre": ctx.scope.get("foo_pre")
             }
-          }]
+          ], []);
+        }
+        return fired;
       },
       "postlude": function* (ctx, fired) {
         yield ctx.modules.set(ctx, "ent", "foo_postlude", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));

@@ -7,11 +7,7 @@ module.exports = function(ast, comp, e){
         body.push(comp(d));
     });
 
-    body.push(e(";", e("ycall", e("id", "processActionBlock", ast.action_block.loc), [
-        e("id", "ctx", ast.action_block),
-        comp(ast.action_block),
-    ], ast.action_block.loc), ast.action_block.loc));
-
+    body = body.concat(comp(ast.action_block));
 
     body.push(e("return", e("array", _.map(ast.returns, function(ret){
         return comp(ret);
@@ -24,7 +20,7 @@ module.exports = function(ast, comp, e){
             "ctx",
             "getArg",
             "hasArg",
-            "processActionBlock",
+            "runAction",
         ], body),
     ]));
 };
