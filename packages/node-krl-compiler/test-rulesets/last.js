@@ -25,16 +25,14 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           if (yield ctx.callKRLstdlib("==", [
               yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "foo"
             ]))
             ctx.stopRulesetExecution();
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "bar": {
@@ -60,16 +58,14 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           if (yield ctx.callKRLstdlib("==", [
               yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "bar"
             ]))
             ctx.stopRulesetExecution();
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "baz": {
@@ -95,12 +91,10 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           ctx.stopRulesetExecution();
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "qux": {

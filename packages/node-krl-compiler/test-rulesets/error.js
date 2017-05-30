@@ -23,15 +23,13 @@ module.exports = {
             ]]
         }
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "error_log", yield ctx.callKRLstdlib("append", [
             yield ctx.modules.get(ctx, "ent", "error_log"),
             yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [yield ctx.modules.get(ctx, "ent", "error_log")])
           ]));
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "basic0": {
@@ -57,12 +55,10 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.raiseError(ctx, "info", "some info error");
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "basic1": {
@@ -88,12 +84,10 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.raiseError(ctx, "info", "this should not fire, b/c basic0 stopped execution");
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     }
   }

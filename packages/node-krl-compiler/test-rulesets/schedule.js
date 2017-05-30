@@ -38,12 +38,10 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "log", []);
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "push_log": {
@@ -69,15 +67,13 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
             yield ctx.modules.get(ctx, "ent", "log"),
             yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [yield ctx.modules.get(ctx, "ent", "log")])
           ]));
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "in_5min": {
@@ -103,8 +99,8 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           ctx.scope.set("foo", yield ctx.scheduleEvent({
             "domain": "schedule",
             "type": "push_log",
@@ -121,9 +117,7 @@ module.exports = {
             yield ctx.modules.get(ctx, "ent", "log"),
             { "scheduled in_5min": ctx.scope.get("foo") }
           ]));
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "every_1min": {
@@ -149,8 +143,8 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           ctx.scope.set("foo", yield ctx.scheduleEvent({
             "domain": "schedule",
             "type": "push_log",
@@ -164,9 +158,7 @@ module.exports = {
             yield ctx.modules.get(ctx, "ent", "log"),
             { "scheduled every_1min": ctx.scope.get("foo") }
           ]));
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "rm_from_schedule": {

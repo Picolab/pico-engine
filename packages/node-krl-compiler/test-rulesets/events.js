@@ -239,12 +239,10 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "on_fired_prev_name", ctx.scope.get("my_name"));
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "on_choose": {
@@ -290,14 +288,13 @@ module.exports = {
           }
         ]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "on_choose_fired", true);
-        },
-        "notfired": function* (ctx) {
+        }
+        if (!fired) {
           yield ctx.modules.set(ctx, "ent", "on_choose_fired", false);
-        },
-        "always": undefined
+        }
       }
     },
     "on_choose_if": {
@@ -349,14 +346,13 @@ module.exports = {
           }
         ]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "on_choose_fired", true);
-        },
-        "notfired": function* (ctx) {
+        }
+        if (!fired) {
           yield ctx.modules.set(ctx, "ent", "on_choose_fired", false);
-        },
-        "always": undefined
+        }
       }
     },
     "on_every": {
@@ -521,14 +517,13 @@ module.exports = {
             ]]
         }
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "no_action_fired", true);
-        },
-        "notfired": function* (ctx) {
+        }
+        if (!fired) {
           yield ctx.modules.set(ctx, "ent", "no_action_fired", false);
-        },
-        "always": undefined
+        }
       }
     },
     "action_send": {
@@ -591,13 +586,11 @@ module.exports = {
             ]]
         }
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "sent_attrs", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, []));
           yield ctx.modules.set(ctx, "ent", "sent_name", ctx.scope.get("my_name"));
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "raise_set_name": {
@@ -623,17 +616,15 @@ module.exports = {
             ]]
         }
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.raiseEvent({
             "domain": "events",
             "type": "store_sent_name",
             "attributes": { "name": ctx.scope.get("my_name") },
             "for_rid": undefined
           });
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "raise_set_name_attr": {
@@ -659,17 +650,15 @@ module.exports = {
             ]]
         }
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.raiseEvent({
             "domain": "events",
             "type": "store_sent_name",
             "attributes": { "name": ctx.scope.get("my_name") },
             "for_rid": undefined
           });
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "raise_set_name_rid": {
@@ -698,17 +687,15 @@ module.exports = {
       "prelude": function* (ctx) {
         ctx.scope.set("rid", "io.picolabs.events");
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.raiseEvent({
             "domain": "events",
             "type": "store_sent_name",
             "attributes": { "name": ctx.scope.get("my_name") },
             "for_rid": ctx.scope.get("rid")
           });
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "event_eid": {

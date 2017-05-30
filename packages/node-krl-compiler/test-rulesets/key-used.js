@@ -88,12 +88,8 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "foo_postlude", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));
-        }
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.set(ctx, "ent", "foo_postlude", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));
       }
     }
   }

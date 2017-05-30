@@ -153,14 +153,10 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "ent_var_name", ctx.scope.get("name"));
-          yield ctx.modules.set(ctx, "ent", "ent_var_p0", ctx.scope.get("p0"));
-          yield ctx.modules.set(ctx, "ent", "ent_var_p1", ctx.scope.get("p1"));
-        }
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.set(ctx, "ent", "ent_var_name", ctx.scope.get("name"));
+        yield ctx.modules.set(ctx, "ent", "ent_var_p0", ctx.scope.get("p0"));
+        yield ctx.modules.set(ctx, "ent", "ent_var_p1", ctx.scope.get("p1"));
       }
     },
     "functions": {

@@ -17,16 +17,14 @@ module.exports = {
             ]]
         }
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           ctx.log("info", "hello default");
           ctx.log("error", "hello error");
           ctx.log("warn", "hello warn");
           ctx.log("info", "hello info");
           ctx.log("debug", "hello debug");
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     }
   }

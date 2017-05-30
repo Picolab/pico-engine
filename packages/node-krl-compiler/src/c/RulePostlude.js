@@ -1,14 +1,13 @@
-var postludeBlock = function(stmts, comp, e){
-    if(!stmts){
-        return e("nil");
-    }
-    return e("genfn", ["ctx"], comp(stmts));
-};
-
 module.exports = function(ast, comp, e){
-    return e("obj", {
-        fired: postludeBlock(ast.fired, comp, e),
-        notfired: postludeBlock(ast.notfired, comp, e),
-        always: postludeBlock(ast.always, comp, e)
-    });
+    var body = [];
+    if(ast.fired){
+        body.push(e("if", e("id", "fired"), e("block", comp(ast.fired))));
+    }
+    if(ast.notfired){
+        body.push(e("if", e("!", e("id", "fired")), e("block", comp(ast.notfired))));
+    }
+    if(ast.always){
+        body = body.concat(comp(ast.always));
+    }
+    return e("genfn", ["ctx", "fired"], body);
 };

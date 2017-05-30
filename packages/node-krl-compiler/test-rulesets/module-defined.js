@@ -71,24 +71,20 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "memo", yield ctx.callKRLstdlib("+", [
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.set(ctx, "ent", "memo", yield ctx.callKRLstdlib("+", [
+          yield ctx.callKRLstdlib("+", [
             yield ctx.callKRLstdlib("+", [
               yield ctx.callKRLstdlib("+", [
-                yield ctx.callKRLstdlib("+", [
-                  "[\"",
-                  ctx.scope.get("text")
-                ]),
-                "\" by "
+                "[\"",
+                ctx.scope.get("text")
               ]),
-              ctx.scope.get("configured_name")
+              "\" by "
             ]),
-            "]"
-          ]));
-        }
+            ctx.scope.get("configured_name")
+          ]),
+          "]"
+        ]));
       }
     }
   }

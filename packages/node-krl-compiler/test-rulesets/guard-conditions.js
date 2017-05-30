@@ -40,16 +40,12 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          if (yield ctx.callKRLstdlib("match", [
-              ctx.scope.get("b"),
-              new RegExp("foo", "")
-            ]))
-            yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
-        }
+      "postlude": function* (ctx, fired) {
+        if (yield ctx.callKRLstdlib("match", [
+            ctx.scope.get("b"),
+            new RegExp("foo", "")
+          ]))
+          yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
       }
     },
     "bar": {
@@ -91,13 +87,9 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          if (ctx.foreach_is_final)
-            yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
-        }
+      "postlude": function* (ctx, fired) {
+        if (ctx.foreach_is_final)
+          yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
       }
     }
   }

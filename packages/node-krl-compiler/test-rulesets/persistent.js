@@ -59,12 +59,8 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
-        }
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
       }
     },
     "store_appvar": {
@@ -100,12 +96,8 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
-        }
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
       }
     },
     "store_user_firstname": {
@@ -141,17 +133,13 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
-          yield ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", [
-            yield ctx.modules.get(ctx, "ent", "user"),
-            ["firstname"],
-            ctx.scope.get("firstname")
-          ]));
-        }
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
+        yield ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", [
+          yield ctx.modules.get(ctx, "ent", "user"),
+          ["firstname"],
+          ctx.scope.get("firstname")
+        ]));
       }
     },
     "clear_user": {
@@ -177,12 +165,8 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.del(ctx, "ent", "user");
-        }
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.del(ctx, "ent", "user");
       }
     },
     "clear_appvar": {
@@ -208,12 +192,8 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.del(ctx, "app", "appvar");
-        }
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.del(ctx, "app", "appvar");
       }
     }
   }

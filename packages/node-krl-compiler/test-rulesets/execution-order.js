@@ -30,20 +30,17 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
             yield ctx.modules.get(ctx, "ent", "order"),
             "first-fired"
           ]));
-        },
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "order"),
-            "first-finally"
-          ]));
         }
+        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+          yield ctx.modules.get(ctx, "ent", "order"),
+          "first-finally"
+        ]));
       }
     },
     "second": {
@@ -69,20 +66,17 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
             yield ctx.modules.get(ctx, "ent", "order"),
             "second-fired"
           ]));
-        },
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "order"),
-            "second-finally"
-          ]));
         }
+        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+          yield ctx.modules.get(ctx, "ent", "order"),
+          "second-finally"
+        ]));
       }
     },
     "reset_order": {
@@ -108,12 +102,8 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", []);
-        }
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.set(ctx, "ent", "order", []);
       }
     },
     "foo_or_bar": {
@@ -153,15 +143,11 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "order"),
-            "foo_or_bar"
-          ]));
-        }
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+          yield ctx.modules.get(ctx, "ent", "order"),
+          "foo_or_bar"
+        ]));
       }
     },
     "foo": {
@@ -187,15 +173,11 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "order"),
-            "foo"
-          ]));
-        }
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+          yield ctx.modules.get(ctx, "ent", "order"),
+          "foo"
+        ]));
       }
     },
     "bar": {
@@ -221,15 +203,11 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "order"),
-            "bar"
-          ]));
-        }
+      "postlude": function* (ctx, fired) {
+        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+          yield ctx.modules.get(ctx, "ent", "order"),
+          "bar"
+        ]));
       }
     }
   }

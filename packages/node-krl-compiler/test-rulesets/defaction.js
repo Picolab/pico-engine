@@ -263,12 +263,10 @@ module.exports = {
             }
           }]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "setting_val", ctx.scope.get("val"));
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "chooser": {
@@ -402,17 +400,15 @@ module.exports = {
           }
         ]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "setting_val", [
             ctx.scope.get("a"),
             ctx.scope.get("b"),
             ctx.scope.get("c"),
             ctx.scope.get("d")
           ]);
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "scope": {
@@ -499,8 +495,8 @@ module.exports = {
           }
         ]
       },
-      "postlude": {
-        "fired": function* (ctx) {
+      "postlude": function* (ctx, fired) {
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "setting_val", [
             ctx.scope.get("a"),
             ctx.scope.get("b"),
@@ -508,9 +504,7 @@ module.exports = {
             ctx.scope.get("d"),
             ctx.scope.get("e")
           ]);
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "trying_to_use_action_as_fn": {
