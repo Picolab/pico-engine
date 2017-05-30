@@ -512,6 +512,36 @@ module.exports = {
         "notfired": undefined,
         "always": undefined
       }
+    },
+    "trying_to_use_action_as_fn": {
+      "name": "trying_to_use_action_as_fn",
+      "select": {
+        "graph": { "defa": { "trying_to_use_action_as_fn": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "prelude": function* (ctx) {
+        ctx.scope.set("val", yield ctx.scope.get("foo")(ctx, [100]));
+      },
+      "action_block": {
+        "actions": [{
+            "action": function* (ctx, runAction) {
+              var returns = yield runAction(ctx, void 0, "send_directive", [
+                "trying_to_use_action_as_fn",
+                { "val": ctx.scope.get("val") }
+              ]);
+            }
+          }]
+      }
     }
   }
 };

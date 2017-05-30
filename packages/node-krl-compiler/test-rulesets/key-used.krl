@@ -14,7 +14,7 @@ This is a test file for a module that uses keys
                 and
                 key2 = keys:bar("baz")
 
-        shares getFoo, getBar, getBarN, getQuux, getQuuz, getAPIKeys, getFooPostlude
+        shares getFoo, getBar, getBarN, getQuux, getQuuz, getAPIKeys, getFooPostlude, foo_global
     }
     global {
         getFoo = function(){
@@ -38,6 +38,7 @@ This is a test file for a module that uses keys
         getFooPostlude = function(){
             ent:foo_postlude;
         }
+        foo_global = keys:foo()
     }
     rule key_used_foo {
         select when key_used foo

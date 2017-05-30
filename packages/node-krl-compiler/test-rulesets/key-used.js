@@ -26,7 +26,8 @@ module.exports = {
       "getQuux",
       "getQuuz",
       "getAPIKeys",
-      "getFooPostlude"
+      "getFooPostlude",
+      "foo_global"
     ]
   },
   "global": function* (ctx) {
@@ -52,6 +53,7 @@ module.exports = {
     ctx.scope.set("getFooPostlude", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "foo_postlude");
     }));
+    ctx.scope.set("foo_global", yield (yield ctx.modules.get(ctx, "keys", "foo"))(ctx, []));
   },
   "rules": {
     "key_used_foo": {
