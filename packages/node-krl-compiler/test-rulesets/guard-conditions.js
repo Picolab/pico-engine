@@ -33,10 +33,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "foo",
                 { "b": ctx.scope.get("b") }
-              ]);
+              ], []);
             }
           }]
       },
@@ -77,13 +77,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "bar",
                 {
                   "x": ctx.scope.get("x"),
                   "b": yield ctx.modules.get(ctx, "ent", "b")
                 }
-              ]);
+              ], []);
             }
           }]
       },

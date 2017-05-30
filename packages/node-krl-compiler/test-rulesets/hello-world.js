@@ -37,10 +37,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "say",
                 { "something": "Hello World" }
-              ]);
+              ], []);
             }
           }]
       }

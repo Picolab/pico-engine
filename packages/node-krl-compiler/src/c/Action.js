@@ -9,21 +9,17 @@ module.exports = function(ast, comp, e){
     }
     var fn_body = [];
 
-    fn_body.push(e("var", "returns", e("ycall",  e("id", "runAction"), [
+    fn_body.push(e(";", e("ycall",  e("id", "runAction"), [
         e("id", "ctx"),
         ast.action.domain
             ? e("str", ast.action.domain, ast.action.loc)
             : e("void", e("number", 0)),
         e("str", ast.action.value),
         comp(ast.args),
+        e("array", _.map(ast.setting, function(set){
+            return e("str", set.value, set.loc);
+        })),
     ])));
-
-    _.each(ast.setting, function(set, i){
-        fn_body.push(e(";", e("call", e("id", "ctx.scope.set", set.loc), [
-            e("str", set.value, set.loc),
-            e("get", e("id", "returns"), e("number", i, set.loc), set.loc),
-        ], set.loc), set.loc));
-    });
 
     var obj = {};
     if(ast.label && ast.label.type === "Identifier"){

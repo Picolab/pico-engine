@@ -61,13 +61,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "store_memo",
                 {
                   "name": ctx.scope.get("configured_name"),
                   "memo_to_store": ctx.scope.get("text")
                 }
-              ]);
+              ], []);
             }
           }]
       },

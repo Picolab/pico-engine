@@ -43,10 +43,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "dflt_name",
                 { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []) }
-              ]);
+              ], []);
             }
           }]
       }
@@ -70,10 +70,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "conf_name",
                 { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getName"), ctx, []) }
-              ]);
+              ], []);
             }
           }]
       }
@@ -97,10 +97,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "dflt_info",
                 { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getInfo"), ctx, []) }
-              ]);
+              ], []);
             }
           }]
       }
@@ -124,10 +124,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "conf_info",
                 { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getInfo"), ctx, []) }
-              ]);
+              ], []);
             }
           }]
       }

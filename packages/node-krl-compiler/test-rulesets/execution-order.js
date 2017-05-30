@@ -26,7 +26,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["first"]);
+              yield runAction(ctx, void 0, "send_directive", ["first"], []);
             }
           }]
       },
@@ -62,7 +62,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["second"]);
+              yield runAction(ctx, void 0, "send_directive", ["second"], []);
             }
           }]
       },
@@ -98,7 +98,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["reset_order"]);
+              yield runAction(ctx, void 0, "send_directive", ["reset_order"], []);
             }
           }]
       },
@@ -139,7 +139,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["foo_or_bar"]);
+              yield runAction(ctx, void 0, "send_directive", ["foo_or_bar"], []);
             }
           }]
       },
@@ -169,7 +169,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["foo"]);
+              yield runAction(ctx, void 0, "send_directive", ["foo"], []);
             }
           }]
       },
@@ -199,7 +199,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["bar"]);
+              yield runAction(ctx, void 0, "send_directive", ["bar"], []);
             }
           }]
       },

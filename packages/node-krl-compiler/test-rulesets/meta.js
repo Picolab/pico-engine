@@ -42,7 +42,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "event",
                 {
                   "rid": yield ctx.modules.get(ctx, "meta", "rid"),
@@ -56,7 +56,7 @@ module.exports = {
                   "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery"),
                   "eci": yield ctx.modules.get(ctx, "meta", "eci")
                 }
-              ]);
+              ], []);
             }
           }]
       }

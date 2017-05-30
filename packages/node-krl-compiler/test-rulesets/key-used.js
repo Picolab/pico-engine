@@ -78,13 +78,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "foo",
                 {
                   "foo": yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []),
                   "foo_pre": ctx.scope.get("foo_pre")
                 }
-              ]);
+              ], []);
             }
           }]
       },

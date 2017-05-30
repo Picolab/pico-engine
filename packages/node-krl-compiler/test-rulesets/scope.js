@@ -103,10 +103,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "say",
                 { "name": ctx.scope.get("my_name") }
-              ]);
+              ], []);
             }
           }]
       }
@@ -141,7 +141,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "say",
                 {
                   "name": ctx.scope.get("name"),
@@ -149,7 +149,7 @@ module.exports = {
                   "p1": ctx.scope.get("p1"),
                   "g0": ctx.scope.get("g0")
                 }
-              ]);
+              ], []);
             }
           }]
       },
@@ -182,7 +182,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "say",
                 {
                   "add_one_two": yield ctx.applyFn(ctx.scope.get("add"), ctx, [
@@ -192,7 +192,7 @@ module.exports = {
                   "inc5_3": yield ctx.applyFn(ctx.scope.get("inc5"), ctx, [3]),
                   "g0": ctx.scope.get("g0")
                 }
-              ]);
+              ], []);
             }
           }]
       }

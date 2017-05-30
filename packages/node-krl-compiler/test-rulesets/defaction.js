@@ -13,7 +13,7 @@ module.exports = {
       yield processActionBlock(ctx, {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "foo",
                 {
                   "a": ctx.scope.get("a"),
@@ -22,7 +22,7 @@ module.exports = {
                     3
                   ])
                 }
-              ]);
+              ], []);
             }
           }]
       });
@@ -44,15 +44,14 @@ module.exports = {
       yield processActionBlock(ctx, {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "bar",
                 {
                   "a": ctx.scope.get("one"),
                   "b": ctx.scope.get("two"),
                   "c": ctx.scope.get("three")
                 }
-              ]);
-              ctx.scope.set("dir", returns[0]);
+              ], ["dir"]);
             }
           }]
       });
@@ -72,17 +71,17 @@ module.exports = {
           {
             "label": "asdf",
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "foo", [ctx.scope.get("val")]);
+              yield runAction(ctx, void 0, "foo", [ctx.scope.get("val")], []);
             }
           },
           {
             "label": "fdsa",
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "bar", [
+              yield runAction(ctx, void 0, "bar", [
                 ctx.scope.get("val"),
                 "ok",
                 "done"
-              ]);
+              ], []);
             }
           }
         ]
@@ -99,12 +98,12 @@ module.exports = {
         "actions": [
           {
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["yes a"]);
+              yield runAction(ctx, void 0, "send_directive", ["yes a"], []);
             }
           },
           {
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["not b"]);
+              yield runAction(ctx, void 0, "send_directive", ["not b"], []);
             }
           }
         ]
@@ -118,7 +117,7 @@ module.exports = {
       yield processActionBlock(ctx, {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "noop", []);
+              yield runAction(ctx, void 0, "noop", [], []);
             }
           }]
       });
@@ -145,14 +144,13 @@ module.exports = {
         },
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 yield ctx.callKRLstdlib("+", [
                   "wat:",
                   ctx.scope.get("a")
                 ]),
                 { "b": ctx.scope.get("b") }
-              ]);
-              ctx.scope.set("dir", returns[0]);
+              ], ["dir"]);
             }
           }]
       });
@@ -202,7 +200,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "foo", ["bar"]);
+              yield runAction(ctx, void 0, "foo", ["bar"], []);
             }
           }]
       }
@@ -226,11 +224,11 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "bar", {
+              yield runAction(ctx, void 0, "bar", {
                 "0": "baz",
                 "two": "qux",
                 "three": "quux"
-              });
+              }, []);
             }
           }]
       }
@@ -254,12 +252,11 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "bar", {
+              yield runAction(ctx, void 0, "bar", {
                 "0": "baz",
                 "two": "qux",
                 "three": "quux"
-              });
-              ctx.scope.set("val", returns[0]);
+              }, ["val"]);
             }
           }]
       },
@@ -288,7 +285,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "chooser", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["val"])]);
+              yield runAction(ctx, void 0, "chooser", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["val"])], []);
             }
           }]
       }
@@ -312,7 +309,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "ifAnotB", [
+              yield runAction(ctx, void 0, "ifAnotB", [
                 yield ctx.callKRLstdlib("==", [
                   yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["a"]),
                   "true"
@@ -321,7 +318,7 @@ module.exports = {
                   yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["b"]),
                   "true"
                 ])
-              ]);
+              ], []);
             }
           }]
       }
@@ -345,10 +342,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "add", [
+              yield runAction(ctx, void 0, "add", [
                 1,
                 2
-              ]);
+              ], []);
             }
           }]
       }
@@ -373,19 +370,20 @@ module.exports = {
         "actions": [
           {
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "echoAction", [
+              yield runAction(ctx, void 0, "echoAction", [
                 "where",
                 "in",
                 "the"
+              ], [
+                "a",
+                "b",
+                "c"
               ]);
-              ctx.scope.set("a", returns[0]);
-              ctx.scope.set("b", returns[1]);
-              ctx.scope.set("c", returns[2]);
             }
           },
           {
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "complexAction", [
+              yield runAction(ctx, void 0, "complexAction", [
                 yield ctx.callKRLstdlib("+", [
                   yield ctx.callKRLstdlib("+", [
                     ctx.scope.get("a"),
@@ -394,8 +392,7 @@ module.exports = {
                   ctx.scope.get("c")
                 ]),
                 333
-              ]);
-              ctx.scope.set("d", returns[0]);
+              ], ["d"]);
             }
           }
         ]
@@ -432,7 +429,7 @@ module.exports = {
           yield processActionBlock(ctx, {
             "actions": [{
                 "action": function* (ctx, runAction) {
-                  var returns = yield runAction(ctx, void 0, "noop", []);
+                  yield runAction(ctx, void 0, "noop", [], []);
                 }
               }]
           });
@@ -442,8 +439,7 @@ module.exports = {
           yield processActionBlock(ctx, {
             "actions": [{
                 "action": function* (ctx, runAction) {
-                  var returns = yield runAction(ctx, void 0, "noop", []);
-                  ctx.scope.set("foo", returns[0]);
+                  yield runAction(ctx, void 0, "noop", [], ["foo"]);
                 }
               }]
           });
@@ -456,7 +452,7 @@ module.exports = {
           yield processActionBlock(ctx, {
             "actions": [{
                 "action": function* (ctx, runAction) {
-                  var returns = yield runAction(ctx, void 0, "noop", []);
+                  yield runAction(ctx, void 0, "noop", [], []);
                 }
               }]
           });
@@ -471,26 +467,25 @@ module.exports = {
         "actions": [
           {
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "echoAction", [
+              yield runAction(ctx, void 0, "echoAction", [
                 "where",
                 "in",
                 "the"
+              ], [
+                "a",
+                "b",
+                "c"
               ]);
-              ctx.scope.set("a", returns[0]);
-              ctx.scope.set("b", returns[1]);
-              ctx.scope.set("c", returns[2]);
             }
           },
           {
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "noop", []);
-              ctx.scope.set("d", returns[0]);
+              yield runAction(ctx, void 0, "noop", [], ["d"]);
             }
           },
           {
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", []);
-              ctx.scope.set("e", returns[0]);
+              yield runAction(ctx, void 0, "send_directive", [], ["e"]);
             }
           }
         ]
@@ -529,10 +524,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "trying_to_use_action_as_fn",
                 { "val": ctx.scope.get("val") }
-              ]);
+              ], []);
             }
           }]
       }

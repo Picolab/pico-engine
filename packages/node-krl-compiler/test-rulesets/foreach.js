@@ -40,10 +40,10 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "basic",
                 { "x": ctx.scope.get("x") }
-              ]);
+              ], []);
             }
           }]
       }
@@ -78,13 +78,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "map",
                 {
                   "k": ctx.scope.get("k"),
                   "v": ctx.scope.get("v")
                 }
-              ]);
+              ], []);
             }
           }]
       }
@@ -125,13 +125,13 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "nested",
                 {
                   "x": ctx.scope.get("x"),
                   "y": ctx.scope.get("y")
                 }
-              ]);
+              ], []);
             }
           }]
       }
@@ -180,14 +180,14 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
+              yield runAction(ctx, void 0, "send_directive", [
                 "scope",
                 {
                   "foo": ctx.scope.get("foo"),
                   "bar": ctx.scope.get("bar"),
                   "baz": ctx.scope.get("baz")
                 }
-              ]);
+              ], []);
             }
           }]
       }
