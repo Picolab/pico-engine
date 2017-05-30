@@ -74,7 +74,7 @@ module.exports = {
         },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -117,7 +117,7 @@ module.exports = {
         "graph": { "scope": { "prelude": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -181,7 +181,7 @@ module.exports = {
       },
       "prelude": function* (ctx) {
         ctx.scope.set("g0", "overrided g0!");
-        ctx.scope.set("inc5", yield ctx.scope.get("incByN")(ctx, [5]));
+        ctx.scope.set("inc5", yield ctx.applyFn(ctx.scope.get("incByN"), ctx, [5]));
       },
       "action_block": {
         "actions": [{
@@ -189,11 +189,11 @@ module.exports = {
               var returns = yield runAction(ctx, void 0, "send_directive", [
                 "say",
                 {
-                  "add_one_two": yield ctx.scope.get("add")(ctx, [
+                  "add_one_two": yield ctx.applyFn(ctx.scope.get("add"), ctx, [
                     1,
                     2
                   ]),
-                  "inc5_3": yield ctx.scope.get("inc5")(ctx, [3]),
+                  "inc5_3": yield ctx.applyFn(ctx.scope.get("inc5"), ctx, [3]),
                   "g0": ctx.scope.get("g0")
                 }
               ]);

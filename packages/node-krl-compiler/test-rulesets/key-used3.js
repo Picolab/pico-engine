@@ -7,7 +7,7 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("getFoo", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield (yield ctx.modules.get(ctx, "keys", "foo"))(ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []);
     }));
   },
   "rules": {}

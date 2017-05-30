@@ -153,7 +153,7 @@ module.exports = {
         }
       },
       "foreach": function* (ctx, foreach, iter) {
-        yield foreach(yield ctx.scope.get("doubleThis")(ctx, [[
+        yield foreach(yield ctx.applyFn(ctx.scope.get("doubleThis"), ctx, [[
             1,
             2,
             3

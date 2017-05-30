@@ -87,7 +87,7 @@ module.exports = {
             return true;
           },
           "expr_1": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "name",
                   new RegExp("bob", "")
                 ]]]);
@@ -864,7 +864,7 @@ module.exports = {
         "graph": { "ee_repeat": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "name",
                   new RegExp("bob", "")
                 ]]]);
@@ -906,7 +906,7 @@ module.exports = {
         "graph": { "ee_count_max": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
                 ]]]);
@@ -951,7 +951,7 @@ module.exports = {
         "graph": { "ee_repeat_min": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
                 ]]]);
@@ -1000,7 +1000,7 @@ module.exports = {
         "graph": { "ee_repeat_sum": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
                 ]]]);
@@ -1049,7 +1049,7 @@ module.exports = {
         "graph": { "ee_repeat_avg": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
                 ]]]);
@@ -1098,7 +1098,7 @@ module.exports = {
         "graph": { "ee_repeat_push": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "b",
                   new RegExp("(\\d+)", "")
                 ]]]);
@@ -1147,7 +1147,7 @@ module.exports = {
         "graph": { "ee_repeat_push_multi": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[
                 [
                   "a",
                   new RegExp("(\\d+)", "")
@@ -1229,7 +1229,7 @@ module.exports = {
         "graph": { "ee_repeat_sum_multi": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[
                 [
                   "a",
                   new RegExp("(\\d+)", "")

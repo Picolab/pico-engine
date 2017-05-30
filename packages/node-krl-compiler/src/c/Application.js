@@ -13,7 +13,8 @@ module.exports = function(ast, comp, e){
         return callStdLibFn(e, operator.value, args, operator.loc);
     }
 
-    return e("ycall", comp(ast.callee), [
+    return e("ycall", e("id", "ctx.applyFn"), [
+        comp(ast.callee),
         e("id", "ctx"),
         comp(ast.args)
     ]);

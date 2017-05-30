@@ -28,9 +28,9 @@ module.exports = {
     }));
     ctx.scope.set("getInfo", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return {
-        "name": yield ctx.scope.get("getName")(ctx, []),
+        "name": yield ctx.applyFn(ctx.scope.get("getName"), ctx, []),
         "memo": yield ctx.modules.get(ctx, "ent", "memo"),
-        "privateFn": yield ctx.scope.get("privateFn")(ctx, [])
+        "privateFn": yield ctx.applyFn(ctx.scope.get("privateFn"), ctx, [])
       };
     }));
   },
@@ -41,7 +41,7 @@ module.exports = {
         "graph": { "module_defined": { "store_memo": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "memo",
                   new RegExp("^(.*)$", "")
                 ]]]);

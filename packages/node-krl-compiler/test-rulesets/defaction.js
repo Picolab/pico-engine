@@ -31,7 +31,7 @@ module.exports = {
     ctx.defaction(ctx, "bar", function* (ctx, getArg, hasArg, processActionBlock) {
       ctx.scope.set("one", getArg("one", 0));
       ctx.scope.set("two", hasArg("two", 1) ? getArg("two", 1) : yield ctx.callKRLstdlib("get", [
-        yield ctx.scope.get("add")(ctx, [
+        yield ctx.applyFn(ctx.scope.get("add"), ctx, [
           1,
           1
         ]),
@@ -290,7 +290,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "chooser", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["val"])]);
+              var returns = yield runAction(ctx, void 0, "chooser", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["val"])]);
             }
           }]
       }
@@ -316,11 +316,11 @@ module.exports = {
             "action": function* (ctx, runAction) {
               var returns = yield runAction(ctx, void 0, "ifAnotB", [
                 yield ctx.callKRLstdlib("==", [
-                  yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["a"]),
+                  yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["a"]),
                   "true"
                 ]),
                 yield ctx.callKRLstdlib("==", [
-                  yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["b"]),
+                  yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["b"]),
                   "true"
                 ])
               ]);
@@ -530,7 +530,7 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("val", yield ctx.scope.get("foo")(ctx, [100]));
+        ctx.scope.set("val", yield ctx.applyFn(ctx.scope.get("foo"), ctx, [100]));
       },
       "action_block": {
         "actions": [{

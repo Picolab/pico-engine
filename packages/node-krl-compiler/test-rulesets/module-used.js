@@ -20,7 +20,7 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("now", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield (yield ctx.modules.get(ctx, "time", "now"))(ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "now"), ctx, []);
     }));
   },
   "rules": {
@@ -45,7 +45,7 @@ module.exports = {
             "action": function* (ctx, runAction) {
               var returns = yield runAction(ctx, void 0, "send_directive", [
                 "dflt_name",
-                { "name": yield (yield ctx.modules.get(ctx, "my_module_dflt", "getName"))(ctx, []) }
+                { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []) }
               ]);
             }
           }]
@@ -72,7 +72,7 @@ module.exports = {
             "action": function* (ctx, runAction) {
               var returns = yield runAction(ctx, void 0, "send_directive", [
                 "conf_name",
-                { "name": yield (yield ctx.modules.get(ctx, "my_module_conf", "getName"))(ctx, []) }
+                { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getName"), ctx, []) }
               ]);
             }
           }]
@@ -99,7 +99,7 @@ module.exports = {
             "action": function* (ctx, runAction) {
               var returns = yield runAction(ctx, void 0, "send_directive", [
                 "dflt_info",
-                { "info": yield (yield ctx.modules.get(ctx, "my_module_dflt", "getInfo"))(ctx, []) }
+                { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getInfo"), ctx, []) }
               ]);
             }
           }]
@@ -126,7 +126,7 @@ module.exports = {
             "action": function* (ctx, runAction) {
               var returns = yield runAction(ctx, void 0, "send_directive", [
                 "conf_info",
-                { "info": yield (yield ctx.modules.get(ctx, "my_module_conf", "getInfo"))(ctx, []) }
+                { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getInfo"), ctx, []) }
               ]);
             }
           }]

@@ -42,9 +42,9 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("pico_id", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["pico_id"]));
-        ctx.scope.set("name", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["name"]));
-        ctx.scope.set("type", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["type"]));
+        ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
+        ctx.scope.set("name", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["name"]));
+        ctx.scope.set("type", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["type"]));
       },
       "action_block": {
         "actions": [{
@@ -77,7 +77,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, "engine", "removeChannel", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["eci"])]);
+              var returns = yield runAction(ctx, "engine", "removeChannel", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["eci"])]);
             }
           }]
       }
@@ -99,10 +99,10 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("pico_id", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["pico_id"]));
-        ctx.scope.set("rid", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["rid"]));
-        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
-        ctx.scope.set("base", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["base"]));
+        ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
+        ctx.scope.set("rid", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["rid"]));
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+        ctx.scope.set("base", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["base"]));
       },
       "action_block": {
         "actions": [{

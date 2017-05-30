@@ -32,7 +32,7 @@ module.exports = {
         "graph": { "store": { "name": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -73,7 +73,7 @@ module.exports = {
         "graph": { "store": { "appvar": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "appvar",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -114,7 +114,7 @@ module.exports = {
         "graph": { "store": { "user_firstname": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "firstname",
                   new RegExp("^(.*)$", "")
                 ]]]);

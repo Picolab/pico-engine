@@ -11,7 +11,7 @@ module.exports = {
       return yield ctx.modules.get(ctx, "ent", "log");
     }));
     ctx.scope.set("listScheduled", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield (yield ctx.modules.get(ctx, "schedule", "list"))(ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "schedule", "list"), ctx, []);
     }));
   },
   "rules": {
@@ -73,7 +73,7 @@ module.exports = {
         "fired": function* (ctx) {
           yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
             yield ctx.modules.get(ctx, "ent", "log"),
-            yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [yield ctx.modules.get(ctx, "ent", "log")])
+            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [yield ctx.modules.get(ctx, "ent", "log")])
           ]));
         },
         "notfired": undefined,
@@ -110,10 +110,10 @@ module.exports = {
             "type": "push_log",
             "attributes": {
               "from": "in_5min",
-              "name": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["name"])
+              "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["name"])
             },
-            "at": yield (yield ctx.modules.get(ctx, "time", "add"))(ctx, [
-              yield (yield ctx.modules.get(ctx, "time", "now"))(ctx, []),
+            "at": yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "add"), ctx, [
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "now"), ctx, []),
               { "minutes": 5 }
             ])
           }));
@@ -156,7 +156,7 @@ module.exports = {
             "type": "push_log",
             "attributes": {
               "from": "every_1min",
-              "name": yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["name"])
+              "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["name"])
             },
             "timespec": "* */1 * * * *"
           }));
@@ -188,7 +188,7 @@ module.exports = {
       "action_block": {
         "actions": [{
             "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, "schedule", "remove", [yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["id"])]);
+              var returns = yield runAction(ctx, "schedule", "remove", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["id"])]);
             }
           }]
       }

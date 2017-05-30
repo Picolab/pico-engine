@@ -88,8 +88,8 @@ module.exports = {
       });
     }));
     ctx.scope.set("paramFn", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("foo", hasArg("foo", 0) ? getArg("foo", 0) : yield ctx.scope.get("incByN")(ctx, [3]));
-      ctx.scope.set("bar", hasArg("bar", 1) ? getArg("bar", 1) : yield ctx.scope.get("foo")(ctx, [1]));
+      ctx.scope.set("foo", hasArg("foo", 0) ? getArg("foo", 0) : yield ctx.applyFn(ctx.scope.get("incByN"), ctx, [3]));
+      ctx.scope.set("bar", hasArg("bar", 1) ? getArg("bar", 1) : yield ctx.applyFn(ctx.scope.get("foo"), ctx, [1]));
       ctx.scope.set("baz", hasArg("baz", 2) ? getArg("baz", 2) : yield ctx.callKRLstdlib("+", [
         ctx.scope.get("bar"),
         2
@@ -106,12 +106,12 @@ module.exports = {
     }));
     ctx.scope.set("paramFnTest", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return [
-        yield ctx.scope.get("paramFn")(ctx, []),
-        yield ctx.scope.get("paramFn")(ctx, [
-          yield ctx.scope.get("incByN")(ctx, [100]),
+        yield ctx.applyFn(ctx.scope.get("paramFn"), ctx, []),
+        yield ctx.applyFn(ctx.scope.get("paramFn"), ctx, [
+          yield ctx.applyFn(ctx.scope.get("incByN"), ctx, [100]),
           "one"
         ]),
-        yield ctx.scope.get("paramFn")(ctx, [
+        yield ctx.applyFn(ctx.scope.get("paramFn"), ctx, [
           void 0,
           3,
           4,

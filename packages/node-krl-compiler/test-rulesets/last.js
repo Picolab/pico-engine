@@ -28,7 +28,7 @@ module.exports = {
       "postlude": {
         "fired": function* (ctx) {
           if (yield ctx.callKRLstdlib("==", [
-              yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["stop"]),
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "foo"
             ]))
             ctx.stopRulesetExecution();
@@ -63,7 +63,7 @@ module.exports = {
       "postlude": {
         "fired": function* (ctx) {
           if (yield ctx.callKRLstdlib("==", [
-              yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["stop"]),
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "bar"
             ]))
             ctx.stopRulesetExecution();

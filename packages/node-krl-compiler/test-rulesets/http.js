@@ -87,16 +87,16 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
       },
       "postlude": {
         "fired": function* (ctx) {
-          ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "get"))(ctx, {
+          ctx.scope.set("resp", yield ctx.applyFn(yield ctx.modules.get(ctx, "http", "get"), ctx, {
             "0": ctx.scope.get("url"),
             "qs": { "foo": "bar" },
             "headers": { "baz": "quix" }
           }));
-          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.scope.get("fmtResp")(ctx, [ctx.scope.get("resp")]));
+          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [ctx.scope.get("resp")]));
         },
         "notfired": undefined,
         "always": undefined
@@ -119,7 +119,7 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
       },
       "action_block": {
         "actions": [{
@@ -149,7 +149,7 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
       },
       "action_block": {
         "actions": [{
@@ -180,7 +180,7 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
       },
       "action_block": {
         "actions": [{
@@ -196,7 +196,7 @@ module.exports = {
       },
       "postlude": {
         "fired": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.scope.get("fmtResp")(ctx, [ctx.scope.get("resp")]));
+          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [ctx.scope.get("resp")]));
         },
         "notfired": undefined,
         "always": undefined
@@ -219,7 +219,7 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
       },
       "action_block": {
         "actions": [{
@@ -251,7 +251,7 @@ module.exports = {
         }
       },
       "prelude": function* (ctx) {
-        ctx.scope.set("resp", yield ctx.scope.get("fmtResp")(ctx, [yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [])]));
+        ctx.scope.set("resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [])]));
       },
       "action_block": {
         "actions": [{
