@@ -17,12 +17,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, "engine", "newPico", [], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "newChannel": {
@@ -41,12 +44,10 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
+      "body": function* (ctx, runAction) {
         ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
         ctx.scope.set("name", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["name"]));
         ctx.scope.set("type", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["type"]));
-      },
-      "action_block": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, "engine", "newChannel", [
@@ -55,7 +56,10 @@ module.exports = {
             ctx.scope.get("type")
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "removeChannel": {
@@ -74,12 +78,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, "engine", "removeChannel", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["eci"])], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "installRuleset": {
@@ -98,13 +105,11 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
+      "body": function* (ctx, runAction) {
         ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
         ctx.scope.set("rid", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["rid"]));
         ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         ctx.scope.set("base", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["base"]));
-      },
-      "action_block": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, "engine", "installRuleset", [
@@ -114,7 +119,10 @@ module.exports = {
             ctx.scope.get("base")
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }

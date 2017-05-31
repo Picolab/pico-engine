@@ -9,5 +9,5 @@ module.exports = function(ast, comp, e){
     if(ast.always){
         body = body.concat(comp(ast.always));
     }
-    return e("genfn", ["ctx", "fired"], body);
+    return body;
 };

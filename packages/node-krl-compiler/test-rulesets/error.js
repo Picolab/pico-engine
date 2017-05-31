@@ -23,7 +23,12 @@ module.exports = {
             ]]
         }
       },
-      "postlude": function* (ctx, fired) {
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.modules.set(ctx, "ent", "error_log", yield ctx.callKRLstdlib("append", [
             yield ctx.modules.get(ctx, "ent", "error_log"),
@@ -48,14 +53,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["basic0"], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.raiseError(ctx, "info", "some info error");
         }
@@ -77,14 +83,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["basic1"], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.raiseError(ctx, "info", "this should not fire, b/c basic0 stopped execution");
         }

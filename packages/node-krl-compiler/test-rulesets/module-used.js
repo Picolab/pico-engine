@@ -40,7 +40,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -48,7 +48,10 @@ module.exports = {
             { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []) }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "conf_name": {
@@ -67,7 +70,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -75,7 +78,10 @@ module.exports = {
             { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getName"), ctx, []) }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "dflt_info": {
@@ -94,7 +100,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -102,7 +108,10 @@ module.exports = {
             { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getInfo"), ctx, []) }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "conf_info": {
@@ -121,7 +130,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -129,7 +138,10 @@ module.exports = {
             { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getInfo"), ctx, []) }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }

@@ -49,7 +49,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -57,9 +57,10 @@ module.exports = {
             { "name": ctx.scope.get("my_name") }
           ], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         yield ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
       }
     },
@@ -86,7 +87,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -94,9 +95,10 @@ module.exports = {
             { "appvar": ctx.scope.get("my_appvar") }
           ], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         yield ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
       }
     },
@@ -123,7 +125,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -131,9 +133,10 @@ module.exports = {
             { "name": ctx.scope.get("firstname") }
           ], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
         yield ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", [
           yield ctx.modules.get(ctx, "ent", "user"),
@@ -158,14 +161,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["clear_user"], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         yield ctx.modules.del(ctx, "ent", "user");
       }
     },
@@ -185,14 +189,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["clear_appvar"], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         yield ctx.modules.del(ctx, "app", "appvar");
       }
     }

@@ -32,12 +32,15 @@ module.exports = {
           return 5 * 60000;
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["foo"], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "bar": {
@@ -74,12 +77,15 @@ module.exports = {
           ])) * 1000;
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["bar"], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "baz": {
@@ -131,12 +137,15 @@ module.exports = {
           return 1 * 31536000000;
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["baz"], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "qux": {
@@ -176,12 +185,15 @@ module.exports = {
           return 2 * 1000;
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["qux"], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }

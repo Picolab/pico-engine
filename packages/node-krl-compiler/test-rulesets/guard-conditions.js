@@ -30,7 +30,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -38,9 +38,10 @@ module.exports = {
             { "b": ctx.scope.get("b") }
           ], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (yield ctx.callKRLstdlib("match", [
             ctx.scope.get("b"),
             new RegExp("foo", "")
@@ -74,7 +75,7 @@ module.exports = {
           yield iter(ctx);
         }));
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -85,9 +86,10 @@ module.exports = {
             }
           ], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (ctx.foreach_is_final)
           yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
       }

@@ -24,18 +24,28 @@ module.exports = function(ast, comp, e){
             nestedForeach(ast.foreach, e(";", e("ycall", e("id", "iter"), [e("id", "ctx")])))
         ]);
     }
+
+    var rule_body = [];
+
     if(!_.isEmpty(ast.prelude)){
-        rule.prelude = e("genfn", ["ctx"], comp(ast.prelude));
+        rule_body = rule_body.concat(comp(ast.prelude));
     }
     if(ast.action_block){
-        rule.action_block = e("genfn", ["ctx", "runAction"],
-            comp(ast.action_block).concat([
-                e("return", e("id", "fired"))
-            ])
-        );
+        rule_body = rule_body.concat(comp(ast.action_block));
+    }else{
+        rule_body.push(e("var", "fired", e("true")));
     }
+
+    rule_body.push(e("if", e("id", "fired"),
+        e(";", e("call", e("id", "ctx.emit"), [e("str", "debug"), e("str", "fired")])),
+        e(";", e("call", e("id", "ctx.emit"), [e("str", "debug"), e("str", "not fired")]))
+    ));
+
     if(ast.postlude){
-        rule.postlude = comp(ast.postlude);
+        rule_body = rule_body.concat(comp(ast.postlude));
     }
+
+    rule.body = e("genfn", ["ctx", "runAction"], rule_body);
+
     return e("obj", rule);
 };

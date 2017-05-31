@@ -100,7 +100,7 @@ module.exports = {
           ]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -108,7 +108,10 @@ module.exports = {
             { "name": ctx.scope.get("my_name") }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "prelude_scope": {
@@ -134,11 +137,9 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
+      "body": function* (ctx, runAction) {
         ctx.scope.set("p0", "prelude 0");
         ctx.scope.set("p1", "prelude 1");
-      },
-      "action_block": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -151,9 +152,10 @@ module.exports = {
             }
           ], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         yield ctx.modules.set(ctx, "ent", "ent_var_name", ctx.scope.get("name"));
         yield ctx.modules.set(ctx, "ent", "ent_var_p0", ctx.scope.get("p0"));
         yield ctx.modules.set(ctx, "ent", "ent_var_p1", ctx.scope.get("p1"));
@@ -175,11 +177,9 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
+      "body": function* (ctx, runAction) {
         ctx.scope.set("g0", "overrided g0!");
         ctx.scope.set("inc5", yield ctx.applyFn(ctx.scope.get("incByN"), ctx, [5]));
-      },
-      "action_block": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -194,7 +194,10 @@ module.exports = {
             }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }

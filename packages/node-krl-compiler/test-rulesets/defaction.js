@@ -161,12 +161,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "foo", ["bar"], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "bar": {
@@ -185,7 +188,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "bar", {
@@ -194,7 +197,10 @@ module.exports = {
             "three": "quux"
           }, []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "bar_setting": {
@@ -213,7 +219,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "bar", {
@@ -222,9 +228,10 @@ module.exports = {
             "three": "quux"
           }, ["val"]);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.modules.set(ctx, "ent", "setting_val", ctx.scope.get("val"));
         }
@@ -246,12 +253,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "chooser", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["val"])], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "ifAnotB": {
@@ -270,7 +280,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "ifAnotB", [
@@ -284,7 +294,10 @@ module.exports = {
             ])
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "add": {
@@ -303,7 +316,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "add", [
@@ -311,7 +324,10 @@ module.exports = {
             2
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "returns": {
@@ -330,7 +346,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "echoAction", [
@@ -353,9 +369,10 @@ module.exports = {
             333
           ], ["d"]);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.modules.set(ctx, "ent", "setting_val", [
             ctx.scope.get("a"),
@@ -382,7 +399,7 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
+      "body": function* (ctx, runAction) {
         ctx.defaction(ctx, "noop", function* (ctx, getArg, hasArg, runAction) {
           var fired = true;
           if (fired) {
@@ -411,8 +428,6 @@ module.exports = {
             "echo"
           ];
         });
-      },
-      "action_block": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "echoAction", [
@@ -427,9 +442,10 @@ module.exports = {
           yield runAction(ctx, void 0, "noop", [], ["d"]);
           yield runAction(ctx, void 0, "send_directive", [], ["e"]);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.modules.set(ctx, "ent", "setting_val", [
             ctx.scope.get("a"),
@@ -457,10 +473,8 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
+      "body": function* (ctx, runAction) {
         ctx.scope.set("val", yield ctx.applyFn(ctx.scope.get("foo"), ctx, [100]));
-      },
-      "action_block": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -468,7 +482,10 @@ module.exports = {
             { "val": ctx.scope.get("val") }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }

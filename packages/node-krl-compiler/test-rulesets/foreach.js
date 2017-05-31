@@ -37,7 +37,7 @@ module.exports = {
           yield iter(ctx);
         }));
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -45,7 +45,10 @@ module.exports = {
             { "x": ctx.scope.get("x") }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "map": {
@@ -75,7 +78,7 @@ module.exports = {
           yield iter(ctx);
         }));
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -86,7 +89,10 @@ module.exports = {
             }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "nested": {
@@ -122,7 +128,7 @@ module.exports = {
           }));
         }));
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -133,7 +139,10 @@ module.exports = {
             }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "scope": {
@@ -171,13 +180,11 @@ module.exports = {
           }));
         }));
       },
-      "prelude": function* (ctx) {
+      "body": function* (ctx, runAction) {
         ctx.scope.set("baz", yield ctx.callKRLstdlib("*", [
           ctx.scope.get("foo"),
           ctx.scope.get("bar")
         ]));
-      },
-      "action_block": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -189,7 +196,10 @@ module.exports = {
             }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }

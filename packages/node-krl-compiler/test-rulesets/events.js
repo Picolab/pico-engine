@@ -46,7 +46,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -54,7 +54,10 @@ module.exports = {
             { "name": ctx.scope.get("my_name") }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "set_attr2": {
@@ -87,7 +90,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -98,7 +101,10 @@ module.exports = {
             }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "get_attr": {
@@ -117,10 +123,8 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
+      "body": function* (ctx, runAction) {
         ctx.scope.set("thing", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["thing"]));
-      },
-      "action_block": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -128,7 +132,10 @@ module.exports = {
             { "thing": ctx.scope.get("thing") }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "noop": {
@@ -146,6 +153,13 @@ module.exports = {
               "end"
             ]]
         }
+      },
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "noop2": {
@@ -164,12 +178,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "noop", [], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "ifthen": {
@@ -195,12 +212,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = ctx.scope.get("my_name");
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["ifthen"], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "on_fired": {
@@ -226,7 +246,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -234,9 +254,10 @@ module.exports = {
             { "previous_name": yield ctx.modules.get(ctx, "ent", "on_fired_prev_name") }
           ], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.modules.set(ctx, "ent", "on_fired_prev_name", ctx.scope.get("my_name"));
         }
@@ -265,7 +286,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           switch (ctx.scope.get("thing")) {
@@ -277,9 +298,10 @@ module.exports = {
             break;
           }
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.modules.set(ctx, "ent", "on_choose_fired", true);
         }
@@ -311,7 +333,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = yield ctx.callKRLstdlib("==", [
           yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["fire"]),
           "yes"
@@ -326,9 +348,10 @@ module.exports = {
             break;
           }
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.modules.set(ctx, "ent", "on_choose_fired", true);
         }
@@ -353,13 +376,16 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["on_every - one"], []);
           yield runAction(ctx, void 0, "send_directive", ["on_every - two"], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "on_sample": {
@@ -378,7 +404,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           switch (Math.floor(Math.random() * 3)) {
@@ -393,7 +419,10 @@ module.exports = {
             break;
           }
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "on_sample_if": {
@@ -412,7 +441,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = yield ctx.callKRLstdlib("==", [
           yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["fire"]),
           "yes"
@@ -430,7 +459,10 @@ module.exports = {
             break;
           }
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "select_where": {
@@ -454,12 +486,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["select_where"], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "no_action": {
@@ -484,7 +519,12 @@ module.exports = {
             ]]
         }
       },
-      "postlude": function* (ctx, fired) {
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.modules.set(ctx, "ent", "no_action_fired", true);
         }
@@ -516,7 +556,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, "event", "send", [{
@@ -527,7 +567,10 @@ module.exports = {
               "attrs": { "name": ctx.scope.get("my_name") }
             }], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "store_sent_name": {
@@ -553,7 +596,12 @@ module.exports = {
             ]]
         }
       },
-      "postlude": function* (ctx, fired) {
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.modules.set(ctx, "ent", "sent_attrs", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, []));
           yield ctx.modules.set(ctx, "ent", "sent_name", ctx.scope.get("my_name"));
@@ -583,7 +631,12 @@ module.exports = {
             ]]
         }
       },
-      "postlude": function* (ctx, fired) {
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.raiseEvent({
             "domain": "events",
@@ -617,7 +670,12 @@ module.exports = {
             ]]
         }
       },
-      "postlude": function* (ctx, fired) {
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.raiseEvent({
             "domain": "events",
@@ -651,10 +709,13 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
+      "body": function* (ctx, runAction) {
         ctx.scope.set("rid", "io.picolabs.events");
-      },
-      "postlude": function* (ctx, fired) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           yield ctx.raiseEvent({
             "domain": "events",
@@ -681,7 +742,7 @@ module.exports = {
             ]]
         }
       },
-      "action_block": function* (ctx, runAction) {
+      "body": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -689,7 +750,10 @@ module.exports = {
             { "eid": yield ctx.modules.get(ctx, "event", "eid") }
           ], []);
         }
-        return fired;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }

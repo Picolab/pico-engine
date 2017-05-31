@@ -17,7 +17,12 @@ module.exports = {
             ]]
         }
       },
-      "postlude": function* (ctx, fired) {
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         if (fired) {
           ctx.log("info", "hello default");
           ctx.log("error", "hello error");

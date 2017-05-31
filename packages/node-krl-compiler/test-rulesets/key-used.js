@@ -72,10 +72,8 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
+      "body": function* (ctx, runAction) {
         ctx.scope.set("foo_pre", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));
-      },
-      "action_block": function* (ctx, runAction) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -86,9 +84,10 @@ module.exports = {
             }
           ], []);
         }
-        return fired;
-      },
-      "postlude": function* (ctx, fired) {
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
         yield ctx.modules.set(ctx, "ent", "foo_postlude", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));
       }
     }
