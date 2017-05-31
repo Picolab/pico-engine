@@ -96,9 +96,96 @@ var registerBuiltInRulesets = function(pe, callback){
     });
 };
 
+var setupLogging = function(pe){
+    var logs = {};
+    var logRID = "io.picolabs.logging";
+    var logEntry = function(context,message){
+        var eci = context.eci;
+        var timestamp = (new Date()).toISOString();
+        var episode = logs[eci];
+        if (episode) {
+            episode.logs.push(timestamp+" "+message);
+        } else {
+            console.log("[ERROR]","no episode found for",eci);
+        }
+    };
+    var logEpisode = function(pico_id,context,callback){
+        var eci = context.eci;
+        var episode = logs[eci];
+        if (!episode) {
+            console.log("[ERROR]","no episode found for",eci);
+            return;
+        }
+        pe.getEntVar(pico_id,logRID,"status",function(e,status){
+            if (status) {
+                pe.getEntVar(pico_id,logRID,"logs",function(e,data){
+                    data[episode.key] = episode.logs;
+                    pe.putEntVar(pico_id,logRID,"logs",data,function(e){
+                        callback(delete logs[eci]);
+                    });
+                });
+            } else {
+                callback(delete logs[eci]);
+            }
+        });
+    };
+    pe.emitter.on("episode_start", function(context){
+        console.log("EPISODE_START",context);
+        var eci = context.eci;
+        var timestamp = (new Date()).toISOString();
+        var episode = logs[eci];
+        if (episode) {
+            console.log("[ERROR]","episode already exists for",eci);
+        } else {
+            episode = {};
+            episode.key = (
+                    timestamp + " - " + eci
+                    + " - " + ((context.event) ? context.event.eid : "query")
+                    ).replace(/[.]/g, "-");
+            episode.logs = [];
+            logs[eci] = episode;
+        }
+    });
+    pe.emitter.on("klog", function(context, val, message){
+        console.log("[KLOG]", message, val);
+        logEntry(context,"[KLOG] "+message+" "+JSON.stringify(val));
+    });
+    pe.emitter.on("log-error", function(context_info, expression){
+        console.log("[LOG-ERROR]",context_info,expression);
+        logEntry(context_info,"[LOG-ERROR] "+JSON.stringify(expression));
+    });
+    pe.emitter.on("log-warn", function(context_info, expression){
+        console.log("[LOG-WARN]",context_info,expression);
+        logEntry(context_info,"[LOG-WARN] "+JSON.stringify(expression));
+    });
+    pe.emitter.on("log-info", function(context_info, expression){
+        console.log("[LOG-INFO]",context_info,expression);
+        logEntry(context_info,"[LOG-INFO] "+JSON.stringify(expression));
+    });
+    pe.emitter.on("log-debug", function(context_info, expression){
+        console.log("[LOG-DEBUG]",context_info,expression);
+        logEntry(context_info,"[LOG-DEBUG] "+JSON.stringify(expression));
+    });
+    pe.emitter.on("debug", function(context, message){
+        console.log("[DEBUG]", context, message);
+        logEntry(context,message);
+    });
+    pe.emitter.on("error", function(context, message){
+        console.error("[ERROR]", context, message);
+        logEntry(context,message);
+    });
+    pe.emitter.on("episode_stop", function(context){
+        console.log("EPISODE_STOP",context);
+        var callback = function(outcome){
+            console.log("[EPISODE_REMOVED]",outcome);
+        };
+        logEpisode(context.pico_id,context,callback);
+    });
+};
+
 module.exports = function(opts, callback){
     opts = opts || {};
-    PicoEngine({
+    var pe = PicoEngine({
         host: opts.host,
         compileAndLoadRuleset: RulesetLoader({
             rulesets_dir: path.resolve(opts.home, "rulesets")
@@ -107,8 +194,13 @@ module.exports = function(opts, callback){
             db: leveldown,
             location: path.join(opts.home, "db")
         }
-    }, function(err, pe){
+    });
+
+    setupLogging(pe);
+
+    pe.start(function(err){
         if(err) return callback(err);
+
         registerBuiltInRulesets(pe, function(err){
             if(err) return callback(err);
             setupOwnerPico(pe, function(err){

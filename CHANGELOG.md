@@ -1,3 +1,18 @@
+# 0.12.2 - May 31, 2017
+
+### New Features
+
+* infix operators: `like`, `<=>`, `cmp` - see issue [#183](https://github.com/Picolab/pico-engine/issues/183)
+
+
+### Bug Fixes
+
+* better startup error handling - see issue [#112](https://github.com/Picolab/pico-engine/issues/112)
+* consistent casting of key paths - see issue [#152](https://github.com/Picolab/pico-engine/issues/152)
+* better `as("Number")` - see issue [#173](https://github.com/Picolab/pico-engine/issues/173)
+* better string concatenation rules - see issues [#185](https://github.com/Picolab/pico-engine/issues/185) and [#155](https://github.com/Picolab/pico-engine/issues/155)
+
+
 # 0.12.1 - May 26, 2017
 
 ### New Features

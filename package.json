@@ -52,7 +52,7 @@
     "lodash": "^4.11.2",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "pico-engine-core": "^0.30.1",
+    "pico-engine-core": "^0.31.0",
     "request": "^2.79.0"
   }
 }
