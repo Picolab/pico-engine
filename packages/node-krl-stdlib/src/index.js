@@ -30,16 +30,17 @@ var stdlib = {};
 
 var defVarArgOp = function(op, reducer){
     stdlib[op] = function(){
-        if(arguments.length === 1){
+        if(arguments.length < 2){
             return;
         }
+        var ctx = arguments[0];
         var r = arguments[1];
         if(op === "-" && arguments.length === 2){
             return -r;
         }
         var i;
         for(i = 2; i < arguments.length; i++){
-            r = reducer(r, arguments[i]);
+            r = reducer(r, arguments[i], ctx);
         }
         return r;
     };
@@ -69,7 +70,19 @@ defVarArgOp("!=", function(r, a){
     }
     return !(isnull(r) && isnull(a));
 });
-defVarArgOp("+", function(r, a){
+
+var normalizePlusArg = function(ctx, v){
+    if(isnull(v)){
+        return 0;
+    }
+    if(_.isNumber(v)){
+        return v;
+    }
+    return stdlib["as"](ctx, v, "String");
+};
+defVarArgOp("+", function(r, a, ctx){
+    r = normalizePlusArg(ctx, r);
+    a = normalizePlusArg(ctx, a);
     return r + a;
 });
 defVarArgOp("-", function(r, a){
@@ -86,7 +99,7 @@ defVarArgOp("%", function(r, a){
 });
 
 stdlib.beesting = function(ctx, val){
-    return val + "";
+    return stdlib["as"](ctx, val, "String");
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -111,28 +124,38 @@ stdlib.as = function(ctx, val, type){
         if(val === "false"){
             return false;
         }
+        if(val_type === "Number"){
+            return val !== 0;
+        }
         return !!val;
     }
-    if(val_type === "String"){
-        if(type === "Number"){
+    if(type === "String"){
+        if(val_type === "Null"){
+            return "null";
+        }else if(val_type === "Boolean"){
+            return val ? "true" : "false";
+        }else if(val_type === "Number"){
+            return val + "";
+        }else if(val_type === "RegExp"){
+            return "re#" + val.source + "#" + val.flags;
+        }
+        return "[" + val_type + "]";
+    }
+    if(type === "Number"){
+        if(val_type === "Null"){
+            return 0;
+        }else if(val_type === "Boolean"){
+            return val ? 1 : 0;
+        }else if(val_type === "String"){
             return parseFloat(val) || 0;
-        }else if(type === "RegExp"){
+        }
+    }
+    if(type === "RegExp"){
+        if(val_type === "String"){
             return new RegExp(val);
         }
-    }else if(val_type === "Number"){
-        if(type === "String"){
-            return val + "";
-        }
-    }else if(val_type === "Boolean"){// eslint-disable-line
-    }else if(val_type === "Null"){// eslint-disable-line
-    }else if(val_type === "RegExp"){
-        if(type === "String"){
-            return val.source;
-        }
-    }else if(val_type === "Array"){// eslint-disable-line
-    }else if(val_type === "Map"){// eslint-disable-line
     }
-    throw new Error("Cannot use .as(\""+type+"\") operator with " + JSON.stringify(val));
+    throw new Error("Cannot use .as(\""+type+"\") operator with " + JSON.stringify(val) + " " + val_type);
 };
 
 stdlib.isnull = function(ctx, val){
@@ -145,22 +168,24 @@ stdlib.klog = function(ctx, val, message){
 };
 
 stdlib["typeof"] = function(ctx, val){
-    if(_.isString(val)){
+    if(isnull(val)){
+        return "Null";
+    }else if(val === true || val === false){
+        return "Boolean";
+    }else if(_.isString(val)){
         return "String";
     }else if(_.isNumber(val) && !_.isNaN(val)){
         return "Number";
-    }else if(val === true || val === false){
-        return "Boolean";
-    }else if(stdlib.isnull(ctx, val)){
-        return "Null";
     }else if(_.isRegExp(val)){
         return "RegExp";
     }else if(_.isArray(val)){
         return "Array";
     }else if(_.isPlainObject(val)){
         return "Map";
+    }else if(_.isFunction(val)){
+        return "Function";
     }
-    //should we throw up?
+    return "JSObject";
 };
 
 stdlib.sprintf = function(ctx, val, template){
@@ -173,7 +198,7 @@ stdlib.sprintf = function(ctx, val, template){
 };
 
 stdlib.defaultsTo = function(ctx, val, defaultVal, message){
-    if(stdlib.isnull(ctx, val)){
+    if(isnull(val)){
         if(message !== undefined) ctx.emit("debug", "[DEFAULTSTO] " + message);
         return defaultVal;
     } else {

@@ -4,9 +4,9 @@
   "description": "Standard library for KRL",
   "main": "src/index.js",
   "scripts": {
-    "start": "onchange -i src/ -- npm test -s",
+    "start": "onchange -i src/ -- npm test",
     "lint": "eslint src/ && echo lint-ok",
-    "test": "npm run lint -s && node src/tests.js"
+    "test": "npm run lint -s && node src/tests.js | faucet"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
   "devDependencies": {
     "co-callback": "^1.2.0",
     "eslint": "^3.0.1",
+    "faucet": "^0.0.1",
     "onchange": "^3.2.1",
     "tape": "^4.6.0"
   },

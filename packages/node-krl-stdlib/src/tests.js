@@ -20,15 +20,6 @@ var ylibFn = function(fn_name, args){
     });
 };
 
-var assertThrows = function(t, fn, args){
-    try{
-        fn.apply(null, args);
-        t.fail();
-    }catch(e){
-        t.ok(true);
-    }
-};
-
 var defaultCTX = {
     emit: _.noop
 };
@@ -90,6 +81,8 @@ test("general operators", function(t){
     tf("+", [1], 1);
     tf("+", [1, 2], 3);
     tf("+", [1, 2, 3], 6);
+    tf("+", [_.noop, "foo"], "[Function]foo");
+
     tf("-", [1, 2, 3], -4);
     tf("-", [4, 1], 3);
     tf("-", [2], -2);
@@ -117,18 +110,29 @@ test("general operators", function(t){
     t.end();
 });
 
-test("general operators", function(t){
+test("type operators", function(t){
 
     var tf = _.partial(testFn, t);
-    tf("as", [1, "String"], "1");
 
     tf("as", [1, "String"], "1");
     tf("as", [.32, "String"], "0.32");
-    assertThrows(t, stdlib.as, [defaultCTX, NaN, "String"]);
+    tf("as", [0, "String"], "0");
+    tf("as", [null, "String"], "null");
+    tf("as", [void 0, "String"], "null");
+    tf("as", [NaN, "String"], "null");
+    tf("as", [true, "String"], "true");
+    tf("as", [false, "String"], "false");
+    tf("as", ["str", "String"], "str");
+    tf("as", [/^a.*b/, "String"], "re#^a.*b#");
+    tf("as", [/^a.*b/gi, "String"], "re#^a.*b#gi");
+    tf("as", [_.noop, "String"], "[Function]");
+    tf("as", [[1,2], "String"], "[Array]");
+    tf("as", [{}, "String"], "[Map]");
+    tf("as", [arguments, "String"], "[JSObject]");
+
     tf("as", ["-1.23", "Number"], -1.23);
     t.equals(stdlib.as(defaultCTX, "^a.*z$", "RegExp").source, /^a.*z$/.source);
     tf("as", [42, "Number"], 42);
-    tf("as", ["str", "String"], "str");
     var test_regex = /^a.*z$/;
     tf("as", [test_regex, "RegExp"], test_regex);
     tf("as", ["true", "Boolean"], true);
@@ -156,6 +160,8 @@ test("general operators", function(t){
     tf("typeof", [/a/], "RegExp");
     tf("typeof", [[]], "Array");
     tf("typeof", [{}], "Map");
+    tf("typeof", [_.noop], "Function");
+    tf("typeof", [arguments], "JSObject");
 
     t.end();
 });
