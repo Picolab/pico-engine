@@ -122,6 +122,20 @@ test("infix operators", function(t){
     tf("like", ["wat"], null);
     tf("like", ["wat", "da"], null);
 
+    tf("<=>", [5, 10], -1);
+    tf("<=>", [5, 5], 0);
+    tf("<=>", [10, 5], 1);
+    tf("<=>", [NaN, void 0], 0);
+    tf("<=>", [null, 10], -1);
+    tf("<=>", [10, null], +1);
+
+    tf("cmp", ["aab", "abb"], -1);
+    tf("cmp", ["aab", "aab"], 0);
+    tf("cmp", ["abb", "aab"], 1);
+    tf("cmp", [NaN, void 0], 0);
+    tf("cmp", [null, "foo"], -1);
+    tf("cmp", ["foo", null], -1);
+
     t.end();
 });
 

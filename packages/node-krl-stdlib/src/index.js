@@ -150,6 +150,15 @@ stdlib["like"] = function(ctx, val, regex){
     return regex.test(val);
 };
 
+stdlib["<=>"] = stdlib["cmp"] = function(ctx, left, right){
+    if(stdlib["=="](ctx, left, right)){
+        return 0;
+    }
+    return stdlib[">"](ctx, left, right)
+        ? 1
+        : -1;
+};
+
 stdlib.beesting = function(ctx, val){
     return stdlib["as"](ctx, val, "String");
 };
