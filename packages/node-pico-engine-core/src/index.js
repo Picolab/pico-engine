@@ -9,6 +9,7 @@ var runKRL = require("./runKRL");
 var Modules = require("./modules");
 var PicoQueue = require("./PicoQueue");
 var Scheduler = require("./Scheduler");
+var runAction = require("./runAction");
 var cleanEvent = require("./cleanEvent");
 var krl_stdlib = require("krl-stdlib");
 var getKRLByURL = require("./getKRLByURL");
@@ -17,7 +18,16 @@ var EventEmitter = require("events");
 var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
 var RulesetRegistry = require("./RulesetRegistry");
-var processActionBlock = require("./processActionBlock");
+
+var applyFn = cocb.wrap(function*(fn, ctx, args){
+    if(!_.isFunction(fn)){
+        throw new Error("Not a function");
+    }
+    if(fn.is_a_defaction){
+        throw new Error("actions can only be called in the rule action block");
+    }
+    return yield fn(ctx, args);
+});
 
 var log_levels = {
     "info": true,
@@ -26,7 +36,7 @@ var log_levels = {
     "error": true,
 };
 
-module.exports = function(conf, callback){
+module.exports = function(conf){
     var db = DB(conf.db);
     _.each(db, function(val, key){
         if(_.isFunction(val)){
@@ -54,6 +64,7 @@ module.exports = function(conf, callback){
         }(ctx.rid));//pass in the rid at mkCTX creation so it is not later mutated
 
         ctx.modules = modules;
+        ctx.applyFn = applyFn;
         var pushCTXScope = function(ctx2){
             return mkCTX(_.assign({}, ctx2, {
                 rid: ctx.rid,//keep your original rid
@@ -75,7 +86,7 @@ module.exports = function(conf, callback){
                     return getArg(args, name, index);
                 }, function(name, index){
                     return hasArg(args, name, index);
-                }, processActionBlock);
+                }, runAction);
             });
             actionFn.is_a_defaction = true;
             return ctx.scope.set(name, actionFn);
@@ -152,16 +163,6 @@ module.exports = function(conf, callback){
 
     var initializeRulest = cocb.wrap(function*(rs, loadDepRS){
         rs.scope = SymbolTable();
-        var ctx = mkCTX({
-            rid: rs.rid,
-            scope: rs.scope
-        });
-        if(_.isFunction(rs.meta && rs.meta.configure)){
-            yield runKRL(rs.meta.configure, ctx);
-        }
-        if(_.isFunction(rs.global)){
-            yield runKRL(rs.global, ctx);
-        }
         rs.modules_used = {};
         var use_array = _.values(rs.meta && rs.meta.use);
         var i, use, dep_rs, ctx2;
@@ -196,6 +197,16 @@ module.exports = function(conf, callback){
                 provides: dep_rs.meta.provides
             };
             core.rsreg.provideKey(rs.rid, use.rid);
+        }
+        var ctx = mkCTX({
+            rid: rs.rid,
+            scope: rs.scope
+        });
+        if(_.isFunction(rs.meta && rs.meta.configure)){
+            yield runKRL(rs.meta.configure, ctx);
+        }
+        if(_.isFunction(rs.global)){
+            yield runKRL(rs.global, ctx);
         }
     });
 
@@ -436,47 +447,62 @@ module.exports = function(conf, callback){
         db.removeRulesetFromPico(pico_id, rid, callback);
     };
 
-    registerAllEnabledRulesets(function(err){
-        if(err) return callback(err);
-        var pe = {
-            emitter: emitter,
-
-            signalEvent: signalEvent,
-            runQuery: runQuery,
-
-            registerRuleset: core.registerRuleset,
-            registerRulesetURL: core.registerRulesetURL,
-            flushRuleset: core.flushRuleset,
-            unregisterRuleset: core.unregisterRuleset,
-
-            newPico: db.newPico,
-            newChannel: db.newChannel,
-            removeChannel: db.removeChannel,
-            getOwnerECI: db.getOwnerECI,
-            installRuleset: core.installRuleset,
-            uninstallRuleset: core.uninstallRuleset,
-            removePico: db.removePico,
-
-            putEntVar: db.putEntVar,
-            getEntVar: db.getEntVar,
-            removeEntVar: db.removeEntVar,
-
-            dbDump: db.toObj,
-        };
-        if(conf.___core_testing_mode){
-            pe.scheduler = core.scheduler;
-            pe.modules = modules;
-        }
-        //restart "cron"
+    var resumeScheduler = function(callback){
         db.listScheduled(function(err, vals){
             if(err) return callback(err);
+
+            //resume the cron tasks
             _.each(vals, function(val){
                 if(!_.isString(val.timespec)){
                     return;
                 }
                 core.scheduler.addCron(val.timespec, val.id, val.event);
             });
-            callback(void 0, pe);
+
+            //resume `schedule .. at` queue
+            core.scheduler.update();
+
+            callback();
         });
-    });
+    };
+
+
+    var pe = {
+        emitter: emitter,
+
+        signalEvent: signalEvent,
+        runQuery: runQuery,
+
+        registerRuleset: core.registerRuleset,
+        registerRulesetURL: core.registerRulesetURL,
+        flushRuleset: core.flushRuleset,
+        unregisterRuleset: core.unregisterRuleset,
+
+        newPico: db.newPico,
+        newChannel: db.newChannel,
+        removeChannel: db.removeChannel,
+        getOwnerECI: db.getOwnerECI,
+        installRuleset: core.installRuleset,
+        uninstallRuleset: core.uninstallRuleset,
+        removePico: db.removePico,
+
+        putEntVar: db.putEntVar,
+        getEntVar: db.getEntVar,
+        removeEntVar: db.removeEntVar,
+
+        dbDump: db.toObj,
+    };
+    if(conf.___core_testing_mode){
+        pe.scheduler = core.scheduler;
+        pe.modules = modules;
+    }
+
+    pe.start = function(callback){
+        registerAllEnabledRulesets(function(err){
+            if(err) return callback(err);
+            resumeScheduler(callback);
+        });
+    };
+
+    return pe;
 };

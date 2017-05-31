@@ -39,26 +39,29 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "event",
-                {
-                  "rid": yield ctx.modules.get(ctx, "meta", "rid"),
-                  "host": yield ctx.modules.get(ctx, "meta", "host"),
-                  "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName"),
-                  "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
-                  "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
-                  "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
-                  "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
-                  "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent"),
-                  "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery"),
-                  "eci": yield ctx.modules.get(ctx, "meta", "eci")
-                }
-              ]);
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "event",
+            {
+              "rid": yield ctx.modules.get(ctx, "meta", "rid"),
+              "host": yield ctx.modules.get(ctx, "meta", "host"),
+              "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName"),
+              "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
+              "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
+              "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
+              "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
+              "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent"),
+              "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery"),
+              "eci": yield ctx.modules.get(ctx, "meta", "eci")
             }
-          }]
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }

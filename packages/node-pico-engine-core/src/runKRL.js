@@ -12,6 +12,7 @@ var assertCTX_keys = function(ctx, keys){
         "log",
         "callKRLstdlib",
         "defaction",
+        "applyFn",
     ];
 
     var expected = _.cloneDeep(keys).sort().join(",");

@@ -28,9 +28,9 @@ module.exports = {
     }));
     ctx.scope.set("getInfo", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return {
-        "name": yield ctx.scope.get("getName")(ctx, []),
+        "name": yield ctx.applyFn(ctx.scope.get("getName"), ctx, []),
         "memo": yield ctx.modules.get(ctx, "ent", "memo"),
-        "privateFn": yield ctx.scope.get("privateFn")(ctx, [])
+        "privateFn": yield ctx.applyFn(ctx.scope.get("privateFn"), ctx, [])
       };
     }));
   },
@@ -41,7 +41,7 @@ module.exports = {
         "graph": { "module_defined": { "store_memo": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "memo",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -58,37 +58,34 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "store_memo",
-                {
-                  "name": ctx.scope.get("configured_name"),
-                  "memo_to_store": ctx.scope.get("text")
-                }
-              ]);
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "store_memo",
+            {
+              "name": ctx.scope.get("configured_name"),
+              "memo_to_store": ctx.scope.get("text")
             }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "memo", yield ctx.callKRLstdlib("+", [
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", "memo", yield ctx.callKRLstdlib("+", [
+          yield ctx.callKRLstdlib("+", [
             yield ctx.callKRLstdlib("+", [
               yield ctx.callKRLstdlib("+", [
-                yield ctx.callKRLstdlib("+", [
-                  "[\"",
-                  ctx.scope.get("text")
-                ]),
-                "\" by "
+                "[\"",
+                ctx.scope.get("text")
               ]),
-              ctx.scope.get("configured_name")
+              "\" by "
             ]),
-            "]"
-          ]));
-        }
+            ctx.scope.get("configured_name")
+          ]),
+          "]"
+        ]));
       }
     }
   }

@@ -18,14 +18,14 @@ module.exports = {
     }));
     ctx.scope.set("inc", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("n", getArg("n", 0));
-      return yield ctx.scope.get("add")(ctx, {
+      return yield ctx.applyFn(ctx.scope.get("add"), ctx, {
         "0": 1,
         "b": ctx.scope.get("n")
       });
     }));
     ctx.scope.set("foo", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("a", getArg("a", 0));
-      return yield ctx.scope.get("add")(ctx, {
+      return yield ctx.applyFn(ctx.scope.get("add"), ctx, {
         "a": yield ctx.callKRLstdlib("*", [
           ctx.scope.get("a"),
           2

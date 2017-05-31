@@ -32,12 +32,15 @@ module.exports = {
           return 5 * 60000;
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["foo"]);
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["foo"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "bar": {
@@ -74,12 +77,15 @@ module.exports = {
           ])) * 1000;
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["bar"]);
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["bar"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "baz": {
@@ -131,12 +137,15 @@ module.exports = {
           return 1 * 31536000000;
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["baz"]);
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["baz"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "qux": {
@@ -145,7 +154,7 @@ module.exports = {
         "graph": { "qux": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "b",
                   new RegExp("c", "")
                 ]]]);
@@ -176,12 +185,15 @@ module.exports = {
           return 2 * 1000;
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["qux"]);
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["qux"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }

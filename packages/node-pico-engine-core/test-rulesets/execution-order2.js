@@ -23,19 +23,16 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["2 - reset_order"]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", []);
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["2 - reset_order"], []);
         }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", "order", []);
       }
     },
     "foo_or_bar": {
@@ -68,22 +65,19 @@ module.exports = {
           ]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["2 - foo_or_bar"]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "order"),
-            "2 - foo_or_bar"
-          ]));
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["2 - foo_or_bar"], []);
         }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+          yield ctx.modules.get(ctx, "ent", "order"),
+          "2 - foo_or_bar"
+        ]));
       }
     },
     "foo": {
@@ -102,22 +96,19 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["2 - foo"]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "order"),
-            "2 - foo"
-          ]));
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["2 - foo"], []);
         }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+          yield ctx.modules.get(ctx, "ent", "order"),
+          "2 - foo"
+        ]));
       }
     },
     "bar": {
@@ -136,22 +127,19 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["2 - bar"]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "order"),
-            "2 - bar"
-          ]));
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["2 - bar"], []);
         }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+          yield ctx.modules.get(ctx, "ent", "order"),
+          "2 - bar"
+        ]));
       }
     }
   }

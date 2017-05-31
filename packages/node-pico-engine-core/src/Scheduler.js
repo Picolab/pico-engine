@@ -49,8 +49,6 @@ module.exports = function(conf){
         });
     };
 
-    update();//trigger the initial schedule
-
     var r = {
         update: update,
         addCron: function(timespec, id, event_orig){

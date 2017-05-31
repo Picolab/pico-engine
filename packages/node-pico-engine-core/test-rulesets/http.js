@@ -46,26 +46,23 @@ module.exports = {
         ]
       ]);
     }));
-    ctx.defaction(ctx, "doPost", function* (ctx, getArg, hasArg, processActionBlock) {
+    ctx.defaction(ctx, "doPost", function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("base_url", getArg("base_url", 0));
       ctx.scope.set("to", getArg("to", 1));
       ctx.scope.set("msg", getArg("msg", 2));
-      yield processActionBlock(ctx, {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, "http", "post", {
-                "0": yield ctx.callKRLstdlib("+", [
-                  ctx.scope.get("url"),
-                  "/msg.json"
-                ]),
-                "from": {
-                  "To": ctx.scope.get("to"),
-                  "Msg": ctx.scope.get("msg")
-                }
-              });
-            }
-          }]
-      });
+      var fired = true;
+      if (fired) {
+        yield runAction(ctx, "http", "post", {
+          "0": yield ctx.callKRLstdlib("+", [
+            ctx.scope.get("url"),
+            "/msg.json"
+          ]),
+          "from": {
+            "To": ctx.scope.get("to"),
+            "Msg": ctx.scope.get("msg")
+          }
+        }, []);
+      }
       return [];
     });
   },
@@ -86,20 +83,21 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
-        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
-      },
-      "postlude": {
-        "fired": function* (ctx) {
-          ctx.scope.set("resp", yield (yield ctx.modules.get(ctx, "http", "get"))(ctx, {
+      "body": function* (ctx, runAction) {
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (fired) {
+          ctx.scope.set("resp", yield ctx.applyFn(yield ctx.modules.get(ctx, "http", "get"), ctx, {
             "0": ctx.scope.get("url"),
             "qs": { "foo": "bar" },
             "headers": { "baz": "quix" }
           }));
-          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.scope.get("fmtResp")(ctx, [ctx.scope.get("resp")]));
-        },
-        "notfired": undefined,
-        "always": undefined
+          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [ctx.scope.get("resp")]));
+        }
       }
     },
     "http_post": {
@@ -118,18 +116,19 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
-        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
-      },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, "http", "post", {
-                "0": ctx.scope.get("url"),
-                "json": { "foo": "bar" }
-              });
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, "http", "post", {
+            "0": ctx.scope.get("url"),
+            "json": { "foo": "bar" }
+          }, []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "http_post_action": {
@@ -148,19 +147,20 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
-        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
-      },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "doPost", [
-                ctx.scope.get("url"),
-                "bob",
-                "foobar"
-              ]);
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "doPost", [
+            ctx.scope.get("url"),
+            "bob",
+            "foobar"
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "http_post_setting": {
@@ -179,27 +179,23 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
-        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
-      },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, "http", "post", {
-                "0": ctx.scope.get("url"),
-                "qs": { "foo": "bar" },
-                "form": { "baz": "qux" }
-              });
-              ctx.scope.set("resp", returns[0]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.scope.get("fmtResp")(ctx, [ctx.scope.get("resp")]));
-        },
-        "notfired": undefined,
-        "always": undefined
+      "body": function* (ctx, runAction) {
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, "http", "post", {
+            "0": ctx.scope.get("url"),
+            "qs": { "foo": "bar" },
+            "form": { "baz": "qux" }
+          }, ["resp"]);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (fired) {
+          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [ctx.scope.get("resp")]));
+        }
       }
     },
     "http_autorase": {
@@ -218,20 +214,21 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
-        ctx.scope.set("url", yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["url"]));
-      },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, "http", "post", {
-                "0": ctx.scope.get("url"),
-                "qs": { "foo": "bar" },
-                "form": { "baz": "qux" },
-                "autoraise": "foobar"
-              });
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, "http", "post", {
+            "0": ctx.scope.get("url"),
+            "qs": { "foo": "bar" },
+            "form": { "baz": "qux" },
+            "autoraise": "foobar"
+          }, []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "http_post_event_handler": {
@@ -250,25 +247,22 @@ module.exports = {
             ]]
         }
       },
-      "prelude": function* (ctx) {
-        ctx.scope.set("resp", yield ctx.scope.get("fmtResp")(ctx, [yield (yield ctx.modules.get(ctx, "event", "attrs"))(ctx, [])]));
-      },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "http_post_event_handler",
-                { "attrs": ctx.scope.get("resp") }
-              ]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": function* (ctx) {
+      "body": function* (ctx, runAction) {
+        ctx.scope.set("resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [])]));
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "http_post_event_handler",
+            { "attrs": ctx.scope.get("resp") }
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (fired) {
           yield ctx.modules.set(ctx, "ent", "last_post_event", ctx.scope.get("resp"));
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     }
   }

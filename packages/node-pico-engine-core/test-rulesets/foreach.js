@@ -37,15 +37,18 @@ module.exports = {
           yield iter(ctx);
         }));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "basic",
-                { "x": ctx.scope.get("x") }
-              ]);
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "basic",
+            { "x": ctx.scope.get("x") }
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "map": {
@@ -75,18 +78,21 @@ module.exports = {
           yield iter(ctx);
         }));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "map",
-                {
-                  "k": ctx.scope.get("k"),
-                  "v": ctx.scope.get("v")
-                }
-              ]);
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "map",
+            {
+              "k": ctx.scope.get("k"),
+              "v": ctx.scope.get("v")
             }
-          }]
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "nested": {
@@ -122,18 +128,21 @@ module.exports = {
           }));
         }));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "nested",
-                {
-                  "x": ctx.scope.get("x"),
-                  "y": ctx.scope.get("y")
-                }
-              ]);
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "nested",
+            {
+              "x": ctx.scope.get("x"),
+              "y": ctx.scope.get("y")
             }
-          }]
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "scope": {
@@ -153,7 +162,7 @@ module.exports = {
         }
       },
       "foreach": function* (ctx, foreach, iter) {
-        yield foreach(yield ctx.scope.get("doubleThis")(ctx, [[
+        yield foreach(yield ctx.applyFn(ctx.scope.get("doubleThis"), ctx, [[
             1,
             2,
             3
@@ -171,25 +180,26 @@ module.exports = {
           }));
         }));
       },
-      "prelude": function* (ctx) {
+      "body": function* (ctx, runAction) {
         ctx.scope.set("baz", yield ctx.callKRLstdlib("*", [
           ctx.scope.get("foo"),
           ctx.scope.get("bar")
         ]));
-      },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "scope",
-                {
-                  "foo": ctx.scope.get("foo"),
-                  "bar": ctx.scope.get("bar"),
-                  "baz": ctx.scope.get("baz")
-                }
-              ]);
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "scope",
+            {
+              "foo": ctx.scope.get("foo"),
+              "bar": ctx.scope.get("bar"),
+              "baz": ctx.scope.get("baz")
             }
-          }]
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }

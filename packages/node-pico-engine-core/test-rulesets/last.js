@@ -18,23 +18,22 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["foo"]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": function* (ctx) {
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["foo"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (fired) {
           if (yield ctx.callKRLstdlib("==", [
-              yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["stop"]),
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "foo"
             ]))
             ctx.stopRulesetExecution();
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "bar": {
@@ -53,23 +52,22 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["bar"]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": function* (ctx) {
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["bar"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (fired) {
           if (yield ctx.callKRLstdlib("==", [
-              yield (yield ctx.modules.get(ctx, "event", "attr"))(ctx, ["stop"]),
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "bar"
             ]))
             ctx.stopRulesetExecution();
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "baz": {
@@ -88,19 +86,18 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["baz"]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": function* (ctx) {
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["baz"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (fired) {
           ctx.stopRulesetExecution();
-        },
-        "notfired": undefined,
-        "always": undefined
+        }
       }
     },
     "qux": {
@@ -119,12 +116,15 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["qux"]);
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["qux"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }

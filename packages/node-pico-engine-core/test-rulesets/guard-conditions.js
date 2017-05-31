@@ -13,7 +13,7 @@ module.exports = {
         "graph": { "foo": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "b",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -30,26 +30,23 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "foo",
-                { "b": ctx.scope.get("b") }
-              ]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          if (yield ctx.callKRLstdlib("match", [
-              ctx.scope.get("b"),
-              new RegExp("foo", "")
-            ]))
-            yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "foo",
+            { "b": ctx.scope.get("b") }
+          ], []);
         }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (yield ctx.callKRLstdlib("match", [
+            ctx.scope.get("b"),
+            new RegExp("foo", "")
+          ]))
+          yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
       }
     },
     "bar": {
@@ -78,26 +75,23 @@ module.exports = {
           yield iter(ctx);
         }));
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "bar",
-                {
-                  "x": ctx.scope.get("x"),
-                  "b": yield ctx.modules.get(ctx, "ent", "b")
-                }
-              ]);
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "bar",
+            {
+              "x": ctx.scope.get("x"),
+              "b": yield ctx.modules.get(ctx, "ent", "b")
             }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          if (ctx.foreach_is_final)
-            yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
+          ], []);
         }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (ctx.foreach_is_final)
+          yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
       }
     }
   }

@@ -32,7 +32,7 @@ module.exports = {
         "graph": { "store": { "name": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -49,22 +49,19 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "store_name",
-                { "name": ctx.scope.get("my_name") }
-              ]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "store_name",
+            { "name": ctx.scope.get("my_name") }
+          ], []);
         }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
       }
     },
     "store_appvar": {
@@ -73,7 +70,7 @@ module.exports = {
         "graph": { "store": { "appvar": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "appvar",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -90,22 +87,19 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "store_appvar",
-                { "appvar": ctx.scope.get("my_appvar") }
-              ]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "store_appvar",
+            { "appvar": ctx.scope.get("my_appvar") }
+          ], []);
         }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
       }
     },
     "store_user_firstname": {
@@ -114,7 +108,7 @@ module.exports = {
         "graph": { "store": { "user_firstname": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield (yield ctx.modules.get(ctx, "event", "attrMatches"))(ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "firstname",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -131,27 +125,24 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "store_user_firstname",
-                { "name": ctx.scope.get("firstname") }
-              ]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
-          yield ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", [
-            yield ctx.modules.get(ctx, "ent", "user"),
-            ["firstname"],
-            ctx.scope.get("firstname")
-          ]));
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "store_user_firstname",
+            { "name": ctx.scope.get("firstname") }
+          ], []);
         }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
+        yield ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", [
+          yield ctx.modules.get(ctx, "ent", "user"),
+          ["firstname"],
+          ctx.scope.get("firstname")
+        ]));
       }
     },
     "clear_user": {
@@ -170,19 +161,16 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["clear_user"]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.del(ctx, "ent", "user");
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["clear_user"], []);
         }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.del(ctx, "ent", "user");
       }
     },
     "clear_appvar": {
@@ -201,19 +189,16 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", ["clear_appvar"]);
-            }
-          }]
-      },
-      "postlude": {
-        "fired": undefined,
-        "notfired": undefined,
-        "always": function* (ctx) {
-          yield ctx.modules.del(ctx, "app", "appvar");
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["clear_appvar"], []);
         }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.del(ctx, "app", "appvar");
       }
     }
   }

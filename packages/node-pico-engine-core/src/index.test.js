@@ -285,12 +285,12 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
                 signal("events", "on_choose", {thing: "wat?"}),
                 []
             ],
-            [query("getOnChooseFired"), false],
+            [query("getOnChooseFired"), true],//still true even though no match
             [
                 signal("events", "on_choose_if", {fire: "no", thing: "one"}),
                 []//condition failed
             ],
-            [query("getOnChooseFired"), false],
+            [query("getOnChooseFired"), false],// b/c condition failed
             [
                 signal("events", "on_choose_if", {fire: "yes", thing: "one"}),
                 [{name: "on_choose_if - one", options: {}}]
@@ -300,7 +300,7 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
                 signal("events", "on_choose_if", {fire: "yes", thing: "wat?"}),
                 []
             ],
-            [query("getOnChooseFired"), false],//condition true but no match
+            [query("getOnChooseFired"), true],// b/c condition true
             function(next){
                 signal("events", "on_sample")(function(err, resp){
                     if(err) return next(err);
@@ -445,7 +445,7 @@ test("PicoEngine - io.picolabs.operators ruleset", function(t){
                 {
                     "str_as_num": 100.25,
                     "num_as_str": "1.05",
-                    "regex_as_str": "blah",
+                    "regex_as_str": "re#blah#i",
                     "isnull": [
                         false,
                         false,
@@ -682,7 +682,7 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
                 [{name: "dflt_info", options: {info: {
                     name: "Bob",
                     memo: void 0,//there is nothing stored in that `ent` var on this pico
-                    privateFn: "privateFn = name: Bob memo: undefined"
+                    privateFn: "privateFn = name: Bob memo: null"
                 }}}]
             ],
             [
@@ -690,7 +690,7 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
                 [{name: "conf_info", options: {info: {
                     name: "Jim",
                     memo: void 0,//there is nothing stored in that `ent` var on this pico
-                    privateFn: "privateFn = name: Jim memo: undefined"
+                    privateFn: "privateFn = name: Jim memo: null"
                 }}}]
             ],
 
@@ -1466,6 +1466,12 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
                 query("getSettingVal"),
                 ["aint", "no", "echo", null, "send wat? noop returned: null"]
             ],
+            function(next){
+                signal("defa", "trying_to_use_action_as_fn")(function(err){
+                    t.equals(err + "", "Error: actions can only be called in the rule action block");
+                    next();
+                });
+            },
         ], t.end);
     });
 });
@@ -1536,6 +1542,9 @@ test("PicoEngine - io.picolabs.key* rulesets", function(t){
             [query1("getFoo"), "foo key just a string"],
             [query2("getFoo"), "foo key just a string"],
             qError(query3("getFoo"), "Error: keys:foo not defined"),//b/c used3 never requires it
+
+            //keys:* should work directly in global block
+            [query1("foo_global"), "foo key just a string"],
 
             [query1("getBar"), {baz: "baz subkey for bar key", qux: "qux subkey for bar key"}],
             [query1("getBarN", {name: "baz"}), "baz subkey for bar key"],
@@ -1874,7 +1883,7 @@ test("PicoEngine - io.picolabs.error rulesets", function(t){
 });
 
 test("PicoEngine - (re)registering ruleset shouldn't mess up state", function(t){
-    PicoEngine({
+    var pe = PicoEngine({
         host: "https://test-host",
         ___core_testing_mode: true,
         compileAndLoadRuleset: function(rs_info, callback){
@@ -1898,7 +1907,8 @@ test("PicoEngine - (re)registering ruleset shouldn't mess up state", function(t)
                 };
             }())
         }
-    }, function(err, pe){
+    });
+    pe.start(function(err){
         if(err)return t.end(err);
 
         var krl_0 = "ruleset foo.rid {rule aa {select when foo all} rule bb {select when foo all}}";

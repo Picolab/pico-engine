@@ -1,8 +1,8 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
+var runAction = require("./runAction");
 var selectRulesToEval = require("./selectRulesToEval");
-var processActionBlock = require("./processActionBlock");
 
 var scheduleEvent = function(core, ctx, args, callback){
     if(!_.has(ctx, ["event", "eci"])){
@@ -74,26 +74,7 @@ var toResponse = function(ctx, type, val){
 
 
 var evalRule = cocb.wrap(function*(ctx, rule){
-    if(_.isFunction(rule.prelude)){
-        yield runKRL(rule.prelude, ctx);
-    }
-
-    var action_r = yield processActionBlock(ctx, rule.action_block);
-
-    if(action_r.did_fire){
-        ctx.emit("debug", "fired");
-        if(_.get(rule, ["postlude", "fired"])){
-            yield runKRL(_.get(rule, ["postlude", "fired"]), ctx);
-        }
-    }else{
-        ctx.emit("debug", "not fired");
-        if(_.get(rule, ["postlude", "notfired"])){
-            yield runKRL(_.get(rule, ["postlude", "notfired"]), ctx);
-        }
-    }
-    if(_.get(rule, ["postlude", "always"])){
-        yield runKRL(_.get(rule, ["postlude", "always"]), ctx);
-    }
+    yield runKRL(rule.body, ctx, runAction);
 });
 
 var runEvent = cocb.wrap(function*(scheduled){
@@ -117,7 +98,6 @@ var runEvent = cocb.wrap(function*(scheduled){
         stopRulesetExecution: ctx.stopRulesetExecution,
     });
 
-    var r = [];
     if(rule.foreach){
         yield runKRL(rule.foreach, ctx, function*(val, iter){
             var counter = _.size(val);
@@ -131,12 +111,11 @@ var runEvent = cocb.wrap(function*(scheduled){
                 }
             }
         }, function*(ctx){
-            r.push(yield evalRule(ctx, rule));
+            yield evalRule(ctx, rule);
         });
     }else{
-        r.push(yield evalRule(ctx, rule));
+        yield evalRule(ctx, rule);
     }
-    return r;
 });
 
 var processEvent = cocb.wrap(function*(core, ctx){

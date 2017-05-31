@@ -20,7 +20,7 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("now", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield (yield ctx.modules.get(ctx, "time", "now"))(ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "now"), ctx, []);
     }));
   },
   "rules": {
@@ -40,15 +40,18 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "dflt_name",
-                { "name": yield (yield ctx.modules.get(ctx, "my_module_dflt", "getName"))(ctx, []) }
-              ]);
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "dflt_name",
+            { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []) }
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "conf_name": {
@@ -67,15 +70,18 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "conf_name",
-                { "name": yield (yield ctx.modules.get(ctx, "my_module_conf", "getName"))(ctx, []) }
-              ]);
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "conf_name",
+            { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getName"), ctx, []) }
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "dflt_info": {
@@ -94,15 +100,18 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "dflt_info",
-                { "info": yield (yield ctx.modules.get(ctx, "my_module_dflt", "getInfo"))(ctx, []) }
-              ]);
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "dflt_info",
+            { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getInfo"), ctx, []) }
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     },
     "conf_info": {
@@ -121,15 +130,18 @@ module.exports = {
             ]]
         }
       },
-      "action_block": {
-        "actions": [{
-            "action": function* (ctx, runAction) {
-              var returns = yield runAction(ctx, void 0, "send_directive", [
-                "conf_info",
-                { "info": yield (yield ctx.modules.get(ctx, "my_module_conf", "getInfo"))(ctx, []) }
-              ]);
-            }
-          }]
+      "body": function* (ctx, runAction) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "conf_info",
+            { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getInfo"), ctx, []) }
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
       }
     }
   }
