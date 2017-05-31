@@ -378,12 +378,39 @@ ytest("Collection operators", function*(t, ytf, tf){
     tf("values", [obj, ["foo", "bar"]], ["I like cheese"]);
     assertObjNotMutated();
 
+    tf("put", [{key: 5}, {foo: "bar"}], {key: 5, foo: "bar"});
+    tf("put", [{key: 5}, [], {foo: "bar"}], {key: 5, foo: "bar"});
+    tf("put", [{key: 5}, ["baz"], {foo: "bar"}], {key: 5, baz: {foo: "bar"}});
+    tf("put", [{key: 5}, ["qux"], "wat?"], {key: 5, qux: "wat?"});
+    tf("put", [{key: 5}, [null], "wat?"], {key: 5, "null": "wat?"});
+    tf("put", [{key: 5}, [void 0], "wat?"], {key: 5, "null": "wat?"});
+    tf("put", [{key: 5}, [void 0], "wat?"], {key: 5, "null": "wat?"});
+    tf("put", [{key: 5}, [NaN], "wat?"], {key: 5, "null": "wat?"});
+    tf("put", [{key: 5}, [_.noop], "wat?"], {key: 5, "[Function]": "wat?"});
+
     tf("put", [obj, ["foo"], {baz: "qux"}], {
         "colors": "many",
         "pi": [3, 1, 4, 1, 5, 6, 9],
         "foo": {
             "bar": {"10": "I like cheese"},
             "baz": "qux"
+        }
+    });
+    tf("put", [obj, ["foo", "bar", 11], "wat?"], {
+        "colors": "many",
+        "pi": [3, 1, 4, 1, 5, 6, 9],
+        "foo": {
+            "bar": {
+                "10": "I like cheese",
+                "11": "wat?",
+            },
+        }
+    });
+    tf("put", [obj, ["foo", "bar", 10], "no cheese"], {
+        "colors": "many",
+        "pi": [3, 1, 4, 1, 5, 6, 9],
+        "foo": {
+            "bar": {"10": "no cheese"},
         }
     });
     tf("put", [obj, {flop: 12}], {
