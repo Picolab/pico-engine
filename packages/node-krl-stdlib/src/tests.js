@@ -493,14 +493,6 @@ ytest("collection operators", function*(t, ytf, tf){
     tf("unique", [[1, 2, 1, 3, 4, 4]], [1, 2, 3, 4]);
 });
 
-test("random functions", function(t){
-    t.ok(_.isString(stdlib.randomWord(defaultCTX)));
-    t.notEquals(stdlib.randomWord(defaultCTX),stdlib.randomWord(defaultCTX));
-    t.ok(_.isString(stdlib.uuid(defaultCTX)));
-    t.notEquals(stdlib.uuid(defaultCTX),stdlib.uuid(defaultCTX));
-    t.end();
-});
-
 test("klog", function(t){
     t.plan(3);
     stdlib.klog({

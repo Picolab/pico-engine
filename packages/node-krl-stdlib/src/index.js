@@ -1,6 +1,4 @@
 var _ = require("lodash");
-var cuid = require("cuid");
-var randomWords = require("random-words");
 
 //same as stdlib.isnull without `ctx`
 var isnull = function(val){
@@ -567,12 +565,6 @@ stdlib.duplicates = function(ctx, val){
         }
     });
     return r;
-};
-stdlib.randomWord = function(ctx){
-    return randomWords();
-};
-stdlib.uuid = function(ctx){
-    return cuid();
 };
 
 stdlib.unique = function(ctx, val){
