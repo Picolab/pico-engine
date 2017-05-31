@@ -75,7 +75,7 @@ var ytest = function(msg, body){
 };
 
 
-test("general operators", function(t){
+test("infix operators", function(t){
     var tf = _.partial(testFn, t);
 
     tf("+", [1], 1);
@@ -183,7 +183,7 @@ test("type operators", function(t){
     t.end();
 });
 
-test("Number operators", function(t){
+test("number operators", function(t){
     var tf = _.partial(testFn, t);
 
     tf("chr", [74], "J");
@@ -196,7 +196,7 @@ test("Number operators", function(t){
     t.end();
 });
 
-test("String operators", function(t){
+test("string operators", function(t){
     var tf = _.partial(testFn, t);
 
     tf("sprintf", ["Bob", "Hi %s!"], "Hi Bob!");
@@ -240,7 +240,7 @@ test("String operators", function(t){
     t.end();
 });
 
-ytest("Collection operators", function*(t, ytf, tf){
+ytest("collection operators", function*(t, ytf, tf){
     var a = [3, 4, 5];
 
     var obj = {
@@ -258,11 +258,13 @@ ytest("Collection operators", function*(t, ytf, tf){
         t.deepEquals(obj2, {"a": 1, "b": 2, "c": 3}, "should not be mutated");
     };
 
-    tf("><",[obj,"pi"],true);
-    tf("><",[obj,"a"],false);
+    tf("><", [obj, "pi"], true);
+    tf("><", [obj, "a"], false);
     assertObjNotMutated();
-    tf("><",[[5, 6, 7],6],true);
-    tf("><",[[5, 6, 7],3],false);
+    tf("><", [[5, 6, 7], 6], true);
+    tf("><", [[5, 6, 7], 3], false);
+    tf("><", [{a: 1, b: 2}, "a"], true);
+    tf("><", [{a: 1, b: 2}, "foo"], false);
 
     var exp = [
         ["all",     true, false, false],
@@ -491,7 +493,7 @@ ytest("Collection operators", function*(t, ytf, tf){
     tf("unique", [[1, 2, 1, 3, 4, 4]], [1, 2, 3, 4]);
 });
 
-test("Random functions", function(t){
+test("random functions", function(t){
     t.ok(_.isString(stdlib.randomWord(defaultCTX)));
     t.notEquals(stdlib.randomWord(defaultCTX),stdlib.randomWord(defaultCTX));
     t.ok(_.isString(stdlib.uuid(defaultCTX)));
