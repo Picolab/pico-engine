@@ -11,6 +11,8 @@
 * consistent casting of key paths - see issue [#152](https://github.com/Picolab/pico-engine/issues/152)
 * better `as("Number")` - see issue [#173](https://github.com/Picolab/pico-engine/issues/173)
 * better string concatenation rules - see issues [#185](https://github.com/Picolab/pico-engine/issues/185) and [#155](https://github.com/Picolab/pico-engine/issues/155)
+* report error when action used in `pre` block - see issues [#187](https://github.com/Picolab/pico-engine/issues/187)
+* using `keys:<key>` in global - see issues [#132](https://github.com/Picolab/pico-engine/issues/132)
 
 
 # 0.12.1 - May 26, 2017
