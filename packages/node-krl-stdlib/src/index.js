@@ -2,20 +2,53 @@ var _ = require("lodash");
 var cuid = require("cuid");
 var randomWords = require("random-words");
 
+//same as stdlib.isnull without `ctx`
 var isnull = function(val){
     return val === null || val === undefined || _.isNaN(val);
 };
 
+//same as stdlib.typeof without `ctx`
+var typeofKRL = function(val){
+    if(isnull(val)){
+        return "Null";
+    }else if(val === true || val === false){
+        return "Boolean";
+    }else if(_.isString(val)){
+        return "String";
+    }else if(_.isNumber(val) && !_.isNaN(val)){
+        return "Number";
+    }else if(_.isRegExp(val)){
+        return "RegExp";
+    }else if(_.isArray(val)){
+        return "Array";
+    }else if(_.isPlainObject(val)){
+        return "Map";
+    }else if(_.isFunction(val)){
+        return "Function";
+    }
+    return "JSObject";
+};
+
+//same as `stdlib.as(ctx, val, "String")` without `ctx` and `type`
 var toString = function(val){
-    var ctx = {};
-    return stdlib["as"](ctx, val, "String");
+    var val_type = typeofKRL(val);
+    if(val_type === "String"){
+        return val;
+    }else if(val_type === "Null"){
+        return "null";
+    }else if(val_type === "Boolean"){
+        return val ? "true" : "false";
+    }else if(val_type === "Number"){
+        return val + "";
+    }else if(val_type === "RegExp"){
+        return "re#" + val.source + "#" + val.flags;
+    }
+    return "[" + val_type + "]";
 };
 
 //coerce the value into a key string
 var toKey = function(val){
-    return _.isString(val)
-        ? val
-        : toString(val);
+    return toString(val);
 };
 
 //coerce the value into an array of key strings
@@ -53,14 +86,13 @@ var defVarArgOp = function(op, reducer){
         if(arguments.length < 2){
             return;
         }
-        var ctx = arguments[0];
         var r = arguments[1];
         if(op === "-" && arguments.length === 2){
             return -r;
         }
         var i;
         for(i = 2; i < arguments.length; i++){
-            r = reducer(r, arguments[i], ctx);
+            r = reducer(r, arguments[i]);
         }
         return r;
     };
@@ -91,18 +123,18 @@ defVarArgOp("!=", function(r, a){
     return !(isnull(r) && isnull(a));
 });
 
-var normalizePlusArg = function(ctx, v){
+var normalizePlusArg = function(v){
     if(isnull(v)){
         return 0;
     }
     if(_.isNumber(v)){
         return v;
     }
-    return stdlib["as"](ctx, v, "String");
+    return toString(v);
 };
-defVarArgOp("+", function(r, a, ctx){
-    r = normalizePlusArg(ctx, r);
-    a = normalizePlusArg(ctx, a);
+defVarArgOp("+", function(r, a){
+    r = normalizePlusArg(r);
+    a = normalizePlusArg(a);
     return r + a;
 });
 defVarArgOp("-", function(r, a){
@@ -150,16 +182,7 @@ stdlib.as = function(ctx, val, type){
         return !!val;
     }
     if(type === "String"){
-        if(val_type === "Null"){
-            return "null";
-        }else if(val_type === "Boolean"){
-            return val ? "true" : "false";
-        }else if(val_type === "Number"){
-            return val + "";
-        }else if(val_type === "RegExp"){
-            return "re#" + val.source + "#" + val.flags;
-        }
-        return "[" + val_type + "]";
+        return toString(val);
     }
     if(type === "Number"){
         if(val_type === "Null"){
@@ -191,24 +214,7 @@ stdlib.klog = function(ctx, val, message){
 };
 
 stdlib["typeof"] = function(ctx, val){
-    if(isnull(val)){
-        return "Null";
-    }else if(val === true || val === false){
-        return "Boolean";
-    }else if(_.isString(val)){
-        return "String";
-    }else if(_.isNumber(val) && !_.isNaN(val)){
-        return "Number";
-    }else if(_.isRegExp(val)){
-        return "RegExp";
-    }else if(_.isArray(val)){
-        return "Array";
-    }else if(_.isPlainObject(val)){
-        return "Map";
-    }else if(_.isFunction(val)){
-        return "Function";
-    }
-    return "JSObject";
+    return typeofKRL(val);
 };
 
 stdlib.sprintf = function(ctx, val, template){
