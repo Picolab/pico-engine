@@ -6,6 +6,26 @@ var isnull = function(val){
     return val === null || val === undefined || _.isNaN(val);
 };
 
+var toString = function(val){
+    var ctx = {};
+    return stdlib["as"](ctx, val, "String");
+};
+
+//coerce the value into a key string
+var toKey = function(val){
+    return _.isString(val)
+        ? val
+        : toString(val);
+};
+
+//coerce the value into an array of key strings
+var toKeyPath = function(path){
+    if(!_.isArray(path)){
+        path = [path];
+    }
+    return _.map(path, toKey);
+};
+
 var iterBase = function*(val, iter){
     var should_continue;
     if(_.isArray(val)){
@@ -476,6 +496,7 @@ stdlib.sort = (function(){
     };
 }());
 stdlib["delete"] = function(ctx, val, path){
+    path = toKeyPath(path);
     //TODO optimize
     var n_val = _.cloneDeep(val);
     _.unset(n_val, path);
@@ -489,17 +510,10 @@ stdlib.put = function(ctx, val, path, to_set){
         to_set = path;
         path = [];
     }
-    if(!_.isArray(path)){
-        path = [path];
-    }
+    path = toKeyPath(path);
     if(_.isEmpty(path)){
         return _.assign({}, val, to_set);
     }
-    path = _.map(path, function(p){
-        return _.isString(p)
-            ? p
-            : stdlib["as"](ctx, p, "String");
-    });
     //TODO optimize
     var n_val = _.cloneDeep(val);
     _.update(n_val, path, function(at_p){
@@ -516,12 +530,14 @@ stdlib.encode = function(ctx, val){
 };
 stdlib.keys = function(ctx, val, path){
     if(path){
+        path = toKeyPath(path);
         return _.keys(_.get(val, path));
     }
     return _.keys(val);
 };
 stdlib.values = function(ctx, val, path){
     if(path){
+        path = toKeyPath(path);
         return _.values(_.get(val, path));
     }
     return _.values(val);
@@ -572,10 +588,12 @@ stdlib.unique = function(ctx, val){
 };
 
 stdlib["get"] = function(ctx, obj, path) {
+    path = toKeyPath(path);
     return _.get(obj,path);
 };
 
 stdlib["set"] = function(ctx, obj, path, val) {
+    path = toKeyPath(path);
     //TODO optimize
     return _.set(_.cloneDeep(obj), path, val);
 };
