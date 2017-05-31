@@ -39,7 +39,15 @@ var toString = function(val){
     }else if(val_type === "Number"){
         return val + "";
     }else if(val_type === "RegExp"){
-        return "re#" + val.source + "#" + val.flags;
+        //NOTE: val.flags doesn't work on old versions of JS
+        var flags = "";
+        if(val.global){
+            flags += "g";
+        }
+        if(val.ignoreCase){
+            flags += "i";
+        }
+        return "re#" + val.source + "#" + flags;
     }
     return "[" + val_type + "]";
 };
