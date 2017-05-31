@@ -131,8 +131,15 @@ test("type operators", function(t){
     tf("as", [arguments, "String"], "[JSObject]");
 
     tf("as", ["-1.23", "Number"], -1.23);
-    t.equals(stdlib.as(defaultCTX, "^a.*z$", "RegExp").source, /^a.*z$/.source);
     tf("as", [42, "Number"], 42);
+    tf("as", [true, "Number"], 1);
+    tf("as", [false, "Number"], 0);
+    tf("as", [null, "Number"], 0);
+    tf("as", [NaN, "Number"], 0);
+    tf("as", [void 0, "Number"], 0);
+    tf("as", ["foo", "Number"], null);
+
+    t.equals(stdlib.as(defaultCTX, "^a.*z$", "RegExp").source, /^a.*z$/.source);
     var test_regex = /^a.*z$/;
     tf("as", [test_regex, "RegExp"], test_regex);
     tf("as", ["true", "Boolean"], true);

@@ -147,7 +147,10 @@ stdlib.as = function(ctx, val, type){
         }else if(val_type === "Boolean"){
             return val ? 1 : 0;
         }else if(val_type === "String"){
-            return parseFloat(val) || 0;
+            var n = parseFloat(val);
+            return _.isNumber(n) && !_.isNaN(n)
+                ? n
+                : null;
         }
     }
     if(type === "RegExp"){
