@@ -77,13 +77,23 @@ var ytest = function(msg, body){
 
 test("general operators", function(t){
     var tf = _.partial(testFn, t);
-    tf("+", [], void 0);
-    tf("+", [1], 1);
-    tf("+", [1, 2], 3);
-    tf("+", [1, 2, 3], 6);
-    tf("+", [_.noop, "foo"], "[Function]foo");
 
-    tf("-", [1, 2, 3], -4);
+    tf("+", [1], 1);
+    tf("+", [-1], -1);
+    tf("+", [1, 2], 3);
+    tf("+", [2.3, .1], 2.4);
+    tf("+", [1, null], 1, "+ null is like + 0");
+    tf("+", [null, 1], 1, "+ null is like + 0");
+    tf("+", [1, false], 1, "+ false is like + 0");
+    tf("+", [false, 1], 1, "+ false is like + 0");
+
+    //concat +
+    tf("+", [_.noop, "foo"], "[Function]foo");
+    tf("+", [1, true], "1true");
+    tf("+", ["wat", 100], "wat100");
+    tf("+", [{}, []], "[Map][Array]");
+
+    tf("-", [1, 3], -2);
     tf("-", [4, 1], 3);
     tf("-", [2], -2);
 

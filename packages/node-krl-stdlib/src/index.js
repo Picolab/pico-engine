@@ -81,74 +81,59 @@ var iterBase = function*(val, iter){
 
 var stdlib = {};
 
-var defVarArgOp = function(op, reducer){
-    stdlib[op] = function(){
-        if(arguments.length < 2){
-            return;
-        }
-        var r = arguments[1];
-        if(op === "-" && arguments.length === 2){
-            return -r;
-        }
-        var i;
-        for(i = 2; i < arguments.length; i++){
-            r = reducer(r, arguments[i]);
-        }
-        return r;
-    };
-};
+//Infix operators///////////////////////////////////////////////////////////////
 
-defVarArgOp("<", function(r, a){
-    return r < a;
-});
-defVarArgOp(">", function(r, a){
-    return r > a;
-});
-defVarArgOp("<=", function(r, a){
-    return r <= a;
-});
-defVarArgOp(">=", function(r, a){
-    return r >= a;
-});
-defVarArgOp("==", function(r, a){
-    if(r === a){
+stdlib["<"] = function(ctx, left, right){
+    return left < right;
+};
+stdlib[">"] = function(ctx, left, right){
+    return left > right;
+};
+stdlib["<="] = function(ctx, left, right){
+    return left <= right;
+};
+stdlib[">="] = function(ctx, left, right){
+    return left >= right;
+};
+stdlib["=="] = function(ctx, left, right){
+    if(left === right){
         return true;
     }
-    return isnull(r) && isnull(a);
-});
-defVarArgOp("!=", function(r, a){
-    if(r === a){
+    return isnull(left) && isnull(right);
+};
+stdlib["!="] = function(ctx, left, right){
+    if(left === right){
         return false;
     }
-    return !(isnull(r) && isnull(a));
-});
-
-var normalizePlusArg = function(v){
-    if(isnull(v)){
-        return 0;
-    }
-    if(_.isNumber(v)){
-        return v;
-    }
-    return toString(v);
+    return !isnull(left) || !isnull(right);
 };
-defVarArgOp("+", function(r, a){
-    r = normalizePlusArg(r);
-    a = normalizePlusArg(a);
-    return r + a;
-});
-defVarArgOp("-", function(r, a){
-    return r - a;
-});
-defVarArgOp("*", function(r, a){
-    return r * a;
-});
-defVarArgOp("/", function(r, a){
-    return r / a;
-});
-defVarArgOp("%", function(r, a){
-    return r % a;
-});
+
+var isNumberLike = function(val){
+    return _.isNumber(val) || isnull(val) || val === false;
+};
+stdlib["+"] = function(ctx, left, right){
+    //if we have two "numbers" then do plus
+    if(isNumberLike(left) && isNumberLike(right)){
+        return (left || 0) + (right || 0);// `|| 0` converts null,NaN,false to 0
+    }
+    //else do concat
+    return toString(left) + toString(right);
+};
+stdlib["-"] = function(ctx, left, right){
+    if(arguments.length < 3){
+        return -left;
+    }
+    return left - right;
+};
+stdlib["*"] = function(ctx, left, right){
+    return left * right;
+};
+stdlib["/"] = function(ctx, left, right){
+    return left / right;
+};
+stdlib["%"] = function(ctx, left, right){
+    return left % right;
+};
 
 stdlib.beesting = function(ctx, val){
     return stdlib["as"](ctx, val, "String");
