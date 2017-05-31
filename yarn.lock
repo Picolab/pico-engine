@@ -720,7 +720,7 @@ estraverse@~4.1.0:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/estraverse/-/estraverse-4.1.1.tgz#f6caca728933a850ef90661d0e17982ba47111a2"
 
-estree-builder@^1.6.0:
+estree-builder@^1.7.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/estree-builder/-/estree-builder-1.7.0.tgz#4342331d280a43538bfe070a4256824c1df332d5"
 
@@ -1351,13 +1351,13 @@ kind-of@^3.0.2:
   dependencies:
     is-buffer "^1.1.5"
 
-krl-compiler@^0.32.5:
-  version "0.32.5"
-  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.32.5.tgz#cce3a55eb60eede456b93b5d31592a58fad2e95a"
+krl-compiler@^0.34.1:
+  version "0.34.1"
+  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.34.1.tgz#29a5df96f2561dd0555935205ac36cb9016c2bb6"
   dependencies:
     btoa "^1.1.2"
     escodegen "^1.8.0"
-    estree-builder "^1.6.0"
+    estree-builder "^1.7.0"
     estree-loc "^2.0.0"
     krl-parser "^0.24.0"
     lodash "^4.13.1"
@@ -2001,13 +2001,13 @@ ret@~0.1.10:
   version "0.1.14"
   resolved "https://registry.yarnpkg.com/ret/-/ret-0.1.14.tgz#58c636837b12e161f8a380cf081c6a230fd1664e"
 
-rimraf@2, rimraf@^2.2.8, rimraf@^2.5.1, rimraf@^2.6.1:
+rimraf@2, rimraf@^2.5.1, rimraf@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.6.1.tgz#c2338ec643df7a1b7fe5c54fa86f57428a55f33d"
   dependencies:
     glob "^7.0.5"
 
-rimraf@~2.5.2:
+rimraf@^2.2.8, rimraf@~2.5.2:
   version "2.5.4"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.5.4.tgz#96800093cbf1a0c86bd95b4625467535c29dfa04"
   dependencies:
