@@ -32,7 +32,7 @@ module.exports = {
         if (fired) {
           yield ctx.modules.set(ctx, "ent", "error_log", yield ctx.callKRLstdlib("append", [
             yield ctx.modules.get(ctx, "ent", "error_log"),
-            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [yield ctx.modules.get(ctx, "ent", "error_log")])
+            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [])
           ]));
         }
       }

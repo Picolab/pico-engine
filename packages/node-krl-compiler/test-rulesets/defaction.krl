@@ -165,7 +165,7 @@ ruleset io.picolabs.defaction {
         select when defa trying_to_use_action_as_fn
 
         pre {
-           val = foo(100)
+            val = foo(100)
         }
 
         send_directive("trying_to_use_action_as_fn", {"val": val});
