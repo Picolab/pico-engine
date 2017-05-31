@@ -143,6 +143,13 @@ stdlib["><"] = function(ctx, obj, val){
     }
 };
 
+stdlib["like"] = function(ctx, val, regex){
+    if(!_.isRegExp(regex)){
+        return null;
+    }
+    return regex.test(val);
+};
+
 stdlib.beesting = function(ctx, val){
     return stdlib["as"](ctx, val, "String");
 };

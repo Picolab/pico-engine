@@ -117,6 +117,11 @@ test("infix operators", function(t){
     tf("!=", [1, NaN], true);
     tf("!=", [null, NaN], false);
 
+    tf("like", ["wat", /a/], true);
+    tf("like", ["wat", /b/], false);
+    tf("like", ["wat"], null);
+    tf("like", ["wat", "da"], null);
+
     t.end();
 });
 
