@@ -203,6 +203,7 @@ stdlib.as = function(ctx, val, type){
                 ? n
                 : null;
         }
+        return null;
     }
     if(type === "RegExp"){
         if(val_type === "String"){

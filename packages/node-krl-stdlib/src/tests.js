@@ -167,6 +167,8 @@ test("type operators", function(t){
     tf("as", [NaN, "Number"], 0);
     tf("as", [void 0, "Number"], 0);
     tf("as", ["foo", "Number"], null);
+    tf("as", [[1,2], "Number"], null);
+    tf("as", [arguments, "Number"], null);
 
     t.equals(stdlib.as(defaultCTX, "^a.*z$", "RegExp").source, /^a.*z$/.source);
     var test_regex = /^a.*z$/;
