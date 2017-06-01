@@ -1,7 +1,7 @@
 module.exports = function(ast, comp, e){
     if(ast.condition === "on final"){
         return e("if",
-            e("id", "ctx.foreach_is_final"),
+            e("id", "foreach_is_final"),
             comp(ast.statement)
         );
     }

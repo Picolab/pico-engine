@@ -11,19 +11,6 @@ module.exports = function(ast, comp, e){
         throw new Error("Rule missing `select`");
     }
     rule.select = comp(ast.select);
-    if(!_.isEmpty(ast.foreach)){
-        var nestedForeach = function(arr, iter){
-            if(_.isEmpty(arr)){
-                return iter;
-            }
-            var last = _.last(arr);
-            var rest = _.initial(arr);
-            return nestedForeach(rest, comp(last, {iter: iter}));
-        };
-        rule.foreach = e("genfn", ["ctx", "foreach", "iter"], [
-            nestedForeach(ast.foreach, e(";", e("ycall", e("id", "iter"), [e("id", "ctx")])))
-        ]);
-    }
 
     var rule_body = [];
 
@@ -45,7 +32,25 @@ module.exports = function(ast, comp, e){
         rule_body = rule_body.concat(comp(ast.postlude));
     }
 
-    rule.body = e("genfn", ["ctx", "runAction"], rule_body);
+    if(!_.isEmpty(ast.foreach)){
+        var foreach_body = rule_body;
+
+        var nesetedForeach = function(arr, i){
+            if(_.isEmpty(arr)){
+                return foreach_body;
+            }
+            return comp(_.head(arr), {
+                foreach_i: i,
+                foreach_body: nesetedForeach(_.tail(arr), i + 1),
+            });
+        };
+        rule_body = [
+            e("var", "foreach_is_final", e("true")),//the loops will falsify this
+        ].concat(nesetedForeach(ast.foreach, 0));
+    }
+
+
+    rule.body = e("genfn", ["ctx", "runAction", "toPairs"], rule_body);
 
     return e("obj", rule);
 };

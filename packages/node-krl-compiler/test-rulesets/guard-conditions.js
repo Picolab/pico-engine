@@ -30,7 +30,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -65,33 +65,36 @@ module.exports = {
             ]]
         }
       },
-      "foreach": function* (ctx, foreach, iter) {
-        yield foreach([
+      "body": function* (ctx, runAction, toPairs) {
+        var foreach_is_final = true;
+        var foreach0_pairs = toPairs([
           1,
           2,
           3
-        ], ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-          ctx.scope.set("x", getArg("value", 0));
-          yield iter(ctx);
-        }));
-      },
-      "body": function* (ctx, runAction) {
-        var fired = true;
-        if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
-            "bar",
-            {
-              "x": ctx.scope.get("x"),
-              "b": yield ctx.modules.get(ctx, "ent", "b")
-            }
-          ], []);
+        ]);
+        var foreach0_len = foreach0_pairs.length;
+        var foreach0_i;
+        for (foreach0_i = 0; foreach0_i < foreach0_len; foreach0_i++) {
+          foreach_is_final = true;
+          foreach_is_final = foreach_is_final && foreach0_i === foreach0_len - 1;
+          ctx.scope.set("x", foreach0_pairs[foreach0_i][1]);
+          var fired = true;
+          if (fired) {
+            yield runAction(ctx, void 0, "send_directive", [
+              "bar",
+              {
+                "x": ctx.scope.get("x"),
+                "b": yield ctx.modules.get(ctx, "ent", "b")
+              }
+            ], []);
+          }
+          if (fired)
+            ctx.emit("debug", "fired");
+          else
+            ctx.emit("debug", "not fired");
+          if (foreach_is_final)
+            yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
         }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (ctx.foreach_is_final)
-          yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
       }
     }
   }

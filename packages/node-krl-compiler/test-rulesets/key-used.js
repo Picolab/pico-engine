@@ -72,7 +72,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         ctx.scope.set("foo_pre", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));
         var fired = true;
         if (fired) {
