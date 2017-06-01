@@ -168,7 +168,11 @@ var setupLogging = function(pe){
     });
     pe.emitter.on("debug", function(context, message){
         console.log("[DEBUG]", context, message);
-        logEntry(context,message);
+        if (typeof message === "string") {
+            logEntry(context,message);
+        } else {
+            logEntry(context,JSON.stringify(message));
+        }
     });
     pe.emitter.on("error", function(context, message){
         console.error("[ERROR]", context, message);
