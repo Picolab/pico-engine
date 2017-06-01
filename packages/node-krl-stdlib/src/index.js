@@ -544,7 +544,18 @@ stdlib.put = function(ctx, val, path, to_set){
 };
 stdlib.encode = function(ctx, val){
     //TODO options???
-    return JSON.stringify(val);
+    return JSON.stringify(val, function(k, v){
+        switch(typeofKRL(v)){
+        case "Null":
+            return null;
+        case "JSObject":
+        case "RegExp":
+        case "Function":
+        case "Action":
+            return toString(v);
+        }
+        return v;
+    });
 };
 stdlib.keys = function(ctx, val, path){
     if(path){

@@ -402,6 +402,16 @@ ytest("collection operators", function*(t, ytf, tf){
 
     tf("encode", [{blah: 1}], "{\"blah\":1}");
     tf("encode", [[1, 2]], "[1,2]");
+    //all nulls are treated the same
+    tf("encode", [null], "null");
+    tf("encode", [NaN], "null");
+    tf("encode", [void 0], "null");
+    //use .as("String") rules for other types
+    tf("encode", [_.noop], "\"[Function]\"");
+    tf("encode", [/a/ig], "\"re#a#gi\"");
+    tf("encode", [arguments], "\"[JSObject]\"");
+    //testing it nested
+    tf("encode", [{fn: _.noop, n: NaN, u: void 0}], "{\"fn\":\"[Function]\",\"n\":null,\"u\":null}");
 
     tf("keys", [obj], ["colors", "pi", "foo"]);
     tf("keys", [obj, ["foo", "bar"]], ["10"]);
@@ -552,4 +562,6 @@ test("defaultsTo - testing debug logging", function(t){
         "[DEFAULTSTO] [Function]",//message should use KRL toString rules
         "[DEFAULTSTO] null",//message should use KRL toString rules
     ]);
+
+    t.end();
 });
