@@ -22,6 +22,9 @@ var typeofKRL = function(val){
     }else if(_.isPlainObject(val)){
         return "Map";
     }else if(_.isFunction(val)){
+        if(val.is_an_action === true){
+            return "Action";
+        }
         return "Function";
     }
     return "JSObject";
@@ -237,7 +240,7 @@ stdlib.sprintf = function(ctx, val, template){
 
 stdlib.defaultsTo = function(ctx, val, defaultVal, message){
     if(isnull(val)){
-        if(message !== undefined) ctx.emit("debug", "[DEFAULTSTO] " + message);
+        if(message !== undefined) ctx.emit("debug", "[DEFAULTSTO] " + toString(message));
         return defaultVal;
     } else {
         return val;
@@ -475,10 +478,10 @@ stdlib.splice = function(ctx, val, start, n_elms, value){
 stdlib.sort = (function(){
     var sorters = {
         "numeric": function(a, b){
-            return a < b ? -1 : (a == b ? 0 : 1);
+            return a < b ? -1 : (a === b ? 0 : 1);
         },
         "ciremun": function(a, b){
-            return a < b ? 1 : (a == b ? 0 : -1);
+            return a < b ? 1 : (a === b ? 0 : -1);
         }
     };
     var swap = function(arr, i, j){

@@ -201,6 +201,10 @@ test("type operators", function(t){
     tf("typeof", [_.noop], "Function");
     tf("typeof", [arguments], "JSObject");
 
+    var action = function(){};
+    action.is_an_action = true;
+    t.equals(stdlib["typeof"](defaultCTX, action), "Action");
+
     t.end();
 });
 
@@ -385,7 +389,7 @@ ytest("collection operators", function*(t, ytf, tf){
     yield ytf("sort", [to_sort, "numeric"], [1, 3, 4, 5, 12]);
     yield ytf("sort", [to_sort, "ciremun"], [12, 5, 4, 3, 1]);
     yield ytf("sort", [to_sort, function(a, b){
-        return a < b ? -1 : (a == b ? 0 : 1);
+        return a < b ? -1 : (a === b ? 0 : 1);
     }], [1, 3, 4, 5, 12]);
     t.deepEquals(to_sort, [5, 3, 4, 1, 12], "should not be mutated");
 
@@ -526,15 +530,26 @@ test("klog", function(t){
 });
 
 test("defaultsTo - testing debug logging", function(t){
-    t.plan(5);
+
+    var messages = [];
+
     var ctx = {
         emit: function(kind, message){
             t.equals(kind, "debug");
-            t.equals(message,"[DEFAULTSTO] message 2");
+
+            messages.push(message);
         }
     };
 
     t.equals(stdlib.defaultsTo(ctx, "not needed", 42, "message 2"), "not needed");
     t.equals(stdlib.defaultsTo(ctx, null, 42), 42, "no message to log");
     t.equals(stdlib.defaultsTo(ctx, null, 42, "message 2"), 42, "should emit debug");
+    t.equals(stdlib.defaultsTo(ctx, null, 42, _.noop), 42, "message should use KRL toString rules");
+    t.equals(stdlib.defaultsTo(ctx, null, 42, NaN), 42, "message should use KRL toString rules");
+
+    t.deepEquals(messages, [
+        "[DEFAULTSTO] message 2",
+        "[DEFAULTSTO] [Function]",//message should use KRL toString rules
+        "[DEFAULTSTO] null",//message should use KRL toString rules
+    ]);
 });
