@@ -104,7 +104,6 @@ ruleset Subscriptions {
     checkSubscriptionName = function(name , name_space, subscriptions){
       (subscriptions{name_space + ":" + name}.isnull())
     }
-
     mapWithHost = function(map, host){
       host.isnull() => map | map.put("subscriber_host", host)}
   }
@@ -131,7 +130,7 @@ ruleset Subscriptions {
   rule createMySubscription {
     select when wrangler checked_name_subscription
    pre {
-      // attributes for inbound attrs 
+      // attributes for inbound attrs
       logs = event:attrs().klog("createMySubscription attrs")
       name   = event:attr("name").defaultsTo("standard",standardError("channel_name"))
       name_space     = event:attr("name_space").defaultsTo("shared", standardError("name_space"))
