@@ -200,6 +200,7 @@ module.exports = function(opts, callback){
 
     pe.start(function(err){
         if(err) return callback(err);
+
         registerBuiltInRulesets(pe, function(err){
             if(err) return callback(err);
             setupOwnerPico(pe, function(err){

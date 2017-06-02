@@ -1,3 +1,9 @@
+# 0.11.3 - June 2, 2017
+
+### Bug Fixes
+
+* fixing race condition with `schedule .. at` - see issue [#203](https://github.com/Picolab/pico-engine/issues/203)
+
 # 0.11.2 - May 31, 2017
 
 ### New Features
