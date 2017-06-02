@@ -24,7 +24,13 @@ module.exports = function(pe){
     app.use(bodyParser.urlencoded({limit: "512mb", type: "application/x-www-form-urlencoded", extended: false}));
 
     var errResp = function(res, err){
-        res.status(err.statusCode || 500).json({error: err.message});
+        var code = 500;
+        if(_.isNumber(err.statusCode)){
+            code = err.statusCode;
+        }else if(err && err.notFound){
+            code = 404;
+        }
+        res.status(code).json({error: err.message});
     };
 
     app.use(function(err, req, res, next){
