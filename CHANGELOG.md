@@ -1,3 +1,10 @@
+# 0.12.3 - June 2, 2017
+
+### Bug Fixes
+
+* fixing race condition with `schedule .. at` - see issue [#203](https://github.com/Picolab/pico-engine/issues/203)
+* better error handling for `/sky/cloud/..` - see issue [#32](https://github.com/Picolab/pico-engine/issues/32)
+
 # 0.12.2 - May 31, 2017
 
 ### New Features
