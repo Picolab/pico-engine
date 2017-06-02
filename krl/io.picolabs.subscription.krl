@@ -85,21 +85,18 @@ ruleset Subscriptions {
       error
     } 
 
-    // this only creates 5 random names, if none are unique the function will fail.... but thats unlikely. 
+    // this only creates 5 random names; if none are unique keep prepending '_' and trying again
 
-    randomSubscriptionName = function(name_space){
+    randomSubscriptionName = function(name_space, name_base){
+        base = name_base.defaultsTo("");
         subscriptions = getSubscriptions();
-        n = 5;
-        //array = (0).range(n).map(function(n){
-        array = [1,2,3,4,5].map(function(n){
+        array = 1.range(5).map(function(n){
           (word.randomWord())
           }).klog("randomWords");
-        names= array.collect(function(name){
-          (subscriptions{name_space + ":" + name}.isnull()) => "unique" | "taken"
+        names = array.filter(function(name){
+          subscriptions{name_space + ":" + base + name}.isnull()
         });
-        name = names{"unique"}.klog("randomUniqueWords") || [];
-        unique_name =  name.head().defaultsTo("",standardError("unique name failed")).klog("uniqueName");
-        (unique_name)
+        names.length() > 0 => names[0].klog("uniqueName") | randomSubscriptionName(name_space, base + "_")
     }
     checkSubscriptionName = function(name , name_space, subscriptions){
       (subscriptions{name_space + ":" + name}.isnull())
@@ -110,7 +107,7 @@ ruleset Subscriptions {
   rule subscribeNameCheck {
     select when wrangler subscription
     pre {
-      name_space = event:attr("name_space")
+      name_space = event:attr("name_space").defaultsTo("shared", standardError("name_space"))
       name   = event:attr("name") || randomSubscriptionName(name_space).klog("random name") //.defaultsTo(randomSubscriptionName(name_space), standardError("channel_name"))
       attr = event:attrs()
       attrs = attr.put({"name":name}).klog("subscribeNameCheck attrs")
@@ -132,8 +129,8 @@ ruleset Subscriptions {
    pre {
       // attributes for inbound attrs
       logs = event:attrs().klog("createMySubscription attrs")
-      name   = event:attr("name").defaultsTo("standard",standardError("channel_name"))
-      name_space     = event:attr("name_space").defaultsTo("shared", standardError("name_space"))
+      name   = event:attr("name")
+      name_space     = event:attr("name_space")
       my_role  = event:attr("my_role").defaultsTo("peer", standardError("my_role"))
       subscriber_host = event:attr("subscriber_host")
       subscriber_role  = event:attr("subscriber_role").defaultsTo("peer", standardError("subscriber_role"))
