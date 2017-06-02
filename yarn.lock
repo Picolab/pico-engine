@@ -1542,8 +1542,8 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
 
 nearley@2.9.x:
-  version "2.9.2"
-  resolved "https://registry.yarnpkg.com/nearley/-/nearley-2.9.2.tgz#b06e36b2341403a43e20b7da1f1d6a553f7389ea"
+  version "2.9.3"
+  resolved "https://registry.yarnpkg.com/nearley/-/nearley-2.9.3.tgz#3d62bca08b2efd7fdf1f4cb59f6e7080e24fb288"
   dependencies:
     nomnom "~1.6.2"
     railroad-diagrams "^1.0.0"
@@ -1724,9 +1724,9 @@ performance-now@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-0.2.0.tgz#33ef30c5c77d4ea21c5a53869d91b56d8f2555e5"
 
-pico-engine-core@^0.31.1:
-  version "0.31.1"
-  resolved "https://registry.yarnpkg.com/pico-engine-core/-/pico-engine-core-0.31.1.tgz#02a9074edb84a9d2075e5435273a873d95805359"
+pico-engine-core@^0.31.3:
+  version "0.31.3"
+  resolved "https://registry.yarnpkg.com/pico-engine-core/-/pico-engine-core-0.31.3.tgz#1ed1a83b880d6a2881e3d02a73af042e4c5180dd"
   dependencies:
     bytewise "^1.1.0"
     co-callback "^1.2.0"
@@ -2020,8 +2020,8 @@ rx-lite@^3.1.2:
   resolved "https://registry.yarnpkg.com/rx-lite/-/rx-lite-3.1.2.tgz#19ce502ca572665f3b647b10939f97fd1615f102"
 
 safe-buffer@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.0.1.tgz#d263ca54696cd8a306b5ca6551e92de57918fbe7"
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.0.tgz#fe4c8460397f9eaaaa58e73be46273408a45e223"
 
 scriptsp@^1.0.1:
   version "1.0.1"
