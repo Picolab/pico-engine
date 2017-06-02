@@ -1,6 +1,6 @@
 ruleset io.picolabs.defaction {
     meta {
-        shares getSettingVal, add
+        shares getSettingVal, add, echoAction
     }
     global {
         foo = defaction(a){

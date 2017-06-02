@@ -10,6 +10,7 @@ module.exports = {
     "no-console": "off",
     "quotes": ["error", "double"],
     "no-trailing-spaces": "error",
+    "eqeqeq": "error",
     "linebreak-style": [
       "error",
       "unix"

@@ -3,7 +3,8 @@ module.exports = {
   "meta": {
     "shares": [
       "getSettingVal",
-      "add"
+      "add",
+      "echoAction"
     ]
   },
   "global": function* (ctx) {
