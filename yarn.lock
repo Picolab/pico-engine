@@ -240,10 +240,6 @@ btoa@^1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/btoa/-/btoa-1.1.2.tgz#3e40b81663f81d2dd6596a4cb714a8dc16cfabe0"
 
-buffer-shims@~1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/buffer-shims/-/buffer-shims-1.0.0.tgz#9978ce317388c649ad8793028c3477ef044a8b51"
-
 bytes@2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/bytes/-/bytes-2.4.0.tgz#7d97196f9d5baf7f6935e25985549edd2a6c2339"
@@ -1351,9 +1347,9 @@ kind-of@^3.0.2:
   dependencies:
     is-buffer "^1.1.5"
 
-krl-compiler@^0.34.1:
-  version "0.34.1"
-  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.34.1.tgz#29a5df96f2561dd0555935205ac36cb9016c2bb6"
+krl-compiler@^0.35.0:
+  version "0.35.0"
+  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.35.0.tgz#1ff11b0d4ddf96c556886b2e40f450ef6fd06460"
   dependencies:
     btoa "^1.1.2"
     escodegen "^1.8.0"
@@ -1371,9 +1367,9 @@ krl-parser@^0.24.0:
     line-column "^1.0.2"
     nearley "2.9.x"
 
-krl-stdlib@^0.7.1:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/krl-stdlib/-/krl-stdlib-0.7.1.tgz#acdaee56e7fe6ace91b2c9cd4119ca1b175c8215"
+krl-stdlib@^0.7.3:
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/krl-stdlib/-/krl-stdlib-0.7.3.tgz#b6b7bbe40870426c55fc87c2030e49cc670c57a3"
   dependencies:
     lodash "^4.13.1"
 
@@ -1401,8 +1397,8 @@ level-json-coerce-null@^1.0.0:
   resolved "https://registry.yarnpkg.com/level-json-coerce-null/-/level-json-coerce-null-1.0.1.tgz#943240828be0ba1d1eb2cd0782365b3f006ae1bc"
 
 leveldown@^1.4.6:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/leveldown/-/leveldown-1.7.0.tgz#fdae843ec139b6bd7150ff98df43863611320476"
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/leveldown/-/leveldown-1.7.1.tgz#82b9865c95a9ff4df3d8c440324bd6080c17864d"
   dependencies:
     abstract-leveldown "~2.6.1"
     bindings "~1.2.1"
@@ -1728,16 +1724,16 @@ performance-now@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-0.2.0.tgz#33ef30c5c77d4ea21c5a53869d91b56d8f2555e5"
 
-pico-engine-core@^0.31.0:
-  version "0.31.0"
-  resolved "https://registry.yarnpkg.com/pico-engine-core/-/pico-engine-core-0.31.0.tgz#2dca3c240a55ec465e241b826932ba4da6657f7f"
+pico-engine-core@^0.31.1:
+  version "0.31.1"
+  resolved "https://registry.yarnpkg.com/pico-engine-core/-/pico-engine-core-0.31.1.tgz#02a9074edb84a9d2075e5435273a873d95805359"
   dependencies:
     bytewise "^1.1.0"
     co-callback "^1.2.0"
     comment-regex "^1.0.0"
     contra "^1.9.4"
     cuid "^1.3.8"
-    krl-stdlib "^0.7.1"
+    krl-stdlib "^0.7.3"
     level-json-coerce-null "^1.0.0"
     levelup "^1.3.2"
     lodash "^4.13.1"
@@ -1889,14 +1885,14 @@ readable-stream@^1.0.33:
     string_decoder "~0.10.x"
 
 readable-stream@^2.0.0, readable-stream@^2.0.2, readable-stream@^2.0.5, readable-stream@^2.0.6, readable-stream@^2.1.4, readable-stream@^2.2.2:
-  version "2.2.9"
-  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.2.9.tgz#cf78ec6f4a6d1eb43d26488cac97f042e74b7fc8"
+  version "2.2.10"
+  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.2.10.tgz#effe72bb7c884c0dd335e2379d526196d9d011ee"
   dependencies:
-    buffer-shims "~1.0.0"
     core-util-is "~1.0.0"
     inherits "~2.0.1"
     isarray "~1.0.0"
     process-nextick-args "~1.0.6"
+    safe-buffer "^5.0.1"
     string_decoder "~1.0.0"
     util-deprecate "~1.0.1"
 
@@ -2001,13 +1997,13 @@ ret@~0.1.10:
   version "0.1.14"
   resolved "https://registry.yarnpkg.com/ret/-/ret-0.1.14.tgz#58c636837b12e161f8a380cf081c6a230fd1664e"
 
-rimraf@2, rimraf@^2.5.1, rimraf@^2.6.1:
+rimraf@2, rimraf@^2.2.8, rimraf@^2.5.1, rimraf@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.6.1.tgz#c2338ec643df7a1b7fe5c54fa86f57428a55f33d"
   dependencies:
     glob "^7.0.5"
 
-rimraf@^2.2.8, rimraf@~2.5.2:
+rimraf@~2.5.2:
   version "2.5.4"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.5.4.tgz#96800093cbf1a0c86bd95b4625467535c29dfa04"
   dependencies:
