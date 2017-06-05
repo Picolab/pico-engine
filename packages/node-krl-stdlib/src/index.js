@@ -521,6 +521,9 @@ stdlib["delete"] = function(ctx, val, path){
     return n_val;
 };
 stdlib.put = function(ctx, val, path, to_set){
+    if(!_.isObject(val)){//if not Map or Array
+        return val;
+    }
     if(arguments.length < 3){
         return val;
     }
@@ -532,14 +535,28 @@ stdlib.put = function(ctx, val, path, to_set){
     if(_.isEmpty(path)){
         return _.assign({}, val, to_set);
     }
-    //TODO optimize
     var n_val = _.cloneDeep(val);
-    _.update(n_val, path, function(at_p){
-        if(_.isPlainObject(to_set)){
-            return _.assign(at_p, to_set);
+    var nested = n_val;
+    var i, key;
+    for(i = 0; i < path.length; i++){
+        key = path[i];
+        if(i === path.length - 1){
+            if(_.isObject(to_set)){
+                //merge onto the current Map or Array
+                nested[key] = _.assign({}, nested[key], to_set);
+            }else{
+                nested[key] = to_set;
+            }
+        }else{
+            if(_.isObject(nested[key])){//if Map or Array
+                //simply traverse down
+            }else{
+                //need to create a Map to continue
+                nested[key] = {};
+            }
+            nested = nested[key];
         }
-        return to_set;
-    });
+    }
     return n_val;
 };
 stdlib.encode = function(ctx, val){

@@ -473,6 +473,31 @@ ytest("collection operators", function*(t, ytf, tf){
     tf("put", [{key: 5}, "key", 7], {key: 7});
     tf("put", [{key: 5}, ["key"], 9], {key: 9});
 
+    tf("put", [5, ["key"], 9], 5, "if val is not a Map or Array, return the val");
+    tf("put", ["wat", ["key"], 9], "wat", "if val is not a Map or Array, return the val");
+    tf("put", [null, ["key"], 9], null, "if val is not a Map or Array, return the val");
+
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, {}, ["0", "0"], "foo")),
+        "{\"0\":{\"0\":\"foo\"}}",
+        "don't use arrays by default, i.e. don't do {\"0\":[\"foo\"]}"
+    );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, {}, [0, 1], "foo")),
+        "{\"0\":{\"1\":\"foo\"}}",
+        "don't do {\"0\":[null,\"foo\"]}"
+    );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, [], [0, 0], "foo")),
+        "[{\"0\":\"foo\"}]"
+    );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, [["wat?"]], [0, 0], "foo")),
+        "[[\"foo\"]]",
+        "if the nested value is an array, keep it an array"
+    );
+
+
     tf("get", [obj, ["foo", "bar", "10"]], "I like cheese");
     tf("get", [obj, "colors"], "many");
     assertObjNotMutated();
