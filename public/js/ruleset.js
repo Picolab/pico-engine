@@ -147,7 +147,7 @@ $.getJSON("/api/db-dump", function(db_dump){
             alert("Error: " + err);
             return;
           }
-          location.hash = rid;
+          location.hash = result.rid;
           location.reload();
         });
       }
@@ -210,13 +210,14 @@ $.getJSON("/api/db-dump", function(db_dump){
         $feedback.html("ok");
         return;
       }
-      var rid = data.code.split(/"/)[3];
-      picoAPI("/api/ruleset/register",{"src":src},"POST",function(err){
+      picoAPI("/api/ruleset/register",{"src":src},"POST",function(err,result){
         if(err){
+          var rid = data.code.split(/"/)[3];
           $feedback.html("<span style=\"color:red\">Problem registering "
                   + rid + "\n" + err + "</span>");
           return;
         }
+        location.hash = result.rid;
         location.reload();
       });
     });
