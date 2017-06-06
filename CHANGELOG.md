@@ -1,3 +1,9 @@
+# 0.11.5 - June 5, 2017
+
+### Bug Fixes
+
+* `.put()` should create nested maps, even if keys are numeric - see issue [#204](https://github.com/Picolab/pico-engine/issues/204)
+
 # 0.11.4 - June 2, 2017
 
 ### Bug Fixes
