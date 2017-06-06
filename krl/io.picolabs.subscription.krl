@@ -91,7 +91,7 @@ ruleset Subscriptions {
         base = name_base.defaultsTo("");
         subscriptions = getSubscriptions();
         array = 1.range(5).map(function(n){
-          (word.randomWord())
+          random:word()
           }).klog("randomWords");
         names = array.filter(function(name){
           subscriptions{name_space + ":" + base + name}.isnull()
