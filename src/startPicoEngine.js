@@ -174,9 +174,9 @@ var setupLogging = function(pe){
             logEntry(context,JSON.stringify(message));
         }
     });
-    pe.emitter.on("error", function(context, message){
-        console.error("[ERROR]", context, message);
-        logEntry(context,message);
+    pe.emitter.on("error", function(err, context){
+        console.error("[ERROR]", context, err);
+        logEntry(context, err);
     });
     pe.emitter.on("episode_stop", function(context){
         console.log("EPISODE_STOP",context);
