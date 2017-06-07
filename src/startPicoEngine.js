@@ -130,7 +130,7 @@ var setupLogging = function(pe){
         });
     };
     pe.emitter.on("episode_start", function(context){
-        console.log("EPISODE_START",context);
+        console.log("[EPISODE_START]",context);
         var eci = context.eci;
         var timestamp = (new Date()).toISOString();
         var episode = logs[eci];
@@ -179,7 +179,7 @@ var setupLogging = function(pe){
         logEntry(context, err);
     });
     pe.emitter.on("episode_stop", function(context){
-        console.log("EPISODE_STOP",context);
+        console.log("[EPISODE_STOP]",context);
         var callback = function(outcome){
             console.log("[EPISODE_REMOVED]",outcome);
         };
