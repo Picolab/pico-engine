@@ -218,7 +218,7 @@ ruleset Subscriptions {
              "status" : "inbound",
              "channel_type" : channel_type,
              "channel_name" : channel_name,
-             "attributes" : attributes }, subscriber_host)
+             "attributes" : attributes }, subscriber_host.isnull() => null | meta:host)
       }, subscriber_host)
     fired {
       subscriber_eci.klog(">> sent subscription request to >>")
@@ -243,18 +243,17 @@ ruleset Subscriptions {
       name   = event:attr("name").klog("InboundNameCheck name")
       subscriber_host = event:attr("subscriber_host")
       outbound_eci = event:attr("outbound_eci")
-      attr = event:attrs()
-      attrs = attr.put({"name":name}).klog("InboundNameCheck attrs")
+      attrs = event:attrs()
     }
     if(checkSubscriptionName(name , name_space, getSubscriptions()) != true ) then noop()
     fired{
-        logs.klog(">> could not accept request #{name} >>");
+        attrs.klog(">> could not accept request #{name} >>");
         event:send({ "eci": outbound_eci, "eid": "pending_subscription",
           "domain": "wrangler", "type": "outbound_subscription_cancellation",
-          "attrs": event:attrs().put({"failed_request":"not a unique subscription"})}, subscriber_host)
+          "attrs": attrs.put({"failed_request":"not a unique subscription"})}, subscriber_host)
     }
     else{
-      logs.klog(">> unique name suggested request #{name} pending >>");
+      attrs.klog("InboundNameCheck attrs");
       raise wrangler event "checked_name_inbound"
        attributes attrs
   
@@ -388,7 +387,9 @@ rule addInboundSubscription {
       channel_name = event:attr("subscription_name").defaultsTo(event:attr("channel_name"), "channel_name used ") //.defaultsTo( "No channel_name", standardError("channel_name"))
       subs = getSubscriptions()
       subscriber_host = subs{[channel_name,"attributes","subscriber_host"]}.klog("outbound host if different")
-      outbound_eci = subs{[channel_name,"attributes","outbound_eci"]}.klog("outboundEci")
+      outbound_eci = subs{[channel_name,"attributes","subscriber_eci"]}.defaultsTo(
+        subs{[channel_name,"attributes","outbound_eci"]}
+      ).klog("other pico's eci")
     }
     event:send({
           "eci": outbound_eci, "eid": "cancelSubscription1",
