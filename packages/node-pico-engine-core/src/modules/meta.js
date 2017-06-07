@@ -14,6 +14,9 @@ var getCoreCTXval = {
         //currently, this will be undefined durring ruleset registration
         return ctx.pico_id;
     },
+    "txnId": function(core, ctx){
+        return ctx.txn_id;
+    },
     "rulesetName": function(core, ctx){
         return _.get(core.rsreg.get(ctx.rid), ["meta", "name"]);
     },

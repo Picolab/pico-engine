@@ -17,7 +17,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, "engine", "newPico", [], []);
@@ -44,7 +44,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
         ctx.scope.set("name", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["name"]));
         ctx.scope.set("type", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["type"]));
@@ -78,7 +78,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, "engine", "removeChannel", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["eci"])], []);
@@ -105,7 +105,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
         ctx.scope.set("rid", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["rid"]));
         ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));

@@ -12,6 +12,7 @@ module.exports = {
     "require-yield": "off",
     "quotes": ["error", "double"],
     "no-trailing-spaces": "error",
+    "eqeqeq": "error",
     "linebreak-style": [
       "error",
       "unix"

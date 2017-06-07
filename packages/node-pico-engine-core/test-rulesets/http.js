@@ -83,7 +83,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         var fired = true;
         if (fired)
@@ -116,7 +116,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         var fired = true;
         if (fired) {
@@ -147,7 +147,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         var fired = true;
         if (fired) {
@@ -179,7 +179,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         var fired = true;
         if (fired) {
@@ -214,7 +214,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         var fired = true;
         if (fired) {
@@ -247,7 +247,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         ctx.scope.set("resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [])]));
         var fired = true;
         if (fired) {

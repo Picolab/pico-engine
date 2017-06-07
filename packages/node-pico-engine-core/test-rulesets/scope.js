@@ -100,7 +100,7 @@ module.exports = {
           ]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -137,7 +137,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         ctx.scope.set("p0", "prelude 0");
         ctx.scope.set("p1", "prelude 1");
         var fired = true;
@@ -177,7 +177,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         ctx.scope.set("g0", "overrided g0!");
         ctx.scope.set("inc5", yield ctx.applyFn(ctx.scope.get("incByN"), ctx, [5]));
         var fired = true;

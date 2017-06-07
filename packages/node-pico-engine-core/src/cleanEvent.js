@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var krl_stdlib = require("krl-stdlib");
 
 var isBlank = function(str){
     if(!_.isString(str)){
@@ -25,6 +26,17 @@ module.exports = function(event_orig){
         throw new Error("missing event.type");
     }
 
+    var attrs = {};
+    if(_.has(event_orig, "attrs")){
+        //we want to make sure only json-able values are in the attrs
+        //also want to clone it as to not mutate the original copy
+        var attrs_json = krl_stdlib.encode({}, event_orig.attrs);
+        //only if it's a map or array do we consider it valid
+        if(attrs_json[0] === "{" || attrs_json[0] === "["){
+            attrs = krl_stdlib.decode({}, attrs_json);
+        }
+    }
+
     return {
 
         eci: event_orig.eci.trim(),
@@ -36,9 +48,7 @@ module.exports = function(event_orig){
         domain: event_orig.domain.trim(),
         type: event_orig.type.trim(),
 
-        attrs: _.has(event_orig, "attrs")
-            ? _.cloneDeep(event_orig.attrs)//don't mutate their copy
-            : {},
+        attrs: attrs,
 
     };
 };

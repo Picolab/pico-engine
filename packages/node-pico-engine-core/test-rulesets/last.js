@@ -18,7 +18,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["foo"], []);
@@ -52,7 +52,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["bar"], []);
@@ -86,7 +86,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["baz"], []);
@@ -116,7 +116,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["qux"], []);

@@ -63,6 +63,13 @@ module.exports = function(conf){
             };
         }(ctx.rid));//pass in the rid at mkCTX creation so it is not later mutated
 
+        if(ctx.event){
+            ctx.txn_id = ctx.event.txn_id;
+        }
+        if(ctx.query){
+            ctx.txn_id = ctx.query.txn_id;
+        }
+
         ctx.modules = modules;
         ctx.applyFn = applyFn;
         var pushCTXScope = function(ctx2){
@@ -125,7 +132,13 @@ module.exports = function(conf){
                     info.eci = ctx.query.eci;
                 }
             }
-            emitter.emit(type, info, val, message);
+            if(type === "error"){
+                //the Error object, val, should be first
+                // b/c node "error" event conventions, so you don't strange messages thinking `info` is the error
+                emitter.emit("error", val, info, message);
+            }else{
+                emitter.emit(type, info, val, message);
+            }
         };
         ctx.log = function(level, val){
             if(!_.has(log_levels, level)){
@@ -240,14 +253,15 @@ module.exports = function(conf){
     };
 
     core.registerRuleset = function(krl_src, meta_data, callback){
-        db.storeRuleset(krl_src, meta_data, function(err, hash){
+        db.storeRuleset(krl_src, meta_data, function(err, data){
             if(err) return callback(err);
             compileAndLoadRuleset({
+                rid: data.rid,
                 src: krl_src,
-                hash: hash
+                hash: data.hash
             }, function(err, rs){
                 if(err) return callback(err);
-                db.enableRuleset(hash, function(err){
+                db.enableRuleset(data.hash, function(err){
                     if(err) return callback(err);
                     initializeAndEngageRuleset(rs, core.rsreg.get, function(err){
                         if(err){
@@ -255,7 +269,7 @@ module.exports = function(conf){
                         }
                         callback(err, {
                             rid: rs.rid,
-                            hash: hash
+                            hash: data.hash
                         });
                     });
                 });
@@ -263,40 +277,43 @@ module.exports = function(conf){
         });
     };
 
-    var picoQ = PicoQueue(function(pico_id, data, callback){
-        if(data.type === "event"){
-            var event = data.event;
+    var picoQ = PicoQueue(function(pico_id, job, callback){
+        //now handle the next `job` on the pico queue
+        if(job.type === "event"){
+            var event = job.event;
             event.timestamp = new Date(event.timestamp);//convert from JSON string to date
             processEvent(core, mkCTX({
                 event: event,
                 pico_id: pico_id
-            }), function(err, data){
-                if(err) return callback(err);
-                if(_.has(data, "event:send")){
-                    _.each(data["event:send"], function(o){
-                        signalEvent(o.event);
-                    });
-                    data = _.omit(data, "event:send");
-                }
-                callback(void 0, data);
-            });
-        }else if(data.type === "query"){
+            }), callback);
+        }else if(job.type === "query"){
             processQuery(core, mkCTX({
-                query: data.query,
+                query: job.query,
                 pico_id: pico_id
             }), callback);
         }else{
-            callback(new Error("invalid PicoQueue type:" + data.type));
+            callback(new Error("invalid PicoQueue job.type:" + job.type));
         }
     });
 
-    var signalEvent = function(event_orig, callback){
+    var enqueueForECI = function(eci, job, onEnqueued, callback){
+        db.getPicoIDByECI(eci, function(err, pico_id){
+            if(err) return callback(err);
+            picoQ.enqueue(pico_id, job, callback);
+            onEnqueued(pico_id);
+        });
+    };
+
+    core.signalEvent = function(event_orig, callback_orig){
+        var callback = _.isFunction(callback_orig) ? callback_orig : _.noop;
         var event;
         try{
             //validate + normalize event, and make sure is not mutated
             event = cleanEvent(event_orig);
         }catch(err){
-            return callback(err);
+            emitter.emit("error", err);
+            callback(err);
+            return;
         }
 
         if(event.eid === "none"){
@@ -306,52 +323,71 @@ module.exports = function(conf){
             ? event_orig.timestamp
             : new Date();
 
+        event.txn_id = cuid();
+
         var emit = mkCTX({event: event}).emit;
         emit("episode_start");
         emit("debug", "event received: " + event.domain + "/" + event.type);
 
-        if(!_.isFunction(callback)){
-            //if interal signalEvent or just no callback was given...
-            callback = function(err, resp){
-                if(err){
-                    emit("error", err);
-                }else{
-                    emit("debug", resp);
-                }
-            };
-        }
-
-        db.getPicoIDByECI(event.eci, function(err, pico_id){
-            if(err) return callback(err);
-            picoQ.enqueue(pico_id, {
-                type: "event",
-                event: event
-            }, callback);
+        enqueueForECI(event.eci, {
+            type: "event",
+            event: event
+        }, function(pico_id){
+            emit = mkCTX({
+                event: event,
+                pico_id: pico_id,
+            }).emit;
             emit("debug", "event added to pico queue: " + pico_id);
+        }, function(err, data){
+            if(err){
+                emit("error", err);
+            }else{
+                emit("debug", data);
+            }
+            //there should be no more emits after "episode_stop"
+            emit("episode_stop");
+            callback(err, data);
         });
     };
 
-    var runQuery = function(query_orig, callback){
+    core.runQuery = function(query_orig, callback_orig){
+        var callback = _.isFunction(callback_orig) ? callback_orig : _.noop;
+
         //ensure that query is not mutated
         var query = _.cloneDeep(query_orig);//TODO optimize
+
+        if(!_.isString(query && query.eci)){
+            var err = new Error("missing query.eci");
+            emitter.emit("error", err);
+            callback(err);
+            return;
+        }
+
+        query.timestamp = new Date();
+        query.txn_id = cuid();
+
         var emit = mkCTX({query: query}).emit;
         emit("episode_start");
         emit("debug", "query received: " + query.rid + "/" + query.name);
 
-        db.getPicoIDByECI(query.eci, function(err, pico_id){
-            if(err) return callback(err);
-            var emit = mkCTX({
+        enqueueForECI(query.eci, {
+            type: "query",
+            query: query
+        }, function(pico_id){
+            emit = mkCTX({
                 query: query,
                 pico_id: pico_id,
             }).emit;
-            picoQ.enqueue(pico_id, {
-                type: "query",
-                query: query
-            }, function(err, data){
-                emit("episode_stop");
-                callback(err, data);
-            });
             emit("debug", "query added to pico queue: " + pico_id);
+        }, function(err, data){
+            if(err){
+                emit("error", err);
+            }else{
+                emit("debug", data);
+            }
+            //there should be no more emits after "episode_stop"
+            emit("episode_stop");
+            callback(err, data);
         });
     };
 
@@ -403,12 +439,10 @@ module.exports = function(conf){
         db: db,
         onError: function(err){
             var info = {scheduler: true};
-            emitter.emit("error", info, err);
+            emitter.emit("error", err, info);
         },
-        onEvent: function(event, callback){
-            signalEvent(event);
-            //signal event then immediately continue on so schedule doesn't block
-            callback();
+        onEvent: function(event){
+            core.signalEvent(event);
         },
         is_test_mode: !!conf.___core_testing_mode,
     });
@@ -470,8 +504,8 @@ module.exports = function(conf){
     var pe = {
         emitter: emitter,
 
-        signalEvent: signalEvent,
-        runQuery: runQuery,
+        signalEvent: core.signalEvent,
+        runQuery: core.runQuery,
 
         registerRuleset: core.registerRuleset,
         registerRulesetURL: core.registerRulesetURL,

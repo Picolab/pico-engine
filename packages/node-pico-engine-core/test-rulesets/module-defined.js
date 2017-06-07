@@ -58,7 +58,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [

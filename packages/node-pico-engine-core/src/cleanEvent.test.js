@@ -103,5 +103,64 @@ test("event = cleanEvent(event)", function(t){
         attrs: {},
     });
 
+
+    //no for_rid
+    t.deepEquals(cleanEvent({
+        eci: "eci123",
+        domain: "foo",
+        type: "bar",
+        for_rid: "rid",
+    }), {
+        eci: "eci123",
+        eid: "none",
+        domain: "foo",
+        type: "bar",
+        attrs: {},
+    });
+
+    //convert attrs via KRL json encode
+    t.deepEquals(cleanEvent({
+        eci: "eci123",
+        domain: "foo",
+        type: "bar",
+        attrs: {
+            fn: function(){}
+        },
+    }), {
+        eci: "eci123",
+        eid: "none",
+        domain: "foo",
+        type: "bar",
+        attrs: {
+            fn: "[Function]"
+        },
+    });
+
+    //attrs must be a map or array
+    t.deepEquals(cleanEvent({
+        eci: "eci123",
+        domain: "foo",
+        type: "bar",
+        attrs: function(){},
+    }), {
+        eci: "eci123",
+        eid: "none",
+        domain: "foo",
+        type: "bar",
+        attrs: {},
+    });
+    t.deepEquals(cleanEvent({
+        eci: "eci123",
+        domain: "foo",
+        type: "bar",
+        attrs: [0, 1, "a", null, NaN],
+    }), {
+        eci: "eci123",
+        eid: "none",
+        domain: "foo",
+        type: "bar",
+        attrs: [0, 1, "a", null, null],
+    });
+
     t.end();
 });

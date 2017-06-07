@@ -5,6 +5,7 @@ var assertCTX_keys = function(ctx, keys){
     var std_ctx_keys = [
         "rid",
         "scope",
+        "txn_id",
         "getMyKey",
         "modules",
         "KRLClosure",
@@ -48,9 +49,7 @@ module.exports = function(){
                 "rule_name",
             ]);
         }else if(_.has(ctx, "event")){//event durring rule body
-            assertCTX_keys(_.omit(ctx, [
-                "foreach_is_final",//only when doing foreach
-            ]), [
+            assertCTX_keys(ctx, [
                 "event",
                 "pico_id",
                 "rule_name",

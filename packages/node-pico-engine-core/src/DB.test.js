@@ -97,7 +97,7 @@ test("DB - storeRuleset", function(t){
     }, function(err, data){
         if(err) return t.end(err);
         t.deepEquals(data.start_db, {});
-        t.deepEquals(data.store, hash);
+        t.deepEquals(data.store, {rid: rid, hash: hash});
         t.deepEquals(data.findRulesetsByURL, [{
             rid: rid,
             hash: hash
@@ -120,9 +120,9 @@ test("DB - enableRuleset", function(t){
             t.deepEquals(_.omit(db_json, "rulesets"), {});
             db.storeRuleset(krl_src, {}, callback);
         },
-        function(hash, callback){
-            db.enableRuleset(hash, function(err){
-                callback(err, hash);
+        function(data, callback){
+            db.enableRuleset(data.hash, function(err){
+                callback(err, data.hash);
             });
         },
         function(hash, callback){
@@ -222,12 +222,12 @@ test("DB - deleteRuleset", function(t){
             var krl = "ruleset " + rid + " {}";
             db.storeRuleset(krl, {
                 url: "file:///" + name + ".krl"
-            }, function(err, hash){
+            }, function(err, data){
                 if(err) return callback(err);
-                db.enableRuleset(hash, function(err){
+                db.enableRuleset(data.hash, function(err){
                     if(err) return callback(err);
                     db.putAppVar(rid, "my_var", "appvar value", function(err){
-                        callback(err, hash);
+                        callback(err, data.hash);
                     });
                 });
             });
@@ -524,8 +524,8 @@ test("DB - listAllEnabledRIDs", function(t){
     var hashes = {};
     var store = function(rid){
         return function(done){
-            db.storeRuleset("ruleset " + rid + "{}", {}, function(err, hash){
-                hashes[rid] = hash;
+            db.storeRuleset("ruleset " + rid + "{}", {}, function(err, data){
+                hashes[rid] = data.hash;
                 done();
             });
         };

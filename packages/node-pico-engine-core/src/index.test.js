@@ -104,6 +104,9 @@ test("PicoEngine - hello_world ruleset", function(t){
             }),
 
             error_event: function(next){
+                pe.emitter.once("error", function(err){
+                    t.equals(err+"", "Error: missing event.eci");
+                });
                 pe.signalEvent({}, function(err){
                     t.equals(err + "", "Error: missing event.eci");
                     next();
@@ -113,6 +116,9 @@ test("PicoEngine - hello_world ruleset", function(t){
         }, function(err, data){
             if(err) return t.end(err);
 
+            var txn_path = ["directives", 0, "meta", "txn_id"];
+            t.ok(/^c[^\s]+$/.test(_.get(data.hello_event, txn_path)));
+            _.set(data.hello_event, txn_path, "TXN_ID");
             t.deepEquals(data.hello_event, {
                 directives: [
                     {
@@ -124,7 +130,7 @@ test("PicoEngine - hello_world ruleset", function(t){
                             eid: "1234",
                             rid: "io.picolabs.hello_world",
                             rule_name: "say_hello",
-                            txn_id: "TODO"
+                            txn_id: "TXN_ID"
                         }
                     }
                 ]
@@ -1415,10 +1421,20 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
                 signal("defa", "bar_setting", {}),
                 [{name: "bar", options: {a: "baz", b: "qux", c: "quux"}}]
             ],
-            [
-                query("getSettingVal"),
-                {name: "bar", type: "directive", options: {a: "baz", b: "qux", c: "quux"},  meta: {eid: "1234", rid: "io.picolabs.defaction", rule_name: "bar_setting", txn_id: "TODO"}}
-            ],
+            function(next){
+                query("getSettingVal")(function(err, data){
+                    if(err) return next(err);
+
+                    data.meta.txn_id = "TXN_ID";
+                    t.deepEquals(data, {
+                        name: "bar",
+                        type: "directive",
+                        options: {a: "baz", b: "qux", c: "quux"},
+                        meta: {eid: "1234", rid: "io.picolabs.defaction", rule_name: "bar_setting", txn_id: "TXN_ID"},
+                    });
+                    next();
+                });
+            },
             [
                 signal("defa", "chooser", {val: "asdf"}),
                 [{name: "foo", options: {a: "asdf", b: 5}}]
@@ -1444,6 +1460,10 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
                 {type: "directive", name: "add", options: {resp: 3}}
             ],
             function(next){
+                pe.emitter.once("error", function(err, info){
+                    t.equals(err + "", "Error: `add` is not defined as an action");
+                    t.equals(info.eci, "id1");
+                });
                 signal("defa", "add")(function(err, resp){
                     t.equals(err + "", "Error: `add` is not defined as an action");
                     t.notOk(resp);
@@ -1467,7 +1487,21 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
                 ["aint", "no", "echo", null, "send wat? noop returned: null"]
             ],
             function(next){
+                pe.emitter.once("error", function(err, info){
+                    t.equals(err + "", "Error: actions can only be called in the rule action block");
+                    t.equals(info.eci, "id1");
+                });
                 signal("defa", "trying_to_use_action_as_fn")(function(err){
+                    t.equals(err + "", "Error: actions can only be called in the rule action block");
+                    next();
+                });
+            },
+            function(next){
+                pe.emitter.once("error", function(err, info){
+                    t.equals(err + "", "Error: actions can only be called in the rule action block");
+                    t.equals(info.eci, "id1");
+                });
+                query("echoAction")(function(err){
                     t.equals(err + "", "Error: actions can only be called in the rule action block");
                     next();
                 });
@@ -1524,6 +1558,9 @@ test("PicoEngine - io.picolabs.key* rulesets", function(t){
 
         var qError = function(q, error_msg){
             return function(next){
+                pe.emitter.once("error", function(err){
+                    t.equals(err+"", error_msg);
+                });
                 q(function(err, resp){
                     t.equals(err+"", error_msg);
                     next();
@@ -1948,3 +1985,55 @@ test("PicoEngine - (re)registering ruleset shouldn't mess up state", function(t)
         });
     });
 });
+
+test("PicoEngine - io.picolabs.test-error-messages", function(t){
+    mkTestPicoEngine({}, function(err, pe){
+        if(err)return t.end(err);
+
+        var qError = function(q, error_msg, is_notFound){
+            return function(next){
+                pe.emitter.once("error", function(err){
+                    t.equals(err+"", error_msg);
+                    t.equals(err.notFound || false, is_notFound);
+                });
+                pe.runQuery(q, function(err, resp){
+                    t.equals(err+"", error_msg);
+                    t.equals(err.notFound || false, is_notFound);
+                    t.notOk(resp);
+                    next();
+                });
+            };
+        };
+
+        λ.series([
+            λ.curry(pe.newPico, {}),
+            λ.curry(pe.newChannel, {pico_id: "id0", name: "one", type: "t"}),
+            λ.curry(pe.installRuleset, "id0", "io.picolabs.test-error-messages"),
+
+            qError(void 0, "Error: missing query.eci", false),
+
+            qError({eci: null}, "Error: missing query.eci", false),
+
+            qError({eci: "foo"}, "NotFoundError: ECI not found: foo", true),
+            qError({
+                eci: "id1",
+                rid: "not-an-rid",
+                name: "hello",
+                args: {obj: "Bob"}
+            }, "Error: Pico does not have that rid: not-an-rid", false),
+            qError({
+                eci: "id1",
+                rid: "io.picolabs.test-error-messages",
+                name: "zzz",
+                args: {obj: "Bob"}
+            }, "Error: Not shared: zzz", false),
+            qError({
+                eci: "id1",
+                rid: "io.picolabs.test-error-messages",
+                name: "somethingNotDefined",
+                args: {obj: "Bob"}
+            }, "Error: Shared, but not defined: somethingNotDefined", true),
+        ], t.end);
+    });
+});
+

@@ -8,3 +8,4 @@ require("./modules/engine.test");
 require("./modules/event.test");
 require("./modules/random.test");
 require("./cleanEvent.test");
+require("./Scheduler.test");

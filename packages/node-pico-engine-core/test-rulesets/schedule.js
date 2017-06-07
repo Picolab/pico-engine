@@ -31,7 +31,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["clear_log"], []);
@@ -61,7 +61,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["push_log"], []);
@@ -94,7 +94,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["in_5min"], []);
@@ -139,7 +139,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["every_1min"], []);
@@ -181,7 +181,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction) {
+      "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
           yield runAction(ctx, "schedule", "remove", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["id"])], []);

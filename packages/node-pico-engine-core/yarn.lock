@@ -194,10 +194,6 @@ btoa@^1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/btoa/-/btoa-1.1.2.tgz#3e40b81663f81d2dd6596a4cb714a8dc16cfabe0"
 
-buffer-shims@~1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/buffer-shims/-/buffer-shims-1.0.0.tgz#9978ce317388c649ad8793028c3477ef044a8b51"
-
 bytewise-core@^1.2.2:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/bytewise-core/-/bytewise-core-1.2.3.tgz#3fb410c7e91558eb1ab22a82834577aa6bd61d42"
@@ -471,8 +467,8 @@ es-to-primitive@^1.1.1:
     is-symbol "^1.0.1"
 
 es5-ext@^0.10.14, es5-ext@^0.10.9, es5-ext@~0.10.14:
-  version "0.10.21"
-  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.21.tgz#19a725f9e51d0300bbc1e8e821109fd9daf55925"
+  version "0.10.22"
+  resolved "https://registry.yarnpkg.com/es5-ext/-/es5-ext-0.10.22.tgz#1876c51f990769c112c781ea3ebe89f84fd39071"
   dependencies:
     es6-iterator "2"
     es6-symbol "~3.1"
@@ -1176,9 +1172,9 @@ kind-of@^3.0.2:
   dependencies:
     is-buffer "^1.1.5"
 
-krl-compiler@^0.34.1:
-  version "0.34.1"
-  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.34.1.tgz#29a5df96f2561dd0555935205ac36cb9016c2bb6"
+krl-compiler@^0.35.0:
+  version "0.35.0"
+  resolved "https://registry.yarnpkg.com/krl-compiler/-/krl-compiler-0.35.0.tgz#1ff11b0d4ddf96c556886b2e40f450ef6fd06460"
   dependencies:
     btoa "^1.1.2"
     escodegen "^1.8.0"
@@ -1196,9 +1192,9 @@ krl-parser@^0.24.0:
     line-column "^1.0.2"
     nearley "2.9.x"
 
-krl-stdlib@^0.7.1:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/krl-stdlib/-/krl-stdlib-0.7.1.tgz#acdaee56e7fe6ace91b2c9cd4119ca1b175c8215"
+krl-stdlib@^0.7.4:
+  version "0.7.4"
+  resolved "https://registry.yarnpkg.com/krl-stdlib/-/krl-stdlib-0.7.4.tgz#051bea5a6b753b99fd563eeb43c4f2d3be67e214"
   dependencies:
     lodash "^4.13.1"
 
@@ -1359,8 +1355,8 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
 
 nearley@2.9.x:
-  version "2.9.2"
-  resolved "https://registry.yarnpkg.com/nearley/-/nearley-2.9.2.tgz#b06e36b2341403a43e20b7da1f1d6a553f7389ea"
+  version "2.9.3"
+  resolved "https://registry.yarnpkg.com/nearley/-/nearley-2.9.3.tgz#3d62bca08b2efd7fdf1f4cb59f6e7080e24fb288"
   dependencies:
     nomnom "~1.6.2"
     railroad-diagrams "^1.0.0"
@@ -1614,14 +1610,14 @@ readable-stream@^1.0.33, readable-stream@~1.1.11, readable-stream@~1.1.9:
     string_decoder "~0.10.x"
 
 readable-stream@^2.0.2, readable-stream@^2.0.6, readable-stream@^2.1.4, readable-stream@^2.2.2:
-  version "2.2.9"
-  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.2.9.tgz#cf78ec6f4a6d1eb43d26488cac97f042e74b7fc8"
+  version "2.2.10"
+  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.2.10.tgz#effe72bb7c884c0dd335e2379d526196d9d011ee"
   dependencies:
-    buffer-shims "~1.0.0"
     core-util-is "~1.0.0"
     inherits "~2.0.1"
     isarray "~1.0.0"
     process-nextick-args "~1.0.6"
+    safe-buffer "^5.0.1"
     string_decoder "~1.0.0"
     util-deprecate "~1.0.1"
 
@@ -1743,8 +1739,8 @@ rx-lite@^3.1.2:
   resolved "https://registry.yarnpkg.com/rx-lite/-/rx-lite-3.1.2.tgz#19ce502ca572665f3b647b10939f97fd1615f102"
 
 safe-buffer@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.0.1.tgz#d263ca54696cd8a306b5ca6551e92de57918fbe7"
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.0.tgz#fe4c8460397f9eaaaa58e73be46273408a45e223"
 
 semver@^5.3.0:
   version "5.3.0"

@@ -59,7 +59,13 @@ module.exports = function(opts){
             });
         },
         getPicoIDByECI: function(eci, callback){
-            ldb.get(["channel", eci, "pico_id"], callback);
+            ldb.get(["channel", eci, "pico_id"], function(err, data){
+                if(err && err.notFound){
+                    err = new levelup.errors.NotFoundError("ECI not found: " + (_.isString(eci) ? eci : typeof eci));
+                    err.notFound = true;
+                }
+                callback(err, data);
+            });
         },
         getOwnerECI: function(callback){
             var eci = undefined;
@@ -305,7 +311,10 @@ module.exports = function(opts){
             }
             ldb.batch(ops, function(err){
                 if(err) return callback(err);
-                callback(undefined, hash);
+                callback(undefined, {
+                    rid: rid,
+                    hash: hash,
+                });
             });
         },
         hasEnabledRid: function(rid, callback){
