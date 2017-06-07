@@ -72,8 +72,61 @@ ruleset Subscriptions {
     getSelf = function(){
        wrangler:myself() // must be wrapped in a function
     }
-    getSubscriptions = function(){
-      ent:subscriptions.defaultsTo({},"no subscriptions")
+
+    /*
+      getSubscriptions([collectBy[, filterValue]]) with no arguments returns the
+        value of ent:subscriptions (the subscriptions map)
+      parameters:
+        collectBy - if filterValue is omitted, the string or hashpath
+          that indexes the subscriptions map values
+          used to collect() each subscription map by
+
+          e.g. if the subscriptions map is
+
+          {
+            "ns:n1": {
+              "name": "ns:n1",
+              "attributes": {
+                "my_role": "peer",
+                ...
+              },
+              ...
+            },
+            ...
+          }
+
+          getSubscriptions(["attributes", "my_role"]) returns
+
+          {
+            "peer": [
+              {
+                "ns:n1": {
+                  "name": "ns:n1",
+                  "attributes": {
+                    "my_role": "peer",
+                    ...
+                  },
+                  ...
+                }
+              },
+              ...
+            ],
+            ...
+          }
+
+        filterValue - getSubscriptions(["attributes", "my_role"], "peer")
+          returns the array indexed by "peer" above
+    */
+    getSubscriptions = function(collectBy, filterValue){
+      subs = ent:subscriptions.defaultsTo({}, "no subscriptions");
+      collectBy.isnull() => subs | function(){
+        subArray = subs.keys().map(function(name){{}.put(name, subs{name})});
+        filterValue.isnull() => subArray.collect(function(sub){
+          sub.values()[0]{collectBy}
+        }) | subArray.filter(function(sub){
+          sub.values()[0]{collectBy} == filterValue
+        })
+      }()
     }
 
     standardOut = function(message) {
