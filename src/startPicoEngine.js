@@ -100,20 +100,20 @@ var setupLogging = function(pe){
     var logs = {};
     var logRID = "io.picolabs.logging";
     var logEntry = function(context,message){
-        var eci = context.eci;
+        var episode_id = context.eci;
         var timestamp = (new Date()).toISOString();
-        var episode = logs[eci];
+        var episode = logs[episode_id];
         if (episode) {
             episode.logs.push(timestamp+" "+message);
         } else {
-            console.log("[ERROR]","no episode found for",eci);
+            console.log("[ERROR]","no episode found for",episode_id);
         }
     };
     var logEpisode = function(pico_id,context,callback){
-        var eci = context.eci;
-        var episode = logs[eci];
+        var episode_id = context.eci;
+        var episode = logs[episode_id];
         if (!episode) {
-            console.log("[ERROR]","no episode found for",eci);
+            console.log("[ERROR]","no episode found for",episode_id);
             return;
         }
         pe.getEntVar(pico_id,logRID,"status",function(e,status){
@@ -121,29 +121,36 @@ var setupLogging = function(pe){
                 pe.getEntVar(pico_id,logRID,"logs",function(e,data){
                     data[episode.key] = episode.logs;
                     pe.putEntVar(pico_id,logRID,"logs",data,function(e){
-                        callback(delete logs[eci]);
+                        callback(delete logs[episode_id]);
                     });
                 });
             } else {
-                callback(delete logs[eci]);
+                callback(delete logs[episode_id]);
             }
         });
     };
     pe.emitter.on("episode_start", function(context){
         console.log("[EPISODE_START]",context);
-        var eci = context.eci;
+        var episode_id = context.eci;
         var timestamp = (new Date()).toISOString();
-        var episode = logs[eci];
+        var episode = logs[episode_id];
         if (episode) {
-            console.log("[ERROR]","episode already exists for",eci);
+            console.log("[ERROR]","episode already exists for",episode_id);
         } else {
             episode = {};
+            var eci = "UNKNOWN ECI";
+            if(context.event) {
+                eci = context.event.eci;
+            } else if(context.query) {
+                eci = context.query.eci;
+            }
             episode.key = (
-                    timestamp + " - " + eci
+                    timestamp + " - " + episode_id
+                    + " - " + eci
                     + " - " + ((context.event) ? context.event.eid : "query")
                     ).replace(/[.]/g, "-");
             episode.logs = [];
-            logs[eci] = episode;
+            logs[episode_id] = episode;
         }
     });
     pe.emitter.on("klog", function(context, val, message){
