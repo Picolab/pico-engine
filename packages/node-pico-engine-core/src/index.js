@@ -101,6 +101,13 @@ module.exports = function(conf){
 
         ctx.emit = function(type, val, message){//for stdlib
             var info = {};
+            if(ctx.txn_id){
+                info.eci = ctx.txn_id;//for older engines
+                info.txn_id = ctx.txn_id;
+            } else { //can this ever happen?
+                info.eci = "TXN_ID";//for older engines
+                info.txn_id = "TXN_ID";
+            }
             if(ctx.rid){
                 info.rid = ctx.rid;
             }
@@ -114,9 +121,6 @@ module.exports = function(conf){
                     domain: ctx.event.domain,
                     type: ctx.event.type,
                 };
-                if(!info.eci){
-                    info.eci = ctx.event.eci;
-                }
             }
             if(ctx.query){
                 info.query = {
@@ -127,9 +131,6 @@ module.exports = function(conf){
                 };
                 if(!info.rid){
                     info.rid = ctx.query.rid;
-                }
-                if(!info.eci){
-                    info.eci = ctx.query.eci;
                 }
             }
             if(type === "error"){

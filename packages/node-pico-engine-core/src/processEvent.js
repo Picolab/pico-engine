@@ -137,7 +137,7 @@ var processEvent = cocb.wrap(function*(core, ctx){
                 type: revent.type,
                 attrs: revent.attributes,
                 for_rid: revent.for_rid,
-                txn_id: cuid(),
+                txn_id: ctx.event.txn_id,//inherit from parent event
                 timestamp: new Date()
             };
             //must make a new ctx for this raise b/c it's a different event
