@@ -1,3 +1,7 @@
+# 0.11.6 - June 8, 2017
+
+* changes to krl/io.picolabs.subscription.krl
+
 # 0.11.5 - June 5, 2017
 
 ### Bug Fixes
