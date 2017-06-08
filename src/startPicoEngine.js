@@ -100,7 +100,8 @@ var setupLogging = function(pe){
     var logs = {};
     var logRID = "io.picolabs.logging";
     var logEntry = function(context,message){
-        var episode_id = context.eci;
+        var episode_id = context.txn_id;
+        if(!episode_id)episode_id=context.eci;//if older engine core
         var timestamp = (new Date()).toISOString();
         var episode = logs[episode_id];
         if (episode) {
@@ -110,7 +111,8 @@ var setupLogging = function(pe){
         }
     };
     var logEpisode = function(pico_id,context,callback){
-        var episode_id = context.eci;
+        var episode_id = context.txn_id;
+        if(!episode_id)episode_id=context.eci;//if older engine core
         var episode = logs[episode_id];
         if (!episode) {
             console.log("[ERROR]","no episode found for",episode_id);
@@ -130,8 +132,9 @@ var setupLogging = function(pe){
         });
     };
     pe.emitter.on("episode_start", function(context){
-        console.log("[EPISODE_START]",context);
-        var episode_id = context.eci;
+        var episode_id = context.txn_id;
+        if(!episode_id)episode_id=context.eci;//if older engine core
+        console.log("[EPISODE_START]",episode_id);
         var timestamp = (new Date()).toISOString();
         var episode = logs[episode_id];
         if (episode) {
@@ -186,7 +189,9 @@ var setupLogging = function(pe){
         logEntry(context, err);
     });
     pe.emitter.on("episode_stop", function(context){
-        console.log("[EPISODE_STOP]",context);
+        var episode_id = context.txn_id;
+        if(!episode_id)episode_id=context.eci;//if older engine core
+        console.log("[EPISODE_STOP]",episode_id);
         var callback = function(outcome){
             console.log("[EPISODE_REMOVED]",outcome);
         };
