@@ -204,10 +204,11 @@ module.exports = function(opts, callback){
 
     setupLogging(pe);
 
-    pe.start(function(err){
+    //system rulesets should be registered/updated first
+    registerBuiltInRulesets(pe, function(err){
         if(err) return callback(err);
 
-        registerBuiltInRulesets(pe, function(err){
+        pe.start(function(err){
             if(err) return callback(err);
             setupOwnerPico(pe, function(err){
                 if(err) return callback(err);
