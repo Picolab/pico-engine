@@ -559,8 +559,8 @@ stdlib.put = function(ctx, val, path, to_set){
     }
     return n_val;
 };
-stdlib.encode = function(ctx, val){
-    //TODO options???
+stdlib.encode = function(ctx, val, indent){
+    indent = _.parseInt(indent, 10) || 0;//default to 0 (no indent)
     return JSON.stringify(val, function(k, v){
         switch(typeofKRL(v)){
         case "Null":
@@ -572,7 +572,7 @@ stdlib.encode = function(ctx, val){
             return toString(v);
         }
         return v;
-    });
+    }, indent);
 };
 stdlib.keys = function(ctx, val, path){
     if(path){

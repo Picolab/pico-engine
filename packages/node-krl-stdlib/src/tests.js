@@ -413,6 +413,14 @@ ytest("collection operators", function*(t, ytf, tf){
     //testing it nested
     tf("encode", [{fn: _.noop, n: NaN, u: void 0}], "{\"fn\":\"[Function]\",\"n\":null,\"u\":null}");
 
+    //testing indent options
+    tf("encode", [{a: 1, b: 2}, 0], "{\"a\":1,\"b\":2}");
+    tf("encode", [{a: 1, b: 2}, 4], "{\n    \"a\": 1,\n    \"b\": 2\n}");
+    tf("encode", [{a: 1, b: 2}, "2"], "{\n  \"a\": 1,\n  \"b\": 2\n}");
+    tf("encode", [{a: 1, b: 2}, null], "{\"a\":1,\"b\":2}", "default indent to 0");
+    tf("encode", [{a: 1, b: 2}, arguments], "{\"a\":1,\"b\":2}", "default indent to 0");
+    tf("encode", [{a: 1, b: 2}, _.noop], "{\"a\":1,\"b\":2}", "default indent to 0");
+
     tf("keys", [obj], ["colors", "pi", "foo"]);
     tf("keys", [obj, ["foo", "bar"]], ["10"]);
     assertObjNotMutated();
