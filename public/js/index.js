@@ -238,8 +238,8 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
     log("Loading ruleset source code");
     log("URL: "+url);
-    $.getJSON("/api/ruleset/register",{"url": url},function(rr){
-      if (rr && rr.ok) {
+    picoAPI("/api/ruleset/register",{"url":url},"GET",function(err, rr){
+      if (!err && rr && rr.ok) {
         log(rr.rid+" registered");
         log("Adding "+rr.rid+" to pico: "+eci);
         $.getJSON(
@@ -254,7 +254,11 @@ $.getJSON("/api/db-dump", function(db_dump){
             }
         });
       } else {
-        logProblem("registering");
+        if(err){
+          logProblem(JSON.stringify(err));
+          if(err.data && err.data.error) log(err.data.error);
+        }
+        logProblem("registration failed");
       }
     });
   };
