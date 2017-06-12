@@ -162,8 +162,7 @@ ruleset Subscriptions {
     pre {
       name_space = event:attr("name_space").defaultsTo("shared", standardError("name_space"))
       name   = event:attr("name") || randomSubscriptionName(name_space).klog("random name") //.defaultsTo(randomSubscriptionName(name_space), standardError("channel_name"))
-      attr = event:attrs()
-      attrs = attr.put({"name":name}).klog("subscribeNameCheck attrs")
+      attrs = event:attrs().put({"name_space":name_space, "name":name}).klog("subscribeNameCheck attrs")
     }
     if(checkSubscriptionName(name , name_space, getSubscriptions())) then noop()
     fired{
@@ -329,7 +328,7 @@ ruleset Subscriptions {
             "my_role" : event:attr("my_role").defaultsTo("", standardError("my_role")),
             "subscriber_role" : event:attr("subscriber_role").defaultsTo("", standardError("subscriber_role")),
             "outbound_eci"  : event:attr("outbound_eci").defaultsTo("", standardError("outbound_eci")),
-            "status"  : event:attr("status").defaultsTo("", standardError("status")),
+            "status"  : status,
             "attributes" : event:attr("attributes").defaultsTo("", standardError("attributes"))
           }, subscriber_host)
           
