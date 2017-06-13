@@ -205,7 +205,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     }
   }
   var displayKrl = function() {
-    window.open("/ruleset.html#"+$(this).html(),"ruleset").location.reload();
+    window.open("ruleset.html#"+$(this).html(),"ruleset").location.reload();
   }
   var renderTab =
     function(){
