@@ -531,9 +531,12 @@ stdlib.put = function(ctx, val, path, to_set){
         to_set = path;
         path = [];
     }
+    var doAssignToSet = function(obj){
+        return _.assign(_.isArray(to_set) ? [] : {}, obj, to_set);
+    };
     path = toKeyPath(path);
     if(_.isEmpty(path)){
-        return _.assign({}, val, to_set);
+        return doAssignToSet(val);
     }
     var n_val = _.cloneDeep(val);
     var nested = n_val;
@@ -543,7 +546,7 @@ stdlib.put = function(ctx, val, path, to_set){
         if(i === path.length - 1){
             if(_.isObject(to_set)){
                 //merge onto the current Map or Array
-                nested[key] = _.assign({}, nested[key], to_set);
+                nested[key] = doAssignToSet(nested[key]);
             }else{
                 nested[key] = to_set;
             }

@@ -505,6 +505,22 @@ ytest("collection operators", function*(t, ytf, tf){
         "if the nested value is an array, keep it an array"
     );
 
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, {}, ["a", "b"], [])),
+        "{\"a\":{\"b\":[]}}",
+        "preserve type of to_set"
+    );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, [], [0], ["foo"])),
+        "[[\"foo\"]]",
+        "preserve type of to_set"
+    );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, [], [], ["foo"])),
+        "[\"foo\"]",
+        "preserve type of to_set"
+    );
+
 
     tf("get", [obj, ["foo", "bar", "10"]], "I like cheese");
     tf("get", [obj, "colors"], "many");
