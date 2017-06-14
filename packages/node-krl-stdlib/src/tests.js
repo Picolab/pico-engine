@@ -520,6 +520,16 @@ ytest("collection operators", function*(t, ytf, tf){
         "[\"foo\"]",
         "preserve type of to_set"
     );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, {}, "foo", [0])),
+        "{\"foo\":[0]}",
+        "preserve type of to_set"
+    );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, {}, "foo", ["bar"])),
+        "{\"foo\":[\"bar\"]}",
+        "preserve type of to_set"
+    );
 
 
     tf("get", [obj, ["foo", "bar", "10"]], "I like cheese");
