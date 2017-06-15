@@ -66,6 +66,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     $(this).parent().siblings(".krl-showing").toggleClass("krl-showing");
     if($(this).parent().hasClass("krl-showing")) {
       $(".krlsrc textarea").html(krlSrcInvite);
+      location.hash = "";
     } else {
       var rid = $(this).html();
       var src = srcFromEnabled(rid);
