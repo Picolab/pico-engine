@@ -26,11 +26,25 @@ $(document).ready(function() {
              +parseFloat(theNode.css('border-bottom'))
              )/2);
   }
+  var springLine = function() {
+    var $line = $(this);
+    var x1 = parseInt($line.attr("x1"));
+    var x2 = parseInt($line.attr("x2"));
+    var y1 = parseInt($line.attr("y1"));
+    var y2 = parseInt($line.attr("y2"));
+    if(!x1 || !x2 || !y1 || !y2) return;//incomplete line
+    var lng = Math.sqrt(Math.pow((x2-x1),2)+Math.pow((y2-y1),2));
+    if(lng>1200) lng = 1200;   //min stroke width 4.5
+    else if(lng<100) lng = 100;//min dash spacing 0.5
+    $line.css("strokeWidth",((1200-lng)/200)+4.5);
+    $line.css("strokeDasharray","2,"+(lng/200));
+  }
   var updateLines = function(nodeId,theLeft,theTop) {
     var lR = leftRadius(nodeId);
     var tR = topRadius(nodeId);
     $('.'+nodeId+'-origin').attr({x1:theLeft+lR+'px',y1:theTop+tR+'px'});
     $('.'+nodeId+'-target').attr({x2:theLeft+lR+'px',y2:theTop+tR+'px'});
+    $('line.subscription').each(springLine);
   }
   var updateEdges = function(nodeId) {
     var theLeft = parseFloat($('#'+nodeId).css('left'));
