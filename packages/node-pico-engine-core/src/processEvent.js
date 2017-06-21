@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var cuid = require("cuid");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
 var runAction = require("./runAction");
