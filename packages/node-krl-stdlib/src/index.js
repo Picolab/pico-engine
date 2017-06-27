@@ -1,67 +1,9 @@
 var _ = require("lodash");
-
-//same as stdlib.isnull without `ctx`
-var isnull = function(val){
-    return val === null || val === undefined || _.isNaN(val);
-};
-
-var isNumber = function(val){
-    return _.isNumber(val) && !_.isNaN(val);
-};
-
-//same as stdlib.typeof without `ctx`
-var typeofKRL = function(val){
-    if(isnull(val)){
-        return "Null";
-    }else if(val === true || val === false){
-        return "Boolean";
-    }else if(_.isString(val)){
-        return "String";
-    }else if(isNumber(val)){
-        return "Number";
-    }else if(_.isRegExp(val)){
-        return "RegExp";
-    }else if(_.isArray(val)){
-        return "Array";
-    }else if(_.isPlainObject(val)){
-        return "Map";
-    }else if(_.isFunction(val)){
-        if(val.is_an_action === true){
-            return "Action";
-        }
-        return "Function";
-    }
-    return "JSObject";
-};
-
-//same as `stdlib.as(ctx, val, "String")` without `ctx` and `type`
-var toString = function(val){
-    var val_type = typeofKRL(val);
-    if(val_type === "String"){
-        return val;
-    }else if(val_type === "Null"){
-        return "null";
-    }else if(val_type === "Boolean"){
-        return val ? "true" : "false";
-    }else if(val_type === "Number"){
-        return val + "";
-    }else if(val_type === "RegExp"){
-        //NOTE: val.flags doesn't work on old versions of JS
-        var flags = "";
-        if(val.global){
-            flags += "g";
-        }
-        if(val.ignoreCase){
-            flags += "i";
-        }
-        return "re#" + val.source + "#" + flags;
-    }
-    return "[" + val_type + "]";
-};
+var types = require("./types");
 
 //coerce the value into a key string
 var toKey = function(val){
-    return toString(val);
+    return types.toString(val);
 };
 
 //coerce the value into an array of key strings
@@ -112,17 +54,17 @@ stdlib["=="] = function(ctx, left, right){
     if(left === right){
         return true;
     }
-    return isnull(left) && isnull(right);
+    return types.isNull(left) && types.isNull(right);
 };
 stdlib["!="] = function(ctx, left, right){
     if(left === right){
         return false;
     }
-    return !isnull(left) || !isnull(right);
+    return !types.isNull(left) || !types.isNull(right);
 };
 
 var isNumberLike = function(val){
-    return _.isNumber(val) || isnull(val) || val === false;
+    return types.isNumber(val) || types.isNull(val) || val === false;
 };
 stdlib["+"] = function(ctx, left, right){
     //if we have two "numbers" then do plus
@@ -130,7 +72,7 @@ stdlib["+"] = function(ctx, left, right){
         return (left || 0) + (right || 0);// `|| 0` converts null,NaN,false to 0
     }
     //else do concat
-    return toString(left) + toString(right);
+    return types.toString(left) + types.toString(right);
 };
 stdlib["-"] = function(ctx, left, right){
     if(arguments.length < 3){
@@ -197,7 +139,7 @@ stdlib.as = function(ctx, val, type){
         return !!val;
     }
     if(type === "String"){
-        return toString(val);
+        return types.toString(val);
     }
     if(type === "Number"){
         if(val_type === "Null"){
@@ -206,7 +148,7 @@ stdlib.as = function(ctx, val, type){
             return val ? 1 : 0;
         }else if(val_type === "String"){
             var n = parseFloat(val);
-            return isNumber(n)
+            return types.isNumber(n)
                 ? n
                 : null;
         }
@@ -221,7 +163,7 @@ stdlib.as = function(ctx, val, type){
 };
 
 stdlib.isnull = function(ctx, val){
-    return isnull(val);
+    return types.isNull(val);
 };
 
 stdlib.klog = function(ctx, val, message){
@@ -230,11 +172,11 @@ stdlib.klog = function(ctx, val, message){
 };
 
 stdlib["typeof"] = function(ctx, val){
-    return typeofKRL(val);
+    return types.typeOf(val);
 };
 
 stdlib.sprintf = function(ctx, val, template){
-    if(isNumber(val)){
+    if(types.isNumber(val)){
         return template.replace(/%d/g, val + "");
     }else if(_.isString(val)){
         return template.replace(/%s/g, val);
@@ -243,8 +185,8 @@ stdlib.sprintf = function(ctx, val, template){
 };
 
 stdlib.defaultsTo = function(ctx, val, defaultVal, message){
-    if(isnull(val)){
-        if(message !== undefined) ctx.emit("debug", "[DEFAULTSTO] " + toString(message));
+    if(types.isNull(val)){
+        if(message !== undefined) ctx.emit("debug", "[DEFAULTSTO] " + types.toString(message));
         return defaultVal;
     } else {
         return val;
@@ -565,14 +507,14 @@ stdlib.put = function(ctx, val, path, to_set){
 stdlib.encode = function(ctx, val, indent){
     indent = _.parseInt(indent, 10) || 0;//default to 0 (no indent)
     return JSON.stringify(val, function(k, v){
-        switch(typeofKRL(v)){
+        switch(types.typeOf(v)){
         case "Null":
             return null;
         case "JSObject":
         case "RegExp":
         case "Function":
         case "Action":
-            return toString(v);
+            return types.toString(v);
         }
         return v;
     }, indent);
