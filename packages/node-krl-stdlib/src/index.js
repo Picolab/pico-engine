@@ -5,6 +5,10 @@ var isnull = function(val){
     return val === null || val === undefined || _.isNaN(val);
 };
 
+var isNumber = function(val){
+    return _.isNumber(val) && !_.isNaN(val);
+};
+
 //same as stdlib.typeof without `ctx`
 var typeofKRL = function(val){
     if(isnull(val)){
@@ -13,7 +17,7 @@ var typeofKRL = function(val){
         return "Boolean";
     }else if(_.isString(val)){
         return "String";
-    }else if(_.isNumber(val) && !_.isNaN(val)){
+    }else if(isNumber(val)){
         return "Number";
     }else if(_.isRegExp(val)){
         return "RegExp";
@@ -202,7 +206,7 @@ stdlib.as = function(ctx, val, type){
             return val ? 1 : 0;
         }else if(val_type === "String"){
             var n = parseFloat(val);
-            return _.isNumber(n) && !_.isNaN(n)
+            return isNumber(n)
                 ? n
                 : null;
         }
@@ -230,7 +234,7 @@ stdlib["typeof"] = function(ctx, val){
 };
 
 stdlib.sprintf = function(ctx, val, template){
-    if(_.isNumber(val)){
+    if(isNumber(val)){
         return template.replace(/%d/g, val + "");
     }else if(_.isString(val)){
         return template.replace(/%s/g, val);
