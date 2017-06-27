@@ -405,6 +405,8 @@ ytest("collection operators", function*(t, ytf, tf){
 
     tf("encode", [{blah: 1}], "{\"blah\":1}");
     tf("encode", [[1, 2]], "[1,2]");
+    tf("encode", [12], "12");
+    tf("encode", ["12"], "\"12\"");
     //all nulls are treated the same
     tf("encode", [null], "null");
     tf("encode", [NaN], "null");
