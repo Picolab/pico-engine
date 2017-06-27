@@ -6,30 +6,57 @@ types.isNull = function(val){
     return val === null || val === undefined || _.isNaN(val);
 };
 
+types.isBoolean = function(val){
+    return val === true || val === false;
+};
+
+types.isString = function(val){
+    return _.isString(val);
+};
+
 types.isNumber = function(val){
     return _.isNumber(val) && !_.isNaN(val);
 };
 
+types.isRegExp = function(val){
+    return _.isRegExp(val);
+};
+
+types.isArray = function(val){
+    return _.isArray(val);
+};
+
+types.isMap = function(val){
+    return _.isPlainObject(val);
+};
+
+types.isAction = function(val){
+    return _.isFunction(val) && val.is_an_action === true;
+};
+
+types.isFunction = function(val){
+    return _.isFunction(val) && !val.is_an_action;
+};
+
 types.typeOf = function(val){
-    if(types.isNull(val)){
-        return "Null";
-    }else if(val === true || val === false){
-        return "Boolean";
-    }else if(_.isString(val)){
-        return "String";
-    }else if(types.isNumber(val)){
-        return "Number";
-    }else if(_.isRegExp(val)){
-        return "RegExp";
-    }else if(_.isArray(val)){
-        return "Array";
-    }else if(_.isPlainObject(val)){
-        return "Map";
-    }else if(_.isFunction(val)){
-        if(val.is_an_action === true){
-            return "Action";
+    var krl_types = [
+        "Null",
+        "Boolean",
+        "String",
+        "Number",
+        "RegExp",
+        "Array",
+        "Map",
+        "Function",
+        "Action",
+    ];
+    var i;
+    var type;
+    for(i = 0; i < krl_types.length; i++){
+        type = krl_types[i];
+        if(types["is" + type](val)){
+            return type;
         }
-        return "Function";
     }
     return "JSObject";
 };

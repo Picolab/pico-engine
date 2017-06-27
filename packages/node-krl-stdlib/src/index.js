@@ -8,7 +8,7 @@ var toKey = function(val){
 
 //coerce the value into an array of key strings
 var toKeyPath = function(path){
-    if(!_.isArray(path)){
+    if(!types.isArray(path)){
         path = [path];
     }
     return _.map(path, toKey);
@@ -16,7 +16,7 @@ var toKeyPath = function(path){
 
 var iterBase = function*(val, iter){
     var should_continue;
-    if(_.isArray(val)){
+    if(types.isArray(val)){
         var i;
         for(i = 0; i < val.length; i++){
             should_continue = yield iter(val[i], i, val);
@@ -91,9 +91,9 @@ stdlib["%"] = function(ctx, left, right){
 };
 
 stdlib["><"] = function(ctx, obj, val){
-    if(_.isArray(obj)){
+    if(types.isArray(obj)){
         return _.indexOf(obj, val) >= 0;
-    }else if(_.isPlainObject(obj)){
+    }else if(types.isMap(obj)){
         return _.indexOf(_.keys(obj), val) >= 0;
     }else{
         return false;
@@ -101,7 +101,7 @@ stdlib["><"] = function(ctx, obj, val){
 };
 
 stdlib["like"] = function(ctx, val, regex){
-    if(!_.isRegExp(regex)){
+    if(!types.isRegExp(regex)){
         return null;
     }
     return regex.test(val);
@@ -125,7 +125,7 @@ stdlib.beesting = function(ctx, val){
 //Operators
 //
 stdlib.as = function(ctx, val, type){
-    var val_type = stdlib["typeof"](ctx, val);
+    var val_type = types.typeOf(val);
     if(val_type === type){
         return val;
     }
@@ -178,7 +178,7 @@ stdlib["typeof"] = function(ctx, val){
 stdlib.sprintf = function(ctx, val, template){
     if(types.isNumber(val)){
         return template.replace(/%d/g, val + "");
-    }else if(_.isString(val)){
+    }else if(types.isString(val)){
         return template.replace(/%s/g, val);
     }
     return template;
@@ -206,7 +206,7 @@ stdlib.capitalize = function(ctx, val){
     return val[0].toUpperCase() + val.slice(1);
 };
 stdlib.decode = function(ctx, val){
-    if(!_.isString(val)){
+    if(!types.isString(val)){
         return val;
     }
     try{
@@ -308,7 +308,7 @@ stdlib.collect = function*(ctx, val, iter){
     return grouped;
 };
 stdlib.filter = function*(ctx, val, iter){
-    var is_array = _.isArray(val);
+    var is_array = types.isArray(val);
     var rslt = is_array ? [] : {};
     yield iterBase(val, function*(v, k, obj){
         var r = yield iter(ctx, [v, k, obj]);
@@ -339,7 +339,7 @@ stdlib.length = function(ctx, val){
     return _.size(val);
 };
 stdlib.map = function*(ctx, val, iter){
-    var is_array = _.isArray(val);
+    var is_array = types.isArray(val);
     var rslt = is_array ? [] : {};
     yield iterBase(val, function*(v, k, obj){
         var r = yield iter(ctx, [v, k, obj]);
@@ -436,7 +436,7 @@ stdlib.sort = (function(){
             return _.clone(val).sort().reverse();
         }else if(_.has(sorters, sort_by)){
             return _.clone(val).sort(sorters[sort_by]);
-        }else if(!_.isFunction(sort_by)){
+        }else if(!types.isFunction(sort_by)){
             return _.clone(val).sort();
         }
         var sorted = _.clone(val);
@@ -462,7 +462,7 @@ stdlib["delete"] = function(ctx, val, path){
     return n_val;
 };
 stdlib.put = function(ctx, val, path, to_set){
-    if(!_.isPlainObject(val) && !_.isArray(val)){
+    if(!types.isMap(val) && !types.isArray(val)){
         return val;
     }
     if(arguments.length < 3){
@@ -474,12 +474,12 @@ stdlib.put = function(ctx, val, path, to_set){
     }
     path = toKeyPath(path);
     if(_.isEmpty(path)){
-        if(_.isPlainObject(to_set)){
-            if(_.isPlainObject(val)){
+        if(types.isMap(to_set)){
+            if(types.isMap(val)){
                 return _.assign({}, val, to_set);
             }
-        }else if(_.isArray(to_set)){
-            if(_.isArray(val)){
+        }else if(types.isArray(to_set)){
+            if(types.isArray(val)){
                 return _.assign([], val, to_set);
             }
         }
@@ -493,7 +493,7 @@ stdlib.put = function(ctx, val, path, to_set){
         if(i === path.length - 1){
             nested[key] = to_set;
         }else{
-            if(_.isPlainObject(nested[key]) || _.isArray(nested[key])){//if Map or Array
+            if(types.isMap(nested[key]) || types.isArray(nested[key])){
                 //simply traverse down
             }else{
                 //need to create a Map to continue
