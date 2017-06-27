@@ -85,5 +85,20 @@ types.toString = function(val){
     return "[" + val_type + "]";
 };
 
+types.encode = function(val, indent){
+    indent = _.parseInt(indent, 10) || 0;//default to 0 (no indent)
+    return JSON.stringify(val, function(k, v){
+        switch(types.typeOf(v)){
+        case "Null":
+            return null;
+        case "JSObject":
+        case "RegExp":
+        case "Function":
+        case "Action":
+            return types.toString(v);
+        }
+        return v;
+    }, indent);
+};
 
 module.exports = types;

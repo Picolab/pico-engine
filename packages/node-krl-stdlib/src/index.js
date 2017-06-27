@@ -505,19 +505,7 @@ stdlib.put = function(ctx, val, path, to_set){
     return n_val;
 };
 stdlib.encode = function(ctx, val, indent){
-    indent = _.parseInt(indent, 10) || 0;//default to 0 (no indent)
-    return JSON.stringify(val, function(k, v){
-        switch(types.typeOf(v)){
-        case "Null":
-            return null;
-        case "JSObject":
-        case "RegExp":
-        case "Function":
-        case "Action":
-            return types.toString(v);
-        }
-        return v;
-    }, indent);
+    return types.encode(val, indent);
 };
 stdlib.keys = function(ctx, val, path){
     if(path){
