@@ -3,7 +3,7 @@ var _ = require("lodash");
 var types = {};
 
 types.isNull = function(val){
-    return val === null || val === undefined || _.isNaN(val);
+    return val === null || val === void 0 || _.isNaN(val);
 };
 
 types.isBoolean = function(val){

@@ -186,7 +186,7 @@ stdlib.sprintf = function(ctx, val, template){
 
 stdlib.defaultsTo = function(ctx, val, defaultVal, message){
     if(types.isNull(val)){
-        if(message !== undefined) ctx.emit("debug", "[DEFAULTSTO] " + types.toString(message));
+        if(message !== void 0) ctx.emit("debug", "[DEFAULTSTO] " + types.toString(message));
         return defaultVal;
     } else {
         return val;
@@ -233,7 +233,7 @@ stdlib.match = function(ctx, val, regex){
 };
 stdlib.ord = function(ctx, val){
     var code = val.charCodeAt(0);
-    return _.isNaN(code) ? undefined : code;
+    return _.isNaN(code) ? void 0 : code;
 };
 stdlib.replace = function(ctx, val, regex, replacement){
     return val.replace(regex, replacement);
@@ -246,7 +246,7 @@ stdlib.substr = function(ctx, val, start, len){
         return;
     }
     var end;
-    if(len === undefined){
+    if(len === void 0){
         end = val.length;
     }else{
         if(len > 0){
