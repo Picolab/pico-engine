@@ -521,7 +521,7 @@ stdlib["delete"] = function(ctx, val, path){
     return n_val;
 };
 stdlib.put = function(ctx, val, path, to_set){
-    if(!_.isObject(val)){//if not Map or Array
+    if(!_.isPlainObject(val) && !_.isArray(val)){
         return val;
     }
     if(arguments.length < 3){
@@ -531,12 +531,18 @@ stdlib.put = function(ctx, val, path, to_set){
         to_set = path;
         path = [];
     }
-    var doAssignToSet = function(obj){
-        return _.assign(_.isArray(to_set) ? [] : {}, obj, to_set);
-    };
     path = toKeyPath(path);
     if(_.isEmpty(path)){
-        return doAssignToSet(val);
+        if(_.isPlainObject(to_set)){
+            if(_.isPlainObject(val)){
+                return _.assign({}, val, to_set);
+            }
+        }else if(_.isArray(to_set)){
+            if(_.isArray(val)){
+                return _.assign([], val, to_set);
+            }
+        }
+        return to_set;
     }
     var n_val = _.cloneDeep(val);
     var nested = n_val;
@@ -544,14 +550,9 @@ stdlib.put = function(ctx, val, path, to_set){
     for(i = 0; i < path.length; i++){
         key = path[i];
         if(i === path.length - 1){
-            if(_.isObject(to_set)){
-                //merge onto the current Map or Array
-                nested[key] = doAssignToSet(nested[key]);
-            }else{
-                nested[key] = to_set;
-            }
+            nested[key] = to_set;
         }else{
-            if(_.isObject(nested[key])){//if Map or Array
+            if(_.isPlainObject(nested[key]) || _.isArray(nested[key])){//if Map or Array
                 //simply traverse down
             }else{
                 //need to create a Map to continue

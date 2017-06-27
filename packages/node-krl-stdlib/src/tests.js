@@ -446,11 +446,8 @@ ytest("collection operators", function*(t, ytf, tf){
     tf("put", [obj, ["foo"], {baz: "qux"}], {
         "colors": "many",
         "pi": [3, 1, 4, 1, 5, 6, 9],
-        "foo": {
-            "bar": {"10": "I like cheese"},
-            "baz": "qux"
-        }
-    });
+        "foo": {"baz": "qux"},
+    }, "overwrite at the path, even if to_set and curr val are both maps");
     tf("put", [obj, ["foo", "bar", 11], "wat?"], {
         "colors": "many",
         "pi": [3, 1, 4, 1, 5, 6, 9],
@@ -530,7 +527,10 @@ ytest("collection operators", function*(t, ytf, tf){
         "{\"foo\":[\"bar\"]}",
         "preserve type of to_set"
     );
-
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, [{foo: 1}, {bar: 2}], [1, "bar", "baz"], 4)),
+        "[{\"foo\":1},{\"bar\":{\"baz\":4}}]"
+    );
 
     tf("get", [obj, ["foo", "bar", "10"]], "I like cheese");
     tf("get", [obj, "colors"], "many");
