@@ -410,13 +410,8 @@ stdlib.map = function*(ctx, val, iter){
     });
     return rslt;
 };
-stdlib.pairwise = function*(/*ctx, val..., iter*/){
-    var args = _.toArray(arguments);
-    var ctx = args[0];
-    var iter = args[args.length - 1];
-    args = args.slice(1, args.length - 1);
-
-    var max_len = _.max(_.map(args, _.size));
+stdlib.pairwise = function*(ctx, val, iter){
+    var max_len = _.max(_.map(val, _.size));
 
     var r = [];
 
@@ -425,8 +420,8 @@ stdlib.pairwise = function*(/*ctx, val..., iter*/){
     var args2;
     for(i = 0; i < max_len; i++){
         args2 = [];
-        for(j = 0; j < args.length; j++){
-            args2.push(args[j][i]);
+        for(j = 0; j < val.length; j++){
+            args2.push(val[j][i]);
         }
         r.push(yield iter(ctx, args2));
     }
