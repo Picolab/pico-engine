@@ -30,12 +30,12 @@ types.isMap = function(val){
     return _.isPlainObject(val);
 };
 
-types.isAction = function(val){
-    return _.isFunction(val) && val.is_an_action === true;
-};
-
 types.isFunction = function(val){
     return _.isFunction(val) && !val.is_an_action;
+};
+
+types.isAction = function(val){
+    return _.isFunction(val) && val.is_an_action === true;
 };
 
 types.typeOf = function(val){

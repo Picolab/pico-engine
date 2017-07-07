@@ -461,6 +461,15 @@ stdlib["delete"] = function(ctx, val, path){
     _.unset(n_val, path);
     return n_val;
 };
+
+var isSafeArrayIndex = function(arr, key){
+    var index = _.parseInt(key, 10);
+    if(_.isNaN(index)){
+        return false;
+    }
+    return index >= 0 && index <= arr.length;//equal too b/c it's ok to append
+};
+
 stdlib.put = function(ctx, val, path, to_set){
     if(!types.isMap(val) && !types.isArray(val)){
         return val;
@@ -493,8 +502,16 @@ stdlib.put = function(ctx, val, path, to_set){
         if(i === path.length - 1){
             nested[key] = to_set;
         }else{
-            if(types.isMap(nested[key]) || types.isArray(nested[key])){
+            if(types.isMap(nested[key])){
                 //simply traverse down
+            }else if(types.isArray(nested[key])){
+                var next_key = path[i + 1];
+                if(isSafeArrayIndex(nested[key], next_key)){
+                    //simply traverse down
+                }else{
+                    //convert Array to Map b/c the key is not a safe index
+                    nested[key] = _.assign({}, nested[key]);
+                }
             }else{
                 //need to create a Map to continue
                 nested[key] = {};

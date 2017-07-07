@@ -537,6 +537,37 @@ ytest("collection operators", function*(t, ytf, tf){
         "[{\"foo\":1},{\"bar\":{\"baz\":4}}]"
     );
 
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, {one: [2, 3]}, ["one", 1], 4)),
+        "{\"one\":[2,4]}",
+        "number index"
+    );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, {one: [2, 3]}, ["one", "1"], 4)),
+        "{\"one\":[2,4]}",
+        "Array index can be a string"
+    );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, {one: [2, 3]}, ["one", "2"], 4)),
+        "{\"one\":[2,3,4]}",
+        "Array index at the end"
+    );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, {one: [2, 3]}, ["one", "3"], 4)),
+        "{\"one\":{\"0\":2,\"1\":3,\"3\":4}}",
+        "convert Array to Map if sparse array is attempted"
+    );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, {one: [2, 3]}, ["one", "foo"], 4)),
+        "{\"one\":{\"0\":2,\"1\":3,\"foo\":4}}",
+        "convert Array to Map if non-index path is given"
+    );
+    t.equals(
+        JSON.stringify(stdlib["put"](defaultCTX, {one: [2, 3]}, ["one", "foo", "0"], 4)),
+        "{\"one\":{\"0\":2,\"1\":3,\"foo\":{\"0\":4}}}",
+        "convert Array to Map if non-index path is given"
+    );
+
     tf("get", [obj, ["foo", "bar", "10"]], "I like cheese");
     tf("get", [obj, "colors"], "many");
     assertObjNotMutated();
