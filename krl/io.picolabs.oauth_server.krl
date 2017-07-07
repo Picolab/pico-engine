@@ -43,7 +43,7 @@ ruleset io.picolabs.oauth_server {
     pre {
       client_id     = event:attr("client_id")
       client_secret = client_id == "oauth-client-1" => "oauth-client-secret-1"
-                                                     | uuid.uuid()
+                                                     | random:uuid()
       client_name   = event:attr("client_name")
       redirect_uri  = event:attr("redirect_uri")
       client_uri    = event:attr("client_uri")
@@ -100,7 +100,7 @@ ruleset io.picolabs.oauth_server {
   rule oauth_authorize_render_approve {
     select when oauth authorize
     pre {
-      reqid = uuid.uuid()
+      reqid = random:uuid()
     }
     if true then
       send_directive("approve", {
@@ -158,7 +158,7 @@ ruleset io.picolabs.oauth_server {
   }
   rule oauth_approve_supply_code {
     select when oauth approve
-    pre { code = uuid.uuid() }
+    pre { code = random:uuid() }
     send_directive("respond", {
       "code": code,
       "state": ent:query{"state"},
