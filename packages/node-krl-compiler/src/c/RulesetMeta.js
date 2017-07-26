@@ -81,6 +81,22 @@ var prop_types = {
     "keys": function(props, comp, e){
         var obj = {};
         _.each(props, function(p){
+
+            switch(_.get(p, ["value", 1, "type"])){
+            case "String":
+                break;
+            case "Map":
+                _.each(p.value[1].value, function(map_kv_pair){
+                    var v_ast_type = map_kv_pair.value.type;
+                    if(v_ast_type !== "String"){
+                        throw new Error("A ruleset key that is Map, can only use Strings as values");
+                    }
+                });
+                break;
+            default:
+                throw new Error("Ruleset keys must be a String, or Map of Strings");
+            }
+
             obj[p.value[0].value] = comp(p.value[1]);
         });
         return e("obj", obj);
