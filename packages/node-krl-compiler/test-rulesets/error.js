@@ -63,7 +63,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.raiseError(ctx, "info", "some info error");
+          return yield ctx.raiseError(ctx, "info", "some info error");
         }
       }
     },
@@ -93,7 +93,38 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.raiseError(ctx, "info", "this should not fire, b/c basic0 stopped execution");
+          return yield ctx.raiseError(ctx, "info", "this should not fire, b/c basic0 stopped execution");
+        }
+      }
+    },
+    "stop_on_error": {
+      "name": "stop_on_error",
+      "select": {
+        "graph": { "error": { "stop_on_error": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["stop_on_error"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (fired) {
+          return yield ctx.raiseError(ctx, "info", "stop_on_error 1");
+          return yield ctx.raiseError(ctx, "info", "stop_on_error 2 this should not fire b/c the first error stops execution");
         }
       }
     }

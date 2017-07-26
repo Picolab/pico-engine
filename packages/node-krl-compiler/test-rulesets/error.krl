@@ -31,4 +31,14 @@ ruleset io.picolabs.error {
             error info "this should not fire, b/c basic0 stopped execution"
         }
     }
+    rule stop_on_error {
+        select when error stop_on_error
+
+        send_directive("stop_on_error");
+
+        fired {
+            error info "stop_on_error 1";
+            error info "stop_on_error 2 this should not fire b/c the first error stops execution"
+        }
+    }
 }

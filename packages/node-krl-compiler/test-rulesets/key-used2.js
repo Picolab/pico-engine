@@ -12,9 +12,13 @@ module.exports = {
       {
         "kind": "module",
         "rid": "io.picolabs.key-configurable",
-        "alias": "api"
+        "alias": "api",
+        "with": function* (ctx) {
+          ctx.scope.set("key2", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "local_key"), ctx, []));
+        }
       }
     ],
+    "keys": { "local_key": "this key is defined inside the module" },
     "shares": [
       "getFoo",
       "getBar",
