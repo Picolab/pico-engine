@@ -66,7 +66,6 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        var foreach_is_final = true;
         var foreach0_pairs = toPairs([
           1,
           2,
@@ -75,8 +74,7 @@ module.exports = {
         var foreach0_len = foreach0_pairs.length;
         var foreach0_i;
         for (foreach0_i = 0; foreach0_i < foreach0_len; foreach0_i++) {
-          foreach_is_final = true;
-          foreach_is_final = foreach_is_final && foreach0_i === foreach0_len - 1;
+          var foreach_is_final = foreach0_i === foreach0_len - 1;
           ctx.scope.set("x", foreach0_pairs[foreach0_i][1]);
           var fired = true;
           if (fired) {

@@ -41,12 +41,11 @@ module.exports = function(ast, comp, e){
             }
             return comp(_.head(arr), {
                 foreach_i: i,
+                foreach_n_left: _.size(_.tail(arr)),
                 foreach_body: nesetedForeach(_.tail(arr), i + 1),
             });
         };
-        rule_body = [
-            e("var", "foreach_is_final", e("true")),//the loops will falsify this
-        ].concat(nesetedForeach(ast.foreach, 0));
+        rule_body = nesetedForeach(ast.foreach, 0);
     }
 
 
