@@ -4,6 +4,7 @@ ruleset io.picolabs.test-error-messages {
 This is a ruleset that will compile, but does things
 the wrong way to test how they are handled at runtime
         >>
+
         shares hello, null_val, somethingNotDefined
     }
     global {
@@ -12,4 +13,5 @@ the wrong way to test how they are handled at runtime
         }
         null_val = null
     }
+
 }

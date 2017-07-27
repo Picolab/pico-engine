@@ -29,4 +29,17 @@ ruleset io.picolabs.guard-conditions {
             ent:b := x on final
         }
     }
+    rule on_final_no_foreach {
+        select when on_final_no_foreach a
+
+        pre {
+            x = event:attr("x")
+        }
+
+        send_directive("on_final_no_foreach", {"x": x});
+
+        always {
+            ent:b := x on final
+        }
+    }
 }

@@ -263,7 +263,7 @@ module.exports = {
               ctx.emit("debug", "fired");
             else
               ctx.emit("debug", "not fired");
-            if (foreach_is_final)
+            if (typeof foreach_is_final === "undefined" || foreach_is_final)
               yield ctx.raiseEvent({
                 "domain": "foreach",
                 "type": "final_raised",

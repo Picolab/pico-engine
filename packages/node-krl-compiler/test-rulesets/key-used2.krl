@@ -13,7 +13,6 @@ This is a test file for a module that uses keys
                 key2 = keys:local_key()
 
         key local_key "this key is defined inside the module"
-
         shares getFoo, getBar, getBarN, getQuux, getQuuz, getAPIKeys
     }
     global {
