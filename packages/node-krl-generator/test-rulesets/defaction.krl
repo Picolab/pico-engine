@@ -1,6 +1,6 @@
 ruleset io.picolabs.defaction {
     meta {
-        shares getSettingVal, add
+        shares getSettingVal, add, echoAction
     }
     global {
         foo = defaction(a){
@@ -160,5 +160,14 @@ ruleset io.picolabs.defaction {
         fired {
             ent:setting_val := [a, b, c, d, e]
         }
+    }
+    rule trying_to_use_action_as_fn {
+        select when defa trying_to_use_action_as_fn
+
+        pre {
+            val = foo(100)
+        }
+
+        send_directive("trying_to_use_action_as_fn", {"val": val});
     }
 }

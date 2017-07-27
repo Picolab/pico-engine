@@ -82,15 +82,15 @@ ruleset io.picolabs.events {
         }
     }
     rule on_choose_if {
-        select when events on_choose thing re#^(.*)$# setting(thing)
+        select when events on_choose_if thing re#^(.*)$# setting(thing)
 
         if event:attr("fire") == "yes" then
         choose thing {
             one =>
-                send_directive("on_choose - one");
+                send_directive("on_choose_if - one");
 
             two =>
-                send_directive("on_choose - two");
+                send_directive("on_choose_if - two");
         }
 
         fired {
