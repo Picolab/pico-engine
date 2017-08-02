@@ -1,8 +1,11 @@
 ruleset io.picolabs.visual_params {
   meta {
-    shares visualInfo, style, __testing
+    shares dname, visualInfo, style, __testing
   }
   global {
+    dname = function() {
+      ent:dname
+    }
     visualInfo = function() {
       info = {
         "width": ent:width,
