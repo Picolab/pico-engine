@@ -4,7 +4,7 @@ var tokenizer = require("../src/tokenizer");
 
 test("tokenizer", function(t){
 
-    var tst = function(src, expected){
+    var tst = function(src, expected){ // prints 'equivalent' after each test
         var tokens = tokenizer(src);
         _.each(tokens, function(tok){
             //assert the loc is right
@@ -159,6 +159,35 @@ test("tokenizer", function(t){
         "[SYMBOL]z",
     ]);
 
+    tst('{"":-6}', [
+        "[RAW]{",
+        '[STRING]""',
+        "[RAW]:",
+        "[RAW]-",
+        "[NUMBER]6",
+        "[RAW]}",
+    ]);
+    tst("[3,-4+-x]", [
+        "[RAW][",
+        "[NUMBER]3",
+        "[RAW],",
+        "[RAW]-",
+        "[NUMBER]4",
+        "[RAW]+",
+        "[RAW]-",
+        "[SYMBOL]x",
+        "[RAW]]",
+    ]);
+    tst("fn(-_A,-.2)", [
+        "[SYMBOL]fn",
+        "[RAW](",
+        "[RAW]-",
+        "[SYMBOL]_A",
+        "[RAW],",
+        "[RAW]-",
+        "[NUMBER].2",
+        "[RAW])",
+    ]);
 
     tst("re#regex#", [
         "[REGEXP]re#regex#",
