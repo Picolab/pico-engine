@@ -1373,7 +1373,8 @@ Number -> %tok_NUMBER {%
 RegExp -> %tok_REGEXP {%
   function(data){
     var d = data[0];
-    var pattern = d.src.substring(3, d.src.lastIndexOf("#")).replace(/\\#/g, "#");
+    var pattern = d.src.substring(3, d.src.lastIndexOf("#"))
+      .replace(/\\#/g, "#");
     var modifiers = d.src.substring(d.src.lastIndexOf("#") + 1);
     return {
       loc: d.loc,
@@ -1402,7 +1403,8 @@ ChevronString -> %tok_CHEVRON_STRING {%
     return {
       loc: d.loc,
       type: 'String',
-      value: d.src.replace(/>\\>/g, '>>')
+      value: d.src.replace(/\\>/g, ">")
+        .replace(/\\#{/g, "#{").replace(/\\\\/g, "\\")
     };
   }
 %}
@@ -1410,7 +1412,8 @@ ChevronString -> %tok_CHEVRON_STRING {%
 String -> %tok_STRING {%
   function(data){
     var d = data[0];
-    var v = d.src.replace(/(^")|("$)/g, "").replace(/\\"/g, "\"");
+    var v = d.src.replace(/(^")|("$)/g, "")
+      .replace(/\\"/g, '"').replace(/\\\\/g, "\\");
     return {
       loc: d.loc,
       type: 'String',

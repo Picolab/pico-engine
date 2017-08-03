@@ -1270,7 +1270,8 @@ var grammar = {
     {"name": "RegExp", "symbols": [tok_REGEXP], "postprocess": 
         function(data){
           var d = data[0];
-          var pattern = d.src.substring(3, d.src.lastIndexOf("#")).replace(/\\#/g, "#");
+          var pattern = d.src.substring(3, d.src.lastIndexOf("#"))
+            .replace(/\\#/g, "#");
           var modifiers = d.src.substring(d.src.lastIndexOf("#") + 1);
           return {
             loc: d.loc,
@@ -1298,14 +1299,16 @@ var grammar = {
           return {
             loc: d.loc,
             type: 'String',
-            value: d.src.replace(/>\\>/g, '>>')
+            value: d.src.replace(/\\>/g, ">")
+              .replace(/\\#{/g, "#{").replace(/\\\\/g, "\\")
           };
         }
         },
     {"name": "String", "symbols": [tok_STRING], "postprocess": 
         function(data){
           var d = data[0];
-          var v = d.src.replace(/(^")|("$)/g, "").replace(/\\"/g, "\"");
+          var v = d.src.replace(/(^")|("$)/g, "")
+            .replace(/\\"/g, '"').replace(/\\\\/g, "\\");
           return {
             loc: d.loc,
             type: 'String',
