@@ -2525,3 +2525,19 @@ test("Parameters", function(t){
 
     t.end();
 });
+
+test("escaping", function(t){
+    var tst = function(src, expected, msg){
+        var ast = parser(src);
+        ast = ast[0];
+        if(ast.type === "ExpressionStatement"){
+            ast = ast.expression;
+        }
+        t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected), msg);
+    };
+
+    tst('"one\\"+two"', mk("one\"+two"), "escape a double quote");
+    tst('"one\\\\"+two', mk.op("+", mk("one\\"), mk.id("two")), "leave the backslash in the string");
+
+    t.end();
+});
