@@ -337,6 +337,7 @@ ytest("collection operators", function*(t, ytf, tf){
     t.deepEquals(a, [3, 4, 5], "should not be mutated");
 
     tf("join", [a, ";"], "3;4;5");
+    tf("join", [a], "3,4,5", "default to ,");
     t.deepEquals(a, [3, 4, 5], "should not be mutated");
 
     tf("length", [a], 3);

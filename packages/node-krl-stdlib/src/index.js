@@ -203,6 +203,7 @@ stdlib.range = function(ctx, val, end){
 
 //String operators//////////////////////////////////////////////////////////////
 stdlib.capitalize = function(ctx, val){
+    val = types.toString(val);
     return val[0].toUpperCase() + val.slice(1);
 };
 stdlib.decode = function(ctx, val){
@@ -216,6 +217,7 @@ stdlib.decode = function(ctx, val){
     }
 };
 stdlib.extract = function(ctx, val, regex){
+    val = types.toString(val);
     var r = val.match(regex);
     if(!r){
         return [];
@@ -226,22 +228,28 @@ stdlib.extract = function(ctx, val, regex){
     return r.slice(1);
 };
 stdlib.lc = function(ctx, val){
+    val = types.toString(val);
     return val.toLowerCase();
 };
 stdlib.match = function(ctx, val, regex){
+    val = types.toString(val);
     return regex.test(val);
 };
 stdlib.ord = function(ctx, val){
+    val = types.toString(val);
     var code = val.charCodeAt(0);
     return _.isNaN(code) ? void 0 : code;
 };
 stdlib.replace = function(ctx, val, regex, replacement){
+    val = types.toString(val);
     return val.replace(regex, replacement);
 };
 stdlib.split = function(ctx, val, split_on){
+    val = types.toString(val);
     return val.split(split_on);
 };
 stdlib.substr = function(ctx, val, start, len){
+    val = types.toString(val);
     if(start > val.length){
         return;
     }
@@ -258,6 +266,7 @@ stdlib.substr = function(ctx, val, start, len){
     return val.substring(start, end);
 };
 stdlib.uc = function(ctx, val){
+    val = types.toString(val);
     return val.toUpperCase();
 };
 
