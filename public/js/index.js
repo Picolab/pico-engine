@@ -436,10 +436,10 @@ $.getJSON("/api/db-dump", function(db_dump){
       return get(db_dump.pico,[p.id,"io.picolabs.visual_params","vars",n],d);
     }
     var db_graph = {};
-    var ownerPico = {};
-    for (var k in db_dump.pico) { ownerPico.id = k; break; }
-    db_graph.title = getV(ownerPico,"title","My Picos");
-    db_graph.descr = getV(ownerPico,"descr", "These picos are hosted on this pico engine.");
+    var rootPico = {};
+    for (var k in db_dump.pico) { rootPico.id = k; break; }
+    db_graph.title = getV(rootPico,"title","My Picos");
+    db_graph.descr = getV(rootPico,"descr", "These picos are hosted on this pico engine.");
     db_graph.picos = [];
     db_graph.chans = [];
     var yiq = function(hexcolor){
@@ -461,7 +461,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     };
     var walkPico =
       function(pico,dNumber,dLeft,dTop){
-        pico.dname = getV(pico,"dname",dNumber?"Child "+dNumber:"Owner Pico");
+        pico.dname = getV(pico,"dname",dNumber?"Child "+dNumber:"Root Pico");
         var width = getV(pico,"width",undefined);
         var height = getV(pico,"height",100);
         var left = Math.floor(parseFloat(getV(pico,"left",dLeft)));
@@ -498,7 +498,7 @@ $.getJSON("/api/db-dump", function(db_dump){
           }
         }
       }
-    walkPico(ownerPico,0,"300","50");
+    walkPico(rootPico,0,"300","50");
     renderGraph(db_graph);
     $.getJSON("/api/engine-version",function(data){
       $("#version").text(data ? data.version : "undefined");

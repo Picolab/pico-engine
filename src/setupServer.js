@@ -90,7 +90,7 @@ module.exports = function(pe){
         });
     });
 
-    app.all("/api/owner-eci", function(req, res){
+    app.all("/api/root-eci", function(req, res){
         pe.getOwnerECI(function(err, eci){
             if(err) return errResp(res, err);
             res.json({ok: true, eci: eci});

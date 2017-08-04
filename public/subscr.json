@@ -4,7 +4,7 @@
   "picos": [
     {
       "id": "p1", 
-      "dname": "Owner Pico",
+      "dname": "Root Pico",
       "style": "width:80px;left:800px;top:10px;background-color:lightskyblue"
     },
     {
