@@ -10,7 +10,7 @@
     "start": "onchange 'src/' 'tests/' -e 'src/grammar.js' -i -- npm run test-all-but-ambiguityFinder -s",
     "lint": "eslint src/ tests/ && echo lint-ok",
     "test": "npm run test-all-but-ambiguityFinder -s && node tests/ambiguityFinder.js",
-    "test-all-but-ambiguityFinder": "npm run lint -s && npm run build -s && node tests",
+    "test-all-but-ambiguityFinder": "npm run lint -s && npm run build -s && node tests | faucet",
     "build": "npm run build:grammar -s && npm run build:spec -s",
     "build:grammar": "nearleyc src/grammar.ne > src/grammar.js",
     "build:spec": "node tests/genSpec.js > spec.md"
@@ -33,6 +33,7 @@
   "devDependencies": {
     "diff-lines": "^1.1.0",
     "eslint": "^3.19.0",
+    "faucet": "0.0.1",
     "krl-generator": "^0.7.2",
     "lodash": "^4.13.1",
     "onchange": "^3.2.1",
