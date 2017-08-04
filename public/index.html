@@ -11,9 +11,24 @@
 <script src="js/handlebars.min.js" type="text/javascript"></script>
 <script src="js/picoAPI.js" type="text/javascript"></script>
 <script src="js/index.js" type="text/javascript"></script>
+<script id="login-template" type="text/x-handlebars-template">
+<a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
+<h1 class="title">Login</h1>
+<div id="container" style="position:relative">
+Select an owner pico
+<select id="user-select">
+<option></option>
+{{#each users}}
+<option value="{{this}}">{{@key}}</option>
+{{/each}}
+</select>
+<button id="user-login">login</button>
+</div>
+</script>
 <script id="the-template" type="text/x-handlebars-template">
 <a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
 <h1 class="title">{{title}}</h1>
+<a href="#" id="user-logout">logout</a>
 <div id="container" style="position:relative">
 <p class="description">
 {{descr}}
