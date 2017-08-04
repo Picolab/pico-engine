@@ -228,3 +228,13 @@ svg line.subscription {
 .subscriptions-list input[type="checkbox"]:checked ~ pre {
   display: block;
 }
+#user-logout {
+  display: inline-block;
+  float: right;
+  margin: 5px;
+  padding: 5px;
+  text-decoration: none;
+  color: black;
+  border: 1px solid silver;
+  border-radius: 4px;
+}

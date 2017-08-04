@@ -1,4 +1,5 @@
 $(document).ready(function() {
+  var logged_in_pico = { "id": sessionStorage.getItem("owner_pico_id")};
   var json_name = location.search.substring(1);
   var renderDemo = (json_name.length > 0);
   if (!String.prototype.escapeHTML) {
@@ -415,29 +416,24 @@ $.getJSON("/api/db-dump", function(db_dump){
            .find('ul li:contains('+whereSpec[1]+')').trigger('click');
        }
      };
-  if (renderDemo) {
-    $.getJSON( json_name + ".json", renderGraph);
-    $.getJSON("/api/engine-version",function(data){
-      $("#version").text(data ? data.version : "undefined");
-    });
-  } else {
-    var get = // adapted from lodash.get, with thanks
-      function(o,p,v) {
-        var i=0, l=p.length;
-        while(o && i<l) { o = o[p[i++]]; }
-        return o ? o : v;
-      }
-    var getP = function(p,n,d) {
-      if (p === undefined) return d;
-      return get(db_dump.pico,[p.id,"io.picolabs.pico","vars",n],d);
+  var get = // adapted from lodash.get, with thanks
+    function(o,p,v) {
+      var i=0, l=p.length;
+      while(o && i<l) { o = o[p[i++]]; }
+      return o ? o : v;
     }
-    var getV = function(p,n,d) {
-      if (p === undefined) return d;
-      return get(db_dump.pico,[p.id,"io.picolabs.visual_params","vars",n],d);
-    }
+  var getP = function(p,n,d) {
+    if (p === undefined) return d;
+    return get(db_dump.pico,[p.id,"io.picolabs.pico","vars",n],d);
+  }
+  var getV = function(p,n,d) {
+    if (p === undefined) return d;
+    return get(db_dump.pico,[p.id,"io.picolabs.visual_params","vars",n],d);
+  }
+  var rootPico = {};
+  for (var k in db_dump.pico) { rootPico.id = k; break; }
+  var do_main_page = function(ownerPico) {
     var db_graph = {};
-    var ownerPico = {};
-    for (var k in db_dump.pico) { ownerPico.id = k; break; }
     db_graph.title = getV(ownerPico,"title","My Picos");
     db_graph.descr = getV(ownerPico,"descr", "These picos are hosted on this pico engine.");
     db_graph.picos = [];
@@ -503,6 +499,40 @@ $.getJSON("/api/db-dump", function(db_dump){
     $.getJSON("/api/engine-version",function(data){
       $("#version").text(data ? data.version : "undefined");
     });
+    $("#user-logout").click(function(e){
+      e.preventDefault();
+      sessionStorage.removeItem("owner_pico_id");
+      location.reload();
+    });
+  }
+  if (renderDemo) {
+    $.getJSON( json_name + ".json", renderGraph);
+    $.getJSON("/api/engine-version",function(data){
+      $("#version").text(data ? data.version : "undefined");
+    });
+  } else if (!logged_in_pico.id) {
+    location.hash = "";
+    var users = {};
+    var children = getP(rootPico,"children",[]);
+    var i=0, l=children.length;
+    for (;i<l;++i) {
+      if (db_dump.pico[children[i].id] === undefined) continue;
+      users[getV(children[i],"dname","Pico"+i)] = children[i].id;
+    }
+    $('body').html(
+      Handlebars.compile($('#login-template').html())({"users":users}));
+    $("#user-login").click(function(){
+      var ownerPico_id = $("#user-select").val();
+      logged_in_pico = {id:ownerPico_id};
+      sessionStorage.setItem("owner_pico_id",ownerPico_id);
+      if (ownerPico_id) {
+        do_main_page(logged_in_pico);
+      } else {
+        do_main_page(rootPico);
+      }
+    });
+  } else {
+    do_main_page(logged_in_pico);
   }
 });
 });
