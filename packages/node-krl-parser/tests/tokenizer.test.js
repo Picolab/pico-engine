@@ -4,7 +4,7 @@ var tokenizer = require("../src/tokenizer");
 
 test("tokenizer", function(t){
 
-    var tst = function(src, expected){ // prints 'equivalent' after each test
+    var tst = function(src, expected){
         var tokens = tokenizer(src);
         _.each(tokens, function(tok){
             //assert the loc is right
@@ -239,6 +239,29 @@ test("tokenizer", function(t){
         "[RAW]{",
         "[RAW]}",
         "[RAW]}",
+    ]);
+
+    tst("/*/", ["[RAW-ILLEGAL]/*/"]);
+    tst("/**/", ["[BLOCK-COMMENT]/**/"]);
+
+    tst("\"one", ["[RAW-ILLEGAL]\"one"]);
+    tst("re#one", ["[RAW-ILLEGAL]re#one"]);
+
+    tst("a&&b", [
+        "[SYMBOL]a",
+        "[RAW]&&",
+        "[SYMBOL]b",
+    ]);
+
+    tst("&&&", [
+        "[RAW]&&",
+        "[RAW-ILLEGAL]&",
+    ]);
+
+    tst(".λ,", [
+        "[RAW].",
+        "[RAW-ILLEGAL]λ",
+        "[RAW],",
     ]);
 
     t.end();
