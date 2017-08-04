@@ -494,7 +494,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           }
         }
       }
-    walkPico(rootPico,0,"300","50");
+    walkPico(ownerPico,0,"300","50");
     renderGraph(db_graph);
     $.getJSON("/api/engine-version",function(data){
       $("#version").text(data ? data.version : "undefined");
