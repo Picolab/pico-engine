@@ -85,7 +85,7 @@ $(document).ready(function() {
       visitor(arr[i], maybeDone.bind(null,i));
     }
   };
-$.getJSON("/api/db-dump", function(db_dump){
+$.getJSON("/api/db-dump?legacy=true", function(db_dump){
   var dragstop = function(event,ui) {
     var nodeId = ui.helper[0].getAttribute("id");
     $('#'+nodeId).next(".pico-edit").css('left',ui.position.left)
