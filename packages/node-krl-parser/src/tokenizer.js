@@ -132,7 +132,7 @@ module.exports = function(src){
                     pushTok(buff + "*/", "BLOCK-COMMENT");
                     advance(2);
                 }else{
-                    pushTok(buff, "RAW-ILLEGAL");
+                    pushTok(buff, "ILLEGAL");
                 }
 
                 continue;
@@ -172,7 +172,7 @@ module.exports = function(src){
                 pushTok(buff + '"', "STRING");
                 advance(1);
             }else{
-                pushTok(buff, "RAW-ILLEGAL");
+                pushTok(buff, "ILLEGAL");
             }
 
             continue;
@@ -193,7 +193,7 @@ module.exports = function(src){
                 pushTok(buff + "#", "REGEXP");
                 advance(1);
             }else{
-                pushTok(buff, "RAW-ILLEGAL");
+                pushTok(buff, "ILLEGAL");
             }
 
             continue;
@@ -245,7 +245,7 @@ module.exports = function(src){
         }
 
         if(tok === raw_toks.length){
-            pushTok(c, "RAW-ILLEGAL");
+            pushTok(c, "ILLEGAL");
             advance(1);
         }
     }

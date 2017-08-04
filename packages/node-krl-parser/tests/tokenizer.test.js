@@ -241,11 +241,11 @@ test("tokenizer", function(t){
         "[RAW]}",
     ]);
 
-    tst("/*/", ["[RAW-ILLEGAL]/*/"]);
+    tst("/*/", ["[ILLEGAL]/*/"]);
     tst("/**/", ["[BLOCK-COMMENT]/**/"]);
 
-    tst("\"one", ["[RAW-ILLEGAL]\"one"]);
-    tst("re#one", ["[RAW-ILLEGAL]re#one"]);
+    tst("\"one", ["[ILLEGAL]\"one"]);
+    tst("re#one", ["[ILLEGAL]re#one"]);
 
     tst("a&&b", [
         "[SYMBOL]a",
@@ -255,12 +255,12 @@ test("tokenizer", function(t){
 
     tst("&&&", [
         "[RAW]&&",
-        "[RAW-ILLEGAL]&",
+        "[ILLEGAL]&",
     ]);
 
     tst(".λ,", [
         "[RAW].",
-        "[RAW-ILLEGAL]λ",
+        "[ILLEGAL]λ",
         "[RAW],",
     ]);
 
