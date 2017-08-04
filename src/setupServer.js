@@ -5,6 +5,7 @@ var bodyParser = require("body-parser");
 var compiler = require("krl-compiler");
 var version = require("../package.json").version;
 var oauth_server = require("./oauth_server");
+var mime = require("mime-types");
 
 var mergeGetPost = function(req){
     //give preference to post body params
@@ -57,16 +58,21 @@ module.exports = function(pe){
     });
 
     app.all("/sky/cloud/:eci/:rid/:function", function(req, res){
+        var funcPart = req.params["function"].split(".");
+        var respType = mime.contentType(funcPart[1]);
         var query = {
             eci: req.params.eci,
             rid: req.params.rid,
-            name: req.params["function"],
+            name: funcPart[0],
             args: mergeGetPost(req)
         };
         pe.runQuery(query, function(err, data){
             if(err) return errResp(res, err);
             if(_.isFunction(data)){
                 data(res);
+            }else if(respType&&funcPart[1]!="json"){
+                res.header("Content-Type", respType);
+                res.end(data);
             }else{
                 res.json(data);
             }
