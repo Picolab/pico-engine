@@ -4,7 +4,7 @@ module.exports = {
     "authorize": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getOwnerECI(function(err, eci){
+        pe.getRootECI(function(err, eci){
             if(err) return errResp(res, err);
             var event = {
                 eci: eci,
@@ -30,7 +30,7 @@ module.exports = {
     "approve": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getOwnerECI(function(err, eci){
+        pe.getRootECI(function(err, eci){
             if(err) return errResp(res, err);
             var event = {
                 eci: eci,
@@ -96,7 +96,7 @@ module.exports = {
         var attrs = req.body;
         attrs.client_id = clientId;
         attrs.client_secret = clientSecret;
-        pe.getOwnerECI(function(err, eci){
+        pe.getRootECI(function(err, eci){
             if(err) return errResp(res, err);
             var event = {
                 eci: eci,

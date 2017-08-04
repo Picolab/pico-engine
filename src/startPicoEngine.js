@@ -5,8 +5,8 @@ var leveldown = require("leveldown");
 var PicoEngine = require("pico-engine-core");
 var RulesetLoader = require("./RulesetLoader");
 
-var setupOwnerPico = function(pe, callback){
-    pe.getOwnerECI(function(err, eci){
+var setupRootPico = function(pe, callback){
+    pe.getRootECI(function(err, eci){
         if(err) return callback(err);
         if(eci){//already setup
             return callback();
@@ -57,7 +57,7 @@ var setupOwnerPico = function(pe, callback){
                     domain: "visual",
                     type: "update",
                     attrs: {
-                        dname: "Owner Pico",
+                        dname: "Root Pico",
                         color: "#87cefa"
                     }
                 }, function(err){
@@ -210,7 +210,7 @@ module.exports = function(opts, callback){
 
         pe.start(function(err){
             if(err) return callback(err);
-            setupOwnerPico(pe, function(err){
+            setupRootPico(pe, function(err){
                 if(err) return callback(err);
                 callback(null, pe);
             });
