@@ -521,6 +521,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     }
     $('body').html(
       Handlebars.compile($('#login-template').html())({"users":users}));
+    document.title = $('body h1').html();
     $("#user-login").click(function(){
       var ownerPico_id = $("#user-select").val();
       logged_in_pico = {id:ownerPico_id};
