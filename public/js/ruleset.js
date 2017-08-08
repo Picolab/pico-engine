@@ -223,5 +223,15 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       });
     });
   });
+  $(".description").on("click","a",function(ev){
+    var zip = new JSZip();
+    zip.file("hello.txt","Hello World!");
+    if (db_dump.rulesets && db_dump.rulesets.versions) {
+      for(var aRid in db_dump.rulesets.versions) {
+        zip.file(aRid+".krl",srcFromVersions(aRid,krlSrcInvite));
+      }
+    }
+    $(this).attr("href","data:application/zip;base64,"+zip.generate());
+  });
 });
 });
