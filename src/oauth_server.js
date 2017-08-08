@@ -4,10 +4,10 @@ module.exports = {
     "authorize": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getRootECI(function(err, eci){
+        pe.getRootPico(function(err, root_pico){
             if(err) return errResp(res, err);
             var event = {
-                eci: eci,
+                eci: root_pico.eci,
                 eid: "authorize",
                 domain: "oauth",
                 type: "authorize",
@@ -30,10 +30,10 @@ module.exports = {
     "approve": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getRootECI(function(err, eci){
+        pe.getRootPico(function(err, root_pico){
             if(err) return errResp(res, err);
             var event = {
-                eci: eci,
+                eci: root_pico.eci,
                 eid: "approve",
                 domain: "oauth",
                 type: "approve",
@@ -96,10 +96,10 @@ module.exports = {
         var attrs = req.body;
         attrs.client_id = clientId;
         attrs.client_secret = clientSecret;
-        pe.getRootECI(function(err, eci){
+        pe.getRootPico(function(err, root_pico){
             if(err) return errResp(res, err);
             var event = {
-                eci: eci,
+                eci: root_pico.eci,
                 eid: "token",
                 domain: "oauth",
                 type: "token",

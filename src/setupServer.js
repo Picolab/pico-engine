@@ -118,9 +118,9 @@ module.exports = function(pe){
     });
 
     app.all("/api/root-eci", function(req, res){
-        pe.getRootECI(function(err, eci){
+        pe.getRootPico(function(err, root_pico){
             if(err) return errResp(res, err);
-            res.json({ok: true, eci: eci});
+            res.json({ok: true, eci: root_pico.eci});
         });
     });
 
