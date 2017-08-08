@@ -2537,7 +2537,7 @@ test("escaping", function(t){
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected), msg);
     };
 
-    tst("\"one\\\"\"", mk("one\""), "escape '\"' in a string");
+    tst('"one\\""', mk('one"'), "escape '\"' in a string");
     tst("<<one\\\">>", {
         type: "Chevron",
         value: [
@@ -2546,7 +2546,7 @@ test("escaping", function(t){
     }, "don't escape '\"' in a chevron");
     tst("re#one\\\"#", mk(/one\"/), "don't escape '\"' in a regexp");
 
-    tst("\"one\\>\\>+two\\>\"", mk("one\\>\\>+two\\>"), "don't escape '>' in a string");
+    tst('"one\\>\\>+two\\>"', mk("one\\>\\>+two\\>"), "don't escape '>' in a string");
     tst("<<one\\>\\>+two\\>>>", {
         type: "Chevron",
         value: [
@@ -2555,7 +2555,7 @@ test("escaping", function(t){
     }, "escape '>' in a chevron");
     tst("re#one\\>\\>+two\\>#", mk(/one\>\>+two\>/), "don't escape '>' in a regexp");
 
-    tst("\"one\\#{\"", mk("one\\#{"), "don't escape '#{' in a string");
+    tst('"one\\#{"', mk("one\\#{"), "don't escape '#{' in a string");
     tst("<<one\\#{>>", {
         type: "Chevron",
         value: [
@@ -2564,7 +2564,7 @@ test("escaping", function(t){
     }, "escape '#{' in a chevron");
     tst("re#one\\#{#", mk(/one#{/), "escape '#{' in a regexp");
 
-    tst("\"one\\#\"", mk("one\\#"), "don't escape '#' in a string");
+    tst('"one\\#"', mk("one\\#"), "don't escape '#' in a string");
     tst("<<one\\#>>", {
         type: "Chevron",
         value: [
@@ -2573,7 +2573,7 @@ test("escaping", function(t){
     }, "don't escape '#' in a chevron");
     tst("re#one\\##", mk(/one#/), "escape '#' in a regexp");
 
-    tst("\"one\\{\"", mk("one\\{"), "don't escape '{' in a string");
+    tst('"one\\{"', mk("one\\{"), "don't escape '{' in a string");
     tst("<<one\\{>>", {
         type: "Chevron",
         value: [
@@ -2582,7 +2582,7 @@ test("escaping", function(t){
     }, "don't escape '{' in a chevron");
     tst("re#one\\{#", mk(/one\{/), "don't escape '{' in a regexp");
 
-    tst("\"one\\\\\"", mk("one\\"), "leave '\\' in a string");
+    tst('"one\\\\"', mk("one\\"), "leave '\\' in a string");
     tst("<<one\\\\#{0}+two\\\\>>", {
         type: "Chevron",
         value: [
