@@ -86,7 +86,7 @@ $(document).ready(function() {
       visitor(arr[i], maybeDone.bind(null,i));
     }
   };
-$.getJSON("/api/db-dump", function(db_dump){
+$.getJSON("/api/db-dump?legacy=true", function(db_dump){
   var dragstop = function(event,ui) {
     var nodeId = ui.helper[0].getAttribute("id");
     $('#'+nodeId).next(".pico-edit").css('left',ui.position.left)
@@ -457,7 +457,7 @@ $.getJSON("/api/db-dump", function(db_dump){
     };
     var walkPico =
       function(pico,dNumber,dLeft,dTop){
-        pico.dname = getV(pico,"dname",dNumber?"Child "+dNumber:"Owner Pico");
+        pico.dname = getV(pico,"dname",dNumber?"Child "+dNumber:"Root Pico");
         var width = getV(pico,"width",undefined);
         var height = getV(pico,"height",100);
         var left = Math.floor(parseFloat(getV(pico,"left",dLeft)));
@@ -519,8 +519,9 @@ $.getJSON("/api/db-dump", function(db_dump){
       if (db_dump.pico[children[i].id] === undefined) continue;
       users[getV(children[i],"dname","Pico"+i)] = children[i].id;
     }
-    $('body').html(
-      Handlebars.compile($('#login-template').html())({"users":users}));
+    var loginTemplate = Handlebars.compile($('#login-template').html());
+    var loginData = {"root_pico_id":rootPico.id,"users":users};
+    $('body').html(loginTemplate(loginData));
     document.title = $('body h1').html();
     $("#user-login").click(function(){
       var ownerPico_id = $("#user-select").val();

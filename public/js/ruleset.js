@@ -37,7 +37,7 @@ $(document).ready(function() {
     });
     return json;
   };
-$.getJSON("/api/db-dump", function(db_dump){
+$.getJSON("/api/db-dump?legacy=true", function(db_dump){
   var srcFromEnabled = function(rid) {
     var rs_info = get(db_dump.rulesets,["enabled",rid],undefined);
     if (rs_info) {
