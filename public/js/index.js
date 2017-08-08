@@ -519,8 +519,9 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       if (db_dump.pico[children[i].id] === undefined) continue;
       users[getV(children[i],"dname","Pico"+i)] = children[i].id;
     }
-    $('body').html(
-      Handlebars.compile($('#login-template').html())({"users":users}));
+    var loginTemplate = Handlebars.compile($('#login-template').html());
+    var loginData = {"root_pico_id":rootPico.id,"users":users};
+    $('body').html(loginTemplate(loginData));
     document.title = $('body h1').html();
     $("#user-login").click(function(){
       var ownerPico_id = $("#user-select").val();
