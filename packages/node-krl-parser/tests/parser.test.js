@@ -1202,24 +1202,24 @@ test("EventExpression", function(t){
     ]));
 
     testEE("count 5 (a b) max(d)", mk.eventGroupOp(
-                "count",
-                mk(5),
-                mk.ee("a", "b", [], null, [], {
-                    type: "EventAggregator",
-                    op: "max",
-                    args: [mk.id("d")]
-                })
+        "count",
+        mk(5),
+        mk.ee("a", "b", [], null, [], {
+            type: "EventAggregator",
+            op: "max",
+            args: [mk.id("d")]
+        })
     ));
 
     _.each(["min", "max", "sum", "avg", "push"], function(op){
         testEE("repeat 5 (a b) " + op + "(c)", mk.eventGroupOp(
-                    "repeat",
-                    mk(5),
-                    mk.ee("a", "b", [], null, [], {
-                        type: "EventAggregator",
-                        op: op,
-                        args: [mk.id("c")]
-                    })
+            "repeat",
+            mk(5),
+            mk.ee("a", "b", [], null, [], {
+                type: "EventAggregator",
+                op: op,
+                args: [mk.id("c")]
+            })
         ));
     });
 
@@ -2544,6 +2544,7 @@ test("escaping", function(t){
             {type: "String", value: 'one\\"'}
         ]
     }, "don't escape '\"' in a chevron");
+    // eslint-disable-next-line no-useless-escape
     tst("re#one\\\"#", mk(/one\"/), "don't escape '\"' in a regexp");
 
     tst('"one\\>\\>+two\\>"', mk("one\\>\\>+two\\>"), "don't escape '>' in a string");
@@ -2553,6 +2554,7 @@ test("escaping", function(t){
             {type: "String", value: "one>>+two>"}
         ]
     }, "escape '>' in a chevron");
+    // eslint-disable-next-line no-useless-escape
     tst("re#one\\>\\>+two\\>#", mk(/one\>\>+two\>/), "don't escape '>' in a regexp");
 
     tst('"one\\#{"', mk("one\\#{"), "don't escape '#{' in a string");

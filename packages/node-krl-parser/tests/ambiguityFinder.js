@@ -19,7 +19,7 @@ var onAmbiguousProgram = function(src){
             && t.type !== "WHITESPACE"
             && t.type !== "LINE-COMMENT"
             && t.type !== "BLOCK-COMMENT"
-            ;
+        ;
     });
 
     var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
