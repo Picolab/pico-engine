@@ -5,7 +5,7 @@ module.exports = function(ast, comp, e){
     if(ast.callee.type === "MemberExpression"
             && ast.callee.method === "dot"
             && ast.callee.property.type === "Identifier"
-            ){
+    ){
         //operator syntax is just sugar for stdlib functions
         var operator = ast.callee.property;
 

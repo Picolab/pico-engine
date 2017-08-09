@@ -33,16 +33,16 @@
   "devDependencies": {
     "contra": "^1.9.4",
     "diff-lines": "^1.1.0",
-    "eslint": "^3.3.1",
+    "eslint": "^4.4.1",
     "onchange": "^3.0.0",
-    "tape": "^4.6.0"
+    "tape": "^4.8.0"
   },
   "dependencies": {
     "btoa": "^1.1.2",
     "escodegen": "^1.8.0",
     "estree-builder": "^1.7.0",
     "estree-loc": "^2.0.0",
-    "krl-parser": "^0.24.0",
+    "krl-parser": "^0.24.1",
     "lodash": "^4.13.1",
     "minimist": "^1.2.0"
   }
