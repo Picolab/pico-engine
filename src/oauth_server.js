@@ -120,10 +120,10 @@ module.exports = {
     "login": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getOwnerECI(function(err, eci){
+        pe.getRootPico(function(err, root_pico){
             if(err) return errResp(res, err);
             var event = {
-                eci: eci,
+                eci: root_pico.eci,
                 eid: "",
                 domain: "owner",
                 type: "login",
