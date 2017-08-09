@@ -7,6 +7,11 @@ $(document).ready(function() {
       return this.replace(/&/g,"&amp;").replace(/</g,"&lt;");
     };
   }
+  var getCookie = function(name) {
+    var value = "; " + document.cookie;
+    var parts = value.split("; " + name + "=");
+    if (parts.length == 2) return parts.pop().split(";").shift();
+  }
   var leftRadius = function(nodeId) {
     var theNode = $('#'+nodeId);
     return Math.floor(
@@ -523,7 +528,10 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       users[getV(children[i],"dname","Pico"+i)] = children[i].id;
     }
     var loginTemplate = Handlebars.compile($('#login-template').html());
-    var loginData = {"root_pico_id":rootPico.id,"users":users};
+    var loginData = {
+      "root_pico_id":rootPico.id,
+      "users":users
+    };
     $('body').html(loginTemplate(loginData));
     document.title = $('body h1').html();
     $("#user-login").click(function(){
@@ -535,6 +543,24 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       } else {
         do_main_page(rootPico);
       }
+    });
+    $("body").find('.js-ajax-form').submit(function(e){
+      e.preventDefault();
+      $.post($(this).attr("action"),formToJSON(this),function(data){
+          if(data && data.directives ){
+            var d = data.directives[0];
+            if (d.options && d.options.pico_id){ // successfully logged in
+              sessionStorage.setItem("owner_pico_id",d.options.pico_id);
+              var redirect = getCookie("previousUrl");
+              console.log(redirect);
+              //should clear cookie here! ?maybe
+              location.assign(redirect);
+            }
+          }else{
+            alert(err);
+          }
+          //location.reload(); death bug
+      }, "json");
     });
   } else {
     do_main_page(logged_in_pico);

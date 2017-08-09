@@ -116,5 +116,23 @@ module.exports = {
                 }
             });
         });
+    },
+    "login": function(req,res){
+        var pe = req.pe;
+        var errResp = req.errResp;
+        pe.getOwnerECI(function(err, eci){
+            if(err) return errResp(res, err);
+            var event = {
+                eci: eci,
+                eid: "",
+                domain: "owner",
+                type: "login",
+                attrs: req.body
+            };
+            pe.signalEvent(event, function(err, response){
+                if(err) return errResp(res, err);
+                res.json(response);
+            });
+        });
     }
 };

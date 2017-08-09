@@ -23,6 +23,15 @@ Select an owner pico
 {{/each}}
 </select>
 <button id="user-login">login</button>
+<div>
+  <form class="js-ajax-form" action="/login" method="post" id="login-form">
+    Owner ID: <br>
+    <input type="text" placeholder="Enter your owner ID" name="owner_id" value=""> <br>
+    Password: <br>
+    <input type="password" placeholder="Enter password" name="password" value=""><br>
+    <input type="submit" class="button" name="login" value="Login">
+  </form>
+</div>
 </div>
 </script>
 <script id="the-template" type="text/x-handlebars-template">
