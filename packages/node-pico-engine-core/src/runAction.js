@@ -1,5 +1,6 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
+var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("./mkKRLfn");
 
 var send_directive = mkKRLfn([
@@ -23,7 +24,7 @@ module.exports = cocb.wrap(function*(ctx, domain, id, args, setting){
         returns = [];//returns nothing
     }else if(ctx.scope.has(id)){
         var definedAction = ctx.scope.get(id);
-        if(definedAction.is_a_defaction !== true){
+        if( ! ktypes.isAction(definedAction)){
             throw new Error("`" + id + "` is not defined as an action");
         }
         returns = yield definedAction(ctx, args);

@@ -1,5 +1,5 @@
 var _ = require("lodash");
-var λ = require("contra");
+var async = require("async");
 var urllib = require("url");
 var mkKRLfn = require("../mkKRLfn");
 
@@ -62,11 +62,7 @@ module.exports = function(core){
         removeChannel: mkKRLfn([
             "eci",
         ], function(args, ctx, callback){
-            core.db.getPicoIDByECI(args.eci, function(err, pico_id){
-                if(err) return callback(err);
-
-                core.db.removeChannel(pico_id, args.eci, callback);
-            });
+            core.db.removeChannel(args.eci, callback);
         }),
         registerRuleset: mkKRLfn([
             "url",
@@ -90,7 +86,7 @@ module.exports = function(core){
                 ? _.uniq(args.rid)
                 : [args.rid];
 
-            λ.each(rids, core.unregisterRuleset, callback);
+            async.each(rids, core.unregisterRuleset, callback);
         }),
         installRuleset: mkKRLfn([
             "pico_id",
@@ -109,7 +105,7 @@ module.exports = function(core){
                 return;
             }
             if(_.isArray(args.rid)){
-                λ.map(_.uniq(args.rid), install, callback);
+                async.map(_.uniq(args.rid), install, callback);
                 return;
             }
             if(_.isString(args.url)){
@@ -143,7 +139,7 @@ module.exports = function(core){
                 ? _.uniq(args.rid)
                 : [args.rid];
 
-            λ.each(rids, function(rid, next){
+            async.each(rids, function(rid, next){
                 core.uninstallRuleset(args.pico_id, rid, next);
             }, callback);
         }),

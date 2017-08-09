@@ -7,7 +7,7 @@ The core javascript api for the pico-engine. (no http, logging, process manageme
 
 ## Contributing
 
-Clone this repository, and install dependencies using `npm i` or [yarn](https://yarnpkg.com/)
+Clone this repository, and install dependencies using `npm i`
 
 When developing run
 ```sh

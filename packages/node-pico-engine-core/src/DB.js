@@ -1,40 +1,14 @@
 var _ = require("lodash");
-var λ = require("contra");
 var cuid = require("cuid");
+var async = require("async");
 var crypto = require("crypto");
+var dbRange = require("./dbRange");
 var levelup = require("levelup");
 var bytewise = require("bytewise");
+var migrations = require("./migrations");
 var safeJsonCodec = require("level-json-coerce-null");
 var extractRulesetID = require("./extractRulesetID");
 
-var dbRange = function(ldb, opts, onData, callback_orig){
-    var has_calledback = false;
-    var callback = function(){
-        if(has_calledback) return;
-        has_calledback = true;
-        callback_orig.apply(this, arguments);
-    };
-
-    if(_.has(opts, "prefix")){
-        opts = _.assign({}, opts, {
-            gte: opts.prefix,
-            lte: opts.prefix.concat([undefined])//bytewise sorts with null at the bottom and undefined at the top
-        });
-        delete opts.prefix;
-    }
-    var s = ldb.createReadStream(opts);
-    var stopRange = function(){
-        s.destroy();
-        callback();
-    };
-    s.on("error", function(err){
-        callback(err);
-    });
-    s.on("end", callback);
-    s.on("data", function(data){
-        onData(data, stopRange);
-    });
-};
 
 module.exports = function(opts){
 
@@ -45,6 +19,25 @@ module.exports = function(opts){
     });
 
     var newID = _.isFunction(opts.newID) ? opts.newID : cuid;
+
+    var getMigrationLog = function(callback){
+        var log = {};
+        dbRange(ldb, {
+            prefix: ["migration-log"],
+        }, function(data){
+            log[data.key[1]] = data.value;
+        }, function(err){
+            callback(err, log);
+        });
+    };
+    var recordMigration = function(version, callback){
+        ldb.put(["migration-log", version + ""], {
+            timestamp: (new Date()).toISOString(),
+        }, callback);
+    };
+    var removeMigration = function(version, callback){
+        ldb.del(["migration-log", version + ""], callback);
+    };
 
     return {
         toObj: function(callback){
@@ -59,34 +52,31 @@ module.exports = function(opts){
             });
         },
         getPicoIDByECI: function(eci, callback){
-            ldb.get(["channel", eci, "pico_id"], function(err, data){
+            ldb.get(["channel", eci], function(err, data){
                 if(err && err.notFound){
                     err = new levelup.errors.NotFoundError("ECI not found: " + (_.isString(eci) ? eci : typeof eci));
                     err.notFound = true;
                 }
-                callback(err, data);
+                callback(err, data && data.pico_id);
             });
         },
-        getOwnerECI: function(callback){
-            var eci = undefined;
-            dbRange(ldb, {
-                prefix: ["channel"],
-                values: false,
-                limit: 1
-            }, function(key){
-                eci = key[1];
-            }, function(err){
-                callback(err, eci);
-            });
+        getRootPico: function(callback){
+            ldb.get(["root_pico"], callback);
         },
-        getPico: function(id, callback){
-            var pico = {};
-            dbRange(ldb, {
-                prefix: ["pico", id]
-            }, function(data){
-                _.set(pico, data.key, data.value);
-            }, function(err){
-                callback(err, _.get(pico, ["pico", id]));
+        putRootPico: function(data, callback){
+            ldb.put(["root_pico"], data, callback);
+        },
+        hasPico: function(id, callback){
+            ldb.get(["pico", id], function(err){
+                if(err){
+                    if(err.notFound){
+                        callback(null, false);
+                        return;
+                    }
+                    callback(err);
+                    return;
+                }
+                callback(null, true);
             });
         },
         newPico: function(opts, callback){
@@ -100,16 +90,31 @@ module.exports = function(opts){
         },
         removePico: function(id, callback){
             var to_batch = [];
-            dbRange(ldb, {
-                prefix: ["pico", id],
-                values: false
-            }, function(key){
-                to_batch.push({type: "del", key: key});
-                if(key[2] === "channel"){
-                    //remove this index
-                    to_batch.push({type: "del", key: ["channel", key[3], "pico_id"]});
-                }
-            }, function(err){
+
+            var keyRange = function(prefix, fn){
+                return async.apply(dbRange, ldb, {
+                    prefix: prefix,
+                    values: false,
+                }, fn);
+            };
+
+            async.series([
+                keyRange(["pico", id], function(key){
+                    to_batch.push({type: "del", key: key});
+                }),
+                keyRange(["pico-eci-list", id], function(key){
+                    var eci = key[2];
+                    to_batch.push({type: "del", key: key});
+                    to_batch.push({type: "del", key: ["channel", eci]});
+                }),
+                keyRange(["entvars", id], function(key){
+                    to_batch.push({type: "del", key: key});
+                }),
+                keyRange(["pico-ruleset", id], function(key){
+                    to_batch.push({type: "del", key: key});
+                    to_batch.push({type: "del", key: ["ruleset-pico", key[2], key[1]]});
+                }),
+            ], function(err){
                 if(err)return callback(err);
                 ldb.batch(to_batch, callback);
             });
@@ -117,21 +122,20 @@ module.exports = function(opts){
         newChannel: function(opts, callback){
             var new_channel = {
                 id: newID(),
+                pico_id: opts.pico_id,
                 name: opts.name,
                 type: opts.type
             };
             var ops = [
                 {
-                    //the source of truth for a channel
                     type: "put",
-                    key: ["pico", opts.pico_id, "channel", new_channel.id],
-                    value: new_channel
+                    key: ["channel", new_channel.id],
+                    value: new_channel,
                 },
                 {
-                    //index to get pico_id by eci
                     type: "put",
-                    key: ["channel", new_channel.id, "pico_id"],
-                    value: opts.pico_id
+                    key: ["pico-eci-list", new_channel.pico_id, new_channel.id],
+                    value: true,
                 }
             ];
             ldb.batch(ops, function(err){
@@ -139,15 +143,43 @@ module.exports = function(opts){
                 callback(undefined, new_channel);
             });
         },
+        ridsOnPico: function(pico_id, callback){
+            var pico_rids = {};
+            dbRange(ldb, {
+                prefix: ["pico-ruleset", pico_id]
+            }, function(data){
+                var rid = data.key[2];
+                if(data.value && data.value.on === true){
+                    pico_rids[rid] = true;
+                }
+            }, function(err){
+                callback(err, pico_rids);
+            });
+        },
         addRulesetToPico: function(pico_id, rid, callback){
-            ldb.put(["pico", pico_id, "ruleset", rid], {on: true}, callback);
+            var val = {
+                on: true,
+            };
+            ldb.batch([
+                {
+                    type: "put",
+                    key: ["pico-ruleset", pico_id, rid],
+                    value: val,
+                },
+                {
+                    type: "put",
+                    key: ["ruleset-pico", rid, pico_id],
+                    value: val,
+                }
+            ], callback);
         },
         removeRulesetFromPico: function(pico_id, rid, callback){
             var ops = [
-                {type: "del", key: ["pico", pico_id, "ruleset", rid]},
+                {type: "del", key: ["pico-ruleset", pico_id, rid]},
+                {type: "del", key: ["ruleset-pico", rid, pico_id]},
             ];
             dbRange(ldb, {
-                prefix: ["pico", pico_id, rid],
+                prefix: ["entvars", pico_id, rid],
                 values: false,
             }, function(key){
                 ops.push({type: "del", key: key});
@@ -157,27 +189,35 @@ module.exports = function(opts){
             });
         },
         listChannels: function(pico_id, callback){
-            var channels = [];
+            var eci_list = [];
             dbRange(ldb, {
-                prefix: ["pico", pico_id, "channel"],
-            }, function(data){
-                channels.push(data.value);
+                prefix: ["pico-eci-list", pico_id],
+                values: false,
+            }, function(key){
+                eci_list.push(key[2]);
             }, function(err){
-                callback(err, channels);
+                if(err) return callback(err);
+                async.map(eci_list, function(eci, next){
+                    ldb.get(["channel", eci], next);
+                }, callback);
             });
         },
-        removeChannel: function(pico_id, eci, callback){
-            var ops = [
-                {type: "del", key: ["pico", pico_id, "channel", eci]},
-                {type: "del", key: ["channel", eci, "pico_id"]}
-            ];
-            ldb.batch(ops, callback);
+        removeChannel: function(eci, callback){
+            ldb.get(["channel", eci], function(err, data){
+                if(err) return callback(err);
+
+                var ops = [
+                    {type: "del", key: ["channel", eci]},
+                    {type: "del", key: ["pico-eci-list", data.pico_id, eci]}
+                ];
+                ldb.batch(ops, callback);
+            });
         },
         putEntVar: function(pico_id, rid, var_name, val, callback){
-            ldb.put(["pico", pico_id, rid, "vars", var_name], val, callback);
+            ldb.put(["entvars", pico_id, rid, var_name], val, callback);
         },
         getEntVar: function(pico_id, rid, var_name, callback){
-            ldb.get(["pico", pico_id, rid, "vars", var_name], function(err, data){
+            ldb.get(["entvars", pico_id, rid, var_name], function(err, data){
                 if(err && err.notFound){
                     return callback();
                 }
@@ -185,13 +225,13 @@ module.exports = function(opts){
             });
         },
         removeEntVar: function(pico_id, rid, var_name, callback){
-            ldb.del(["pico", pico_id, rid, "vars", var_name], callback);
+            ldb.del(["entvars", pico_id, rid, var_name], callback);
         },
         putAppVar: function(rid, var_name, val, callback){
-            ldb.put(["resultset", rid, "vars", var_name], val, callback);
+            ldb.put(["appvars", rid, var_name], val, callback);
         },
         getAppVar: function(rid, var_name, callback){
-            ldb.get(["resultset", rid, "vars", var_name], function(err, data){
+            ldb.get(["appvars", rid, var_name], function(err, data){
                 if(err && err.notFound){
                     return callback();
                 }
@@ -199,7 +239,7 @@ module.exports = function(opts){
             });
         },
         removeAppVar: function(rid, var_name, callback){
-            ldb.del(["resultset", rid, "vars", var_name], callback);
+            ldb.del(["appvars", rid, var_name], callback);
         },
         getStateMachineState: function(pico_id, rule, callback){
             var key = ["state_machine", pico_id, rule.rid, rule.name];
@@ -212,8 +252,8 @@ module.exports = function(opts){
                     }
                 }
                 callback(undefined, _.has(rule.select.state_machine, curr_state)
-                        ? curr_state
-                        : "start");
+                    ? curr_state
+                    : "start");
             });
         },
         putStateMachineState: function(pico_id, rule, state, callback){
@@ -387,16 +427,11 @@ module.exports = function(opts){
         isRulesetUsed: function(rid, callback){
             var is_used = false;
             dbRange(ldb, {
-                prefix: ["pico"],
-                values: false
-            }, function(key, stopRange){
-                if(is_used){
-                    throw new Error("dbRange should have stopped");
-                }
-                if(key[2] === "ruleset" && key[3] === rid){
-                    is_used = true;
-                    stopRange();
-                }
+                prefix: ["ruleset-pico", rid],
+                values: false,
+                limit: 1,
+            }, function(key){
+                is_used = true;
             }, function(err){
                 callback(err, is_used);
             });
@@ -418,7 +453,7 @@ module.exports = function(opts){
                 hashes.push(hash);
             }, function(err){
                 if(err) return callback(err);
-                λ.each(hashes, function(hash, next){
+                async.each(hashes, function(hash, next){
                     ldb.get(["rulesets", "krl", hash], function(err, data){
                         if(err) return next(err);
                         if(_.isString(data.url)){
@@ -436,7 +471,7 @@ module.exports = function(opts){
                     if(err) return callback(err);
 
                     dbRange(ldb, {
-                        prefix: ["resultset", rid, "vars"],
+                        prefix: ["appvars", rid],
                         values: false
                     }, function(key){
                         to_del.push(key);
@@ -530,6 +565,30 @@ module.exports = function(opts){
                 }
 
                 ldb.batch(to_batch, callback);
+            });
+        },
+        getMigrationLog: getMigrationLog,
+        recordMigration: recordMigration,
+        removeMigration: removeMigration,
+        checkAndRunMigrations: function(callback){
+            getMigrationLog(function(err, log){
+                if(err) return callback(err);
+
+                var to_run = [];
+                _.each(migrations, function(m, version){
+                    if( ! _.has(log, version)){
+                        to_run.push(version);
+                    }
+                });
+                to_run.sort();
+
+                async.eachSeries(to_run, function(version, next){
+                    var m = migrations[version];
+                    m.up(ldb, function(err, data){
+                        if(err) return next(err);
+                        recordMigration(version, next);
+                    });
+                }, callback);
             });
         },
     };

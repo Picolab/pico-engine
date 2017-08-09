@@ -1,6 +1,6 @@
 var _ = require("lodash");
-var λ = require("contra");
 var cocb = require("co-callback");
+var async = require("async");
 var runKRL = require("./runKRL");
 var aggregateEvent = require("./aggregateEvent");
 
@@ -84,10 +84,10 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
     return next_state === "end";
 });
 
-var selectForPico = function(core, ctx, pico, callback){
+var selectForPico = function(core, ctx, pico_rids, callback){
 
     var rules_to_select = core.rsreg.salientRules(ctx.event.domain, ctx.event.type, function(rid){
-        if(!_.has(pico.ruleset, rid)){
+        if(pico_rids[rid] !== true){
             return false;
         }
         if(_.has(ctx.event, "for_rid") && _.isString(ctx.event.for_rid)){
@@ -98,7 +98,7 @@ var selectForPico = function(core, ctx, pico, callback){
         return true;
     });
 
-    λ.filter(rules_to_select, function(rule, next){
+    async.filter(rules_to_select, function(rule, next){
         cocb.run(shouldRuleSelect(core, ctx, rule), next);
     }, function(err, rules){
         if(err) return callback(err);
@@ -111,8 +111,8 @@ var selectForPico = function(core, ctx, pico, callback){
 
 module.exports = function(core, ctx, callback){
     //read this fresh everytime we select, b/c it might have changed during event processing
-    core.db.getPico(ctx.pico_id, function(err, pico){
+    core.db.ridsOnPico(ctx.pico_id, function(err, pico_rids){
         if(err) return callback(err);
-        selectForPico(core, ctx, pico, callback);
+        selectForPico(core, ctx, pico_rids, callback);
     });
 };

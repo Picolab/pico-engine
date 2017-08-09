@@ -13,22 +13,45 @@ ruleset io.picolabs.error {
             ent:error_log := ent:error_log.append(event:attrs())
         }
     }
-    rule basic0 {
-        select when error basic
+    rule continue_on_errorA {
+        select when error continue_on_error
 
-        send_directive("basic0");
+        send_directive("continue_on_errorA");
 
-        fired {
-            error info "some info error"
+        always {
+            error debug "continue_on_errorA debug";
+            error info "continue_on_errorA info";
+            error warn "continue_on_errorA warn"
         }
     }
-    rule basic1 {
-        select when error basic
+    rule continue_on_errorB {
+        select when error continue_on_error
 
-        send_directive("basic1");
+        send_directive("continue_on_errorB");
 
-        fired {
-            error info "this should not fire, b/c basic0 stopped execution"
+        always {
+            error debug "continue_on_errorB debug";
+            error info "continue_on_errorB info";
+            error warn "continue_on_errorB warn"
+        }
+    }
+    rule stop_on_errorA {
+        select when error stop_on_error
+
+        send_directive("stop_on_errorA");
+
+        always {
+            error error "stop_on_errorA 1";
+            error error "stop_on_errorA 2 this should not fire b/c the first error stops execution"
+        }
+    }
+    rule stop_on_errorB {
+        select when error stop_on_error
+
+        send_directive("stop_on_errorB");
+
+        always {
+            error error "stop_on_errorB 3 this should not fire b/c the first error clears the schedule"
         }
     }
 }

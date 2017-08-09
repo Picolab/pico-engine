@@ -147,24 +147,25 @@ var processEvent = cocb.wrap(function*(core, ctx){
             raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
             addEventToSchedule(raise_ctx, callback);
         }),
-        raiseError: function*(ctx, level, msg){
+        raiseError: function*(ctx, level, data){
 
-            //Because one error often cascades into others,
-            //limit the number of errors from a single event to just one
-            schedule = [];
+            if(level === "error"){
+                //clear the schedule so no more rules are run
+                schedule = [];
+            }
 
             return yield ctx.raiseEvent({
                 domain: "system",
                 type: "error",
                 attributes: {
                     level: level,
-                    msg: msg,
-                    error_rid: ctx.rid,
+                    data: data,
+                    rid: ctx.rid,
                     rule_name: ctx.rule_name,
                     genus: "user",
                     //species: ??,
                 },
-                //for_rid: ctx.rid,
+                for_rid: ctx.rid,
             });
         },
         scheduleEvent: cocb.toYieldable(function(sevent, callback){

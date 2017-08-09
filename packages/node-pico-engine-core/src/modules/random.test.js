@@ -1,14 +1,10 @@
-var _ = require("lodash");
 var test = require("tape");
 var cocb = require("co-callback");
+var ktypes = require("krl-stdlib/types");
 var krandom = require("./random")().def;
 
-var isNum = function(n){
-    return _.isNumber(n) && !_.isNaN(n);//yeah, NaN is Not a Number
-};
-
 var assertNumRange = function(n, low, high, should_be_int){
-    if(isNum(n) && (n >= low) && (n <= high)){
+    if(ktypes.isNumber(n) && (n >= low) && (n <= high)){
         if(should_be_int && (n % 1 !== 0)){
             throw new Error("not an int: " + n);
         }

@@ -1,8 +1,9 @@
 var _ = require("lodash");
-var λ = require("contra");
 var DB = require("./DB");
 var cocb = require("co-callback");
 var cuid = require("cuid");
+var async = require("async");
+var ktypes = require("krl-stdlib/types");
 var getArg = require("./getArg");
 var hasArg = require("./hasArg");
 var runKRL = require("./runKRL");
@@ -21,11 +22,11 @@ var RulesetRegistry = require("./RulesetRegistry");
 var DependencyResolver = require("dependency-resolver");
 
 var applyFn = cocb.wrap(function*(fn, ctx, args){
-    if(!_.isFunction(fn)){
-        throw new Error("Not a function");
-    }
-    if(fn.is_a_defaction){
+    if(ktypes.isAction(fn)){
         throw new Error("actions can only be called in the rule action block");
+    }
+    if( ! ktypes.isFunction(fn)){
+        throw new Error("Not a function");
     }
     return yield fn(ctx, args);
 });
@@ -45,6 +46,7 @@ module.exports = function(conf){
         }
     });
     var host = conf.host;
+    var rootRIDs = _.uniq(_.filter(conf.rootRIDs, _.isString));
     var compileAndLoadRuleset = conf.compileAndLoadRuleset;
 
     var core = {
@@ -96,7 +98,7 @@ module.exports = function(conf){
                     return hasArg(args, name, index);
                 }, runAction);
             });
-            actionFn.is_a_defaction = true;
+            actionFn.is_an_action = true;
             return ctx.scope.set(name, actionFn);
         };
 
@@ -177,6 +179,8 @@ module.exports = function(conf){
     var initializeRulest = cocb.wrap(function*(rs){
         rs.scope = SymbolTable();
         rs.modules_used = {};
+        core.rsreg.setupOwnKeys(rs);
+
         var use_array = _.values(rs.meta && rs.meta.use);
         var i, use, dep_rs, ctx2;
         for(i = 0; i < use_array.length; i++){
@@ -296,14 +300,6 @@ module.exports = function(conf){
         }
     });
 
-    var enqueueForECI = function(eci, job, onEnqueued, callback){
-        db.getPicoIDByECI(eci, function(err, pico_id){
-            if(err) return callback(err);
-            picoQ.enqueue(pico_id, job, callback);
-            onEnqueued(pico_id);
-        });
-    };
-
     core.signalEvent = function(event_orig, callback_orig){
         var callback = _.isFunction(callback_orig) ? callback_orig : _.noop;
         var event;
@@ -325,28 +321,37 @@ module.exports = function(conf){
 
         event.txn_id = cuid();
 
-        var emit = mkCTX({event: event}).emit;
-        emit("episode_start");
-        emit("debug", "event received: " + event.domain + "/" + event.type);
-
-        enqueueForECI(event.eci, {
-            type: "event",
-            event: event
-        }, function(pico_id){
-            emit = mkCTX({
+        db.getPicoIDByECI(event.eci, function(err, pico_id){
+            if(err){
+                emitter.emit("error", err);
+                callback(err);
+                return;
+            }
+            var emit = mkCTX({
                 event: event,
                 pico_id: pico_id,
             }).emit;
+
+            emit("episode_start");
+            emit("debug", "event received: " + event.domain + "/" + event.type);
+
+            picoQ.enqueue(pico_id, {
+                type: "event",
+                event: event,
+            }, onDone);
+
             emit("debug", "event added to pico queue: " + pico_id);
-        }, function(err, data){
-            if(err){
-                emit("error", err);
-            }else{
-                emit("debug", data);
+
+            function onDone(err, data){
+                if(err){
+                    emit("error", err);
+                }else{
+                    emit("debug", data);
+                }
+                //there should be no more emits after "episode_stop"
+                emit("episode_stop");
+                callback(err, data);
             }
-            //there should be no more emits after "episode_stop"
-            emit("episode_stop");
-            callback(err, data);
         });
     };
 
@@ -366,28 +371,37 @@ module.exports = function(conf){
         query.timestamp = new Date();
         query.txn_id = cuid();
 
-        var emit = mkCTX({query: query}).emit;
-        emit("episode_start");
-        emit("debug", "query received: " + query.rid + "/" + query.name);
+        db.getPicoIDByECI(query.eci, function(err, pico_id){
+            if(err){
+                emitter.emit("error", err);
+                callback(err);
+                return;
+            }
 
-        enqueueForECI(query.eci, {
-            type: "query",
-            query: query
-        }, function(pico_id){
-            emit = mkCTX({
+            var emit = mkCTX({
                 query: query,
                 pico_id: pico_id,
             }).emit;
+            emit("episode_start");
+            emit("debug", "query received: " + query.rid + "/" + query.name);
+
+            picoQ.enqueue(pico_id, {
+                type: "query",
+                query: query
+            }, onDone);
+
             emit("debug", "query added to pico queue: " + pico_id);
-        }, function(err, data){
-            if(err){
-                emit("error", err);
-            }else{
-                emit("debug", data);
+
+            function onDone(err, data){
+                if(err){
+                    emit("error", err);
+                }else{
+                    emit("debug", data);
+                }
+                //there should be no more emits after "episode_stop"
+                emit("episode_stop");
+                callback(err, data);
             }
-            //there should be no more emits after "episode_stop"
-            emit("episode_stop");
-            callback(err, data);
         });
     };
 
@@ -398,36 +412,48 @@ module.exports = function(conf){
                 callback();
                 return;
             }
-            λ.map(rids, getRulesetForRID, function(err, rs_list){
-                if(err)return callback(err);
 
-                var resolver = new DependencyResolver();
+            var rs_by_rid = {};
+            var resolver = new DependencyResolver();
 
-                var rs_by_rid = {};
-                _.each(rs_list, function(rs){
+            async.each(rids, function(rid, next){
+                getRulesetForRID(rid, function(err, rs){
+                    if(err){
+                        //TODO handle error rather than stop
+                        next(err);
+                        return;
+                    }
                     rs_by_rid[rs.rid] = rs;
-
                     resolver.add(rs.rid);
                     _.each(rs.meta && rs.meta.use, function(use){
                         if(use.kind === "module"){
                             resolver.setDependency(rs.rid, use.rid);
                         }
                     });
+                    next(null, rs);
                 });
+            }, function(err){
+                if(err)return callback(err);
 
                 //order they need to be loaded in for dependencies to work
                 var rid_order = resolver.sort();
-                rs_list = _.map(rid_order, function(rid){
-                    return rs_by_rid[rid];
-                });
 
-                λ.each.series(rs_list, initializeAndEngageRuleset, callback);
+                async.eachSeries(rid_order, function(rid, next){
+                    var rs = rs_by_rid[rid];
+                    initializeAndEngageRuleset(rs, function(err){
+                        if(err){
+                            //TODO handle error rather than stop
+                            next(err);
+                            return;
+                        }
+                        next();
+                    });
+                }, callback);
             });
         });
     };
 
     core.unregisterRuleset = function(rid, callback){
-        var err_prefix = "unregisterRuleset(\"" + rid + "\")- ";
         //first assert rid is not depended on as a module
         try{
             core.rsreg.assertNoDependants(rid);
@@ -438,7 +464,7 @@ module.exports = function(conf){
         db.isRulesetUsed(rid, function(err, is_used){
             if(err) return callback(err);
             if(is_used){
-                callback(new Error(err_prefix + "it is installed by at least one pico"));
+                callback(new Error("Unable to unregister \"" + rid + "\": it is installed on at least one pico"));
                 return;
             }
             db.deleteRuleset(rid, function(err){
@@ -480,9 +506,9 @@ module.exports = function(conf){
         });
     };
     core.installRuleset = function(pico_id, rid, callback){
-        db.getPico(pico_id, function(err, pico){
+        db.hasPico(pico_id, function(err, has_pico){
             if(err) return callback(err);
-            if(!pico) return callback(new Error("Invalid pico_id: " + pico_id));
+            if(!has_pico) return callback(new Error("Invalid pico_id: " + pico_id));
 
             db.hasEnabledRid(rid, function(err, has){
                 if(err) return callback(err);
@@ -523,15 +549,17 @@ module.exports = function(conf){
         signalEvent: core.signalEvent,
         runQuery: core.runQuery,
 
+        getRootPico: db.getRootPico,
+
+        /////////////////////
+        // vvv deprecated vvv
         registerRuleset: core.registerRuleset,
         registerRulesetURL: core.registerRulesetURL,
         flushRuleset: core.flushRuleset,
         unregisterRuleset: core.unregisterRuleset,
 
-        newPico: db.newPico,
         newChannel: db.newChannel,
         removeChannel: db.removeChannel,
-        getOwnerECI: db.getOwnerECI,
         installRuleset: core.installRuleset,
         uninstallRuleset: core.uninstallRuleset,
         removePico: db.removePico,
@@ -541,17 +569,70 @@ module.exports = function(conf){
         removeEntVar: db.removeEntVar,
 
         dbDump: db.toObj,
+        /////////////////////
+        // ^^^ deprecated ^^^
     };
     if(conf.___core_testing_mode){
+        pe.newPico = db.newPico;
         pe.scheduler = core.scheduler;
         pe.modules = modules;
     }
 
     pe.start = function(callback){
-        registerAllEnabledRulesets(function(err){
-            if(err) return callback(err);
-            resumeScheduler(callback);
-        });
+        async.series([
+            function(next){
+                if(_.isEmpty(rootRIDs)){
+                    return next();
+                }
+                db.getRootPico(function(err, root_pico){
+                    if(err && ! err.notFound){
+                        return next(err);
+                    }else if(!err){
+                        return next();
+                    }
+                    db.newPico({}, function(err, pico){
+                        if(err) return next(err);
+                        db.newChannel({
+                            pico_id: pico.id,
+                            name: "root",
+                            type: "secret",
+                        }, function(err, chan){
+                            if(err) return next(err);
+                            db.putRootPico({
+                                id: pico.id,
+                                eci: chan.id,
+                            }, next);
+                        });
+                    });
+                });
+            },
+            function(next){
+                if(_.isEmpty(rootRIDs)){
+                    return next();
+                }
+                db.getRootPico(function(err, root_pico){
+                    if(err) return next(err);
+
+                    db.ridsOnPico(root_pico.id, function(err, rids){
+                        if(err) return next(err);
+
+                        var to_install = [];
+                        _.each(rootRIDs, function(r_rid){
+                            if( ! _.includes(rids, r_rid)){
+                                to_install.push(r_rid);
+                            }
+                        });
+
+                        async.eachSeries(to_install, function(rid, next){
+                            core.installRuleset(root_pico.id, rid, next);
+                        }, next);
+                    });
+                });
+            },
+            db.checkAndRunMigrations,
+            registerAllEnabledRulesets,
+            resumeScheduler,
+        ], callback);
     };
 
     return pe;

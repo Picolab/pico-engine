@@ -162,5 +162,30 @@ test("event = cleanEvent(event)", function(t){
         attrs: [0, 1, "a", null, null],
     });
 
+
+    var testEid = function(input, output, msg){
+        t.deepEquals(cleanEvent({
+            eci: "eci123",
+            eid: input,
+            domain: "foo",
+            type: "bar",
+        }).eid, output, msg);
+    };
+
+    testEid(" foo ", "foo");
+    testEid("", "none");
+    testEid("  ", "none");
+    testEid(null, "none");
+    testEid(NaN, "none");
+    testEid(void 0, "none");
+    testEid("null", "none");
+
+    testEid([1, 2], "[Array]");
+    testEid({foo: "bar"}, "[Map]");
+
+    testEid(123, "123");
+    testEid(123.0, "123");
+    testEid(.7500, "0.75");
+
     t.end();
 });

@@ -1,19 +1,16 @@
 var _ = require("lodash");
 var cuid = require("cuid");
+var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
 var randomWords = require("random-words");
 
-var isnull = function(val){
-    return val === null || val === undefined || _.isNaN(val);
-};
-
 var fixLowerUpperArgs = function(args){
     return {
-        lower: isnull(args.lower)
+        lower: ktypes.isNull(args.lower)
             ? 0
             : _.parseInt(args.lower, 10) || 0,
 
-        upper: isnull(args.upper)
+        upper: ktypes.isNull(args.upper)
             ? 1
             : _.parseInt(args.upper, 10) || 0
     };

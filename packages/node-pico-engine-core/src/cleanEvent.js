@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var ktypes = require("krl-stdlib/types");
 var krl_stdlib = require("krl-stdlib");
 
 var isBlank = function(str){
@@ -37,13 +38,16 @@ module.exports = function(event_orig){
         }
     }
 
+    var eid = ktypes.toString(event_orig.eid).trim();
+    if(eid.length === 0 || eid === "null"){
+        eid = "none";
+    }
+
     return {
 
         eci: event_orig.eci.trim(),
 
-        eid: _.isString(event_orig.eid)
-            ? event_orig.eid.trim()
-            : "none",
+        eid: eid,
 
         domain: event_orig.domain.trim(),
         type: event_orig.type.trim(),

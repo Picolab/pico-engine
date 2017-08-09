@@ -1,7 +1,7 @@
 var _ = require("lodash");
-var λ = require("contra");
 var fs = require("fs");
 var path = require("path");
+var async = require("async");
 var memdown = require("memdown");
 var PicoEngine = require("./");
 
@@ -32,6 +32,7 @@ module.exports = function(opts, callback){
             var rs = test_rulesets[rid];
             callback(undefined, rs);
         },
+        rootRIDs: opts.rootRIDs,
         db: {
             db: opts.ldb || memdown,
             newID: (function(){
@@ -42,15 +43,14 @@ module.exports = function(opts, callback){
             }())
         }
     });
-    pe.start(function(err){
-        if(err)return callback(err);
-        λ.each.series(_.keys(test_rulesets), function(rid, next){
-            //hack since compileAndLoadRuleset doesn't actually compile
-            var krl_src = "ruleset " + rid + "{}";
-            pe.registerRuleset(krl_src, {
-                url: test_rulesets[rid].url
-            }, next);
-        }, function(err){
+    async.eachSeries(_.keys(test_rulesets), function(rid, next){
+        //hack since compileAndLoadRuleset doesn't actually compile
+        var krl_src = "ruleset " + rid + "{}";
+        pe.registerRuleset(krl_src, {
+            url: test_rulesets[rid].url
+        }, next);
+    }, function(err){
+        pe.start(function(err){
             callback(err, pe);
         });
     });

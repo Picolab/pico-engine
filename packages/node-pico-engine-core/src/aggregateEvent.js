@@ -1,13 +1,13 @@
 var _ = require("lodash");
-var λ = require("contra");
 var cocb = require("co-callback");
+var async = require("async");
 
 var toFloat = function(v){
     return parseFloat(v) || 0;
 };
 
 var aggregateWrap = function(core, current_state_machine_state, rule, ctx, value_pairs, fn, callback){
-    λ.each(value_pairs, function(pair, next){
+    async.each(value_pairs, function(pair, next){
         var name = pair[0];
         var value = pair[1] === void 0
             ? null//leveldb doesnt support undefined

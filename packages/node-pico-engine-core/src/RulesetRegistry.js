@@ -73,12 +73,18 @@ module.exports = function(){
             salience_graph.del(rid);
             delete rulesets[rid];
         },
+        setupOwnKeys: function(rs){
+            if(rs.meta && rs.meta.keys){
+                _.each(rs.meta.keys, function(value, key){
+                    _.set(keys_module_data, ["used_keys", rs.rid, key], value);
+                });
+            }
+        },
         provideKey: function(rid, use_rid){
             if(_.has(keys_module_data, ["provided", use_rid, rid])){
-                _.set(keys_module_data, [
-                    "used_keys",
-                    rid,
-                ], keys_module_data.provided[use_rid][rid]);
+                _.each(keys_module_data.provided[use_rid][rid], function(value, key){
+                    _.set(keys_module_data, ["used_keys", rid, key], value);
+                });
             }
         },
         getKey: function(rid, key_id){

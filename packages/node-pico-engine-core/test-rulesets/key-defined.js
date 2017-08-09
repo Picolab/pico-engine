@@ -29,10 +29,12 @@ module.exports = {
           "io.picolabs.key-used3"
         ]
       }
-    }
+    },
+    "shares": ["foo_global"]
   },
   "global": function* (ctx) {
     ctx.scope.set("blah", "this is here to test that 'provides' is not stomped over by 'provides keys'");
+    ctx.scope.set("foo_global", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));
   },
   "rules": {}
 };

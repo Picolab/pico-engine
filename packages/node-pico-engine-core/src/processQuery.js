@@ -4,12 +4,13 @@ var runKRL = require("./runKRL");
 
 module.exports = function(core, ctx, callback){
     cocb.run(function*(){
-        var pico = yield core.db.getPicoYieldable(ctx.pico_id);
+        var has_pico = yield core.db.hasPicoYieldable(ctx.pico_id);
         var err;
-        if(!pico){
+        if(!has_pico){
             throw new Error("Invalid eci: " + ctx.query.eci);
         }
-        if(!_.has(pico.ruleset, ctx.query.rid)){
+        var pico_rids = yield core.db.ridsOnPicoYieldable(ctx.pico_id);
+        if(pico_rids[ctx.query.rid] !== true){
             throw new Error("Pico does not have that rid: " + ctx.query.rid);
         }
         var rs = core.rsreg.get(ctx.query.rid);

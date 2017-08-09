@@ -49,17 +49,11 @@ test("engine:removeChannel", function(t){
     cocb.run(function*(){
         var engine = kengine({
             db: {
-                getPicoIDByECI: tick(function(eci, callback){
+                removeChannel: tick(function(eci, callback){
                     if(eci === "foo"){
-                        return callback(null, "bar");
-                    }
-                    callback("NOT FOUND:" + eci);
-                }),
-                removeChannel: tick(function(pico_id, eci, callback){
-                    if(pico_id === "bar" && eci === "foo"){
                         return callback();
                     }
-                    callback("cannot removeChannel " + pico_id + "," + eci);
+                    callback("NOT FOUND:" + eci);
                 })
             }
         });
@@ -116,7 +110,7 @@ test("engine:installRuleset", function(t){
             }),
             registerRulesetURL: tick(function(url, callback){
                 callback(null, {
-                    rid: "REG:" + /\/([^\/]*)\.krl$/.exec(url)[1]
+                    rid: "REG:" + /\/([^/]*)\.krl$/.exec(url)[1]
                 });
             }),
             db: {

@@ -52,4 +52,30 @@ ruleset io.picolabs.foreach {
             "baz": baz
         });
     }
+    rule final {
+        select when foreach final
+        foreach event:attr("x").split(",") setting(x)
+            foreach event:attr("y").split(",") setting(y)
+
+        send_directive("final", {
+            "x": x,
+            "y": y
+        });
+
+        always {
+            raise foreach event "final_raised"
+                attributes {
+                    "x": x,
+                    "y": y
+                } on final
+        }
+    }
+    rule final_raised {
+        select when foreach final_raised
+
+        send_directive("final_raised", {
+            "x": event:attr("x"),
+            "y": event:attr("y")
+        });
+    }
 }
