@@ -33,19 +33,19 @@ $(document).ready(function() {
       }
     });
   }
-  var findRootPico = function(callback) {
-    var root_eci = $("#root_eci").val();
-    if (root_eci){
-      callback(root_eci);
+  var findOwnerPico = function(callback) {
+    var own_eci = $("#own_eci").val();
+    if (own_eci){
+      callback(own_eci);
     } else {
-      log("Finding root pico");
-      $.getJSON("/api/root-eci", function(root){
-        if (root.ok && root.eci) {
-          root_eci = root.eci;
-          $("#root_eci").val(root_eci);
-          callback(root_eci);
+      log("Finding owner pico");
+      $.getJSON("/api/owner-eci", function(owner){
+        if (owner.ok && owner.eci) {
+          own_eci = owner.eci;
+          $("#own_eci").val(own_eci);
+          callback(own_eci);
         } else {
-          log("*Problem: no root pico");
+          log("*Problem: no owner pico");
         }
       });
     }
@@ -58,8 +58,8 @@ $(document).ready(function() {
       log("Finding registration pico");
       if (student_id) {
         log("Recognize student_id "+student_id);
-        var root_eci = $("#root_eci").val();
-        getAnonECI("registration",root_eci,"registration/channel_needed","student_id="+student_id,function(the_eci){
+        var own_eci = $("#own_eci").val();
+        getAnonECI("registration",own_eci,"registration/channel_needed","student_id="+student_id,function(the_eci){
           log("Registration pico anonymous eci is "+the_eci);
           $("#reg_eci").val(the_eci);
           callback(the_eci);
@@ -73,7 +73,7 @@ $(document).ready(function() {
     var student_id = $("#student_id").val();
     var section_id = $("#section_id").val();
     $pre.empty();
-    findRootPico(function(root_eci){
+    findOwnerPico(function(own_eci){
       getRegistrationPico(student_id,function(reg_eci){
           if (section_id) {
             log("Recognize section_id "+section_id);
