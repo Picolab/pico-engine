@@ -377,6 +377,9 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
      function(data){
        $('body').html(mpl(data));
        document.title = $('body h1').html();
+       if (data.picos && data.picos[0]) {
+         $("#user-logout span").html(data.picos[0].dname);
+       }
        $('div.pico')
          .resizable(resizeOptions)
          .draggable({ containment: "parent", drag: dragmove, stop: dragstop })
@@ -499,7 +502,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     $.getJSON("/api/engine-version",function(data){
       $("#version").text(data ? data.version : "undefined");
     });
-    $("#user-logout").click(function(e){
+    $("#user-logout a").click(function(e){
       e.preventDefault();
       sessionStorage.removeItem("owner_pico_id");
       location.reload();

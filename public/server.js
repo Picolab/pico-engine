@@ -24,15 +24,24 @@ angular.module("myApp", ['ui.router'])
       $urlRouterProvider.otherwise('index');
   }])
 
-  .controller("myCtrl", function($scope) {
+  .controller("myCtrl", function($scope, $window) {
+    if(!sessionStorage.getItem("owner_pico_id")){
+      $window.location.href = $window.location.origin;//redirect to the login
+    }
   })
 
-  .controller("approveCtrl", function($scope,$stateParams) {
+  .controller("approveCtrl", function($scope,$stateParams, $window) {
+    if(!sessionStorage.getItem("owner_pico_id")){
+      $window.location.href = $window.location.origin;//redirect to the login
+    }
     $scope.client_id = $stateParams.client_id;
     $scope.client_name = $stateParams.client_name;
     $scope.reqid = $stateParams.reqid;
   })
 
-  .controller("errorCtrl", function($scope,$stateParams) {
+  .controller("errorCtrl", function($scope,$stateParams, $window) {
+    if(!sessionStorage.getItem("owner_pico_id")){
+      $window.location.href = $window.location.origin;//redirect to the login
+    }
      $scope.error_message = $stateParams.error_message;
   });

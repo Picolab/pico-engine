@@ -158,7 +158,7 @@ var setupLogging = function(pe){
     });
     pe.emitter.on("error", function(err, context){
         console.error("[ERROR]", context, err);
-        logEntry(context, err);
+        if(context) logEntry(context, err);
     });
     pe.emitter.on("episode_stop", function(context){
         var episode_id = context.txn_id;
