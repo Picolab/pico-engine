@@ -229,8 +229,10 @@ svg line.subscription {
   display: block;
 }
 #user-logout {
-  display: inline-block;
   float: right;
+}
+#user-logout a {
+  display: inline-block;
   margin: 5px;
   padding: 5px;
   text-decoration: none;

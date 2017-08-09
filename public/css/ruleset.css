@@ -19,6 +19,9 @@ div p.description {
   font-size: 120%;
   padding-left: 20px;
 }
+div p.description a {
+  font-size: 70%;
+}
 h1.title {
   display: inline-block;
   font-family: Arial, sans-serif;

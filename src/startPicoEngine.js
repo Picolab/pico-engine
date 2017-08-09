@@ -5,7 +5,7 @@ var leveldown = require("leveldown");
 var PicoEngine = require("pico-engine-core");
 var RulesetLoader = require("./RulesetLoader");
 
-var setupOwnerPico = function(pe, callback){
+var setupRootPico = function(pe, callback){
     pe.getOwnerECI(function(err, eci){
         if(err) return callback(err);
         if(eci){//already setup
@@ -57,7 +57,7 @@ var setupOwnerPico = function(pe, callback){
                     domain: "visual",
                     type: "update",
                     attrs: {
-                        dname: "Owner Pico",
+                        dname: "Root Pico",
                         color: "#87cefa"
                     }
                 }, function(err){
@@ -177,7 +177,7 @@ var setupLogging = function(pe){
     });
     pe.emitter.on("error", function(err, context){
         console.error("[ERROR]", context, err);
-        logEntry(context, err);
+        if(context) logEntry(context, err);
     });
     pe.emitter.on("episode_stop", function(context){
         var episode_id = context.txn_id;
@@ -210,7 +210,7 @@ module.exports = function(opts, callback){
 
         pe.start(function(err){
             if(err) return callback(err);
-            setupOwnerPico(pe, function(err){
+            setupRootPico(pe, function(err){
                 if(err) return callback(err);
                 callback(null, pe);
             });
