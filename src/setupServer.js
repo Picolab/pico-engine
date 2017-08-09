@@ -94,14 +94,35 @@ module.exports = function(pe){
     app.all("/api/db-dump", function(req, res){
         pe.dbDump(function(err, db_data){
             if(err) return errResp(res, err);
+
+            if(req.query.legacy){
+                _.each(db_data.appvars, function(vars, rid){
+                    _.each(vars, function(val, name){
+                        _.set(db_data, ["resultset", rid, "vars", name], val);
+                    });
+                });
+                _.each(db_data.entvars, function(by_rid, pico_id){
+                    _.each(by_rid, function(vars, rid){
+                        _.each(vars, function(val, name){
+                            _.set(db_data, ["pico", pico_id, rid, "vars", name], val);
+                        });
+                    });
+                });
+                _.each(db_data.channel, function(chan, eci){
+                    _.set(db_data, ["pico", chan.pico_id, "channel", eci], chan);
+                    _.set(db_data, ["channel", eci, "pico_id"], chan.pico_id);
+                });
+            }
+
+
             res.json(db_data);
         });
     });
 
-    app.all("/api/owner-eci", function(req, res){
-        pe.getOwnerECI(function(err, eci){
+    app.all("/api/root-eci", function(req, res){
+        pe.getRootPico(function(err, root_pico){
             if(err) return errResp(res, err);
-            res.json({ok: true, eci: eci});
+            res.json({ok: true, eci: root_pico.eci});
         });
     });
 

@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/Picolab/node-pico-engine#readme",
   "devDependencies": {
-    "eslint": "^3.0.1",
+    "eslint": "^4.4.1",
     "onchange": "^3.0.0",
     "scriptsp": "^1.0.1",
     "tape": "^4.5.1",
@@ -45,14 +45,15 @@
   "dependencies": {
     "body-parser": "^1.15.2",
     "contra": "^1.9.4",
-    "express": "^4.14.0",
+    "express": "^4.15.4",
     "home-dir": "^1.0.0",
     "krl-compiler": "^0.35.0",
     "leveldown": "^1.4.6",
     "lodash": "^4.11.2",
+    "mime-types": "^2.1.16",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "pico-engine-core": "^0.32.3",
+    "pico-engine-core": "^0.33.0",
     "request": "^2.79.0"
   }
 }
