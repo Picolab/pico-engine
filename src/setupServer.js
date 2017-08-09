@@ -112,6 +112,11 @@ module.exports = function(pe){
                     _.set(db_data, ["pico", chan.pico_id, "channel", eci], chan);
                     _.set(db_data, ["channel", eci, "pico_id"], chan.pico_id);
                 });
+                _.each(db_data["pico-ruleset"], function(data, pico_id){
+                    _.each(data, function(val, rid){
+                        _.set(db_data, ["pico", pico_id, "ruleset", rid], val);
+                    });
+                });
             }
 
 
