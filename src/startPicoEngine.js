@@ -120,10 +120,10 @@ var setupLogging = function(pe){
         } else {
             episode = {};
             episode.key = (
-                    timestamp + " - " + episode_id
+                timestamp + " - " + episode_id
                     + " - " + context.eci
                     + " - " + ((context.event) ? context.event.eid : "query")
-                    ).replace(/[.]/g, "-");
+            ).replace(/[.]/g, "-");
             episode.logs = [];
             logs[episode_id] = episode;
         }
