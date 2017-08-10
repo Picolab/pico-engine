@@ -528,12 +528,15 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       users[getV(children[i],"dname","Pico"+i)] = children[i].id;
     }
     var loginTemplate = Handlebars.compile($('#login-template').html());
+    var ownerTemplate = Handlebars.compile($('#owner-id-template').html());
+    var passwordTemplate = Handlebars.compile($('#password-template').html());
     var loginData = {
       "root_pico_id":rootPico.id,
       "users":users
     };
     $('body').html(loginTemplate(loginData));
     document.title = $('body h1').html();
+    $('#login-display-switch').html(ownerTemplate({}));
     $("#user-login").click(function(){
       var ownerPico_id = $("#user-select").val();
       logged_in_pico = {id:ownerPico_id};
@@ -544,8 +547,40 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         do_main_page(rootPico);
       }
     });
-    $("body").find('.js-ajax-form').submit(function(e){
+    $("body").on("submit",'.js-ajax-form',function(e){
       e.preventDefault();
+      var action = $(this).attr("action");
+      if(action==="/login"){
+        $.post($(this).attr("action"),formToJSON(this),function(data){
+            if(data && data.directives ){
+              var d = data.directives[0];
+              if (d.options && d.options.eci){ // successfully logged in
+                $('#login-display-switch').html(passwordTemplate({eci:d.options.eci,eid:"none"}));
+              }
+            }else{
+              alert(err);
+            }
+        }, "json");
+
+      }else { // password authentication
+        $.post($(this).attr("action"),formToJSON(this),function(data){
+            if(data && data.directives ){
+              var d = data.directives[0];
+              if (d.options && d.options.pico_id){ // successfully logged in
+                sessionStorage.setItem("owner_pico_id",d.options.pico_id);
+                sessionStorage.setItem("owner_pico_eci",d.options.eci);
+                var redirect = getCookie("previousUrl") || "/";
+                //should clear cookie here! ?maybe
+                location.assign(redirect);
+              }else {
+                alert("no pico_id found in directive, try again please.");
+              }
+            }else{
+              alert("no directives returned, try again please.");
+            }
+        }, "json");
+      }
+      /*
       $.post($(this).attr("action"),formToJSON(this),function(data){
           if(data && data.directives ){
             var d = data.directives[0];
@@ -561,6 +596,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           }
           //location.reload(); death bug
       }, "json");
+      */
     });
   } else {
     do_main_page(logged_in_pico);

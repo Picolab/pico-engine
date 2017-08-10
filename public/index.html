@@ -23,16 +23,23 @@ Select an owner pico
 {{/each}}
 </select>
 <button id="user-login">login</button>
-<div>
-  <form class="js-ajax-form" action="/login" method="post" id="login-form">
+<div id="login-display-switch">
+</div>
+</div>
+</script>
+<script id="owner-id-template" type="text/x-handlebars-template">
+  <form class="js-ajax-form" action="/login" method="post">
     Owner ID: <br>
-    <input type="text" placeholder="Enter your owner ID" name="owner_id" value=""> <br>
+    <input type="text" placeholder="Enter owner id or DID" name="owner_id" value=""> <br>
+    <input type="submit" class="button form-login" name="login" value="Login">
+  </form>
+</script>
+<script id="password-template" type="text/x-handlebars-template">
+  <form class="js-ajax-form" action="/sky/event/{{eci}}/{{eid}}/owner/authenticate" method="post">
     Password: <br>
     <input type="password" placeholder="Enter password" name="password" value=""><br>
-    <input type="submit" class="button" name="login" value="Login">
+    <input type="submit" class="button form-login" name="login" value="Login">
   </form>
-</div>
-</div>
 </script>
 <script id="the-template" type="text/x-handlebars-template">
 <a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>

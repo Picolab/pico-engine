@@ -240,3 +240,10 @@ svg line.subscription {
   border: 1px solid silver;
   border-radius: 4px;
 }
+
+#login-display-switch {
+  margin-top: 20px;
+}
+.form-login {
+  margin-top: 5px;
+}

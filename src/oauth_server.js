@@ -126,7 +126,7 @@ module.exports = {
                 eci: eci,
                 eid: "",
                 domain: "owner",
-                type: "login",
+                type: "eci_requested",
                 attrs: req.body
             };
             pe.signalEvent(event, function(err, response){

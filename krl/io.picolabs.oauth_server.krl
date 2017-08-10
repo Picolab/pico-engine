@@ -6,7 +6,7 @@ ruleset io.picolabs.oauth_server {
     __testing = { "queries": [ { "name": "__testing" },
                                { "name": "clients" } ],
                   "events": [ { "domain": "oauth", "type": "register",
-                                "attrs": [ "client_id", "client_name", "redirect_uri", "client_uri" ] },
+                                "attrs": [ "client_id", "client_name", "redirect_uri", "client_uri","client_img","client_rids" ] },
                               { "domain": "oauth", "type": "authorize",
                                 "attrs": [ "client_id", "redirect_uri" ] } ] }
     getClient = function(client_id) {
@@ -30,11 +30,13 @@ ruleset io.picolabs.oauth_server {
     select when oauth register
     pre {
       client_id = event:attr("client_id")
+      client = getClient(client_id)
     }
     if ent:clients >< client_id then
       send_directive("ok", {
         "client_id"    : client_id,
-        "client_secret": getClient(client_id){"client_secret"}
+        "client_secret": client{"client_secret"},
+        "client_img":  client{"client_img"}
       });
     fired { last }
   }
@@ -45,8 +47,10 @@ ruleset io.picolabs.oauth_server {
       client_secret = client_id == "oauth-client-1" => "oauth-client-secret-1"
                                                      | random:uuid()
       client_name   = event:attr("client_name")
-      redirect_uri  = event:attr("redirect_uri")
-      client_uri    = event:attr("client_uri")
+      redirect_uri  = event:attr("redirect_uri") // callback
+      client_uri    = event:attr("client_uri") // about page
+      client_img    = event:attr("client_img") // logo, url to image.
+      client_rids   = event:attr("client_rids") // about page
       grant_type    = "authorization_code"
       scope         = ""
       new_client    = {
@@ -54,14 +58,17 @@ ruleset io.picolabs.oauth_server {
         "client_id":     client_id,
         "client_secret": client_secret,
         "client_uri":    client_uri,
-        "redirect_uris": [ redirect_uri ]
+        "redirect_uris": [ redirect_uri ],
+        "client_img": client_img,
+        "client_rids": client_rids
       }
       already_registered = ent:clients >< client_id
     }
     if not already_registered then
       send_directive("ok", {
         "client_id"    : client_id,
-        "client_secret": client_secret
+        "client_secret": client_secret,
+        "client_img"   : client_img
       });
     fired {
       ent:clients{client_id} := new_client
@@ -96,16 +103,17 @@ ruleset io.picolabs.oauth_server {
     if not (ent:client{"redirect_uris"} >< redirect_uri) then
       send_directive("error", {"error_message": "Invalid redirect URI"})
     fired { clear ent:client; last }
-  }   
+  }
   rule oauth_authorize_render_approve {
     select when oauth authorize
     pre {
-      reqid = random:uuid()
+      reqid     = random:uuid()
     }
     if true then
       send_directive("approve", {
         "client_id": ent:client{"client_id"},
         "client_name": ent:client{"client_name"},
+        "client_img":  ent:client{"client_img"},
         "reqid": reqid
       });
     fired {
@@ -158,14 +166,17 @@ ruleset io.picolabs.oauth_server {
   }
   rule oauth_approve_supply_code {
     select when oauth approve
-    pre { code = random:uuid() }
+    pre {
+      code = random:uuid()
+      owner_id = event:attr("owner_id")
+    }
     send_directive("respond", {
       "code": code,
       "state": ent:query{"state"},
       "redirect_uri": ent:query{"redirect_uri"}
     })
     fired {
-      ent:codes{code} := { "request": ent:query };
+      ent:codes{code} := { "request": ent:query, "owner_id": owner_id };
       clear ent:query;
       last
     }
@@ -217,11 +228,23 @@ ruleset io.picolabs.oauth_server {
     select when oauth token
     pre {
       client_id = ent:client{"client_id"}
+      client_rids = (ent:client{"client_rids"}).split(re#;#)
+      owner_id = ent:code{"owner_id"}.klog("owner_id in oauth_token_access_token");
     }
     every {
-      engine:newChannel(meta:picoId, client_id, "oauth") setting(new_channel)
+      engine:newChannel(owner_id, client_id, "oauth") setting(new_channel) //HEY !!!!! TODO this should use wrangler and not engine!!!
+      engine:installRuleset(owner_id,client_rids)
+      event:send(
+        { "eci": new_channel{"id"},
+          "domain": "wrangler", "type": "ruleset_added",
+          "attrs": ({
+           "rids": client_rids
+          })
+      });
       send_directive("ok", {"access_token": new_channel{"id"}, "token_type": "Bearer"})
     }
-    fired { last; clear ent:code; clear ent:client }
+    fired {
+      last; clear ent:code; clear ent:client
+    }
   }
 }
