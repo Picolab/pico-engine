@@ -53,9 +53,6 @@ Engine Rulesets page.
 Use the "validate" button until the code compiles.
 Then use the "register" button to register this version
 of your code with the engine.
-Use the "enable" button to enable this version,
-and the "install" button to have the engine save away
-the compiled code for use.
 
 ## CLI
 ### Configuration
