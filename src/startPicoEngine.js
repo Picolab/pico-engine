@@ -1,3 +1,4 @@
+var _ = require("lodash");
 var λ = require("contra");
 var fs = require("fs");
 var path = require("path");
@@ -6,66 +7,46 @@ var PicoEngine = require("pico-engine-core");
 var RulesetLoader = require("./RulesetLoader");
 
 var setupRootPico = function(pe, callback){
-    pe.getOwnerECI(function(err, eci){
+    pe.getRootPico(function(err, root_pico){
         if(err) return callback(err);
-        if(eci){//already setup
-            return callback();
-        }
-        λ.waterfall([
-            λ.curry(pe.newPico, {}),
-            function(pico, callback){
-                pe.newChannel({
-                    pico_id: pico.id,
-                    name: "main",
-                    type: "secret"
-                }, function(err, channel){
-                    if(err) return callback(err);
-                    callback(null, {
-                        pico_id: pico.id,
-                        eci: channel.id
-                    });
-                });
-            },
-            function(info, callback){
-                pe.installRuleset(info.pico_id, "io.picolabs.pico", function(err){
-                    callback(err, info);
-                });
-            },
-            function(info, callback){
-                pe.installRuleset(info.pico_id, "io.picolabs.visual_params", function(err){
-                    callback(err, info);
-                });
-            },
-            function(info, callback){
-                pe.signalEvent({
-                    eci: info.eci,
+
+        pe.runQuery({
+            eci: root_pico.eci,
+            rid: "io.picolabs.pico",
+            name: "myself",
+        }, function(err, myself){
+            if(err) return callback(err);
+            if(myself.id === root_pico.id){
+                //already initialized
+                return callback();
+            }
+
+            var signal = function(event){
+                return function(next){
+                    pe.signalEvent(_.assign({eci: root_pico.eci}, event), next);
+                };
+            };
+
+            λ.series([
+                signal({
                     eid: "19",
                     domain: "pico",
                     type: "root_created",
                     attrs: {
-                        id: info.pico_id,
-                        eci: info.eci
-                    }
-                }, function(err){
-                    callback(err, info);
-                });
-            },
-            function(info, callback){
-                pe.signalEvent({
-                    eci: info.eci,
+                        id: root_pico.id,
+                        eci: root_pico.eci,
+                    },
+                }),
+                signal({
                     eid: "31",
                     domain: "visual",
                     type: "update",
                     attrs: {
                         dname: "Root Pico",
-                        color: "#87cefa"
-                    }
-                }, function(err){
-                    callback(err, info);
-                });
-            }
-        ], function(err){
-            callback(err, pe);
+                        color: "#87cefa",
+                    },
+                }),
+            ], callback);
         });
     });
 };
@@ -139,10 +120,10 @@ var setupLogging = function(pe){
         } else {
             episode = {};
             episode.key = (
-                    timestamp + " - " + episode_id
+                timestamp + " - " + episode_id
                     + " - " + context.eci
                     + " - " + ((context.event) ? context.event.eid : "query")
-                    ).replace(/[.]/g, "-");
+            ).replace(/[.]/g, "-");
             episode.logs = [];
             logs[episode_id] = episode;
         }
@@ -199,7 +180,13 @@ module.exports = function(opts, callback){
         db: {
             db: leveldown,
             location: path.join(opts.home, "db")
-        }
+        },
+
+        //RIDs that will be automatically installed on the root pico
+        rootRIDs: [
+            "io.picolabs.pico",
+            "io.picolabs.visual_params",
+        ],
     });
 
     setupLogging(pe);
@@ -210,6 +197,7 @@ module.exports = function(opts, callback){
 
         pe.start(function(err){
             if(err) return callback(err);
+
             setupRootPico(pe, function(err){
                 if(err) return callback(err);
                 callback(null, pe);

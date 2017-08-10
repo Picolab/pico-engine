@@ -4,10 +4,10 @@ module.exports = {
     "authorize": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getOwnerECI(function(err, eci){
+        pe.getRootPico(function(err, root_pico){
             if(err) return errResp(res, err);
             var event = {
-                eci: eci,
+                eci: root_pico.eci,
                 eid: "authorize",
                 domain: "oauth",
                 type: "authorize",
@@ -30,10 +30,10 @@ module.exports = {
     "approve": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getOwnerECI(function(err, eci){
+        pe.getRootPico(function(err, root_pico){
             if(err) return errResp(res, err);
             var event = {
-                eci: eci,
+                eci: root_pico.eci,
                 eid: "approve",
                 domain: "oauth",
                 type: "approve",
@@ -68,7 +68,7 @@ module.exports = {
         var errResp = req.errResp;
         var clientId;
         var clientSecret;
-// start of code borrowed from OAuth in Action
+        // start of code borrowed from OAuth in Action
         var decodeClientCredentials = function(auth) {
             var clientCredentials = new Buffer(auth.slice("basic ".length), "base64").toString().split(":");
             var clientId = querystring.unescape(clientCredentials[0]);
@@ -92,14 +92,14 @@ module.exports = {
             clientSecret = req.body.client_secret;
         }
 
-// end of code from OAuth in Action
+        // end of code from OAuth in Action
         var attrs = req.body;
         attrs.client_id = clientId;
         attrs.client_secret = clientSecret;
-        pe.getOwnerECI(function(err, eci){
+        pe.getRootPico(function(err, root_pico){
             if(err) return errResp(res, err);
             var event = {
-                eci: eci,
+                eci: root_pico.eci,
                 eid: "token",
                 domain: "oauth",
                 type: "token",
@@ -120,10 +120,10 @@ module.exports = {
     "login": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getOwnerECI(function(err, eci){
+        pe.getRootPico(function(err, root_pico){
             if(err) return errResp(res, err);
             var event = {
-                eci: eci,
+                eci: root_pico.eci,
                 eid: "",
                 domain: "owner",
                 type: "eci_requested",
