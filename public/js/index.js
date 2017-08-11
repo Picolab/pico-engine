@@ -552,19 +552,19 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       var action = $(this).attr("action");
       if(action==="/login"){
         $.post($(this).attr("action"),formToJSON(this),function(data){
-            if(data && data.directives ){
+            if(data && data.directives && data.directives[0] ){
               var d = data.directives[0];
               if (d.options && d.options.eci){ // successfully logged in
                 $('#login-display-switch').html(passwordTemplate({eci:d.options.eci,eid:"none"}));
               }
             }else{
-              alert(err);
+              alert(JSON.stringify(data));
             }
         }, "json");
 
       }else { // password authentication
         $.post($(this).attr("action"),formToJSON(this),function(data){
-            if(data && data.directives ){
+            if(data && data.directives && data.directives[0] ){
               var d = data.directives[0];
               if (d.options && d.options.pico_id){ // successfully logged in
                 sessionStorage.setItem("owner_pico_id",d.options.pico_id);
