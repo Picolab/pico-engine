@@ -26,8 +26,10 @@ test("DB - write and read", function(t){
         chan1: async.apply(db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
         rule0: async.apply(db.addRulesetToPico, "id0", "rs0"),
         chan2: async.apply(db.newChannel, {pico_id: "id0", name: "two", type: "t"}),
+        pico1: async.apply(db.newPico, {parent_id: "id0"}),
         end_db: async.apply(db.toObj),
         rmpico0: async.apply(db.removePico, "id0"),
+        rmpico1: async.apply(db.removePico, "id3"),
         post_del_db: async.apply(db.toObj)
     }, function(err, data){
         if(err) return t.end(err);
@@ -52,10 +54,16 @@ test("DB - write and read", function(t){
             pico: {
                 "id0": {
                     id: "id0",
-                }
+                    parent_id: null,
+                },
+                "id3": {
+                    id: "id3",
+                    parent_id: "id0",
+                },
             },
             "pico-ruleset": {"id0": {"rs0": {on: true}}},
             "ruleset-pico": {"rs0": {"id0": {on: true}}},
+            "pico-children": {"id0": {"id3": true}},
             "pico-eci-list": {
                 "id0": {
                     "id1": true,
@@ -640,5 +648,94 @@ test("DB - migrations", function(t){
                 next();
             });
         },
+    ], t.end);
+});
+
+test("DB - parent/child", function(t){
+    var db = mkTestDB();
+
+    var assertParent = function(pico_id, expected_parent_id){
+        return function(next){
+            db.getParent(pico_id, function(err, parent_id){
+                if(err) return next(err);
+                t.equals(parent_id, expected_parent_id, "testing db.getParent");
+                next();
+            });
+        };
+    };
+
+    var assertChildren = function(pico_id, expected_children_ids){
+        return function(next){
+            db.listChildren(pico_id, function(err, list){
+                if(err) return next(err);
+                t.deepEquals(list, expected_children_ids, "testing db.listChildren");
+                next();
+            });
+        };
+    };
+
+
+    async.series([
+        async.apply(db.newPico, {}),// id0
+        async.apply(db.newPico, {parent_id: "id0"}),// id1
+        async.apply(db.newPico, {parent_id: "id0"}),// id2
+        async.apply(db.newPico, {parent_id: "id0"}),// id3
+
+        async.apply(db.newPico, {parent_id: "id3"}),// id4
+        async.apply(db.newPico, {parent_id: "id3"}),// id5
+
+        assertParent("id0", null),
+        assertParent("id1", "id0"),
+        assertParent("id2", "id0"),
+        assertParent("id3", "id0"),
+        assertParent("id4", "id3"),
+        assertParent("id5", "id3"),
+
+        assertChildren("id0", ["id1", "id2", "id3"]),
+        assertChildren("id1", []),
+        assertChildren("id2", []),
+        assertChildren("id3", ["id4", "id5"]),
+        assertChildren("id4", []),
+        assertChildren("id5", []),
+
+        async.apply(db.removePico, "id5"),
+        assertChildren("id3", ["id4"]),
+
+        async.apply(db.removePico, "id3"),
+        assertChildren("id3", []),
+
+    ], t.end);
+});
+
+
+test("DB - assertPicoID", function(t){
+    var db = mkTestDB();
+
+    var tstPID = function(id, expected_it){
+        return function(next){
+            db.assertPicoID(id, function(err, got_id){
+                if(expected_it){
+                    t.notOk(err);
+                    t.equals(got_id, id);
+                }else{
+                    t.ok(err);
+                    t.notOk(got_id);
+                }
+                next();
+            });
+        };
+    };
+
+    async.series([
+        async.apply(db.newPico, {}),
+
+        tstPID(null, false),
+        tstPID(void 0, false),
+        tstPID({}, false),
+        tstPID(0, false),
+
+        tstPID("id0", true),
+        tstPID("id2", false),
+
     ], t.end);
 });

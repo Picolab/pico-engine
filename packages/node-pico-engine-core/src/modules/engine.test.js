@@ -14,6 +14,22 @@ var tick = function(fn){
     };
 };
 
+
+var testPE = function(test_name, genfn){
+    test(test_name, function(t){
+        mkTestPicoEngine({
+            rootRIDs: ["io.picolabs.engine"],
+        }, function(err, pe){
+            if(err) return t.end(err);
+
+            cocb.run(function*(){
+                yield genfn(t, pe);
+            }, t.end);
+        });
+    });
+};
+
+
 test("engine:getPicoIDByECI", function(t){
     cocb.run(function*(){
         var engine = kengine({
@@ -45,32 +61,6 @@ test("engine:getPicoIDByECI", function(t){
     }, t.end);
 });
 
-test("engine:removeChannel", function(t){
-    cocb.run(function*(){
-        var engine = kengine({
-            db: {
-                removeChannel: tick(function(eci, callback){
-                    if(eci === "foo"){
-                        return callback();
-                    }
-                    callback("NOT FOUND:" + eci);
-                })
-            }
-        });
-        var rm = function*(eci){
-            return yield engine.actions.removeChannel({}, {eci: eci,});
-        };
-
-        t.equals(yield rm("foo"), void 0);
-        try{
-            yield rm("quux");
-            t.fail("should throw b/c not found");
-        }catch(err){
-            t.equals(err, "NOT FOUND:quux");
-        }
-
-    }, t.end);
-});
 
 test("engine:registerRuleset", function(t){
     cocb.run(function*(){
@@ -236,47 +226,228 @@ test("engine:unregisterRuleset", function(t){
     }, t.end);
 });
 
-test("engine:describeRuleset", function(t){
-    mkTestPicoEngine({}, function(err, pe){
-        if(err) return t.end(err);
+testPE("engine:describeRuleset", function * (t, pe){
+    var ctx = {};
+    var descRID = yield pe.modules.get(ctx, "engine", "describeRuleset");
 
-        cocb.run(function*(){
-            var ctx = {};
-            var descRID = yield pe.modules.get(ctx, "engine", "describeRuleset");
+    var desc = yield descRID(ctx, {rid: "io.picolabs.hello_world"});
 
-            var desc = yield descRID(ctx, {rid: "io.picolabs.hello_world"});
+    var isIsoString = function(str){
+        return str === (new Date(str)).toISOString();
+    };
 
-            var isIsoString = function(str){
-                return str === (new Date(str)).toISOString();
-            };
-
-            t.deepEquals(_.keys(desc), [
-                "rid",
-                "src",
-                "hash",
-                "url",
-                "timestamp_stored",
-                "timestamp_enable",
-                "meta",
-            ]);
-            t.equals(desc.rid, "io.picolabs.hello_world");
-            t.ok(_.isString(desc.src));
-            t.ok(_.isString(desc.hash));
-            t.ok(_.isString(desc.url));
-            t.ok(isIsoString(desc.timestamp_stored));
-            t.ok(isIsoString(desc.timestamp_enable));
-            t.deepEquals(desc.meta, {
-                name: "Hello World",
-                description: "\nA first ruleset for the Quickstart\n        ",
-                author: "Phil Windley",
-            });
-
-            try{
-                yield descRID(ctx, {rid: "not.found"});
-                t.fail("should fail b/c not found");
-            }catch(err){
-                t.ok(err && err.notFound);
-            }
-        }, t.end);
+    t.deepEquals(_.keys(desc), [
+        "rid",
+        "src",
+        "hash",
+        "url",
+        "timestamp_stored",
+        "timestamp_enable",
+        "meta",
+    ]);
+    t.equals(desc.rid, "io.picolabs.hello_world");
+    t.ok(_.isString(desc.src));
+    t.ok(_.isString(desc.hash));
+    t.ok(_.isString(desc.url));
+    t.ok(isIsoString(desc.timestamp_stored));
+    t.ok(isIsoString(desc.timestamp_enable));
+    t.deepEquals(desc.meta, {
+        name: "Hello World",
+        description: "\nA first ruleset for the Quickstart\n        ",
+        author: "Phil Windley",
     });
+
+    try{
+        yield descRID(ctx, {rid: "not.found"});
+        t.fail("should fail b/c not found");
+    }catch(err){
+        t.ok(err && err.notFound);
+    }
+});
+
+testPE("engine:listInstalledRIDs", function * (t, pe){
+    var ctx = {};
+    var listRIDs = yield pe.modules.get(ctx, "engine", "listInstalledRIDs");
+
+    var rids = yield listRIDs(ctx, {pico_id: "id0"});
+
+    t.deepEquals(rids, [
+        "io.picolabs.engine",
+    ]);
+});
+
+testPE("engine:newPico", function * (t, pe){
+    var action = function*(ctx, name, args){
+        return yield pe.modules.action(ctx, "engine", name, args);
+    };
+
+    var pico2 = yield action({}, "newPico", {
+        parent_id: "id0",
+    });
+    t.deepEquals(pico2, {
+        id: "id2",
+        parent_id: "id0",
+    });
+
+    //default to ctx.pico_id
+    var pico3 = yield action({
+        pico_id: "id2",//called by pico2
+    }, "newPico", {});
+    t.deepEquals(pico3, {
+        id: "id3",
+        parent_id: "id2",
+    });
+
+    //no parent_id
+    try{
+        yield action({}, "newPico", {});
+        t.fail("should have thrown");
+    }catch(e){
+        t.equals(e + "", "Error: Invalid pico_id: null");
+    }
+});
+
+
+testPE("engine:getParent, engine:listChildren, engine:removePico", function * (t, pe){
+
+    var newPico = function*(parent_id){
+        return yield pe.modules.action({pico_id: parent_id}, "engine", "newPico", []);
+    };
+    var removePico = function*(ctx, args){
+        return yield pe.modules.action(ctx, "engine", "removePico", args);
+    };
+
+    var getParent = yield pe.modules.get({}, "engine", "getParent");
+    var listChildren = yield pe.modules.get({}, "engine", "listChildren");
+
+    yield newPico("id0");// id2
+    yield newPico("id0");// id3
+    yield newPico("id2");// id4
+
+    t.equals(yield getParent({}, ["id0"]), null);
+    t.equals(yield getParent({}, ["id2"]), "id0");
+    t.equals(yield getParent({}, ["id3"]), "id0");
+    t.equals(yield getParent({}, ["id4"]), "id2");
+
+    t.deepEquals(yield listChildren({}, ["id0"]), ["id2", "id3"]);
+    t.deepEquals(yield listChildren({}, ["id2"]), ["id4"]);
+    t.deepEquals(yield listChildren({}, ["id3"]), []);
+    t.deepEquals(yield listChildren({}, ["id4"]), []);
+
+    //fallback on ctx.pico_id
+    t.equals(yield getParent({pico_id: "id4"}, []), "id2");
+    t.deepEquals(yield listChildren({pico_id: "id2"}, []), ["id4"]);
+
+
+    t.equals(yield removePico({}, ["id4"]), void 0);
+    t.deepEquals(yield listChildren({}, ["id2"]), []);
+
+    //report error on invalid pico_id
+    var assertInvalidPicoID = function * (genfn, id, expected){
+        try{
+            yield genfn({pico_id: id}, []);
+            t.fail("should have thrown on invalid pico_id");
+        }catch(e){
+            t.equals(e + "", expected);
+        }
+    };
+
+    yield assertInvalidPicoID(getParent   , "id404", "NotFoundError: Invalid pico_id: id404");
+    yield assertInvalidPicoID(listChildren, "id404", "NotFoundError: Invalid pico_id: id404");
+    yield assertInvalidPicoID(removePico  , "id404", "NotFoundError: Invalid pico_id: id404");
+
+    yield assertInvalidPicoID(getParent   , void 0, "Error: Invalid pico_id: null");
+    yield assertInvalidPicoID(listChildren, void 0, "Error: Invalid pico_id: null");
+    yield assertInvalidPicoID(removePico  , void 0, "Error: Invalid pico_id: null");
+});
+
+testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function * (t, pe){
+
+    var newChannel = function*(ctx, args){
+        return yield pe.modules.action(ctx, "engine", "newChannel", args);
+    };
+    var removeChannel = function*(ctx, args){
+        return yield pe.modules.action(ctx, "engine", "removeChannel", args);
+    };
+    var listChannels = yield pe.modules.get({}, "engine", "listChannels");
+
+    t.deepEquals(yield listChannels({}, ["id0"]), [
+        {id: "id1", pico_id: "id0", name: "root", type: "secret"},
+    ]);
+
+    t.deepEquals(yield newChannel({}, ["id0"]), {id: "id2", pico_id: "id0", name: void 0, type: void 0});
+    t.deepEquals(yield listChannels({}, ["id0"]), [
+        {id: "id1", pico_id: "id0", name: "root", type: "secret"},
+        {id: "id2", pico_id: "id0"},
+    ]);
+
+    t.equals(yield removeChannel({}, ["id1"]), void 0);
+    t.deepEquals(yield listChannels({}, ["id0"]), [
+        {id: "id2", pico_id: "id0"},
+    ]);
+
+    t.equals(yield removeChannel({}, ["id2"]), void 0);
+    t.deepEquals(yield listChannels({}, ["id0"]), [
+    ]);
+
+    //report error on invalid pico_id
+    var assertInvalidPicoID = function * (genfn, id, expected){
+        try{
+            yield genfn({pico_id: id}, []);
+            t.fail("should have thrown on invalid pico_id");
+        }catch(e){
+            t.equals(e + "", expected);
+        }
+    };
+
+    yield assertInvalidPicoID(newChannel  , "id404", "NotFoundError: Invalid pico_id: id404");
+    yield assertInvalidPicoID(listChannels, "id404", "NotFoundError: Invalid pico_id: id404");
+
+    yield assertInvalidPicoID(newChannel  , void 0, "Error: Invalid pico_id: null");
+    yield assertInvalidPicoID(listChannels, void 0, "Error: Invalid pico_id: null");
+
+});
+
+
+testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset", function * (t, pe){
+
+    var installRS = function*(ctx, args){
+        return yield pe.modules.action(ctx, "engine", "installRuleset", args);
+    };
+    var uninstallRID = function*(ctx, args){
+        return yield pe.modules.action(ctx, "engine", "uninstallRuleset", args);
+    };
+    var listRIDs = yield pe.modules.get({}, "engine", "listInstalledRIDs");
+
+    t.deepEquals(yield listRIDs({pico_id: "id0"}, []), [
+        "io.picolabs.engine",
+    ]);
+
+    t.equals(yield installRS({}, ["id0", "io.picolabs.hello_world"]), "io.picolabs.hello_world");
+    t.deepEquals(yield listRIDs({pico_id: "id0"}, []), [
+        "io.picolabs.engine",
+        "io.picolabs.hello_world",
+    ]);
+
+    t.equals(yield uninstallRID({}, ["id0", "io.picolabs.engine"]), void 0);
+    t.deepEquals(yield listRIDs({pico_id: "id0"}, []), [
+        "io.picolabs.hello_world",
+    ]);
+
+    //report error on invalid pico_id
+    var assertInvalidPicoID = function * (genfn, id, expected){
+        try{
+            yield genfn({pico_id: id}, {rid: "io.picolabs.hello_world"});
+            t.fail("should have thrown on invalid pico_id");
+        }catch(e){
+            t.equals(e + "", expected);
+        }
+    };
+
+    yield assertInvalidPicoID(installRS   , "id404", "NotFoundError: Invalid pico_id: id404");
+    yield assertInvalidPicoID(uninstallRID, "id404", "NotFoundError: Invalid pico_id: id404");
+
+    yield assertInvalidPicoID(installRS   , void 0, "Error: Invalid pico_id: null");
+    yield assertInvalidPicoID(uninstallRID, void 0, "Error: Invalid pico_id: null");
+
 });

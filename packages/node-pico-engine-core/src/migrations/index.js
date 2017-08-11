@@ -13,4 +13,5 @@ module.exports = {
     "20170803T211131_eci-to-pico_id": require("./20170803T211131_eci-to-pico_id"),
     "20170803T214146_channel": require("./20170803T214146_channel"),
     "20170804T214426_pico-ruleset": require("./20170804T214426_pico-ruleset"),
+    "20170810T170618_parent-child": require("./20170810T170618_parent-child"),
 };

@@ -1861,7 +1861,8 @@ test("PicoEngine - installRuleset", function(t){
             async.apply(pe.newPico, {}),
             function(next){
                 pe.installRuleset("id404", rid_to_use, function(err){
-                    t.equals(err + "", "Error: Invalid pico_id: id404");
+                    t.equals(err + "", "NotFoundError: Invalid pico_id: id404");
+                    t.ok(err.notFound);
                     next();
                 });
             },
@@ -2164,7 +2165,10 @@ test("PicoEngine - root pico creation", function(t){
                 id: "id0",
                 eci: "id1",
             });
-            t.deepEquals(db.pico, {"id0": {id: "id0"}});
+            t.deepEquals(db.pico, {"id0": {
+                id: "id0",
+                parent_id: null,
+            }});
             t.deepEquals(_.keys(db.channel), ["id1"]);
 
             t.deepEquals(_.keys(db["pico-ruleset"]["id0"]), [

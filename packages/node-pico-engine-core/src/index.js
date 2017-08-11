@@ -506,9 +506,8 @@ module.exports = function(conf){
         });
     };
     core.installRuleset = function(pico_id, rid, callback){
-        db.hasPico(pico_id, function(err, has_pico){
+        db.assertPicoID(pico_id, function(err, pico_id){
             if(err) return callback(err);
-            if(!has_pico) return callback(new Error("Invalid pico_id: " + pico_id));
 
             db.hasEnabledRid(rid, function(err, has){
                 if(err) return callback(err);
@@ -520,7 +519,11 @@ module.exports = function(conf){
     };
 
     core.uninstallRuleset = function(pico_id, rid, callback){
-        db.removeRulesetFromPico(pico_id, rid, callback);
+        db.assertPicoID(pico_id, function(err, pico_id){
+            if(err) return callback(err);
+
+            db.removeRulesetFromPico(pico_id, rid, callback);
+        });
     };
 
     var resumeScheduler = function(callback){
@@ -580,6 +583,7 @@ module.exports = function(conf){
 
     pe.start = function(callback){
         async.series([
+            db.checkAndRunMigrations,
             function(next){
                 if(_.isEmpty(rootRIDs)){
                     return next();
@@ -629,7 +633,6 @@ module.exports = function(conf){
                     });
                 });
             },
-            db.checkAndRunMigrations,
             registerAllEnabledRulesets,
             resumeScheduler,
         ], callback);
