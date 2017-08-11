@@ -47,7 +47,7 @@
     "lodash": "^4.13.1",
     "long-timeout": "^0.1.1",
     "moment-timezone": "^0.5.13",
-    "node-schedule": "^1.2.1",
+    "node-schedule": "^1.2.4",
     "random-words": "0.0.1",
     "request": "^2.79.0",
     "strftime": "^0.10.0",
