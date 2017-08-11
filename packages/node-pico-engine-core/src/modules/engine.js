@@ -123,7 +123,14 @@ module.exports = function(core){
             core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
-                core.db.removePico(pico_id, callback);
+                core.db.listChildren(pico_id, function(err, children){
+                    if(err) return callback(err);
+                    if(_.size(children) > 0){
+                        callback(new Error("Cannot remove pico \"" + pico_id + "\" because it has " + _.size(children) + " children"));
+                        return;
+                    }
+                    core.db.removePico(pico_id, callback);
+                });
             });
         }),
 

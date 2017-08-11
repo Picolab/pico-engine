@@ -359,6 +359,13 @@ testPE("engine:getParent, engine:listChildren, engine:removePico", function * (t
     yield assertInvalidPicoID(getParent   , void 0, "Error: Invalid pico_id: null");
     yield assertInvalidPicoID(listChildren, void 0, "Error: Invalid pico_id: null");
     yield assertInvalidPicoID(removePico  , void 0, "Error: Invalid pico_id: null");
+
+    try{
+        yield removePico({}, ["id0"]);
+        t.fail("should have thrown b/c you can't remove a pico with children");
+    }catch(e){
+        t.equals(e + "", "Error: Cannot remove pico \"id0\" because it has 2 children");
+    }
 });
 
 testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function * (t, pe){
