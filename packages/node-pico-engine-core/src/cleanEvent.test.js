@@ -118,49 +118,43 @@ test("event = cleanEvent(event)", function(t){
         attrs: {},
     });
 
-    //convert attrs via KRL json encode
-    t.deepEquals(cleanEvent({
-        eci: "eci123",
-        domain: "foo",
-        type: "bar",
-        attrs: {
-            fn: function(){}
-        },
-    }), {
-        eci: "eci123",
-        eid: "none",
-        domain: "foo",
-        type: "bar",
-        attrs: {
-            fn: "[Function]"
-        },
-    });
+    var testAttrs = function(input, output, msg){
+        t.deepEquals(cleanEvent({
+            eci: "eci123",
+            eid: "eid",
+            domain: "foo",
+            type: "bar",
+            attrs: input,
+        }).attrs, output, msg);
+    };
 
-    //attrs must be a map or array
-    t.deepEquals(cleanEvent({
-        eci: "eci123",
-        domain: "foo",
-        type: "bar",
-        attrs: function(){},
-    }), {
-        eci: "eci123",
-        eid: "none",
-        domain: "foo",
-        type: "bar",
-        attrs: {},
-    });
-    t.deepEquals(cleanEvent({
-        eci: "eci123",
-        domain: "foo",
-        type: "bar",
-        attrs: [0, 1, "a", null, NaN],
-    }), {
-        eci: "eci123",
-        eid: "none",
-        domain: "foo",
-        type: "bar",
-        attrs: [0, 1, "a", null, null],
-    });
+    testAttrs({
+        fn: function(){}
+    }, {
+        fn: "[Function]"
+    }, "convert attrs via KRL json encode");
+
+    testAttrs(function(){}, {}, "attrs must be a map or array");
+
+    testAttrs(
+        [0, 1, "a", null, void 0, NaN],
+        [0, 1, "a", null, null, null],
+        "attrs normalize to JSON null's"
+    );
+
+    testAttrs(
+        {a: null, b: void 0, c: NaN},
+        {a: null, b: null, c: null},
+        "attrs normalize to JSON null's"
+    );
+
+    (function(){
+        testAttrs(
+            arguments,
+            {"0": "foo", "1": "bar"},
+            "non \"plain\" objects should work as Maps"
+        );
+    }("foo", "bar"));
 
 
     var testEid = function(input, output, msg){
