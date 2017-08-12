@@ -25,10 +25,10 @@
   "homepage": "https://github.com/Picolab/node-krl-stdlib#readme",
   "devDependencies": {
     "co-callback": "^1.2.0",
-    "eslint": "^4.1.1",
+    "eslint": "^4.4.1",
     "faucet": "^0.0.1",
     "onchange": "^3.2.1",
-    "tape": "^4.7.0"
+    "tape": "^4.8.0"
   },
   "dependencies": {
     "lodash": "^4.13.1"
