@@ -53,7 +53,7 @@
     "mime-types": "^2.1.16",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "pico-engine-core": "^0.34.1",
+    "pico-engine-core": "^0.34.2",
     "request": "^2.79.0"
   }
 }
