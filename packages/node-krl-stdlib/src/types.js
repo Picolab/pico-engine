@@ -27,7 +27,15 @@ types.isArray = function(val){
 };
 
 types.isMap = function(val){
-    return _.isPlainObject(val);
+    //Can't use _.isPlainObject b/c it's to restrictive on what is a "plain" object
+    //especially when accepting values from other libraries outside of KRL
+    return _.isObject(val)
+        && !_.isArray(val)
+        && !_.isFunction(val)
+        && !_.isRegExp(val)
+        && !_.isString(val)
+        && !_.isNumber(val)
+    ;
 };
 
 types.isFunction = function(val){
@@ -46,9 +54,9 @@ types.typeOf = function(val){
         "Number",
         "RegExp",
         "Array",
-        "Map",
         "Function",
         "Action",
+        "Map",
     ];
     var i;
     var type;

@@ -1,6 +1,7 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 var test = require("tape");
+var types = require("./types");
 var stdlib = require("./");
 
 var ylibFn = function(fn_name, args){
@@ -157,7 +158,7 @@ test("type operators", function(t){
     tf("as", [_.noop, "String"], "[Function]");
     tf("as", [[1,2], "String"], "[Array]");
     tf("as", [{}, "String"], "[Map]");
-    tf("as", [arguments, "String"], "[JSObject]");
+    tf("as", [arguments, "String"], "[Map]");
 
     tf("as", ["-1.23", "Number"], -1.23);
     tf("as", [42, "Number"], 42);
@@ -199,7 +200,24 @@ test("type operators", function(t){
     tf("typeof", [[]], "Array");
     tf("typeof", [{}], "Map");
     tf("typeof", [_.noop], "Function");
-    tf("typeof", [arguments], "JSObject");
+    tf("typeof", [arguments], "Map");
+
+    //special tests for Map detection
+    t.equals(types.isMap(null), false);
+    t.equals(types.isMap(void 0), false);
+    t.equals(types.isMap(NaN), false);
+    t.equals(types.isMap(_.noop), false);
+    t.equals(types.isMap(/a/i), false);
+    t.equals(types.isMap([1, 2]), false);
+    t.equals(types.isMap(new Array(2)), false);
+    t.equals(types.isMap("foo"), false);
+    t.equals(types.isMap(new String("bar")), false);
+    t.equals(types.isMap(10), false);
+    t.equals(types.isMap(new Number(10)), false);
+
+    t.equals(types.isMap({}), true);
+    t.equals(types.isMap({a: 1, b: 2}), true);
+    t.equals(types.isMap(arguments), true);
 
     var action = function(){};
     action.is_an_action = true;
@@ -415,7 +433,9 @@ ytest("collection operators", function*(t, ytf, tf){
     //use .as("String") rules for other types
     tf("encode", [_.noop], "\"[Function]\"");
     tf("encode", [/a/ig], "\"re#a#gi\"");
-    tf("encode", [arguments], "\"[JSObject]\"");
+    (function(){
+        tf("encode", [arguments], "{\"0\":\"a\",\"1\":\"b\"}");
+    }("a", "b"));
     //testing it nested
     tf("encode", [{fn: _.noop, n: NaN, u: void 0}], "{\"fn\":\"[Function]\",\"n\":null,\"u\":null}");
 
