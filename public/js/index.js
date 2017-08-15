@@ -547,7 +547,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         do_main_page(rootPico);
       }
     });
-    $("body").on("submit",'.js-ajax-form',function(e){
+    $("body").on("submit",'.js-ajax-form-auth',function(e){
       e.preventDefault();
       var action = $(this).attr("action");
       if(action==="/login"){
