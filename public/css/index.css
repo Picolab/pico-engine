@@ -247,3 +247,6 @@ svg line.subscription {
 .form-login {
   margin-top: 5px;
 }
+#login-display-switch fieldset {
+  display: inline-block;
+}

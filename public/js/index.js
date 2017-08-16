@@ -529,7 +529,6 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     }
     var loginTemplate = Handlebars.compile($('#login-template').html());
     var ownerTemplate = Handlebars.compile($('#owner-id-template').html());
-    var passwordTemplate = Handlebars.compile($('#password-template').html());
     var loginData = {
       "root_pico_id":rootPico.id,
       "users":users
@@ -537,6 +536,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     $('body').html(loginTemplate(loginData));
     document.title = $('body h1').html();
     $('#login-display-switch').html(ownerTemplate({}));
+    $("input")[0].focus();
     $("#user-login").click(function(){
       var ownerPico_id = $("#user-select").val();
       logged_in_pico = {id:ownerPico_id};
@@ -547,7 +547,26 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         do_main_page(rootPico);
       }
     });
-    $("body").on("submit",'.js-ajax-form-auth',function(e){
+    $('#login-display-switch').on("click",'#need-account',function(e){
+      e.preventDefault();
+      var newAccountTemplate = Handlebars.compile($("#new-account-template").html());
+      $("#login-display-switch").html(newAccountTemplate({}));
+      $("input")[0].focus();
+    });
+    $("#login-display-switch").on("click","#already-account",function(e){
+      e.preventDefault();
+      $("#login-display-switch").html(ownerTemplate({}));
+      $("input")[0].focus();
+    });
+    $("#login-display-switch").on("change","#method",function(e){
+      e.preventDefault();
+      if($(this).val() !== "password") {
+        $(".password-entry").hide();
+      } else {
+        $(".password-entry").show();
+      }
+    });
+    $('#login-display-switch').on("submit",'.js-ajax-form-auth',function(e){
       e.preventDefault();
       var action = $(this).attr("action");
       if(action==="/login"){
@@ -555,7 +574,11 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
             if(data && data.directives && data.directives[0] ){
               var d = data.directives[0];
               if (d.options && d.options.eci){ // successfully logged in
-                $('#login-display-switch').html(passwordTemplate({eci:d.options.eci,eid:"none"}));
+                var method = d.options.method || "password";
+                var templateId = "#" + method + "-template";
+                var methodTemplate = Handlebars.compile($(templateId).html());
+                $('#login-display-switch').html(methodTemplate({eci:d.options.eci,eid:"none"}));
+                $("input")[0].focus();
               }
             }else{
               alert(JSON.stringify(data));
@@ -574,29 +597,14 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
                 location.assign(redirect);
               }else {
                 alert("no pico_id found in directive, try again please.");
+                location.reload();
               }
             }else{
               alert("no directives returned, try again please.");
+              location.reload();
             }
         }, "json");
       }
-      /*
-      $.post($(this).attr("action"),formToJSON(this),function(data){
-          if(data && data.directives ){
-            var d = data.directives[0];
-            if (d.options && d.options.pico_id){ // successfully logged in
-              sessionStorage.setItem("owner_pico_id",d.options.pico_id);
-              var redirect = getCookie("previousUrl");
-              console.log(redirect);
-              //should clear cookie here! ?maybe
-              location.assign(redirect);
-            }
-          }else{
-            alert(err);
-          }
-          //location.reload(); death bug
-      }, "json");
-      */
     });
   } else {
     do_main_page(logged_in_pico);
