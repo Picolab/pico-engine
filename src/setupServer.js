@@ -145,7 +145,7 @@ module.exports = function(pe){
     });
 
     app.all("/api/pico/:id/rm-channel/:eci", function(req, res){
-        pe.removeChannel(req.params.id, req.params.eci, function(err){
+        pe.removeChannel(req.params.eci, function(err){
             if(err) return errResp(res, err);
             res.json({ok: true});
         });
