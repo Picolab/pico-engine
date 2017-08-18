@@ -755,6 +755,25 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
             },
 
 
+            // Test using defaction s provided by the module
+            [
+                signal("module_used", "dflt_getInfoAction"),
+                [{name: "getInfoAction", options: {
+                    name: "Bob",
+                    memo: "[\"foo\" by Bob]",
+                    privateFn: "privateFn = name: Bob memo: [\"foo\" by Bob]"
+                }}]
+            ],
+            [
+                signal("module_used", "conf_getInfoAction"),
+                [{name: "getInfoAction", options: {
+                    name: "Jim",//the overrided config is used here
+                    memo: "[\"foo\" by Bob]",//the memo was stored on the pico ruleset with default config
+                    privateFn: "privateFn = name: Jim memo: [\"foo\" by Bob]"
+                }}]
+            ],
+
+
             //Test unregisterRuleset checks
             function(next){
                 pe.unregisterRuleset("io.picolabs.module-defined", function(err){

@@ -3,7 +3,8 @@ module.exports = {
   "meta": {
     "provides": [
       "getInfo",
-      "getName"
+      "getName",
+      "getInfoAction"
     ],
     "shares": ["getInfo"],
     "configure": function* (ctx) {
@@ -33,6 +34,17 @@ module.exports = {
         "privateFn": yield ctx.applyFn(ctx.scope.get("privateFn"), ctx, [])
       };
     }));
+    ctx.defaction(ctx, "getInfoAction", function* (ctx, getArg, hasArg, runAction) {
+      ctx.scope.set("name", getArg("name", 0));
+      var fired = true;
+      if (fired) {
+        yield runAction(ctx, void 0, "send_directive", [
+          "getInfoAction",
+          yield ctx.applyFn(ctx.scope.get("getInfo"), ctx, [])
+        ], []);
+      }
+      return [];
+    });
   },
   "rules": {
     "store_memo": {

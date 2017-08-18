@@ -35,4 +35,14 @@ ruleset io.picolabs.module-used {
 
         send_directive("conf_info", {"info": my_module_conf:getInfo()});
     }
+    rule dflt_getInfoAction {
+        select when module_used dflt_getInfoAction
+
+        my_module_dflt:getInfoAction();
+    }
+    rule conf_getInfoAction {
+        select when module_used conf_getInfoAction
+
+        my_module_conf:getInfoAction();
+    }
 }

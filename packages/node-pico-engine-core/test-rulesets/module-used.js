@@ -143,6 +143,60 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
       }
+    },
+    "dflt_getInfoAction": {
+      "name": "dflt_getInfoAction",
+      "select": {
+        "graph": { "module_used": { "dflt_getInfoAction": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, "my_module_dflt", "getInfoAction", [], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "conf_getInfoAction": {
+      "name": "conf_getInfoAction",
+      "select": {
+        "graph": { "module_used": { "conf_getInfoAction": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, "my_module_conf", "getInfoAction", [], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
     }
   }
 };

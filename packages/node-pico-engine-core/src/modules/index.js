@@ -1,5 +1,6 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
+var ktypes = require("krl-stdlib/types");
 
 var sub_modules = {
     ent: require("./ent"),
@@ -15,9 +16,26 @@ var sub_modules = {
 };
 
 module.exports = function(core){
+
     var modules = _.mapValues(sub_modules, function(m){
         return m(core);
     });
+
+
+    var userModuleLookup = function(ctx, domain, id){
+        var umod = _.get(core.rsreg.get(ctx.rid), ["modules_used", domain]);
+        var has_it = _.has(umod, "scope")
+            && umod.scope.has(id)
+            && _.includes(umod.provides, id)
+            ;
+        var value = has_it ? umod.scope.get(id) : void 0;
+        return {
+            has_it: has_it,
+            value: value,
+        };
+    };
+
+
     return {
         get: cocb.toYieldable(function(ctx, domain, id, callback){
             if(_.has(modules, [domain, "def", id])){
@@ -28,16 +46,15 @@ module.exports = function(core){
                 modules[domain].get(ctx, id, callback);
                 return;
             }
-            var umod = _.get(core.rsreg.get(ctx.rid), ["modules_used", domain]);
-            if(_.has(umod, "scope")
-                && umod.scope.has(id)
-                && _.includes(umod.provides, id)
-            ){
-                callback(null, umod.scope.get(id));
+            var umod = userModuleLookup(ctx, domain, id);
+            if(umod.has_it){
+                callback(null, umod.value);
                 return;
             }
             callback(new Error("Not defined `" + domain + ":" + id + "`"));
         }),
+
+
         set: cocb.toYieldable(function(ctx, domain, id, value, callback){
             if(_.has(modules, domain)){
                 if(_.has(modules[domain], "set")){
@@ -49,6 +66,8 @@ module.exports = function(core){
             }
             callback(new Error("Not defined `" + domain + ":" + id + "`"));
         }),
+
+
         del: cocb.toYieldable(function(ctx, domain, id, callback){
             if(!_.has(modules, domain)){
                 callback(new Error("Module not defined `" + domain + ":" + id + "`"));
@@ -60,8 +79,16 @@ module.exports = function(core){
             }
             modules[domain].del(ctx, id, callback);
         }),
+
+
         action: cocb.wrap(function*(ctx, domain, id, args){
             if(!_.has(modules, [domain, "actions", id])){
+
+                var umod = userModuleLookup(ctx, domain, id);
+                if(umod.has_it && ktypes.isAction(umod.value)){
+                    return yield umod.value(ctx, args);
+                }
+
                 throw new Error("Not an action `" + domain + ":" + id + "`");
             }
             return yield modules[domain].actions[id](ctx, args);

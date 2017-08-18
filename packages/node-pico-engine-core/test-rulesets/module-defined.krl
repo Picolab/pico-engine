@@ -1,6 +1,6 @@
 ruleset io.picolabs.module-defined {
     meta {
-        provides getInfo, getName
+        provides getInfo, getName, getInfoAction
         shares getInfo
         configure using
             configured_name = "Bob"
@@ -18,6 +18,9 @@ ruleset io.picolabs.module-defined {
                 "memo": ent:memo,
                 "privateFn": privateFn()
             };
+        }
+        getInfoAction = defaction(name){
+            send_directive("getInfoAction", getInfo());
         }
     }
     rule store_memo {
