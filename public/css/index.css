@@ -250,3 +250,6 @@ svg line.subscription {
 #login-display-switch fieldset {
   display: inline-block;
 }
+.no-red:active {
+  color: rgb(85,26,139);
+}

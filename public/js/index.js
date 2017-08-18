@@ -529,13 +529,15 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     }
     var loginTemplate = Handlebars.compile($('#login-template').html());
     var ownerTemplate = Handlebars.compile($('#owner-id-template').html());
+    var newAccountTemplate = Handlebars.compile($("#new-account-template").html());
     var loginData = {
       "root_pico_id":rootPico.id,
       "users":users
     };
     $('body').html(loginTemplate(loginData));
     document.title = $('body h1').html();
-    $('#login-display-switch').html(ownerTemplate({}));
+    var $lds = $("#login-display-switch");
+    $lds.html(ownerTemplate({}));
     $("input")[0].focus();
     $("#user-login").click(function(){
       var ownerPico_id = $("#user-select").val();
@@ -547,18 +549,27 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         do_main_page(rootPico);
       }
     });
-    $('#login-display-switch').on("click",'#need-account',function(e){
+    $lds.on("click",'#need-account',function(e){
       e.preventDefault();
-      var newAccountTemplate = Handlebars.compile($("#new-account-template").html());
-      $("#login-display-switch").html(newAccountTemplate({}));
-      $("input")[0].focus();
+      $("#need-account").toggle();
+      $lds.slideToggle(400,function(){
+        $lds.html(newAccountTemplate({}));
+        $lds.slideToggle(400,function(){
+          $("input")[0].focus();
+        });
+      });
     });
-    $("#login-display-switch").on("click","#already-account",function(e){
+    $lds.on("click","#already-account",function(e){
       e.preventDefault();
-      $("#login-display-switch").html(ownerTemplate({}));
-      $("input")[0].focus();
+      $("#already-account").toggle();
+      $lds.slideToggle(400,function(){
+        $lds.html(ownerTemplate({}));
+        $lds.slideToggle(400,function(){
+          $("input")[0].focus();
+        });
+      });
     });
-    $("#login-display-switch").on("change","#method",function(e){
+    $lds.on("change","#method",function(e){
       e.preventDefault();
       if($(this).val() !== "password") {
         $(".password-entry").hide();
@@ -566,7 +577,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         $(".password-entry").show();
       }
     });
-    $('#login-display-switch').on("submit",'.js-ajax-form-auth',function(e){
+    $lds.on("submit",'.js-ajax-form-auth',function(e){
       e.preventDefault();
       var action = $(this).attr("action");
       if(action==="/login"){
@@ -577,7 +588,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
                 var method = d.options.method || "password";
                 var templateId = "#" + method + "-template";
                 var methodTemplate = Handlebars.compile($(templateId).html());
-                $('#login-display-switch').html(methodTemplate({eci:d.options.eci,eid:"none"}));
+                $lds.html(methodTemplate({eci:d.options.eci,eid:"none"}));
                 $("input")[0].focus();
               }
             }else{
