@@ -137,7 +137,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         thePicoOut.children.push(cp);
       }
       thePicoOut.dname = getV(thePicoInp,"dname",
-                              $li.parent().parent().prev().text());
+                              $li.parent().parent().prev().text().trim());
       thePicoOut.color = getV(thePicoInp,"color",
                               thePicoOut.parent?"#7FFFD4":"#87CEFA");
       callback(thePicoOut);
