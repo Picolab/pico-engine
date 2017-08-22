@@ -7,11 +7,11 @@ var randomWords = require("random-words");
 var fixLowerUpperArgs = function(args){
     return {
         lower: ktypes.isNull(args.lower)
-            ? 0
+            ? 1
             : _.parseInt(args.lower, 10) || 0,
 
         upper: ktypes.isNull(args.upper)
-            ? 1
+            ? 0
             : _.parseInt(args.upper, 10) || 0
     };
 };

@@ -29,20 +29,38 @@ test("module - random:*", function(t){
             n = yield krandom.integer({}, []);
             assertNumRange(n, 0, 1, true);
 
+            n = yield krandom.integer({}, [0]);
+            assertNumRange(n, 0, 0, true);
+
             n = yield krandom.integer({}, [10]);
             assertNumRange(n, 0, 10, true);
+
+            n = yield krandom.integer({}, [-7]);
+            assertNumRange(n, -7, 0, true);
 
             n = yield krandom.integer({}, [-3, 5]);
             assertNumRange(n, -3, 5, true);
 
+            n = yield krandom.integer({}, [4, -8]);
+            assertNumRange(n, -8, 4, true);
+
             n = yield krandom.number({}, []);
             assertNumRange(n, 0, 1);
+
+            n = yield krandom.number({}, [0]);
+            assertNumRange(n, 0, 0);
 
             n = yield krandom.number({}, [7]);
             assertNumRange(n, 0, 7);
 
+            n = yield krandom.number({}, [-1.2]);
+            assertNumRange(n, -1.2, 0);
+
             n = yield krandom.number({}, [-3, 5]);
             assertNumRange(n, -3, 5);
+
+            n = yield krandom.number({}, [9.87, -3.6]);
+            assertNumRange(n, -3.6, 9.87);
 
         }
         //if an assert hasn't thrown up by now, we're good
