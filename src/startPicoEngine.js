@@ -189,7 +189,11 @@ module.exports = function(opts, callback){
         ],
     });
 
-    setupLogging(pe);
+    if(opts.no_logging){
+        //no setupLogging
+    }else{
+        setupLogging(pe);
+    }
 
     //system rulesets should be registered/updated first
     registerBuiltInRulesets(pe, function(err){
