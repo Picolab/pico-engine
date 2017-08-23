@@ -1,7 +1,7 @@
 var _ = require("lodash");
-var λ = require("contra");
 var fs = require("fs");
 var path = require("path");
+var async = require("async");
 var leveldown = require("leveldown");
 var PicoEngine = require("pico-engine-core");
 var RulesetLoader = require("./RulesetLoader");
@@ -27,7 +27,7 @@ var setupRootPico = function(pe, callback){
                 };
             };
 
-            λ.series([
+            async.series([
                 signal({
                     eid: "19",
                     domain: "pico",
@@ -58,7 +58,7 @@ var registerBuiltInRulesets = function(pe, callback){
     fs.readdir(krl_dir, function(err, files){
         if(err) return callback(err);
         //.series b/c dependent modules must be registered in order
-        λ.each.series(files, function(filename, next){
+        async.eachSeries(files, function(filename, next){
             var file = path.resolve(krl_dir, filename);
             if(!/\.krl$/.test(file)){
                 //only auto-load krl files in the top level
