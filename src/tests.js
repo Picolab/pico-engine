@@ -27,12 +27,12 @@ var startTestServer = function(callback){
             //setup the server without throwing up
             setupServer(pe);
 
-            pe.getRootPico(function(err, root_pico){
+            pe.getRootECI(function(err, root_eci){
                 if(err) throw err;//throw ensures process is killed with non-zero exit code
 
                 callback(null, {
                     pe: pe,
-                    root_eci: root_pico.eci,
+                    root_eci: root_eci,
                     stopServer: function(){
                         if(!is_windows){
                             dir.unlink();

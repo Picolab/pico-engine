@@ -7,23 +7,23 @@ var PicoEngine = require("pico-engine-core");
 var RulesetLoader = require("./RulesetLoader");
 
 var setupRootPico = function(pe, callback){
-    pe.getRootPico(function(err, root_pico){
+    pe.getRootECI(function(err, root_eci){
         if(err) return callback(err);
 
         pe.runQuery({
-            eci: root_pico.eci,
+            eci: root_eci,
             rid: "io.picolabs.pico",
             name: "myself",
         }, function(err, myself){
             if(err) return callback(err);
-            if(myself.id === root_pico.id){
+            if(myself.eci === root_eci){
                 //already initialized
                 return callback();
             }
 
             var signal = function(event){
                 return function(next){
-                    pe.signalEvent(_.assign({eci: root_pico.eci}, event), next);
+                    pe.signalEvent(_.assign({eci: root_eci}, event), next);
                 };
             };
 
@@ -33,8 +33,7 @@ var setupRootPico = function(pe, callback){
                     domain: "pico",
                     type: "root_created",
                     attrs: {
-                        id: root_pico.id,
-                        eci: root_pico.eci,
+                        eci: root_eci,
                     },
                 }),
                 signal({

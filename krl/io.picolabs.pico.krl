@@ -80,7 +80,7 @@ ruleset io.picolabs.pico {
   rule pico_root_created {
     select when pico root_created
     pre {
-      id = event:attr("id")
+      id = meta:picoId
       eci = event:attr("eci")
     }
     always {
