@@ -191,4 +191,19 @@ ruleset io.picolabs.pico {
         attributes event:attrs().put({"rid": real_rid})
     }
   }
+
+  rule pico_need_sync {
+    select when pico need_sync
+    foreach engine:listChildren() setting (pico_id,count)
+    pre {
+      eci = engine:listChannels(pico_id)[0]{"id"};
+      child = {"id": pico_id, "eci": eci};
+    }
+    send_directive("child "+count,child);
+    fired {
+      ent:temp := ent:temp.defaultsTo([]).append(child);
+      ent:children := ent:temp on final;
+      clear ent:temp on final;
+    }
+  }
 }
