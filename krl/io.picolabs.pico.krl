@@ -1,7 +1,7 @@
 ruleset io.picolabs.pico {
   meta {
-    provides myself, parent, children
-    shares myself, parent, children, __testing
+    provides myself, parent, children, createPico
+    shares myself, parent, children, __testing, createPico
   }
   global {
     myself = function(){
@@ -24,30 +24,38 @@ ruleset io.picolabs.pico {
       temp.length() == children().length()
     }
 
+    createPico = defaction() {
+      every {
+        engine:newPico() setting(child);
+        engine:newChannel(child.id, "main", "secret") setting(channel);
+        engine:installRuleset(child.id, "io.picolabs.pico");
+        event:send(
+          { "eci": channel.id, "eid": 151,
+            "domain": "pico", "type": "child_created",
+            "attrs": {
+              "parent":    myself(),
+              "new_child": {"id": child.id, "eci": channel.id},
+              "rs_attrs":  event:attrs()
+            }});
+      }
+      returns {"id": child.id, "eci": channel.id}
+    }
   }
 
 // create a new pico and connect to it
 
   rule pico_new_child_request {
     select when pico new_child_request
-    every {
-      engine:newPico() setting(child);
-
-      engine:newChannel(child.id, "main", "secret") setting(channel);
-
-      engine:installRuleset(child.id, "io.picolabs.pico");
-
-      event:send(
-        { "eci": channel.id, "eid": 151,
-          "domain": "pico", "type": "child_created",
-          "attrs": {
-            "parent":    myself(),
-            "new_child": {"id": child.id, "eci": channel.id},
-            "rs_attrs":  event:attrs()
-          }});
-    }
+    createPico() setting(child);
     always {
-      ent:children := children().union([{"id": child.id, "eci": channel.id}])
+      raise pico event "new_child_created" attributes child;
+    }
+  }
+
+  rule pico_new_child_created {
+    select when pico new_child_created
+    always {
+      ent:children := children().union([event:attrs()])
     }
   }
 
