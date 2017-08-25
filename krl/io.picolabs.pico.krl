@@ -17,7 +17,9 @@ ruleset io.picolabs.pico {
     __testing = { "queries": [ { "name": "myself" },
                                { "name": "parent" },
                                { "name": "children" },
-                               { "name": "__testing" } ] }
+                               { "name": "__testing" } ],
+                  "events": [ { "domain": "pico", "type": "delete_child_request_by_pico_id",
+                                "attrs": [ "pico_id" ] } ] }
 
     hasChild = function(child){
       temp = children().union(child);
@@ -99,6 +101,18 @@ ruleset io.picolabs.pico {
   }
 
 // this pico deletes one of its child picos
+
+  rule pico_delete_child_request_by_pico_id {
+    select when pico delete_child_request_by_pico_id
+    pre {
+      child_id = event:attr("pico_id");
+      child = children().filter(function(v){v{"id"}==child_id})[0];
+    }
+    if child then noop();
+    fired {
+      raise pico event "delete_child_request" attributes child;
+    }
+  }
 
   rule pico_delete_child_request {
     select when pico delete_child_request
