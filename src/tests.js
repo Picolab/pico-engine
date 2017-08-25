@@ -45,9 +45,7 @@ var startTestServer = function(callback){
 };
 
 test("pio-engine", function(t){
-    var pe;
-    var root_eci;
-    var stopServer;
+    var pe, root_eci, stopServer, child_count;//, child;
     async.series([
         function(next){
             startTestServer(function(err, tstserver){
@@ -61,10 +59,10 @@ test("pio-engine", function(t){
 
         ////////////////////////////////////////////////////////////////////////
         //
-        // Wrangler tests
+        //                      Wrangler tests
         //
 
-        function(next){
+        function(next){ // example , call myself function check if eci is the same as root.
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.pico",
@@ -78,9 +76,55 @@ test("pio-engine", function(t){
                 next();
             });
         },
+        ///////////////////////////////// create child tests ///////////////
+        function(next){// store created children
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "children",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                child_count = data.length;
+                next();
+            });
+        },
+        function(next){// create child
+            pe.signalEvent({
+                eci: root_eci,
+                eid: "84",
+                domain: "pico",
+                type: "new_child_request",
+                attrs: {"dname":"ted"}
+            }, function(err, response){
+                if(err) return next(err);
+                console.log("this is the response:",response);
+                pe.emitter.on("episode_start", function(context){
+                    if (context.event && context.event.type == "child_created"){
+                        console.log("this is the context:",context);
+                        //store child information from event for deleting
+                    }
+                });
+                next();
+            });
+        },
+        function(next){// list children and check for new child
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "children",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                t.equals(data.length > child_count, true); // created a child
+                t.equals(data.length , child_count+1); // created only 1 child
+                //check that child is the same from the event above
+                next();
+            });
+        },
 
         //
-        // end Wrangler tests
+        //                      end Wrangler tests
         //
         ////////////////////////////////////////////////////////////////////////
     ], function(err){
