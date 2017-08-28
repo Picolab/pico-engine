@@ -85,6 +85,8 @@ module.exports = function(pe){
 
     app.post("/token", oauth_server.token);
 
+    app.post("/new-account", oauth_server.new_account);
+
     app.post("/login", oauth_server.login);
 
     app.all("/api/engine-version", function(req, res){

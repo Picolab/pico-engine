@@ -577,6 +577,13 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         $(".password-entry").show();
       }
     });
+    $lds.on("change","#owner_id",function(e){
+      e.preventDefault();
+      var $dname = $lds.find("#dname");
+      if(!$dname.val()) {
+        $dname.val($(this).val());
+      }
+    });
     $lds.on("submit",'.js-ajax-form-auth',function(e){
       e.preventDefault();
       var action = $(this).attr("action");
@@ -596,7 +603,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
             }
         }, "json");
 
-      }else { // password authentication
+      }else { // password authentication or account creation
         $.post($(this).attr("action"),formToJSON(this),function(data){
             if(data && data.directives && data.directives[0] ){
               var d = data.directives[0];
