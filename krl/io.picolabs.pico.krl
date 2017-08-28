@@ -211,11 +211,11 @@ ruleset io.picolabs.pico {
     }
 
     channel = function(id,name,collection,filtered) {
-      eci = meta:eci;
       channels = engine:listChannels(meta:picoId);
 
-      single_channel = function(value,channels){
+      single_channel = function(channels){
         attribute = name.isnull() => "id" | "name";
+        value = name.isnull() => id | name ;
         channel_list = channels;
         result = channel_list.filter(function(channel){(channel{attribute}== value)}).head().defaultsTo({},"no channel found, by .head()");
         (result)
@@ -227,7 +227,7 @@ ruleset io.picolabs.pico {
       };
       return1 = collection.isnull() => channels |  channels.collect(function(chan){(type(chan))}) ;
       return2 = filtered.isnull() => return1 | return1{filtered};
-      results = (id.isnull() && name.isnull()) => return2 | single_channel(id,channels);
+      results = (id.isnull() && name.isnull()) => return2 | single_channel(channels);
       {
         "channels" : results
       }.klog("channels: ")
@@ -465,6 +465,7 @@ ruleset io.picolabs.pico {
     }
     if(uniqueName) then every {
       createPico(name,_rids) setting(child)
+      send_directive("Pico_Created", {"pico":child});
     }
     fired {
       ent:children := ent:children.defaultsTo([]).append(child); // this is bypassed when module is used

@@ -45,7 +45,7 @@ var startTestServer = function(callback){
 };
 
 test("pio-engine", function(t){
-    var pe, root_eci, stopServer, /*child_count, child, */channels ,channel;
+    var pe, root_eci, stopServer, child_count, child, channels ,channel;
     async.series([
         function(next){
             startTestServer(function(err, tstserver){
@@ -137,7 +137,7 @@ test("pio-engine", function(t){
                 args: {value:channel.id},
             }, function(err, data){
                 if(err) return next(err);
-                console.log("eci",data);
+                //console.log("eci",data);
                 t.equals(data,channel.id,"alwaysEci id");
                 next();
             });
@@ -190,7 +190,7 @@ test("pio-engine", function(t){
                 attrs: {name:"ted"}
             }, function(err, response){
                 if(err) return next(err);
-                console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
+                //console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
                 //channel = response.directives[0].options.channel;
                 next();
             });
@@ -220,7 +220,8 @@ test("pio-engine", function(t){
 
 
         ///////////////////////////////// create child tests ///////////////
-        /*function(next){// store created children
+        function(next){// store created children
+            console.log("//////////////////Create Child Pico//////////////////");
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.pico",
@@ -228,7 +229,7 @@ test("pio-engine", function(t){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                child_count = data.length;
+                child_count = data.children.length;
                 next();
             });
         },
@@ -238,16 +239,11 @@ test("pio-engine", function(t){
                 eid: "84",
                 domain: "pico",
                 type: "new_child_request",
-                attrs: {"dname":"ted"}
+                attrs: {name:"ted"}
             }, function(err, response){
                 if(err) return next(err);
-                console.log("this is the create child response:",response, child_count);
-                pe.emitter.on("episode_start", function(context){
-                    if (context.event && context.event.type == "child_created"){
-                        console.log("this is the  context:",context.event.attrs.new_child);
-                        child = context.event.attrs.new_child; //store child information from event for deleting
-                    }
-                });
+                //console.log("this is the create child response:",response.directives[0].options.pico);
+                child = response.directives[0].options.pico; //store child information from event for deleting
                 next();
             });
         },
@@ -259,20 +255,21 @@ test("pio-engine", function(t){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                console.log("children",data, child);
-                t.equals(data.length > child_count, true); // created a child
-                t.equals(data.length , child_count+1); // created only 1 child
+                //console.log("children",data.children);
+                t.equals(data.children.length > child_count, true,"created a pico"); // created a child
+                t.equals(data.children.length , child_count+1, "created a single pico"); // created only 1 child
                 var found = false;
-                for(var i = 0; i < data.length; i++) {
-                    if (data[i].id == child.id) {
+                for(var i = 0; i < data.children.length; i++) {
+                    if (data.children[i].id == child.id) {
                         found = true;
+                        t.deepEqual(child, data.children[i],"new pico is the same pico from directive");
                         break;
                     }
                 }
-                t.deepEqual(found, true);//check that child is the same from the event above
+                t.deepEqual(found, true,"new child pico found");//check that child is the same from the event above
                 next();
             });
-        },*/
+        },
 
         //
         //                      end Wrangler tests
