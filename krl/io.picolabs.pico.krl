@@ -16,13 +16,11 @@ ruleset io.picolabs.pico {
     provides skyQuery ,
     rulesets, rulesetsInfo, installRulesets, uninstallRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
-    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createChild, deleteChild, pico, myself,
-    eciFromName
+    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createChild, deleteChild, pico, myself
     shares skyQuery ,
     rulesets, rulesetsInfo, installRulesets, uninstallRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
     children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createChild, deleteChild, pico,  myself,
-    eciFromName,
      __testing
   }
   global {
@@ -195,29 +193,32 @@ ruleset io.picolabs.pico {
 // ********************************************************************************************
 // ***                                      Channels                                        ***
 // ********************************************************************************************
+    checkName = function(name){
+      chan = channel(name, null, null){"channels"}.defaultsTo(null,"no channel found");
+      chan.isnull();
+    }
+
     nameFromEci = function(eci){ // internal function call
-      channel = channel(eci,null,null,null){"channels"};
+      channel = channel(eci,null,null){"channels"};
       channel{"name"}
     }
     eciFromName = function(name){
-      channel = channel(null,name,null,null){"channels"};
-      channel{"eci"}
+      channel = channel(name,null,null){"channels"};
+      channel{"id"}
     }
-    // will not work .........
+
     alwaysEci = function(value){   // always return a eci wether given a eci or name
       channels = engine:listChannels(meta:picoId);
       channel = channels.filter(function(chan){chan{"id"} == value || chan{"name"} == value}).head().defaultsTo({},"no channel found in alwayseci, by .head()");
       channel{"id"}
     }
 
-    channel = function(id,name,collection,filtered) {
+    channel = function(value,collection,filtered) {
       channels = engine:listChannels(meta:picoId);
 
       single_channel = function(channels){
-        attribute = name.isnull() => "id" | "name";
-        value = name.isnull() => id | name ;
         channel_list = channels;
-        result = channel_list.filter(function(channel){(channel{attribute}== value)}).head().defaultsTo({},"no channel found, by .head()");
+        result = channel_list.filter(function(chan){chan{"id"} == value || chan{"name"} == value}).head().defaultsTo(null,"no channel found, by .head()");
         (result)
       };
       type = function(chan){ // takes a chans
@@ -227,20 +228,24 @@ ruleset io.picolabs.pico {
       };
       return1 = collection.isnull() => channels |  channels.collect(function(chan){(type(chan))}) ;
       return2 = filtered.isnull() => return1 | return1{filtered};
-      results = (id.isnull() && name.isnull()) => return2 | single_channel(channels);
+      results = (value.isnull()) => return2 | single_channel(channels);
       {
         "channels" : results
       }.klog("channels: ")
     }
 
     deleteChannel = defaction(value) {
-        eci = alwaysEci(value.klog("Value in deleteChannel defaction"))
+        channel = channel(value,null,null){"channels"}
+        eci = channel{"id"}
         engine:removeChannel(eci) 
-        returns channel(eci)
+        returns channel
     }
 
-    createChannel = defaction(id , name, type){
-      engine:newChannel(id , name, type) setting(channel)
+    createChannel = defaction(id , name, type) {
+      every{
+        engine:newChannel(id , name, type) setting(channel);
+        //send_directive("channel created", {"channel":channel})
+      }
       returns  channel
     }
 // ********************************************************************************************
@@ -336,12 +341,6 @@ ruleset io.picolabs.pico {
       updated_children
     }
 
-    checkName = function(name){
-          chan = channel(name, null, null){"channels"}.defaultsTo({},"no channel found");
-          encoded_chan = chan.encode().klog("encode chan :");
-          return = encoded_chan.match(re#{}#);
-          (return)
-    }
     // optimize by taking a list of names, to prevent multiple network calls to channels when checking for unique name
 
     randomPicoName = function(){
@@ -390,7 +389,7 @@ ruleset io.picolabs.pico {
       rids.klog("successfully installed rids ");
     }
     else {
-     null.klog(">> could not install rids #{rids} >>")
+      error info "could not install rids, no rids attribute provide.";
     }
   }
 
@@ -401,17 +400,17 @@ ruleset io.picolabs.pico {
       rid_list = rids.typeof() ==  "array" => rids | rids.split(re#;#)
     }
       uninstallRulesets(rid_list)
-    fired {
-      null.klog ("successfully uninstalled rids #{rids}");
-          }
-    else {
-      null.klog(">> could not uninstall rids #{rids} >>")
+    always {
+      raise wrangler event "ruleset_removed"
+        attributes event:attrs().put({"rids": rid_list});
+      rids.klog ("successfully uninstalled rids ");
     }
   }
 
 // ********************************************************************************************
 // ***                                      Channels                                        ***
 // ********************************************************************************************
+
 
   rule createChannel {
     select when wrangler channel_creation_requested or pico channel_creation_requested
@@ -422,22 +421,22 @@ ruleset io.picolabs.pico {
     }
     if(check_name) then every {
       createChannel(meta:picoId, channel_name , type) setting(channel);
-      send_directive("channel_Created", {"channel":channel});
+      send_directive("channel_Created", {"channel":channel}); 
     }
-    fired {
-     channel_name.klog("successfully created channel ");
+    always {
+      channel_name.klog("successfully created channel ");
       raise wrangler event "channel_created" // event to nothing
-            attributes event:attrs().put([channel], channel)
-          }
-    else {
-     null.klog(">> could not create channels #{channel_name} >>")
-          }
+            attributes event:attrs().put(["channel"], channel);
+
+      error info "could not create channels #{channel_name}, duplicate name." if not check_name
     }
+  }
 
   rule deleteChannel {
     select when wrangler channel_deletion_requested or pico channel_deletion_requested
     pre {
       value = event:attr("eci").defaultsTo(event:attr("name").defaultsTo("", "missing event attr eci or name"), "looking for name instead of eci.")
+      channel = alwaysEci(value);
     } 
     every {
       deleteChannel(value) setting(channel);
@@ -446,7 +445,7 @@ ruleset io.picolabs.pico {
     fired {
      value.klog ("successfully deleted channel ");
      raise wrangler event "channel_deleted" // event to nothing
-           attributes event:attrs().put(["eci"],value)
+           attributes event:attrs().put(["channel"],channel)
          }
     }
   
@@ -472,6 +471,7 @@ ruleset io.picolabs.pico {
       child.klog("successfully created child ");
     }
     else{
+      error info "duplicate Pico name, failed to create pico named #{name}";
       name.klog(" duplicate Pico name, failed to create pico named ");
     }
   }
