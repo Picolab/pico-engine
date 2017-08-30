@@ -14,11 +14,11 @@ ruleset io.picolabs.pico {
 
     logging on
     provides skyQuery ,
-    rulesets, rulesetsInfo, installRulesets, uninstallRulesets, //ruleset
+    rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
     children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createChild, deleteChild, pico, myself
     shares skyQuery ,
-    rulesets, rulesetsInfo, installRulesets, uninstallRulesets, //ruleset
+    rulesetsInfo,installedRulesets,  installRulesets, uninstallRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
     children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createChild, deleteChild, pico,  myself,
      __testing
@@ -181,7 +181,7 @@ ruleset io.picolabs.pico {
       every{
         engine:installRuleset(meta:picoId, rids) setting(new_ruleset)
       }
-      returns {}
+      returns {"rids": new_ruleset}
     }
 
     uninstallRulesets = defaction(rids){
@@ -244,7 +244,6 @@ ruleset io.picolabs.pico {
     createChannel = defaction(id , name, type) {
       every{
         engine:newChannel(id , name, type) setting(channel);
-        //send_directive("channel created", {"channel":channel})
       }
       returns  channel
     }
@@ -381,8 +380,10 @@ ruleset io.picolabs.pico {
       rid_list = (rids.typeof() ==  "Array") => rids | rids.split(re#;#)
       b = rid_list.klog("attr Rids")
     }
-    if(rids !=  "") then  // should we be valid checking?
-      installRulesets(rid_list)
+    if(rids !=  "") then every{ // should we be valid checking?
+      installRulesets(rid_list) setting(rids)
+      send_directive("rulesets installed", {"rids":rids.rids}); // should we return rids or rid_list?
+    }
     fired {
       raise wrangler event "ruleset_added"
         attributes event:attrs().put({"rids": rid_list});
@@ -398,8 +399,10 @@ ruleset io.picolabs.pico {
     pre {
       rids = event:attr("rids").defaultsTo("", ">>  >> ")
       rid_list = rids.typeof() ==  "array" => rids | rids.split(re#;#)
-    }
+    } every{
       uninstallRulesets(rid_list)
+      send_directive("rulesets uninstalled", {"rids":rid_list}); 
+    }
     always {
       raise wrangler event "ruleset_removed"
         attributes event:attrs().put({"rids": rid_list});
@@ -428,7 +431,7 @@ ruleset io.picolabs.pico {
       raise wrangler event "channel_created" // event to nothing
             attributes event:attrs().put(["channel"], channel);
 
-      error info "could not create channels #{channel_name}, duplicate name." if not check_name
+      error info <<could not create channels #{channel_name}, duplicate name.>> if not check_name
     }
   }
 
@@ -471,7 +474,7 @@ ruleset io.picolabs.pico {
       child.klog("successfully created child ");
     }
     else{
-      error info "duplicate Pico name, failed to create pico named #{name}";
+      error info <<duplicate Pico name, failed to create pico named #{name}>>;
       name.klog(" duplicate Pico name, failed to create pico named ");
     }
   }

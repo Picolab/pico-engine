@@ -45,7 +45,7 @@ var startTestServer = function(callback){
 };
 
 test("pico-engine", function(t){
-    var pe, root_eci, stopServer, child_count, child, channels ,channel, /*bill,*/ ted, carl;
+    var pe, root_eci, stopServer, child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids;
     async.series([
         function(next){
             startTestServer(function(err, tstserver){
@@ -385,6 +385,168 @@ test("pico-engine", function(t){
             });
         },
 
+        ///////////////////////////////// rulesets tests ///////////////
+        function(next){// store installed rulesets,
+            console.log("//////////////////rulesets //////////////////");
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "installedRulesets",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                installedRids = data.rids;
+                next();
+            });
+        },
+        function(next){// attempt to install logging
+            pe.signalEvent({
+                eci: root_eci,
+                eid: "94",
+                domain: "pico",
+                type: "install_rulesets_requested ",
+                attrs: {rids:"io.picolabs.logging"}
+            }, function(err, response){
+                if(err) return next(err);
+                //console.log("this is the response of install_rulesets_requested: ",response.directives[0].options);
+                t.deepEqual("io.picolabs.logging", response.directives[0].options.rids[0], "correct directive");
+                //rids = response.directives[0].options.rids;
+                next();
+            });
+        },
+        function(next){// confirm installed rid,
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "installedRulesets",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                var found = false;
+                t.equals(data.rids.length >= installedRids.length, true,"ruleset was installed");
+                t.equals(data.rids.length, installedRids.length + 1 ,"single ruleset was installed");
+                for(var i = 0; i < data.rids.length; i++) {
+                    if (data.rids[i] == "io.picolabs.logging") {
+                        found = true;
+                        break;
+                    }
+                }
+                t.equals(found, true,"correct ruleset installed");
+                next();
+            });
+        },
+        function(next){// attempt to Un-install logging
+            pe.signalEvent({
+                eci: root_eci,
+                eid: "94",
+                domain: "pico",
+                type: "uninstall_rulesets_requested ",
+                attrs: {rids:"io.picolabs.logging"}
+            }, function(err, response){
+                if(err) return next(err);
+                //console.log("this is the response of uninstall_rulesets_requested: ",response.directives[0].options);
+                t.deepEqual("io.picolabs.logging", response.directives[0].options.rids[0],"correct directive");
+                next();
+            });
+        },
+        function(next){// confirm un-installed rid,
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "installedRulesets",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                var found = false;
+                t.equals(data.rids.length <= installedRids.length, true,"ruleset was un-installed");
+                t.equals(data.rids.length, installedRids.length  ,"single ruleset was un-installed");
+                for(var i = 0; i < data.rids.length; i++) {
+                    if (data.rids[i] == "io.picolabs.logging") {
+                        found = true;
+                        break;
+                    }
+                }
+                t.equals(found, false,"correct ruleset un-installed");
+                next();
+            });
+        },
+        function(next){// attempt to install logging & subscriptions
+            pe.signalEvent({
+                eci: root_eci,
+                eid: "94",
+                domain: "pico",
+                type: "install_rulesets_requested ",
+                attrs: {rids:"io.picolabs.logging;io.picolabs.subscription"}
+            }, function(err, response){
+                if(err) return next(err);
+                //console.log("this is the response of install_rulesets_requested: ",response.directives[0].options);
+                t.deepEqual(["io.picolabs.logging","io.picolabs.subscription"], response.directives[0].options.rids, "correct directive");
+                //rids = response.directives[0].options.rids;
+                next();
+            });
+        },
+        function(next){// confirm two installed rids,
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "installedRulesets",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                var found = 0;
+                t.equals(data.rids.length >= installedRids.length, true,"rulesets installed");
+                t.equals(data.rids.length, installedRids.length + 2 ,"two rulesets was installed");
+                for(var i = 0; i < data.rids.length; i++) {
+                    if (data.rids[i] == "io.picolabs.logging"|| data.rids[i] == "io.picolabs.subscription") {
+                        found ++;
+                        //break;
+                    }
+                    if (data.rids[i] == "io.picolabs.logging"){
+                        t.deepEqual(data.rids[i], "io.picolabs.logging","logging installed");
+                    }
+                    else if (data.rids[i] == "io.picolabs.subscription"){
+                        t.deepEqual(data.rids[i], "io.picolabs.subscription","subscription installed");
+                    }
+                }
+                t.equals(found, 2,"both rulesets installed");
+                next();
+            });
+        },
+        function(next){// attempt to Un-install logging & subscriptions
+            pe.signalEvent({
+                eci: root_eci,
+                eid: "94",
+                domain: "pico",
+                type: "uninstall_rulesets_requested ",
+                attrs: {rids:"io.picolabs.logging;io.picolabs.subscription"}
+            }, function(err, response){
+                if(err) return next(err);
+                //console.log("this is the response of uninstall_rulesets_requested: ",response.directives[0].options);
+                t.deepEqual(["io.picolabs.logging","io.picolabs.subscription"], response.directives[0].options.rids, "correct directive");
+                next();
+            });
+        },
+        function(next){// confirm un-installed rid,
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "installedRulesets",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                var found = 0;
+                t.equals(data.rids.length <= installedRids.length, true,"rulesets un-installed");
+                t.equals(data.rids.length, installedRids.length  ,"two rulesets un-installed");
+                for(var i = 0; i < data.rids.length; i++) {
+                    if (data.rids[i] == "io.picolabs.logging"|| data.rids[i] == "io.picolabs.subscription") {
+                        found ++;
+                        //break;
+                    }
+                }
+                t.equals(found > 0, false ,"correct rulesets un-installed");
+                next();
+            });
+        },
         ///////////////////////////////// create child tests ///////////////
         function(next){// store created children
             console.log("//////////////////Create Child Pico//////////////////");
