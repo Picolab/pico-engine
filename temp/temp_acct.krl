@@ -37,7 +37,7 @@ ruleset temp_acct {
     if event:attr("nonce") == ent:nonce // && event:attr("password") == ent:password
     then send_directive("success",{"pico_id":meta:picoId,"eci":meta:eci});
     always {
-      ent:nonce := null;
+      raise owner event "code_expired";
     }
   }
 }
