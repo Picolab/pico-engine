@@ -590,6 +590,10 @@ test("pico-engine", function(t){
                 next();
             });
         },
+        ///////////////////////////////// Register rule sets tests ///////////////
+        ///wrangler does not have rules for this.. 
+        ///it does have a function to list registered rule sets 
+
         ///////////////////////////////// create child tests ///////////////
         function(next){// store created children
             console.log("//////////////////Create Child Pico//////////////////");
@@ -614,6 +618,7 @@ test("pico-engine", function(t){
             }, function(err, response){
                 if(err) return next(err);
                 //console.log("this is the create child response:",response.directives[0].options.pico);
+                t.deepEqual("ted", response.directives[0].options.pico.name, "correct directive");
                 child = response.directives[0].options.pico; //store child information from event for deleting
                 next();
             });
@@ -638,6 +643,43 @@ test("pico-engine", function(t){
                     }
                 }
                 t.deepEqual(found, true,"new child pico found");//check that child is the same from the event above
+                next();
+            });
+        },
+        function(next){
+            console.log("//////////////////Simple Pico Child Deletion//////////////////");
+            pe.signalEvent({
+                eci: root_eci,
+                eid: "85",
+                domain: "pico",
+                type: "channel_deletion_requested ",
+                attrs: {name:"ted"}
+            }, function(err, response){
+                if(err) return next(err);
+                //console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
+                t.deepEqual(response.directives[0].options.channel.name, "ted","correct directive");
+                channel = response.directives[0].options.channel;
+                next();
+            });
+        },
+        function(next){// compare with store,
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "channel",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                t.equals(data.channels.length <= channels.length, true,"channel was removed by name");
+                t.equals(data.channels.length, channels.length - 1 ,"single channel was removed by name");
+                var found = false;
+                for(var i = 0; i < data.channels.length; i++) {
+                    if (data.channels[i].id == ted.id) {
+                        found = true;
+                        break;
+                    }
+                }
+                t.equals(found, false,"correct channel removed");
                 next();
             });
         },

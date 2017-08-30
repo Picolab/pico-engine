@@ -14,11 +14,11 @@ ruleset io.picolabs.pico {
 
     logging on
     provides skyQuery ,
-    rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets, //ruleset
+    rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
     children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createChild, deleteChild, pico, myself
     shares skyQuery ,
-    rulesetsInfo,installedRulesets,  installRulesets, uninstallRulesets, //ruleset
+    rulesetsInfo,installedRulesets,  installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
     children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createChild, deleteChild, pico,  myself,
      __testing
@@ -117,36 +117,35 @@ ruleset io.picolabs.pico {
       result
     }
 
-    picoFromName = function(pico_name){
-      return = children(){"children"}.defaultsTo([]).collect(function(child){
-                                              (child{"name"} ==  pico_name) => "target" | "non_targets"
-                                            });
-      return{"target"}.head().defaultsTo("Error")//no pico exists for given name
+    picoFromName = function(value){
+      return = children(){"children"}.defaultsTo([]).filter(function(child){
+                                              (child{"name"} ==  value || child{"id"} == value)});
+      return.head().defaultsTo("Error")//no pico exists for given name
     }
 
     deleteChild = defaction(pico_name){
       ent_children = children(){"children"}
-      filtered_children = ent_children.collect(function(child){
+      child_collection = ent_children.collect(function(child){
                                               (child{"name"} ==  pico_name) => "to_delete" | "dont_delete"
                                             })
-      child_to_delete = filtered_children{"to_delete"}.head()
+      child_to_delete = child_collection{"to_delete"}.head()
 
       every {
         engine:removePico(child_to_delete{"id"})
       }
       returns
       {
-
-        "updated_children": filtered_children{"dont_delete"},
-        "child": child_to_delete{"id"}
+        "updated_children": child_collection{"dont_delete"},
+        "child": child_to_delete
       }
     }
-    hasChild = function(pico_name){
+
+    hasChild = function(value){ // helper function, does not need return object.
       ent_children = children(){"children"};
       target_child = ent_children.filter(function(child){
-                                            child{"name"} ==  pico_name
+                                            child{"name"} ==  value || child{"id"} == value
                                           }).head().defaultsTo({});
-      target_child{"name"} == pico_name
+      target_child
     }
 // ********************************************************************************************
 // ***                                      Rulesets                                        ***
@@ -253,10 +252,10 @@ ruleset io.picolabs.pico {
   }
 
   children = function(name) {
-    _children = ent:children.defaultsTo([]);
+    _children = ent:children.defaultsTo({});
     _return = name => _children.filter(function(child){child{"name"} == name}) | _children;
     {
-      "children" : _return
+      "children" : _return.values()
     }.klog("children :")
   }
 
@@ -328,16 +327,18 @@ ruleset io.picolabs.pico {
        "eci": channel{"id"}
       }
     }
-
+/*
     updateChildCompletion = function(name){
       children_map = ent:children.collect(function(child){
                                             (child.name == name) => "childToUpdate" | "otherChildren"
                                           });//separate the children, returns two arrays
-      updated_child = children_map.childToUpdate.head();
-      updated_children = children_map.otherChildren.append(updated_child);//reunite with the other children
+
+
+      updated_child = children_map{"childToUpdate"}.head();
+      updated_children = children_map{"otherChildren"}.append(updated_child);//reunite with the other children
       updated_children
     }
-
+*/
     // optimize by taking a list of names, to prevent multiple network calls to channels when checking for unique name
 
     randomPicoName = function(){
@@ -468,7 +469,8 @@ ruleset io.picolabs.pico {
       send_directive("Pico_Created", {"pico":child});
     }
     fired {
-      ent:children := ent:children.defaultsTo([]).append(child); // this is bypassed when module is used
+      ent:children := {} if ent:children.isnull(); // this is bypassed when module is used
+      ent:children{child{"id"}} := child; // this is bypassed when module is used
       child.klog("successfully created child ");
     }
     else{
@@ -512,39 +514,83 @@ ruleset io.picolabs.pico {
     always {
       ent:id := id;
       ent:eci := eci;
-      ent:children := []
+      ent:children := {}
     }
   }
 
-//Child deletion-----------------------------
+  rule pico_children_sync {
+    select when wrangler child_sync or 
+                pico need_sync or 
+                wrangler child_deletion or
+                pico child_deletion
 
-  rule delete_child_name_check {
-    select when wrangler child_deletion
+    foreach engine:listChildren() setting (pico_id,count)
     pre {
-      pico_name = event:attr("pico_name").defaultsTo("", "missing pico name for deletion");
+      new_child = (ent:children{pico_id}.isnull()) => 
+                    { "parent_eci":"",//placeholder // could create new channel, but then we would need to send event to child, but there is no guarantee of wrangler installed in that child....
+                      "name":"rogue_"+randomPicoName(),
+                      "id": pico_id, 
+                      "eci": engine:listChannels(pico_id)[0]{"id"}} | "" ; // engine creates a eci we always can get.
+
     }
-    if not hasChild(pico_name) then
-      send_directive("Invalid deletion", {"err": "No child of this pico has the given name: "+pico_name})
+    if ( ent:children{pico_id}.isnull()) then every{
+      send_directive("new child found and added to cache",{"child": new_child});
+    }
+    fired {
+      ent:children{pico_id} := new_child;
+    }
+  }
+
+  rule delete_child_check { // tell child to prepare for death
+    select when wrangler child_deletion or 
+                pico child_deletion
+    pre {
+      value = event:attr("name").defaultsTo(event:attr("id"), "used id for deletion");
+      child = hasChild(value);
+    }
+    if not child.isnull() then every {
+      send_directive("notifiing child of deletion", {"child": child});
+      event:send({"eci": child{"id"}, "eid": "DeletionRequest",
+                "domain": "wrangler", "type": "seppuku",
+                "attrs": attributes})
+    }
     fired{
-     last;
+     // schedule wrangler event "child_deletion_prep" at time:add(time:now(), {"seconds": 2})
+     //   attributes event:attrs()
     }
   }
+
   rule deletion_prep {
-    select when wrangler child_deletion
+    select when wrangler child_deletion_prep
     pre {
-      pico_name = event:attr("pico_name");
-      filtered_children = ent:children.collect(function(child){
-                                              (child{"name"} ==  pico_name) => "to_delete" | "dont_delete"
+      value = event:attr("name").defaultsTo(event:attr("id"),"id used to delete child");
+      filtered_children = ent:children.filter(function(child){
+                                              (child{"name"} ==  value || child{"id"} == value)
                                             }).klog("filtered_children result: ");
-      target_child = filtered_children{"to_delete"}.head();
+      target_child = filtered_children.values();
       subtreeArray = gatherSubtree(target_child).klog("Subtree result: ");
-      updated_children = filtered_children{"dont_delete"}.defaultsTo([]);//defaultsTo for the case where there are no children left after the first child's deletion
+      updated_children = ent:children.delete(target_child.id);
     }
     noop()
     fired{
       raise wrangler event "children_deletion"
         attributes event:attrs().put(["subtreeArray"], subtreeArray)
                                 .put(["updated_children"], updated_children)
+    }
+  }
+
+  rule delete_all_children_alert {
+    select when wrangler children_deletion
+    foreach event:attr("subtreeArray") setting(child)
+    pre {
+      updated_children = event:attr("updated_children");
+    }
+    if true then
+      engine:removePico(child{"id"})
+    fired{
+      ent:children := updated_children.klog("updated_children: ") on final;
+      raise information event "child_deleted"
+        attributes event:attrs().put(["results"],results) on final;
     }
   }
   rule delete_all_children {
@@ -561,6 +607,8 @@ ruleset io.picolabs.pico {
         attributes event:attrs().put(["results"],results) on final;
     }
   }
+
+
   rule delete_child_testing {
     select when wrangler child_delete
     pre {
@@ -572,19 +620,9 @@ ruleset io.picolabs.pico {
     }
   }
 //Child deletion (child requesting parent for deletion)------------------
-  rule begin_deletion_request{//in child
-    select when wrangler deletion_requested
-    pre {
-    }
-    if false then
-      noop()//perform any sort of checks in this ruleset to prevent firing, such as the authorization of the source to delete this pico
-    fired{
-      last;
-    }
-  }
 
   rule process_deletion_request{//in child
-    select when wrangler deletion_requested
+    select when wrangler harakiri
     pre {
       parent_eci = ent:parent{"eci"};
       attributes = event:attrs().put([],myself())//the parent will need to know that the child is the one really requesting the deletion
@@ -602,33 +640,18 @@ ruleset io.picolabs.pico {
   rule check_child_existence{//in parent
     select when wrangler child_requests_deletion
     pre {
-      name = event:attr("name");
-      id = event:attr("id");
-      eci = event:attr("eci");
+      value = event:attr("name").defaultsTo(event:attr("id"),"used id for deletion");
       target_child = picoFromName(name);
-      hasChild = (target_child != "Error"
-                  && target_child{"eci"} == eci
-                  && target_child{"id"} == id) => true | false;
+      hasChild = (target_child != "Error" && target_child{"id"} == id) => true | false;
     }
     if not hasChild then
       send_directive("Invalid request", {"err": "Given pico is not a child of this pico or does not exist."})
     fired{
       last;
     }
-  }
-
-  rule process_child_deletion_request{//in parent
-    select when wrangler child_requests_deletion
-    pre {//consider adding more checks here if needed, or select on a different rule so developers can perform their own checks
-      name = event:attr("name");
-      id = event:attr("id");
-      eci = event:attr("eci");
-    }
-    if true then
-    noop()
-    fired{
+    else{
       raise wrangler event "child_deletion"
-        attributes {"pico_name": name}
+        attributes {"pico_name": event:attr("name")}
     }
   }
 
