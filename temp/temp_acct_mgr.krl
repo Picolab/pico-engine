@@ -112,10 +112,29 @@ ruleset temp_acct_mgr {
     pre {
       pico_id = event:attr("owner_id");
       looks_right = pico_id.length() == 25 && pico_id.ord() == "c".ord();
+      owner_id = ownerIdForPico(pico_id);
+      entry = ent:owners{owner_id};
+      eci = entry{"eci"};
+      options = {"owner_id":owner_id,"pico_id":pico_id,"eci":eci,"method":"did"};
     }
-    if looks_right then every {
+    if looks_right && eci then
+      send_directive("here it is",options);
+    fired {
+      last;
+    }
+  }
+
+  rule find_owner_pico_by_pico_id_only {
+    select when owner eci_requested
+    pre {
+      pico_id = event:attr("owner_id");
+      looks_right = pico_id.length() == 25 && pico_id.ord() == "c".ord();
+      is_my_child = engine:listChildren() >< pico_id;
+      options = {"pico_id":pico_id,"method":"did"};
+    }
+    if looks_right && is_my_child then every {
       engine:newChannel(pico_id,time:now(),"to owner") setting(new_channel);
-      send_directive("here it is",{"eci":new_channel{"id"}});
+      send_directive("here it is",options.put({"eci":new_channel{"id"}}));
     }
     fired {
       last;
@@ -130,7 +149,8 @@ ruleset temp_acct_mgr {
       pico_id = entry{"pico_id"};
       eci = entry{"eci"};
       method = entry{"method"} || method(owner_id);
-      options = {"owner_id":owner_id,"pico_id":pico_id,"eci":eci,"method":method};
+      nonce = random:word();
+      options = {"owner_id":owner_id,"pico_id":pico_id,"eci":eci,"method":method,"nonce":nonce};
     }
     every {
       send_directive("here it is",options);

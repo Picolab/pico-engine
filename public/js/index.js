@@ -519,6 +519,13 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       $("#version").text(data ? data.version : "undefined");
     });
   } else if (!logged_in_pico.id) {
+    var performLogin = function(options){
+      sessionStorage.setItem("owner_pico_id",options.pico_id);
+      sessionStorage.setItem("owner_pico_eci",options.eci);
+      var redirect = getCookie("previousUrl") || "/";
+      //should clear cookie here! ?maybe
+      location.assign(redirect);
+    }
     location.hash = "";
     var users = {};
     var children = getP(rootPico,"children",[]);
@@ -593,26 +600,25 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
               var d = data.directives[0];
               if (d.options && d.options.eci){ // successfully logged in
                 var method = d.options.method || "password";
+                if(method==="did" && d.options.pico_id) {
+                  return performLogin(d.options);
+                }
                 var templateId = "#" + method + "-template";
                 var methodTemplate = Handlebars.compile($(templateId).html());
-                $lds.html(methodTemplate({eci:d.options.eci,eid:"none"}));
+                $lds.html(methodTemplate(
+                  {eci:d.options.eci,eid:"none",nonce:d.options.nonce}));
                 $("input")[0].focus();
               }
             }else{
               alert(JSON.stringify(data));
             }
         }, "json");
-
       }else { // password authentication or account creation
         $.post($(this).attr("action"),formToJSON(this),function(data){
             if(data && data.directives && data.directives[0] ){
               var d = data.directives[0];
               if (d.options && d.options.pico_id){ // successfully logged in
-                sessionStorage.setItem("owner_pico_id",d.options.pico_id);
-                sessionStorage.setItem("owner_pico_eci",d.options.eci);
-                var redirect = getCookie("previousUrl") || "/";
-                //should clear cookie here! ?maybe
-                location.assign(redirect);
+                performLogin(d.options);
               }else {
                 alert("no pico_id found in directive, try again please.");
                 location.reload();
