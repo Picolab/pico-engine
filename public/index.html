@@ -84,6 +84,21 @@ Select an owner pico
   </form>
   <a id="already-account" class="no-red" href="#">Already have an owner pico?</a>
 </script>
+<script id="code-words-template" type="text/x-handlebars-template">
+<h2>How to obtain code words</h2>
+<p>
+Make careful note of either this URL or this QR code.
+When you need to login, you can use either of them to obtain
+the current code words.
+</p>
+<iframe src="/qrcode.html?http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt" width="600" height="350">
+<p>
+http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt
+</p>
+</iframe>
+<br>
+<a href="{{redirect}}">Got it</a>
+</script>
 <script id="the-template" type="text/x-handlebars-template">
 <a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
 <h1 class="title">{{title}}</h1>

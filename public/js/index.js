@@ -519,12 +519,14 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       $("#version").text(data ? data.version : "undefined");
     });
   } else if (!logged_in_pico.id) {
-    var performLogin = function(options){
+    var performLogin = function(options,delay){
       sessionStorage.setItem("owner_pico_id",options.pico_id);
       sessionStorage.setItem("owner_pico_eci",options.eci);
       var redirect = getCookie("previousUrl") || "/";
       //should clear cookie here! ?maybe
-      location.assign(redirect);
+      if(!delay){
+        location.assign(redirect);
+      }
     }
     location.hash = "";
     var users = {};
@@ -537,6 +539,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     var loginTemplate = Handlebars.compile($('#login-template').html());
     var ownerTemplate = Handlebars.compile($('#owner-id-template').html());
     var newAccountTemplate = Handlebars.compile($("#new-account-template").html());
+    var codeWordsTemplate = Handlebars.compile($("#code-words-template").html());
     var loginData = {
       "root_pico_id":rootPico.id,
       "users":users
@@ -615,8 +618,14 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         }, "json");
       }else { // password authentication or account creation
         $.post($(this).attr("action"),formToJSON(this),function(data){
-            if(data && data.directives && data.directives[0] ){
+            if(data && data.directives && data.directives[0]){
               var d = data.directives[0];
+              if(data.directives[1]){ // display code words instructions
+                $lds.html(codeWordsTemplate(
+                  {eci:data.directives[1].options.eci,
+                   redirect: getCookie("previousUrl") || "/"}));
+                return performLogin(d.options,true);
+              }
               if (d.options && d.options.pico_id){ // successfully logged in
                 performLogin(d.options);
               }else {
