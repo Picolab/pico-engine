@@ -555,6 +555,41 @@ test("pico-engine", function(t){
                 next();
             });
         },
+        ///////////////////////////////// rulesets info tests ///////////////
+        function(next){// rule set info,
+            console.log("////////////////// describe one rule set //////////////////");
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "rulesetsInfo",
+                args: {rids:"io.picolabs.logging"},
+            }, function(err, data){
+                if(err) return next(err);
+                //console.log("rulesetInfo",data.description);
+                t.deepEqual(data.description.length, 1 ,"single rule set described");
+                t.deepEqual("io.picolabs.logging",data.description[0].rid ,"correct ruleset described");
+                t.equals(data.description[0].src != undefined ,true,"has a src");
+                next();
+            });
+        },
+        function(next){// rule set info,
+            console.log("////////////////// describe two rule sets //////////////////");
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "rulesetsInfo",
+                args: {rids:"io.picolabs.logging;io.picolabs.subscription"},
+            }, function(err, data){
+                if(err) return next(err);
+                //console.log("rulesetInfo",data);
+                t.deepEqual(data.description.length, 2 ,"two rule sets described");
+                t.deepEqual("io.picolabs.logging",data.description[0].rid ,"logging ruleset described");
+                t.equals(data.description[0].src != undefined ,true,"logging has a src");
+                t.deepEqual("io.picolabs.subscription",data.description[1].rid ,"subscription ruleset described");
+                t.equals(data.description[1].src != undefined ,true,"subscription has a src");
+                next();
+            });
+        },
         ///////////////////////////////// create child tests ///////////////
         function(next){// store created children
             console.log("//////////////////Create Child Pico//////////////////");

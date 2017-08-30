@@ -159,12 +159,10 @@ ruleset io.picolabs.pico {
       }.klog("registeredRulesets :")
     }
 
-    rulesetsInfo = function(_rids) {//takes an array of rids as parameter // can we write this better???????
-      //check if its an array vs string, to make this more robust.
-      rids = ( _rids.typeof() == "Array" ) => _rids | ( _rids.typeof() == "String" ) => _rids.split(";") | "" ;
-      results = rids.map(function(rid) {engine:describeRuleset(rid);});
+    rulesetsInfo = function(rids) {
+      _rids = ( rids.typeof() == "Array" ) => rids | ( rids.typeof() == "String" ) => rids.split(";") | "" ;
+      results = _rids.map(function(rid) {engine:describeRuleset(rid);});
       {
-
        "description"     : results
       }.klog("rulesetsInfo :")
     }
