@@ -102,6 +102,7 @@ test("pico-engine", function(t){
             }, function(err, response){
                 if(err) return next(err);
                 //console.log("this is the response of createChannel: ",response.directives[0].options);
+                t.deepEqual(response.directives[0].options.channel.name, "ted","correct directive");
                 channel = response.directives[0].options.channel;
                 ted = channel;
                 next();
@@ -166,6 +167,7 @@ test("pico-engine", function(t){
             }, function(err, response){
                 if(err) return next(err);
                 //console.log("this is the response of createChannel: ",response.directives[0].options);
+                //t.deepEqual(response.directives[0].options.channel.name, "carl","correct directive");
                 channel = response.directives[0].options.channel;
                 carl = channel;
                 next();
@@ -181,6 +183,7 @@ test("pico-engine", function(t){
             }, function(err, response){
                 if(err) return next(err);
                 //console.log("this is the response of createChannel: ",response.directives[0].options);
+                //t.deepEqual(response.directives[0].options.channel.name, "bill","correct directive");
                 channel = response.directives[0].options.channel;
                 //bill = channel;
                 next();
@@ -312,6 +315,7 @@ test("pico-engine", function(t){
             }, function(err, response){
                 if(err) return next(err);
                 //console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
+                t.deepEqual(response.directives[0].options.channel.name, "ted","correct directive");
                 channel = response.directives[0].options.channel;
                 next();
             });
@@ -359,6 +363,7 @@ test("pico-engine", function(t){
             }, function(err, response){
                 if(err) return next(err);
                 //console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
+                t.deepEqual(response.directives[0].options.channel.name, "carl","correct directive");
                 channel = response.directives[0].options.channel;
                 next();
             });
@@ -387,7 +392,7 @@ test("pico-engine", function(t){
 
         ///////////////////////////////// rulesets tests ///////////////
         function(next){// store installed rulesets,
-            console.log("//////////////////rulesets //////////////////");
+            console.log("//////////////////Install single ruleset //////////////////");
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.pico",
@@ -436,6 +441,7 @@ test("pico-engine", function(t){
             });
         },
         function(next){// attempt to Un-install logging
+            console.log("//////////////////Un-Install single ruleset //////////////////");
             pe.signalEvent({
                 eci: root_eci,
                 eid: "94",
@@ -471,6 +477,7 @@ test("pico-engine", function(t){
             });
         },
         function(next){// attempt to install logging & subscriptions
+            console.log("//////////////////Install two rulesets //////////////////");
             pe.signalEvent({
                 eci: root_eci,
                 eid: "94",
@@ -513,6 +520,7 @@ test("pico-engine", function(t){
             });
         },
         function(next){// attempt to Un-install logging & subscriptions
+            console.log("////////////////// Un-Install two rulesets //////////////////");
             pe.signalEvent({
                 eci: root_eci,
                 eid: "94",
