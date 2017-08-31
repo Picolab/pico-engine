@@ -9,6 +9,13 @@ ruleset temp_acct {
       ent:code || "code words expired"
     }
   }
+  rule owner_creation {
+    select when owner creation
+    fired {
+      ent:owner_id := event:attr("owner_id");
+      ent:password := event:attr("password");
+    }
+  }
   rule owner_eci_provided {
     select when owner eci_provided
     fired {
@@ -34,7 +41,7 @@ ruleset temp_acct {
   }
   rule owner_authenticate { // any password will be accepted for now
     select when owner authenticate
-    if event:attr("nonce") == ent:nonce // && event:attr("password") == ent:password
+    if event:attr("nonce") == ent:nonce && event:attr("password") == ent:password
     then send_directive("success",{"pico_id":meta:picoId,"eci":meta:eci});
     always {
       raise owner event "code_expired";

@@ -76,6 +76,7 @@ ruleset temp_acct_mgr {
     every {
       wrangler:createPico() setting(child);
       engine:installRuleset(child[0]{"id"}, "temp_acct");
+      event:send({"eci":child[0]{"eci"}, "domain":"owner", "type":"creation", "attrs":event:attrs()});
       engine:newChannel(child[0]{"id"},time:now(),"to owner") setting(new_channel);
       send_directive(
         "new owner pico",
