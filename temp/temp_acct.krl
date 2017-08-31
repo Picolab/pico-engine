@@ -21,7 +21,8 @@ ruleset temp_acct {
     fired {
       ent:code := random:word() + "-" + random:word();
       ent:nonce := event:attr("nonce");
-      schedule owner event "code_expired" at time:add(time:now(), {"minutes": 5});
+      schedule owner event "nonce_cleanup" at time:add(time:now(), {"minutes": 5}) setting(exp);
+      ent:exp := exp;
     }
   }
   rule owner_match_code {
@@ -29,14 +30,23 @@ ruleset temp_acct {
     if event:attr("code") == ent:code && event:attr("nonce") == ent:nonce then
       send_directive("success",{"pico_id":meta:picoId,"eci":meta:eci});
     always {
-      raise owner event "code_expired";
+      raise owner event "nonce_used";
     }
   }
-  rule owner_code_expired {
-    select when owner code_expired
-    fired {
+  rule owner_nonce_used {
+    select when owner nonce_used
+             or pico intent_to_orphan
+    if ent:exp then schedule:remove(ent:exp);
+    always {
+      raise owner event "nonce_cleanup"
+    }
+  }
+  rule owner_nonce_cleanup {
+    select when owner nonce_cleanup
+    always {
       ent:code := null;
       ent:nonce := null;
+      ent:exp := null;
     }
   }
   rule owner_authenticate { // any password will be accepted for now
@@ -44,7 +54,7 @@ ruleset temp_acct {
     if event:attr("nonce") == ent:nonce && event:attr("password") == ent:password
     then send_directive("success",{"pico_id":meta:picoId,"eci":meta:eci});
     always {
-      raise owner event "code_expired";
+      raise owner event "nonce_used";
     }
   }
 }
