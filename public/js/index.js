@@ -594,6 +594,10 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         $dname.val($(this).val());
       }
     });
+    var passwordFailure = function() {
+      alert("no directives returned, try again please.");
+      location.reload();
+    }
     $lds.on("submit",'.js-ajax-form-auth',function(e){
       e.preventDefault();
       var action = $(this).attr("action");
@@ -601,17 +605,18 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         $.post($(this).attr("action"),formToJSON(this),function(data){
             if(data && data.directives && data.directives[0] ){
               var d = data.directives[0];
+              var method = "password";
               if (d.options && d.options.eci){ // successfully logged in
-                var method = d.options.method || "password";
+                method = d.options.method || "password";
                 if(method==="did" && d.options.pico_id) {
                   return performLogin(d.options);
                 }
-                var templateId = "#" + method + "-template";
-                var methodTemplate = Handlebars.compile($(templateId).html());
-                $lds.html(methodTemplate(
-                  {eci:d.options.eci,eid:"none",nonce:d.options.nonce}));
-                $("input")[0].focus();
               }
+              var templateId = "#" + method + "-template";
+              var methodTemplate = Handlebars.compile($(templateId).html());
+              $lds.html(methodTemplate(
+                {eci:d.options.eci,eid:"none",nonce:d.options.nonce}));
+              $("input")[0].focus();
             }else{
               alert(JSON.stringify(data));
             }
@@ -633,10 +638,9 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
                 location.reload();
               }
             }else{
-              alert("no directives returned, try again please.");
-              location.reload();
+              passwordFailure();
             }
-        }, "json");
+        }, "json").fail(passwordFailure);
       }
     });
   } else {

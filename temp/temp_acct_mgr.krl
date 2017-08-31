@@ -153,13 +153,19 @@ ruleset temp_acct_mgr {
       nonce = random:word();
       options = {"owner_id":owner_id,"pico_id":pico_id,"eci":eci,"method":method,"nonce":nonce};
     }
-    every {
+    if eci then every {
       send_directive("here it is",options);
       event:send({"eci":eci, "domain":"owner", "type":"eci_provided", "attrs":options});
     }
     fired {
+      last;
       ent:lastOne := options;
     }
+  }
+
+  rule owner_pico_not_found {
+    select when owner eci_requested
+    send_directive("here it is",{"owner_id":event:attr("owner_id"),"method":"password"});
   }
 
   rule owner_deletion_requested {
