@@ -68,29 +68,7 @@ $(document).ready(function() {
     });
     return json;
   };
-  var getCapabilities = function(eci,rid,callback) {
-    var ans = { "eci":eci, "rid":rid, "capabilities":{} };
-    $.getJSON("/sky/cloud/"+eci+"/"+rid+"/__testing",function(c){
-      ans.capabilities = c;
-      callback(ans);
-    }).fail(function(){
-      callback(ans);
-    });
-  };
-  var parMap = function (arr, visitor, done) {
-    var count = 0;
-    var target = arr.length;
-    var outp = new Array(target);
-    var maybeDone = function (index,result) {
-      outp[index] = result;
-      if (++count === target) {
-        done(outp);
-      }
-    }
-    for (var i=0; i<target; ++i) {
-      visitor(arr[i], maybeDone.bind(null,i));
-    }
-  };
+  var capTemplate = Handlebars.compile($('#capabilities-template').html());
 $.getJSON("/api/db-dump?legacy=true", function(db_dump){
   var dragstop = function(event,ui) {
     var nodeId = ui.helper[0].getAttribute("id");
@@ -185,17 +163,12 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       }
       callback(theLoggingOut);
     } else if (label === "Testing") {
+      var testing = [];
       var eci = findEciById(thePicoInp.id);
-      var theRids = [];
       for (var rid in thePicoInp.ruleset) {
-        theRids.push(rid);
+        testing.push({"rid":rid});
       }
-      parMap(theRids,
-             getCapabilities.bind(null,eci),
-             function (theCapabilities) {
-               callback({ "testing": theCapabilities,
-                          "pico_id": thePicoInp.id });
-             });
+      callback({"pico_id": thePicoInp.id, "eci":eci, "testing":testing});
     } else if (label === "Channels") {
       var theChannels = [];
       var theECI;
@@ -289,6 +262,20 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           });
         });
       } else if(liContent === "testing") {
+        $(".testing-rids li input").change(function(e){
+          $("#test-results pre").html("");
+          if(this.checked){
+            var $span = $(this).next(".krlrid");
+            if($span.next().length==0){
+              var rid = $span.text();
+              var eci = theDB.eci;
+              $.getJSON("/sky/cloud/"+eci+"/"+rid+"/__testing",function(c){
+                $span.after(capTemplate({eci:eci,rid:rid,capabilities:c}));
+              }).fail(function(){$span.after("<ul></ul>");
+              });
+            }
+          }
+        });
         $(".pico-edit .krlrid").click(displayKrl);
         location.hash = theDB.pico_id+"-Testing";
       } else if(liContent === "about") {
@@ -340,7 +327,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         location.reload();
       });
       var $theResultsPre = $theSection.find('div#test-results pre');
-      $theSection.find('form.js-test').submit(function(e){
+      $theSection.on("submit","form.js-test",function(e){
         e.preventDefault();
         $.getJSON($(this).attr("action"),formToJSON(this),function(ans){
           $theResultsPre.html(JSON.stringify(ans,undefined,2).escapeHTML());

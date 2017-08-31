@@ -293,7 +293,23 @@ Select an episode to see the log entries for that episode.
 Testing
 <ul class="testing-rids">
 {{#each testing}}
-<li><input type="checkbox" checked=""><span class="krlrid">{{this.rid}}</span>
+<li><input type="checkbox"><span class="krlrid">{{this.rid}}</span>
+</li>
+{{/each}}
+<li class="legend">Legend
+<ul>
+<li class="testing-queries sky-cloud"><button disabled="">query</button></li>
+<li class="testing-events sky-event"><button disabled="">event</button></li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="test-results" style="margin-left:40%">
+Results
+<pre></pre>
+</div>
+</script>
+<script id="capabilities-template" type="text/x-handlebars-template">
 {{#if capabilities.queries}}
 <ul class="testing-queries">
 {{#each capabilities.queries}}
@@ -319,22 +335,6 @@ Testing
 <button type="submit">{{this.domain}}/{{this.type}}</button></form></li>
 {{/each}}
 </ul>
-{{/if}}
-</li>
-{{/each}}
-<li class="legend">Legend
-<ul>
-<li class="testing-queries sky-cloud"><button>query</button></li>
-<li class="testing-events sky-event"><button>event</button></li>
-</ul>
-</li>
-</ul>
-</div>
-{{#if testing}}
-<div id="test-results" style="margin-left:40%">
-Results
-<pre></pre>
-</div>
 {{/if}}
 </script>
 <script id="subscriptions-template" type="text/x-handlebars-template">
