@@ -20,7 +20,7 @@ var startTestServer = function(callback){
         startPicoEngine({
             host: "http://localhost:8080",
             home: dir.path,
-            no_logging: true,
+            no_logging: false,
         }, function(err, pe){
             if(err) throw err;//throw ensures process is killed with non-zero exit code
 
@@ -338,18 +338,7 @@ test("pico-engine", function(t){
                     }
                 }
                 t.equals(found, false,"correct channel removed");
-                next();
-            });
-        },
-        function(next){// store channels,
-            pe.runQuery({
-                eci: root_eci,
-                rid: "io.picolabs.pico",
-                name: "channel",
-                args: {},
-            }, function(err, data){
-                if(err) return next(err);
-                channels = data.channels;
+                channels = data.channels;// store channels,
                 next();
             });
         },
@@ -646,23 +635,22 @@ test("pico-engine", function(t){
                 next();
             });
         },
-        function(next){
-            console.log("//////////////////Simple Pico Child Deletion//////////////////");
-            pe.signalEvent({
-                eci: root_eci,
-                eid: "85",
-                domain: "pico",
-                type: "channel_deletion_requested ",
-                attrs: {name:"ted"}
-            }, function(err, response){
+        function(next){// list child channels
+            pe.runQuery({
+                eci: child.eci,
+                rid: "io.picolabs.pico",
+                name: "channel",
+                args: {},
+            }, function(err, data){
                 if(err) return next(err);
-                //console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
-                t.deepEqual(response.directives[0].options.channel.name, "ted","correct directive");
-                channel = response.directives[0].options.channel;
+                console.log("\r\r///////////////////child.eci channels",channels);
+                console.log("child eci, root eci",child.eci,root_eci);
+                console.log("\r\r///////////////////child",child);
+                //console.log("channels[0].sovrin",channels[0].sovrin);
                 next();
             });
         },
-        function(next){// compare with store,
+        function(next){// list root channels
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.pico",
@@ -670,19 +658,41 @@ test("pico-engine", function(t){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                t.equals(data.channels.length <= channels.length, true,"channel was removed by name");
-                t.equals(data.channels.length, channels.length - 1 ,"single channel was removed by name");
-                var found = false;
-                for(var i = 0; i < data.channels.length; i++) {
-                    if (data.channels[i].id == ted.id) {
-                        found = true;
-                        break;
-                    }
-                }
-                t.equals(found, false,"correct channel removed");
+                console.log("\r\r///////////////////root_eci channels",channels);
+                //console.log("channels[0].sovrin",channels[0].sovrin);
                 next();
             });
         },
+        /*
+        function(next){
+            console.log("//////////////////Simple Pico Child Deletion//////////////////");
+            pe.signalEvent({
+                eci: root_eci,
+                eid: "85",
+                domain: "pico",
+                type: "delete_child_request_by_pico_id",
+                attrs: {name:"ted"}
+            }, function(err, response){
+                if(err) return next(err);
+                console.log("this is the response of children_deletion_requested: ",response);
+                console.log("engine: ",pe);
+                //t.deepEqual(response.directives[0].options.channel.name, "ted","correct directive");
+                //channel = response.directives[0].options.channel;
+                next();
+            });
+        },
+        function(next){// compare with store,
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "children",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                console.log("data: ",data);
+                next();
+            });
+        },*/
 
         //
         //                      end Wrangler tests
