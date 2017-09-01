@@ -9,6 +9,12 @@ ruleset temp_acct {
       ent:code || "code words expired"
     }
   }
+  rule pico_ruleset_added {
+    select when pico ruleset_added
+    fired {
+      ent:password := "";
+    }
+  }
   rule owner_creation {
     select when owner creation
     fired {

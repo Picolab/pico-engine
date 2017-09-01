@@ -15,15 +15,23 @@ ruleset temp_acct_mgr {
                                 "attrs": [ "owner_id", "dname", "method", "password" ] } ] }
     skyPre = meta:host + "/sky/cloud/";
     skyPost = "/io.picolabs.visual_params/dname";
-    method = function(name) {
-      name == "Twin" => "code" | null
-    }
     ownerIdForPico = function(p) {
       ent:owners.filter(function(v){v{"pico_id"} == p}).keys()[0]
     }
     oldECI = function(p) {
       owner_id = ownerIdForPico(p);
       ent:owners{[owner_id,"eci"]};
+    }
+  }
+
+  rule owner_initialize {
+    select when owner need_sync
+             or owner creation
+             or owner eci_requested
+             or owner deletion_requested
+    if not ent:owners then noop();
+    fired {
+      ent:owners := {};
     }
   }
 
@@ -42,7 +50,7 @@ ruleset temp_acct_mgr {
         { "pico_id": pico_id,
           "eci": new_channel{"id"},
           "dname": dname,
-          "method": method(dname)
+          "method": "password"
         };
       raise owner event "channel_expiration" attributes {"eci":old_eci} if old_eci
     }
@@ -149,7 +157,7 @@ ruleset temp_acct_mgr {
       entry = ent:owners{owner_id};
       pico_id = entry{"pico_id"};
       eci = entry{"eci"};
-      method = entry{"method"} || method(owner_id);
+      method = entry{"method"};
       nonce = random:word();
       options = {"owner_id":owner_id,"pico_id":pico_id,"eci":eci,"method":method,"nonce":nonce};
     }
