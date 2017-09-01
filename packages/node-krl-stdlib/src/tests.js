@@ -112,6 +112,12 @@ test("infix operators", function(t){
     tf("==", [NaN, undefined], true);
     tf("==", [null, undefined], true);
     tf("==", [NaN, NaN], true);
+    tf("==", [null, 0], false);
+    tf("==", [0, null], false);
+    tf("==", [0, undefined], false);
+    tf("==", [0, NaN], false);
+    tf("==", [false, null], false);
+    tf("==", [true, 1], false);
 
     tf("!=", [1, 2], true);
     tf("!=", [1, 1], false);
