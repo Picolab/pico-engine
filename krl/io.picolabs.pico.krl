@@ -233,7 +233,7 @@ ruleset io.picolabs.pico {
     deleteChannel = defaction(value) {
         channel = channel(value,null,null){"channels"}
         eci = channel{"id"}
-        engine:removeChannel(eci) 
+        engine:removeChannel(eci)
         returns channel
     }
 
@@ -399,8 +399,12 @@ ruleset io.picolabs.pico {
       rid_list = rids.typeof() ==  "array" => rids | rids.split(re#;#)
     } every{
       uninstallRulesets(rid_list)
-      send_directive("rulesets uninstalled", {"rids":rid_list}); 
+      send_directive("rulesets uninstalled", {"rids":rid_list});
     }
+  }
+
+  rule pico_new_child_created {
+    select when pico new_child_created
     always {
       raise wrangler event "ruleset_removed"
         attributes event:attrs().put({"rids": rid_list});
@@ -422,7 +426,7 @@ ruleset io.picolabs.pico {
     }
     if(check_name) then every {
       createChannel(meta:picoId, channel_name , type) setting(channel);
-      send_directive("channel_Created", {"channel":channel}); 
+      send_directive("channel_Created", {"channel":channel});
     }
     always {
       channel_name.klog("successfully created channel ");
@@ -438,7 +442,7 @@ ruleset io.picolabs.pico {
     pre {
       value = event:attr("eci").defaultsTo(event:attr("name").defaultsTo("", "missing event attr eci or name"), "looking for name instead of eci.")
       channel = alwaysEci(value);
-    } 
+    }
     every {
       deleteChannel(value) setting(channel);
       send_directive("channel_deleted", {"channel":channel});
@@ -449,7 +453,7 @@ ruleset io.picolabs.pico {
            attributes event:attrs().put(["channel"],channel)
          }
     }
-  
+
 
 // ********************************************************************************************
 // ***                                      Picos                                           ***
@@ -518,17 +522,17 @@ ruleset io.picolabs.pico {
   }
 
   rule pico_children_sync {
-    select when wrangler child_sync or 
-                pico need_sync or 
+    select when wrangler child_sync or
+                pico need_sync or
                 wrangler child_deletion or
                 pico delete_child_request_by_pico_id
 
     foreach engine:listChildren() setting (pico_id,count)
     pre {
-      new_child = (ent:children{pico_id}.isnull()) => 
+      new_child = (ent:children{pico_id}.isnull()) =>
                     { "parent_eci":"",//placeholder // could create new channel, but then we would need to send event to child, but there is no guarantee of wrangler installed in that child....
                       "name":"rogue_"+randomPicoName(),
-                      "id": pico_id, 
+                      "id": pico_id,
                       "eci": engine:listChannels(pico_id)[0]{"id"}} | "" ; // engine creates a eci we always can get.
 
     }
@@ -540,8 +544,8 @@ ruleset io.picolabs.pico {
     }
   }
 
-  rule delete_child_check { 
-    select when wrangler child_deletion or 
+  rule delete_child_check {
+    select when wrangler child_deletion or
                 pico delete_child_request_by_pico_id
     pre {
       value = event:attr("name").defaultsTo(event:attr("id"), "used id for deletion");
@@ -575,7 +579,7 @@ ruleset io.picolabs.pico {
   }
 
   rule pico_intent_to_orphan {
-    select when wrangler delete_children 
+    select when wrangler delete_children
     foreach event:attr("subtreeArray") setting(child)
     pre{a = child.klog("child");a = event:attr("subtreeArray").klog("subtreeArray")}
     every{
