@@ -87,6 +87,7 @@ test("pico-engine", function(t){
             }, function(err, data){
                 if(err) return next(err);
                 channels = data.channels;
+                t.equal(channels.length > 0,true,"channels returns a list greater than zero");
                 //console.log("channels",channels);
                 //console.log("channels[0].sovrin",channels[0].sovrin);
                 next();
@@ -390,6 +391,7 @@ test("pico-engine", function(t){
             }, function(err, data){
                 if(err) return next(err);
                 installedRids = data.rids;
+                t.equal(installedRids.length > 0, true, "installed rids list is greater than zero");
                 next();
             });
         },
@@ -594,6 +596,7 @@ test("pico-engine", function(t){
             }, function(err, data){
                 if(err) return next(err);
                 child_count = data.children.length;
+                t.equal(Array.isArray(data.children), true,"children returns list.");
                 next();
             });
         },
@@ -635,35 +638,30 @@ test("pico-engine", function(t){
                 next();
             });
         },
-        function(next){// list child channels
+        function(next){
             pe.runQuery({
                 eci: child.eci,
                 rid: "io.picolabs.pico",
                 name: "channel",
-                args: {},
+                args: {value:"main"},
             }, function(err, data){
                 if(err) return next(err);
-                console.log("\r\r///////////////////child.eci channels",data);
-                console.log("child eci, root eci",child.eci,root_eci);
-                console.log("\r\r///////////////////child",child);
-                //console.log("channels[0].sovrin",channels[0].sovrin);
+                t.equals(data.channels.name,"main","child 'main' channel created");
                 next();
             });
         },
-        function(next){// list root channels
+        function(next){
             pe.runQuery({
-                eci: root_eci,
+                eci: child.eci,
                 rid: "io.picolabs.pico",
                 name: "channel",
-                args: {},
+                args: {value:"admin"},
             }, function(err, data){
                 if(err) return next(err);
-                console.log("\r\r///////////////////root_eci channels",data);
-                //console.log("channels[0].sovrin",channels[0].sovrin);
+                t.equals(data.channels.name,"admin","child 'admin' channel created");
                 next();
             });
-        },
-        /*
+        },/*
         function(next){
             console.log("//////////////////Simple Pico Child Deletion//////////////////");
             pe.signalEvent({
