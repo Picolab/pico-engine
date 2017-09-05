@@ -20,7 +20,7 @@ var startTestServer = function(callback){
         startPicoEngine({
             host: "http://localhost:8080",
             home: dir.path,
-            no_logging: false,
+            no_logging: true,
         }, function(err, pe){
             if(err) throw err;//throw ensures process is killed with non-zero exit code
 
@@ -606,7 +606,7 @@ test("pico-engine", function(t){
                 attrs: {name:"ted"}
             }, function(err, response){
                 if(err) return next(err);
-                //console.log("this is the create child response:",response.directives[0].options.pico);
+                console.log("this is the create child response:",response.directives[0].options.pico);
                 t.deepEqual("ted", response.directives[0].options.pico.name, "correct directive");
                 child = response.directives[0].options.pico; //store child information from event for deleting
                 next();
@@ -643,7 +643,7 @@ test("pico-engine", function(t){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                console.log("\r\r///////////////////child.eci channels",channels);
+                console.log("\r\r///////////////////child.eci channels",data);
                 console.log("child eci, root eci",child.eci,root_eci);
                 console.log("\r\r///////////////////child",child);
                 //console.log("channels[0].sovrin",channels[0].sovrin);
@@ -658,7 +658,7 @@ test("pico-engine", function(t){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                console.log("\r\r///////////////////root_eci channels",channels);
+                console.log("\r\r///////////////////root_eci channels",data);
                 //console.log("channels[0].sovrin",channels[0].sovrin);
                 next();
             });

@@ -104,7 +104,7 @@ ruleset io.picolabs.pico {
     //returns a list of children that are contained in a given subtree at the starting child. No ordering is guaranteed in the result
     gatherDescendants = function(child){
       pico_array = [child.klog("child at start: ")];
-      moreChildren = skyQuery(child{"eci"}, "io.picolabs.pico", "children").children.klog("Sky query result: ");
+      moreChildren = skyQuery(child{"eci"}, "io.picolabs.pico", "children"){"children"}.klog("Sky query result: ");
       final_pico_array = pico_array.append(moreChildren).klog("appendedResult");
 
       gatherChildrensChildren = function(final_pico_array,moreChildren){
@@ -210,7 +210,7 @@ ruleset io.picolabs.pico {
     }
 
     channel = function(value,collection,filtered) {
-      channels = engine:listChannels(meta:picoId.klog("channel picoId"));
+      channels = engine:listChannels(meta:picoId.klog("channel picoId"),meta:eci.klog("channel eci"));
 
       single_channel = function(channels){
         channel_list = channels;
