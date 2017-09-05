@@ -102,13 +102,13 @@ ruleset io.picolabs.pico {
      }
 
     //returns a list of children that are contained in a given subtree at the starting child. No ordering is guaranteed in the result
-    gatherSubtree = function(child){
+    gatherDescendants = function(child){
       pico_array = [child.klog("child at start: ")];
       moreChildren = skyQuery(child{"eci"}, "io.picolabs.pico", "children").children.klog("Sky query result: ");
       final_pico_array = pico_array.append(moreChildren).klog("appendedResult");
 
       gatherChildrensChildren = function(final_pico_array,moreChildren){
-        arrayOfChildrenArrays = moreChildren.map(function(x){ gatherSubtree(x.klog("moreChildren child: ")) });
+        arrayOfChildrenArrays = moreChildren.map(function(x){ gatherDescendants(x.klog("moreChildren child: ")) });
         final_pico_array.append(arrayOfChildrenArrays.reduce(function(a,b){ a.append(b) }));
       };
 
@@ -555,7 +555,7 @@ ruleset io.picolabs.pico {
     }
   }
 
-  rule gatherSubtree {
+  rule gatherDescendants {
     select when wrangler child_deletion or pico delete_child_request_by_pico_id
     pre {
       value = event:attr("name").defaultsTo(event:attr("id"),"id used to delete child");
@@ -563,7 +563,7 @@ ruleset io.picolabs.pico {
                                               (child{"name"} ==  value || child{"id"} == value)
                                             }).klog("filtered_children result: ");
       target_child = filtered_children.values()[0];
-      subtreeArray = gatherSubtree(target_child).klog("Subtree result: ");
+      subtreeArray = gatherDescendants(target_child).klog("Subtree result: ");
       updated_children = ent:children.delete(target_child.id);
     }
     noop()
