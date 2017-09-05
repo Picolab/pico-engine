@@ -185,6 +185,18 @@ Do not disclose it or check it into a repository like GitHub.
 <button type="submit">add child pico</button>
 </form>
 </p>
+{{#if owner}}
+<form class="js-ajax-form" action="/sky/event/{{eci}}/none/owner/new_password" method="post">
+<fieldset style="display:inline-block">
+<legend>Change password</legend>
+    <label for="password">Current password:</label>
+    <input type="password" placeholder="Enter current password" name="password" value="">
+    <label for="password">New password:</label>
+    <input type="password" placeholder="Enter new password" name="new_password" value="">
+    <input type="submit" class="button form-login" value="New Password">
+</fieldset>
+</form>
+{{/if}}
 </script>
 <script id="rulesets-template" type="text/x-handlebars-template">
 Pico Rulesets

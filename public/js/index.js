@@ -96,11 +96,14 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       thePicoOut.id = thePicoInp.id;
       thePicoOut.eci = eci;
       var pp = getP(thePicoInp,"parent",undefined);
-      if (pp) {
+      if (pp && pp.id != rootPico.id) {
         thePicoOut.parent = {};
         thePicoOut.parent.id = pp.id;
         thePicoOut.parent.eci = pp.eci;
         thePicoOut.parent.dname = getV(pp,"dname",undefined);
+      }
+      if (pp && pp.id == rootPico.id) {
+        thePicoOut.owner = true;
       }
       thePicoOut.children = [];
       var reportedChildren = getP(thePicoInp,"children",[]);
