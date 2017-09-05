@@ -609,7 +609,6 @@ test("pico-engine", function(t){
                 attrs: {name:"ted"}
             }, function(err, response){
                 if(err) return next(err);
-                console.log("this is the create child response:",response.directives[0].options.pico);
                 t.deepEqual("ted", response.directives[0].options.pico.name, "correct directive");
                 child = response.directives[0].options.pico; //store child information from event for deleting
                 next();
