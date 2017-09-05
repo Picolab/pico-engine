@@ -22,7 +22,7 @@ Select an owner pico
 <option value="{{this}}">{{@key}}</option>
 {{/each}}
 </select>
-<button id="user-login">login</button>
+<button id="user-login">select</button>
 <div id="login-display-switch">
 </div>
 </div>
@@ -40,6 +40,7 @@ Select an owner pico
 </script>
 <script id="password-template" type="text/x-handlebars-template">
   <form class="js-ajax-form-auth" action="/sky/event/{{eci}}/{{eid}}/owner/authenticate" method="post">
+    <input type="hidden" name="nonce" value="{{nonce}}">
     <fieldset>
     <legend>Can you prove it?</legend>
     <label for="password">Password:</label>
@@ -50,10 +51,11 @@ Select an owner pico
 </script>
 <script id="code-template" type="text/x-handlebars-template">
   <form class="js-ajax-form-auth" action="/sky/event/{{eci}}/{{eid}}/owner/code_presented" method="post">
+    <input type="hidden" name="nonce" value="{{nonce}}">
     <fieldset>
-    <legend>Can you present the code word?</legend>
+    <legend>Can you present the code words?</legend>
     <label for="code">Code word:</label>
-    <input type="password" placeholder="Enter code word"" name="code" value="" id="code">
+    <input type="password" placeholder="Enter code words"" name="code" value="" id="code">
     <input type="submit" class="button form-login" value="Login">
     </fieldset>
   </form>
@@ -63,10 +65,10 @@ Select an owner pico
     <fieldset>
     <legend>Tell us about your account</legend>
     <label for="owner-id">Owner ID:</label>
-    <input type="text" name="owner_id" id="owner-id" placeholder="Enter Owner ID or DID">
+    <input type="text" name="owner_id" id="owner_id" placeholder="Enter Owner ID or DID">
     <br>
     <label for="dname">Pico display name:</label>
-    <input type="text" name="dname" id="dname" placeholder="Enter display name" value="Owner Pico">
+    <input type="text" name="dname" id="dname" placeholder="Enter display name">
     <br>
     <label for="method">Authentication method:</label>
     <select id="method" name="method">
@@ -81,6 +83,21 @@ Select an owner pico
     </fieldset>
   </form>
   <a id="already-account" class="no-red" href="#">Already have an owner pico?</a>
+</script>
+<script id="code-words-template" type="text/x-handlebars-template">
+<h2>How to obtain code words</h2>
+<p>
+Make careful note of either this URL or this QR code.
+When you need to login, you can use either of them to obtain
+the current code words.
+</p>
+<iframe src="/qrcode.html?http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt" width="600" height="350">
+<p>
+http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt
+</p>
+</iframe>
+<br>
+<a href="{{redirect}}">Got it</a>
 </script>
 <script id="the-template" type="text/x-handlebars-template">
 <a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
@@ -276,7 +293,23 @@ Select an episode to see the log entries for that episode.
 Testing
 <ul class="testing-rids">
 {{#each testing}}
-<li><input type="checkbox" checked=""><span class="krlrid">{{this.rid}}</span>
+<li><input type="checkbox"><span class="krlrid">{{this.rid}}</span>
+</li>
+{{/each}}
+<li class="legend">Legend
+<ul>
+<li class="testing-queries sky-cloud"><button disabled="">query</button></li>
+<li class="testing-events sky-event"><button disabled="">event</button></li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="test-results" style="margin-left:40%">
+Results
+<pre></pre>
+</div>
+</script>
+<script id="capabilities-template" type="text/x-handlebars-template">
 {{#if capabilities.queries}}
 <ul class="testing-queries">
 {{#each capabilities.queries}}
@@ -302,22 +335,6 @@ Testing
 <button type="submit">{{this.domain}}/{{this.type}}</button></form></li>
 {{/each}}
 </ul>
-{{/if}}
-</li>
-{{/each}}
-<li class="legend">Legend
-<ul>
-<li class="testing-queries sky-cloud"><button>query</button></li>
-<li class="testing-events sky-event"><button>event</button></li>
-</ul>
-</li>
-</ul>
-</div>
-{{#if testing}}
-<div id="test-results" style="margin-left:40%">
-Results
-<pre></pre>
-</div>
 {{/if}}
 </script>
 <script id="subscriptions-template" type="text/x-handlebars-template">

@@ -134,5 +134,23 @@ module.exports = {
                 res.json(response);
             });
         });
+    },
+    "new_account": function(req,res){
+        var pe = req.pe;
+        var errResp = req.errResp;
+        pe.getRootPico(function(err, root_pico){
+            if(err) return errResp(res, err);
+            var event = {
+                eci: root_pico.eci,
+                eid: "",
+                domain: "owner",
+                type: "creation",
+                attrs: req.body
+            };
+            pe.signalEvent(event, function(err, response){
+                if(err) return errResp(res, err);
+                res.json(response);
+            });
+        });
     }
 };

@@ -68,29 +68,7 @@ $(document).ready(function() {
     });
     return json;
   };
-  var getCapabilities = function(eci,rid,callback) {
-    var ans = { "eci":eci, "rid":rid, "capabilities":{} };
-    $.getJSON("/sky/cloud/"+eci+"/"+rid+"/__testing",function(c){
-      ans.capabilities = c;
-      callback(ans);
-    }).fail(function(){
-      callback(ans);
-    });
-  };
-  var parMap = function (arr, visitor, done) {
-    var count = 0;
-    var target = arr.length;
-    var outp = new Array(target);
-    var maybeDone = function (index,result) {
-      outp[index] = result;
-      if (++count === target) {
-        done(outp);
-      }
-    }
-    for (var i=0; i<target; ++i) {
-      visitor(arr[i], maybeDone.bind(null,i));
-    }
-  };
+  var capTemplate = Handlebars.compile($('#capabilities-template').html());
 $.getJSON("/api/db-dump?legacy=true", function(db_dump){
   var dragstop = function(event,ui) {
     var nodeId = ui.helper[0].getAttribute("id");
@@ -185,17 +163,12 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       }
       callback(theLoggingOut);
     } else if (label === "Testing") {
+      var testing = [];
       var eci = findEciById(thePicoInp.id);
-      var theRids = [];
       for (var rid in thePicoInp.ruleset) {
-        theRids.push(rid);
+        testing.push({"rid":rid});
       }
-      parMap(theRids,
-             getCapabilities.bind(null,eci),
-             function (theCapabilities) {
-               callback({ "testing": theCapabilities,
-                          "pico_id": thePicoInp.id });
-             });
+      callback({"pico_id": thePicoInp.id, "eci":eci, "testing":testing});
     } else if (label === "Channels") {
       var theChannels = [];
       var theECI;
@@ -289,6 +262,20 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           });
         });
       } else if(liContent === "testing") {
+        $(".testing-rids li input").change(function(e){
+          $("#test-results pre").html("");
+          if(this.checked){
+            var $span = $(this).next(".krlrid");
+            if($span.next().length==0){
+              var rid = $span.text();
+              var eci = theDB.eci;
+              $.getJSON("/sky/cloud/"+eci+"/"+rid+"/__testing",function(c){
+                $span.after(capTemplate({eci:eci,rid:rid,capabilities:c}));
+              }).fail(function(){$span.after("<ul></ul>");
+              });
+            }
+          }
+        });
         $(".pico-edit .krlrid").click(displayKrl);
         location.hash = theDB.pico_id+"-Testing";
       } else if(liContent === "about") {
@@ -340,7 +327,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         location.reload();
       });
       var $theResultsPre = $theSection.find('div#test-results pre');
-      $theSection.find('form.js-test').submit(function(e){
+      $theSection.on("submit","form.js-test",function(e){
         e.preventDefault();
         $.getJSON($(this).attr("action"),formToJSON(this),function(ans){
           $theResultsPre.html(JSON.stringify(ans,undefined,2).escapeHTML());
@@ -519,6 +506,15 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       $("#version").text(data ? data.version : "undefined");
     });
   } else if (!logged_in_pico.id) {
+    var performLogin = function(options,delay){
+      sessionStorage.setItem("owner_pico_id",options.pico_id);
+      sessionStorage.setItem("owner_pico_eci",options.eci);
+      var redirect = getCookie("previousUrl") || "/";
+      //should clear cookie here! ?maybe
+      if(!delay){
+        location.assign(redirect);
+      }
+    }
     location.hash = "";
     var users = {};
     var children = getP(rootPico,"children",[]);
@@ -530,6 +526,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     var loginTemplate = Handlebars.compile($('#login-template').html());
     var ownerTemplate = Handlebars.compile($('#owner-id-template').html());
     var newAccountTemplate = Handlebars.compile($("#new-account-template").html());
+    var codeWordsTemplate = Handlebars.compile($("#code-words-template").html());
     var loginData = {
       "root_pico_id":rootPico.id,
       "users":users
@@ -577,6 +574,17 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         $(".password-entry").show();
       }
     });
+    $lds.on("change","#owner_id",function(e){
+      e.preventDefault();
+      var $dname = $lds.find("#dname");
+      if(!$dname.val()) {
+        $dname.val($(this).val());
+      }
+    });
+    var passwordFailure = function() {
+      alert("no directives returned, try again please.");
+      location.reload();
+    }
     $lds.on("submit",'.js-ajax-form-auth',function(e){
       e.preventDefault();
       var action = $(this).attr("action");
@@ -584,37 +592,42 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         $.post($(this).attr("action"),formToJSON(this),function(data){
             if(data && data.directives && data.directives[0] ){
               var d = data.directives[0];
+              var method = "password";
               if (d.options && d.options.eci){ // successfully logged in
-                var method = d.options.method || "password";
-                var templateId = "#" + method + "-template";
-                var methodTemplate = Handlebars.compile($(templateId).html());
-                $lds.html(methodTemplate({eci:d.options.eci,eid:"none"}));
-                $("input")[0].focus();
+                method = d.options.method || "password";
+                if(method==="did" && d.options.pico_id) {
+                  return performLogin(d.options);
+                }
               }
+              var templateId = "#" + method + "-template";
+              var methodTemplate = Handlebars.compile($(templateId).html());
+              $lds.html(methodTemplate(
+                {eci:d.options.eci,eid:"none",nonce:d.options.nonce}));
+              $("input")[0].focus();
             }else{
               alert(JSON.stringify(data));
             }
         }, "json");
-
-      }else { // password authentication
+      }else { // password authentication or account creation
         $.post($(this).attr("action"),formToJSON(this),function(data){
-            if(data && data.directives && data.directives[0] ){
+            if(data && data.directives && data.directives[0]){
               var d = data.directives[0];
+              if(data.directives[1]){ // display code words instructions
+                $lds.html(codeWordsTemplate(
+                  {eci:data.directives[1].options.eci,
+                   redirect: getCookie("previousUrl") || "/"}));
+                return performLogin(d.options,true);
+              }
               if (d.options && d.options.pico_id){ // successfully logged in
-                sessionStorage.setItem("owner_pico_id",d.options.pico_id);
-                sessionStorage.setItem("owner_pico_eci",d.options.eci);
-                var redirect = getCookie("previousUrl") || "/";
-                //should clear cookie here! ?maybe
-                location.assign(redirect);
+                performLogin(d.options);
               }else {
                 alert("no pico_id found in directive, try again please.");
                 location.reload();
               }
             }else{
-              alert("no directives returned, try again please.");
-              location.reload();
+              passwordFailure();
             }
-        }, "json");
+        }, "json").fail(passwordFailure);
       }
     });
   } else {
