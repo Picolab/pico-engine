@@ -429,7 +429,11 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     return get(db_dump.pico,[p.id,"io.picolabs.visual_params","vars",n],d);
   }
   var rootPico = {};
-  for (var k in db_dump.pico) { rootPico.id = k; break; }
+  for (var k in db_dump.pico) {
+    rootPico.id = k;
+    rootPico.eci = findEciById(k);
+    break;
+  }
   var do_main_page = function(ownerPico) {
     var db_graph = {};
     db_graph.title = getV(ownerPico,"title","My Picos");
@@ -537,6 +541,15 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     $('body').html(loginTemplate(loginData));
     document.title = $('body h1').html();
     var $lds = $("#login-display-switch");
+    var missingAcctMgmtRuleset = function() {
+      $lds.html("Root Pico does not have an account management ruleset");
+    };
+    $.post("/sky/event/"+rootPico.eci+"/none/owner/eci_requested",function(d){
+      if(d && d.directives && d.directives[0]){ // okay
+      } else {
+        missingAcctMgmtRuleset();
+      }
+    }).fail(missingAcctMgmtRuleset);
     $lds.html(ownerTemplate({}));
     $("input")[0].focus();
     $("#user-login").click(function(){
