@@ -138,10 +138,10 @@ module.exports = {
     "new_account": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getRootPico(function(err, root_pico){
+        pe.getRootECI(function(err, root_eci){
             if(err) return errResp(res, err);
             var event = {
-                eci: root_pico.eci,
+                eci: root_eci,
                 eid: "",
                 domain: "owner",
                 type: "creation",

@@ -16,11 +16,11 @@ ruleset io.picolabs.pico {
     provides skyQuery ,
     rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
-    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createChild, deleteChild, pico, myself
+    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico, myself
     shares skyQuery ,
     rulesetsInfo,installedRulesets,  installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
-    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createChild, deleteChild, pico,  myself,
+    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico,  myself,
      __testing
   }
   global {
@@ -372,9 +372,9 @@ ruleset io.picolabs.pico {
 // ********************************************************************************************
 
   rule installRulesets {
-    select when wrangler install_rulesets_requested or pico install_rulesets_requested
+    select when wrangler install_rulesets_requested or pico new_ruleset or pico install_rulesets_requested
     pre {
-      rids = event:attr("rids").defaultsTo(""," ")
+      rids = event:attr("rids").defaultsTo(event:attr("rid")).defaultsTo("")
       rid_list = (rids.typeof() ==  "Array") => rids | rids.split(re#;#)
       b = rid_list.klog("attr Rids")
     }

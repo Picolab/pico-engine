@@ -404,7 +404,7 @@ test("pico-engine", function(t){
                 attrs: {rids:"io.picolabs.logging"}
             }, function(err, response){
                 if(err) return next(err);
-                //console.log("this is the response of install_rulesets_requested: ",response.directives[0].options);
+                console.log("this is the response of install_rulesets_requested: ",response);
                 t.deepEqual("io.picolabs.logging", response.directives[0].options.rids[0], "correct directive");
                 //rids = response.directives[0].options.rids;
                 next();
