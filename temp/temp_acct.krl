@@ -8,6 +8,9 @@ ruleset temp_acct {
     code = function() {
       ent:code || "code words expired"
     }
+    passwordOK = function() {
+      ent:password.defaultsTo("") == "" || ent:password == event:attr("password")
+    }
   }
   rule pico_ruleset_added {
     select when pico ruleset_added
@@ -55,12 +58,19 @@ ruleset temp_acct {
       ent:exp := null;
     }
   }
-  rule owner_authenticate { // any password will be accepted for now
+  rule owner_authenticate {
     select when owner authenticate
-    if event:attr("nonce") == ent:nonce && event:attr("password") == ent:password
+    if event:attr("nonce") == ent:nonce && passwordOK()
     then send_directive("success",{"pico_id":meta:picoId,"eci":meta:eci});
     always {
       raise owner event "nonce_used";
+    }
+  }
+  rule owner_new_password {
+    select when owner new_password
+    if passwordOK() then noop();
+    fired {
+      ent:password := event:attr("new_password");
     }
   }
 }
