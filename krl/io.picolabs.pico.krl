@@ -57,7 +57,7 @@ ruleset io.picolabs.pico {
   rule pico_new_child_created {
     select when pico new_child_created
     always {
-      ent:children := children().union([event:attrs()])
+      ent:children := children().union([event:attrs().delete("rs_attrs")])
     }
   }
 
