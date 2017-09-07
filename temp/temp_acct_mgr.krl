@@ -75,29 +75,37 @@ ruleset temp_acct_mgr {
 
   rule owner_creation {
     select when owner creation
+    fired {
+      raise pico event "new_child_request" attributes event:attrs();
+    }
+  }
+
+  rule pico_new_child_created {
+    select when pico new_child_created
     pre {
-      owner_id = event:attr("owner_id");
-      method = event:attr("method");
+      child_id = event:attr("id");
+      child_eci = event:attr("eci");
+      rs_attrs = event:attr("rs_attrs");
+      owner_id = rs_attrs{"owner_id"};
+      method = rs_attrs{"method"};
       code = method == "code";
-      dname = event:attr("dname");
+      dname = rs_attrs{"dname"} || owner_id;
     }
     every {
-      wrangler:createPico() setting(child);
-      engine:installRuleset(child[0]{"id"}, url="temp_acct.krl", base=meta:rulesetURI);
-      event:send({"eci":child[0]{"eci"}, "domain":"owner", "type":"creation", "attrs":event:attrs()});
-      engine:newChannel(child[0]{"id"},time:now(),"to owner") setting(new_channel);
+      engine:installRuleset(child_id, url="temp_acct.krl", base=meta:rulesetURI);
+      event:send({"eci":child_eci, "domain":"owner", "type":"creation", "attrs":rs_attrs});
+      engine:newChannel(child_id,time:now(),"to owner") setting(new_channel); // CHANGE?
       send_directive(
         "new owner pico",
         { "owner_id": owner_id,
-          "pico_id": child[0]{"id"},
+          "pico_id": child_id,
           "eci": new_channel{"id"},
           "method": method});
     }
     always {
-      raise pico event "new_child_created" attributes child[0].klog("CHILD");
-      raise owner event "new_owner_pico_with_code" attributes {"pico_id":child[0]{"id"}} if code;
+      raise owner event "new_owner_pico_with_code" attributes {"pico_id":child_id} if code;
       ent:owners{owner_id} := 
-        { "pico_id": child[0]{"id"},
+        { "pico_id": child_id,
           "eci": new_channel{"id"},
           "dname": dname,
           "method": method
@@ -110,7 +118,7 @@ ruleset temp_acct_mgr {
     pre {
       pico_id = event:attr("pico_id");
     }
-    every {
+    every { // CHANGE?
       engine:newChannel(pico_id,"code query","secret") setting(code_query_channel);
       send_directive("new owner pico code query channel",{"eci":code_query_channel{"id"}});
     }

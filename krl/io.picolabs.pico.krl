@@ -40,7 +40,7 @@ ruleset io.picolabs.pico {
               "rs_attrs":  event:attrs()
             }});
       }
-      returns {"id": child.id, "eci": channel.id}
+      returns {"id": child.id, "eci": channel.id, "rs_attrs":  event:attrs()}
     }
   }
 
@@ -110,7 +110,7 @@ ruleset io.picolabs.pico {
     }
     if child then noop();
     fired {
-      raise pico event "delete_child_request" attributes child;
+      raise pico event "delete_child_request" attributes child.klog("CHILD");
     }
   }
 
