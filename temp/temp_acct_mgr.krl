@@ -1,6 +1,5 @@
 ruleset temp_acct_mgr {
   meta {
-    use module io.picolabs.pico alias wrangler
     shares __testing, oldECI
   }
   global {
@@ -21,6 +20,22 @@ ruleset temp_acct_mgr {
     oldECI = function(p) {
       owner_id = ownerIdForPico(p);
       ent:owners{[owner_id,"eci"]};
+    }
+    createPico = defaction(){
+      every {
+        engine:newPico() setting(child);
+        engine:newChannel(child{"id"}, "main", "secret") setting(channel);
+        engine:installRuleset(child{"id"}, "io.picolabs.pico");
+        event:send(
+          { "eci": channel{"id"}, "eid": 153,
+            "domain": "pico", "type": "child_created",
+            "attrs": {
+              "parent":    myself(),
+              "new_child": {"id": child{"id"}, "eci": channel{"id"}},
+              "rs_attrs":  event:attrs()
+            }});
+}
+      returns {"id": child{"id"}, "eci": channel{"id"}}
     }
   }
 
@@ -82,7 +97,7 @@ ruleset temp_acct_mgr {
       dname = event:attr("dname");
     }
     every {
-      wrangler:createPico() setting(child);
+      createPico() setting(child);
       engine:installRuleset(child[0]{"id"}, "temp_acct");
       event:send({"eci":child[0]{"eci"}, "domain":"owner", "type":"creation", "attrs":event:attrs()});
       engine:newChannel(child[0]{"id"},time:now(),"to owner") setting(new_channel);

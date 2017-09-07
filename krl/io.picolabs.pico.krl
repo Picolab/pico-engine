@@ -531,7 +531,9 @@ ruleset io.picolabs.pico {
     pre {
       new_child = (ent:children{pico_id}.isnull()) =>
                     { "parent_eci":"",//placeholder // could create new channel, but then we would need to send event to child, but there is no guarantee of wrangler installed in that child....
-                      "name":"rogue_"+randomPicoName(),
+                      "name": event:attr("id") == pico_id &&
+                              event:attr("name") => event:attr("name") | 
+                                                    "rogue_"+randomPicoName() ,
                       "id": pico_id,
                       "eci": engine:listChannels(pico_id)[0]{"id"}} | "" ; // engine creates a eci we always can get.
 
