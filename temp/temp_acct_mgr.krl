@@ -1,6 +1,5 @@
 ruleset temp_acct_mgr {
   meta {
-    use module io.picolabs.pico alias wrangler
     shares __testing, oldECI
   }
   global {
