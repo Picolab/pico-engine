@@ -404,7 +404,7 @@ test("pico-engine", function(t){
                 attrs: {rids:"io.picolabs.logging"}
             }, function(err, response){
                 if(err) return next(err);
-                console.log("this is the response of install_rulesets_requested: ",response);
+                //console.log("this is the response of install_rulesets_requested: ",response);
                 t.deepEqual("io.picolabs.logging", response.directives[0].options.rids[0], "correct directive");
                 //rids = response.directives[0].options.rids;
                 next();
@@ -608,6 +608,7 @@ test("pico-engine", function(t){
                 type: "new_child_request",
                 attrs: {name:"ted"}
             }, function(err, response){
+                //console.log("children",response);
                 if(err) return next(err);
                 t.deepEqual("ted", response.directives[0].options.pico.name, "correct directive");
                 child = response.directives[0].options.pico; //store child information from event for deleting
@@ -622,7 +623,7 @@ test("pico-engine", function(t){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                //console.log("children",data.children);
+                //console.log("children",data);
                 t.equals(data.children.length > child_count, true,"created a pico"); // created a child
                 t.equals(data.children.length , child_count+1, "created a single pico"); // created only 1 child
                 var found = false;
@@ -658,6 +659,34 @@ test("pico-engine", function(t){
             }, function(err, data){
                 if(err) return next(err);
                 t.equals(data.channels.name,"admin","child 'admin' channel created");
+                next();
+            });
+        },
+        function(next){// create duplicate child
+            pe.signalEvent({
+                eci: root_eci,
+                eid: "84",
+                domain: "pico",
+                type: "new_child_request",
+                attrs: {name:"ted"}
+            }, function(err, response){
+                //console.log("children",response);
+                if(err) return next(err);
+                t.deepEqual("Pico_Not_Created", response.directives[0].name, "correct directive for duplicate child creation");
+                next();
+            });
+        },
+        function(next){// create child with no name(random)
+            pe.signalEvent({
+                eci: root_eci,
+                eid: "84",
+                domain: "pico",
+                type: "new_child_request",
+                attrs: {}
+            }, function(err, response){
+                //console.log("children",response);
+                if(err) return next(err);
+                t.deepEqual("Pico_Created", response.directives[0].name, "correct directive for random named child creation");
                 next();
             });
         },/*

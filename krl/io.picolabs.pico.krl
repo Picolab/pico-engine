@@ -251,7 +251,7 @@ ruleset io.picolabs.pico {
   }
 
   children = function(name) {
-    _children = ent:children.defaultsTo({});
+    _children = ent:wrangler_childern.defaultsTo({});
     _return = name => _children.filter(function(child){child{"name"} == name}) | _children;
     {
       "children" : _return.values()
@@ -287,7 +287,7 @@ ruleset io.picolabs.pico {
     }.klog("name :")
   }
   picoECIFromName = function (name) {
-    pico = ent:children.filter(function(rec){rec{"name"} ==  name})
+    pico = ent:wrangler_childern.filter(function(rec){rec{"name"} ==  name})
                           .head();
     pico{"eci"}
   }
@@ -328,7 +328,7 @@ ruleset io.picolabs.pico {
     }
 /*
     updateChildCompletion = function(name){
-      children_map = ent:children.collect(function(child){
+      children_map = ent:wrangler_childern.collect(function(child){
                                             (child.name == name) => "childToUpdate" | "otherChildren"
                                           });//separate the children, returns two arrays
 
@@ -358,8 +358,7 @@ ruleset io.picolabs.pico {
     uniquePicoName = function(name){
           picos = children(){"children"};
           names = picos.none(function(child){
-            pico_name = child{"name"};
-            (pico_name ==  name)
+            (child{"name"} ==  name)
             });
           (names).klog("uniquePicoName : ")
 
@@ -462,7 +461,8 @@ ruleset io.picolabs.pico {
   rule createChild {
     select when wrangler child_creation or wrangler new_child_request or pico new_child_request
     pre {
-      name = event:attr("name");//.defaultsTo(randomPicoName(),"missing event attr name, random word used instead.");
+      check = event:attr("name").defaultsTo(event:attr("dname").defaultsTo(""));
+      name = check.length() == 0 => randomPicoName() | check;
       uniqueName = uniquePicoName(name).klog("uniqueName ");
       rids = event:attr("rids").defaultsTo([]);
       _rids = (rids.typeof() == "Array" => rids | rids.split(re#;#))
@@ -472,13 +472,23 @@ ruleset io.picolabs.pico {
       send_directive("Pico_Created", {"pico":child});
     }
     fired {
-      ent:children := {} if ent:children.isnull(); // this is bypassed when module is used
-      ent:children{child{"id"}} := child; // this is bypassed when module is used
+      ent:wrangler_childern := {} if ent:wrangler_childern.isnull(); // this is bypassed when module is used
+      ent:wrangler_childern{child{"id"}} := child; // this is bypassed when module is used
+      ent:children := children(){"children"};
       child.klog("successfully created child ");
     }
     else{
-      error info <<duplicate Pico name, failed to create pico named #{name}>>;
-      name.klog(" duplicate Pico name, failed to create pico named ");
+      raise wrangler event "child_creation_falure"
+        attributes event:attrs()
+    }
+  }
+
+  rule createChild_failure {
+    select when wrangler child_creation_falure
+      send_directive("Pico_Not_Created", {});
+    always {
+      error info <<duplicate Pico name, failed to create pico named #{event:attr("name")}>>;
+      event:attr("name").klog(" duplicate Pico name, failed to create pico named ");
     }
   }
 
@@ -517,6 +527,7 @@ ruleset io.picolabs.pico {
     always {
       ent:id := id;
       ent:eci := eci;
+      ent:wrangler_childern := {};
       ent:children := {}
     }
   }
@@ -529,7 +540,7 @@ ruleset io.picolabs.pico {
 
     foreach engine:listChildren() setting (pico_id,count)
     pre {
-      new_child = (ent:children{pico_id}.isnull()) =>
+      new_child = (ent:wrangler_childern{pico_id}.isnull()) =>
                     { "parent_eci":"",//placeholder // could create new channel, but then we would need to send event to child, but there is no guarantee of wrangler installed in that child....
                       "name": event:attr("id") == pico_id &&
                               event:attr("name") => event:attr("name") | 
@@ -538,11 +549,12 @@ ruleset io.picolabs.pico {
                       "eci": engine:listChannels(pico_id)[0]{"id"}} | "" ; // engine creates a eci we always can get.
 
     }
-    if ( ent:children{pico_id}.isnull()) then every{
+    if ( ent:wrangler_childern{pico_id}.isnull()) then every{
       send_directive("new child found and added to cache",{"child": new_child});
     }
     fired {
-      ent:children{pico_id} := new_child;
+      ent:wrangler_childern{pico_id} := new_child;
+      ent:children := children(){"children"};
     }
   }
 
@@ -565,12 +577,12 @@ ruleset io.picolabs.pico {
     select when wrangler child_deletion or pico delete_child_request_by_pico_id
     pre {
       value = event:attr("name").defaultsTo(event:attr("id"),"id used to delete child");
-      filtered_children = ent:children.filter(function(child,key){
+      filtered_children = ent:wrangler_childern.filter(function(child,key){
                                               (child{"name"} ==  value || child{"id"} == value)
                                             }).klog("filtered_children result: ");
       target_child = filtered_children.values()[0];
       subtreeArray = gatherDescendants(target_child).klog("Subtree result: ");
-      updated_children = ent:children.delete(target_child.id);
+      updated_children = ent:wrangler_childern.delete(target_child.id);
     }
     noop()
     fired{
@@ -591,13 +603,11 @@ ruleset io.picolabs.pico {
                     "attrs": event:attrs() });
     }
     always{
-
       schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 2})
         attributes {"name":child{"name"},
                     "id":child{"id"},
                     "target":event:attr("subtreeArray") == child{"name"},
                     "updated_children":event:attr("updated_children")}
-      //ent:children := event:attr("updated_children").klog("updated_children: ") on final;
     }
   }
 
@@ -611,7 +621,8 @@ ruleset io.picolabs.pico {
     if true then
       engine:removePico(id)
     fired{
-      ent:children := event:attr("updated_children").klog("updated_children: ") if target;
+      ent:wrangler_childern := event:attr("updated_children").klog("updated_children: ") if target;
+      ent:children := children(){"children"};
       raise information event "child_deleted"
         attributes event:attrs();
     }

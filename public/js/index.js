@@ -615,7 +615,8 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         $.post($(this).attr("action"),formToJSON(this),function(data){
             if(data && data.directives && data.directives[0]){
               var d = data.directives[0];
-              if(data.directives[1]){ // display code words instructions
+              // code path
+              if(data.directives[1] && data.directives[1].options.eci ){ // if there is a second directive with an eci .. 
                 $lds.html(codeWordsTemplate(
                   {eci:data.directives[1].options.eci,
                    redirect: getCookie("previousUrl") || "/"}));
@@ -624,7 +625,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
               if (d.options && d.options.pico_id){ // successfully logged in
                 performLogin(d.options);
               }else {
-                alert("no pico_id found in directive, try again please.");
+                //alert("no pico_id found in directive, try again please.");
                 location.reload();
               }
             }else{
