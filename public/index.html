@@ -11,10 +11,12 @@
 <script src="js/handlebars.min.js" type="text/javascript"></script>
 <script src="js/picoAPI.js" type="text/javascript"></script>
 <script src="js/index.js" type="text/javascript"></script>
+<script src="js/picoLogin.js" type="text/javascript"></script>
 <script id="login-template" type="text/x-handlebars-template">
 <a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
 <h1 class="title">Login</h1>
 <div id="container" style="position:relative">
+{{#if missingAcctMgmtRuleset}}
 Select an owner pico
 <select id="user-select">
 <option value="{{root_pico_id}}">Root Pico</option>
@@ -23,6 +25,7 @@ Select an owner pico
 {{/each}}
 </select>
 <button id="user-login">select</button>
+{{/if}}
 <div id="login-display-switch">
 </div>
 </div>
