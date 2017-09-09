@@ -96,4 +96,9 @@ rule eci_from_owner_name{
     }
   }
 
+  rule owner_pico_not_found { // used by ui to indicate if admin has this rule installed.
+    select when owner eci_requested
+    send_directive("here it is",{"owner_id":event:attr("owner_id"),"method":"password"});
+  }
+
 }
