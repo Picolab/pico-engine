@@ -29,12 +29,12 @@ ruleset io.picolabs.z_owner_authentication {
 
   rule channel_needed {
     select when wrangler ruleset_added where rids.klog("rids") >< meta:rid.klog("meta rid")
-    pre { }
-      every{
+    pre { parent_eci = wrangler:parent_eci(){"parent"}.klog("parent eci");}
+      if parent_eci then every{
         engine:newChannel( meta:picoId ,"Router_"+time:now(),"route_from_root")
           setting(new_channel)
         event:send(
-          { "eci": wrangler:parent_eci(){"parent"}.klog("parent eci"),
+          { "eci": parent_eci,
             "domain": "owner", "type": "token_created",
             "attrs": ({
               "eci":new_channel{"id"},
