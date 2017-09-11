@@ -42,7 +42,7 @@ ruleset temp_acct_mgr {
       engine:newChannel(child_id,time:now(),"to owner") setting(new_channel); // CHANGE?;
     }
     fired {
-      raise owner event "admin";
+      raise owner event "admin" attributes { "txnId": meta:txnId };
       ent:owners{"Root"} := 
         { "pico_id": meta:picoId,
           "eci": new_channel{"id"},

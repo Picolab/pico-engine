@@ -20,6 +20,11 @@ ruleset temp_acct {
   }
   rule owner_admin {
     select when owner admin
+    pre {
+      txnId = event:attr("txnId");
+      legit = (txnId == meta:txnId);
+    }
+    if legit then noop();
     fired {
       ent:owner_id := "Root";
       ent:password := "toor";
