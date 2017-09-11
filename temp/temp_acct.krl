@@ -12,12 +12,6 @@ ruleset temp_acct {
       ent:password.defaultsTo("") == "" || ent:password == event:attr("password")
     }
   }
-  rule pico_ruleset_added {
-    select when pico ruleset_added
-    fired {
-      ent:password := "";
-    }
-  }
   rule owner_admin {
     select when owner admin
     pre {
