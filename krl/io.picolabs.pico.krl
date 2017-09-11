@@ -104,16 +104,15 @@ ruleset io.picolabs.pico {
 
     //returns a list of children that are contained in a given subtree at the starting child. No ordering is guaranteed in the result
     gatherDescendants = function(child){
-      pico_array = [child.klog("child at start: ")];
       moreChildren = skyQuery(child{"eci"}, "io.picolabs.pico", "children"){"children"}.klog("Sky query result: ");
-      final_pico_array = pico_array.append(moreChildren).klog("appendedResult");
+      //final_pico_array = [child].append(moreChildren).klog("appendedResult");
 
-      gatherChildrensChildren = function(final_pico_array,moreChildren){
-        arrayOfChildrenArrays = moreChildren.map(function(x){ gatherDescendants(x.klog("moreChildren child: ")) });
-        final_pico_array.append(arrayOfChildrenArrays.reduce(function(a,b){ a.append(b) }));
+      gatherChildrensChildren = function(moreChildren){
+        arrayOfChildrenArrays = moreChildren.map(function(x){ gatherDescendants(x.klog("moreChildren child: ")) }).klog("More,moreChildren child: ");
+        arrayOfChildrenArrays.reduce(function(a,b){ a.append(b) });
       };
 
-      result = (moreChildren.length() == 0) => final_pico_array | gatherChildrensChildren(final_pico_array, moreChildren);
+      result = (moreChildren.length() == 0) => [] | moreChildren.append(gatherChildrensChildren(moreChildren));
       result
     }
 
@@ -424,7 +423,7 @@ ruleset io.picolabs.pico {
       type = event:attr("type").defaultsTo("Unknown", "missing event attr channel_type")
       check_name = checkName(channel_name);
     }
-    if(check_name) then every {
+    if(check_name && channel_name.length() != 0 ) then every {
       createChannel(meta:picoId, channel_name , type) setting(channel);
       send_directive("channel_Created", {"channel":channel});
     }
@@ -615,7 +614,7 @@ ruleset io.picolabs.pico {
                                               (child{"name"} ==  value || child{"id"} == value)
                                             }).klog("filtered_children result: ");
       target_child = filtered_children.values()[0];
-      subtreeArray = gatherDescendants(target_child).klog("Subtree result: ");
+      subtreeArray = [target_child].append(gatherDescendants(target_child)).klog("Subtree result: ");
       updated_children = ent:wrangler_children.delete(target_child{"id"});
     }
     noop()
@@ -657,9 +656,8 @@ ruleset io.picolabs.pico {
       id = event:attr("id");
       a = event:attrs().klog("attrs in delete child");
     }
-    if true then
       engine:removePico(id)
-    fired{
+    always{
       ent:wrangler_children := event:attr("updated_children").klog("updated_children: ") if target;
       ent:children := children(){"children"};
       raise information event "child_deleted"
