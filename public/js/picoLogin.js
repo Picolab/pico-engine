@@ -1,4 +1,4 @@
-  var handlePicoLogin = function(rootPico,users,formToJSON,callback){
+window.handlePicoLogin = function(formToJSON,callback){
     var getCookie = function(name) {
       var value = "; " + document.cookie;
       var parts = value.split("; " + name + "=");
@@ -17,23 +17,9 @@
     var ownerTemplate = Handlebars.compile($('#owner-id-template').html());
     var newAccountTemplate = Handlebars.compile($("#new-account-template").html());
     var codeWordsTemplate = Handlebars.compile($("#code-words-template").html());
-    var loginData = {
-      "root_pico_id":rootPico.id,
-      "users":users,
-      "missingAcctMgmtRuleset":true
-    };
-    $('body').html(loginTemplate(loginData));
+    $('body').html(loginTemplate({}));
     document.title = $('body h1').html();
     var $lds = $("#login-display-switch");
-    var missingAcctMgmtRuleset = function() {
-      $lds.html("Root Pico does not have an account management ruleset");
-    };
-    $.post("/sky/event/"+rootPico.eci+"/none/owner/eci_requested",function(d){
-      if(d && d.directives && d.directives[0]){ // okay
-      } else {
-        missingAcctMgmtRuleset();
-      }
-    }).fail(missingAcctMgmtRuleset);
     $lds.html(ownerTemplate({}));
     $("input")[0].focus();
     $("#user-login").click(function(){
@@ -42,8 +28,6 @@
       sessionStorage.setItem("owner_pico_id",ownerPico_id);
       if (ownerPico_id) {
         callback(logged_in_pico);
-      } else {
-        callback(rootPico);
       }
     });
     $lds.on("click",'#need-account',function(e){

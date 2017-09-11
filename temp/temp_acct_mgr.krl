@@ -28,9 +28,27 @@ ruleset temp_acct_mgr {
              or owner creation
              or owner eci_requested
              or owner deletion_requested
+             or pico ruleset_added
     if not ent:owners then noop();
     fired {
       ent:owners := {};
+    }
+  }
+
+  rule pico_ruleset_added {
+    select when pico ruleset_added rid re#temp_acct_mgr#
+    every {
+      engine:installRuleset(url="temp_acct.krl", base=meta:rulesetURI);
+      engine:newChannel(child_id,time:now(),"to owner") setting(new_channel); // CHANGE?;
+    }
+    fired {
+      raise owner event "admin";
+      ent:owners{"Root"} := 
+        { "pico_id": meta:picoId,
+          "eci": new_channel{"id"},
+          "dname": "Root Pico",
+          "method": "password"
+        };
     }
   }
 

@@ -18,6 +18,13 @@ ruleset temp_acct {
       ent:password := "";
     }
   }
+  rule owner_admin {
+    select when owner admin
+    fired {
+      ent:owner_id := "Root";
+      ent:password := "toor";
+    }
+  }
   rule owner_creation {
     select when owner creation
     fired {
