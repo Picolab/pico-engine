@@ -96,9 +96,11 @@ window.handlePicoLogin = function(formToJSON,callback){
         $.post($(this).attr("action"),formToJSON(this),function(data){
             if(data && data.directives && data.directives[0]){
               var d = data.directives[0];
-              if(data.directives[1]){ // display code words instructions
+              if(data.directives[1] && data.directives[1].options){
+                // display code words instructions
                 $lds.html(codeWordsTemplate(
                   {eci:data.directives[1].options.eci,
+                   owner_id:data.directives[1].options.owner_id,
                    redirect: getCookie("previousUrl") || "/"}));
                 return performLogin(d.options,true);
               }

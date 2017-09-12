@@ -120,7 +120,8 @@ ruleset temp_acct_mgr {
           "method": method});
     }
     always {
-      raise owner event "new_owner_pico_with_code" attributes {"pico_id":child_id} if code;
+      raise owner event "new_owner_pico_with_code"
+        attributes rs_attrs.put({"pico_id":child_id}) if code;
       ent:owners{owner_id} := 
         { "pico_id": child_id,
           "eci": new_channel{"id"},
@@ -134,10 +135,12 @@ ruleset temp_acct_mgr {
     select when owner new_owner_pico_with_code
     pre {
       pico_id = event:attr("pico_id");
+      owner_id = event:attr("owner_id");
     }
     every { // CHANGE?
       engine:newChannel(pico_id,"code query","secret") setting(code_query_channel);
-      send_directive("new owner pico code query channel",{"eci":code_query_channel{"id"}});
+      send_directive("new owner pico code query channel",
+        {"eci":code_query_channel{"id"}, "owner_id":owner_id});
     }
   }
 
