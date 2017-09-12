@@ -12,10 +12,16 @@ ruleset temp_acct {
       ent:password.defaultsTo("") == "" || ent:password == event:attr("password")
     }
   }
-  rule pico_ruleset_added {
-    select when pico ruleset_added
+  rule owner_admin {
+    select when owner admin
+    pre {
+      txnId = event:attr("txnId");
+      legit = (txnId == meta:txnId);
+    }
+    if legit then noop();
     fired {
-      ent:password := "";
+      ent:owner_id := "Root";
+      ent:password := "toor";
     }
   }
   rule owner_creation {

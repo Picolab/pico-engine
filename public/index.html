@@ -16,16 +16,6 @@
 <a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
 <h1 class="title">Login</h1>
 <div id="container" style="position:relative">
-{{#if missingAcctMgmtRuleset}}
-Select an owner pico
-<select id="user-select">
-<option value="{{root_pico_id}}">Root Pico</option>
-{{#each users}}
-<option value="{{this}}">{{@key}}</option>
-{{/each}}
-</select>
-<button id="user-login">select</button>
-{{/if}}
 <div id="login-display-switch">
 </div>
 </div>
@@ -43,23 +33,23 @@ Select an owner pico
 </script>
 <script id="password-template" type="text/x-handlebars-template">
   <form class="js-ajax-form-auth" action="/sky/event/{{eci}}/{{eid}}/owner/authenticate" method="post">
-    <input type="hidden" name="nonce" value="{{nonce}}">
     <fieldset>
     <legend>Can you prove it?</legend>
     <label for="password">Password:</label>
     <input type="password" placeholder="Enter password" name="password" value="">
     <input type="submit" class="button form-login" value="Login">
+    <input type="hidden" name="nonce" value="{{nonce}}">
     </fieldset>
   </form>
 </script>
 <script id="code-template" type="text/x-handlebars-template">
   <form class="js-ajax-form-auth" action="/sky/event/{{eci}}/{{eid}}/owner/code_presented" method="post">
-    <input type="hidden" name="nonce" value="{{nonce}}">
     <fieldset>
     <legend>Can you present the code words?</legend>
     <label for="code">Code word:</label>
     <input type="password" placeholder="Enter code words"" name="code" value="" id="code">
     <input type="submit" class="button form-login" value="Login">
+    <input type="hidden" name="nonce" value="{{nonce}}">
     </fieldset>
   </form>
 </script>
@@ -90,7 +80,7 @@ Make careful note of either this URL or this QR code.
 When you need to login, you can use either of them to obtain
 the current code words.
 </p>
-<iframe src="/qrcode.html?http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt" width="600" height="350">
+<iframe src="/qrcode.html?http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt?owner_id={{owner_id}}" width="600" height="350">
 <p>
 http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt
 </p>

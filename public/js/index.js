@@ -511,15 +511,14 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     do_main_page(logged_in_pico);
   } else {
     location.hash = "";
-    var users = {};
-    var children = getP(rootPico,"children",[]);
-    var i=0, l=children.length;
-    for (;i<l;++i) {
-      if (db_dump.pico[children[i].id] === undefined) continue;
-      users[getV(children[i],"dname","Pico"+i)] = children[i].id;
-    }
     if (typeof handlePicoLogin === "function") {
-      handlePicoLogin(rootPico,users,formToJSON,function(authenticatedPico){
+      $.post("/sky/event/"+rootPico.eci+"/none/owner/eci_requested",function(d){
+        if(d && d.directives && d.directives[0]){ // okay
+        } else {
+          do_main_page(rootPico);
+        }
+      }).fail(do_main_page(rootPico));
+      handlePicoLogin(formToJSON,function(authenticatedPico){
         do_main_page(authenticatedPico);
       });
     } else {

@@ -28,9 +28,27 @@ ruleset temp_acct_mgr {
              or owner creation
              or owner eci_requested
              or owner deletion_requested
+             or pico ruleset_added
     if not ent:owners then noop();
     fired {
       ent:owners := {};
+    }
+  }
+
+  rule pico_ruleset_added {
+    select when pico ruleset_added rid re#temp_acct_mgr#
+    every {
+      engine:installRuleset(url="temp_acct.krl", base=meta:rulesetURI);
+      engine:newChannel(child_id,time:now(),"to owner") setting(new_channel); // CHANGE?;
+    }
+    fired {
+      raise owner event "admin" attributes { "txnId": meta:txnId };
+      ent:owners{"Root"} := 
+        { "pico_id": meta:picoId,
+          "eci": new_channel{"id"},
+          "dname": "Root Pico",
+          "method": "password"
+        };
     }
   }
 
@@ -102,7 +120,8 @@ ruleset temp_acct_mgr {
           "method": method});
     }
     always {
-      raise owner event "new_owner_pico_with_code" attributes {"pico_id":child_id} if code;
+      raise owner event "new_owner_pico_with_code"
+        attributes rs_attrs.put({"pico_id":child_id}) if code;
       ent:owners{owner_id} := 
         { "pico_id": child_id,
           "eci": new_channel{"id"},
@@ -116,10 +135,12 @@ ruleset temp_acct_mgr {
     select when owner new_owner_pico_with_code
     pre {
       pico_id = event:attr("pico_id");
+      owner_id = event:attr("owner_id");
     }
     every { // CHANGE?
       engine:newChannel(pico_id,"code query","secret") setting(code_query_channel);
-      send_directive("new owner pico code query channel",{"eci":code_query_channel{"id"}});
+      send_directive("new owner pico code query channel",
+        {"eci":code_query_channel{"id"}, "owner_id":owner_id});
     }
   }
 
