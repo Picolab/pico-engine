@@ -41,9 +41,9 @@ test("PicoQueue", function(t){
             "working_1 [A] 0",
             "working_1 [B] 0",
             "working_2 [A] 0",//Now pico A finished work on event 0
+            "working_2 [B] 0",
             "done [A] 0",
             "working_0 [A] 1",//Now pico A can start on event 1
-            "working_2 [B] 0",
             "done [B] 0",
             "working_1 [A] 1",
             "working_2 [A] 1",

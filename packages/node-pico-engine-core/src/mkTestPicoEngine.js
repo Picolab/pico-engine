@@ -25,9 +25,8 @@ module.exports = function(opts, callback){
     opts = opts || {};
     var pe = PicoEngine({
         host: "https://test-host",
-        allow_event_time_override: true,
         ___core_testing_mode: true,
-        compileAndLoadRuleset: function(rs_info, callback){
+        compileAndLoadRuleset: opts.compileAndLoadRuleset || function(rs_info, callback){
             var rid = rs_info.src.substring(8, rs_info.src.length - 2);
             var rs = test_rulesets[rid];
             callback(undefined, rs);
@@ -35,13 +34,9 @@ module.exports = function(opts, callback){
         rootRIDs: opts.rootRIDs,
         db: {
             db: opts.ldb || memdown,
-            newID: (function(){
-                var i = 0;
-                return function(){
-                    return "id" + i++;
-                };
-            }())
-        }
+            __use_sequential_ids_for_testing: true,
+        },
+        modules: opts.modules,
     });
     async.eachSeries(_.keys(test_rulesets), function(rid, next){
         //hack since compileAndLoadRuleset doesn't actually compile
@@ -50,7 +45,7 @@ module.exports = function(opts, callback){
             url: test_rulesets[rid].url
         }, next);
     }, function(err){
-        pe.start(function(err){
+        pe.start([], function(err){
             callback(err, pe);
         });
     });

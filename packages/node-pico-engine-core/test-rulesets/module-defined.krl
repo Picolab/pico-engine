@@ -19,8 +19,11 @@ ruleset io.picolabs.module-defined {
                 "privateFn": privateFn()
             };
         }
-        getInfoAction = defaction(name){
+        getInfoAction = defaction(){
+
             send_directive("getInfoAction", getInfo());
+
+            returns {"name": getInfo()["name"]}
         }
     }
     rule store_memo {

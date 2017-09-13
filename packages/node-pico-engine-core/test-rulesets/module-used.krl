@@ -8,11 +8,14 @@ ruleset io.picolabs.module-used {
             with
                 configured_name = "Jim"
 
-        shares now
+        shares now, getEntVal
     }
     global {
         now = function(){
             time:now();
+        }
+        getEntVal = function(){
+            ent:val;
         }
     }
     rule dflt_name {
@@ -38,11 +41,19 @@ ruleset io.picolabs.module-used {
     rule dflt_getInfoAction {
         select when module_used dflt_getInfoAction
 
-        my_module_dflt:getInfoAction();
+        my_module_dflt:getInfoAction() setting(info);
+
+        always {
+            ent:val := info
+        }
     }
     rule conf_getInfoAction {
         select when module_used conf_getInfoAction
 
-        my_module_conf:getInfoAction();
+        my_module_conf:getInfoAction() setting(info);
+
+        always {
+            ent:val := info
+        }
     }
 }

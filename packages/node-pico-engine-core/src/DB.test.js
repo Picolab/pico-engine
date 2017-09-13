@@ -5,16 +5,10 @@ var async = require("async");
 var memdown = require("memdown");
 var migrations = require("./migrations");
 
-var mkTestDB = function(opts){
-    opts = opts || {};
+var mkTestDB = function(){
     return DB({
-        db: opts.ldb || memdown,
-        newID: (function(){
-            var i = 0;
-            return function(){
-                return "id" + i++;
-            };
-        }())
+        db: memdown,
+        __use_sequential_ids_for_testing: true,
     });
 };
 
@@ -23,7 +17,6 @@ test("DB - write and read", function(t){
     async.series({
         start_db: async.apply(db.toObj),
         pico0: async.apply(db.newPico, {}),
-        chan1: async.apply(db.newChannel, {pico_id: "id0", name: "one", type: "t"}),
         rule0: async.apply(db.addRulesetToPico, "id0", "rs0"),
         chan2: async.apply(db.newChannel, {pico_id: "id0", name: "two", type: "t"}),
         pico1: async.apply(db.newPico, {parent_id: "id0"}),
@@ -41,24 +34,56 @@ test("DB - write and read", function(t){
                 id1: {
                     pico_id: "id0",
                     id: "id1",
-                    name: "one",
-                    type: "t",
+                    name: "admin",
+                    type: "secret",
+                    sovrin: {
+                        did: "id1",
+                        verifyKey: "verifyKey_id1",
+                        secret: {
+                            seed: "seed_id1",
+                            signKey: "signKey_id1",
+                        },
+                    },
                 },
                 id2: {
                     pico_id: "id0",
                     id: "id2",
                     name: "two",
-                    type: "t"
+                    type: "t",
+                    sovrin: {
+                        did: "id2",
+                        verifyKey: "verifyKey_id2",
+                        secret: {
+                            seed: "seed_id2",
+                            signKey: "signKey_id2",
+                        },
+                    },
+                },
+                id4: {
+                    pico_id: "id3",
+                    id: "id4",
+                    name: "admin",
+                    type: "secret",
+                    sovrin: {
+                        did: "id4",
+                        verifyKey: "verifyKey_id4",
+                        secret: {
+                            seed: "seed_id4",
+                            signKey: "signKey_id4",
+                        },
+                    },
                 },
             },
             pico: {
                 "id0": {
                     id: "id0",
                     parent_id: null,
+                    admin_eci: "id1",
                 },
                 "id3": {
                     id: "id3",
                     parent_id: "id0",
+                    admin_eci: "id4",
                 },
             },
             "pico-ruleset": {"id0": {"rs0": {on: true}}},
@@ -69,6 +94,14 @@ test("DB - write and read", function(t){
                     "id1": true,
                     "id2": true,
                 },
+                "id3": {
+                    "id4": true,
+                },
+            },
+            "root_pico": {
+                id: "id0",
+                parent_id: null,
+                admin_eci: "id1",
             },
         });
 
@@ -201,19 +234,18 @@ test("DB - getRootPico", function(t){
         async.apply(db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
         async.apply(db.newPico, {}),
         tstRoot(function(err, r_pico){
-            t.ok(err);
-            t.ok(err.notFound);
-            t.deepEquals(r_pico, void 0);
+            t.notOk(err);
+            t.deepEquals(r_pico, {id: "id1", parent_id: null, admin_eci: "id2"});
         }),
-        async.apply(db.putRootPico, {id: "1234", eci: "5678"}),
+        async.apply(db.newPico, {parent_id: "id1"}),
         tstRoot(function(err, r_pico){
             t.notOk(err);
-            t.deepEquals(r_pico, {id: "1234", eci: "5678"});
+            t.deepEquals(r_pico, {id: "id1", parent_id: null, admin_eci: "id2"});
         }),
-        async.apply(db.putRootPico, {id: "foo", eci: "bar"}),
+        async.apply(db.newPico, {parent_id: null}),
         tstRoot(function(err, r_pico){
             t.notOk(err);
-            t.deepEquals(r_pico, {id: "foo", eci: "bar"});
+            t.deepEquals(r_pico, {id: "id5", parent_id: null, admin_eci: "id6"});
         }),
     ], t.end);
 });
@@ -479,14 +511,12 @@ test("DB - getPicoIDByECI", function(t){
     var db = mkTestDB();
     async.series({
         pico0: async.apply(db.newPico, {}),
-        pico1: async.apply(db.newPico, {}),
+        pico2: async.apply(db.newPico, {}),
 
-        c2_p0: async.apply(db.newChannel, {pico_id: "id0", name: "two", type: "t"}),
-        c3_p1: async.apply(db.newChannel, {pico_id: "id1", name: "three", type: "t"}),
         c4_p0: async.apply(db.newChannel, {pico_id: "id0", name: "four", type: "t"}),
-        c5_p1: async.apply(db.newChannel, {pico_id: "id1", name: "five", type: "t"}),
+        c5_p1: async.apply(db.newChannel, {pico_id: "id2", name: "five", type: "t"}),
 
-        get_c2: async.apply(db.getPicoIDByECI, "id2"),
+        get_c2: async.apply(db.getPicoIDByECI, "id1"),
         get_c3: async.apply(db.getPicoIDByECI, "id3"),
         get_c4: async.apply(db.getPicoIDByECI, "id4"),
         get_c5: async.apply(db.getPicoIDByECI, "id5"),
@@ -495,12 +525,13 @@ test("DB - getPicoIDByECI", function(t){
         if(err) return t.end(err);
 
         t.deepEquals(data.get_c2, "id0");
-        t.deepEquals(data.get_c3, "id1");
+        t.deepEquals(data.get_c3, "id2");
         t.deepEquals(data.get_c4, "id0");
-        t.deepEquals(data.get_c5, "id1");
+        t.deepEquals(data.get_c5, "id2");
 
         db.getPicoIDByECI("bad-id", function(err, id){
             t.ok(err);
+            t.ok((err && err.notFound) === true);
             t.notOk(id);
             t.end();
         });
@@ -511,34 +542,42 @@ test("DB - listChannels", function(t){
     var db = mkTestDB();
     async.series({
         pico0: async.apply(db.newPico, {}),
-        pico1: async.apply(db.newPico, {}),
+        pico2: async.apply(db.newPico, {}),
 
-        c2_p0: async.apply(db.newChannel, {pico_id: "id0", name: "two", type: "t2"}),
-        c3_p1: async.apply(db.newChannel, {pico_id: "id1", name: "three", type: "t3"}),
         c4_p0: async.apply(db.newChannel, {pico_id: "id0", name: "four", type: "t4"}),
-        c5_p1: async.apply(db.newChannel, {pico_id: "id1", name: "five", type: "t5"}),
+        c5_p1: async.apply(db.newChannel, {pico_id: "id2", name: "five", type: "t5"}),
 
         list0: async.apply(db.listChannels, "id0"),
-        list1: async.apply(db.listChannels, "id1"),
+        list2: async.apply(db.listChannels, "id2"),
         list404: async.apply(db.listChannels, "id404"),
 
     }, function(err, data){
         if(err) return t.end(err);
 
+        var mkChan = function(pico_id, eci, name, type){
+            return {
+                pico_id: pico_id,
+                id: eci,
+                name: name,
+                type: type,
+                sovrin: {
+                    did: eci,
+                    verifyKey: "verifyKey_" + eci,
+                },
+            };
+        };
 
-        var c2 = {id: "id2", name: "two",   type: "t2", pico_id: "id0"};
-        var c3 = {id: "id3", name: "three", type: "t3", pico_id: "id1"};
-        var c4 = {id: "id4", name: "four",  type: "t4", pico_id: "id0"};
-        var c5 = {id: "id5", name: "five",  type: "t5", pico_id: "id1"};
+        var c1 = mkChan("id0", "id1", "admin", "secret");
+        var c3 = mkChan("id2", "id3", "admin", "secret");
+        var c4 = mkChan("id0", "id4", "four", "t4");
+        var c5 = mkChan("id2", "id5", "five", "t5");
 
 
-        t.deepEquals(data.c2_p0, c2);
-        t.deepEquals(data.c3_p1, c3);
         t.deepEquals(data.c4_p0, c4);
         t.deepEquals(data.c5_p1, c5);
 
-        t.deepEquals(data.list0, [c2, c4]);
-        t.deepEquals(data.list1, [c3, c5]);
+        t.deepEquals(data.list0, [c1, c4]);
+        t.deepEquals(data.list2, [c3, c5]);
         t.deepEquals(data.list404, []);
 
         t.end();
@@ -676,33 +715,33 @@ test("DB - parent/child", function(t){
 
 
     async.series([
-        async.apply(db.newPico, {}),// id0
-        async.apply(db.newPico, {parent_id: "id0"}),// id1
-        async.apply(db.newPico, {parent_id: "id0"}),// id2
-        async.apply(db.newPico, {parent_id: "id0"}),// id3
+        async.apply(db.newPico, {}),// id0 and channel id1
+        async.apply(db.newPico, {parent_id: "id0"}),// id2 + id3
+        async.apply(db.newPico, {parent_id: "id0"}),// id4 + id5
+        async.apply(db.newPico, {parent_id: "id0"}),// id6 + id7
 
-        async.apply(db.newPico, {parent_id: "id3"}),// id4
-        async.apply(db.newPico, {parent_id: "id3"}),// id5
+        async.apply(db.newPico, {parent_id: "id6"}),// id8 + id9
+        async.apply(db.newPico, {parent_id: "id6"}),// id10 + id11
 
         assertParent("id0", null),
-        assertParent("id1", "id0"),
         assertParent("id2", "id0"),
-        assertParent("id3", "id0"),
-        assertParent("id4", "id3"),
-        assertParent("id5", "id3"),
+        assertParent("id4", "id0"),
+        assertParent("id6", "id0"),
+        assertParent("id8", "id6"),
+        assertParent("id10", "id6"),
 
-        assertChildren("id0", ["id1", "id2", "id3"]),
-        assertChildren("id1", []),
+        assertChildren("id0", ["id2", "id4", "id6"]),
         assertChildren("id2", []),
-        assertChildren("id3", ["id4", "id5"]),
         assertChildren("id4", []),
-        assertChildren("id5", []),
+        assertChildren("id6", ["id10", "id8"]),
+        assertChildren("id8", []),
+        assertChildren("id10", []),
 
-        async.apply(db.removePico, "id5"),
-        assertChildren("id3", ["id4"]),
+        async.apply(db.removePico, "id8"),
+        assertChildren("id6", ["id10"]),
 
-        async.apply(db.removePico, "id3"),
-        assertChildren("id3", []),
+        async.apply(db.removePico, "id6"),
+        assertChildren("id6", []),
 
     ], t.end);
 });
@@ -736,6 +775,59 @@ test("DB - assertPicoID", function(t){
 
         tstPID("id0", true),
         tstPID("id2", false),
+
+    ], t.end);
+});
+
+
+test("DB - removeChannel", function(t){
+    var db = mkTestDB();
+
+    var assertECIs = function(pico_id, expected_ecis){
+        return function(next){
+            db.listChannels(pico_id, function(err, chans){
+                if(err) return next(err);
+
+                var eci_list = _.map(chans, "id");
+                t.deepEquals(eci_list, expected_ecis, "assert the listChannels");
+                t.deepEquals(_.uniq(_.map(chans, "pico_id")), [pico_id], "assert listChannels all come from the same pico_id");
+
+                next();
+            });
+        };
+    };
+
+    var assertFailRemoveECI = function(eci){
+        return function(next){
+            db.removeChannel(eci, function(err){
+                t.equals(err + "", "Error: Cannot delete the pico's admin channel");
+                next();
+            });
+        };
+    };
+
+    async.series([
+
+        async.apply(db.newPico, {}),
+        assertECIs("id0", ["id1"]),
+
+        async.apply(db.newChannel, {pico_id: "id0", name: "two", type: "t"}),
+        assertECIs("id0", ["id1", "id2"]),
+
+
+        assertFailRemoveECI("id1"),
+        assertECIs("id0", ["id1", "id2"]),
+
+        async.apply(db.removeChannel, "id2"),
+        assertECIs("id0", ["id1"]),
+
+        assertFailRemoveECI("id1"),
+        assertECIs("id0", ["id1"]),
+
+        async.apply(db.newPico, {parent_id: "id0"}),
+        assertECIs("id3", ["id4"]),
+        assertFailRemoveECI("id4"),
+        assertECIs("id3", ["id4"]),
 
     ], t.end);
 });

@@ -5,7 +5,8 @@ module.exports = {
     "shares": [
       "hello",
       "null_val",
-      "somethingNotDefined"
+      "somethingNotDefined",
+      "infiniteRecursion"
     ]
   },
   "global": function* (ctx) {
@@ -17,6 +18,9 @@ module.exports = {
       ]);
     }));
     ctx.scope.set("null_val", void 0);
+    ctx.scope.set("infiniteRecursion", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+      return yield ctx.applyFn(ctx.scope.get("infiniteRecursion"), ctx, []);
+    }));
   },
   "rules": {}
 };

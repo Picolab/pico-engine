@@ -16,10 +16,7 @@ var send_directive = mkKRLfn([
 module.exports = cocb.wrap(function*(ctx, domain, id, args, setting){
     var returns = [];
     if(domain){
-        returns = [
-            //modules only return one value
-            yield ctx.modules.action(ctx, domain, id, args)
-        ];
+        returns = yield ctx.modules.action(ctx, domain, id, args);
     }else if(id === "noop"){
         returns = [];//returns nothing
     }else if(ctx.scope.has(id)){

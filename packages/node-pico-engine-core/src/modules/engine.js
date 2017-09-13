@@ -26,6 +26,19 @@ module.exports = function(core){
         }),
 
 
+        getAdminECI: mkKRLfn([
+            "pico_id",
+        ], function(args, ctx, callback){
+
+            var pico_id = args.pico_id || ctx.pico_id;
+            core.db.assertPicoID(pico_id, function(err, pico_id){
+                if(err) return callback(err);
+
+                core.db.getAdminECI(pico_id, callback);
+            });
+        }),
+
+
         listChildren: mkKRLfn([
             "pico_id",
         ], function(args, ctx, callback){

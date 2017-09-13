@@ -16,11 +16,17 @@ module.exports = {
         }
       }
     ],
-    "shares": ["now"]
+    "shares": [
+      "now",
+      "getEntVal"
+    ]
   },
   "global": function* (ctx) {
     ctx.scope.set("now", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "now"), ctx, []);
+    }));
+    ctx.scope.set("getEntVal", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+      return yield ctx.modules.get(ctx, "ent", "val");
     }));
   },
   "rules": {
@@ -163,12 +169,13 @@ module.exports = {
       "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "my_module_dflt", "getInfoAction", [], []);
+          yield runAction(ctx, "my_module_dflt", "getInfoAction", [], ["info"]);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", "val", ctx.scope.get("info"));
       }
     },
     "conf_getInfoAction": {
@@ -190,12 +197,13 @@ module.exports = {
       "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "my_module_conf", "getInfoAction", [], []);
+          yield runAction(ctx, "my_module_conf", "getInfoAction", [], ["info"]);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", "val", ctx.scope.get("info"));
       }
     }
   }

@@ -35,7 +35,6 @@ module.exports = {
       };
     }));
     ctx.defaction(ctx, "getInfoAction", function* (ctx, getArg, hasArg, runAction) {
-      ctx.scope.set("name", getArg("name", 0));
       var fired = true;
       if (fired) {
         yield runAction(ctx, void 0, "send_directive", [
@@ -43,7 +42,12 @@ module.exports = {
           yield ctx.applyFn(ctx.scope.get("getInfo"), ctx, [])
         ], []);
       }
-      return [];
+      return [{
+          "name": yield ctx.callKRLstdlib("get", [
+            yield ctx.applyFn(ctx.scope.get("getInfo"), ctx, []),
+            ["name"]
+          ])
+        }];
     });
   },
   "rules": {

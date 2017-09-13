@@ -1,6 +1,7 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 var ktypes = require("krl-stdlib/types");
+var mkKRLfn = require("../mkKRLfn");
 
 var sub_modules = {
     ent: require("./ent"),
@@ -15,10 +16,48 @@ var sub_modules = {
     random: require("./random"),
 };
 
-module.exports = function(core){
+module.exports = function(core, third_party_modules){
 
     var modules = _.mapValues(sub_modules, function(m){
         return m(core);
+    });
+
+    _.each(third_party_modules, function(ops, domain){
+        if(_.has(modules, domain)){
+            throw new Error("You cannot override the built-in `" + domain + ":*` module");
+        }
+        modules[domain] = {
+            def: {},
+            actions: {},
+        };
+        _.each(ops, function(op, id){
+            var mkErr = function(msg){
+                return new Error("Custom module " + domain + ":" + id + " " + msg);
+            };
+            if(!op
+                || !_.isArray(op.args)
+                || !_.every(op.args, _.isString)
+                || _.size(op.args) !== _.size(_.uniq(op.args))
+            ){
+                throw mkErr("`args` must be a unique array of strings");
+            }
+            if(!_.isFunction(op.fn)){
+                throw mkErr("`fn` must be `function(args, callback){...}`");
+            }
+
+            var fn = op.fn;
+            var krlFN = mkKRLfn(op.args, function(args, ctx, callback){
+                fn(args, callback);
+            });
+
+            if(op.type === "function"){
+                modules[domain].def[id] = krlFN;
+            }else if(op.type === "action"){
+                modules[domain].actions[id] = krlFN;
+            }else{
+                throw mkErr("`type` must be \"action\" or \"function\"");
+            }
+        });
     });
 
 
@@ -38,6 +77,11 @@ module.exports = function(core){
 
     return {
         get: cocb.toYieldable(function(ctx, domain, id, callback){
+            var umod = userModuleLookup(ctx, domain, id);
+            if(umod.has_it){
+                callback(null, umod.value);
+                return;
+            }
             if(_.has(modules, [domain, "def", id])){
                 callback(null, modules[domain].def[id]);
                 return;
@@ -46,25 +90,20 @@ module.exports = function(core){
                 modules[domain].get(ctx, id, callback);
                 return;
             }
-            var umod = userModuleLookup(ctx, domain, id);
-            if(umod.has_it){
-                callback(null, umod.value);
-                return;
-            }
             callback(new Error("Not defined `" + domain + ":" + id + "`"));
         }),
 
 
         set: cocb.toYieldable(function(ctx, domain, id, value, callback){
-            if(_.has(modules, domain)){
-                if(_.has(modules[domain], "set")){
-                    modules[domain].set(ctx, id, value, callback);
-                    return;
-                }
+            if(!_.has(modules, domain)){
+                callback(new Error("Module not defined `" + domain + ":" + id + "`"));
+                return;
+            }
+            if(!_.has(modules[domain], "set")){
                 callback(new Error("Cannot assign to `" + domain + ":*`"));
                 return;
             }
-            callback(new Error("Not defined `" + domain + ":" + id + "`"));
+            modules[domain].set(ctx, id, value, callback);
         }),
 
 
@@ -82,16 +121,20 @@ module.exports = function(core){
 
 
         action: cocb.wrap(function*(ctx, domain, id, args){
-            if(!_.has(modules, [domain, "actions", id])){
 
-                var umod = userModuleLookup(ctx, domain, id);
-                if(umod.has_it && ktypes.isAction(umod.value)){
-                    return yield umod.value(ctx, args);
-                }
-
-                throw new Error("Not an action `" + domain + ":" + id + "`");
+            var umod = userModuleLookup(ctx, domain, id);
+            if(umod.has_it && ktypes.isAction(umod.value)){
+                return yield umod.value(ctx, args);
             }
-            return yield modules[domain].actions[id](ctx, args);
+
+            if(_.has(modules, [domain, "actions", id])){
+                return [//actions have multiple returns
+                    //built in modules return only one value
+                    yield modules[domain].actions[id](ctx, args),
+                ];
+            }
+
+            throw new Error("Not an action `" + domain + ":" + id + "`");
         }),
     };
 };

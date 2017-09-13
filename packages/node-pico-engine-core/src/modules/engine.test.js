@@ -278,7 +278,7 @@ testPE("engine:listInstalledRIDs", function * (t, pe){
 
 testPE("engine:newPico", function * (t, pe){
     var action = function*(ctx, name, args){
-        return yield pe.modules.action(ctx, "engine", name, args);
+        return _.head(yield pe.modules.action(ctx, "engine", name, args));
     };
 
     var pico2 = yield action({}, "newPico", {
@@ -287,6 +287,7 @@ testPE("engine:newPico", function * (t, pe){
     t.deepEquals(pico2, {
         id: "id2",
         parent_id: "id0",
+        admin_eci: "id3",
     });
 
     //default to ctx.pico_id
@@ -294,8 +295,9 @@ testPE("engine:newPico", function * (t, pe){
         pico_id: "id2",//called by pico2
     }, "newPico", {});
     t.deepEquals(pico3, {
-        id: "id3",
+        id: "id4",
         parent_id: "id2",
+        admin_eci: "id5",
     });
 
     //no parent_id
@@ -308,38 +310,44 @@ testPE("engine:newPico", function * (t, pe){
 });
 
 
-testPE("engine:getParent, engine:listChildren, engine:removePico", function * (t, pe){
+testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:removePico", function * (t, pe){
 
     var newPico = function*(parent_id){
-        return yield pe.modules.action({pico_id: parent_id}, "engine", "newPico", []);
+        return _.head(yield pe.modules.action({pico_id: parent_id}, "engine", "newPico", []));
     };
     var removePico = function*(ctx, args){
-        return yield pe.modules.action(ctx, "engine", "removePico", args);
+        return _.head(yield pe.modules.action(ctx, "engine", "removePico", args));
     };
 
     var getParent = yield pe.modules.get({}, "engine", "getParent");
+    var getAdminECI = yield pe.modules.get({}, "engine", "getAdminECI");
     var listChildren = yield pe.modules.get({}, "engine", "listChildren");
 
     yield newPico("id0");// id2
-    yield newPico("id0");// id3
-    yield newPico("id2");// id4
+    yield newPico("id0");// id4
+    yield newPico("id2");// id6
 
     t.equals(yield getParent({}, ["id0"]), null);
     t.equals(yield getParent({}, ["id2"]), "id0");
-    t.equals(yield getParent({}, ["id3"]), "id0");
-    t.equals(yield getParent({}, ["id4"]), "id2");
+    t.equals(yield getParent({}, ["id4"]), "id0");
+    t.equals(yield getParent({}, ["id6"]), "id2");
 
-    t.deepEquals(yield listChildren({}, ["id0"]), ["id2", "id3"]);
-    t.deepEquals(yield listChildren({}, ["id2"]), ["id4"]);
-    t.deepEquals(yield listChildren({}, ["id3"]), []);
+    t.equals(yield getAdminECI({}, ["id0"]), "id1");
+    t.equals(yield getAdminECI({}, ["id2"]), "id3");
+    t.equals(yield getAdminECI({}, ["id4"]), "id5");
+    t.equals(yield getAdminECI({}, ["id6"]), "id7");
+
+    t.deepEquals(yield listChildren({}, ["id0"]), ["id2", "id4"]);
+    t.deepEquals(yield listChildren({}, ["id2"]), ["id6"]);
     t.deepEquals(yield listChildren({}, ["id4"]), []);
+    t.deepEquals(yield listChildren({}, ["id6"]), []);
 
     //fallback on ctx.pico_id
-    t.equals(yield getParent({pico_id: "id4"}, []), "id2");
-    t.deepEquals(yield listChildren({pico_id: "id2"}, []), ["id4"]);
+    t.equals(yield getParent({pico_id: "id6"}, []), "id2");
+    t.deepEquals(yield listChildren({pico_id: "id2"}, []), ["id6"]);
 
 
-    t.equals(yield removePico({}, ["id4"]), void 0);
+    t.equals(yield removePico({}, ["id6"]), void 0);
     t.deepEquals(yield listChildren({}, ["id2"]), []);
 
     //report error on invalid pico_id
@@ -371,30 +379,46 @@ testPE("engine:getParent, engine:listChildren, engine:removePico", function * (t
 testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function * (t, pe){
 
     var newChannel = function*(ctx, args){
-        return yield pe.modules.action(ctx, "engine", "newChannel", args);
+        return _.head(yield pe.modules.action(ctx, "engine", "newChannel", args));
     };
     var removeChannel = function*(ctx, args){
-        return yield pe.modules.action(ctx, "engine", "removeChannel", args);
+        return _.head(yield pe.modules.action(ctx, "engine", "removeChannel", args));
     };
     var listChannels = yield pe.modules.get({}, "engine", "listChannels");
 
+    var mkChan = function(pico_id, eci, name, type){
+        return {
+            pico_id: pico_id,
+            id: eci,
+            name: name,
+            type: type,
+            sovrin: {
+                did: eci,
+                verifyKey: "verifyKey_" + eci,
+            },
+        };
+    };
+
     t.deepEquals(yield listChannels({}, ["id0"]), [
-        {id: "id1", pico_id: "id0", name: "root", type: "secret"},
+        mkChan("id0", "id1", "admin", "secret"),
     ]);
 
-    t.deepEquals(yield newChannel({}, ["id0"]), {id: "id2", pico_id: "id0", name: void 0, type: void 0});
+    t.deepEquals(yield newChannel({}, ["id0", "a", "b"]), mkChan("id0", "id2", "a", "b"));
     t.deepEquals(yield listChannels({}, ["id0"]), [
-        {id: "id1", pico_id: "id0", name: "root", type: "secret"},
-        {id: "id2", pico_id: "id0"},
+        mkChan("id0", "id1", "admin", "secret"),
+        mkChan("id0", "id2", "a", "b"),
     ]);
 
-    t.equals(yield removeChannel({}, ["id1"]), void 0);
-    t.deepEquals(yield listChannels({}, ["id0"]), [
-        {id: "id2", pico_id: "id0"},
-    ]);
+    try{
+        yield removeChannel({}, ["id1"]);
+        t.fail("should throw b/c removeChannel shouldn't remove the admin channel");
+    }catch(e){
+        t.equals(e + "", "Error: Cannot delete the pico's admin channel");
+    }
 
     t.equals(yield removeChannel({}, ["id2"]), void 0);
     t.deepEquals(yield listChannels({}, ["id0"]), [
+        mkChan("id0", "id1", "admin", "secret"),
     ]);
 
     //report error on invalid pico_id
@@ -419,10 +443,10 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
 testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset", function * (t, pe){
 
     var installRS = function*(ctx, args){
-        return yield pe.modules.action(ctx, "engine", "installRuleset", args);
+        return _.head(yield pe.modules.action(ctx, "engine", "installRuleset", args));
     };
     var uninstallRID = function*(ctx, args){
-        return yield pe.modules.action(ctx, "engine", "uninstallRuleset", args);
+        return _.head(yield pe.modules.action(ctx, "engine", "uninstallRuleset", args));
     };
     var listRIDs = yield pe.modules.get({}, "engine", "listInstalledRIDs");
 

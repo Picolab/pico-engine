@@ -56,7 +56,7 @@ module.exports = function(conf){
     };
 
     var emitter = new EventEmitter();
-    var modules = Modules(core);
+    var modules = Modules(core, conf.modules);
 
     var mkCTX = function(ctx){
         ctx.getMyKey = (function(rid){
@@ -82,21 +82,17 @@ module.exports = function(conf){
             }));
         };
         ctx.KRLClosure = function(fn){
-            return function(ctx2, args){
-                return fn(pushCTXScope(ctx2), function(name, index){
-                    return getArg(args, name, index);
-                }, function(name, index){
-                    return hasArg(args, name, index);
-                });
-            };
+            return cocb.wrap(function*(ctx2, args){
+                var gArg = _.partial(getArg, args);
+                var hArg = _.partial(hasArg, args);
+                return yield fn(pushCTXScope(ctx2), gArg, hArg);
+            });
         };
         ctx.defaction = function(ctx, name, fn){
             var actionFn = cocb.wrap(function*(ctx2, args){
-                return yield fn(pushCTXScope(ctx2), function(name, index){
-                    return getArg(args, name, index);
-                }, function(name, index){
-                    return hasArg(args, name, index);
-                }, runAction);
+                var gArg = _.partial(getArg, args);
+                var hArg = _.partial(hasArg, args);
+                return yield fn(pushCTXScope(ctx2), gArg, hArg, runAction);
             });
             actionFn.is_an_action = true;
             return ctx.scope.set(name, actionFn);
@@ -115,6 +111,7 @@ module.exports = function(conf){
                     eid: ctx.event.eid,
                     domain: ctx.event.domain,
                     type: ctx.event.type,
+                    attrs: _.cloneDeep(ctx.event.attrs),
                 };
                 if(!info.eci){
                     info.eci = ctx.event.eci;
@@ -228,13 +225,10 @@ module.exports = function(conf){
     });
 
     var initializeAndEngageRuleset = function(rs, callback){
-        cocb.run(initializeRulest(rs), function(err){
-            if(err) return callback(err);
-
+        initializeRulest(rs).then(function(){
             core.rsreg.put(rs);
-
             callback();
-        });
+        }, callback);
     };
 
     var getRulesetForRID = function(rid, callback){
@@ -256,7 +250,7 @@ module.exports = function(conf){
         });
     };
 
-    core.registerRuleset = function(krl_src, meta_data, callback){
+    var storeCompileAndEnable = function(krl_src, meta_data, callback){
         db.storeRuleset(krl_src, meta_data, function(err, data){
             if(err) return callback(err);
             compileAndLoadRuleset({
@@ -266,16 +260,22 @@ module.exports = function(conf){
             }, function(err, rs){
                 if(err) return callback(err);
                 db.enableRuleset(data.hash, function(err){
-                    if(err) return callback(err);
-                    initializeAndEngageRuleset(rs, function(err){
-                        if(err){
-                            db.disableRuleset(rs.rid, _.noop);//undo enable if failed
-                        }
-                        callback(err, {
-                            rid: rs.rid,
-                            hash: data.hash
-                        });
-                    });
+                    callback(err, {rs: rs, hash: data.hash});
+                });
+            });
+        });
+    };
+
+    core.registerRuleset = function(krl_src, meta_data, callback){
+        storeCompileAndEnable(krl_src, meta_data, function(err, data){
+            if(err) return callback(err);
+            initializeAndEngageRuleset(data.rs, function(err){
+                if(err){
+                    db.disableRuleset(data.rs.rid, _.noop);//undo enable if failed
+                }
+                callback(err, {
+                    rid: data.rs.rid,
+                    hash: data.hash
                 });
             });
         });
@@ -315,7 +315,7 @@ module.exports = function(conf){
         if(event.eid === "none"){
             event.eid = cuid();
         }
-        event.timestamp = conf.allow_event_time_override && _.isDate(event_orig.timestamp)
+        event.timestamp = conf.___core_testing_mode && _.isDate(event_orig.timestamp)
             ? event_orig.timestamp
             : new Date();
 
@@ -405,36 +405,59 @@ module.exports = function(conf){
         });
     };
 
-    var registerAllEnabledRulesets = function(callback){
-        db.listAllEnabledRIDs(function(err, rids){
-            if(err)return callback(err);
-            if(_.isEmpty(rids)){
-                callback();
-                return;
-            }
+    var registerAllEnabledRulesets = function(system_rulesets, callback){
 
-            var rs_by_rid = {};
-            var resolver = new DependencyResolver();
+        var rs_by_rid = {};
+        var resolver = new DependencyResolver();
 
-            async.each(rids, function(rid, next){
-                getRulesetForRID(rid, function(err, rs){
-                    if(err){
-                        //TODO handle error rather than stop
-                        next(err);
-                        return;
-                    }
-                    rs_by_rid[rs.rid] = rs;
-                    resolver.add(rs.rid);
-                    _.each(rs.meta && rs.meta.use, function(use){
-                        if(use.kind === "module"){
-                            resolver.setDependency(rs.rid, use.rid);
+        async.series([
+            //
+            // register system_rulesets
+            //
+            function(nextStep){
+                async.each(system_rulesets, function(system_ruleset, next){
+                    storeCompileAndEnable(system_ruleset.src, system_ruleset.meta, next);
+                }, nextStep);
+            },
+
+
+            //
+            // load Rulesets and track dependencies
+            //
+            function(nextStep){
+                var onRID = function(rid, next){
+                    getRulesetForRID(rid, function(err, rs){
+                        if(err){
+                            //TODO handle error rather than stop
+                            next(err);
+                            return;
                         }
+                        rs_by_rid[rs.rid] = rs;
+                        resolver.add(rs.rid);
+                        _.each(rs.meta && rs.meta.use, function(use){
+                            if(use.kind === "module"){
+                                resolver.setDependency(rs.rid, use.rid);
+                            }
+                        });
+                        next(null, rs);
                     });
-                    next(null, rs);
+                };
+                db.listAllEnabledRIDs(function(err, rids){
+                    if(err) return nextStep(err);
+                    async.each(rids, onRID, nextStep);
                 });
-            }, function(err){
-                if(err)return callback(err);
+            },
 
+
+            //
+            // initialize Rulesets according to dependency order
+            //
+            function(nextStep){
+                if(_.isEmpty(rs_by_rid)){
+                    //resolver blows up if it's empty
+                    nextStep();
+                    return;
+                }
                 //order they need to be loaded in for dependencies to work
                 var rid_order = resolver.sort();
 
@@ -448,9 +471,9 @@ module.exports = function(conf){
                         }
                         next();
                     });
-                }, callback);
-            });
-        });
+                }, nextStep);
+            },
+        ], callback);
     };
 
     core.unregisterRuleset = function(rid, callback){
@@ -552,7 +575,12 @@ module.exports = function(conf){
         signalEvent: core.signalEvent,
         runQuery: core.runQuery,
 
-        getRootPico: db.getRootPico,
+        getRootECI: function(callback){
+            db.getRootPico(function(err, root_pico){
+                if(err) return callback(err);
+                callback(null, root_pico.admin_eci);
+            });
+        },
 
         /////////////////////
         // vvv deprecated vvv
@@ -572,8 +600,8 @@ module.exports = function(conf){
         removeEntVar: db.removeEntVar,
 
         dbDump: db.toObj,
-        /////////////////////
         // ^^^ deprecated ^^^
+        /////////////////////
     };
     if(conf.___core_testing_mode){
         pe.newPico = db.newPico;
@@ -581,9 +609,12 @@ module.exports = function(conf){
         pe.modules = modules;
     }
 
-    pe.start = function(callback){
+    pe.start = function(system_rulesets, callback){
         async.series([
             db.checkAndRunMigrations,
+            function(next){
+                registerAllEnabledRulesets(system_rulesets, next);
+            },
             function(next){
                 if(_.isEmpty(rootRIDs)){
                     return next();
@@ -594,20 +625,7 @@ module.exports = function(conf){
                     }else if(!err){
                         return next();
                     }
-                    db.newPico({}, function(err, pico){
-                        if(err) return next(err);
-                        db.newChannel({
-                            pico_id: pico.id,
-                            name: "root",
-                            type: "secret",
-                        }, function(err, chan){
-                            if(err) return next(err);
-                            db.putRootPico({
-                                id: pico.id,
-                                eci: chan.id,
-                            }, next);
-                        });
-                    });
+                    db.newPico({}, next);
                 });
             },
             function(next){
@@ -633,7 +651,6 @@ module.exports = function(conf){
                     });
                 });
             },
-            registerAllEnabledRulesets,
             resumeScheduler,
         ], callback);
     };

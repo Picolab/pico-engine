@@ -229,5 +229,9 @@ var processEvent = cocb.wrap(function*(core, ctx){
 });
 
 module.exports = function(core, ctx, callback){
-    cocb.run(processEvent(core, ctx), callback);
+    processEvent(core, ctx).then(function(data){
+        callback(null, data);
+    }, function(err){
+        callback(err);
+    });
 };
