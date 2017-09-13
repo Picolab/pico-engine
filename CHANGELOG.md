@@ -1,3 +1,26 @@
+# 0.13.0 - September 13, 2017
+
+### Wrangler rewrite (krl/io.picolabs.pico.krl)
+
+Wrangler provides a lot of the engine module functionality. It aims for easy, programmatically management of registering, installing, uninstalling, and listing rulesets, creation, deletion and listing of channels, as well as creation, deletion and listing of children picos. Wrangler allows you to write code to do everything that a user would us the UI for.
+
+### New Features
+
+* added testing for wrangler (see src/tests.js)
+* every pico now has an "admin" channel. To get it use `engine:getAdminECI(pico_id)`
+* `engine:newPico(pico_id)` now sets the parent id to `pico_id` creates an admin channel for you.
+* added `engine:getParent(pico_id)` and `engine:listChildren(pico_id)`
+* added `engine:listInstalledRIDs(pico_id)`
+* all `engine:*` functions that have a `pico_id` argument now defaults to `meta:picoId`
+* channel ECIs' are now sovrin DIDs.
+
+### Bug Fixes
+
+* sharing `defaction` between rulesets now return the right value
+* system rulesets (those in `krl/`) now are loaded by dependency ordering.
+* error handling on infinite recursion
+
+
 # 0.12.5 - June 5, 2017
 
 ### Bug Fixes
