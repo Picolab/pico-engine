@@ -1,4 +1,4 @@
-ruleset Subscriptions {
+ruleset io.picolabs.subscription {
   meta {
     name "subscriptions"
     description <<

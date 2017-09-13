@@ -1,40 +1,39 @@
 var _ = require("lodash");
-var λ = require("contra");
 var fs = require("fs");
 var path = require("path");
+var async = require("async");
 var leveldown = require("leveldown");
 var PicoEngine = require("pico-engine-core");
 var RulesetLoader = require("./RulesetLoader");
 
 var setupRootPico = function(pe, callback){
-    pe.getRootPico(function(err, root_pico){
+    pe.getRootECI(function(err, root_eci){
         if(err) return callback(err);
 
         pe.runQuery({
-            eci: root_pico.eci,
+            eci: root_eci,
             rid: "io.picolabs.pico",
             name: "myself",
         }, function(err, myself){
             if(err) return callback(err);
-            if(myself.id === root_pico.id){
+            if(myself.eci === root_eci){
                 //already initialized
                 return callback();
             }
 
             var signal = function(event){
                 return function(next){
-                    pe.signalEvent(_.assign({eci: root_pico.eci}, event), next);
+                    pe.signalEvent(_.assign({eci: root_eci}, event), next);
                 };
             };
 
-            λ.series([
+            async.series([
                 signal({
                     eid: "19",
                     domain: "pico",
                     type: "root_created",
                     attrs: {
-                        id: root_pico.id,
-                        eci: root_pico.eci,
+                        eci: root_eci,
                     },
                 }),
                 signal({
@@ -58,7 +57,7 @@ var registerBuiltInRulesets = function(pe, callback){
     fs.readdir(krl_dir, function(err, files){
         if(err) return callback(err);
         //.series b/c dependent modules must be registered in order
-        λ.each.series(files, function(filename, next){
+        async.eachSeries(files, function(filename, next){
             var file = path.resolve(krl_dir, filename);
             if(!/\.krl$/.test(file)){
                 //only auto-load krl files in the top level
@@ -189,7 +188,11 @@ module.exports = function(opts, callback){
         ],
     });
 
-    setupLogging(pe);
+    if(opts.no_logging){
+        //no setupLogging
+    }else{
+        setupLogging(pe);
+    }
 
     //system rulesets should be registered/updated first
     registerBuiltInRulesets(pe, function(err){

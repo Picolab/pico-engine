@@ -4,10 +4,10 @@ module.exports = {
     "authorize": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getRootPico(function(err, root_pico){
+        pe.getRootECI(function(err, root_eci){
             if(err) return errResp(res, err);
             var event = {
-                eci: root_pico.eci,
+                eci: root_eci,
                 eid: "authorize",
                 domain: "oauth",
                 type: "authorize",
@@ -30,10 +30,10 @@ module.exports = {
     "approve": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getRootPico(function(err, root_pico){
+        pe.getRootECI(function(err, root_eci){
             if(err) return errResp(res, err);
             var event = {
-                eci: root_pico.eci,
+                eci: root_eci,
                 eid: "approve",
                 domain: "oauth",
                 type: "approve",
@@ -96,10 +96,10 @@ module.exports = {
         var attrs = req.body;
         attrs.client_id = clientId;
         attrs.client_secret = clientSecret;
-        pe.getRootPico(function(err, root_pico){
+        pe.getRootECI(function(err, root_eci){
             if(err) return errResp(res, err);
             var event = {
-                eci: root_pico.eci,
+                eci: root_eci,
                 eid: "token",
                 domain: "oauth",
                 type: "token",
@@ -120,10 +120,10 @@ module.exports = {
     "login": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getRootPico(function(err, root_pico){
+        pe.getRootECI(function(err, root_eci){
             if(err) return errResp(res, err);
             var event = {
-                eci: root_pico.eci,
+                eci: root_eci,
                 eid: "",
                 domain: "owner",
                 type: "eci_requested",
@@ -138,10 +138,10 @@ module.exports = {
     "new_account": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getRootPico(function(err, root_pico){
+        pe.getRootECI(function(err, root_eci){
             if(err) return errResp(res, err);
             var event = {
-                eci: root_pico.eci,
+                eci: root_eci,
                 eid: "",
                 domain: "owner",
                 type: "creation",
