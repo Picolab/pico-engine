@@ -183,7 +183,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       callback({ "id": thePicoInp.id, "channel": theChannels });
     } else if (label == "Subscriptions") {
       var theSubscriptions = {};
-      var subscriptions = get(db_dump.pico,[thePicoInp.id,"Subscriptions","vars","subscriptions"]);
+      var subscriptions = get(db_dump.pico,[thePicoInp.id,"io.picolabs.subscription","vars","subscriptions"]);
       if (subscriptions) {
         Object.keys(subscriptions).forEach(function(id){
           theSubscriptions[id] = JSON.stringify(subscriptions[id],undefined,2);
@@ -476,7 +476,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           var limitI = Math.min(i,45);
           walkPico(cp,dNumber*10+i+1,left+(limitI*10)+20,top+20);
         }
-        var subscriptions = get(db_dump.pico,[pico.id,"Subscriptions","vars","subscriptions"]);
+        var subscriptions = get(db_dump.pico,[pico.id,"io.picolabs.subscription","vars","subscriptions"]);
         if (subscriptions) {
           for ( var k in subscriptions ) {
             var subs_status = get(subscriptions,[k,"attributes","status"]);

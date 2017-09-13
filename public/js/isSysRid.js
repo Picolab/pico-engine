@@ -1,5 +1,5 @@
 window.isSysRid = function(rid){
-  return rid === "Subscriptions"
+  return rid === "io.picolabs.subscription"
       || rid === "io.picolabs.logging"
       || rid === "io.picolabs.oauth_server"
       || rid === "io.picolabs.pico"
