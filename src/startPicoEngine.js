@@ -52,12 +52,12 @@ var setupRootPico = function(pe, callback){
 
 var github_prefix = "https://raw.githubusercontent.com/Picolab/node-pico-engine/master/krl/";
 
-var registerBuiltInRulesets = function(pe, callback){
+var getSystemRulesets = function(pe, callback){
     var krl_dir = path.resolve(__dirname, "../krl");
     fs.readdir(krl_dir, function(err, files){
         if(err) return callback(err);
         //.series b/c dependent modules must be registered in order
-        async.eachSeries(files, function(filename, next){
+        async.map(files, function(filename, next){
             var file = path.resolve(krl_dir, filename);
             if(!/\.krl$/.test(file)){
                 //only auto-load krl files in the top level
@@ -65,14 +65,14 @@ var registerBuiltInRulesets = function(pe, callback){
             }
             fs.readFile(file, "utf8", function(err, src){
                 if(err) return next(err);
-                pe.registerRuleset(src, {
-                    url: github_prefix + filename
-                }, function(err){
-                    if(err) return next(err);
-                    next();
+                next(null, {
+                    src: src,
+                    meta: {url: github_prefix + filename},
                 });
             });
-        }, callback);
+        }, function(err, system_rulesets){
+            callback(err, _.compact(system_rulesets));
+        });
     });
 };
 
@@ -195,10 +195,10 @@ module.exports = function(opts, callback){
     }
 
     //system rulesets should be registered/updated first
-    registerBuiltInRulesets(pe, function(err){
+    getSystemRulesets(pe, function(err, system_rulesets){
         if(err) return callback(err);
 
-        pe.start(function(err){
+        pe.start(system_rulesets, function(err){
             if(err) return callback(err);
 
             setupRootPico(pe, function(err){
