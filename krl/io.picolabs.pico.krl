@@ -403,15 +403,6 @@ ruleset io.picolabs.pico {
     }
   }
 
-  rule pico_new_child_created {
-    select when pico new_child_created
-    always {
-      raise wrangler event "ruleset_removed"
-        attributes event:attrs().put({"rids": rid_list});
-      rids.klog ("successfully uninstalled rids ");
-    }
-  }
-
 // ********************************************************************************************
 // ***                                      Channels                                        ***
 // ********************************************************************************************
