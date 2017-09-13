@@ -110,6 +110,21 @@ module.exports = function(pe){
                         });
                     });
                 });
+                _.each(db_data["pico-children"], function(children, pico_id){
+                    _.set(db_data, [
+                        "pico",
+                        pico_id,
+                        "io.picolabs.pico",
+                        "vars",
+                        "children"
+                    ], _.map(children, function(val, id){
+                        return {
+                            id: id,
+                            eci: _.get(db_data, ["pico", id, "admin_eci"]),
+                        };
+                    }));
+                });
+
                 _.each(db_data.channel, function(chan, eci){
                     _.set(db_data, ["pico", chan.pico_id, "channel", eci], chan);
                     _.set(db_data, ["channel", eci, "pico_id"], chan.pico_id);
