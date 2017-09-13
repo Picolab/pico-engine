@@ -384,6 +384,7 @@ ruleset io.picolabs.pico {
     fired {
       raise wrangler event "ruleset_added"
         attributes event:attrs().put({"rids": rid_list});
+      raise pico event "ruleset_added" attributes event:attrs();
       rids.klog("successfully installed rids ");
     }
     else {
