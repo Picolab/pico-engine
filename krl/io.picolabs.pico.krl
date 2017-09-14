@@ -461,7 +461,7 @@ ruleset io.picolabs.pico {
     }
     if(uniqueName) then every {
       createPico(name,_rids) setting(child)
-      //send_directive("Pico_Created", {"pico":child});
+      send_directive("Pico_Created", {"pico":child});
     }
     fired {
       ent:wrangler_children := {} if ent:wrangler_children.isnull(); // this is bypassed when module is used
