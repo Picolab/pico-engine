@@ -26,6 +26,7 @@ ruleset temp_acct {
   }
   rule owner_creation {
     select when owner creation
+    if ent:owner_id != "Root" then noop();
     fired {
       ent:owner_id := event:attr("owner_id");
       ent:password := event:attr("password");
