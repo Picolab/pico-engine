@@ -7,11 +7,7 @@ ruleset temp_acct_mgr {
                                { "name": "oldECI", "args": [ "p" ] } ],
                   "events": [ { "domain": "owner", "type": "eci_requested",
                                 "attrs": [ "owner_id" ] },
-                              { "domain": "owner", "type": "deletion_requested",
-                                "attrs": [ "owner_id" ] },
-                              { "domain": "owner", "type": "need_sync" },
-                              { "domain": "owner", "type": "creation",
-                                "attrs": [ "owner_id", "dname", "method", "password" ] } ] }
+                              { "domain": "owner", "type": "need_sync" } ] }
     skyPre = meta:host + "/sky/cloud/";
     skyPost = "/io.picolabs.visual_params/dname";
     ownerIdForPico = function(p) {
@@ -27,7 +23,6 @@ ruleset temp_acct_mgr {
     select when owner need_sync
              or owner creation
              or owner eci_requested
-             or owner deletion_requested
              or pico ruleset_added
     if not ent:owners then noop();
     fired {
@@ -213,22 +208,8 @@ ruleset temp_acct_mgr {
     send_directive("options",{"immediateLogin":true,"rid":meta:rid});
   }
 
-  rule owner_deletion_requested {
-    select when owner deletion_requested
-    pre {
-      owner_id = event:attr("owner_id");
-      entry = ent:owners{owner_id};
-    }
-    if ent:owners >< owner_id then
-      send_directive("owner_id deletion requested",
-        {"owner_id": owner_id, "pico_id": entry{"pico_id"}});
-    fired {
-      raise pico event "delete_child_request_by_pico_id" attributes entry;
-    }
-  }
-
   rule pico_child_deleted {
-    select when pico child_deleted
+    select when information child_deleted
     pre {
       child_id = event:attr("id");
       owner_id = ent:owners.filter(function(v){v{"pico_id"}==child_id}).keys()[0];
