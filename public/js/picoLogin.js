@@ -73,7 +73,7 @@ window.handlePicoLogin = function(formToJSON,callback){
       e.preventDefault();
       var action = $(this).attr("action");
       if(action==="/login"){
-        $.post($(this).attr("action"),formToJSON(this),function(data){
+        $.post(action,formToJSON(this),function(data){
             if(data && data.directives && data.directives[0] ){
               var d = data.directives[0];
               var method = "password";
@@ -92,16 +92,35 @@ window.handlePicoLogin = function(formToJSON,callback){
               alert(JSON.stringify(data));
             }
         }, "json");
-      }else { // password authentication or account creation
-        $.post($(this).attr("action"),formToJSON(this),function(data){
+      }else if(action==="/new-account") { // account creation
+        $.post(action,formToJSON(this),function(data){
+            if(data && data.directives && data.directives[0]){
+              var dir_options = undefined;
+              for(var di=0; di<data.directives.length; ++di){
+                var dir = data.directives[di];
+                if(dir.name=="new owner pico code query channel"){ // display code words instructions
+                  $lds.html(codeWordsTemplate(
+                    {eci:dir.options.eci,
+                     redirect: getCookie("previousUrl") || "/"}));
+                  return performLogin(dir.options,true);
+                } else if(dir.options && dir.options.pico_id) { // successful creation
+                  dir_options = dir.options;
+                }
+              }
+              if (dir_options){ // successfully logged in
+                performLogin(dir_options);
+              }else {
+                //alert("no pico_id found in directive, try again please.");
+                location.reload();
+              }
+            }else{
+              location.reload();
+            }
+        }, "json").fail(location.reload);
+      }else { // password authentication
+        $.post(action,formToJSON(this),function(data){
             if(data && data.directives && data.directives[0]){
               var d = data.directives[0];
-              if(data.directives[1] && data.directives[1].options.eci){ // display code words instructions
-                $lds.html(codeWordsTemplate(
-                  {eci:data.directives[1].options.eci,
-                   redirect: getCookie("previousUrl") || "/"}));
-                return performLogin(d.options,true);
-              }
               if (d.options && d.options.pico_id){ // successfully logged in
                 performLogin(d.options);
               }else {

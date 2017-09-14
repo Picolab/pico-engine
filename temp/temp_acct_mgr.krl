@@ -140,7 +140,7 @@ ruleset temp_acct_mgr {
     every { // CHANGE?
       engine:newChannel(pico_id,"code query","secret") setting(code_query_channel);
       send_directive("new owner pico code query channel",
-        {"eci":code_query_channel{"id"}, "owner_id":owner_id});
+        event:attrs().put("eci",code_query_channel{"id"}));
     }
   }
 
