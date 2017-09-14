@@ -99,7 +99,6 @@ window.handlePicoLogin = function(formToJSON,callback){
               if(data.directives[1] && data.directives[1].options.eci){ // display code words instructions
                 $lds.html(codeWordsTemplate(
                   {eci:data.directives[1].options.eci,
-                   owner_id:data.directives[1].options.owner_id,
                    redirect: getCookie("previousUrl") || "/"}));
                 return performLogin(d.options,true);
               }

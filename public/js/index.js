@@ -89,14 +89,16 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       var thePicoOut = {};
       thePicoOut.id = thePicoInp.id;
       thePicoOut.eci = eci;
-      var pp = getP(thePicoInp,"parent",undefined);
+      var pp_eci = getP(thePicoInp,"parent_eci",undefined);
+      var pp = pp_eci ? {id:get(db_dump.channel,[pp_eci,"pico_id"]),eci:pp_eci}
+                      : undefined;
       if (pp && pp.id != rootPico.id) {
         thePicoOut.parent = {};
         thePicoOut.parent.id = pp.id;
         thePicoOut.parent.eci = pp.eci;
         thePicoOut.parent.dname = getV(pp,"dname",undefined);
       }
-      if (pp && pp.id == rootPico.id) {
+      if (thePicoInp.id == rootPico.id || (pp && pp.id == rootPico.id)) {
         thePicoOut.owner = true;
       }
       thePicoOut.children = [];
@@ -489,7 +491,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
             }
           }
         }
-      }
+      };
     walkPico(ownerPico,0,"300","50");
     renderGraph(db_graph);
     $.getJSON("/api/engine-version",function(data){
