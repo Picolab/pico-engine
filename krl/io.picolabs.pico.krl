@@ -555,6 +555,7 @@ ruleset io.picolabs.pico {
     select when wrangler child_sync or
                 pico need_sync or
                 wrangler child_deletion or 
+                wrangler child_creation or
                 pico delete_child_request_by_pico_id or
                 pico delete_child_request
     noop();
