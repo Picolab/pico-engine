@@ -201,7 +201,16 @@ ruleset temp_acct_mgr {
 
   rule owner_pico_not_found {
     select when owner eci_requested
+    if event:attr("owner_id") then
     send_directive("here it is",{"owner_id":event:attr("owner_id"),"method":"password"});
+    fired {
+      last;
+    }
+  }
+
+  rule owner_pico_not_found_options {
+    select when owner eci_requested
+    send_directive("options",{"immediateLogin":true,"rid":meta:rid});
   }
 
   rule owner_deletion_requested {

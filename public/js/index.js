@@ -512,17 +512,19 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
   } else if (logged_in_pico.id) {
     do_main_page(logged_in_pico);
   } else {
-    location.hash = "";
     if (typeof handlePicoLogin === "function") {
       $.post("/sky/event/"+rootPico.eci+"/none/owner/eci_requested",function(d){
-        if(d && d.directives && d.directives[0]){ // okay
+        if(d && d.directives && d.directives[0] && d.directives[0].options){
+          handlePicoLogin(
+            d.directives[0].options,
+            formToJSON,
+            function(authenticatedPico){
+              do_main_page(authenticatedPico);
+            });
         } else {
           do_main_page(rootPico);
         }
       }).fail(do_main_page(rootPico));
-      handlePicoLogin(formToJSON,function(authenticatedPico){
-        do_main_page(authenticatedPico);
-      });
     } else {
       do_main_page(rootPico);
     }

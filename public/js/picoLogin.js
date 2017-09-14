@@ -1,4 +1,5 @@
-window.handlePicoLogin = function(formToJSON,callback){
+window.handlePicoLogin = function(options,formToJSON,callback){
+    var immediateLogin = options.immediateLogin || false;
     var getCookie = function(name) {
       var value = "; " + document.cookie;
       var parts = value.split("; " + name + "=");
@@ -102,13 +103,20 @@ window.handlePicoLogin = function(formToJSON,callback){
                   $lds.html(codeWordsTemplate(
                     {eci:dir.options.eci,
                      redirect: getCookie("previousUrl") || "/"}));
-                  return performLogin(dir.options,true);
+                  if(immediateLogin) {
+                    performLogin(dir.options,true);
+                  }
+                  return; 
                 } else if(dir.options && dir.options.pico_id) { // successful creation
                   dir_options = dir.options;
                 }
               }
               if (dir_options){ // successfully logged in
-                performLogin(dir_options);
+                if(immediateLogin) {
+                  performLogin(dir.options);
+                } else {
+                  location.reload();
+                }
               }else {
                 //alert("no pico_id found in directive, try again please.");
                 location.reload();
