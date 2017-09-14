@@ -85,6 +85,9 @@ var setupLogging = function(pe){
         var episode = logs[episode_id];
         if (episode) {
             episode.logs.push(timestamp+" "+message);
+            if (episode.logs.length==1 && context.event) {
+                episode.logs.push(timestamp+" attributes "+JSON.stringify(context.event.attrs));
+            }
         } else {
             console.log("[ERROR]","no episode found for",episode_id);
         }
