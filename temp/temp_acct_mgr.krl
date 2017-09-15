@@ -10,6 +10,11 @@ ruleset temp_acct_mgr {
                               { "domain": "owner", "type": "need_sync" } ] }
     skyPre = meta:host + "/sky/cloud/";
     skyPost = "/io.picolabs.visual_params/dname";
+    validMethod = function(raw) {
+      raw == "password" => raw |
+      raw == "code"     => raw
+                         | "password"
+    }
     ownerIdForPico = function(p) {
       ent:owners.filter(function(v){v{"pico_id"} == p}).keys()[0]
     }
@@ -55,6 +60,8 @@ ruleset temp_acct_mgr {
       use_eci = old_eci || engine:listChannels(pico_id)[0]{"id"}
       dname = http:get(skyPre+use_eci+skyPost){"content"}.decode();
       owner_id = ownerIdForPico(pico_id) || dname;
+      raw = http:get(skyPre+use_eci+"/temp_acct/method"){"content"}.decode();
+      method = validMethod(raw.klog("RAW_METHOD"));
     }
     engine:newChannel(pico_id,time:now(),"to owner") setting(new_channel);
     always {
@@ -62,7 +69,7 @@ ruleset temp_acct_mgr {
         { "pico_id": pico_id,
           "eci": new_channel{"id"},
           "dname": dname,
-          "method": "password"
+          "method": method
         };
       raise owner event "channel_expiration" attributes {"eci":old_eci} if old_eci
     }

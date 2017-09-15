@@ -1,10 +1,13 @@
 ruleset temp_acct {
   meta {
-    shares __testing, code
+    shares __testing, method, code
   }
   global {
     __testing = { "queries": [ { "name": "__testing" } ],
                   "events": [ ] }
+    method = function() {
+      ent:method || "password"
+    }
     code = function() {
       ent:code || "code words expired"
     }
@@ -29,6 +32,7 @@ ruleset temp_acct {
     if ent:owner_id != "Root" then noop();
     fired {
       ent:owner_id := event:attr("owner_id");
+      ent:method   := event:attr("method");
       ent:password := event:attr("password");
     }
   }
@@ -77,6 +81,7 @@ ruleset temp_acct {
     select when owner new_password
     if passwordOK() then noop();
     fired {
+      ent:method := ent:method.defaultsTo("password");
       ent:password := event:attr("new_password");
     }
   }
