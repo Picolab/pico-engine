@@ -93,10 +93,12 @@ http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt
 <script id="the-template" type="text/x-handlebars-template">
 <a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
 <h1 class="title">{{title}}</h1>
+{{#if authenticated}}
 <div id="user-logout">
 <span></span>
 <a href="#">logout</a>
 </div>
+{{/if}}
 <div id="container" style="position:relative">
 <p class="description">
 {{descr}}
@@ -176,6 +178,7 @@ Do not disclose it or check it into a repository like GitHub.
 <button type="submit">add child pico</button>
 </form>
 </p>
+{{#if authenticated}}
 {{#if owner}}
 <form class="js-ajax-form" action="/sky/event/{{eci}}/none/owner/new_password" method="post">
 <fieldset style="display:inline-block">
@@ -187,6 +190,7 @@ Do not disclose it or check it into a repository like GitHub.
     <input type="submit" class="button form-login" value="New Password">
 </fieldset>
 </form>
+{{/if}}
 {{/if}}
 </script>
 <script id="rulesets-template" type="text/x-handlebars-template">

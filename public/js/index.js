@@ -200,7 +200,8 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     window.open("ruleset.html#"+$(this).html(),"ruleset").location.reload();
   }
   var renderTab =
-    function(){
+    function(event){
+      var authenticated = event.data.authenticated;
       $(this).parent().find('.active').toggleClass('active');
       $(this).toggleClass('active');
       if(renderDemo) return; // nothing to render for demos
@@ -208,6 +209,9 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       var tabTemplate = Handlebars.compile($('#'+liContent+'-template').html());
       var $theSection = $(this).parent().next('.pico-section');
       specDB($(this),function(theDB){
+      if(authenticated) {
+        theDB.authenticated = authenticated;
+      }
       $theSection.html(tabTemplate(theDB));
       var d = "";
       if(liContent === "rulesets") {
@@ -365,7 +369,10 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     }
   };
   var renderGraph =
-     function(data){
+     function(data,authenticated){
+       if(authenticated) {
+         data.authenticated = true;
+       }
        $('body').html(mpl(data));
        document.title = $('body h1').html();
        if (data.picos && data.picos[0]) {
@@ -400,7 +407,9 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
                   }
                 })
          .each(function(){updateEdges($(this).attr("id"))})
-         .parent().find('ul.horiz-menu li').click(renderTab);
+         .parent().find('ul.horiz-menu li').click(
+           {authenticated:authenticated},
+           renderTab);
        var whereSpec = location.hash.substring(1).split("-");
        if (whereSpec.length > 0 && whereSpec[0]) {
          $('div#'+whereSpec[0]).trigger('click');
@@ -430,7 +439,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     rootPico.eci = findEciById(k);
     break;
   }
-  var do_main_page = function(ownerPico) {
+  var do_main_page = function(ownerPico,authenticated) {
     var db_graph = {};
     db_graph.title = getV(ownerPico,"title","My Picos");
     db_graph.descr = getV(ownerPico,"descr", "These picos are hosted on this pico engine.");
@@ -493,7 +502,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         }
       };
     walkPico(ownerPico,0,"300","50");
-    renderGraph(db_graph);
+    renderGraph(db_graph,authenticated);
     $.getJSON("/api/engine-version",function(data){
       $("#version").text(data ? data.version : "undefined");
     });
@@ -510,7 +519,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       $("#version").text(data ? data.version : "undefined");
     });
   } else if (logged_in_pico.id) {
-    do_main_page(logged_in_pico);
+    do_main_page(logged_in_pico,true);
   } else {
     if (typeof handlePicoLogin === "function") {
       $.post("/sky/event/"+rootPico.eci+"/none/owner/eci_requested",function(d){
@@ -519,7 +528,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
             d.directives[0].options,
             formToJSON,
             function(authenticatedPico){
-              do_main_page(authenticatedPico);
+              do_main_page(authenticatedPico,true);
             });
         } else {
           do_main_page(rootPico);
