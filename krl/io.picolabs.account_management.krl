@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 //--------                       Account Management                   ---------
 //-----------------------------------------------------------------------------
-ruleset io.picolabs.z_account_management {
+ruleset io.picolabs.account_management {
   meta {
     shares __testing
     use module io.picolabs.pico alias wrangler
@@ -37,8 +37,8 @@ rule create_admin{
   }
   fired{
     ent:owners := ent:owners.defaultsTo({}).put("root", {"eci": new_channel{"id"}});
-    raise owner event "admin"
-      attributes event:attrs();
+    raise wrangler event "install_rulesets_requested"
+      attributes event:attrs().put({"rids":"io.picolabs.owner_authentication"});
   }
 }
 
@@ -70,7 +70,7 @@ rule eci_from_owner_name{
 
     fired{
       raise wrangler event "new_child_request"
-        attributes event:attrs().put({"event_type":"account","rids":"io.picolabs.z_owner_authentication", "password": password,"name":name});
+        attributes event:attrs().put({"event_type":"account","rids":"io.picolabs.owner_authentication", "password": password,"name":name});
     }
     else{
       raise owner event "creation_failure"

@@ -1,4 +1,4 @@
-ruleset io.picolabs.z_owner_authentication {
+ruleset io.picolabs.owner_authentication {
   meta {
     use module io.picolabs.pico alias wrangler
     shares __testing
@@ -16,15 +16,6 @@ ruleset io.picolabs.z_owner_authentication {
      _password = ent:password.defaultsTo("");
      _password == password
    }
-  }
-
-  rule store_admin_password{
-    select when owner admin
-    pre{}
-    noop()
-    fired{
-      ent:password := "toor"
-    }
   }
 
   rule channel_needed {
@@ -46,6 +37,8 @@ ruleset io.picolabs.z_owner_authentication {
       }
     fired{
       ent:password := event:attr("rs_attrs"){"password"}.klog("Password being saved: ");
+    }else{
+      ent:password := "toor"; // if no parent create root default password. this is a security hole....
     }
   }
 
