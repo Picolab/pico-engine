@@ -39,7 +39,7 @@ ruleset temp_acct_mgr {
     select when pico ruleset_added rid re#temp_acct_mgr#
     every {
       engine:installRuleset(url="temp_acct.krl", base=meta:rulesetURI);
-      engine:newChannel(child_id,time:now(),"to owner") setting(new_channel); // CHANGE?;
+      engine:newChannel(name=time:now(),type="to owner") setting(new_channel);
     }
     fired {
       raise owner event "admin" attributes { "txnId": meta:txnId };
@@ -123,7 +123,7 @@ ruleset temp_acct_mgr {
     }
     always {
       raise owner event "new_owner_pico_with_code"
-        attributes rs_attrs.put({"pico_id":child_id}) if code;
+        attributes rs_attrs.put({"owner_pico_id":child_id}) if code;
       ent:owners{owner_id} := 
         { "pico_id": child_id,
           "eci": new_channel{"id"},
@@ -136,11 +136,10 @@ ruleset temp_acct_mgr {
   rule owner_new_owner_pico_with_code {
     select when owner new_owner_pico_with_code
     pre {
-      pico_id = event:attr("pico_id");
-      owner_id = event:attr("owner_id");
+      owner_pico_id = event:attr("owner_pico_id");
     }
     every { // CHANGE?
-      engine:newChannel(pico_id,"code query","secret") setting(code_query_channel);
+      engine:newChannel(owner_pico_id,"code query","secret") setting(code_query_channel);
       send_directive("new owner pico code query channel",
         event:attrs().put("eci",code_query_channel{"id"}));
     }
