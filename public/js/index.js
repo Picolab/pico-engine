@@ -330,7 +330,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         location.reload();
       });
       var $theResultsPre = $theSection.find('div#test-results pre');
-      $theSection.on("submit","form.js-test",function(e){
+      $theSection.off("submit").on("submit","form.js-test",function(e){
         e.preventDefault();
         $.getJSON($(this).attr("action"),formToJSON(this),function(ans){
           $theResultsPre.html(JSON.stringify(ans,undefined,2).escapeHTML());
@@ -345,11 +345,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     };
   var mpl = Handlebars.compile($('#the-template').html());
   var findEciById = function(id) {
-    var thePicoInp = db_dump.pico[id];
-    for (var channel in thePicoInp.channel) {
-      return channel;
-    }
-    return id;
+    return db_dump.pico[id].admin_eci;
   }
   var resizeOptions = {
     maxHeight: 200,
