@@ -5,12 +5,12 @@ window.handlePicoLogin = function(options,formToJSON,callback){
       var parts = value.split("; " + name + "=");
       if (parts.length == 2) return parts.pop().split(";").shift();
     }
-    var performLogin = function(options,delay){
+    var performLogin = function(options,owner_needs_time){
       sessionStorage.setItem("owner_pico_id",options.pico_id);
       sessionStorage.setItem("owner_pico_eci",options.eci);
       var redirect = getCookie("previousUrl") || "/";
       //should clear cookie here! ?maybe
-      if(!delay){
+      if(!owner_needs_time){
         location.assign(redirect);
       }
     }
@@ -97,6 +97,7 @@ window.handlePicoLogin = function(options,formToJSON,callback){
         $.post(action,formToJSON(this),function(data){
             if(data && data.directives && data.directives[0]){
               var dir_options = undefined;
+              var owner_needs_time = false;
               for(var di=0; di<data.directives.length; ++di){
                 var dir = data.directives[di];
                 if(dir.name=="new owner pico code query channel"){ // display code words instructions
@@ -104,16 +105,17 @@ window.handlePicoLogin = function(options,formToJSON,callback){
                     {eci:dir.options.eci,
                      redirect: getCookie("previousUrl") || "/"}));
                   if(immediateLogin) {
-                    performLogin(dir.options,true);
+                    owner_needs_time = true;
                   }
-                  return; 
                 } else if(dir.options && dir.options.pico_id) { // successful creation
                   dir_options = dir.options;
                 }
               }
               if (dir_options){ // successfully logged in
                 if(immediateLogin) {
-                  performLogin(dir.options);
+                  performLogin(dir_options,owner_needs_time);
+                } else if(owner_needs_time) {
+                  // next action will come from new owner
                 } else {
                   location.reload();
                 }

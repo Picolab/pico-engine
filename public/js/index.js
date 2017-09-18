@@ -509,10 +509,17 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     $("#user-logout a").click(function(e){
       e.preventDefault();
       sessionStorage.removeItem("owner_pico_id");
+      sessionStorage.removeItem("owner_pico_eci");
       location.reload();
     });
   }
-  var logged_in_pico = { "id": sessionStorage.getItem("owner_pico_id")};
+  var logged_in_pico = { "id": sessionStorage.getItem("owner_pico_id"),
+    "eci": sessionStorage.getItem("owner_pico_eci")};
+  var noLoginRequired = function(){
+    sessionStorage.removeItem("owner_pico_id");
+    sessionStorage.removeItem("owner_pico_eci");
+    do_main_page(rootPico);
+  };
   if (renderDemo) {
     $.getJSON( json_name + ".json", renderGraph);
     $.getJSON("/api/engine-version",function(data){
@@ -531,11 +538,11 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
               do_main_page(authenticatedPico,true);
             });
         } else {
-          do_main_page(rootPico);
+          noLoginRequired();
         }
-      }).fail(do_main_page(rootPico));
+      }).fail(noLoginRequired);
     } else {
-      do_main_page(rootPico);
+      noLoginRequired();
     }
   }
 });
