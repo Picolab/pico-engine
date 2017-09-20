@@ -79,14 +79,23 @@ var getSystemRulesets = function(pe, callback){
 var setupLogging = function(pe){
     var logs = {};
     var logRID = "io.picolabs.logging";
+    var needAttributes = function(context,message){
+        if (context.event) {
+            return message.startsWith("event received:") ||
+                message.startsWith("adding raised event to schedule:");
+        } else {
+            return false;
+        }
+    };
     var logEntry = function(context,message){
         var episode_id = context.txn_id;
         var timestamp = (new Date()).toISOString();
         var episode = logs[episode_id];
         if (episode) {
-            episode.logs.push(timestamp+" "+message);
-            if (episode.logs.length==1 && context.event) {
-                episode.logs.push(timestamp+" attributes "+JSON.stringify(context.event.attrs));
+            if (needAttributes(context,message)) {
+                episode.logs.push(timestamp+" "+message+" attributes "+JSON.stringify(context.event.attrs));
+            } else {
+                episode.logs.push(timestamp+" "+message);
             }
         } else {
             console.log("[ERROR]","no episode found for",episode_id);
