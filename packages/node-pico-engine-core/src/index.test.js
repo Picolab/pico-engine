@@ -489,7 +489,7 @@ test("PicoEngine - io.picolabs.operators ruleset", function(t){
                     ".substr(5)": "is a string",
                     ".substr(5, 4)": "is a",
                     ".substr(5, -5)": "is a s",
-                    ".substr(25)": undefined,
+                    ".substr(25)": null,
                     ".uc()": "HELLO WORLD"
                 }
             ],
@@ -2120,7 +2120,9 @@ test("PicoEngine - io.picolabs.test-error-messages", function(t){
                 args: {obj: "Bob"}
             }, "Error: Shared, but not defined: somethingNotDefined", true),
 
-            /*
+            /*TODO
+             *TODO
+             *TODO
              * Commenting this test out for now
              * depending on node version, it will just crash with no error at all
              * but strangely if you add console.log() in the `pe.emitter.once("error", function(err){`
