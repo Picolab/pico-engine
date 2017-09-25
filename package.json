@@ -3,6 +3,9 @@
   "private": true,
   "license": "MIT",
   "scripts": {
+    "relock": "npm run rm-nm-and-lock && lerna exec -- npm i",
+    "rm-nm-and-lock": "lerna exec -- rm -rf ./node_modules package-lock.json",
+    "out": "lerna exec --bail=false -- npm out",
     "test": "lerna run test"
   },
   "devDependencies": {
