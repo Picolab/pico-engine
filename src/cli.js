@@ -1,10 +1,14 @@
 var _ = require("lodash");
 var mkdirp = require("mkdirp");
 var readPkgUp = require("read-pkg-up");
+var PicoEngine = require("../");
 
 //parse the CLI args
 var args = require("minimist")(process.argv.slice(2), {
-    "boolean": ["help", "version"],
+    "boolean": [
+        "help",
+        "version",
+    ],
     "alias": {
         "help": "h"
     }
@@ -72,4 +76,4 @@ _.each(pconf.modules, function(path, id){
 
 ////////////////////////////////////////////////////////////////////////////////
 // start it up
-require("../")(conf);
+PicoEngine(conf);

@@ -1,24 +1,18 @@
-var path = require("path");
 var setupServer = require("./setupServer");
 var startPicoEngine = require("./startPicoEngine");
 
-module.exports = function(opts){
-    opts = opts || {};
-    var port = opts.port || 8080;
-    var host = opts.host || "http://localhost:" + port;
-    var home = opts.home || path.resolve(__dirname, "..");
+module.exports = function(conf){
+    console.log("Staring PicoEngine " + require("../package.json").version);
+    console.log(conf);
 
-    startPicoEngine({
-        host: host,
-        home: home,
-    }, function(err, pe){
+    startPicoEngine(conf, function(err, pe){
         if(err){
             throw err;
         }
         var app = setupServer(pe);
 
-        app.listen(port, function(){
-            console.log(host);
+        app.listen(conf.port, function(){
+            console.log(conf.host);
         });
     });
 };
