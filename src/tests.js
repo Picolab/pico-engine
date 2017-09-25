@@ -2,8 +2,8 @@ var test = require("tape");
 var path = require("path");
 var async = require("async");
 var tempfs = require("temp-fs");
+var startCore = require("./startCore");
 var setupServer = require("./setupServer");
-var startPicoEngine = require("./startPicoEngine");
 
 var startTestServer = function(callback){
     var is_windows = /^win/.test(process.platform);
@@ -17,7 +17,7 @@ var startTestServer = function(callback){
         if(err) throw err;//throw ensures process is killed with non-zero exit code
 
         //try setting up the engine including registering rulesets
-        startPicoEngine({
+        startCore({
             host: "http://localhost:8080",
             home: dir.path,
             no_logging: true,

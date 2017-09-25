@@ -3,8 +3,8 @@ var fs = require("fs");
 var path = require("path");
 var async = require("async");
 var leveldown = require("leveldown");
-var PicoEngine = require("pico-engine-core");
 var RulesetLoader = require("./RulesetLoader");
+var PicoEngineCore = require("pico-engine-core");
 
 var setupRootPico = function(pe, callback){
     pe.getRootECI(function(err, root_eci){
@@ -181,17 +181,23 @@ var setupLogging = function(pe){
     });
 };
 
-module.exports = function(opts, callback){
-    opts = opts || {};
-    var pe = PicoEngine({
-        host: opts.host,
+module.exports = function(conf, callback){
+
+
+    var pe = PicoEngineCore({
+
+        host: conf.host,
+
         compileAndLoadRuleset: RulesetLoader({
-            rulesets_dir: path.resolve(opts.home, "rulesets")
+            rulesets_dir: path.resolve(conf.home, "rulesets"),
         }),
+
         db: {
             db: leveldown,
-            location: path.join(opts.home, "db")
+            location: path.join(conf.home, "db"),
         },
+
+        modules: conf.modules || {},
 
         //RIDs that will be automatically installed on the root pico
         rootRIDs: [
@@ -200,7 +206,8 @@ module.exports = function(opts, callback){
         ],
     });
 
-    if(opts.no_logging){
+
+    if(conf.no_logging){
         //no setupLogging
     }else{
         setupLogging(pe);
