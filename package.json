@@ -1,0 +1,11 @@
+{
+  "name": "pico-engine",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "test": "node src/tests.js"
+  },
+  "devDependencies": {
+    "lerna": "^2.2.0"
+  }
+}
