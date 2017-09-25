@@ -1,4 +1,6 @@
+var _ = require("lodash");
 var mkdirp = require("mkdirp");
+var readPkgUp = require("read-pkg-up");
 
 //parse the CLI args
 var args = require("minimist")(process.argv.slice(2), {
@@ -25,15 +27,49 @@ if(args.version){
     return;
 }
 
-var port = process.env.PORT || 8080;
-var host = process.env.PICO_ENGINE_HOST || "http://localhost:" + port;
-var home = process.env.PICO_ENGINE_HOME || require("home-dir")(".pico-engine");
+
+////////////////////////////////////////////////////////////////////////////////
+// setup the configuration
+var conf = {};
+
+
+//get the conf from the nearest package.json
+var pconf = _.get(readPkgUp.sync(), ["pkg", "pico-engine"], {});
+
+
+conf.port = _.isFinite(pconf.port)
+    ? pconf.port
+    : process.env.PORT || 8080
+;
+
+
+conf.host = _.isString(pconf.host)
+    ? pconf.host
+    : process.env.PICO_ENGINE_HOST || null
+;
+if( ! _.isString(conf.host)){
+    conf.host = "http://localhost:" + conf.port;
+}
+
+
+conf.home = _.isString(pconf.home)
+    ? pconf.home
+    : process.env.PICO_ENGINE_HOME || null
+;
+if( ! _.isString(conf.home)){
+    conf.home = require("home-dir")(".pico-engine");
+}
 
 //make the home dir if it doesn't exist
-mkdirp.sync(home);
+mkdirp.sync(conf.home);
 
-require("../")({
-    host: host,
-    port: port,
-    home: home,
+
+conf.modules = {};
+_.each(pconf.modules, function(path, id){
+    conf.modules[id] = require(path);
 });
+
+
+////////////////////////////////////////////////////////////////////////////////
+// start it up
+require("../")(conf);

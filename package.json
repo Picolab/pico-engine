@@ -54,6 +54,7 @@
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "pico-engine-core": "^0.36.0",
+    "read-pkg-up": "^2.0.0",
     "request": "^2.79.0"
   }
 }
