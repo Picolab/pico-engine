@@ -6,7 +6,7 @@ module.exports = function(opts){
     opts = opts || {};
     var port = opts.port || 8080;
     var host = opts.host || "http://localhost:" + port;
-    var home = opts.pico_engine_home || path.resolve(__dirname, "..");
+    var home = opts.home || path.resolve(__dirname, "..");
 
     startPicoEngine({
         host: host,
