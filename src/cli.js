@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var path = require("path");
 var mkdirp = require("mkdirp");
 var readPkgUp = require("read-pkg-up");
 var PicoEngine = require("../");
@@ -38,7 +39,8 @@ var conf = {};
 
 
 //get the conf from the nearest package.json
-var pconf = _.get(readPkgUp.sync(), ["pkg", "pico-engine"], {});
+var pkgup = readPkgUp.sync();
+var pconf = _.get(pkgup, ["pkg", "pico-engine"], {});
 
 
 conf.port = _.isFinite(pconf.port)
@@ -69,8 +71,14 @@ mkdirp.sync(conf.home);
 
 
 conf.modules = {};
-_.each(pconf.modules, function(path, id){
-    conf.modules[id] = require(path);
+_.each(pconf.modules, function(mod_path, id){
+    if( ! _.isString(mod_path)){
+        throw new Error("Module \"" + id + "\" require path must be a string");
+    }
+    if(mod_path[0] === "."){
+        mod_path = path.resolve(path.dirname(pkgup.path), mod_path);
+    }
+    conf.modules[id] = require(mod_path);
 });
 
 
