@@ -1,0 +1,53 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+  <title>Echo Endpoint</title>
+  <meta charset="UTF-8">
+  <style type="text/css">
+    .hidden { display: none; }
+    div { border: 1px solid silver; }
+  </style>
+  <script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+  <script type="text/javascript">
+    $(document).ready(function(){
+      var doSayDirectives = function(d){
+        d.directives.forEach(function(dir){
+          if (dir.name === "say") {
+            $("#say").append(dir.options.something).append($("<br>"));
+            $(".hidden").removeClass("hidden");
+          }
+        });
+      };
+      $("#hello-world").click(function(){
+        var eci = $("#eci").val();
+        var url = "sky/event/"+eci+"/hello-name/echo/hello";
+        $.getJSON(url,doSayDirectives);
+      });
+      $("#echo-message").click(function(ev){
+        ev.preventDefault();
+        var eci = $("#eci").val();
+        var m = $("#input").val();
+        var url = "sky/event/"+eci+"/echo-message/echo/message?input="+m;
+        $.getJSON(url,doSayDirectives);
+      });
+      $("#clear").click(function(){
+        $("#say").text("");
+        $(".output").addClass("hidden");
+      });
+    });
+  </script>
+  </head>
+  <body>
+    <input id="eci" placeholder="eci" size="25">
+    <br>
+    <button id="hello-world">Hello World</button>
+    <br>
+    <form>
+      <input id="input" name="input" placeholder="message" size="40">
+      <button id="echo-message">Echo Message</button>
+    </form>
+    <p id="heading" class="hidden output">Response(s)</p>
+    <div id="say" class="hidden output"></div>
+    <button id="clear" class="hidden output">Clear</button>
+  </body>
+</html>

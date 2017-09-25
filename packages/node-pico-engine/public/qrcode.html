@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+<title>QR code for Pico Labs</title>
+<script src="js/jquery-3.1.0.min.js"></script>
+<!-- thanks to Jerome Etienne http://jeromeetienne.github.io/jquery-qrcode/ -->
+<script type="text/javascript" src="js/jquery.qrcode.js"></script>
+<script type="text/javascript" src="js/qrcode.js"></script>
+<script type="text/javascript">
+$(function(){
+  var url = location.search.substring(1);
+  $("p").append($("<a>",{href:url,text:url}));
+  $("div").qrcode(url);	
+  var canvas = $("div canvas").get(0);
+  var context = canvas.getContext("2d");
+  var logo = new Image();
+  logo.src = "pico-logo-48x48.png";
+  logo.onload = function(){
+    context.drawImage(logo,104,104);
+  }
+});
+</script>
+</head>
+<body>
+<p></p> 
+<div style="border:1px dashed silver;padding:5px;float:left"></div>
+</body>
+</html>

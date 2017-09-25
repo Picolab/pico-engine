@@ -1,0 +1,30 @@
+body {
+  margin: 0 0 0 8px;
+}
+div p.description {
+  display: inline-block;
+  position: absolute;
+  width: 250px;
+  font-size: 120%;
+  padding-left: 20px;
+}
+h1.title {
+  display: inline-block;
+  font-family: Arial, sans-serif;
+  margin: 0 0 0 120px;
+  padding-top: 18px;
+}
+a.logo img {
+  vertical-align: top;
+}
+a.logo {
+  cursor: pointer;
+}
+.button {
+  text-decoration: none;
+  display: inline-block;
+  margin: 5px;
+  padding: 10px;
+  border: 1px solid black;
+  border-radius: 5px;
+}

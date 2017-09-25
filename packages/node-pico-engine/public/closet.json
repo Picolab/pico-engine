@@ -1,0 +1,49 @@
+{
+  "title": "Closet demo",
+  "descr": "Picos allow actor-based systems to be constructed. This is reflected in our Closet Demo.",
+  "picos": [
+    {
+      "id": "p1", 
+      "dname": "Owner Pico",
+      "style": "width:80px;left:800px;top:10px;background-color:lightskyblue"
+    },
+    {
+      "id": "p2", 
+      "dname": "Closet Collection Pico",
+      "style": "width:100px;left:450px;top:150px;background-color:aquamarine"
+    },
+    {
+      "id": "p3", 
+      "dname": "Fan Collection Pico",
+      "style": "width:100px;left:600px;top:300px;background-color:aquamarine"
+    },
+    {
+      "id": "p4", 
+      "dname": "Inside Temp Pico",
+      "style": "width:100px;left:200px;top:370px;background-color:hotpink"
+    },
+    {
+      "id": "p5", 
+      "dname": "Outside Temp Pico",
+      "style": "width:100px;left:350px;top:400px;background-color:hotpink"
+    },
+    {
+      "id": "p6", 
+      "dname": "Cooling Fan A Pico",
+      "style": "width:150px;left:500px;top:500px;background-color:lightsteelblue"
+    },
+    {
+      "id": "p7", 
+      "dname": "Cooling Fan B Pico",
+      "style": "width:150px;left:700px;top:500px;background-color:lightsteelblue"
+    }
+  ],
+  "chans": [
+    { "class": "p1-origin p2-target"},
+    { "class": "p2-origin p3-target"},
+    { "class": "p2-origin p4-target"},
+    { "class": "p2-origin p5-target"},
+    { "class": "p3-origin p6-target"},
+    { "class": "p3-origin p7-target"}
+  ]
+}

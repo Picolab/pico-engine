@@ -1,0 +1,61 @@
+{
+  "name": "pico-engine",
+  "version": "0.13.2",
+  "description": "An implementation of the pico-engine targetting node.js",
+  "main": "src/index.js",
+  "bin": {
+    "pico-engine": "bin/pico-engine"
+  },
+  "files": [
+    "bin",
+    "krl",
+    "public",
+    "src"
+  ],
+  "scripts": {
+    "start": "scriptsp watch:http watch:test",
+    "watch:http": "onchange -i src/ krl/ public/ -- npm run -s runlocal",
+    "watch:test": "onchange -i src/ -- npm run test -s",
+    "lint": "eslint src/ && echo lint-ok",
+    "runlocal": "PICO_ENGINE_HOME=. node src/cli.js",
+    "test": "npm run lint && node src/tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Picolab/node-pico-engine.git"
+  },
+  "keywords": [
+    "pico-engine",
+    "krl",
+    "KRE",
+    "IoT"
+  ],
+  "author": "Picolab",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Picolab/node-pico-engine/issues"
+  },
+  "homepage": "https://github.com/Picolab/node-pico-engine#readme",
+  "devDependencies": {
+    "eslint": "^4.7.2",
+    "onchange": "^3.0.0",
+    "scriptsp": "^1.0.1",
+    "tape": "^4.5.1",
+    "temp-fs": "^0.9.9"
+  },
+  "dependencies": {
+    "async": "^2.5.0",
+    "body-parser": "^1.18.2",
+    "express": "^4.15.5",
+    "home-dir": "^1.0.0",
+    "krl-compiler": "^0.35.0",
+    "leveldown": "^1.8.0",
+    "lodash": "^4.11.2",
+    "mime-types": "^2.1.17",
+    "minimist": "^1.2.0",
+    "mkdirp": "^0.5.1",
+    "pico-engine-core": "^0.36.0",
+    "read-pkg-up": "^2.0.0",
+    "request": "^2.82.0"
+  }
+}

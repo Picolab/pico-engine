@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
+<title>Student Registration</title>
+<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script src="js/student.js" type="text/javascript"></script>
+<style type="text/css">
+h1.title {
+  display: inline-block;
+  font-family: Arial, sans-serif;
+  margin: 0 0 0 120px;
+  padding-top: 18px;
+}
+a.logo img {
+  vertical-align: top;
+}
+a.logo {
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+<div>
+<a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
+<h1 class="title">Student Registration</h1>
+</div>
+<div style="float:right">
+<h2>Operations log</h2>
+<pre></pre>
+</div>
+<div>
+<h2>Student</h2>
+<p>
+Owner pico eci <input id="own_eci" size="25">
+</p>
+<p>
+Student <input id="student_id">
+</p>
+<p>
+Registration pico eci <input id="reg_eci" size="25">
+</p>
+<p>
+Section <select id="section_id"></select> <button id="section_id_btn">join</button>
+</p>
+<p>
+Section collection pico eci <input id="sco_eci" size="25">
+</p>
+<p>
+Section pico eci <input id="sec_eci" size="25">
+</p>
+<p>
+Enrolled sections
+<ul id="enrolled_sections">
+</ul>
+</p>
+</div>
+</body>
+</html>

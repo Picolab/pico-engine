@@ -1,0 +1,55 @@
+{
+  "title": "Registration experiment",
+  "descr": "Registration experiment has a Pico for each section and one for each registering student.", 
+  "picos": [
+    {
+      "id": "p1", 
+      "dname": "Owner Pico",
+      "style": "width:80px;left:800px;top:10px;background-color:lightskyblue"
+    },
+    {
+      "id": "p2", 
+      "dname": "Registration Pico",
+      "style": "width:120px;left:450px;top:150px;background-color:aquamarine"
+    },
+    {
+      "id": "p3", 
+      "dname": "Student Collection Pico",
+      "style": "width:160px;left:600px;top:300px;background-color:aquamarine"
+    },
+    {
+      "id": "p4", 
+      "dname": "Section Collection Pico",
+      "style": "width:160px;left:250px;top:300px;background-color:aquamarine"
+    },
+    {
+      "id": "p5", 
+      "dname": "Section CS462-1 Pico",
+      "style": "width:150px;left:150px;top:500px;background-color:hotpink"
+    },
+    {
+      "id": "p6", 
+      "dname": "Section CS462-2 Pico",
+      "style": "width:150px;left:350px;top:500px;background-color:hotpink"
+    },
+    {
+      "id": "p7", 
+      "dname": "Student A Pico",
+      "style": "left:500px;top:500px;background-color:lightsteelblue"
+    },
+    {
+      "id": "p8", 
+      "dname": "Student B Pico",
+      "style": "left:700px;top:500px;background-color:lightsteelblue"
+    }
+  ],
+  "chans": [
+    { "class": "p1-origin p2-target"},
+    { "class": "p2-origin p3-target"},
+    { "class": "p2-origin p4-target"},
+    { "class": "p4-origin p5-target"},
+    { "class": "p4-origin p6-target"},
+    { "class": "p3-origin p7-target"},
+    { "class": "p3-origin p8-target"}
+  ]
+}

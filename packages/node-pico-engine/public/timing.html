@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <title>Timing</title>
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular.min.js"></script>
+  <script src="timing.js"></script>
+  <style type="text/css">
+    span.finished { cursor: pointer; color: blue; text-decoration: underline; }
+  </style>
+</head>
+<body ng-app="timing" ng-controller="MainCtrl">
+<div class="row">
+<div class="col-md-8 col-md-offset-2">
+<div class="page-header"> 
+  <h1>Timing</h1>
+</div>
+
+  <form ng-submit="addTiming()" style = "margin-top:30px;">
+    <input type="text" ng-model="number" placeholder="number" autofocus></input>
+    <input type="text" ng-model="name" placeholder="name"></input>
+    <button type="submit" focus-input>timing started</button>
+  </form>
+  <div ng-repeat="timing in timings | orderBy: '-ordinal'">
+    {{timing.number}} &middot;
+    {{timing.name}} &middot;
+    {{timing.time_out}} &middot;
+    {{timing.time_in}}
+    <span class="finished" ng-click="finished(timing.number)" ng-if="!timing.time_in">timing finished</span>
+    <span ng-if="!!timing.time_in">&middot; {{timeDiff(timing)}}</span>
+  </div>
+</div>
+</div>
+</body>
+</html>

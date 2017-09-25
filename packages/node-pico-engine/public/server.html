@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <!-- include our dependency on angular -->
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0/angular.min.js"></script>
+      <script src="http://angular-ui.github.io/ui-router/release/angular-ui-router.js"></script>
+      <script src="server.js"></script>
+      <link rel="stylesheet" type="text/css" href="server.css">
+      <meta charset="utf-8">
+      <title>OAuth Authorization Server</title>
+   </head>
+   <body>
+<a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
+            <h1 class="title">OAuth Authorization Server</h1>
+<p class="description">
+Demonstration of a ruleset that implements an authorization server
+using OAuth2.
+Uses the services in Chapter 5
+of <em>OAuth2 in Action</em> by
+Justin Richer
+and
+Antonio Sanso.
+</p>
+
+      <div ng-app='myApp' ng-controller='myCtrl'>
+         <ui-view></ui-view>
+         <script type="text/ng-template" id="/index.html">
+            <h1>Client information</h1>
+            <ul>
+               <li>client_name: OAuth in Action</li>
+               <li>client_id: oauth-client-1</li>
+               <li>client_secret: oauth-client-secret-1</li>
+               <li>redirect_uris: ["http://localhost:9000/callback"]</li>
+            </ul>
+         </script>
+         <script type="text/ng-template" id="/approve.html">
+            <h2>Approve this client?</h2>
+            <p ng-if="client_name"><b>Name:</b> {{client_name}}</p>
+            <p><b>ID:</b> {{client_id}}</p>
+            <p ng-if="client_img">
+              <img src="{{client_img}}">
+            </p>
+            <form class="form" action="/approve" method="POST">
+               <input type="hidden" name="reqid" value="{{reqid}}">
+               <input type="hidden" name="owner_id" value="{{owner_id}}">
+               <input type="submit" class="button" name="approve" value="Approve">
+               <input type="submit" class="button" name="deny" value="Deny">
+            </form>
+         </script>
+         <script type="text/ng-template" id="/data.html">
+            <p>Resource: {{resource}}</p>
+            <a class="button" role="button" href="#/index">Back</a>
+         </script>
+         <script type="text/ng-template" id="/error.html">
+            <p>Error: {{error_message}}</p>
+            <a class="button" role="button" href="#/index">Back</a>
+         </script>
+      </div>
+   </body>
+</html>

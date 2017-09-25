@@ -1,0 +1,77 @@
+<html lang="en-US">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
+<title>TITLE</title>
+<link href="../css/jquery-linedtextarea.css" type="text/css" rel="stylesheet">
+<link rel="stylesheet" href="../css/ruleset.css">
+<style type="text/css">
+.registerFromURL button, .registerFromURL input,
+.ruleset-new button, .ruleset-new input,
+.flush, .unregister
+{
+  pointer-events: none !important;
+  cursor: default;
+  color: gray;
+}
+</style>
+<script src="../js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script src="../js/handlebars.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="../js/jquery-linedtextarea.js"></script>
+<script src="../js/isSysRid.js" type="text/javascript"></script>
+<script src="../js/picoAPI.js" type="text/javascript"></script>
+<script src="../js/ruleset.js" type="text/javascript"></script>
+<script id="the-template" type="text/x-handlebars-template">
+<div id="top">
+<a class="logo" href="http://picolabs.io"><img src="../logo.png" alt="logo"></a>
+<h1 class="title">{{title}}</h1>
+</div>
+<div id="container">
+<p class="description">
+{{descr}}
+</p>
+<div id="ruleset-list">
+Registered Rulesets
+<ul>
+{{#each rulesets}}
+<li class="krlrid{{#unless enabled}} disabled{{/unless}}"><span>{{@key}}</span>
+{{#if canFlush}}
+<a class="flush" href="/api/ruleset/flush/{{@key}}">flush</a>
+{{/if}}
+{{#if canDel}}
+<a class="unregister" href="/api/ruleset/unregister/{{@key}}">del</a>
+{{/if}}
+</li>
+{{/each}}
+</ul>
+<hr>
+<form class="ruleset-new">
+<input type="text" name="rid" placeholder="ruleset id">
+<button type="submit">new ruleset</button>
+</form>
+<p style="color:silver;font-size:85%;font-family:monospace">
+ruleset id must match this pattern:<br>
+{{ridRE}}
+</p>
+<form class="registerFromURL">
+<input type="text" name="url" placeholder="raw source URL">
+<button type="submit">register</button>
+</form>
+<hr>
+<a href="index.html">My Picos</a>
+</div>
+<div class="krlsrc">
+<form class="ruleset-action" method="GET">
+<textarea id="lined" name="src">{{src}}</textarea>
+<button type="submit">validate</button>
+<button type="submit" disabled="">register</button>
+</form>
+<pre id="feedback"></pre>
+</div>
+</div>
+</script>
+</head>
+<body>
+<p>Loading...</p>
+</body>
+</html>
