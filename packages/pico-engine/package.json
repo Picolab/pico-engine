@@ -18,7 +18,7 @@
     "watch:test": "onchange -i src/ -- npm run test -s",
     "lint": "../../node_modules/.bin/eslint src/ && echo lint-ok",
     "runlocal": "PICO_ENGINE_HOME=. node src/cli.js",
-    "test": "npm run lint && node src/tests.js && open \"http://$([ $PICO_ENGINE_HOME] && PICO_ENGINE_HOME || echo localhost ):$([ $PORT ] &&  $PORT || echo 8080)\" && echo \"pico-engine at http://$([ $PICO_ENGINE_HOME] && PICO_ENGINE_HOME || echo localhost ):$([ $PORT ] &&  $PORT || echo 8080)\""
+    "test": "npm run lint && node src/tests.js"
   },
   "repository": {
     "type": "git",
@@ -38,6 +38,7 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "onchange": "^3.0.0",
+    "opn": "^4.0.2",
     "scriptsp": "^1.0.1",
     "tape": "^4.5.1",
     "temp-fs": "^0.9.9"
