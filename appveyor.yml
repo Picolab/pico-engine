@@ -10,7 +10,7 @@ platform:
 
 install:
   - ps: Install-Product node $env:nodejs_version $env:platform
-  - npm install
+  - npm run setup
 
 test_script:
   # Output useful info for debugging.
