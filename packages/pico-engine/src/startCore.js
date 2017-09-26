@@ -107,26 +107,6 @@ var setupLogging = function(pe){
             console.log("[ERROR]","no episode found for",episode_id);
         }
     };
-    var logEpisode = function(pico_id,context,callback){
-        var episode_id = context.txn_id;
-        var episode = logs[episode_id];
-        if (!episode) {
-            console.log("[ERROR]","no episode found for",episode_id);
-            return;
-        }
-        pe.getEntVar(pico_id,logRID,"status",function(e,status){
-            if (status) {
-                pe.getEntVar(pico_id,logRID,"logs",function(e,data){
-                    data[episode.key] = episode.logs;
-                    pe.putEntVar(pico_id,logRID,"logs",data,function(e){
-                        callback(delete logs[episode_id]);
-                    });
-                });
-            } else {
-                callback(delete logs[episode_id]);
-            }
-        });
-    };
     pe.emitter.on("episode_start", function(context){
         var episode_id = context.txn_id;
         console.log("[EPISODE_START]",episode_id);
@@ -178,12 +158,40 @@ var setupLogging = function(pe){
         if(context) logEntry(context, err);
     });
     pe.emitter.on("episode_stop", function(context){
+        var pico_id = context.pico_id;
         var episode_id = context.txn_id;
-        console.log("[EPISODE_STOP]",episode_id);
-        var callback = function(outcome){
-            console.log("[EPISODE_REMOVED]",outcome);
+
+        console.log("[EPISODE_STOP]", episode_id);
+
+        var episode = logs[episode_id];
+        if (!episode) {
+            console.error("[ERROR]","no episode found for", episode_id);
+            return;
+        }
+
+        var onRemoved = function(err){
+            delete logs[episode_id];
+            if(err){
+                console.error("[EPISODE_REMOVED]", episode_id, err + "");
+            }else{
+                console.log("[EPISODE_REMOVED]", episode_id);
+            }
         };
-        logEpisode(context.pico_id,context,callback);
+
+        pe.getEntVar(pico_id, logRID, "status", function(err, is_logs_on){
+            if(err) return onRemoved(err);
+            if(!is_logs_on){
+                onRemoved();
+                return;
+            }
+            pe.getEntVar(pico_id, logRID, "logs", function(err, data){
+                if(err) return onRemoved(err);
+
+                data[episode.key] = episode.logs;
+
+                pe.putEntVar(pico_id, logRID, "logs", data, onRemoved);
+            });
+        });
     });
 };
 
