@@ -5,7 +5,7 @@ var parser = require("../src/");
 var unparse = require("./unparse");
 var nearley = require("nearley");
 var grammar = require("../src/grammar.js");
-var generator = require("krl-generator");
+var generator = require("../../krl-generator");
 var tokenizer = require("../src/tokenizer");
 
 var onAmbiguousProgram = function(src){

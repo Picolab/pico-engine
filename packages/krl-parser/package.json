@@ -33,7 +33,6 @@
   "devDependencies": {
     "diff-lines": "^1.1.0",
     "faucet": "0.0.1",
-    "krl-generator": "^0.7.2",
     "lodash": "^4.13.1",
     "onchange": "^3.2.1",
     "phonetic": "^0.1.1",
