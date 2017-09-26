@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Picolab/node-krl-compiler.git"
+    "url": "git+https://github.com/Picolab/pico-engine.git"
   },
   "keywords": [
     "pico-engine",
@@ -27,9 +27,9 @@
   "author": "Picolab",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Picolab/node-krl-compiler/issues"
+    "url": "https://github.com/Picolab/pico-engine/issues"
   },
-  "homepage": "https://github.com/Picolab/node-krl-compiler#readme",
+  "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "contra": "^1.9.4",
     "diff-lines": "^1.1.0",

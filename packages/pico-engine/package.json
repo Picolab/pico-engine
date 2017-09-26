@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Picolab/node-pico-engine.git"
+    "url": "git+https://github.com/Picolab/pico-engine.git"
   },
   "keywords": [
     "pico-engine",
@@ -33,9 +33,9 @@
   "author": "Picolab",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Picolab/node-pico-engine/issues"
+    "url": "https://github.com/Picolab/pico-engine/issues"
   },
-  "homepage": "https://github.com/Picolab/node-pico-engine#readme",
+  "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "eslint": "^4.7.2",
     "onchange": "^3.0.0",

@@ -13,19 +13,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Picolab/node-pico-engine-core.git"
+    "url": "git+https://github.com/Picolab/pico-engine.git"
   },
   "keywords": [
     "krl",
     "pico-engine",
     "IoT"
   ],
-  "author": "farskipper",
+  "author": "Picolab",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Picolab/node-pico-engine-core/issues"
+    "url": "https://github.com/Picolab/pico-engine/issues"
   },
-  "homepage": "https://github.com/Picolab/node-pico-engine-core#readme",
+  "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "eslint": "^4.6.1",
     "faucet": "^0.0.1",

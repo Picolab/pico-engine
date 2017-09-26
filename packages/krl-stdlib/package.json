@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Picolab/node-krl-stdlib.git"
+    "url": "git+https://github.com/Picolab/pico-engine.git"
   },
   "keywords": [
     "krl",
@@ -20,9 +20,9 @@
   "author": "Picolab",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Picolab/node-krl-stdlib/issues"
+    "url": "https://github.com/Picolab/pico-engine/issues"
   },
-  "homepage": "https://github.com/Picolab/node-krl-stdlib#readme",
+  "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "co-callback": "^1.2.1",
     "eslint": "^4.6.1",
