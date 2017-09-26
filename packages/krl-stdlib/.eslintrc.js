@@ -1,34 +1,7 @@
-module.exports = {
-  "env": {
-    "es6": true,//only for generator functions
-    "browser": true,
-    "node": true,
-    "commonjs": true
-  },
-  "extends": "eslint:recommended",
-  "rules": {
-    "indent":  ["error", 4],
-    "no-console": "off",
-    "require-yield": "off",
-    "quotes": ["error", "double"],
-    "no-trailing-spaces": "error",
-    "eqeqeq": "error",
-    "linebreak-style": [
-      "error",
-      "unix"
-    ],
-    "semi": [
-      "error",
-      "always"
-    ],
-    "no-unused-vars": [
-      "error",
-      {
-        vars: "all",
-        args: "none"//unused arguments can provide good documentation about what is available
-      }
-    ],
-    "no-multi-str": "error",
-    "radix": "error"
-  }
-};
+var _ = require("lodash");
+var conf = _.cloneDeep(require("../../.eslintrc.js"));
+
+conf.env.es6 = true;//only for generator functions
+conf.rules["require-yield"] = "off";
+
+module.exports = conf;

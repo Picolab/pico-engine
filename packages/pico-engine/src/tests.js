@@ -122,7 +122,7 @@ test("pico-engine", function(t){
                 t.equals(data.channels.length, channels.length + 1,"single channel was created");
                 var found = false;
                 for(var i = 0; i < data.channels.length; i++) {
-                    if (data.channels[i].id == channel.id) {
+                    if (data.channels[i].id === channel.id) {
                         found = true;
                         t.deepEqual(channel, data.channels[i],"new channel is the same channel from directive");
                         break;
@@ -223,10 +223,10 @@ test("pico-engine", function(t){
             }, function(err, data){
                 if(err) return next(err);
                 console.log("///////list collection of channel");
-                t.equals(data.channels["typeB"]  != null , true ,"has typeB");
-                t.equals(data.channels["typeC"]  != null , true ,"has typeC");
-                t.equals(data.channels["type"]   != null , true ,"has type");
-                t.equals(data.channels["secret"] != null , true ,"has secret");
+                t.equals(data.channels["typeB"]  !== null , true ,"has typeB");
+                t.equals(data.channels["typeC"]  !== null , true ,"has typeC");
+                t.equals(data.channels["type"]   !== null , true ,"has type");
+                t.equals(data.channels["secret"] !== null , true ,"has secret");
                 console.log("///////");
                 next();
             });
@@ -333,7 +333,7 @@ test("pico-engine", function(t){
                 t.equals(data.channels.length, channels.length - 1 ,"single channel was removed by name");
                 var found = false;
                 for(var i = 0; i < data.channels.length; i++) {
-                    if (data.channels[i].id == ted.id) {
+                    if (data.channels[i].id === ted.id) {
                         found = true;
                         break;
                     }
@@ -370,7 +370,7 @@ test("pico-engine", function(t){
                 t.equals(data.channels.length, channels.length - 1 ,"single channel was removed by eci");
                 var found = false;
                 for(var i = 0; i < data.channels.length; i++) {
-                    if (data.channels[i].id == carl.id) {
+                    if (data.channels[i].id === carl.id) {
                         found = true;
                         break;
                     }
@@ -422,7 +422,7 @@ test("pico-engine", function(t){
                 t.equals(data.rids.length >= installedRids.length, true,"ruleset was installed");
                 t.equals(data.rids.length, installedRids.length + 1 ,"single ruleset was installed");
                 for(var i = 0; i < data.rids.length; i++) {
-                    if (data.rids[i] == "io.picolabs.logging") {
+                    if (data.rids[i] === "io.picolabs.logging") {
                         found = true;
                         break;
                     }
@@ -458,7 +458,7 @@ test("pico-engine", function(t){
                 t.equals(data.rids.length <= installedRids.length, true,"ruleset was un-installed");
                 t.equals(data.rids.length, installedRids.length  ,"single ruleset was un-installed");
                 for(var i = 0; i < data.rids.length; i++) {
-                    if (data.rids[i] == "io.picolabs.logging") {
+                    if (data.rids[i] === "io.picolabs.logging") {
                         found = true;
                         break;
                     }
@@ -495,14 +495,14 @@ test("pico-engine", function(t){
                 t.equals(data.rids.length >= installedRids.length, true,"rulesets installed");
                 t.equals(data.rids.length, installedRids.length + 2 ,"two rulesets was installed");
                 for(var i = 0; i < data.rids.length; i++) {
-                    if (data.rids[i] == "io.picolabs.logging"|| data.rids[i] == "io.picolabs.subscription") {
+                    if (data.rids[i] === "io.picolabs.logging"|| data.rids[i] === "io.picolabs.subscription") {
                         found ++;
                         //break;
                     }
-                    if (data.rids[i] == "io.picolabs.logging"){
+                    if (data.rids[i] === "io.picolabs.logging"){
                         t.deepEqual(data.rids[i], "io.picolabs.logging","logging installed");
                     }
-                    else if (data.rids[i] == "io.picolabs.subscription"){
+                    else if (data.rids[i] === "io.picolabs.subscription"){
                         t.deepEqual(data.rids[i], "io.picolabs.subscription","subscription installed");
                     }
                 }
@@ -537,7 +537,7 @@ test("pico-engine", function(t){
                 t.equals(data.rids.length <= installedRids.length, true,"rulesets un-installed");
                 t.equals(data.rids.length, installedRids.length  ,"two rulesets un-installed");
                 for(var i = 0; i < data.rids.length; i++) {
-                    if (data.rids[i] == "io.picolabs.logging"|| data.rids[i] == "io.picolabs.subscription") {
+                    if (data.rids[i] === "io.picolabs.logging"|| data.rids[i] === "io.picolabs.subscription") {
                         found ++;
                         //break;
                     }
@@ -559,7 +559,7 @@ test("pico-engine", function(t){
                 //console.log("rulesetInfo",data.description);
                 t.deepEqual(data.description.length, 1 ,"single rule set described");
                 t.deepEqual("io.picolabs.logging",data.description[0].rid ,"correct ruleset described");
-                t.equals(data.description[0].src != undefined ,true,"has a src");
+                t.equals(data.description[0].src !== undefined ,true,"has a src");
                 next();
             });
         },
@@ -575,9 +575,9 @@ test("pico-engine", function(t){
                 //console.log("rulesetInfo",data);
                 t.deepEqual(data.description.length, 2 ,"two rule sets described");
                 t.deepEqual("io.picolabs.logging",data.description[0].rid ,"logging ruleset described");
-                t.equals(data.description[0].src != undefined ,true,"logging has a src");
+                t.equals(data.description[0].src !== undefined ,true,"logging has a src");
                 t.deepEqual("io.picolabs.subscription",data.description[1].rid ,"subscription ruleset described");
-                t.equals(data.description[1].src != undefined ,true,"subscription has a src");
+                t.equals(data.description[1].src !== undefined ,true,"subscription has a src");
                 next();
             });
         },
@@ -628,7 +628,7 @@ test("pico-engine", function(t){
                 t.equals(data.children.length , child_count+1, "created a single pico"); // created only 1 child
                 var found = false;
                 for(var i = 0; i < data.children.length; i++) {
-                    if (data.children[i].id == child.id) {
+                    if (data.children[i].id === child.id) {
                         found = true;
                         t.deepEqual(child, data.children[i],"new pico is the same pico from directive");
                         break;

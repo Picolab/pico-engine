@@ -70,7 +70,7 @@ module.exports = function(pe){
             if(err) return errResp(res, err);
             if(_.isFunction(data)){
                 data(res);
-            }else if(respType&&funcPart[1]!="json"){
+            }else if(respType && funcPart[1] !== "json"){
                 res.header("Content-Type", respType);
                 res.end(data);
             }else{
