@@ -4,7 +4,7 @@
   "description": "Generate KRL code given krl-ast as input. (pretty printer)",
   "main": "src/index.js",
   "scripts": {
-    "start": "onchange src/* 'test-rulesets/*' -i -- npm test -s",
+    "start": "onchange src/* '../../test-rulesets/*' -i -- npm test -s",
     "lint": "../../node_modules/.bin/eslint src/ && echo lint-ok",
     "test": "npm run lint && node src/tests.js"
   },

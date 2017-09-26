@@ -13,7 +13,7 @@ the wrong way to test how they are handled at runtime
         }
         null_val = null
         infiniteRecursion = function(){
-            infiniteRecursion()
+            infiniteRecursion();
         }
     }
 

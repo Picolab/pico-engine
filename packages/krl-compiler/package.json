@@ -11,7 +11,7 @@
     "src"
   ],
   "scripts": {
-    "start": "onchange -i src/ test-rulesets/ -- npm test -s",
+    "start": "onchange -i src/ ../../test-rulesets/ -- npm test -s",
     "lint": "../../node_modules/.bin/eslint src/ && echo lint-ok",
     "test": "npm run lint -s && node src/tests.js"
   },
