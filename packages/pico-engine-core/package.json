@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "start": "SKIP_LONG_TESTS=true onchange -i src/ test-rulesets/ -- npm run test -s",
-    "lint": "eslint src/ && echo lint-ok",
+    "lint": "../../node_modules/.bin/eslint src/ && echo lint-ok",
     "test": "npm run lint -s && node src/tests.js | faucet"
   },
   "repository": {

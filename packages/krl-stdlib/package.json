@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "onchange -i src/ -- npm test",
-    "lint": "eslint src/ && echo lint-ok",
+    "lint": "../../node_modules/.bin/eslint src/ && echo lint-ok",
     "test": "npm run lint -s && node src/tests.js | faucet"
   },
   "repository": {

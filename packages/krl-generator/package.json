@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "onchange src/* 'test-rulesets/*' -i -- npm test -s",
-    "test": "eslint src/ && node src/tests.js"
+    "lint": "../../node_modules/.bin/eslint src/ && echo lint-ok",
+    "test": "npm run lint && node src/tests.js"
   },
   "repository": {
     "type": "git",
