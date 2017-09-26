@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<title>DID redirection</title>
+<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="js/async.min.js"></script>
+<script type="text/javascript">
+$(function(){
+  if(location.search.startsWith("?url=")){
+    var servers = [
+      location.hostname+(location.port ? ":"+location.port : ""),
+      "10.5.36.219:8080",
+      "sqtg.bruceatbyu.com:3001",
+      "605ea45c.ngrok.io",
+    ];
+    var decoded = decodeURIComponent(location.search);
+    if(decoded.startsWith("?url=web+did:npe:")){
+      var pieces = decoded.substr(17).split("/");
+      if(pieces.length >= 5){
+        var eci = pieces.shift();
+        var stuff = pieces.shift() + "/" + pieces.shift() + "/"
+                  + eci + "/" + pieces.join("/");
+        var tryURL = function(server) {
+          var tryStuff = "sky/cloud/"+eci+"/io.picolabs.pico/myself";
+          return "http://"+server+"/"+tryStuff;
+        };
+        var tryServer = function(server,callback) {
+          setTimeout(function(){
+            var theURL = tryURL(server);
+            $.getJSON(theURL, function(data){
+              callback(null,(data && data.id));
+            }).fail(function(){callback(null,false)});
+          },1);
+        };
+        async.detectSeries(servers,tryServer,function(err,server){
+          if(server){
+            var prefix = "http://" + server + "/";
+            location = prefix+stuff;
+          } else {
+            $("body").html("Couldn't find "+eci+", having checked<ul><li>"+servers.join("</li><li>")+"</li></ul>");
+            $("body").show();
+          }
+        });
+      } else {
+        $("body").show();
+      }
+    } else {
+      $("body").show();
+    }
+  } else {
+    $("body").show();
+  }
+});
+</script>
+<style type="text/css">
+pre { margin-left:20px; }
+body { display:none; }
+</style>
+</head>
+<body>
+<h1>DID redirection</h1>
+<p>
+This is a proof of concept, through simulation.
+</p>
+<p>
+In Chrome and Firefox, you can register a handler for a "new" protocol.
+</p>
+<p>
+From any page served by your Node Pico Engine,
+enter the JavaScript console.
+Evaluate this code, replacing <code>localhost:8080</code>
+with the domain name and port of your NPE.
+</p>
+<pre>navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc")</pre>
+<p>
+Your browser will warn you that your NPE wants to 
+handle the "web+npe" protocol,
+which you must allow.
+</p>
+<p>
+Having done this you will be able to send an event to a pico
+using this pseudo DID protocol:
+</p>
+<pre>web+did:npe:ECI/sky/event/EID/domain/type?name=val&name2=val2</pre>
+<pre>web+did:npe:ECI/sky/cloud/RID/function?name=val&name2=val2</pre>
+<p>
+To remove the protocol handler from Chrome, visit 
+chrome://settings/handlers.
+From Firefox, visit Preferences->Applications.
+</p>
+</body>
+</html>
+
