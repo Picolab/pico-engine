@@ -1,7 +1,7 @@
 # pico-engine
 
 [![build status](https://secure.travis-ci.org/Picolab/pico-engine.svg)](https://travis-ci.org/Picolab/pico-engine)
-[![windows build status](https://ci.appveyor.com/api/projects/status/q16ml3w32jp19wqa?svg=true)](https://ci.appveyor.com/project/farskipper/pico-engine)
+[![windows build status](https://ci.appveyor.com/api/projects/status/cxnk24jb697a9m5b?svg=true)](https://ci.appveyor.com/project/farskipper/pico-engine)
 
 An implementation of the [pico-engine](http://www.windley.com/archives/2016/03/rebuilding_krl.shtml) hosted on node.js
 
