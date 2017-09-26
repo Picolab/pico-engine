@@ -13,7 +13,7 @@ When developing run
 ```sh
 $ npm start
 ```
-That will watch the `src/` and `test-rulesets/` folders and re-run all the tests whenever you make file changes.
+That will watch the `src/` and `../../test-rulesets/` folders and re-run all the tests whenever you make file changes.
 
 To run tests once by themselves
 ```sh

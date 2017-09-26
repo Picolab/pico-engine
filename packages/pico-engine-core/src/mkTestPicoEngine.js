@@ -5,10 +5,10 @@ var async = require("async");
 var memdown = require("memdown");
 var PicoEngine = require("./");
 
-var url_prefix = "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/";
+var url_prefix = "https://raw.githubusercontent.com/Picolab/pico-engine/master/test-rulesets/";
 
 var test_rulesets = {};
-var test_dir = path.resolve(__dirname, "../test-rulesets");
+var test_dir = path.resolve(__dirname, "../../../test-rulesets");
 _.each(fs.readdirSync(test_dir), function(file){
     if(!/\.js$/.test(file)){
         return;

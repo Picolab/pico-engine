@@ -621,7 +621,7 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
             }),[]],
             [signal("engine", "installRuleset", {
                 pico_id: "id2",
-                base: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/",
+                base: "https://raw.githubusercontent.com/Picolab/pico-engine/master/test-rulesets/",
                 url: "scope.krl",
             }),[]],
             function(done){
@@ -875,7 +875,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetName: "testing meta module",
                     rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
-                    rulesetURI: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
+                    rulesetURI: "https://raw.githubusercontent.com/Picolab/pico-engine/master/test-rulesets/meta.krl",
                     ruleName: "meta_event",
                     inEvent: true,
                     inQuery: false,
@@ -890,7 +890,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetName: "testing meta module",
                     rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
-                    rulesetURI: "https://raw.githubusercontent.com/Picolab/node-pico-engine-core/master/test-rulesets/meta.krl",
+                    rulesetURI: "https://raw.githubusercontent.com/Picolab/pico-engine/master/test-rulesets/meta.krl",
                     ruleName: void 0,
                     inEvent: false,
                     inQuery: true,
