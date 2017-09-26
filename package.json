@@ -4,8 +4,11 @@
   "license": "MIT",
   "scripts": {
     "relock": "npm run rm-nm-and-lock && lerna exec -- npm i",
-    "rm-nm-and-lock": "lerna exec -- rm -rf ./node_modules package-lock.json",
+    "rm-nm-and-lock": "lerna clean && lerna exec -- rm package-lock.json",
     "out": "lerna exec --bail=false -- npm out",
+    "clean": "lerna clean",
+    "bootstrap": "lerna bootstrap",
+    "setup": "npm i && lerna bootstrap",
     "test": "lerna run test"
   },
   "devDependencies": {
