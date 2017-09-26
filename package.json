@@ -8,10 +8,13 @@
     "out": "lerna exec --bail=false -- npm out",
     "clean": "lerna clean",
     "bootstrap": "lerna bootstrap",
-    "setup": "npm i && lerna bootstrap",
+    "setup": "npm i && npm run bootstrap",
+    "publish": "lerna publish",
+    "start": "cd packages/pico-engine && npm start",
     "test": "lerna run test"
   },
   "devDependencies": {
+    "eslint": "^4.7.2",
     "lerna": "^2.2.0"
   }
 }

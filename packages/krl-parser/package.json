@@ -32,7 +32,6 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "diff-lines": "^1.1.0",
-    "eslint": "^4.4.1",
     "faucet": "0.0.1",
     "krl-generator": "^0.7.2",
     "lodash": "^4.13.1",

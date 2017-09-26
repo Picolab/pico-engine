@@ -37,7 +37,6 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
-    "eslint": "^4.7.2",
     "onchange": "^3.0.0",
     "scriptsp": "^1.0.1",
     "tape": "^4.5.1",

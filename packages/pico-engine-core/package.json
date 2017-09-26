@@ -27,7 +27,6 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
-    "eslint": "^4.6.1",
     "faucet": "^0.0.1",
     "krl-compiler": "^0.35.4",
     "memdown": "^1.2.7",

@@ -11,7 +11,7 @@ module.exports = function(ast, ind, gen){
         ){
             return gen(ast.object) + "\n"
                 + ind(1) + "." + gen(ast.property)
-                ;
+            ;
         }
         return gen(ast.object) + "." + gen(ast.property);
     }
