@@ -3,6 +3,7 @@ var fs = require("fs");
 var path = require("path");
 var async = require("async");
 var leveldown = require("leveldown");
+var krl_stdlib = require("krl-stdlib");//pico-engine-core requires this for us
 var RulesetLoader = require("./RulesetLoader");
 var PicoEngineCore = require("pico-engine-core");
 
@@ -77,6 +78,11 @@ var getSystemRulesets = function(pe, callback){
 };
 
 var setupLogging = function(pe){
+
+    var toKRLjson = function(val, indent){
+        return krl_stdlib.encode({}, val, indent);
+    };
+
     var logs = {};
     var logRID = "io.picolabs.logging";
     var needAttributes = function(context,message){
@@ -141,30 +147,30 @@ var setupLogging = function(pe){
     });
     pe.emitter.on("klog", function(context, val, message){
         console.log("[KLOG]", message, val);
-        logEntry(context,"[KLOG] "+message+" "+JSON.stringify(val));
+        logEntry(context,"[KLOG] " + message + " " + toKRLjson(val));
     });
     pe.emitter.on("log-error", function(context_info, expression){
         console.log("[LOG-ERROR]",context_info,expression);
-        logEntry(context_info,"[LOG-ERROR] "+JSON.stringify(expression));
+        logEntry(context_info,"[LOG-ERROR] " + toKRLjson(expression));
     });
     pe.emitter.on("log-warn", function(context_info, expression){
         console.log("[LOG-WARN]",context_info,expression);
-        logEntry(context_info,"[LOG-WARN] "+JSON.stringify(expression));
+        logEntry(context_info,"[LOG-WARN] " + toKRLjson(expression));
     });
     pe.emitter.on("log-info", function(context_info, expression){
         console.log("[LOG-INFO]",context_info,expression);
-        logEntry(context_info,"[LOG-INFO] "+JSON.stringify(expression));
+        logEntry(context_info,"[LOG-INFO] " + toKRLjson(expression));
     });
     pe.emitter.on("log-debug", function(context_info, expression){
         console.log("[LOG-DEBUG]",context_info,expression);
-        logEntry(context_info,"[LOG-DEBUG] "+JSON.stringify(expression));
+        logEntry(context_info,"[LOG-DEBUG] " + toKRLjson(expression));
     });
     pe.emitter.on("debug", function(context, message){
         console.log("[DEBUG]", context, message);
         if (typeof message === "string") {
-            logEntry(context,message);
+            logEntry(context, message);
         } else {
-            logEntry(context,JSON.stringify(message));
+            logEntry(context, toKRLjson(message));
         }
     });
     pe.emitter.on("error", function(err, context){
