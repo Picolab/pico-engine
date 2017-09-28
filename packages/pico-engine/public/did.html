@@ -38,7 +38,7 @@ $(function(){
             var prefix = "http://" + server + "/";
             location = prefix+stuff;
           } else {
-            $("body").html("Couldn't find "+eci+", having checked<ul><li>"+servers.join("</li><li>")+"</li></ul>");
+            $("body").html("Couldn't find <code>did:"+eci+"</code>, having checked<ul><li>"+servers.join("</li><li>")+"</li></ul>");
             $("body").show();
           }
         });
@@ -72,7 +72,7 @@ enter the JavaScript console.
 Evaluate this code, replacing <code>localhost:8080</code>
 with the domain name and port of your NPE.
 </p>
-<pre>navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc")</pre>
+<pre><a href='javascript:navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc");void 0'>navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc")</a></pre>
 <p>
 Your browser will warn you that your NPE wants to 
 handle the "web+npe" protocol,
