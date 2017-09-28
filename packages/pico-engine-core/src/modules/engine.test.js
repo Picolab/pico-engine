@@ -14,6 +14,11 @@ var tick = function(fn){
     };
 };
 
+var runAction = function*(pe, ctx, domain, id, args){
+    var act = yield pe.modules.get(ctx, domain, id);
+    return _.head(yield act(ctx, args));
+};
+
 
 var testPE = function(test_name, genfn){
     test(test_name, function(t){
@@ -73,17 +78,17 @@ test("engine:registerRuleset", function(t){
             })
         });
 
-        t.equals(yield engine.actions.registerRuleset({}, {
+        t.equals((yield engine.def.registerRuleset({}, {
             url: "http://foo.bar/qux.krl",
-        }), "rid for: http://foo.bar/qux.krl");
+        }))[0], "rid for: http://foo.bar/qux.krl");
 
-        t.equals(yield engine.actions.registerRuleset({}, {
+        t.equals((yield engine.def.registerRuleset({}, {
             url: "qux.krl",
             base: "https://foo.bar/baz/",
-        }), "rid for: https://foo.bar/baz/qux.krl");
+        }))[0], "rid for: https://foo.bar/baz/qux.krl");
 
         try{
-            yield engine.actions.registerRuleset({}, []);
+            yield engine.def.registerRuleset({}, []);
             t.fail("should throw b/c no url is given");
         }catch(err){
             t.equals(err + "", "Error: registerRuleset expects `url`");
@@ -116,12 +121,12 @@ test("engine:installRuleset", function(t){
         });
 
         var inst = function*(id, rid, url, base){
-            return yield engine.actions.installRuleset({}, {
+            return (yield engine.def.installRuleset({}, {
                 pico_id: id,
                 rid: rid,
                 url: url,
                 base: base,
-            });
+            }))[0];
         };
 
         try{
@@ -166,15 +171,15 @@ test("engine:uninstallRuleset", function(t){
             })
         });
 
-        t.equals(yield engine.actions.uninstallRuleset({}, {
+        t.equals((yield engine.def.uninstallRuleset({}, {
             pico_id: "pico0",
             rid: "foo.bar",
-        }), void 0);
+        }))[0], void 0);
 
-        t.equals(yield engine.actions.uninstallRuleset({}, {
+        t.equals((yield engine.def.uninstallRuleset({}, {
             pico_id: "pico0",
             rid: ["baz", "qux"],
-        }), void 0);
+        }))[0], void 0);
 
         t.deepEquals(uninstalled, {
             pico0: {
@@ -200,13 +205,13 @@ test("engine:unregisterRuleset", function(t){
             }),
         });
 
-        t.equals(yield engine.actions.unregisterRuleset({}, {
+        t.equals((yield engine.def.unregisterRuleset({}, {
             rid: "foo.bar",
-        }), void 0);
+        }))[0], void 0);
 
-        t.equals(yield engine.actions.unregisterRuleset({}, {
+        t.equals((yield engine.def.unregisterRuleset({}, {
             rid: ["baz", "qux"],
-        }), void 0);
+        }))[0], void 0);
 
         t.deepEquals(log, [
             "foo.bar",
@@ -215,7 +220,7 @@ test("engine:unregisterRuleset", function(t){
         ]);
 
         try{
-            yield engine.actions.unregisterRuleset({}, {
+            yield engine.def.unregisterRuleset({}, {
                 rid: ["baz", 2, "qux"],
             });
             t.fail();
@@ -278,7 +283,7 @@ testPE("engine:listInstalledRIDs", function * (t, pe){
 
 testPE("engine:newPico", function * (t, pe){
     var action = function*(ctx, name, args){
-        return _.head(yield pe.modules.action(ctx, "engine", name, args));
+        return yield runAction(pe, ctx, "engine", name, args);
     };
 
     var pico2 = yield action({}, "newPico", {
@@ -313,10 +318,10 @@ testPE("engine:newPico", function * (t, pe){
 testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:removePico", function * (t, pe){
 
     var newPico = function*(parent_id){
-        return _.head(yield pe.modules.action({pico_id: parent_id}, "engine", "newPico", []));
+        return yield runAction(pe, {pico_id: parent_id}, "engine", "newPico", []);
     };
     var removePico = function*(ctx, args){
-        return _.head(yield pe.modules.action(ctx, "engine", "removePico", args));
+        return yield runAction(pe, ctx, "engine", "removePico", args);
     };
 
     var getParent = yield pe.modules.get({}, "engine", "getParent");
@@ -379,10 +384,10 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
 testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function * (t, pe){
 
     var newChannel = function*(ctx, args){
-        return _.head(yield pe.modules.action(ctx, "engine", "newChannel", args));
+        return yield runAction(pe, ctx, "engine", "newChannel", args);
     };
     var removeChannel = function*(ctx, args){
-        return _.head(yield pe.modules.action(ctx, "engine", "removeChannel", args));
+        return yield runAction(pe, ctx, "engine", "removeChannel", args);
     };
     var listChannels = yield pe.modules.get({}, "engine", "listChannels");
 
@@ -443,10 +448,10 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
 testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset", function * (t, pe){
 
     var installRS = function*(ctx, args){
-        return _.head(yield pe.modules.action(ctx, "engine", "installRuleset", args));
+        return yield runAction(pe, ctx, "engine", "installRuleset", args);
     };
     var uninstallRID = function*(ctx, args){
-        return _.head(yield pe.modules.action(ctx, "engine", "uninstallRuleset", args));
+        return yield runAction(pe, ctx, "engine", "uninstallRuleset", args);
     };
     var listRIDs = yield pe.modules.get({}, "engine", "listInstalledRIDs");
 

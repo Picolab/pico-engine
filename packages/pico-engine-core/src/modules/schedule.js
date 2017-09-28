@@ -1,4 +1,5 @@
 var mkKRLfn = require("../mkKRLfn");
+var mkKRLaction = require("../mkKRLaction");
 
 module.exports = function(core){
     return {
@@ -7,9 +8,8 @@ module.exports = function(core){
             ], function(args, ctx, callback){
                 core.db.listScheduled(callback);
             }),
-        },
-        actions: {
-            remove: mkKRLfn([
+
+            remove: mkKRLaction([
                 "id",
             ], function(args, ctx, callback){
 

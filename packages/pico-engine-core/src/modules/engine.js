@@ -2,6 +2,7 @@ var _ = require("lodash");
 var async = require("async");
 var urllib = require("url");
 var mkKRLfn = require("../mkKRLfn");
+var mkKRLaction = require("../mkKRLaction");
 
 module.exports = function(core){
     var fns = {
@@ -109,11 +110,7 @@ module.exports = function(core){
             });
         }),
 
-    };
-
-    var actions = {
-
-        newPico: mkKRLfn([
+        newPico: mkKRLaction([
             "parent_id",
         ], function(args, ctx, callback){
 
@@ -128,7 +125,7 @@ module.exports = function(core){
         }),
 
 
-        removePico: mkKRLfn([
+        removePico: mkKRLaction([
             "pico_id",
         ], function(args, ctx, callback){
 
@@ -148,7 +145,7 @@ module.exports = function(core){
         }),
 
 
-        newChannel: mkKRLfn([
+        newChannel: mkKRLaction([
             "pico_id",
             "name",
             "type",
@@ -167,14 +164,14 @@ module.exports = function(core){
         }),
 
 
-        removeChannel: mkKRLfn([
+        removeChannel: mkKRLaction([
             "eci",
         ], function(args, ctx, callback){
             core.db.removeChannel(args.eci, callback);
         }),
 
 
-        registerRuleset: mkKRLfn([
+        registerRuleset: mkKRLaction([
             "url",
             "base",
         ], function(args, ctx, callback){
@@ -191,7 +188,7 @@ module.exports = function(core){
         }),
 
 
-        unregisterRuleset: mkKRLfn([
+        unregisterRuleset: mkKRLaction([
             "rid",
         ], function(args, ctx, callback){
             var rids = _.isArray(args.rid)
@@ -202,7 +199,7 @@ module.exports = function(core){
         }),
 
 
-        installRuleset: mkKRLfn([
+        installRuleset: mkKRLaction([
             "pico_id",
             "rid",
             "url",
@@ -250,7 +247,7 @@ module.exports = function(core){
         }),
 
 
-        uninstallRuleset: mkKRLfn([
+        uninstallRuleset: mkKRLaction([
             "pico_id",
             "rid",
         ], function(args, ctx, callback){
@@ -268,6 +265,5 @@ module.exports = function(core){
 
     return {
         def: fns,
-        actions: actions,
     };
 };
