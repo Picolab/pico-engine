@@ -9,12 +9,12 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("getFoo", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.modules.get(ctx, "ent", "foo");
+      return yield ctx.modules.get(ctx, "ent", "foo", undefined);
     }));
     ctx.scope.set("getFooKey", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("key", getArg("key", 0));
       return yield ctx.callKRLstdlib("get", [
-        yield ctx.modules.get(ctx, "ent", "foo"),
+        yield ctx.modules.get(ctx, "ent", "foo", undefined),
         ctx.scope.get("key")
       ]);
     }));
@@ -37,8 +37,8 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("key", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["key"]));
-        ctx.scope.set("value", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["value"]));
+        ctx.scope.set("key", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["key"]));
+        ctx.scope.set("value", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["value"]));
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -53,8 +53,8 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "foo", yield ctx.callKRLstdlib("set", [
-          yield ctx.modules.get(ctx, "ent", "foo"),
+        yield ctx.modules.set(ctx, "ent", "foo", undefined, yield ctx.callKRLstdlib("set", [
+          yield ctx.modules.get(ctx, "ent", "foo", undefined),
           ctx.scope.get("key"),
           ctx.scope.get("value")
         ]));

@@ -74,7 +74,7 @@ module.exports = function(core, third_party_modules){
 
 
     return {
-        get: cocb.toYieldable(function(ctx, domain, id, callback){
+        get: cocb.toYieldable(function(ctx, domain, id, path, callback){
             var umod = userModuleLookup(ctx, domain, id);
             if(umod.has_it){
                 callback(null, umod.value);
@@ -85,14 +85,14 @@ module.exports = function(core, third_party_modules){
                 return;
             }
             if(_.has(modules, [domain, "get"])){
-                modules[domain].get(ctx, id, callback);
+                modules[domain].get(ctx, id, path, callback);
                 return;
             }
             callback(new Error("Not defined `" + domain + ":" + id + "`"));
         }),
 
 
-        set: cocb.toYieldable(function(ctx, domain, id, value, callback){
+        set: cocb.toYieldable(function(ctx, domain, id, path, value, callback){
             if(!_.has(modules, domain)){
                 callback(new Error("Module not defined `" + domain + ":" + id + "`"));
                 return;
@@ -101,11 +101,11 @@ module.exports = function(core, third_party_modules){
                 callback(new Error("Cannot assign to `" + domain + ":*`"));
                 return;
             }
-            modules[domain].set(ctx, id, value, callback);
+            modules[domain].set(ctx, id, path, value, callback);
         }),
 
 
-        del: cocb.toYieldable(function(ctx, domain, id, callback){
+        del: cocb.toYieldable(function(ctx, domain, id, path, callback){
             if(!_.has(modules, domain)){
                 callback(new Error("Module not defined `" + domain + ":" + id + "`"));
                 return;
@@ -114,7 +114,7 @@ module.exports = function(core, third_party_modules){
                 callback(new Error("Cannot clear/delete to `" + domain + ":*`"));
                 return;
             }
-            modules[domain].del(ctx, id, callback);
+            modules[domain].del(ctx, id, path, callback);
         }),
     };
 };

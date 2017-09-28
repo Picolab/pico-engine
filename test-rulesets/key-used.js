@@ -14,8 +14,8 @@ module.exports = {
         "rid": "io.picolabs.key-configurable",
         "alias": "api",
         "with": function* (ctx) {
-          ctx.scope.set("key1", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));
-          ctx.scope.set("key2", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar"), ctx, ["baz"]));
+          ctx.scope.set("key1", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo", undefined), ctx, []));
+          ctx.scope.set("key2", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar", undefined), ctx, ["baz"]));
         }
       }
     ],
@@ -32,28 +32,28 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("getFoo", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo", undefined), ctx, []);
     }));
     ctx.scope.set("getBar", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar"), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar", undefined), ctx, []);
     }));
     ctx.scope.set("getBarN", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       ctx.scope.set("name", getArg("name", 0));
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar"), ctx, [ctx.scope.get("name")]);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar", undefined), ctx, [ctx.scope.get("name")]);
     }));
     ctx.scope.set("getQuux", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quux"), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quux", undefined), ctx, []);
     }));
     ctx.scope.set("getQuuz", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quuz"), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quuz", undefined), ctx, []);
     }));
     ctx.scope.set("getAPIKeys", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "api", "getKeys"), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "api", "getKeys", undefined), ctx, []);
     }));
     ctx.scope.set("getFooPostlude", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.modules.get(ctx, "ent", "foo_postlude");
+      return yield ctx.modules.get(ctx, "ent", "foo_postlude", undefined);
     }));
-    ctx.scope.set("foo_global", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));
+    ctx.scope.set("foo_global", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo", undefined), ctx, []));
   },
   "rules": {
     "key_used_foo": {
@@ -73,13 +73,13 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("foo_pre", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));
+        ctx.scope.set("foo_pre", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo", undefined), ctx, []));
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
             "foo",
             {
-              "foo": yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []),
+              "foo": yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo", undefined), ctx, []),
               "foo_pre": ctx.scope.get("foo_pre")
             }
           ], []);
@@ -88,7 +88,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "foo_postlude", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));
+        yield ctx.modules.set(ctx, "ent", "foo_postlude", undefined, yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo", undefined), ctx, []));
       }
     }
   }

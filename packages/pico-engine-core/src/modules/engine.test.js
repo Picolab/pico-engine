@@ -15,7 +15,7 @@ var tick = function(fn){
 };
 
 var runAction = function*(pe, ctx, domain, id, args){
-    var act = yield pe.modules.get(ctx, domain, id);
+    var act = yield pe.modules.get(ctx, domain, id, null);
     return _.head(yield act(ctx, args));
 };
 
@@ -233,7 +233,7 @@ test("engine:unregisterRuleset", function(t){
 
 testPE("engine:describeRuleset", function * (t, pe){
     var ctx = {};
-    var descRID = yield pe.modules.get(ctx, "engine", "describeRuleset");
+    var descRID = yield pe.modules.get(ctx, "engine", "describeRuleset", null);
 
     var desc = yield descRID(ctx, {rid: "io.picolabs.hello_world"});
 
@@ -272,7 +272,7 @@ testPE("engine:describeRuleset", function * (t, pe){
 
 testPE("engine:listInstalledRIDs", function * (t, pe){
     var ctx = {};
-    var listRIDs = yield pe.modules.get(ctx, "engine", "listInstalledRIDs");
+    var listRIDs = yield pe.modules.get(ctx, "engine", "listInstalledRIDs", null);
 
     var rids = yield listRIDs(ctx, {pico_id: "id0"});
 
@@ -324,9 +324,9 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
         return yield runAction(pe, ctx, "engine", "removePico", args);
     };
 
-    var getParent = yield pe.modules.get({}, "engine", "getParent");
-    var getAdminECI = yield pe.modules.get({}, "engine", "getAdminECI");
-    var listChildren = yield pe.modules.get({}, "engine", "listChildren");
+    var getParent = yield pe.modules.get({}, "engine", "getParent", null);
+    var getAdminECI = yield pe.modules.get({}, "engine", "getAdminECI", null);
+    var listChildren = yield pe.modules.get({}, "engine", "listChildren", null);
 
     yield newPico("id0");// id2
     yield newPico("id0");// id4
@@ -389,7 +389,7 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
     var removeChannel = function*(ctx, args){
         return yield runAction(pe, ctx, "engine", "removeChannel", args);
     };
-    var listChannels = yield pe.modules.get({}, "engine", "listChannels");
+    var listChannels = yield pe.modules.get({}, "engine", "listChannels", null);
 
     var mkChan = function(pico_id, eci, name, type){
         return {
@@ -453,7 +453,7 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
     var uninstallRID = function*(ctx, args){
         return yield runAction(pe, ctx, "engine", "uninstallRuleset", args);
     };
-    var listRIDs = yield pe.modules.get({}, "engine", "listInstalledRIDs");
+    var listRIDs = yield pe.modules.get({}, "engine", "listInstalledRIDs", null);
 
     t.deepEquals(yield listRIDs({pico_id: "id0"}, []), [
         "io.picolabs.engine",

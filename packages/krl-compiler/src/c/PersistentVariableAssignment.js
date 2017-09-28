@@ -15,7 +15,8 @@ module.exports = function(ast, comp, e){
             e("ycall", e("id", "ctx.modules.get"), [
                 e("id", "ctx"),
                 e("str", ast.left.domain),
-                e("str", ast.left.value)
+                e("str", ast.left.value),
+                e("nil"),//path
             ]),
             comp(ast.path_expression),
             value_to_store
@@ -26,6 +27,7 @@ module.exports = function(ast, comp, e){
         e("id", "ctx"),
         e("str", ast.left.domain, ast.left.loc),
         e("str", ast.left.value, ast.left.loc),
+        e("nil"),//TODO path
         value_to_store
     ]));
 };

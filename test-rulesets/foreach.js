@@ -233,7 +233,7 @@ module.exports = {
       },
       "body": function* (ctx, runAction, toPairs) {
         var foreach0_pairs = toPairs(yield ctx.callKRLstdlib("split", [
-          yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["x"]),
+          yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["x"]),
           ","
         ]));
         var foreach0_len = foreach0_pairs.length;
@@ -241,7 +241,7 @@ module.exports = {
         for (foreach0_i = 0; foreach0_i < foreach0_len; foreach0_i++) {
           ctx.scope.set("x", foreach0_pairs[foreach0_i][1]);
           var foreach1_pairs = toPairs(yield ctx.callKRLstdlib("split", [
-            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["y"]),
+            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["y"]),
             ","
           ]));
           var foreach1_len = foreach1_pairs.length;
@@ -299,8 +299,8 @@ module.exports = {
           yield runAction(ctx, void 0, "send_directive", [
             "final_raised",
             {
-              "x": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["x"]),
-              "y": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["y"])
+              "x": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["x"]),
+              "y": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["y"])
             }
           ], []);
         }

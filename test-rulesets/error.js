@@ -3,7 +3,7 @@ module.exports = {
   "meta": { "shares": ["getErrors"] },
   "global": function* (ctx) {
     ctx.scope.set("getErrors", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.modules.get(ctx, "ent", "error_log");
+      return yield ctx.modules.get(ctx, "ent", "error_log", undefined);
     }));
   },
   "rules": {
@@ -30,9 +30,9 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "error_log", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "error_log"),
-            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [])
+          yield ctx.modules.set(ctx, "ent", "error_log", undefined, yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "error_log", undefined),
+            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs", undefined), ctx, [])
           ]));
         }
       }

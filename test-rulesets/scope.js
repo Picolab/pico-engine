@@ -16,9 +16,9 @@ module.exports = {
     ctx.scope.set("g1", 1);
     ctx.scope.set("getVals", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return {
-        "name": yield ctx.modules.get(ctx, "ent", "ent_var_name"),
-        "p0": yield ctx.modules.get(ctx, "ent", "ent_var_p0"),
-        "p1": yield ctx.modules.get(ctx, "ent", "ent_var_p1")
+        "name": yield ctx.modules.get(ctx, "ent", "ent_var_name", undefined),
+        "p0": yield ctx.modules.get(ctx, "ent", "ent_var_p0", undefined),
+        "p1": yield ctx.modules.get(ctx, "ent", "ent_var_p1", undefined)
       };
     }));
     ctx.scope.set("add", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
@@ -74,7 +74,7 @@ module.exports = {
         },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches", undefined), ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -120,7 +120,7 @@ module.exports = {
         "graph": { "scope": { "prelude": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches", undefined), ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -156,9 +156,9 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "ent_var_name", ctx.scope.get("name"));
-        yield ctx.modules.set(ctx, "ent", "ent_var_p0", ctx.scope.get("p0"));
-        yield ctx.modules.set(ctx, "ent", "ent_var_p1", ctx.scope.get("p1"));
+        yield ctx.modules.set(ctx, "ent", "ent_var_name", undefined, ctx.scope.get("name"));
+        yield ctx.modules.set(ctx, "ent", "ent_var_p0", undefined, ctx.scope.get("p0"));
+        yield ctx.modules.set(ctx, "ent", "ent_var_p1", undefined, ctx.scope.get("p1"));
       }
     },
     "functions": {

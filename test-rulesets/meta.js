@@ -9,16 +9,16 @@ module.exports = {
   "global": function* (ctx) {
     ctx.scope.set("metaQuery", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
       return {
-        "rid": yield ctx.modules.get(ctx, "meta", "rid"),
-        "host": yield ctx.modules.get(ctx, "meta", "host"),
-        "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName"),
-        "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
-        "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
-        "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
-        "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
-        "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent"),
-        "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery"),
-        "eci": yield ctx.modules.get(ctx, "meta", "eci")
+        "rid": yield ctx.modules.get(ctx, "meta", "rid", undefined),
+        "host": yield ctx.modules.get(ctx, "meta", "host", undefined),
+        "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName", undefined),
+        "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription", undefined),
+        "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor", undefined),
+        "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI", undefined),
+        "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName", undefined),
+        "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent", undefined),
+        "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery", undefined),
+        "eci": yield ctx.modules.get(ctx, "meta", "eci", undefined)
       };
     }));
   },
@@ -45,16 +45,16 @@ module.exports = {
           yield runAction(ctx, void 0, "send_directive", [
             "event",
             {
-              "rid": yield ctx.modules.get(ctx, "meta", "rid"),
-              "host": yield ctx.modules.get(ctx, "meta", "host"),
-              "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName"),
-              "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
-              "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
-              "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
-              "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
-              "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent"),
-              "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery"),
-              "eci": yield ctx.modules.get(ctx, "meta", "eci")
+              "rid": yield ctx.modules.get(ctx, "meta", "rid", undefined),
+              "host": yield ctx.modules.get(ctx, "meta", "host", undefined),
+              "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName", undefined),
+              "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription", undefined),
+              "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor", undefined),
+              "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI", undefined),
+              "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName", undefined),
+              "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent", undefined),
+              "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery", undefined),
+              "eci": yield ctx.modules.get(ctx, "meta", "eci", undefined)
             }
           ], []);
         }

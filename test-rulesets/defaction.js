@@ -53,7 +53,7 @@ module.exports = {
       return [ctx.scope.get("dir")];
     });
     ctx.scope.set("getSettingVal", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.modules.get(ctx, "ent", "setting_val");
+      return yield ctx.modules.get(ctx, "ent", "setting_val", undefined);
     }));
     ctx.defaction(ctx, "chooser", function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("val", getArg("val", 0));
@@ -234,7 +234,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "setting_val", ctx.scope.get("val"));
+          yield ctx.modules.set(ctx, "ent", "setting_val", undefined, ctx.scope.get("val"));
         }
       }
     },
@@ -257,7 +257,7 @@ module.exports = {
       "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "chooser", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["val"])], []);
+          yield runAction(ctx, void 0, "chooser", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["val"])], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -286,11 +286,11 @@ module.exports = {
         if (fired) {
           yield runAction(ctx, void 0, "ifAnotB", [
             yield ctx.callKRLstdlib("==", [
-              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["a"]),
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["a"]),
               "true"
             ]),
             yield ctx.callKRLstdlib("==", [
-              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["b"]),
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["b"]),
               "true"
             ])
           ], []);
@@ -375,7 +375,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "setting_val", [
+          yield ctx.modules.set(ctx, "ent", "setting_val", undefined, [
             ctx.scope.get("a"),
             ctx.scope.get("b"),
             ctx.scope.get("c"),
@@ -448,7 +448,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "setting_val", [
+          yield ctx.modules.set(ctx, "ent", "setting_val", undefined, [
             ctx.scope.get("a"),
             ctx.scope.get("b"),
             ctx.scope.get("c"),

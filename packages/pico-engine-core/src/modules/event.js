@@ -73,7 +73,7 @@ module.exports = function(core){
     };
     return {
         def: fns,
-        get: function(ctx, id, callback){
+        get: function(ctx, id, path, callback){
             if(id === "eid"){
                 callback(null, _.get(ctx, ["event", "eid"]));
                 return;

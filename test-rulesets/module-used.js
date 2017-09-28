@@ -23,10 +23,10 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("now", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "now"), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "now", undefined), ctx, []);
     }));
     ctx.scope.set("getEntVal", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.modules.get(ctx, "ent", "val");
+      return yield ctx.modules.get(ctx, "ent", "val", undefined);
     }));
   },
   "rules": {
@@ -51,7 +51,7 @@ module.exports = {
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
             "dflt_name",
-            { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []) }
+            { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getName", undefined), ctx, []) }
           ], []);
         }
         if (fired)
@@ -81,7 +81,7 @@ module.exports = {
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
             "conf_name",
-            { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getName"), ctx, []) }
+            { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getName", undefined), ctx, []) }
           ], []);
         }
         if (fired)
@@ -111,7 +111,7 @@ module.exports = {
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
             "dflt_info",
-            { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getInfo"), ctx, []) }
+            { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getInfo", undefined), ctx, []) }
           ], []);
         }
         if (fired)
@@ -141,7 +141,7 @@ module.exports = {
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
             "conf_info",
-            { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getInfo"), ctx, []) }
+            { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getInfo", undefined), ctx, []) }
           ], []);
         }
         if (fired)
@@ -175,7 +175,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "val", ctx.scope.get("info"));
+        yield ctx.modules.set(ctx, "ent", "val", undefined, ctx.scope.get("info"));
       }
     },
     "conf_getInfoAction": {
@@ -203,7 +203,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "val", ctx.scope.get("info"));
+        yield ctx.modules.set(ctx, "ent", "val", undefined, ctx.scope.get("info"));
       }
     }
   }

@@ -16,7 +16,7 @@ var send_directive = mkKRLfn([
 module.exports = cocb.wrap(function*(ctx, domain, id, args, setting){
     var returns = [];
     if(domain){
-        var modAction = yield ctx.modules.get(ctx, domain, id);
+        var modAction = yield ctx.modules.get(ctx, domain, id, null);
         if( ! ktypes.isAction(modAction)){
             throw new Error("`" + domain + ":" + id + "` is not an action");
         }

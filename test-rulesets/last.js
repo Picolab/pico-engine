@@ -29,7 +29,7 @@ module.exports = {
           ctx.emit("debug", "not fired");
         if (fired) {
           if (yield ctx.callKRLstdlib("==", [
-              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["stop"]),
               "foo"
             ]))
             ctx.stopRulesetExecution();
@@ -63,7 +63,7 @@ module.exports = {
           ctx.emit("debug", "not fired");
         if (fired) {
           if (yield ctx.callKRLstdlib("==", [
-              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["stop"]),
               "bar"
             ]))
             ctx.stopRulesetExecution();
