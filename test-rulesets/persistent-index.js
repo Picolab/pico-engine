@@ -20,6 +20,31 @@ module.exports = {
     }));
   },
   "rules": {
+    "setfoo": {
+      "name": "setfoo",
+      "select": {
+        "graph": { "pindex": { "setfoo": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", "foo", undefined, yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs", undefined), ctx, []));
+      }
+    },
     "putfoo": {
       "name": "putfoo",
       "select": {
@@ -40,15 +65,6 @@ module.exports = {
         ctx.scope.set("key", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["key"]));
         ctx.scope.set("value", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["value"]));
         var fired = true;
-        if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
-            "putfoo",
-            {
-              "key": ctx.scope.get("key"),
-              "value": ctx.scope.get("value")
-            }
-          ], []);
-        }
         if (fired)
           ctx.emit("debug", "fired");
         else
@@ -58,6 +74,57 @@ module.exports = {
           ctx.scope.get("key"),
           ctx.scope.get("value")
         ]));
+      }
+    },
+    "delfoo": {
+      "name": "delfoo",
+      "select": {
+        "graph": { "pindex": { "delfoo": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        ctx.scope.set("key", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["key"]));
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.del(ctx, "ent", "foo", ctx.scope.get("key"));
+      }
+    },
+    "nukefoo": {
+      "name": "nukefoo",
+      "select": {
+        "graph": { "pindex": { "nukefoo": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.del(ctx, "ent", "foo", undefined);
       }
     }
   }
