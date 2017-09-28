@@ -1850,6 +1850,7 @@ test("ClearPersistentVariable", function(t){
         {
             type: "ClearPersistentVariable",
             variable: mk.dID("ent", "foo"),
+            path_expression: null,
         }
     ]);
 
@@ -1857,6 +1858,7 @@ test("ClearPersistentVariable", function(t){
         {
             type: "ClearPersistentVariable",
             variable: mk.dID("app", "bar"),
+            path_expression: null,
         }
     ]);
 
@@ -1866,6 +1868,22 @@ test("ClearPersistentVariable", function(t){
     }catch(e){
         t.ok(true, "PersistentVariable must be app or ent");
     }
+
+    testPostlude("clear app:bar{key}", [
+        {
+            type: "ClearPersistentVariable",
+            variable: mk.dID("app", "bar"),
+            path_expression: mk.id("key"),
+        }
+    ]);
+
+    testPostlude("clear app:bar{[key]}", [
+        {
+            type: "ClearPersistentVariable",
+            variable: mk.dID("app", "bar"),
+            path_expression: {type: "Array", value: [mk.id("key")]},
+        }
+    ]);
 
     t.end();
 });

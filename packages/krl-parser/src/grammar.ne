@@ -880,12 +880,13 @@ PersistentVariableAssignment -> PersistentVariable (%tok_OPEN_CURLY Expression %
   }
 %}
 
-ClearPersistentVariable -> %tok_clear PersistentVariable {%
+ClearPersistentVariable -> %tok_clear PersistentVariable (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? {%
   function(data){
     return {
       loc: mkLoc(data),
       type: "ClearPersistentVariable",
       variable: data[1],
+      path_expression: data[2] ? data[2][1] : null,
     };
   }
 %}

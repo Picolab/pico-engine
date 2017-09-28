@@ -857,12 +857,16 @@ var grammar = {
           };
         }
         },
-    {"name": "ClearPersistentVariable", "symbols": [tok_clear, "PersistentVariable"], "postprocess": 
+    {"name": "ClearPersistentVariable$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
+    {"name": "ClearPersistentVariable$ebnf$1", "symbols": ["ClearPersistentVariable$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "ClearPersistentVariable$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "ClearPersistentVariable", "symbols": [tok_clear, "PersistentVariable", "ClearPersistentVariable$ebnf$1"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: "ClearPersistentVariable",
             variable: data[1],
+            path_expression: data[2] ? data[2][1] : null,
           };
         }
         },
