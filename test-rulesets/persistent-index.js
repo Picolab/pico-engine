@@ -69,11 +69,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "foo", undefined, yield ctx.callKRLstdlib("set", [
-          yield ctx.modules.get(ctx, "ent", "foo", undefined),
-          ctx.scope.get("key"),
-          ctx.scope.get("value")
-        ]));
+        yield ctx.modules.set(ctx, "ent", "foo", ctx.scope.get("key"), ctx.scope.get("value"));
       }
     },
     "delfoo": {

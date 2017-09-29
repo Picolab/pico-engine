@@ -138,11 +138,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         yield ctx.modules.set(ctx, "ent", "user", undefined, { "lastname": "McCoy" });
-        yield ctx.modules.set(ctx, "ent", "user", undefined, yield ctx.callKRLstdlib("set", [
-          yield ctx.modules.get(ctx, "ent", "user", undefined),
-          ["firstname"],
-          ctx.scope.get("firstname")
-        ]));
+        yield ctx.modules.set(ctx, "ent", "user", ["firstname"], ctx.scope.get("firstname"));
       }
     },
     "clear_user": {
