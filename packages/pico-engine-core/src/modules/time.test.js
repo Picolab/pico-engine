@@ -3,6 +3,8 @@ var time = require("./time")().def;
 var cocb = require("co-callback");
 
 test("time module", function(t){
+    var testErr = require("../testErr")(t, time);
+
     cocb.run(function*(){
         var ctx = {};
 
@@ -27,6 +29,12 @@ test("time module", function(t){
         );
 
         t.equals(
+           yield time["new"](ctx, [1967342]),
+            "1967-12-08T00:00:00.000Z",
+            "Year DayOfYear"
+        );
+
+        t.equals(
             yield time["new"](ctx, ["2011W206T1345-0600"]),
             "2011-05-21T19:45:00.000Z",
             "Year WeekOfYear DayOfWeek"
@@ -37,6 +45,10 @@ test("time module", function(t){
             (new Date()).toISOString().split("T")[0] + "T08:30:23.000Z",
             "Time only-defaults to today"
         );
+
+        yield testErr("new", ctx, [], "Error");
+        yield testErr("new", ctx, [67342], "TypeError");
+        yield testErr("new", ctx, ["67342"], "Error");
 
         t.equals(
             yield time["add"](ctx, ["2017-01-01", {years: -2017}]),
@@ -63,6 +75,23 @@ test("time module", function(t){
             "2017-01-01T00:03:30.000Z"
         );
 
+        yield testErr("add", ctx, [], "Error");
+        yield testErr("add", ctx, [67342], "Error");
+        yield testErr("add", ctx, ["67342", 5], "Error");
+        yield testErr("add", ctx, [67342, 5], "TypeError");
+
+        t.equals(
+            yield time["add"](ctx, [1967342, {"seconds": "five"}]),
+            "1967-12-08T00:00:00.000Z"
+        );
+        t.equals(
+            yield time["add"](ctx, [1967342, {"secondz": 5}]),
+            "1967-12-08T00:00:00.000Z"
+        );
+        t.equals(
+            yield time["add"](ctx, [1967342, []]),
+            "1967-12-08T00:00:00.000Z"
+        );
 
         var xTime = "2010-10-06T18:25:55";
         t.equals(
@@ -72,6 +101,21 @@ test("time module", function(t){
         t.equals(
             yield time["strftime"](ctx, [xTime, "%A %d %b %Y"]),
             "Wednesday 06 Oct 2010"
+        );
+
+        yield testErr("strftime", ctx, [], "Error");
+        yield testErr("strftime", ctx, [67342], "Error");
+        yield testErr("strftime", ctx, [67342, "%F %T"], "TypeError");
+        yield testErr("strftime", ctx, ["67342", "%F %T"], "Error");
+        yield testErr("strftime", ctx, ["1967342", null], "TypeError");
+
+        t.equals(
+            yield time["strftime"](ctx, [xTime, ["%A %d %b %Y"]]),
+            "[Array]"
+        );
+        t.equals(
+            yield time["strftime"](ctx, [xTime, "year month"]),
+            "year month"
         );
 
     }, t.end);
