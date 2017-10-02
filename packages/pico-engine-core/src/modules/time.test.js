@@ -29,7 +29,7 @@ test("time module", function(t){
         );
 
         t.equals(
-           yield time["new"](ctx, [1967342]),
+            yield time["new"](ctx, [1967342]),
             "1967-12-08T00:00:00.000Z",
             "Year DayOfYear"
         );

@@ -39,7 +39,7 @@ module.exports = function(core){
             "new": mkKRLfn([
                 "date",
             ], function(args, ctx, callback){
-               if(_.size(args) < 1){
+                if(_.size(args) < 1){
                     return callback(new Error("time:new expects one argument"));
                 }
 
@@ -78,7 +78,7 @@ module.exports = function(core){
                 "date",
                 "fmt",
             ], function(args, ctx, callback){
-               if(_.size(args) < 2){
+                if(_.size(args) < 2){
                     return callback(new Error("time:strftime expects two arguments"));
                 }
 
