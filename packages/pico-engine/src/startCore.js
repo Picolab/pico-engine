@@ -80,7 +80,7 @@ var setupLogging = function(pe){
     var logs = {};
     var logRID = "io.picolabs.logging";
     var needAttributes = function(context,message){
-        if (context.event) {
+        if (context.event && _.isString(message)) {
             return message.startsWith("event received:") ||
                 message.startsWith("adding raised event to schedule:");
         } else {
