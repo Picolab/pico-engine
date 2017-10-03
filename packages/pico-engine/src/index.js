@@ -1,3 +1,4 @@
+var open = require("opn");
 var startCore = require("./startCore");
 var setupServer = require("./setupServer");
 
@@ -12,7 +13,8 @@ module.exports = function(conf){
         var app = setupServer(pe);
 
         app.listen(conf.port, function(){
-            console.log(conf.host);
+            console.log("pico-engine at " + conf.host + ":" + conf.port);
+            open(conf.host + ":" + conf.port);
         });
     });
 };

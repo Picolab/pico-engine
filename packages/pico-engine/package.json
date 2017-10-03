@@ -38,6 +38,7 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "onchange": "^3.0.0",
+    "opn": "^4.0.2",
     "scriptsp": "^1.0.1",
     "tape": "^4.5.1",
     "temp-fs": "^0.9.9"
