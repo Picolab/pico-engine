@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "onchange src/* '../../test-rulesets/*' -i -- npm test -s",
-    "lint": "../../node_modules/.bin/eslint src/ && echo lint-ok",
+    "lint": "eslint src/ && echo lint-ok",
     "test": "npm run lint && node src/tests.js"
   },
   "repository": {
@@ -26,11 +26,12 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "contra": "^1.9.4",
-    "diff-lines": "^1.0.0",
+    "diff-lines": "^1.1.0",
+    "eslint": "^4.8.0",
     "krl-parser": "^0.40.0",
-    "onchange": "^3.2.0"
+    "onchange": "^3.2.1"
   },
   "dependencies": {
-    "lodash": "^4.13.1"
+    "lodash": "^4.17.4"
   }
 }

@@ -139,9 +139,14 @@ var setupLogging = function(pe){
             logs[episode_id] = episode;
         }
     });
-    pe.emitter.on("klog", function(context, val, message){
-        console.log("[KLOG]", message, val);
-        logEntry(context,"[KLOG] "+message+" "+JSON.stringify(val));
+    pe.emitter.on("klog", function(context, info){
+        if(info.hasOwnProperty("message")){
+            console.log("[KLOG]", info.message, info.val);
+            logEntry(context,"[KLOG] "+info.message+" "+JSON.stringify(info.val));
+        }else{
+            console.log("[KLOG]", info.val);
+            logEntry(context,"[KLOG] "+JSON.stringify(info.val));
+        }
     });
     pe.emitter.on("log-error", function(context_info, expression){
         console.log("[LOG-ERROR]",context_info,expression);

@@ -98,7 +98,7 @@ module.exports = function(conf){
             return ctx.scope.set(name, actionFn);
         };
 
-        ctx.emit = function(type, val, message){//for stdlib
+        ctx.emit = function(type, val){
             var info = {};
             info.rid = ctx.rid;
             info.txn_id = ctx.txn_id;
@@ -134,9 +134,9 @@ module.exports = function(conf){
             if(type === "error"){
                 //the Error object, val, should be first
                 // b/c node "error" event conventions, so you don't strange messages thinking `info` is the error
-                emitter.emit("error", val, info, message);
+                emitter.emit("error", val, info);
             }else{
-                emitter.emit(type, info, val, message);
+                emitter.emit(type, info, val);
             }
         };
         ctx.log = function(level, val){
