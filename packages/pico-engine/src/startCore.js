@@ -80,7 +80,7 @@ var setupLogging = function(pe){
     var logs = {};
     var logRID = "io.picolabs.logging";
     var needAttributes = function(context,message){
-        if (context.event) {
+        if (context.event && _.isString(message)) {
             return message.startsWith("event received:") ||
                 message.startsWith("adding raised event to schedule:");
         } else {
@@ -169,7 +169,7 @@ var setupLogging = function(pe){
     });
     pe.emitter.on("error", function(err, context){
         console.error("[ERROR]", context, err);
-        if(context) logEntry(context, err);
+        if(context) logEntry(context, err + "");
     });
     pe.emitter.on("episode_stop", function(context){
         var episode_id = context.txn_id;
