@@ -90,7 +90,7 @@ var setupLogging = function(pe){
     var logs = {};
     var logRID = "io.picolabs.logging";
     var needAttributes = function(context,message){
-        if (context.event) {
+        if (context.event && _.isString(message)) {
             return message.startsWith("event received:") ||
                 message.startsWith("adding raised event to schedule:");
         } else {
@@ -160,8 +160,12 @@ var setupLogging = function(pe){
             logs[episode_id] = episode;
         }
     });
-    pe.emitter.on("klog", function(context, expression, message){
-        logEntry("klog", context, message + " " + toKRLjson(expression));
+    pe.emitter.on("klog", function(context, info){
+        var msg = toKRLjson(info.val);
+        if(_.has(info, "message")){
+            msg = info.message + " " + msg;
+        }
+        logEntry("klog", context, msg);
     });
     pe.emitter.on("log-error", function(context, expression){
         logEntry("log-error", context, expression);

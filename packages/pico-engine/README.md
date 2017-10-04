@@ -1,7 +1,7 @@
 # pico-engine
 
-[![build status](https://secure.travis-ci.org/Picolab/node-pico-engine.svg)](https://travis-ci.org/Picolab/node-pico-engine)
-[![windows build status](https://ci.appveyor.com/api/projects/status/nmhdhtqa1n83aqc1?svg=true)](https://ci.appveyor.com/project/farskipper/node-pico-engine)
+[![build status](https://secure.travis-ci.org/Picolab/pico-engine.svg)](https://travis-ci.org/Picolab/pico-engine)
+[![windows build status](https://ci.appveyor.com/api/projects/status/cxnk24jb697a9m5b?svg=true)](https://ci.appveyor.com/project/farskipper/pico-engine)
 
 An implementation of the [pico-engine](http://www.windley.com/archives/2016/03/rebuilding_krl.shtml) hosted on node.js
 
@@ -63,29 +63,11 @@ The server is configured via some environment variables.
 
 ## Contributing
 
-The `pico-engine` is made up of several smaller modules. Each with their own documentation and test suite.
- * [pico-engine-core](https://github.com/Picolab/node-pico-engine-core) - executes compiled KRL
- * [krl-stdlib](https://github.com/Picolab/node-krl-stdlib) - standard library for KRL
- * [krl-compiler](https://github.com/Picolab/node-krl-compiler) - compiles AST into a JavaScript module
- * [krl-parser](https://github.com/Picolab/node-krl-parser) - parses KRL to produce an abstract syntax tree (AST)
- * [krl-generator](https://github.com/Picolab/node-krl-generator) - generates KRL from an AST (pretty-printer)
-
-To run the pico-engine in development mode do the following:
-
-```sh
-$ git clone https://github.com/Picolab/node-pico-engine.git
-$ cd node-pico-engine
-$ npm install
-$ npm start
-```
-
-That will start the server and run the test. Anytime you make a change in the `src/` folder it will restart the server and re-run the tests.
-
-NOTE: When running via `npm start` the `PICO_ENGINE_HOME` will default to your current directory i.e. your clone of this repository.
+See the repository [root readme](https://github.com/Picolab/pico-engine#readme)
 
 ## Changelog
 
-To view details about versions: [CHANGELOG.md](https://github.com/Picolab/node-pico-engine/blob/master/CHANGELOG.md)
+To view details about versions: [CHANGELOG.md](https://github.com/Picolab/pico-engine/blob/master/CHANGELOG.md)
 
 ## License
 MIT
