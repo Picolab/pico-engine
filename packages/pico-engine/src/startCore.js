@@ -3,9 +3,19 @@ var fs = require("fs");
 var path = require("path");
 var async = require("async");
 var leveldown = require("leveldown");
-var krl_stdlib = require("krl-stdlib");//pico-engine-core requires this for us
+var krl_stdlib = require("krl-stdlib");
 var RulesetLoader = require("./RulesetLoader");
 var PicoEngineCore = require("pico-engine-core");
+
+
+var toKRLjson = function(val, indent){
+    var message = krl_stdlib.encode({}, val, indent);
+    if(message === "\"[JSObject]\""){
+        message = val.toString();
+    }
+    return message;
+};
+
 
 var setupRootPico = function(pe, callback){
     pe.getRootECI(function(err, root_eci){
@@ -51,6 +61,7 @@ var setupRootPico = function(pe, callback){
     });
 };
 
+
 var github_prefix = "https://raw.githubusercontent.com/Picolab/node-pico-engine/master/krl/";
 
 var getSystemRulesets = function(pe, callback){
@@ -77,15 +88,8 @@ var getSystemRulesets = function(pe, callback){
     });
 };
 
-var setupLogging = function(pe){
 
-    var toKRLjson = function(val, indent){
-        var message = krl_stdlib.encode({}, val, indent);
-        if(message==="\"[JSObject]\""){
-            message = val.toString();
-        }
-        return message;
-    };
+var setupLogging = function(pe){
 
     var logs = {};
     var logRID = "io.picolabs.logging";
@@ -102,7 +106,11 @@ var setupLogging = function(pe){
         var timestamp = (new Date()).toISOString();
 
         if(!_.isString(message)){
-            message = toKRLjson(message);
+            if(_.isError(message)){
+                message = message + "";
+            }else{
+                message = toKRLjson(message);
+            }
         }
         var shell_log = "[" + level.toUpperCase() + "] ";
         if(context.event){
@@ -111,13 +119,13 @@ var setupLogging = function(pe){
                 + "/" + context.event.eid
                 + "/" + context.event.domain
                 + "/" + context.event.type
-                ;
+            ;
         }else if(context.query){
             shell_log += "query"
                 + "/" + context.query.eci
                 + "/" + context.query.rid
                 + "/" + context.query.name
-                ;
+            ;
         }else{
             shell_log += toKRLjson(context);
         }
@@ -226,6 +234,7 @@ var setupLogging = function(pe){
         });
     });
 };
+
 
 module.exports = function(conf, callback){
 

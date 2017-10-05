@@ -49,6 +49,7 @@
     "express": "^4.16.1",
     "home-dir": "^1.0.0",
     "krl-compiler": "^0.40.0",
+    "krl-stdlib": "^0.40.0",
     "leveldown": "^1.9.0",
     "lodash": "^4.17.4",
     "mime-types": "^2.1.17",
