@@ -591,7 +591,7 @@ ruleset io.picolabs.pico {
       value = event:attr("name").defaultsTo(event:attr("id"), "used id for deletion");
       child = hasChild(value);
     }
-    if child.isnull() then every {
+    if child.isnull() || child == {} then every {
       noop();
     }
     fired{
