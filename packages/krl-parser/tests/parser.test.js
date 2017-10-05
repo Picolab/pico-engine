@@ -1728,6 +1728,10 @@ test("no ambiguity!", function(t){
     //TODO min(c); should be the action b/c it has a ';'
     //TODO testAmb("ruleset a{rule b{select when count 1 (a b) min(c);}}");//min(c) is now the action
 
+
+    testAmb("ruleset rs{global{da=defaction(){a=1;b=2;c=3;noop();}}}");
+
+
     t.end();
 });
 
@@ -2071,6 +2075,27 @@ test("DefAction", function(t){
         }
     ]);
 
+    tstDA("a = defaction(){d = 2; noop()}", [//semi-colon after single declaration
+        {
+            type: "DefAction",
+            id: mk.id("a"),
+            params: mk.params([]),
+            body: [
+                mk.declare("=", mk.id("d"), mk(2)),
+            ],
+            action_block: {
+                type: "ActionBlock",
+                condition: null,
+                block_type: "every",
+                discriminant: null,
+                actions: [
+                    mk.action(null, "noop", [])
+                ],
+            },
+            returns: [],
+        }
+    ]);
+
     tstDA("a = defaction(b, c){if b || c then blah();}", [
         {
             type: "DefAction",
@@ -2178,6 +2203,8 @@ test("DefAction", function(t){
         mk.op("+", mk(1), mk.id("bar")),
         mk.app(mk.id("baz")),
     ]);
+
+    tstReturn("return semi;", [mk.id("semi")]);
 
     try{
         tstReturn("return ", []);
