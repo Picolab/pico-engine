@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "onchange -i src/ -- npm test",
-    "lint": "../../node_modules/.bin/eslint src/ && echo lint-ok",
+    "lint": "eslint src/ && echo lint-ok",
     "test": "npm run lint -s && node src/tests.js | faucet"
   },
   "repository": {
@@ -25,11 +25,12 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "co-callback": "^1.2.1",
-    "faucet": "^0.0.1",
+    "eslint": "^4.8.0",
+    "faucet": "0.0.1",
     "onchange": "^3.2.1",
-    "tape": "^4.8.0"
+    "tape": "^4.6.0"
   },
   "dependencies": {
-    "lodash": "^4.13.1"
+    "lodash": "^4.17.4"
   }
 }

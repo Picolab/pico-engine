@@ -25,7 +25,7 @@ var onAmbiguousProgram = function(src){
     var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
     p.feed(tokens);
 
-    console.log(p.results.length, " parsings found. Here is the diff for the first two");
+    console.log(p.results.length + " parsings found. Here is the diff for the first two");
 
     var ast0 = p.results[0];
     var ast1 = p.results[1];
@@ -57,7 +57,8 @@ for(n=0; n < n_tests; n++){//eslint-disable-line
         console.log("FAILED", n, "/", n_tests);
         if(/Parsing Ambiguity/.test(e + "")){
             onAmbiguousProgram(src);
-            throw (e + "");//don't print the whole stack trace
+            console.error(e + "");//don't print the whole stack trace
+            process.exit(1);
         }else{
             console.error(src);
             throw e;

@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "start": "onchange -i src/ ../../test-rulesets/ -- npm test -s",
-    "lint": "../../node_modules/.bin/eslint src/ && echo lint-ok",
+    "lint": "eslint src/ && echo lint-ok",
     "test": "npm run lint -s && node src/tests.js"
   },
   "repository": {
@@ -33,16 +33,17 @@
   "devDependencies": {
     "contra": "^1.9.4",
     "diff-lines": "^1.1.0",
-    "onchange": "^3.0.0",
-    "tape": "^4.8.0"
+    "eslint": "^4.8.0",
+    "onchange": "^3.2.1",
+    "tape": "^4.6.0"
   },
   "dependencies": {
     "btoa": "^1.1.2",
-    "escodegen": "^1.8.0",
-    "estree-builder": "^1.7.0",
+    "escodegen": "^1.9.0",
+    "estree-builder": "^1.10.0",
     "estree-loc": "^2.0.0",
     "krl-parser": "^0.40.0",
-    "lodash": "^4.13.1",
+    "lodash": "^4.17.4",
     "minimist": "^1.2.0"
   }
 }
