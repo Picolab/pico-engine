@@ -634,10 +634,10 @@ ruleset io.picolabs.pico {
                     "attrs": event:attrs() });
     }
     always{
-      schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 0.1})// ui needs children to be removed very fast(0.1 seconds). 
+      schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 0.005})// ui needs children to be removed very fast(0.005 seconds), !!!this smells like poor coding practice...!!! 
         attributes {"name":child{"name"},
                     "id":child{"id"},
-                    "target": (event:attr("id") == child{"id"}),
+                    "target": (event:attr("id") == child{"id"} || event:attr("name") == child{"name"} ).klog("main child to delete"),
                     "updated_children":event:attr("updated_children")}
 
     }
@@ -654,7 +654,7 @@ ruleset io.picolabs.pico {
       engine:removePico(id)
     always{
       ent:wrangler_children := event:attr("updated_children").klog("updated_children: ") if target;
-      ent:children := children(){"children"};
+      ent:children := children(){"children"} if target;
       raise information event "child_deleted"
         attributes event:attrs();
     }
