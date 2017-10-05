@@ -141,7 +141,7 @@ var setupLogging = function(pe){
 
         var episode = logs[episode_id];
         if (episode) {
-            if (needAttributes(context,message)) {
+            if (needAttributes(context, message)) {
                 episode.logs.push(timestamp + " [" + level.toUpperCase() + "] " + message + " attributes " + JSON.stringify(context.event.attrs));
             } else {
                 episode.logs.push(timestamp + " [" + level.toUpperCase() + "] " + message);
@@ -169,7 +169,7 @@ var setupLogging = function(pe){
         }
     });
     pe.emitter.on("klog", function(context, info){
-        var msg = toKRLjson(info.val);
+        var msg = toKRLjson(info && info.val);
         if(_.has(info, "message")){
             msg = info.message + " " + msg;
         }
