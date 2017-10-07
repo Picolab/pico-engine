@@ -45,7 +45,7 @@ var startTestServer = function(callback){
 };
 
 test("pico-engine", function(t){
-    var pe, root_eci, stopServer, child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids;
+    var pe, root_eci, stopServer, child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
     async.series([
         function(next){
             startTestServer(function(err, tstserver){
@@ -635,6 +635,32 @@ test("pico-engine", function(t){
                     }
                 }
                 t.deepEqual(found, true,"new child pico found");//check that child is the same from the event above
+                next();
+            });
+        },
+        function(next){ // channel in parent created? 
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "channel",
+                args: {value:"ted"},
+            }, function(err, data){
+                if(err) return next(err);
+                //console.log("parent_eci",data);
+                t.equals(data.channels.name,"ted","channel for child created in parent");
+                parent_eci = data.channels.id;
+                next();
+            });
+        },
+        function(next){ // parent channel stored in child? 
+            pe.runQuery({
+                eci: child.eci,
+                rid: "io.picolabs.pico",
+                name: "parent_eci", args:{},
+            }, function(err, data){
+                if(err) return next(err);
+                //console.log("parent_eci",data);
+                t.equals(data.parent,parent_eci,"parent channel for child stored in child");
                 next();
             });
         },
