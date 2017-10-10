@@ -8,13 +8,13 @@
 <script type="text/javascript">
 $(function(){
   var this_npe = location.hostname+(location.port ? ":"+location.port : "");
+  var servers = [
+    this_npe,
+    "10.5.36.219:8080",
+    "sqtg.bruceatbyu.com:3001",
+    "605ea45c.ngrok.io",
+  ];
   if(location.search.startsWith("?url=")){
-    var servers = [
-      this_npe,
-      "10.5.36.219:8080",
-      "sqtg.bruceatbyu.com:3001",
-      "605ea45c.ngrok.io",
-    ];
     var decoded = decodeURIComponent(location.search);
     if(decoded.startsWith("?url=web+did:npe:")){
       var pieces = decoded.substr(17).split("/");
@@ -58,6 +58,7 @@ $(function(){
           + '/did.html?url=%s","DID poc")';
   $("#rph").attr("href",'javascript:'+rph+';void 0');
   $("#rph").text(rph);
+  $("#servers").html("<li>"+servers.join("</li><li>")+"</li></ul>");
 });
 </script>
 <style type="text/css">
@@ -69,12 +70,17 @@ body { display:none; }
 <h1>DID redirection</h1>
 <p>
 This is a proof of concept, through simulation.
+Preferably, a DDO registered in Sovrin for your pico's DID
+will provide a list of endpoints for your browser to try.
 </p>
 <p>
 In Chrome and Firefox, you can register a handler for a "new" protocol.
+This simulator will try a series of Node Pico Engines (NPE)
+until it finds one which hosts your pico.
 </p>
+<h2>Register a protocol handler</h2>
 <p>
-From any page served by your Node Pico Engine (NPE),
+From any page served by your NPE,
 enter the JavaScript console.
 Evaluate this code, replacing <code id="npe">localhost:8080</code>
 with the domain name and port of your NPE.
@@ -85,17 +91,23 @@ Your browser will warn you that your NPE wants to
 handle the "web+did" protocol,
 which you must allow.
 </p>
+<h2>Using your protocol handler</h2>
 <p>
 Having done this you will be able to send an event or query to a pico
-using this pseudo DID protocol:
+using the pseudo DID protocol as shown below.
+Note that, for picos, the event channel identifier (ECI)
+<em>is</em> a DID.
 </p>
 <pre>web+did:npe:&lt;ECI>/sky/event/&lt;EID>/domain/type?name=val&name2=val2</pre>
 <pre>web+did:npe:&lt;ECI>/sky/cloud/&lt;RID>/function?name=val&name2=val2</pre>
+<h2>Removing your protocol handler</h2>
 <p>
 To remove the protocol handler from Chrome, visit 
 chrome://settings/handlers.
 From Firefox, visit Preferences->Applications.
 </p>
+<h2>List of NPE which this redirector will try</h2>
 </body>
+<ul id="servers"></ul>
 </html>
 
