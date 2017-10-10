@@ -7,9 +7,10 @@
 <script type="text/javascript" src="js/async.min.js"></script>
 <script type="text/javascript">
 $(function(){
+  var this_npe = location.hostname+(location.port ? ":"+location.port : "");
   if(location.search.startsWith("?url=")){
     var servers = [
-      location.hostname+(location.port ? ":"+location.port : ""),
+      this_npe,
       "10.5.36.219:8080",
       "sqtg.bruceatbyu.com:3001",
       "605ea45c.ngrok.io",
@@ -67,7 +68,7 @@ This is a proof of concept, through simulation.
 In Chrome and Firefox, you can register a handler for a "new" protocol.
 </p>
 <p>
-From any page served by your Node Pico Engine,
+From any page served by your Node Pico Engine (NPE),
 enter the JavaScript console.
 Evaluate this code, replacing <code>localhost:8080</code>
 with the domain name and port of your NPE.
@@ -79,11 +80,11 @@ handle the "web+did" protocol,
 which you must allow.
 </p>
 <p>
-Having done this you will be able to send an event to a pico
+Having done this you will be able to send an event or query to a pico
 using this pseudo DID protocol:
 </p>
-<pre>web+did:npe:ECI/sky/event/EID/domain/type?name=val&name2=val2</pre>
-<pre>web+did:npe:ECI/sky/cloud/RID/function?name=val&name2=val2</pre>
+<pre>web+did:npe:&lt;ECI>/sky/event/&lt;EID>/domain/type?name=val&name2=val2</pre>
+<pre>web+did:npe:&lt;ECI>/sky/cloud/&lt;RID>/function?name=val&name2=val2</pre>
 <p>
 To remove the protocol handler from Chrome, visit 
 chrome://settings/handlers.
