@@ -128,7 +128,7 @@ test("engine:installRuleset", function(t){
             yield inst("pico0");
             t.fail("should throw b/c missing args");
         }catch(err){
-            t.equals(err + "", "Error: installRuleset expects `rid` or `url`+`base`");
+            t.equals(err + "", "Error: installRuleset expects a rid, an arrays of rids, or a url and base");
         }
 
         t.equals(yield inst("pico0", "foo.bar"), "foo.bar");
