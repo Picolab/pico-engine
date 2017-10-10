@@ -52,6 +52,12 @@ $(function(){
   } else {
     $("body").show();
   }
+  $("#npe").text(this_npe);
+  var rph = 'navigator.registerProtocolHandler("web+did","http://'
+          + this_npe
+          + '/did.html?url=%s","DID poc")';
+  $("#rph").attr("href",'javascript:'+rph+';void 0');
+  $("#rph").text(rph);
 });
 </script>
 <style type="text/css">
@@ -70,10 +76,10 @@ In Chrome and Firefox, you can register a handler for a "new" protocol.
 <p>
 From any page served by your Node Pico Engine (NPE),
 enter the JavaScript console.
-Evaluate this code, replacing <code>localhost:8080</code>
+Evaluate this code, replacing <code id="npe">localhost:8080</code>
 with the domain name and port of your NPE.
 </p>
-<pre><a href='javascript:navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc");void 0'>navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc")</a></pre>
+<pre><a id="rph" href='javascript:navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc");void 0'>navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc")</a></pre>
 <p>
 Your browser will warn you that your NPE wants to 
 handle the "web+did" protocol,
