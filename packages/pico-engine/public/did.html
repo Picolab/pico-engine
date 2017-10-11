@@ -70,13 +70,16 @@ body { display:none; }
 <h1>DID redirection</h1>
 <p>
 This is a proof of concept, through simulation.
-Preferably, a DDO registered in Sovrin for your pico's DID
+Soon, browsers will understand the <code>did</code> scheme directly.
+They will use the DID to find the DDO on Sovrin and the DDO
 will provide a list of endpoints for your browser to try.
+Until then, we can use this simulator,
+which will try a series of Node Pico Engines (NPE)
+until it finds one which hosts your pico.
+which
 </p>
 <p>
 In Chrome and Firefox, you can register a handler for a "new" protocol.
-This simulator will try a series of Node Pico Engines (NPE)
-until it finds one which hosts your pico.
 </p>
 <h2>Register a protocol handler</h2>
 <p>
