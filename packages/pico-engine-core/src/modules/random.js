@@ -4,11 +4,11 @@ var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
 var randomWords = require("random-words");
 
-var fixLowerUpperArgs = function(args){
-    var lowerNum = ktypes.numericCast(args.lower);
+var fixLowerUpperArgs = function(args, round){
+    var lowerNum = ktypes.numericCast(args.lower, round);
     var lowerIsNull = ktypes.isNull(lowerNum);
 
-    var upperNum = ktypes.numericCast(args.upper);
+    var upperNum = ktypes.numericCast(args.upper, round);
     var upper;
 
     if(ktypes.isNull(upperNum)){
@@ -41,9 +41,9 @@ module.exports = function(core){
                 "upper",
                 "lower",
             ], function(args_orig, ctx, callback){
-                var args = fixLowerUpperArgs(args_orig);
+                var args = fixLowerUpperArgs(args_orig, true);
 
-                callback(null, _.random(Math.round(args.lower), Math.round(args.upper)));
+                callback(null, _.random(args.lower, args.upper));
             }),
 
             number: mkKRLfn([
