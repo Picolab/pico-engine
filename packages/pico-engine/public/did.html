@@ -8,12 +8,17 @@
 <script type="text/javascript">
 $(function(){
   var this_npe = location.hostname+(location.port ? ":"+location.port : "");
-  var servers = [
-    this_npe,
-    "10.5.36.219:8080",
-    "sqtg.bruceatbyu.com:3001",
-    "605ea45c.ngrok.io",
-  ];
+  var servers = [];
+//  var eci = "J1GbuLGCzstypfQLadBCwV";
+//  var url = "/sky/cloud/"+eci+"/io.picolabs.did_simulation/servers";
+//  $.getJSON(url,function(data){
+//    if(data && data.length > 0) {
+//      for(var i=0; i<data.length; ++i) {
+//        servers.push(data[i]);
+//      }
+//alert(JSON.stringify(servers));
+//    }
+  servers.push(this_npe);
   if(location.search.startsWith("?url=")){
     var decoded = decodeURIComponent(location.search);
     if(decoded.startsWith("?url=web+did:npe:")){
@@ -58,7 +63,8 @@ $(function(){
           + '/did.html?url=%s","DID poc")';
   $("#rph").attr("href",'javascript:'+rph+';void 0');
   $("#rph").text(rph);
-  $("#servers").html("<li>"+servers.join("</li><li>")+"</li></ul>");
+  $("#servers").html("<li>"+servers.join("</li><li>")+"</li>");
+//  }).fail(function(obj) { alert("error"); alert(JSON.stringify(obj)); });
 });
 </script>
 <style type="text/css">
