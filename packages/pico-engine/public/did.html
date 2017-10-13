@@ -64,10 +64,20 @@ $(function(){
 <style type="text/css">
 pre { margin-left:20px; }
 body { display:none; }
+div { padding:10px; float:right; border:1px solid silver; }
+div form { padding-left:40px; }
 </style>
 </head>
 <body>
 <h1>DID redirection</h1>
+<div>
+<h2>List of NPE which this redirector will try</h2>
+<ul id="servers"></ul>
+<form method="POST" onsubmit="alert('not yet implemented');return false">
+<input type="text" name="server" placeholder="npe host:port">
+<button type="submit">add</button>
+</form>
+</div>
 <p>
 This is a proof of concept, through simulation.
 Soon, browsers will understand the <code>did</code> scheme directly.
@@ -108,8 +118,6 @@ To remove the protocol handler from Chrome, visit
 chrome://settings/handlers.
 From Firefox, visit Preferences->Applications.
 </p>
-<h2>List of NPE which this redirector will try</h2>
 </body>
-<ul id="servers"></ul>
 </html>
 
