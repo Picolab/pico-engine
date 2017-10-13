@@ -93,20 +93,21 @@ var setupLogging = function(pe){
 
     var logs = {};
     var logRID = "io.picolabs.logging";
-    var needAttributes = function(context,message){
-        if (context.event && _.isString(message)) {
-            return message.startsWith("event received:") ||
-                message.startsWith("adding raised event to schedule:");
-        } else {
-            return false;
-        }
-    };
+
+
     var logEntry = function(level, message, context){
 
         context = context || {};//"error" events may be missiong context, log it as far as possible
 
-        var episode_id = context.txn_id;
         var timestamp = (new Date()).toISOString();
+
+        //decide if we want to add the event attributes to the log message
+        if(context.event && _.isString(message) && (false
+            || message.startsWith("event received:")
+            || message.startsWith("adding raised event to schedule:")
+        )){
+            message += " attributes " + toKRLjson(context.event.attrs);
+        }
 
         if(!_.isString(message)){
             if(_.isError(message)){
@@ -115,6 +116,7 @@ var setupLogging = function(pe){
                 message = toKRLjson(message);
             }
         }
+
         var shell_log = "[" + level.toUpperCase() + "] ";
         if(context.event){
             shell_log += "event"
@@ -142,13 +144,10 @@ var setupLogging = function(pe){
             console.log(shell_log);
         }
 
+        var episode_id = context.txn_id;
         var episode = logs[episode_id];
         if (episode) {
-            if (needAttributes(context, message)) {
-                episode.logs.push(timestamp + " [" + level.toUpperCase() + "] " + message + " attributes " + JSON.stringify(context.event.attrs));
-            } else {
-                episode.logs.push(timestamp + " [" + level.toUpperCase() + "] " + message);
-            }
+            episode.logs.push(timestamp + " [" + level.toUpperCase() + "] " + message);
         } else {
             console.error("[ERROR]", "no episode found for", episode_id);
         }
