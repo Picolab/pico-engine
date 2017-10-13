@@ -134,7 +134,7 @@ var setupLogging = function(pe){
             shell_log = shell_log.substring(0, 300) + "...";
         }
         if(/error/i.test(level)){
-            console.log(shell_log);//use stderr
+            console.error(shell_log);//use stderr
         }else{
             console.log(shell_log);
         }
@@ -152,7 +152,7 @@ var setupLogging = function(pe){
     };
     pe.emitter.on("episode_start", function(context){
         var episode_id = context.txn_id;
-        console.log("[EPISODE_START]",episode_id);
+        console.log("[EPISODE_START]", episode_id);
         var timestamp = (new Date()).toISOString();
         var episode = logs[episode_id];
         if (episode) {
@@ -168,6 +168,23 @@ var setupLogging = function(pe){
             logs[episode_id] = episode;
         }
     });
+
+    var onLevelLogEntry = function(level){
+        pe.emitter.on(level, function(context, expression){
+            logEntry(level, context, expression);
+        });
+    };
+
+    onLevelLogEntry("log-info");
+    onLevelLogEntry("log-debug");
+    onLevelLogEntry("log-warn");
+    onLevelLogEntry("log-error");
+
+    onLevelLogEntry("debug");
+    pe.emitter.on("error", function(err, context){
+        if(context) logEntry("error", context, err);
+    });
+
     pe.emitter.on("klog", function(context, info){
         var msg = toKRLjson(info && info.val);
         if(_.has(info, "message")){
@@ -175,28 +192,7 @@ var setupLogging = function(pe){
         }
         logEntry("klog", context, msg);
     });
-    pe.emitter.on("log-error", function(context, expression){
-        logEntry("log-error", context, expression);
-    });
-    pe.emitter.on("log-warn", function(context, expression){
-        logEntry("log-warn", context, expression);
-    });
-    pe.emitter.on("log-info", function(context, expression){
-        logEntry("log-info", context, expression);
-    });
-    pe.emitter.on("log-debug", function(context, expression){
-        logEntry("log-debug", context, expression);
-    });
-    pe.emitter.on("debug", function(context, expression){
-        if (typeof expression === "string") {
-            logEntry("debug", context, expression);
-        } else {
-            logEntry("debug", context, toKRLjson(expression));
-        }
-    });
-    pe.emitter.on("error", function(err, context){
-        if(context) logEntry("error", context, err);
-    });
+
     pe.emitter.on("episode_stop", function(context){
         var pico_id = context.pico_id;
         var episode_id = context.txn_id;
