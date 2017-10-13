@@ -1611,7 +1611,7 @@ test("PicoEngine - io.picolabs.log ruleset", function(t){
             "log-warn",
             "log-error",
         ], function(level){
-            pe.emitter.on(level, function(info, val){
+            pe.emitter.on(level, function(val, info){
                 log_events.push([level, val]);
             });
         });
@@ -2041,7 +2041,7 @@ test("PicoEngine - (re)registering ruleset shouldn't mess up state", function(t)
         var signal = mkSignalTask(pe, "id1");
 
         var order = [];
-        pe.emitter.on("debug", function(info, val){
+        pe.emitter.on("debug", function(val, info){
             if("event being processed" === val){
                 order.push("EVENT: " + info.event.domain + "/" + info.event.type);
             }else if(/^rule selected/.test(val)){

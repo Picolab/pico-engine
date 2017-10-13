@@ -131,13 +131,10 @@ module.exports = function(conf){
                     info.eci = ctx.query.eci;
                 }
             }
-            if(type === "error"){
-                //the Error object, val, should be first
-                // b/c node "error" event conventions, so you don't strange messages thinking `info` is the error
-                emitter.emit("error", val, info);
-            }else{
-                emitter.emit(type, info, val);
-            }
+            //one reason `val` must come first is by convertion the "error"
+            //event's first argument is the Error object. If `info` comes first
+            //it will get confused thinking `info` is the error
+            emitter.emit(type, val, info);
         };
         ctx.log = function(level, val){
             if(!_.has(log_levels, level)){

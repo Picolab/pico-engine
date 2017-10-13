@@ -101,7 +101,10 @@ var setupLogging = function(pe){
             return false;
         }
     };
-    var logEntry = function(level, context, message){
+    var logEntry = function(level, message, context){
+
+        context = context || {};//"error" events may be missiong context, log it as far as possible
+
         var episode_id = context.txn_id;
         var timestamp = (new Date()).toISOString();
 
@@ -150,7 +153,7 @@ var setupLogging = function(pe){
             console.error("[ERROR]", "no episode found for", episode_id);
         }
     };
-    pe.emitter.on("episode_start", function(context){
+    pe.emitter.on("episode_start", function(expression, context){
         var episode_id = context.txn_id;
         console.log("[EPISODE_START]", episode_id);
         var timestamp = (new Date()).toISOString();
@@ -170,8 +173,8 @@ var setupLogging = function(pe){
     });
 
     var onLevelLogEntry = function(level){
-        pe.emitter.on(level, function(context, expression){
-            logEntry(level, context, expression);
+        pe.emitter.on(level, function(expression, context){
+            logEntry(level, expression, context);
         });
     };
 
@@ -179,21 +182,18 @@ var setupLogging = function(pe){
     onLevelLogEntry("log-debug");
     onLevelLogEntry("log-warn");
     onLevelLogEntry("log-error");
-
     onLevelLogEntry("debug");
-    pe.emitter.on("error", function(err, context){
-        if(context) logEntry("error", context, err);
-    });
+    onLevelLogEntry("error");
 
-    pe.emitter.on("klog", function(context, info){
+    pe.emitter.on("klog", function(info, context){
         var msg = toKRLjson(info && info.val);
         if(_.has(info, "message")){
             msg = info.message + " " + msg;
         }
-        logEntry("klog", context, msg);
+        logEntry("klog", msg, context);
     });
 
-    pe.emitter.on("episode_stop", function(context){
+    pe.emitter.on("episode_stop", function(expression, context){
         var pico_id = context.pico_id;
         var episode_id = context.txn_id;
 
