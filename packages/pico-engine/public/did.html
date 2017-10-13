@@ -87,28 +87,31 @@ Until then, we can use this simulator,
 which will try a series of Node Pico Engines (NPE)
 until it finds one which hosts your pico.
 </p>
-<p>
-In Chrome and Firefox, you can register a handler for a "new" protocol.
-</p>
 <h2>Register a protocol handler</h2>
 <p>
-From any page served by your NPE,
-enter the JavaScript console.
-Evaluate this code, replacing <code id="npe">localhost:8080</code>
-with the domain name and port of your NPE.
+In Chrome and Firefox, you can register a handler for a "new" protocol.
+Click on the link below to register this page
+as a handler for <code>web+did</code>.
 </p>
 <pre><a id="rph" href='javascript:navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc");void 0'>navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc")</a></pre>
 <p>
 Your browser will warn you that your NPE wants to 
-handle the "web+did" protocol,
-which you must allow.
+handle the "web+did" protocol, which you must allow.
+</p>
+<p>
+The Root Pico on this NPE must have the ruleset
+<code>io.picolabs.did_simulation</code>.
+You must provide an ECI for the Root Pico.
+This ruleset contains the list of NPE to try
+along with the code to determine which one
+hosts the pico which reacts to the given ECI.
+Note that, for picos, the event channel identifier (ECI)
+<em>is</em> a DID.
 </p>
 <h2>Using your protocol handler</h2>
 <p>
 Having done this you will be able to send an event or query to a pico
 using the pseudo DID protocol as shown below.
-Note that, for picos, the event channel identifier (ECI)
-<em>is</em> a DID.
 </p>
 <pre>web+did:npe:&lt;ECI>/sky/event/&lt;EID>/domain/type?name=val&name2=val2</pre>
 <pre>web+did:npe:&lt;ECI>/sky/cloud/&lt;RID>/function?name=val&name2=val2</pre>
