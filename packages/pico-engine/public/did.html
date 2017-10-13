@@ -10,7 +10,7 @@ $(function(){
   var this_npe = location.hostname+(location.port ? ":"+location.port : "");
   var did_sim_eci = window.did_simulator_eci;
   if(!did_sim_eci) {
-    did_sim_eci = prompt("Enter an ECI for the Root Pico at "+this_npe);
+    did_sim_eci = prompt("Enter an ECI for the DID Simulator Pico");
   }
   var servers = [];
   var base_url = "/sky/cloud/"+did_sim_eci+"/io.picolabs.did_simulation";
@@ -98,20 +98,12 @@ as a handler for <code>web+did</code>.
 Your browser will warn you that your NPE wants to 
 handle the "web+did" protocol, which you must allow.
 </p>
-<p>
-The Root Pico on this NPE must have the ruleset
-<code>io.picolabs.did_simulation</code>.
-You must provide an ECI for the Root Pico.
-This ruleset contains the list of NPE to try
-along with the code to determine which one
-hosts the pico which reacts to the given ECI.
-Note that, for picos, the event channel identifier (ECI)
-<em>is</em> a DID.
-</p>
 <h2>Using your protocol handler</h2>
 <p>
 Having done this you will be able to send an event or query to a pico
 using the pseudo DID protocol as shown below.
+Note that, for picos, the event channel identifier (ECI)
+<em>is</em> a DID.
 </p>
 <pre>web+did:npe:&lt;ECI>/sky/event/&lt;EID>/domain/type?name=val&name2=val2</pre>
 <pre>web+did:npe:&lt;ECI>/sky/cloud/&lt;RID>/function?name=val&name2=val2</pre>
@@ -120,6 +112,36 @@ using the pseudo DID protocol as shown below.
 To remove the protocol handler from Chrome, visit 
 chrome://settings/handlers.
 From Firefox, visit Preferences->Applications.
+</p>
+<h2>How it works</h2>
+<p>
+While the redirection itself is done by this page,
+the list of NPE to try is maintained in a pico you choose,
+which also determines which NPE hosts the
+pico identified by the ECI/DID.
+We will call this pico the "DID Simulator Pico".
+</p>
+<p>
+You might choose the Root Pico to serve this role,
+or some other pico, such as your Owner Pico.
+You must add the ruleset
+<code>io.picolabs.did_simulation</code>
+to your DID Simulator Pico.
+You may be prompted for an ECI for the DID Simulator Pico.
+</p>
+<p>
+To avoid being prompted each time,
+you may create a file named <code>did-simulator-eci.js</code>
+in the <code>public/js</code> folder of this NPE
+using this format
+</p>
+<pre><code>window.did_simulator_eci = "J1GbuLGCzstypfQLadBCwV";</code></pre>
+<p>
+replacing <code>"J1GbuLGCzstypfQLadBCwV"</code> with the actual ECI.
+You can create an ECI for this purpose in the "Channels" tab
+of your DID Simulator Pico.
+It is highly recommended that you create an ECI for this
+purpose rather than using one of the existing channel identifiers.
 </p>
 </body>
 </html>
