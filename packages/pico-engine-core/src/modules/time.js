@@ -39,8 +39,8 @@ module.exports = function(core){
             "new": mkKRLfn([
                 "date",
             ], function(args, ctx, callback){
-                if(_.size(args) < 1){
-                    return callback(new Error("time:new expects one argument"));
+                if(!_.has(args, "date")){
+                    return callback(new Error("time:new expects a date argument"));
                 }
 
                 var dateStr = ktypes.toString(args.date);
@@ -57,8 +57,8 @@ module.exports = function(core){
                 "date",
                 "spec",
             ], function(args, ctx, callback){
-                if(_.size(args) < 2){
-                    return callback(new Error("time:add expects two arguments"));
+                if(!_.has(args, "date") || !_.has(args, "spec")){
+                    return callback(new Error("time:add expects date and spec arguments"));
                 }
 
                 var dateStr = ktypes.toString(args.date);
@@ -78,8 +78,8 @@ module.exports = function(core){
                 "date",
                 "fmt",
             ], function(args, ctx, callback){
-                if(_.size(args) < 2){
-                    return callback(new Error("time:strftime expects two arguments"));
+                if(!_.has(args, "date") || !_.has(args, "fmt")){
+                    return callback(new Error("time:strftime expects date and fmt arguments"));
                 }
 
                 var dateStr = ktypes.toString(args.date);
