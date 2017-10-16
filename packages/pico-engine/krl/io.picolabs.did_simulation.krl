@@ -26,7 +26,7 @@ ruleset io.picolabs.did_simulation {
     serverForDID = function(did) {
       path = "/sky/cloud/"+did+"/io.picolabs.pico/myself";
       engine:listChannels().filter(function(c){c{"id"} == did}).length() > 0
-        => this_npe() // this server because this very pico!
+        => ent:servers[0] // this server because this very pico!
          | ent:servers.map(function(s){tryServer(s,path)})
                       .filter(function(r){r})[0]
     }
