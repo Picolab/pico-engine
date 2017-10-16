@@ -37,6 +37,8 @@ test("http module", function(t){
     server.listen(0, function(){
         var url = "http://localhost:" + server.address().port;
         cocb.run(function*(){
+            var testErr = require("../testErr")(t, khttp);
+
             var resp;
 
             var doHttp = function*(method, args){
@@ -208,6 +210,16 @@ test("http module", function(t){
                 }
             });
 
+            var methods = _.keys(khttp);
+            var numMethods = _.size(methods);
+            var errArg = {parseJSON: true};
+            var typeErrArg = {url: NaN};
+
+            var i;
+            for(i=0; i < numMethods; i++){
+                yield testErr(methods[i], {}, errArg, "Error");
+                yield testErr(methods[i], {}, typeErrArg, "TypeError");
+            }
         }, function(err){
             server.close();
             t.end(err);
