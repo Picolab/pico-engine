@@ -678,53 +678,69 @@ stdlib.splice = function(ctx, val, start, n_elms, value){
     }
     return _.concat(part1, value, part2);
 };
-stdlib.sort = (function(){
-    var swap = function(arr, i, j){
-        var temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
+var mergeFn = function*(sort_by, start1, end, in_array, out_array){
+    var start2 = start1 + ((end - start1) >> 1);//midpoint defining subarrays
+    var head1 = start1;
+    var head2 = start2;
+    var out = start1;
+    while(head1 < start2 && head2 < end){
+        out_array[out++] = in_array[
+            ((yield sort_by([in_array[head1], in_array[head2]])) <= 0)
+                ? head1++
+                : head2++
+        ];
+    }
+    while(head1 < start2){
+        out_array[out++] = in_array[head1++];
+    }
+    while(head2 < end){
+        out_array[out++] = in_array[head2++];
+    }
+};
+stdlib.sort = function*(ctx, val, sort_by){
+    if(!types.isArray(val)){
+        return val;
+    }
+    val = _.cloneDeep(val);
+    var sorters = {
+        "default": function(a, b){
+            return stdlib.cmp(ctx, a, b);
+        },
+        "reverse": function(a, b){
+            return -stdlib.cmp(ctx, a, b);
+        },
+        "numeric": function(a, b){
+            return stdlib["<=>"](ctx, a, b);
+        },
+        "ciremun": function(a, b){
+            return -stdlib["<=>"](ctx, a, b);
+        }
     };
-    return function*(ctx, val, sort_by){
-        if(!types.isArray(val)){
-            return val;
+    if(_.has(sorters, sort_by)){
+        return val.sort(sorters[sort_by]);
+    }
+    if(!types.isFunction(sort_by)){
+        return val.sort(sorters["default"]);
+    }
+
+    //this mergesort is similar to https://github.com/calvinmetcalf/grin
+    var merge = _.partial(mergeFn, _.partial(sort_by, ctx));
+    var len = val.length;
+    var other = Array(len);
+    for(var stride=2; stride < len*2; stride*=2){
+        var start = 0;
+        var end = stride;
+        while(start < len){
+            yield merge(start, Math.min(end, len), val, other);
+            start = end;
+            end += stride;
         }
-        val = _.cloneDeep(val);
-        var sorters = {
-            "default": function(a, b){
-                return stdlib.cmp(ctx, a, b);
-            },
-            "reverse": function(a, b){
-                return -stdlib.cmp(ctx, a, b);
-            },
-            "numeric": function(a, b){
-                return stdlib["<=>"](ctx, a, b);
-            },
-            "ciremun": function(a, b){
-                return -stdlib["<=>"](ctx, a, b);
-            }
-        };
-        if(_.has(sorters, sort_by)){
-            return val.sort(sorters[sort_by]);
-        }
-        if(!types.isFunction(sort_by)){
-            return val.sort(sorters["default"]);
-        }
-        var sorted = val;
-        var i, j, a, b;
-        var len = sorted.length;
-        //TODO optimize with a better sort algorithm
-        for (i = len - 1; i >= 0; i--){
-            for(j = 1; j <= i; j++){
-                a = sorted[j-1];
-                b = sorted[j];
-                if((yield sort_by(ctx, [a, b])) > 0){
-                    swap(sorted, j-1, j);
-                }
-            }
-        }
-        return sorted;
-    };
-})();
+        var temp = val;
+        val = other;
+        other = temp;
+    }
+    return val;
+};
 stdlib["delete"] = function(ctx, val, path){
     path = toKeyPath(path);
     //TODO optimize
