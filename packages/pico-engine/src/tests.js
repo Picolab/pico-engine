@@ -18,26 +18,28 @@ var startTestServer = function(callback){
 
         //try setting up the engine including registering rulesets
         startCore({
-            host: "http://localhost:8080",
+            host: "http://localhost:8383",
             home: dir.path,
             no_logging: true,
         }, function(err, pe){
             if(err) throw err;//throw ensures process is killed with non-zero exit code
 
             //setup the server without throwing up
-            setupServer(pe);
-
+            var testApp = setupServer(pe);
+            testApp.listen("8383", function(){
+                console.log("localhost:8383");
+            });
             pe.getRootECI(function(err, root_eci){
                 if(err) throw err;//throw ensures process is killed with non-zero exit code
 
                 callback(null, {
                     pe: pe,
                     root_eci: root_eci,
-                    stopServer: function(){
+                    /*stopServer: function(){
                         if(!is_windows){
                             dir.unlink();
                         }
-                    },
+                    },*/
                 });
             });
         });
@@ -45,14 +47,14 @@ var startTestServer = function(callback){
 };
 
 test("pico-engine", function(t){
-    var pe, root_eci, stopServer, child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
+    var pe, root_eci, /*stopServer,*/ child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
     async.series([
         function(next){
             startTestServer(function(err, tstserver){
                 if(err) return next(err);
                 pe = tstserver.pe;
                 root_eci = tstserver.root_eci;
-                stopServer = tstserver.stopServer;
+                //stopServer = tstserver.stopServer;
                 next();
             });
         },
@@ -752,7 +754,7 @@ test("pico-engine", function(t){
         ////////////////////////////////////////////////////////////////////////
     ], function(err){
         t.end(err);
-        stopServer();
-        process.exit(err ? 1 : 0);//ensure server stops
+        //stopServer();
+        //process.exit(err ? 1 : 0);//ensure server stops
     });
 });
