@@ -748,6 +748,21 @@ test("pico-engine", function(t){
             });
         },*/
 
+        ///////////////////////////////// Subscription tests ///////////////
+        ///////////////// Subscription Request tests
+        // create two children , A,B
+        // install subscription rulesets
+        // create well known DID's
+        // send subscriptions request from A to B
+        // check for created channel in Child A
+        // check for created subscription in Child A
+        // check for created channel in Child B ?
+        // check for created subscription in Child B ?
+        // check status of subscription A is pending
+        // check status of subscription B is pending
+        // check attrs are correct .... ?
+        
+        //////////////// Subscription Accept tests
         //
         //                      end Wrangler tests
         //
