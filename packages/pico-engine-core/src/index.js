@@ -42,7 +42,7 @@ module.exports = function(conf){
     var db = DB(conf.db);
     _.each(db, function(val, key){
         if(_.isFunction(val)){
-            db[key + "Yieldable"] = cocb.toYieldable(val);
+            db[key + "Yieldable"] = cocb.wrap(val);
         }
     });
     var host = conf.host;
@@ -154,9 +154,7 @@ module.exports = function(conf){
             }
             var fn = krl_stdlib[fn_name];
             if(cocb.isGeneratorFunction(fn)){
-                return cocb.promiseRun(function*(){
-                    return yield fn.apply(void 0, args);
-                });
+                return cocb.wrap(fn).apply(null, args);
             }
             return new Promise(function(resolve, reject){
                 try{

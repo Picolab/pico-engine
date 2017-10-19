@@ -73,7 +73,5 @@ module.exports = function(){
         }
     }
 
-    return cocb.promiseRun(function*(){
-        return yield fn.apply(null, args);
-    });
+    return cocb.wrap(fn).apply(null, args);
 };

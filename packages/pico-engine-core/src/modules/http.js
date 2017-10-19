@@ -75,8 +75,10 @@ var mkMethod = function(method){
                     type: method.toLowerCase(),
                     attributes: r,
                     //for_rid: "",
+                }).then(function(r){
+                    callback(null, r);
                 }, function(err){
-                    callback(err, r);
+                    callback(err);
                 });
             }else{
                 callback(void 0, r);
