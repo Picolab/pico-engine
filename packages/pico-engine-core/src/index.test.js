@@ -10,6 +10,8 @@ var compiler = require("krl-compiler");
 var PicoEngine = require("./");
 var mkTestPicoEngine = require("./mkTestPicoEngine");
 
+var url_prefix = "http://fake-url/test-rulesets/";
+
 var omitMeta = function(resp){
     if(!_.has(resp, "directives")){
         return resp;
@@ -621,7 +623,7 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
             }),[]],
             [signal("engine", "installRuleset", {
                 pico_id: "id2",
-                base: "https://raw.githubusercontent.com/Picolab/pico-engine/master/test-rulesets/",
+                base: url_prefix,
                 url: "scope.krl",
             }),[]],
             function(done){
@@ -875,7 +877,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetName: "testing meta module",
                     rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
-                    rulesetURI: "https://raw.githubusercontent.com/Picolab/pico-engine/master/test-rulesets/meta.krl",
+                    rulesetURI: url_prefix + "meta.krl",
                     ruleName: "meta_event",
                     inEvent: true,
                     inQuery: false,
@@ -890,7 +892,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetName: "testing meta module",
                     rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
-                    rulesetURI: "https://raw.githubusercontent.com/Picolab/pico-engine/master/test-rulesets/meta.krl",
+                    rulesetURI: url_prefix + "meta.krl",
                     ruleName: void 0,
                     inEvent: false,
                     inQuery: true,

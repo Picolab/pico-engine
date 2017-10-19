@@ -50,8 +50,6 @@ var setupRootPico = function(pe, callback){
     });
 };
 
-var github_prefix = "https://raw.githubusercontent.com/Picolab/node-pico-engine/master/krl/";
-
 var getSystemRulesets = function(pe, callback){
     var krl_dir = path.resolve(__dirname, "../krl");
     fs.readdir(krl_dir, function(err, files){
@@ -67,7 +65,7 @@ var getSystemRulesets = function(pe, callback){
                 if(err) return next(err);
                 next(null, {
                     src: src,
-                    meta: {url: github_prefix + filename},
+                    meta: {url: "http://fake-url/krl/" + filename},
                 });
             });
         }, function(err, system_rulesets){
