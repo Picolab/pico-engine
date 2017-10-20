@@ -5,8 +5,6 @@ var async = require("async");
 var memdown = require("memdown");
 var PicoEngine = require("./");
 
-var url_prefix = "https://raw.githubusercontent.com/Picolab/pico-engine/master/test-rulesets/";
-
 var test_rulesets = {};
 var test_dir = path.resolve(__dirname, "../../../test-rulesets");
 _.each(fs.readdirSync(test_dir), function(file){
@@ -18,7 +16,7 @@ _.each(fs.readdirSync(test_dir), function(file){
         return;
     }
     test_rulesets[rs.rid] = rs;
-    test_rulesets[rs.rid].url = url_prefix + file.replace(/\.js$/, ".krl");
+    test_rulesets[rs.rid].url = "http://fake-url/test-rulesets/" + file.replace(/\.js$/, ".krl");
 });
 
 module.exports = function(opts, callback){
