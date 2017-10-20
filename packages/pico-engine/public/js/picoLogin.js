@@ -5,12 +5,15 @@ window.handlePicoLogin = function(options,formToJSON,callback){
       var parts = value.split("; " + name + "=");
       if (parts.length == 2) return parts.pop().split(";").shift();
     }
+    var delete_cookie = function(name) {
+      document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;'; //domain=.myDomain.com';
+    }
     var performLogin = function(options,owner_needs_time){
       sessionStorage.setItem("owner_pico_id",options.pico_id);
       sessionStorage.setItem("owner_pico_eci",options.eci);
       var redirect = getCookie("previousUrl") || "/";
-      //should clear cookie here! ?maybe
       if(!owner_needs_time){
+        delete_cookie("previousUrl");            //should clear cookie here! Yes!
         location.assign(redirect);
       }
     }

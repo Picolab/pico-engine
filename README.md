@@ -46,6 +46,12 @@ $ npm start
 
 NOTE: When running via `npm start` the `PICO_ENGINE_HOME` will default to your current directory i.e. your clone of this repository.
 
+### Making changes
+
+Use a branch (or fork) to do your work. When you are ready, create a pull request. That way we can review it before merging it into master.
+
+View [docs/git-cheatsheet.md](https://github.com/Picolab/pico-engine/blob/master/docs/git-cheatsheet.md) for more.
+
 ## Changelog
 
 To view details about versions: [CHANGELOG.md](https://github.com/Picolab/pico-engine/blob/master/CHANGELOG.md)

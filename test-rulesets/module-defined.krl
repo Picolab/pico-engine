@@ -23,7 +23,7 @@ ruleset io.picolabs.module-defined {
 
             send_directive("getInfoAction", getInfo());
 
-            return {"name": getInfo()["name"]}
+            return {"name": getInfo()["name"]};
         }
     }
     rule store_memo {

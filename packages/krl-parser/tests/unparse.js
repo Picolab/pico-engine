@@ -1,5 +1,5 @@
 var _ = require("lodash");
-var phonetic = new require("phonetic");
+var phonetic = require("phonetic");
 var default_grammar = new require("../src/grammar.js");
 
 var gen = {
