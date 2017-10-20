@@ -49,7 +49,9 @@ var startTestServer = function(callback){
 
 test("pico-engine", function(t){
     var pe, root_eci, /*stopServer,*/ child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
-    var picos = {};
+    var subscriptionPicos = {};
+    var SHARED_A = "shared:A";
+    var SUBS_RID = "io.picolabs.subscription";
     async.series([
         function(next){
             startTestServer(function(err, tstserver){
@@ -765,28 +767,26 @@ test("pico-engine", function(t){
         // check attrs are correct .... ?
         function(next){// create children fo subscription tests
             console.log("////////////////// Subscription Tests //////////////////");
-            var subsRid = "io.picolabs.subscription";
-            createChild("A",  subsRid).then(function(pico) {
-                picos["picoA"] = pico;
-                return installRulesets(pico.eci, subsRid);
+            createChild("A",  SUBS_RID).then(function(pico) {
+                subscriptionPicos["picoA"] = pico;
+                return installRulesets(pico.eci, SUBS_RID);
             }).then(function(installResponse) {
                 return createChild("B");
             }).then(function(picoB) {
-                picos["picoB"] = picoB;
-                return installRulesets(picoB.eci, subsRid);
+                subscriptionPicos["picoB"] = picoB;
+                return installRulesets(picoB.eci, SUBS_RID);
             }).then(function(installResponse) {
-                console.log(picos);
-                return createSubscription(picos["picoA"].eci, picos["picoB"].eci, "A");
+                return createSubscription(subscriptionPicos["picoA"].eci, subscriptionPicos["picoB"].eci, "A");
             }).then(function(response) {
                 return dumpDB();
             }).then(function(dump) {
-                // var picoA = picos.picoA;
-                var picoB = picos.picoB;
+                var picoB = subscriptionPicos.picoB;
                 var subs = getSubscriptionsFromDump(dump, picoB.id);
-                t.notEqual(undefined, subs["shared:A"]);
+                subscriptionPicos.picoB.subscriptions = subs;
+                t.notEqual(undefined, subs[SHARED_A]);
                 /**
                  * This is a kinda weird part, but it waits for 'waitToDumpDB' length of time before getting the
-                 * dump from the db.
+                 * dump from the db. (This is to wait for the pending_subscription event to get sent back to picoA)
                  * The promiseWhen will fail if it takes longer then 'timeout' and it will end up going into the catch
                  * clause at the end of the thens
                  */
@@ -794,15 +794,16 @@ test("pico-engine", function(t){
                 var timeout = 1000;
                 setTimeout(function(){
                     dumpDB().then(function(data) {
-                        picos["dump"] = data;
+                        subscriptionPicos["dump"] = data;
                     });
                 }, waitToDumpDB);
                 return promiseWhen(function(){
-                    return picos["dump"] !== undefined;
+                    return subscriptionPicos["dump"] !== undefined;
                 }, timeout);
             }).then(function() {
-                var picoASubs = getSubscriptionsFromDump(picos.dump, picos.picoA.id);
-                t.notEqual(undefined, picoASubs["shared:A"]);
+                var picoASubs = getSubscriptionsFromDump(subscriptionPicos.dump, subscriptionPicos.picoA.id);
+                subscriptionPicos.picoA.subscriptions = picoASubs;
+                t.notEqual(undefined, picoASubs[SHARED_A]);
                 next();
             }).catch(function(err) {
                 console.log(err);
@@ -810,8 +811,25 @@ test("pico-engine", function(t){
             });
         },
         function(next) {
-            console.log(picos);
-        }
+            var sub1 = subscriptionPicos.picoA.subscriptions[SHARED_A];
+            var sub2 = subscriptionPicos.picoB.subscriptions[SHARED_A];
+            var sub1Eci = sub1.eci;
+            var sub2Eci = sub2.eci;
+            var channels = subscriptionPicos.dump.channel;
+
+            // Check that the channels exist
+            t.notEqual(channels[sub1Eci], undefined);
+            t.notEqual(channels[sub2Eci], undefined);
+
+            // Check that the subscription statuses are pending
+            t.equal(sub1.attributes.status, "pending");
+            t.equal(sub2.attributes.status, "pending");
+
+            t.equal(sub1.attributes.sid, "shared:A");
+            t.equal(sub2.attributes.sid, "shared:A");
+            next();
+        },
+
         //////////////// Subscription Accept tests
         //
         //                      end Wrangler tests
@@ -831,7 +849,6 @@ test("pico-engine", function(t){
                 type: "install_rulesets_requested ",
                 attrs: {rids: rulesets}
             }, function(err, response) {
-                console.log("installed ", rulesets);
                 err ? reject(err) : resolve(response);
             });
         });
@@ -845,7 +862,6 @@ test("pico-engine", function(t){
                 type: "new_child_request",
                 attrs: {name: name}
             }, function(err, response){
-                console.log(response.directives[0].options.pico);
                 err ? reject(err) : resolve(response.directives[0].options.pico);
             });
         });
@@ -878,7 +894,7 @@ test("pico-engine", function(t){
     function getSubscriptionsFromDump(dump, picoId) {
         var entvars = dump.entvars;
         entvars = entvars[picoId];
-        return entvars["io.picolabs.subscription"] ? entvars["io.picolabs.subscription"].subscriptions : undefined;
+        return entvars[SUBS_RID] ? entvars[SUBS_RID].subscriptions : undefined;
     }
 
     /**
