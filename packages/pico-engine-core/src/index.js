@@ -226,7 +226,13 @@ module.exports = function(conf){
         initializeRulest(rs).then(function(){
             core.rsreg.put(rs);
             callback();
-        }, callback);
+        }, function(err){
+            process.nextTick(function(){
+                //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+                //when infact we are handling the rejection
+                callback(err);
+            });
+        });
     };
 
     var getRulesetForRID = function(rid, callback){

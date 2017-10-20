@@ -78,7 +78,11 @@ var mkMethod = function(method){
                 }).then(function(r){
                     callback(null, r);
                 }, function(err){
-                    callback(err);
+                    process.nextTick(function(){
+                        //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+                        //when infact we are handling the rejection
+                        callback(err);
+                    });
                 });
             }else{
                 callback(void 0, r);

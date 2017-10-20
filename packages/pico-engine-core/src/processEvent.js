@@ -232,6 +232,10 @@ module.exports = function(core, ctx, callback){
     processEvent(core, ctx).then(function(data){
         callback(null, data);
     }, function(err){
-        callback(err);
+        process.nextTick(function(){
+            //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+            //when infact we are handling the rejection
+            callback(err);
+        });
     });
 };
