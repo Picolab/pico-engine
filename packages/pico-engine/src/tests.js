@@ -1,3 +1,4 @@
+/* global Promise */
 var test = require("tape");
 var path = require("path");
 var async = require("async");
@@ -48,6 +49,7 @@ var startTestServer = function(callback){
 
 test("pico-engine", function(t){
     var pe, root_eci, /*stopServer,*/ child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
+    var picos = {};
     async.series([
         function(next){
             startTestServer(function(err, tstserver){
@@ -241,8 +243,8 @@ test("pico-engine", function(t){
                 args: {collection:"type",filtered:"typeB"},
             }, function(err, data){
                 if(err) return next(err);
-                t.deepEquals(data.channels.length>0, true ,"filtered collection has at least one channels");// should have at least one channel with this type..  
-                t.deepEquals(data.channels[0].type,channel.type,"filtered collection of has correct type");// should have at least one channel with this type..  
+                t.deepEquals(data.channels.length>0, true ,"filtered collection has at least one channels");// should have at least one channel with this type..
+                t.deepEquals(data.channels[0].type,channel.type,"filtered collection of has correct type");// should have at least one channel with this type..
                 next();
             });
         },
@@ -584,8 +586,8 @@ test("pico-engine", function(t){
             });
         },
         ///////////////////////////////// Register rule sets tests ///////////////
-        ///wrangler does not have rules for this.. 
-        ///it does have a function to list registered rule sets 
+        ///wrangler does not have rules for this..
+        ///it does have a function to list registered rule sets
 
         ///////////////////////////////// create child tests ///////////////
         function(next){// store created children
@@ -640,7 +642,7 @@ test("pico-engine", function(t){
                 next();
             });
         },
-        function(next){ // channel in parent created? 
+        function(next){ // channel in parent created?
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.pico",
@@ -654,7 +656,7 @@ test("pico-engine", function(t){
                 next();
             });
         },
-        function(next){ // parent channel stored in child? 
+        function(next){ // parent channel stored in child?
             pe.runQuery({
                 eci: child.eci,
                 rid: "io.picolabs.pico",
@@ -761,7 +763,55 @@ test("pico-engine", function(t){
         // check status of subscription A is pending
         // check status of subscription B is pending
         // check attrs are correct .... ?
-        
+        function(next){// create children fo subscription tests
+            console.log("////////////////// Subscription Tests //////////////////");
+            var subsRid = "io.picolabs.subscription";
+            createChild("A",  subsRid).then(function(pico) {
+                picos["picoA"] = pico;
+                return installRulesets(pico.eci, subsRid);
+            }).then(function(installResponse) {
+                return createChild("B");
+            }).then(function(picoB) {
+                picos["picoB"] = picoB;
+                return installRulesets(picoB.eci, subsRid);
+            }).then(function(installResponse) {
+                console.log(picos);
+                return createSubscription(picos["picoA"].eci, picos["picoB"].eci, "A");
+            }).then(function(response) {
+                return dumpDB();
+            }).then(function(dump) {
+                // var picoA = picos.picoA;
+                var picoB = picos.picoB;
+                var subs = getSubscriptionsFromDump(dump, picoB.id);
+                t.notEqual(undefined, subs["shared:A"]);
+                /**
+                 * This is a kinda weird part, but it waits for 'waitToDumpDB' length of time before getting the
+                 * dump from the db.
+                 * The promiseWhen will fail if it takes longer then 'timeout' and it will end up going into the catch
+                 * clause at the end of the thens
+                 */
+                var waitToDumpDB = 500;
+                var timeout = 1000;
+                setTimeout(function(){
+                    dumpDB().then(function(data) {
+                        picos["dump"] = data;
+                    });
+                }, waitToDumpDB);
+                return promiseWhen(function(){
+                    return picos["dump"] !== undefined;
+                }, timeout);
+            }).then(function() {
+                var picoASubs = getSubscriptionsFromDump(picos.dump, picos.picoA.id);
+                t.notEqual(undefined, picoASubs["shared:A"]);
+                next();
+            }).catch(function(err) {
+                console.log(err);
+                next(err);
+            });
+        },
+        function(next) {
+            console.log(picos);
+        }
         //////////////// Subscription Accept tests
         //
         //                      end Wrangler tests
@@ -772,4 +822,84 @@ test("pico-engine", function(t){
         //stopServer();
         //process.exit(err ? 1 : 0);//ensure server stops
     });
+
+    function installRulesets (eci, rulesets) {
+        return new Promise(function(resolve, reject) {
+            pe.signalEvent({
+                eci: eci,
+                domain: "pico",
+                type: "install_rulesets_requested ",
+                attrs: {rids: rulesets}
+            }, function(err, response) {
+                console.log("installed ", rulesets);
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
+    function createChild (name) {
+        return new Promise(function(resolve, reject) {
+            pe.signalEvent({
+                eci: root_eci,
+                eid: "84",
+                domain: "pico",
+                type: "new_child_request",
+                attrs: {name: name}
+            }, function(err, response){
+                console.log(response.directives[0].options.pico);
+                err ? reject(err) : resolve(response.directives[0].options.pico);
+            });
+        });
+    }
+    function createSubscription (eci1, eci2, name) {
+        return new Promise(function(resolve, reject) {
+            var attrs = {
+                "name": name,
+                "channel_type": "subscription",
+                "subscriber_eci": eci1
+            };
+            pe.signalEvent({
+                eci: eci2,
+                eid: "subscription",
+                domain: "wrangler",
+                type: "subscription",
+                attrs: attrs
+            }, function(err, response){
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
+    function dumpDB(){
+        return new Promise(function(resolve, reject) {
+            pe.dbDump(function(err, response){
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
+    function getSubscriptionsFromDump(dump, picoId) {
+        var entvars = dump.entvars;
+        entvars = entvars[picoId];
+        return entvars["io.picolabs.subscription"] ? entvars["io.picolabs.subscription"].subscriptions : undefined;
+    }
+
+    /**
+     * This code from https://gist.github.com/kylewelsby/e678d5627d8f363a2419#file-promise-when-js-L3
+     */
+    function promiseWhen(condition, timeout){
+        if(!timeout){
+            timeout = 2000;
+        }
+        var done = Promise.defer();
+        setTimeout(function(){
+            done.reject();
+        }, timeout);
+        function loop(){
+            if(condition()){
+                return done.resolve();
+            }
+            setTimeout(loop,0);
+        }
+        setTimeout(loop,0);
+
+        return done.promise;
+    }
 });
