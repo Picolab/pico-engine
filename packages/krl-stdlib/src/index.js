@@ -1,5 +1,6 @@
 var _ = require("lodash");
 var types = require("./types");
+var sort = require("./sort");
 
 //coerce the value into a key string
 var toKey = function(val){
@@ -678,25 +679,6 @@ stdlib.splice = function(ctx, val, start, n_elms, value){
     }
     return _.concat(part1, value, part2);
 };
-var mergeFn = function*(sort_by, start1, end, in_array, out_array){
-    var start2 = start1 + ((end - start1) >> 1);//midpoint defining subarrays
-    var head1 = start1;
-    var head2 = start2;
-    var out = start1;
-    while(head1 < start2 && head2 < end){
-        out_array[out++] = in_array[
-            ((yield sort_by([in_array[head1], in_array[head2]])) <= 0)
-                ? head1++
-                : head2++
-        ];
-    }
-    while(head1 < start2){
-        out_array[out++] = in_array[head1++];
-    }
-    while(head2 < end){
-        out_array[out++] = in_array[head2++];
-    }
-};
 stdlib.sort = function*(ctx, val, sort_by){
     if(!types.isArray(val)){
         return val;
@@ -722,24 +704,9 @@ stdlib.sort = function*(ctx, val, sort_by){
     if(!types.isFunction(sort_by)){
         return val.sort(sorters["default"]);
     }
-
-    //this mergesort is similar to https://github.com/calvinmetcalf/grin
-    var merge = _.partial(mergeFn, _.partial(sort_by, ctx));
-    var len = val.length;
-    var other = Array(len);
-    for(var stride=2; stride < len*2; stride*=2){
-        var start = 0;
-        var end = stride;
-        while(start < len){
-            yield merge(start, Math.min(end, len), val, other);
-            start = end;
-            end += stride;
-        }
-        var temp = val;
-        val = other;
-        other = temp;
-    }
-    return val;
+    return yield sort(val, function(a, b){
+        return sort_by(ctx, [a, b]);
+    });
 };
 stdlib["delete"] = function(ctx, val, path){
     path = toKeyPath(path);
