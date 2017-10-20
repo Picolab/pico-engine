@@ -40,7 +40,7 @@ var mkMethod = function(method){
         if(_.has(args, "body")){
             opts.body = ktypes.toString(args.body);
         }else if(_.has(args, "json")){
-            opts.body = JSON.stringify(args.json);
+            opts.body = ktypes.encode(args.json);
             if(!_.has(opts.headers, "content-type")){
                 opts.headers["content-type"] = "application/json";
             }
