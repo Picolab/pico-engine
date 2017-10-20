@@ -38,6 +38,15 @@ var log_levels = {
     "error": true,
 };
 
+var krl_stdlib_wrapped = _.mapValues(krl_stdlib, function(fn, key){
+    if(cocb.isGeneratorFunction(fn)){
+        return cocb.wrap(fn);
+    }
+    return function(){
+        return Promise.resolve(fn.apply(void 0, arguments));
+    };
+});
+
 module.exports = function(conf){
     var db = DB(conf.db);
     _.each(db, function(val, key){
@@ -152,17 +161,8 @@ module.exports = function(conf){
             }else{
                 args[0] = ctx;
             }
-            var fn = krl_stdlib[fn_name];
-            if(cocb.isGeneratorFunction(fn)){
-                return cocb.wrap(fn).apply(null, args);
-            }
-            return new Promise(function(resolve, reject){
-                try{
-                    resolve(fn.apply(void 0, args));
-                }catch(err){
-                    reject(err);
-                }
-            });
+            var fn = krl_stdlib_wrapped[fn_name];
+            return fn.apply(void 0, args);
         };
 
         //don't allow anyone to mutate ctx on the fly

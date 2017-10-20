@@ -73,5 +73,8 @@ module.exports = function(){
         }
     }
 
-    return cocb.wrap(fn).apply(null, args);
+    if( ! fn.wrapped){
+        fn.wrapped = cocb.wrap(fn);
+    }
+    return fn.wrapped.apply(null, args);
 };
