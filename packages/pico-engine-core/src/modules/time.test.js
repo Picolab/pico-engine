@@ -1,9 +1,10 @@
 var test = require("tape");
 var time = require("./time")().def;
 var cocb = require("co-callback");
+var testErr = require("../testErr");
 
 test("time module", function(t){
-    var testErr = require("../testErr")(t, time);
+    var terr = testErr(t, time);
 
     cocb.run(function*(){
         var ctx = {};
@@ -46,9 +47,9 @@ test("time module", function(t){
             "Time only-defaults to today"
         );
 
-        yield testErr("new", ctx, [], "Error");
-        yield testErr("new", ctx, [67342], "TypeError");
-        yield testErr("new", ctx, ["67342"], "Error");
+        yield terr("new", ctx, [], "Error");
+        yield terr("new", ctx, [67342], "TypeError");
+        yield terr("new", ctx, ["67342"], "Error");
 
         t.equals(
             yield time["add"](ctx, ["2017-01-01", {years: -2017}]),
@@ -75,10 +76,10 @@ test("time module", function(t){
             "2017-01-01T00:03:30.000Z"
         );
 
-        yield testErr("add", ctx, [], "Error");
-        yield testErr("add", ctx, [67342], "Error");
-        yield testErr("add", ctx, ["67342", 5], "Error");
-        yield testErr("add", ctx, [67342, 5], "TypeError");
+        yield terr("add", ctx, [], "Error");
+        yield terr("add", ctx, [67342], "Error");
+        yield terr("add", ctx, ["67342", 5], "Error");
+        yield terr("add", ctx, [67342, 5], "TypeError");
 
         t.equals(
             yield time["add"](ctx, [1967342, {"seconds": "five"}]),
@@ -103,11 +104,11 @@ test("time module", function(t){
             "Wednesday 06 Oct 2010"
         );
 
-        yield testErr("strftime", ctx, [], "Error");
-        yield testErr("strftime", ctx, [67342], "Error");
-        yield testErr("strftime", ctx, [67342, "%F %T"], "TypeError");
-        yield testErr("strftime", ctx, ["67342", "%F %T"], "Error");
-        yield testErr("strftime", ctx, ["1967342", null], "TypeError");
+        yield terr("strftime", ctx, [], "Error");
+        yield terr("strftime", ctx, [67342], "Error");
+        yield terr("strftime", ctx, [67342, "%F %T"], "TypeError");
+        yield terr("strftime", ctx, ["67342", "%F %T"], "Error");
+        yield terr("strftime", ctx, ["1967342", null], "TypeError");
 
         t.equals(
             yield time["strftime"](ctx, [xTime, ["%A %d %b %Y"]]),

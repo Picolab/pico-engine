@@ -3,6 +3,7 @@ var test = require("tape");
 var http = require("http");
 var cocb = require("co-callback");
 var khttp = require("./http")().def;
+var testErr = require("../testErr");
 
 test("http module", function(t){
     var server = http.createServer(function(req, res){
@@ -37,7 +38,7 @@ test("http module", function(t){
     server.listen(0, function(){
         var url = "http://localhost:" + server.address().port;
         cocb.run(function*(){
-            var testErr = require("../testErr")(t, khttp);
+            var terr = testErr(t, khttp);
 
             var resp;
 
@@ -217,8 +218,8 @@ test("http module", function(t){
 
             var i;
             for(i=0; i < numMethods; i++){
-                yield testErr(methods[i], {}, errArg, "Error");
-                yield testErr(methods[i], {}, typeErrArg, "TypeError");
+                yield terr(methods[i], {}, errArg, "Error");
+                yield terr(methods[i], {}, typeErrArg, "TypeError");
             }
         }, function(err){
             server.close();
