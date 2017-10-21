@@ -852,6 +852,7 @@ test("pico-engine", function(t){
 
                 t.equal(picoASubs[SHARED_A].attributes.status, "subscribed", "Picos A's subscription status is subscribed");
                 t.equal(picoBSubs[SHARED_A].attributes.status, "subscribed", "Pico B's subscription status is subscribed");
+                next();
             }).catch(function(err) {
                 next(err);
             });
