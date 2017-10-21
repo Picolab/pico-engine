@@ -218,7 +218,7 @@ ruleset io.picolabs.subscription {
     }
     fired {
       newSubscription = {"eci": channel.id, "name": channel.name,"type": channel.type, "attributes": options.attributes};
-      updatedSubs = getSubscriptions().put([newSubscription.name] , newSubscription.put(["attributes"],{"sid" : newSubscription.name})) ;
+      updatedSubs = getSubscriptions().put([newSubscription.name] , newSubscription) ;
       newSubscription.klog(">> successful created subscription request >>");
       ent:subscriptions := updatedSubs;
       raise wrangler event "pending_subscription" attributes mapWithHost({
@@ -347,7 +347,7 @@ ruleset io.picolabs.subscription {
     fired { 
       newSubscription = {"eci": channel.id, "name": channel.name,"type": channel.type, "attributes": options.attributes};
       logs.klog(standardOut("successful pending incoming"));
-      ent:subscriptions := getSubscriptions().put( [newSubscription.name] , newSubscription.put(["attributes"],{"sid":newSubscription.name}) );
+      ent:subscriptions := getSubscriptions().put( [newSubscription.name] , newSubscription );
       raise wrangler event "inbound_pending_subscription_added" // event to nothing
           attributes event:attrs()
     } 
