@@ -36,11 +36,11 @@ var startTestServer = function(callback){
                 callback(null, {
                     pe: pe,
                     root_eci: root_eci,
-                    /*stopServer: function(){
+                    stopServer: function(){
                         if(!is_windows){
                             dir.unlink();
                         }
-                    },*/
+                    },
                 });
             });
         });
@@ -48,7 +48,7 @@ var startTestServer = function(callback){
 };
 
 test("pico-engine", function(t){
-    var pe, root_eci, /*stopServer,*/ child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
+    var pe, root_eci, stopServer, child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
     var subscriptionPicos = {};
     var SHARED_A = "shared:A";
     var SUBS_RID = "io.picolabs.subscription";
@@ -866,8 +866,8 @@ test("pico-engine", function(t){
         ////////////////////////////////////////////////////////////////////////
     ], function(err){
         t.end(err);
-        //stopServer();
-        //process.exit(err ? 1 : 0);//ensure server stops
+        stopServer();
+        process.exit(err ? 1 : 0);//ensure server stops
     });
 
     /**
