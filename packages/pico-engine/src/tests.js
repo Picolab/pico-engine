@@ -59,7 +59,7 @@ test("pico-engine", function(t){
                 if(err) return next(err);
                 pe = tstserver.pe;
                 root_eci = tstserver.root_eci;
-                //stopServer = tstserver.stopServer;
+                stopServer = tstserver.stopServer;
                 next();
             });
         },
