@@ -855,6 +855,7 @@ test("pico-engine", function(t){
                 var picoDSubs  = getSubscriptionsFromDump(dump, subscriptionPicos.picoD.id);
                 t.equal(picoCSubs["shared:B"], undefined, "Rejecting subscriptions worked");
                 t.equal(picoDSubs["shared:B"], undefined, "Rejecting subscriptions worked");
+                next();
             }).catch(function(err) {
                 next(err);
             });
