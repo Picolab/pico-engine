@@ -766,7 +766,7 @@ test("pico-engine", function(t){
         // check status of subscription B is pending
         // check attrs are correct .... ?
         function(next){// create children fo subscription tests
-            console.log("////////////////// Subscription Tests //////////////////");
+            console.log("////////////////// Subscription Pending Tests //////////////////");
             createChild("A",  SUBS_RID).then(function(pico) {
                 subscriptionPicos["picoA"] = pico;
                 return installRulesets(pico.eci, SUBS_RID);
@@ -783,7 +783,7 @@ test("pico-engine", function(t){
                 var picoB = subscriptionPicos.picoB;
                 var subs = getSubscriptionsFromDump(dump, picoB.id);
                 subscriptionPicos.picoB.subscriptions = subs;
-                t.notEqual(undefined, subs[SHARED_A]);
+                t.notEqual(undefined, subs[SHARED_A], "Pico B has the subscription");
                 /**
                  * This is a kinda weird part, but it waits for 'waitToDumpDB' length of time before getting the
                  * dump from the db. (This is to wait for the pending_subscription event to get sent back to picoA)
@@ -803,7 +803,7 @@ test("pico-engine", function(t){
             }).then(function() {
                 var picoASubs = getSubscriptionsFromDump(subscriptionPicos.dump, subscriptionPicos.picoA.id);
                 subscriptionPicos.picoA.subscriptions = picoASubs;
-                t.notEqual(undefined, picoASubs[SHARED_A]);
+                t.notEqual(picoASubs[SHARED_A], undefined, "Pico A has the subscription");
                 next();
             }).catch(function(err) {
                 console.log(err);
@@ -818,19 +818,45 @@ test("pico-engine", function(t){
             var channels = subscriptionPicos.dump.channel;
 
             // Check that the channels exist
-            t.notEqual(channels[sub1Eci], undefined);
-            t.notEqual(channels[sub2Eci], undefined);
+            t.notEqual(channels[sub1Eci], undefined, "Subscription channel created");
+            t.notEqual(channels[sub2Eci], undefined, "Subscription channel created");
 
             // Check that the subscription statuses are pending
-            t.equal(sub1.attributes.status, "pending");
-            t.equal(sub2.attributes.status, "pending");
+            t.equal(sub1.attributes.status, "inbound", "Pico A's subscription status is inbound");
+            t.equal(sub2.attributes.status, "outbound", "Pico B's subscription status is outbound");
 
-            t.equal(sub1.attributes.sid, "shared:A");
-            t.equal(sub2.attributes.sid, "shared:A");
+            // t.equal(sub1.attributes.sid, SHARED_A);
+            // t.equal(sub2.attributes.sid, SHARED_A);
             next();
         },
-
         //////////////// Subscription Accept tests
+        function (next) {
+            console.log("////////////////// Subscription Acceptance Tests //////////////////");
+            pendingSubscriptionApproval(subscriptionPicos.picoA.eci, SHARED_A).then(function(response) {
+                // console.log(response);
+            }).then(function(response) {
+                subscriptionPicos.dump = undefined;
+                var waitToDumpDB = 500;
+                var timeout = 1000;
+                setTimeout(function(){
+                    dumpDB().then(function(data) {
+                        subscriptionPicos["dump"] = data;
+                    });
+                }, waitToDumpDB);
+                return promiseWhen(function(){
+                    return subscriptionPicos["dump"] !== undefined;
+                }, timeout);
+            }).then(function() {
+                var picoASubs = getSubscriptionsFromDump(subscriptionPicos.dump, subscriptionPicos.picoA.id);
+                var picoBSubs = getSubscriptionsFromDump(subscriptionPicos.dump, subscriptionPicos.picoB.id);
+
+                t.equal(picoASubs[SHARED_A].attributes.status, "subscribed", "Picos A's subscription status is subscribed");
+                t.equal(picoBSubs[SHARED_A].attributes.status, "subscribed", "Pico B's subscription status is subscribed");
+            }).catch(function(err) {
+                next(err);
+            });
+        },
+
         //
         //                      end Wrangler tests
         //
@@ -863,6 +889,18 @@ test("pico-engine", function(t){
                 attrs: {name: name}
             }, function(err, response){
                 err ? reject(err) : resolve(response.directives[0].options.pico);
+            });
+        });
+    }
+    function pendingSubscriptionApproval (picoEci, subscriptionName) {
+        return new Promise(function(resolve, reject) {
+            pe.signalEvent({
+                eci: picoEci,
+                domain: "wrangler",
+                type: "pending_subscription_approval",
+                attrs: {"subscription_name": subscriptionName}
+            }, function(err, response){
+                err ? reject(err) : resolve(response);
             });
         });
     }
