@@ -820,7 +820,6 @@ test("pico-engine", function(t){
             console.log("////////////////// Subscription Acceptance Tests //////////////////");
             pendingSubscriptionApproval(subscriptionPicos.picoA.eci, SHARED_A)
                 .then(function(response) {
-                    dump = undefined;
                     return getDBDumpWIthDelay();
                 })
                 .then(function() {
@@ -848,7 +847,16 @@ test("pico-engine", function(t){
             }).then(function(installResponse) {
                 return createSubscription(subscriptionPicos["picoC"].eci, subscriptionPicos["picoD"].eci, "B");
             }).then(function(response) {
-                console.log(subscriptionPicos.picoD);
+                return inboundSubscriptionRejection(subscriptionPicos.picoC.eci, "shared:B");
+            }).then(function(response) {
+                return getDBDumpWIthDelay();
+            }).then(function() {
+                var picoCSubs  = getSubscriptionsFromDump(dump, subscriptionPicos.picoC.id);
+                var picoDSubs  = getSubscriptionsFromDump(dump, subscriptionPicos.picoD.id);
+                t.equal(picoCSubs["shared:B"], undefined, "Rejecting subscriptions worked");
+                t.equal(picoDSubs["shared:B"], undefined, "Rejecting subscriptions worked");
+            }).catch(function(err) {
+                next(err);
             });
         },
 
@@ -869,6 +877,7 @@ test("pico-engine", function(t){
     function getDBDumpWIthDelay(dumpDelay, maxTime) {
         var waitToDumpDB = dumpDelay ? dumpDelay : 500;
         var timeout = maxTime ? maxTime : 1000;
+        dump = undefined;
         setTimeout(function () {
             dumpDB().then(function (data) {
                 dump = data;
@@ -910,6 +919,18 @@ test("pico-engine", function(t){
                 eci: picoEci,
                 domain: "wrangler",
                 type: "pending_subscription_approval",
+                attrs: {"subscription_name": subscriptionName}
+            }, function(err, response){
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
+    function inboundSubscriptionRejection (picoEci, subscriptionName) {
+        return new Promise(function(resolve, reject) {
+            pe.signalEvent({
+                eci: picoEci,
+                domain: "wrangler",
+                type: "inbound_subscription_rejection",
                 attrs: {"subscription_name": subscriptionName}
             }, function(err, response){
                 err ? reject(err) : resolve(response);
