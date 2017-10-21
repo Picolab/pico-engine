@@ -52,6 +52,7 @@ test("pico-engine", function(t){
     var subscriptionPicos = {};
     var SHARED_A = "shared:A";
     var SUBS_RID = "io.picolabs.subscription";
+    var dump = undefined;
     async.series([
         function(next){
             startTestServer(function(err, tstserver){
@@ -784,24 +785,9 @@ test("pico-engine", function(t){
                 var subs = getSubscriptionsFromDump(dump, picoB.id);
                 subscriptionPicos.picoB.subscriptions = subs;
                 t.notEqual(undefined, subs[SHARED_A], "Pico B has the subscription");
-                /**
-                 * This is a kinda weird part, but it waits for 'waitToDumpDB' length of time before getting the
-                 * dump from the db. (This is to wait for the pending_subscription event to get sent back to picoA)
-                 * The promiseWhen will fail if it takes longer then 'timeout' and it will end up going into the catch
-                 * clause at the end of the thens
-                 */
-                var waitToDumpDB = 500;
-                var timeout = 1000;
-                setTimeout(function(){
-                    dumpDB().then(function(data) {
-                        subscriptionPicos["dump"] = data;
-                    });
-                }, waitToDumpDB);
-                return promiseWhen(function(){
-                    return subscriptionPicos["dump"] !== undefined;
-                }, timeout);
+                return getDBDumpWIthDelay();
             }).then(function() {
-                var picoASubs = getSubscriptionsFromDump(subscriptionPicos.dump, subscriptionPicos.picoA.id);
+                var picoASubs = getSubscriptionsFromDump(dump, subscriptionPicos.picoA.id);
                 subscriptionPicos.picoA.subscriptions = picoASubs;
                 t.notEqual(picoASubs[SHARED_A], undefined, "Pico A has the subscription");
                 next();
@@ -815,7 +801,7 @@ test("pico-engine", function(t){
             var sub2 = subscriptionPicos.picoB.subscriptions[SHARED_A];
             var sub1Eci = sub1.eci;
             var sub2Eci = sub2.eci;
-            var channels = subscriptionPicos.dump.channel;
+            var channels = dump.channel;
 
             // Check that the channels exist
             t.notEqual(channels[sub1Eci], undefined, "Subscription channel created");
@@ -832,29 +818,37 @@ test("pico-engine", function(t){
         //////////////// Subscription Accept tests
         function (next) {
             console.log("////////////////// Subscription Acceptance Tests //////////////////");
-            pendingSubscriptionApproval(subscriptionPicos.picoA.eci, SHARED_A).then(function(response) {
-                // console.log(response);
-            }).then(function(response) {
-                subscriptionPicos.dump = undefined;
-                var waitToDumpDB = 500;
-                var timeout = 1000;
-                setTimeout(function(){
-                    dumpDB().then(function(data) {
-                        subscriptionPicos["dump"] = data;
-                    });
-                }, waitToDumpDB);
-                return promiseWhen(function(){
-                    return subscriptionPicos["dump"] !== undefined;
-                }, timeout);
-            }).then(function() {
-                var picoASubs = getSubscriptionsFromDump(subscriptionPicos.dump, subscriptionPicos.picoA.id);
-                var picoBSubs = getSubscriptionsFromDump(subscriptionPicos.dump, subscriptionPicos.picoB.id);
+            pendingSubscriptionApproval(subscriptionPicos.picoA.eci, SHARED_A)
+                .then(function(response) {
+                    dump = undefined;
+                    return getDBDumpWIthDelay();
+                })
+                .then(function() {
+                    var picoASubs = getSubscriptionsFromDump(dump, subscriptionPicos.picoA.id);
+                    var picoBSubs = getSubscriptionsFromDump(dump, subscriptionPicos.picoB.id);
 
-                t.equal(picoASubs[SHARED_A].attributes.status, "subscribed", "Picos A's subscription status is subscribed");
-                t.equal(picoBSubs[SHARED_A].attributes.status, "subscribed", "Pico B's subscription status is subscribed");
-                next();
-            }).catch(function(err) {
-                next(err);
+                    t.equal(picoASubs[SHARED_A].attributes.status, "subscribed", "Pico A's subscription status is subscribed");
+                    t.equal(picoBSubs[SHARED_A].attributes.status, "subscribed", "Pico B's subscription status is subscribed");
+                    next();
+                })
+                .catch(function(err) {
+                    next(err);
+                });
+        },
+        function(next) {
+            console.log("////////////////// Subscription Rejection Tests //////////////////");
+            createChild("C",  SUBS_RID).then(function(pico) {
+                subscriptionPicos["picoC"] = pico;
+                return installRulesets(pico.eci, SUBS_RID);
+            }).then(function(installResponse) {
+                return createChild("D");
+            }).then(function(pico) {
+                subscriptionPicos["picoD"] = pico;
+                return installRulesets(pico.eci, SUBS_RID);
+            }).then(function(installResponse) {
+                return createSubscription(subscriptionPicos["picoC"].eci, subscriptionPicos["picoD"].eci, "B");
+            }).then(function(response) {
+                console.log(subscriptionPicos.picoD);
             });
         },
 
@@ -867,6 +861,23 @@ test("pico-engine", function(t){
         //stopServer();
         //process.exit(err ? 1 : 0);//ensure server stops
     });
+
+    /**
+     * This function basically causes a delay before getting the dbDump.
+     * Events can take time to propagate on the engine so this allows for this.
+     */
+    function getDBDumpWIthDelay(dumpDelay, maxTime) {
+        var waitToDumpDB = dumpDelay ? dumpDelay : 500;
+        var timeout = maxTime ? maxTime : 1000;
+        setTimeout(function () {
+            dumpDB().then(function (data) {
+                dump = data;
+            });
+        }, waitToDumpDB);
+        return promiseWhen(function () {
+            return dump !== undefined;
+        }, timeout);
+    }
 
     function installRulesets (eci, rulesets) {
         return new Promise(function(resolve, reject) {
