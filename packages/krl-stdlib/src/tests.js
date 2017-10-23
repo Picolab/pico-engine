@@ -18,18 +18,28 @@ var ylibFn = function(fn_name, args){
     args = [defaultCTX].concat(args);
     var fn = stdlib[fn_name];
     if(cocb.isGeneratorFunction(fn)){
-        return cocb.promiseRun(function*(){
-            return yield fn.apply(void 0, args);
-        });
+        return cocb.wrap(fn).apply(void 0, args);
     }
-    return new Promise(function(resolve, reject){
-        try{
-            resolve(fn.apply(void 0, args));
-        }catch(err){
-            reject(err);
+    return Promise.resolve(fn.apply(void 0, args));
+};
+
+
+var yNextTick = cocb.toYieldable(function(callback){
+    process.nextTick(callback);
+});
+
+var wrapFunctions = function(args){
+    return _.map(args, function(arg){
+        if(types.isFunction(arg)){
+            return cocb.wrap(function*(ctx, args){
+                yield yNextTick();//ensure it's async
+                return arg.apply(void 0, args);
+            });
         }
+        return arg;
     });
 };
+
 
 var defaultCTX = {
     emit: _.noop
@@ -37,18 +47,6 @@ var defaultCTX = {
 
 var action = function(){};
 action.is_an_action = true;
-
-//wrap lambdas as KRL Closures
-var mkClosure = function(args){
-    return _.map(args, function(arg){
-        if(types.isFunction(arg)){
-            return function(ctx, args){
-                return arg.apply(this, args);
-            };
-        }
-        return arg;
-    });
-};
 
 var testFn = function(t, fn, args, expected, emitType, errType, message){
     if(arguments.length === 5){
@@ -65,7 +63,6 @@ var testFn = function(t, fn, args, expected, emitType, errType, message){
         };
     };
 
-    args = mkClosure(args);
     var emitCTX = mkCtx(emitType, errType);
 
     if(useStrict(expected)){
@@ -76,7 +73,6 @@ var testFn = function(t, fn, args, expected, emitType, errType, message){
 };
 
 var testFnErr = function(t, fn, args, type, message){
-    args = mkClosure(args);
     try{
         stdlib[fn].apply(null, [defaultCTX].concat(args));
         t.fail("Failed to throw an error");
@@ -105,31 +101,9 @@ var ytfMatrix = function*(ytf, obj, args, exp){
     }
 };
 
-var mkTfMap = function(args){
-    return _.map(args, function(arg){
-        if(cocb.isGeneratorFunction(arg)){
-            return function*(ctx, args){
-                return yield arg.apply(this, args);
-            };
-        }else if(types.isFunction(arg)){
-            return cocb.toYieldable(function(ctx, args, callback){
-                var data;
-                try{
-                    data = arg.apply(this, args);
-                }catch(err){
-                    callback(err);
-                    return;
-                }
-                callback(null, data);
-            });
-        }
-        return arg;
-    });
-};
-
 var mkTf = function(t){
     return function*(fn, args, expected, message){
-        args = mkTfMap(args);
+        args = wrapFunctions(args);
         if(useStrict(expected)){
             strictDeepEquals(t,
                 yield ylibFn(fn, args),
@@ -148,7 +122,7 @@ var mkTf = function(t){
 
 var mkTfe = function(t){
     return function*(fn, args, type, message){
-        args = mkTfMap(args);
+        args = wrapFunctions(args);
         try{
             yield ylibFn(fn, args);
             t.fail("Failed to throw an error");
@@ -160,12 +134,13 @@ var mkTfe = function(t){
 
 var ytest = function(msg, body){
     test(msg, function(t){
-        var tf = _.partial(testFn, t);
-        var tfe = _.partial(testFnErr, t);
-        var ytf = mkTf(t);
-        var ytfe = mkTfe(t);
-        var ytfm = _.partial(ytfMatrix, ytf);
-        cocb.run(body(t, ytfm, ytfe, ytf, tfe, tf), t.end);
+        cocb.wrap(body)(t).then(function(){
+            t.end();
+        }, function(err){
+            process.nextTick(function(){
+                t.end(err);
+            });
+        });
     });
 };
 
@@ -459,7 +434,12 @@ test("string operators", function(t){
     t.end();
 });
 
-ytest("collection operators", function*(t, ytfm, ytfe, ytf, tfe, tf){
+ytest("collection operators", function*(t){
+    var tf = _.partial(testFn, t);
+    var tfe = _.partial(testFnErr, t);
+    var ytf = mkTf(t);
+    var ytfe = mkTfe(t);
+    var ytfm = _.partial(ytfMatrix, ytf);
 
     var a = [3, 4, 5];
     var b = null;
@@ -688,10 +668,27 @@ ytest("collection operators", function*(t, ytfm, ytfe, ytf, tfe, tf){
     yield ytf("sort", [to_sort, "reverse"], [5, 4, 3, 12, 1]);
     yield ytf("sort", [to_sort, "numeric"], [1, 3, 4, 5, 12]);
     yield ytf("sort", [to_sort, "ciremun"], [12, 5, 4, 3, 1]);
+
     yield ytf("sort", [to_sort, function(a, b){
         return a < b ? -1 : (a === b ? 0 : 1);
     }], [1, 3, 4, 5, 12]);
+    yield ytf("sort", [to_sort, function(a, b){
+        return a > b ? -1 : (a === b ? 0 : 1);
+    }], [12, 5, 4, 3, 1]);
     t.deepEquals(to_sort, [5, 3, 4, 1, 12], "should not be mutated");
+
+    yield ytf("sort", [[], function(a, b){
+        return a < b ? -1 : (a === b ? 0 : 1);
+    }], []);
+    yield ytf("sort", [[1], function(a, b){
+        return a < b ? -1 : (a === b ? 0 : 1);
+    }], [1]);
+    yield ytf("sort", [[2, 1], function(a, b){
+        return a < b ? -1 : (a === b ? 0 : 1);
+    }], [1, 2]);
+    yield ytf("sort", [[2, 3, 1], function(a, b){
+        return a < b ? -1 : (a === b ? 0 : 1);
+    }], [1, 2, 3]);
 
     tf("delete", [obj, ["foo", "bar", 10]], {
         "colors": "many",

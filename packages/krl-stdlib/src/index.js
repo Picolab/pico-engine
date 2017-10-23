@@ -1,5 +1,6 @@
 var _ = require("lodash");
 var types = require("./types");
+var sort = require("./sort");
 
 //coerce the value into a key string
 var toKey = function(val){
@@ -678,53 +679,35 @@ stdlib.splice = function(ctx, val, start, n_elms, value){
     }
     return _.concat(part1, value, part2);
 };
-stdlib.sort = (function(){
-    var swap = function(arr, i, j){
-        var temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
+stdlib.sort = function*(ctx, val, sort_by){
+    if(!types.isArray(val)){
+        return val;
+    }
+    val = _.cloneDeep(val);
+    var sorters = {
+        "default": function(a, b){
+            return stdlib.cmp(ctx, a, b);
+        },
+        "reverse": function(a, b){
+            return -stdlib.cmp(ctx, a, b);
+        },
+        "numeric": function(a, b){
+            return stdlib["<=>"](ctx, a, b);
+        },
+        "ciremun": function(a, b){
+            return -stdlib["<=>"](ctx, a, b);
+        }
     };
-    return function*(ctx, val, sort_by){
-        if(!types.isArray(val)){
-            return val;
-        }
-        val = _.cloneDeep(val);
-        var sorters = {
-            "default": function(a, b){
-                return stdlib.cmp(ctx, a, b);
-            },
-            "reverse": function(a, b){
-                return -stdlib.cmp(ctx, a, b);
-            },
-            "numeric": function(a, b){
-                return stdlib["<=>"](ctx, a, b);
-            },
-            "ciremun": function(a, b){
-                return -stdlib["<=>"](ctx, a, b);
-            }
-        };
-        if(_.has(sorters, sort_by)){
-            return val.sort(sorters[sort_by]);
-        }
-        if(!types.isFunction(sort_by)){
-            return val.sort(sorters["default"]);
-        }
-        var sorted = val;
-        var i, j, a, b;
-        var len = sorted.length;
-        //TODO optimize with a better sort algorithm
-        for (i = len - 1; i >= 0; i--){
-            for(j = 1; j <= i; j++){
-                a = sorted[j-1];
-                b = sorted[j];
-                if((yield sort_by(ctx, [a, b])) > 0){
-                    swap(sorted, j-1, j);
-                }
-            }
-        }
-        return sorted;
-    };
-})();
+    if(_.has(sorters, sort_by)){
+        return val.sort(sorters[sort_by]);
+    }
+    if(!types.isFunction(sort_by)){
+        return val.sort(sorters["default"]);
+    }
+    return yield sort(val, function(a, b){
+        return sort_by(ctx, [a, b]);
+    });
+};
 stdlib["delete"] = function(ctx, val, path){
     path = toKeyPath(path);
     //TODO optimize
