@@ -677,6 +677,19 @@ ytest("collection operators", function*(t){
     }], [12, 5, 4, 3, 1]);
     t.deepEquals(to_sort, [5, 3, 4, 1, 12], "should not be mutated");
 
+    yield ytf("sort", [[], function(a, b){
+        return a < b ? -1 : (a === b ? 0 : 1);
+    }], []);
+    yield ytf("sort", [[1], function(a, b){
+        return a < b ? -1 : (a === b ? 0 : 1);
+    }], [1]);
+    yield ytf("sort", [[2, 1], function(a, b){
+        return a < b ? -1 : (a === b ? 0 : 1);
+    }], [1, 2]);
+    yield ytf("sort", [[2, 3, 1], function(a, b){
+        return a < b ? -1 : (a === b ? 0 : 1);
+    }], [1, 2, 3]);
+
     tf("delete", [obj, ["foo", "bar", 10]], {
         "colors": "many",
         "pi": [3, 1, 4, 1, 5, 9, 3],
