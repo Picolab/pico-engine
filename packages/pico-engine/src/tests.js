@@ -52,7 +52,6 @@ test("pico-engine", function(t){
     var subscriptionPicos = {};
     var SHARED_A = "shared:A";
     var SUBS_RID = "io.picolabs.subscription";
-    var dump = undefined;
     async.series([
         function(next){
             startTestServer(function(err, tstserver){
@@ -786,7 +785,7 @@ test("pico-engine", function(t){
                 subscriptionPicos.picoB.subscriptions = subs;
                 t.notEqual(undefined, subs[SHARED_A], "Pico B has the subscription");
                 return getDBDumpWIthDelay();
-            }).then(function() {
+            }).then(function(dump) {
                 var picoASubs = getSubscriptionsFromDump(dump, subscriptionPicos.picoA.id);
                 subscriptionPicos.picoA.subscriptions = picoASubs;
                 t.notEqual(picoASubs[SHARED_A], undefined, "Pico A has the subscription");
@@ -799,13 +798,6 @@ test("pico-engine", function(t){
         function(next) {
             var sub1 = subscriptionPicos.picoA.subscriptions[SHARED_A];
             var sub2 = subscriptionPicos.picoB.subscriptions[SHARED_A];
-            var sub1Eci = sub1.eci;
-            var sub2Eci = sub2.eci;
-            var channels = dump.channel;
-
-            // Check that the channels exist
-            t.notEqual(channels[sub1Eci], undefined, "Subscription channel created");
-            t.notEqual(channels[sub2Eci], undefined, "Subscription channel created");
 
             // Check that the subscription statuses are pending
             t.equal(sub1.attributes.status, "inbound", "Pico A's subscription status is inbound");
@@ -813,7 +805,16 @@ test("pico-engine", function(t){
 
             // t.equal(sub1.attributes.sid, SHARED_A);
             // t.equal(sub2.attributes.sid, SHARED_A);
-            next();
+
+            pe.dbDump(function(err, dump){
+                if(err) return next(err);
+
+                // Check that the channels exist
+                t.ok(dump.channel[sub1.eci], "Subscription channel created");
+                t.ok(dump.channel[sub2.eci], "Subscription channel created");
+
+                next();
+            });
         },
         //////////////// Subscription Accept tests
         function (next) {
@@ -822,7 +823,7 @@ test("pico-engine", function(t){
                 .then(function(response) {
                     return getDBDumpWIthDelay();
                 })
-                .then(function() {
+                .then(function(dump) {
                     var picoASubs = getSubscriptionsFromDump(dump, subscriptionPicos.picoA.id);
                     var picoBSubs = getSubscriptionsFromDump(dump, subscriptionPicos.picoB.id);
 
@@ -850,7 +851,7 @@ test("pico-engine", function(t){
                 return inboundSubscriptionRejection(subscriptionPicos.picoC.eci, "shared:B");
             }).then(function(response) {
                 return getDBDumpWIthDelay();
-            }).then(function() {
+            }).then(function(dump) {
                 var picoCSubs  = getSubscriptionsFromDump(dump, subscriptionPicos.picoC.id);
                 var picoDSubs  = getSubscriptionsFromDump(dump, subscriptionPicos.picoD.id);
                 t.equal(picoCSubs["shared:B"], undefined, "Rejecting subscriptions worked");
@@ -875,18 +876,14 @@ test("pico-engine", function(t){
      * This function basically causes a delay before getting the dbDump.
      * Events can take time to propagate on the engine so this allows for this.
      */
-    function getDBDumpWIthDelay(dumpDelay, maxTime) {
-        var waitToDumpDB = dumpDelay ? dumpDelay : 500;
-        var timeout = maxTime ? maxTime : 1000;
-        dump = undefined;
-        setTimeout(function () {
-            dumpDB().then(function (data) {
-                dump = data;
-            });
-        }, waitToDumpDB);
-        return promiseWhen(function () {
-            return dump !== undefined;
-        }, timeout);
+    function getDBDumpWIthDelay() {
+        return new Promise(function (resolve, reject) {
+            setTimeout(function () {
+                pe.dbDump(function(err, dump){
+                    err ? reject(err) : resolve(dump);
+                });
+            }, 500);
+        });
     }
 
     function installRulesets (eci, rulesets) {
@@ -967,27 +964,5 @@ test("pico-engine", function(t){
         var entvars = dump.entvars;
         entvars = entvars[picoId];
         return entvars[SUBS_RID] ? entvars[SUBS_RID].subscriptions : undefined;
-    }
-
-    /**
-     * This code from https://gist.github.com/kylewelsby/e678d5627d8f363a2419#file-promise-when-js-L3
-     */
-    function promiseWhen(condition, timeout){
-        if(!timeout){
-            timeout = 2000;
-        }
-        var done = Promise.defer();
-        setTimeout(function(){
-            done.reject();
-        }, timeout);
-        function loop(){
-            if(condition()){
-                return done.resolve();
-            }
-            setTimeout(loop,0);
-        }
-        setTimeout(loop,0);
-
-        return done.promise;
     }
 });
