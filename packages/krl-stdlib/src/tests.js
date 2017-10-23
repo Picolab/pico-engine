@@ -24,7 +24,7 @@ var ylibFn = function(fn_name, args){
 };
 
 
-var yNextTick = cocb.toYieldable(function(callback){
+var yNextTick = cocb.wrap(function(callback){
     process.nextTick(callback);
 });
 
