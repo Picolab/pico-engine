@@ -7,28 +7,21 @@ var send_directive = mkKRLfn([
     "name",
     "options",
 ], function(args, ctx, callback){
-    var name_type = ktypes.typeOf(args.name);
-    var options_type = ktypes.typeOf(args.options);
-
-    if(name_type === "String" && options_type !== "Null" && options_type !== "Map"){
+    if(!_.has(args, "name")){
+        return callback(new Error("send_directive needs a name string"));
+    }
+    if(!ktypes.isString(args.name)){
+        return callback(new TypeError("send_directive was given " + ktypes.toString(args.name) + " instead of a name string"));
+    }
+    if(!_.has(args, "options")){
+        args.options = {};
+    }else if(!ktypes.isMap(args.options)){
         return callback(new TypeError("send_directive was given " + ktypes.toString(args.options) + " instead of an options map"));
-    }
-
-    if(name_type === "Map" && options_type !== "Map"){
-        var temp = args.name;
-        args.name = args.options;
-        args.options = temp;
-
-        name_type = options_type;
-    }
-
-    if(name_type !== "Null"){
-        args.name = ktypes.toString(args.name);
     }
 
     callback(null, ctx.addActionResponse(ctx, "directive", {
         name: args.name,
-        options: args.options || {},
+        options: args.options
     }));
 });
 
