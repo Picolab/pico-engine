@@ -1,6 +1,13 @@
 var _ = require("lodash");
+var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
 var request = require("request");
+
+var ensureMap = function(arg, defaultTo){
+    return ktypes.isMap(arg)
+        ? arg
+        : defaultTo;
+};
 
 var mkMethod = function(method){
     return mkKRLfn([
@@ -15,24 +22,30 @@ var mkMethod = function(method){
         "parseJSON",
         "autoraise",
     ], function(args, ctx, callback){
+        if(!_.has(args, "url")){
+            return callback(new Error("http:" + method.toLowerCase() + " needs a url string"));
+        }
+        if(!ktypes.isString(args.url)){
+            return callback(new TypeError("http:" + method.toLowerCase() + " was given " + ktypes.toString(args.url) + " instead of a url string"));
+        }
 
         var opts = {
             method: method,
             url: args.url,
-            qs: args.qs || {},
-            headers: args.headers || {},
-            auth: args.auth || void 0,
+            qs: ensureMap(args.qs, {}),
+            headers: ensureMap(args.headers, {}),
+            auth: ensureMap(args.auth),
         };
 
-        if(args.body){
-            opts.body = args.body;
-        }else if(args.json){
-            opts.body = JSON.stringify(args.json);
+        if(_.has(args, "body")){
+            opts.body = ktypes.toString(args.body);
+        }else if(_.has(args, "json")){
+            opts.body = ktypes.encode(args.json);
             if(!_.has(opts.headers, "content-type")){
                 opts.headers["content-type"] = "application/json";
             }
-        }else if(args.form){
-            opts.form = args.form;
+        }else if(_.has(args, "form")){
+            opts.form = ensureMap(args.form);
         }
 
         request(opts, function(err, res, body){
@@ -55,8 +68,8 @@ var mkMethod = function(method){
                     //just leave the content as is
                 }
             }
-            if(_.isString(args.autoraise)){
-                r.label = args.autoraise;
+            if(_.has(args, "autoraise")){
+                r.label = ktypes.toString(args.autoraise);
                 ctx.raiseEvent({
                     domain: "http",
                     type: method.toLowerCase(),

@@ -963,7 +963,10 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                 ],
                 [
                     signal("http_test", "post", {url: url}),
-                    []//nothing should be returned
+                    [{options: {
+                        foo: "bar",
+                        baz: "[Action]",//Notice this is using KRL's json encoding
+                    }, name: "resp.content.body"}],
                 ],
                 [
                     signal("http_test", "post_setting", {url: url}),
