@@ -23,10 +23,10 @@ var mkMethod = function(method){
         "autoraise",
     ], function(args, ctx, callback){
         if(!_.has(args, "url")){
-            return callback(new Error("http:" + method + "needs a url"));
+            return callback(new Error("http:" + method.toLowerCase() + " needs a url string"));
         }
         if(!ktypes.isString(args.url)){
-            return callback(new TypeError("http:" + method + " was given " + ktypes.toString(args.url) + " instead of a url"));
+            return callback(new TypeError("http:" + method.toLowerCase() + " was given " + ktypes.toString(args.url) + " instead of a url string"));
         }
 
         var opts = {

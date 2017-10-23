@@ -218,8 +218,9 @@ test("http module", function(t){
 
             var i;
             for(i=0; i < numMethods; i++){
-                yield terr(methods[i], {}, errArg, "Error");
-                yield terr(methods[i], {}, typeErrArg, "TypeError");
+                var msgSubstring = "Error: http:" + methods[i] + " ";
+                yield terr(methods[i], {}, errArg, msgSubstring + "needs a url string");
+                yield terr(methods[i], {}, typeErrArg, "Type" + msgSubstring + "was given null instead of a url string");
             }
         }, function(err){
             server.close();

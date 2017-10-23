@@ -31,8 +31,13 @@ module.exports = function(core){
                 "opts",
             ], function(args, ctx, callback){
                 var d = moment();
-                if(_.has(args, ["opts", "tz"])){
-                    d.tz(args.opts.tz);
+                if(_.has(args, "opts")){
+                    if(!ktypes.isMap(args.opts)){
+                        return callback(new TypeError("time:now was given " + ktypes.toString(args.opts) + " instead of an opts map"));
+                    }
+                    if(_.has(args.opts, "tz")){
+                        d.tz(args.opts.tz);
+                    }
                 }
                 callback(null, d.toISOString());
             }),
@@ -40,7 +45,7 @@ module.exports = function(core){
                 "date",
             ], function(args, ctx, callback){
                 if(!_.has(args, "date")){
-                    return callback(new Error("time:new expects a date argument"));
+                    return callback(new Error("time:new needs a date string"));
                 }
 
                 var dateStr = ktypes.toString(args.date);
@@ -49,7 +54,7 @@ module.exports = function(core){
                     if(ktypes.isString(args.date)){
                         return callback(new Error("time:new was given an invalid date string (" + dateStr + ")"));
                     }
-                    return callback(new TypeError("time:new needs a string, not " + dateStr));
+                    return callback(new TypeError("time:new was given " + ktypes.toString(dateStr) + " instead of a date string"));
                 }
                 callback(null, d.toISOString());
             }),
@@ -57,8 +62,11 @@ module.exports = function(core){
                 "date",
                 "spec",
             ], function(args, ctx, callback){
-                if(!_.has(args, "date") || !_.has(args, "spec")){
-                    return callback(new Error("time:add expects date and spec arguments"));
+                if(!_.has(args, "date")){
+                    return callback(new Error("time:add needs a date string"));
+                }
+                if(!_.has(args, "spec")){
+                    return callback(new Error("time:add needs a spec map"));
                 }
 
                 var dateStr = ktypes.toString(args.date);
@@ -67,7 +75,11 @@ module.exports = function(core){
                     if(ktypes.isString(args.date)){
                         return callback(new Error("time:add was given an invalid date string (" + dateStr + ")"));
                     }
-                    return callback(new TypeError("time:add needs a date string, not " + dateStr));
+                    return callback(new TypeError("time:add was given " + ktypes.toString(dateStr) + " instead of a date string"));
+                }
+
+                if(!ktypes.isMap(args.spec)){
+                    return callback(new TypeError("time:add was given " + ktypes.toString(args.spec) + " instead of a spec map"));
                 }
 
                 d.add(args.spec);
@@ -78,8 +90,11 @@ module.exports = function(core){
                 "date",
                 "fmt",
             ], function(args, ctx, callback){
-                if(!_.has(args, "date") || !_.has(args, "fmt")){
-                    return callback(new Error("time:strftime expects date and fmt arguments"));
+                if(!_.has(args, "date")){
+                    return callback(new Error("time:strftime needs a date string"));
+                }
+                if(!_.has(args, "fmt")){
+                    return callback(new Error("time:strftime needs a fmt string"));
                 }
 
                 var dateStr = ktypes.toString(args.date);
@@ -88,14 +103,14 @@ module.exports = function(core){
                     if(ktypes.isString(args.date)){
                         return callback(new Error("time:strftime was given an invalid date string (" + dateStr + ")"));
                     }
-                    return callback(new TypeError("time:strftime needs a date string, not " + dateStr));
+                    return callback(new TypeError("time:strftime was given " + ktypes.toString(dateStr) + " instead of a date string"));
                 }
 
-                if(ktypes.isNull(args.fmt)){
-                    return callback(new TypeError("time:strftime was given a null format"));
+                if(!ktypes.isString(args.fmt)){
+                    return callback(new TypeError("time:strftime was given " + ktypes.toString(args.fmt) + " instead of a fmt string"));
                 }
 
-                callback(null, strftime(ktypes.toString(args.fmt), d.toDate()));
+                callback(null, strftime(args.fmt, d.toDate()));
             }),
         }
     };
