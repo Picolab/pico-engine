@@ -2,6 +2,7 @@ var _ = require("lodash");
 var fs = require("fs");
 var path = require("path");
 var async = require("async");
+var fileUrl = require("file-url");
 var leveldown = require("leveldown");
 var RulesetLoader = require("./RulesetLoader");
 var PicoEngineCore = require("pico-engine-core");
@@ -65,7 +66,7 @@ var getSystemRulesets = function(pe, callback){
                 if(err) return next(err);
                 next(null, {
                     src: src,
-                    meta: {url: "http://fake-url/krl/" + filename},
+                    meta: {url: fileUrl(file, {resolve: false})},
                 });
             });
         }, function(err, system_rulesets){
