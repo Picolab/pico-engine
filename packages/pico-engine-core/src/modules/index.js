@@ -76,7 +76,7 @@ module.exports = function(core, third_party_modules){
 
 
     return {
-        get: cocb.toYieldable(function(ctx, domain, id, callback){
+        get: cocb.wrap(function(ctx, domain, id, callback){
             var umod = userModuleLookup(ctx, domain, id);
             if(umod.has_it){
                 callback(null, umod.value);
@@ -94,7 +94,7 @@ module.exports = function(core, third_party_modules){
         }),
 
 
-        set: cocb.toYieldable(function(ctx, domain, id, value, callback){
+        set: cocb.wrap(function(ctx, domain, id, value, callback){
             if(!_.has(modules, domain)){
                 callback(new Error("Module not defined `" + domain + ":" + id + "`"));
                 return;
@@ -107,7 +107,7 @@ module.exports = function(core, third_party_modules){
         }),
 
 
-        del: cocb.toYieldable(function(ctx, domain, id, callback){
+        del: cocb.wrap(function(ctx, domain, id, callback){
             if(!_.has(modules, domain)){
                 callback(new Error("Module not defined `" + domain + ":" + id + "`"));
                 return;

@@ -38,11 +38,20 @@ var log_levels = {
     "error": true,
 };
 
+var krl_stdlib_wrapped = _.mapValues(krl_stdlib, function(fn, key){
+    if(cocb.isGeneratorFunction(fn)){
+        return cocb.wrap(fn);
+    }
+    return function(){
+        return Promise.resolve(fn.apply(void 0, arguments));
+    };
+});
+
 module.exports = function(conf){
     var db = DB(conf.db);
     _.each(db, function(val, key){
         if(_.isFunction(val)){
-            db[key + "Yieldable"] = cocb.toYieldable(val);
+            db[key + "Yieldable"] = cocb.wrap(val);
         }
     });
     var host = conf.host;
@@ -152,19 +161,8 @@ module.exports = function(conf){
             }else{
                 args[0] = ctx;
             }
-            var fn = krl_stdlib[fn_name];
-            if(cocb.isGeneratorFunction(fn)){
-                return cocb.promiseRun(function*(){
-                    return yield fn.apply(void 0, args);
-                });
-            }
-            return new Promise(function(resolve, reject){
-                try{
-                    resolve(fn.apply(void 0, args));
-                }catch(err){
-                    reject(err);
-                }
-            });
+            var fn = krl_stdlib_wrapped[fn_name];
+            return fn.apply(void 0, args);
         };
 
         //don't allow anyone to mutate ctx on the fly
@@ -228,7 +226,13 @@ module.exports = function(conf){
         initializeRulest(rs).then(function(){
             core.rsreg.put(rs);
             callback();
-        }, callback);
+        }, function(err){
+            process.nextTick(function(){
+                //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+                //when infact we are handling the rejection
+                callback(err);
+            });
+        });
     };
 
     var getRulesetForRID = function(rid, callback){

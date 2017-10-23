@@ -101,7 +101,14 @@ var selectForPico = function(core, ctx, pico_rids, callback){
     async.filter(rules_to_select, function(rule, next){
         cocb.run(shouldRuleSelect(core, ctx, rule), next);
     }, function(err, rules){
-        if(err) return callback(err);
+        if(err){
+            process.nextTick(function(){
+                //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+                //when infact we are handling the rejection
+                callback(err);
+            });
+            return;
+        }
         //rules in the same ruleset must fire in order
         callback(void 0, _.reduce(_.groupBy(rules, "rid"), function(acc, rules){
             return acc.concat(rules);

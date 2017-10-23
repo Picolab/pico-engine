@@ -304,14 +304,7 @@ stdlib.capitalize = function(ctx, val){
     return val[0].toUpperCase() + val.slice(1);
 };
 stdlib.decode = function(ctx, val){
-    if(!types.isString(val)){
-        return val;
-    }
-    try{
-        return JSON.parse(val);
-    }catch(e){
-        return val;
-    }
+    return types.decode(val);
 };
 stdlib.extract = function(ctx, val, regex){
     if(arguments.length < 3){
