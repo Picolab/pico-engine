@@ -19,17 +19,12 @@ var startTestServer = function(callback){
 
         //try setting up the engine including registering rulesets
         startCore({
-            host: "http://localhost:8383",
+            host: "http://fake-url",//tests don't actually setup http listening
             home: dir.path,
             no_logging: true,
         }, function(err, pe){
             if(err) throw err;//throw ensures process is killed with non-zero exit code
 
-            //setup the server without throwing up
-            var testApp = setupServer(pe);
-            testApp.listen("8383", function(){
-                console.log("localhost:8383");
-            });
             pe.getRootECI(function(err, root_eci){
                 if(err) throw err;//throw ensures process is killed with non-zero exit code
 
@@ -869,7 +864,6 @@ test("pico-engine", function(t){
     ], function(err){
         t.end(err);
         stopServer();
-        process.exit(err ? 1 : 0);//ensure server stops
     });
 
     /**
@@ -965,4 +959,21 @@ test("pico-engine", function(t){
         entvars = entvars[picoId];
         return entvars[SUBS_RID] ? entvars[SUBS_RID].subscriptions : undefined;
     }
+});
+
+test("pico-engine - setupServer", function(t){
+    startTestServer(function(err, tstserver){
+        if(err) return t.end(err);
+
+        var pe = tstserver.pe;
+        try{
+            setupServer(pe);
+            t.ok("setupServer worked");
+        }catch(e){
+            t.error(e, "Failed to setupServer");
+        }
+
+        tstserver.stopServer();
+        t.end();
+    });
 });
