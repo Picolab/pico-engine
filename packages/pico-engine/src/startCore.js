@@ -88,11 +88,21 @@ var getSystemRulesets = function(pe, callback){
 };
 
 
-var setupLogging = function(pe){
+var setupLogging = function(pe, bunyanLog){
 
     var logs = {};
     var logRID = "io.picolabs.logging";
 
+    var krlLevelToBunyanLevel = function(level){
+        if(/error/.test(level)){
+            return "error";
+        }else if(/warn/.test(level)){
+            return "warn";
+        }else if(/debug/.test(level)){
+            return "debug";
+        }
+        return "info";
+    };
 
     var logEntry = function(level, message, context){
 
@@ -107,6 +117,8 @@ var setupLogging = function(pe){
                 message = toKRLjson(message);
             }
         }
+
+        bunyanLog[krlLevelToBunyanLevel(level)]({krl_level: level, context: context}, message);
 
         //decide if we want to add the event attributes to the log message
         if(context.event && _.isString(message) && (false
@@ -271,7 +283,7 @@ module.exports = function(conf, callback){
     if(conf.no_logging){
         //no setupLogging
     }else{
-        setupLogging(pe);
+        setupLogging(pe, conf.bunyanLog);
     }
 
     //system rulesets should be registered/updated first
