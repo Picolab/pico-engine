@@ -23,7 +23,7 @@ var examples = {
         [
             "ruleset io.picolabs.hello {",
             "  meta {",
-            '    name "Hello World"',
+            "    name \"Hello World\"",
             "    description <<",
             "Hello parser!",
             ">>",
@@ -66,16 +66,16 @@ var examples = {
     ],
     "### KRL Expression language": [],
     "#### Literals": [
-        '"hello world"',
+        "\"hello world\"",
         "-12.3",
         "thing",
         "ent:name",
         "true",
         "re#^My name is (.*)#i",
         "[A, B, C]",
-        '{"one": A}',
+        "{\"one\": A}",
         "<<\n  hello #{name}!\n  >>",
-        '<< This #{ x{"flip"} } that >>'
+        "<< This #{ x{\"flip\"} } that >>"
     ],
     "#### Declaration": [
         "A = B"
@@ -98,7 +98,7 @@ var examples = {
     ],
     "#### Accessing data": [
         "matrix[i][j]",
-        'some_hash{["some", "path"]}'
+        "some_hash{[\"some\", \"path\"]}"
     ]
 };
 

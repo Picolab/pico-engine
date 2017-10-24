@@ -163,13 +163,13 @@ module.exports = function(src){
             pushTok(buff, "NUMBER");
             continue;
         }
-        if(c === '"'){
+        if(c === "\""){
             addToBuffer(function(){
-                return c === '"' && buff.length > 0;
+                return c === "\"" && buff.length > 0;
             }, true);
 
             if(i < src.length){
-                pushTok(buff + '"', "STRING");
+                pushTok(buff + "\"", "STRING");
                 advance(1);
             }else{
                 pushTok(buff, "ILLEGAL");
