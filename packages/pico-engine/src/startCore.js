@@ -230,9 +230,7 @@ var setupLogging = function(pe, bunyanLog){
         var onRemoved = function(err){
             delete logs[episode_id];
             if(err){
-                console.error("[EPISODE_REMOVED]", episode_id, err + "");
-            }else{
-                console.log("[EPISODE_REMOVED]", episode_id);
+                console.error("[ERROR] failed to remove episode", episode_id, err + "");
             }
         };
 
