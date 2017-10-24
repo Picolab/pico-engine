@@ -5,7 +5,7 @@ module.exports = function(ldb, opts, onData, callback_orig){
     var callback = function(){
         if(has_calledback) return;
         has_calledback = true;
-        callback_orig.apply(this, arguments);
+        callback_orig.apply(null, arguments);
     };
 
     if(_.has(opts, "prefix")){

@@ -306,7 +306,7 @@ test("ActionBlock", function(t){
         t.deepEquals(ast.rules[0].action_block, exp_ast);
     };
 
-    var src ='send_directive("say")';
+    var src ="send_directive(\"say\")";
     tstActionBlock(src, {
         type: "ActionBlock",
         condition: null,
@@ -317,7 +317,7 @@ test("ActionBlock", function(t){
         ]
     });
 
-    src  = 'foo("say", bar = "hello world")';
+    src  = "foo(\"say\", bar = \"hello world\")";
     tstActionBlock(src, {
         type: "ActionBlock",
         condition: null,
@@ -597,7 +597,7 @@ test("locations", function(t){
             }
         ]
     });
-    src = 'select when a b\nsend_directive("say")';
+    src = "select when a b\nsend_directive(\"say\")";
     t.deepEquals(parser("ruleset one {rule two {" + src + "}}").rules[0].action_block.actions[0], {
         loc: {start: 39, end: 60},
         type: "Action",
@@ -620,7 +620,7 @@ test("locations", function(t){
         },
         setting: [],
     });
-    src = 'select when a b\nsend_directive("say",\nblah = 1,)';
+    src = "select when a b\nsend_directive(\"say\",\nblah = 1,)";
     t.deepEquals(parser("ruleset one {rule two {" + src + "}}").rules[0].action_block.actions[0], {
         loc: {start: 39, end: 71},
         type: "Action",
@@ -661,7 +661,7 @@ test("locations", function(t){
     t.deepEquals(parser("ruleset a{meta{shares b}}").meta.properties[0].key.loc, {start: 15, end: 21});
     t.deepEquals(parser("ruleset a{meta{share b}}").meta.properties[0].key.loc, {start: 15, end: 20});
     t.deepEquals(parser("ruleset a{meta{share b}}").meta.properties[0].loc, {start: 15, end: 22});
-    t.deepEquals(parser('ruleset a{meta{name "b"}}').meta.properties[0].loc, {start: 15, end: 23});
+    t.deepEquals(parser("ruleset a{meta{name \"b\"}}").meta.properties[0].loc, {start: 15, end: 23});
 
     var testTopLoc = function(src){
         var src2 = "\n  " + src + "  \n ";
@@ -674,12 +674,12 @@ test("locations", function(t){
     };
 
     testTopLoc("name");
-    testTopLoc('"some string"');
+    testTopLoc("\"some string\"");
     testTopLoc("-1.2");
     testTopLoc("a => b | c");
     testTopLoc("function(a){b}");
     testTopLoc("a [ 1  ]");
-    testTopLoc('a {[ "a", "b"] }');
+    testTopLoc("a {[ \"a\", \"b\"] }");
 
     t.end();
 });
@@ -690,9 +690,9 @@ test("literals", function(t){
         ast = ast[0].expression;
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
-    testLiteral('"one"', {type: "String", value: "one"});
-    testLiteral('"one\ntwo"', {type: "String", value: "one\ntwo"});
-    testLiteral('"one\\"two"', {type: "String", value: 'one"two'});
+    testLiteral("\"one\"", {type: "String", value: "one"});
+    testLiteral("\"one\ntwo\"", {type: "String", value: "one\ntwo"});
+    testLiteral("\"one\\\"two\"", {type: "String", value: "one\"two"});
 
     testLiteral("123", {type: "Number", value: 123});
     testLiteral("-1", mk.unary("-", {type: "Number", value: 1}));
@@ -705,21 +705,21 @@ test("literals", function(t){
     testLiteral("false", {type: "Boolean", value: false});
 
     testLiteral("[]", {type: "Array", value: []});
-    testLiteral('["one"]', {type: "Array", value: [{type: "String", value: "one"}]});
+    testLiteral("[\"one\"]", {type: "Array", value: [{type: "String", value: "one"}]});
     testLiteral("[  1,  false ]", {type: "Array", value: [
         {type: "Number", value: 1},
         {type: "Boolean", value: false}
     ]});
 
     testLiteral("{}", {type: "Map", value: []});
-    testLiteral('{ "one" : "two" }', {type: "Map", value: [
+    testLiteral("{ \"one\" : \"two\" }", {type: "Map", value: [
         {
             type: "MapKeyValuePair",
             key: {type:"String",value:"one"},
             value: {type:"String",value:"two"}
         }
     ]});
-    testLiteral('{"1":2,"3":true,"5":[]}', {type: "Map", value: [
+    testLiteral("{\"1\":2,\"3\":true,\"5\":[]}", {type: "Map", value: [
         {
             type: "MapKeyValuePair",
             key: {type:"String",value:"1"},
@@ -771,7 +771,7 @@ test("literals", function(t){
         ]
     });
 
-    testLiteral('<<one#{{"one":2}}three>>', {
+    testLiteral("<<one#{{\"one\":2}}three>>", {
         type: "Chevron",
         value: [
             {type: "String", value: "one"},
@@ -786,7 +786,7 @@ test("literals", function(t){
         ]
     });
 
-    testLiteral('<< This #{ x{"flip"} } that >>', {
+    testLiteral("<< This #{ x{\"flip\"} } that >>", {
         type: "Chevron",
         value: [
             {type: "String", value: " This "},
@@ -897,7 +897,7 @@ test("expressions", function(t){
         mk.arg("b", mk(4)),
     ]));
 
-    testExp('1 + "two"', {
+    testExp("1 + \"two\"", {
         type: "InfixOperator",
         op: "+",
         left: {type: "Number", value: 1},
@@ -958,7 +958,7 @@ test("expressions", function(t){
         ]
     });
 
-    testExp('a = "one"', {
+    testExp("a = \"one\"", {
         type: "Declaration",
         op: "=",
         left: mk.id("a"),
@@ -984,14 +984,14 @@ test("expressions", function(t){
         method: "index"
     });
 
-    testExp('foo{"bar"}', {
+    testExp("foo{\"bar\"}", {
         type: "MemberExpression",
         object: mk.id("foo"),
         property: mk("bar"),
         method: "path"
     });
 
-    testExp('foo{"bar"}()', mk.app({
+    testExp("foo{\"bar\"}()", mk.app({
         type: "MemberExpression",
         object: mk.id("foo"),
         property: mk("bar"),
@@ -1307,7 +1307,7 @@ test("Ruleset meta", function(t){
     testMeta("", []);
     testMeta("   ", []);//testing for whitespace parsing ambiguity
 
-    testMeta('name "two"', [
+    testMeta("name \"two\"", [
         {
             type: "RulesetMetaProperty",
             key: mk.key("name"),
@@ -1316,11 +1316,11 @@ test("Ruleset meta", function(t){
     ]);
 
     //testing for whitespace parsing ambiguity
-    testMeta('\n  name "two"\n  ', [
+    testMeta("\n  name \"two\"\n  ", [
         mk.meta("name", mk("two"))
     ]);
 
-    testMeta('name "blah" description <<\n  wat? ok\n  >>\nauthor "bob"', [
+    testMeta("name \"blah\" description <<\n  wat? ok\n  >>\nauthor \"bob\"", [
         mk.meta("name", mk("blah")),
         mk.meta("description", {
             type: "Chevron",
@@ -1331,12 +1331,12 @@ test("Ruleset meta", function(t){
         mk.meta("author", mk("bob"))
     ]);
 
-    testMeta('keys one "one string"\n keys two {"some": "map"}', [
+    testMeta("keys one \"one string\"\n keys two {\"some\": \"map\"}", [
         mk.meta("keys", [mk.key("one"), mk("one string")]),
         mk.meta("keys", [mk.key("two"), mk({"some": mk("map")})])
     ]);
     //"key" is the same as "keys"
-    testMeta('key one "one string"\n key two {"some": "map"}', [
+    testMeta("key one \"one string\"\n key two {\"some\": \"map\"}", [
         mk.meta("keys", [mk.key("one"), mk("one string")]),
         mk.meta("keys", [mk.key("two"), mk({"some": mk("map")})])
     ]);
@@ -1346,7 +1346,7 @@ test("Ruleset meta", function(t){
 
     testMeta([
         "use module com.blah",
-        'use module com.blah version "2" alias blah with one = 2 three = 4'
+        "use module com.blah version \"2\" alias blah with one = 2 three = 4"
     ].join("\n"), [
         mk.meta("use", {
             kind: "module",
@@ -1369,7 +1369,7 @@ test("Ruleset meta", function(t){
 
     testMeta([
         "errors to com.blah",
-        'errors to com.blah version "2"'
+        "errors to com.blah version \"2\""
     ].join("\n"), [
         mk.meta("errors", {
             rid: {type: "RulesetID", value: "com.blah"},
@@ -1711,7 +1711,7 @@ test("no ambiguity!", function(t){
 
     //whitespace ambiguity in Map
     testAmb("{   }");
-    testAmb('{ "one"  :   2  , "  three  "   : 4  }');
+    testAmb("{ \"one\"  :   2  , \"  three  \"   : 4  }");
 
     //ambiguity on the provides operator
     testAmb("ruleset rs{meta { provides notanop errors to i}}");
@@ -1755,7 +1755,7 @@ test("DomainIdentifier", function(t){
     testIt("app:name", mk.dID("app", "name"));
     testIt("ent:name", mk.dID("ent", "name"));
     testIt(
-        'event:attr("name").klog("hi")',
+        "event:attr(\"name\").klog(\"hi\")",
         mk.app(
             mk.get(
                 mk.app(mk.dID("event", "attr"), [mk("name")]),
@@ -1773,9 +1773,9 @@ test("DomainIdentifier", function(t){
         t.ok(/No possible parsings/i.test(e + ""));
     }
 
-    testIt('ent:name = "bob"', mk.declare("=", mk.dID("ent", "name"), mk("bob")));
-    testIt('ent:names[0] = "jim"', mk.declare("=", mk.get(mk.dID("ent", "names"), mk(0), "index"), mk("jim")));
-    testIt('ent:users{["id2", "name", "first"]} = "sue"', mk.declare(
+    testIt("ent:name = \"bob\"", mk.declare("=", mk.dID("ent", "name"), mk("bob")));
+    testIt("ent:names[0] = \"jim\"", mk.declare("=", mk.get(mk.dID("ent", "names"), mk(0), "index"), mk("jim")));
+    testIt("ent:users{[\"id2\", \"name\", \"first\"]} = \"sue\"", mk.declare(
         "=",
         mk.get(mk.dID("ent", "users"), mk(["id2", "name", "first"]), "path"),
         mk("sue")
@@ -1920,7 +1920,7 @@ test("select when ... foreach ...", function(t){
     var src = "";
     src += "select when a b\n";
     src += "foreach [1,2,3] setting(x)\n";
-    src += '  foreach ["a", "b", "c"] setting(y)';
+    src += "  foreach [\"a\", \"b\", \"c\"] setting(y)";
     tst(src, [
         {
             type: "RuleForEach",
@@ -2029,7 +2029,7 @@ test("DefAction", function(t){
         t.deepEquals(ast.rules[0].prelude, exp_ast);
     };
 
-    tstDA('a = defaction(){send_directive("foo")}', [
+    tstDA("a = defaction(){send_directive(\"foo\")}", [
         {
             type: "DefAction",
             id: mk.id("a"),
@@ -2048,7 +2048,7 @@ test("DefAction", function(t){
         }
     ]);
 
-    tstDA('a = defaction(b, c){d = 2 e = 3 every { notify("foo", f = 4, g=5) noop()}}', [
+    tstDA("a = defaction(b, c){d = 2 e = 3 every { notify(\"foo\", f = 4, g=5) noop()}}", [
         {
             type: "DefAction",
             id: mk.id("a"),
@@ -2240,40 +2240,40 @@ test("with", function(t){
     }catch(e){
         t.ok("should fail");
     }
-    tst('with a = "b"', [
+    tst("with a = \"b\"", [
         mk.declare("=", mk.id("a"), mk("b"))
     ]);
-    tst('with a = "b" c = "d"', [
+    tst("with a = \"b\" c = \"d\"", [
         mk.declare("=", mk.id("a"), mk("b")),
         mk.declare("=", mk.id("c"), mk("d")),
     ]);
-    tst('with a = "b" and = "d"', [
+    tst("with a = \"b\" and = \"d\"", [
         mk.declare("=", mk.id("a"), mk("b")),
         mk.declare("=", mk.id("and"), mk("d")),
     ]);
-    tst('with a = "b" and c = "d"', [
+    tst("with a = \"b\" and c = \"d\"", [
         mk.declare("=", mk.id("a"), mk("b")),
         mk.declare("=", mk.id("c"), mk("d")),
     ]);
-    tst('with a = "b" and c = "d" and e = 1', [
+    tst("with a = \"b\" and c = \"d\" and e = 1", [
         mk.declare("=", mk.id("a"), mk("b")),
         mk.declare("=", mk.id("c"), mk("d")),
         mk.declare("=", mk.id("e"), mk(1)),
     ]);
     try{
-        tst('with a = "b" and c = "d" e = 1', []);
+        tst("with a = \"b\" and c = \"d\" e = 1", []);
         t.fail();
     }catch(e){
         t.ok("should fail: don't use and for all, or not at all");
     }
     try{
-        tst('with a = "b" c = "d" and e = 1', []);
+        tst("with a = \"b\" c = \"d\" and e = 1", []);
         t.fail();
     }catch(e){
         t.ok("should fail: don't use and for all, or not at all");
     }
     try{
-        tst('with a = "b" with c = "d"', []);
+        tst("with a = \"b\" with c = \"d\"", []);
         t.fail();
     }catch(e){
         t.ok("should fail: only one 'with' is allowed");
@@ -2564,17 +2564,17 @@ test("escaping", function(t){
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected), msg);
     };
 
-    tst('"one\\""', mk('one"'), "escape '\"' in a string");
+    tst("\"one\\\"\"", mk("one\""), "escape '\"' in a string");
     tst("<<one\\\">>", {
         type: "Chevron",
         value: [
-            {type: "String", value: 'one\\"'}
+            {type: "String", value: "one\\\""}
         ]
     }, "don't escape '\"' in a chevron");
     // eslint-disable-next-line no-useless-escape
     tst("re#one\\\"#", mk(/one\"/), "don't escape '\"' in a regexp");
 
-    tst('"one\\>\\>+two\\>"', mk("one\\>\\>+two\\>"), "don't escape '>' in a string");
+    tst("\"one\\>\\>+two\\>\"", mk("one\\>\\>+two\\>"), "don't escape '>' in a string");
     tst("<<one\\>\\>+two\\>>>", {
         type: "Chevron",
         value: [
@@ -2584,7 +2584,7 @@ test("escaping", function(t){
     // eslint-disable-next-line no-useless-escape
     tst("re#one\\>\\>+two\\>#", mk(/one\>\>+two\>/), "don't escape '>' in a regexp");
 
-    tst('"one\\#{"', mk("one\\#{"), "don't escape '#{' in a string");
+    tst("\"one\\#{\"", mk("one\\#{"), "don't escape '#{' in a string");
     tst("<<one\\#{>>", {
         type: "Chevron",
         value: [
@@ -2593,7 +2593,7 @@ test("escaping", function(t){
     }, "escape '#{' in a chevron");
     tst("re#one\\#{#", mk(/one#{/), "escape '#{' in a regexp");
 
-    tst('"one\\#"', mk("one\\#"), "don't escape '#' in a string");
+    tst("\"one\\#\"", mk("one\\#"), "don't escape '#' in a string");
     tst("<<one\\#>>", {
         type: "Chevron",
         value: [
@@ -2602,7 +2602,7 @@ test("escaping", function(t){
     }, "don't escape '#' in a chevron");
     tst("re#one\\##", mk(/one#/), "escape '#' in a regexp");
 
-    tst('"one\\{"', mk("one\\{"), "don't escape '{' in a string");
+    tst("\"one\\{\"", mk("one\\{"), "don't escape '{' in a string");
     tst("<<one\\{>>", {
         type: "Chevron",
         value: [
@@ -2611,7 +2611,7 @@ test("escaping", function(t){
     }, "don't escape '{' in a chevron");
     tst("re#one\\{#", mk(/one\{/), "don't escape '{' in a regexp");
 
-    tst('"one\\\\"', mk("one\\"), "leave '\\' in a string");
+    tst("\"one\\\\\"", mk("one\\"), "leave '\\' in a string");
     tst("<<one\\\\#{0}+two\\\\>>", {
         type: "Chevron",
         value: [

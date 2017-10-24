@@ -1,4 +1,3 @@
-/* global Promise */
 var _ = require("lodash");
 var fs = require("fs");
 var test = require("tape");
