@@ -963,7 +963,10 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                 ],
                 [
                     signal("http_test", "post", {url: url}),
-                    []//nothing should be returned
+                    [{options: {
+                        foo: "bar",
+                        baz: "[Action]",//Notice this is using KRL's json encoding
+                    }, name: "resp.content.body"}],
                 ],
                 [
                     signal("http_test", "post_setting", {url: url}),
@@ -2122,19 +2125,11 @@ test("PicoEngine - io.picolabs.test-error-messages", function(t){
                 args: {obj: "Bob"}
             }, "Error: Shared, but not defined: somethingNotDefined", true),
 
-            /*TODO
-             *TODO
-             *TODO
-             * Commenting this test out for now
-             * depending on node version, it will just crash with no error at all
-             * but strangely if you add console.log() in the `pe.emitter.once("error", function(err){`
-             * the tests pass
             qError({
                 eci: "id1",
                 rid: "io.picolabs.test-error-messages",
                 name: "infiniteRecursion",
             }, "RangeError: Maximum call stack size exceeded", false),
-            */
 
         ], t.end);
     });
