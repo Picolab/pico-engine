@@ -79,9 +79,16 @@ var setupLogging = function(pe){
     var logs = {};
     var logRID = "io.picolabs.logging";
     var needAttributes = function(context,message){
-        if (context.event && _.isString(message)) {
+        if (context.event && context.event.attrs && _.isString(message)) {
             return message.startsWith("event received:") ||
                 message.startsWith("adding raised event to schedule:");
+        } else {
+            return false;
+        }
+    };
+    var needArguments = function(context,message){
+        if (context.query && context.query.args && _.isString(message)) {
+            return message.startsWith("query received: ");
         } else {
             return false;
         }
@@ -93,6 +100,8 @@ var setupLogging = function(pe){
         if (episode) {
             if (needAttributes(context,message)) {
                 episode.logs.push(timestamp+" "+message+" attributes "+JSON.stringify(context.event.attrs));
+            } else if (needArguments(context,message)) {
+                episode.logs.push(timestamp+" "+message+" arguments "+JSON.stringify(context.query.args));
             } else {
                 episode.logs.push(timestamp+" "+message);
             }
