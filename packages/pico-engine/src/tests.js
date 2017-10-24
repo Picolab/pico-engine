@@ -1,5 +1,6 @@
 var _ = require("lodash");
 var fs = require("fs");
+var cocb = require("co-callback");
 var test = require("tape");
 var path = require("path");
 var async = require("async");
@@ -39,7 +40,17 @@ var testPE = function(name, testsFn){
             pe.getRootECI(function(err, root_eci){
                 if(err) return t.end(err);
 
-                testsFn(t, pe, root_eci);
+                if(cocb.isGeneratorFunction(testsFn)){
+                    cocb.wrap(testsFn)(t, pe, root_eci).then(function(){
+                        t.end();
+                    }, function(err){
+                        process.nextTick(function(){
+                            t.end(err);
+                        });
+                    });
+                }else{
+                    testsFn(t, pe, root_eci);
+                }
             });
         });
     });
@@ -963,4 +974,64 @@ testPE("pico-engine - setupServer", function(t, pe, root_eci){
         t.error(e, "Failed to setupServer");
     }
     t.end();
+});
+
+testPE("pico-engine - Wrangler", function*(t, pe, root_eci){
+
+    var yQuery = cocb.wrap(function(eci, rid, name, args, callback){
+        pe.runQuery({
+            eci: eci,
+            rid: rid,
+            name: name,
+            args: args || {},
+        }, callback);
+    });
+    var yEvent = cocb.wrap(function(eci, domain_type, attrs, eid, callback){
+        domain_type = domain_type.split("/");
+        pe.signalEvent({
+            eci: eci,
+            eid: eid || "85",
+            domain: domain_type[0],
+            type: domain_type[1],
+            attrs: attrs || {}
+        }, callback);
+    });
+
+    var data;
+    var channel;
+    var channels;
+
+    // call myself function check if eci is the same as root.
+    data = yield yQuery(root_eci, "io.picolabs.pico", "myself", {});
+    t.equals(data.eci, root_eci);
+
+
+    //// channels testing ///////////////
+
+    // store channels, we don't directly test list channels.......
+    data = yield yQuery(root_eci, "io.picolabs.pico", "channel", {});
+    t.equal(data.channels.length > 0, true,"channels returns a list greater than zero");
+    channels = data.channels;
+
+    // create channels
+    data = yield yEvent(root_eci, "pico/channel_creation_requested", {name:"ted", type:"type"});
+    channel = data.directives[0].options.channel;
+    t.equal(channel.name, "ted", "correct directive");
+
+    // compare with store,
+    data = yield yQuery(root_eci, "io.picolabs.pico", "channel", {});
+    t.equals(data.channels.length > channels.length, true, "channel was created");
+    t.equals(data.channels.length, channels.length + 1, "single channel was created");
+    var found = false;
+    for(var i = 0; i < data.channels.length; i++) {
+        if (data.channels[i].id === channel.id) {
+            found = true;
+            t.deepEqual(channel, data.channels[i], "new channel is the same channel from directive");
+            break;
+        }
+    }
+    t.equals(found, true,"found correct channel in deepEqual");//redundant check
+    channels = data.channels; // update channels cache
+
+    //TODO rest
 });
