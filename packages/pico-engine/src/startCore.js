@@ -100,6 +100,14 @@ var setupLogging = function(pe){
 
         var timestamp = (new Date()).toISOString();
 
+        if(!_.isString(message)){
+            if(_.isError(message)){
+                message = message + "";
+            }else{
+                message = toKRLjson(message);
+            }
+        }
+
         //decide if we want to add the event attributes to the log message
         if(context.event && _.isString(message) && (false
             || message.startsWith("event received:")
@@ -107,20 +115,14 @@ var setupLogging = function(pe){
         )){
             message += " attributes " + toKRLjson(context.event.attrs);
         }
+
+        //decide if we want to add the query arguments to the log message
         if(context.query
             && context.query.args
             && _.isString(message)
             && message.startsWith("query received:")
-        )){
+        ){
             message += " arguments " + toKRLjson(context.query.args);
-        }
-
-        if(!_.isString(message)){
-            if(_.isError(message)){
-                message = message + "";
-            }else{
-                message = toKRLjson(message);
-            }
         }
 
         var shell_log = "[" + level.toUpperCase() + "] ";
@@ -158,6 +160,8 @@ var setupLogging = function(pe){
             console.error("[ERROR]", "no episode found for", episode_id);
         }
     };
+
+
     pe.emitter.on("episode_start", function(expression, context){
         var episode_id = context.txn_id;
         console.log("[EPISODE_START]", episode_id);
@@ -176,6 +180,7 @@ var setupLogging = function(pe){
             logs[episode_id] = episode;
         }
     });
+
 
     var onLevelLogEntry = function(level){
         pe.emitter.on(level, function(expression, context){
