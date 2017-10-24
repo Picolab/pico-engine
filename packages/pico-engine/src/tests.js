@@ -1,4 +1,6 @@
 /* global Promise */
+var _ = require("lodash");
+var fs = require("fs");
 var test = require("tape");
 var path = require("path");
 var async = require("async");
@@ -6,58 +8,47 @@ var tempfs = require("temp-fs");
 var startCore = require("./startCore");
 var setupServer = require("./setupServer");
 
-var startTestServer = function(callback){
-    var is_windows = /^win/.test(process.platform);
+var test_temp_dir = tempfs.mkdirSync({
+    dir: path.resolve(__dirname, ".."),
+    prefix: "pico-engine_test",
+    recursive: true,//It and its content will be remove recursively.
+    track: true,//Auto-delete it on fail.
+});
 
-    tempfs.mkdir({
-        dir: path.resolve(__dirname, ".."),
-        prefix: "pico-engine_test",
-        recursive: true,//It and its content will be remove recursively.
-        track: !is_windows//Auto-delete it on fail.
-    }, function(err, dir){
-        if(err) throw err;//throw ensures process is killed with non-zero exit code
+test.onFinish(function(){
+    //cleanup temp home dirs after all tests are done
+    test_temp_dir.unlink();
+});
 
-        //try setting up the engine including registering rulesets
+var getHomePath = function(){
+    var homepath = path.resolve(test_temp_dir.path, _.uniqueId());
+    fs.mkdirSync(homepath);
+    return homepath;
+};
+
+var testPE = function(name, testsFn){
+    test(name, function(t){
         startCore({
             host: "http://fake-url",//tests don't actually setup http listening
-            home: dir.path,
+            home: getHomePath(),
             no_logging: true,
         }, function(err, pe){
-            if(err) throw err;//throw ensures process is killed with non-zero exit code
-
+            if(err) return t.end(err);
             pe.getRootECI(function(err, root_eci){
-                if(err) throw err;//throw ensures process is killed with non-zero exit code
+                if(err) return t.end(err);
 
-                callback(null, {
-                    pe: pe,
-                    root_eci: root_eci,
-                    stopServer: function(){
-                        if(!is_windows){
-                            dir.unlink();
-                        }
-                    },
-                });
+                testsFn(t, pe, root_eci);
             });
         });
     });
 };
 
-test("pico-engine", function(t){
-    var pe, root_eci, stopServer, child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
+testPE("pico-engine", function(t, pe, root_eci){
+    var child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
     var subscriptionPicos = {};
     var SHARED_A = "shared:A";
     var SUBS_RID = "io.picolabs.subscription";
     async.series([
-        function(next){
-            startTestServer(function(err, tstserver){
-                if(err) return next(err);
-                pe = tstserver.pe;
-                root_eci = tstserver.root_eci;
-                stopServer = tstserver.stopServer;
-                next();
-            });
-        },
-
         ////////////////////////////////////////////////////////////////////////
         //
         //                      Wrangler tests
@@ -863,7 +854,6 @@ test("pico-engine", function(t){
         ////////////////////////////////////////////////////////////////////////
     ], function(err){
         t.end(err);
-        stopServer();
     });
 
     /**
@@ -961,19 +951,14 @@ test("pico-engine", function(t){
     }
 });
 
-test("pico-engine - setupServer", function(t){
-    startTestServer(function(err, tstserver){
-        if(err) return t.end(err);
-
-        var pe = tstserver.pe;
-        try{
-            setupServer(pe);
-            t.ok("setupServer worked");
-        }catch(e){
-            t.error(e, "Failed to setupServer");
-        }
-
-        tstserver.stopServer();
-        t.end();
-    });
+testPE("pico-engine - setupServer", function(t, pe, root_eci){
+    //simply setup, but don't start, the express server
+    //make sure it doesn't throwup
+    try{
+        setupServer(pe);
+        t.ok("setupServer worked");
+    }catch(e){
+        t.error(e, "Failed to setupServer");
+    }
+    t.end();
 });
