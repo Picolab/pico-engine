@@ -72,3 +72,6 @@ div.krlsrc pre#feedback {
   overflow: auto;
   margin: 0.5em 0px 0px;
 }
+form.ruleset-action {
+  white-space: nowrap;
+}

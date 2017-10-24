@@ -123,11 +123,11 @@ var processEvent = cocb.wrap(function*(core, ctx){
         });
     };
 
-    yield cocb.toYieldable(addEventToSchedule)(ctx);
+    yield cocb.wrap(addEventToSchedule)(ctx);
 
     //these are special functions only to be used inside a rule body
     var rule_body_fns = {
-        raiseEvent: cocb.toYieldable(function(revent, callback){
+        raiseEvent: cocb.wrap(function(revent, callback){
             //shape the revent like a normal event
             var event = {
                 eci: ctx.event.eci,//raise event is always to the same pico
@@ -168,7 +168,7 @@ var processEvent = cocb.wrap(function*(core, ctx){
                 for_rid: ctx.rid,
             });
         },
-        scheduleEvent: cocb.toYieldable(function(sevent, callback){
+        scheduleEvent: cocb.wrap(function(sevent, callback){
             scheduleEvent(core, ctx, {
                 domain: sevent.domain,
                 type: sevent.type,
@@ -232,6 +232,10 @@ module.exports = function(core, ctx, callback){
     processEvent(core, ctx).then(function(data){
         callback(null, data);
     }, function(err){
-        callback(err);
+        process.nextTick(function(){
+            //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+            //when infact we are handling the rejection
+            callback(err);
+        });
     });
 };

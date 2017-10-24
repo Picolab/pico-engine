@@ -10,6 +10,8 @@ var compiler = require("krl-compiler");
 var PicoEngine = require("./");
 var mkTestPicoEngine = require("./mkTestPicoEngine");
 
+var url_prefix = "http://fake-url/test-rulesets/";
+
 var omitMeta = function(resp){
     if(!_.has(resp, "directives")){
         return resp;
@@ -621,7 +623,7 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
             }),[]],
             [signal("engine", "installRuleset", {
                 pico_id: "id2",
-                base: "https://raw.githubusercontent.com/Picolab/pico-engine/master/test-rulesets/",
+                base: url_prefix,
                 url: "scope.krl",
             }),[]],
             function(done){
@@ -875,7 +877,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetName: "testing meta module",
                     rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
-                    rulesetURI: "https://raw.githubusercontent.com/Picolab/pico-engine/master/test-rulesets/meta.krl",
+                    rulesetURI: url_prefix + "meta.krl",
                     ruleName: "meta_event",
                     inEvent: true,
                     inQuery: false,
@@ -890,7 +892,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetName: "testing meta module",
                     rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
-                    rulesetURI: "https://raw.githubusercontent.com/Picolab/pico-engine/master/test-rulesets/meta.krl",
+                    rulesetURI: url_prefix + "meta.krl",
                     ruleName: void 0,
                     inEvent: false,
                     inQuery: true,
@@ -961,7 +963,10 @@ test("PicoEngine - io.picolabs.http ruleset", function(t){
                 ],
                 [
                     signal("http_test", "post", {url: url}),
-                    []//nothing should be returned
+                    [{options: {
+                        foo: "bar",
+                        baz: "[Action]",//Notice this is using KRL's json encoding
+                    }, name: "resp.content.body"}],
                 ],
                 [
                     signal("http_test", "post_setting", {url: url}),
@@ -2120,19 +2125,11 @@ test("PicoEngine - io.picolabs.test-error-messages", function(t){
                 args: {obj: "Bob"}
             }, "Error: Shared, but not defined: somethingNotDefined", true),
 
-            /*TODO
-             *TODO
-             *TODO
-             * Commenting this test out for now
-             * depending on node version, it will just crash with no error at all
-             * but strangely if you add console.log() in the `pe.emitter.once("error", function(err){`
-             * the tests pass
             qError({
                 eci: "id1",
                 rid: "io.picolabs.test-error-messages",
                 name: "infiniteRecursion",
             }, "RangeError: Maximum call stack size exceeded", false),
-            */
 
         ], t.end);
     });

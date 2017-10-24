@@ -7,7 +7,8 @@
     "rm-nm-and-lock": "lerna clean && lerna exec -- rm package-lock.json",
     "out": "lerna exec --bail=false -- npm out",
     "up": "lerna exec -- npm up",
-    "clean": "lerna clean",
+    "clean": "lerna clean --yes",
+    "clean-setup": "lerna clean --yes && rm -rf node_modules/ package-lock.json && npm run setup",
     "bootstrap": "lerna bootstrap --hoist",
     "setup": "npm i && npm run bootstrap",
     "publish": "lerna publish",
@@ -15,6 +16,6 @@
     "test": "lerna run test"
   },
   "devDependencies": {
-    "lerna": "^2.2.0"
+    "lerna": "^2.4.0"
   }
 }

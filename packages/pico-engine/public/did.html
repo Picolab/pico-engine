@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
 <title>DID redirection</title>
@@ -10,7 +10,7 @@ $(function(){
   var this_npe = location.hostname+(location.port ? ":"+location.port : "");
   var did_sim_eci = window.did_simulator_eci;
   if(!did_sim_eci) {
-    did_sim_eci = prompt("Enter an ECI for the Root Pico at "+this_npe);
+    did_sim_eci = prompt("Enter an ECI for the DID Simulator Pico");
   }
   var servers = [];
   var base_url = "/sky/cloud/"+did_sim_eci+"/io.picolabs.did_simulation";
@@ -87,21 +87,16 @@ Until then, we can use this simulator,
 which will try a series of Node Pico Engines (NPE)
 until it finds one which hosts your pico.
 </p>
-<p>
-In Chrome and Firefox, you can register a handler for a "new" protocol.
-</p>
 <h2>Register a protocol handler</h2>
 <p>
-From any page served by your NPE,
-enter the JavaScript console.
-Evaluate this code, replacing <code id="npe">localhost:8080</code>
-with the domain name and port of your NPE.
+In Chrome and Firefox, you can register a handler for a "new" protocol.
+Click on the link below to register this page
+as a handler for <code>web+did</code>.
 </p>
 <pre><a id="rph" href='javascript:navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc");void 0'>navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc")</a></pre>
 <p>
 Your browser will warn you that your NPE wants to 
-handle the "web+did" protocol,
-which you must allow.
+handle the "web+did" protocol, which you must allow.
 </p>
 <h2>Using your protocol handler</h2>
 <p>
@@ -110,13 +105,43 @@ using the pseudo DID protocol as shown below.
 Note that, for picos, the event channel identifier (ECI)
 <em>is</em> a DID.
 </p>
-<pre>web+did:npe:&lt;ECI>/sky/event/&lt;EID>/domain/type?name=val&name2=val2</pre>
-<pre>web+did:npe:&lt;ECI>/sky/cloud/&lt;RID>/function?name=val&name2=val2</pre>
+<pre>web+did:npe:&lt;ECI>/sky/event/&lt;EID>/domain/type?name=val&amp;name2=val2</pre>
+<pre>web+did:npe:&lt;ECI>/sky/cloud/&lt;RID>/function?name=val&amp;name2=val2</pre>
 <h2>Removing your protocol handler</h2>
 <p>
 To remove the protocol handler from Chrome, visit 
 chrome://settings/handlers.
 From Firefox, visit Preferences->Applications.
+</p>
+<h2>How it works</h2>
+<p>
+While the redirection itself is done by this page,
+the list of NPE to try is maintained in a pico you choose,
+which also determines which NPE hosts the
+pico identified by the ECI/DID.
+We will call this pico the "DID Simulator Pico".
+</p>
+<p>
+You might choose the Root Pico to serve this role,
+or some other pico, such as your Owner Pico.
+You must add the ruleset
+<code>io.picolabs.did_simulation</code>
+to your DID Simulator Pico.
+You may be prompted for an ECI for the DID Simulator Pico.
+</p>
+<p>
+To avoid being prompted each time,
+you may create a file named <code>did-simulator-eci.js</code>
+in the <code>public/js</code> folder of this NPE
+using this format
+</p>
+<pre><code>window.did_simulator_eci = "J1GbuLGCzstypfQLadBCwV";</code></pre>
+<p>
+replacing <code>"J1GbuLGCzstypfQLadBCwV"</code> with the actual ECI.
+You can create an ECI for this purpose in the "Channels" tab
+of your DID Simulator Pico.
+It is highly recommended that you create an ECI for this
+purpose rather than using one of the existing channel identifiers.
 </p>
 </body>
 </html>

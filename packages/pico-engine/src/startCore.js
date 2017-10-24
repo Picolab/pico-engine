@@ -2,6 +2,7 @@ var _ = require("lodash");
 var fs = require("fs");
 var path = require("path");
 var async = require("async");
+var fileUrl = require("file-url");
 var leveldown = require("leveldown");
 var krl_stdlib = require("krl-stdlib");
 var RulesetLoader = require("./RulesetLoader");
@@ -62,8 +63,6 @@ var setupRootPico = function(pe, callback){
 };
 
 
-var github_prefix = "https://raw.githubusercontent.com/Picolab/node-pico-engine/master/krl/";
-
 var getSystemRulesets = function(pe, callback){
     var krl_dir = path.resolve(__dirname, "../krl");
     fs.readdir(krl_dir, function(err, files){
@@ -79,7 +78,7 @@ var getSystemRulesets = function(pe, callback){
                 if(err) return next(err);
                 next(null, {
                     src: src,
-                    meta: {url: github_prefix + filename},
+                    meta: {url: fileUrl(file, {resolve: false})},
                 });
             });
         }, function(err, system_rulesets){
@@ -107,6 +106,13 @@ var setupLogging = function(pe){
             || message.startsWith("adding raised event to schedule:")
         )){
             message += " attributes " + toKRLjson(context.event.attrs);
+        }
+        if(context.query
+            && context.query.args
+            && _.isString(message)
+            && message.startsWith("query received:")
+        )){
+            message += " arguments " + toKRLjson(context.query.args);
         }
 
         if(!_.isString(message)){

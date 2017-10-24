@@ -246,7 +246,7 @@ module.exports = function(core){
                 });
                 return;
             }
-            callback(new Error("installRuleset expects `rid` or `url`+`base`"));
+            callback(new Error("installRuleset expects a rid, an arrays of rids, or a url and base"));
         }),
 
 

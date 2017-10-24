@@ -94,16 +94,17 @@ types.cleanNulls = function(val){
     return val;
 };
 
-types.numericCast = function(val){
+types.numericCast = function(val, round){
+    var roundFn = round ? _.round : _.identity;
     if(types.isNumber(val)){
-        return val;
+        return roundFn(val);
     }
     if(!types.isString(val)){
         return null;
     }
     var n = parseFloat(val);
     return types.isNumber(n)
-        ? n
+        ? roundFn(n)
         : null;
 };
 
@@ -145,6 +146,17 @@ types.encode = function(val, indent){
         }
         return v;
     }, indent);
+};
+
+types.decode = function(val){
+    if(!types.isString(val)){
+        return val;
+    }
+    try{
+        return JSON.parse(val);
+    }catch(e){
+        return val;
+    }
 };
 
 types.isEqual = function(left, right){
