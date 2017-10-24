@@ -8,16 +8,19 @@ var tempfs = require("temp-fs");
 var startCore = require("./startCore");
 var setupServer = require("./setupServer");
 
+var is_windows = /^win/.test(process.platform);//windows throws up when we try and delete the home dir
 var test_temp_dir = tempfs.mkdirSync({
     dir: path.resolve(__dirname, ".."),
     prefix: "pico-engine_test",
     recursive: true,//It and its content will be remove recursively.
-    track: true,//Auto-delete it on fail.
+    track: !is_windows,//Auto-delete it on fail.
 });
 
 test.onFinish(function(){
     //cleanup temp home dirs after all tests are done
-    test_temp_dir.unlink();
+    if(!is_windows){
+        test_temp_dir.unlink();
+    }
 });
 
 var getHomePath = function(){
