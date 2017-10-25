@@ -28,19 +28,19 @@ module.exports = function(core){
         def: {
 
             uuid: mkKRLfn([
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 callback(null, cuid());
             }),
 
             word: mkKRLfn([
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 callback(null, randomWords());
             }),
 
             integer: mkKRLfn([
                 "upper",
                 "lower",
-            ], function(args_orig, ctx, callback){
+            ], function(ctx, args_orig, callback){
                 var args = fixLowerUpperArgs(args_orig, true);
 
                 callback(null, _.random(args.lower, args.upper));
@@ -49,7 +49,7 @@ module.exports = function(core){
             number: mkKRLfn([
                 "upper",
                 "lower",
-            ], function(args_orig, ctx, callback){
+            ], function(ctx, args_orig, callback){
                 var args = fixLowerUpperArgs(args_orig);
 
                 callback(null, _.random(args.lower, args.upper, true));

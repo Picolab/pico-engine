@@ -8,18 +8,18 @@ module.exports = function(core){
     var fns = {
         attr: mkKRLfn([
             "name",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             callback(null, _.get(ctx, ["event", "attrs", args.name], null));
         }),
         attrs: mkKRLfn([
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             //the user may mutate their copy
             var attrs = _.cloneDeep(ctx.event.attrs);
             callback(null, attrs);
         }),
         attrMatches: mkKRLfn([
             "pairs",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             var pairs = args.pairs;
             var matches = [];
             var i, j, attr, m, pair;
@@ -40,7 +40,7 @@ module.exports = function(core){
         send: mkKRLaction([
             "event",
             "host",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             var event;
             try{
                 //validate + normalize event, and make sure is not mutated

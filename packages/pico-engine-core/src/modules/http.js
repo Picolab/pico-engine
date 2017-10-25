@@ -23,7 +23,7 @@ var mkMethod = function(method, isAction){
         "form",
         "parseJSON",
         "autoraise",
-    ], function(args, ctx, callback){
+    ], function(ctx, args, callback){
         if(!_.has(args, "url")){
             return callback(new Error("http:" + method.toLowerCase() + " needs a url string"));
         }

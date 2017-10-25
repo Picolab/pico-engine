@@ -9,14 +9,14 @@ module.exports = function(core){
 
         getPicoIDByECI: mkKRLfn([
             "eci",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             core.db.getPicoIDByECI(args.eci, callback);
         }),
 
 
         getParent: mkKRLfn([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id = args.pico_id || ctx.pico_id;
             core.db.assertPicoID(pico_id, function(err, pico_id){
@@ -29,7 +29,7 @@ module.exports = function(core){
 
         getAdminECI: mkKRLfn([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id = args.pico_id || ctx.pico_id;
             core.db.assertPicoID(pico_id, function(err, pico_id){
@@ -42,7 +42,7 @@ module.exports = function(core){
 
         listChildren: mkKRLfn([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id = args.pico_id || ctx.pico_id;
             core.db.assertPicoID(pico_id, function(err, pico_id){
@@ -55,7 +55,7 @@ module.exports = function(core){
 
         listChannels: mkKRLfn([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id = args.pico_id || ctx.pico_id;
             core.db.assertPicoID(pico_id, function(err, pico_id){
@@ -68,7 +68,7 @@ module.exports = function(core){
 
         listInstalledRIDs: mkKRLfn([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id = args.pico_id || ctx.pico_id;
             core.db.assertPicoID(pico_id, function(err, pico_id){
@@ -83,14 +83,14 @@ module.exports = function(core){
 
 
         listAllEnabledRIDs: mkKRLfn([
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             core.db.listAllEnabledRIDs(callback);
         }),
 
 
         describeRuleset: mkKRLfn([
             "rid",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             core.db.getEnabledRuleset(args.rid, function(err, data){
                 if(err) return callback(err);
                 var rid = data.rid;
@@ -112,7 +112,7 @@ module.exports = function(core){
 
         newPico: mkKRLaction([
             "parent_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var parent_id = args.parent_id || ctx.pico_id;
             core.db.assertPicoID(parent_id, function(err, parent_id){
@@ -127,7 +127,7 @@ module.exports = function(core){
 
         removePico: mkKRLaction([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id = args.pico_id || ctx.pico_id;
             core.db.assertPicoID(pico_id, function(err, pico_id){
@@ -149,7 +149,7 @@ module.exports = function(core){
             "pico_id",
             "name",
             "type",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id = args.pico_id || ctx.pico_id;
             core.db.assertPicoID(pico_id, function(err, pico_id){
@@ -166,7 +166,7 @@ module.exports = function(core){
 
         removeChannel: mkKRLaction([
             "eci",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             core.db.removeChannel(args.eci, callback);
         }),
 
@@ -174,7 +174,7 @@ module.exports = function(core){
         registerRuleset: mkKRLaction([
             "url",
             "base",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             if(!_.isString(args.url)){
                 return callback(new Error("registerRuleset expects `url`"));
             }
@@ -190,7 +190,7 @@ module.exports = function(core){
 
         unregisterRuleset: mkKRLaction([
             "rid",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             var rids = _.isArray(args.rid)
                 ? _.uniq(args.rid)
                 : [args.rid];
@@ -204,7 +204,7 @@ module.exports = function(core){
             "rid",
             "url",
             "base",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id = args.pico_id || ctx.pico_id;
 
@@ -250,7 +250,7 @@ module.exports = function(core){
         uninstallRuleset: mkKRLaction([
             "pico_id",
             "rid",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             var pico_id = args.pico_id || ctx.pico_id;
             var rids = _.isArray(args.rid)
                 ? _.uniq(args.rid)

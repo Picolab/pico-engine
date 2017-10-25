@@ -7,10 +7,10 @@ module.exports = function(arg_order, fn){
         _.each(args, function(arg, key){
             if(_.has(arg_order, key)){
                 args_obj[arg_order[key]] = arg;
-            }else{
+            }else if(_.includes(arg_order, key)){
                 args_obj[key] = arg;
             }
         });
-        fn(args_obj, ctx, callback);
+        fn(ctx, args_obj, callback);
     });
 };

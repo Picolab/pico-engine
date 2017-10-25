@@ -44,7 +44,7 @@ module.exports = function(core, third_party_modules){
                 throw mkErr("`fn` must be `function(args, callback){...}`");
             }
 
-            var fn = function(args, ctx, callback){
+            var fn = function(ctx, args, callback){
                 op.fn(args, callback);
             };
 

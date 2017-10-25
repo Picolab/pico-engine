@@ -5,13 +5,13 @@ module.exports = function(core){
     return {
         def: {
             list: mkKRLfn([
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 core.db.listScheduled(callback);
             }),
 
             remove: mkKRLaction([
                 "id",
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
 
                 //if it's a `repeat` we need to stop it
                 core.scheduler.rmCron(args.id);

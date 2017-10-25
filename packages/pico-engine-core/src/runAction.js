@@ -1,12 +1,12 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 var ktypes = require("krl-stdlib/types");
-var mkKRLfn = require("./mkKRLfn");
+var mkKRLaction = require("./mkKRLaction");
 
-var send_directive = mkKRLfn([
+var send_directive = mkKRLaction([
     "name",
     "options",
-], function(args, ctx, callback){
+], function(ctx, args, callback){
     if(!_.has(args, "name")){
         return callback(new Error("send_directive needs a name string"));
     }
@@ -42,10 +42,7 @@ module.exports = cocb.wrap(function*(ctx, domain, id, args, setting){
         }
         returns = yield definedAction(ctx, args);
     }else if(id === "send_directive" || id === "sendDirective"){
-        returns = [
-            //returns only one value
-            yield send_directive(ctx, args)
-        ];
+        returns = yield send_directive(ctx, args);
     }else{
         throw new Error("`" + id + "` is not defined");
     }
