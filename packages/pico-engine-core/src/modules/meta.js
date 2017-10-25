@@ -39,7 +39,7 @@ var getCoreCTXval = {
 
 module.exports = function(core){
     return {
-        get: function(ctx, id, path, callback){
+        get: function(ctx, id, callback){
             if(_.has(getCoreCTXval, id)){
                 callback(null, getCoreCTXval[id](core, ctx));
                 return;

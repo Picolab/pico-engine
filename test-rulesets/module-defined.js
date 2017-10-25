@@ -21,7 +21,7 @@ module.exports = {
           ]),
           " memo: "
         ]),
-        yield ctx.modules.get(ctx, "ent", "memo", undefined)
+        yield ctx.modules.get(ctx, "ent", "memo")
       ]);
     }));
     ctx.scope.set("getName", ctx.mkFunction([], function* (ctx, args) {
@@ -30,7 +30,7 @@ module.exports = {
     ctx.scope.set("getInfo", ctx.mkFunction([], function* (ctx, args) {
       return {
         "name": yield ctx.applyFn(ctx.scope.get("getName"), ctx, []),
-        "memo": yield ctx.modules.get(ctx, "ent", "memo", undefined),
+        "memo": yield ctx.modules.get(ctx, "ent", "memo"),
         "privateFn": yield ctx.applyFn(ctx.scope.get("privateFn"), ctx, [])
       };
     }));
@@ -57,7 +57,7 @@ module.exports = {
         "graph": { "module_defined": { "store_memo": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches", undefined), ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "memo",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -89,7 +89,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "memo", undefined, yield ctx.callKRLstdlib("+", [
+        yield ctx.modules.set(ctx, "ent", "memo", yield ctx.callKRLstdlib("+", [
           yield ctx.callKRLstdlib("+", [
             yield ctx.callKRLstdlib("+", [
               yield ctx.callKRLstdlib("+", [

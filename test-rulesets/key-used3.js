@@ -7,7 +7,7 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("getFoo", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo", undefined), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []);
     }));
   },
   "rules": {}

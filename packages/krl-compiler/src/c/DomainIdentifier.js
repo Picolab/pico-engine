@@ -3,6 +3,5 @@ module.exports = function(ast, comp, e){
         e("id", "ctx"),
         e("str", ast.domain),
         e("str", ast.value),
-        e("nil"),
     ]);
 };

@@ -9,11 +9,14 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("getFoo", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "foo", undefined);
+      return yield ctx.modules.get(ctx, "ent", "foo");
     }));
     ctx.scope.set("getFooKey", ctx.mkFunction(["key"], function* (ctx, args) {
       ctx.scope.set("key", args["key"]);
-      return yield ctx.modules.get(ctx, "ent", "foo", ctx.scope.get("key"));
+      return yield ctx.modules.get(ctx, "ent", {
+        "key": "foo",
+        "path": ctx.scope.get("key")
+      });
     }));
   },
   "rules": {
@@ -39,7 +42,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "foo", undefined, yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs", undefined), ctx, []));
+        yield ctx.modules.set(ctx, "ent", "foo", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, []));
       }
     },
     "putfoo": {
@@ -59,14 +62,17 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("key", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["key"]));
-        ctx.scope.set("value", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["value"]));
+        ctx.scope.set("key", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["key"]));
+        ctx.scope.set("value", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["value"]));
         var fired = true;
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "foo", ctx.scope.get("key"), ctx.scope.get("value"));
+        yield ctx.modules.set(ctx, "ent", {
+          "key": "foo",
+          "path": ctx.scope.get("key")
+        }, ctx.scope.get("value"));
       }
     },
     "delfoo": {
@@ -86,13 +92,16 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("key", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["key"]));
+        ctx.scope.set("key", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["key"]));
         var fired = true;
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.del(ctx, "ent", "foo", ctx.scope.get("key"));
+        yield ctx.modules.del(ctx, "ent", {
+          "key": "foo",
+          "path": ctx.scope.get("key")
+        });
       }
     },
     "nukefoo": {
@@ -117,7 +126,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.del(ctx, "ent", "foo", undefined);
+        yield ctx.modules.del(ctx, "ent", "foo");
       }
     }
   }

@@ -4,7 +4,7 @@ module.exports = {
   "global": function* (ctx) {
     ctx.scope.set("qFn", ctx.mkFunction(["a"], function* (ctx, args) {
       ctx.scope.set("a", args["a"]);
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "myJsModule", "fun0", undefined), ctx, {
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "myJsModule", "fun0"), ctx, {
         "0": ctx.scope.get("a"),
         "b": 2
       });

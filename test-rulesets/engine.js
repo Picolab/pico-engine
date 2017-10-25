@@ -45,9 +45,9 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["pico_id"]));
-        ctx.scope.set("name", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["name"]));
-        ctx.scope.set("type", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["type"]));
+        ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
+        ctx.scope.set("name", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["name"]));
+        ctx.scope.set("type", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["type"]));
         var fired = true;
         if (fired) {
           yield runAction(ctx, "engine", "newChannel", [
@@ -81,7 +81,7 @@ module.exports = {
       "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "engine", "removeChannel", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["eci"])], []);
+          yield runAction(ctx, "engine", "removeChannel", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["eci"])], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -106,10 +106,10 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["pico_id"]));
-        ctx.scope.set("rid", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["rid"]));
-        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["url"]));
-        ctx.scope.set("base", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["base"]));
+        ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
+        ctx.scope.set("rid", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["rid"]));
+        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+        ctx.scope.set("base", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["base"]));
         var fired = true;
         if (fired) {
           yield runAction(ctx, "engine", "installRuleset", [

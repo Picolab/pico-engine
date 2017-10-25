@@ -14,7 +14,7 @@ module.exports = {
         "rid": "io.picolabs.key-configurable",
         "alias": "api",
         "with": function* (ctx) {
-          ctx.scope.set("key2", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "local_key", undefined), ctx, []));
+          ctx.scope.set("key2", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "local_key"), ctx, []));
         }
       }
     ],
@@ -30,23 +30,23 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("getFoo", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo", undefined), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []);
     }));
     ctx.scope.set("getBar", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar", undefined), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar"), ctx, []);
     }));
     ctx.scope.set("getBarN", ctx.mkFunction(["name"], function* (ctx, args) {
       ctx.scope.set("name", args["name"]);
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar", undefined), ctx, [ctx.scope.get("name")]);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar"), ctx, [ctx.scope.get("name")]);
     }));
     ctx.scope.set("getQuux", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quux", undefined), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quux"), ctx, []);
     }));
     ctx.scope.set("getQuuz", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quuz", undefined), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quuz"), ctx, []);
     }));
     ctx.scope.set("getAPIKeys", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "api", "getKeys", undefined), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "api", "getKeys"), ctx, []);
     }));
   },
   "rules": {}

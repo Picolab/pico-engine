@@ -10,16 +10,19 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("getName", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "name", undefined);
+      return yield ctx.modules.get(ctx, "ent", "name");
     }));
     ctx.scope.set("getAppVar", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "app", "appvar", undefined);
+      return yield ctx.modules.get(ctx, "app", "appvar");
     }));
     ctx.scope.set("getUser", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "user", undefined);
+      return yield ctx.modules.get(ctx, "ent", "user");
     }));
     ctx.scope.set("getUserFirstname", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "user", ["firstname"]);
+      return yield ctx.modules.get(ctx, "ent", {
+        "key": "user",
+        "path": ["firstname"]
+      });
     }));
   },
   "rules": {
@@ -29,7 +32,7 @@ module.exports = {
         "graph": { "store": { "name": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches", undefined), ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "name",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -58,7 +61,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "name", undefined, ctx.scope.get("my_name"));
+        yield ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
       }
     },
     "store_appvar": {
@@ -67,7 +70,7 @@ module.exports = {
         "graph": { "store": { "appvar": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches", undefined), ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "appvar",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -96,7 +99,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "app", "appvar", undefined, ctx.scope.get("my_appvar"));
+        yield ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
       }
     },
     "store_user_firstname": {
@@ -105,7 +108,7 @@ module.exports = {
         "graph": { "store": { "user_firstname": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches", undefined), ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "firstname",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -134,8 +137,11 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "user", undefined, { "lastname": "McCoy" });
-        yield ctx.modules.set(ctx, "ent", "user", ["firstname"], ctx.scope.get("firstname"));
+        yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
+        yield ctx.modules.set(ctx, "ent", {
+          "key": "user",
+          "path": ["firstname"]
+        }, ctx.scope.get("firstname"));
       }
     },
     "clear_user": {
@@ -163,7 +169,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.del(ctx, "ent", "user", undefined);
+        yield ctx.modules.del(ctx, "ent", "user");
       }
     },
     "clear_appvar": {
@@ -191,7 +197,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.del(ctx, "app", "appvar", undefined);
+        yield ctx.modules.del(ctx, "app", "appvar");
       }
     }
   }

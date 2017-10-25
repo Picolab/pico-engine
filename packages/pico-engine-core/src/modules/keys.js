@@ -3,7 +3,7 @@ var mkKRLfn = require("../mkKRLfn");
 
 module.exports = function(core){
     return {
-        get: function(ctx, id, path, callback){
+        get: function(ctx, id, callback){
             var key = ctx.getMyKey(id);
             if(key === void 0 || key === null){
                 callback(new Error("keys:" + id + " not defined"));

@@ -3,7 +3,7 @@ module.exports = {
   "meta": { "shares": ["getB"] },
   "global": function* (ctx) {
     ctx.scope.set("getB", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "b", undefined);
+      return yield ctx.modules.get(ctx, "ent", "b");
     }));
   },
   "rules": {
@@ -13,7 +13,7 @@ module.exports = {
         "graph": { "foo": { "a": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches", undefined), ctx, [[[
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
                   "b",
                   new RegExp("^(.*)$", "")
                 ]]]);
@@ -46,7 +46,7 @@ module.exports = {
             ctx.scope.get("b"),
             new RegExp("foo", "")
           ]))
-          yield ctx.modules.set(ctx, "ent", "b", undefined, ctx.scope.get("b"));
+          yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
       }
     },
     "bar": {
@@ -82,7 +82,7 @@ module.exports = {
               "bar",
               {
                 "x": ctx.scope.get("x"),
-                "b": yield ctx.modules.get(ctx, "ent", "b", undefined)
+                "b": yield ctx.modules.get(ctx, "ent", "b")
               }
             ], []);
           }
@@ -91,7 +91,7 @@ module.exports = {
           else
             ctx.emit("debug", "not fired");
           if (typeof foreach_is_final === "undefined" || foreach_is_final)
-            yield ctx.modules.set(ctx, "ent", "b", undefined, ctx.scope.get("x"));
+            yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
         }
       }
     },
@@ -112,7 +112,7 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("x", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["x"]));
+        ctx.scope.set("x", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["x"]));
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
@@ -125,7 +125,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (typeof foreach_is_final === "undefined" || foreach_is_final)
-          yield ctx.modules.set(ctx, "ent", "b", undefined, ctx.scope.get("x"));
+          yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
       }
     }
   }

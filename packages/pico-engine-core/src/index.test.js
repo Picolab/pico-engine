@@ -2295,7 +2295,7 @@ test("PicoEngine - system ruleset dependency ordering", function(t){
         t.ok(true, "started successfully");
 
         cocb.run(function*(){
-            var listIns = yield pe.modules.get({}, "engine", "listInstalledRIDs", null);
+            var listIns = yield pe.modules.get({}, "engine", "listInstalledRIDs");
             var rids = yield listIns({pico_id: "id0"}, []);
 
             t.deepEquals(rids, ["C"]);

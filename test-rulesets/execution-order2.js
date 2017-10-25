@@ -3,7 +3,7 @@ module.exports = {
   "meta": { "shares": ["getOrder"] },
   "global": function* (ctx) {
     ctx.scope.set("getOrder", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "order", undefined);
+      return yield ctx.modules.get(ctx, "ent", "order");
     }));
   },
   "rules": {
@@ -32,7 +32,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "order", undefined, []);
+        yield ctx.modules.set(ctx, "ent", "order", []);
       }
     },
     "foo_or_bar": {
@@ -74,8 +74,8 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "order", undefined, yield ctx.callKRLstdlib("append", [
-          yield ctx.modules.get(ctx, "ent", "order", undefined),
+        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+          yield ctx.modules.get(ctx, "ent", "order"),
           "2 - foo_or_bar"
         ]));
       }
@@ -105,8 +105,8 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "order", undefined, yield ctx.callKRLstdlib("append", [
-          yield ctx.modules.get(ctx, "ent", "order", undefined),
+        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+          yield ctx.modules.get(ctx, "ent", "order"),
           "2 - foo"
         ]));
       }
@@ -136,8 +136,8 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "order", undefined, yield ctx.callKRLstdlib("append", [
-          yield ctx.modules.get(ctx, "ent", "order", undefined),
+        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
+          yield ctx.modules.get(ctx, "ent", "order"),
           "2 - bar"
         ]));
       }

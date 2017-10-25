@@ -8,10 +8,10 @@ module.exports = {
   },
   "global": function* (ctx) {
     ctx.scope.set("getLog", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "log", undefined);
+      return yield ctx.modules.get(ctx, "ent", "log");
     }));
     ctx.scope.set("listScheduled", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "schedule", "list", undefined), ctx, []);
+      return yield ctx.applyFn(yield ctx.modules.get(ctx, "schedule", "list"), ctx, []);
     }));
   },
   "rules": {
@@ -41,7 +41,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "log", undefined, []);
+          yield ctx.modules.set(ctx, "ent", "log", []);
         }
       }
     },
@@ -71,9 +71,9 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "log", undefined, yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "log", undefined),
-            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs", undefined), ctx, [])
+          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "log"),
+            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [])
           ]));
         }
       }
@@ -109,15 +109,15 @@ module.exports = {
             "type": "push_log",
             "attributes": {
               "from": "in_5min",
-              "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["name"])
+              "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["name"])
             },
-            "at": yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "add", undefined), ctx, [
-              yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "now", undefined), ctx, []),
+            "at": yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "add"), ctx, [
+              yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "now"), ctx, []),
               { "minutes": 5 }
             ])
           }));
-          yield ctx.modules.set(ctx, "ent", "log", undefined, yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "log", undefined),
+          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "log"),
             { "scheduled in_5min": ctx.scope.get("foo") }
           ]));
         }
@@ -154,12 +154,12 @@ module.exports = {
             "type": "push_log",
             "attributes": {
               "from": "every_1min",
-              "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["name"])
+              "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["name"])
             },
             "timespec": "* */1 * * * *"
           }));
-          yield ctx.modules.set(ctx, "ent", "log", undefined, yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "log", undefined),
+          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
+            yield ctx.modules.get(ctx, "ent", "log"),
             { "scheduled every_1min": ctx.scope.get("foo") }
           ]));
         }
@@ -184,7 +184,7 @@ module.exports = {
       "body": function* (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "schedule", "remove", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr", undefined), ctx, ["id"])], []);
+          yield runAction(ctx, "schedule", "remove", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["id"])], []);
         }
         if (fired)
           ctx.emit("debug", "fired");

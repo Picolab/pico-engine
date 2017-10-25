@@ -15,8 +15,10 @@ module.exports = function(ast, comp, e){
             return e("ycall", e("id", "ctx.modules.get"), [
                 e("id", "ctx"),
                 e("str", ast.object.domain),
-                e("str", ast.object.value),
-                comp(ast.property),
+                e("obj", {
+                    key: e("str", ast.object.value),
+                    path: comp(ast.property),
+                }),
             ], ast.loc);
         }
         return callStdLibFn(e, "get", [
