@@ -2302,3 +2302,38 @@ test("PicoEngine - system ruleset dependency ordering", function(t){
         }, t.end);
     });
 });
+
+
+test("PicoEngine - io.picolabs.persistent-index", function(t){
+    mkTestPicoEngine({rootRIDs: [
+        "io.picolabs.persistent-index",
+    ]}, function(err, pe){
+        if(err)return t.end(err);
+
+        var query = mkQueryTask(pe, "id1", "io.picolabs.persistent-index");
+        var signal = mkSignalTask(pe, "id1");
+
+        testOutputs(t, [
+            [query("getFoo"), void 0],
+
+            [signal("pindex", "setfoo", {aaa: "blah"}), []],
+            [query("getFoo"), {aaa: "blah"}],
+
+            [signal("pindex", "putfoo", {key: "bbb", value: "wat"}), []],
+            [query("getFoo"), {aaa: "blah", bbb: "wat"}],
+
+            [query("getFooKey", {key: "aaa"}), "blah"],
+            [query("getFooKey", {key: "404"}), void 0],
+            [query("getFooKey", {}), void 0],
+
+            [signal("pindex", "delfoo", {key: "aaa"}), []],
+            [query("getFoo"), {bbb: "wat"}],
+            [query("getFooKey", {key: "aaa"}), void 0],
+
+            [signal("pindex", "nukefoo", {key: "aaa"}), []],
+            [query("getFoo"), void 0],
+            [query("getFooKey", {key: "bbb"}), void 0],
+
+        ], t.end);
+    });
+});
