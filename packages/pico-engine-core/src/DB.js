@@ -371,18 +371,123 @@ module.exports = function(opts){
         // ent:*
         //
         putEntVar: function(pico_id, rid, var_name, val, callback){
-            ldb.put(["entvars", pico_id, rid, var_name], val, callback);
+            var key_prefix = ["entvars", pico_id, rid, var_name];
+            ldb.get(key_prefix, function(err, data){
+                if(err && ! err.notFound){
+                    callback(err);
+                    return;
+                }
+                var index_type = ktypes.typeOf(val);
+                if(index_type === "Null"){
+                    val = null;
+                }
+                if(index_type === "Function" || index_type === "Action"){
+                    val = ktypes.toString(val);
+                }
+                var db_ops = [];
+
+                var doTheRest = function(){
+                    if(index_type === "Map"){
+                        db_ops.push({
+                            type: "put",
+                            key: key_prefix,
+                            value: {type: "Map"},
+                        });
+                        _.each(val, function(v, k){
+                            db_ops.push({
+                                type: "put",
+                                key: key_prefix.concat([k]),
+                                value: v,
+                            });
+                        });
+                    }else if(index_type === "Array"){
+                        db_ops.push({
+                            type: "put",
+                            key: key_prefix,
+                            value: {type: "Array"},
+                        });
+                        _.each(val, function(elm, i){
+                            db_ops.push({
+                                type: "put",
+                                key: key_prefix.concat([i]),
+                                value: elm,
+                            });
+                        });
+                    }else{
+                        db_ops.push({
+                            type: "put",
+                            key: key_prefix,
+                            value: {
+                                type: index_type,
+                                value: val,
+                            },
+                        });
+                    }
+                    ldb.batch(db_ops, callback);
+                };
+
+                //delete first
+                dbRange(ldb, {
+                    prefix: key_prefix,
+                    values: false,
+                }, function(key){
+                    db_ops.push({type: "del", key: key});
+                }, function(err){
+                    if(err) return callback(err);
+                    ldb.batch(db_ops, function(err){
+                        if(err) return callback(err);
+                        doTheRest();
+                    });
+                });
+            });
         },
         getEntVar: function(pico_id, rid, var_name, callback){
             ldb.get(["entvars", pico_id, rid, var_name], function(err, data){
                 if(err && err.notFound){
                     return callback();
+                }else if(err){
+                    return callback(err);
                 }
-                callback(err, data);
+                var value;
+                if(data.type === "Map"){
+                    value = {};
+                    dbRange(ldb, {
+                        prefix: ["entvars", pico_id, rid, var_name],
+                    }, function(data){
+                        if(data.key.length < 5){
+                            return;
+                        }
+                        value[data.key[4]] = data.value;
+                    }, function(err){
+                        callback(err, value);
+                    });
+                }else if(data.type === "Array"){
+                    value = [];
+                    dbRange(ldb, {
+                        prefix: ["entvars", pico_id, rid, var_name],
+                    }, function(data){
+                        if(data.key.length < 5){
+                            return;
+                        }
+                        value.push(data.value);
+                    }, function(err){
+                        callback(err, value);
+                    });
+                }else{
+                    callback(null, data.value);
+                }
             });
         },
-        removeEntVar: function(pico_id, rid, var_name, callback){
-            ldb.del(["entvars", pico_id, rid, var_name], callback);
+        delEntVar: function(pico_id, rid, var_name, callback){
+            var db_ops = [];
+            dbRange(ldb, {
+                prefix: ["entvars", pico_id, rid, var_name],
+                values: false,
+            }, function(key){
+                db_ops.push({type: "del", key: key});
+            }, function(err){
+                ldb.batch(db_ops, callback);
+            });
         },
 
         ////////////////////////////////////////////////////////////////////////

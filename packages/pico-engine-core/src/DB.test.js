@@ -1,7 +1,9 @@
 var _ = require("lodash");
 var DB = require("./DB");
+var cocb = require("co-callback");
 var test = require("tape");
 var async = require("async");
+var ktypes = require("krl-stdlib/types");
 var memdown = require("memdown");
 var migrations = require("./migrations");
 
@@ -496,7 +498,10 @@ test("DB - removeRulesetFromPico", function(t){
         if(err) return t.end(err);
 
         t.deepEquals(data.db_before, {
-            entvars: {pico0: {rid0: {foo: "val0", bar: "val1"}}},
+            entvars: {pico0: {rid0: {
+                foo: {type: "String", value: "val0"},
+                bar: {type: "String", value: "val1"},
+            }}},
             "pico-ruleset": {"pico0": {"rid0": {on: true}}},
             "ruleset-pico": {"rid0": {"pico0": {on: true}}},
         });
@@ -830,4 +835,39 @@ test("DB - removeChannel", function(t){
         assertECIs("id3", ["id4"]),
 
     ], t.end);
+});
+
+
+test("DB - persistent variables", function(t){
+    var db = mkTestDB();
+
+    cocb.run(function*(){
+        var putEntVar = cocb.wrap(db.putEntVar);
+        var getEntVar = cocb.wrap(db.getEntVar);
+        var delEntVar = cocb.wrap(db.delEntVar);
+
+        var data;
+
+        yield putEntVar("p", "r", "foo", [1, 2]);
+        data = yield getEntVar("p", "r", "foo");
+        t.deepEquals(data, [1, 2]);
+        t.ok(ktypes.isArray(data));
+
+        yield putEntVar("p", "r", "foo", {a: 3, b: 4});
+        data = yield getEntVar("p", "r", "foo");
+        t.deepEquals(data, {a: 3, b: 4});
+        t.ok(ktypes.isMap(data));
+
+        yield delEntVar("p", "r", "foo");
+        data = yield getEntVar("p", "r", "foo");
+        t.deepEquals(data, void 0);
+
+        yield putEntVar("p", "r", "foo", {one: 11, two: 22});
+        data = yield getEntVar("p", "r", "foo");
+        t.deepEquals(data, {one: 11, two: 22});
+        yield putEntVar("p", "r", "foo", {one: 11});
+        data = yield getEntVar("p", "r", "foo");
+        t.deepEquals(data, {one: 11});
+
+    }, t.end);
 });

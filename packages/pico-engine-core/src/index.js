@@ -600,7 +600,7 @@ module.exports = function(conf){
 
         putEntVar: db.putEntVar,
         getEntVar: db.getEntVar,
-        removeEntVar: db.removeEntVar,
+        delEntVar: db.delEntVar,
 
         dbDump: db.toObj,
         // ^^^ deprecated ^^^

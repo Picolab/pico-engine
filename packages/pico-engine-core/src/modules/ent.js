@@ -44,7 +44,7 @@ module.exports = function(core){
         del: function(ctx, id, callback){
             callback = _.ary(callback, 1);
             if(ktypes.isString(id)){
-                core.db.removeEntVar(ctx.pico_id, ctx.rid, id, callback);
+                core.db.delEntVar(ctx.pico_id, ctx.rid, id, callback);
                 return;
             }
             var key = id.key;
