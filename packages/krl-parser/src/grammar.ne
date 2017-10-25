@@ -1051,8 +1051,8 @@ DeclarationList ->
       null {% noopArr %}
     | declaration_list_body {% id %}
 
-declaration_list_body -> Declaration {% idArr %}
-    | declaration_list_body %tok_SEMI:? Declaration %tok_SEMI:? {% concatArr(2) %}
+declaration_list_body -> Declaration %tok_SEMI:? {% idArr %}
+    | declaration_list_body Declaration %tok_SEMI:? {% concatArr(1) %}
 
 DeclarationOrDefAction ->
       Declaration {% id %}
@@ -1061,7 +1061,7 @@ DeclarationOrDefAction ->
 DefAction -> Identifier %tok_EQ %tok_defaction Parameters %tok_OPEN_CURLY
   DeclarationList
   ActionBlock
-  ((%tok_return | %tok_returns) Expression_list_body):?
+  ((%tok_return | %tok_returns) Expression_list_body %tok_SEMI:?):?
 %tok_CLSE_CURLY
 {%
   function(data){

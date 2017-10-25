@@ -41,8 +41,14 @@ test("module - random:*", function(t){
             n = yield krandom.integer({}, [-3, 5]);
             assertNumRange(n, -3, 5, true);
 
-            n = yield krandom.integer({}, [4, -8]);
+            n = yield krandom.integer({}, [-3, "five"]);
+            assertNumRange(n, -3, 0, true);
+
+            n = yield krandom.integer({}, ["4.49", -8]);
             assertNumRange(n, -8, 4, true);
+
+            n = yield krandom.integer({}, ["four", -8.49]);
+            assertNumRange(n, -8, 0, true);
 
             n = yield krandom.number({}, []);
             assertNumRange(n, 0, 1);
@@ -59,7 +65,13 @@ test("module - random:*", function(t){
             n = yield krandom.number({}, [-3, 5]);
             assertNumRange(n, -3, 5);
 
-            n = yield krandom.number({}, [9.87, -3.6]);
+            n = yield krandom.integer({}, [-3, "five"]);
+            assertNumRange(n, -3, 0, true);
+
+            n = yield krandom.integer({}, ["four", -8]);
+            assertNumRange(n, -8, 0, true);
+
+            n = yield krandom.number({}, [9.87, "-3.6"]);
             assertNumRange(n, -3.6, 9.87);
 
         }

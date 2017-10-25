@@ -591,7 +591,7 @@ ruleset io.picolabs.pico {
       value = event:attr("name").defaultsTo(event:attr("id"), "used id for deletion");
       child = hasChild(value);
     }
-    if child.isnull() then every {
+    if child.isnull() || child == {} then every {
       noop();
     }
     fired{
@@ -634,27 +634,25 @@ ruleset io.picolabs.pico {
                     "attrs": event:attrs() });
     }
     always{
-      schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 0.1})// ui needs children to be removed very fast(0.1 seconds). 
+      schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 0.005})// ui needs children to be removed very fast(0.005 seconds), !!!this smells like poor coding practice...!!! 
         attributes {"name":child{"name"},
-                    "id":child{"id"},
-                    "target": (event:attr("id") == child{"id"}),
+                    "id":child{"id"}, "child_name":child{"name"},
+                    "target": (event:attr("id") == child{"id"} || event:attr("name") == child{"name"} ).klog("main child to delete"),
                     "updated_children":event:attr("updated_children")}
 
     }
   }
 
-  rule delete_child {
+  rule delete_child { 
     select when wrangler delete_child
-    pre {
-      updated_children = event:attr("updated_children");
-      target = event:attr("target");
-      id = event:attr("id");
-      a = event:attrs().klog("attrs in delete child");
+    pre { target = event:attr("target") }
+    every{
+      engine:removePico(event:attr("id"))
+      deleteChannel(event:attr("child_name"))
     }
-      engine:removePico(id)
     always{
-      ent:wrangler_children := event:attr("updated_children").klog("updated_children: ") if target;
-      ent:children := children(){"children"};
+      ent:wrangler_children := event:attr("updated_children") if target;
+      ent:children := children(){"children"} if target;
       raise information event "child_deleted"
         attributes event:attrs();
     }

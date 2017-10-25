@@ -4,6 +4,7 @@ var http = require("http");
 var cocb = require("co-callback");
 var khttp = require("./http")().def;
 var ktypes = require("krl-stdlib/types");
+var testErr = require("../testErr");
 
 test("http module", function(t){
     var server = http.createServer(function(req, res){
@@ -38,6 +39,8 @@ test("http module", function(t){
     server.listen(0, function(){
         var url = "http://localhost:" + server.address().port;
         cocb.run(function*(){
+            var terr = testErr(t, khttp);
+
             var resp;
 
             var doHttp = function*(method, args){
@@ -212,6 +215,17 @@ test("http module", function(t){
                 }
             });
 
+            var methods = _.keys(khttp);
+            var numMethods = _.size(methods);
+            var errArg = {parseJSON: true};
+            var typeErrArg = {url: NaN};
+
+            var i;
+            for(i=0; i < numMethods; i++){
+                var msgSubstring = "Error: http:" + methods[i] + " ";
+                yield terr(methods[i], {}, errArg, msgSubstring + "needs a url string");
+                yield terr(methods[i], {}, typeErrArg, "Type" + msgSubstring + "was given null instead of a url string");
+            }
         }, function(err){
             server.close();
             t.end(err);

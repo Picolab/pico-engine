@@ -122,8 +122,21 @@ module.exports = {
         if (fired) {
           yield runAction(ctx, "http", "post", {
             "0": ctx.scope.get("url"),
-            "json": { "foo": "bar" }
-          }, []);
+            "json": {
+              "foo": "bar",
+              "baz": ctx.scope.get("doPost")
+            }
+          }, ["resp"]);
+          yield runAction(ctx, void 0, "send_directive", [
+            "resp.content.body",
+            yield ctx.callKRLstdlib("decode", [yield ctx.callKRLstdlib("get", [
+                yield ctx.callKRLstdlib("decode", [yield ctx.callKRLstdlib("get", [
+                    ctx.scope.get("resp"),
+                    ["content"]
+                  ])]),
+                ["body"]
+              ])])
+          ], []);
         }
         if (fired)
           ctx.emit("debug", "fired");

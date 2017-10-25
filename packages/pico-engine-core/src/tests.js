@@ -7,6 +7,7 @@ require("./modules/engine.test");
 require("./modules/event.test");
 require("./modules/random.test");
 require("./cleanEvent.test");
+require("./runAction.test");
 require("./Scheduler.test");
 
 //run system tests last

@@ -12,7 +12,7 @@ module.exports = function(ast, ind, gen){
         return gen(stmt, 1);
     }).join(";\n");
     if(!_.isEmpty(ast.body)){
-        src += "\n";
+        src += ";\n";
     }
 
     src += gen(ast.action_block, 1);
@@ -27,6 +27,7 @@ module.exports = function(ast, ind, gen){
         src += _.map(ast.returns, function(r){
             return gen(r, 1);
         }).join(", ");
+        src += ";";
     }
 
     src = _.trimEnd(src);

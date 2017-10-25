@@ -159,9 +159,9 @@ test("tokenizer", function(t){
         "[SYMBOL]z",
     ]);
 
-    tst('{"":-6}', [
+    tst("{\"\":-6}", [
         "[RAW]{",
-        '[STRING]""',
+        "[STRING]\"\"",
         "[RAW]:",
         "[RAW]-",
         "[NUMBER]6",
@@ -217,14 +217,14 @@ test("tokenizer", function(t){
 
 
     //testing escapes i.e. \\" is not \"
-    tst('"some\\\\"end', [
+    tst("\"some\\\\\"end", [
         "[STRING]\"some\\\\\"",
         "[SYMBOL]end",
     ]);
-    tst('"some\\"string"', [
+    tst("\"some\\\"string\"", [
         "[STRING]\"some\\\"string\"",
     ]);
-    tst('"some\\n"', [
+    tst("\"some\\n\"", [
         "[STRING]\"some\\n\"",
     ]);
 

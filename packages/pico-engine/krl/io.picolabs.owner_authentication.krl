@@ -55,4 +55,13 @@ ruleset io.picolabs.owner_authentication {
 
     }
   }
+
+  rule owner_new_password {
+    select when owner new_password
+    if loginAttempt(event:attr("password").defaultsTo("")) then noop();
+    fired {
+      ent:password := event:attr("new_password");
+    }
+  }
+
 }

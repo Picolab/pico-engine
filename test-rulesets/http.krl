@@ -46,7 +46,14 @@ ruleset io.picolabs.http {
             url = event:attr("url")
         }
 
-        http:post(url, json = {"foo": "bar"});
+        every {
+            http:post(url, json = {
+                "foo": "bar",
+                "baz": doPost
+            }) setting(resp);
+
+            send_directive("resp.content.body", resp["content"].decode()["body"].decode());
+        }
     }
     rule http_post_action {
         select when http_test post_action

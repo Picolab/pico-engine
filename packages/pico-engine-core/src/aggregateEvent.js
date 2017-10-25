@@ -53,7 +53,7 @@ var aggregators = {
 };
 
 module.exports = function(core, current_state_machine_state, rule){
-    return cocb.toYieldable(function(ctx, aggregator, value_pairs, callback){
+    return cocb.wrap(function(ctx, aggregator, value_pairs, callback){
         if(_.has(aggregators, aggregator)){
             aggregateWrap(core, current_state_machine_state, rule, ctx, value_pairs, aggregators[aggregator], callback);
             return;

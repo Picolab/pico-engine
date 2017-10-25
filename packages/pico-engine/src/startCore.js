@@ -2,6 +2,7 @@ var _ = require("lodash");
 var fs = require("fs");
 var path = require("path");
 var async = require("async");
+var fileUrl = require("file-url");
 var leveldown = require("leveldown");
 var RulesetLoader = require("./RulesetLoader");
 var PicoEngineCore = require("pico-engine-core");
@@ -50,8 +51,6 @@ var setupRootPico = function(pe, callback){
     });
 };
 
-var github_prefix = "https://raw.githubusercontent.com/Picolab/node-pico-engine/master/krl/";
-
 var getSystemRulesets = function(pe, callback){
     var krl_dir = path.resolve(__dirname, "../krl");
     fs.readdir(krl_dir, function(err, files){
@@ -67,7 +66,7 @@ var getSystemRulesets = function(pe, callback){
                 if(err) return next(err);
                 next(null, {
                     src: src,
-                    meta: {url: github_prefix + filename},
+                    meta: {url: fileUrl(file, {resolve: false})},
                 });
             });
         }, function(err, system_rulesets){
@@ -80,9 +79,16 @@ var setupLogging = function(pe){
     var logs = {};
     var logRID = "io.picolabs.logging";
     var needAttributes = function(context,message){
-        if (context.event) {
+        if (context.event && context.event.attrs && _.isString(message)) {
             return message.startsWith("event received:") ||
                 message.startsWith("adding raised event to schedule:");
+        } else {
+            return false;
+        }
+    };
+    var needArguments = function(context,message){
+        if (context.query && context.query.args && _.isString(message)) {
+            return message.startsWith("query received: ");
         } else {
             return false;
         }
@@ -94,6 +100,8 @@ var setupLogging = function(pe){
         if (episode) {
             if (needAttributes(context,message)) {
                 episode.logs.push(timestamp+" "+message+" attributes "+JSON.stringify(context.event.attrs));
+            } else if (needArguments(context,message)) {
+                episode.logs.push(timestamp+" "+message+" arguments "+JSON.stringify(context.query.args));
             } else {
                 episode.logs.push(timestamp+" "+message);
             }
@@ -139,9 +147,14 @@ var setupLogging = function(pe){
             logs[episode_id] = episode;
         }
     });
-    pe.emitter.on("klog", function(context, val, message){
-        console.log("[KLOG]", message, val);
-        logEntry(context,"[KLOG] "+message+" "+JSON.stringify(val));
+    pe.emitter.on("klog", function(context, info){
+        if(info.hasOwnProperty("message")){
+            console.log("[KLOG]", info.message, info.val);
+            logEntry(context,"[KLOG] "+info.message+" "+JSON.stringify(info.val));
+        }else{
+            console.log("[KLOG]", info.val);
+            logEntry(context,"[KLOG] "+JSON.stringify(info.val));
+        }
     });
     pe.emitter.on("log-error", function(context_info, expression){
         console.log("[LOG-ERROR]",context_info,expression);
@@ -169,7 +182,7 @@ var setupLogging = function(pe){
     });
     pe.emitter.on("error", function(err, context){
         console.error("[ERROR]", context, err);
-        if(context) logEntry(context, err);
+        if(context) logEntry(context, err + "");
     });
     pe.emitter.on("episode_stop", function(context){
         var episode_id = context.txn_id;

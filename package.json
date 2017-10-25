@@ -6,15 +6,18 @@
     "relock": "npm run rm-nm-and-lock && lerna exec -- npm i",
     "rm-nm-and-lock": "lerna clean && lerna exec -- rm package-lock.json",
     "out": "lerna exec --bail=false -- npm out",
-    "clean": "lerna clean",
-    "bootstrap": "lerna bootstrap",
+    "up": "lerna exec -- npm up",
+    "clean": "lerna clean --yes",
+    "clean-setup": "lerna clean --yes && rm -rf node_modules/ package-lock.json && npm run setup",
+    "bootstrap": "lerna bootstrap --hoist",
     "setup": "npm i && npm run bootstrap",
     "publish": "lerna publish",
     "start": "cd packages/pico-engine && npm start",
     "test": "lerna run test"
   },
   "devDependencies": {
-    "eslint": "^4.7.2",
-    "lerna": "^2.2.0"
+    "eslint": "^4.8.0",
+    "espree": "^3.5.1",
+    "lerna": "^2.4.0"
   }
 }

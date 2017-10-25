@@ -1,3 +1,6 @@
+var _ = require("lodash");
+var fs = require("fs");
+var cocb = require("co-callback");
 var test = require("tape");
 var path = require("path");
 var async = require("async");
@@ -5,58 +8,60 @@ var tempfs = require("temp-fs");
 var startCore = require("./startCore");
 var setupServer = require("./setupServer");
 
-var startTestServer = function(callback){
-    var is_windows = /^win/.test(process.platform);
+var is_windows = /^win/.test(process.platform);//windows throws up when we try and delete the home dir
+var test_temp_dir = tempfs.mkdirSync({
+    dir: path.resolve(__dirname, ".."),
+    prefix: "pico-engine_test",
+    recursive: true,//It and its content will be remove recursively.
+    track: !is_windows,//Auto-delete it on fail.
+});
 
-    tempfs.mkdir({
-        dir: path.resolve(__dirname, ".."),
-        prefix: "pico-engine_test",
-        recursive: true,//It and its content will be remove recursively.
-        track: !is_windows//Auto-delete it on fail.
-    }, function(err, dir){
-        if(err) throw err;//throw ensures process is killed with non-zero exit code
+test.onFinish(function(){
+    //cleanup temp home dirs after all tests are done
+    if(!is_windows){
+        test_temp_dir.unlink();
+    }
+});
 
-        //try setting up the engine including registering rulesets
+var getHomePath = function(){
+    var homepath = path.resolve(test_temp_dir.path, _.uniqueId());
+    fs.mkdirSync(homepath);
+    return homepath;
+};
+
+var testPE = function(name, testsFn){
+    test(name, function(t){
         startCore({
-            host: "http://localhost:8080",
-            home: dir.path,
+            host: "http://fake-url",//tests don't actually setup http listening
+            home: getHomePath(),
             no_logging: true,
         }, function(err, pe){
-            if(err) throw err;//throw ensures process is killed with non-zero exit code
-
-            //setup the server without throwing up
-            setupServer(pe);
-
+            if(err) return t.end(err);
             pe.getRootECI(function(err, root_eci){
-                if(err) throw err;//throw ensures process is killed with non-zero exit code
+                if(err) return t.end(err);
 
-                callback(null, {
-                    pe: pe,
-                    root_eci: root_eci,
-                    stopServer: function(){
-                        if(!is_windows){
-                            dir.unlink();
-                        }
-                    },
-                });
+                if(cocb.isGeneratorFunction(testsFn)){
+                    cocb.wrap(testsFn)(t, pe, root_eci).then(function(){
+                        t.end();
+                    }, function(err){
+                        process.nextTick(function(){
+                            t.end(err);
+                        });
+                    });
+                }else{
+                    testsFn(t, pe, root_eci);
+                }
             });
         });
     });
 };
 
-test("pico-engine", function(t){
-    var pe, root_eci, stopServer, child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids;
+testPE("pico-engine", function(t, pe, root_eci){
+    var child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
+    var subscriptionPicos = {};
+    var SHARED_A = "shared:A";
+    var SUBS_RID = "io.picolabs.subscription";
     async.series([
-        function(next){
-            startTestServer(function(err, tstserver){
-                if(err) return next(err);
-                pe = tstserver.pe;
-                root_eci = tstserver.root_eci;
-                stopServer = tstserver.stopServer;
-                next();
-            });
-        },
-
         ////////////////////////////////////////////////////////////////////////
         //
         //                      Wrangler tests
@@ -239,8 +244,8 @@ test("pico-engine", function(t){
                 args: {collection:"type",filtered:"typeB"},
             }, function(err, data){
                 if(err) return next(err);
-                t.deepEquals(data.channels.length>0, true ,"filtered collection has at least one channels");// should have at least one channel with this type..  
-                t.deepEquals(data.channels[0].type,channel.type,"filtered collection of has correct type");// should have at least one channel with this type..  
+                t.deepEquals(data.channels.length>0, true ,"filtered collection has at least one channels");// should have at least one channel with this type..
+                t.deepEquals(data.channels[0].type,channel.type,"filtered collection of has correct type");// should have at least one channel with this type..
                 next();
             });
         },
@@ -582,8 +587,8 @@ test("pico-engine", function(t){
             });
         },
         ///////////////////////////////// Register rule sets tests ///////////////
-        ///wrangler does not have rules for this.. 
-        ///it does have a function to list registered rule sets 
+        ///wrangler does not have rules for this..
+        ///it does have a function to list registered rule sets
 
         ///////////////////////////////// create child tests ///////////////
         function(next){// store created children
@@ -635,6 +640,32 @@ test("pico-engine", function(t){
                     }
                 }
                 t.deepEqual(found, true,"new child pico found");//check that child is the same from the event above
+                next();
+            });
+        },
+        function(next){ // channel in parent created?
+            pe.runQuery({
+                eci: root_eci,
+                rid: "io.picolabs.pico",
+                name: "channel",
+                args: {value:"ted"},
+            }, function(err, data){
+                if(err) return next(err);
+                //console.log("parent_eci",data);
+                t.equals(data.channels.name,"ted","channel for child created in parent");
+                parent_eci = data.channels.id;
+                next();
+            });
+        },
+        function(next){ // parent channel stored in child?
+            pe.runQuery({
+                eci: child.eci,
+                rid: "io.picolabs.pico",
+                name: "parent_eci", args:{},
+            }, function(err, data){
+                if(err) return next(err);
+                //console.log("parent_eci",data);
+                t.equals(data.parent,parent_eci,"parent channel for child stored in child");
                 next();
             });
         },
@@ -720,13 +751,287 @@ test("pico-engine", function(t){
             });
         },*/
 
+        ///////////////////////////////// Subscription tests ///////////////
+        ///////////////// Subscription Request tests
+        // create two children , A,B
+        // install subscription rulesets
+        // create well known DID's
+        // send subscriptions request from A to B
+        // check for created channel in Child A
+        // check for created subscription in Child A
+        // check for created channel in Child B ?
+        // check for created subscription in Child B ?
+        // check status of subscription A is pending
+        // check status of subscription B is pending
+        // check attrs are correct .... ?
+        function(next){// create children fo subscription tests
+            console.log("////////////////// Subscription Pending Tests //////////////////");
+            createChild("A",  SUBS_RID).then(function(pico) {
+                subscriptionPicos["picoA"] = pico;
+                return installRulesets(pico.eci, SUBS_RID);
+            }).then(function(installResponse) {
+                return createChild("B");
+            }).then(function(picoB) {
+                subscriptionPicos["picoB"] = picoB;
+                return installRulesets(picoB.eci, SUBS_RID);
+            }).then(function(installResponse) {
+                return createSubscription(subscriptionPicos["picoA"].eci, subscriptionPicos["picoB"].eci, "A");
+            }).then(function(response) {
+                return dumpDB();
+            }).then(function(dump) {
+                var picoB = subscriptionPicos.picoB;
+                var subs = getSubscriptionsFromDump(dump, picoB.id);
+                subscriptionPicos.picoB.subscriptions = subs;
+                t.notEqual(undefined, subs[SHARED_A], "Pico B has the subscription");
+                return getDBDumpWIthDelay();
+            }).then(function(dump) {
+                var picoASubs = getSubscriptionsFromDump(dump, subscriptionPicos.picoA.id);
+                subscriptionPicos.picoA.subscriptions = picoASubs;
+                t.notEqual(picoASubs[SHARED_A], undefined, "Pico A has the subscription");
+                next();
+            }).catch(function(err) {
+                console.log(err);
+                next(err);
+            });
+        },
+        function(next) {
+            var sub1 = subscriptionPicos.picoA.subscriptions[SHARED_A];
+            var sub2 = subscriptionPicos.picoB.subscriptions[SHARED_A];
+
+            // Check that the subscription statuses are pending
+            t.equal(sub1.attributes.status, "inbound", "Pico A's subscription status is inbound");
+            t.equal(sub2.attributes.status, "outbound", "Pico B's subscription status is outbound");
+
+            // t.equal(sub1.attributes.sid, SHARED_A);
+            // t.equal(sub2.attributes.sid, SHARED_A);
+
+            pe.dbDump(function(err, dump){
+                if(err) return next(err);
+
+                // Check that the channels exist
+                t.ok(dump.channel[sub1.eci], "Subscription channel created");
+                t.ok(dump.channel[sub2.eci], "Subscription channel created");
+
+                next();
+            });
+        },
+        //////////////// Subscription Accept tests
+        function (next) {
+            console.log("////////////////// Subscription Acceptance Tests //////////////////");
+            pendingSubscriptionApproval(subscriptionPicos.picoA.eci, SHARED_A)
+                .then(function(response) {
+                    return getDBDumpWIthDelay();
+                })
+                .then(function(dump) {
+                    var picoASubs = getSubscriptionsFromDump(dump, subscriptionPicos.picoA.id);
+                    var picoBSubs = getSubscriptionsFromDump(dump, subscriptionPicos.picoB.id);
+
+                    t.equal(picoASubs[SHARED_A].attributes.status, "subscribed", "Pico A's subscription status is subscribed");
+                    t.equal(picoBSubs[SHARED_A].attributes.status, "subscribed", "Pico B's subscription status is subscribed");
+                    next();
+                })
+                .catch(function(err) {
+                    next(err);
+                });
+        },
+        function(next) {
+            console.log("////////////////// Subscription Rejection Tests //////////////////");
+            createChild("C",  SUBS_RID).then(function(pico) {
+                subscriptionPicos["picoC"] = pico;
+                return installRulesets(pico.eci, SUBS_RID);
+            }).then(function(installResponse) {
+                return createChild("D");
+            }).then(function(pico) {
+                subscriptionPicos["picoD"] = pico;
+                return installRulesets(pico.eci, SUBS_RID);
+            }).then(function(installResponse) {
+                return createSubscription(subscriptionPicos["picoC"].eci, subscriptionPicos["picoD"].eci, "B");
+            }).then(function(response) {
+                return inboundSubscriptionRejection(subscriptionPicos.picoC.eci, "shared:B");
+            }).then(function(response) {
+                return getDBDumpWIthDelay();
+            }).then(function(dump) {
+                var picoCSubs  = getSubscriptionsFromDump(dump, subscriptionPicos.picoC.id);
+                var picoDSubs  = getSubscriptionsFromDump(dump, subscriptionPicos.picoD.id);
+                t.equal(picoCSubs["shared:B"], undefined, "Rejecting subscriptions worked");
+                t.equal(picoDSubs["shared:B"], undefined, "Rejecting subscriptions worked");
+                next();
+            }).catch(function(err) {
+                next(err);
+            });
+        },
+
         //
         //                      end Wrangler tests
         //
         ////////////////////////////////////////////////////////////////////////
     ], function(err){
         t.end(err);
-        stopServer();
-        process.exit(err ? 1 : 0);//ensure server stops
     });
+
+    /**
+     * This function basically causes a delay before getting the dbDump.
+     * Events can take time to propagate on the engine so this allows for this.
+     */
+    function getDBDumpWIthDelay() {
+        return new Promise(function (resolve, reject) {
+            setTimeout(function () {
+                pe.dbDump(function(err, dump){
+                    err ? reject(err) : resolve(dump);
+                });
+            }, 500);
+        });
+    }
+
+    function installRulesets (eci, rulesets) {
+        return new Promise(function(resolve, reject) {
+            pe.signalEvent({
+                eci: eci,
+                domain: "pico",
+                type: "install_rulesets_requested ",
+                attrs: {rids: rulesets}
+            }, function(err, response) {
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
+    function createChild (name) {
+        return new Promise(function(resolve, reject) {
+            pe.signalEvent({
+                eci: root_eci,
+                eid: "84",
+                domain: "pico",
+                type: "new_child_request",
+                attrs: {name: name}
+            }, function(err, response){
+                err ? reject(err) : resolve(response.directives[0].options.pico);
+            });
+        });
+    }
+    function pendingSubscriptionApproval (picoEci, subscriptionName) {
+        return new Promise(function(resolve, reject) {
+            pe.signalEvent({
+                eci: picoEci,
+                domain: "wrangler",
+                type: "pending_subscription_approval",
+                attrs: {"subscription_name": subscriptionName}
+            }, function(err, response){
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
+    function inboundSubscriptionRejection (picoEci, subscriptionName) {
+        return new Promise(function(resolve, reject) {
+            pe.signalEvent({
+                eci: picoEci,
+                domain: "wrangler",
+                type: "inbound_subscription_rejection",
+                attrs: {"subscription_name": subscriptionName}
+            }, function(err, response){
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
+    function createSubscription (eci1, eci2, name) {
+        return new Promise(function(resolve, reject) {
+            var attrs = {
+                "name": name,
+                "channel_type": "subscription",
+                "subscriber_eci": eci1
+            };
+            pe.signalEvent({
+                eci: eci2,
+                eid: "subscription",
+                domain: "wrangler",
+                type: "subscription",
+                attrs: attrs
+            }, function(err, response){
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
+    function dumpDB(){
+        return new Promise(function(resolve, reject) {
+            pe.dbDump(function(err, response){
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
+    function getSubscriptionsFromDump(dump, picoId) {
+        var entvars = dump.entvars;
+        entvars = entvars[picoId];
+        return entvars[SUBS_RID] ? entvars[SUBS_RID].subscriptions : undefined;
+    }
+});
+
+testPE("pico-engine - setupServer", function(t, pe, root_eci){
+    //simply setup, but don't start, the express server
+    //make sure it doesn't throwup
+    try{
+        setupServer(pe);
+        t.ok("setupServer worked");
+    }catch(e){
+        t.error(e, "Failed to setupServer");
+    }
+    t.end();
+});
+
+testPE("pico-engine - Wrangler", function*(t, pe, root_eci){
+
+    var yQuery = cocb.wrap(function(eci, rid, name, args, callback){
+        pe.runQuery({
+            eci: eci,
+            rid: rid,
+            name: name,
+            args: args || {},
+        }, callback);
+    });
+    var yEvent = cocb.wrap(function(eci, domain_type, attrs, eid, callback){
+        domain_type = domain_type.split("/");
+        pe.signalEvent({
+            eci: eci,
+            eid: eid || "85",
+            domain: domain_type[0],
+            type: domain_type[1],
+            attrs: attrs || {}
+        }, callback);
+    });
+
+    var data;
+    var channel;
+    var channels;
+
+    // call myself function check if eci is the same as root.
+    data = yield yQuery(root_eci, "io.picolabs.pico", "myself", {});
+    t.equals(data.eci, root_eci);
+
+
+    //// channels testing ///////////////
+
+    // store channels, we don't directly test list channels.......
+    data = yield yQuery(root_eci, "io.picolabs.pico", "channel", {});
+    t.equal(data.channels.length > 0, true,"channels returns a list greater than zero");
+    channels = data.channels;
+
+    // create channels
+    data = yield yEvent(root_eci, "pico/channel_creation_requested", {name:"ted", type:"type"});
+    channel = data.directives[0].options.channel;
+    t.equal(channel.name, "ted", "correct directive");
+
+    // compare with store,
+    data = yield yQuery(root_eci, "io.picolabs.pico", "channel", {});
+    t.equals(data.channels.length > channels.length, true, "channel was created");
+    t.equals(data.channels.length, channels.length + 1, "single channel was created");
+    var found = false;
+    for(var i = 0; i < data.channels.length; i++) {
+        if (data.channels[i].id === channel.id) {
+            found = true;
+            t.deepEqual(channel, data.channels[i], "new channel is the same channel from directive");
+            break;
+        }
+    }
+    t.equals(found, true,"found correct channel in deepEqual");//redundant check
+    channels = data.channels; // update channels cache
+
+    //TODO rest
 });
