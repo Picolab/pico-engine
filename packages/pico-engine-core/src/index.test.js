@@ -2315,24 +2315,38 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
 
         testOutputs(t, [
             [query("getFoo"), void 0],
+            [query("getBar"), void 0],
 
             [signal("pindex", "setfoo", {aaa: "blah"}), []],
+            [signal("pindex", "setbar", {aaa: "blah"}), []],
             [query("getFoo"), {aaa: "blah"}],
+            [query("getBar"), {aaa: "blah"}],
 
             [signal("pindex", "putfoo", {key: "bbb", value: "wat"}), []],
+            [signal("pindex", "putbar", {key: "bbb", value: "wat"}), []],
             [query("getFoo"), {aaa: "blah", bbb: "wat"}],
+            [query("getBar"), {aaa: "blah", bbb: "wat"}],
 
             [query("getFooKey", {key: "aaa"}), "blah"],
+            [query("getBarKey", {key: "aaa"}), "blah"],
             [query("getFooKey", {key: "404"}), void 0],
+            [query("getBarKey", {key: "404"}), void 0],
             [query("getFooKey", {}), void 0],
+            [query("getBarKey", {}), void 0],
 
             [signal("pindex", "delfoo", {key: "aaa"}), []],
+            [signal("pindex", "delbar", {key: "aaa"}), []],
             [query("getFoo"), {bbb: "wat"}],
+            [query("getBar"), {bbb: "wat"}],
             [query("getFooKey", {key: "aaa"}), void 0],
+            [query("getBarKey", {key: "aaa"}), void 0],
 
             [signal("pindex", "nukefoo", {key: "aaa"}), []],
+            [signal("pindex", "nukebar", {key: "aaa"}), []],
             [query("getFoo"), void 0],
+            [query("getBar"), void 0],
             [query("getFooKey", {key: "bbb"}), void 0],
+            [query("getBarKey", {key: "bbb"}), void 0],
 
         ], t.end);
     });
