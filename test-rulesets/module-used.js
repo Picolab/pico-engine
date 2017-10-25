@@ -22,10 +22,10 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("now", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("now", ctx.mkFunction(function* (ctx, getArg, hasArg) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "now", undefined), ctx, []);
     }));
-    ctx.scope.set("getEntVal", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getEntVal", ctx.mkFunction(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "val", undefined);
     }));
   },

@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.foreach",
   "meta": { "name": "testing foreach" },
   "global": function* (ctx) {
-    ctx.scope.set("doubleThis", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("doubleThis", ctx.mkFunction(function* (ctx, getArg, hasArg) {
       ctx.scope.set("arr", getArg("arr", 0));
       return [
         ctx.scope.get("arr"),

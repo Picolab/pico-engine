@@ -13,14 +13,15 @@ module.exports = function(ast, comp, e){
         return comp(ret);
     }))));
 
-    return e(";", e("call", e("id", "ctx.defaction"), [
-        e("id", "ctx"),
+    return e(";", e("call", e("id", "ctx.scope.set"), [
         e("str", ast.id.value, ast.id.loc),
-        e("genfn", [
-            "ctx",
-            "getArg",
-            "hasArg",
-            "runAction",
-        ], body),
+        e("call", e("id", "ctx.mkAction"), [
+            e("genfn", [
+                "ctx",
+                "getArg",
+                "hasArg",
+                "runAction",
+            ], body),
+        ]),
     ]));
 };

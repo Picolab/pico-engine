@@ -8,7 +8,7 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.defaction(ctx, "foo", function* (ctx, getArg, hasArg, runAction) {
+    ctx.scope.set("foo", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", 2);
       var fired = true;
@@ -25,8 +25,8 @@ module.exports = {
         ], []);
       }
       return [];
-    });
-    ctx.defaction(ctx, "bar", function* (ctx, getArg, hasArg, runAction) {
+    }));
+    ctx.scope.set("bar", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("one", getArg("one", 0));
       ctx.scope.set("two", hasArg("two", 1) ? getArg("two", 1) : yield ctx.callKRLstdlib("get", [
         yield ctx.applyFn(ctx.scope.get("add"), ctx, [
@@ -51,11 +51,11 @@ module.exports = {
         ], ["dir"]);
       }
       return [ctx.scope.get("dir")];
-    });
-    ctx.scope.set("getSettingVal", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    }));
+    ctx.scope.set("getSettingVal", ctx.mkFunction(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "setting_val", undefined);
     }));
-    ctx.defaction(ctx, "chooser", function* (ctx, getArg, hasArg, runAction) {
+    ctx.scope.set("chooser", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("val", getArg("val", 0));
       var fired = true;
       if (fired) {
@@ -73,8 +73,8 @@ module.exports = {
         }
       }
       return [];
-    });
-    ctx.defaction(ctx, "ifAnotB", function* (ctx, getArg, hasArg, runAction) {
+    }));
+    ctx.scope.set("ifAnotB", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", getArg("b", 1));
       var fired = ctx.scope.get("a") && !ctx.scope.get("b");
@@ -83,8 +83,8 @@ module.exports = {
         yield runAction(ctx, void 0, "send_directive", ["not b"], []);
       }
       return [];
-    });
-    ctx.defaction(ctx, "echoAction", function* (ctx, getArg, hasArg, runAction) {
+    }));
+    ctx.scope.set("echoAction", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", getArg("b", 1));
       ctx.scope.set("c", getArg("c", 2));
@@ -97,8 +97,8 @@ module.exports = {
         ctx.scope.get("b"),
         ctx.scope.get("c")
       ];
-    });
-    ctx.defaction(ctx, "complexAction", function* (ctx, getArg, hasArg, runAction) {
+    }));
+    ctx.scope.set("complexAction", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", getArg("b", 1));
       ctx.scope.set("c", 100);
@@ -129,8 +129,8 @@ module.exports = {
           ]),
           ctx.scope.get("d")
         ])];
-    });
-    ctx.scope.set("add", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    }));
+    ctx.scope.set("add", ctx.mkFunction(function* (ctx, getArg, hasArg) {
       ctx.scope.set("a", getArg("a", 0));
       ctx.scope.set("b", getArg("b", 1));
       return {
@@ -401,14 +401,14 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        ctx.defaction(ctx, "noop", function* (ctx, getArg, hasArg, runAction) {
+        ctx.scope.set("noop", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
           var fired = true;
           if (fired) {
             yield runAction(ctx, void 0, "noop", [], []);
           }
           return ["did something!"];
-        });
-        ctx.defaction(ctx, "send_directive", function* (ctx, getArg, hasArg, runAction) {
+        }));
+        ctx.scope.set("send_directive", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
           var fired = true;
           if (fired) {
             yield runAction(ctx, void 0, "noop", [], ["foo"]);
@@ -417,8 +417,8 @@ module.exports = {
               "send wat? noop returned: ",
               ctx.scope.get("foo")
             ])];
-        });
-        ctx.defaction(ctx, "echoAction", function* (ctx, getArg, hasArg, runAction) {
+        }));
+        ctx.scope.set("echoAction", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
           var fired = true;
           if (fired) {
             yield runAction(ctx, void 0, "noop", [], []);
@@ -428,7 +428,7 @@ module.exports = {
             "no",
             "echo"
           ];
-        });
+        }));
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "echoAction", [

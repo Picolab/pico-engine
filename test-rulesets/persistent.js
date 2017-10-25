@@ -9,16 +9,16 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getName", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getName", ctx.mkFunction(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "name", undefined);
     }));
-    ctx.scope.set("getAppVar", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getAppVar", ctx.mkFunction(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "app", "appvar", undefined);
     }));
-    ctx.scope.set("getUser", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getUser", ctx.mkFunction(function* (ctx, getArg, hasArg) {
       return yield ctx.modules.get(ctx, "ent", "user", undefined);
     }));
-    ctx.scope.set("getUserFirstname", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getUserFirstname", ctx.mkFunction(function* (ctx, getArg, hasArg) {
       return yield ctx.callKRLstdlib("get", [
         yield ctx.modules.get(ctx, "ent", "user", undefined),
         ["firstname"]

@@ -10,7 +10,7 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("hello", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("hello", ctx.mkFunction(function* (ctx, getArg, hasArg) {
       ctx.scope.set("obj", getArg("obj", 0));
       return yield ctx.callKRLstdlib("+", [
         "Hello ",
@@ -18,7 +18,7 @@ module.exports = {
       ]);
     }));
     ctx.scope.set("null_val", void 0);
-    ctx.scope.set("infiniteRecursion", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("infiniteRecursion", ctx.mkFunction(function* (ctx, getArg, hasArg) {
       return yield ctx.applyFn(ctx.scope.get("infiniteRecursion"), ctx, []);
     }));
   },

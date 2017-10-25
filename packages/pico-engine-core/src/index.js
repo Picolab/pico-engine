@@ -90,21 +90,23 @@ module.exports = function(conf){
                 scope: ctx.scope.push(),
             }));
         };
-        ctx.KRLClosure = function(fn){
-            return cocb.wrap(function*(ctx2, args){
+        ctx.mkFunction = function(fn){
+            var pfn = cocb.wrap(fn);
+            return function(ctx2, args){
                 var gArg = _.partial(getArg, args);
                 var hArg = _.partial(hasArg, args);
-                return yield fn(pushCTXScope(ctx2), gArg, hArg);
-            });
+                return pfn(pushCTXScope(ctx2), gArg, hArg);
+            };
         };
-        ctx.defaction = function(ctx, name, fn){
-            var actionFn = cocb.wrap(function*(ctx2, args){
+        ctx.mkAction = function(fn){
+            var pfn = cocb.wrap(fn);
+            var actionFn = function(ctx2, args){
                 var gArg = _.partial(getArg, args);
                 var hArg = _.partial(hasArg, args);
-                return yield fn(pushCTXScope(ctx2), gArg, hArg, runAction);
-            });
+                return pfn(pushCTXScope(ctx2), gArg, hArg, runAction);
+            };
             actionFn.is_an_action = true;
-            return ctx.scope.set(name, actionFn);
+            return actionFn;
         };
 
         ctx.emit = function(type, val){
