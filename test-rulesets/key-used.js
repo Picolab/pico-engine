@@ -31,26 +31,26 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getFoo", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getFoo", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo", undefined), ctx, []);
     }));
-    ctx.scope.set("getBar", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getBar", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar", undefined), ctx, []);
     }));
-    ctx.scope.set("getBarN", ctx.mkFunction(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("name", getArg("name", 0));
+    ctx.scope.set("getBarN", ctx.mkFunction(["name"], function* (ctx, args) {
+      ctx.scope.set("name", args["name"]);
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar", undefined), ctx, [ctx.scope.get("name")]);
     }));
-    ctx.scope.set("getQuux", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getQuux", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quux", undefined), ctx, []);
     }));
-    ctx.scope.set("getQuuz", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getQuuz", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quuz", undefined), ctx, []);
     }));
-    ctx.scope.set("getAPIKeys", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getAPIKeys", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "api", "getKeys", undefined), ctx, []);
     }));
-    ctx.scope.set("getFooPostlude", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getFooPostlude", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "foo_postlude", undefined);
     }));
     ctx.scope.set("foo_global", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo", undefined), ctx, []));

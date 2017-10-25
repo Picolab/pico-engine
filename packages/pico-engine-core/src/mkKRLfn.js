@@ -1,16 +1,10 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
+var normalizeKRLArgs = require("./normalizeKRLArgs");
 
-module.exports = function(arg_order, fn){
+module.exports = function(param_order, fn){
+    var fixArgs = _.partial(normalizeKRLArgs, param_order);
     return cocb.wrap(function(ctx, args, callback){
-        var args_obj = {};
-        _.each(args, function(arg, key){
-            if(_.has(arg_order, key)){
-                args_obj[arg_order[key]] = arg;
-            }else if(_.includes(arg_order, key)){
-                args_obj[key] = arg;
-            }
-        });
-        fn(ctx, args_obj, callback);
+        fn(ctx, fixArgs(args), callback);
     });
 };

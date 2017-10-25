@@ -8,8 +8,8 @@ module.exports = {
     "shares": ["hello"]
   },
   "global": function* (ctx) {
-    ctx.scope.set("hello", ctx.mkFunction(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("obj", getArg("obj", 0));
+    ctx.scope.set("hello", ctx.mkFunction(["obj"], function* (ctx, args) {
+      ctx.scope.set("obj", args["obj"]);
       ctx.scope.set("msg", yield ctx.callKRLstdlib("+", [
         "Hello ",
         ctx.scope.get("obj")

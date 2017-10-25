@@ -2,7 +2,7 @@ module.exports = {
   "rid": "io.picolabs.guard-conditions",
   "meta": { "shares": ["getB"] },
   "global": function* (ctx) {
-    ctx.scope.set("getB", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getB", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "b", undefined);
     }));
   },

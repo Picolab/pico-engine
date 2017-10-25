@@ -9,16 +9,16 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getOnChooseFired", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getOnChooseFired", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "on_choose_fired", undefined);
     }));
-    ctx.scope.set("getNoActionFired", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getNoActionFired", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "no_action_fired", undefined);
     }));
-    ctx.scope.set("getSentAttrs", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getSentAttrs", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "sent_attrs", undefined);
     }));
-    ctx.scope.set("getSentName", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getSentName", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "sent_name", undefined);
     }));
   },

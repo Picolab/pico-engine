@@ -14,33 +14,36 @@ module.exports = {
   "global": function* (ctx) {
     ctx.scope.set("g0", "global 0");
     ctx.scope.set("g1", 1);
-    ctx.scope.set("getVals", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getVals", ctx.mkFunction([], function* (ctx, args) {
       return {
         "name": yield ctx.modules.get(ctx, "ent", "ent_var_name", undefined),
         "p0": yield ctx.modules.get(ctx, "ent", "ent_var_p0", undefined),
         "p1": yield ctx.modules.get(ctx, "ent", "ent_var_p1", undefined)
       };
     }));
-    ctx.scope.set("add", ctx.mkFunction(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("a", getArg("a", 0));
-      ctx.scope.set("b", getArg("b", 1));
+    ctx.scope.set("add", ctx.mkFunction([
+      "a",
+      "b"
+    ], function* (ctx, args) {
+      ctx.scope.set("a", args["a"]);
+      ctx.scope.set("b", args["b"]);
       return yield ctx.callKRLstdlib("+", [
         ctx.scope.get("a"),
         ctx.scope.get("b")
       ]);
     }));
-    ctx.scope.set("sum", ctx.mkFunction(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("arr", getArg("arr", 0));
+    ctx.scope.set("sum", ctx.mkFunction(["arr"], function* (ctx, args) {
+      ctx.scope.set("arr", args["arr"]);
       return yield ctx.callKRLstdlib("reduce", [
         ctx.scope.get("arr"),
         ctx.scope.get("add"),
         0
       ]);
     }));
-    ctx.scope.set("incByN", ctx.mkFunction(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("n", getArg("n", 0));
-      return ctx.mkFunction(function* (ctx, getArg, hasArg) {
-        ctx.scope.set("a", getArg("a", 0));
+    ctx.scope.set("incByN", ctx.mkFunction(["n"], function* (ctx, args) {
+      ctx.scope.set("n", args["n"]);
+      return ctx.mkFunction(["a"], function* (ctx, args) {
+        ctx.scope.set("a", args["a"]);
         return yield ctx.callKRLstdlib("+", [
           ctx.scope.get("a"),
           ctx.scope.get("n")
@@ -53,8 +56,8 @@ module.exports = {
         2,
         3
       ],
-      ctx.mkFunction(function* (ctx, getArg, hasArg) {
-        ctx.scope.set("n", getArg("n", 0));
+      ctx.mkFunction(["n"], function* (ctx, args) {
+        ctx.scope.set("n", args["n"]);
         return yield ctx.callKRLstdlib("+", [
           ctx.scope.get("n"),
           ctx.scope.get("g1")

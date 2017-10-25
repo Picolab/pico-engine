@@ -7,10 +7,10 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getLog", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getLog", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "log", undefined);
     }));
-    ctx.scope.set("listScheduled", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("listScheduled", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "schedule", "list", undefined), ctx, []);
     }));
   },

@@ -2,8 +2,8 @@ module.exports = {
   "rid": "io.picolabs.foreach",
   "meta": { "name": "testing foreach" },
   "global": function* (ctx) {
-    ctx.scope.set("doubleThis", ctx.mkFunction(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("arr", getArg("arr", 0));
+    ctx.scope.set("doubleThis", ctx.mkFunction(["arr"], function* (ctx, args) {
+      ctx.scope.set("arr", args["arr"]);
       return [
         ctx.scope.get("arr"),
         ctx.scope.get("arr")

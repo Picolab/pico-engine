@@ -8,11 +8,11 @@ module.exports = {
     "index": null
   },
   "global": function* (ctx) {
-    ctx.scope.set("getFoo", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getFoo", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "foo", undefined);
     }));
-    ctx.scope.set("getFooKey", ctx.mkFunction(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("key", getArg("key", 0));
+    ctx.scope.set("getFooKey", ctx.mkFunction(["key"], function* (ctx, args) {
+      ctx.scope.set("key", args["key"]);
       return yield ctx.callKRLstdlib("get", [
         yield ctx.modules.get(ctx, "ent", "foo", undefined),
         ctx.scope.get("key")

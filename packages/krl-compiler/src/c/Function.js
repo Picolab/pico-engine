@@ -14,7 +14,12 @@ module.exports = function(ast, comp, e){
         return body.push(e("return", comp(part)));
     });
 
+    var param_order = e("array", _.map(ast.params.params, function(p){
+        return e("string", p.id.value, p.id.loc);
+    }), ast.params.loc);
+
     return e("call", e("id", "ctx.mkFunction"), [
-        e("genfn", ["ctx", "getArg", "hasArg"], body),
+        param_order,
+        e("genfn", ["ctx", "args"], body),
     ]);
 };

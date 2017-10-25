@@ -7,7 +7,7 @@ module.exports = {
     "shares": ["metaQuery"]
   },
   "global": function* (ctx) {
-    ctx.scope.set("metaQuery", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("metaQuery", ctx.mkFunction([], function* (ctx, args) {
       return {
         "rid": yield ctx.modules.get(ctx, "meta", "rid", undefined),
         "host": yield ctx.modules.get(ctx, "meta", "host", undefined),

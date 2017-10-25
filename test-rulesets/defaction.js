@@ -8,8 +8,8 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("foo", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
-      ctx.scope.set("a", getArg("a", 0));
+    ctx.scope.set("foo", ctx.mkAction(["a"], function* (ctx, args, runAction) {
+      ctx.scope.set("a", args["a"]);
       ctx.scope.set("b", 2);
       var fired = true;
       if (fired) {
@@ -26,9 +26,13 @@ module.exports = {
       }
       return [];
     }));
-    ctx.scope.set("bar", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
-      ctx.scope.set("one", getArg("one", 0));
-      ctx.scope.set("two", hasArg("two", 1) ? getArg("two", 1) : yield ctx.callKRLstdlib("get", [
+    ctx.scope.set("bar", ctx.mkAction([
+      "one",
+      "two",
+      "three"
+    ], function* (ctx, args, runAction) {
+      ctx.scope.set("one", args["one"]);
+      ctx.scope.set("two", args.hasOwnProperty("two") ? args["two"] : yield ctx.callKRLstdlib("get", [
         yield ctx.applyFn(ctx.scope.get("add"), ctx, [
           1,
           1
@@ -38,7 +42,7 @@ module.exports = {
           "resp"
         ]
       ]));
-      ctx.scope.set("three", hasArg("three", 2) ? getArg("three", 2) : "3 by default");
+      ctx.scope.set("three", args.hasOwnProperty("three") ? args["three"] : "3 by default");
       var fired = true;
       if (fired) {
         yield runAction(ctx, void 0, "send_directive", [
@@ -52,11 +56,11 @@ module.exports = {
       }
       return [ctx.scope.get("dir")];
     }));
-    ctx.scope.set("getSettingVal", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getSettingVal", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "setting_val", undefined);
     }));
-    ctx.scope.set("chooser", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
-      ctx.scope.set("val", getArg("val", 0));
+    ctx.scope.set("chooser", ctx.mkAction(["val"], function* (ctx, args, runAction) {
+      ctx.scope.set("val", args["val"]);
       var fired = true;
       if (fired) {
         switch (ctx.scope.get("val")) {
@@ -74,9 +78,12 @@ module.exports = {
       }
       return [];
     }));
-    ctx.scope.set("ifAnotB", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
-      ctx.scope.set("a", getArg("a", 0));
-      ctx.scope.set("b", getArg("b", 1));
+    ctx.scope.set("ifAnotB", ctx.mkAction([
+      "a",
+      "b"
+    ], function* (ctx, args, runAction) {
+      ctx.scope.set("a", args["a"]);
+      ctx.scope.set("b", args["b"]);
       var fired = ctx.scope.get("a") && !ctx.scope.get("b");
       if (fired) {
         yield runAction(ctx, void 0, "send_directive", ["yes a"], []);
@@ -84,10 +91,14 @@ module.exports = {
       }
       return [];
     }));
-    ctx.scope.set("echoAction", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
-      ctx.scope.set("a", getArg("a", 0));
-      ctx.scope.set("b", getArg("b", 1));
-      ctx.scope.set("c", getArg("c", 2));
+    ctx.scope.set("echoAction", ctx.mkAction([
+      "a",
+      "b",
+      "c"
+    ], function* (ctx, args, runAction) {
+      ctx.scope.set("a", args["a"]);
+      ctx.scope.set("b", args["b"]);
+      ctx.scope.set("c", args["c"]);
       var fired = true;
       if (fired) {
         yield runAction(ctx, void 0, "noop", [], []);
@@ -98,9 +109,12 @@ module.exports = {
         ctx.scope.get("c")
       ];
     }));
-    ctx.scope.set("complexAction", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
-      ctx.scope.set("a", getArg("a", 0));
-      ctx.scope.set("b", getArg("b", 1));
+    ctx.scope.set("complexAction", ctx.mkAction([
+      "a",
+      "b"
+    ], function* (ctx, args, runAction) {
+      ctx.scope.set("a", args["a"]);
+      ctx.scope.set("b", args["b"]);
       ctx.scope.set("c", 100);
       ctx.scope.set("d", yield ctx.callKRLstdlib("+", [
         ctx.scope.get("c"),
@@ -130,9 +144,12 @@ module.exports = {
           ctx.scope.get("d")
         ])];
     }));
-    ctx.scope.set("add", ctx.mkFunction(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("a", getArg("a", 0));
-      ctx.scope.set("b", getArg("b", 1));
+    ctx.scope.set("add", ctx.mkFunction([
+      "a",
+      "b"
+    ], function* (ctx, args) {
+      ctx.scope.set("a", args["a"]);
+      ctx.scope.set("b", args["b"]);
       return {
         "type": "directive",
         "name": "add",
@@ -401,14 +418,14 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("noop", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
+        ctx.scope.set("noop", ctx.mkAction([], function* (ctx, args, runAction) {
           var fired = true;
           if (fired) {
             yield runAction(ctx, void 0, "noop", [], []);
           }
           return ["did something!"];
         }));
-        ctx.scope.set("send_directive", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
+        ctx.scope.set("send_directive", ctx.mkAction([], function* (ctx, args, runAction) {
           var fired = true;
           if (fired) {
             yield runAction(ctx, void 0, "noop", [], ["foo"]);
@@ -418,7 +435,7 @@ module.exports = {
               ctx.scope.get("foo")
             ])];
         }));
-        ctx.scope.set("echoAction", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
+        ctx.scope.set("echoAction", ctx.mkAction([], function* (ctx, args, runAction) {
           var fired = true;
           if (fired) {
             yield runAction(ctx, void 0, "noop", [], []);

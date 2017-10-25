@@ -12,7 +12,7 @@ module.exports = {
     }
   },
   "global": function* (ctx) {
-    ctx.scope.set("privateFn", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("privateFn", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.callKRLstdlib("+", [
         yield ctx.callKRLstdlib("+", [
           yield ctx.callKRLstdlib("+", [
@@ -24,17 +24,17 @@ module.exports = {
         yield ctx.modules.get(ctx, "ent", "memo", undefined)
       ]);
     }));
-    ctx.scope.set("getName", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getName", ctx.mkFunction([], function* (ctx, args) {
       return ctx.scope.get("configured_name");
     }));
-    ctx.scope.set("getInfo", ctx.mkFunction(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getInfo", ctx.mkFunction([], function* (ctx, args) {
       return {
         "name": yield ctx.applyFn(ctx.scope.get("getName"), ctx, []),
         "memo": yield ctx.modules.get(ctx, "ent", "memo", undefined),
         "privateFn": yield ctx.applyFn(ctx.scope.get("privateFn"), ctx, [])
       };
     }));
-    ctx.scope.set("getInfoAction", ctx.mkAction(function* (ctx, getArg, hasArg, runAction) {
+    ctx.scope.set("getInfoAction", ctx.mkAction([], function* (ctx, args, runAction) {
       var fired = true;
       if (fired) {
         yield runAction(ctx, void 0, "send_directive", [
