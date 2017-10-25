@@ -10,6 +10,7 @@ var sub_modules = {
     engine: require("./engine"),
     http: require("./http"),
     keys: require("./keys"),
+    math: require("./math"),
     meta: require("./meta"),
     schedule: require("./schedule"),
     time: require("./time"),
