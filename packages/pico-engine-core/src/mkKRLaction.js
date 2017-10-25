@@ -1,25 +1,17 @@
-var _ = require("lodash");
-var cocb = require("co-callback");
-var getArg = require("./getArg");
+var mkKRLfn = require("./mkKRLfn");
 
 module.exports = function(arg_order, fn){
 
-    var actionFn = cocb.toYieldable(function(ctx, args, callback){
+    var kfn = mkKRLfn(arg_order, fn);
 
-        var args_obj = {};
-        _.each(_.values(arg_order), function(arg, i){
-            args_obj[arg] = getArg(args, arg, i);
-        });
-
-        fn(args_obj, ctx, function(err, data){
-            if(err) return callback(err);
-
-            callback(null, [// actions have multiple returns
+    var actionFn = function(ctx, args){
+        return kfn(ctx, args).then(function(data){
+            return [// actions have multiple returns
                 //modules return only one value
                 data
-            ]);
+            ];
         });
-    });
+    };
 
     actionFn.is_an_action = true;
 
