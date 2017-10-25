@@ -13,10 +13,7 @@ module.exports = {
     }));
     ctx.scope.set("getFooKey", ctx.mkFunction(["key"], function* (ctx, args) {
       ctx.scope.set("key", args["key"]);
-      return yield ctx.callKRLstdlib("get", [
-        yield ctx.modules.get(ctx, "ent", "foo", undefined),
-        ctx.scope.get("key")
-      ]);
+      return yield ctx.modules.get(ctx, "ent", "foo", ctx.scope.get("key"));
     }));
   },
   "rules": {

@@ -1,10 +1,28 @@
 var _ = require("lodash");
 var ktypes = require("krl-stdlib/types");
 
+//coerce the value into an array of key strings
+var toKeyPath = function(path){
+    if(!ktypes.isArray(path)){
+        path = [path];
+    }
+    return _.map(path, function(key){
+        return ktypes.toString(key);
+    });
+};
+
 module.exports = function(core){
     return {
         get: function(ctx, id, path, callback){
-            core.db.getEntVar(ctx.pico_id, ctx.rid, id, callback);
+            if(ktypes.isNull(path)){
+                core.db.getEntVar(ctx.pico_id, ctx.rid, id, callback);
+                return;
+            }
+            path = toKeyPath(path);
+            core.db.getEntVar(ctx.pico_id, ctx.rid, id, function(err, data){
+                if(err) return callback(err);
+                callback(null, _.get(data, path));
+            });
         },
         set: function(ctx, id, path, value, callback){
             if(ktypes.isNull(path)){
@@ -13,6 +31,7 @@ module.exports = function(core){
                 });
                 return;
             }
+            path = toKeyPath(path);
             core.db.getEntVar(ctx.pico_id, ctx.rid, id, function(err, data){
                 if(err) return callback(err);
 

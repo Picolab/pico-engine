@@ -9,6 +9,16 @@ module.exports = function(ast, comp, e){
         }
         return e("get", comp(ast.object), comp(ast.property));
     }else if(ast.method === "path"){
+        if(ast.object.type === "DomainIdentifier"
+            && (ast.object.domain === "ent" || ast.object.domain === "app")
+        ){
+            return e("ycall", e("id", "ctx.modules.get"), [
+                e("id", "ctx"),
+                e("str", ast.object.domain),
+                e("str", ast.object.value),
+                comp(ast.property),
+            ], ast.loc);
+        }
         return callStdLibFn(e, "get", [
             comp(ast.object),
             comp(ast.property)

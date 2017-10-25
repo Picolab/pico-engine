@@ -19,10 +19,7 @@ module.exports = {
       return yield ctx.modules.get(ctx, "ent", "user", undefined);
     }));
     ctx.scope.set("getUserFirstname", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.callKRLstdlib("get", [
-        yield ctx.modules.get(ctx, "ent", "user", undefined),
-        ["firstname"]
-      ]);
+      return yield ctx.modules.get(ctx, "ent", "user", ["firstname"]);
     }));
   },
   "rules": {
