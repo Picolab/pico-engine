@@ -205,8 +205,8 @@ test("DB - read keys that don't exist", function(t){
     var db = mkTestDB();
 
     async.series({
-        ent: async.apply(db.getEntVar, "pico0", "rid0", "var that doesn't exisit"),
-        app: async.apply(db.getAppVar, "rid0", "var that doesn't exisit")
+        ent: async.apply(db.getEntVar, "pico0", "rid0", "var that doesn't exisit", null),
+        app: async.apply(db.getAppVar, "rid0", "var that doesn't exisit", null)
     }, function(err, data){
         if(err) return t.end(err);
         t.deepEquals(data.ent, undefined);
@@ -849,25 +849,28 @@ test("DB - persistent variables", function(t){
         var data;
 
         yield putEntVar("p", "r", "foo", [1, 2]);
-        data = yield getEntVar("p", "r", "foo");
+        data = yield getEntVar("p", "r", "foo", null);
         t.deepEquals(data, [1, 2]);
         t.ok(ktypes.isArray(data));
 
         yield putEntVar("p", "r", "foo", {a: 3, b: 4});
-        data = yield getEntVar("p", "r", "foo");
+        data = yield getEntVar("p", "r", "foo", null);
         t.deepEquals(data, {a: 3, b: 4});
         t.ok(ktypes.isMap(data));
 
         yield delEntVar("p", "r", "foo");
-        data = yield getEntVar("p", "r", "foo");
+        data = yield getEntVar("p", "r", "foo", null);
         t.deepEquals(data, void 0);
 
         yield putEntVar("p", "r", "foo", {one: 11, two: 22});
-        data = yield getEntVar("p", "r", "foo");
+        data = yield getEntVar("p", "r", "foo", null);
         t.deepEquals(data, {one: 11, two: 22});
         yield putEntVar("p", "r", "foo", {one: 11});
-        data = yield getEntVar("p", "r", "foo");
+        data = yield getEntVar("p", "r", "foo", null);
         t.deepEquals(data, {one: 11});
+
+        data = yield getEntVar("p", "r", "foo", "one");
+        t.deepEquals(data, 11);
 
     }, t.end);
 });

@@ -2331,8 +2331,8 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
             [query("getBarKey", {key: "aaa"}), "blah"],
             [query("getFooKey", {key: "404"}), void 0],
             [query("getBarKey", {key: "404"}), void 0],
-            [query("getFooKey", {}), void 0],
-            [query("getBarKey", {}), void 0],
+            [query("getFooKey", {}), {aaa: "blah", bbb: "wat"}],
+            [query("getBarKey", {}), {aaa: "blah", bbb: "wat"}],
 
             [signal("pindex", "delfoo", {key: "aaa"}), []],
             [signal("pindex", "delbar", {key: "aaa"}), []],

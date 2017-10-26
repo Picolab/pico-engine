@@ -1,5 +1,6 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
+var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
 var mkKRLaction = require("../mkKRLaction");
 
@@ -15,6 +16,21 @@ var sub_modules = {
     time: require("./time"),
     random: require("./random"),
 };
+
+
+var normalizeId = function(domain, id){
+    if(domain !== "ent" && domain !== "app"){
+        return ktypes.toString(id);
+    }
+    if(_.has(id, "key") && ktypes.isString(id.key)){
+        return {
+            var_name: id.key,
+            query: id.path,
+        };
+    }
+    return {var_name: ktypes.toString(id)};
+};
+
 
 module.exports = function(core, third_party_modules){
 
@@ -75,6 +91,7 @@ module.exports = function(core, third_party_modules){
 
     return {
         get: cocb.wrap(function(ctx, domain, id, callback){
+            id = normalizeId(domain, id);
             var umod = userModuleLookup(ctx, domain, id);
             if(umod.has_it){
                 callback(null, umod.value);
@@ -93,6 +110,7 @@ module.exports = function(core, third_party_modules){
 
 
         set: cocb.wrap(function(ctx, domain, id, value, callback){
+            id = normalizeId(domain, id);
             if(!_.has(modules, domain)){
                 callback(new Error("Module not defined `" + domain + ":" + id + "`"));
                 return;
@@ -106,6 +124,7 @@ module.exports = function(core, third_party_modules){
 
 
         del: cocb.wrap(function(ctx, domain, id, callback){
+            id = normalizeId(domain, id);
             if(!_.has(modules, domain)){
                 callback(new Error("Module not defined `" + domain + ":" + id + "`"));
                 return;
