@@ -11,7 +11,7 @@ module.exports = function(core){
 
             base64encode: mkKRLfn([
                 "str",
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 if(!_.has(args, "str")){
                     return callback(new Error("math:base64encode needs a str string"));
                 }
@@ -23,7 +23,7 @@ module.exports = function(core){
 
             base64decode: mkKRLfn([
                 "str",
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 if(!_.has(args, "str")){
                     return callback(new Error("math:base64decode needs a str string"));
                 }
@@ -34,7 +34,7 @@ module.exports = function(core){
 
 
             hashFunctions: mkKRLfn([
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 callback(null, supportedHashFns);
             }),
 
@@ -42,7 +42,7 @@ module.exports = function(core){
             hash: mkKRLfn([
                 "hashFn",
                 "toHash"
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 if(!_.has(args, "hashFn")){
                     return callback(new Error("math:hash needs a hashFn string"));
                 }
