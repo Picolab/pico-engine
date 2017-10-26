@@ -176,7 +176,7 @@ module.exports = function(pe){
     });
 
     app.all("/api/pico/:id/rm-ent-var/:rid/:var_name", function(req, res){
-        pe.delEntVar(req.params.id, req.params.rid, req.params.var_name, function(err){
+        pe.delEntVar(req.params.id, req.params.rid, req.params.var_name, null, function(err){
             if(err) return errResp(res, err);
             res.json({ok: true});
         });

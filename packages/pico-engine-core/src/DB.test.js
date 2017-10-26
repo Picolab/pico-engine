@@ -290,7 +290,7 @@ test("DB - deleteRuleset", function(t){
                 if(err) return callback(err);
                 db.enableRuleset(data.hash, function(err){
                     if(err) return callback(err);
-                    db.putAppVar(rid, "my_var", "appvar value", function(err){
+                    db.putAppVar(rid, "my_var", null, "appvar value", function(err){
                         callback(err, data.hash);
                     });
                 });
@@ -487,8 +487,8 @@ test("DB - removeRulesetFromPico", function(t){
 
     async.series({
         addRS: async.apply(db.addRulesetToPico, "pico0", "rid0"),
-        ent0: async.apply(db.putEntVar, "pico0", "rid0", "foo", "val0"),
-        ent1: async.apply(db.putEntVar, "pico0", "rid0", "bar", "val1"),
+        ent0: async.apply(db.putEntVar, "pico0", "rid0", "foo", null, "val0"),
+        ent1: async.apply(db.putEntVar, "pico0", "rid0", "bar", null, "val1"),
         db_before: async.apply(db.toObj),
 
         rmRS: async.apply(db.removeRulesetFromPico, "pico0", "rid0"),
@@ -842,35 +842,68 @@ test("DB - persistent variables", function(t){
     var db = mkTestDB();
 
     cocb.run(function*(){
-        var putEntVar = cocb.wrap(db.putEntVar);
-        var getEntVar = cocb.wrap(db.getEntVar);
-        var delEntVar = cocb.wrap(db.delEntVar);
+        var putEntVar = _.partial(cocb.wrap(db.putEntVar), "p", "r");
+        var getEntVar = _.partial(cocb.wrap(db.getEntVar), "p", "r");
+        var delEntVar = _.partial(cocb.wrap(db.delEntVar), "p", "r");
 
         var data;
 
-        yield putEntVar("p", "r", "foo", [1, 2]);
-        data = yield getEntVar("p", "r", "foo", null);
+        yield putEntVar("foo", null, [1, 2]);
+        data = yield getEntVar("foo", null);
         t.deepEquals(data, [1, 2]);
         t.ok(ktypes.isArray(data));
 
-        yield putEntVar("p", "r", "foo", {a: 3, b: 4});
-        data = yield getEntVar("p", "r", "foo", null);
+        yield putEntVar("foo", null, {a: 3, b: 4});
+        data = yield getEntVar("foo", null);
         t.deepEquals(data, {a: 3, b: 4});
         t.ok(ktypes.isMap(data));
 
-        yield delEntVar("p", "r", "foo");
-        data = yield getEntVar("p", "r", "foo", null);
+        yield delEntVar("foo", null);
+        data = yield getEntVar("foo", null);
         t.deepEquals(data, void 0);
 
-        yield putEntVar("p", "r", "foo", {one: 11, two: 22});
-        data = yield getEntVar("p", "r", "foo", null);
+        yield putEntVar("foo", null, {one: 11, two: 22});
+        data = yield getEntVar("foo", null);
         t.deepEquals(data, {one: 11, two: 22});
-        yield putEntVar("p", "r", "foo", {one: 11});
-        data = yield getEntVar("p", "r", "foo", null);
+        yield putEntVar("foo", null, {one: 11});
+        data = yield getEntVar("foo", null);
         t.deepEquals(data, {one: 11});
 
-        data = yield getEntVar("p", "r", "foo", "one");
+        data = yield getEntVar("foo", "one");
         t.deepEquals(data, 11);
+
+        yield putEntVar("foo", ["bar", "baz"], {qux: 1});
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {one: 11, bar: {baz: {qux: 1}}});
+
+        yield putEntVar("foo", ["bar", "asdf"], true);
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {one: 11, bar: {
+            baz: {qux: 1},
+            asdf: true,
+        }});
+
+        yield putEntVar("foo", ["bar", "baz", "qux"], "wat?");
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {one: 11, bar: {
+            baz: {qux: "wat?"},
+            asdf: true,
+        }});
+        data = yield getEntVar("foo", ["bar", "baz", "qux"]);
+        t.deepEquals(data, "wat?");
+
+
+        yield delEntVar("foo", "one");
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {bar: {baz: {qux: "wat?"}, asdf: true}});
+
+        yield delEntVar("foo", ["bar", "asdf"]);
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {bar: {baz: {qux: "wat?"}}});
+
+        yield delEntVar("foo", ["bar", "baz", "qux"]);
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {});
 
     }, t.end);
 });

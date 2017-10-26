@@ -30,7 +30,27 @@ var toKeyPath = function(path){
 };
 
 
-var putPVar = function(ldb, key_prefix, val, callback){
+var putPVar = function(ldb, key_prefix, query, val, callback){
+    var path = ktypes.isNull(query) ? [] : toKeyPath(query);
+    if(_.size(path) > 0){
+        var sub_key = _.head(path);
+        var sub_path = _.tail(path);
+        if(_.isEmpty(sub_path)){
+            ldb.put(key_prefix.concat([sub_key]), val, callback);
+            return;
+        }
+        ldb.get(key_prefix.concat([sub_key]), function(err, data){
+            if(err && err.notFound){
+                data = {};
+            }else if(err){
+                callback(err);
+                return;
+            }
+            data = _.set(data, sub_path, val);
+            ldb.put(key_prefix.concat([sub_key]), data, callback);
+        });
+        return;
+    }
     ldb.get(key_prefix, function(err, data){
         if(err && ! err.notFound){
             callback(err);
@@ -44,32 +64,24 @@ var putPVar = function(ldb, key_prefix, val, callback){
             val = ktypes.toString(val);
         }
         var db_ops = [];
-
-        var doTheRest = function(){
-            if(index_type === "Map"){
+        dbRange(ldb, {
+            prefix: key_prefix,
+            values: false,
+        }, function(key){
+            db_ops.push({type: "del", key: key});
+        }, function(err){
+            if(err) return callback(err);
+            if(index_type === "Map" || index_type === "Array"){
                 db_ops.push({
                     type: "put",
                     key: key_prefix,
-                    value: {type: "Map"},
+                    value: {type: index_type},
                 });
                 _.each(val, function(v, k){
                     db_ops.push({
                         type: "put",
                         key: key_prefix.concat([k]),
                         value: v,
-                    });
-                });
-            }else if(index_type === "Array"){
-                db_ops.push({
-                    type: "put",
-                    key: key_prefix,
-                    value: {type: "Array"},
-                });
-                _.each(val, function(elm, i){
-                    db_ops.push({
-                        type: "put",
-                        key: key_prefix.concat([i]),
-                        value: elm,
                     });
                 });
             }else{
@@ -83,20 +95,6 @@ var putPVar = function(ldb, key_prefix, val, callback){
                 });
             }
             ldb.batch(db_ops, callback);
-        };
-
-        //delete first
-        dbRange(ldb, {
-            prefix: key_prefix,
-            values: false,
-        }, function(key){
-            db_ops.push({type: "del", key: key});
-        }, function(err){
-            if(err) return callback(err);
-            ldb.batch(db_ops, function(err){
-                if(err) return callback(err);
-                doTheRest();
-            });
         });
     });
 };
@@ -148,7 +146,29 @@ var getPVar = function(ldb, key_prefix, query, callback){
 };
 
 
-var delPVar = function(ldb, key_prefix, callback){
+var delPVar = function(ldb, key_prefix, query, callback){
+    var path = ktypes.isNull(query) ? [] : toKeyPath(query);
+    if(_.size(path) > 0){
+        key_prefix = key_prefix.concat([_.head(path)]);
+        var sub_path = _.tail(path);
+        if( ! _.isEmpty(sub_path)){
+            ldb.get(key_prefix, function(err, data){
+                if(err && err.notFound){
+                    data = {};
+                }else if(err){
+                    callback(err);
+                    return;
+                }
+                var val = _.omit(data, sub_path);
+                if(_.isEmpty(val)){
+                    ldb.del(key_prefix, callback);
+                }else{
+                    ldb.put(key_prefix, val, callback);
+                }
+            });
+            return;
+        }
+    }
     var db_ops = [];
     dbRange(ldb, {
         prefix: key_prefix,
@@ -512,28 +532,28 @@ module.exports = function(opts){
         //
         // ent:*
         //
-        putEntVar: function(pico_id, rid, var_name, val, callback){
-            putPVar(ldb, ["entvars", pico_id, rid, var_name], val, callback);
+        putEntVar: function(pico_id, rid, var_name, query, val, callback){
+            putPVar(ldb, ["entvars", pico_id, rid, var_name], query, val, callback);
         },
         getEntVar: function(pico_id, rid, var_name, query, callback){
             getPVar(ldb, ["entvars", pico_id, rid, var_name], query, callback);
         },
-        delEntVar: function(pico_id, rid, var_name, callback){
-            delPVar(ldb, ["entvars", pico_id, rid, var_name], callback);
+        delEntVar: function(pico_id, rid, var_name, query, callback){
+            delPVar(ldb, ["entvars", pico_id, rid, var_name], query, callback);
         },
 
         ////////////////////////////////////////////////////////////////////////
         //
         // app:*
         //
-        putAppVar: function(rid, var_name, val, callback){
-            putPVar(ldb, ["appvars", rid, var_name], val, callback);
+        putAppVar: function(rid, var_name, query, val, callback){
+            putPVar(ldb, ["appvars", rid, var_name], query, val, callback);
         },
         getAppVar: function(rid, var_name, query, callback){
             getPVar(ldb, ["appvars", rid, var_name], query, callback);
         },
-        delAppVar: function(rid, var_name, callback){
-            delPVar(ldb, ["appvars", rid, var_name], callback);
+        delAppVar: function(rid, var_name, query, callback){
+            delPVar(ldb, ["appvars", rid, var_name], query, callback);
         },
 
 
