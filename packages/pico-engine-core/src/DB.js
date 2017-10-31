@@ -57,13 +57,6 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
             callback(err);
             return;
         }
-        var index_type = ktypes.typeOf(val);
-        if(index_type === "Null"){
-            val = null;
-        }
-        if(index_type === "Function" || index_type === "Action"){
-            val = ktypes.toString(val);
-        }
         var db_ops = [];
         dbRange(ldb, {
             prefix: key_prefix,
@@ -72,12 +65,19 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
             db_ops.push({type: "del", key: key});
         }, function(err){
             if(err) return callback(err);
-            if(index_type === "Map" || index_type === "Array"){
-                db_ops.push({
-                    type: "put",
-                    key: key_prefix,
-                    value: {type: index_type},
-                });
+            var index_type = ktypes.typeOf(val);
+            var root_value = {type: index_type};
+            switch(index_type){
+            case "Null":
+                root_value.value = null;
+                break;
+            case "Function":
+            case "Action":
+                root_value.type = "String";
+                root_value.value = ktypes.toString(val);
+                break;
+            case "Map":
+            case "Array":
                 _.each(val, function(v, k){
                     db_ops.push({
                         type: "put",
@@ -85,16 +85,15 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
                         value: v,
                     });
                 });
-            }else{
-                db_ops.push({
-                    type: "put",
-                    key: key_prefix,
-                    value: {
-                        type: index_type,
-                        value: val,
-                    },
-                });
+                break;
+            default:
+                root_value.value = val;
             }
+            db_ops.push({
+                type: "put",
+                key: key_prefix,
+                value: root_value,
+            });
             ldb.batch(db_ops, callback);
         });
     });

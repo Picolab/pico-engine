@@ -846,6 +846,7 @@ test("DB - persistent variables", function(t){
         var putEntVar = _.partial(cocb.wrap(db.putEntVar), "p", "r");
         var getEntVar = _.partial(cocb.wrap(db.getEntVar), "p", "r");
         var delEntVar = _.partial(cocb.wrap(db.delEntVar), "p", "r");
+        var toObj = cocb.wrap(db.toObj);
 
         var data;
 
@@ -905,6 +906,34 @@ test("DB - persistent variables", function(t){
         yield delEntVar("foo", ["bar", "baz", "qux"]);
         data = yield getEntVar("foo", null);
         t.deepEquals(data, {});
+
+        ///////////////////////////////////////////////////////////////////////
+        // how other types are encoded
+        var action = function(){};
+        action.is_an_action = true;
+        yield putEntVar("act", null, action);
+        yield putEntVar("fn", null, _.noop);
+        yield putEntVar("nan", null, NaN);
+
+        var dump = yield toObj();
+
+        t.equals(yield getEntVar("fn", null), "[Function]");
+        t.deepEquals(dump.entvars.p.r.fn, {
+            type: "String",
+            value: "[Function]",
+        });
+
+        t.equals(yield getEntVar("act", null), "[Action]");
+        t.deepEquals(dump.entvars.p.r.act, {
+            type: "String",
+            value: "[Action]",
+        });
+
+        t.equals(yield getEntVar("nan", null), null);
+        t.deepEquals(dump.entvars.p.r.nan, {
+            type: "Null",
+            value: null,
+        });
 
     }, t.end);
 });
