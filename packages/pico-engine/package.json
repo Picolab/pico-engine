@@ -59,5 +59,8 @@
     "pico-engine-core": "^0.40.1",
     "read-pkg-up": "^2.0.0",
     "request": "^2.83.0"
+  },
+  "engines": {
+    "node": ">=4.5.0"
   }
 }

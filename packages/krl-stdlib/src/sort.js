@@ -6,7 +6,7 @@ module.exports = function*(array, comparator){
     }
     var other = Array(N);
 
-    //alternative: var strideLen = N / Math.abs(1 << (Math.ceil(Math.log2(N)) - 1));
+    //alternative: var strideLen = N/2 / Math.abs(1 << (Math.ceil(Math.log2(N)) - 1));
     var strideLen = N;
     while(strideLen > 1){
         strideLen /= 2;
