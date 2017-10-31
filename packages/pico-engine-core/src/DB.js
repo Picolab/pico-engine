@@ -2,6 +2,7 @@ var _ = require("lodash");
 var cuid = require("cuid");
 var async = require("async");
 var crypto = require("crypto");
+var encode = require("encoding-down");
 var ktypes = require("krl-stdlib/types");
 var dbRange = require("./dbRange");
 var levelup = require("levelup");
@@ -183,11 +184,10 @@ var delPVar = function(ldb, key_prefix, query, callback){
 
 module.exports = function(opts){
 
-    var ldb = levelup(opts.location, {
-        db: opts.db,
+    var ldb = levelup(encode(opts.db, {
         keyEncoding: bytewise,
         valueEncoding: safeJsonCodec
-    });
+    }));
 
     var newID = cuid;
     var genDID = sovrinDID.gen;

@@ -1,6 +1,7 @@
 var _ = require("lodash");
 var DB = require("./DB");
 var cocb = require("co-callback");
+var cuid = require("cuid");
 var test = require("tape");
 var async = require("async");
 var ktypes = require("krl-stdlib/types");
@@ -9,7 +10,7 @@ var migrations = require("./migrations");
 
 var mkTestDB = function(){
     return DB({
-        db: memdown,
+        db: memdown(cuid()),
         __use_sequential_ids_for_testing: true,
     });
 };

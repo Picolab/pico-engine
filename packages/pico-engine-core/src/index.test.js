@@ -1713,7 +1713,7 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
     //before starting the engine, write some test data to the db
     var memdb = memdown(cuid());
     var db = DB({
-        db: function(){return memdb;},
+        db: memdb,
         __use_sequential_ids_for_testing: true,
         __sequential_id_prefix_for_testing: "init",
     });
@@ -1728,7 +1728,7 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
             attrs: {from: "startup_event", name: "qux"},
         }),
         async.apply(mkTestPicoEngine, {
-            ldb: function(){return memdb;},
+            ldb: memdb,
         })
     ], function(err, results){
         if(err)return t.end(err);
@@ -2154,7 +2154,7 @@ var mkPicoEngineFactoryWithKRLCompiler = function(){
                 callback(null, js);
             },
             db: {
-                db: function(){return memdb;},
+                db: memdb,
                 __use_sequential_ids_for_testing: true,
             }
         }, opts));

@@ -206,8 +206,7 @@ module.exports = function(conf, callback){
         }),
 
         db: {
-            db: leveldown,
-            location: path.join(conf.home, "db"),
+            db: leveldown(path.join(conf.home, "db")),
         },
 
         modules: conf.modules || {},
