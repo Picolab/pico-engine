@@ -34,13 +34,13 @@ var toKeyPath = function(path){
 var putPVar = function(ldb, key_prefix, query, val, callback){
     var path = ktypes.isNull(query) ? [] : toKeyPath(query);
     if(_.size(path) > 0){
-        var sub_key = _.head(path);
+        var subkey_prefix = key_prefix.concat(["value", _.head(path)]);
         var sub_path = _.tail(path);
         if(_.isEmpty(sub_path)){
-            ldb.put(key_prefix.concat([sub_key]), val, callback);
+            ldb.put(subkey_prefix, val, callback);
             return;
         }
-        ldb.get(key_prefix.concat([sub_key]), function(err, data){
+        ldb.get(subkey_prefix, function(err, data){
             if(err && err.notFound){
                 data = {};
             }else if(err){
@@ -48,7 +48,7 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
                 return;
             }
             data = _.set(data, sub_path, val);
-            ldb.put(key_prefix.concat([sub_key]), data, callback);
+            ldb.put(subkey_prefix, data, callback);
         });
         return;
     }
@@ -81,7 +81,7 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
                 _.each(val, function(v, k){
                     db_ops.push({
                         type: "put",
-                        key: key_prefix.concat([k]),
+                        key: key_prefix.concat(["value", k]),
                         value: v,
                     });
                 });
@@ -106,7 +106,7 @@ var getPVar = function(ldb, key_prefix, query, callback){
     if(_.size(path) > 0){
         var sub_key = _.head(path);
         var sub_path = _.tail(path);
-        ldb.get(key_prefix.concat([sub_key]), function(err, data){
+        ldb.get(key_prefix.concat(["value", sub_key]), function(err, data){
             if(err && err.notFound){
                 return callback();
             }else if(err){
@@ -133,11 +133,11 @@ var getPVar = function(ldb, key_prefix, query, callback){
         dbRange(ldb, {
             prefix: key_prefix,
         }, function(data){
-            if(data.key.length === (key_prefix.length + 1)){
+            if(data.key.length === (key_prefix.length + 2)){
                 if(is_array){
                     value.push(data.value);
                 }else{
-                    value[data.key[key_prefix.length]] = data.value;
+                    value[data.key[key_prefix.length + 1]] = data.value;
                 }
             }
         }, function(err){
@@ -150,7 +150,7 @@ var getPVar = function(ldb, key_prefix, query, callback){
 var delPVar = function(ldb, key_prefix, query, callback){
     var path = ktypes.isNull(query) ? [] : toKeyPath(query);
     if(_.size(path) > 0){
-        key_prefix = key_prefix.concat([_.head(path)]);
+        key_prefix = key_prefix.concat(["value", _.head(path)]);
         var sub_path = _.tail(path);
         if( ! _.isEmpty(sub_path)){
             ldb.get(key_prefix, function(err, data){

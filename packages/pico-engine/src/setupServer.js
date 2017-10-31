@@ -100,13 +100,13 @@ module.exports = function(pe){
             if(req.query.legacy){
                 _.each(db_data.appvars, function(vars, rid){
                     _.each(vars, function(val, name){
-                        _.set(db_data, ["resultset", rid, "vars", name], val);
+                        _.set(db_data, ["resultset", rid, "vars", name], val && val.value);
                     });
                 });
                 _.each(db_data.entvars, function(by_rid, pico_id){
                     _.each(by_rid, function(vars, rid){
                         _.each(vars, function(val, name){
-                            _.set(db_data, ["pico", pico_id, rid, "vars", name], val);
+                            _.set(db_data, ["pico", pico_id, rid, "vars", name], val && val.value);
                         });
                     });
                 });
