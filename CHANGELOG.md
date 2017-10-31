@@ -1,3 +1,5 @@
+# 0.41.0 - October 31, 2017
+
 # 0.13.0 - September 13, 2017
 
 ### Wrangler rewrite (krl/io.picolabs.pico.krl)
