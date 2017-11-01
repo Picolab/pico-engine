@@ -1,13 +1,16 @@
 var _ = require("lodash");
 var DB = require("./DB");
+var cocb = require("co-callback");
+var cuid = require("cuid");
 var test = require("tape");
 var async = require("async");
+var ktypes = require("krl-stdlib/types");
 var memdown = require("memdown");
 var migrations = require("./migrations");
 
 var mkTestDB = function(){
     return DB({
-        db: memdown,
+        db: memdown(cuid()),
         __use_sequential_ids_for_testing: true,
     });
 };
@@ -203,8 +206,8 @@ test("DB - read keys that don't exist", function(t){
     var db = mkTestDB();
 
     async.series({
-        ent: async.apply(db.getEntVar, "pico0", "rid0", "var that doesn't exisit"),
-        app: async.apply(db.getAppVar, "rid0", "var that doesn't exisit")
+        ent: async.apply(db.getEntVar, "pico0", "rid0", "var that doesn't exisit", null),
+        app: async.apply(db.getAppVar, "rid0", "var that doesn't exisit", null)
     }, function(err, data){
         if(err) return t.end(err);
         t.deepEquals(data.ent, undefined);
@@ -288,7 +291,7 @@ test("DB - deleteRuleset", function(t){
                 if(err) return callback(err);
                 db.enableRuleset(data.hash, function(err){
                     if(err) return callback(err);
-                    db.putAppVar(rid, "my_var", "appvar value", function(err){
+                    db.putAppVar(rid, "my_var", null, "appvar value", function(err){
                         callback(err, data.hash);
                     });
                 });
@@ -485,8 +488,8 @@ test("DB - removeRulesetFromPico", function(t){
 
     async.series({
         addRS: async.apply(db.addRulesetToPico, "pico0", "rid0"),
-        ent0: async.apply(db.putEntVar, "pico0", "rid0", "foo", "val0"),
-        ent1: async.apply(db.putEntVar, "pico0", "rid0", "bar", "val1"),
+        ent0: async.apply(db.putEntVar, "pico0", "rid0", "foo", null, "val0"),
+        ent1: async.apply(db.putEntVar, "pico0", "rid0", "bar", null, "val1"),
         db_before: async.apply(db.toObj),
 
         rmRS: async.apply(db.removeRulesetFromPico, "pico0", "rid0"),
@@ -496,7 +499,10 @@ test("DB - removeRulesetFromPico", function(t){
         if(err) return t.end(err);
 
         t.deepEquals(data.db_before, {
-            entvars: {pico0: {rid0: {foo: "val0", bar: "val1"}}},
+            entvars: {pico0: {rid0: {
+                foo: {type: "String", value: "val0"},
+                bar: {type: "String", value: "val1"},
+            }}},
             "pico-ruleset": {"pico0": {"rid0": {on: true}}},
             "ruleset-pico": {"rid0": {"pico0": {on: true}}},
         });
@@ -830,4 +836,104 @@ test("DB - removeChannel", function(t){
         assertECIs("id3", ["id4"]),
 
     ], t.end);
+});
+
+
+test("DB - persistent variables", function(t){
+    var db = mkTestDB();
+
+    cocb.run(function*(){
+        var putEntVar = _.partial(cocb.wrap(db.putEntVar), "p", "r");
+        var getEntVar = _.partial(cocb.wrap(db.getEntVar), "p", "r");
+        var delEntVar = _.partial(cocb.wrap(db.delEntVar), "p", "r");
+        var toObj = cocb.wrap(db.toObj);
+
+        var data;
+
+        yield putEntVar("foo", null, [1, 2]);
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, [1, 2]);
+        t.ok(ktypes.isArray(data));
+
+        yield putEntVar("foo", null, {a: 3, b: 4});
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {a: 3, b: 4});
+        t.ok(ktypes.isMap(data));
+
+        yield delEntVar("foo", null);
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, void 0);
+
+        yield putEntVar("foo", null, {one: 11, two: 22});
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {one: 11, two: 22});
+        yield putEntVar("foo", null, {one: 11});
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {one: 11});
+
+        data = yield getEntVar("foo", "one");
+        t.deepEquals(data, 11);
+
+        yield putEntVar("foo", ["bar", "baz"], {qux: 1});
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {one: 11, bar: {baz: {qux: 1}}});
+
+        yield putEntVar("foo", ["bar", "asdf"], true);
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {one: 11, bar: {
+            baz: {qux: 1},
+            asdf: true,
+        }});
+
+        yield putEntVar("foo", ["bar", "baz", "qux"], "wat?");
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {one: 11, bar: {
+            baz: {qux: "wat?"},
+            asdf: true,
+        }});
+        data = yield getEntVar("foo", ["bar", "baz", "qux"]);
+        t.deepEquals(data, "wat?");
+
+
+        yield delEntVar("foo", "one");
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {bar: {baz: {qux: "wat?"}, asdf: true}});
+
+        yield delEntVar("foo", ["bar", "asdf"]);
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {bar: {baz: {qux: "wat?"}}});
+
+        yield delEntVar("foo", ["bar", "baz", "qux"]);
+        data = yield getEntVar("foo", null);
+        t.deepEquals(data, {});
+
+        ///////////////////////////////////////////////////////////////////////
+        // how other types are encoded
+        var action = function(){};
+        action.is_an_action = true;
+        yield putEntVar("act", null, action);
+        yield putEntVar("fn", null, _.noop);
+        yield putEntVar("nan", null, NaN);
+
+        var dump = yield toObj();
+
+        t.equals(yield getEntVar("fn", null), "[Function]");
+        t.deepEquals(dump.entvars.p.r.fn, {
+            type: "String",
+            value: "[Function]",
+        });
+
+        t.equals(yield getEntVar("act", null), "[Action]");
+        t.deepEquals(dump.entvars.p.r.act, {
+            type: "String",
+            value: "[Action]",
+        });
+
+        t.equals(yield getEntVar("nan", null), null);
+        t.deepEquals(dump.entvars.p.r.nan, {
+            type: "Null",
+            value: null,
+        });
+
+    }, t.end);
 });

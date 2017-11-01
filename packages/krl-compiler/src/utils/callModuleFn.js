@@ -4,7 +4,7 @@ module.exports = function(e, domain, id, args, loc){
         [
             e("id", "ctx", loc),
             e("str", domain, loc),
-            e("str", id, loc)
+            e("str", id, loc),
         ],
         loc
     );

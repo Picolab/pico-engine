@@ -15,4 +15,5 @@ module.exports = {
     "20170804T214426_pico-ruleset": require("./20170804T214426_pico-ruleset"),
     "20170810T170618_parent-child": require("./20170810T170618_parent-child"),
     "20170823T213214_admin_eci": require("./20170823T213214_admin_eci"),
+    "20171031T182007_pvar_index": require("./20171031T182007_pvar_index"),
 };

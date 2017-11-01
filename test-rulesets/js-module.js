@@ -2,8 +2,8 @@ module.exports = {
   "rid": "io.picolabs.js-module",
   "meta": { "shares": ["qFn"] },
   "global": function* (ctx) {
-    ctx.scope.set("qFn", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("a", getArg("a", 0));
+    ctx.scope.set("qFn", ctx.mkFunction(["a"], function* (ctx, args) {
+      ctx.scope.set("a", args["a"]);
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "myJsModule", "fun0"), ctx, {
         "0": ctx.scope.get("a"),
         "b": 2

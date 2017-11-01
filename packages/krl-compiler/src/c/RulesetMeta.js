@@ -100,7 +100,7 @@ var prop_types = {
             obj[p.value[0].value] = comp(p.value[1]);
         });
         return e("obj", obj);
-    }
+    },
 };
 
 module.exports = function(ast, comp, e){

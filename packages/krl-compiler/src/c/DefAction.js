@@ -13,14 +13,19 @@ module.exports = function(ast, comp, e){
         return comp(ret);
     }))));
 
-    return e(";", e("call", e("id", "ctx.defaction"), [
-        e("id", "ctx"),
+    var param_order = e("array", _.map(ast.params.params, function(p){
+        return e("string", p.id.value, p.id.loc);
+    }), ast.params.loc);
+
+    return e(";", e("call", e("id", "ctx.scope.set"), [
         e("str", ast.id.value, ast.id.loc),
-        e("genfn", [
-            "ctx",
-            "getArg",
-            "hasArg",
-            "runAction",
-        ], body),
+        e("call", e("id", "ctx.mkAction"), [
+            param_order,
+            e("genfn", [
+                "ctx",
+                "args",
+                "runAction",
+            ], body),
+        ]),
     ]));
 };

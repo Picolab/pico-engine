@@ -9,20 +9,20 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getName", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getName", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "name");
     }));
-    ctx.scope.set("getAppVar", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getAppVar", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "app", "appvar");
     }));
-    ctx.scope.set("getUser", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getUser", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "user");
     }));
-    ctx.scope.set("getUserFirstname", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      return yield ctx.callKRLstdlib("get", [
-        yield ctx.modules.get(ctx, "ent", "user"),
-        ["firstname"]
-      ]);
+    ctx.scope.set("getUserFirstname", ctx.mkFunction([], function* (ctx, args) {
+      return yield ctx.modules.get(ctx, "ent", {
+        "key": "user",
+        "path": ["firstname"]
+      });
     }));
   },
   "rules": {
@@ -138,11 +138,10 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
-        yield ctx.modules.set(ctx, "ent", "user", yield ctx.callKRLstdlib("set", [
-          yield ctx.modules.get(ctx, "ent", "user"),
-          ["firstname"],
-          ctx.scope.get("firstname")
-        ]));
+        yield ctx.modules.set(ctx, "ent", {
+          "key": "user",
+          "path": ["firstname"]
+        }, ctx.scope.get("firstname"));
       }
     },
     "clear_user": {

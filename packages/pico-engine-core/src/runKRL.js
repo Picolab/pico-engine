@@ -8,11 +8,11 @@ var assertCTX_keys = function(ctx, keys){
         "txn_id",
         "getMyKey",
         "modules",
-        "KRLClosure",
+        "mkFunction",
         "emit",
         "log",
         "callKRLstdlib",
-        "defaction",
+        "mkAction",
         "applyFn",
     ];
 

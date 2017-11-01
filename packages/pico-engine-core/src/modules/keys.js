@@ -11,7 +11,7 @@ module.exports = function(core){
             }
             callback(null, mkKRLfn([
                 "name",
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 var name = args.name;
                 if(name === null || name === void 0){
                     //if no name given, just return the whole key

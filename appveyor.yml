@@ -13,10 +13,8 @@ install:
   - npm run setup
 
 test_script:
-  # Output useful info for debugging.
   - node --version
   - npm --version
-  # run tests
   - npm test
 
 build: off

@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var mkKRLClosure = require("../utils/mkKRLClosure");
 
 module.exports = function(ast, comp, e){
     var body = comp(ast.params);
@@ -15,5 +14,12 @@ module.exports = function(ast, comp, e){
         return body.push(e("return", comp(part)));
     });
 
-    return mkKRLClosure(e, body);
+    var param_order = e("array", _.map(ast.params.params, function(p){
+        return e("string", p.id.value, p.id.loc);
+    }), ast.params.loc);
+
+    return e("call", e("id", "ctx.mkFunction"), [
+        param_order,
+        e("genfn", ["ctx", "args"], body),
+    ]);
 };

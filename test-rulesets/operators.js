@@ -99,13 +99,13 @@ module.exports = {
       ]),
       ".uc()": yield ctx.callKRLstdlib("uc", ["Hello World"])
     });
-    ctx.scope.set("returnMapAfterKlog", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("returnMapAfterKlog", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.callKRLstdlib("klog", [
         { "a": 1 },
         "hi:"
       ]);
     }));
-    ctx.scope.set("returnArrayAfterKlog", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("returnArrayAfterKlog", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.callKRLstdlib("klog", [
         [
           1,

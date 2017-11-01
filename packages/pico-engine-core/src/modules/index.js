@@ -2,6 +2,7 @@ var _ = require("lodash");
 var cocb = require("co-callback");
 var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
+var mkKRLaction = require("../mkKRLaction");
 
 var sub_modules = {
     ent: require("./ent"),
@@ -10,11 +11,27 @@ var sub_modules = {
     engine: require("./engine"),
     http: require("./http"),
     keys: require("./keys"),
+    math: require("./math"),
     meta: require("./meta"),
     schedule: require("./schedule"),
     time: require("./time"),
     random: require("./random"),
 };
+
+
+var normalizeId = function(domain, id){
+    if(domain !== "ent" && domain !== "app"){
+        return ktypes.toString(id);
+    }
+    if(_.has(id, "key") && ktypes.isString(id.key)){
+        return {
+            var_name: id.key,
+            query: id.path,
+        };
+    }
+    return {var_name: ktypes.toString(id)};
+};
+
 
 module.exports = function(core, third_party_modules){
 
@@ -28,7 +45,6 @@ module.exports = function(core, third_party_modules){
         }
         modules[domain] = {
             def: {},
-            actions: {},
         };
         _.each(ops, function(op, id){
             var mkErr = function(msg){
@@ -45,15 +61,14 @@ module.exports = function(core, third_party_modules){
                 throw mkErr("`fn` must be `function(args, callback){...}`");
             }
 
-            var fn = op.fn;
-            var krlFN = mkKRLfn(op.args, function(args, ctx, callback){
-                fn(args, callback);
-            });
+            var fn = function(ctx, args, callback){
+                op.fn(args, callback);
+            };
 
             if(op.type === "function"){
-                modules[domain].def[id] = krlFN;
+                modules[domain].def[id] = mkKRLfn(op.args, fn);
             }else if(op.type === "action"){
-                modules[domain].actions[id] = krlFN;
+                modules[domain].def[id] = mkKRLaction(op.args, fn);
             }else{
                 throw mkErr("`type` must be \"action\" or \"function\"");
             }
@@ -77,6 +92,7 @@ module.exports = function(core, third_party_modules){
 
     return {
         get: cocb.wrap(function(ctx, domain, id, callback){
+            id = normalizeId(domain, id);
             var umod = userModuleLookup(ctx, domain, id);
             if(umod.has_it){
                 callback(null, umod.value);
@@ -95,6 +111,7 @@ module.exports = function(core, third_party_modules){
 
 
         set: cocb.wrap(function(ctx, domain, id, value, callback){
+            id = normalizeId(domain, id);
             if(!_.has(modules, domain)){
                 callback(new Error("Module not defined `" + domain + ":" + id + "`"));
                 return;
@@ -108,6 +125,7 @@ module.exports = function(core, third_party_modules){
 
 
         del: cocb.wrap(function(ctx, domain, id, callback){
+            id = normalizeId(domain, id);
             if(!_.has(modules, domain)){
                 callback(new Error("Module not defined `" + domain + ":" + id + "`"));
                 return;
@@ -117,24 +135,6 @@ module.exports = function(core, third_party_modules){
                 return;
             }
             modules[domain].del(ctx, id, callback);
-        }),
-
-
-        action: cocb.wrap(function*(ctx, domain, id, args){
-
-            var umod = userModuleLookup(ctx, domain, id);
-            if(umod.has_it && ktypes.isAction(umod.value)){
-                return yield umod.value(ctx, args);
-            }
-
-            if(_.has(modules, [domain, "actions", id])){
-                return [//actions have multiple returns
-                    //built in modules return only one value
-                    yield modules[domain].actions[id](ctx, args),
-                ];
-            }
-
-            throw new Error("Not an action `" + domain + ":" + id + "`");
         }),
     };
 };

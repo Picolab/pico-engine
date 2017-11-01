@@ -171,6 +171,18 @@ var setupLogging = function(pe, bunyanLog){
         } else {
             console.error("[ERROR]", "no episode found for", episode_id);
         }
+        pe.getEntVar(pico_id,logRID,"status",null,function(e,status){
+            if (status) {
+                pe.getEntVar(pico_id,logRID,"logs",null,function(e,data){
+                    data[episode.key] = episode.logs;
+                    pe.putEntVar(pico_id,logRID,"logs",null,data,function(e){
+                        callback(delete logs[episode_id]);
+                    });
+                });
+            } else {
+                callback(delete logs[episode_id]);
+            }
+        });
     };
 
 
@@ -264,8 +276,7 @@ module.exports = function(conf, callback){
         }),
 
         db: {
-            db: leveldown,
-            location: path.join(conf.home, "db"),
+            db: leveldown(path.join(conf.home, "db")),
         },
 
         modules: conf.modules || {},

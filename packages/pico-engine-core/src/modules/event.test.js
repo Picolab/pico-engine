@@ -43,7 +43,7 @@ test("module - event:send(event, host = null)", function(t){
             var kevent = event_module();
 
             t.equals(
-                yield kevent.actions.send({}, {
+                (yield kevent.def.send({}, {
                     event: {
                         eci: "some-eci",
                         domain: "some-d",
@@ -51,7 +51,7 @@ test("module - event:send(event, host = null)", function(t){
                         attrs: {foo: "bar"},
                     },
                     host: host,
-                }),
+                }))[0],
                 void 0//returns nothing
             );
             t.equals(server_reached, false, "should be async, i.e. server not reached yet");
