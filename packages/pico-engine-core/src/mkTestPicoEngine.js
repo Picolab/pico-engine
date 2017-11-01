@@ -1,5 +1,6 @@
 var _ = require("lodash");
 var fs = require("fs");
+var cuid = require("cuid");
 var path = require("path");
 var async = require("async");
 var memdown = require("memdown");
@@ -31,7 +32,7 @@ module.exports = function(opts, callback){
         },
         rootRIDs: opts.rootRIDs,
         db: {
-            db: opts.ldb || memdown,
+            db: opts.ldb || memdown(cuid()),
             __use_sequential_ids_for_testing: true,
         },
         modules: opts.modules,

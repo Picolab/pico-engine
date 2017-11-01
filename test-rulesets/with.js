@@ -8,23 +8,26 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("add", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("a", getArg("a", 0));
-      ctx.scope.set("b", getArg("b", 1));
+    ctx.scope.set("add", ctx.mkFunction([
+      "a",
+      "b"
+    ], function* (ctx, args) {
+      ctx.scope.set("a", args["a"]);
+      ctx.scope.set("b", args["b"]);
       return yield ctx.callKRLstdlib("+", [
         ctx.scope.get("a"),
         ctx.scope.get("b")
       ]);
     }));
-    ctx.scope.set("inc", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("n", getArg("n", 0));
+    ctx.scope.set("inc", ctx.mkFunction(["n"], function* (ctx, args) {
+      ctx.scope.set("n", args["n"]);
       return yield ctx.applyFn(ctx.scope.get("add"), ctx, {
         "0": 1,
         "b": ctx.scope.get("n")
       });
     }));
-    ctx.scope.set("foo", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("a", getArg("a", 0));
+    ctx.scope.set("foo", ctx.mkFunction(["a"], function* (ctx, args) {
+      ctx.scope.set("a", args["a"]);
       return yield ctx.applyFn(ctx.scope.get("add"), ctx, {
         "a": yield ctx.callKRLstdlib("*", [
           ctx.scope.get("a"),

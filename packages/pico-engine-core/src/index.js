@@ -4,8 +4,6 @@ var cocb = require("co-callback");
 var cuid = require("cuid");
 var async = require("async");
 var ktypes = require("krl-stdlib/types");
-var getArg = require("./getArg");
-var hasArg = require("./hasArg");
 var runKRL = require("./runKRL");
 var Modules = require("./modules");
 var PicoQueue = require("./PicoQueue");
@@ -19,6 +17,7 @@ var EventEmitter = require("events");
 var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
 var RulesetRegistry = require("./RulesetRegistry");
+var normalizeKRLArgs = require("./normalizeKRLArgs");
 var DependencyResolver = require("dependency-resolver");
 
 var applyFn = cocb.wrap(function*(fn, ctx, args){
@@ -90,21 +89,21 @@ module.exports = function(conf){
                 scope: ctx.scope.push(),
             }));
         };
-        ctx.KRLClosure = function(fn){
-            return cocb.wrap(function*(ctx2, args){
-                var gArg = _.partial(getArg, args);
-                var hArg = _.partial(hasArg, args);
-                return yield fn(pushCTXScope(ctx2), gArg, hArg);
-            });
+        ctx.mkFunction = function(param_order, fn){
+            var fixArgs = _.partial(normalizeKRLArgs, param_order);
+            var pfn = cocb.wrap(fn);
+            return function(ctx2, args){
+                return pfn(pushCTXScope(ctx2), fixArgs(args));
+            };
         };
-        ctx.defaction = function(ctx, name, fn){
-            var actionFn = cocb.wrap(function*(ctx2, args){
-                var gArg = _.partial(getArg, args);
-                var hArg = _.partial(hasArg, args);
-                return yield fn(pushCTXScope(ctx2), gArg, hArg, runAction);
-            });
+        ctx.mkAction = function(param_order, fn){
+            var fixArgs = _.partial(normalizeKRLArgs, param_order);
+            var pfn = cocb.wrap(fn);
+            var actionFn = function(ctx2, args){
+                return pfn(pushCTXScope(ctx2), fixArgs(args), runAction);
+            };
             actionFn.is_an_action = true;
-            return ctx.scope.set(name, actionFn);
+            return actionFn;
         };
 
         ctx.emit = function(type, val){
@@ -601,7 +600,7 @@ module.exports = function(conf){
 
         putEntVar: db.putEntVar,
         getEntVar: db.getEntVar,
-        removeEntVar: db.removeEntVar,
+        delEntVar: db.delEntVar,
 
         dbDump: db.toObj,
         // ^^^ deprecated ^^^

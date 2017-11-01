@@ -116,11 +116,11 @@ var setupLogging = function(pe){
             console.log("[ERROR]","no episode found for",episode_id);
             return;
         }
-        pe.getEntVar(pico_id,logRID,"status",function(e,status){
+        pe.getEntVar(pico_id,logRID,"status",null,function(e,status){
             if (status) {
-                pe.getEntVar(pico_id,logRID,"logs",function(e,data){
+                pe.getEntVar(pico_id,logRID,"logs",null,function(e,data){
                     data[episode.key] = episode.logs;
-                    pe.putEntVar(pico_id,logRID,"logs",data,function(e){
+                    pe.putEntVar(pico_id,logRID,"logs",null,data,function(e){
                         callback(delete logs[episode_id]);
                     });
                 });
@@ -206,8 +206,7 @@ module.exports = function(conf, callback){
         }),
 
         db: {
-            db: leveldown,
-            location: path.join(conf.home, "db"),
+            db: leveldown(path.join(conf.home, "db")),
         },
 
         modules: conf.modules || {},

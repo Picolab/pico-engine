@@ -960,7 +960,9 @@ testPE("pico-engine", function(t, pe, root_eci){
     function getSubscriptionsFromDump(dump, picoId) {
         var entvars = dump.entvars;
         entvars = entvars[picoId];
-        return entvars[SUBS_RID] ? entvars[SUBS_RID].subscriptions : undefined;
+        return entvars[SUBS_RID]
+            ? entvars[SUBS_RID].subscriptions.value || {}
+            : undefined;
     }
 });
 

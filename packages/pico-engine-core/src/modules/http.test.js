@@ -3,6 +3,7 @@ var test = require("tape");
 var http = require("http");
 var cocb = require("co-callback");
 var khttp = require("./http")().def;
+var ktypes = require("krl-stdlib/types");
 var testErr = require("../testErr");
 
 test("http module", function(t){
@@ -44,6 +45,9 @@ test("http module", function(t){
 
             var doHttp = function*(method, args){
                 var resp = yield khttp[method]({}, args);
+                if(ktypes.isAction(khttp[method])){
+                    resp = resp[0];
+                }
                 t.ok(_.isNumber(resp.content_length));
                 t.ok(!_.isNaN(resp.content_length));
                 delete resp.content_length;//windows can return off by 1 so it breaks tests

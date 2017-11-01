@@ -29,7 +29,7 @@ module.exports = function(core){
         def: {
             now: mkKRLfn([
                 "opts",
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 var d = moment();
                 if(_.has(args, "opts")){
                     if(!ktypes.isMap(args.opts)){
@@ -43,7 +43,7 @@ module.exports = function(core){
             }),
             "new": mkKRLfn([
                 "date",
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 if(!_.has(args, "date")){
                     return callback(new Error("time:new needs a date string"));
                 }
@@ -61,7 +61,7 @@ module.exports = function(core){
             "add": mkKRLfn([
                 "date",
                 "spec",
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 if(!_.has(args, "date")){
                     return callback(new Error("time:add needs a date string"));
                 }
@@ -89,7 +89,7 @@ module.exports = function(core){
             "strftime": mkKRLfn([
                 "date",
                 "fmt",
-            ], function(args, ctx, callback){
+            ], function(ctx, args, callback){
                 if(!_.has(args, "date")){
                     return callback(new Error("time:strftime needs a date string"));
                 }

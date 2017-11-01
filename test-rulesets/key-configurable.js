@@ -10,7 +10,7 @@ module.exports = {
     "provides": ["getKeys"]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getKeys", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getKeys", ctx.mkFunction([], function* (ctx, args) {
       return [
         ctx.scope.get("key1"),
         ctx.scope.get("key2")

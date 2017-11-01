@@ -1,26 +1,23 @@
-module.exports = function(ast, comp, e, context){
-    var index = context.index;//the index of the param
+module.exports = function(ast, comp, e){
 
-    var getArg = e("call", e("id", "getArg"), [
-        e("string", ast.id.value, ast.id.loc),
-        e("number", index),
-    ]);
+    var mkIdStr = function(){
+        return e("string", ast.id.value, ast.id.loc);
+    };
+
+    var getArg = e("get", e("id", "args"), mkIdStr());
 
     var val = getArg;
 
     if(ast["default"]){
         //only evaluate default if needed i.e. default may be calling an function
         val = e("?",
-            e("call", e("id", "hasArg"), [
-                e("string", ast.id.value, ast.id.loc),
-                e("number", index),
-            ]),
+            e("call", e("id", "args.hasOwnProperty"), [mkIdStr()]),
             getArg,
             comp(ast["default"])
         );
     }
     return e(";", e("call", e("id", "ctx.scope.set"), [
-        e("string", ast.id.value, ast.id.loc),
+        mkIdStr(),
         val
     ]));
 };
