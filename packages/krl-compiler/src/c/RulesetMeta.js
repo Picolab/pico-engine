@@ -101,9 +101,6 @@ var prop_types = {
         });
         return e("obj", obj);
     },
-    "index": function(props, comp, e){
-        return e("null");
-    },
 };
 
 module.exports = function(ast, comp, e){

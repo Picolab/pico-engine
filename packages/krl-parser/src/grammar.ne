@@ -336,7 +336,6 @@ var tok_function = tok("SYMBOL", "function");
 var tok_global = tok("SYMBOL", "global");
 var tok_if = tok("SYMBOL", "if");
 var tok_inactive = tok("SYMBOL", "inactive");
-var tok_index = tok("SYMBOL", "index");
 var tok_is = tok("SYMBOL", "is");
 var tok_key = tok("SYMBOL", "key");
 var tok_keys = tok("SYMBOL", "keys");
@@ -489,10 +488,6 @@ ruleset_meta_prop ->
       {% metaProp(function(d){return {
         ids: d[1]
       }}, true) %}
-    | %tok_index DomainIdentifier
-      {% metaProp(function(data){
-          return data[1];
-      }) %}
 
 ProvidesOperator -> %tok_keys {%
   function(data){

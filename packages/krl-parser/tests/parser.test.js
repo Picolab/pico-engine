@@ -1434,13 +1434,6 @@ test("Ruleset meta", function(t){
         }
     }]);
 
-    testMeta("index ent:foo", [
-        mk.meta("index", mk.dID("ent", "foo")),
-    ]);
-    testMeta("index ent:foo index app:bar", [
-        mk.meta("index", mk.dID("ent", "foo")),
-        mk.meta("index", mk.dID("app", "bar")),
-    ]);
 
     try{
         testMeta("index wat", []);
