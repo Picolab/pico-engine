@@ -16,11 +16,12 @@ var doesMatchEvent = function(events, event){
 };
 
 module.exports = function(policy, event){
-    if( ! policy){
-        policy = {"default": "ALLOW"};
+    if( ! policy || ! policy.events){
+        //TODO remove this
+        return true;
     }
-    if(policy["default"] === "DENY"){
-        return doesMatchEvent(policy.events, event);
+    if(policy.events.type === "whitelist"){
+        return doesMatchEvent(policy.events.events, event);
     }
-    return ! doesMatchEvent(policy.events, event);
+    return ! doesMatchEvent(policy.events.events, event);
 };

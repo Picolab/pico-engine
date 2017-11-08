@@ -2381,7 +2381,7 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
             return chann.id;
         });
 
-        var tstPolicyEvent = cocb.wrap(function(eci, domain_type, is_allowed, callback){
+        var tstEventPolicy = cocb.wrap(function(eci, domain_type, is_allowed, callback){
             pe.signalEvent({
                 eci: eci,
                 domain: domain_type.split("/")[0],
@@ -2400,30 +2400,42 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 callback();
             });
         });
+        var eci;
 
-        var eci0 = yield mkECI({
-            "default": "DENY",
+
+        eci = yield mkECI({
+            name: "deny all",
+            events: {
+                type: "whitelist",
+            },
         });
-        var eci1 = yield mkECI({
-            "default": "DENY",
-            events: [{domain: "policies", type: "foo"}],
+        yield tstEventPolicy(eci, "policies/foo", false);
+        yield tstEventPolicy(eci, "policies/bar", false);
+        yield tstEventPolicy(eci, "policies/baz", false);
+
+
+        eci = yield mkECI({
+            name: "only foo",
+            events: {
+                type: "whitelist",
+                events: [{domain: "policies", type: "foo"}],
+            },
         });
-        var eci2 = yield mkECI({
-            "default": "ALLOW",
-            events: [{domain: "policies", type: "foo"}],
+        yield tstEventPolicy(eci, "policies/foo", true);
+        yield tstEventPolicy(eci, "policies/bar", false);
+        yield tstEventPolicy(eci, "policies/baz", false);
+
+
+        eci = yield mkECI({
+            name: "all but foo",
+            events: {
+                type: "blacklist",
+                events: [{domain: "policies", type: "foo"}],
+            }
         });
-
-        yield tstPolicyEvent(eci0, "policies/foo", false);
-        yield tstPolicyEvent(eci0, "policies/bar", false);
-        yield tstPolicyEvent(eci0, "policies/baz", false);
-
-        yield tstPolicyEvent(eci1, "policies/foo", true);
-        yield tstPolicyEvent(eci1, "policies/bar", false);
-        yield tstPolicyEvent(eci1, "policies/baz", false);
-
-        yield tstPolicyEvent(eci2, "policies/foo", false);
-        yield tstPolicyEvent(eci2, "policies/bar", true);
-        yield tstPolicyEvent(eci2, "policies/baz", true);
+        yield tstEventPolicy(eci, "policies/foo", false);
+        yield tstEventPolicy(eci, "policies/bar", true);
+        yield tstEventPolicy(eci, "policies/baz", true);
 
     }, t.end);
 });
