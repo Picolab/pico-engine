@@ -6,13 +6,15 @@ var doesMatchEvent = function(events, event){
         return true;
     }
 
-    if(_.find(events, function(s){
-        return (s.domain === event.domain) && (s.type === event.type);
-    })){
+    return _.find(events, function(s){
+        if(_.has(s, "domain") && s.domain !== event.domain){
+            return false;
+        }
+        if(_.has(s, "type") && s.type !== event.type){
+            return false;
+        }
         return true;
-    }
-
-    return false;
+    });
 };
 
 module.exports = function(policy, event){

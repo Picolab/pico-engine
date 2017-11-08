@@ -2389,14 +2389,14 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
             }, function(err, data){
                 if(err){
                     if(/denied by policy/.test(err + "")){
-                        t.notOk(is_allowed, "Should be denied");
+                        t.notOk(is_allowed, "Should be denied " + eci + "|" + domain_type);
                         callback();
                         return;
                     }
                     callback(err);
                     return;
                 }
-                t.ok(is_allowed, "Should be allowed");
+                t.ok(is_allowed, "Should be allowed " + eci + "|" + domain_type);
                 callback();
             });
         });
@@ -2415,7 +2415,18 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
 
 
         eci = yield mkECI({
-            name: "only foo",
+            name: "allow all",
+            events: {
+                type: "blacklist",
+            },
+        });
+        yield tstEventPolicy(eci, "policies/foo", true);
+        yield tstEventPolicy(eci, "policies/bar", true);
+        yield tstEventPolicy(eci, "policies/baz", true);
+
+
+        eci = yield mkECI({
+            name: "only policies/foo",
             events: {
                 type: "whitelist",
                 events: [{domain: "policies", type: "foo"}],
@@ -2427,7 +2438,7 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
 
 
         eci = yield mkECI({
-            name: "all but foo",
+            name: "all but policies/foo",
             events: {
                 type: "blacklist",
                 events: [{domain: "policies", type: "foo"}],
@@ -2436,6 +2447,55 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
         yield tstEventPolicy(eci, "policies/foo", false);
         yield tstEventPolicy(eci, "policies/bar", true);
         yield tstEventPolicy(eci, "policies/baz", true);
+
+
+        eci = yield mkECI({
+            name: "only other/*",
+            events: {
+                type: "whitelist",
+                events: [{domain: "other"}],
+            }
+        });
+        yield tstEventPolicy(eci, "policies/foo", false);
+        yield tstEventPolicy(eci, "policies/bar", false);
+        yield tstEventPolicy(eci, "policies/baz", false);
+        yield tstEventPolicy(eci, "other/foo", true);
+        yield tstEventPolicy(eci, "other/bar", true);
+        yield tstEventPolicy(eci, "other/baz", true);
+
+
+        eci = yield mkECI({
+            name: "only */foo",
+            events: {
+                type: "whitelist",
+                events: [{type: "foo"}],
+            }
+        });
+        yield tstEventPolicy(eci, "policies/foo", true);
+        yield tstEventPolicy(eci, "policies/bar", false);
+        yield tstEventPolicy(eci, "policies/baz", false);
+        yield tstEventPolicy(eci, "other/foo", true);
+        yield tstEventPolicy(eci, "other/bar", false);
+        yield tstEventPolicy(eci, "other/baz", false);
+
+
+        eci = yield mkECI({
+            name: "only policies/foo or other/*",
+            events: {
+                type: "whitelist",
+                events: [
+                    {domain: "policies", type: "foo"},
+                    {domain: "other"},
+                ],
+            }
+        });
+        yield tstEventPolicy(eci, "policies/foo", true);
+        yield tstEventPolicy(eci, "policies/bar", false);
+        yield tstEventPolicy(eci, "policies/baz", false);
+        yield tstEventPolicy(eci, "other/foo", true);
+        yield tstEventPolicy(eci, "other/bar", true);
+        yield tstEventPolicy(eci, "other/baz", true);
+
 
     }, t.end);
 });
