@@ -39,6 +39,7 @@ test("DB - write and read", function(t){
                     id: "id1",
                     name: "admin",
                     type: "secret",
+                    policy_id: null,
                     sovrin: {
                         did: "id1",
                         verifyKey: "verifyKey_id1",
@@ -53,6 +54,7 @@ test("DB - write and read", function(t){
                     id: "id2",
                     name: "two",
                     type: "t",
+                    policy_id: null,
                     sovrin: {
                         did: "id2",
                         verifyKey: "verifyKey_id2",
@@ -67,6 +69,7 @@ test("DB - write and read", function(t){
                     id: "id4",
                     name: "admin",
                     type: "secret",
+                    policy_id: null,
                     sovrin: {
                         did: "id4",
                         verifyKey: "verifyKey_id4",
@@ -566,6 +569,7 @@ test("DB - listChannels", function(t){
                 id: eci,
                 name: name,
                 type: type,
+                policy_id: null,
                 sovrin: {
                     did: eci,
                     verifyKey: "verifyKey_" + eci,

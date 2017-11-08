@@ -11,6 +11,7 @@ var Scheduler = require("./Scheduler");
 var runAction = require("./runAction");
 var cleanEvent = require("./cleanEvent");
 var krl_stdlib = require("krl-stdlib");
+var checkPolicy = require("./checkPolicy");
 var getKRLByURL = require("./getKRLByURL");
 var SymbolTable = require("symbol-table");
 var EventEmitter = require("events");
@@ -324,12 +325,15 @@ module.exports = function(conf){
 
         event.txn_id = cuid();
 
-        db.getPicoIDByECI(event.eci, function(err, pico_id){
+        db.getChannelAndPolicy(event.eci, function(err, chann){
             if(err){
                 emitter.emit("error", err);
                 callback(err);
                 return;
             }
+
+            var pico_id = chann.pico_id;
+
             var emit = mkCTX({
                 event: event,
                 pico_id: pico_id,
@@ -337,6 +341,11 @@ module.exports = function(conf){
 
             emit("episode_start");
             emit("debug", "event received: " + event.domain + "/" + event.type);
+
+            if( ! checkPolicy(chann.policy, event)){
+                onDone(new Error("denied by policy"));
+                return;
+            }
 
             picoQ.enqueue(pico_id, {
                 type: "event",
@@ -608,6 +617,7 @@ module.exports = function(conf){
     };
     if(conf.___core_testing_mode){
         pe.newPico = db.newPico;
+        pe.newPolicy = db.newPolicy;
         pe.scheduler = core.scheduler;
         pe.modules = modules;
     }

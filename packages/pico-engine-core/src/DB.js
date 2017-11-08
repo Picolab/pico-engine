@@ -238,6 +238,7 @@ module.exports = function(opts){
             pico_id: opts.pico_id,
             name: opts.name,
             type: opts.type,
+            policy_id: opts.policy_id || null,
             sovrin: did,
         };
         var db_ops = [
@@ -280,7 +281,7 @@ module.exports = function(opts){
         getPicoIDByECI: function(eci, callback){
             ldb.get(["channel", eci], function(err, data){
                 if(err && err.notFound){
-                    err = new levelup.errors.NotFoundError("ECI not found: " + (_.isString(eci) ? eci : typeof eci));
+                    err = new levelup.errors.NotFoundError("ECI not found: " + ktypes.toString(eci));
                     err.notFound = true;
                 }
                 callback(err, data && data.pico_id);
@@ -523,6 +524,38 @@ module.exports = function(opts){
                     ];
                     ldb.batch(db_ops, callback);
                 });
+            });
+        },
+
+        getChannelAndPolicy: function(eci, callback){
+            ldb.get(["channel", eci], function(err, data){
+                if(err){
+                    if(err.notFound){
+                        err = new levelup.errors.NotFoundError("ECI not found: " + ktypes.toString(eci));
+                        err.notFound = true;
+                    }
+                    callback(err);
+                    return;
+                }
+                var chann = omitChannelSecret(data);
+                if( ! chann.policy_id){
+                    callback(null, chann);
+                    return;
+                }
+                ldb.get(["policy", chann.policy_id], function(err, data){
+                    if(err) return callback(err);
+                    chann.policy = data;
+                    callback(null, chann);
+                });
+            });
+        },
+
+        newPolicy: function(opts, callback){
+            var new_policy = _.assign({}, opts, {
+                id: newID(),
+            });
+            ldb.put(["policy", new_policy.id], new_policy, function(err, data){
+                callback(err, new_policy);
             });
         },
 

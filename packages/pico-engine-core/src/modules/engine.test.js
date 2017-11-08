@@ -397,6 +397,7 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
             id: eci,
             name: name,
             type: type,
+            policy_id: null,
             sovrin: {
                 did: eci,
                 verifyKey: "verifyKey_" + eci,

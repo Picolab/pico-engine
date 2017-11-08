@@ -649,6 +649,7 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
                         name: "krl created chan",
                         pico_id: "id2",
                         type: "some type?",
+                        policy_id: null,
                         sovrin: {
                             did: "id4",
                             verifyKey: "verifyKey_id4",
@@ -2350,4 +2351,79 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
 
         ], t.end);
     });
+});
+
+
+test("PicoEngine - io.picolabs.policies ruleset", function(t){
+    cocb.run(function*(){
+        var mkTPE = cocb.wrap(mkTestPicoEngine);
+
+        var pe = yield mkTPE({rootRIDs: ["io.picolabs.policies"]});
+        var newPolicy = cocb.wrap(pe.newPolicy);
+        var newChannel = cocb.wrap(pe.newChannel);
+
+        pe.emitter.on("error", function(err){
+            if(/denied by policy/.test(err + "")){
+                //ignore
+            }else{
+                t.end(err);
+            }
+        });
+
+        var mkECI = cocb.wrap(function*(policy_json){
+            var policy = yield newPolicy(policy_json);
+            var chann = yield newChannel({
+                pico_id: "id0",
+                name: "name",
+                type: "type",
+                policy_id: policy.id,
+            });
+            return chann.id;
+        });
+
+        var tstPolicyEvent = cocb.wrap(function(eci, domain_type, is_allowed, callback){
+            pe.signalEvent({
+                eci: eci,
+                domain: domain_type.split("/")[0],
+                type: domain_type.split("/")[1],
+            }, function(err, data){
+                if(err){
+                    if(/denied by policy/.test(err + "")){
+                        t.notOk(is_allowed, "Should be denied");
+                        callback();
+                        return;
+                    }
+                    callback(err);
+                    return;
+                }
+                t.ok(is_allowed, "Should be allowed");
+                callback();
+            });
+        });
+
+        var eci0 = yield mkECI({
+            "default": "DENY",
+        });
+        var eci1 = yield mkECI({
+            "default": "DENY",
+            events: [{domain: "policies", type: "foo"}],
+        });
+        var eci2 = yield mkECI({
+            "default": "ALLOW",
+            events: [{domain: "policies", type: "foo"}],
+        });
+
+        yield tstPolicyEvent(eci0, "policies/foo", false);
+        yield tstPolicyEvent(eci0, "policies/bar", false);
+        yield tstPolicyEvent(eci0, "policies/baz", false);
+
+        yield tstPolicyEvent(eci1, "policies/foo", true);
+        yield tstPolicyEvent(eci1, "policies/bar", false);
+        yield tstPolicyEvent(eci1, "policies/baz", false);
+
+        yield tstPolicyEvent(eci2, "policies/foo", false);
+        yield tstPolicyEvent(eci2, "policies/bar", true);
+        yield tstPolicyEvent(eci2, "policies/baz", true);
+
+    }, t.end);
 });
