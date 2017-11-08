@@ -11,6 +11,7 @@ require("./cleanEvent.test");
 require("./runAction.test");
 require("./Scheduler.test");
 require("./migrations/20171031T182007_pvar_index.test.js");
+require("./ChannelPolicy.test");
 
 //run system tests last
 require("./index.test");
