@@ -11,12 +11,12 @@ var Scheduler = require("./Scheduler");
 var runAction = require("./runAction");
 var cleanEvent = require("./cleanEvent");
 var krl_stdlib = require("krl-stdlib");
-var checkPolicy = require("./checkPolicy");
 var getKRLByURL = require("./getKRLByURL");
 var SymbolTable = require("symbol-table");
 var EventEmitter = require("events");
 var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
+var ChannelPolicy = require("./ChannelPolicy");
 var RulesetRegistry = require("./RulesetRegistry");
 var normalizeKRLArgs = require("./normalizeKRLArgs");
 var DependencyResolver = require("dependency-resolver");
@@ -342,7 +342,7 @@ module.exports = function(conf){
             emit("episode_start");
             emit("debug", "event received: " + event.domain + "/" + event.type);
 
-            if( ! checkPolicy(chann.policy, event)){
+            if( ! ChannelPolicy.checkEvent(chann.policy, event)){
                 onDone(new Error("denied by policy"));
                 return;
             }
