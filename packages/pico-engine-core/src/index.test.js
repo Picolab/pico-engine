@@ -2404,9 +2404,18 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
 
 
         eci = yield mkECI({
-            name: "deny all",
-            events: {
-                type: "whitelist",
+            name: "deny all implicit",
+            event: {},
+        });
+        yield tstEventPolicy(eci, "policies/foo", false);
+        yield tstEventPolicy(eci, "policies/bar", false);
+        yield tstEventPolicy(eci, "policies/baz", false);
+
+
+        eci = yield mkECI({
+            name: "deny all explicit",
+            event: {
+                deny: [{}],
             },
         });
         yield tstEventPolicy(eci, "policies/foo", false);
@@ -2416,8 +2425,8 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
 
         eci = yield mkECI({
             name: "allow all",
-            events: {
-                type: "blacklist",
+            event: {
+                allow: [{}],
             },
         });
         yield tstEventPolicy(eci, "policies/foo", true);
@@ -2426,10 +2435,21 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
 
 
         eci = yield mkECI({
+            name: "deny before allow",
+            event: {
+                allow: [{}],
+                deny: [{}],
+            },
+        });
+        yield tstEventPolicy(eci, "policies/foo", false);
+        yield tstEventPolicy(eci, "policies/bar", false);
+        yield tstEventPolicy(eci, "policies/baz", false);
+
+
+        eci = yield mkECI({
             name: "only policies/foo",
-            events: {
-                type: "whitelist",
-                events: [{domain: "policies", type: "foo"}],
+            event: {
+                allow: [{domain: "policies", type: "foo"}],
             },
         });
         yield tstEventPolicy(eci, "policies/foo", true);
@@ -2439,9 +2459,9 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
 
         eci = yield mkECI({
             name: "all but policies/foo",
-            events: {
-                type: "blacklist",
-                events: [{domain: "policies", type: "foo"}],
+            event: {
+                deny: [{domain: "policies", type: "foo"}],
+                allow: [{}],
             }
         });
         yield tstEventPolicy(eci, "policies/foo", false);
@@ -2451,9 +2471,8 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
 
         eci = yield mkECI({
             name: "only other/*",
-            events: {
-                type: "whitelist",
-                events: [{domain: "other"}],
+            event: {
+                allow: [{domain: "other"}],
             }
         });
         yield tstEventPolicy(eci, "policies/foo", false);
@@ -2466,9 +2485,8 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
 
         eci = yield mkECI({
             name: "only */foo",
-            events: {
-                type: "whitelist",
-                events: [{type: "foo"}],
+            event: {
+                allow: [{type: "foo"}],
             }
         });
         yield tstEventPolicy(eci, "policies/foo", true);
@@ -2481,9 +2499,8 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
 
         eci = yield mkECI({
             name: "only policies/foo or other/*",
-            events: {
-                type: "whitelist",
-                events: [
+            event: {
+                allow: [
                     {domain: "policies", type: "foo"},
                     {domain: "other"},
                 ],

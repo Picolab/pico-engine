@@ -28,59 +28,39 @@ test("policy = ChannelPolicy.clean(policy)", function(t){
     try{
         cleanIt({
             name: "foo",
-            event: {},
+            event: {allow: ["wat"]},
         });
-        t.fail("should throw");
+        t.fail("should throw..");
     }catch(e){
-        t.equals(e + "", "Error: `policy.event.type` must be \"whitelist\" or \"blacklist\"");
-    }
-    try{
-        cleanIt({
-            name: "foo",
-            event: {type: "BlackList"},
-        });
-        t.fail("should throw");
-    }catch(e){
-        t.equals(e + "", "Error: `policy.event.type` must be \"whitelist\" or \"blacklist\"");
-    }
-
-    try{
-        cleanIt({
-            name: "foo",
-            event: {type: "blacklist", events: ["wat"]},
-        });
-        t.fail("should throw");
-    }catch(e){
-        t.equals(e + "", "Error: `policy.event.events` must have `domain` and/or `type`");
-    }
-    try{
-        cleanIt({
-            name: "foo",
-            event: {type: "blacklist", events: [{}]},
-        });
-        t.fail("should throw");
-    }catch(e){
-        t.equals(e + "", "Error: `policy.event.events` must have `domain` and/or `type`");
+        t.equals(e + "", "Error: `policy.event.<deny|allow>` must be maps with `domain` and/or `type`");
     }
 
     t.deepEquals(cleanIt({
         name: "foo",
-        event: {
-            type: "blacklist",
-        }
+        event: {}
     }), {
         name: "foo",
         event: {
-            type: "blacklist",
-            events: [],
+            deny: [],
+            allow: [],
+        }
+    });
+
+    t.deepEquals(cleanIt({
+        name: "foo",
+        event: {allow: [{}]}
+    }), {
+        name: "foo",
+        event: {
+            deny: [],
+            allow: [{}],
         }
     });
 
     t.deepEquals(cleanIt({
         name: " foo   ",
         event: {
-            type: "whitelist",
-            events: [
+            allow: [
                 {domain: "one ", type: "thrEE", wat: "four"},
                 {domain: "  fIVe "},
                 {type: "\tsix "},
@@ -89,8 +69,8 @@ test("policy = ChannelPolicy.clean(policy)", function(t){
     }), {
         name: "foo",
         event: {
-            type: "whitelist",
-            events: [
+            deny: [],
+            allow: [
                 {domain: "one", type: "thrEE"},
                 {domain: "fIVe"},
                 {type: "six"},

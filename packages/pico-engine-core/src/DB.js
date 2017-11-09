@@ -9,6 +9,7 @@ var levelup = require("levelup");
 var bytewise = require("bytewise");
 var sovrinDID = require("sovrin-did");
 var migrations = require("./migrations");
+var ChannelPolicy = require("./ChannelPolicy");
 var safeJsonCodec = require("level-json-coerce-null");
 var extractRulesetID = require("./extractRulesetID");
 
@@ -550,10 +551,9 @@ module.exports = function(opts){
             });
         },
 
-        newPolicy: function(opts, callback){
-            var new_policy = _.assign({}, opts, {
-                id: newID(),
-            });
+        newPolicy: function(policy, callback){
+            var new_policy = ChannelPolicy.clean(policy);
+            new_policy.id = newID();
             ldb.put(["policy", new_policy.id], new_policy, function(err, data){
                 callback(err, new_policy);
             });
