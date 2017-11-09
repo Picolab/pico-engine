@@ -1,5 +1,17 @@
 module.exports = {
   "rid": "io.picolabs.policies",
+  "meta": {
+    "shares": [
+      "one",
+      "two",
+      "three"
+    ]
+  },
+  "global": function* (ctx) {
+    ctx.scope.set("one", 1);
+    ctx.scope.set("two", 2);
+    ctx.scope.set("three", 3);
+  },
   "rules": {
     "foo": {
       "name": "foo",

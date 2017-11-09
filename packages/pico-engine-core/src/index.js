@@ -384,12 +384,14 @@ module.exports = function(conf){
         query.timestamp = new Date();
         query.txn_id = cuid();
 
-        db.getPicoIDByECI(query.eci, function(err, pico_id){
+        db.getChannelAndPolicy(query.eci, function(err, chann){
             if(err){
                 emitter.emit("error", err);
                 callback(err);
                 return;
             }
+
+            var pico_id = chann.pico_id;
 
             var emit = mkCTX({
                 query: query,
@@ -397,6 +399,11 @@ module.exports = function(conf){
             }).emit;
             emit("episode_start");
             emit("debug", "query received: " + query.rid + "/" + query.name);
+
+            if( ! ChannelPolicy.checkQuery(chann.policy, query)){
+                onDone(new Error("denied by policy"));
+                return;
+            }
 
             picoQ.enqueue(pico_id, {
                 type: "query",

@@ -6,45 +6,69 @@ var isBlank = function(str){
     return !ktypes.isString(str) || str.trim().length === 0;
 };
 
-var cleanEvent = function(e_orig){
-    if( ! ktypes.isMap(e_orig)){
-        throw new Error("`policy.event.<deny|allow>` must be maps with `domain` and/or `type`");
+var cleanEventRules = function(rules){
+    if(ktypes.isNull(rules)){
+        return [];
     }
-    var e = {};
-    if(_.has(e_orig, "domain")){
-        e.domain = ktypes.toString(e_orig.domain).trim();
-        if(e.domain.length === 0){
-            delete e.domain;
+    if( ! _.isArray(rules)){
+        throw new Error("`policy.event.<allow|deny>` must be an Array of rules");
+    }
+    return _.map(rules, function(rule_orig){
+        if( ! ktypes.isMap(rule_orig)){
+            throw new Error("Policy rules must be Maps, not " + ktypes.typeOf(rule_orig));
         }
-    }
-    if(_.has(e_orig, "type")){
-        e.type = ktypes.toString(e_orig.type).trim();
-        if(e.type.length === 0){
-            delete e.type;
+        var rule = {};
+        if(!isBlank(rule_orig.domain)){
+            rule.domain = rule_orig.domain.trim();
         }
-    }
-    return e;
+        if(!isBlank(rule_orig.type)){
+            rule.type = rule_orig.type.trim();
+        }
+        return rule;
+    });
 };
 
 
-var clean = function(policy_orig){
+var cleanQueryRules = function(rules){
+    if(ktypes.isNull(rules)){
+        return [];
+    }
+    if( ! _.isArray(rules)){
+        throw new Error("`policy.query.<allow|deny>` must be an Array of rules");
+    }
+    return _.map(rules, function(rule_orig){
+        if( ! ktypes.isMap(rule_orig)){
+            throw new Error("Policy rules must be Maps, not " + ktypes.typeOf(rule_orig));
+        }
+        var rule = {};
+        if(!isBlank(rule_orig.rid)){
+            rule.rid = rule_orig.rid.trim();
+        }
+        if(!isBlank(rule_orig.name)){
+            rule.name = rule_orig.name.trim();
+        }
+        return rule;
+    });
+};
 
-    var policy = {};
 
-    if(isBlank(policy_orig.name)){
+var clean = function(policy){
+
+    if(isBlank(policy.name)){
         throw new Error("missing `policy.name`");
     }
-    policy.name = policy_orig.name.trim();
 
-    if( ! policy_orig.event){
-        throw new Error("missing `policy.event`");
-    }
-
-    policy.event = {};
-    policy.event.deny = _.map(policy_orig.event.deny, cleanEvent);
-    policy.event.allow = _.map(policy_orig.event.allow, cleanEvent);
-
-    return policy;
+    return {
+        name: policy.name.trim(),
+        event: {
+            deny : cleanEventRules(policy.event && policy.event.deny),
+            allow: cleanEventRules(policy.event && policy.event.allow),
+        },
+        query: {
+            deny:  cleanQueryRules(policy.query && policy.query.deny),
+            allow: cleanQueryRules(policy.query && policy.query.allow),
+        },
+    };
 };
 
 
@@ -73,7 +97,33 @@ var checkEvent = function(policy, event){
 };
 
 
+var doesMatchQuery = function(rules, query){
+    return _.find(rules, function(rule){
+        if(_.has(rule, "rid") && rule.rid !== query.rid){
+            return false;
+        }
+        if(_.has(rule, "name") && rule.name !== query.name){
+            return false;
+        }
+        return true;
+    });
+};
+
+
+var checkQuery = function(policy, query){
+    if( ! policy || ! policy.query){
+        //TODO remove this
+        return true;
+    }
+    if(doesMatchQuery(policy.query.deny, query)){
+        return false;
+    }
+    return doesMatchQuery(policy.query.allow, query);
+};
+
+
 module.exports = {
     clean: clean,
     checkEvent: checkEvent,
+    checkQuery: checkQuery,
 };

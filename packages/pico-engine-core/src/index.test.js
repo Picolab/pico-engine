@@ -2406,12 +2406,31 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 callback();
             });
         });
+        var tstQueryPolicy = cocb.wrap(function(eci, name, is_allowed, callback){
+            pe.runQuery({
+                eci: eci,
+                rid: "io.picolabs.policies",
+                name: name,
+            }, function(err, data){
+                if(err){
+                    if(/denied by policy/.test(err + "")){
+                        t.notOk(is_allowed, "Should be denied " + eci + "|" + name);
+                        callback();
+                        return;
+                    }
+                    callback(err);
+                    return;
+                }
+                t.ok(is_allowed, "Should be allowed " + eci + "|" + name);
+                callback();
+            });
+        });
+
         var eci;
 
 
         eci = yield mkECI({
             name: "deny all implicit",
-            event: {},
         });
         yield tstEventPolicy(eci, "policies/foo", false);
         yield tstEventPolicy(eci, "policies/bar", false);
@@ -2518,6 +2537,33 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
         yield tstEventPolicy(eci, "other/foo", true);
         yield tstEventPolicy(eci, "other/bar", true);
         yield tstEventPolicy(eci, "other/baz", true);
+
+
+        eci = yield mkECI({
+            name: "deny all implicit",
+        });
+        yield tstQueryPolicy(eci, "one", false);
+        yield tstQueryPolicy(eci, "two", false);
+        yield tstQueryPolicy(eci, "three", false);
+
+        eci = yield mkECI({
+            name: "allow all",
+            query: {allow: [{}]}
+        });
+        yield tstQueryPolicy(eci, "one", true);
+        yield tstQueryPolicy(eci, "two", true);
+        yield tstQueryPolicy(eci, "three", true);
+
+        eci = yield mkECI({
+            name: "allow one and three",
+            query: {allow: [
+                {name: "one"},
+                {name: "three"},
+            ]}
+        });
+        yield tstQueryPolicy(eci, "one", true);
+        yield tstQueryPolicy(eci, "two", false);
+        yield tstQueryPolicy(eci, "three", true);
 
 
     }, t.end);

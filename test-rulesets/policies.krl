@@ -1,4 +1,12 @@
 ruleset io.picolabs.policies {
+    meta {
+        shares one, two, three
+    }
+    global {
+        one = 1
+        two = 2
+        three = 3
+    }
     rule foo {
         select when policies foo
     }
