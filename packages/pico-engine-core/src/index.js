@@ -10,6 +10,7 @@ var PicoQueue = require("./PicoQueue");
 var Scheduler = require("./Scheduler");
 var runAction = require("./runAction");
 var cleanEvent = require("./cleanEvent");
+var cleanQuery = require("./cleanQuery");
 var krl_stdlib = require("krl-stdlib");
 var getKRLByURL = require("./getKRLByURL");
 var SymbolTable = require("symbol-table");
@@ -370,11 +371,11 @@ module.exports = function(conf){
     core.runQuery = function(query_orig, callback_orig){
         var callback = _.isFunction(callback_orig) ? callback_orig : _.noop;
 
-        //ensure that query is not mutated
-        var query = _.cloneDeep(query_orig);//TODO optimize
-
-        if(!_.isString(query && query.eci)){
-            var err = new Error("missing query.eci");
+        var query;
+        try{
+            //validate + normalize event, and make sure is not mutated
+            query = cleanQuery(query_orig);
+        }catch(err){
             emitter.emit("error", err);
             callback(err);
             return;

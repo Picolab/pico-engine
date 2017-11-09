@@ -2106,7 +2106,13 @@ test("PicoEngine - io.picolabs.test-error-messages", function(t){
 
             qError({eci: null}, "Error: missing query.eci", false),
 
-            qError({eci: "foo"}, "NotFoundError: ECI not found: foo", true),
+            qError({
+                eci: "foo",
+                rid: "not-an-rid",
+                name: "hello",
+                args: {},
+            }, "NotFoundError: ECI not found: foo", true),
+
             qError({
                 eci: "id1",
                 rid: "not-an-rid",
