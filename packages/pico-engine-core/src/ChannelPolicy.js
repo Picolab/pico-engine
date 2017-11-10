@@ -72,33 +72,21 @@ var clean = function(policy){
 };
 
 
-var doesMatchEvent = function(events, event){
-    return _.find(events, function(s){
-        if(_.has(s, "domain") && s.domain !== event.domain){
+var eventRuleMatcher = function(event){
+    return function(rule){
+        if(_.has(rule, "domain") && rule.domain !== event.domain){
             return false;
         }
-        if(_.has(s, "type") && s.type !== event.type){
+        if(_.has(rule, "type") && rule.type !== event.type){
             return false;
         }
         return true;
-    });
+    };
 };
 
 
-var checkEvent = function(policy, event){
-    if( ! policy || ! policy.event){
-        //TODO remove this
-        return true;
-    }
-    if(doesMatchEvent(policy.event.deny, event)){
-        return false;
-    }
-    return doesMatchEvent(policy.event.allow, event);
-};
-
-
-var doesMatchQuery = function(rules, query){
-    return _.find(rules, function(rule){
+var queryRuleMatcher = function(query){
+    return function(rule){
         if(_.has(rule, "rid") && rule.rid !== query.rid){
             return false;
         }
@@ -106,35 +94,34 @@ var doesMatchQuery = function(rules, query){
             return false;
         }
         return true;
-    });
-};
-
-
-var checkQuery = function(policy, query){
-    if( ! policy || ! policy.query){
-        //TODO remove this
-        return true;
-    }
-    if(doesMatchQuery(policy.query.deny, query)){
-        return false;
-    }
-    return doesMatchQuery(policy.query.allow, query);
+    };
 };
 
 
 module.exports = {
     clean: clean,
     assert: function(policy, type, data){
-        var ok = false;
+
+        var matcher;
         if(type === "event"){
-            ok = checkEvent(policy, data);
+            matcher = eventRuleMatcher(data);
         }else if(type === "query"){
-            ok = checkQuery(policy, data);
+            matcher = queryRuleMatcher(data);
         }else{
             throw new Error("Channel can only assert type's \"event\" and \"query\"");
         }
-        if( ! ok){
+
+        if( ! policy || ! policy[type]){
+            //TODO remove this
+            return;
+        }
+
+        if(_.find(policy[type].deny, matcher)){
             throw new Error("denied by policy");
         }
+        if( ! _.find(policy[type].allow, matcher)){
+            throw new Error("denied by policy");
+        }
+        //allowed
     },
 };
