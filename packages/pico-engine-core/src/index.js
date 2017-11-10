@@ -287,7 +287,7 @@ module.exports = function(conf){
     };
 
     var picoQ = PicoQueue(function(pico_id, type, data, callback){
-        //now handle the next `job` on the pico queue
+        //now handle the next task on the pico queue
         if(type === "event"){
             var event = data;
             event.timestamp = new Date(event.timestamp);//convert from JSON string to date
@@ -305,7 +305,7 @@ module.exports = function(conf){
         }
     });
 
-    var picoJob = function(type, data_orig, callback_orig){
+    var picoTask = function(type, data_orig, callback_orig){
         var callback = _.isFunction(callback_orig) ? callback_orig : _.noop;
         var data;
         try{
@@ -331,6 +331,12 @@ module.exports = function(conf){
         data.timestamp = conf.___core_testing_mode && _.isDate(data_orig.timestamp)
             ? data_orig.timestamp
             : new Date();
+
+        if(conf.___core_testing_mode){
+            //TODO better logic
+            //how event and query policies know if it's comming internally or externally
+            data.internal = true;
+        }
 
         db.getChannelAndPolicy(data.eci, function(err, chann){
             if(err){
@@ -378,11 +384,11 @@ module.exports = function(conf){
     };
 
     core.signalEvent = function(event, callback){
-        picoJob("event", event, callback);
+        picoTask("event", event, callback);
     };
 
     core.runQuery = function(query, callback){
-        picoJob("query", query, callback);
+        picoTask("query", query, callback);
     };
 
     var registerAllEnabledRulesets = function(system_rulesets, callback){

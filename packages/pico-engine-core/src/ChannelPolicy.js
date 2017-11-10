@@ -24,6 +24,9 @@ var cleanEventRules = function(rules){
         if(!isBlank(rule_orig.type)){
             rule.type = rule_orig.type.trim();
         }
+        if(rule_orig.internal === true || rule_orig.internal === false){
+            rule.internal = rule_orig.internal;
+        }
         return rule;
     });
 };
@@ -46,6 +49,9 @@ var cleanQueryRules = function(rules){
         }
         if(!isBlank(rule_orig.name)){
             rule.name = rule_orig.name.trim();
+        }
+        if(rule_orig.internal === true || rule_orig.internal === false){
+            rule.internal = rule_orig.internal;
         }
         return rule;
     });
@@ -80,6 +86,9 @@ var eventRuleMatcher = function(event){
         if(_.has(rule, "type") && rule.type !== event.type){
             return false;
         }
+        if(_.has(rule, "internal") && rule.internal !== event.internal){
+            return false;
+        }
         return true;
     };
 };
@@ -93,14 +102,26 @@ var queryRuleMatcher = function(query){
         if(_.has(rule, "name") && rule.name !== query.name){
             return false;
         }
+        if(_.has(rule, "internal") && rule.internal !== query.internal){
+            return false;
+        }
         return true;
     };
 };
+
+var defaultPolicy = clean({
+    name: "System default Policy",
+    event: {allow: [{internal: true}]},
+    query: {allow: [{internal: true}]},
+});
 
 
 module.exports = {
     clean: clean,
     assert: function(policy, type, data){
+        if(!policy){
+            policy = defaultPolicy;
+        }
 
         var matcher;
         if(type === "event"){
@@ -109,11 +130,6 @@ module.exports = {
             matcher = queryRuleMatcher(data);
         }else{
             throw new Error("Channel can only assert type's \"event\" and \"query\"");
-        }
-
-        if( ! policy || ! policy[type]){
-            //TODO remove this
-            return;
         }
 
         if(_.find(policy[type].deny, matcher)){
