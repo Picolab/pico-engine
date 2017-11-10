@@ -124,6 +124,17 @@ var checkQuery = function(policy, query){
 
 module.exports = {
     clean: clean,
-    checkEvent: checkEvent,
-    checkQuery: checkQuery,
+    assert: function(policy, type, data){
+        var ok = false;
+        if(type === "event"){
+            ok = checkEvent(policy, data);
+        }else if(type === "query"){
+            ok = checkQuery(policy, data);
+        }else{
+            throw new Error("Channel can only assert type's \"event\" and \"query\"");
+        }
+        if( ! ok){
+            throw new Error("denied by policy");
+        }
+    },
 };

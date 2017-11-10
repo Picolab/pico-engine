@@ -5,7 +5,7 @@ test("PicoQueue", function(t){
 
     var log = [];
 
-    var pq = PicoQueue(function(pico_id, data, callback){
+    var pq = PicoQueue(function(pico_id, type, data, callback){
         log.push("working_0 [" + pico_id + "] " + data);
         process.nextTick(function(){
             log.push("working_1 [" + pico_id + "] " + data);
@@ -18,7 +18,7 @@ test("PicoQueue", function(t){
 
     var enqueue = function(pico_id, data, done){
         log.push("enqueue [" + pico_id + "] " + data);
-        pq.enqueue(pico_id, data, function(){
+        pq.enqueue(pico_id, "test", data, function(){
             log.push("done [" + pico_id + "] " + data);
             if(done){
                 done();
@@ -58,7 +58,7 @@ test("PicoQueue", function(t){
 });
 
 test("PicoQueue - error", function(t){
-    var pq = PicoQueue(function(pico_id, data, callback){
+    var pq = PicoQueue(function(pico_id, type, data, callback){
         process.nextTick(function(){
             if(data === "foobar"){
                 callback(new Error(data));
@@ -68,15 +68,15 @@ test("PicoQueue - error", function(t){
         });
     });
     t.plan(6);
-    pq.enqueue("A", "baz", function(err, data){
+    pq.enqueue("A", "test", "baz", function(err, data){
         t.equals(err, null);
         t.equals(data, "baz");
     });
-    pq.enqueue("A", "foobar", function(err, data){
+    pq.enqueue("A", "test", "foobar", function(err, data){
         t.equals(err + "", "Error: foobar");
         t.equals(data, void 0);
     });
-    pq.enqueue("A", "qux", function(err, data){
+    pq.enqueue("A", "test", "qux", function(err, data){
         t.equals(err, null);
         t.equals(data, "qux");
     });

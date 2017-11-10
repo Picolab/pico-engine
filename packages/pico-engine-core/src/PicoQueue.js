@@ -8,7 +8,8 @@ module.exports = function(worker){
     var getQ = function(pico_id){
         if(!_.has(pico_queues, pico_id)){
             var q = async.queue(function(job, done){
-                worker(pico_id, JSON.parse(job), done);
+                job = JSON.parse(job);
+                worker(pico_id, job.type, job.data, done);
             });
             pico_queues[pico_id] = q;
         }
@@ -16,8 +17,11 @@ module.exports = function(worker){
     };
 
     return {
-        enqueue: function(pico_id, job, callback){
-            getQ(pico_id).push(JSON.stringify(job), callback);
+        enqueue: function(pico_id, type, data, callback){
+            getQ(pico_id).push(JSON.stringify({
+                type: type,
+                data: data,
+            }), callback);
         }
     };
 };
