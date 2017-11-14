@@ -110,14 +110,24 @@ module.exports = {
         ctx.scope.set("rid", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["rid"]));
         ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         ctx.scope.set("base", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["base"]));
+        ctx.scope.set("rid_provided", !!ctx.scope.get("rid") ? "True" : "False");
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "engine", "installRuleset", [
-            ctx.scope.get("pico_id"),
-            ctx.scope.get("rid"),
-            ctx.scope.get("url"),
-            ctx.scope.get("base")
-          ], []);
+          switch (ctx.scope.get("rid_provided")) {
+          case "True":
+            yield runAction(ctx, "engine", "installRuleset", [
+              ctx.scope.get("pico_id"),
+              ctx.scope.get("rid")
+            ], []);
+            break;
+          case "False":
+            yield runAction(ctx, "engine", "installRuleset", {
+              "0": ctx.scope.get("pico_id"),
+              "url": ctx.scope.get("url"),
+              "base": ctx.scope.get("base")
+            }, []);
+            break;
+          }
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -127,3 +137,4 @@ module.exports = {
     }
   }
 };
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IiIsInNvdXJjZXNDb250ZW50IjpbXX0=
