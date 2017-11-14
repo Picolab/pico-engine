@@ -15,6 +15,11 @@ var tick = function(fn){
     };
 };
 
+var runAction = function*(pe, ctx, domain, id, args){
+    var act = yield pe.modules.get(ctx, domain, id);
+    return _.head(yield act(ctx, args));
+};
+
 
 var testPE = function(test_name, genfn){
     test(test_name, function(t){
@@ -107,14 +112,14 @@ test("engine:registerRuleset", function(t){
             })
         });
 
-        t.equals(yield engine.actions.registerRuleset({}, {
+        t.equals((yield engine.def.registerRuleset({}, {
             url: "http://foo.bar/qux.krl",
-        }), "rid for: http://foo.bar/qux.krl");
+        }))[0], "rid for: http://foo.bar/qux.krl");
 
-        t.equals(yield engine.actions.registerRuleset({}, {
+        t.equals((yield engine.def.registerRuleset({}, {
             url: "qux.krl",
             base: "https://foo.bar/baz/",
-        }), "rid for: https://foo.bar/baz/qux.krl");
+        }))[0], "rid for: https://foo.bar/baz/qux.krl");
 
         yield testErr(
             t,
@@ -212,15 +217,15 @@ test("engine:uninstallRuleset", function(t){
             }
         });
 
-        t.equals(yield engine.actions.uninstallRuleset({}, {
+        t.equals((yield engine.def.uninstallRuleset({}, {
             pico_id: "pico0",
             rid: "foo.bar",
-        }), void 0);
+        }))[0], void 0);
 
-        t.equals(yield engine.actions.uninstallRuleset({}, {
+        t.equals((yield engine.def.uninstallRuleset({}, {
             pico_id: "pico0",
             rid: ["baz", "qux"],
-        }), void 0);
+        }))[0], void 0);
 
         t.deepEquals(uninstalled, {
             pico0: {
@@ -246,13 +251,13 @@ test("engine:unregisterRuleset", function(t){
             }),
         });
 
-        t.equals(yield engine.actions.unregisterRuleset({}, {
+        t.equals((yield engine.def.unregisterRuleset({}, {
             rid: "foo.bar",
-        }), void 0);
+        }))[0], void 0);
 
-        t.equals(yield engine.actions.unregisterRuleset({}, {
+        t.equals((yield engine.def.unregisterRuleset({}, {
             rid: ["baz", "qux"],
-        }), void 0);
+        }))[0], void 0);
 
         yield testErr(
             t,
@@ -352,7 +357,7 @@ testPE("engine:listInstalledRIDs", function * (t, pe){
 
 testPE("engine:newPico", function * (t, pe){
     var action = function*(ctx, name, args){
-        return _.head(yield pe.modules.action(ctx, "engine", name, args));
+        return yield runAction(pe, ctx, "engine", name, args);
     };
 
     var pico2 = yield action({}, "newPico", {
@@ -382,7 +387,7 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
         return _.head(yield pe.modules.action(ctx, "engine", "newPico", args));
     };
     var removePico = function*(ctx, args){
-        return _.head(yield pe.modules.action(ctx, "engine", "removePico", args));
+        return yield runAction(pe, ctx, "engine", "removePico", args);
     };
 
     var getParent = yield pe.modules.get({}, "engine", "getParent");
@@ -448,10 +453,10 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
 testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function * (t, pe){
 
     var newChannel = function*(ctx, args){
-        return _.head(yield pe.modules.action(ctx, "engine", "newChannel", args));
+        return yield runAction(pe, ctx, "engine", "newChannel", args);
     };
     var removeChannel = function*(ctx, args){
-        return _.head(yield pe.modules.action(ctx, "engine", "removeChannel", args));
+        return yield runAction(pe, ctx, "engine", "removeChannel", args);
     };
     var listChannels = yield pe.modules.get({}, "engine", "listChannels");
 

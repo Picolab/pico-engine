@@ -1,7 +1,8 @@
 var _ = require("lodash");
 var ktypes = require("krl-stdlib/types");
-var mkKRLfn = require("../mkKRLfn");
 var request = require("request");
+var mkKRLfn = require("../mkKRLfn");
+var mkKRLaction = require("../mkKRLaction");
 
 var ensureMap = function(arg, defaultTo){
     return ktypes.isMap(arg)
@@ -9,8 +10,9 @@ var ensureMap = function(arg, defaultTo){
         : defaultTo;
 };
 
-var mkMethod = function(method){
-    return mkKRLfn([
+var mkMethod = function(method, isAction){
+    var mk = isAction ? mkKRLaction : mkKRLfn;
+    return mk([
         //NOTE: order is significant so it's a breaking API change to change argument ordering
         "url",
         "qs",
@@ -21,7 +23,7 @@ var mkMethod = function(method){
         "form",
         "parseJSON",
         "autoraise",
-    ], function(args, ctx, callback){
+    ], function(ctx, args, callback){
         if(!_.has(args, "url")){
             return callback(new Error("http:" + method.toLowerCase() + " needs a url string"));
         }
@@ -75,8 +77,14 @@ var mkMethod = function(method){
                     type: method.toLowerCase(),
                     attributes: r,
                     //for_rid: "",
+                }).then(function(r){
+                    callback(null, r);
                 }, function(err){
-                    callback(err, r);
+                    process.nextTick(function(){
+                        //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+                        //when infact we are handling the rejection
+                        callback(err);
+                    });
                 });
             }else{
                 callback(void 0, r);
@@ -85,18 +93,16 @@ var mkMethod = function(method){
     });
 };
 
-var fns = {
-    get: mkMethod("GET"),
-    post: mkMethod("POST"),
-    put: mkMethod("PUT"),
-    patch: mkMethod("PATCH"),
-    "delete": mkMethod("DELETE"),
-    head: mkMethod("HEAD"),
-};
-
 module.exports = function(core){
     return {
-        def: fns,
-        actions: fns,
+        def: {
+            get: mkMethod("GET"),
+            head: mkMethod("HEAD"),
+
+            post: mkMethod("POST", true),
+            put: mkMethod("PUT", true),
+            patch: mkMethod("PATCH", true),
+            "delete": mkMethod("DELETE", true),
+        },
     };
 };

@@ -1713,7 +1713,7 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
     //before starting the engine, write some test data to the db
     var memdb = memdown(cuid());
     var db = DB({
-        db: function(){return memdb;},
+        db: memdb,
         __use_sequential_ids_for_testing: true,
         __sequential_id_prefix_for_testing: "init",
     });
@@ -1728,7 +1728,7 @@ test("PicoEngine - io.picolabs.schedule rulesets", function(t){
             attrs: {from: "startup_event", name: "qux"},
         }),
         async.apply(mkTestPicoEngine, {
-            ldb: function(){return memdb;},
+            ldb: memdb,
         })
     ], function(err, results){
         if(err)return t.end(err);
@@ -2125,19 +2125,11 @@ test("PicoEngine - io.picolabs.test-error-messages", function(t){
                 args: {obj: "Bob"}
             }, "Error: Shared, but not defined: somethingNotDefined", true),
 
-            /*TODO
-             *TODO
-             *TODO
-             * Commenting this test out for now
-             * depending on node version, it will just crash with no error at all
-             * but strangely if you add console.log() in the `pe.emitter.once("error", function(err){`
-             * the tests pass
             qError({
                 eci: "id1",
                 rid: "io.picolabs.test-error-messages",
                 name: "infiniteRecursion",
             }, "RangeError: Maximum call stack size exceeded", false),
-            */
 
         ], t.end);
     });
@@ -2162,7 +2154,7 @@ var mkPicoEngineFactoryWithKRLCompiler = function(){
                 callback(null, js);
             },
             db: {
-                db: function(){return memdb;},
+                db: memdb,
                 __use_sequential_ids_for_testing: true,
             }
         }, opts));
@@ -2308,5 +2300,54 @@ test("PicoEngine - system ruleset dependency ordering", function(t){
 
             t.deepEquals(rids, ["C"]);
         }, t.end);
+    });
+});
+
+
+test("PicoEngine - io.picolabs.persistent-index", function(t){
+    mkTestPicoEngine({rootRIDs: [
+        "io.picolabs.persistent-index",
+    ]}, function(err, pe){
+        if(err)return t.end(err);
+
+        var query = mkQueryTask(pe, "id1", "io.picolabs.persistent-index");
+        var signal = mkSignalTask(pe, "id1");
+
+        testOutputs(t, [
+            [query("getFoo"), void 0],
+            [query("getBar"), void 0],
+
+            [signal("pindex", "setfoo", {aaa: "blah"}), []],
+            [signal("pindex", "setbar", {aaa: "blah"}), []],
+            [query("getFoo"), {aaa: "blah"}],
+            [query("getBar"), {aaa: "blah"}],
+
+            [signal("pindex", "putfoo", {key: "bbb", value: "wat"}), []],
+            [signal("pindex", "putbar", {key: "bbb", value: "wat"}), []],
+            [query("getFoo"), {aaa: "blah", bbb: "wat"}],
+            [query("getBar"), {aaa: "blah", bbb: "wat"}],
+
+            [query("getFooKey", {key: "aaa"}), "blah"],
+            [query("getBarKey", {key: "aaa"}), "blah"],
+            [query("getFooKey", {key: "404"}), void 0],
+            [query("getBarKey", {key: "404"}), void 0],
+            [query("getFooKey", {}), {aaa: "blah", bbb: "wat"}],
+            [query("getBarKey", {}), {aaa: "blah", bbb: "wat"}],
+
+            [signal("pindex", "delfoo", {key: "aaa"}), []],
+            [signal("pindex", "delbar", {key: "aaa"}), []],
+            [query("getFoo"), {bbb: "wat"}],
+            [query("getBar"), {bbb: "wat"}],
+            [query("getFooKey", {key: "aaa"}), void 0],
+            [query("getBarKey", {key: "aaa"}), void 0],
+
+            [signal("pindex", "nukefoo", {key: "aaa"}), []],
+            [signal("pindex", "nukebar", {key: "aaa"}), []],
+            [query("getFoo"), void 0],
+            [query("getBar"), void 0],
+            [query("getFooKey", {key: "bbb"}), void 0],
+            [query("getBarKey", {key: "bbb"}), void 0],
+
+        ], t.end);
     });
 });

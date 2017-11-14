@@ -2,6 +2,7 @@ var _ = require("lodash");
 var fs = require("fs");
 var path = require("path");
 var async = require("async");
+var fileUrl = require("file-url");
 var leveldown = require("leveldown");
 var RulesetLoader = require("./RulesetLoader");
 var PicoEngineCore = require("pico-engine-core");
@@ -65,7 +66,7 @@ var getSystemRulesets = function(pe, callback){
                 if(err) return next(err);
                 next(null, {
                     src: src,
-                    meta: {url: "http://fake-url/krl/" + filename},
+                    meta: {url: fileUrl(file, {resolve: false})},
                 });
             });
         }, function(err, system_rulesets){
@@ -78,9 +79,16 @@ var setupLogging = function(pe){
     var logs = {};
     var logRID = "io.picolabs.logging";
     var needAttributes = function(context,message){
-        if (context.event && _.isString(message)) {
+        if (context.event && context.event.attrs && _.isString(message)) {
             return message.startsWith("event received:") ||
                 message.startsWith("adding raised event to schedule:");
+        } else {
+            return false;
+        }
+    };
+    var needArguments = function(context,message){
+        if (context.query && context.query.args && _.isString(message)) {
+            return message.startsWith("query received: ");
         } else {
             return false;
         }
@@ -92,6 +100,8 @@ var setupLogging = function(pe){
         if (episode) {
             if (needAttributes(context,message)) {
                 episode.logs.push(timestamp+" "+message+" attributes "+JSON.stringify(context.event.attrs));
+            } else if (needArguments(context,message)) {
+                episode.logs.push(timestamp+" "+message+" arguments "+JSON.stringify(context.query.args));
             } else {
                 episode.logs.push(timestamp+" "+message);
             }
@@ -106,11 +116,11 @@ var setupLogging = function(pe){
             console.log("[ERROR]","no episode found for",episode_id);
             return;
         }
-        pe.getEntVar(pico_id,logRID,"status",function(e,status){
+        pe.getEntVar(pico_id,logRID,"status",null,function(e,status){
             if (status) {
-                pe.getEntVar(pico_id,logRID,"logs",function(e,data){
+                pe.getEntVar(pico_id,logRID,"logs",null,function(e,data){
                     data[episode.key] = episode.logs;
-                    pe.putEntVar(pico_id,logRID,"logs",data,function(e){
+                    pe.putEntVar(pico_id,logRID,"logs",null,data,function(e){
                         callback(delete logs[episode_id]);
                     });
                 });
@@ -196,8 +206,7 @@ module.exports = function(conf, callback){
         }),
 
         db: {
-            db: leveldown,
-            location: path.join(conf.home, "db"),
+            db: leveldown(path.join(conf.home, "db")),
         },
 
         modules: conf.modules || {},

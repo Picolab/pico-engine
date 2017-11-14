@@ -1,3 +1,15 @@
+# 0.42.0 - November 1, 2017
+
+### BREAKING CHANGES
+
+* we now only support node 6+, recommended you use the LTS version (v8)
+
+### New Features
+
+* persistent variable indexes by using path expressions i.e. `ent:foo{key}`
+
+# 0.41.0 - October 31, 2017
+
 # 0.13.0 - September 13, 2017
 
 ### Wrangler rewrite (krl/io.picolabs.pico.krl)

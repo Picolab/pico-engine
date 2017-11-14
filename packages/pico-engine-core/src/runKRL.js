@@ -8,11 +8,11 @@ var assertCTX_keys = function(ctx, keys){
         "txn_id",
         "getMyKey",
         "modules",
-        "KRLClosure",
+        "mkFunction",
         "emit",
         "log",
         "callKRLstdlib",
-        "defaction",
+        "mkAction",
         "applyFn",
     ];
 
@@ -73,7 +73,8 @@ module.exports = function(){
         }
     }
 
-    return cocb.promiseRun(function*(){
-        return yield fn.apply(null, args);
-    });
+    if( ! fn.wrapped){
+        fn.wrapped = cocb.wrap(fn);
+    }
+    return fn.wrapped.apply(null, args);
 };

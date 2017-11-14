@@ -1,5 +1,6 @@
 var _ = require("lodash");
 var mkKRLfn = require("../mkKRLfn");
+var mkKRLaction = require("../mkKRLaction");
 var request = require("request");
 var cleanEvent = require("../cleanEvent");
 
@@ -7,18 +8,18 @@ module.exports = function(core){
     var fns = {
         attr: mkKRLfn([
             "name",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             callback(null, _.get(ctx, ["event", "attrs", args.name], null));
         }),
         attrs: mkKRLfn([
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             //the user may mutate their copy
             var attrs = _.cloneDeep(ctx.event.attrs);
             callback(null, attrs);
         }),
         attrMatches: mkKRLfn([
             "pairs",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             var pairs = args.pairs;
             var matches = [];
             var i, j, attr, m, pair;
@@ -36,6 +37,39 @@ module.exports = function(core){
             }
             callback(null, matches);
         }),
+        send: mkKRLaction([
+            "event",
+            "host",
+        ], function(ctx, args, callback){
+            var event;
+            try{
+                //validate + normalize event, and make sure is not mutated
+                event = cleanEvent(args.event);
+            }catch(err){
+                return callback(err);
+            }
+            if(args.host){
+                var url = args.host;
+                url += "/sky/event";
+                url += "/" + event.eci;
+                url += "/" + event.eid;
+                url += "/" + event.domain;
+                url += "/" + event.type;
+                request({
+                    method: "GET",
+                    url: url,
+                    qs: event.attrs,
+                }, function(err, res, body){
+                    //ignore it
+                });
+                callback();
+                return;
+            }
+            ctx.addActionResponse(ctx, "event:send", {
+                event: event,
+            });
+            callback();
+        }),
     };
     return {
         def: fns,
@@ -45,41 +79,6 @@ module.exports = function(core){
                 return;
             }
             callback(new Error("Not defined `event:" + id + "`"));
-        },
-        actions: {
-            send: mkKRLfn([
-                "event",
-                "host",
-            ], function(args, ctx, callback){
-                var event;
-                try{
-                    //validate + normalize event, and make sure is not mutated
-                    event = cleanEvent(args.event);
-                }catch(err){
-                    return callback(err);
-                }
-                if(args.host){
-                    var url = args.host;
-                    url += "/sky/event";
-                    url += "/" + event.eci;
-                    url += "/" + event.eid;
-                    url += "/" + event.domain;
-                    url += "/" + event.type;
-                    request({
-                        method: "GET",
-                        url: url,
-                        qs: event.attrs,
-                    }, function(err, res, body){
-                        //ignore it
-                    });
-                    callback();
-                    return;
-                }
-                ctx.addActionResponse(ctx, "event:send", {
-                    event: event,
-                });
-                callback();
-            }),
         },
     };
 };

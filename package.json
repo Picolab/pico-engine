@@ -3,11 +3,9 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "relock": "npm run rm-nm-and-lock && lerna exec -- npm i",
-    "rm-nm-and-lock": "lerna clean && lerna exec -- rm package-lock.json",
-    "out": "lerna exec --bail=false -- npm out",
-    "up": "lerna exec -- npm up",
-    "clean": "lerna clean",
+    "out": "lerna clean --yes && lerna exec -- npm i && rm -rf packages/*/package-lock.json && lerna exec --bail=false -- npm out",
+    "clean": "lerna clean --yes",
+    "clean-setup": "lerna clean --yes && rm -rf node_modules/ package-lock.json && npm run setup",
     "bootstrap": "lerna bootstrap --hoist",
     "setup": "npm i && npm run bootstrap",
     "publish": "lerna publish",
@@ -15,6 +13,8 @@
     "test": "lerna run test"
   },
   "devDependencies": {
-    "lerna": "^2.2.0"
+    "eslint": "^4.8.0",
+    "espree": "^3.5.1",
+    "lerna": "^2.4.0"
   }
 }

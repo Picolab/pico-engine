@@ -66,6 +66,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     $(this).parent().siblings(".krl-showing").toggleClass("krl-showing");
     if($(this).parent().hasClass("krl-showing")) {
       $(".krlsrc textarea").html(krlSrcInvite);
+      $("#rs-url").html("");
       location.hash = "";
     } else {
       var rid = $(this).html();
@@ -103,16 +104,26 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
   var rs_data = {};
   rs_data.title = "Engine Rulesets";
   rs_data.descr = "The following rulesets are registered with this pico engine.";
+  var loadedFromURL = function(rid) {
+    var rs_info = get(db_dump.rulesets,["enabled",rid],undefined);
+    if(rs_info) {
+      return get(db_dump.rulesets,["krl",rs_info.hash,"url"],"");
+    } else {
+      return "";
+    }
+  }
   if(rid){
     rs_data.src = srcFromVersions(rid,krlSrcInvite);
+    rs_data.srcURL = loadedFromURL(rid);
   } else {
     rs_data.src = krlSrcInvite;
+    rs_data.srcURL = "";
   }
   rs_data.rulesets = {};
   if (db_dump.rulesets && db_dump.rulesets.versions) {
     for(var aRid in db_dump.rulesets.versions) {
       rs_data.rulesets[aRid] = {};
-      rs_info = get(db_dump.rulesets,["enabled",aRid],undefined);
+      var rs_info = get(db_dump.rulesets,["enabled",aRid],undefined);
       if (rs_info) {
         rs_data.rulesets[aRid].enabled = true;
         if (get(db_dump.rulesets,["krl",rs_info.hash,"url"],undefined)) {

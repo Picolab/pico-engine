@@ -1,12 +1,12 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 var ktypes = require("krl-stdlib/types");
-var mkKRLfn = require("./mkKRLfn");
+var mkKRLaction = require("./mkKRLaction");
 
-var send_directive = mkKRLfn([
+var send_directive = mkKRLaction([
     "name",
     "options",
-], function(args, ctx, callback){
+], function(ctx, args, callback){
     if(!_.has(args, "name")){
         return callback(new Error("send_directive needs a name string"));
     }
@@ -28,7 +28,11 @@ var send_directive = mkKRLfn([
 module.exports = cocb.wrap(function*(ctx, domain, id, args, setting){
     var returns = [];
     if(domain){
-        returns = yield ctx.modules.action(ctx, domain, id, args);
+        var modAction = yield ctx.modules.get(ctx, domain, id);
+        if( ! ktypes.isAction(modAction)){
+            throw new Error("`" + domain + ":" + id + "` is not an action");
+        }
+        returns = yield modAction(ctx, args);
     }else if(id === "noop"){
         returns = [];//returns nothing
     }else if(ctx.scope.has(id)){
@@ -38,10 +42,7 @@ module.exports = cocb.wrap(function*(ctx, domain, id, args, setting){
         }
         returns = yield definedAction(ctx, args);
     }else if(id === "send_directive" || id === "sendDirective"){
-        returns = [
-            //returns only one value
-            yield send_directive(ctx, args)
-        ];
+        returns = yield send_directive(ctx, args);
     }else{
         throw new Error("`" + id + "` is not defined");
     }

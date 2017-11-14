@@ -7,14 +7,14 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getResp", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getResp", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "resp");
     }));
-    ctx.scope.set("getLastPostEvent", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getLastPostEvent", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "last_post_event");
     }));
-    ctx.scope.set("fmtResp", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("r", getArg("r", 0));
+    ctx.scope.set("fmtResp", ctx.mkFunction(["r"], function* (ctx, args) {
+      ctx.scope.set("r", args["r"]);
       return yield ctx.callKRLstdlib("delete", [
         yield ctx.callKRLstdlib("delete", [
           yield ctx.callKRLstdlib("delete", [
@@ -46,10 +46,14 @@ module.exports = {
         ]
       ]);
     }));
-    ctx.defaction(ctx, "doPost", function* (ctx, getArg, hasArg, runAction) {
-      ctx.scope.set("base_url", getArg("base_url", 0));
-      ctx.scope.set("to", getArg("to", 1));
-      ctx.scope.set("msg", getArg("msg", 2));
+    ctx.scope.set("doPost", ctx.mkAction([
+      "base_url",
+      "to",
+      "msg"
+    ], function* (ctx, args, runAction) {
+      ctx.scope.set("base_url", args["base_url"]);
+      ctx.scope.set("to", args["to"]);
+      ctx.scope.set("msg", args["msg"]);
       var fired = true;
       if (fired) {
         yield runAction(ctx, "http", "post", {
@@ -64,7 +68,7 @@ module.exports = {
         }, []);
       }
       return [];
-    });
+    }));
   },
   "rules": {
     "http_get": {

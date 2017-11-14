@@ -56,10 +56,12 @@ ruleset io.picolabs.visual_params {
     }
     if dname
       || color
-      || rid == "io.picolabs.visual_params"
+      || rid == meta:rid
     then
       noop()
     fired {
+      raise visual event "updated"
+        attributes event:attrs().put({"was_dname":ent:dname,"was_color":ent:color});
       ent:dname := dname;
       ent:color := color.defaultsTo("#cccccc")
     }
@@ -85,6 +87,8 @@ ruleset io.picolabs.visual_params {
       height = event:attr("height").as("String")
     }
     always {
+      raise visual event "configured" attributes
+        event:attrs().put({"was_width":ent:width,"was_height":ent:height});
       ent:width := width.klog("width");
       ent:height := height.klog("height")
     }

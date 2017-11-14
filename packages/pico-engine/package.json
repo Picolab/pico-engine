@@ -1,6 +1,6 @@
 {
   "name": "pico-engine",
-  "version": "0.40.2",
+  "version": "0.42.0",
   "description": "An implementation of the pico-engine targetting node.js",
   "main": "src/index.js",
   "bin": {
@@ -37,6 +37,7 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
+    "co-callback": "^2.0.0",
     "eslint": "^4.8.0",
     "onchange": "^3.2.1",
     "scriptsp": "^1.0.1",
@@ -47,15 +48,19 @@
     "async": "^2.5.0",
     "body-parser": "^1.18.2",
     "express": "^4.16.1",
+    "file-url": "^2.0.2",
     "home-dir": "^1.0.0",
-    "krl-compiler": "^0.40.1",
-    "leveldown": "^1.9.0",
+    "krl-compiler": "^0.42.0",
+    "leveldown": "^2.0.0",
     "lodash": "^4.17.4",
     "mime-types": "^2.1.17",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "pico-engine-core": "^0.40.1",
+    "pico-engine-core": "^0.42.0",
     "read-pkg-up": "^2.0.0",
     "request": "^2.83.0"
+  },
+  "engines": {
+    "node": ">=6.0.0"
   }
 }

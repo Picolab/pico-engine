@@ -8,14 +8,7 @@ module.exports = function(worker){
     var getQ = function(pico_id){
         if(!_.has(pico_queues, pico_id)){
             var q = async.queue(function(job, done){
-                worker(pico_id, JSON.parse(job), function(err, data){
-                    //wrapping in nextTick to ensure the job is Async
-                    //this resolves strange issues with UnhandledPromiseRejectionWarning
-                    //when infact we are handling the rejection
-                    process.nextTick(function(){
-                        done(err, data);
-                    });
-                });
+                worker(pico_id, JSON.parse(job), done);
             });
             pico_queues[pico_id] = q;
         }

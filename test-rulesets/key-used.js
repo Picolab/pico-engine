@@ -31,26 +31,26 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getFoo", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getFoo", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []);
     }));
-    ctx.scope.set("getBar", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getBar", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar"), ctx, []);
     }));
-    ctx.scope.set("getBarN", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
-      ctx.scope.set("name", getArg("name", 0));
+    ctx.scope.set("getBarN", ctx.mkFunction(["name"], function* (ctx, args) {
+      ctx.scope.set("name", args["name"]);
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "bar"), ctx, [ctx.scope.get("name")]);
     }));
-    ctx.scope.set("getQuux", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getQuux", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quux"), ctx, []);
     }));
-    ctx.scope.set("getQuuz", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getQuuz", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "quuz"), ctx, []);
     }));
-    ctx.scope.set("getAPIKeys", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getAPIKeys", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "api", "getKeys"), ctx, []);
     }));
-    ctx.scope.set("getFooPostlude", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getFooPostlude", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "foo_postlude");
     }));
     ctx.scope.set("foo_global", yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []));

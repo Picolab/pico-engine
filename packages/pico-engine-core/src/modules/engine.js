@@ -3,6 +3,7 @@ var async = require("async");
 var urllib = require("url");
 var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
+var mkKRLaction = require("../mkKRLaction");
 
 module.exports = function(core){
     var assertPicoID = function(pico_id, fnName, callback, onOk, idDescription="a pico_id"){
@@ -38,7 +39,7 @@ module.exports = function(core){
 
         getParent: mkKRLfn([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id;
             if(_.has(args, "pico_id")){
@@ -55,7 +56,7 @@ module.exports = function(core){
 
         getAdminECI: mkKRLfn([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id;
             if(_.has(args, "pico_id")){
@@ -72,7 +73,7 @@ module.exports = function(core){
 
         listChildren: mkKRLfn([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id;
             if(_.has(args, "pico_id")){
@@ -89,7 +90,7 @@ module.exports = function(core){
 
         listChannels: mkKRLfn([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id;
             if(_.has(args, "pico_id")){
@@ -106,7 +107,7 @@ module.exports = function(core){
 
         listInstalledRIDs: mkKRLfn([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id;
             if(_.has(args, "pico_id")){
@@ -125,7 +126,7 @@ module.exports = function(core){
 
 
         listAllEnabledRIDs: mkKRLfn([
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
             core.db.listAllEnabledRIDs(callback);
         }),
 
@@ -160,13 +161,9 @@ module.exports = function(core){
             });
         }),
 
-    };
-
-    var actions = {
-
-        newPico: mkKRLfn([
+        newPico: mkKRLaction([
             "parent_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var parent_id;
             if(_.has(args, "parent_id")){
@@ -183,9 +180,9 @@ module.exports = function(core){
         }),
 
 
-        removePico: mkKRLfn([
+        removePico: mkKRLaction([
             "pico_id",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var pico_id;
             if(_.has(args, "pico_id")){
@@ -207,11 +204,11 @@ module.exports = function(core){
         }),
 
 
-        newChannel: mkKRLfn([
+        newChannel: mkKRLaction([
             "pico_id",
             "name",
             "type",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             if(!_.has(args, "name")){
                 return callback(new Error("engine:newChannel needs a name string"));
@@ -237,7 +234,7 @@ module.exports = function(core){
         }),
 
 
-        removeChannel: mkKRLfn([
+        removeChannel: mkKRLaction([
             "eci",
         ], function(args, ctx, callback){
 
@@ -252,7 +249,7 @@ module.exports = function(core){
         }),
 
 
-        registerRuleset: mkKRLfn([
+        registerRuleset: mkKRLaction([
             "url",
             "base",
         ], function(args, ctx, callback){
@@ -274,7 +271,7 @@ module.exports = function(core){
         }),
 
 
-        unregisterRuleset: mkKRLfn([
+        unregisterRuleset: mkKRLaction([
             "rid",
         ], function(args, ctx, callback){
 
@@ -301,12 +298,12 @@ module.exports = function(core){
         }),
 
 
-        installRuleset: mkKRLfn([
+        installRuleset: mkKRLaction([
             "pico_id",
             "rid",
             "url",
             "base",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             var rid_given = _.has(args, "rid");
             if(!rid_given && !_.has(args, "url")){
@@ -373,7 +370,7 @@ module.exports = function(core){
         }),
 
 
-        uninstallRuleset: mkKRLfn([
+        uninstallRuleset: mkKRLaction([
             "pico_id",
             "rid",
         ], function(args, ctx, callback){
@@ -419,6 +416,5 @@ module.exports = function(core){
 
     return {
         def: fns,
-        actions: actions,
     };
 };

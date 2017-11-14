@@ -100,13 +100,13 @@ module.exports = function(pe){
             if(req.query.legacy){
                 _.each(db_data.appvars, function(vars, rid){
                     _.each(vars, function(val, name){
-                        _.set(db_data, ["resultset", rid, "vars", name], val);
+                        _.set(db_data, ["resultset", rid, "vars", name], val && val.value);
                     });
                 });
                 _.each(db_data.entvars, function(by_rid, pico_id){
                     _.each(by_rid, function(vars, rid){
                         _.each(vars, function(val, name){
-                            _.set(db_data, ["pico", pico_id, rid, "vars", name], val);
+                            _.set(db_data, ["pico", pico_id, rid, "vars", name], val && val.value);
                         });
                     });
                 });
@@ -176,7 +176,7 @@ module.exports = function(pe){
     });
 
     app.all("/api/pico/:id/rm-ent-var/:rid/:var_name", function(req, res){
-        pe.removeEntVar(req.params.id, req.params.rid, req.params.var_name, function(err){
+        pe.delEntVar(req.params.id, req.params.rid, req.params.var_name, null, function(err){
             if(err) return errResp(res, err);
             res.json({ok: true});
         });

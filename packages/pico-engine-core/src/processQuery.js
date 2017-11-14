@@ -45,5 +45,15 @@ module.exports = function(core, ctx, callback){
             }, ctx, ctx.query.args);
         }
         return val;
-    }, callback);
+    }, function(err, val){
+        if(err){
+            process.nextTick(function(){
+                //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+                //when infact we are handling the rejection
+                callback(err);
+            });
+            return;
+        }
+        callback(null, val);
+    });
 };

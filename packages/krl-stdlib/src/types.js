@@ -148,6 +148,17 @@ types.encode = function(val, indent){
     }, indent);
 };
 
+types.decode = function(val){
+    if(!types.isString(val)){
+        return val;
+    }
+    try{
+        return JSON.parse(val);
+    }catch(e){
+        return val;
+    }
+};
+
 types.isEqual = function(left, right){
     left = types.cleanNulls(left);
     right = types.cleanNulls(right);

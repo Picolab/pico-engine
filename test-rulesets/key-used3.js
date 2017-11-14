@@ -6,7 +6,7 @@ module.exports = {
     "shares": ["getFoo"]
   },
   "global": function* (ctx) {
-    ctx.scope.set("getFoo", ctx.KRLClosure(function* (ctx, getArg, hasArg) {
+    ctx.scope.set("getFoo", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(yield ctx.modules.get(ctx, "keys", "foo"), ctx, []);
     }));
   },
