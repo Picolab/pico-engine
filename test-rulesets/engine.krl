@@ -28,13 +28,20 @@ ruleset io.picolabs.engine {
             rid = event:attr("rid")
             url = event:attr("url")
             base = event:attr("base")
-
-            rid_provided = not not rid => "True" | "False"
+            rid_provided = not not rid => "True" |
+                "False"
         }
 
         choose rid_provided {
-            True => engine:installRuleset(pico_id, rid);
-            False => engine:installRuleset(pico_id, url = url, base = base);
+            True =>
+                engine:installRuleset(pico_id, rid);
+
+            False =>
+                engine:installRuleset(
+                pico_id,
+                url = url,
+                base = base,
+            );
         }
     }
 }
