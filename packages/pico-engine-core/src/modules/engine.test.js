@@ -123,14 +123,14 @@ test("engine:registerRuleset", function(t){
 
         yield testErr(
             t,
-            engine.actions.registerRuleset({}, []),
+            engine.def.registerRuleset({}, []),
             "should throw b/c no url is given",
             "Error: engine:registerRuleset needs a url string"
         );
 
         yield testErr(
             t,
-            engine.actions.registerRuleset({}, [_.noop]),
+            engine.def.registerRuleset({}, [_.noop]),
             "should throw b/c wrong url type",
             "TypeError: engine:registerRuleset was given [Function] instead of a url string"
         );
@@ -176,7 +176,7 @@ test("engine:installRuleset", function(t){
             if(base !== void 0){
                 args.base = base;
             }
-            return yield engine.actions.installRuleset({}, args);
+            return (yield engine.def.installRuleset({}, args))[0];
         };
 
         t.equals(yield inst("pico0", "foo.bar"), "foo.bar");
@@ -261,21 +261,21 @@ test("engine:unregisterRuleset", function(t){
 
         yield testErr(
             t,
-            engine.actions.unregisterRuleset({}, []),
+            engine.def.unregisterRuleset({}, []),
             void 0,
             "Error: engine:unregisterRuleset needs a rid string or array"
         );
 
         yield testErr(
             t,
-            engine.actions.unregisterRuleset({}, {rid: {},}),
+            engine.def.unregisterRuleset({}, {rid: {},}),
             void 0,
             "TypeError: engine:unregisterRuleset was given [Map] instead of a rid string or array"
         );
 
         yield testErr(
             t,
-            engine.actions.unregisterRuleset({}, {
+            engine.def.unregisterRuleset({}, {
                 rid: ["baz", 2, "qux"],
             }),
             void 0,
@@ -384,7 +384,7 @@ testPE("engine:newPico", function * (t, pe){
 testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:removePico", function * (t, pe){
 
     var newPico = function*(ctx, args){
-        return _.head(yield pe.modules.action(ctx, "engine", "newPico", args));
+        return yield runAction(pe, ctx, "engine", "newPico", args);
     };
     var removePico = function*(ctx, args){
         return yield runAction(pe, ctx, "engine", "removePico", args);
@@ -553,11 +553,11 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
 
 testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset", function * (t, pe){
 
-    var installRS = function(ctx, args){
-        return pe.modules.action(ctx, "engine", "installRuleset", args);
+    var installRS = function*(ctx, args){
+        return yield runAction(pe, ctx, "engine", "installRuleset", args);
     };
-    var uninstallRID = function(ctx, args){
-        return pe.modules.action(ctx, "engine", "uninstallRuleset", args);
+    var uninstallRID = function*(ctx, args){
+        return yield runAction(pe, ctx, "engine", "uninstallRuleset", args);
     };
     var listRIDs = yield pe.modules.get({}, "engine", "listInstalledRIDs");
 
@@ -565,7 +565,7 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
         "io.picolabs.engine",
     ]);
 
-    t.equals(_.head(yield installRS({}, ["id0", "io.picolabs.hello_world"])), "io.picolabs.hello_world");
+    t.equals(yield installRS({}, ["id0", "io.picolabs.hello_world"]), "io.picolabs.hello_world");
     yield testErr(
         t,
         installRS({}, [NaN]),
@@ -595,7 +595,7 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
         "io.picolabs.hello_world",
     ]);
 
-    t.equals(_.head(yield uninstallRID({}, ["id0", "io.picolabs.engine"])), void 0);
+    t.equals(yield uninstallRID({}, ["id0", "io.picolabs.engine"]), void 0);
     yield testErr(
         t,
         uninstallRID({}, []),
@@ -619,9 +619,9 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
     ]);
 
     //fallback on ctx.pico_id
-    t.equals(_.head(yield uninstallRID({pico_id: "id0"}, {rid: "io.picolabs.hello_world"})), void 0);
+    t.equals(yield uninstallRID({pico_id: "id0"}, {rid: "io.picolabs.hello_world"}), void 0);
     t.deepEquals(yield listRIDs({pico_id: "id0"}, []), []);
-    t.equals(_.head(yield installRS({pico_id: "id0"}, {rid: "io.picolabs.hello_world"})), "io.picolabs.hello_world");
+    t.equals(yield installRS({pico_id: "id0"}, {rid: "io.picolabs.hello_world"}), "io.picolabs.hello_world");
 
     //report error on invalid pico_id
     var assertInvalidPicoID = function * (genfn, id, expected){

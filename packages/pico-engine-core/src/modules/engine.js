@@ -6,7 +6,8 @@ var mkKRLfn = require("../mkKRLfn");
 var mkKRLaction = require("../mkKRLaction");
 
 module.exports = function(core){
-    var assertPicoID = function(pico_id, fnName, callback, onOk, idDescription="a pico_id"){
+    var assertPicoID = function(pico_id, fnName, callback, onOk, idDescription){
+        idDescription = idDescription || "a pico_id";
         core.db.assertPicoID(pico_id, function(err, pico_id){
             if(err){
                 //intercept type error from DB.js
@@ -24,7 +25,7 @@ module.exports = function(core){
 
         getPicoIDByECI: mkKRLfn([
             "eci",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             if(!_.has(args, "eci")){
                 return callback(new Error("engine:getPicoIDByECI needs an eci string"));
@@ -133,7 +134,7 @@ module.exports = function(core){
 
         describeRuleset: mkKRLfn([
             "rid",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             if(!_.has(args, "rid")){
                 return callback(new Error("engine:describeRuleset needs a rid string"));
@@ -236,7 +237,7 @@ module.exports = function(core){
 
         removeChannel: mkKRLaction([
             "eci",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             if(!_.has(args, "eci")){
                 return callback(new Error("engine:removeChannel needs an eci string"));
@@ -252,7 +253,7 @@ module.exports = function(core){
         registerRuleset: mkKRLaction([
             "url",
             "base",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             if(!_.has(args, "url")){
                 return callback(new Error("engine:registerRuleset needs a url string"));
@@ -273,7 +274,7 @@ module.exports = function(core){
 
         unregisterRuleset: mkKRLaction([
             "rid",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             if(!_.has(args, "rid")){
                 return callback(new Error("engine:unregisterRuleset needs a rid string or array"));
@@ -373,7 +374,7 @@ module.exports = function(core){
         uninstallRuleset: mkKRLaction([
             "pico_id",
             "rid",
-        ], function(args, ctx, callback){
+        ], function(ctx, args, callback){
 
             if(!_.has(args, "rid")){
                 return callback(new Error("engine:uninstallRuleset needs a rid string or array"));
