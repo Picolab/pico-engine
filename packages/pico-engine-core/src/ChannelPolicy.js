@@ -6,6 +6,7 @@ var isBlank = function(str){
     return !ktypes.isString(str) || str.trim().length === 0;
 };
 
+
 var cleanEventRules = function(rules){
     if(ktypes.isNull(rules)){
         return [];
@@ -23,9 +24,6 @@ var cleanEventRules = function(rules){
         }
         if(!isBlank(rule_orig.type)){
             rule.type = rule_orig.type.trim();
-        }
-        if(rule_orig.internal === true || rule_orig.internal === false){
-            rule.internal = rule_orig.internal;
         }
         return rule;
     });
@@ -49,9 +47,6 @@ var cleanQueryRules = function(rules){
         }
         if(!isBlank(rule_orig.name)){
             rule.name = rule_orig.name.trim();
-        }
-        if(rule_orig.internal === true || rule_orig.internal === false){
-            rule.internal = rule_orig.internal;
         }
         return rule;
     });
@@ -78,41 +73,10 @@ var clean = function(policy){
 };
 
 
-var eventRuleMatcher = function(event){
-    return function(rule){
-        if(_.has(rule, "domain") && rule.domain !== event.domain){
-            return false;
-        }
-        if(_.has(rule, "type") && rule.type !== event.type){
-            return false;
-        }
-        if(_.has(rule, "internal") && rule.internal !== event.internal){
-            return false;
-        }
-        return true;
-    };
-};
-
-
-var queryRuleMatcher = function(query){
-    return function(rule){
-        if(_.has(rule, "rid") && rule.rid !== query.rid){
-            return false;
-        }
-        if(_.has(rule, "name") && rule.name !== query.name){
-            return false;
-        }
-        if(_.has(rule, "internal") && rule.internal !== query.internal){
-            return false;
-        }
-        return true;
-    };
-};
-
 var defaultPolicy = clean({
     name: "System default Policy",
-    event: {allow: [{internal: true}]},
-    query: {allow: [{internal: true}]},
+    event: {allow: [{}]},
+    query: {allow: [{}]},
 });
 
 
@@ -123,14 +87,15 @@ module.exports = {
             policy = defaultPolicy;
         }
 
-        var matcher;
-        if(type === "event"){
-            matcher = eventRuleMatcher(data);
-        }else if(type === "query"){
-            matcher = queryRuleMatcher(data);
-        }else{
+        if(type !== "event" && type !== "query"){
             throw new Error("Channel can only assert type's \"event\" and \"query\"");
         }
+
+        var matcher = function(rule){
+            return _.every(rule, function(val, key){
+                return val === data[key];
+            });
+        };
 
         if(_.find(policy[type].deny, matcher)){
             throw new Error("denied by policy");

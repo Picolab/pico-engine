@@ -332,12 +332,6 @@ module.exports = function(conf){
             ? data_orig.timestamp
             : new Date();
 
-        if(conf.___core_testing_mode){
-            //TODO better logic
-            //how event and query policies know if it's comming internally or externally
-            data.internal = true;
-        }
-
         db.getChannelAndPolicy(data.eci, function(err, chann){
             if(err){
                 emitter.emit("error", err);
