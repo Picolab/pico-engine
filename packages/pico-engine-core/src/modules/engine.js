@@ -5,21 +5,16 @@ var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
 var mkKRLaction = require("../mkKRLaction");
 
-module.exports = function(core){
-    var assertPicoID = function(pico_id, fnName, idDescription, callback){
-        core.db.assertPicoID(pico_id, function(err, pico_id){
-            if(err){
-                //intercept TypeError from DB.js
-                if(err.name === "TypeError"){
-                    idDescription = idDescription || "a pico_id";
-                    return callback(new TypeError("engine:" + fnName + " was given " + ktypes.toString(pico_id) + " instead of " + idDescription + " string"));
-                }
-                return callback(err);
-            }
+var picoArgOrCtxPico = function(fn_name, ctx, args, key){
+    key = key || "pico_id";
+    var pico_id = _.has(args, key) ? args[key] : ctx.pico_id;
+    if(!ktypes.isString(pico_id)){
+        throw new TypeError("engine:" + fn_name + " was given " + ktypes.toString(args.eci) + " instead of a " + key + " string");
+    }
+    return pico_id;
+};
 
-            callback(null);
-        });
-    };
+module.exports = function(core){
 
     var fns = {
 
@@ -42,14 +37,9 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id;
-            if(_.has(args, "pico_id")){
-                pico_id = args.pico_id;
-            }else{
-                pico_id = ctx.pico_id;
-            }
+            var pico_id = picoArgOrCtxPico("getParent", ctx, args);
 
-            assertPicoID(pico_id, "getParent", void 0, function(err){
+            core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
                 core.db.getParent(pico_id, callback);
@@ -61,14 +51,9 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id;
-            if(_.has(args, "pico_id")){
-                pico_id = args.pico_id;
-            }else{
-                pico_id = ctx.pico_id;
-            }
+            var pico_id = picoArgOrCtxPico("getAdminECI", ctx, args);
 
-            assertPicoID(pico_id, "getAdminECI", void 0, function(err){
+            core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
                 core.db.getAdminECI(pico_id, callback);
@@ -80,14 +65,9 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id;
-            if(_.has(args, "pico_id")){
-                pico_id = args.pico_id;
-            }else{
-                pico_id = ctx.pico_id;
-            }
+            var pico_id = picoArgOrCtxPico("listChildren", ctx, args);
 
-            assertPicoID(pico_id, "listChildren", void 0, function(err){
+            core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
                 core.db.listChildren(pico_id, callback);
@@ -99,14 +79,9 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id;
-            if(_.has(args, "pico_id")){
-                pico_id = args.pico_id;
-            }else{
-                pico_id = ctx.pico_id;
-            }
+            var pico_id = picoArgOrCtxPico("listChannels", ctx, args);
 
-            assertPicoID(pico_id, "listChannels", void 0, function(err){
+            core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
                 core.db.listChannels(pico_id, callback);
@@ -118,14 +93,9 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id;
-            if(_.has(args, "pico_id")){
-                pico_id = args.pico_id;
-            }else{
-                pico_id = ctx.pico_id;
-            }
+            var pico_id = picoArgOrCtxPico("listInstalledRIDs", ctx, args);
 
-            assertPicoID(pico_id, "listInstalledRIDs", void 0, function(err){
+            core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
                 core.db.ridsOnPico(pico_id, function(err, rid_set){
@@ -176,14 +146,9 @@ module.exports = function(core){
             "parent_id",
         ], function(ctx, args, callback){
 
-            var parent_id;
-            if(_.has(args, "parent_id")){
-                parent_id = args.parent_id;
-            }else{
-                parent_id = ctx.pico_id;
-            }
+            var parent_id = picoArgOrCtxPico("newPico", ctx, args, "parent_id");
 
-            assertPicoID(parent_id, "newPico", "a parent_id", function(err){
+            core.db.assertPicoID(parent_id, function(err, parent_id){
                 if(err) return callback(err);
 
                 core.db.newPico({
@@ -197,14 +162,9 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id;
-            if(_.has(args, "pico_id")){
-                pico_id = args.pico_id;
-            }else{
-                pico_id = ctx.pico_id;
-            }
+            var pico_id = picoArgOrCtxPico("removePico", ctx, args);
 
-            assertPicoID(pico_id, "removePico", void 0, function(err){
+            core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
                 core.db.listChildren(pico_id, function(err, children){
@@ -225,6 +185,8 @@ module.exports = function(core){
             "type",
         ], function(ctx, args, callback){
 
+            var pico_id = picoArgOrCtxPico("newChannel", ctx, args);
+
             if(!_.has(args, "name")){
                 return callback(new Error("engine:newChannel needs a name string"));
             }
@@ -232,14 +194,7 @@ module.exports = function(core){
                 return callback(new Error("engine:newChannel needs a type string"));
             }
 
-            var pico_id;
-            if(_.has(args, "pico_id")){
-                pico_id = args.pico_id;
-            }else{
-                pico_id = ctx.pico_id;
-            }
-
-            assertPicoID(pico_id, "newChannel", void 0, function(err){
+            core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
                 core.db.newChannel({
@@ -327,12 +282,7 @@ module.exports = function(core){
                 return callback(new Error("engine:installRuleset needs either a rid string or array, or a url string"));
             }
 
-            var pico_id;
-            if(_.has(args, "pico_id")){
-                pico_id = args.pico_id;
-            }else{
-                pico_id = ctx.pico_id;
-            }
+            var pico_id = picoArgOrCtxPico("installRuleset", ctx, args);
 
             var install = function(rid, callback){
                 core.installRuleset(pico_id, rid, function(err){
@@ -340,7 +290,7 @@ module.exports = function(core){
                 });
             };
 
-            assertPicoID(pico_id, "installRuleset", void 0, function(err){
+            core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
                 if(rid_given){
@@ -398,18 +348,13 @@ module.exports = function(core){
                 return callback(new Error("engine:uninstallRuleset needs a rid string or array"));
             }
 
-            var pico_id;
-            if(_.has(args, "pico_id")){
-                pico_id = args.pico_id;
-            }else{
-                pico_id = ctx.pico_id;
-            }
+            var pico_id = picoArgOrCtxPico("uninstallRuleset", ctx, args);
 
             var uninstall = function(rid, callback){
                 core.uninstallRuleset(pico_id, rid, callback);
             };
 
-            assertPicoID(pico_id, "uninstallRuleset", void 0, function(err){
+            core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
                 var ridIsString = ktypes.isString(args.rid);
