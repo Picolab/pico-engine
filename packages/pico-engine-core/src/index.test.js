@@ -2369,7 +2369,7 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
         var newChannel = cocb.wrap(pe.newChannel);
 
         pe.emitter.on("error", function(err){
-            if(/denied by policy/.test(err + "")){
+            if(/by channel policy/.test(err + "")){
                 //ignore
             }else{
                 t.end(err);
@@ -2387,41 +2387,43 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
             return chann.id;
         });
 
-        var tstEventPolicy = cocb.wrap(function(eci, domain_type, is_allowed, callback){
+        var tstEventPolicy = cocb.wrap(function(eci, domain_type, expected, callback){
             pe.signalEvent({
                 eci: eci,
                 domain: domain_type.split("/")[0],
                 type: domain_type.split("/")[1],
             }, function(err, data){
+                var actual = "allowed";
                 if(err){
-                    if(/denied by policy/.test(err + "")){
-                        t.notOk(is_allowed, "Should be denied " + eci + "|" + domain_type);
-                        callback();
-                        return;
+                    if(/Denied by channel policy/.test(err + "")){
+                        actual = "denied";
+                    }else if(/Not allowed by channel policy/.test(err + "")){
+                        actual = "not-allowed";
+                    }else{
+                        return callback(err);
                     }
-                    callback(err);
-                    return;
                 }
-                t.ok(is_allowed, "Should be allowed " + eci + "|" + domain_type);
+                t.equals(actual, expected, "tstEventPolicy " + eci + "|" + domain_type);
                 callback();
             });
         });
-        var tstQueryPolicy = cocb.wrap(function(eci, name, is_allowed, callback){
+        var tstQueryPolicy = cocb.wrap(function(eci, name, expected, callback){
             pe.runQuery({
                 eci: eci,
                 rid: "io.picolabs.policies",
                 name: name,
             }, function(err, data){
+                var actual = "allowed";
                 if(err){
-                    if(/denied by policy/.test(err + "")){
-                        t.notOk(is_allowed, "Should be denied " + eci + "|" + name);
-                        callback();
-                        return;
+                    if(/Denied by channel policy/.test(err + "")){
+                        actual = "denied";
+                    }else if(/Not allowed by channel policy/.test(err + "")){
+                        actual = "not-allowed";
+                    }else{
+                        return callback(err);
                     }
-                    callback(err);
-                    return;
                 }
-                t.ok(is_allowed, "Should be allowed " + eci + "|" + name);
+                t.equals(actual, expected, "tstQueryPolicy " + eci + "|" + name);
                 callback();
             });
         });
@@ -2432,9 +2434,9 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
         eci = yield mkECI({
             name: "deny all implicit",
         });
-        yield tstEventPolicy(eci, "policies/foo", false);
-        yield tstEventPolicy(eci, "policies/bar", false);
-        yield tstEventPolicy(eci, "policies/baz", false);
+        yield tstEventPolicy(eci, "policies/foo", "not-allowed");
+        yield tstEventPolicy(eci, "policies/bar", "not-allowed");
+        yield tstEventPolicy(eci, "policies/baz", "not-allowed");
 
 
         eci = yield mkECI({
@@ -2443,9 +2445,9 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 deny: [{}],
             },
         });
-        yield tstEventPolicy(eci, "policies/foo", false);
-        yield tstEventPolicy(eci, "policies/bar", false);
-        yield tstEventPolicy(eci, "policies/baz", false);
+        yield tstEventPolicy(eci, "policies/foo", "denied");
+        yield tstEventPolicy(eci, "policies/bar", "denied");
+        yield tstEventPolicy(eci, "policies/baz", "denied");
 
 
         eci = yield mkECI({
@@ -2454,9 +2456,9 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 allow: [{}],
             },
         });
-        yield tstEventPolicy(eci, "policies/foo", true);
-        yield tstEventPolicy(eci, "policies/bar", true);
-        yield tstEventPolicy(eci, "policies/baz", true);
+        yield tstEventPolicy(eci, "policies/foo", "allowed");
+        yield tstEventPolicy(eci, "policies/bar", "allowed");
+        yield tstEventPolicy(eci, "policies/baz", "allowed");
 
 
         eci = yield mkECI({
@@ -2466,9 +2468,9 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 deny: [{}],
             },
         });
-        yield tstEventPolicy(eci, "policies/foo", false);
-        yield tstEventPolicy(eci, "policies/bar", false);
-        yield tstEventPolicy(eci, "policies/baz", false);
+        yield tstEventPolicy(eci, "policies/foo", "denied");
+        yield tstEventPolicy(eci, "policies/bar", "denied");
+        yield tstEventPolicy(eci, "policies/baz", "denied");
 
 
         eci = yield mkECI({
@@ -2477,9 +2479,9 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 allow: [{domain: "policies", type: "foo"}],
             },
         });
-        yield tstEventPolicy(eci, "policies/foo", true);
-        yield tstEventPolicy(eci, "policies/bar", false);
-        yield tstEventPolicy(eci, "policies/baz", false);
+        yield tstEventPolicy(eci, "policies/foo", "allowed");
+        yield tstEventPolicy(eci, "policies/bar", "not-allowed");
+        yield tstEventPolicy(eci, "policies/baz", "not-allowed");
 
 
         eci = yield mkECI({
@@ -2489,9 +2491,9 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 allow: [{}],
             }
         });
-        yield tstEventPolicy(eci, "policies/foo", false);
-        yield tstEventPolicy(eci, "policies/bar", true);
-        yield tstEventPolicy(eci, "policies/baz", true);
+        yield tstEventPolicy(eci, "policies/foo", "denied");
+        yield tstEventPolicy(eci, "policies/bar", "allowed");
+        yield tstEventPolicy(eci, "policies/baz", "allowed");
 
 
         eci = yield mkECI({
@@ -2500,12 +2502,12 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 allow: [{domain: "other"}],
             }
         });
-        yield tstEventPolicy(eci, "policies/foo", false);
-        yield tstEventPolicy(eci, "policies/bar", false);
-        yield tstEventPolicy(eci, "policies/baz", false);
-        yield tstEventPolicy(eci, "other/foo", true);
-        yield tstEventPolicy(eci, "other/bar", true);
-        yield tstEventPolicy(eci, "other/baz", true);
+        yield tstEventPolicy(eci, "policies/foo", "not-allowed");
+        yield tstEventPolicy(eci, "policies/bar", "not-allowed");
+        yield tstEventPolicy(eci, "policies/baz", "not-allowed");
+        yield tstEventPolicy(eci, "other/foo", "allowed");
+        yield tstEventPolicy(eci, "other/bar", "allowed");
+        yield tstEventPolicy(eci, "other/baz", "allowed");
 
 
         eci = yield mkECI({
@@ -2514,12 +2516,12 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 allow: [{type: "foo"}],
             }
         });
-        yield tstEventPolicy(eci, "policies/foo", true);
-        yield tstEventPolicy(eci, "policies/bar", false);
-        yield tstEventPolicy(eci, "policies/baz", false);
-        yield tstEventPolicy(eci, "other/foo", true);
-        yield tstEventPolicy(eci, "other/bar", false);
-        yield tstEventPolicy(eci, "other/baz", false);
+        yield tstEventPolicy(eci, "policies/foo", "allowed");
+        yield tstEventPolicy(eci, "policies/bar", "not-allowed");
+        yield tstEventPolicy(eci, "policies/baz", "not-allowed");
+        yield tstEventPolicy(eci, "other/foo", "allowed");
+        yield tstEventPolicy(eci, "other/bar", "not-allowed");
+        yield tstEventPolicy(eci, "other/baz", "not-allowed");
 
 
         eci = yield mkECI({
@@ -2531,28 +2533,28 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 ],
             }
         });
-        yield tstEventPolicy(eci, "policies/foo", true);
-        yield tstEventPolicy(eci, "policies/bar", false);
-        yield tstEventPolicy(eci, "policies/baz", false);
-        yield tstEventPolicy(eci, "other/foo", true);
-        yield tstEventPolicy(eci, "other/bar", true);
-        yield tstEventPolicy(eci, "other/baz", true);
+        yield tstEventPolicy(eci, "policies/foo", "allowed");
+        yield tstEventPolicy(eci, "policies/bar", "not-allowed");
+        yield tstEventPolicy(eci, "policies/baz", "not-allowed");
+        yield tstEventPolicy(eci, "other/foo", "allowed");
+        yield tstEventPolicy(eci, "other/bar", "allowed");
+        yield tstEventPolicy(eci, "other/baz", "allowed");
 
 
         eci = yield mkECI({
             name: "deny all implicit",
         });
-        yield tstQueryPolicy(eci, "one", false);
-        yield tstQueryPolicy(eci, "two", false);
-        yield tstQueryPolicy(eci, "three", false);
+        yield tstQueryPolicy(eci, "one", "not-allowed");
+        yield tstQueryPolicy(eci, "two", "not-allowed");
+        yield tstQueryPolicy(eci, "three", "not-allowed");
 
         eci = yield mkECI({
             name: "allow all",
             query: {allow: [{}]}
         });
-        yield tstQueryPolicy(eci, "one", true);
-        yield tstQueryPolicy(eci, "two", true);
-        yield tstQueryPolicy(eci, "three", true);
+        yield tstQueryPolicy(eci, "one", "allowed");
+        yield tstQueryPolicy(eci, "two", "allowed");
+        yield tstQueryPolicy(eci, "three", "allowed");
 
         eci = yield mkECI({
             name: "allow one and three",
@@ -2561,9 +2563,9 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 {name: "three"},
             ]}
         });
-        yield tstQueryPolicy(eci, "one", true);
-        yield tstQueryPolicy(eci, "two", false);
-        yield tstQueryPolicy(eci, "three", true);
+        yield tstQueryPolicy(eci, "one", "allowed");
+        yield tstQueryPolicy(eci, "two", "not-allowed");
+        yield tstQueryPolicy(eci, "three", "allowed");
 
 
     }, t.end);

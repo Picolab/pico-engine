@@ -540,6 +540,11 @@ module.exports = function(opts){
                 }
                 var chann = omitChannelSecret(data);
                 if( ! chann.policy_id){
+                    chann.policy = {
+                        name: "For now, the default policy is to allow all",
+                        event: {allow: [{}]},
+                        query: {allow: [{}]},
+                    };
                     callback(null, chann);
                     return;
                 }

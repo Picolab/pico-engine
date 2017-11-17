@@ -73,20 +73,9 @@ var clean = function(policy){
 };
 
 
-var defaultPolicy = clean({
-    name: "System default Policy",
-    event: {allow: [{}]},
-    query: {allow: [{}]},
-});
-
-
 module.exports = {
     clean: clean,
     assert: function(policy, type, data){
-        if(!policy){
-            policy = defaultPolicy;
-        }
-
         if(type !== "event" && type !== "query"){
             throw new Error("Channel can only assert type's \"event\" and \"query\"");
         }
@@ -98,10 +87,10 @@ module.exports = {
         };
 
         if(_.find(policy[type].deny, matcher)){
-            throw new Error("denied by policy");
+            throw new Error("Denied by channel policy");
         }
         if( ! _.find(policy[type].allow, matcher)){
-            throw new Error("denied by policy");
+            throw new Error("Not allowed by channel policy");
         }
         //allowed
     },
