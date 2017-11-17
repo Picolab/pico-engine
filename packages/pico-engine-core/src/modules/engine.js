@@ -180,6 +180,13 @@ module.exports = function(core){
         }),
 
 
+        newPolicy: mkKRLaction([
+            "policy",
+        ], function(ctx, args, callback){
+            core.db.newPolicy(args.policy, callback);
+        }),
+
+
         newChannel: mkKRLaction([
             "pico_id",
             "name",

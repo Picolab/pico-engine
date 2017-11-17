@@ -38,6 +38,14 @@ var testPE = function(test_name, genfn){
     });
 };
 
+var testErr2 = cocb.wrap(function*(t, promise, errMsg, msg){
+    try{
+        yield promise;
+        t.fail("should fail", msg);
+    }catch(err){
+        t.equals(err + "", errMsg, msg);
+    }
+});
 
 var testErr = function*(t, genfn, failMsg, errMsg){
     try{
@@ -452,6 +460,28 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
         "Error: Cannot remove pico \"id0\" because it has 2 children"
     );
 });
+
+
+testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", function * (t, pe){
+    var tstErr = _.partial(testErr2, t);
+
+    var newPolicy = function*(policy){
+        return yield runAction(pe, {}, "engine", "newPolicy", [policy]);
+    };
+
+    // Making sure ChannelPolicy.clean is on
+    yield tstErr(newPolicy(), "TypeError: Cannot read property 'name' of undefined");
+    yield tstErr(newPolicy({name: 1}), "Error: missing `policy.name`");
+
+    var pFoo = yield newPolicy({name: "foo"});
+    t.deepEquals(pFoo, {
+        id: "id2",
+        name: "foo",
+        event: {deny: [], allow: []},
+        query: {deny: [], allow: []},
+    });
+});
+
 
 testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function * (t, pe){
 
