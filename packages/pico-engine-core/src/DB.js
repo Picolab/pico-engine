@@ -289,8 +289,8 @@ module.exports = function(opts){
 
 
         assertPicoID: function(id, callback){
-            if( ! _.isString(id)){
-                return callback(new Error("Invalid pico_id: " + ktypes.toString(id)));
+            if( ! ktypes.isString(id)){
+                return callback(new TypeError("Invalid pico_id: " + ktypes.toString(id)));
             }
             ldb.get(["pico", id], function(err){
                 if(err && err.notFound){
