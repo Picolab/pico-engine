@@ -3,6 +3,7 @@ var async = require("async");
 var urllib = require("url");
 var mkKRLfn = require("../mkKRLfn");
 var mkKRLaction = require("../mkKRLaction");
+var ADMIN_POLICY_ID = require("../DB").ADMIN_POLICY_ID;
 
 module.exports = function(core){
     var fns = {
@@ -159,6 +160,7 @@ module.exports = function(core){
                     pico_id: pico_id,
                     name: args.name,
                     type: args.type,
+                    policy_id: ADMIN_POLICY_ID,
                 }, callback);
             });
         }),

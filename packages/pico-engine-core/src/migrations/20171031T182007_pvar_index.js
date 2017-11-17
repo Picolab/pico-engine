@@ -10,6 +10,8 @@ module.exports = {
             var key_prefix = data.key;
             var val = data.value;
 
+            //NOTE: not sharing code with DB.js b/c migrations should be immutable
+            //i.e. produce the same result regardless of previous codebase states
             var index_type = ktypes.typeOf(val);
             var root_value = {type: index_type};
             switch(index_type){

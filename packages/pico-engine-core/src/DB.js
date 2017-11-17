@@ -14,6 +14,9 @@ var safeJsonCodec = require("level-json-coerce-null");
 var extractRulesetID = require("./extractRulesetID");
 
 
+var ADMIN_POLICY_ID = "admin-policy";//NOTE: changing this requires a db migration
+
+
 var omitChannelSecret = function(channel){
     return _.assign({}, channel, {
         sovrin: _.omit(channel.sovrin, "secret"),
@@ -239,7 +242,7 @@ module.exports = function(opts){
             pico_id: opts.pico_id,
             name: opts.name,
             type: opts.type,
-            policy_id: opts.policy_id || null,
+            policy_id: opts.policy_id,
             sovrin: did,
         };
         var db_ops = [
@@ -345,6 +348,7 @@ module.exports = function(opts){
                 pico_id: new_pico.id,
                 name: "admin",
                 type: "secret",
+                policy_id: ADMIN_POLICY_ID,
             });
             new_pico.admin_eci = c.channel.id;
 
@@ -539,15 +543,6 @@ module.exports = function(opts){
                     return;
                 }
                 var chann = omitChannelSecret(data);
-                if( ! chann.policy_id){
-                    chann.policy = {
-                        name: "For now, the default policy is to allow all",
-                        event: {allow: [{}]},
-                        query: {allow: [{}]},
-                    };
-                    callback(null, chann);
-                    return;
-                }
                 ldb.get(["policy", chann.policy_id], function(err, data){
                     if(err) return callback(err);
                     chann.policy = data;
@@ -970,3 +965,5 @@ module.exports = function(opts){
         },
     };
 };
+
+module.exports.ADMIN_POLICY_ID = ADMIN_POLICY_ID;

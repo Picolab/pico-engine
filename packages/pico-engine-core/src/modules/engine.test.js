@@ -2,7 +2,9 @@ var _ = require("lodash");
 var test = require("tape");
 var cocb = require("co-callback");
 var kengine = require("./engine");
+var ADMIN_POLICY_ID = require("../DB").ADMIN_POLICY_ID;
 var mkTestPicoEngine = require("../mkTestPicoEngine");
+
 
 //wrap stubbed functions in this to simulate async
 var tick = function(fn){
@@ -397,7 +399,7 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
             id: eci,
             name: name,
             type: type,
-            policy_id: null,
+            policy_id: ADMIN_POLICY_ID,
             sovrin: {
                 did: eci,
                 verifyKey: "verifyKey_" + eci,

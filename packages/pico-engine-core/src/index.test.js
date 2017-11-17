@@ -9,6 +9,7 @@ var memdown = require("memdown");
 var compiler = require("krl-compiler");
 var PicoEngine = require("./");
 var mkTestPicoEngine = require("./mkTestPicoEngine");
+var ADMIN_POLICY_ID = require("./DB").ADMIN_POLICY_ID;
 
 var url_prefix = "http://fake-url/test-rulesets/";
 
@@ -649,7 +650,7 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
                         name: "krl created chan",
                         pico_id: "id2",
                         type: "some type?",
-                        policy_id: null,
+                        policy_id: ADMIN_POLICY_ID,
                         sovrin: {
                             did: "id4",
                             verifyKey: "verifyKey_id4",
