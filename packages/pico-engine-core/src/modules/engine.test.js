@@ -47,8 +47,8 @@ var testErr = function*(t, genfn, failMsg, errMsg){
 };
 
 var assertPicoID = function(id, callback){
-    if( ! _.isString(id)){
-        return callback(new Error("Invalid pico_id: " + ktypes.toString(id)));
+    if( ! ktypes.isString(id)){
+        return callback(new TypeError("Invalid pico_id: " + ktypes.toString(id)));
     }
     callback(null, id);
 };
