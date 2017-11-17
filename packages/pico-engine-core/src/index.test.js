@@ -1909,7 +1909,7 @@ test("PicoEngine - installRuleset", function(t){
             async.apply(pe.newPico, {}),
             function(next){
                 pe.installRuleset("id404", rid_to_use, function(err){
-                    t.equals(err + "", "NotFoundError: Invalid pico_id: id404");
+                    t.equals(err + "", "NotFoundError: Pico not found: id404");
                     t.ok(err.notFound);
                     next();
                 });

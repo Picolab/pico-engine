@@ -3,16 +3,9 @@ var cocb = require("co-callback");
 var test = require("tape");
 var types = require("./types");
 var stdlib = require("./");
-
-//t.deepEqual(s) has better error messages,
-//but it confuses [] and {} (https://github.com/substack/tape/issues/186)
-var strictDeepEquals = function(t, actual, expected, message){
-    t.ok(_.isEqual(actual, expected), message || "should be equivalent");
-};
-
-var useStrict = function(expected){
-    return _.isEqual(expected, []) || _.isEqual(expected, {});
-};
+var strictEquals = require("./strictEquals");
+var strictDeepEquals = strictEquals.strictDeepEquals;
+var useStrict = strictEquals.useStrict;
 
 var ylibFn = function(fn_name, args){
     args = [defaultCTX].concat(args);
