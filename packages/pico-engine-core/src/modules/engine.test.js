@@ -2,6 +2,7 @@ var _ = require("lodash");
 var test = require("tape");
 var cocb = require("co-callback");
 var ktypes = require("krl-stdlib/types");
+var strictDeepEquals = require("krl-stdlib/strictEquals").strictDeepEquals;
 var kengine = require("./engine");
 var mkTestPicoEngine = require("../mkTestPicoEngine");
 
@@ -181,7 +182,7 @@ test("engine:installRuleset", function(t){
 
         t.equals(yield inst("pico0", "foo.bar"), "foo.bar");
         t.deepEquals(yield inst("pico0", ["foo.bar", "foo.qux"]), ["foo.bar", "foo.qux"]);
-        t.deepEquals(yield inst("pico0", []), []);
+        strictDeepEquals(t, yield inst("pico0", []), []);
         t.deepEquals(yield inst("pico0", void 0, "file:///foo/bar.krl"), "REG:bar");
         t.deepEquals(yield inst("pico0", void 0, "qux.krl", "http://foo.bar/baz/"), "found");
 
@@ -410,15 +411,15 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
 
     t.deepEquals(yield listChildren({}, ["id0"]), ["id2", "id4"]);
     t.deepEquals(yield listChildren({}, ["id2"]), ["id6"]);
-    t.deepEquals(yield listChildren({}, ["id4"]), []);
-    t.deepEquals(yield listChildren({}, ["id6"]), []);
+    strictDeepEquals(t, yield listChildren({}, ["id4"]), []);
+    strictDeepEquals(t, yield listChildren({}, ["id6"]), []);
 
     //fallback on ctx.pico_id
     t.equals(yield getParent({pico_id: "id6"}, []), "id2");
     t.equals(yield getAdminECI({pico_id: "id6"}, []), "id7");
     t.deepEquals(yield listChildren({pico_id: "id2"}, []), ["id6"]);
     t.equals(yield removePico({pico_id: "id6"}, []), void 0);
-    t.deepEquals(yield listChildren({}, ["id2"]), []);
+    strictDeepEquals(t, yield listChildren({}, ["id2"]), []);
 
     //report error on invalid pico_id
     var assertInvalidPicoID = function * (genfn, id, expected){
@@ -620,7 +621,7 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
 
     //fallback on ctx.pico_id
     t.equals(yield uninstallRID({pico_id: "id0"}, {rid: "io.picolabs.hello_world"}), void 0);
-    t.deepEquals(yield listRIDs({pico_id: "id0"}, []), []);
+    strictDeepEquals(t, yield listRIDs({pico_id: "id0"}, []), []);
     t.equals(yield installRS({pico_id: "id0"}, {rid: "io.picolabs.hello_world"}), "io.picolabs.hello_world");
 
     //report error on invalid pico_id
