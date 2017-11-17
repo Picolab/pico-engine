@@ -437,11 +437,11 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
     yield assertInvalidPicoID(newPico     , void 0, "TypeError: engine:newPico was given null instead of a parent_id string");
     yield assertInvalidPicoID(removePico  , void 0, "TypeError: engine:removePico was given null instead of a pico_id string");
 
-    yield assertInvalidPicoID(getAdminECI , "id404", "NotFoundError: Invalid pico_id: id404");
-    yield assertInvalidPicoID(getParent   , "id404", "NotFoundError: Invalid pico_id: id404");
-    yield assertInvalidPicoID(listChildren, "id404", "NotFoundError: Invalid pico_id: id404");
-    yield assertInvalidPicoID(newPico     , "id404", "NotFoundError: Invalid pico_id: id404");
-    yield assertInvalidPicoID(removePico  , "id404", "NotFoundError: Invalid pico_id: id404");
+    yield assertInvalidPicoID(getAdminECI , "id404", "NotFoundError: Pico not found: id404");
+    yield assertInvalidPicoID(getParent   , "id404", "NotFoundError: Pico not found: id404");
+    yield assertInvalidPicoID(listChildren, "id404", "NotFoundError: Pico not found: id404");
+    yield assertInvalidPicoID(newPico     , "id404", "NotFoundError: Pico not found: id404");
+    yield assertInvalidPicoID(removePico  , "id404", "NotFoundError: Pico not found: id404");
 
     yield testErr(
         t,
@@ -546,8 +546,8 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
     yield assertInvalidPicoID(newChannel  , void 0, "TypeError: engine:newChannel was given null instead of a pico_id string");
     yield assertInvalidPicoID(listChannels, void 0, "TypeError: engine:listChannels was given null instead of a pico_id string");
 
-    yield assertInvalidPicoID(newChannel  , "id404", "NotFoundError: Invalid pico_id: id404");
-    yield assertInvalidPicoID(listChannels, "id404", "NotFoundError: Invalid pico_id: id404");
+    yield assertInvalidPicoID(newChannel  , "id404", "NotFoundError: Pico not found: id404");
+    yield assertInvalidPicoID(listChannels, "id404", "NotFoundError: Pico not found: id404");
 
 });
 
@@ -636,8 +636,8 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
 
     yield assertInvalidPicoID(listRIDs    , void 0, "TypeError: engine:listInstalledRIDs was given null instead of a pico_id string");
 
-    yield assertInvalidPicoID(installRS   , "id404", "NotFoundError: Invalid pico_id: id404");
-    yield assertInvalidPicoID(uninstallRID, "id404", "NotFoundError: Invalid pico_id: id404");
-    yield assertInvalidPicoID(listRIDs    , "id404", "NotFoundError: Invalid pico_id: id404");
+    yield assertInvalidPicoID(installRS   , "id404", "NotFoundError: Pico not found: id404");
+    yield assertInvalidPicoID(uninstallRID, "id404", "NotFoundError: Pico not found: id404");
+    yield assertInvalidPicoID(listRIDs    , "id404", "NotFoundError: Pico not found: id404");
 
 });
