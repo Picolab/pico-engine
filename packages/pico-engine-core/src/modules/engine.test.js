@@ -2,7 +2,7 @@ var _ = require("lodash");
 var test = require("tape");
 var cocb = require("co-callback");
 var ktypes = require("krl-stdlib/types");
-var strictDeepEquals = require("krl-stdlib/strictEquals").strictDeepEquals;
+var strictDeepEquals = require("krl-stdlib/src/strictEquals").strictDeepEquals;
 var kengine = require("./engine");
 var mkTestPicoEngine = require("../mkTestPicoEngine");
 
