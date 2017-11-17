@@ -280,7 +280,7 @@ module.exports = function(opts){
         getPicoIDByECI: function(eci, callback){
             ldb.get(["channel", eci], function(err, data){
                 if(err && err.notFound){
-                    err = new levelup.errors.NotFoundError("ECI not found: " + (_.isString(eci) ? eci : typeof eci));
+                    err = new levelup.errors.NotFoundError("ECI not found: " + ktypes.toString(eci));
                     err.notFound = true;
                 }
                 callback(err, data && data.pico_id);
@@ -289,12 +289,12 @@ module.exports = function(opts){
 
 
         assertPicoID: function(id, callback){
-            if( ! _.isString(id)){
-                return callback(new Error("Invalid pico_id: " + ktypes.toString(id)));
+            if( ! ktypes.isString(id)){
+                return callback(new TypeError("Invalid pico_id: " + ktypes.toString(id)));
             }
             ldb.get(["pico", id], function(err){
                 if(err && err.notFound){
-                    err = new levelup.errors.NotFoundError("Invalid pico_id: " + id);
+                    err = new levelup.errors.NotFoundError("Pico not found: " + id);
                     err.notFound = true;
                 }
                 callback(err, err ? null : id);
