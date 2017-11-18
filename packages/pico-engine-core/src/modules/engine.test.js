@@ -55,46 +55,31 @@ var assertPicoID = function(id, callback){
 };
 
 
-test("engine:getPicoIDByECI", function(t){
-    cocb.run(function*(){
-        var tstErr = _.partial(testError, t);
+testPE("engine:getPicoIDByECI", function*(t, pe){
+    var tstErr = _.partial(testError, t);
 
-        var engine = kengine({
-            db: {
-                getPicoIDByECI: tick(function(eci, callback){
-                    if(eci === "foo"){
-                        return callback(null, "bar");
-                    }else if(eci === "baz"){
-                        return callback(null, "qux");
-                    }
-                    callback("NOT FOUND:" + eci);
-                })
-            }
-        });
-        var get = function(){
-            return engine.def.getPicoIDByECI({}, _.toArray(arguments));
-        };
+    var getPicoIDByECI = yield pe.modules.get({}, "engine", "getPicoIDByECI");
+    var get = function(){
+        return getPicoIDByECI({}, _.toArray(arguments));
+    };
 
-        t.equals(yield get("foo"), "bar");
-        t.equals(yield get("baz"), "qux");
+    t.equals(yield get("id1"), "id0");
 
-        yield tstErr(
-            get(),
-            "Error: engine:getPicoIDByECI needs an eci string",
-            "no eci is given"
-        );
-        yield tstErr(
-            get(null),
-            "TypeError: engine:getPicoIDByECI was given null instead of an eci string",
-            "wrong eci type"
-        );
-        yield tstErr(
-            get("quux"),
-            "NOT FOUND:quux",
-            "eci not found"
-        );
-
-    }, t.end);
+    yield tstErr(
+        get(),
+        "Error: engine:getPicoIDByECI needs an eci string",
+        "no eci is given"
+    );
+    yield tstErr(
+        get(null),
+        "TypeError: engine:getPicoIDByECI was given null instead of an eci string",
+        "wrong eci type"
+    );
+    yield tstErr(
+        get("quux"),
+        "NotFoundError: ECI not found: quux",
+        "eci not found"
+    );
 });
 
 
@@ -335,18 +320,15 @@ testPE("engine:describeRuleset", function * (t, pe){
     }
 });
 
-testPE("engine:listInstalledRIDs", function * (t, pe){
-    var ctx = {};
-    var listRIDs = yield pe.modules.get(ctx, "engine", "listInstalledRIDs");
 
-    var rids = yield listRIDs(ctx, {pico_id: "id0"});
-
-    t.deepEquals(rids, [
-        "io.picolabs.engine",
-    ]);
+testPE("engine:listAllEnabledRIDs", function * (t, pe){
+    var listAllEnabledRIDs = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
+    var rids = yield listAllEnabledRIDs({}, []);
+    t.ok(rids.length > 1, "should be all the test-rulesets/");
+    t.ok(_.every(rids, _.isString));
+    t.ok(_.includes(rids, "io.picolabs.engine"));
 });
 
-//TODO testPE("engine:listAllEnabledRIDs...
 
 testPE("engine:newPico", function * (t, pe){
     var action = function(ctx, name, args){
