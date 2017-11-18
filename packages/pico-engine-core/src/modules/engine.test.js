@@ -465,13 +465,26 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
 testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", function * (t, pe){
     var tstErr = _.partial(testErr2, t);
 
-    var newPolicy = function*(policy){
-        return yield runAction(pe, {}, "engine", "newPolicy", [policy]);
+    var newPolicy = function(policy){
+        return runAction(pe, {}, "engine", "newPolicy", [policy]);
+    };
+    var listPolicies = yield pe.modules.get({}, "engine", "listPolicies");
+    var removePolicy = function(id){
+        return runAction(pe, {}, "engine", "removePolicy", [id]);
     };
 
     // Making sure ChannelPolicy.clean is on
     yield tstErr(newPolicy(), "TypeError: Cannot read property 'name' of undefined");
     yield tstErr(newPolicy({name: 1}), "Error: missing `policy.name`");
+
+    var pAdmin = {
+        id: ADMIN_POLICY_ID,
+        name: "admin channel policy",
+        event: {allow: [{}]},
+        query: {allow: [{}]},
+    };
+
+    t.deepEquals(yield listPolicies(), [pAdmin]);
 
     var pFoo = yield newPolicy({name: "foo"});
     t.deepEquals(pFoo, {
@@ -480,6 +493,32 @@ testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", function * 
         event: {deny: [], allow: []},
         query: {deny: [], allow: []},
     });
+
+    t.deepEquals(yield listPolicies(), [pAdmin, pFoo]);
+
+    var pBar = yield newPolicy({
+        name: "bar",
+        event: {allow: [{domain: "system"}]}
+    });
+    t.deepEquals(pBar, {
+        id: "id3",
+        name: "bar",
+        event: {deny: [], allow: [{domain: "system"}]},
+        query: {deny: [], allow: []},
+    });
+
+    t.deepEquals(yield listPolicies(), [pAdmin, pFoo, pBar]);
+
+    yield tstErr(removePolicy(), "TypeError: engine:removePolicy was given null instead of a policy_id string");
+    yield tstErr(removePolicy("id404"), "NotFoundError: Policy not found: id404");
+
+    yield removePolicy(pFoo.id);
+    t.deepEquals(yield listPolicies(), [pAdmin, pBar]);
+
+    yield tstErr(removePolicy(pAdmin.id), "Error: Policy " + pAdmin.id +  " is in use, cannot remove.");
+
+    yield removePolicy(pBar.id);
+    t.deepEquals(yield listPolicies(), [pAdmin]);
 });
 
 

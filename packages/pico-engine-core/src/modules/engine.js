@@ -76,6 +76,12 @@ module.exports = function(core){
         }),
 
 
+        listPolicies: mkKRLfn([
+        ], function(ctx, args, callback){
+            core.db.listPolicies(callback);
+        }),
+
+
         listChannels: mkKRLfn([
             "pico_id",
         ], function(ctx, args, callback){
@@ -184,6 +190,17 @@ module.exports = function(core){
             "policy",
         ], function(ctx, args, callback){
             core.db.newPolicy(args.policy, callback);
+        }),
+
+
+        removePolicy: mkKRLaction([
+            "policy_id",
+        ], function(ctx, args, callback){
+            var id = args.policy_id;
+            if(!_.isString(id)){
+                return callback(new TypeError("engine:removePolicy was given " + ktypes.toString(id) + " instead of a policy_id string"));
+            }
+            core.db.removePolicy(id, callback);
         }),
 
 

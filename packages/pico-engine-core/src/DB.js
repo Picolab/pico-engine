@@ -283,9 +283,10 @@ module.exports = function(opts){
         // Picos
         //
         getPicoIDByECI: function(eci, callback){
+            eci = ktypes.toString(eci);
             ldb.get(["channel", eci], function(err, data){
                 if(err && err.notFound){
-                    err = new levelup.errors.NotFoundError("ECI not found: " + ktypes.toString(eci));
+                    err = new levelup.errors.NotFoundError("ECI not found: " + eci);
                     err.notFound = true;
                 }
                 callback(err, data && data.pico_id);
@@ -294,9 +295,7 @@ module.exports = function(opts){
 
 
         assertPicoID: function(id, callback){
-            if( ! ktypes.isString(id)){
-                return callback(new TypeError("Invalid pico_id: " + ktypes.toString(id)));
-            }
+            id = ktypes.toString(id);
             ldb.get(["pico", id], function(err){
                 if(err && err.notFound){
                     err = new levelup.errors.NotFoundError("Pico not found: " + id);
@@ -556,6 +555,47 @@ module.exports = function(opts){
             new_policy.id = newID();
             ldb.put(["policy", new_policy.id], new_policy, function(err, data){
                 callback(err, new_policy);
+            });
+        },
+
+        listPolicies: function(callback){
+            var list = [];
+            dbRange(ldb, {
+                prefix: ["policy"],
+                keys: false,
+            }, function(value){
+                list.push(value);
+            }, function(err){
+                callback(err, list);
+            });
+        },
+
+        removePolicy: function(id, callback){
+            id = ktypes.toString(id);
+            ldb.get(["policy", id], function(err, policy){
+                if(err && err.notFound){
+                    err = new levelup.errors.NotFoundError("Policy not found: " + id);
+                    err.notFound = true;
+                }
+                if(err) return callback(err);
+
+                var is_used = false;
+                dbRange(ldb, {
+                    prefix: ["channel"],
+                    keys: false,
+                }, function(chann, stopRange){
+                    if(chann.policy_id === id){
+                        is_used = true;
+                        stopRange();
+                        return;
+                    }
+                }, function(err){
+                    if(err) return callback(err);
+                    if(is_used){
+                        return callback(new Error("Policy " + id + " is in use, cannot remove."));
+                    }
+                    ldb.del(["policy", id], callback);
+                });
             });
         },
 
