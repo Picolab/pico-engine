@@ -74,22 +74,6 @@ module.exports = function(core){
             });
         }),
 
-        signMessage: mkKRLfn([
-            "key1",
-            "eci",
-        ], function(ctx, args, callback){
-            var verifyKey = args.key1;
-            var channelEci = args.eci;
-            core.db.signMessage(verifyKey, channelEci, function(err, secret) {
-                callback(secret);
-            });
-
-            // core.db.assertPicoID(pico_id, function(err, pico_id){
-            //     if(err) return callback(err);
-            //
-            //     core.db.listChannels(pico_id, callback);
-            // });
-        }),
 
         listChannels: mkKRLfn([
             "pico_id",

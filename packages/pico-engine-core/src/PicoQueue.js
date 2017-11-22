@@ -8,10 +8,6 @@ module.exports = function(worker){
     var getQ = function(pico_id){
         if(!_.has(pico_queues, pico_id)){
             var q = async.queue(function(job, done){
-                // console.log("QUEING");
-                // console.log("QUEING");
-                // console.log("QUEING");
-                // console.log(job);
                 worker(pico_id, JSON.parse(job), done);
             });
             pico_queues[pico_id] = q;
@@ -21,13 +17,6 @@ module.exports = function(worker){
 
     return {
         enqueue: function(pico_id, job, callback){
-            // console.log("ENQUEING");
-            // console.log("ENQUEING");
-            // console.log("ENQUEING");
-            // console.log("ENQUEING");
-            // console.log("ENQUEING");
-            // console.log("ENQUEING");
-            // console.log(job);
             getQ(pico_id).push(JSON.stringify(job), callback);
         }
     };

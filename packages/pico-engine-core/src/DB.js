@@ -310,14 +310,13 @@ module.exports = function(opts){
                 if (err) return callback(err);
                 var signKey = channel.sovrin.secret.signKey;
                 var verifyKey = channel.sovrin.verifyKey;
-                console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>MESSAGE");
-                console.log(message);
+                console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>MESSAGE ");
                 var signedMessage = sovrinDID.signMessage(JSON.stringify(message), signKey, verifyKey);
                 if (signedMessage === false) {
-                    var err = {
+                    var error = {
                         "message": "Failed to sign message"
                     };
-                    callback(err);
+                    callback(error);
                 }
                 var eventObj = {};
                 eventObj.signedMessage = signedMessage;
@@ -327,24 +326,28 @@ module.exports = function(opts){
         },
 
         verifySignedMessage: function(signedMessage, eci, picoId, callback) {
-            console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> verifying message");
+            console.log(">>>>>>>>>>>>>>>>>>>> Verifying sub eci of ", eci);
             getEntVar(picoId, "io.picolabs.subscription", "subscriptions", null, function(err, subscriptions) {
-                if (err) {
-                    console.log("ERROR");
-                    console.log(err);
-                }
-                console.log(subscriptions);
+                var VERIFY_KEY_LENGTH = 44;
+                if (err)callback(err);
                 var temp = _.filter(subscriptions, function (sub){
                     console.log(sub);
                     return sub.eci === eci;
                 });
                 var subscription = temp[0];
-                var verifyKey = subscription.other_verify_key;
+                if (subscription) {
+                    var verifyKey = subscription.other_verify_key;
 
-                var message = verifyKey.length === 44
-                    ? JSON.parse(sovrinDID.verifySignedMessage(signedMessage, verifyKey))
-                    : false;
-                callback(err, message);
+                    var message = verifyKey.length === VERIFY_KEY_LENGTH
+                        ? JSON.parse(sovrinDID.verifySignedMessage(signedMessage, verifyKey))
+                        : false;
+
+                    callback(err, message);
+                } else {
+                    var error = {};
+                    error.message = "No subscription with that eci was found";
+                    callback(error, eci);
+                }
 
             });
         },

@@ -43,7 +43,7 @@ module.exports = function(event_orig){
     }
 
     if(event_orig.security) {
-        var securityChoice = event_orig.security.trim();
+        var securityChoice = event_orig.security.type.trim();
         if (securityChoice !== "sign" && securityChoice !== "encrypt") {
             event_orig.security = undefined;
         }
@@ -59,7 +59,7 @@ module.exports = function(event_orig){
 
         domain: event_orig.domain.trim(),
         type: event_orig.type.trim(),
-        security: event_orig.security.trim(),
+        security: event_orig.security,
 
         attrs: attrs,
 

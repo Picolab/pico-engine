@@ -846,10 +846,6 @@ testPE("pico-engine", function(t, pe, root_eci){
                 subscriptionPicos["picoB"].subscriptions = picoBSubs;
                 var picoASub = picoASubs[SHARED_A];
                 var picoBSub = picoBSubs[SHARED_A];
-
-                t.notEqual(picoASub.other_verify_key, undefined, "A key was exchanged");
-                t.notEqual(picoBSub.other_verify_key, undefined, "A key was exchanged");
-
                 var picoAVerifyKey = picoASub.sovrin.verifyKey;
                 var picoBVerifyKey = picoBSub.sovrin.verifyKey;
 
@@ -864,10 +860,12 @@ testPE("pico-engine", function(t, pe, root_eci){
         // function(next) {
         //     var picoA = subscriptionPicos["picoA"];
         //     var picoB = subscriptionPicos["picoB"];
-        //     var picoASub = picoA.subscriptions[SHARED_A];
-        //     var picoBSub = picoB.subscriptions[SHARED_A];
-        //
-        //     sendEvent(picoASub.attributes.outbound_eci, "secure", "")
+        //     pe.registerRuleset
+        //     installRulesets(picoA.eci, "mischief.krl").then(function(installResponse) {
+        //        return installRulesets(picoB.eci, "thing.krl");
+        //     }).then(function(installResponse) {
+        //         console.log("TEST");
+        //     })
         //
         // },
         function(next) {
