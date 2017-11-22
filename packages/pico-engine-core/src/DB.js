@@ -188,6 +188,10 @@ module.exports = function(opts){
         valueEncoding: safeJsonCodec
     }));
 
+    var getEntVar = function(pico_id, rid, var_name, query, callback){
+        getPVar(ldb, ["entvars", pico_id, rid, var_name], query, callback);
+    };
+
     var newID = cuid;
     var genDID = sovrinDID.gen;
     if(opts.__use_sequential_ids_for_testing){
@@ -301,11 +305,54 @@ module.exports = function(opts){
             });
         },
 
+        signMessage: function(message, senderEci, callback){
+            ldb.get(["channel", senderEci], function (err, channel) {
+                if (err) return callback(err);
+                var signKey = channel.sovrin.secret.signKey;
+                var verifyKey = channel.sovrin.verifyKey;
+                console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>MESSAGE");
+                console.log(message);
+                var signedMessage = sovrinDID.signMessage(JSON.stringify(message), signKey, verifyKey);
+                if (signedMessage === false) {
+                    var err = {
+                        "message": "Failed to sign message"
+                    };
+                    callback(err);
+                }
+                var eventObj = {};
+                eventObj.signedMessage = signedMessage;
+                eventObj.eci = message.eci;
+                callback(err, eventObj);
+            });
+        },
+
+        verifySignedMessage: function(signedMessage, eci, picoId, callback) {
+            console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> verifying message");
+            getEntVar(picoId, "io.picolabs.subscription", "subscriptions", null, function(err, subscriptions) {
+                if (err) {
+                    console.log("ERROR");
+                    console.log(err);
+                }
+                console.log(subscriptions);
+                var temp = _.filter(subscriptions, function (sub){
+                    console.log(sub);
+                    return sub.eci === eci;
+                });
+                var subscription = temp[0];
+                var verifyKey = subscription.other_verify_key;
+
+                var message = verifyKey.length === 44
+                    ? JSON.parse(sovrinDID.verifySignedMessage(signedMessage, verifyKey))
+                    : false;
+                callback(err, message);
+
+            });
+        },
+
 
         getRootPico: function(callback){
             ldb.get(["root_pico"], callback);
         },
-
 
         getParent: function(pico_id, callback){
             ldb.get(["pico", pico_id], function(err, data){
@@ -534,9 +581,7 @@ module.exports = function(opts){
         putEntVar: function(pico_id, rid, var_name, query, val, callback){
             putPVar(ldb, ["entvars", pico_id, rid, var_name], query, val, callback);
         },
-        getEntVar: function(pico_id, rid, var_name, query, callback){
-            getPVar(ldb, ["entvars", pico_id, rid, var_name], query, callback);
-        },
+        getEntVar: getEntVar,
         delEntVar: function(pico_id, rid, var_name, query, callback){
             delPVar(ldb, ["entvars", pico_id, rid, var_name], query, callback);
         },

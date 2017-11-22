@@ -835,6 +835,42 @@ testPE("pico-engine", function(t, pe, root_eci){
                 });
         },
         function(next) {
+            console.log("////////////////// Secure Subscription Tests //////////////////");
+
+            dumpDB().then(function(dump) {
+                var picoA = subscriptionPicos["picoA"];
+                var picoB = subscriptionPicos["picoB"];
+                var picoASubs = getSubscriptionsFromDump(dump, picoA.id);
+                var picoBSubs = getSubscriptionsFromDump(dump, picoB.id);
+                subscriptionPicos["picoA"].subscriptions = picoASubs;
+                subscriptionPicos["picoB"].subscriptions = picoBSubs;
+                var picoASub = picoASubs[SHARED_A];
+                var picoBSub = picoBSubs[SHARED_A];
+
+                t.notEqual(picoASub.other_verify_key, undefined, "A key was exchanged");
+                t.notEqual(picoBSub.other_verify_key, undefined, "A key was exchanged");
+
+                var picoAVerifyKey = picoASub.sovrin.verifyKey;
+                var picoBVerifyKey = picoBSub.sovrin.verifyKey;
+
+                t.equal(picoASub.other_verify_key, picoBVerifyKey, "Correct key exchanged");
+                t.equal(picoBSub.other_verify_key, picoAVerifyKey, "Correct key exchanged");
+
+                next();
+            }).catch(function(err) {
+                next(err);
+            });
+        },
+        // function(next) {
+        //     var picoA = subscriptionPicos["picoA"];
+        //     var picoB = subscriptionPicos["picoB"];
+        //     var picoASub = picoA.subscriptions[SHARED_A];
+        //     var picoBSub = picoB.subscriptions[SHARED_A];
+        //
+        //     sendEvent(picoASub.attributes.outbound_eci, "secure", "")
+        //
+        // },
+        function(next) {
             console.log("////////////////// Subscription Rejection Tests //////////////////");
             createChild("C",  SUBS_RID).then(function(pico) {
                 subscriptionPicos["picoC"] = pico;
@@ -908,6 +944,19 @@ testPE("pico-engine", function(t, pe, root_eci){
             });
         });
     }
+    // function sendEvent (outboundEci, eid, domain, type, attrs, security) {
+    //     return new Promise(function(resolve, reject) {
+    //         pe.signalEvent({
+    //             eci: outboundEci,
+    //             eid: eid ? eid : "84",
+    //             domain: domain,
+    //             type: type,
+    //             attrs: attrs
+    //         }, function(err, response){
+    //             err ? reject(err) : resolve(response);
+    //         });
+    //     });
+    // }
     function pendingSubscriptionApproval (picoEci, subscriptionName) {
         return new Promise(function(resolve, reject) {
             pe.signalEvent({
