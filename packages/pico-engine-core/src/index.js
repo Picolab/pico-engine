@@ -383,6 +383,7 @@ module.exports = function(conf){
                         failedSignatureEvent.domain = "wrangler";
                         failedSignatureEvent.type = "signing_failed";
                         core.signalEvent(failedSignatureEvent);
+                        onDone(err);
                     }
                     emit = mkCTX({
                         event: signedEvent,
