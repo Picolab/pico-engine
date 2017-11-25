@@ -312,7 +312,7 @@ module.exports = function(conf){
                             pico_id: pico_id
                         }), callback);
                     }
-                })
+                });
             } else {
                 var event = job.event;
                 event.timestamp = new Date(event.timestamp);//convert from JSON string to date
@@ -321,14 +321,14 @@ module.exports = function(conf){
                     pico_id: pico_id
                 }), callback);
             }
-            }else if(job.type === "query"){
-                processQuery(core, mkCTX({
-                    query: job.query,
-                    pico_id: pico_id
-                }), callback);
-            }else{
-                callback(new Error("invalid PicoQueue job.type:" + job.type));
-            }
+        }else if(job.type === "query"){
+            processQuery(core, mkCTX({
+                query: job.query,
+                pico_id: pico_id
+            }), callback);
+        }else{
+            callback(new Error("invalid PicoQueue job.type:" + job.type));
+        }
 
     });
 
