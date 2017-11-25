@@ -377,6 +377,13 @@ module.exports = function(conf){
                 emit("debug", "event added to pico queue: " + pico_id);
             } else if (event.security.type === "sign") {
                 db.signMessage(event, event.security.sender_eci,  function(err, signedEvent) {
+                    if (err) {
+                        var failedSignatureEvent = {};
+                        failedSignatureEvent.eci = event.security.sender_eci;
+                        failedSignatureEvent.domain = "wrangler";
+                        failedSignatureEvent.type = "signing_failed";
+                        core.signalEvent(failedSignatureEvent);
+                    }
                     emit = mkCTX({
                         event: signedEvent,
                         pico_id: pico_id,
