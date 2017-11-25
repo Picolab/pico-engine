@@ -846,11 +846,12 @@ testPE("pico-engine", function(t, pe, root_eci){
                 subscriptionPicos["picoB"].subscriptions = picoBSubs;
                 var picoASub = picoASubs[SHARED_A];
                 var picoBSub = picoBSubs[SHARED_A];
-                var picoAVerifyKey = picoASub.sovrin.verifyKey;
-                var picoBVerifyKey = picoBSub.sovrin.verifyKey;
+                var channels = dump.channel;
+                var picoASubChannel = channels[picoASub.eci];
+                var picoBSubChannel = channels[picoBSub.eci];
 
-                t.equal(picoASub.other_verify_key, picoBVerifyKey, "Correct key exchanged");
-                t.equal(picoBSub.other_verify_key, picoAVerifyKey, "Correct key exchanged");
+                t.equal(picoASub.other_verify_key, picoBSubChannel.sovrin.verifyKey, "Correct key exchanged");
+                t.equal(picoBSub.other_verify_key, picoASubChannel.sovrin.verifyKey, "Correct key exchanged");
 
                 next();
             }).catch(function(err) {

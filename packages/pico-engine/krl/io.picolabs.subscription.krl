@@ -217,7 +217,7 @@ ruleset io.picolabs.subscription {
        engine:newChannel(getSelf()["id"], options.name, options.eci_type) setting(channel);
     }
     fired {
-      newSubscription = {"eci": channel.id, "name": channel.name,"type": channel.type, "attributes": options.attributes, "sovrin": channel.sovrin};
+      newSubscription = {"eci": channel.id, "name": channel.name,"type": channel.type, "attributes": options.attributes, "verify_key": channel.sovrin.verifyKey};
       updatedSubs = getSubscriptions().put([newSubscription.name] , newSubscription) ;
       newSubscription.klog(">> successful created subscription request >>");
       ent:subscriptions := updatedSubs;
@@ -232,7 +232,6 @@ ruleset io.picolabs.subscription {
         "subscriber_role" : pending_entry{"subscriber_role"},
         "subscriber_eci"  : pending_entry{"subscriber_eci"},
         "inbound_eci" : newSubscription.eci,
-        "verify_key_outbound" : newSubscription.sovrin.verifyKey,
         "attributes" : pending_entry{"attributes"}
       }, subscriber_host)
     } 
@@ -351,7 +350,7 @@ ruleset io.picolabs.subscription {
         "name": channel.name,
         "type": channel.type,
         "attributes": options.attributes,
-        "sovrin": channel.sovrin
+        "verify_key": channel.sovrin.verifyKey
       };
       logs.klog(standardOut("successful pending incoming"));
       ent:subscriptions := getSubscriptions().put( [newSubscription.name] , newSubscription );
@@ -378,7 +377,7 @@ rule approveInboundPendingSubscription {
       inbound_eci = subs{[channel_name,"eci"]}.klog("subscription inbound")
       outbound_eci = subs{[channel_name,"attributes","outbound_eci"]}.klog("subscriptions outbound")
       verify_key = subs{[channel_name]}.klog("subscription inbound")
-      verify_key = verify_key{"sovrin"}{"verifyKey"}.klog("VERIFY KEY")
+      verify_key = verify_key{"verify_key"}.klog("VERIFY KEY")
     }
     if (outbound_eci) then
       event:send({
@@ -424,7 +423,7 @@ rule approveInboundPendingSubscription {
          "eci": updatedSubscription.attributes.outbound_eci, "eid": "sending_key",
          "domain": "wrangler", "type": "sending_key",
          "attrs": {
-             "verify_key" : updatedSubscription.sovrin.verifyKey ,
+             "verify_key" : updatedSubscription.verify_key ,
              "sub_name" : updatedSubscription.name
          }
       })
@@ -455,7 +454,7 @@ rule addInboundSubscription {
               { "eci": updatedSubscription.attributes.outbound_eci, "eid": "sending_key",
                 "domain": "wrangler", "type": "sending_key",
                 "attrs": {
-                    "verify_key" : updatedSubscription.sovrin.verifyKey ,
+                    "verify_key" : updatedSubscription.verify_key,
                     "sub_name" : updatedSubscription.name
                 }
               })
