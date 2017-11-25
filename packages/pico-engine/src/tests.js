@@ -857,17 +857,38 @@ testPE("pico-engine", function(t, pe, root_eci){
                 next(err);
             });
         },
-        // function(next) {
-        //     var picoA = subscriptionPicos["picoA"];
-        //     var picoB = subscriptionPicos["picoB"];
-        //     pe.registerRuleset
-        //     installRulesets(picoA.eci, "mischief.krl").then(function(installResponse) {
-        //        return installRulesets(picoB.eci, "thing.krl");
-        //     }).then(function(installResponse) {
-        //         console.log("TEST");
-        //     })
-        //
-        // },
+        function(next) {
+            var picoA = subscriptionPicos["picoA"];
+            var picoB = subscriptionPicos["picoB"];
+            // pe.storeRuleset()
+            readFile("krl/test/subscription_tests/mischief.krl").then(function(data) {
+                return registerRuleset(data);
+            }).then(function(response) {
+                return readFile("krl/test/subscription_tests/thing.krl");
+            }).then(function(data) {
+                return registerRuleset(data);
+            }).then(function(response) {
+                return installRulesets(picoA.eci, "mischief");
+            }).then(function (installResponse) {
+                return installRulesets(picoB.eci, "mischief.thing");
+            }).then(function(installResponse) {
+                return sendEvent(picoA.eci, "mischief", "hat_lifted");
+            }).then(function(response) {
+                return getDBDumpWIthDelay();
+            }).then(function(dump) {
+                var picoBEntvars = dump.entvars[picoB.id];
+                var serial = picoBEntvars["mischief.thing"].serial.value;
+                t.equal(serial, 1, "Successfully sent, received, and verified signed event");
+                next();
+            }).catch(function (err) {
+                next(err);
+            });
+            // installRulesets(picoA.eci, "mischief.krl").then(function(installResponse) {
+            //    return installRulesets(picoB.eci, "thing.krl");
+            // }).then(function(installResponse) {
+            //     console.log("TEST");
+            // })
+        },
         function(next) {
             console.log("////////////////// Subscription Rejection Tests //////////////////");
             createChild("C",  SUBS_RID).then(function(pico) {
@@ -905,15 +926,16 @@ testPE("pico-engine", function(t, pe, root_eci){
 
     /**
      * This function basically causes a delay before getting the dbDump.
-     * Events can take time to propagate on the engine so this allows for this.
+     * Events can take time to propagate on the engine so this allows for that.
      */
-    function getDBDumpWIthDelay() {
+    function getDBDumpWIthDelay(delay) {
+        delay = delay ? delay : 500;
         return new Promise(function (resolve, reject) {
             setTimeout(function () {
                 pe.dbDump(function(err, dump){
                     err ? reject(err) : resolve(dump);
                 });
-            }, 500);
+            }, delay);
         });
     }
 
@@ -955,6 +977,34 @@ testPE("pico-engine", function(t, pe, root_eci){
     //         });
     //     });
     // }
+    function readFile(filePath, encoding) {
+        encoding = encoding ? encoding : "utf8";
+        return new Promise(function (resolve, reject) {
+            fs.readFile(filePath, encoding, function (err, data) {
+                err ? reject(err) : resolve(data);
+            });
+        });
+    }
+    function sendEvent(eci, domain, type, attrs) {
+        attrs = attrs ? attrs : {};
+        return new Promise(function(resolve, reject) {
+            pe.signalEvent({
+                eci: eci,
+                domain: domain,
+                type: type,
+                attrs: attrs
+            }, function(err, response){
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
+    function registerRuleset (krlSource) {
+        return new Promise(function(resolve, reject) {
+            pe.registerRuleset(krlSource, null, function(err, response){
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
     function pendingSubscriptionApproval (picoEci, subscriptionName) {
         return new Promise(function(resolve, reject) {
             pe.signalEvent({

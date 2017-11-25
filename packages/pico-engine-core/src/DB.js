@@ -310,13 +310,9 @@ module.exports = function(opts){
                 if (err) return callback(err);
                 var signKey = channel.sovrin.secret.signKey;
                 var verifyKey = channel.sovrin.verifyKey;
-                console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>MESSAGE ");
                 var signedMessage = sovrinDID.signMessage(JSON.stringify(message), signKey, verifyKey);
                 if (signedMessage === false) {
-                    var error = {
-                        "message": "Failed to sign message"
-                    };
-                    callback(error);
+                    callback(new Error("Failed to sign message"));
                 }
                 var eventObj = {};
                 eventObj.signedMessage = signedMessage;
@@ -326,12 +322,10 @@ module.exports = function(opts){
         },
 
         verifySignedMessage: function(signedMessage, eci, picoId, callback) {
-            console.log(">>>>>>>>>>>>>>>>>>>> Verifying sub eci of ", eci);
             getEntVar(picoId, "io.picolabs.subscription", "subscriptions", null, function(err, subscriptions) {
                 var VERIFY_KEY_LENGTH = 44;
                 if (err)callback(err);
                 var temp = _.filter(subscriptions, function (sub){
-                    console.log(sub);
                     return sub.eci === eci;
                 });
                 var subscription = temp[0];
@@ -344,14 +338,10 @@ module.exports = function(opts){
 
                     callback(err, message);
                 } else {
-                    var error = {};
-                    error.message = "No subscription with that eci was found";
-                    callback(error, eci);
+                    callback(new Error("No subscription with eci " + eci + " was found"));
                 }
-
             });
         },
-
 
         getRootPico: function(callback){
             ldb.get(["root_pico"], callback);

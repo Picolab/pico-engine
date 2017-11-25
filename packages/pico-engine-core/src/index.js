@@ -297,15 +297,11 @@ module.exports = function(conf){
                 var secureEvent = job.event;
                 var signedMessage = secureEvent.signedMessage;
                 signedMessage = Uint8Array.from(_.toArray(signedMessage));
-                console.log(">>>>>>>>>>>>>> VERIFYING MESSAGE");
                 db.verifySignedMessage(signedMessage, secureEvent.eci, pico_id, function (err, verifiedMessage) {
                     if (err || verifiedMessage === false) {
-                        console.log(">>>>>>>>>>>>>>>>>>>>>>>> MESSAGE NOT VERIFIED ", err);
                         // TODO:: Throw KRL event that the signature wasn't verified
-                        callback(err);
-                        // console.log(verifiedMessage);
+                        callback(err, verifiedMessage);
                     } else {
-                        console.log(">>>>>>>>>>>>>>>>>>>>>>>>VERIFIED MESSAGE");
                         verifiedMessage.timestamp = new Date(verifiedMessage.timestamp);//convert from JSON string to date
                         processEvent(core, mkCTX({
                             event: verifiedMessage,
@@ -359,8 +355,9 @@ module.exports = function(conf){
                 callback(err);
                 return;
             }
+            var emit = undefined;
             if (!event.security) {
-                var emit = mkCTX({
+                emit = mkCTX({
                     event: event,
                     pico_id: pico_id,
                 }).emit;
@@ -376,23 +373,20 @@ module.exports = function(conf){
                 emit("debug", "event added to pico queue: " + pico_id);
             } else if (event.security.type === "sign") {
                 db.signMessage(event, event.security.sender_eci,  function(err, signedEvent) {
-                    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Signing Message ", event);
-                    var emit = mkCTX({
+                    emit = mkCTX({
                         event: signedEvent,
                         pico_id: pico_id,
                     }).emit;
 
                     emit("episode_start");
-                    emit("debug", "event received: " + event.domain + "/" + event.type);
+                    emit("debug", "signed event received: " + event.domain + "/" + event.type);
 
-                    emit("debug", "event added to pico queue: " + pico_id);
                     picoQ.enqueue(pico_id, {
                         type: "event",
                         event: signedEvent,
-                    }, function (err, data) {
-                        callback(err, data)
-                    });
+                    }, onDone);
 
+                    emit("debug", "event added to pico queue: " + pico_id);
                 });
             }
 

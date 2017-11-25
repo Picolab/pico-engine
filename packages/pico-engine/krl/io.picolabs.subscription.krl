@@ -476,7 +476,6 @@ rule addInboundSubscription {
         subscription = getSubscriptions(){name}
 //        secret = engine:signMessage(verify_key, subscription.eci)
         updatedSubscription = subscription.put({"other_verify_key" : verify_key})
-        updatedSubscription = updatedSubscription.put({"shared_secret" : secret})
     }
     always {
         ent:subscriptions := getSubscriptions().put([updatedSubscription.name],updatedSubscription);
