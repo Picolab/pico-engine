@@ -299,7 +299,11 @@ module.exports = function(conf){
                 signedMessage = Uint8Array.from(_.toArray(signedMessage));
                 db.verifySignedMessage(signedMessage, secureEvent.eci, pico_id, function (err, verifiedMessage) {
                     if (err || verifiedMessage === false) {
-                        // TODO:: Throw KRL event that the signature wasn't verified
+                        var failedVerificationEvent = {};
+                        failedVerificationEvent.eci = secureEvent.eci;
+                        failedVerificationEvent.domain = "wrangler";
+                        failedVerificationEvent.type = "signature_verification_failed";
+                        core.signalEvent(failedVerificationEvent);
                         callback(err, verifiedMessage);
                     } else {
                         verifiedMessage.timestamp = new Date(verifiedMessage.timestamp);//convert from JSON string to date
