@@ -965,19 +965,6 @@ testPE("pico-engine", function(t, pe, root_eci){
             });
         });
     }
-    // function sendEvent (outboundEci, eid, domain, type, attrs, security) {
-    //     return new Promise(function(resolve, reject) {
-    //         pe.signalEvent({
-    //             eci: outboundEci,
-    //             eid: eid ? eid : "84",
-    //             domain: domain,
-    //             type: type,
-    //             attrs: attrs
-    //         }, function(err, response){
-    //             err ? reject(err) : resolve(response);
-    //         });
-    //     });
-    // }
     function readFile(filePath, encoding) {
         encoding = encoding ? encoding : "utf8";
         return new Promise(function (resolve, reject) {
