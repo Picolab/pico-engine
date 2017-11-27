@@ -74,7 +74,7 @@ module.exports = {
       [1]
     ]));
     ctx.scope.set("not_true", !true);
-    ctx.scope.set("not_null", !void 0);
+    ctx.scope.set("not_null", !null);
     ctx.scope.set("true_or_false", true || false);
     ctx.scope.set("true_and_false", true && false);
     ctx.scope.set("incByN", ctx.mkFunction(["n"], function* (ctx, args) {
@@ -117,7 +117,7 @@ module.exports = {
           "one"
         ]),
         yield ctx.applyFn(ctx.scope.get("paramFn"), ctx, [
-          void 0,
+          null,
           3,
           4,
           5

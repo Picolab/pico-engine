@@ -341,6 +341,38 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
                 signal("events", "select_where", {something: "ok wat?"}),
                 []
             ],
+            [
+                signal("events", "where_match_0", {something: 0}),
+                [{name: "where_match_0", options: {}}]
+            ],
+            [
+                signal("events", "where_match_null", {something: null}),
+                [{name: "where_match_null", options: {}}]
+            ],
+            [
+                signal("events", "where_match_false", {something: false}),
+                [{name: "where_match_false", options: {}}]
+            ],
+            [
+                signal("events", "where_match_empty_str", {something: ""}),
+                [{name: "where_match_empty_str", options: {}}]
+            ],
+            [
+                signal("events", "implicit_match_0", {something: 0}),
+                [{name: "implicit_match_0", options: {}}]
+            ],
+            [
+                signal("events", "implicit_match_null", {something: null}),
+                [{options: {}, name: "implicit_match_null"}]
+            ],
+            [
+                signal("events", "implicit_match_false", {something: false}),
+                [{options: {}, name: "implicit_match_false"}]
+            ],
+            [
+                signal("events", "implicit_match_empty_str", {something: ""}),
+                [{options: {}, name: "implicit_match_empty_str"}]
+            ],
             [signal("events", "no_action", {fired: "no"}), []],
             [query("getNoActionFired"), void 0],
             [signal("events", "no_action", {fired: "yes"}), []],

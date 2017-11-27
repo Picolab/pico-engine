@@ -497,6 +497,266 @@ module.exports = {
           ctx.emit("debug", "not fired");
       }
     },
+    "where_match_0": {
+      "name": "where_match_0",
+      "select": {
+        "graph": { "events": { "where_match_0": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            if (!(yield ctx.callKRLstdlib("match", [
+                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                new RegExp("0", "")
+              ])))
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["where_match_0"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "where_match_null": {
+      "name": "where_match_null",
+      "select": {
+        "graph": { "events": { "where_match_null": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            if (!(yield ctx.callKRLstdlib("match", [
+                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                new RegExp("null", "")
+              ])))
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["where_match_null"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "where_match_false": {
+      "name": "where_match_false",
+      "select": {
+        "graph": { "events": { "where_match_false": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            if (!(yield ctx.callKRLstdlib("match", [
+                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                new RegExp("false", "")
+              ])))
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["where_match_false"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "where_match_empty_str": {
+      "name": "where_match_empty_str",
+      "select": {
+        "graph": { "events": { "where_match_empty_str": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            if (!(yield ctx.callKRLstdlib("match", [
+                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                new RegExp("(?:)", "")
+              ])))
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["where_match_empty_str"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "implicit_match_0": {
+      "name": "implicit_match_0",
+      "select": {
+        "graph": { "events": { "implicit_match_0": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
+                  "something",
+                  new RegExp("0", "")
+                ]]]);
+            if (!matches)
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["implicit_match_0"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "implicit_match_null": {
+      "name": "implicit_match_null",
+      "select": {
+        "graph": { "events": { "implicit_match_null": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
+                  "something",
+                  new RegExp("null", "")
+                ]]]);
+            if (!matches)
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["implicit_match_null"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "implicit_match_false": {
+      "name": "implicit_match_false",
+      "select": {
+        "graph": { "events": { "implicit_match_false": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
+                  "something",
+                  new RegExp("false", "")
+                ]]]);
+            if (!matches)
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["implicit_match_false"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "implicit_match_empty_str": {
+      "name": "implicit_match_empty_str",
+      "select": {
+        "graph": { "events": { "implicit_match_empty_str": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent) {
+            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
+                  "something",
+                  new RegExp("(?:)", "")
+                ]]]);
+            if (!matches)
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["implicit_match_empty_str"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
     "no_action": {
       "name": "no_action",
       "select": {

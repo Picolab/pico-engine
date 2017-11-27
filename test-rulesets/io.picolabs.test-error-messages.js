@@ -17,7 +17,7 @@ module.exports = {
         ctx.scope.get("obj")
       ]);
     }));
-    ctx.scope.set("null_val", void 0);
+    ctx.scope.set("null_val", null);
     ctx.scope.set("infiniteRecursion", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.applyFn(ctx.scope.get("infiniteRecursion"), ctx, []);
     }));

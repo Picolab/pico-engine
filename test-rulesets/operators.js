@@ -8,7 +8,7 @@ module.exports = {
     ]
   },
   "global": function* (ctx) {
-    ctx.scope.set("nothing", void 0);
+    ctx.scope.set("nothing", null);
     ctx.scope.set("some_string", "foo");
     ctx.scope.set("results", {
       "str_as_num": yield ctx.callKRLstdlib("as", [
@@ -39,7 +39,7 @@ module.exports = {
         yield ctx.callKRLstdlib("typeof", [{ "a": 1 }]),
         yield ctx.callKRLstdlib("typeof", [new RegExp("foo", "")]),
         yield ctx.callKRLstdlib("typeof", [ctx.scope.get("nothing")]),
-        yield ctx.callKRLstdlib("typeof", [void 0])
+        yield ctx.callKRLstdlib("typeof", [null])
       ],
       "75.chr()": yield ctx.callKRLstdlib("chr", [75]),
       "0.range(10)": yield ctx.callKRLstdlib("range", [
