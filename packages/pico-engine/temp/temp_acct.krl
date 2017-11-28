@@ -18,15 +18,20 @@ ruleset temp_acct {
       ent:code || "code words expired"
     }
     one_way_hash = function(password) {
-      math:hash("sha256",password)
+      unsalted = ent:password{"salt"} == null;
+      unsalted => math:hash("sha256",password) |
+                  math:hash("sha256",ent:password{"salt"} + ":" + password)
     }
     passwordOK = function(password) {
-      ent:password.defaultsTo("") == ""
-      || ent:password == password
-      || ent:password{"password"} == one_way_hash(password)
+      pwd_type = ent:password.typeof();
+      pwd_type == "Null"   => password == "" |
+      pwd_type == "String" => password == ent:password |
+      pwd_type == "Map"    => ent:password{"password"} == one_way_hash(password) |
+                              false
     }
     pwd_needs_encoding = function() {
       ent:password.typeof() == "String"
+      || ent:password{"salt"} == null
     }
   }
   rule owner_admin {
@@ -105,8 +110,13 @@ ruleset temp_acct {
   }
   rule owner_pwd_needs_encoding {
     select when owner pwd_needs_encoding password re#^(.*)$# setting (password)
+    pre {
+      salt = random:uuid();
+    }
     fired {
-      ent:password := { "password": one_way_hash(password) };
+      ent:password := {};
+      ent:password{"salt"} := salt;
+      ent:password{"password"} := one_way_hash(password);
       ent:password{"last_encoding"} := time:now();
     }
   }
