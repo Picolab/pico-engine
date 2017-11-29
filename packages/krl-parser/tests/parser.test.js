@@ -743,6 +743,7 @@ test("literals", function(t){
     testLiteral("re#^one(/two)? .* $#ig", {type: "RegExp", value: /^one(\/two)? .* $/ig});
     testLiteral("re#\\# else\\\\#ig", {type: "RegExp", value: /# else\\/ig});
     testLiteral("re#/ok/g#ig", {type: "RegExp", value: /\/ok\/g/ig});
+    testLiteral("re##", {type: "RegExp", value: new RegExp("", "")});
 
     testLiteral("<<>>", {
         type: "Chevron",

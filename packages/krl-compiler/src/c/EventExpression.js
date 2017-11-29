@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var callModuleFn = require("../utils/callModuleFn");
 
 module.exports = function(ast, comp, e){
     //FYI the graph allready vetted the domain and type
@@ -7,16 +6,31 @@ module.exports = function(ast, comp, e){
     var fn_body = [];
 
     if(!_.isEmpty(ast.event_attrs)){
-        fn_body.push(e("var", "matches",
-            callModuleFn(e, "event", "attrMatches", e("array", [
-                e("array", _.map(ast.event_attrs, function(a){
-                    return e("array", [
-                        e("string", a.key.value, a.key.loc),
-                        comp(a.value)
-                    ], a.loc);
-                }))
-            ]), ast.loc)));
-        fn_body.push(e("if", e("!", e("id", "matches")), e("return", e("false"))));
+        // select when domain type <attr> re#..#
+        fn_body.push(e("var", "matches", e("array", [])));
+        fn_body.push(e("var", "m"));
+        fn_body.push(e("var", "j"));
+        _.each(ast.event_attrs, function(a){
+            var id = function(str, loc){
+                return e("id", str, loc || a.loc);
+            };
+
+            // m = regex.exec(attr string or "")
+            var key = e("string", a.key.value, a.key.loc);
+            var attr = e("call", id("getAttrString"), [id("ctx", a.key.loc), key], a.key.loc);
+            var regexExec = e(".", comp(a.value), id("exec", a.value.loc), a.value.loc);
+            fn_body.push(e(";", e("=", id("m"), e("call", regexExec, [attr], a.value.loc), a.value.loc)));
+
+            // if !m, then the EventExpression doesn't match
+            fn_body.push(e("if", e("!", id("m")), e("return", e("false"))));
+
+            // append to matches
+            var init = e("=", id("j"), e("number", 1));
+            var test = e("<", id("j"), id("m.length"));
+            var update = e("++", id("j"));
+            var body = e(";", e("call", id("matches.push"), [e("get", id("m"), id("j"))]));
+            fn_body.push(e("for", init, test, update, body));
+        });
     }else if(!_.isEmpty(ast.setting)){
         fn_body.push(e("var", "matches", e("array", [])));
     }
@@ -55,5 +69,5 @@ module.exports = function(ast, comp, e){
 
     fn_body.push(e("return", e(true)));
 
-    return e("genfn", ["ctx", "aggregateEvent"], fn_body);
+    return e("genfn", ["ctx", "aggregateEvent", "getAttrString"], fn_body);
 };

@@ -36,7 +36,7 @@ module.exports = {
       "select": {
         "graph": { "pindex": { "setfoo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -61,7 +61,7 @@ module.exports = {
       "select": {
         "graph": { "pindex": { "putfoo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -91,7 +91,7 @@ module.exports = {
       "select": {
         "graph": { "pindex": { "delfoo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -120,7 +120,7 @@ module.exports = {
       "select": {
         "graph": { "pindex": { "nukefoo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -145,7 +145,7 @@ module.exports = {
       "select": {
         "graph": { "pindex": { "setbar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -170,7 +170,7 @@ module.exports = {
       "select": {
         "graph": { "pindex": { "putbar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -200,7 +200,7 @@ module.exports = {
       "select": {
         "graph": { "pindex": { "delbar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -229,7 +229,7 @@ module.exports = {
       "select": {
         "graph": { "pindex": { "nukebar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
