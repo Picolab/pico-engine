@@ -95,7 +95,7 @@ ruleset temp_acct {
     if event:attr("nonce") == ent:nonce && passwordOK(event:attr("password"))
     then send_directive("success",{"pico_id":meta:picoId,"eci":meta:eci});
     fired {
-      raise owner event "pwd_needs_encoding" attributes { "password": event:attr("password") };
+      raise owner event "pwd_needs_encoding" attributes { "password": event:attr("password") }
         if pwd_needs_encoding();
     }
     finally {
