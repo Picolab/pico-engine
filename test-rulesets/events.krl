@@ -152,7 +152,7 @@ ruleset io.picolabs.events {
         send_directive("where_match_false");
     }
     rule where_match_empty_str {
-        select when events where_match_empty_str where something.match(re#(?:)#)
+        select when events where_match_empty_str where something.match(re##)
 
         send_directive("where_match_empty_str");
     }
@@ -172,7 +172,7 @@ ruleset io.picolabs.events {
         send_directive("implicit_match_false");
     }
     rule implicit_match_empty_str {
-        select when events implicit_match_empty_str something re#(?:)#
+        select when events implicit_match_empty_str something re##
 
         send_directive("implicit_match_empty_str");
     }
