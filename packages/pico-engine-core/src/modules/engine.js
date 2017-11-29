@@ -401,11 +401,11 @@ module.exports = function(core){
         }),
 
         verifySignedMessage: mkKRLfn([
-            "message",
             "verifyKey",
+            "message",
         ], function(ctx, args, callback){
-            var message = assertArg("verifySignedMessage", args, "message", "String");
             var verifyKey = assertArg("verifySignedMessage", args, "verifyKey", "String");
+            var message = assertArg("verifySignedMessage", args, "message", "String");
 
             try{
                 message = bs58.decode(message);

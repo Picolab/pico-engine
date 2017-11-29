@@ -655,8 +655,8 @@ test("engine:signChannelMessage, engine:verifySignedMessage", function(t){
         var sign = function(eci, message){
             return signChannelMessage({}, [eci, message]);
         };
-        var verify = function(message, verifyKey){
-            return verifySignedMessage({}, [message, verifyKey]);
+        var verify = function(verifyKey, message){
+            return verifySignedMessage({}, [verifyKey, message]);
         };
 
         var eci = yield cocb.wrap(pe.getRootECI)();
@@ -677,14 +677,14 @@ test("engine:signChannelMessage, engine:verifySignedMessage", function(t){
         t.ok(_.isString(signed1));
         t.notEquals(signed0, signed1);
 
-        t.equals(yield verify(signed0, vkey0), msg);
-        t.equals(yield verify(signed1, vkey1), msg);
+        t.equals(yield verify(vkey0, signed0), msg);
+        t.equals(yield verify(vkey1, signed1), msg);
 
-        t.equals(yield verify(signed0, vkey1), false, "wrong vkey");
-        t.equals(yield verify(signed1, vkey0), false, "wrong vkey");
+        t.equals(yield verify(vkey1, signed0), false, "wrong vkey");
+        t.equals(yield verify(vkey0, signed1), false, "wrong vkey");
 
-        t.equals(yield verify(signed1, "hi"), false, "rubish vkey");
-        t.equals(yield verify("notbs58:%=+!", vkey0), false, "not bs58 message");
+        t.equals(yield verify("hi", signed1), false, "rubish vkey");
+        t.equals(yield verify(vkey0, "notbs58:%=+!"), false, "not bs58 message");
 
     }, t.end);
 });
