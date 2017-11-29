@@ -16,7 +16,7 @@ module.exports = {
       "select": {
         "graph": { "foreach": { "basic": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -57,7 +57,7 @@ module.exports = {
       "select": {
         "graph": { "foreach": { "map": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -102,7 +102,7 @@ module.exports = {
       "select": {
         "graph": { "foreach": { "nested": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -156,7 +156,7 @@ module.exports = {
       "select": {
         "graph": { "foreach": { "scope": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -220,7 +220,7 @@ module.exports = {
       "select": {
         "graph": { "foreach": { "final": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -282,7 +282,7 @@ module.exports = {
       "select": {
         "graph": { "foreach": { "final_raised": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },

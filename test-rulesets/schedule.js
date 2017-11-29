@@ -20,7 +20,7 @@ module.exports = {
       "select": {
         "graph": { "schedule": { "clear_log": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -50,7 +50,7 @@ module.exports = {
       "select": {
         "graph": { "schedule": { "push_log": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -83,7 +83,7 @@ module.exports = {
       "select": {
         "graph": { "schedule": { "in_5min": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -128,7 +128,7 @@ module.exports = {
       "select": {
         "graph": { "schedule": { "every_1min": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -170,7 +170,7 @@ module.exports = {
       "select": {
         "graph": { "schedule": { "rm_from_schedule": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },

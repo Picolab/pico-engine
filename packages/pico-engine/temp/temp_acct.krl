@@ -1,18 +1,37 @@
 ruleset temp_acct {
   meta {
-    shares __testing, method, code
+    shares __testing, method, code, passwordOK, pwd_needs_encoding
   }
   global {
-    __testing = { "queries": [ { "name": "__testing" } ],
-                  "events": [ ] }
+    __testing = { "queries": [ { "name": "__testing" }
+                             , { "name": "pwd_needs_encoding" }
+                             , { "name": "passwordOK", "args": [ "password" ] }
+                             ]
+                , "events": [ { "domain": "owner", "type": "pwd_needs_encoding", "attrs": [ "password" ] }
+                            , { "domain": "owner", "type": "new_password", "attrs": [ "password", "new_password" ] }
+                            ]
+                }
     method = function() {
       ent:method || "password"
     }
     code = function() {
       ent:code || "code words expired"
     }
-    passwordOK = function() {
-      ent:password.defaultsTo("") == "" || ent:password == event:attr("password")
+    one_way_hash = function(password) {
+      unsalted = ent:password{"salt"} == null;
+      unsalted => math:hash("sha256",password) |
+                  math:hash("sha256",ent:password{"salt"} + ":" + password)
+    }
+    passwordOK = function(password) {
+      pwd_type = ent:password.typeof();
+      pwd_type == "Null"   => password == "" |
+      pwd_type == "String" => password == ent:password |
+      pwd_type == "Map"    => ent:password{"password"} == one_way_hash(password) |
+                              false
+    }
+    pwd_needs_encoding = function() {
+      ent:password.typeof() == "String"
+      || ent:password{"salt"} == null
     }
   }
   rule owner_admin {
@@ -24,7 +43,8 @@ ruleset temp_acct {
     if legit then noop();
     fired {
       ent:owner_id := "Root";
-      ent:password := "toor";
+      //ent:password := "toor";
+      raise owner event "pwd_needs_encoding" attributes { "password": "toor" };
     }
   }
   rule owner_creation {
@@ -33,7 +53,8 @@ ruleset temp_acct {
     fired {
       ent:owner_id := event:attr("owner_id");
       ent:method   := event:attr("method");
-      ent:password := event:attr("password");
+      //ent:password := event:attr("password");
+      raise owner event "pwd_needs_encoding" attributes { "password": event:attr("password") };
     }
   }
   rule owner_eci_provided {
@@ -71,18 +92,34 @@ ruleset temp_acct {
   }
   rule owner_authenticate {
     select when owner authenticate
-    if event:attr("nonce") == ent:nonce && passwordOK()
+    if event:attr("nonce") == ent:nonce && passwordOK(event:attr("password"))
     then send_directive("success",{"pico_id":meta:picoId,"eci":meta:eci});
-    always {
+    fired {
+      raise owner event "pwd_needs_encoding" attributes { "password": event:attr("password") }
+        if pwd_needs_encoding();
+    }
+    finally {
       raise owner event "nonce_used";
     }
   }
   rule owner_new_password {
     select when owner new_password
-    if passwordOK() then noop();
+    if passwordOK(event:attr("password")) then noop();
     fired {
       ent:method := ent:method.defaultsTo("password");
-      ent:password := event:attr("new_password");
+      raise owner event "pwd_needs_encoding" attributes { "password": event:attr("new_password") };
+    }
+  }
+  rule owner_pwd_needs_encoding {
+    select when owner pwd_needs_encoding password re#^(.*)$# setting (password)
+    pre {
+      salt = random:uuid();
+    }
+    fired {
+      ent:password := {};
+      ent:password{"salt"} := salt;
+      ent:password{"password"} := one_way_hash(password);
+      ent:password{"last_encoding"} := time:now();
     }
   }
 }
