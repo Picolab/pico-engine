@@ -1,8 +1,15 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 var async = require("async");
+var ktypes = require("krl-stdlib/types");
 var runKRL = require("./runKRL");
 var aggregateEvent = require("./aggregateEvent");
+
+var getAttrString = function(ctx, attr){
+    return _.has(ctx, ["event", "attrs", attr])
+        ? ktypes.toString(ctx.event.attrs[attr])
+        : "";
+};
 
 var evalExpr = cocb.wrap(function*(ctx, rule, aggFn, exp){
     var recur = function*(e){
@@ -23,7 +30,7 @@ var evalExpr = cocb.wrap(function*(ctx, rule, aggFn, exp){
     if(_.get(rule, ["select", "graph", domain, type, exp]) !== true){
         return false;
     }
-    return yield runKRL(rule.select.eventexprs[exp], ctx, aggFn);
+    return yield runKRL(rule.select.eventexprs[exp], ctx, aggFn, getAttrString);
 });
 
 var getNextState = cocb.wrap(function*(ctx, rule, curr_state, aggFn){

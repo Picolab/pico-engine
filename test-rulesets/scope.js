@@ -76,17 +76,19 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
-                  "name",
-                  new RegExp("^(.*)$", "")
-                ]]]);
-            if (!matches)
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+            if (!m)
               return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
             ctx.scope.set("my_name", matches[0]);
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -122,13 +124,15 @@ module.exports = {
       "select": {
         "graph": { "scope": { "prelude": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
-                  "name",
-                  new RegExp("^(.*)$", "")
-                ]]]);
-            if (!matches)
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+            if (!m)
               return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
             ctx.scope.set("name", matches[0]);
             return true;
           }
@@ -169,7 +173,7 @@ module.exports = {
       "select": {
         "graph": { "scope": { "functions": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
