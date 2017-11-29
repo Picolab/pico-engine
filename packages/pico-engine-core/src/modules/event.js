@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
 var mkKRLaction = require("../mkKRLaction");
 var request = require("request");
@@ -25,12 +26,10 @@ module.exports = function(core){
             var i, j, attr, m, pair;
             for(i = 0; i < pairs.length; i++){
                 pair = pairs[i];
-                attr = ctx.event.attrs[pair[0]];
-                m = pair[1].exec(
-                    _.isUndefined(attr)
-                        ? ""
-                        : attr
-                );
+                attr = _.has(ctx.event.attrs, pair[0])
+                    ? ktypes.toString(ctx.event.attrs[pair[0]])
+                    : "";
+                m = pair[1].exec(attr);
                 if(!m){
                     callback();
                     return;
