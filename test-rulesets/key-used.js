@@ -61,7 +61,7 @@ module.exports = {
       "select": {
         "graph": { "key_used": { "foo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },

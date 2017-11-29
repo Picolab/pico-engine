@@ -1,6 +1,10 @@
 module.exports = function(ast, ind, gen){
     var r = ast.value;
-    return "re#" + r.source + "#"
+    var source = r.source;
+    if(r.source === "(?:)"){
+        source = "";
+    }
+    return "re#" + source + "#"
         + (r.global ? "g" : "")
         + (r.ignoreCase ? "i" : "");
 };

@@ -43,7 +43,8 @@ ruleset temp_acct {
     if legit then noop();
     fired {
       ent:owner_id := "Root";
-      ent:password := "toor";
+      //ent:password := "toor";
+      raise owner event "pwd_needs_encoding" attributes { "password": "toor" };
     }
   }
   rule owner_creation {
@@ -52,7 +53,8 @@ ruleset temp_acct {
     fired {
       ent:owner_id := event:attr("owner_id");
       ent:method   := event:attr("method");
-      ent:password := event:attr("password");
+      //ent:password := event:attr("password");
+      raise owner event "pwd_needs_encoding" attributes { "password": event:attr("password") };
     }
   }
   rule owner_eci_provided {
@@ -93,7 +95,7 @@ ruleset temp_acct {
     if event:attr("nonce") == ent:nonce && passwordOK(event:attr("password"))
     then send_directive("success",{"pico_id":meta:picoId,"eci":meta:eci});
     fired {
-      raise owner event "pwd_needs_encoding" attributes { "password": ent:password }
+      raise owner event "pwd_needs_encoding" attributes { "password": event:attr("password") }
         if pwd_needs_encoding();
     }
     finally {

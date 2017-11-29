@@ -12,13 +12,15 @@ module.exports = {
       "select": {
         "graph": { "foo": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
-                  "b",
-                  new RegExp("^(.*)$", "")
-                ]]]);
-            if (!matches)
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "b"));
+            if (!m)
               return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
             ctx.scope.set("b", matches[0]);
             return true;
           }
@@ -54,7 +56,7 @@ module.exports = {
       "select": {
         "graph": { "bar": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -100,7 +102,7 @@ module.exports = {
       "select": {
         "graph": { "on_final_no_foreach": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
