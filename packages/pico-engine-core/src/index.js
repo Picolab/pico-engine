@@ -658,8 +658,6 @@ module.exports = function(conf){
         putEntVar: db.putEntVar,
         getEntVar: db.getEntVar,
         delEntVar: db.delEntVar,
-        signMessage: db.signMessage,
-        verifySignedMessage: db.verifySignedMessage,
 
         dbDump: db.toObj,
         // ^^^ deprecated ^^^

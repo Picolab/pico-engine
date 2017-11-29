@@ -1,9 +1,21 @@
 var _ = require("lodash");
+var bs58 = require("bs58");
 var async = require("async");
 var urllib = require("url");
 var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
+var sovrinDID = require("sovrin-did");
 var mkKRLaction = require("../mkKRLaction");
+
+var assertArg = function(fn_name, args, key, type){
+    if( ! _.has(args, key)){
+        throw new Error("engine:" + fn_name + " argument `" + key + "` " + type + " is required");
+    }
+    if(ktypes.typeOf(args[key]) !== type){
+        throw new TypeError("engine:" + fn_name + " argument `" + key + "` should be " + type + " but was " + ktypes.typeOf(args[key]));
+    }
+    return args[key];
+};
 
 var picoArgOrCtxPico = function(fn_name, ctx, args, key){
     key = key || "pico_id";
@@ -376,6 +388,33 @@ module.exports = function(core){
 
                 async.eachSeries(rids, uninstall, callback);
             });
+        }),
+
+        signChannelMessage: mkKRLfn([
+            "eci",
+            "message",
+        ], function(ctx, args, callback){
+            var eci = assertArg("signChannelMessage", args, "eci", "String");
+            var message = assertArg("signChannelMessage", args, "message", "String");
+
+            core.db.signChannelMessage(eci, message, callback);
+        }),
+
+        verifySignedMessage: mkKRLfn([
+            "message",
+            "verifyKey",
+        ], function(ctx, args, callback){
+            var message = assertArg("verifySignedMessage", args, "message", "String");
+            var verifyKey = assertArg("verifySignedMessage", args, "verifyKey", "String");
+
+            try{
+                message = bs58.decode(message);
+                message = sovrinDID.verifySignedMessage(message, verifyKey);
+            }catch(e){
+                callback(null, false);
+                return;
+            }
+            callback(null, ktypes.isString(message) ? message : false);
         }),
 
     };

@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var bs58 = require("bs58");
 var cuid = require("cuid");
 var async = require("async");
 var crypto = require("crypto");
@@ -302,6 +303,30 @@ module.exports = function(opts){
                     err.notFound = true;
                 }
                 callback(err, err ? null : id);
+            });
+        },
+
+        signChannelMessage: function(eci, message, callback){
+            eci = ktypes.toString(eci);
+            message = ktypes.toString(message);
+            ldb.get(["channel", eci], function (err, channel){
+                if(err){
+                    if(err.notFound){
+                        err = new levelup.errors.NotFoundError("ECI not found: " + eci);
+                        err.notFound = true;
+                    }
+                    callback(err);
+                    return;
+                }
+                var signKey = channel.sovrin.secret.signKey;
+                var verifyKey = channel.sovrin.verifyKey;
+                var signedMessage = sovrinDID.signMessage(message, signKey, verifyKey);
+                if (signedMessage === false) {
+                    callback(new Error("Failed to sign message"));
+                    return;
+                }
+                signedMessage = bs58.encode(signedMessage);
+                callback(null, signedMessage);
             });
         },
 

@@ -9,7 +9,7 @@
   "scripts": {
     "start": "SKIP_LONG_TESTS=true onchange -i src/ ../../test-rulesets/ -- npm run test -s",
     "lint": "eslint src/ && echo lint-ok",
-    "lint-fix": "eslint src/ --fix && echo lint-ok",
+    "lint-fix": "eslint src/ --fix",
     "test": "npm run lint -s && node src/tests.js | faucet"
   },
   "repository": {
@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "async": "^2.5.0",
+    "bs58": "^4.0.1",
     "bytewise": "^1.1.0",
     "co-callback": "^2.0.0",
     "comment-regex": "^1.0.0",
