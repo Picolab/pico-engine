@@ -67,8 +67,6 @@ module.exports = function(conf){
     var modules = Modules(core, conf.modules);
 
     var mkCTX = function(ctx){
-        var isSecure = ctx.event && ctx.event.security;
-
         ctx.getMyKey = (function(rid){
             //we do it this way so all the keys are not leaked out to other built in modules or rulesets
             return function(id){
@@ -76,7 +74,7 @@ module.exports = function(conf){
             };
         }(ctx.rid));//pass in the rid at mkCTX creation so it is not later mutated
 
-        if(ctx.event && !isSecure){
+        if(ctx.event){
             ctx.txn_id = ctx.event.txn_id;
         }
         if(ctx.query){
@@ -116,18 +114,14 @@ module.exports = function(conf){
                 info.pico_id = ctx.pico_id;
             }
             if(ctx.event){
-                if (!isSecure) {
-                    info.event = {
-                        eci: ctx.event.eci,
-                        eid: ctx.event.eid,
-                        domain: ctx.event.domain,
-                        type: ctx.event.type,
-                        attrs: _.cloneDeep(ctx.event.attrs),
-                    };
-                    if(!info.eci){
-                        info.eci = ctx.event.eci;
-                    }
-                } else {
+                info.event = {
+                    eci: ctx.event.eci,
+                    eid: ctx.event.eid,
+                    domain: ctx.event.domain,
+                    type: ctx.event.type,
+                    attrs: _.cloneDeep(ctx.event.attrs),
+                };
+                if(!info.eci){
                     info.eci = ctx.event.eci;
                 }
             }
@@ -293,34 +287,12 @@ module.exports = function(conf){
     var picoQ = PicoQueue(function(pico_id, job, callback){
         //now handle the next `job` on the pico queue
         if(job.type === "event"){
-            if (job.event.signedMessage) {
-                var secureEvent = job.event;
-                var signedMessage = secureEvent.signedMessage;
-                signedMessage = Uint8Array.from(_.toArray(signedMessage));
-                db.verifySignedMessage(signedMessage, secureEvent.eci, pico_id, function (err, verifiedMessage) {
-                    if (err || verifiedMessage === false) {
-                        var failedVerificationEvent = {};
-                        failedVerificationEvent.eci = secureEvent.eci;
-                        failedVerificationEvent.domain = "wrangler";
-                        failedVerificationEvent.type = "signature_verification_failed";
-                        core.signalEvent(failedVerificationEvent);
-                        callback(err, verifiedMessage);
-                    } else {
-                        verifiedMessage.timestamp = new Date(verifiedMessage.timestamp);//convert from JSON string to date
-                        processEvent(core, mkCTX({
-                            event: verifiedMessage,
-                            pico_id: pico_id
-                        }), callback);
-                    }
-                });
-            } else {
-                var event = job.event;
-                event.timestamp = new Date(event.timestamp);//convert from JSON string to date
-                processEvent(core, mkCTX({
-                    event: event,
-                    pico_id: pico_id
-                }), callback);
-            }
+            var event = job.event;
+            event.timestamp = new Date(event.timestamp);//convert from JSON string to date
+            processEvent(core, mkCTX({
+                event: event,
+                pico_id: pico_id
+            }), callback);
         }else if(job.type === "query"){
             processQuery(core, mkCTX({
                 query: job.query,
@@ -329,7 +301,6 @@ module.exports = function(conf){
         }else{
             callback(new Error("invalid PicoQueue job.type:" + job.type));
         }
-
     });
 
     core.signalEvent = function(event_orig, callback_orig){
@@ -359,48 +330,20 @@ module.exports = function(conf){
                 callback(err);
                 return;
             }
-            var emit = undefined;
-            if (!event.security) {
-                emit = mkCTX({
-                    event: event,
-                    pico_id: pico_id,
-                }).emit;
+            var emit = mkCTX({
+                event: event,
+                pico_id: pico_id,
+            }).emit;
 
-                emit("episode_start");
-                emit("debug", "event received: " + event.domain + "/" + event.type);
+            emit("episode_start");
+            emit("debug", "event received: " + event.domain + "/" + event.type);
 
-                picoQ.enqueue(pico_id, {
-                    type: "event",
-                    event: event,
-                }, onDone);
+            picoQ.enqueue(pico_id, {
+                type: "event",
+                event: event,
+            }, onDone);
 
-                emit("debug", "event added to pico queue: " + pico_id);
-            } else if (event.security.type === "sign") {
-                db.signMessage(event, event.security.sender_eci,  function(err, signedEvent) {
-                    if (err) {
-                        var failedSignatureEvent = {};
-                        failedSignatureEvent.eci = event.security.sender_eci;
-                        failedSignatureEvent.domain = "wrangler";
-                        failedSignatureEvent.type = "signing_failed";
-                        core.signalEvent(failedSignatureEvent);
-                        onDone(err);
-                    }
-                    emit = mkCTX({
-                        event: signedEvent,
-                        pico_id: pico_id,
-                    }).emit;
-
-                    emit("episode_start");
-                    emit("debug", "signed event received: " + event.domain + "/" + event.type);
-
-                    picoQ.enqueue(pico_id, {
-                        type: "event",
-                        event: signedEvent,
-                    }, onDone);
-
-                    emit("debug", "event added to pico queue: " + pico_id);
-                });
-            }
+            emit("debug", "event added to pico queue: " + pico_id);
 
             function onDone(err, data){
                 if(err){

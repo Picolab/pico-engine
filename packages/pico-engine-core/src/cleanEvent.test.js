@@ -48,7 +48,6 @@ test("event = cleanEvent(event)", function(t){
         eci: "eci123",
         eid: "none",
         domain: "foo",
-        security: "",
         type: "bar",
         attrs: {},
     });
@@ -67,7 +66,6 @@ test("event = cleanEvent(event)", function(t){
         eci: "eci123",
         eid: "555",
         domain: "foo",
-        security: "",
         type: "bar",
         attrs: attrs,
     });
@@ -87,7 +85,6 @@ test("event = cleanEvent(event)", function(t){
         eci: "eci123",
         eid: "3 3 3 3",
         domain: "foo",
-        security: "",
         type: "bar",
         attrs: {" foo ": " don't trim these   "}
     });
@@ -102,7 +99,6 @@ test("event = cleanEvent(event)", function(t){
         eci: "eci123",
         eid: "none",
         domain: "foo",
-        security: "",
         type: "bar",
         attrs: {},
     });
@@ -118,7 +114,6 @@ test("event = cleanEvent(event)", function(t){
         eci: "eci123",
         eid: "none",
         domain: "foo",
-        security: "",
         type: "bar",
         attrs: {},
     });

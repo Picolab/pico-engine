@@ -42,15 +42,6 @@ module.exports = function(event_orig){
         eid = "none";
     }
 
-    if(event_orig.security) {
-        var securityChoice = event_orig.security.type.trim();
-        if (securityChoice !== "sign" && securityChoice !== "encrypt") {
-            event_orig.security = undefined;
-        }
-    } else {
-        event_orig.security = "";
-    }
-
     return {
 
         eci: event_orig.eci.trim(),
@@ -59,7 +50,6 @@ module.exports = function(event_orig){
 
         domain: event_orig.domain.trim(),
         type: event_orig.type.trim(),
-        security: event_orig.security,
 
         attrs: attrs,
 

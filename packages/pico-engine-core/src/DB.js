@@ -330,44 +330,6 @@ module.exports = function(opts){
             });
         },
 
-        signMessage: function(message, senderEci, callback){
-            ldb.get(["channel", senderEci], function (err, channel) {
-                if (err) return callback(err);
-                var signKey = channel.sovrin.secret.signKey;
-                var verifyKey = channel.sovrin.verifyKey;
-                var signedMessage = sovrinDID.signMessage(JSON.stringify(message), signKey, verifyKey);
-                if (signedMessage === false) {
-                    callback(new Error("Failed to sign message"));
-                }
-                var eventObj = {};
-                eventObj.signedMessage = signedMessage;
-                eventObj.eci = message.eci;
-                callback(err, eventObj);
-            });
-        },
-
-        verifySignedMessage: function(signedMessage, eci, picoId, callback) {
-            getEntVar(picoId, "io.picolabs.subscription", "subscriptions", null, function(err, subscriptions) {
-                var VERIFY_KEY_LENGTH = 44;
-                if (err)callback(err);
-                var temp = _.filter(subscriptions, function (sub){
-                    return sub.eci === eci;
-                });
-                var subscription = temp[0];
-                if (subscription) {
-                    var verifyKey = subscription.other_verify_key;
-
-                    var message = verifyKey.length === VERIFY_KEY_LENGTH
-                        ? JSON.parse(sovrinDID.verifySignedMessage(signedMessage, verifyKey))
-                        : false;
-
-                    callback(err, message);
-                } else {
-                    callback(new Error("No subscription with eci " + eci + " was found"));
-                }
-            });
-        },
-
         getRootPico: function(callback){
             ldb.get(["root_pico"], callback);
         },
