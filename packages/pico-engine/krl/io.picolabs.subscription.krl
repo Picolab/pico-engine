@@ -469,7 +469,6 @@ rule addInboundSubscription {
   rule receiveKey {
     select when wrangler sending_key
     pre {
-        test = event:attrs()
         name = event:attr("sub_name")
         verify_key = event:attr("verify_key")
         subscription = getSubscriptions(){name}

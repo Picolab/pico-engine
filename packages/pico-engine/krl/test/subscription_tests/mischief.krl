@@ -31,6 +31,9 @@ ruleset mischief {
       pre {
         thing_subs = subscription.klog("subs")
         subs_attrs = thing_subs{"attributes"}
+        map = {"test": 1}
+        message = map.encode()
+        signed_message = engine:signChannelMessage(subscription.eci, message)
       }
       if true then
       event:send({
@@ -38,7 +41,7 @@ ruleset mischief {
          "eid": "hat-lifted",
          "domain": "mischief",
          "type": "hat_lifted",
-         "security": {"type": "sign", "sender_eci": subscription.eci}
+         "attrs": {"signed_message": signed_message, "sub_name" : subscription.name}
         })
   }
 }

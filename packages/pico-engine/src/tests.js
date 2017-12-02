@@ -861,11 +861,10 @@ testPE("pico-engine", function(t, pe, root_eci){
         function(next) {
             var picoA = subscriptionPicos["picoA"];
             var picoB = subscriptionPicos["picoB"];
-            // pe.storeRuleset()
             readFile("krl/test/subscription_tests/mischief.krl").then(function(data) {
                 return registerRuleset(data);
             }).then(function(response) {
-                return readFile("krl/test/subscription_tests/thing.krl");
+                return readFile("krl/test/subscription_tests/mischief.thing.krl");
             }).then(function(data) {
                 return registerRuleset(data);
             }).then(function(response) {
@@ -878,17 +877,15 @@ testPE("pico-engine", function(t, pe, root_eci){
                 return getDBDumpWIthDelay();
             }).then(function(dump) {
                 var picoBEntvars = dump.entvars[picoB.id];
-                var serial = picoBEntvars["mischief.thing"].serial.value;
-                t.equal(serial, 1, "Successfully sent, received, and verified signed event");
+                var failed = picoBEntvars["mischief.thing"].failed.value;
+                var message = picoBEntvars["mischief.thing"].message.value;
+
+                t.equal(message, "{\"test\":1}", "Successfully sent, received, and verified signed message");
+                t.equal(failed, 1, "Successfully dealt with failed signature verification");
                 next();
             }).catch(function (err) {
                 next(err);
             });
-            // installRulesets(picoA.eci, "mischief.krl").then(function(installResponse) {
-            //    return installRulesets(picoB.eci, "thing.krl");
-            // }).then(function(installResponse) {
-            //     console.log("TEST");
-            // })
         },
         function(next) {
             console.log("////////////////// Subscription Rejection Tests //////////////////");
