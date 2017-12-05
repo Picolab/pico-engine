@@ -81,10 +81,14 @@ module.exports = function(ast, options){
         };
     };
 
-    var compile = function compile(ast, context){
+    var analysis = {
+        test: "test"/////
+    };
+
+    var compile = function compile(ast/*, analysis*/, context){
         if(_.isArray(ast)){
             return _.map(ast, function(a){
-                return compile(a);
+                return compile(a/*, analysis*/);
             });
         }else if(!_.has(ast, "type")){
             throw new Error("Invalid ast node: " + JSON.stringify(ast));
@@ -93,12 +97,15 @@ module.exports = function(ast, options){
         }
         var comp = compile;
         if(context){
-            comp = function(ast, c){
-                return compile(ast, c || context);
+            comp = function(ast/*, analysis*/, c){
+                return compile(ast/*, analysis*/, c || context);
             };
         }
         return comp_by_type[ast.type](ast, comp, mkE(ast.loc), context);
     };
 
-    return compile(ast);
+    return {
+        code: compile(ast/*, analysis*/),
+        analysis: analysis
+    };/////add api change to readme
 };

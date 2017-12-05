@@ -50,20 +50,23 @@ module.exports = function(conf){
                 callback(undefined, require(file));
                 return;
             }
-            var js_src;
+            var compOutput;
             try{
-                js_src = compiler(krl_src, {
+                compOutput = compiler(krl_src, {
                     parser_options: {
                         filename: rs_info.filename,
                     },
                     inline_source_map: true
-                }).code;
+                });
             }catch(err){
                 return callback(err);
             }
-            storeFile(file, js_src, function(err){
+            storeFile(file, compOutput.code, function(err){
                 if(err) return callback(err);
-                callback(undefined, require(file));
+                callback(void 0, {
+                    "code": require(file),
+                    "analysis": compOutput.analysis
+                });
             });
         });
     };

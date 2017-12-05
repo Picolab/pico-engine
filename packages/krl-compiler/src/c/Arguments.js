@@ -6,6 +6,9 @@ module.exports = function(ast, comp, e, context){
     var i = 0;
     _.each(ast.args, function(arg){
         if(arg.type === "NamedArgument"){
+            if(_.has(r, arg.id.value)){
+                throw new Error("two passed arguments have the same name");
+            }
             r[arg.id.value] = comp(arg.value);
             has_named = true;
 

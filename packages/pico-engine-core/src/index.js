@@ -16,9 +16,9 @@ var SymbolTable = require("symbol-table");
 var EventEmitter = require("events");
 var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
+var DependencyGraph = require("dependency-graph").DepGraph;
 var RulesetRegistry = require("./RulesetRegistry");
 var normalizeKRLArgs = require("./normalizeKRLArgs");
-var DependencyResolver = require("dependency-resolver");
 
 var applyFn = cocb.wrap(function*(fn, ctx, args){
     if(ktypes.isAction(fn)){
@@ -56,6 +56,8 @@ module.exports = function(conf){
     var host = conf.host;
     var rootRIDs = _.uniq(_.filter(conf.rootRIDs, _.isString));
     var compileAndLoadRuleset = conf.compileAndLoadRuleset;
+
+    var depResolver = new DependencyGraph();
 
     var core = {
         db: db,
@@ -170,10 +172,18 @@ module.exports = function(conf){
     };
     core.mkCTX = mkCTX;
 
-    var initializeRulest = cocb.wrap(function*(rs){
+    //includes post-compilation checks (analysis) and registration checks,
+    //which both need to know engine details/state
+    var initializeRuleset = cocb.wrap(function*(rsCodeAndAnalysis){
+        require("fs").appendFileSync("/Users/0joshuaolson1/dbg.txt",0+JSON.stringify(rsCodeAndAnalysis||null)+"\n");
+
+        var rs = rsCodeAndAnalysis.code;
         rs.scope = SymbolTable();
         rs.modules_used = {};
         core.rsreg.setupOwnKeys(rs);
+
+        depResolver.removeNode(rs.rid);//if old version exists, removes dependencies
+        depResolver.addNode(rs.rid);
 
         var use_array = _.values(rs.meta && rs.meta.use);
         var i, use, dep_rs, ctx2;
@@ -208,7 +218,9 @@ module.exports = function(conf){
                 provides: _.get(dep_rs, ["meta", "provides"], []),
             };
             core.rsreg.provideKey(rs.rid, use.rid);
+            depResolver.addDependency(rs.rid, use.rid);
         }
+        depResolver.dependenciesOf(rs.rid);//throw error on circular dependency
         var ctx = mkCTX({
             rid: rs.rid,
             scope: rs.scope
@@ -222,8 +234,8 @@ module.exports = function(conf){
     });
 
     var initializeAndEngageRuleset = function(rs, callback){
-        initializeRulest(rs).then(function(){
-            core.rsreg.put(rs);
+        initializeRuleset(rs).then(function(){
+            core.rsreg.put(rs.code);
             callback();
         }, function(err){
             process.nextTick(function(){
@@ -273,11 +285,11 @@ module.exports = function(conf){
         storeCompileAndEnable(krl_src, meta_data, function(err, data){
             if(err) return callback(err);
             initializeAndEngageRuleset(data.rs, function(err){
-                if(err){
-                    db.disableRuleset(data.rs.rid, _.noop);//undo enable if failed
+                if(err){/////data.rs.code undefined;why was there an error?
+                    db.disableRuleset(data.rs.code.rid, _.noop);//undo enable if failed
                 }
                 callback(err, {
-                    rid: data.rs.rid,
+                    rid: data.rs.code.rid,
                     hash: data.hash
                 });
             });
@@ -411,7 +423,6 @@ module.exports = function(conf){
     var registerAllEnabledRulesets = function(system_rulesets, callback){
 
         var rs_by_rid = {};
-        var resolver = new DependencyResolver();
 
         async.series([
             //
@@ -435,14 +446,15 @@ module.exports = function(conf){
                             next(err);
                             return;
                         }
-                        rs_by_rid[rs.rid] = rs;
-                        resolver.add(rs.rid);
-                        _.each(rs.meta && rs.meta.use, function(use){
+                        rs_by_rid[rid] = rs;/////once I logged that rs is wrapped as {"1":desired rs}
+                        depResolver.addNode(rid);
+                        _.each(rs.code.meta && rs.code.meta.use, function(use){
                             if(use.kind === "module"){
-                                resolver.setDependency(rs.rid, use.rid);
+                                depResolver.addNode(use.rid);
+                                depResolver.addDependency(rid, use.rid);
                             }
                         });
-                        next(null, rs);
+                        next();
                     });
                 };
                 db.listAllEnabledRIDs(function(err, rids){
@@ -456,13 +468,8 @@ module.exports = function(conf){
             // initialize Rulesets according to dependency order
             //
             function(nextStep){
-                if(_.isEmpty(rs_by_rid)){
-                    //resolver blows up if it's empty
-                    nextStep();
-                    return;
-                }
                 //order they need to be loaded in for dependencies to work
-                var rid_order = resolver.sort();
+                var rid_order = depResolver.overallOrder();
 
                 async.eachSeries(rid_order, function(rid, next){
                     var rs = rs_by_rid[rid];
@@ -497,6 +504,7 @@ module.exports = function(conf){
                 if(err) return callback(err);
 
                 core.rsreg.del(rid);
+                depResolver.removeNode(rid);
 
                 callback();
             });

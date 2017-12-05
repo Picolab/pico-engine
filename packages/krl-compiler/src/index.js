@@ -12,11 +12,12 @@ module.exports = function(input, options){
     var toLoc = src ? EStreeLoc(src, options.filepath) : _.noop;
     var ast = src ? parser(src, options.parser_options) : input;
 
-    var body = compile(ast, {
+    var compOutput = compile(ast, {
         toLoc: toLoc
     });
+    var body = compOutput.code;
 
-    var out = escodegen.generate({
+    var wrappedProgram = escodegen.generate({
         "loc": toLoc(0, src.length - 1),
         "type": "Program",
         "body": _.isArray(body) ? body : []
@@ -33,12 +34,13 @@ module.exports = function(input, options){
     });
 
     var r = {
-        code: out.code
+        code: wrappedProgram.code,
+        analysis: compOutput.analysis
     };
 
     if(options.inline_source_map){
         r.code += "\n//# sourceMappingURL=data:application/json;base64,"
-            + btoa(out.map.toString())
+            + btoa(wrappedProgram.map.toString())
             + "\n";
     }
     return r;
