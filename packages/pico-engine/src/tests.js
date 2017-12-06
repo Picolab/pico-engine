@@ -34,7 +34,7 @@ var testPE = function(name, testsFn){
         startCore({
             host: "http://fake-url",//tests don't actually setup http listening
             home: getHomePath(),
-            no_logging: false,
+            no_logging: true,
         }, function(err, pe){
             if(err) return t.end(err);
             pe.getRootECI(function(err, root_eci){
@@ -88,19 +88,11 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         ///////////////////////////////// channels testing ///////////////
         function(next){// store channels, // we don't directly test list channels.......
-            pe.runQuery({
-                eci: root_eci,
-                rid: "io.picolabs.wrangler",
-                name: "channel",
-                args: {},
-            }, function(err, data){
-                if(err) return next(err);
-                channels = data.channels;
-                t.equal(channels.length > 0,true,"channels returns a list greater than zero");
-                //console.log("channels",channels);
-                //console.log("channels[0].sovrin",channels[0].sovrin);
-                next();
-            });
+            testquery("channel",null,
+                function(data){
+                    console.log("data",data);
+                    t.equal(data.length > 0,true,"channels returns a list greater than zero");
+                }, null, null , next );
         },
         function(next){// create channels
             pe.signalEvent({
@@ -127,18 +119,18 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 console.log("//////////////////Channel Creation//////////////////");
-                t.equals(data.channels.length > channels.length, true,"channel was created");
-                t.equals(data.channels.length, channels.length + 1,"single channel was created");
+                t.equals(data.length > channels.length, true,"channel was created");
+                t.equals(data.length, channels.length + 1,"single channel was created");
                 var found = false;
-                for(var i = 0; i < data.channels.length; i++) {
-                    if (data.channels[i].id === channel.id) {
+                for(var i = 0; i < data.length; i++) {
+                    if (data[i].id === channel.id) {
                         found = true;
-                        t.deepEqual(channel, data.channels[i],"new channel is the same channel from directive");
+                        t.deepEqual(channel, data[i],"new channel is the same channel from directive");
                         break;
                     }
                 }
                 t.equals(found, true,"found correct channel in deepEqual");//redundant check
-                channels = data.channels; // update channels cache
+                channels = data; // update channels cache
                 next();
             });
         },
