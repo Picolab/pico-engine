@@ -24,7 +24,7 @@ ruleset io.picolabs.did_simulation {
       response{"status_code"} == 200 => s | null
     }
     serverForDID = function(did) {
-      path = "/sky/cloud/"+did+"/io.picolabs.pico/myself";
+      path = "/sky/cloud/"+did+"/io.picolabs.wrangler/myself";
       engine:listChannels().filter(function(c){c{"id"} == did}).length() > 0
         => ent:servers[0] // this server because this very pico!
          | ent:servers.map(function(s){tryServer(s,path)})

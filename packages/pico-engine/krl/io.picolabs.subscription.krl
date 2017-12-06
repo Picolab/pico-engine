@@ -5,7 +5,7 @@ ruleset io.picolabs.subscription {
       subscription ruleset for CS462 lab.
     >>
     author "CS462 TA"
-    use module io.picolabs.pico alias wrangler
+    use module io.picolabs.wrangler alias wrangler
     provides getSubscriptions, klogtesting, skyQuery
     shares getSubscriptions, klogtesting, skyQuery
     logging on

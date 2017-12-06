@@ -13,7 +13,7 @@ var setupRootPico = function(pe, callback){
 
         pe.runQuery({
             eci: root_eci,
-            rid: "io.picolabs.pico",
+            rid: "io.picolabs.wrangler",
             name: "myself",
         }, function(err, myself){
             if(err) return callback(err);
@@ -31,7 +31,7 @@ var setupRootPico = function(pe, callback){
             async.series([
                 signal({
                     eid: "19",
-                    domain: "pico",
+                    domain: "wrangler",
                     type: "root_created",
                     attrs: {
                         eci: root_eci,
@@ -213,7 +213,7 @@ module.exports = function(conf, callback){
 
         //RIDs that will be automatically installed on the root pico
         rootRIDs: [
-            "io.picolabs.pico",
+            "io.picolabs.wrangler",
             "io.picolabs.visual_params",
         ],
     });

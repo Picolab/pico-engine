@@ -33,7 +33,7 @@ Copy the url into a browser and see the UI.
 The first time you run the system it will create a root Pico and install two rulesets.
 
 There are two rulesets used by all Picos:
- * `io.picolabs.pico` is used by each Pico to keep track of itself and its children
+ * `io.picolabs.wrangler` is used by each Pico to keep track of itself and its children
  * `io.picolabs.visual_params` is used by each Pico to keep track of it in the My Picos page
  
 ### Using the My Picos page

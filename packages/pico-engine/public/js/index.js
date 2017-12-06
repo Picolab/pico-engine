@@ -123,7 +123,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       var installedRS = {};
       for (var rs in theRulesetInp.ruleset) {
         installedRS[rs] = theRulesetInp.ruleset[rs];
-        if (rs !== "io.picolabs.pico" && rs !== "io.picolabs.visual_params") {
+        if (rs !== "io.picolabs.wrangler" && rs !== "io.picolabs.visual_params") {
           installedRS[rs].canDel = true;
         }
         if (theRulesetInp[rs]) {
@@ -423,7 +423,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     }
   var getP = function(p,n,d) {
     if (p === undefined) return d;
-    return get(db_dump.pico,[p.id,"io.picolabs.pico","vars",n],d);
+    return get(db_dump.pico,[p.id,"io.picolabs.wrangler","vars",n],d);
   }
   var getV = function(p,n,d) {
     if (p === undefined) return d;
