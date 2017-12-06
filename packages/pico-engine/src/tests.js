@@ -34,7 +34,7 @@ var testPE = function(name, testsFn){
         startCore({
             host: "http://fake-url",//tests don't actually setup http listening
             home: getHomePath(),
-            no_logging: true,
+            no_logging: false,
         }, function(err, pe){
             if(err) return t.end(err);
             pe.getRootECI(function(err, root_eci){
