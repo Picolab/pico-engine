@@ -196,7 +196,7 @@ ruleset io.picolabs.wrangler {
     }
 
     channel = function(value,collection,filtered) {
-      channels = engine:listChannels(meta:picoId,meta:eci);
+      channels = engine:listChannels(meta:picoId);
 
       single_channel = function(channels){
         channel_list = channels;
@@ -383,8 +383,8 @@ ruleset io.picolabs.wrangler {
     select when wrangler channel_creation_requested
     pre { channel_name = event:attr("name") }
     if(checkName(channel_name) && not channel_name.isnull() ) then every {
-      createChannel(meta:picoId, 
-                    channel_name, 
+      createChannel(meta:picoId,
+                    channel_name,
                     event:attr("type").defaultsTo("_wrangler")) setting(channel);
       send_directive("channel_Created", {"channel":channel});
     }
@@ -392,7 +392,7 @@ ruleset io.picolabs.wrangler {
       raise wrangler event "channel_created" // API event
             attributes event:attrs().put(["channel"], channel);
     } else {
-      error info <<could not create channel #{channel_name}.>> 
+      error info <<could not create channel #{channel_name}.>>
     }
   }
 
@@ -450,8 +450,8 @@ ruleset io.picolabs.wrangler {
   }
 
   rule child_created {
-    select when wrangler child_created 
-      event:send({ "eci"   : event:attr("parent_eci"), 
+    select when wrangler child_created
+      event:send({ "eci"   : event:attr("parent_eci"),
                    "domain": "wrangler", "type": "child_initialized",
                    "attrs" : event:attrs() })
     always {
@@ -481,7 +481,7 @@ ruleset io.picolabs.wrangler {
     pre {
       new_child = (ent:wrangler_children{pico_id}.isnull()) =>
                     { "parent_eci":"",//placeholder // could create new channel, but then we would need to send event to child, but there is no guarantee of wrangler installed in that child....
-                      "name": event:attr("id") == pico_id && event:attr("name") 
+                      "name": event:attr("id") == pico_id && event:attr("name")
                       => event:attr("name") | "rogue_"+randomPicoName() ,
                       "id": pico_id,
                       "eci": engine:listChannels(pico_id)[0]{"id"}} | "" ; // engine creates a eci we always can get.
@@ -496,9 +496,9 @@ ruleset io.picolabs.wrangler {
     }
   }
 
-  rule pico_children_remove_sync_prep { 
+  rule pico_children_remove_sync_prep {
     select when wrangler child_sync or
-                wrangler child_deletion or 
+                wrangler child_deletion or
                 wrangler child_creation
     noop();
     always {
@@ -507,7 +507,7 @@ ruleset io.picolabs.wrangler {
                                 .put(["wrangler_children"],ent:wrangler_children)
     }
   }
-  
+
   rule pico_children_remove_sync {// remove dead children from wrangler. // does not work as intended, hard to test
     select when wrangler remove_child_sync
     foreach event:attr("wrangler_children") setting (child,id)
@@ -566,7 +566,7 @@ ruleset io.picolabs.wrangler {
                     "attrs": event:attrs() });
     }
     always{
-      schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 0.005})// ui needs children to be removed very fast(0.005 seconds), !!!this smells like poor coding practice...!!! 
+      schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 0.005})// ui needs children to be removed very fast(0.005 seconds), !!!this smells like poor coding practice...!!!
         attributes {"name"            :child{"name"},
                     "id"              :child{"id"}, "child_name":child{"name"},
                     "target"          :(event:attr("id") == child{"id"} || event:attr("name") == child{"name"} ),
@@ -575,7 +575,7 @@ ruleset io.picolabs.wrangler {
     }
   }
 
-  rule delete_child { 
+  rule delete_child {
     select when wrangler delete_child
     pre { target = event:attr("target") }
     every{

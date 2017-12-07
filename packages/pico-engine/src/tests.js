@@ -72,25 +72,37 @@ testPE("pico-engine", function(t, pe, root_eci){
                 next();
             });
     };
-    var testEvent = function(_domain,_type,_attrs,test,_eci,_eid,next){
-        pe.signalEvent({
-                eci   : _eci   || root_eci,
-                eid   : _eid   || "85",
-                domain: _domain|| "wrangler",
-                type  : _type  || "channel_creation_requested ",
-                attrs : _attrs 
-            }, function(err, response){
-                if(err) return next(err);
-                test(response);
-                next();
-            });
-    }
-    async.series([
+    var defaultQueryParams = function(_funcName, _args){
+        return {
+            eci: root_eci,
+            rid: "io.picolabs.wrangler",
+            name: _funcName,
+            args: _args,
+        };
+    };
+    // var testEvent = function(_domain,_type,_attrs,test,_eci,_eid,next){
+    //     pe.signalEvent({
+    //         eci   : _eci   || root_eci,
+    //         eid   : _eid   || "85",
+    //         domain: _domain|| "wrangler",
+    //         type  : _type  || "channel_creation_requested ",
+    //         attrs : _attrs
+    //     }, function(err, response){
+    //         if(err) return next(err);
+    //         test(response);
+    //         next();
+    //     });
+    // };
+
+    //documentation for waterfall and passing params from one function to another:
+    //https://caolan.github.io/async/docs.html#waterfall
+    async.waterfall([
         ////////////////////////////////////////////////////////////////////////
         //
         //                      Wrangler tests
         //
-
+        //TEST 1: This tests the wrangler:myself() function by querying the root pico and comparing
+        //the received eci with the known eci for that pico
         function(next){ // example , call myself function check if eci is the same as root.
             console.log("//////////////////Wrangler Testing//////////////////");
             testQuery("myself",null,
@@ -100,52 +112,69 @@ testPE("pico-engine", function(t, pe, root_eci){
                 }, null, null , next );
         },
         ///////////////////////////////// channels testing ///////////////
-        function(next){// store channels, // we don't directly test list channels.......
-            testQuery("channel",null,
-                function(data){
-                    console.log("data",data);
+        //TEST 2: This test is setting up for Test 4. Test 2 will query for all of the channels on
+        //the root pico and then pass those channels to the next function. Test 3 will
+        //attempt to create a new channel. Test 4 will make the actual comparison.
+        function(next){
+            pe.runQuery(
+                defaultQueryParams("channel", {})
+                , function(err, data){
+                    if(err) return next(err);
+                    console.log();
                     t.equal(data.length > 0,true,"channels returns a list greater than zero");
-                }, null, null , next );
+                    next(null, data);//data is the array of channels. null as the first arg as per the waterfall docs (there is no error).
+                });
         },
-        function(next){// create channels
-            testEvent()
-
+        //TEST 3: Create a new channel and store it in the newChannel variable. Pass both the
+        //channels and newChannel variable on to the next function
+        function(channels, next){// create channels
             pe.signalEvent({
                 eci: root_eci,
                 eid: "85",
-                domain: "pico",
+                domain: "wrangler",
                 type: "channel_creation_requested ",
                 attrs: {name:"ted",type:"type"}
             }, function(err, response){
                 if(err) return next(err);
                 //console.log("this is the response of createChannel: ",response.directives[0].options);
                 t.deepEqual(response.directives[0].options.channel.name, "ted","correct directive");
-                channel = response.directives[0].options.channel;
+                var createdChannel = response.directives[0].options.channel;
                 ted = channel;
-                next();
+                next(null, channels, createdChannel);
             });
         },
-        function(next){// compare with store,
+        //TEST 4: Query for the new list of channes and compare with the old list of channels
+        //TEST 5: Make sure only 1 channel was created, not multiple channels
+        function(previousChannels, createdChannel, next){// compare with store,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
                 name: "channel",
                 args: {},
-            }, function(err, data){
+            }, function(err, currentChannels){
                 if(err) return next(err);
                 console.log("//////////////////Channel Creation//////////////////");
-                t.equals(data.length > channels.length, true,"channel was created");
-                t.equals(data.length, channels.length + 1,"single channel was created");
+                t.equals(currentChannels.length > previousChannels.length, true,"channel was created");
+                t.equals(currentChannels.length, previousChannels.length + 1,"single channel was created");
                 var found = false;
-                for(var i = 0; i < data.length; i++) {
-                    if (data[i].id === channel.id) {
+                for(var i = 0; i < currentChannels.length; i++) {
+                    if (currentChannels[i].id === createdChannel.id) {
                         found = true;
-                        t.deepEqual(channel, data[i],"new channel is the same channel from directive");
+                        t.deepEqual(createdChannel, currentChannels[i],"new channel is the same channel from directive");
                         break;
                     }
                 }
                 t.equals(found, true,"found correct channel in deepEqual");//redundant check
-                channels = data; // update channels cache
+
+
+
+                /*
+                THIS IS WHERE I ENDED ADAM
+                */
+
+
+
+                //channels = data; // update channels cache
                 next();
             });
         },
@@ -153,7 +182,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "85",
-                domain: "pico",
+                domain: "wrangler",
                 type: "channel_creation_requested ",
                 attrs: {name:"ted",type:"type"}
             }, function(err, response){
@@ -170,7 +199,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                t.equals(data.channels.length, channels.length,"no duplicate channel was created");
+                t.equals(data.length, channels.length,"no duplicate channel was created");
                 next();
             });
         },
@@ -178,7 +207,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "85",
-                domain: "pico",
+                domain: "wrangler",
                 type: "channel_creation_requested ",
                 attrs: {name:"carl",type:"typeC"}
             }, function(err, response){
@@ -194,7 +223,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "85",
-                domain: "pico",
+                domain: "wrangler",
                 type: "channel_creation_requested ",
                 attrs: {name:"bill",type:"typeB"}
             }, function(err, response){
@@ -326,7 +355,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "85",
-                domain: "pico",
+                domain: "wrangler",
                 type: "channel_deletion_requested ",
                 attrs: {name:"ted"}
             }, function(err, response){
@@ -363,7 +392,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "85",
-                domain: "pico",
+                domain: "wrangler",
                 type: "channel_deletion_requested ",
                 attrs: {eci:carl.id}
             }, function(err, response){
@@ -415,7 +444,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "94",
-                domain: "pico",
+                domain: "wrangler",
                 type: "install_rulesets_requested ",
                 attrs: {rids:"io.picolabs.logging"}
             }, function(err, response){
@@ -452,7 +481,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "94",
-                domain: "pico",
+                domain: "wrangler",
                 type: "uninstall_rulesets_requested ",
                 attrs: {rids:"io.picolabs.logging"}
             }, function(err, response){
@@ -488,7 +517,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "94",
-                domain: "pico",
+                domain: "wrangler",
                 type: "install_rulesets_requested ",
                 attrs: {rids:"io.picolabs.logging;io.picolabs.subscription"}
             }, function(err, response){
@@ -531,7 +560,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "94",
-                domain: "pico",
+                domain: "wrangler",
                 type: "uninstall_rulesets_requested ",
                 attrs: {rids:"io.picolabs.logging;io.picolabs.subscription"}
             }, function(err, response){
@@ -620,7 +649,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "84",
-                domain: "pico",
+                domain: "wrangler",
                 type: "new_child_request",
                 attrs: {name:"ted"}
             }, function(err, response){
@@ -708,7 +737,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "84",
-                domain: "pico",
+                domain: "wrangler",
                 type: "new_child_request",
                 attrs: {name:"ted"}
             }, function(err, response){
@@ -722,7 +751,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "84",
-                domain: "pico",
+                domain: "wrangler",
                 type: "new_child_request",
                 attrs: {}
             }, function(err, response){
@@ -737,7 +766,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "85",
-                domain: "pico",
+                domain: "wrangler",
                 type: "delete_child_request_by_pico_id",
                 attrs: {name:"ted"}
             }, function(err, response){
@@ -898,7 +927,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         return new Promise(function(resolve, reject) {
             pe.signalEvent({
                 eci: eci,
-                domain: "pico",
+                domain: "wrangler",
                 type: "install_rulesets_requested ",
                 attrs: {rids: rulesets}
             }, function(err, response) {
@@ -911,7 +940,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.signalEvent({
                 eci: root_eci,
                 eid: "84",
-                domain: "pico",
+                domain: "wrangler",
                 type: "new_child_request",
                 attrs: {name: name}
             }, function(err, response){
