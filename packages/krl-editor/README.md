@@ -12,3 +12,9 @@ Then open your browser to [http://localhost:9090/](http://localhost:9090/) It wi
 `src/mode.js` - this is where the magic happens.
 
 `dist/index.html` - this is the sample html file that the dev server uses
+
+
+To copy build and copy it over to pico-engine
+```
+$ npm run build
+```

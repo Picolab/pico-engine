@@ -1,22 +1,3 @@
-$(window).on("resize",function(){
-  // adapted from http://stackoverflow.com/a/43498610 with thanks
-  var $textArea = $("#lined");
-  var theText = $textArea.val();
-  var $theForm = $textArea.parent().parent().parent();
-  var startSel = $textArea[0].selectionStart;
-  var endSel = $textArea[0].selectionEnd;
-  var scrollPos = $textArea.scrollTop();
-  var inFocus = $textArea[0] == document.activeElement;
-  $textArea.parent().parent().remove();
-  $theForm.prepend("<textarea id=\"lined\" name=\"src\"></textarea>");
-  $textArea = $("#lined");
-  $textArea.val(theText);
-  $textArea[0].selectionStart = startSel;
-  $textArea[0].selectionEnd = endSel;
-  $textArea.linedtextarea();
-  $textArea.scrollTop(scrollPos);
-  if(inFocus) $textArea.focus();
-});
 $(document).ready(function() {
   var rid = location.hash.substring(1);
   if (!String.prototype.escapeHTML) {
@@ -94,7 +75,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       document.title = $('body h1').html();
       $(".krlrid span").click(displayKrl);
       $(".krlsrc input").val(rid);
-      $("#lined").linedtextarea();
+      KRL_EDITOR(document.getElementById("krl-editor"));
       if(rid){
         $(".krlrid").filter(function(){
           return $(this).find('span').text() === rid;
