@@ -62,7 +62,7 @@ testPE("pico-engine", function(t, pe, root_eci){
     var SHARED_A = "shared:A";
     var SUBS_RID = "io.picolabs.subscription";
     // helper functions
-    var testquery = function( _name, _args, test, _eci, _rid, next){
+    var testQuery = function( _name, _args, test, _eci, _rid, next){
         var _query= { eci: _eci || root_eci, rid : _rid || "io.picolabs.wrangler", name: _name, args: _args || {} };
         console.log("_query",_query);
         pe.runQuery(_query,
@@ -72,6 +72,19 @@ testPE("pico-engine", function(t, pe, root_eci){
                 next();
             });
     };
+    var testEvent = function(_domain,_type,_attrs,test,_eci,_eid,next){
+        pe.signalEvent({
+                eci   : _eci   || root_eci,
+                eid   : _eid   || "85",
+                domain: _domain|| "wrangler",
+                type  : _type  || "channel_creation_requested ",
+                attrs : _attrs 
+            }, function(err, response){
+                if(err) return next(err);
+                test(response);
+                next();
+            });
+    }
     async.series([
         ////////////////////////////////////////////////////////////////////////
         //
@@ -80,7 +93,7 @@ testPE("pico-engine", function(t, pe, root_eci){
 
         function(next){ // example , call myself function check if eci is the same as root.
             console.log("//////////////////Wrangler Testing//////////////////");
-            testquery("myself",null,
+            testQuery("myself",null,
                 function(data){
                     console.log("data",data);
                     t.equals(data.eci, root_eci);
@@ -88,13 +101,15 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         ///////////////////////////////// channels testing ///////////////
         function(next){// store channels, // we don't directly test list channels.......
-            testquery("channel",null,
+            testQuery("channel",null,
                 function(data){
                     console.log("data",data);
                     t.equal(data.length > 0,true,"channels returns a list greater than zero");
                 }, null, null , next );
         },
         function(next){// create channels
+            testEvent()
+
             pe.signalEvent({
                 eci: root_eci,
                 eid: "85",
