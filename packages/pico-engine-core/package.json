@@ -43,7 +43,7 @@
     "comment-regex": "^1.0.0",
     "cuid": "^1.3.8",
     "dependency-resolver": "^2.0.1",
-    "encoding-down": "^2.3.4",
+    "encoding-down": "^3.0.0",
     "krl-stdlib": "^0.42.0",
     "level-json-coerce-null": "^1.0.1",
     "levelup": "^2.0.0",
