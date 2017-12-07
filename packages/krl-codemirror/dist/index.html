@@ -1,0 +1,33 @@
+<div style="border:1px solid black">
+<textarea id="krl-editor">ruleset io.picolabs.hello_world {
+    meta {
+        name "Hello World"
+        description <<
+A first ruleset for the Quickstart
+        >>
+
+        author "Phil Windley"
+        logging on
+        shares hello // some comment
+    }
+    /**
+     * some other comment
+     */
+    global {
+        hello = function(obj){
+            msg = "Hello " + obj;
+            msg;
+        }
+    }
+    rule say_hello {
+        select when echo hello
+
+        send_directive("say", {"something": "Hello World"});
+    }
+}
+</textarea>
+</div>
+<script src="bundle.js"></script>
+<script>
+    KRL_EDITOR(document.getElementById("krl-editor"));
+</script>

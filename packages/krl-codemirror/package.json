@@ -1,0 +1,36 @@
+{
+  "name": "krl-codemirror",
+  "version": "0.42.0",
+  "description": "In browser editor for KRL",
+  "main": "src/index.js",
+  "files": [
+    "src/"
+  ],
+  "scripts": {
+    "start": "webpack-dev-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Picolab/pico-engine.git"
+  },
+  "keywords": [
+    "pico-engine",
+    "krl",
+    "editor"
+  ],
+  "author": "Picolab",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Picolab/pico-engine/issues"
+  },
+  "homepage": "https://github.com/Picolab/pico-engine#readme",
+  "devDependencies": {
+    "css-loader": "^0.28.7",
+    "style-loader": "^0.19.0",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.9.7"
+  },
+  "dependencies": {
+    "codemirror": "^5.32.0"
+  }
+}
