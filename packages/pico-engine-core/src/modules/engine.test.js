@@ -651,3 +651,50 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
     yield assertInvalidPicoID(listRIDs    , "id404", "NotFoundError: Pico not found: id404");
 
 });
+
+test("engine:signChannelMessage, engine:verifySignedMessage", function(t){
+    cocb.run(function*(){
+        var pe = yield (cocb.wrap(mkTestPicoEngine)({
+            rootRIDs: ["io.picolabs.engine"],
+            __dont_use_sequential_ids_for_testing: true,
+        }));
+        var getPicoIDByECI = yield pe.modules.get({}, "engine", "getPicoIDByECI");
+        var newChannel = yield pe.modules.get({}, "engine", "newChannel");
+        var signChannelMessage = yield pe.modules.get({}, "engine", "signChannelMessage");
+        var verifySignedMessage = yield pe.modules.get({}, "engine", "verifySignedMessage");
+        var sign = function(eci, message){
+            return signChannelMessage({}, [eci, message]);
+        };
+        var verify = function(verifyKey, message){
+            return verifySignedMessage({}, [verifyKey, message]);
+        };
+
+        var eci = yield cocb.wrap(pe.getRootECI)();
+        var pico_id = yield getPicoIDByECI({}, [eci]);
+
+        var chan0 = yield newChannel({}, [pico_id, "one", "one"]);
+        var eci0 = chan0[0].id;
+        var vkey0 = chan0[0].sovrin.verifyKey;
+
+        var chan1 = yield newChannel({}, [pico_id, "two", "two"]);
+        var eci1 = chan1[0].id;
+        var vkey1 = chan1[0].sovrin.verifyKey;
+
+        var msg = "some long message! could be json {\"hi\":1}";
+        var signed0 = yield sign(eci0, msg);
+        var signed1 = yield sign(eci1, msg);
+        t.ok(_.isString(signed0));
+        t.ok(_.isString(signed1));
+        t.notEquals(signed0, signed1);
+
+        t.equals(yield verify(vkey0, signed0), msg);
+        t.equals(yield verify(vkey1, signed1), msg);
+
+        t.equals(yield verify(vkey1, signed0), false, "wrong vkey");
+        t.equals(yield verify(vkey0, signed1), false, "wrong vkey");
+
+        t.equals(yield verify("hi", signed1), false, "rubish vkey");
+        t.equals(yield verify(vkey0, "notbs58:%=+!"), false, "not bs58 message");
+
+    }, t.end);
+});

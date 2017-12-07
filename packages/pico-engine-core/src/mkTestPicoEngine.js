@@ -33,7 +33,7 @@ module.exports = function(opts, callback){
         rootRIDs: opts.rootRIDs,
         db: {
             db: opts.ldb || memdown(cuid()),
-            __use_sequential_ids_for_testing: true,
+            __use_sequential_ids_for_testing: !opts.__dont_use_sequential_ids_for_testing,
         },
         modules: opts.modules,
     });
