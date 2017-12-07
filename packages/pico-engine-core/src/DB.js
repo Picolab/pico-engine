@@ -189,10 +189,6 @@ module.exports = function(opts){
         valueEncoding: safeJsonCodec
     }));
 
-    var getEntVar = function(pico_id, rid, var_name, query, callback){
-        getPVar(ldb, ["entvars", pico_id, rid, var_name], query, callback);
-    };
-
     var newID = cuid;
     var genDID = sovrinDID.gen;
     if(opts.__use_sequential_ids_for_testing){
@@ -333,6 +329,7 @@ module.exports = function(opts){
         getRootPico: function(callback){
             ldb.get(["root_pico"], callback);
         },
+
 
         getParent: function(pico_id, callback){
             ldb.get(["pico", pico_id], function(err, data){
@@ -561,7 +558,9 @@ module.exports = function(opts){
         putEntVar: function(pico_id, rid, var_name, query, val, callback){
             putPVar(ldb, ["entvars", pico_id, rid, var_name], query, val, callback);
         },
-        getEntVar: getEntVar,
+        getEntVar: function(pico_id, rid, var_name, query, callback){
+            getPVar(ldb, ["entvars", pico_id, rid, var_name], query, callback);
+        },
         delEntVar: function(pico_id, rid, var_name, query, callback){
             delPVar(ldb, ["entvars", pico_id, rid, var_name], query, callback);
         },
