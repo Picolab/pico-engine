@@ -93,6 +93,18 @@ module.exports = function(pe){
         res.json({"version": version});
     });
 
+    var toLegacyPVar = function(val){
+        var value = val && val.value;
+        if(!value && val){
+            if(val.type === "Map"){
+                value = {};
+            }else if(val.type === "Array"){
+                value = [];
+            }
+        }
+        return value;
+    };
+
     app.all("/api/db-dump", function(req, res){
         pe.dbDump(function(err, db_data){
             if(err) return errResp(res, err);
@@ -100,13 +112,13 @@ module.exports = function(pe){
             if(req.query.legacy){
                 _.each(db_data.appvars, function(vars, rid){
                     _.each(vars, function(val, name){
-                        _.set(db_data, ["resultset", rid, "vars", name], val && val.value);
+                        _.set(db_data, ["resultset", rid, "vars", name], toLegacyPVar(val));
                     });
                 });
                 _.each(db_data.entvars, function(by_rid, pico_id){
                     _.each(by_rid, function(vars, rid){
                         _.each(vars, function(val, name){
-                            _.set(db_data, ["pico", pico_id, rid, "vars", name], val && val.value);
+                            _.set(db_data, ["pico", pico_id, rid, "vars", name], toLegacyPVar(val));
                         });
                     });
                 });
