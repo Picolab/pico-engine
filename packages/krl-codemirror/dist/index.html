@@ -1,4 +1,14 @@
-<div style="border:1px solid black">
+<style>
+html, body {
+    height: 100%;
+    width: 100%;
+}
+.CodeMirror {
+    height: 90% !important;
+    width: 90% !important;
+    border: 1px solid black;
+}
+</style>
 <textarea id="krl-editor">ruleset io.picolabs.hello_world {
     meta {
         name "Hello World"
@@ -24,9 +34,22 @@ A first ruleset for the Quickstart
 
         send_directive("say", {"something": "Hello World"});
     }
+    rule set_attr2 {
+        select when events set_attr2
+                number re#[Nn]0*(\d*)#
+                name re#(.*)#
+                setting(number, name)
+
+        send_directive("set_attr2", {
+            "number": number,
+            "name": name
+        });
+        always {
+            ent:foo := [1, 2]
+        }
+    }
 }
 </textarea>
-</div>
 <script src="bundle.js"></script>
 <script>
     KRL_EDITOR(document.getElementById("krl-editor"));
