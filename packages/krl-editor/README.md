@@ -1,0 +1,14 @@
+# krl-editor
+
+In browser editor for KRL
+
+## How to help
+
+```
+$ npm start
+```
+Then open your browser to [http://localhost:9090/](http://localhost:9090/) It will hot-reload when you make changes.
+
+`src/mode.js` - this is where the magic happens.
+
+`dist/index.html` - this is the sample html file that the dev server uses

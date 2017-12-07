@@ -12,7 +12,7 @@ var conf = {
     output: {
         path: path.resolve(__dirname, "dist"),
         publicPath: "/",
-        filename: "bundle.js"
+        filename: "krl-editor.js"
     },
 
     module: {

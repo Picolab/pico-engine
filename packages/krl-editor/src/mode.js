@@ -1,4 +1,7 @@
 module.exports = function(CodeMirror){
+
+    // see http://codemirror.net/demo/simplemode.html
+
     CodeMirror.defineSimpleMode("krl", {
         start: [
             {regex: /"(?:[^\\]|\\.)*?(?:"|$)/, token: "string"},

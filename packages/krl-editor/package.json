@@ -1,5 +1,5 @@
 {
-  "name": "krl-codemirror",
+  "name": "krl-editor",
   "version": "0.42.0",
   "description": "In browser editor for KRL",
   "main": "src/index.js",
@@ -7,7 +7,8 @@
     "src/"
   ],
   "scripts": {
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server",
+    "build": "NODE_ENV=production webpack"
   },
   "repository": {
     "type": "git",
