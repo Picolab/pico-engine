@@ -29,6 +29,12 @@ var conf = {
 
     plugins: [],
 
+    resolveLoader: {
+        alias: {
+            "ace-webworker-loader": path.join(__dirname, "ace-webworker-loader.js"),
+        }
+    },
+
     devServer: {
         hot: true,
         port: 9090,
