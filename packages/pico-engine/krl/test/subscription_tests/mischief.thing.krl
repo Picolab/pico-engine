@@ -24,6 +24,26 @@ ruleset mischief.thing {
     }
   }
 
+rule bad_decrypt {
+    select when mischief encrypted
+    pre {
+        subscriptions = Subscriptions:getSubscriptions()
+        subscription = subscriptions{event:attr("sub_name")}
+        nonce = event:attr("nonce")
+        encrypted_message = event:attr("encryptedMessage")
+
+        decrypted_message = engine:decryptMessage(subscription.eci, encrypted_message, nonce, "bad key")
+    }
+    if verified_message != false then
+      noop()
+    fired {
+        ent:shouldNotHaveDecrypted := true;
+    }
+    else {
+      raise wrangler event "decryption_failed"
+    }
+   }
+
    rule bad_signature {
     select when mischief hat_lifted
     pre {
@@ -59,6 +79,7 @@ ruleset mischief.thing {
     }
 
   }
+
   rule signature_failed {
     select when wrangler signature_verification_failed
     always {
@@ -66,6 +87,14 @@ ruleset mischief.thing {
     }
 
   }
+
+   rule decryption_failed {
+      select when wrangler signature_verification_failed
+      always {
+        ent:decryption_failure := (ent:decryption_failed.defaultsTo(0) + 1)
+      }
+
+    }
 
   rule mischief_hat_lifted {
     select when mischief hat_lifted

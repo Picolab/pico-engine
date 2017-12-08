@@ -316,21 +316,26 @@ module.exports = function(opts){
                     callback(err);
                     return;
                 }
-                var sharedSecret = channel.sovrin.sharedSecret;
-                if (!sharedSecret) {
-                    var privateKey = channel.sovrin.secret.encryptionPrivateKey;
-                    sharedSecret = sovrinDID.getSharedSecret(otherPublicKey, privateKey);
-                    ldb.put(["channel", eci, "sovrin", "secret", "sharedSecret"], bs58.encode(sharedSecret), function(err){
-                        if (err) {
-                            callback(err);
-                        }
-                    });
-                } else {
-                    sharedSecret = bs58.decode(sharedSecret);
+                try {
+                    var sharedSecret = channel.sovrin.sharedSecret;
+                    if (!sharedSecret) {
+                        var privateKey = channel.sovrin.secret.encryptionPrivateKey;
+                        sharedSecret = sovrinDID.getSharedSecret(otherPublicKey, privateKey);
+                        ldb.put(["channel", eci, "sovrin", "secret", "sharedSecret"], bs58.encode(sharedSecret), function(err){
+                            if (err) {
+                                callback(err);
+                            }
+                        });
+                    } else {
+                        sharedSecret = bs58.decode(sharedSecret);
+                    }
+                    encryptedMessage = bs58.decode(encryptedMessage);
+                    nonce = bs58.decode(nonce);
+                    var decryptedMessage = sovrinDID.decryptMessage(encryptedMessage, nonce, sharedSecret);
+                } catch(e) {
+                    callback(null, false);
+                    return;
                 }
-                encryptedMessage = bs58.decode(encryptedMessage);
-                nonce = bs58.decode(nonce);
-                var decryptedMessage = sovrinDID.decryptMessage(encryptedMessage, nonce, sharedSecret);
 
                 if (decryptedMessage === false) {
                     callback(new Error("Failed to decrypt message"));

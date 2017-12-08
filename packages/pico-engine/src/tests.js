@@ -905,14 +905,11 @@ testPE("pico-engine", function(t, pe, root_eci){
 
                 var picoBEntvars = dump.entvars[picoB.id];
                 var message = picoBEntvars["mischief.thing"].decrypted_message.value;
+                var decryptionFailed = picoBEntvars["mischief.thing"].decryption_failure.value;
 
                 t.deepEqual(message, {encryption: 1}, "Successfully sent, received, and decrypted encrypted message");
-                // var picoBEntvars = dump.entvars[picoB.id];
-                // console.log(picoBEntvars);
-                // var channels = dump.channel;
-                // for (var channel in channels) {
-                //     console.log(channels[channel].sovrin.secret);
-                // }
+                t.equal(decryptionFailed, 1, "Properly handled failed decryption");
+
                 next();
             }).catch(function (err) {
                 next(err);
