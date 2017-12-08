@@ -346,7 +346,7 @@ module.exports = function(opts){
                     decryptedMessage = ktypes.isString(decryptedMessage) ? JSON.parse(decryptedMessage) : false;
 
                 } catch (e) {
-
+                    // Not a json object so just continue
                 }
                 callback(err, decryptedMessage);
             });
