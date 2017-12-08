@@ -340,7 +340,7 @@ module.exports = function(opts){
                     return;
                 }
 
-                callback(null, ktypes.decode(decryptedMessage));
+                callback(null, decryptedMessage);
             });
 
         },

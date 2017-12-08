@@ -32,9 +32,9 @@ rule bad_decrypt {
         nonce = event:attr("nonce")
         encrypted_message = event:attr("encryptedMessage")
 
-        decrypted_message = engine:decryptMessage(subscription.eci, encrypted_message, nonce, "bad key")
+        decrypted_message = engine:decryptChannelMessage(subscription.eci, encrypted_message, nonce, "bad key")
     }
-    if verified_message != false then
+    if decrypted_message != false then
       noop()
     fired {
         ent:shouldNotHaveDecrypted := true;
@@ -68,12 +68,12 @@ rule bad_decrypt {
         nonce = event:attr("nonce")
         encrypted_message = event:attr("encryptedMessage")
 
-        decrypted_message = engine:decryptMessage(subscription.eci, encrypted_message, nonce, subscription{"other_encryption_public_key"})
+        decrypted_message = engine:decryptChannelMessage(subscription.eci, encrypted_message, nonce, subscription{"other_encryption_public_key"})
     }
     if decrypted_message != false then
       noop()
     fired {
-      ent:decrypted_message := decrypted_message
+      ent:decrypted_message := decrypted_message.decode()
     } else {
       raise wrangler event "decryption_failure"
     }
@@ -106,7 +106,7 @@ rule bad_decrypt {
     if verified_message != false then
       noop()
     fired {
-      ent:message := verified_message
+      ent:message := verified_message.decode()
     } else {
       raise wrangler event "signature_verification_failed"
     }

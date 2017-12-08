@@ -442,7 +442,7 @@ module.exports = function(core){
                 return;
             }
 
-            callback(null, ktypes.decode(message));
+            callback(null, message);
         }),
 
     };
