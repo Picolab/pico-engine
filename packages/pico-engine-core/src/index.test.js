@@ -734,6 +734,9 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
                 [{name: "conf_name", options: {name: "Jim"}}]
             ],
 
+            // Test using a module in the global block
+            [queryUsed("dfltName"), "Bob"],
+
             // Test using provided functions that use `ent` vars
             // NOTE: the dependent ruleset is NOT added to the pico
             [

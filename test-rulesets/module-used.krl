@@ -8,7 +8,7 @@ ruleset io.picolabs.module-used {
             with
                 configured_name = "Jim"
 
-        shares now, getEntVal
+        shares now, getEntVal, dfltName
     }
     global {
         now = function(){
@@ -17,6 +17,7 @@ ruleset io.picolabs.module-used {
         getEntVal = function(){
             ent:val;
         }
+        dfltName = my_module_dflt:getName()
     }
     rule dflt_name {
         select when module_used dflt_name

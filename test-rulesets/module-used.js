@@ -18,7 +18,8 @@ module.exports = {
     ],
     "shares": [
       "now",
-      "getEntVal"
+      "getEntVal",
+      "dfltName"
     ]
   },
   "global": function* (ctx) {
@@ -28,6 +29,7 @@ module.exports = {
     ctx.scope.set("getEntVal", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "val");
     }));
+    ctx.scope.set("dfltName", yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []));
   },
   "rules": {
     "dflt_name": {

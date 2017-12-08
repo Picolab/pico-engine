@@ -216,6 +216,7 @@ module.exports = function(conf){
         if(_.isFunction(rs.meta && rs.meta.configure)){
             yield runKRL(rs.meta.configure, ctx);
         }
+        core.rsreg.put(rs);
         if(_.isFunction(rs.global)){
             yield runKRL(rs.global, ctx);
         }
@@ -223,7 +224,6 @@ module.exports = function(conf){
 
     var initializeAndEngageRuleset = function(rs, callback){
         initializeRulest(rs).then(function(){
-            core.rsreg.put(rs);
             callback();
         }, function(err){
             process.nextTick(function(){
