@@ -390,6 +390,32 @@ module.exports = function(core){
             });
         }),
 
+        encryptChannelMessage: mkKRLfn([
+            "eci",
+            "message",
+            "otherPublicKey"
+        ], function(ctx, args, callback){
+            var eci = assertArg("encryptChannelMessage", args, "eci", "String");
+            var message = assertArg("encryptChannelMessage", args, "message", "String");
+            var otherPublicKey = assertArg("encryptChannelMessage", args, "otherPublicKey", "String");
+
+            core.db.encryptChannelMessage(eci, message, otherPublicKey, callback);
+        }),
+
+        decryptChannelMessage: mkKRLfn([
+            "eci",
+            "encryptedMessage",
+            "nonce",
+            "otherPublicKey"
+        ], function(ctx, args, callback){
+            var eci = assertArg("decryptChannelMessage", args, "eci", "String");
+            var encryptedMessage = assertArg("decryptChannelMessage", args, "encryptedMessage", "String");
+            var nonce = assertArg("decryptChannelMessage", args, "nonce", "String");
+            var otherPublicKey = assertArg("decryptChannelMessage", args, "otherPublicKey", "String");
+
+            core.db.decryptChannelMessage(eci, encryptedMessage, nonce, otherPublicKey, callback);
+        }),
+
         signChannelMessage: mkKRLfn([
             "eci",
             "message",
@@ -410,11 +436,13 @@ module.exports = function(core){
             try{
                 message = bs58.decode(message);
                 message = sovrinDID.verifySignedMessage(message, verifyKey);
+                if(message === false) throw "failed";
             }catch(e){
                 callback(null, false);
                 return;
             }
-            callback(null, ktypes.isString(message) ? message : false);
+
+            callback(null, message);
         }),
 
     };

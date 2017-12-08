@@ -217,7 +217,7 @@ ruleset io.picolabs.subscription {
        engine:newChannel(getSelf()["id"], options.name, options.eci_type) setting(channel);
     }
     fired {
-      newSubscription = {"eci": channel.id, "name": channel.name,"type": channel.type, "attributes": options.attributes, "verify_key": channel.sovrin.verifyKey};
+      newSubscription = {"eci": channel.id, "name": channel.name,"type": channel.type, "attributes": options.attributes, "verify_key": channel.sovrin.verifyKey, "encryption_public_key": channel.sovrin.encryptionPublicKey};
       updatedSubs = getSubscriptions().put([newSubscription.name] , newSubscription) ;
       newSubscription.klog(">> successful created subscription request >>");
       ent:subscriptions := updatedSubs;
@@ -350,7 +350,8 @@ ruleset io.picolabs.subscription {
         "name": channel.name,
         "type": channel.type,
         "attributes": options.attributes,
-        "verify_key": channel.sovrin.verifyKey
+        "verify_key": channel.sovrin.verifyKey,
+        "encryption_public_key": channel.sovrin.encryptionPublicKey
       };
       logs.klog(standardOut("successful pending incoming"));
       ent:subscriptions := getSubscriptions().put( [newSubscription.name] , newSubscription );
@@ -366,8 +367,7 @@ ruleset io.picolabs.subscription {
 //    }
 //  }
 
-// TODO:: THING
-rule approveInboundPendingSubscription { 
+rule approveInboundPendingSubscription {
     select when wrangler pending_subscription_approval
     pre{
       logs = event:attrs().klog("approveInboundPendingSubscription attrs")
@@ -377,7 +377,8 @@ rule approveInboundPendingSubscription {
       inbound_eci = subs{[channel_name,"eci"]}.klog("subscription inbound")
       outbound_eci = subs{[channel_name,"attributes","outbound_eci"]}.klog("subscriptions outbound")
       verify_key = subs{[channel_name]}.klog("subscription inbound")
-      verify_key = verify_key{"verify_key"}.klog("VERIFY KEY")
+      verify_key = verify_key{"verify_key"}
+      encryption_public_key = verify_key{"encryption_public_key"}
     }
     if (outbound_eci) then
       event:send({
@@ -386,10 +387,11 @@ rule approveInboundPendingSubscription {
           "attrs": {"outbound_eci" : inbound_eci , 
                       "status" : "outbound",
                       "channel_name" : channel_name,
-                      "verify_key" : verify_key
+                      "verify_key" : verify_key,
+                      "encryption_public_key" : encryption_public_key
                    }
           }, subscriber_host)
-    fired 
+    fired
     {
       logs.klog(standardOut(">> Sent accepted subscription events >>"));
       raise wrangler event "pending_subscription_approved" attributes {
@@ -424,6 +426,7 @@ rule approveInboundPendingSubscription {
          "domain": "wrangler", "type": "sending_key",
          "attrs": {
              "verify_key" : updatedSubscription.verify_key ,
+             "encryption_public_key" : updatedSubscription.encryption_public_key ,
              "sub_name" : updatedSubscription.name
          }
       })
@@ -455,6 +458,7 @@ rule addInboundSubscription {
                 "domain": "wrangler", "type": "sending_key",
                 "attrs": {
                     "verify_key" : updatedSubscription.verify_key,
+                    "encryption_public_key" : updatedSubscription.encryption_public_key,
                     "sub_name" : updatedSubscription.name
                 }
               })
@@ -471,9 +475,11 @@ rule addInboundSubscription {
     pre {
         name = event:attr("sub_name")
         verify_key = event:attr("verify_key")
+        encryption_public_key = event:attr("encryption_public_key")
         subscription = getSubscriptions(){name}
-//        secret = engine:signMessage(verify_key, subscription.eci)
-        updatedSubscription = subscription.put({"other_verify_key" : verify_key})
+        updatedSubscription = subscription.put({"other_verify_key": verify_key,
+                                                "other_encryption_public_key": encryption_public_key
+                                              })
     }
     always {
         ent:subscriptions := getSubscriptions().put([updatedSubscription.name],updatedSubscription);
@@ -521,7 +527,7 @@ rule addInboundSubscription {
     always {
       ent:subscriptions := updatedSubscription;
       self = getSelf();
-      subscription.klog(standardOut("success, attemped to remove subscription"));
+      subscription.klog(standardOut("success, attempted to remove subscription"));
       raise wrangler event "subscription_removed" attributes {// event to nothing
         "removed_subscription" : subscription
       }
