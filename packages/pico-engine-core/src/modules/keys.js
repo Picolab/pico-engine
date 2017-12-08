@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
 
 module.exports = function(core){
@@ -20,7 +21,7 @@ module.exports = function(core){
                 }
                 if(!_.has(key, name)){
                     //the user must know ASAP when they try and use a sub-key that doesn't exist
-                    callback(new Error("keys:" + id + "(" + JSON.stringify(name) + ") not defined"));
+                    callback(new Error("keys:" + id + "(" + ktypes.encode(name) + ") not defined"));
                     return;
                 }
                 callback(null, key[name]);

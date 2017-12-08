@@ -402,18 +402,18 @@ module.exports = function(core){
             core.db.encryptChannelMessage(eci, message, otherPublicKey, callback);
         }),
 
-        decryptMessage: mkKRLfn([
+        decryptChannelMessage: mkKRLfn([
             "eci",
             "encryptedMessage",
             "nonce",
             "otherPublicKey"
         ], function(ctx, args, callback){
-            var eci = assertArg("decryptMessage", args, "eci", "String");
-            var encryptedMessage = assertArg("decryptMessage", args, "encryptedMessage", "String");
-            var nonce = assertArg("decryptMessage", args, "nonce", "String");
-            var otherPublicKey = assertArg("decryptMessage", args, "otherPublicKey", "String");
+            var eci = assertArg("decryptChannelMessage", args, "eci", "String");
+            var encryptedMessage = assertArg("decryptChannelMessage", args, "encryptedMessage", "String");
+            var nonce = assertArg("decryptChannelMessage", args, "nonce", "String");
+            var otherPublicKey = assertArg("decryptChannelMessage", args, "otherPublicKey", "String");
 
-            core.db.decryptMessage(eci, encryptedMessage, nonce, otherPublicKey, callback);
+            core.db.decryptChannelMessage(eci, encryptedMessage, nonce, otherPublicKey, callback);
         }),
 
         signChannelMessage: mkKRLfn([
@@ -436,18 +436,13 @@ module.exports = function(core){
             try{
                 message = bs58.decode(message);
                 message = sovrinDID.verifySignedMessage(message, verifyKey);
+                if(message === false) throw "failed";
             }catch(e){
                 callback(null, false);
                 return;
             }
 
-            try {
-                message = ktypes.isString(message) ? JSON.parse(message) : false;
-            } catch (e) {
-                // It wasn't a JSON string don't do anything
-            }
-
-            callback(null, message);
+            callback(null, ktypes.decode(message));
         }),
 
     };

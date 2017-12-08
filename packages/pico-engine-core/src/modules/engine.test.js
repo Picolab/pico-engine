@@ -642,7 +642,7 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
 
 });
 
-test("engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptMessage", function(t){
+test("engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptChannelMessage", function(t){
     cocb.run(function*(){
         var pe = yield (cocb.wrap(mkTestPicoEngine)({
             rootRIDs: ["io.picolabs.engine"],
@@ -653,7 +653,7 @@ test("engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChann
         var signChannelMessage = yield pe.modules.get({}, "engine", "signChannelMessage");
         var verifySignedMessage = yield pe.modules.get({}, "engine", "verifySignedMessage");
         var encryptChannelMessage = yield pe.modules.get({}, "engine", "encryptChannelMessage");
-        var decryptMessage = yield pe.modules.get({}, "engine", "decryptMessage");
+        var decryptChannelMessage = yield pe.modules.get({}, "engine", "decryptChannelMessage");
         var sign = function(eci, message){
             return signChannelMessage({}, [eci, message]);
         };
@@ -664,7 +664,7 @@ test("engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChann
             return encryptChannelMessage({}, [eci, message, otherPublicKey]);
         };
         var decrypt = function(eci, encryptedMessage, nonce, otherPublicKey){
-            return decryptMessage({}, [eci, encryptedMessage, nonce, otherPublicKey]);
+            return decryptChannelMessage({}, [eci, encryptedMessage, nonce, otherPublicKey]);
         };
 
         var eci = yield cocb.wrap(pe.getRootECI)();

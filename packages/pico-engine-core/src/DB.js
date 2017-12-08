@@ -302,7 +302,7 @@ module.exports = function(opts){
             });
         },
 
-        decryptMessage: function(eci, encryptedMessage, nonce, otherPublicKey, callback) {
+        decryptChannelMessage: function(eci, encryptedMessage, nonce, otherPublicKey, callback) {
             eci = ktypes.toString(eci);
             encryptedMessage = ktypes.toString(encryptedMessage);
             nonce = ktypes.toString(nonce);
@@ -316,6 +316,7 @@ module.exports = function(opts){
                     callback(err);
                     return;
                 }
+                var decryptedMessage;
                 try {
                     var sharedSecret = channel.sovrin.sharedSecret;
                     if (!sharedSecret) {
@@ -331,24 +332,15 @@ module.exports = function(opts){
                     }
                     encryptedMessage = bs58.decode(encryptedMessage);
                     nonce = bs58.decode(nonce);
-                    var decryptedMessage = sovrinDID.decryptMessage(encryptedMessage, nonce, sharedSecret);
+                    decryptedMessage = sovrinDID.decryptMessage(encryptedMessage, nonce, sharedSecret);
+                    if(decryptedMessage === false) throw "failed";
                 } catch(e) {
+                    // Failed to decrypt message
                     callback(null, false);
                     return;
                 }
 
-                if (decryptedMessage === false) {
-                    callback(new Error("Failed to decrypt message"));
-                    return;
-                }
-
-                try {
-                    decryptedMessage = ktypes.isString(decryptedMessage) ? JSON.parse(decryptedMessage) : false;
-
-                } catch (e) {
-                    // Not a json object so just continue
-                }
-                callback(err, decryptedMessage);
+                callback(null, ktypes.decode(decryptedMessage));
             });
 
         },
