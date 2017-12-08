@@ -642,7 +642,7 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
 
 });
 
-test("engine:signChannelMessage, engine:verifySignedMessage", function(t){
+test("engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptMessage", function(t){
     cocb.run(function*(){
         var pe = yield (cocb.wrap(mkTestPicoEngine)({
             rootRIDs: ["io.picolabs.engine"],
@@ -652,11 +652,19 @@ test("engine:signChannelMessage, engine:verifySignedMessage", function(t){
         var newChannel = yield pe.modules.get({}, "engine", "newChannel");
         var signChannelMessage = yield pe.modules.get({}, "engine", "signChannelMessage");
         var verifySignedMessage = yield pe.modules.get({}, "engine", "verifySignedMessage");
+        var encryptChannelMessage = yield pe.modules.get({}, "engine", "encryptChannelMessage");
+        var decryptMessage = yield pe.modules.get({}, "engine", "decryptMessage");
         var sign = function(eci, message){
             return signChannelMessage({}, [eci, message]);
         };
         var verify = function(verifyKey, message){
             return verifySignedMessage({}, [verifyKey, message]);
+        };
+        var encrypt = function(eci, message, otherPublicKey){
+            return encryptChannelMessage({}, [eci, message, otherPublicKey]);
+        };
+        var decrypt = function(eci, encryptedMessage, nonce, otherPublicKey){
+            return decryptMessage({}, [eci, encryptedMessage, nonce, otherPublicKey]);
         };
 
         var eci = yield cocb.wrap(pe.getRootECI)();
@@ -665,10 +673,12 @@ test("engine:signChannelMessage, engine:verifySignedMessage", function(t){
         var chan0 = yield newChannel({}, [pico_id, "one", "one"]);
         var eci0 = chan0[0].id;
         var vkey0 = chan0[0].sovrin.verifyKey;
+        var publicKey0 = chan0[0].sovrin.encryptionPublicKey;
 
         var chan1 = yield newChannel({}, [pico_id, "two", "two"]);
         var eci1 = chan1[0].id;
         var vkey1 = chan1[0].sovrin.verifyKey;
+        var publicKey1 = chan1[0].sovrin.encryptionPublicKey;
 
         var msg = "some long message! could be json {\"hi\":1}";
         var signed0 = yield sign(eci0, msg);
@@ -683,8 +693,26 @@ test("engine:signChannelMessage, engine:verifySignedMessage", function(t){
         t.equals(yield verify(vkey1, signed0), false, "wrong vkey");
         t.equals(yield verify(vkey0, signed1), false, "wrong vkey");
 
-        t.equals(yield verify("hi", signed1), false, "rubish vkey");
+        t.equals(yield verify("hi", signed1), false, "rubbish vkey");
         t.equals(yield verify(vkey0, "notbs58:%=+!"), false, "not bs58 message");
+
+        var encrypted0 = yield encrypt(eci0, msg, publicKey1);
+        var encrypted1 = yield encrypt(eci1, msg, publicKey0);
+
+        t.ok(_.isString(encrypted0.encryptedMessage));
+        t.ok(_.isString(encrypted0.nonce));
+        t.ok(_.isString(encrypted1.encryptedMessage));
+        t.ok(_.isString(encrypted1.nonce));
+        t.notEquals(encrypted0, encrypted1);
+
+        var nonce = encrypted0.nonce;
+        var encryptedMessage = encrypted0.encryptedMessage;
+
+        t.equals(yield decrypt(eci1, encryptedMessage, nonce, publicKey0), msg, "message decrypted correctly");
+
+        t.equals(yield decrypt(eci1, encryptedMessage, "bad nonce", publicKey0), false, "bad nonce");
+        t.equals(yield decrypt(eci1, encryptedMessage, nonce, "Bad public key"), false, "bad key");
+        t.equals(yield decrypt(eci1, "bogus43212(*(****", nonce, publicKey0), false, "non bs58 message");
 
     }, t.end);
 });
