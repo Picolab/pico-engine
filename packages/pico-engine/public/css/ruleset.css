@@ -60,10 +60,10 @@ div.krlsrc {
 div.krlsrc form {
   margin: 0px;
 }
-div.krlsrc textarea {
-  box-sizing: border-box;
+div.krlsrc .CodeMirror {
   width: 90%;
   height: calc(100% - 42px - 6em);
+  border: 1px solid #ddd;
 }
 div.krlsrc pre#feedback {
   background-color: #F5F5F5;
