@@ -40,6 +40,32 @@ ruleset mischief.thing {
     }
    }
 
+ rule mischief_hat_lifted_encrypted {
+    select when mischief encrypted
+    pre {
+        subscriptions = Subscriptions:getSubscriptions()
+        subscription = subscriptions{event:attr("sub_name")}
+        nonce = event:attr("nonce")
+        encrypted_message = event:attr("encryptedMessage")
+
+        decrypted_message = engine:decryptMessage(subscription.eci, encrypted_message, nonce, subscription{"other_encryption_public_key"})
+    }
+    if decrypted_message != false then
+      noop()
+    fired {
+      ent:decrypted_message := decrypted_message
+    } else {
+      raise wrangler event "decryption_failure"
+    }
+
+  }
+  rule signature_failed {
+    select when wrangler signature_verification_failed
+    always {
+      ent:failed := (ent:failed.defaultsTo(0) + 1).klog("SIGNATURE FAILED")
+    }
+
+  }
 
   rule mischief_hat_lifted {
     select when mischief hat_lifted

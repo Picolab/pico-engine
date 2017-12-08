@@ -390,6 +390,32 @@ module.exports = function(core){
             });
         }),
 
+        encryptChannelMessage: mkKRLfn([
+            "eci",
+            "message",
+            "otherPublicKey"
+        ], function(ctx, args, callback){
+            var eci = assertArg("encryptChannelMessage", args, "eci", "String");
+            var message = assertArg("encryptChannelMessage", args, "message", "String");
+            var otherPublicKey = assertArg("encryptChannelMessage", args, "otherPublicKey", "String");
+
+            core.db.encryptChannelMessage(eci, message, otherPublicKey, callback);
+        }),
+
+        decryptMessage: mkKRLfn([
+            "eci",
+            "encryptedMessage",
+            "nonce",
+            "otherPublicKey"
+        ], function(ctx, args, callback){
+            var eci = assertArg("decryptMessage", args, "eci", "String");
+            var encryptedMessage = assertArg("decryptMessage", args, "encryptedMessage", "String");
+            var nonce = assertArg("decryptMessage", args, "nonce", "String");
+            var otherPublicKey = assertArg("decryptMessage", args, "otherPublicKey", "String");
+
+            core.db.decryptMessage(eci, encryptedMessage, nonce, otherPublicKey, callback);
+        }),
+
         signChannelMessage: mkKRLfn([
             "eci",
             "message",
@@ -414,7 +440,14 @@ module.exports = function(core){
                 callback(null, false);
                 return;
             }
-            callback(null, ktypes.isString(message) ? message : false);
+
+            try {
+                message = ktypes.isString(message) ? JSON.parse(message) : false;
+            } catch (e) {
+                // It wasn't a JSON string don't do anything
+            }
+
+            callback(null, message);
         }),
 
     };

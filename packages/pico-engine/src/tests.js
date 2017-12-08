@@ -850,8 +850,11 @@ testPE("pico-engine", function(t, pe, root_eci){
                 var picoASubChannel = channels[picoASub.eci];
                 var picoBSubChannel = channels[picoBSub.eci];
 
-                t.equal(picoASub.other_verify_key, picoBSubChannel.sovrin.verifyKey, "Correct key exchanged");
-                t.equal(picoBSub.other_verify_key, picoASubChannel.sovrin.verifyKey, "Correct key exchanged");
+                t.equal(picoASub.other_verify_key, picoBSubChannel.sovrin.verifyKey, "Correct verify key exchanged");
+                t.equal(picoBSub.other_verify_key, picoASubChannel.sovrin.verifyKey, "Correct verify key exchanged");
+
+                t.equal(picoASub.other_encryption_public_key, picoBSubChannel.sovrin.encryptionPublicKey, "Correct encryption key exchanged");
+                t.equal(picoBSub.other_encryption_public_key, picoASubChannel.sovrin.encryptionPublicKey, "Correct encryption key exchanged");
 
                 next();
             }).catch(function(err) {
@@ -880,8 +883,36 @@ testPE("pico-engine", function(t, pe, root_eci){
                 var failed = picoBEntvars["mischief.thing"].failed.value;
                 var message = picoBEntvars["mischief.thing"].message.value;
 
-                t.equal(message, "{\"test\":1}", "Successfully sent, received, and verified signed message");
+                t.deepEqual(message, {test: 1}, "Successfully sent, received, and verified signed message");
                 t.equal(failed, 1, "Successfully dealt with failed signature verification");
+
+                return sendEvent(picoA.eci, "mischief", "encrypted");
+            }).then(function(response) {
+                return getDBDumpWIthDelay();
+            }).then(function(dump) {
+                var picoASub = getSubscriptionsFromDump(dump, picoA.id)[SHARED_A];
+                var picoBSub = getSubscriptionsFromDump(dump, picoB.id)[SHARED_A];
+                var channels = dump.channel;
+                var channelA = channels[picoASub.eci];
+                var channelB = channels[picoBSub.eci];
+                var sharedSecretA = channelA.sovrin.secret.sharedSecret;
+                var sharedSecretB = channelB.sovrin.secret.sharedSecret;
+
+                t.notEqual(undefined, sharedSecretA, "Shared secret is not undefined");
+                t.notEqual(undefined, sharedSecretB, "Shared secret is not undefined");
+
+                t.equal(sharedSecretA, sharedSecretB, "Shared secrets are the same");
+
+                var picoBEntvars = dump.entvars[picoB.id];
+                var message = picoBEntvars["mischief.thing"].decrypted_message.value;
+
+                t.deepEqual(message, {encryption: 1}, "Successfully sent, received, and decrypted encrypted message");
+                // var picoBEntvars = dump.entvars[picoB.id];
+                // console.log(picoBEntvars);
+                // var channels = dump.channel;
+                // for (var channel in channels) {
+                //     console.log(channels[channel].sovrin.secret);
+                // }
                 next();
             }).catch(function (err) {
                 next(err);
