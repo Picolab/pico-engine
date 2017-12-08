@@ -594,6 +594,17 @@ module.exports = function(opts){
             });
         },
 
+        assertPolicyID: function(id, callback){
+            id = ktypes.toString(id);
+            ldb.get(["policy", id], function(err){
+                if(err && err.notFound){
+                    err = new levelup.errors.NotFoundError("Policy not found: " + id);
+                    err.notFound = true;
+                }
+                callback(err, err ? null : id);
+            });
+        },
+
         removePolicy: function(id, callback){
             id = ktypes.toString(id);
             ldb.get(["policy", id], function(err, policy){

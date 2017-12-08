@@ -484,6 +484,9 @@ testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", function * 
 testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function * (t, pe){
     var tstErr = _.partial(testError, t);
 
+    var newPolicy = function(policy){
+        return runAction(pe, {}, "engine", "newPolicy", [policy]);
+    };
     var newChannel = function(ctx, args){
         return runAction(pe, ctx, "engine", "newChannel", args);
     };
@@ -492,13 +495,13 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
     };
     var listChannels = yield pe.modules.get({}, "engine", "listChannels");
 
-    var mkChan = function(pico_id, eci, name, type){
+    var mkChan = function(pico_id, eci, name, type, policy_id){
         return {
             pico_id: pico_id,
             id: eci,
             name: name,
             type: type,
-            policy_id: ADMIN_POLICY_ID,
+            policy_id: policy_id || ADMIN_POLICY_ID,
             sovrin: {
                 did: eci,
                 verifyKey: "verifyKey_" + eci,
@@ -570,6 +573,13 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
     yield assertInvalidPicoID(newChannel  , "id404", "NotFoundError: Pico not found: id404");
     yield assertInvalidPicoID(listChannels, "id404", "NotFoundError: Pico not found: id404");
 
+
+    //setting policy_id on a newChannel
+    tstErr(newChannel({}, ["id0", "a", "b", 100]), "TypeError: engine:newChannel argument `policy_id` should be String but was Number");
+    tstErr(newChannel({}, ["id0", "a", "b", "id404"]), "NotFoundError: Policy not found: id404");
+
+    var pFoo = yield newPolicy({name: "foo"});
+    t.deepEquals(yield newChannel({}, ["id0", "a", "b", pFoo.id]), mkChan("id0", "id5", "a", "b", pFoo.id));
 });
 
 

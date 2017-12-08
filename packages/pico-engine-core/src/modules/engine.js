@@ -220,9 +220,18 @@ module.exports = function(core){
             "pico_id",
             "name",
             "type",
+            "policy_id",
         ], function(ctx, args, callback){
 
             var pico_id = picoArgOrCtxPico("newChannel", ctx, args);
+            var policy_id = ADMIN_POLICY_ID;
+
+            if(_.has(args, "policy_id")){
+                if(!ktypes.isString(args.policy_id)){
+                    throw new TypeError("engine:newChannel argument `policy_id` should be String but was " + ktypes.typeOf(args.policy_id));
+                }
+                policy_id = args.policy_id;
+            }
 
             if(!_.has(args, "name")){
                 return callback(new Error("engine:newChannel needs a name string"));
@@ -234,12 +243,16 @@ module.exports = function(core){
             core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
-                core.db.newChannel({
-                    pico_id: pico_id,
-                    name: ktypes.toString(args.name),
-                    type: ktypes.toString(args.type),
-                    policy_id: ADMIN_POLICY_ID,
-                }, callback);
+                core.db.assertPolicyID(policy_id, function(err, policy_id){
+                    if(err) return callback(err);
+
+                    core.db.newChannel({
+                        pico_id: pico_id,
+                        name: ktypes.toString(args.name),
+                        type: ktypes.toString(args.type),
+                        policy_id: policy_id,
+                    }, callback);
+                });
             });
         }),
 
