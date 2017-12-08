@@ -2,14 +2,15 @@
 html, body {
     height: 100%;
     width: 100%;
+    overflow: hidden;
 }
-.CodeMirror {
-    height: 90% !important;
-    width: 90% !important;
+#krl-editor {
+    height: 90%;
+    width: 90%;
     border: 1px solid black;
 }
 </style>
-<textarea id="krl-editor">ruleset io.picolabs.hello_world {
+<div id="krl-editor">ruleset io.picolabs.hello_world {
     meta {
         name "Hello World"
         description <<
@@ -49,9 +50,9 @@ A first ruleset for the Quickstart
         }
     }
 }
-</textarea>
+</div>
 
 <script src="krl-editor.js"></script>
 <script>
-    KRL_EDITOR(document.getElementById("krl-editor"));
+    KRL_EDITOR("krl-editor");
 </script>

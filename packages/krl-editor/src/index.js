@@ -1,15 +1,10 @@
-require("codemirror/lib/codemirror.css");
-require("codemirror/addon/edit/matchbrackets");
-var CodeMirror = require("codemirror/lib/codemirror");
+var ace = require("brace");
+require("brace/theme/xcode");
 
-require("codemirror/addon/mode/simple");
-require("./mode")(CodeMirror);
+require("./mode2");
 
-window.KRL_EDITOR = function(el){
-    var editor = CodeMirror.fromTextArea(el, {
-        mode: "text/x-krl",
-        lineNumbers: true,
-        matchBrackets: true,
-        indentUnit: 4,
-    });
+window.KRL_EDITOR = function(css_id){
+    var editor = ace.edit(css_id);
+    editor.getSession().setMode("ace/mode/krl");
+    editor.setTheme("ace/theme/xcode");
 };
