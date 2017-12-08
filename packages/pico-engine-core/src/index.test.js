@@ -167,8 +167,8 @@ test("PicoEngine - io.picolabs.persistent", function(t){
 
             //////////////////////////////////////////////////////////////////////////
             //if not set, the var should return undefined
-            [A_query("getName"), void 0],
-            [A_query("getAppVar"), void 0],
+            [A_query("getName"), null],
+            [A_query("getAppVar"), null],
 
             //////////////////////////////////////////////////////////////////////////
             //store different names on each pico
@@ -374,7 +374,7 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
                 [{options: {}, name: "implicit_match_empty_str"}]
             ],
             [signal("events", "no_action", {fired: "no"}), []],
-            [query("getNoActionFired"), void 0],
+            [query("getNoActionFired"), null],
             [signal("events", "no_action", {fired: "yes"}), []],
             [query("getNoActionFired"), true],//fired even though no actions
 
@@ -573,7 +573,7 @@ test("PicoEngine - io.picolabs.execution-order ruleset", function(t){
         testOutputs(t, [
             [
                 query("getOrder"),
-                void 0
+                null
             ],
             [
                 signal("execution_order", "all"),
@@ -928,7 +928,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
                     rulesetURI: url_prefix + "meta.krl",
-                    ruleName: void 0,
+                    ruleName: null,
                     inEvent: false,
                     inQuery: true,
                     eci: "id1",
@@ -1447,7 +1447,7 @@ test("PicoEngine - io.picolabs.guard-conditions ruleset", function(t){
         testOutputs(t, [
             [
                 query("getB"),
-                undefined
+                null
             ],
             [
                 signal("foo", "a", {b: "foo"}),
@@ -1539,7 +1539,7 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
             ],
             [
                 query("getSettingVal"),
-                void 0
+                null
             ],
             [
                 signal("defa", "bar_setting", {}),
@@ -2015,7 +2015,7 @@ test("PicoEngine - io.picolabs.error rulesets", function(t){
         testOutputs(t, [
             [
                 query("getErrors"),
-                void 0
+                null
             ],
 
             [signal("error", "continue_on_error"), [
@@ -2349,8 +2349,8 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
         var signal = mkSignalTask(pe, "id1");
 
         testOutputs(t, [
-            [query("getFoo"), void 0],
-            [query("getBar"), void 0],
+            [query("getFoo"), null],
+            [query("getBar"), null],
 
             [signal("pindex", "setfoo", {aaa: "blah"}), []],
             [signal("pindex", "setbar", {aaa: "blah"}), []],
@@ -2364,8 +2364,8 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
 
             [query("getFooKey", {key: "aaa"}), "blah"],
             [query("getBarKey", {key: "aaa"}), "blah"],
-            [query("getFooKey", {key: "404"}), void 0],
-            [query("getBarKey", {key: "404"}), void 0],
+            [query("getFooKey", {key: "404"}), null],
+            [query("getBarKey", {key: "404"}), null],
             [query("getFooKey", {}), {aaa: "blah", bbb: "wat"}],
             [query("getBarKey", {}), {aaa: "blah", bbb: "wat"}],
 
@@ -2373,15 +2373,15 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
             [signal("pindex", "delbar", {key: "aaa"}), []],
             [query("getFoo"), {bbb: "wat"}],
             [query("getBar"), {bbb: "wat"}],
-            [query("getFooKey", {key: "aaa"}), void 0],
-            [query("getBarKey", {key: "aaa"}), void 0],
+            [query("getFooKey", {key: "aaa"}), null],
+            [query("getBarKey", {key: "aaa"}), null],
 
             [signal("pindex", "nukefoo", {key: "aaa"}), []],
             [signal("pindex", "nukebar", {key: "aaa"}), []],
-            [query("getFoo"), void 0],
-            [query("getBar"), void 0],
-            [query("getFooKey", {key: "bbb"}), void 0],
-            [query("getBarKey", {key: "bbb"}), void 0],
+            [query("getFoo"), null],
+            [query("getBar"), null],
+            [query("getFooKey", {key: "bbb"}), null],
+            [query("getBarKey", {key: "bbb"}), null],
 
         ], t.end);
     });
