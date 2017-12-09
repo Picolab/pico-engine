@@ -11,12 +11,6 @@ module.exports = function(core){
         ], function(ctx, args, callback){
             callback(null, _.get(ctx, ["event", "attrs", args.name], null));
         }),
-        attrs: mkKRLfn([
-        ], function(ctx, args, callback){
-            //the user may mutate their copy
-            var attrs = _.cloneDeep(ctx.event.attrs);
-            callback(null, attrs);
-        }),
         send: mkKRLaction([
             "event",
             "host",
@@ -56,6 +50,11 @@ module.exports = function(core){
         get: function(ctx, id, callback){
             if(id === "eid"){
                 callback(null, _.get(ctx, ["event", "eid"]));
+                return;
+            }else if(id === "attrs"){
+                //the user may mutate their copy
+                var attrs = _.cloneDeep(ctx.event.attrs);
+                callback(null, attrs);
                 return;
             }
             callback(new Error("Not defined `event:" + id + "`"));

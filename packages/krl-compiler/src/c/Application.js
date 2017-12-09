@@ -22,6 +22,7 @@ module.exports = function(ast, comp, e){
         && ast.callee.value === "attrs"
     ){
         comp.warn(ast.callee.loc, "DEPRECATED change `event:attrs()` to `event:attrs`");
+        return comp(ast.callee);
     }
 
     return e("ycall", e("id", "ctx.applyFn"), [

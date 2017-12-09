@@ -10,7 +10,7 @@ ruleset io.picolabs.error {
     rule error_handle {
         select when system error
         fired {
-            ent:error_log := ent:error_log.append(event:attrs())
+            ent:error_log := ent:error_log.append(event:attrs)
         }
     }
     rule continue_on_errorA {
