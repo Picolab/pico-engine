@@ -232,4 +232,9 @@ ruleset io.picolabs.events {
 
         send_directive("event_eid", {"eid": event:eid});
     }
+    rule ignored is inactive {
+        select when events ignored
+
+        send_directive("ignored - should not see this");
+    }
 }

@@ -1046,6 +1046,10 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
       }
+    },
+    "ignored": {
+      "name": "ignored",
+      "rule_state": "inactive"
     }
   }
 };

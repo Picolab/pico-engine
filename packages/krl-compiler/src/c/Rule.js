@@ -6,6 +6,8 @@ module.exports = function(ast, comp, e){
     };
     if(ast.rule_state !== "active"){
         rule.rule_state = e("string", ast.rule_state);
+        comp.warn(ast.loc, "rule " + ast.name.value + " is inactive, i.e. commented out");
+        return e("obj", rule);
     }
     if(!ast.select){
         throw comp.error(ast.loc, "rule " + ast.name.value + " is missing a `select`");

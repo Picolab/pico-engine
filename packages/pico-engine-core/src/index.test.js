@@ -269,6 +269,10 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
                 []
             ],
             [
+                signal("events", "ignored", {}),// is inactive
+                []
+            ],
+            [
                 signal("events", "ifthen", {name: "something"}),
                 [{name: "ifthen", options: {}}]
             ],

@@ -76,6 +76,16 @@ A first ruleset for the Quickstart
       ent:foo := [1, 2]
     }
   }
+  rule ignored is inactive {
+    // would be nice if the editor colored this entire rule as a comment
+    select when events ignored
+
+    pre {
+        foo = function(){1 + "{"}
+    }
+
+    send_directive("ignored - should not see this", {});
+  }
 }
 </div>
 
