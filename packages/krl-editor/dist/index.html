@@ -13,9 +13,9 @@ html, body {
 <div id="krl-editor">ruleset io.picolabs.hello_world {
   meta {
     name "Hello World"
-    description <<
+    description &lt;&lt;
 A first ruleset for the Quickstart
-    >>
+    &gt;&gt;
 
     author "Phil Windley"
     logging on
@@ -30,13 +30,19 @@ A first ruleset for the Quickstart
       msg;
     }
 
+    chev = &lt;&lt;hello #{one("two", 3)/*cool*/}, that worked&gt;\&gt; again!
+        more lines #{ a + b + ">>"} not "yet"
+    ok&gt;&gt;
+
+    stdlib = foo.map(function(a){a + 1})
+
     chooser = defaction(val){
 
       choose val {
-        asdf =>
+        asdf =&gt;
           foo(val);
 
-          fdsa =>
+          fdsa =&gt
             bar(val, "ok", "done");
       }
     }
