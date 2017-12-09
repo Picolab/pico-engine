@@ -862,7 +862,7 @@ PostludeStatement_core_parts ->
     | ErrorStatement {% id %}
     | LastStatement {% id %}
 
-PersistentVariableAssignment -> PersistentVariable (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
+PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -875,7 +875,7 @@ PersistentVariableAssignment -> PersistentVariable (%tok_OPEN_CURLY Expression %
   }
 %}
 
-ClearPersistentVariable -> %tok_clear PersistentVariable (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? {%
+ClearPersistentVariable -> %tok_clear DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -883,15 +883,6 @@ ClearPersistentVariable -> %tok_clear PersistentVariable (%tok_OPEN_CURLY Expres
       variable: data[1],
       path_expression: data[2] ? data[2][1] : null,
     };
-  }
-%}
-
-PersistentVariable -> DomainIdentifier {%
-  function(data, start, reject){
-    if(data[0].domain === "ent" || data[0].domain === "app"){
-      return data[0];
-    }
-    return reject;
   }
 %}
 

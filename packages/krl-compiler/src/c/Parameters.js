@@ -6,7 +6,7 @@ module.exports = function(ast, comp, e){
         if(param["default"]){
             has_seen_default = true;
         }else if(has_seen_default){
-            throw new Error("non-default argument follows default argument");
+            throw comp.error(param.loc, "non-default argument follows default argument");
         }
         return comp(param);
     });

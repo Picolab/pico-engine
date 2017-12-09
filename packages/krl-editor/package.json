@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "start": "webpack-dev-server",
+    "test": "echo passed",
     "build": "NODE_ENV=production webpack && cp dist/krl-editor* ../pico-engine/public/js/."
   },
   "repository": {

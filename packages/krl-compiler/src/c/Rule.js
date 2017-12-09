@@ -8,7 +8,7 @@ module.exports = function(ast, comp, e){
         rule.rule_state = e("string", ast.rule_state);
     }
     if(!ast.select){
-        throw new Error("Rule missing `select`");
+        throw comp.error(ast.loc, "rule " + ast.name.value + " is missing a `select`");
     }
     rule.select = comp(ast.select);
 

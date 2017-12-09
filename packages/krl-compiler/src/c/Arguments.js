@@ -10,7 +10,7 @@ module.exports = function(ast, comp, e, context){
             has_named = true;
 
         }else if(has_named){
-            throw new Error("non-named arg after named arg");
+            throw comp.error(arg.loc, "non-named arg after named arg");
         }else{
             r[i] = comp(arg);
             i++;

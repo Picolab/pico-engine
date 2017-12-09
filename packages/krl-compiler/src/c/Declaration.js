@@ -13,10 +13,10 @@ var ePathSet = function(ast, comp, e, path){
 
 module.exports = function(ast, comp, e){
     if(ast.op !== "="){
-        throw new Error("Unsuported Declaration.op: " + ast.op);
+        throw comp.error(ast.loc, "Unsuported Declaration.op: " + ast.op);
     }
     if(ast.left.type === "DomainIdentifier"){
-        throw new Error("It's invalid to Declare DomainIdentifiers");
+        throw comp.error(ast.left.loc, "Cannot declare DomainIdentifiers");
     }else if(ast.left.type === "MemberExpression"){
         if(ast.left.method === "path"){
             return ePathSet(ast, comp, e, comp(ast.left.property));

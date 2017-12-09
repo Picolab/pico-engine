@@ -28,6 +28,7 @@ var KRLHighlightRules = function(options) {
 
         "constant.language": "null|Infinity",
         "constant.language.boolean": "true|false"
+
     }, "identifier");
 
     var identifierRe = "[a-zA-Z_$][a-zA-Z0-9_$]*";
@@ -95,6 +96,9 @@ var KRLHighlightRules = function(options) {
             }, {
                 regex : /(?:\d\d*(?:\.\d*)?|\.\d+)/,
                 token : "constant.numeric", // decimal integers and floats
+            }, {
+                regex: "(ruleset)(\\s+)([a-zA-Z0-9_.-]+)",
+                token: ["keyword", "text", "variable"]
             }, {
                 regex: "(select)(\\s+)(when)(\\s+)(" + identifierRe + ")(\\s+)(" + identifierRe + ")",
                 token: ["keyword", "text", "keyword", "text", "variable", "text", "variable"]

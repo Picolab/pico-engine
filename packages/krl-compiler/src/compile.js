@@ -103,10 +103,10 @@ module.exports = function(ast, options){
             return _.map(ast, function(a){
                 return compile(a);
             });
-        }else if(!_.has(ast, "type")){
-            throw new Error("Invalid ast node: " + JSON.stringify(ast));
+        }else if(!ast || !_.has(ast, "type")){
+            throw krlError(ast.loc, "Invalid ast node: " + JSON.stringify(ast));
         }else if(!_.has(comp_by_type, ast.type)){
-            throw new Error("Unsupported ast node type: " + ast.type);
+            throw krlError(ast.loc, "Unsupported ast node type: " + ast.type);
         }
         var comp = compile;
         if(context){

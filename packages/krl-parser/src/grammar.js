@@ -841,7 +841,7 @@ var grammar = {
     {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "PersistentVariableAssignment", "symbols": ["PersistentVariable", "PersistentVariableAssignment$ebnf$1", tok_COLON_EQ, "Expression"], "postprocess": 
+    {"name": "PersistentVariableAssignment", "symbols": ["DomainIdentifier", "PersistentVariableAssignment$ebnf$1", tok_COLON_EQ, "Expression"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -856,7 +856,7 @@ var grammar = {
     {"name": "ClearPersistentVariable$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "ClearPersistentVariable$ebnf$1", "symbols": ["ClearPersistentVariable$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "ClearPersistentVariable$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ClearPersistentVariable", "symbols": [tok_clear, "PersistentVariable", "ClearPersistentVariable$ebnf$1"], "postprocess": 
+    {"name": "ClearPersistentVariable", "symbols": [tok_clear, "DomainIdentifier", "ClearPersistentVariable$ebnf$1"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -864,14 +864,6 @@ var grammar = {
             variable: data[1],
             path_expression: data[2] ? data[2][1] : null,
           };
-        }
-        },
-    {"name": "PersistentVariable", "symbols": ["DomainIdentifier"], "postprocess": 
-        function(data, start, reject){
-          if(data[0].domain === "ent" || data[0].domain === "app"){
-            return data[0];
-          }
-          return reject;
         }
         },
     {"name": "RaiseEventStatement$ebnf$1$subexpression$1", "symbols": [tok_for, "Expression"]},
