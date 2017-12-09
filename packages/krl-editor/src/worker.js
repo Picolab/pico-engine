@@ -1,3 +1,5 @@
+var compiler = require("krl-compiler");
+
 ace.define("ace/mode/krl_worker",["require","exports","ace/lib/oop","ace/worker/mirror"],function(acequire, exports){
     var oop = acequire("../lib/oop");
     var Mirror = acequire("../worker/mirror").Mirror;
@@ -9,15 +11,28 @@ ace.define("ace/mode/krl_worker",["require","exports","ace/lib/oop","ace/worker/
     oop.inherits(KRLWorker, Mirror);
 
     KRLWorker.prototype.onUpdate = function(){
-        var value = this.doc.getValue();
+        var krl_src = this.doc.getValue();
         var errors = [];
 
-        errors.push({
-            row: 3,
-            column: 3,
-            text: "This error worked!",
-            type: "error"
-        });
+        try{
+            compiler(krl_src);
+        }catch(err){
+            if(err.where && err.where.line){
+                errors.push({
+                    row: err.where.line - 1,
+                    column: err.where.col,
+                    text: err + "",
+                    type: "error"
+                });
+            }else{
+                errors.push({
+                    row: 0,
+                    column: 0,
+                    text: err + "",
+                    type: "error"
+                });
+            }
+        }
 
         this.sender.emit("annotate", errors);
     };
