@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
+    <title>Rulesets</title>
+    <link rel="stylesheet" href="css/bootstrap-3.3.6.min.css">
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #f2f2f2;
+        }
+        #container {
+            display:flex;
+            height: 100%;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-content: stretch;
+        }
+        #area-left {
+            width: 260px;
+            padding: 0 15px;
+            display:flex;
+            flex-direction: column;
+            align-content: stretch;
+        }
+        #area-middle {
+            flex: auto;
+            display:flex;
+            flex-direction: column;
+            align-content: stretch;
+        }
+        #area-right {
+            width: 300px;
+            padding: 0 15px;
+            overflow-y: auto;
+        }
+        #krl-editor {
+            flex: auto;
+            border: 1px solid #ddd;
+        }
+        .ruleset-list-item {
+            display: block;
+            font-family: monospace;
+            font-size:12px;
+            padding:4px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ruleset-list-item:hover {
+            background: #e3e3e3;
+        }
+        .ruleset-list-item.active {
+            background: #d9edf7;
+            border: 1px solid #bce8f1;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <div id="area-left">
+        <nav>
+            <a href="/" class="pull-left" style="margin:5px 10px 0 0">
+                <img src="img/nav-logo.png" alt="PicoLabs" style="height:35px">
+            </a>
+            <h1 style="font-size:24px;margin-top:7px">
+                pico-engine
+                <small class="text-muted" style="font-size:12px">v0.42.0</small>
+            </h1>
+            <div class="clearfix"></div>
+        </nav>
+
+        <div class="js-ruleset-list" style="overflow-y:auto"></div>
+
+    </div>
+    <div id="area-middle">
+        <header>
+            <h4 style="margin:5px 0 5px 40px">&nbsp;</h4>
+        </header>
+        <div id="krl-editor">//click on a ruleset name to see its source here</div>
+        <footer>
+            <button>
+                register
+            </button>
+            <button>
+                flush
+            </button>
+            <span class="pull-right" style="margin:5px">
+                Theme
+                <select id="krl-editor-theme-picker"></select>
+            </span>
+            <div class="clearfix"></div>
+        </footer>
+    </div>
+    <div id="area-right">
+        right side
+    </div>
+</div>
+<script id="ruleset-list-template" type="text/x-handlebars-template">
+    {{#each groups}}
+        <h5 class="text-muted" style="margin:20px 0 8px 0">{{label}}</h5>
+        <div class="ruleset-list">
+            {{#each rids}}
+                <span class="ruleset-list-item{{#if active}} active{{/if}}">
+                    {{#if not_enabled}}
+                        <i class="glyphicon glyphicon-alert text-warning"></i>
+                    {{else}}
+                        <i class="glyphicon">&nbsp;</i>
+                    {{/if}}
+                    {{rid}}
+                </span>
+            {{/each}}
+        </div>
+    {{/each}}
+    <hr/>
+    <div class="input-group input-group-sm" style="margin-bottom:10px">
+        <input type="text" class="form-control" placeholder="ruleset id">
+        <span class="input-group-btn">
+            <button class="btn btn-default" type="button">new ruleset</button>
+        </span>
+    </div>
+    <div class="input-group input-group-sm" style="margin-bottom:10px">
+        <input type="text" class="form-control" placeholder="raw source URL">
+        <span class="input-group-btn">
+            <button class="btn btn-default" type="button">register</button>
+        </span>
+    </div>
+    <button class="btn btn-default btn-sm btn-block">
+        <i class="glyphicon glyphicon-download-alt"></i>
+        &nbsp;
+        download all rulesets
+    </button>
+</script>
+<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script src="js/handlebars.min.js" type="text/javascript"></script>
+<script src="js/krl-editor.js"></script>
+<script>
+    var editor = KRL_EDITOR.edit("krl-editor");
+    KRL_EDITOR.themePicker("krl-editor-theme-picker");
+
+    var rulesetListTemplate = Handlebars.compile(document.getElementById("ruleset-list-template").innerHTML);
+
+    $(".js-ruleset-list").on("click", ".rulesets-list-item", function(e){
+        console.log("click", e);
+    });
+
+    $.ajax({
+        url: "/api/db-dump",
+        dataType: "json",
+    }).done(function(db) {
+        var rids = Object.keys(db.rulesets.versions);
+
+        var group_usr = [];
+        var group_sys = [];
+        rids.forEach(function(rid){
+            var d = {
+                rid: rid,
+                active: rid === "asdfasdf",
+                not_enabled: rid === "keysthing",
+            };
+            if(/io.picolabs/.test(rid)){
+                group_sys.push(d);
+            }else{
+                group_usr.push(d);
+            }
+        });
+        $(".js-ruleset-list").html(rulesetListTemplate({
+            groups: [
+                {label: "Rulesets", rids: group_usr},
+                {label: "System Rulesets", rids: group_sys},
+            ],
+        }));
+    }).fail(function() {
+        alert("Failed to get db-dump");
+    });
+</script>
+</body>
+</html>
