@@ -58,37 +58,6 @@ test("compiler", function(t){
 });
 
 test("compiler errors", function(t){
-    try{
-        compiler("ruleset blah {global {ent:a = 1}}\n");
-        t.fail("should have thrown up b/c ent:* = * not allowed in global scope");
-    }catch(err){
-        t.ok(true);
-    }
-    try{
-        compiler("function(a, b = 1, c){a}");
-        t.fail("once you have a default param, all following must have a default");
-    }catch(err){
-        t.equals(err + "", "Error: non-default argument follows default argument");
-    }
-    try{
-        compiler("add(b = 1, 2)");
-        t.fail("once you used a named arg, all following should be named");
-    }catch(err){
-        t.equals(err + "", "Error: non-named arg after named arg");
-    }
-    try{
-        compiler("function(){a = 1}");
-        t.fail("function must end with an expression");
-    }catch(err){
-        t.equals(err + "", "Error: function must end with an expression");
-    }
-
-    try{
-        compiler("ruleset a{meta{keys b {\"one\":function(){}}}}");
-        t.fail("meta key maps can only have strings");
-    }catch(err){
-        t.equals(err + "", "Error: A ruleset key that is Map, can only use Strings as values");
-    }
 
     var tstFail = function(src, errorMsg){
         try{
@@ -104,6 +73,26 @@ test("compiler errors", function(t){
         t.equals(out.warnings.length, 1);
         t.equals(out.warnings[0].message, warning);
     };
+    try{
+        compiler("ruleset blah {global {ent:a = 1}}\n");
+        t.fail("should have thrown up b/c ent:* = * not allowed in global scope");
+    }catch(err){
+        t.ok(true);
+    }
+
+    try{
+        compiler("function(){a = 1}");
+        t.fail("function must end with an expression");
+    }catch(err){
+        t.equals(err + "", "Error: function must end with an expression");
+    }
+
+    try{
+        compiler("ruleset a{meta{keys b {\"one\":function(){}}}}");
+        t.fail("meta key maps can only have strings");
+    }catch(err){
+        t.equals(err + "", "Error: A ruleset key that is Map, can only use Strings as values");
+    }
 
     tstFail(
         "ruleset a{rule b{select when a b} rule c{select when a c} rule b{}}",
@@ -138,6 +127,19 @@ test("compiler errors", function(t){
     tstFail(
         "ruleset a{global{\"hi\"=1}}",
         "Error: Cannot declare String"
+    );
+
+    tstFail(
+        "ruleset a{global{b=function(c,d,c){1}}}",
+        "Error: Duplicate parameter: c"
+    );
+    tstFail(
+        "ruleset a{global{b=function(c,d=1,e){1}}}",
+        "Error: Cannot have a non-default parameter after a defaulted one"
+    );
+    tstFail(
+        "add(b = 1, 2)",
+        "Error: Once you used a named arg, all following must be named."
     );
 
     t.end();
