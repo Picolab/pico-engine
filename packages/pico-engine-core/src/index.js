@@ -418,8 +418,8 @@ module.exports = function(conf){
                             hash: data.hash
                         }, function(err, rs){
                             if(err){
-                                //Emit an error but don't halting the engine
-                                var err2 = new Error("Failed to load " + rid + "! It is now disabled. You'll need to edit it and re-register it.\nCause: " + err);
+                                //Emit an error and don't halt the engine
+                                var err2 = new Error("Failed to compile " + rid + "! It is now disabled. You'll need to edit and re-register it.\nCause: " + err);
                                 err2.orig_error = err;
                                 emitter.emit("error", err2, {rid: rid});
                                 //disable the ruleset since it's broken
@@ -460,8 +460,12 @@ module.exports = function(conf){
                     var rs = rs_by_rid[rid];
                     initializeAndEngageRuleset(rs, function(err){
                         if(err){
-                            //TODO handle error rather than stop
-                            next(err);
+                            //Emit an error and don't halt the engine
+                            var err2 = new Error("Failed to initialize " + rid + "! It is now disabled. You'll need to edit and re-register it.\nCause: " + err);
+                            err2.orig_error = err;
+                            emitter.emit("error", err2, {rid: rid});
+                            //disable the ruleset since it's broken
+                            db.disableRuleset(rid, next);
                             return;
                         }
                         next();

@@ -2391,7 +2391,7 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
     });
 });
 
-test("PicoEngine - ruleset errors after compiler upgrade", function(t){
+test("PicoEngine - handle ruleset startup errors after compiler update made breaking changes", function(t){
     var mkPE = mkPicoEngineFactoryWithKRLCompiler();
 
     //The old compiler didn't complain when the ruleset was registered
@@ -2424,10 +2424,60 @@ test("PicoEngine - ruleset errors after compiler upgrade", function(t){
         t.deepEquals(yield listRIDs(), ["my-rid"], "the ruleset is still in the DB and enabled");
 
         pe.emitter.on("error", function(err){
-            t.equals(err + "", "Error: Failed to load my-rid! It is now disabled. You'll need to edit it and re-register it.\nCause: Error: That won't compile anymore!");
+            t.equals(err + "", "Error: Failed to compile my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: That won't compile anymore!");
         });
 
         //the new compiler should blow up when it tries to initialize the rulest
+        yield (cocb.wrap(pe.start))([]);
+        //but shouldn't crash, just emit the error and continue starting
+
+        t.deepEquals(yield listRIDs(), [], "the ruleset should be disabled now");
+
+    }, _.noop);//using t.plan not t.end
+});
+
+test("PicoEngine - handle ruleset initialization errors", function(t){
+    var mkPE = mkPicoEngineFactoryWithKRLCompiler();
+
+    t.plan(5);
+
+    cocb.run(function*(){
+
+        //First register the ruleset in the db
+        var pe = mkPE({compileAndLoadRuleset: function(rs_info, callback){
+            callback(null, {
+                rid: "my-rid",
+                global: function*(){
+                    //works
+                },
+            });
+        }});
+        var regRS = cocb.wrap(pe.registerRuleset);
+        var listRIDs = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
+
+        t.deepEquals(yield listRIDs(), [], "no rulesets yet");
+        yield regRS("ruleset my-rid{}", {});
+        t.deepEquals(yield listRIDs(), ["my-rid"], "registered!");
+        //so the old runtime version allowed it, now it's in the DB
+
+
+        //Now in this time the ruleset won't initialize
+        pe = mkPE({compileAndLoadRuleset: function(rs_info, callback){
+            callback(null, {
+                rid: "my-rid",
+                global: function*(){
+                    throw new Error("something broke");
+                },
+            });
+        }});
+        listRIDs = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
+        t.deepEquals(yield listRIDs(), ["my-rid"], "the ruleset is still in the DB and enabled");
+
+        pe.emitter.on("error", function(err){
+            t.equals(err + "", "Error: Failed to initialize my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: something broke");
+        });
+
+        //it will compile but fail to initialize
         yield (cocb.wrap(pe.start))([]);
         //but shouldn't crash, just emit the error and continue starting
 
