@@ -19,7 +19,7 @@ This is a test file for a module that only stores API keys
     }
     global {
         blah = "this is here to test that 'provides' is not stomped over by 'provides keys'"
-        foo_global = keys:foo()
+        foo_global = keys:foo
     }
 
 }

@@ -1712,7 +1712,7 @@ test("PicoEngine - io.picolabs.key* rulesets", function(t){
             [query1("getBar"), {baz: "baz subkey for bar key", qux: "qux subkey for bar key"}],
             [query1("getBarN", {name: "baz"}), "baz subkey for bar key"],
             [query1("getBarN", {name: "qux"}), "qux subkey for bar key"],
-            qError(query1("getBarN", {name: "blah"}), "Error: keys:bar(\"blah\") not defined"),
+            [query1("getBarN", {name: "blah"}), null],
 
             //not shared with either
             qError(query1("getQuux"), "Error: keys:quux not defined"),

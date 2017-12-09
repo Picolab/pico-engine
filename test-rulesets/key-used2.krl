@@ -10,26 +10,26 @@ This is a test file for a module that uses keys
         use module io.picolabs.key-configurable
             alias api
             with
-                key2 = keys:local_key()
+                key2 = keys:local_key
 
         key local_key "this key is defined inside the module"
         shares getFoo, getBar, getBarN, getQuux, getQuuz, getAPIKeys
     }
     global {
         getFoo = function(){
-            keys:foo();
+            keys:foo;
         }
         getBar = function(){
-            keys:bar();
+            keys:bar;
         }
         getBarN = function(name){
-            keys:bar(name);
+            keys:bar{name};
         }
         getQuux = function(){
-            keys:quux();
+            keys:quux;
         }
         getQuuz = function(){
-            keys:quuz();
+            keys:quuz;
         }
         getAPIKeys = function(){
             api:getKeys();

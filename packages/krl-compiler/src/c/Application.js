@@ -25,6 +25,22 @@ module.exports = function(ast, comp, e){
         return comp(ast.callee);
     }
 
+    if(ast.callee.type === "DomainIdentifier"
+        && ast.callee.domain === "keys"
+    ){
+        var domainId = "keys:" + ast.callee.value;
+        if(ast.args.args.length > 0){
+            comp.warn(ast.callee.loc, "DEPRECATED change `" + domainId + "(name)` to `" + domainId + "{name}`");
+            return callStdLibFn(e, "get", [
+                comp(ast.callee),
+                comp(ast.args.args[0])
+            ], ast.loc);
+        }else{
+            comp.warn(ast.callee.loc, "DEPRECATED change `" + domainId + "()` to `" + domainId + "`");
+            return comp(ast.callee);
+        }
+    }
+
     return e("ycall", e("id", "ctx.applyFn"), [
         comp(ast.callee),
         e("id", "ctx"),

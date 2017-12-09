@@ -10,27 +10,27 @@ This is a test file for a module that uses keys
         use module io.picolabs.key-configurable
             alias api
             with
-                key1 = keys:foo()
+                key1 = keys:foo
                 and
-                key2 = keys:bar("baz")
+                key2 = keys:bar{"baz"}
 
         shares getFoo, getBar, getBarN, getQuux, getQuuz, getAPIKeys, getFooPostlude, foo_global
     }
     global {
         getFoo = function(){
-            keys:foo();
+            keys:foo;
         }
         getBar = function(){
-            keys:bar();
+            keys:bar;
         }
         getBarN = function(name){
-            keys:bar(name);
+            keys:bar{name};
         }
         getQuux = function(){
-            keys:quux();
+            keys:quux;
         }
         getQuuz = function(){
-            keys:quuz();
+            keys:quuz;
         }
         getAPIKeys = function(){
             api:getKeys();
@@ -38,22 +38,22 @@ This is a test file for a module that uses keys
         getFooPostlude = function(){
             ent:foo_postlude;
         }
-        foo_global = keys:foo()
+        foo_global = keys:foo
     }
     rule key_used_foo {
         select when key_used foo
 
         pre {
-            foo_pre = keys:foo()
+            foo_pre = keys:foo
         }
 
         send_directive("foo", {
-            "foo": keys:foo(),
+            "foo": keys:foo,
             "foo_pre": foo_pre
         });
 
         always {
-            ent:foo_postlude := keys:foo()
+            ent:foo_postlude := keys:foo
         }
     }
 }
