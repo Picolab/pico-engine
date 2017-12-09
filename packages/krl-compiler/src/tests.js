@@ -141,6 +141,22 @@ test("compiler errors", function(t){
         "add(b = 1, 2)",
         "Error: Once you used a named arg, all following must be named."
     );
+    tstWarn(
+        "add.foo",
+        "DEPRECATED use `{}` or `[]` instead of `.`"
+    );
+    tstWarn(
+        "event:attrs()",
+        "DEPRECATED change `event:attrs()` to `event:attrs`"
+    );
+    tstWarn(
+        "keys:foo()",
+        "DEPRECATED change `keys:foo()` to `keys:foo`"
+    );
+    tstWarn(
+        "keys:foo(\"hi\")",
+        "DEPRECATED change `keys:foo(name)` to `keys:foo{name}`"
+    );
 
     t.end();
 });
