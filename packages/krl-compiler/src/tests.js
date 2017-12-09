@@ -90,6 +90,56 @@ test("compiler errors", function(t){
         t.equals(err + "", "Error: A ruleset key that is Map, can only use Strings as values");
     }
 
+    var tstFail = function(src, errorMsg){
+        try{
+            compiler(src);
+            t.fail("Should fail: " + errorMsg);
+        }catch(err){
+            t.equals(err + "", errorMsg);
+        }
+    };
+
+    var tstWarn = function(src, warning){
+        var out = compiler(src);
+        t.equals(out.warnings.length, 1);
+        t.equals(out.warnings[0].message, warning);
+    };
+
+    tstFail(
+        "ruleset a{rule b{select when a b} rule c{select when a c} rule b{}}",
+        "Error: Duplicate rule name: b"
+    );
+
+    tstWarn(
+        "ruleset a{global{b=1;c=3;b=1}}",
+        "Duplicate declaration: b"
+    );
+    tstWarn(
+        "ruleset a{rule b{select when a b pre{b=1;c=3;b=1}}}",
+        "Duplicate declaration: b"
+    );
+    tstWarn(
+        "ruleset a{global{act=defaction(){noop()};act=1}}",
+        "Duplicate declaration: act"
+    );
+
+    tstFail(
+        "ruleset a{global{ent:foo=1}}",
+        "Error: Cannot declare DomainIdentifier"
+    );
+    tstFail(
+        "ruleset a{global{null=1}}",
+        "Error: Cannot declare Null"
+    );
+    tstFail(
+        "ruleset a{global{true=1}}",
+        "Error: Cannot declare Boolean"
+    );
+    tstFail(
+        "ruleset a{global{\"hi\"=1}}",
+        "Error: Cannot declare String"
+    );
+
     t.end();
 });
 

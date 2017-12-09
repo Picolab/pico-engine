@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var declarationBlock = require("../utils/declarationBlock");
 
 module.exports = function(ast, comp, e){
     var rule = {
@@ -17,7 +18,7 @@ module.exports = function(ast, comp, e){
     var rule_body = [];
 
     if(!_.isEmpty(ast.prelude)){
-        rule_body = rule_body.concat(comp(ast.prelude));
+        rule_body = rule_body.concat(declarationBlock(ast.prelude, comp));
     }
     if(ast.action_block){
         rule_body = rule_body.concat(comp(ast.action_block));

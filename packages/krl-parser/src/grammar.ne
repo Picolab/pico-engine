@@ -37,6 +37,7 @@ var reserved_identifiers = {
   "function": true,
   "not": true,
   "setting": true,
+  "null": true,
   "true": true,
   "false": true
 };
@@ -351,6 +352,7 @@ var tok_name = tok("SYMBOL", "name");
 var tok_neq = tok("SYMBOL", "neq");
 var tok_not = tok("SYMBOL", "not");
 var tok_notfired = tok("SYMBOL", "notfired");
+var tok_null = tok("SYMBOL", "null");
 var tok_or = tok("SYMBOL", "or");
 var tok_off = tok("SYMBOL", "off");
 var tok_on = tok("SYMBOL", "on");
@@ -1160,6 +1162,7 @@ Literal ->
       String {% id %}
     | Number {% id %}
     | Boolean {% id %}
+    | Null {% id %}
     | RegExp {% id %}
     | Chevron {% id %}
     | Array {% id %}
@@ -1340,6 +1343,15 @@ Identifier -> %tok_SYMBOL {%
 
 Boolean -> %tok_true  {% booleanAST(true ) %}
          | %tok_false {% booleanAST(false) %}
+
+Null -> %tok_null {%
+  function(data){
+    return {
+      loc: data[0].loc,
+      type: 'Null',
+    };
+  }
+%}
 
 PositiveInteger -> Number {%
   function(data, start, reject){

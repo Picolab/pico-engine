@@ -41,6 +41,7 @@ var reserved_identifiers = {
   "function": true,
   "not": true,
   "setting": true,
+  "null": true,
   "true": true,
   "false": true
 };
@@ -355,6 +356,7 @@ var tok_name = tok("SYMBOL", "name");
 var tok_neq = tok("SYMBOL", "neq");
 var tok_not = tok("SYMBOL", "not");
 var tok_notfired = tok("SYMBOL", "notfired");
+var tok_null = tok("SYMBOL", "null");
 var tok_or = tok("SYMBOL", "or");
 var tok_off = tok("SYMBOL", "off");
 var tok_on = tok("SYMBOL", "on");
@@ -1103,6 +1105,7 @@ var grammar = {
     {"name": "Literal", "symbols": ["String"], "postprocess": id},
     {"name": "Literal", "symbols": ["Number"], "postprocess": id},
     {"name": "Literal", "symbols": ["Boolean"], "postprocess": id},
+    {"name": "Literal", "symbols": ["Null"], "postprocess": id},
     {"name": "Literal", "symbols": ["RegExp"], "postprocess": id},
     {"name": "Literal", "symbols": ["Chevron"], "postprocess": id},
     {"name": "Literal", "symbols": ["Array"], "postprocess": id},
@@ -1246,6 +1249,14 @@ var grammar = {
         },
     {"name": "Boolean", "symbols": [tok_true], "postprocess": booleanAST(true )},
     {"name": "Boolean", "symbols": [tok_false], "postprocess": booleanAST(false)},
+    {"name": "Null", "symbols": [tok_null], "postprocess": 
+        function(data){
+          return {
+            loc: data[0].loc,
+            type: 'Null',
+          };
+        }
+        },
     {"name": "PositiveInteger", "symbols": ["Number"], "postprocess": 
         function(data, start, reject){
           var n = data[0];

@@ -27,6 +27,7 @@ var comp_by_type = _.fromPairs(_.map([
     "Map",
     "MapKeyValuePair",
     "MemberExpression",
+    "Null",
     "Number",
     "Parameter",
     "Parameters",
