@@ -2390,3 +2390,48 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
         ], t.end);
     });
 });
+
+test("PicoEngine - ruleset errors after compiler upgrade", function(t){
+    var mkPE = mkPicoEngineFactoryWithKRLCompiler();
+
+    //The old compiler didn't complain when the ruleset was registered
+    var oldCompiler = function(rs_info, callback){
+        callback(null, {rid: "my-rid"});
+    };
+    //The new compiler doesn't like it anymore (i.e. removed syntax)
+    var newCompiler = function(rs_info, callback){
+        callback(new Error("That won't compile anymore!"));
+    };
+
+    t.plan(5);
+
+    cocb.run(function*(){
+
+        //First try register/enable the ruleset with the old compiler
+        var pe = mkPE({compileAndLoadRuleset: oldCompiler});
+        var regRS = cocb.wrap(pe.registerRuleset);
+        var listRIDs = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
+
+        t.deepEquals(yield listRIDs(), [], "no rulesets yet");
+        yield regRS("ruleset my-rid{}", {});
+        t.deepEquals(yield listRIDs(), ["my-rid"], "registered!");
+        //so the old compiler version allowed it, now it's in the DB
+
+
+        //Start the new engine
+        pe = mkPE({compileAndLoadRuleset: newCompiler});
+        listRIDs = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
+        t.deepEquals(yield listRIDs(), ["my-rid"], "the ruleset is still in the DB and enabled");
+
+        pe.emitter.on("error", function(err){
+            t.equals(err + "", "Error: Failed to load my-rid! It is now disabled. You'll need to edit it and re-register it.\nCause: Error: That won't compile anymore!");
+        });
+
+        //the new compiler should blow up when it tries to initialize the rulest
+        yield (cocb.wrap(pe.start))([]);
+        //but shouldn't crash, just emit the error and continue starting
+
+        t.deepEquals(yield listRIDs(), [], "the ruleset should be disabled now");
+
+    }, _.noop);//using t.plan not t.end
+});
