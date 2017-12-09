@@ -10,6 +10,7 @@ html, body {
     border: 1px solid black;
 }
 </style>
+<select id="krl-editor-theme-picker"></select>
 <div id="krl-editor">ruleset io.picolabs.hello_world {
   meta {
     name "Hello World"
@@ -80,5 +81,6 @@ A first ruleset for the Quickstart
 
 <script src="krl-editor.js"></script>
 <script>
-    KRL_EDITOR("krl-editor");
+    var editor = KRL_EDITOR.edit("krl-editor");
+    KRL_EDITOR.themePicker("krl-editor-theme-picker");
 </script>
