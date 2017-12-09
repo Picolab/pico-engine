@@ -12,14 +12,14 @@ module.exports = function(input, options){
     var toLoc = src ? EStreeLoc(src, options.filepath) : _.noop;
     var ast = src ? parser(src, options.parser_options) : input;
 
-    var body = compile(ast, {
+    var compiled = compile(ast, {
         toLoc: toLoc
     });
 
     var out = escodegen.generate({
         "loc": toLoc(0, src.length - 1),
         "type": "Program",
-        "body": _.isArray(body) ? body : []
+        "body": compiled.body,
     }, {
         format: {
             quotes: "double",
@@ -33,7 +33,8 @@ module.exports = function(input, options){
     });
 
     var r = {
-        code: out.code
+        code: out.code,
+        warnings: compiled.warnings,
     };
 
     if(options.inline_source_map){

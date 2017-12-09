@@ -103,6 +103,10 @@ var KRLHighlightRules = function(options) {
                 regex : "(" + identifierRe + ")(\\s*:\\s*)(" + identifierRe + ")",
                 token : ["keyword", "text", "variable.parameter"],
             }, {
+                //krl-stdlib operators
+                regex : "(\\.)(\\s*)(" + identifierRe + ")\\b",
+                token : ["punctuation.operator", "text", "variable.language"],
+            }, {
                 regex : identifierRe,
                 token : keywordMapper,
             }, {

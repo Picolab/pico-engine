@@ -15,12 +15,27 @@ ace.define("ace/mode/krl_worker",["require","exports","ace/lib/oop","ace/worker/
         var errors = [];
 
         try{
-            compiler(krl_src);
+            var out = compiler(krl_src);
+            out.warnings.forEach(function(w){
+                errors.push({
+                    row: w.loc.start.line - 1,
+                    column: w.loc.start.column,
+                    text: w.message,
+                    type: "warning"
+                });
+            });
         }catch(err){
             if(err.where && err.where.line){
                 errors.push({
                     row: err.where.line - 1,
                     column: err.where.col,
+                    text: err + "",
+                    type: "error"
+                });
+            }else if(err.krl_compiler && err.krl_compiler.loc && err.krl_compiler.loc.start){
+                errors.push({
+                    row: err.krl_compiler.loc.start.line - 1,
+                    column: err.krl_compiler.loc.start.column,
                     text: err + "",
                     type: "error"
                 });

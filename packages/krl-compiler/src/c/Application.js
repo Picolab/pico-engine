@@ -17,6 +17,13 @@ module.exports = function(ast, comp, e){
         return callStdLibFn(e, operator.value, args, operator.loc);
     }
 
+    if(ast.callee.type === "DomainIdentifier"
+        && ast.callee.domain === "event"
+        && ast.callee.value === "attrs"
+    ){
+        comp.warn(ast.callee.loc, "DEPRECATED change `event:attrs()` to `event:attrs`");
+    }
+
     return e("ycall", e("id", "ctx.applyFn"), [
         comp(ast.callee),
         e("id", "ctx"),
