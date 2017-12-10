@@ -235,5 +235,62 @@ module.exports = function(pe){
         });
     });
 
+    app.all("/api/ruleset-page", function(req, res){
+        pe.dbDump(function(err, db_data){
+            if(err) return errResp(res, err);
+            var data = {
+                version: version,
+                r: {},
+            };
+
+            _.each(_.get(db_data, ["rulesets", "versions"]), function(versions, rid){
+                _.each(versions, function(hashes, date){
+                    _.each(hashes, function(val, hash){
+                        var rs = _.get(db_data, ["rulesets", "krl", hash]);
+                        _.set(data, ["r", rid, "by_hash", hash], rs);
+                        if(hash === _.get(db_data, ["rulesets", "enabled", rid, "hash"])){
+                            _.set(data, ["r", rid, "enabled_hash"], hash);
+                        }
+                    });
+                });
+
+                var latest_hash = _.get(_.head(
+                    _(versions)
+                        .map(function(hashes, date){
+                            return {date: new Date(date), hash: _.head(_.keys(hashes))};
+                        })
+                        .sortBy("date")
+                        .reverse()
+                        .value()
+                ), "hash");
+
+                _.set(data, ["r", rid, "rid"], rid);
+                _.set(data, ["r", rid, "latest_hash"], latest_hash);
+
+                //TODO based off pe.start(system_rulesets)
+                _.set(data, ["r", rid, "is_system_ruleset"], /^io\.picolabs/.test(rid));
+            });
+
+            data.ruleset_list = _(data.r)
+                .groupBy(function(rs){
+                        return rs.is_system_ruleset
+                            ? "sys"
+                            : "usr";
+                })
+                .mapValues(function(list){
+                    return _.sortBy(_.map(list, function(rs){
+                        return {
+                            rid: rs.rid,
+                            not_enabled: !_.isString(rs.enabled_hash),
+                        };
+                    }), "rid");
+                })
+                .value()
+                ;
+
+            res.json(data);
+        });
+    });
+
     return app;
 };

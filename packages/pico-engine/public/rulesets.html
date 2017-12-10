@@ -81,7 +81,7 @@
     </div>
     <div id="area-middle">
         <header>
-            <h4 style="margin:5px 0 5px 40px"><span class="js-current-rid"></span>&nbsp;</h4>
+            <h4 style="margin:5px 0 5px 40px;font-family:monospace"><span class="js-current-rid"></span>&nbsp;</h4>
         </header>
         <div id="krl-editor">//click on a ruleset name to see its source here</div>
         <footer>
@@ -147,6 +147,7 @@
 <script src="js/krl-editor.js"></script>
 <script>
     var editor = KRL_EDITOR.edit("krl-editor");
+    editor.$blockScrolling = Infinity;
     KRL_EDITOR.themePicker("krl-editor-theme-picker");
 
     var areaLeftTemplate = Handlebars.compile(document.getElementById("area-left-template").innerHTML);
@@ -157,43 +158,50 @@
 
     var STATE = {
         selected_rid: null,
-        db: null,
+        api: null,
+    };
+
+    var getRS = function(rid){
+        return STATE.api && STATE.api.r && STATE.api.r[rid];
+    };
+
+    var getRIDActiveVersion = function(rid){
+        var rs = getRS(rid);
+        if(!rs){
+            return;
+        }
+        var hash = rs.enabled_hash || rs.latest_hash;
+        if(!rs.by_hash || !rs.by_hash[hash]){
+            return;
+        }
+        return rs.by_hash[hash];
     };
 
     var render = function(){
+        if(!STATE.api){
+            return;
+        }
         $(".js-current-rid").text(STATE.selected_rid);
 
-        var rids = Object.keys(STATE.db.rulesets.versions);
-        var group_usr = [];
-        var group_sys = [];
-        rids.forEach(function(rid){
-            var d = {
-                rid: rid,
-                active: rid === STATE.selected_rid,
-                not_enabled: rid === "keysthing",
-            };
-            if(/io.picolabs/.test(rid)){
-                group_sys.push(d);
-            }else{
-                group_usr.push(d);
-            }
-        });
+        var rs_version = getRIDActiveVersion(STATE.selected_rid);
+        if(rs_version){
+            editor.setValue(rs_version.src, -1);
+        }else{
+            editor.setValue("// FAILED TO OPEN");
+        }
+
         $areaLeft.html(areaLeftTemplate({
             groups: [
-                {label: "Rulesets", rids: group_usr},
-                {label: "System Rulesets", rids: group_sys},
+                {label: "Rulesets", rids: STATE.api.ruleset_list.usr},
+                {label: "System Rulesets", rids: STATE.api.ruleset_list.sys},
             ],
         }));
 
         $areaRight.html(areaRightTemplate({}));
     };
 
-    var hasRID = function(rid){
-        return STATE.db && STATE.db.versions && STATE.db.versions[rid];
-    };
-
-    var setRID = function(rid){
-        if( ! hasRID(rid)){
+    var selectRID = function(rid){
+        if( ! getRS(rid)){
             rid = null;
         }
         STATE.selected_rid = rid;
@@ -202,7 +210,7 @@
     };
 
     $areaLeft.on("click", ".ruleset-list-item", function(e){
-        setRID($(e.target).data("rid"));
+        selectRID($(e.target).data("rid"));
     });
     $areaLeft.on("submit", ".js-new-ruleset-form", function(e){
         e.preventDefault();
@@ -215,8 +223,8 @@
         if(rid.length === 0){
             return;
         }
-        if(hasRID(rid)){
-            setRID(rid);//already exists
+        if(getRS(rid)){
+            selectRID(rid);//already exists
             return;
         }
 
@@ -234,7 +242,7 @@
             alert("Error: " + err);
             return;
           }
-          setRID(result.rid);
+          selectRID(result.rid);
         });
     });
     $areaLeft.on("click", ".js-download-zip", function(e){
@@ -248,10 +256,10 @@
 
     var fetchData = function(){
         $.ajax({
-            url: "/api/db-dump",
+            url: "/api/ruleset-page",
             dataType: "json",
-        }).done(function(db) {
-            STATE.db = db;
+        }).done(function(data) {
+            STATE.api = data;
             render();
         }).fail(function() {
             alert("Failed to get db-dump");
