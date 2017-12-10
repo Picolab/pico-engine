@@ -51,6 +51,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            border: 1px solid transparent;
         }
         .ruleset-list-item:hover {
             background: #e3e3e3;
@@ -80,7 +81,7 @@
     </div>
     <div id="area-middle">
         <header>
-            <h4 style="margin:5px 0 5px 40px">&nbsp;</h4>
+            <h4 style="margin:5px 0 5px 40px"><span class="js-current-rid"></span>&nbsp;</h4>
         </header>
         <div id="krl-editor">//click on a ruleset name to see its source here</div>
         <footer>
@@ -97,16 +98,14 @@
             <div class="clearfix"></div>
         </footer>
     </div>
-    <div id="area-right">
-        right side
-    </div>
+    <div id="area-right"></div>
 </div>
-<script id="ruleset-list-template" type="text/x-handlebars-template">
+<script id="area-left-template" type="text/x-handlebars-template">
     {{#each groups}}
         <h5 class="text-muted" style="margin:20px 0 8px 0">{{label}}</h5>
         <div class="ruleset-list">
             {{#each rids}}
-                <span class="ruleset-list-item{{#if active}} active{{/if}}">
+                <span class="ruleset-list-item{{#if active}} active{{/if}}" data-rid="{{rid}}">
                     {{#if not_enabled}}
                         <i class="glyphicon glyphicon-alert text-warning"></i>
                     {{else}}
@@ -118,49 +117,59 @@
         </div>
     {{/each}}
     <hr/>
-    <div class="input-group input-group-sm" style="margin-bottom:10px">
-        <input type="text" class="form-control" placeholder="ruleset id">
-        <span class="input-group-btn">
-            <button class="btn btn-default" type="button">new ruleset</button>
-        </span>
-    </div>
+    <form class="js-new-ruleset-form">
+        <div class="input-group input-group-sm" style="margin-bottom:10px">
+            <input type="text" class="form-control" placeholder="ruleset id">
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="submit">new ruleset</button>
+            </span>
+        </div>
+    </form>
     <div class="input-group input-group-sm" style="margin-bottom:10px">
         <input type="text" class="form-control" placeholder="raw source URL">
         <span class="input-group-btn">
             <button class="btn btn-default" type="button">register</button>
         </span>
     </div>
-    <button class="btn btn-default btn-sm btn-block">
+    <a href="#" class="btn btn-default btn-sm btn-block js-download-zip" download="rulesets.zip">
         <i class="glyphicon glyphicon-download-alt"></i>
         &nbsp;
         download all rulesets
-    </button>
+    </a>
+</script>
+<script id="area-right-template" type="text/x-handlebars-template">
+    <h4>versions</h4>
 </script>
 <script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
 <script src="js/handlebars.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.6.1/jszip.min.js"></script>
+<script src="js/picoAPI.js" type="text/javascript"></script>
 <script src="js/krl-editor.js"></script>
 <script>
     var editor = KRL_EDITOR.edit("krl-editor");
     KRL_EDITOR.themePicker("krl-editor-theme-picker");
 
-    var rulesetListTemplate = Handlebars.compile(document.getElementById("ruleset-list-template").innerHTML);
+    var areaLeftTemplate = Handlebars.compile(document.getElementById("area-left-template").innerHTML);
+    var areaRightTemplate = Handlebars.compile(document.getElementById("area-right-template").innerHTML);
 
-    $(".js-ruleset-list").on("click", ".rulesets-list-item", function(e){
-        console.log("click", e);
-    });
+    var $areaLeft = $(".js-ruleset-list");
+    var $areaRight = $("#area-right");
 
-    $.ajax({
-        url: "/api/db-dump",
-        dataType: "json",
-    }).done(function(db) {
-        var rids = Object.keys(db.rulesets.versions);
+    var STATE = {
+        selected_rid: null,
+        db: null,
+    };
 
+    var render = function(){
+        $(".js-current-rid").text(STATE.selected_rid);
+
+        var rids = Object.keys(STATE.db.rulesets.versions);
         var group_usr = [];
         var group_sys = [];
         rids.forEach(function(rid){
             var d = {
                 rid: rid,
-                active: rid === "asdfasdf",
+                active: rid === STATE.selected_rid,
                 not_enabled: rid === "keysthing",
             };
             if(/io.picolabs/.test(rid)){
@@ -169,15 +178,86 @@
                 group_usr.push(d);
             }
         });
-        $(".js-ruleset-list").html(rulesetListTemplate({
+        $areaLeft.html(areaLeftTemplate({
             groups: [
                 {label: "Rulesets", rids: group_usr},
                 {label: "System Rulesets", rids: group_sys},
             ],
         }));
-    }).fail(function() {
-        alert("Failed to get db-dump");
+
+        $areaRight.html(areaRightTemplate({}));
+    };
+
+    var hasRID = function(rid){
+        return STATE.db && STATE.db.versions && STATE.db.versions[rid];
+    };
+
+    var setRID = function(rid){
+        if( ! hasRID(rid)){
+            rid = null;
+        }
+        STATE.selected_rid = rid;
+        location.hash = STATE.selected_rid || "";
+        render();
+    };
+
+    $areaLeft.on("click", ".ruleset-list-item", function(e){
+        setRID($(e.target).data("rid"));
     });
+    $areaLeft.on("submit", ".js-new-ruleset-form", function(e){
+        e.preventDefault();
+        var rid = $(this).find("input").val();
+        rid = rid
+            .trim()
+            .replace(/[^a-zA-Z0-9_.-]/g, "-")
+            .replace(/[-]+/, "-")
+            ;
+        if(rid.length === 0){
+            return;
+        }
+        if(hasRID(rid)){
+            setRID(rid);//already exists
+            return;
+        }
+
+        var src = "ruleset "+rid+" {\n"
+          + "  meta {\n"
+          + "    shares __testing\n"
+          + "  }\n"
+          + "  global {\n"
+          + "    __testing = { \"queries\": [ { \"name\": \"__testing\" } ],\n"
+          + "                  \"events\": [ ] }\n"
+          + "  }\n"
+          + "}\n";
+        picoAPI("/api/ruleset/register", {"src": src}, "POST", function(err, result){
+          if(err){
+            alert("Error: " + err);
+            return;
+          }
+          setRID(result.rid);
+        });
+    });
+    $areaLeft.on("click", ".js-download-zip", function(e){
+        var zip = new JSZip();
+        zip.file("hello.txt","Hello World!");
+        //TODO
+        $(this).attr("href","data:application/zip;base64,"+zip.generate());
+    });
+
+
+
+    var fetchData = function(){
+        $.ajax({
+            url: "/api/db-dump",
+            dataType: "json",
+        }).done(function(db) {
+            STATE.db = db;
+            render();
+        }).fail(function() {
+            alert("Failed to get db-dump");
+        });
+    };
+    fetchData();
 </script>
 </body>
 </html>
