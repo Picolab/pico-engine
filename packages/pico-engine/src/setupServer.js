@@ -273,9 +273,9 @@ module.exports = function(pe){
 
             data.ruleset_list = _(data.r)
                 .groupBy(function(rs){
-                        return rs.is_system_ruleset
-                            ? "sys"
-                            : "usr";
+                    return rs.is_system_ruleset
+                        ? "sys"
+                        : "usr";
                 })
                 .mapValues(function(list){
                     return _.sortBy(_.map(list, function(rs){
@@ -285,9 +285,9 @@ module.exports = function(pe){
                         };
                     }), "rid");
                 })
-                .value()
-                ;
+                .value();
 
+            data.ok = true;
             res.json(data);
         });
     });

@@ -80,14 +80,6 @@ rule bad_decrypt {
 
   }
 
-  rule signature_failed {
-    select when wrangler signature_verification_failed
-    always {
-      ent:failed := (ent:failed.defaultsTo(0) + 1).klog("SIGNATURE FAILED")
-    }
-
-  }
-
    rule decryption_failed {
       select when wrangler signature_verification_failed
       always {
@@ -117,6 +109,5 @@ rule bad_decrypt {
     always {
       ent:failed := (ent:failed.defaultsTo(0) + 1).klog("SIGNATURE FAILED")
     }
-
   }
 }
