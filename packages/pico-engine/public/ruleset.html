@@ -151,8 +151,10 @@
     </div>
     {{#if rs_version.url}}
         <h4 class="text-muted">URL</h4>
-        <a href="{{rs_version.url}}" target="_blank">{{rs_version.url}}</a>
-        <button class="btn btn-default btn-sm js-btn-flush" data-rid="{{rs_version.rid}}">
+        <div>
+            <a href="{{rs_version.url}}" target="_blank">{{rs_version.url}}</a>
+        </div>
+        <button class="btn btn-default btn-sm js-btn-flush">
             flush
             <i class="glyphicon glyphicon-flash"></i>
         </button>
@@ -247,6 +249,9 @@
             $notEnabledAlert.show();
         }
         var toList = function(key){
+            if(!STATE.api || !STATE.api.ruleset_list || !STATE.api.ruleset_list[key]){
+                return [];
+            }
             return STATE.api.ruleset_list[key].map(function(r){
                 return Object.assign({}, r, {active: r.rid === STATE.selected_rid});
             });
@@ -354,7 +359,6 @@
                 zip.file(rid + ".krl", rs_version.src);
             }
         });
-        //TODO
         $(this).attr("href","data:application/zip;base64,"+zip.generate());
     });
     $(".js-btn-register-src").on("click", function(e){
@@ -380,9 +384,8 @@
     });
     $areaRight.on("click", ".js-btn-flush", function(e){
         e.preventDefault();
-        var rid = $(e.target).data("rid");
         $errorMessage.text("");
-        picoAPI("/api/ruleset/flush/" + rid, {}, "GET", function(err, data){
+        picoAPI("/api/ruleset/flush/" + STATE.selected_rid, {}, "GET", function(err, data){
             if(err){
                 $errorMessage.text("Failed to flush - " + err);
                 return;
