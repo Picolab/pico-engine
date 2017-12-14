@@ -353,7 +353,7 @@ ruleset io.picolabs.wrangler {
     }
     if(rids !=  "") then every{ // should we be valid checking?
       installRulesets(rid_list) setting(rids)
-      send_directive("rulesets installed", {"rids":rids.rids}); // should we return rids or rid_list?
+      send_directive("rulesets installed", { "rids": rids.rids }); // should we return rids or rid_list?
     }
     fired {
       raise wrangler event "ruleset_added"
@@ -386,7 +386,7 @@ ruleset io.picolabs.wrangler {
       createChannel(meta:picoId,
                     channel_name,
                     event:attr("type").defaultsTo("_wrangler")) setting(channel);
-      send_directive("channel_Created", {"channel":channel});
+      send_directive("channel_Created", channel);
     }
     fired {
       raise wrangler event "channel_created" // API event
@@ -402,7 +402,7 @@ ruleset io.picolabs.wrangler {
       deleteChannel( alwaysEci(event:attr("eci")
                      .defaultsTo(event:attr("name")
                      .defaultsTo("")))) setting(channel);
-      send_directive("channel_deleted", {"channel":channel});
+      send_directive("channel_deleted", channel);
     }
     always {
      raise wrangler event "channel_deleted" // API event

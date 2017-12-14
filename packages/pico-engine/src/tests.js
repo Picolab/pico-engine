@@ -136,16 +136,16 @@ testPE("pico-engine", function(t, pe, root_eci){
                 attrs: {name:"ted",type:"type"}
             }, function(err, response){
                 if(err) return next(err);
-                //console.log("this is the response of createChannel: ",response.directives[0].options);
-                t.deepEqual(response.directives[0].options.channel.name, "ted","correct directive");
-                var createdChannel = response.directives[0].options.channel;
-                ted = channel;
-                next(null, channels, createdChannel);
+                console.log("this is the response of createChannel: ",response.directives[0].options);
+                t.deepEqual(response.directives[0].options.name, "ted","correct directive");
+                var createdChannel = response.directives[0].options;
+                ted = createdChannel;
+                next(null, channels, createdChannel, ted);
             });
         },
         //TEST 4: Query for the new list of channes and compare with the old list of channels
         //TEST 5: Make sure only 1 channel was created, not multiple channels
-        function(previousChannels, createdChannel, next){// compare with store,
+        function(previousChannels, createdChannel, ted, next){// compare with store,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
@@ -166,19 +166,10 @@ testPE("pico-engine", function(t, pe, root_eci){
                 }
                 t.equals(found, true,"found correct channel in deepEqual");//redundant check
 
-
-
-                /*
-                THIS IS WHERE I ENDED ADAM
-                */
-
-
-
-                //channels = data; // update channels cache
-                next();
+                next(null, currentChannels, ted);
             });
         },
-        function(next){// create duplicate channels
+        function(currentChannels, ted, next){// create duplicate channels
             pe.signalEvent({
                 eci: root_eci,
                 eid: "85",
@@ -188,10 +179,10 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, response){
                 if(err) return next(err);
                 t.deepEqual(response.directives,[],"duplicate channel create");// I wish this directive was not empty on failure........
-                next();
+                next(null, currentChannels, ted);
             });
         },
-        function(next){// compare with store,
+        function(currentChannels, ted, next){// compare with store,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
@@ -199,11 +190,11 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                t.equals(data.length, channels.length,"no duplicate channel was created");
-                next();
+                t.equals(data.length, currentChannels.length,"no duplicate channel was created");
+                next(null, ted);
             });
         },
-        function(next){// create channel
+        function(ted, next){// create channel
             pe.signalEvent({
                 eci: root_eci,
                 eid: "85",
@@ -214,12 +205,12 @@ testPE("pico-engine", function(t, pe, root_eci){
                 if(err) return next(err);
                 //console.log("this is the response of createChannel: ",response.directives[0].options);
                 //t.deepEqual(response.directives[0].options.channel.name, "carl","correct directive");
-                channel = response.directives[0].options.channel;
+                channel = response.directives[0].options;
                 carl = channel;
-                next();
+                next(null, ted);
             });
         },
-        function(next){// create channel
+        function(ted, next){// create channel
             pe.signalEvent({
                 eci: root_eci,
                 eid: "85",
@@ -230,36 +221,37 @@ testPE("pico-engine", function(t, pe, root_eci){
                 if(err) return next(err);
                 //console.log("this is the response of createChannel: ",response.directives[0].options);
                 //t.deepEqual(response.directives[0].options.channel.name, "bill","correct directive");
-                channel = response.directives[0].options.channel;
+                var billsChannel = response.directives[0].options;
                 //bill = channel;
-                next();
+                next(null, billsChannel, ted);
             });
         },
-        function(next){// list channel given name,
+        function(billsChannel, ted, next){// list channel given name,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
                 name: "channel",
-                args: {value:channel.name},
+                args: {value: billsChannel.name},
             }, function(err, data){
                 if(err) return next(err);
-                t.equals(data.channels.id,channel.id,"list channel given name");
-                next();
+                console.log("Data in query: ", data);
+                t.equals(data.id,billsChannel.id,"list channel given name");
+                next(null, billsChannel, ted);
             });
         },
-        function(next){// list channel given eci,
+        function(billsChannel, ted, next){// list channel given eci,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
                 name: "channel",
-                args: {value:channel.id},
+                args: {value: billsChannel.id},
             }, function(err, data){
                 if(err) return next(err);
-                t.equals(data.channels.id,channel.id,"list channel given eci");
-                next();
+                t.equals(data.id,billsChannel.id,"list channel given eci");
+                next(null, billsChannel, ted);
             });
         },
-        function(next){// list channels by collection,
+        function(billsChannel, ted, next){// list channels by collection,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
@@ -268,15 +260,16 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 console.log("///////list collection of channel");
-                t.equals(data.channels["typeB"]  !== null , true ,"has typeB");
-                t.equals(data.channels["typeC"]  !== null , true ,"has typeC");
-                t.equals(data.channels["type"]   !== null , true ,"has type");
-                t.equals(data.channels["secret"] !== null , true ,"has secret");
+                console.log("Data in channel filter by collection: ", data);
+                t.equals(data["typeB"]  !== null , true ,"has typeB");
+                t.equals(data["typeC"]  !== null , true ,"has typeC");
+                t.equals(data["type"]   !== null , true ,"has type");
+                t.equals(data["secret"] !== null , true ,"has secret");
                 console.log("///////");
-                next();
+                next(null, billsChannel, ted);
             });
         },
-        function(next){// list channels by filtered collection,
+        function(billsChannel, ted, next){// list channels by filtered collection,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
@@ -284,25 +277,25 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {collection:"type",filtered:"typeB"},
             }, function(err, data){
                 if(err) return next(err);
-                t.deepEquals(data.channels.length>0, true ,"filtered collection has at least one channels");// should have at least one channel with this type..
-                t.deepEquals(data.channels[0].type,channel.type,"filtered collection of has correct type");// should have at least one channel with this type..
-                next();
+                t.deepEquals(data.length>0, true ,"filtered collection has at least one channels");// should have at least one channel with this type..
+                t.deepEquals(data[0].type, billsChannel.type,"filtered collection of has correct type");// should have at least one channel with this type..
+                next(null, billsChannel, ted);
             });
         },
-        function(next){// alwaysEci,
+        function(billsChannel, ted, next){// alwaysEci,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
                 name: "alwaysEci",
-                args: {value:channel.id},
+                args: {value: billsChannel.id},
             }, function(err, data){
                 if(err) return next(err);
                 //console.log("eci",data);
-                t.equals(data,channel.id,"alwaysEci id");
-                next();
+                t.equals(data,billsChannel.id,"alwaysEci id");
+                next(null, ted);
             });
         },
-        function(next){// alwaysEci,
+        function(ted, next){// alwaysEci,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
@@ -311,10 +304,10 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 t.equals(data,channel.id,"alwaysEci name");
-                next();
+                next(null, ted);
             });
         },
-        function(next){// eciFromName,
+        function(ted, next){// eciFromName,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
@@ -323,10 +316,10 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 t.equals(data,channel.id,"eciFromName");
-                next();
+                next(null, ted);
             });
         },
-        function(next){// nameFromEci,
+        function(ted, next){// nameFromEci,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
@@ -335,10 +328,10 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 t.equals(data,channel.name,"nameFromEci");
-                next();
+                next(null, ted);
             });
         },
-        function(next){// store channels,
+        function(ted, next){// store channels,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
@@ -346,11 +339,11 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                channels = data.channels;
-                next();
+                channels = data;
+                next(null, channels, ted);
             });
         },
-        function(next){
+        function(currentChannels, ted, next){
             console.log("//////////////////Channel Deletion//////////////////");
             pe.signalEvent({
                 eci: root_eci,
@@ -360,13 +353,13 @@ testPE("pico-engine", function(t, pe, root_eci){
                 attrs: {name:"ted"}
             }, function(err, response){
                 if(err) return next(err);
-                //console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
-                t.deepEqual(response.directives[0].options.channel.name, "ted","correct directive");
-                channel = response.directives[0].options.channel;
-                next();
+                console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
+                t.deepEqual(response.directives[0].options.name, "ted","correct deletion directive received");
+                channel = response.directives[0].options;
+                next(null, currentChannels, ted);
             });
         },
-        function(next){// compare with store,
+        function(currentChannels, ted, next){// compare with store,
             pe.runQuery({
                 eci: root_eci,
                 rid: "io.picolabs.wrangler",
@@ -374,18 +367,18 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                t.equals(data.channels.length <= channels.length, true,"channel was removed by name");
-                t.equals(data.channels.length, channels.length - 1 ,"single channel was removed by name");
+                t.equals(data.length <= currentChannels.length, true,"channel was removed by name");
+                t.equals(data.length, currentChannels.length - 1 ,"single channel was removed by name");
                 var found = false;
-                for(var i = 0; i < data.channels.length; i++) {
-                    if (data.channels[i].id === ted.id) {
+                for(var i = 0; i < data.length; i++) {
+                    if (data[i].id === ted.id) {
                         found = true;
                         break;
                     }
                 }
                 t.equals(found, false,"correct channel removed");
-                channels = data.channels;// store channels,
-                next();
+                channels = data;// store channels,
+                next(null);
             });
         },
         function(next){
@@ -398,8 +391,8 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, response){
                 if(err) return next(err);
                 //console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
-                t.deepEqual(response.directives[0].options.channel.name, "carl","correct directive");
-                channel = response.directives[0].options.channel;
+                t.deepEqual(response.directives[0].options.name, "carl","correct directive");
+                channel = response.directives[0].options;
                 next();
             });
         },
@@ -411,11 +404,11 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                t.equals(data.channels.length <= channels.length, true,"channel was removed by eci");
-                t.equals(data.channels.length, channels.length - 1 ,"single channel was removed by eci");
+                t.equals(data.length <= channels.length, true,"channel was removed by eci");
+                t.equals(data.length, channels.length - 1 ,"single channel was removed by eci");
                 var found = false;
-                for(var i = 0; i < data.channels.length; i++) {
-                    if (data.channels[i].id === carl.id) {
+                for(var i = 0; i < data.length; i++) {
+                    if (data[i].id === carl.id) {
                         found = true;
                         break;
                     }
@@ -435,7 +428,8 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                installedRids = data.rids;
+                console.log("data from rids query: ", data);
+                installedRids = data;
                 t.equal(installedRids.length > 0, true, "installed rids list is greater than zero");
                 next();
             });
@@ -464,10 +458,10 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 var found = false;
-                t.equals(data.rids.length >= installedRids.length, true,"ruleset was installed");
-                t.equals(data.rids.length, installedRids.length + 1 ,"single ruleset was installed");
-                for(var i = 0; i < data.rids.length; i++) {
-                    if (data.rids[i] === "io.picolabs.logging") {
+                t.equals(data.length >= installedRids.length, true,"ruleset was installed");
+                t.equals(data.length, installedRids.length + 1 ,"single ruleset was installed");
+                for(var i = 0; i < data.length; i++) {
+                    if (data[i] === "io.picolabs.logging") {
                         found = true;
                         break;
                     }
@@ -500,10 +494,10 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 var found = false;
-                t.equals(data.rids.length <= installedRids.length, true,"ruleset was un-installed");
-                t.equals(data.rids.length, installedRids.length  ,"single ruleset was un-installed");
-                for(var i = 0; i < data.rids.length; i++) {
-                    if (data.rids[i] === "io.picolabs.logging") {
+                t.equals(data.length <= installedRids.length, true,"ruleset was un-installed");
+                t.equals(data.length, installedRids.length  ,"single ruleset was un-installed");
+                for(var i = 0; i < data.length; i++) {
+                    if (data[i] === "io.picolabs.logging") {
                         found = true;
                         break;
                     }
@@ -522,7 +516,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 attrs: {rids:"io.picolabs.logging;io.picolabs.subscription"}
             }, function(err, response){
                 if(err) return next(err);
-                //console.log("this is the response of install_rulesets_requested: ",response.directives[0].options);
+                console.log("this is the response of install_rulesets_requested: ",response.directives[0].options);
                 t.deepEqual(["io.picolabs.logging","io.picolabs.subscription"], response.directives[0].options.rids, "correct directive");
                 //rids = response.directives[0].options.rids;
                 next();
@@ -537,18 +531,18 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 var found = 0;
-                t.equals(data.rids.length >= installedRids.length, true,"rulesets installed");
-                t.equals(data.rids.length, installedRids.length + 2 ,"two rulesets was installed");
-                for(var i = 0; i < data.rids.length; i++) {
-                    if (data.rids[i] === "io.picolabs.logging"|| data.rids[i] === "io.picolabs.subscription") {
+                t.equals(data.length >= installedRids.length, true,"rulesets installed");
+                t.equals(data.length, installedRids.length + 2 ,"two rulesets were installed");
+                for(var i = 0; i < data.length; i++) {
+                    if (data[i] === "io.picolabs.logging"|| data[i] === "io.picolabs.subscription") {
                         found ++;
                         //break;
                     }
-                    if (data.rids[i] === "io.picolabs.logging"){
-                        t.deepEqual(data.rids[i], "io.picolabs.logging","logging installed");
+                    if (data[i] === "io.picolabs.logging"){
+                        t.deepEqual(data[i], "io.picolabs.logging","logging installed");
                     }
-                    else if (data.rids[i] === "io.picolabs.subscription"){
-                        t.deepEqual(data.rids[i], "io.picolabs.subscription","subscription installed");
+                    else if (data[i] === "io.picolabs.subscription"){
+                        t.deepEqual(data[i], "io.picolabs.subscription","subscription installed");
                     }
                 }
                 t.equals(found, 2,"both rulesets installed");
@@ -579,10 +573,10 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 var found = 0;
-                t.equals(data.rids.length <= installedRids.length, true,"rulesets un-installed");
-                t.equals(data.rids.length, installedRids.length  ,"two rulesets un-installed");
-                for(var i = 0; i < data.rids.length; i++) {
-                    if (data.rids[i] === "io.picolabs.logging"|| data.rids[i] === "io.picolabs.subscription") {
+                t.equals(data.length <= installedRids.length, true,"rulesets un-installed");
+                t.equals(data.length, installedRids.length  ,"two rulesets un-installed");
+                for(var i = 0; i < data.length; i++) {
+                    if (data[i] === "io.picolabs.logging"|| data[i] === "io.picolabs.subscription") {
                         found ++;
                         //break;
                     }
@@ -602,9 +596,9 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 //console.log("rulesetInfo",data.description);
-                t.deepEqual(data.description.length, 1 ,"single rule set described");
-                t.deepEqual("io.picolabs.logging",data.description[0].rid ,"correct ruleset described");
-                t.equals(data.description[0].src !== undefined ,true,"has a src");
+                t.deepEqual(data.length, 1 ,"single rule set described");
+                t.deepEqual("io.picolabs.logging",data[0].rid ,"correct ruleset described");
+                t.equals(data[0].src !== undefined ,true,"has a src");
                 next();
             });
         },
@@ -618,11 +612,11 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 //console.log("rulesetInfo",data);
-                t.deepEqual(data.description.length, 2 ,"two rule sets described");
-                t.deepEqual("io.picolabs.logging",data.description[0].rid ,"logging ruleset described");
-                t.equals(data.description[0].src !== undefined ,true,"logging has a src");
-                t.deepEqual("io.picolabs.subscription",data.description[1].rid ,"subscription ruleset described");
-                t.equals(data.description[1].src !== undefined ,true,"subscription has a src");
+                t.deepEqual(data.length, 2 ,"two rule sets described");
+                t.deepEqual("io.picolabs.logging",data[0].rid ,"logging ruleset described");
+                t.equals(data[0].src !== undefined ,true,"logging has a src");
+                t.deepEqual("io.picolabs.subscription",data[1].rid ,"subscription ruleset described");
+                t.equals(data[1].src !== undefined ,true,"subscription has a src");
                 next();
             });
         },
@@ -640,8 +634,8 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                child_count = data.children.length;
-                t.equal(Array.isArray(data.children), true,"children returns list.");
+                child_count = data.length;
+                t.equal(Array.isArray(data), true,"children returns list.");
                 next();
             });
         },
@@ -669,13 +663,13 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 //console.log("children",data);
-                t.equals(data.children.length > child_count, true,"created a pico"); // created a child
-                t.equals(data.children.length , child_count+1, "created a single pico"); // created only 1 child
+                t.equals(data.length > child_count, true,"created a pico"); // created a child
+                t.equals(data.length , child_count+1, "created a single pico"); // created only 1 child
                 var found = false;
-                for(var i = 0; i < data.children.length; i++) {
-                    if (data.children[i].id === child.id) {
+                for(var i = 0; i < data.length; i++) {
+                    if (data[i].id === child.id) {
                         found = true;
-                        t.deepEqual(child, data.children[i],"new pico is the same pico from directive");
+                        t.deepEqual(child, data[i],"new pico is the same pico from directive");
                         break;
                     }
                 }
@@ -692,8 +686,8 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 //console.log("parent_eci",data);
-                t.equals(data.channels.name,"ted","channel for child created in parent");
-                parent_eci = data.channels.id;
+                t.equals(data.name,"ted","channel for child created in parent");
+                parent_eci = data.id;
                 next();
             });
         },
@@ -705,7 +699,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 //console.log("parent_eci",data);
-                t.equals(data.parent,parent_eci,"parent channel for child stored in child");
+                t.equals(data,parent_eci,"parent channel for child stored in child");
                 next();
             });
         },
@@ -717,7 +711,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {value:"main"},
             }, function(err, data){
                 if(err) return next(err);
-                t.equals(data.channels.name,"main","child 'main' channel created");
+                t.equals(data.name,"main","child 'main' channel created");
                 next();
             });
         },
@@ -729,7 +723,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {value:"admin"},
             }, function(err, data){
                 if(err) return next(err);
-                t.equals(data.channels.name,"admin","child 'admin' channel created");
+                t.equals(data.name,"admin","child 'admin' channel created");
                 next();
             });
         },
@@ -743,7 +737,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, response){
                 //console.log("children",response);
                 if(err) return next(err);
-                t.deepEqual("Pico_Not_Created", response.directives[0].name, "correct directive for duplicate child creation");
+                t.deepEqual("Pico_Created", response.directives[0].name, "correct directive for duplicate child creation");
                 next();
             });
         },
@@ -1052,28 +1046,29 @@ testPE("pico-engine - Wrangler", function*(t, pe, root_eci){
 
     // store channels, we don't directly test list channels.......
     data = yield yQuery(root_eci, "io.picolabs.wrangler", "channel", {});
-    t.equal(data.channels.length > 0, true,"channels returns a list greater than zero");
-    channels = data.channels;
+    t.equal(data.length > 0, true,"channels returns a list greater than zero");
+    channels = data;
 
     // create channels
-    data = yield yEvent(root_eci, "pico/channel_creation_requested", {name:"ted", type:"type"});
-    channel = data.directives[0].options.channel;
+    data = yield yEvent(root_eci, "wrangler/channel_creation_requested", {name:"ted", type:"type"});
+    console.log("Data: ", data.directives[0].options);
+    channel = data.directives[0].options;
     t.equal(channel.name, "ted", "correct directive");
 
     // compare with store,
     data = yield yQuery(root_eci, "io.picolabs.wrangler", "channel", {});
-    t.equals(data.channels.length > channels.length, true, "channel was created");
-    t.equals(data.channels.length, channels.length + 1, "single channel was created");
+    t.equals(data.length > channels.length, true, "channel was created");
+    t.equals(data.length, channels.length + 1, "single channel was created");
     var found = false;
-    for(var i = 0; i < data.channels.length; i++) {
-        if (data.channels[i].id === channel.id) {
+    for(var i = 0; i < data.length; i++) {
+        if (data[i].id === channel.id) {
             found = true;
-            t.deepEqual(channel, data.channels[i], "new channel is the same channel from directive");
+            t.deepEqual(channel, data[i], "new channel is the same channel from directive");
             break;
         }
     }
     t.equals(found, true,"found correct channel in deepEqual");//redundant check
-    channels = data.channels; // update channels cache
+    channels = data; // update channels cache
 
     //TODO rest
 });
