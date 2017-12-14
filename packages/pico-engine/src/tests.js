@@ -64,7 +64,7 @@ testPE("pico-engine", function(t, pe, root_eci){
     // helper functions
     var testQuery = function( _name, _args, test, _eci, _rid, next){
         var _query= { eci: _eci || root_eci, rid : _rid || "io.picolabs.wrangler", name: _name, args: _args || {} };
-        console.log("_query",_query);
+        //console.log("_query",_query);
         pe.runQuery(_query,
             function(err, data){
                 if(err) return next(err);
@@ -107,7 +107,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             console.log("//////////////////Wrangler Testing//////////////////");
             testQuery("myself",null,
                 function(data){
-                    console.log("data",data);
+                    //console.log("data",data);
                     t.equals(data.eci, root_eci);
                 }, null, null , next );
         },
@@ -120,7 +120,6 @@ testPE("pico-engine", function(t, pe, root_eci){
                 defaultQueryParams("channel", {})
                 , function(err, data){
                     if(err) return next(err);
-                    console.log();
                     t.equal(data.length > 0,true,"channels returns a list greater than zero");
                     next(null, data);//data is the array of channels. null as the first arg as per the waterfall docs (there is no error).
                 });
@@ -136,7 +135,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 attrs: {name:"ted",type:"type"}
             }, function(err, response){
                 if(err) return next(err);
-                console.log("this is the response of createChannel: ",response.directives[0].options);
+                //console.log("this is the response of createChannel: ",response.directives[0].options);
                 t.deepEqual(response.directives[0].options.name, "ted","correct directive");
                 var createdChannel = response.directives[0].options;
                 ted = createdChannel;
@@ -234,7 +233,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {value: billsChannel.name},
             }, function(err, data){
                 if(err) return next(err);
-                console.log("Data in query: ", data);
+                //console.log("Data in query: ", data);
                 t.equals(data.id,billsChannel.id,"list channel given name");
                 next(null, billsChannel, ted);
             });
@@ -260,7 +259,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 console.log("///////list collection of channel");
-                console.log("Data in channel filter by collection: ", data);
+                //console.log("Data in channel filter by collection: ", data);
                 t.equals(data["typeB"]  !== null , true ,"has typeB");
                 t.equals(data["typeC"]  !== null , true ,"has typeC");
                 t.equals(data["type"]   !== null , true ,"has type");
@@ -353,7 +352,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 attrs: {name:"ted"}
             }, function(err, response){
                 if(err) return next(err);
-                console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
+                //console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
                 t.deepEqual(response.directives[0].options.name, "ted","correct deletion directive received");
                 channel = response.directives[0].options;
                 next(null, currentChannels, ted);
@@ -428,7 +427,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                console.log("data from rids query: ", data);
+                //console.log("data from rids query: ", data);
                 installedRids = data;
                 t.equal(installedRids.length > 0, true, "installed rids list is greater than zero");
                 next();
@@ -516,7 +515,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 attrs: {rids:"io.picolabs.logging;io.picolabs.subscription"}
             }, function(err, response){
                 if(err) return next(err);
-                console.log("this is the response of install_rulesets_requested: ",response.directives[0].options);
+                //console.log("this is the response of install_rulesets_requested: ",response.directives[0].options);
                 t.deepEqual(["io.picolabs.logging","io.picolabs.subscription"], response.directives[0].options.rids, "correct directive");
                 //rids = response.directives[0].options.rids;
                 next();
@@ -1051,7 +1050,7 @@ testPE("pico-engine - Wrangler", function*(t, pe, root_eci){
 
     // create channels
     data = yield yEvent(root_eci, "wrangler/channel_creation_requested", {name:"ted", type:"type"});
-    console.log("Data: ", data.directives[0].options);
+    //console.log("Data: ", data.directives[0].options);
     channel = data.directives[0].options;
     t.equal(channel.name, "ted", "correct directive");
 
