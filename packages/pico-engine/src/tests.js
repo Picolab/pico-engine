@@ -206,7 +206,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.runQuery(defaultQueryParams("channel", {value: billsChannel.name})
                 ,function(err, data){
                     if(err) return next(err);
-                    //console.log("Data in query: ", data);
+                    console.log("Data in query: ", data);
                     t.equals(data.id,billsChannel.id,"list channel given name");
                     next(null, billsChannel, ted);
                 });
@@ -790,7 +790,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                console.log("outbound subs",data);
+                console.log("inbound subs",data);
                 subscriptionPicos.picoA.subscriptions = data;
                 t.notEqual(undefined, data, "Pico A has pending subscription");
                 next();
