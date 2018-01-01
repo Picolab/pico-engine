@@ -301,8 +301,8 @@ ruleset io.picolabs.subscription {
     fired{
         attrs.klog(">> could not accept request #{name} >>");
         event:send({ "eci": outbound_eci, "eid": "pending_subscription",
-          "domain": "wrangler", "type": "outbound_subscription_cancellation",
-          "attrs": attrs.put({"failed_request":"not a unique subscription"})}, subscriber_host)
+          "domain": "wrangler", "type": "subscription_cancellation",
+          "attrs": {"subscription_name": event:attr("channel_name")}}, subscriber_host)
     }
     else{
       attrs.klog("InboundNameCheck attrs");
@@ -371,7 +371,7 @@ rule approveInboundPendingSubscription {
     select when wrangler pending_subscription_approval
     pre{
       logs = event:attrs().klog("approveInboundPendingSubscription attrs")
-      channel_name = event:attr("subscription_name").defaultsTo(event:attr("channel_name"), "channel_name used ")
+      channel_name = event:attr("subscription_name")
       subs = getSubscriptions().klog("subscriptions")
       subscriber_host = subs{[channel_name,"attributes","subscriber_host"]}.klog("host of other pico if different")
       inbound_eci = subs{[channel_name,"eci"]}.klog("subscription inbound")
@@ -489,10 +489,8 @@ rule addInboundSubscription {
 
   rule cancelSubscription {
     select when wrangler subscription_cancellation
-            or  wrangler inbound_subscription_rejection
-            or  wrangler outbound_subscription_cancellation
     pre{
-      channel_name = event:attr("subscription_name").defaultsTo(event:attr("channel_name"), "channel_name used ") //.defaultsTo( "No channel_name", standardError("channel_name"))
+      channel_name = event:attr("subscription_name")
       subs = getSubscriptions()
       subscriber_host = subs{[channel_name,"attributes","subscriber_host"]}.klog("outbound host if different")
       outbound_eci = subs{[channel_name,"attributes","subscriber_eci"]}.defaultsTo(
