@@ -562,7 +562,6 @@ module.exports = function(conf){
         flushRuleset: core.flushRuleset,
         unregisterRuleset: core.unregisterRuleset,
 
-        newChannel: db.newChannel,
         removeChannel: db.removeChannel,
         installRuleset: core.installRuleset,
         uninstallRuleset: core.uninstallRuleset,
@@ -579,6 +578,7 @@ module.exports = function(conf){
     if(conf.___core_testing_mode){
         pe.newPico = db.newPico;
         pe.newPolicy = db.newPolicy;
+        pe.newChannel = db.newChannel;
         pe.scheduler = core.scheduler;
         pe.modules = modules;
     }
