@@ -12,7 +12,7 @@ var PicoEngineCore = require("pico-engine-core");
 var toKRLjson = function(val, indent){
     var message = krl_stdlib.encode({}, val, indent);
     if(message === "\"[JSObject]\""){
-        message = val.toString();
+        message = val + "";
     }
     return message;
 };
@@ -63,7 +63,7 @@ var setupRootPico = function(pe, callback){
 };
 
 
-var getSystemRulesets = function(pe, callback){
+var getSystemRulesets = function(callback){
     var krl_dir = path.resolve(__dirname, "../krl");
     fs.readdir(krl_dir, function(err, files){
         if(err) return callback(err);
@@ -108,6 +108,7 @@ var setupLogging = function(pe, bunyanLog){
 
         context = context || {};//"error" events may be missiong context, log it as far as possible
 
+        var episode_id = context.txn_id;
         var timestamp = (new Date()).toISOString();
 
         if(!_.isString(message)){
@@ -137,7 +138,32 @@ var setupLogging = function(pe, bunyanLog){
             message += " arguments " + toKRLjson(context.query.args);
         }
 
-        var shell_log = "[" + level.toUpperCase() + "] ";
+        var shell_log = "";
+        shell_log += "[" + level.toUpperCase() + "] ";
+        shell_log += episode_id + " | ";
+        shell_log += message;
+        if(shell_log.length > 300){
+            shell_log = shell_log.substring(0, 300) + "...";
+        }
+        if(/error/i.test(level)){
+            console.error(shell_log);//use stderr
+        }else{
+            console.log(shell_log);
+        }
+
+        var episode = logs[episode_id];
+        if (episode) {
+            episode.logs.push(timestamp + " [" + level.toUpperCase() + "] " + message);
+        } else {
+            console.error("[ERROR]", "no episode found for", episode_id);
+        }
+    };
+
+
+    pe.emitter.on("episode_start", function(expression, context){
+        var episode_id = context.txn_id;
+
+        var shell_log = "[EPISODE_START] " + episode_id + " ";
         if(context.event){
             shell_log += "event"
                 + "/" + context.event.eci
@@ -154,29 +180,8 @@ var setupLogging = function(pe, bunyanLog){
         }else{
             shell_log += toKRLjson(context);
         }
-        shell_log += " | " + message;
-        if(shell_log.length > 300){
-            shell_log = shell_log.substring(0, 300) + "...";
-        }
-        if(/error/i.test(level)){
-            console.error(shell_log);//use stderr
-        }else{
-            console.log(shell_log);
-        }
+        console.log(shell_log);
 
-        var episode_id = context.txn_id;
-        var episode = logs[episode_id];
-        if (episode) {
-            episode.logs.push(timestamp + " [" + level.toUpperCase() + "] " + message);
-        } else {
-            console.error("[ERROR]", "no episode found for", episode_id);
-        }
-    };
-
-
-    pe.emitter.on("episode_start", function(expression, context){
-        var episode_id = context.txn_id;
-        console.log("[EPISODE_START]", episode_id);
         var timestamp = (new Date()).toISOString();
         var episode = logs[episode_id];
         if (episode) {
@@ -194,18 +199,18 @@ var setupLogging = function(pe, bunyanLog){
     });
 
 
-    var onLevelLogEntry = function(level){
+    var logEntriesForLevel = function(level){
         pe.emitter.on(level, function(expression, context){
             logEntry(level, expression, context);
         });
     };
 
-    onLevelLogEntry("log-info");
-    onLevelLogEntry("log-debug");
-    onLevelLogEntry("log-warn");
-    onLevelLogEntry("log-error");
-    onLevelLogEntry("debug");
-    onLevelLogEntry("error");
+    logEntriesForLevel("log-info");
+    logEntriesForLevel("log-debug");
+    logEntriesForLevel("log-warn");
+    logEntriesForLevel("log-error");
+    logEntriesForLevel("debug");
+    logEntriesForLevel("error");
 
     pe.emitter.on("klog", function(info, context){
         var msg = toKRLjson(info && info.val);
@@ -234,18 +239,18 @@ var setupLogging = function(pe, bunyanLog){
             }
         };
 
-        pe.getEntVar(pico_id, logRID, "status", function(err, is_logs_on){
+        pe.getEntVar(pico_id, logRID, "status", null, function(err, is_logs_on){
             if(err) return onRemoved(err);
             if(!is_logs_on){
                 onRemoved();
                 return;
             }
-            pe.getEntVar(pico_id, logRID, "logs", function(err, data){
+            pe.getEntVar(pico_id, logRID, "logs", null, function(err, data){
                 if(err) return onRemoved(err);
 
                 data[episode.key] = episode.logs;
 
-                pe.putEntVar(pico_id, logRID, "logs", data, onRemoved);
+                pe.putEntVar(pico_id, logRID, "logs", null, data, onRemoved);
             });
         });
     });
@@ -292,7 +297,7 @@ module.exports = function(conf, callback){
     }
 
     //system rulesets should be registered/updated first
-    getSystemRulesets(pe, function(err, system_rulesets){
+    getSystemRulesets(function(err, system_rulesets){
         if(err) return callback(err);
 
         pe.start(system_rulesets, function(err){
