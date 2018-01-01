@@ -1860,13 +1860,6 @@ test("ClearPersistentVariable", function(t){
         }
     ]);
 
-    try{
-        testPostlude("clear appz:bar", []);
-        t.fail();
-    }catch(e){
-        t.ok(true, "PersistentVariable must be app or ent");
-    }
-
     testPostlude("clear app:bar{key}", [
         {
             type: "ClearPersistentVariable",

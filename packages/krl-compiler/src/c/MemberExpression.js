@@ -2,6 +2,7 @@ var callStdLibFn = require("../utils/callStdLibFn");
 
 module.exports = function(ast, comp, e){
     if(ast.method === "dot"){
+        comp.warn(ast.loc, "DEPRECATED use `{}` or `[]` instead of `.`");
         if(ast.property.type === "Identifier"){
             //using "get" rather than . b/c we don"t want to mess
             //with reserved javascript properties i.e. "prototype"

@@ -27,6 +27,7 @@ var comp_by_type = _.fromPairs(_.map([
     "Map",
     "MapKeyValuePair",
     "MemberExpression",
+    "Null",
     "Number",
     "Parameter",
     "Parameters",
@@ -81,15 +82,32 @@ module.exports = function(ast, options){
         };
     };
 
+    var krlError = function(loc, message){
+        var err = new Error(message);
+        err.krl_compiler = {
+            loc: loc && toLoc(loc.start, loc.end),
+        };
+        return err;
+    };
+
+    var warnings = [];
+
+    var warn = function(loc, message){
+        warnings.push({
+            loc: loc && toLoc(loc.start, loc.end),
+            message: message,
+        });
+    };
+
     var compile = function compile(ast, context){
         if(_.isArray(ast)){
             return _.map(ast, function(a){
                 return compile(a);
             });
-        }else if(!_.has(ast, "type")){
-            throw new Error("Invalid ast node: " + JSON.stringify(ast));
+        }else if(!ast || !_.has(ast, "type")){
+            throw krlError(ast.loc, "Invalid ast node: " + JSON.stringify(ast));
         }else if(!_.has(comp_by_type, ast.type)){
-            throw new Error("Unsupported ast node type: " + ast.type);
+            throw krlError(ast.loc, "Unsupported ast node type: " + ast.type);
         }
         var comp = compile;
         if(context){
@@ -97,8 +115,27 @@ module.exports = function(ast, options){
                 return compile(ast, c || context);
             };
         }
-        return comp_by_type[ast.type](ast, comp, mkE(ast.loc), context);
+        comp.error = krlError;
+        comp.warn = warn;
+
+        var estree;
+        try{
+            estree = comp_by_type[ast.type](ast, comp, mkE(ast.loc), context);
+        }catch(e){
+            if(!e.krl_compiler){
+                e.krl_compiler = {
+                    loc: toLoc(ast.loc.start, ast.loc.end),
+                };
+            }
+            throw e;
+        }
+        return estree;
     };
 
-    return compile(ast);
+    var body = compile(ast);
+    body = _.isArray(body) ? body : [];
+    return {
+        body: body,
+        warnings: warnings,
+    };
 };

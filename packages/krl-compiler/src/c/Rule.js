@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var declarationBlock = require("../utils/declarationBlock");
 
 module.exports = function(ast, comp, e){
     var rule = {
@@ -6,16 +7,18 @@ module.exports = function(ast, comp, e){
     };
     if(ast.rule_state !== "active"){
         rule.rule_state = e("string", ast.rule_state);
+        comp.warn(ast.loc, "rule " + ast.name.value + " is inactive, i.e. commented out");
+        return e("obj", rule);
     }
     if(!ast.select){
-        throw new Error("Rule missing `select`");
+        throw comp.error(ast.loc, "rule " + ast.name.value + " is missing a `select`");
     }
     rule.select = comp(ast.select);
 
     var rule_body = [];
 
     if(!_.isEmpty(ast.prelude)){
-        rule_body = rule_body.concat(comp(ast.prelude));
+        rule_body = rule_body.concat(declarationBlock(ast.prelude, comp));
     }
     if(ast.action_block){
         rule_body = rule_body.concat(comp(ast.action_block));

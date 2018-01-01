@@ -170,14 +170,11 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       callback({"pico_id": thePicoInp.id, "eci":eci, "testing":testing});
     } else if (label === "Channels") {
       var theChannels = [];
-      var theECI;
       Object.keys(thePicoInp.channel).forEach(function(id){
         var aChannel = get(thePicoInp,["channel",id],undefined);
         if (aChannel) {
-          if (theECI) {
+          if (aChannel.type!="secret" || aChannel.name!="admin") {
             aChannel.canDel = true;
-          } else {
-            theECI = id;
           }
           theChannels.push(aChannel);
         }

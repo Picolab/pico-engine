@@ -53,7 +53,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "foo", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, []));
+        yield ctx.modules.set(ctx, "ent", "foo", yield ctx.modules.get(ctx, "event", "attrs"));
       }
     },
     "putfoo": {
@@ -162,7 +162,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "app", "bar", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, []));
+        yield ctx.modules.set(ctx, "app", "bar", yield ctx.modules.get(ctx, "event", "attrs"));
       }
     },
     "putbar": {

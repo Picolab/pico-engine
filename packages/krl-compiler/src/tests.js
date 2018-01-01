@@ -58,24 +58,28 @@ test("compiler", function(t){
 });
 
 test("compiler errors", function(t){
+
+    var tstFail = function(src, errorMsg){
+        try{
+            compiler(src);
+            t.fail("Should fail: " + errorMsg);
+        }catch(err){
+            t.equals(err + "", errorMsg);
+        }
+    };
+
+    var tstWarn = function(src, warning){
+        var out = compiler(src);
+        t.equals(out.warnings.length, 1);
+        t.equals(out.warnings[0].message, warning);
+    };
     try{
         compiler("ruleset blah {global {ent:a = 1}}\n");
         t.fail("should have thrown up b/c ent:* = * not allowed in global scope");
     }catch(err){
         t.ok(true);
     }
-    try{
-        compiler("function(a, b = 1, c){a}");
-        t.fail("once you have a default param, all following must have a default");
-    }catch(err){
-        t.equals(err + "", "Error: non-default argument follows default argument");
-    }
-    try{
-        compiler("add(b = 1, 2)");
-        t.fail("once you used a named arg, all following should be named");
-    }catch(err){
-        t.equals(err + "", "Error: non-named arg after named arg");
-    }
+
     try{
         compiler("function(){a = 1}");
         t.fail("function must end with an expression");
@@ -89,6 +93,70 @@ test("compiler errors", function(t){
     }catch(err){
         t.equals(err + "", "Error: A ruleset key that is Map, can only use Strings as values");
     }
+
+    tstFail(
+        "ruleset a{rule b{select when a b} rule c{select when a c} rule b{}}",
+        "Error: Duplicate rule name: b"
+    );
+
+    tstWarn(
+        "ruleset a{global{b=1;c=3;b=1}}",
+        "Duplicate declaration: b"
+    );
+    tstWarn(
+        "ruleset a{rule b{select when a b pre{b=1;c=3;b=1}}}",
+        "Duplicate declaration: b"
+    );
+    tstWarn(
+        "ruleset a{global{act=defaction(){noop()};act=1}}",
+        "Duplicate declaration: act"
+    );
+
+    tstFail(
+        "ruleset a{global{ent:foo=1}}",
+        "Error: Cannot declare DomainIdentifier"
+    );
+    tstFail(
+        "ruleset a{global{null=1}}",
+        "Error: Cannot declare Null"
+    );
+    tstFail(
+        "ruleset a{global{true=1}}",
+        "Error: Cannot declare Boolean"
+    );
+    tstFail(
+        "ruleset a{global{\"hi\"=1}}",
+        "Error: Cannot declare String"
+    );
+
+    tstFail(
+        "ruleset a{global{b=function(c,d,c){1}}}",
+        "Error: Duplicate parameter: c"
+    );
+    tstFail(
+        "ruleset a{global{b=function(c,d=1,e){1}}}",
+        "Error: Cannot have a non-default parameter after a defaulted one"
+    );
+    tstFail(
+        "add(b = 1, 2)",
+        "Error: Once you used a named arg, all following must be named."
+    );
+    tstWarn(
+        "add.foo",
+        "DEPRECATED use `{}` or `[]` instead of `.`"
+    );
+    tstWarn(
+        "event:attrs()",
+        "DEPRECATED change `event:attrs()` to `event:attrs`"
+    );
+    tstWarn(
+        "keys:foo()",
+        "DEPRECATED change `keys:foo()` to `keys:foo`"
+    );
+    tstWarn(
+        "keys:foo(\"hi\")",
+        "DEPRECATED change `keys:foo(name)` to `keys:foo{name}`"
+    );
 
     t.end();
 });

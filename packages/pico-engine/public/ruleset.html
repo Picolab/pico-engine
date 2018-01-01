@@ -1,70 +1,438 @@
-<html lang="en-US">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-<link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
-<title>TITLE</title>
-<link href="css/jquery-linedtextarea.css" type="text/css" rel="stylesheet">
-<link rel="stylesheet" href="css/ruleset.css">
-<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
-<script src="js/handlebars.min.js" type="text/javascript"></script>
-<script type="text/javascript" src="js/jquery-linedtextarea.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.6.1/jszip.min.js"></script>
-<script src="js/isSysRid.js" type="text/javascript"></script>
-<script src="js/picoAPI.js" type="text/javascript"></script>
-<script src="js/ruleset.js" type="text/javascript"></script>
-<script id="the-template" type="text/x-handlebars-template">
-<div id="top">
-<a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
-<h1 class="title">{{title}}</h1>
-</div>
-<div id="container">
-<p class="description">
-{{descr}}
-<a href="http://.# rulesets.zip" download="rulesets.zip">download all rulesets</a>
-</p>
-<div id="ruleset-list">
-Registered Rulesets
-<ul>
-{{#each rulesets}}
-<li class="krlrid{{#unless enabled}} disabled{{/unless}}"><span>{{@key}}</span>
-{{#if canFlush}}
-<a class="flush" href="/api/ruleset/flush/{{@key}}">flush</a>
-{{/if}}
-{{#if canDel}}
-<a class="unregister" href="/api/ruleset/unregister/{{@key}}">del</a>
-{{/if}}
-</li>
-{{/each}}
-</ul>
-<hr>
-<form class="ruleset-new">
-<input type="text" name="rid" placeholder="ruleset id">
-<button type="submit">new ruleset</button>
-</form>
-<p style="color:silver;font-size:85%;font-family:monospace">
-ruleset id must match this pattern:<br>
-{{ridRE}}
-</p>
-<form class="registerFromURL">
-<input type="text" name="url" placeholder="raw source URL">
-<button type="submit">register</button>
-</form>
-<hr>
-<a href="index.html">My Picos</a>
-</div>
-<div class="krlsrc">
-<form class="ruleset-action" method="GET">
-<textarea id="lined" name="src">{{src}}</textarea>
-<button type="submit">validate</button>
-<button type="submit">register</button>
-<code id="rs-url">{{srcURL}}</code>
-</form>
-<pre id="feedback"></pre>
-</div>
-</div>
-</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
+    <title>Rulesets Editor</title>
+    <link rel="stylesheet" href="css/bootstrap-3.3.6.min.css">
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #f2f2f2;
+        }
+        #container {
+            display:flex;
+            height: 100%;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-content: stretch;
+        }
+        #area-left {
+            width: 300px;
+            display:flex;
+            flex-direction: column;
+            align-content: stretch;
+        }
+        #area-middle {
+            flex: auto;
+            display:flex;
+            flex-direction: column;
+            align-content: stretch;
+        }
+        #area-right {
+            width: 300px;
+            padding: 0 15px;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        #krl-editor {
+            flex: auto;
+            border: 1px solid #ddd;
+        }
+        .ruleset-list-item {
+            display: block;
+            font-family: monospace;
+            font-size:12px;
+            padding:2px 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+        .ruleset-list-item:hover {
+            background: #e3e3e3;
+        }
+        .ruleset-list-item.active {
+            background: #d9edf7;
+            border: 1px solid #bce8f1;
+        }
+    </style>
 </head>
 <body>
-<p>Loading...</p>
+<div id="container">
+    <div id="area-left"></div>
+    <div id="area-middle">
+        <div style="height:45px;line-height:45px">
+            <button class="btn btn-success btn-sm js-btn-register-src">
+                <i class="glyphicon glyphicon-play"></i>
+                &nbsp;
+                Register
+            </button>
+            <span class="text-danger js-error-message"></span>
+            <span class="text-warning js-not_enabled-alert" style="display:none">
+                <i class="glyphicon glyphicon-alert text-warning" title="Not enabled"></i>
+                Not enabled
+            </span>
+            <span class="text-success js-success-message"></span>
+            <span style="margin:5px;float:right">
+                Theme
+                <select id="krl-editor-theme-picker"></select>
+            </span>
+            <div class="clearfix"></div>
+        </div>
+        <div id="krl-editor"></div>
+        <footer>
+            <span class="text-muted">status:</span>
+            <span class="js-annotations-status"></span>
+        </footer>
+    </div>
+    <div id="area-right"></div>
+</div>
+<script id="area-left-template" type="text/x-handlebars-template">
+    <nav style="padding:0 15px;height:45px">
+        <a href="/" class="pull-left" style="margin:5px 10px 0 0">
+            <img src="img/nav-logo.png" alt="PicoLabs" style="height:35px">
+        </a>
+        <h1 style="font-size:24px;margin-top:7px">
+            pico-engine
+            <small class="text-muted" style="font-size:12px">{{pico_engine_version}}</small>
+        </h1>
+        <div class="clearfix"></div>
+    </nav>
+    <div style="padding:0 15px;overflow-y:auto;flex:auto">
+        {{#each groups}}
+            <h5 class="text-muted" style="margin:20px 0 8px 0">{{label}}</h5>
+            {{#each rids}}
+                <span class="ruleset-list-item{{#if active}} active{{/if}}" data-rid="{{rid}}">
+                    {{#if not_enabled}}
+                        <i class="glyphicon glyphicon-alert text-warning" title="Not enabled"></i>
+                    {{else}}
+                        <i class="glyphicon">&nbsp;</i>
+                    {{/if}}
+                    {{rid}}
+                </span>
+            {{/each}}
+        {{/each}}
+        <hr/>
+        <form class="js-new-ruleset-form">
+            <div class="input-group input-group-sm" style="margin-bottom:10px">
+                <input type="text" class="form-control" placeholder="ruleset id">
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit" style="min-width:85px;">new ruleset</button>
+                </span>
+            </div>
+        </form>
+        <form class="js-register-url-form">
+            <div class="input-group input-group-sm" style="margin-bottom:10px">
+                <input type="text" class="form-control" placeholder="raw source URL">
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="submit" style="min-width:85px;">register url</button>
+                </span>
+            </div>
+        </form>
+        <a href="#" class="btn btn-default btn-sm btn-block js-download-zip" download="rulesets.zip">
+            <i class="glyphicon glyphicon-download-alt"></i>
+            &nbsp;
+            download all rulesets
+        </a>
+        <br/>
+        <br/>
+    </div>
+</script>
+<script id="area-right-template" type="text/x-handlebars-template">
+    <div style="height:45px"></div>
+    <div style="font-family:monospace">
+        {{rs_version.rid}}
+    </div>
+    {{#if rs_version.url}}
+        <h4 class="text-muted">URL</h4>
+        <div>
+            <a href="{{rs_version.url}}" target="_blank">{{rs_version.url}}</a>
+        </div>
+        <button class="btn btn-default btn-sm js-btn-flush">
+            flush
+            <i class="glyphicon glyphicon-flash"></i>
+        </button>
+    {{/if}}
+    {{#if history}}
+        <h4 class="text-muted">History</h4>
+        {{#each history}}
+            <div>
+                {{timestamp}}
+            </div>
+        {{/each}}
+    {{/if}}
+    {{#if can_unregister}}
+        <div style="margin:1em 0">
+            <a href="#" class="text-danger js-btn-delete" data-rid="{{rs_version.rid}}">
+                delete ruleset
+            </a>
+        </div>
+    {{/if}}
+</script>
+<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script src="js/handlebars.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.6.1/jszip.min.js"></script>
+<script src="js/picoAPI.js" type="text/javascript"></script>
+<script src="js/krl-editor.js"></script>
+<script>
+    var editor = KRL_EDITOR.edit("krl-editor");
+    editor.$blockScrolling = Infinity;
+    editor.setDisplayIndentGuides(false);
+    KRL_EDITOR.themePicker("krl-editor-theme-picker");
+
+    var areaLeftTemplate = Handlebars.compile(document.getElementById("area-left-template").innerHTML);
+    var areaRightTemplate = Handlebars.compile(document.getElementById("area-right-template").innerHTML);
+
+    var $areaLeft = $("#area-left");
+    var $areaRight = $("#area-right");
+    var $annotationsStatus = $(".js-annotations-status");
+    var $errorMessage = $(".js-error-message");
+    var $notEnabledAlert = $(".js-not_enabled-alert");
+    var $successMessage = $(".js-success-message");
+
+    $annotationsStatus.text("ok");
+    editor.getSession().on("changeAnnotation", function(ignore, f){
+        var ann = f.$annotations[0];
+        var msg = "ok"
+        if(ann){
+            msg = ann.type + " at " + (ann.row + 1) + ":" + ann.column;
+        }
+        $annotationsStatus.text(msg);
+    });
+
+
+    var STATE = {
+        selected_rid: null,
+        api: null,
+    };
+
+    var getRS = function(rid){
+        return STATE.api && STATE.api.r && STATE.api.r[rid];
+    };
+
+    var getRSActiveVersion = function(rid){
+        var rs = getRS(rid);
+        if(!rs){
+            return;
+        }
+        var hash = rs.enabled_hash || rs.latest_hash;
+        if(!rs.by_hash || !rs.by_hash[hash]){
+            return;
+        }
+        return rs.by_hash[hash];
+    };
+
+    var render = function(){
+        if(!STATE.api){
+            return;
+        }
+        var rs = getRS(STATE.selected_rid);
+        var rs_version = getRSActiveVersion(STATE.selected_rid);
+        if(rs_version){
+            editor.setValue(rs_version.src, -1);
+            document.title = rs_version.rid + " | Rulesets Editor";
+        }else{
+            if(!STATE.selected_rid){
+                editor.setValue("// click on a ruleset name to see its source here", -1);
+            }else{
+                editor.setValue("// FAILED TO OPEN", -1);
+            }
+            document.title = "Rulesets Editor";
+        }
+        if(rs && !rs.enabled_hash){
+            $notEnabledAlert.show();
+        }
+        var toList = function(key){
+            if(!STATE.api || !STATE.api.ruleset_list || !STATE.api.ruleset_list[key]){
+                return [];
+            }
+            return STATE.api.ruleset_list[key].map(function(r){
+                return Object.assign({}, r, {active: r.rid === STATE.selected_rid});
+            });
+        };
+        $areaLeft.html(areaLeftTemplate({
+            pico_engine_version: STATE.api ? "v" + STATE.api.version : "",
+            groups: [
+                {label: "Rulesets", rids: toList("usr")},
+                {label: "System Rulesets", rids: toList("sys")},
+            ],
+        }));
+
+        // Render right side
+        if(rs){
+            var history = [];
+            if(rs.by_hash){
+                Object.keys(rs.by_hash).forEach(function(hash){
+                    history.push({
+                        timestamp: rs.by_hash[hash].timestamp,
+                    });
+                });
+            }
+
+            $areaRight.html(areaRightTemplate({
+                rs_version: rs_version,
+                history: history,
+                can_unregister: ! rs.is_system_ruleset,
+            }));
+        }else{
+            $areaRight.html("");
+        }
+    };
+
+    var selectRID = function(rid){
+        STATE.selected_rid = rid;
+        location.hash = STATE.selected_rid || "";
+        render();
+    };
+
+    $areaLeft.on("click", ".ruleset-list-item", function(e){
+        $errorMessage.text("");
+        $notEnabledAlert.hide();
+        $successMessage.hide();
+        selectRID($(e.target).data("rid"));
+    });
+    $areaLeft.on("submit", ".js-new-ruleset-form", function(e){
+        e.preventDefault();
+        var rid = $(this).find("input").val();
+        rid = rid
+            .trim()
+            .replace(/[^a-zA-Z0-9_.-]/g, "-")
+            .replace(/[-]+/g, "-")
+            .replace(/^-|-$/g, "")
+            .replace(/-\./g, "")
+            .replace(/\.-/g, "")
+            ;
+        if(rid.length === 0){
+            return;
+        }
+        if(getRS(rid)){
+            selectRID(rid);//already exists
+            return;
+        }
+
+        var src = "ruleset "+rid+" {\n"
+          + "  meta {\n"
+          + "    shares __testing\n"
+          + "  }\n"
+          + "  global {\n"
+          + "    __testing = { \"queries\": [ { \"name\": \"__testing\" } ],\n"
+          + "                  \"events\": [ ] }\n"
+          + "  }\n"
+          + "}\n";
+        $errorMessage.text("");
+        picoAPI("/api/ruleset/register", {"src": src}, "POST", function(err, result){
+            if(err){
+                $errorMessage.text("Failed to register new ruleset - " + err);
+                return;
+            }
+            selectRID(result.rid);
+            fetchData();
+        });
+    });
+    $areaLeft.on("submit", ".js-register-url-form", function(e){
+        e.preventDefault();
+        var url = $(this).find("input").val();
+        $errorMessage.text("");
+        picoAPI("/api/ruleset/register", {"url": url}, "GET", function(err, data){
+            if(err){
+                $errorMessage.text("Failed to register url - " + err);
+                return;
+            }
+            selectRID(data.rid);
+            fetchData();
+        });
+    });
+    $areaLeft.on("click", ".js-download-zip", function(e){
+        if(!STATE.api || !STATE.api.r){
+            return;
+        }
+        var zip = new JSZip();
+        Object.keys(STATE.api.r).forEach(function(rid){
+            var rs_version = getRSActiveVersion(rid);
+            if(rs_version && rs_version.src){
+                zip.file(rid + ".krl", rs_version.src);
+            }
+        });
+        $(this).attr("href","data:application/zip;base64,"+zip.generate());
+    });
+    $(".js-btn-register-src").on("click", function(e){
+        e.preventDefault();
+        var src = editor.getValue();
+        $errorMessage.text("");
+        picoAPI("/api/ruleset/register", {"src": src}, "POST", function(err, data){
+            if(err){
+                $errorMessage.text("" + err);
+                return;
+            }
+            fetchData(function(){
+                selectRID(data.rid);
+
+                $successMessage.hide();
+                $successMessage.text("Registered!");
+                $successMessage.fadeIn();
+                setTimeout(function(){
+                    $successMessage.fadeOut();
+                }, 3000);
+            });
+        });
+    });
+    $areaRight.on("click", ".js-btn-flush", function(e){
+        e.preventDefault();
+        $errorMessage.text("");
+        picoAPI("/api/ruleset/flush/" + STATE.selected_rid, {}, "GET", function(err, data){
+            if(err){
+                $errorMessage.text("Failed to flush - " + err);
+                return;
+            }
+            fetchData(function(){
+                selectRID(data.rid);
+
+                $successMessage.hide();
+                $successMessage.text("Flushed!");
+                $successMessage.fadeIn();
+                setTimeout(function(){
+                    $successMessage.fadeOut();
+                }, 3000);
+            });
+        });
+    });
+    $areaRight.on("click", ".js-btn-delete", function(e){
+        e.preventDefault();
+        var rid = $(e.target).data("rid");
+        if( ! confirm("Are you sure you want to delete " + rid + "?")){
+            return;
+        }
+        $errorMessage.text("");
+        picoAPI("/api/ruleset/unregister/" + rid, {}, "GET", function(err, data){
+            if(err){
+                $errorMessage.text("Failed to delete - " + err);
+            }
+            selectRID("");
+            fetchData();
+        });
+    });
+
+    var fetchData = function(callback){
+        $errorMessage.text("");
+        picoAPI("/api/ruleset-page", {}, "GET", function(err, data){
+            if(err){
+                if(callback) callback(err);
+                $errorMessage.text("Failed to get db-dump");
+                return;
+            }
+            if(callback) callback(null, data);
+            STATE.api = data;
+            render();
+        });
+    };
+    selectRID(location.hash.replace(/#/g, ""));
+    fetchData();
+</script>
 </body>
 </html>

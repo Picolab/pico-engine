@@ -2,7 +2,6 @@ var _ = require("lodash");
 var fs = require("fs");
 var cuid = require("cuid");
 var path = require("path");
-var async = require("async");
 var memdown = require("memdown");
 var PicoEngine = require("./");
 
@@ -20,6 +19,13 @@ _.each(fs.readdirSync(test_dir), function(file){
     test_rulesets[rs.rid].url = "http://fake-url/test-rulesets/" + file.replace(/\.js$/, ".krl");
 });
 
+var system_rulesets = _.map(_.keys(test_rulesets), function(rid){
+    return {
+        src: "ruleset " + rid + "{}",
+        meta: {url: test_rulesets[rid].url},
+    };
+});
+
 module.exports = function(opts, callback){
     opts = opts || {};
     var pe = PicoEngine({
@@ -33,19 +39,11 @@ module.exports = function(opts, callback){
         rootRIDs: opts.rootRIDs,
         db: {
             db: opts.ldb || memdown(cuid()),
-            __use_sequential_ids_for_testing: true,
+            __use_sequential_ids_for_testing: !opts.__dont_use_sequential_ids_for_testing,
         },
         modules: opts.modules,
     });
-    async.eachSeries(_.keys(test_rulesets), function(rid, next){
-        //hack since compileAndLoadRuleset doesn't actually compile
-        var krl_src = "ruleset " + rid + "{}";
-        pe.registerRuleset(krl_src, {
-            url: test_rulesets[rid].url
-        }, next);
-    }, function(err){
-        pe.start([], function(err){
-            callback(err, pe);
-        });
+    pe.start(system_rulesets, function(err){
+        callback(err, pe);
     });
 };

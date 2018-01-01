@@ -1,3 +1,24 @@
+# 0.43.0 - December 11, 2017
+
+### Deprecations
+
+* `event:attrs()` in favor of `event:attrs`
+* `keys:<name>()` in favor of `keys:<name>`
+* Map key access using `.` operator
+
+### New Features
+
+* signed subscriptions
+* encrypted subscriptions
+* better type checking on `engine:*` function arguments
+* new KRL editor with inline compiler warnings and errors
+
+### Bug Fixes
+
+* `select when` matching falsy event attributes
+* More forgiving handling of ruleset initialization errors on startup (i.e. breaking compiler changes)
+* [see issues](https://github.com/picolab/pico-engine/issues?utf8=%E2%9C%93&q=is%3Aissue+0.43) for more
+
 # 0.42.0 - November 1, 2017
 
 ### BREAKING CHANGES

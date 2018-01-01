@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var bs58 = require("bs58");
 var cuid = require("cuid");
 var async = require("async");
 var crypto = require("crypto");
@@ -301,6 +302,113 @@ module.exports = function(opts){
             });
         },
 
+        decryptChannelMessage: function(eci, encryptedMessage, nonce, otherPublicKey, callback) {
+            eci = ktypes.toString(eci);
+            encryptedMessage = ktypes.toString(encryptedMessage);
+            nonce = ktypes.toString(nonce);
+            otherPublicKey = ktypes.toString(otherPublicKey);
+            ldb.get(["channel", eci], function (err, channel) {
+                if (err) {
+                    if (err.notFound) {
+                        err = new levelup.errors.NotFoundError("ECI not found: " + eci);
+                        err.notFound = true;
+                    }
+                    callback(err);
+                    return;
+                }
+                var decryptedMessage;
+                try {
+                    var sharedSecret = channel.sovrin.sharedSecret;
+                    if (!sharedSecret) {
+                        var privateKey = channel.sovrin.secret.encryptionPrivateKey;
+                        sharedSecret = sovrinDID.getSharedSecret(otherPublicKey, privateKey);
+                        ldb.put(["channel", eci, "sovrin", "secret", "sharedSecret"], bs58.encode(sharedSecret), function(err){
+                            if (err) {
+                                callback(err);
+                            }
+                        });
+                    } else {
+                        sharedSecret = bs58.decode(sharedSecret);
+                    }
+                    encryptedMessage = bs58.decode(encryptedMessage);
+                    nonce = bs58.decode(nonce);
+                    decryptedMessage = sovrinDID.decryptMessage(encryptedMessage, nonce, sharedSecret);
+                    if(decryptedMessage === false) throw "failed";
+                } catch(e) {
+                    // Failed to decrypt message
+                    callback(null, false);
+                    return;
+                }
+
+                callback(null, decryptedMessage);
+            });
+
+        },
+        encryptChannelMessage: function(eci, message, otherPublicKey, callback){
+            eci = ktypes.toString(eci);
+            message = ktypes.toString(message);
+            otherPublicKey = ktypes.toString(otherPublicKey);
+            ldb.get(["channel", eci], function (err, channel){
+                if(err){
+                    if(err.notFound){
+                        err = new levelup.errors.NotFoundError("ECI not found: " + eci);
+                        err.notFound = true;
+                    }
+                    callback(err);
+                    return;
+                }
+                var privateKey = channel.sovrin.secret.encryptionPrivateKey;
+                privateKey = bs58.decode(privateKey);
+                var sharedSecret = channel.sovrin.sharedSecret;
+                if (!sharedSecret) {
+                    sharedSecret = sovrinDID.getSharedSecret(otherPublicKey, privateKey);
+                    ldb.put(["channel", eci, "sovrin", "secret", "sharedSecret"], bs58.encode(sharedSecret), function (err) {
+                        if (err) {
+                            callback(err);
+                        }
+                    });
+                }
+                else {
+                    sharedSecret = bs58.decode(sharedSecret);
+                }
+                var nonce = sovrinDID.getNonce();
+                var encryptedMessage = sovrinDID.encryptMessage(message, nonce, sharedSecret);
+
+                if (encryptedMessage === false) {
+                    callback(new Error("Failed to encrypt message"));
+                    return;
+                }
+
+                var returnObj = {};
+                returnObj.encryptedMessage =  bs58.encode(encryptedMessage);
+                returnObj.nonce = bs58.encode(nonce);
+                callback(null, returnObj);
+            });
+        },
+
+        signChannelMessage: function(eci, message, callback){
+            eci = ktypes.toString(eci);
+            message = ktypes.toString(message);
+            ldb.get(["channel", eci], function (err, channel){
+                if(err){
+                    if(err.notFound){
+                        err = new levelup.errors.NotFoundError("ECI not found: " + eci);
+                        err.notFound = true;
+                    }
+                    callback(err);
+                    return;
+                }
+                var signKey = channel.sovrin.secret.signKey;
+                var verifyKey = channel.sovrin.verifyKey;
+                var signedMessage = sovrinDID.signMessage(message, signKey, verifyKey);
+                if (signedMessage === false) {
+                    callback(new Error("Failed to sign message"));
+                    return;
+                }
+                signedMessage = bs58.encode(signedMessage);
+                callback(null, signedMessage);
+            });
+        },
 
         getRootPico: function(callback){
             ldb.get(["root_pico"], callback);

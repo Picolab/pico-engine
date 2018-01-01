@@ -37,6 +37,7 @@ var reserved_identifiers = {
   "function": true,
   "not": true,
   "setting": true,
+  "null": true,
   "true": true,
   "false": true
 };
@@ -351,6 +352,7 @@ var tok_name = tok("SYMBOL", "name");
 var tok_neq = tok("SYMBOL", "neq");
 var tok_not = tok("SYMBOL", "not");
 var tok_notfired = tok("SYMBOL", "notfired");
+var tok_null = tok("SYMBOL", "null");
 var tok_or = tok("SYMBOL", "or");
 var tok_off = tok("SYMBOL", "off");
 var tok_on = tok("SYMBOL", "on");
@@ -862,7 +864,7 @@ PostludeStatement_core_parts ->
     | ErrorStatement {% id %}
     | LastStatement {% id %}
 
-PersistentVariableAssignment -> PersistentVariable (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
+PersistentVariableAssignment -> DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -875,7 +877,7 @@ PersistentVariableAssignment -> PersistentVariable (%tok_OPEN_CURLY Expression %
   }
 %}
 
-ClearPersistentVariable -> %tok_clear PersistentVariable (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? {%
+ClearPersistentVariable -> %tok_clear DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -883,15 +885,6 @@ ClearPersistentVariable -> %tok_clear PersistentVariable (%tok_OPEN_CURLY Expres
       variable: data[1],
       path_expression: data[2] ? data[2][1] : null,
     };
-  }
-%}
-
-PersistentVariable -> DomainIdentifier {%
-  function(data, start, reject){
-    if(data[0].domain === "ent" || data[0].domain === "app"){
-      return data[0];
-    }
-    return reject;
   }
 %}
 
@@ -1169,6 +1162,7 @@ Literal ->
       String {% id %}
     | Number {% id %}
     | Boolean {% id %}
+    | Null {% id %}
     | RegExp {% id %}
     | Chevron {% id %}
     | Array {% id %}
@@ -1349,6 +1343,15 @@ Identifier -> %tok_SYMBOL {%
 
 Boolean -> %tok_true  {% booleanAST(true ) %}
          | %tok_false {% booleanAST(false) %}
+
+Null -> %tok_null {%
+  function(data){
+    return {
+      loc: data[0].loc,
+      type: 'Null',
+    };
+  }
+%}
 
 PositiveInteger -> Number {%
   function(data, start, reject){

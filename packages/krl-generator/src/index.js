@@ -32,6 +32,7 @@ var gen_by_type = _.fromPairs(_.map([
     "MapKeyValuePair",
     "MemberExpression",
     "NamedArgument",
+    "Null",
     "Number",
     "Parameter",
     "Parameters",

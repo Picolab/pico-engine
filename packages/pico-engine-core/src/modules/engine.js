@@ -1,9 +1,21 @@
 var _ = require("lodash");
+var bs58 = require("bs58");
 var async = require("async");
 var urllib = require("url");
 var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
+var sovrinDID = require("sovrin-did");
 var mkKRLaction = require("../mkKRLaction");
+
+var assertArg = function(fn_name, args, key, type){
+    if( ! _.has(args, key)){
+        throw new Error("engine:" + fn_name + " argument `" + key + "` " + type + " is required");
+    }
+    if(ktypes.typeOf(args[key]) !== type){
+        throw new TypeError("engine:" + fn_name + " argument `" + key + "` should be " + type + " but was " + ktypes.typeOf(args[key]));
+    }
+    return args[key];
+};
 
 var picoArgOrCtxPico = function(fn_name, ctx, args, key){
     key = key || "pico_id";
@@ -376,6 +388,61 @@ module.exports = function(core){
 
                 async.eachSeries(rids, uninstall, callback);
             });
+        }),
+
+        encryptChannelMessage: mkKRLfn([
+            "eci",
+            "message",
+            "otherPublicKey"
+        ], function(ctx, args, callback){
+            var eci = assertArg("encryptChannelMessage", args, "eci", "String");
+            var message = assertArg("encryptChannelMessage", args, "message", "String");
+            var otherPublicKey = assertArg("encryptChannelMessage", args, "otherPublicKey", "String");
+
+            core.db.encryptChannelMessage(eci, message, otherPublicKey, callback);
+        }),
+
+        decryptChannelMessage: mkKRLfn([
+            "eci",
+            "encryptedMessage",
+            "nonce",
+            "otherPublicKey"
+        ], function(ctx, args, callback){
+            var eci = assertArg("decryptChannelMessage", args, "eci", "String");
+            var encryptedMessage = assertArg("decryptChannelMessage", args, "encryptedMessage", "String");
+            var nonce = assertArg("decryptChannelMessage", args, "nonce", "String");
+            var otherPublicKey = assertArg("decryptChannelMessage", args, "otherPublicKey", "String");
+
+            core.db.decryptChannelMessage(eci, encryptedMessage, nonce, otherPublicKey, callback);
+        }),
+
+        signChannelMessage: mkKRLfn([
+            "eci",
+            "message",
+        ], function(ctx, args, callback){
+            var eci = assertArg("signChannelMessage", args, "eci", "String");
+            var message = assertArg("signChannelMessage", args, "message", "String");
+
+            core.db.signChannelMessage(eci, message, callback);
+        }),
+
+        verifySignedMessage: mkKRLfn([
+            "verifyKey",
+            "message",
+        ], function(ctx, args, callback){
+            var verifyKey = assertArg("verifySignedMessage", args, "verifyKey", "String");
+            var message = assertArg("verifySignedMessage", args, "message", "String");
+
+            try{
+                message = bs58.decode(message);
+                message = sovrinDID.verifySignedMessage(message, verifyKey);
+                if(message === false) throw "failed";
+            }catch(e){
+                callback(null, false);
+                return;
+            }
+
+            callback(null, message);
         }),
 
     };

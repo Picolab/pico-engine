@@ -265,7 +265,7 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [])]));
+        ctx.scope.set("resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [yield ctx.modules.get(ctx, "event", "attrs")]));
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
