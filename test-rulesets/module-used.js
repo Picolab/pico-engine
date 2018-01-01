@@ -18,7 +18,8 @@ module.exports = {
     ],
     "shares": [
       "now",
-      "getEntVal"
+      "getEntVal",
+      "dfltName"
     ]
   },
   "global": function* (ctx) {
@@ -28,6 +29,7 @@ module.exports = {
     ctx.scope.set("getEntVal", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "val");
     }));
+    ctx.scope.set("dfltName", yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []));
   },
   "rules": {
     "dflt_name": {
@@ -35,7 +37,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "dflt_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -65,7 +67,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "conf_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -95,7 +97,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "dflt_info": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -125,7 +127,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "conf_info": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -155,7 +157,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "dflt_getInfoAction": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -183,7 +185,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "conf_getInfoAction": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },

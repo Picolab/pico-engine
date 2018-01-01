@@ -835,6 +835,87 @@ testPE("pico-engine", function(t, pe, root_eci){
                 });
         },
         function(next) {
+            console.log("////////////////// Secure Subscription Tests //////////////////");
+
+            dumpDB().then(function(dump) {
+                var picoA = subscriptionPicos["picoA"];
+                var picoB = subscriptionPicos["picoB"];
+                var picoASubs = getSubscriptionsFromDump(dump, picoA.id);
+                var picoBSubs = getSubscriptionsFromDump(dump, picoB.id);
+                subscriptionPicos["picoA"].subscriptions = picoASubs;
+                subscriptionPicos["picoB"].subscriptions = picoBSubs;
+                var picoASub = picoASubs[SHARED_A];
+                var picoBSub = picoBSubs[SHARED_A];
+                var channels = dump.channel;
+                var picoASubChannel = channels[picoASub.eci];
+                var picoBSubChannel = channels[picoBSub.eci];
+
+                t.equal(picoASub.other_verify_key, picoBSubChannel.sovrin.verifyKey, "Correct verify key exchanged");
+                t.equal(picoBSub.other_verify_key, picoASubChannel.sovrin.verifyKey, "Correct verify key exchanged");
+
+                t.equal(picoASub.other_encryption_public_key, picoBSubChannel.sovrin.encryptionPublicKey, "Correct encryption key exchanged");
+                t.equal(picoBSub.other_encryption_public_key, picoASubChannel.sovrin.encryptionPublicKey, "Correct encryption key exchanged");
+
+                next();
+            }).catch(function(err) {
+                next(err);
+            });
+        },
+        function(next) {
+            var picoA = subscriptionPicos["picoA"];
+            var picoB = subscriptionPicos["picoB"];
+            readFile("krl/test/subscription_tests/mischief.krl").then(function(data) {
+                return registerRuleset(data);
+            }).then(function(response) {
+                return readFile("krl/test/subscription_tests/mischief.thing.krl");
+            }).then(function(data) {
+                return registerRuleset(data);
+            }).then(function(response) {
+                return installRulesets(picoA.eci, "mischief");
+            }).then(function (installResponse) {
+                return installRulesets(picoB.eci, "mischief.thing");
+            }).then(function(installResponse) {
+                return sendEvent(picoA.eci, "mischief", "hat_lifted");
+            }).then(function(response) {
+                return getDBDumpWIthDelay();
+            }).then(function(dump) {
+                var picoBEntvars = dump.entvars[picoB.id];
+                var failed = picoBEntvars["mischief.thing"].failed.value;
+                var message = picoBEntvars["mischief.thing"].message.value;
+
+                t.deepEqual(message, {test: 1}, "Successfully sent, received, and verified signed message");
+                t.equal(failed, 1, "Successfully dealt with failed signature verification");
+
+                return sendEvent(picoA.eci, "mischief", "encrypted");
+            }).then(function(response) {
+                return getDBDumpWIthDelay();
+            }).then(function(dump) {
+                var picoASub = getSubscriptionsFromDump(dump, picoA.id)[SHARED_A];
+                var picoBSub = getSubscriptionsFromDump(dump, picoB.id)[SHARED_A];
+                var channels = dump.channel;
+                var channelA = channels[picoASub.eci];
+                var channelB = channels[picoBSub.eci];
+                var sharedSecretA = channelA.sovrin.secret.sharedSecret;
+                var sharedSecretB = channelB.sovrin.secret.sharedSecret;
+
+                t.notEqual(undefined, sharedSecretA, "Shared secret is not undefined");
+                t.notEqual(undefined, sharedSecretB, "Shared secret is not undefined");
+
+                t.equal(sharedSecretA, sharedSecretB, "Shared secrets are the same");
+
+                var picoBEntvars = dump.entvars[picoB.id];
+                var message = picoBEntvars["mischief.thing"].decrypted_message.value;
+                var decryptionFailed = picoBEntvars["mischief.thing"].decryption_failure.value;
+
+                t.deepEqual(message, {encryption: 1}, "Successfully sent, received, and decrypted encrypted message");
+                t.equal(decryptionFailed, 1, "Properly handled failed decryption");
+
+                next();
+            }).catch(function (err) {
+                next(err);
+            });
+        },
+        function(next) {
             console.log("////////////////// Subscription Rejection Tests //////////////////");
             createChild("C",  SUBS_RID).then(function(pico) {
                 subscriptionPicos["picoC"] = pico;
@@ -871,15 +952,16 @@ testPE("pico-engine", function(t, pe, root_eci){
 
     /**
      * This function basically causes a delay before getting the dbDump.
-     * Events can take time to propagate on the engine so this allows for this.
+     * Events can take time to propagate on the engine so this allows for that.
      */
-    function getDBDumpWIthDelay() {
+    function getDBDumpWIthDelay(delay) {
+        delay = delay ? delay : 500;
         return new Promise(function (resolve, reject) {
             setTimeout(function () {
                 pe.dbDump(function(err, dump){
                     err ? reject(err) : resolve(dump);
                 });
-            }, 500);
+            }, delay);
         });
     }
 
@@ -905,6 +987,34 @@ testPE("pico-engine", function(t, pe, root_eci){
                 attrs: {name: name}
             }, function(err, response){
                 err ? reject(err) : resolve(response.directives[0].options.pico);
+            });
+        });
+    }
+    function readFile(filePath, encoding) {
+        encoding = encoding ? encoding : "utf8";
+        return new Promise(function (resolve, reject) {
+            fs.readFile(filePath, encoding, function (err, data) {
+                err ? reject(err) : resolve(data);
+            });
+        });
+    }
+    function sendEvent(eci, domain, type, attrs) {
+        attrs = attrs ? attrs : {};
+        return new Promise(function(resolve, reject) {
+            pe.signalEvent({
+                eci: eci,
+                domain: domain,
+                type: type,
+                attrs: attrs
+            }, function(err, response){
+                err ? reject(err) : resolve(response);
+            });
+        });
+    }
+    function registerRuleset (krlSource) {
+        return new Promise(function(resolve, reject) {
+            pe.registerRuleset(krlSource, null, function(err, response){
+                err ? reject(err) : resolve(response);
             });
         });
     }

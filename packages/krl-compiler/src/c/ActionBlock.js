@@ -20,7 +20,7 @@ module.exports = function(ast, comp, e){
     if(block_type === "choose"){
         if_body.push(e("switch", comp(ast.discriminant), _.map(ast.actions, function(action){
             if(!action.label || action.label.type !== "Identifier"){
-                throw new Error("all actions inside a `choose` block need a label");
+                throw comp.error(action.loc, "all actions inside a `choose` block need a label");
             }
             return e("case", e("string", action.label.value, action.label.loc), [
                 e(";", comp(action), action.loc),

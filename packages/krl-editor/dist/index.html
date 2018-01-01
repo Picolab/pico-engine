@@ -1,0 +1,96 @@
+<style>
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+#krl-editor {
+    height: 90%;
+    width: 90%;
+    border: 1px solid black;
+}
+</style>
+<select id="krl-editor-theme-picker"></select>
+<div id="krl-editor">ruleset io.picolabs.hello_world {
+  meta {
+    name "Hello World"
+    description &lt;&lt;
+A first ruleset for the Quickstart
+    &gt;&gt;
+
+    author "Phil Windley"
+    logging on
+    shares hello // some comment
+  }
+  /**
+   * some other comment
+   */
+  global {
+    hello = function(obj){
+      msg = "Hello " + obj;
+      msg;
+    }
+
+    chev = &lt;&lt;hello #{one("two", 3)/*cool*/}, that worked&gt;\&gt; again!
+        more lines #{ a + b + ">>"} not "yet"
+    ok&gt;&gt;
+
+    stdlib = foo.map(function(a){a + 1})
+
+    chooser = defaction(val){
+
+      choose val {
+        asdf =&gt;
+          foo(val);
+
+          fdsa =&gt
+            bar(val, "ok", "done");
+      }
+    }
+    ifAnotB = defaction(a, b){
+
+      if a && not b then
+        every {
+          send_directive("yes a");
+
+          send_directive("not b");
+        }
+    }
+  }
+  rule say_hello {
+    select when echo hello
+
+    send_directive("say", {"something": "Hello World"});
+  }
+  rule set_attr2 {
+    select when events set_attr2
+                        number re#[Nn]0*(\d*)#
+                        name re#(.*)#
+                        setting(number, name)
+
+    send_directive("set_attr2", {
+      "number": number,
+      "name": name
+    });
+    always {
+      ent:foo := [1, 2]
+    }
+  }
+  rule ignored is inactive {
+    // would be nice if the editor colored this entire rule as a comment
+    select when events ignored
+
+    pre {
+        foo = function(){1 + "{"}
+    }
+
+    send_directive("ignored - should not see this", {});
+  }
+}
+</div>
+
+<script src="krl-editor.js"></script>
+<script>
+    var editor = KRL_EDITOR.edit("krl-editor");
+    KRL_EDITOR.themePicker("krl-editor-theme-picker");
+</script>

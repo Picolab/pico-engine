@@ -214,6 +214,9 @@ test("tokenizer", function(t){
     tst("re#\\#\\\\#", [
         "[REGEXP]re#\\#\\\\#"
     ]);
+    tst("re##", [
+        "[REGEXP]re##"
+    ]);
 
 
     //testing escapes i.e. \\" is not \"

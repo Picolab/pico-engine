@@ -25,7 +25,7 @@ ruleset io.picolabs.schedule {
         send_directive("push_log");
 
         fired {
-            ent:log := ent:log.append(event:attrs())
+            ent:log := ent:log.append(event:attrs)
         }
     }
     rule in_5min {

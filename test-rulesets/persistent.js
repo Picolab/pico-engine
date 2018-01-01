@@ -31,13 +31,15 @@ module.exports = {
       "select": {
         "graph": { "store": { "name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
-                  "name",
-                  new RegExp("^(.*)$", "")
-                ]]]);
-            if (!matches)
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+            if (!m)
               return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
             ctx.scope.set("my_name", matches[0]);
             return true;
           }
@@ -69,13 +71,15 @@ module.exports = {
       "select": {
         "graph": { "store": { "appvar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
-                  "appvar",
-                  new RegExp("^(.*)$", "")
-                ]]]);
-            if (!matches)
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "appvar"));
+            if (!m)
               return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
             ctx.scope.set("my_appvar", matches[0]);
             return true;
           }
@@ -107,13 +111,15 @@ module.exports = {
       "select": {
         "graph": { "store": { "user_firstname": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
-                  "firstname",
-                  new RegExp("^(.*)$", "")
-                ]]]);
-            if (!matches)
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "firstname"));
+            if (!m)
               return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
             ctx.scope.set("firstname", matches[0]);
             return true;
           }
@@ -149,7 +155,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "clear_user": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -177,7 +183,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "clear_appvar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },

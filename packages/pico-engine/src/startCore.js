@@ -261,6 +261,14 @@ module.exports = function(conf, callback){
 
         compileAndLoadRuleset: RulesetLoader({
             rulesets_dir: path.resolve(conf.home, "rulesets"),
+            onWarning: function(rid, w){
+                if(conf.no_logging){
+                    return;
+                }
+                var l = w.loc && w.loc.start && w.loc.start.line;
+                var c = w.loc && w.loc.start && w.loc.start.column;
+                console.warn("[COMPILER-WARNING]", rid, w.message, l + ":" + c);
+            },
         }),
 
         db: {

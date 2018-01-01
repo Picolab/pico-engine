@@ -19,7 +19,7 @@ ruleset io.picolabs.persistent-index {
     rule setfoo {
         select when pindex setfoo
         always {
-            ent:foo := event:attrs()
+            ent:foo := event:attrs
         }
     }
     rule putfoo {
@@ -52,7 +52,7 @@ ruleset io.picolabs.persistent-index {
     rule setbar {
         select when pindex setbar
         always {
-            app:bar := event:attrs()
+            app:bar := event:attrs
         }
     }
     rule putbar {

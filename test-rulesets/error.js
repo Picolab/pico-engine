@@ -12,7 +12,7 @@ module.exports = {
       "select": {
         "graph": { "system": { "error": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -32,7 +32,7 @@ module.exports = {
         if (fired) {
           yield ctx.modules.set(ctx, "ent", "error_log", yield ctx.callKRLstdlib("append", [
             yield ctx.modules.get(ctx, "ent", "error_log"),
-            yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [])
+            yield ctx.modules.get(ctx, "event", "attrs")
           ]));
         }
       }
@@ -42,7 +42,7 @@ module.exports = {
       "select": {
         "graph": { "error": { "continue_on_error": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -72,7 +72,7 @@ module.exports = {
       "select": {
         "graph": { "error": { "continue_on_error": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -102,7 +102,7 @@ module.exports = {
       "select": {
         "graph": { "error": { "stop_on_error": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -131,7 +131,7 @@ module.exports = {
       "select": {
         "graph": { "error": { "stop_on_error": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },

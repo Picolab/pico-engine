@@ -1,15 +1,46 @@
 var _ = require("lodash");
+var bs58 = require("bs58");
 var async = require("async");
 var urllib = require("url");
+var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
+var sovrinDID = require("sovrin-did");
 var mkKRLaction = require("../mkKRLaction");
 
+var assertArg = function(fn_name, args, key, type){
+    if( ! _.has(args, key)){
+        throw new Error("engine:" + fn_name + " argument `" + key + "` " + type + " is required");
+    }
+    if(ktypes.typeOf(args[key]) !== type){
+        throw new TypeError("engine:" + fn_name + " argument `" + key + "` should be " + type + " but was " + ktypes.typeOf(args[key]));
+    }
+    return args[key];
+};
+
+var picoArgOrCtxPico = function(fn_name, ctx, args, key){
+    key = key || "pico_id";
+    var pico_id = _.has(args, key) ? args[key] : ctx.pico_id;
+    if(!ktypes.isString(pico_id)){
+        throw new TypeError("engine:" + fn_name + " was given " + ktypes.toString(args.eci) + " instead of a " + key + " string");
+    }
+    return pico_id;
+};
+
 module.exports = function(core){
+
     var fns = {
 
         getPicoIDByECI: mkKRLfn([
             "eci",
         ], function(ctx, args, callback){
+
+            if(!_.has(args, "eci")){
+                return callback(new Error("engine:getPicoIDByECI needs an eci string"));
+            }
+            if(!ktypes.isString(args.eci)){
+                return callback(new TypeError("engine:getPicoIDByECI was given " + ktypes.toString(args.eci) + " instead of an eci string"));
+            }
+
             core.db.getPicoIDByECI(args.eci, callback);
         }),
 
@@ -18,7 +49,8 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = args.pico_id || ctx.pico_id;
+            var pico_id = picoArgOrCtxPico("getParent", ctx, args);
+
             core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
@@ -31,7 +63,8 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = args.pico_id || ctx.pico_id;
+            var pico_id = picoArgOrCtxPico("getAdminECI", ctx, args);
+
             core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
@@ -44,7 +77,8 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = args.pico_id || ctx.pico_id;
+            var pico_id = picoArgOrCtxPico("listChildren", ctx, args);
+
             core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
@@ -57,7 +91,8 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = args.pico_id || ctx.pico_id;
+            var pico_id = picoArgOrCtxPico("listChannels", ctx, args);
+
             core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
@@ -70,7 +105,8 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = args.pico_id || ctx.pico_id;
+            var pico_id = picoArgOrCtxPico("listInstalledRIDs", ctx, args);
+
             core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
@@ -91,6 +127,14 @@ module.exports = function(core){
         describeRuleset: mkKRLfn([
             "rid",
         ], function(ctx, args, callback){
+
+            if(!_.has(args, "rid")){
+                return callback(new Error("engine:describeRuleset needs a rid string"));
+            }
+            if(!ktypes.isString(args.rid)){
+                return callback(new TypeError("engine:describeRuleset was given " + ktypes.toString(args.rid) + " instead of a rid string"));
+            }
+
             core.db.getEnabledRuleset(args.rid, function(err, data){
                 if(err) return callback(err);
                 var rid = data.rid;
@@ -114,7 +158,8 @@ module.exports = function(core){
             "parent_id",
         ], function(ctx, args, callback){
 
-            var parent_id = args.parent_id || ctx.pico_id;
+            var parent_id = picoArgOrCtxPico("newPico", ctx, args, "parent_id");
+
             core.db.assertPicoID(parent_id, function(err, parent_id){
                 if(err) return callback(err);
 
@@ -129,7 +174,8 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = args.pico_id || ctx.pico_id;
+            var pico_id = picoArgOrCtxPico("removePico", ctx, args);
+
             core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
@@ -151,14 +197,22 @@ module.exports = function(core){
             "type",
         ], function(ctx, args, callback){
 
-            var pico_id = args.pico_id || ctx.pico_id;
+            var pico_id = picoArgOrCtxPico("newChannel", ctx, args);
+
+            if(!_.has(args, "name")){
+                return callback(new Error("engine:newChannel needs a name string"));
+            }
+            if(!_.has(args, "type")){
+                return callback(new Error("engine:newChannel needs a type string"));
+            }
+
             core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
                 core.db.newChannel({
                     pico_id: pico_id,
-                    name: args.name,
-                    type: args.type,
+                    name: ktypes.toString(args.name),
+                    type: ktypes.toString(args.type),
                 }, callback);
             });
         }),
@@ -167,6 +221,14 @@ module.exports = function(core){
         removeChannel: mkKRLaction([
             "eci",
         ], function(ctx, args, callback){
+
+            if(!_.has(args, "eci")){
+                return callback(new Error("engine:removeChannel needs an eci string"));
+            }
+            if(!ktypes.isString(args.eci)){
+                return callback(new TypeError("engine:removeChannel was given " + ktypes.toString(args.eci) + " instead of an eci string"));
+            }
+
             core.db.removeChannel(args.eci, callback);
         }),
 
@@ -175,10 +237,15 @@ module.exports = function(core){
             "url",
             "base",
         ], function(ctx, args, callback){
-            if(!_.isString(args.url)){
-                return callback(new Error("registerRuleset expects `url`"));
+
+            if(!_.has(args, "url")){
+                return callback(new Error("engine:registerRuleset needs a url string"));
             }
-            var uri = _.isString(args.base)
+            if(!ktypes.isString(args.url)){
+                return callback(new TypeError("engine:registerRuleset was given " + ktypes.toString(args.url) + " instead of a url string"));
+            }
+
+            var uri = ktypes.isString(args.base)
                 ? urllib.resolve(args.base, args.url)
                 : args.url;
             core.registerRulesetURL(uri, function(err, data){
@@ -191,11 +258,27 @@ module.exports = function(core){
         unregisterRuleset: mkKRLaction([
             "rid",
         ], function(ctx, args, callback){
-            var rids = _.isArray(args.rid)
-                ? _.uniq(args.rid)
-                : [args.rid];
 
-            async.each(rids, core.unregisterRuleset, callback);
+            if(!_.has(args, "rid")){
+                return callback(new Error("engine:unregisterRuleset needs a rid string or array"));
+            }
+            if(ktypes.isString(args.rid)){
+                return core.unregisterRuleset(args.rid, callback);
+            }
+            if(!ktypes.isArray(args.rid)){
+                return callback(new TypeError("engine:unregisterRuleset was given " + ktypes.toString(args.rid) + " instead of a rid string or array"));
+            }
+
+            var rids = _.uniq(args.rid);
+
+            var i;
+            for(i=0; i < rids.length; i++){
+                if(!ktypes.isString(rids[i])){
+                    return callback(new TypeError("engine:unregisterRuleset was given a rid array containing a non-string (" + ktypes.toString(rids[i]) + ")"));
+                }
+            }
+
+            async.eachSeries(rids, core.unregisterRuleset, callback);
         }),
 
 
@@ -206,7 +289,12 @@ module.exports = function(core){
             "base",
         ], function(ctx, args, callback){
 
-            var pico_id = args.pico_id || ctx.pico_id;
+            var rid_given = _.has(args, "rid");
+            if(!rid_given && !_.has(args, "url")){
+                return callback(new Error("engine:installRuleset needs either a rid string or array, or a url string"));
+            }
+
+            var pico_id = picoArgOrCtxPico("installRuleset", ctx, args);
 
             var install = function(rid, callback){
                 core.installRuleset(pico_id, rid, function(err){
@@ -214,16 +302,34 @@ module.exports = function(core){
                 });
             };
 
-            if(_.isString(args.rid)){
-                install(args.rid, callback);
-                return;
-            }
-            if(_.isArray(args.rid)){
-                async.map(_.uniq(args.rid), install, callback);
-                return;
-            }
-            if(_.isString(args.url)){
-                var uri = _.isString(args.base)
+            core.db.assertPicoID(pico_id, function(err, pico_id){
+                if(err) return callback(err);
+
+                if(rid_given){
+                    var ridIsString = ktypes.isString(args.rid);
+                    if(!ridIsString && !ktypes.isArray(args.rid)){
+                        return callback(new TypeError("engine:installRuleset was given " + ktypes.toString(args.rid) + " instead of a rid string or array"));
+                    }
+                    if(ridIsString){
+                        return install(args.rid, callback);
+                    }
+
+                    var rids = _.uniq(args.rid);
+
+                    var i;
+                    for(i=0; i < rids.length; i++){
+                        if(!ktypes.isString(rids[i])){
+                            return callback(new TypeError("engine:installRuleset was given a rid array containing a non-string (" + ktypes.toString(rids[i]) + ")"));
+                        }
+                    }
+
+                    return async.mapSeries(rids, install, callback);
+                }
+
+                if(!ktypes.isString(args.url)){
+                    return callback(new TypeError("engine:installRuleset was given " + ktypes.toString(args.url) + " instead of a url string"));
+                }
+                var uri = ktypes.isString(args.base)
                     ? urllib.resolve(args.base, args.url)
                     : args.url;
                 core.db.findRulesetsByURL(uri, function(err, results){
@@ -241,9 +347,7 @@ module.exports = function(core){
                     }
                     install(_.head(rids), callback);
                 });
-                return;
-            }
-            callback(new Error("installRuleset expects a rid, an arrays of rids, or a url and base"));
+            });
         }),
 
 
@@ -251,14 +355,94 @@ module.exports = function(core){
             "pico_id",
             "rid",
         ], function(ctx, args, callback){
-            var pico_id = args.pico_id || ctx.pico_id;
-            var rids = _.isArray(args.rid)
-                ? _.uniq(args.rid)
-                : [args.rid];
 
-            async.each(rids, function(rid, next){
-                core.uninstallRuleset(pico_id, rid, next);
-            }, callback);
+            if(!_.has(args, "rid")){
+                return callback(new Error("engine:uninstallRuleset needs a rid string or array"));
+            }
+
+            var pico_id = picoArgOrCtxPico("uninstallRuleset", ctx, args);
+
+            var uninstall = function(rid, callback){
+                core.uninstallRuleset(pico_id, rid, callback);
+            };
+
+            core.db.assertPicoID(pico_id, function(err, pico_id){
+                if(err) return callback(err);
+
+                var ridIsString = ktypes.isString(args.rid);
+                if(!ridIsString && !ktypes.isArray(args.rid)){
+                    return callback(new TypeError("engine:uninstallRuleset was given " + ktypes.toString(args.rid) + " instead of a rid string or array"));
+                }
+                if(ridIsString){
+                    return uninstall(args.rid, callback);
+                }
+
+                var rids = _.uniq(args.rid);
+
+                var i;
+                for(i=0; i < rids.length; i++){
+                    if(!ktypes.isString(rids[i])){
+                        return callback(new TypeError("engine:uninstallRuleset was given a rid array containing a non-string (" + ktypes.toString(rids[i]) + ")"));
+                    }
+                }
+
+                async.eachSeries(rids, uninstall, callback);
+            });
+        }),
+
+        encryptChannelMessage: mkKRLfn([
+            "eci",
+            "message",
+            "otherPublicKey"
+        ], function(ctx, args, callback){
+            var eci = assertArg("encryptChannelMessage", args, "eci", "String");
+            var message = assertArg("encryptChannelMessage", args, "message", "String");
+            var otherPublicKey = assertArg("encryptChannelMessage", args, "otherPublicKey", "String");
+
+            core.db.encryptChannelMessage(eci, message, otherPublicKey, callback);
+        }),
+
+        decryptChannelMessage: mkKRLfn([
+            "eci",
+            "encryptedMessage",
+            "nonce",
+            "otherPublicKey"
+        ], function(ctx, args, callback){
+            var eci = assertArg("decryptChannelMessage", args, "eci", "String");
+            var encryptedMessage = assertArg("decryptChannelMessage", args, "encryptedMessage", "String");
+            var nonce = assertArg("decryptChannelMessage", args, "nonce", "String");
+            var otherPublicKey = assertArg("decryptChannelMessage", args, "otherPublicKey", "String");
+
+            core.db.decryptChannelMessage(eci, encryptedMessage, nonce, otherPublicKey, callback);
+        }),
+
+        signChannelMessage: mkKRLfn([
+            "eci",
+            "message",
+        ], function(ctx, args, callback){
+            var eci = assertArg("signChannelMessage", args, "eci", "String");
+            var message = assertArg("signChannelMessage", args, "message", "String");
+
+            core.db.signChannelMessage(eci, message, callback);
+        }),
+
+        verifySignedMessage: mkKRLfn([
+            "verifyKey",
+            "message",
+        ], function(ctx, args, callback){
+            var verifyKey = assertArg("verifySignedMessage", args, "verifyKey", "String");
+            var message = assertArg("verifySignedMessage", args, "message", "String");
+
+            try{
+                message = bs58.decode(message);
+                message = sovrinDID.verifySignedMessage(message, verifyKey);
+                if(message === false) throw "failed";
+            }catch(e){
+                callback(null, false);
+                return;
+            }
+
+            callback(null, message);
         }),
 
     };

@@ -11,10 +11,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -53,10 +53,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -99,13 +99,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -153,13 +153,15 @@ module.exports = {
       "select": {
         "graph": { "qux": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
-            var matches = yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrMatches"), ctx, [[[
-                  "b",
-                  new RegExp("c", "")
-                ]]]);
-            if (!matches)
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("c", "").exec(getAttrString(ctx, "b"));
+            if (!m)
               return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
             return true;
           }
         },

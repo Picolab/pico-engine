@@ -167,8 +167,8 @@ test("PicoEngine - io.picolabs.persistent", function(t){
 
             //////////////////////////////////////////////////////////////////////////
             //if not set, the var should return undefined
-            [A_query("getName"), void 0],
-            [A_query("getAppVar"), void 0],
+            [A_query("getName"), null],
+            [A_query("getAppVar"), null],
 
             //////////////////////////////////////////////////////////////////////////
             //store different names on each pico
@@ -269,6 +269,10 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
                 []
             ],
             [
+                signal("events", "ignored", {}),// is inactive
+                []
+            ],
+            [
                 signal("events", "ifthen", {name: "something"}),
                 [{name: "ifthen", options: {}}]
             ],
@@ -341,8 +345,40 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
                 signal("events", "select_where", {something: "ok wat?"}),
                 []
             ],
+            [
+                signal("events", "where_match_0", {something: 0}),
+                [{name: "where_match_0", options: {}}]
+            ],
+            [
+                signal("events", "where_match_null", {something: null}),
+                [{name: "where_match_null", options: {}}]
+            ],
+            [
+                signal("events", "where_match_false", {something: false}),
+                [{name: "where_match_false", options: {}}]
+            ],
+            [
+                signal("events", "where_match_empty_str", {something: ""}),
+                [{name: "where_match_empty_str", options: {}}]
+            ],
+            [
+                signal("events", "implicit_match_0", {something: 0}),
+                [{name: "implicit_match_0", options: {}}]
+            ],
+            [
+                signal("events", "implicit_match_null", {something: null}),
+                [{options: {}, name: "implicit_match_null"}]
+            ],
+            [
+                signal("events", "implicit_match_false", {something: false}),
+                [{options: {}, name: "implicit_match_false"}]
+            ],
+            [
+                signal("events", "implicit_match_empty_str", {something: ""}),
+                [{options: {}, name: "implicit_match_empty_str"}]
+            ],
             [signal("events", "no_action", {fired: "no"}), []],
-            [query("getNoActionFired"), void 0],
+            [query("getNoActionFired"), null],
             [signal("events", "no_action", {fired: "yes"}), []],
             [query("getNoActionFired"), true],//fired even though no actions
 
@@ -541,7 +577,7 @@ test("PicoEngine - io.picolabs.execution-order ruleset", function(t){
         testOutputs(t, [
             [
                 query("getOrder"),
-                void 0
+                null
             ],
             [
                 signal("execution_order", "all"),
@@ -701,6 +737,9 @@ test("PicoEngine - io.picolabs.module-used ruleset", function(t){
                 signal("module_used", "conf_name"),
                 [{name: "conf_name", options: {name: "Jim"}}]
             ],
+
+            // Test using a module in the global block
+            [queryUsed("dfltName"), "Bob"],
 
             // Test using provided functions that use `ent` vars
             // NOTE: the dependent ruleset is NOT added to the pico
@@ -893,7 +932,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
                     rulesetURI: url_prefix + "meta.krl",
-                    ruleName: void 0,
+                    ruleName: null,
                     inEvent: false,
                     inQuery: true,
                     eci: "id1",
@@ -1412,7 +1451,7 @@ test("PicoEngine - io.picolabs.guard-conditions ruleset", function(t){
         testOutputs(t, [
             [
                 query("getB"),
-                undefined
+                null
             ],
             [
                 signal("foo", "a", {b: "foo"}),
@@ -1504,7 +1543,7 @@ test("PicoEngine - io.picolabs.defaction ruleset", function(t){
             ],
             [
                 query("getSettingVal"),
-                void 0
+                null
             ],
             [
                 signal("defa", "bar_setting", {}),
@@ -1677,7 +1716,7 @@ test("PicoEngine - io.picolabs.key* rulesets", function(t){
             [query1("getBar"), {baz: "baz subkey for bar key", qux: "qux subkey for bar key"}],
             [query1("getBarN", {name: "baz"}), "baz subkey for bar key"],
             [query1("getBarN", {name: "qux"}), "qux subkey for bar key"],
-            qError(query1("getBarN", {name: "blah"}), "Error: keys:bar(\"blah\") not defined"),
+            [query1("getBarN", {name: "blah"}), null],
 
             //not shared with either
             qError(query1("getQuux"), "Error: keys:quux not defined"),
@@ -1907,7 +1946,7 @@ test("PicoEngine - installRuleset", function(t){
             async.apply(pe.newPico, {}),
             function(next){
                 pe.installRuleset("id404", rid_to_use, function(err){
-                    t.equals(err + "", "NotFoundError: Invalid pico_id: id404");
+                    t.equals(err + "", "NotFoundError: Pico not found: id404");
                     t.ok(err.notFound);
                     next();
                 });
@@ -1980,7 +2019,7 @@ test("PicoEngine - io.picolabs.error rulesets", function(t){
         testOutputs(t, [
             [
                 query("getErrors"),
-                void 0
+                null
             ],
 
             [signal("error", "continue_on_error"), [
@@ -2314,8 +2353,8 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
         var signal = mkSignalTask(pe, "id1");
 
         testOutputs(t, [
-            [query("getFoo"), void 0],
-            [query("getBar"), void 0],
+            [query("getFoo"), null],
+            [query("getBar"), null],
 
             [signal("pindex", "setfoo", {aaa: "blah"}), []],
             [signal("pindex", "setbar", {aaa: "blah"}), []],
@@ -2329,8 +2368,8 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
 
             [query("getFooKey", {key: "aaa"}), "blah"],
             [query("getBarKey", {key: "aaa"}), "blah"],
-            [query("getFooKey", {key: "404"}), void 0],
-            [query("getBarKey", {key: "404"}), void 0],
+            [query("getFooKey", {key: "404"}), null],
+            [query("getBarKey", {key: "404"}), null],
             [query("getFooKey", {}), {aaa: "blah", bbb: "wat"}],
             [query("getBarKey", {}), {aaa: "blah", bbb: "wat"}],
 
@@ -2338,16 +2377,111 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
             [signal("pindex", "delbar", {key: "aaa"}), []],
             [query("getFoo"), {bbb: "wat"}],
             [query("getBar"), {bbb: "wat"}],
-            [query("getFooKey", {key: "aaa"}), void 0],
-            [query("getBarKey", {key: "aaa"}), void 0],
+            [query("getFooKey", {key: "aaa"}), null],
+            [query("getBarKey", {key: "aaa"}), null],
 
             [signal("pindex", "nukefoo", {key: "aaa"}), []],
             [signal("pindex", "nukebar", {key: "aaa"}), []],
-            [query("getFoo"), void 0],
-            [query("getBar"), void 0],
-            [query("getFooKey", {key: "bbb"}), void 0],
-            [query("getBarKey", {key: "bbb"}), void 0],
+            [query("getFoo"), null],
+            [query("getBar"), null],
+            [query("getFooKey", {key: "bbb"}), null],
+            [query("getBarKey", {key: "bbb"}), null],
 
         ], t.end);
     });
+});
+
+test("PicoEngine - handle ruleset startup errors after compiler update made breaking changes", function(t){
+    var mkPE = mkPicoEngineFactoryWithKRLCompiler();
+
+    //The old compiler didn't complain when the ruleset was registered
+    var oldCompiler = function(rs_info, callback){
+        callback(null, {rid: "my-rid"});
+    };
+    //The new compiler doesn't like it anymore (i.e. removed syntax)
+    var newCompiler = function(rs_info, callback){
+        callback(new Error("That won't compile anymore!"));
+    };
+
+    t.plan(5);
+
+    cocb.run(function*(){
+
+        //First try register/enable the ruleset with the old compiler
+        var pe = mkPE({compileAndLoadRuleset: oldCompiler});
+        var regRS = cocb.wrap(pe.registerRuleset);
+        var listRIDs = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
+
+        t.deepEquals(yield listRIDs(), [], "no rulesets yet");
+        yield regRS("ruleset my-rid{}", {});
+        t.deepEquals(yield listRIDs(), ["my-rid"], "registered!");
+        //so the old compiler version allowed it, now it's in the DB
+
+
+        //Start the new engine
+        pe = mkPE({compileAndLoadRuleset: newCompiler});
+        listRIDs = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
+        t.deepEquals(yield listRIDs(), ["my-rid"], "the ruleset is still in the DB and enabled");
+
+        pe.emitter.on("error", function(err){
+            t.equals(err + "", "Error: Failed to compile my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: That won't compile anymore!");
+        });
+
+        //the new compiler should blow up when it tries to initialize the rulest
+        yield (cocb.wrap(pe.start))([]);
+        //but shouldn't crash, just emit the error and continue starting
+
+        t.deepEquals(yield listRIDs(), [], "the ruleset should be disabled now");
+
+    }, _.noop);//using t.plan not t.end
+});
+
+test("PicoEngine - handle ruleset initialization errors", function(t){
+    var mkPE = mkPicoEngineFactoryWithKRLCompiler();
+
+    t.plan(5);
+
+    cocb.run(function*(){
+
+        //First register the ruleset in the db
+        var pe = mkPE({compileAndLoadRuleset: function(rs_info, callback){
+            callback(null, {
+                rid: "my-rid",
+                global: function*(){
+                    //works
+                },
+            });
+        }});
+        var regRS = cocb.wrap(pe.registerRuleset);
+        var listRIDs = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
+
+        t.deepEquals(yield listRIDs(), [], "no rulesets yet");
+        yield regRS("ruleset my-rid{}", {});
+        t.deepEquals(yield listRIDs(), ["my-rid"], "registered!");
+        //so the old runtime version allowed it, now it's in the DB
+
+
+        //Now in this time the ruleset won't initialize
+        pe = mkPE({compileAndLoadRuleset: function(rs_info, callback){
+            callback(null, {
+                rid: "my-rid",
+                global: function*(){
+                    throw new Error("something broke");
+                },
+            });
+        }});
+        listRIDs = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
+        t.deepEquals(yield listRIDs(), ["my-rid"], "the ruleset is still in the DB and enabled");
+
+        pe.emitter.on("error", function(err){
+            t.equals(err + "", "Error: Failed to initialize my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: something broke");
+        });
+
+        //it will compile but fail to initialize
+        yield (cocb.wrap(pe.start))([]);
+        //but shouldn't crash, just emit the error and continue starting
+
+        t.deepEquals(yield listRIDs(), [], "the ruleset should be disabled now");
+
+    }, _.noop);//using t.plan not t.end
 });

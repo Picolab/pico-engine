@@ -76,7 +76,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "get": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -109,7 +109,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "post": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -153,7 +153,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "post_action": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -185,7 +185,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "post_setting": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -220,7 +220,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "autoraise": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -253,7 +253,7 @@ module.exports = {
       "select": {
         "graph": { "http": { "post": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
             return true;
           }
         },
@@ -265,7 +265,7 @@ module.exports = {
         }
       },
       "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attrs"), ctx, [])]));
+        ctx.scope.set("resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [yield ctx.modules.get(ctx, "event", "attrs")]));
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [

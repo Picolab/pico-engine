@@ -213,6 +213,7 @@ module.exports = function(conf){
         if(_.isFunction(rs.meta && rs.meta.configure)){
             yield runKRL(rs.meta.configure, ctx);
         }
+        core.rsreg.put(rs);
         if(_.isFunction(rs.global)){
             yield runKRL(rs.global, ctx);
         }
@@ -220,32 +221,12 @@ module.exports = function(conf){
 
     var initializeAndEngageRuleset = function(rs, callback){
         initializeRulest(rs).then(function(){
-            core.rsreg.put(rs);
             callback();
         }, function(err){
             process.nextTick(function(){
                 //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
                 //when infact we are handling the rejection
                 callback(err);
-            });
-        });
-    };
-
-    var getRulesetForRID = function(rid, callback){
-        db.getEnabledRuleset(rid, function(err, data){
-            if(err) return callback(err);
-            compileAndLoadRuleset({
-                rid: rid,
-                src: data.src,
-                hash: data.hash
-            }, function(err, rs){
-                if(err){
-                    db.disableRuleset(rid, function(){
-                        callback(err);
-                    });
-                    return;
-                }
-                callback(void 0, rs);
             });
         });
     };
@@ -412,7 +393,7 @@ module.exports = function(conf){
 
         async.series([
             //
-            // register system_rulesets
+            // compile+store+enable system_rulesets first
             //
             function(nextStep){
                 async.each(system_rulesets, function(system_ruleset, next){
@@ -426,20 +407,31 @@ module.exports = function(conf){
             //
             function(nextStep){
                 var onRID = function(rid, next){
-                    getRulesetForRID(rid, function(err, rs){
-                        if(err){
-                            //TODO handle error rather than stop
-                            next(err);
-                            return;
-                        }
-                        rs_by_rid[rs.rid] = rs;
-                        resolver.add(rs.rid);
-                        _.each(rs.meta && rs.meta.use, function(use){
-                            if(use.kind === "module"){
-                                resolver.setDependency(rs.rid, use.rid);
+                    db.getEnabledRuleset(rid, function(err, data){
+                        if(err) return next(err);
+                        compileAndLoadRuleset({
+                            rid: rid,
+                            src: data.src,
+                            hash: data.hash
+                        }, function(err, rs){
+                            if(err){
+                                //Emit an error and don't halt the engine
+                                var err2 = new Error("Failed to compile " + rid + "! It is now disabled. You'll need to edit and re-register it.\nCause: " + err);
+                                err2.orig_error = err;
+                                emitter.emit("error", err2, {rid: rid});
+                                //disable the ruleset since it's broken
+                                db.disableRuleset(rid, next);
+                                return;
                             }
+                            rs_by_rid[rs.rid] = rs;
+                            resolver.add(rs.rid);
+                            _.each(rs.meta && rs.meta.use, function(use){
+                                if(use.kind === "module"){
+                                    resolver.setDependency(rs.rid, use.rid);
+                                }
+                            });
+                            next(null, rs);
                         });
-                        next(null, rs);
                     });
                 };
                 db.listAllEnabledRIDs(function(err, rids){
@@ -465,8 +457,12 @@ module.exports = function(conf){
                     var rs = rs_by_rid[rid];
                     initializeAndEngageRuleset(rs, function(err){
                         if(err){
-                            //TODO handle error rather than stop
-                            next(err);
+                            //Emit an error and don't halt the engine
+                            var err2 = new Error("Failed to initialize " + rid + "! It is now disabled. You'll need to edit and re-register it.\nCause: " + err);
+                            err2.orig_error = err;
+                            emitter.emit("error", err2, {rid: rid});
+                            //disable the ruleset since it's broken
+                            db.disableRuleset(rid, next);
                             return;
                         }
                         next();

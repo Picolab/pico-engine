@@ -19,8 +19,9 @@ However they live in this repository in the `packages/` directory (mono-repo sty
  * **pico-engine-core** - executes compiled KRL and manages event life-cycle
  * **krl-stdlib** - standard library for KRL
  * **krl-compiler** - compiles AST into a JavaScript module
- * **krl-parser** - parses KRL to produce an abstract syntax tree (AST)
- * **krl-generator** - generates KRL from an AST (pretty-printer)
+ * **krl-parser** - parses KRL to produce an abstract syntax tree (String -> AST)
+ * **krl-generator** - generates KRL from an AST (AST -> String)
+ * **krl-editor** - in browser editor for KRL
 
 To run the pico-engine in development mode do the following:
 

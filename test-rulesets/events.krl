@@ -136,6 +136,46 @@ ruleset io.picolabs.events {
 
         send_directive("select_where");
     }
+    rule where_match_0 {
+        select when events where_match_0 where something.match(re#0#)
+
+        send_directive("where_match_0");
+    }
+    rule where_match_null {
+        select when events where_match_null where something.match(re#null#)
+
+        send_directive("where_match_null");
+    }
+    rule where_match_false {
+        select when events where_match_false where something.match(re#false#)
+
+        send_directive("where_match_false");
+    }
+    rule where_match_empty_str {
+        select when events where_match_empty_str where something.match(re##)
+
+        send_directive("where_match_empty_str");
+    }
+    rule implicit_match_0 {
+        select when events implicit_match_0 something re#0#
+
+        send_directive("implicit_match_0");
+    }
+    rule implicit_match_null {
+        select when events implicit_match_null something re#null#
+
+        send_directive("implicit_match_null");
+    }
+    rule implicit_match_false {
+        select when events implicit_match_false something re#false#
+
+        send_directive("implicit_match_false");
+    }
+    rule implicit_match_empty_str {
+        select when events implicit_match_empty_str something re##
+
+        send_directive("implicit_match_empty_str");
+    }
     rule no_action {
         select when events no_action fired re#^yes$#i
         fired {
@@ -158,7 +198,7 @@ ruleset io.picolabs.events {
     rule store_sent_name {
         select when events store_sent_name name re#^(.*)$# setting(my_name)
         fired {
-            ent:sent_attrs := event:attrs();
+            ent:sent_attrs := event:attrs;
             ent:sent_name := my_name
         }
     }
@@ -191,5 +231,10 @@ ruleset io.picolabs.events {
         select when events event_eid
 
         send_directive("event_eid", {"eid": event:eid});
+    }
+    rule ignored is inactive {
+        select when events ignored
+
+        send_directive("ignored - should not see this");
     }
 }
