@@ -1,3 +1,4 @@
+var _ = require("lodash");
 var fs = require("fs");
 var path = require("path");
 var mkdirp = require("mkdirp");
@@ -32,6 +33,7 @@ var storeFile = function(file_path, src, callback){
 
 module.exports = function(conf){
     var rulesets_dir = conf.rulesets_dir;
+    var onWarning = conf.onWarning || _.noop;
 
     return function(rs_info, callback){
         var hash = rs_info.hash;
@@ -50,20 +52,24 @@ module.exports = function(conf){
                 callback(undefined, require(file));
                 return;
             }
-            var js_src;
+            var out;
             try{
-                js_src = compiler(krl_src, {
+                out = compiler(krl_src, {
                     parser_options: {
                         filename: rs_info.filename,
                     },
                     inline_source_map: true
-                }).code;
+                });
             }catch(err){
                 return callback(err);
             }
-            storeFile(file, js_src, function(err){
+            storeFile(file, out.code, function(err){
                 if(err) return callback(err);
-                callback(undefined, require(file));
+                var rs = require(file);
+                _.each(out.warnings, function(warning){
+                    onWarning(rs.rid, warning);
+                });
+                callback(undefined, rs);
             });
         });
     };

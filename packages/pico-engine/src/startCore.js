@@ -4,8 +4,19 @@ var path = require("path");
 var async = require("async");
 var fileUrl = require("file-url");
 var leveldown = require("leveldown");
+var krl_stdlib = require("krl-stdlib");
 var RulesetLoader = require("./RulesetLoader");
 var PicoEngineCore = require("pico-engine-core");
+
+
+var toKRLjson = function(val, indent){
+    var message = krl_stdlib.encode({}, val, indent);
+    if(message === "\"[JSObject]\""){
+        message = val + "";
+    }
+    return message;
+};
+
 
 var setupRootPico = function(pe, callback){
     pe.getRootECI(function(err, root_eci){
@@ -51,7 +62,8 @@ var setupRootPico = function(pe, callback){
     });
 };
 
-var getSystemRulesets = function(pe, callback){
+
+var getSystemRulesets = function(callback){
     var krl_dir = path.resolve(__dirname, "../krl");
     fs.readdir(krl_dir, function(err, files){
         if(err) return callback(err);
@@ -75,67 +87,105 @@ var getSystemRulesets = function(pe, callback){
     });
 };
 
-var setupLogging = function(pe){
+
+var setupLogging = function(pe, bunyanLog){
+
     var logs = {};
     var logRID = "io.picolabs.logging";
-    var needAttributes = function(context,message){
-        if (context.event && context.event.attrs && _.isString(message)) {
-            return message.startsWith("event received:") ||
-                message.startsWith("adding raised event to schedule:");
-        } else {
-            return false;
+
+    var krlLevelToBunyanLevel = function(level){
+        if(/error/.test(level)){
+            return "error";
+        }else if(/warn/.test(level)){
+            return "warn";
+        }else if(/debug/.test(level)){
+            return "debug";
         }
+        return "info";
     };
-    var needArguments = function(context,message){
-        if (context.query && context.query.args && _.isString(message)) {
-            return message.startsWith("query received: ");
-        } else {
-            return false;
-        }
-    };
-    var logEntry = function(context,message){
+
+    var logEntry = function(level, message, context){
+
+        context = context || {};//"error" events may be missiong context, log it as far as possible
+
         var episode_id = context.txn_id;
+        var timestamp = (new Date()).toISOString();
+
+        if(!_.isString(message)){
+            if(_.isError(message)){
+                message = message + "";
+            }else{
+                message = toKRLjson(message);
+            }
+        }
+
+        bunyanLog[krlLevelToBunyanLevel(level)]({krl_level: level, context: context}, message);
+
+        //decide if we want to add the event attributes to the log message
+        if(context.event && _.isString(message) && (false
+            || message.startsWith("event received:")
+            || message.startsWith("adding raised event to schedule:")
+        )){
+            message += " attributes " + toKRLjson(context.event.attrs);
+        }
+
+        //decide if we want to add the query arguments to the log message
+        if(context.query
+            && context.query.args
+            && _.isString(message)
+            && message.startsWith("query received:")
+        ){
+            message += " arguments " + toKRLjson(context.query.args);
+        }
+
+        var shell_log = "";
+        shell_log += "[" + level.toUpperCase() + "] ";
+        shell_log += episode_id + " | ";
+        shell_log += message;
+        if(shell_log.length > 300){
+            shell_log = shell_log.substring(0, 300) + "...";
+        }
+        if(/error/i.test(level)){
+            console.error(shell_log);//use stderr
+        }else{
+            console.log(shell_log);
+        }
+
+        var episode = logs[episode_id];
+        if (episode) {
+            episode.logs.push(timestamp + " [" + level.toUpperCase() + "] " + message);
+        } else {
+            console.error("[ERROR]", "no episode found for", episode_id);
+        }
+    };
+
+
+    pe.emitter.on("episode_start", function(expression, context){
+        var episode_id = context.txn_id;
+
+        var shell_log = "[EPISODE_START] " + episode_id + " ";
+        if(context.event){
+            shell_log += "event"
+                + "/" + context.event.eci
+                + "/" + context.event.eid
+                + "/" + context.event.domain
+                + "/" + context.event.type
+            ;
+        }else if(context.query){
+            shell_log += "query"
+                + "/" + context.query.eci
+                + "/" + context.query.rid
+                + "/" + context.query.name
+            ;
+        }else{
+            shell_log += toKRLjson(context);
+        }
+        console.log(shell_log);
+
         var timestamp = (new Date()).toISOString();
         var episode = logs[episode_id];
         if (episode) {
-            if (needAttributes(context,message)) {
-                episode.logs.push(timestamp+" "+message+" attributes "+JSON.stringify(context.event.attrs));
-            } else if (needArguments(context,message)) {
-                episode.logs.push(timestamp+" "+message+" arguments "+JSON.stringify(context.query.args));
-            } else {
-                episode.logs.push(timestamp+" "+message);
-            }
-        } else {
-            console.log("[ERROR]","no episode found for",episode_id);
-        }
-    };
-    var logEpisode = function(pico_id,context,callback){
-        var episode_id = context.txn_id;
-        var episode = logs[episode_id];
-        if (!episode) {
-            console.log("[ERROR]","no episode found for",episode_id);
-            return;
-        }
-        pe.getEntVar(pico_id,logRID,"status",null,function(e,status){
-            if (status) {
-                pe.getEntVar(pico_id,logRID,"logs",null,function(e,data){
-                    data[episode.key] = episode.logs;
-                    pe.putEntVar(pico_id,logRID,"logs",null,data,function(e){
-                        callback(delete logs[episode_id]);
-                    });
-                });
-            } else {
-                callback(delete logs[episode_id]);
-            }
-        });
-    };
-    pe.emitter.on("episode_start", function(context){
-        var episode_id = context.txn_id;
-        console.log("[EPISODE_START]",episode_id);
-        var timestamp = (new Date()).toISOString();
-        var episode = logs[episode_id];
-        if (episode) {
-            console.log("[ERROR]","episode already exists for",episode_id);
+            console.error("[ERROR]", "episode already exists for", episode_id);
         } else {
             episode = {};
             episode.key = (
@@ -147,52 +197,65 @@ var setupLogging = function(pe){
             logs[episode_id] = episode;
         }
     });
-    pe.emitter.on("klog", function(context, info){
-        if(info.hasOwnProperty("message")){
-            console.log("[KLOG]", info.message, info.val);
-            logEntry(context,"[KLOG] "+info.message+" "+JSON.stringify(info.val));
-        }else{
-            console.log("[KLOG]", info.val);
-            logEntry(context,"[KLOG] "+JSON.stringify(info.val));
+
+
+    var logEntriesForLevel = function(level){
+        pe.emitter.on(level, function(expression, context){
+            logEntry(level, expression, context);
+        });
+    };
+
+    logEntriesForLevel("log-info");
+    logEntriesForLevel("log-debug");
+    logEntriesForLevel("log-warn");
+    logEntriesForLevel("log-error");
+    logEntriesForLevel("debug");
+    logEntriesForLevel("error");
+
+    pe.emitter.on("klog", function(info, context){
+        var msg = toKRLjson(info && info.val);
+        if(_.has(info, "message")){
+            msg = info.message + " " + msg;
         }
+        logEntry("klog", msg, context);
     });
-    pe.emitter.on("log-error", function(context_info, expression){
-        console.log("[LOG-ERROR]",context_info,expression);
-        logEntry(context_info,"[LOG-ERROR] "+JSON.stringify(expression));
-    });
-    pe.emitter.on("log-warn", function(context_info, expression){
-        console.log("[LOG-WARN]",context_info,expression);
-        logEntry(context_info,"[LOG-WARN] "+JSON.stringify(expression));
-    });
-    pe.emitter.on("log-info", function(context_info, expression){
-        console.log("[LOG-INFO]",context_info,expression);
-        logEntry(context_info,"[LOG-INFO] "+JSON.stringify(expression));
-    });
-    pe.emitter.on("log-debug", function(context_info, expression){
-        console.log("[LOG-DEBUG]",context_info,expression);
-        logEntry(context_info,"[LOG-DEBUG] "+JSON.stringify(expression));
-    });
-    pe.emitter.on("debug", function(context, message){
-        console.log("[DEBUG]", context, message);
-        if (typeof message === "string") {
-            logEntry(context,message);
-        } else {
-            logEntry(context,JSON.stringify(message));
-        }
-    });
-    pe.emitter.on("error", function(err, context){
-        console.error("[ERROR]", context, err);
-        if(context) logEntry(context, err + "");
-    });
-    pe.emitter.on("episode_stop", function(context){
+
+    pe.emitter.on("episode_stop", function(expression, context){
+        var pico_id = context.pico_id;
         var episode_id = context.txn_id;
-        console.log("[EPISODE_STOP]",episode_id);
-        var callback = function(outcome){
-            console.log("[EPISODE_REMOVED]",outcome);
+
+        console.log("[EPISODE_STOP]", episode_id);
+
+        var episode = logs[episode_id];
+        if (!episode) {
+            console.error("[ERROR]","no episode found for", episode_id);
+            return;
+        }
+
+        var onRemoved = function(err){
+            delete logs[episode_id];
+            if(err){
+                console.error("[ERROR] failed to remove episode", episode_id, err + "");
+            }
         };
-        logEpisode(context.pico_id,context,callback);
+
+        pe.getEntVar(pico_id, logRID, "status", null, function(err, is_logs_on){
+            if(err) return onRemoved(err);
+            if(!is_logs_on){
+                onRemoved();
+                return;
+            }
+            pe.getEntVar(pico_id, logRID, "logs", null, function(err, data){
+                if(err) return onRemoved(err);
+
+                data[episode.key] = episode.logs;
+
+                pe.putEntVar(pico_id, logRID, "logs", null, data, onRemoved);
+            });
+        });
     });
 };
+
 
 module.exports = function(conf, callback){
 
@@ -203,6 +266,14 @@ module.exports = function(conf, callback){
 
         compileAndLoadRuleset: RulesetLoader({
             rulesets_dir: path.resolve(conf.home, "rulesets"),
+            onWarning: function(rid, w){
+                if(conf.no_logging){
+                    return;
+                }
+                var l = w.loc && w.loc.start && w.loc.start.line;
+                var c = w.loc && w.loc.start && w.loc.start.column;
+                console.warn("[COMPILER-WARNING]", rid, w.message, l + ":" + c);
+            },
         }),
 
         db: {
@@ -222,11 +293,11 @@ module.exports = function(conf, callback){
     if(conf.no_logging){
         //no setupLogging
     }else{
-        setupLogging(pe);
+        setupLogging(pe, conf.bunyanLog);
     }
 
     //system rulesets should be registered/updated first
-    getSystemRulesets(pe, function(err, system_rulesets){
+    getSystemRulesets(function(err, system_rulesets){
         if(err) return callback(err);
 
         pe.start(system_rulesets, function(err){

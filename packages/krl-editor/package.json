@@ -1,6 +1,6 @@
 {
   "name": "krl-editor",
-  "version": "0.42.0",
+  "version": "0.43.0",
   "description": "In browser editor for KRL",
   "main": "src/index.js",
   "files": [
@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "start": "webpack-dev-server",
-    "build": "NODE_ENV=production webpack && cp dist/krl-editor* ../pico-engine/public/js/."
+    "test": "echo passed",
+    "build": "NODE_ENV=production webpack && mv dist/krl-editor* ../pico-engine/public/js/."
   },
   "repository": {
     "type": "git",
@@ -27,11 +28,13 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "css-loader": "^0.28.7",
+    "memory-fs": "^0.4.1",
     "style-loader": "^0.19.0",
     "webpack": "^3.10.0",
     "webpack-dev-server": "^2.9.7"
   },
   "dependencies": {
-    "codemirror": "^5.32.0"
+    "brace": "^0.11.0",
+    "krl-compiler": "^0.43.0"
   }
 }

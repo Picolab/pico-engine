@@ -8,7 +8,7 @@ module.exports = function(ast, comp, e){
             return body.push(comp(part));
         }
         if(part.type !== "ExpressionStatement"){
-            throw new Error("function must end with an expression");
+            throw comp.error(part.loc, "function must end with an expression");
         }
         part = part.expression;
         return body.push(e("return", comp(part)));

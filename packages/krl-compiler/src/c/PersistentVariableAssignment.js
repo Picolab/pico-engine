@@ -1,9 +1,9 @@
 module.exports = function(ast, comp, e){
     if(ast.op !== ":="){
-        throw new Error("Unsuported PersistentVariableAssignment.op: " + ast.op);
+        throw comp.error(ast.loc, "Unsuported PersistentVariableAssignment.op: " + ast.op);
     }
     if(ast.left.type !== "DomainIdentifier" || !/^(ent|app)$/.test(ast.left.domain)){
-        throw new Error("PersistentVariableAssignment - only works on ent:* or app:* variables");
+        throw comp.error(ast.left.loc, "PersistentVariableAssignment - only works on ent:* or app:* variables");
     }
 
     var value_to_store = comp(ast.right);

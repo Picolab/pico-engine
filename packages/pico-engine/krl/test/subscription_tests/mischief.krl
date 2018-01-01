@@ -14,7 +14,8 @@ ruleset mischief {
   global {
     __testing = { "queries": [ { "name": "__testing" } ],
                   "events": [ { "domain": "mischief", "type": "identity"},
-                              { "domain": "mischief", "type": "hat_lifted"} ] }
+                              { "domain": "mischief", "type": "hat_lifted"},
+                              { "domain": "mischief", "type": "encrypted"} ] }
   }
 
   rule mischief_identity {
@@ -23,6 +24,27 @@ ruleset mischief {
       { "eci": wrangler:parent_eci(){"parent"}.klog("Parent eci cleo"), "eid": "mischief-identity",
         "domain": "mischief", "type": "who",
         "attrs": { "eci": wrangler:myself().eci } } )
+  }
+
+  rule mischief_encrypted {
+    select when mischief encrypted
+    foreach Subscriptions:getSubscriptions() setting (subscription)
+      pre {
+        thing_subs = subscription.klog("subs")
+        subs_attrs = thing_subs{"attributes"}.klog("TEST1")
+        map = {"encryption": 1}
+        message = map.encode()
+        eci = subscription.eci.klog("ECI1")
+        encrypted_message = engine:encryptChannelMessage(subscription.eci, message, subscription.other_encryption_public_key)
+      }
+      if true then
+      event:send({
+         "eci": subs_attrs{"outbound_eci"},
+         "eid": "hat-lifted",
+         "domain": "mischief",
+         "type": "encrypted",
+         "attrs": {"encryptedMessage": encrypted_message{"encryptedMessage"}, "sub_name" : subscription.name, "nonce": encrypted_message{"nonce"}}
+        })
   }
 
   rule mischief_hat_lifted {

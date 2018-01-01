@@ -1,6 +1,7 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
 var runKRL = require("./runKRL");
+var ktypes = require("krl-stdlib/types");
 
 module.exports = function(core, ctx, callback){
     cocb.run(function*(){
@@ -38,13 +39,14 @@ module.exports = function(core, ctx, callback){
         });
         var val = ctx.scope.get(ctx.query.name);
         if(_.isFunction(val)){
-            return yield runKRL(function*(ctx, args){
+            val = yield runKRL(function*(ctx, args){
                 //use ctx.applyFn so it behaves like any other fn call
                 //i.e. errors on trying defaction like a function
                 return yield ctx.applyFn(val, ctx, args);
             }, ctx, ctx.query.args);
         }
-        return val;
+        // To ensure we don't leak out functions etc.
+        return ktypes.decode(ktypes.encode(val));
     }, function(err, val){
         if(err){
             process.nextTick(function(){

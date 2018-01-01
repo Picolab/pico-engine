@@ -198,7 +198,7 @@ ruleset io.picolabs.events {
     rule store_sent_name {
         select when events store_sent_name name re#^(.*)$# setting(my_name)
         fired {
-            ent:sent_attrs := event:attrs();
+            ent:sent_attrs := event:attrs;
             ent:sent_name := my_name
         }
     }
@@ -231,5 +231,10 @@ ruleset io.picolabs.events {
         select when events event_eid
 
         send_directive("event_eid", {"eid": event:eid});
+    }
+    rule ignored is inactive {
+        select when events ignored
+
+        send_directive("ignored - should not see this");
     }
 }

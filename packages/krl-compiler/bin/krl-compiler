@@ -69,6 +69,11 @@ process.stdin.on("end", function(){
         }
         throw err;
     }
+    out.warnings.forEach(function(w){
+        var l = w.loc && w.loc.start && w.loc.start.line;
+        var c = w.loc && w.loc.start && w.loc.start.column;
+        console.warn(w.message + " " + l + ":" + c);
+    });
     if(args.verify){
         process.exit(0);
         return;

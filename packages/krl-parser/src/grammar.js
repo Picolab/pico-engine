@@ -41,6 +41,7 @@ var reserved_identifiers = {
   "function": true,
   "not": true,
   "setting": true,
+  "null": true,
   "true": true,
   "false": true
 };
@@ -355,6 +356,7 @@ var tok_name = tok("SYMBOL", "name");
 var tok_neq = tok("SYMBOL", "neq");
 var tok_not = tok("SYMBOL", "not");
 var tok_notfired = tok("SYMBOL", "notfired");
+var tok_null = tok("SYMBOL", "null");
 var tok_or = tok("SYMBOL", "or");
 var tok_off = tok("SYMBOL", "off");
 var tok_on = tok("SYMBOL", "on");
@@ -841,7 +843,7 @@ var grammar = {
     {"name": "PersistentVariableAssignment$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": ["PersistentVariableAssignment$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "PersistentVariableAssignment$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "PersistentVariableAssignment", "symbols": ["PersistentVariable", "PersistentVariableAssignment$ebnf$1", tok_COLON_EQ, "Expression"], "postprocess": 
+    {"name": "PersistentVariableAssignment", "symbols": ["DomainIdentifier", "PersistentVariableAssignment$ebnf$1", tok_COLON_EQ, "Expression"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -856,7 +858,7 @@ var grammar = {
     {"name": "ClearPersistentVariable$ebnf$1$subexpression$1", "symbols": [tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY]},
     {"name": "ClearPersistentVariable$ebnf$1", "symbols": ["ClearPersistentVariable$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "ClearPersistentVariable$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "ClearPersistentVariable", "symbols": [tok_clear, "PersistentVariable", "ClearPersistentVariable$ebnf$1"], "postprocess": 
+    {"name": "ClearPersistentVariable", "symbols": [tok_clear, "DomainIdentifier", "ClearPersistentVariable$ebnf$1"], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -864,14 +866,6 @@ var grammar = {
             variable: data[1],
             path_expression: data[2] ? data[2][1] : null,
           };
-        }
-        },
-    {"name": "PersistentVariable", "symbols": ["DomainIdentifier"], "postprocess": 
-        function(data, start, reject){
-          if(data[0].domain === "ent" || data[0].domain === "app"){
-            return data[0];
-          }
-          return reject;
         }
         },
     {"name": "RaiseEventStatement$ebnf$1$subexpression$1", "symbols": [tok_for, "Expression"]},
@@ -1111,6 +1105,7 @@ var grammar = {
     {"name": "Literal", "symbols": ["String"], "postprocess": id},
     {"name": "Literal", "symbols": ["Number"], "postprocess": id},
     {"name": "Literal", "symbols": ["Boolean"], "postprocess": id},
+    {"name": "Literal", "symbols": ["Null"], "postprocess": id},
     {"name": "Literal", "symbols": ["RegExp"], "postprocess": id},
     {"name": "Literal", "symbols": ["Chevron"], "postprocess": id},
     {"name": "Literal", "symbols": ["Array"], "postprocess": id},
@@ -1254,6 +1249,14 @@ var grammar = {
         },
     {"name": "Boolean", "symbols": [tok_true], "postprocess": booleanAST(true )},
     {"name": "Boolean", "symbols": [tok_false], "postprocess": booleanAST(false)},
+    {"name": "Null", "symbols": [tok_null], "postprocess": 
+        function(data){
+          return {
+            loc: data[0].loc,
+            type: 'Null',
+          };
+        }
+        },
     {"name": "PositiveInteger", "symbols": ["Number"], "postprocess": 
         function(data, start, reject){
           var n = data[0];
