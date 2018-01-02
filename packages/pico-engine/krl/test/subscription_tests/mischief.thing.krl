@@ -8,10 +8,33 @@ ruleset mischief.thing {
     >>
     author "Picolabs"
     use module io.picolabs.subscription alias Subscriptions
-    shares __testing
+    provides failed, message, ents
+    shares __testing, failed, message, ents
   }
   global {
-    __testing = { "queries": [ { "name": "__testing" } ] }
+    __testing = { "queries": [ { "name": "__testing" },
+                               { "name": "message" },
+                               { "name": "failed" },
+                               { "name": "ents" } ] }
+    failed = function(){
+      ent:failed
+    }
+    message = function(){
+      ent:message
+    }
+    ents = function(){
+      {
+        "failed" : ent:failed,
+        "message": ent:message,
+        "decryption_failure" : ent:decryption_failure,
+        "shouldNotHaveDecrypted" : ent:shouldNotHaveDecrypted,
+        "status" : ent:status,
+        "serial" : ent:serial,
+        "decrypted_message" : ent:decrypted_message,
+        "decryption_failure" : ent:decryption_failure
+
+      }
+    }
   }
   rule auto_accept {
     select when wrangler inbound_pending_subscription_added
@@ -28,7 +51,7 @@ ruleset mischief.thing {
     select when mischief encrypted
     pre {
         subscriptions = Subscriptions:established()
-        subscription = subscriptions{event:attr("sub_name")}
+        subscription = subscriptions.head()
         nonce = event:attr("nonce")
         encrypted_message = event:attr("encryptedMessage")
         decrypted_message = engine:decryptChannelMessage(subscription{"Rx"}, encrypted_message, nonce, "bad key")
@@ -90,7 +113,7 @@ ruleset mischief.thing {
     select when mischief hat_lifted
     pre {
         subscriptions = Subscriptions:established()
-        subscription = subscriptions{event:attr("sub_name")}
+        subscription = subscriptions.head()
         verified_message = engine:verifySignedMessage(subscription{"Tx_verify_key"}, event:attr("signed_message"))
     }
     if verified_message != false then

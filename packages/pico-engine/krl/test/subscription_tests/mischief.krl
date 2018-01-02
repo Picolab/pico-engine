@@ -30,20 +30,17 @@ ruleset mischief {
     select when mischief encrypted
     foreach Subscriptions:established() setting (subscription)
       pre {
-        thing_subs = subscription.klog("subs")
-        subs_attrs = thing_subs{"attributes"}.klog("TEST1")
-        map = {"encryption": 1}
-        message = map.encode()
-        eci = subscription{"Rx"}.klog("ECI1")
+        //thing_subs = subscription.klog("subs")
+        message = {"encryption": 1}.encode()
         encrypted_message = engine:encryptChannelMessage(subscription{"Rx"}, message, subscription.Tx_public_key)
       }
       if true then
       event:send({
-         "eci": subs_attrs{"outbound_eci"},
+         "eci": subscription{"Tx"},
          "eid": "hat-lifted",
          "domain": "mischief",
          "type": "encrypted",
-         "attrs": {"encryptedMessage": encrypted_message{"encryptedMessage"}, "sub_name" : subscription.name, "nonce": encrypted_message{"nonce"}}
+         "attrs": {"encryptedMessage": encrypted_message{"encryptedMessage"}, "nonce": encrypted_message{"nonce"}}
         })
   }
 
@@ -51,19 +48,17 @@ ruleset mischief {
     select when mischief hat_lifted
     foreach Subscriptions:established() setting (subscription)
       pre {
-        thing_subs = subscription.klog("subs")
-        subs_attrs = thing_subs{"attributes"}
-        map = {"test": 1}
-        message = map.encode()
+        //thing_subs = subscription.klog("subs")
+        message = {"test": 1}.encode()
         signed_message = engine:signChannelMessage(subscription{"Rx"}, message)
       }
       if true then
       event:send({
-         "eci": subs_attrs{"outbound_eci"},
+         "eci": subscription{"Tx"},
          "eid": "hat-lifted",
          "domain": "mischief",
          "type": "hat_lifted",
-         "attrs": {"signed_message": signed_message, "sub_name" : subscription.name}
+         "attrs": {"signed_message": signed_message }
         })
   }
 }

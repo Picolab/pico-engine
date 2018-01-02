@@ -6,7 +6,7 @@ var path = require("path");
 var async = require("async");
 var tempfs = require("temp-fs");
 var startCore = require("./startCore");
-var setupServer = require("./setupServer");
+//var setupServer = require("./setupServer");
 
 var is_windows = /^win/.test(process.platform);//windows throws up when we try and delete the home dir
 var test_temp_dir = tempfs.mkdirSync({
@@ -59,7 +59,6 @@ var testPE = function(name, testsFn){
 testPE("pico-engine", function(t, pe, root_eci){
     var child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
     var subscriptionPicos = {};
-    var SHARED_A = "shared:A";
     var SUBS_RID = "io.picolabs.subscription";
     // helper functions
     var testQuery = function( _name, _args, test, _eci, _rid, next){
@@ -206,7 +205,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             pe.runQuery(defaultQueryParams("channel", {value: billsChannel.name})
                 ,function(err, data){
                     if(err) return next(err);
-                    console.log("Data in query: ", data);
+                    //console.log("Data in query: ", data);
                     t.equals(data.id,billsChannel.id,"list channel given name");
                     next(null, billsChannel, ted);
                 });
@@ -823,7 +822,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 data = data[0];
-                console.log("outbound established subs",data);
+                //console.log("outbound established subs",data);
                 subscriptionPicos.picoB.subscriptions = data;
                 t.notEqual(undefined, data, "Pico B has established subscription");
                 next();
@@ -838,7 +837,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, data){
                 if(err) return next(err);
                 data = data[0];
-                console.log("inbound established subs",data);
+                //console.log("inbound established subs",data);
                 subscriptionPicos.picoA.subscriptions = data;
                 t.notEqual(undefined, data, "Pico A has established subscription");
                 next();
@@ -853,7 +852,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {value: subscriptionPicos.picoA.subscriptions.Rx },
             }, function(err, data){
                 if(err) return next(err);
-                console.log("subscription A channel",data,subscriptionPicos.picoB.subscriptions);
+                //console.log("subscription A channel",data,subscriptionPicos.picoB.subscriptions);
                 t.equal(subscriptionPicos.picoB.subscriptions.Tx, data.sovrin.did, "Pico A has Pico B did");
                 t.equal(subscriptionPicos.picoB.subscriptions.Tx_verify_key, data.sovrin.verifyKey, "Pico A has Pico B verifyKey");
                 t.equal(subscriptionPicos.picoB.subscriptions.Tx_public_key, data.sovrin.encryptionPublicKey, "Pico A has Pico B encryptionPublicKey");
@@ -868,65 +867,107 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {value: subscriptionPicos.picoB.subscriptions.Rx },
             }, function(err, data){
                 if(err) return next(err);
-                console.log("subscription B channel",data,subscriptionPicos.picoA.subscriptions);
+                //console.log("subscription B channel",data,subscriptionPicos.picoA.subscriptions);
                 t.equal(subscriptionPicos.picoA.subscriptions.Tx, data.sovrin.did, "Pico B has Pico A did");
                 t.equal(subscriptionPicos.picoA.subscriptions.Tx_verify_key, data.sovrin.verifyKey, "Pico B has Pico A verifyKey");
                 t.equal(subscriptionPicos.picoA.subscriptions.Tx_public_key, data.sovrin.encryptionPublicKey, "Pico B has Pico A encryptionPublicKey");
                 next();
             });
         },
-        function(next) {
+        function(next) { // register and install test ruleset
             var picoA = subscriptionPicos["picoA"];
             var picoB = subscriptionPicos["picoB"];
-            readFile("krl/test/subscription_tests/mischief.krl").then(function(data) {
+            readFile("krl/test/subscription_tests/mischief.krl").then(function(data) { //console.log("opened mischief ruleset");
                 return registerRuleset(data);
-            }).then(function(response) {
+            }).then(function(response) { //console.log("registered mischief ruleset");
                 return readFile("krl/test/subscription_tests/mischief.thing.krl");
-            }).then(function(data) {
+            }).then(function(data) { //console.log("opened mischief.thing ruleset");
                 return registerRuleset(data);
-            }).then(function(response) {
+            }).then(function(response) { //console.log("registered mischief.thing ruleset");
                 return installRulesets(picoA.eci, "mischief");
-            }).then(function (installResponse) {
+            }).then(function (installResponse) {//console.log("installed mischief ruleset");
                 return installRulesets(picoB.eci, "mischief.thing");
-            }).then(function(installResponse) {
-                return sendEvent(picoA.eci, "mischief", "hat_lifted");
-            }).then(function(response) {
-                return getDBDumpWIthDelay();
-            }).then(function(dump) {
-                var picoBEntvars = dump.entvars[picoB.id];
-                var failed = picoBEntvars["mischief.thing"].failed.value;
-                var message = picoBEntvars["mischief.thing"].message.value;
-
+            }).then(function(){//console.log("installed mischief.thing ruleset");
+                next();
+            }).catch(function(err) {
+                next(err);
+            });
+        },
+        function(next){ // start mischief
+            console.log("start mischief event to",subscriptionPicos["picoA"].eci);
+            pe.signalEvent({
+                eci: subscriptionPicos["picoA"].eci, eid: "123", domain: "mischief", type: "hat_lifted",
+                attrs: {}
+            }, function(err, response){
+                //console.log("start mischief event directive",response);
+                next();
+            });
+        },
+        function(next){
+            pe.runQuery({
+                eci: subscriptionPicos["picoB"].eci,
+                rid: "mischief.thing",
+                name: "ents",
+                args: { },
+            }, function(err, data){
+                if(err) return next(err);
+                //console.log("ents",data);
+                var failed = data.failed;
+                var message = data.message;
                 t.deepEqual(message, {test: 1}, "Successfully sent, received, and verified signed message");
                 t.equal(failed, 1, "Successfully dealt with failed signature verification");
-
-                return sendEvent(picoA.eci, "mischief", "encrypted");
-            }).then(function(response) {
-                return getDBDumpWIthDelay();
-            }).then(function(dump) {
-                var picoASub = getSubscriptionsFromDump(dump, picoA.id)[SHARED_A];
-                var picoBSub = getSubscriptionsFromDump(dump, picoB.id)[SHARED_A];
-                var channels = dump.channel;
-                var channelA = channels[picoASub.eci];
-                var channelB = channels[picoBSub.eci];
-                var sharedSecretA = channelA.sovrin.secret.sharedSecret;
-                var sharedSecretB = channelB.sovrin.secret.sharedSecret;
-
-                t.notEqual(undefined, sharedSecretA, "Shared secret is not undefined");
-                t.notEqual(undefined, sharedSecretB, "Shared secret is not undefined");
-
-                t.equal(sharedSecretA, sharedSecretB, "Shared secrets are the same");
-
-                var picoBEntvars = dump.entvars[picoB.id];
-                var message = picoBEntvars["mischief.thing"].decrypted_message.value;
-                var decryptionFailed = picoBEntvars["mischief.thing"].decryption_failure.value;
-
+                next();
+            });
+        },
+        function(next){
+            pe.signalEvent({
+                eci: subscriptionPicos["picoA"].eci, eid: "321", domain: "mischief", type: "encrypted",
+                attrs: {}
+            }, function(err, response){
+                next();
+            });
+        },/* sharedSecret is not currently accessible except for scraping the data base, so the following test will not work.
+        function(next){
+            pe.runQuery({
+                eci: subscriptionPicos["picoA"].eci,
+                rid: "io.picolabs.wrangler",
+                name: "channel",
+                args: {value: subscriptionPicos.picoA.subscriptions.Rx },
+            }, function(err, data){
+                if(err) return next(err);
+                console.log("subscription A channel",data);
+                //t.notEqual(undefined, data.sovrin.secret.sharedSecret, "Shared secret A is not undefined");
+                next(null,data.sovrin);
+            });
+        },
+        function(sharedSecretA, next){
+            pe.runQuery({
+                eci: subscriptionPicos["picoB"].eci,
+                rid: "io.picolabs.wrangler",
+                name: "channel",
+                args: {value: subscriptionPicos.picoB.subscriptions.Rx },
+            }, function(err, data){
+                if(err) return next(err);
+                console.log("subscription B channel",data);
+                //t.notEqual(undefined, data.sovrin.secret.sharedSecret, "Shared secret B is not undefined");
+                //t.equal(sharedSecretA, data.sovrin.secret.sharedSecret, "Shared secrets are the same");
+                next();
+            });
+        },*/
+        function(next){
+            pe.runQuery({
+                eci: subscriptionPicos["picoB"].eci,
+                rid: "mischief.thing",
+                name: "ents",
+                args: { },
+            }, function(err, data){
+                if(err) return next(err);
+                //console.log("ents",data);
+                var message = data.decrypted_message;
+                var decryptionFailed = data.decryption_failure;
                 t.deepEqual(message, {encryption: 1}, "Successfully sent, received, and decrypted encrypted message");
                 t.equal(decryptionFailed, 1, "Properly handled failed decryption");
-
                 next();
-            }).catch(function (err) {
-                next(err);
             });
         },
         function(next) {
@@ -942,20 +983,55 @@ testPE("pico-engine", function(t, pe, root_eci){
             }).then(function(installResponse) {
                 return createSubscription(subscriptionPicos["picoC"].eci, subscriptionPicos["picoD"].eci, "B");
             }).then(function(response) {
-                return inboundSubscriptionRejection(subscriptionPicos.picoC.eci, "shared:B");
-            }).then(function(response) {
-                return getDBDumpWIthDelay();
-            }).then(function(dump) {
-                var picoCSubs  = getSubscriptionsFromDump(dump, subscriptionPicos.picoC.id);
-                var picoDSubs  = getSubscriptionsFromDump(dump, subscriptionPicos.picoD.id);
-                t.equal(picoCSubs["shared:B"], undefined, "Rejecting subscriptions worked");
-                t.equal(picoDSubs["shared:B"], undefined, "Rejecting subscriptions worked");
                 next();
             }).catch(function(err) {
                 next(err);
             });
         },
-
+        function(next){
+            pe.runQuery({
+                eci: subscriptionPicos["picoC"].eci,
+                rid: SUBS_RID,
+                name: "inbound",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                //console.log("inbound subs",data);
+                next(null,data[0].Rx);
+            });
+        },
+        function(Rx, next){
+            pe.signalEvent({
+                eci: Rx, eid: "3214", domain: "wrangler", type: "inbound_rejection",
+                attrs: {}
+            }, function(err, response){
+                next();
+            });
+        },
+        function(next){
+            pe.runQuery({
+                eci: subscriptionPicos["picoC"].eci,
+                rid: SUBS_RID,
+                name: "inbound",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                t.equal(undefined, data[0], "Inbound rejecting subscriptions worked");
+                next();
+            });
+        },
+        function(next){
+            pe.runQuery({
+                eci: subscriptionPicos["picoD"].eci,
+                rid: SUBS_RID,
+                name: "outbound",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                t.equal(undefined, data[0], "outbound removed from inbound rejecting subscriptions worked");
+                next();
+            });
+        },
         //
         //                      end Wrangler tests
         //
@@ -963,21 +1039,6 @@ testPE("pico-engine", function(t, pe, root_eci){
     ], function(err){
         t.end(err);
     });
-
-    /**
-     * This function basically causes a delay before getting the dbDump.
-     * Events can take time to propagate on the engine so this allows for that.
-     */
-    function getDBDumpWIthDelay(delay) {
-        delay = delay ? delay : 500;
-        return new Promise(function (resolve, reject) {
-            setTimeout(function () {
-                pe.dbDump(function(err, dump){
-                    err ? reject(err) : resolve(dump);
-                });
-            }, delay);
-        });
-    }
 
     function installRulesets (eci, rulesets) {
         return new Promise(function(resolve, reject) {
@@ -1012,34 +1073,9 @@ testPE("pico-engine", function(t, pe, root_eci){
             });
         });
     }
-    function sendEvent(eci, domain, type, attrs) {
-        attrs = attrs ? attrs : {};
-        return new Promise(function(resolve, reject) {
-            pe.signalEvent({
-                eci: eci,
-                domain: domain,
-                type: type,
-                attrs: attrs
-            }, function(err, response){
-                err ? reject(err) : resolve(response);
-            });
-        });
-    }
     function registerRuleset (krlSource) {
         return new Promise(function(resolve, reject) {
             pe.registerRuleset(krlSource, null, function(err, response){
-                err ? reject(err) : resolve(response);
-            });
-        });
-    }
-    function inboundSubscriptionRejection (picoEci, subscriptionName) {
-        return new Promise(function(resolve, reject) {
-            pe.signalEvent({
-                eci: picoEci,
-                domain: "wrangler",
-                type: "inbound_subscription_rejection",
-                attrs: {"subscription_name": subscriptionName}
-            }, function(err, response){
                 err ? reject(err) : resolve(response);
             });
         });
@@ -1062,16 +1098,8 @@ testPE("pico-engine", function(t, pe, root_eci){
             });
         });
     }
-    function getSubscriptionsFromDump(dump, picoId) {
-        var entvars = dump.entvars;
-        console.log(entvars[picoId]);
-        entvars = entvars[picoId];
-        return entvars[SUBS_RID]
-            ? entvars[SUBS_RID].subscriptions.value || {}
-            : undefined;
-    }
 });
-
+/*
 testPE("pico-engine - setupServer", function(t, pe, root_eci){
     //simply setup, but don't start, the express server
     //make sure it doesn't throwup
@@ -1143,4 +1171,4 @@ testPE("pico-engine - Wrangler", function*(t, pe, root_eci){
     channels = data; // update channels cache
 
     //TODO rest
-});
+});*/
