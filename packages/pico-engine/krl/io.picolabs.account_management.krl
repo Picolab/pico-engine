@@ -38,7 +38,7 @@ rule create_admin{
   fired{
     ent:owners := ent:owners.defaultsTo({}).put("root", {"eci": new_channel{"id"}});
     raise wrangler event "install_rulesets_requested"
-      attributes event:attrs().put({"rids":"io.picolabs.owner_authentication"});
+      attributes event:attrs.put({"rids":"io.picolabs.owner_authentication"});
   }
 }
 
@@ -51,10 +51,10 @@ rule eci_from_owner_name{
     send_directive("Returning eci from owner name", {"eci": eciResult});
   }fired{
     raise owner event "login_attempt"
-      attributes event:attrs().put({ "timestamp": time:now() });
+      attributes event:attrs.put({ "timestamp": time:now() });
   }else{
     raise owner event "login_attempt_failed"
-      attributes event:attrs().put({ "timestamp": time:now() });
+      attributes event:attrs.put({ "timestamp": time:now() });
   }
 }
 
@@ -70,11 +70,11 @@ rule eci_from_owner_name{
 
     fired{
       raise wrangler event "new_child_request"
-        attributes event:attrs().put({"event_type":"account","rids":"io.picolabs.owner_authentication", "password": password,"name":name});
+        attributes event:attrs.put({"event_type":"account","rids":"io.picolabs.owner_authentication", "password": password,"name":name});
     }
     else{
       raise owner event "creation_failure"
-        attributes event:attrs();
+        attributes event:attrs;
     }
   }
 
@@ -87,7 +87,7 @@ rule eci_from_owner_name{
   rule owner_token{
     select when owner token_created event_type re#account#
     pre{
-      a=event:attrs().klog("all attrs: ")
+      a=event:attrs.klog("all attrs: ")
       rs_attrs = event:attr("rs_attrs"){"rs_attrs"};
       new_owner = {"eci": event:attr("eci")}
     }

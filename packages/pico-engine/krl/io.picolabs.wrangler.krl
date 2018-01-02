@@ -281,7 +281,7 @@ ruleset io.picolabs.wrangler {
              "id" : child{"id"},
              "eci": channel{"id"},
              "rids": rids,
-             "rs_attrs":event:attrs()
+             "rs_attrs":event:attrs
             })
             });
         event:send( // tell child that a ruleset was added
@@ -289,7 +289,7 @@ ruleset io.picolabs.wrangler {
             "domain": "wrangler", "type": "ruleset_added",
             "attrs": ({
              "rids": rids,
-             "rs_attrs":event:attrs()
+             "rs_attrs":event:attrs
             })
           });
       }
@@ -349,15 +349,14 @@ ruleset io.picolabs.wrangler {
     pre {
       rids = event:attr("rids").defaultsTo(event:attr("rid")).defaultsTo("")
       rid_list = (rids.typeof() ==  "Array") => rids | rids.split(re#;#)
-      b = rid_list
     }
     if(rids !=  "") then every{ // should we be valid checking?
       installRulesets(rid_list) setting(rids)
-      send_directive("rulesets installed", { "rids": rids.rids }); // should we return rids or rid_list?
+      send_directive("rulesets installed", { "rids": rid_list }); // should we return rids or rid_list?
     }
     fired {
       raise wrangler event "ruleset_added"
-        attributes event:attrs().put({"rids": rid_list});
+        attributes event:attrs.put({"rids": rid_list});
     }
     else {
       error info "could not install rids, no rids attribute provide.";
@@ -390,7 +389,7 @@ ruleset io.picolabs.wrangler {
     }
     fired {
       raise wrangler event "channel_created" // API event
-            attributes event:attrs().put(["channel"], channel);
+            attributes event:attrs.put(["channel"], channel);
     } else {
       error info <<could not create channel #{channel_name}.>>
     }
@@ -406,7 +405,7 @@ ruleset io.picolabs.wrangler {
     }
     always {
      raise wrangler event "channel_deleted" // API event
-           attributes event:attrs().put(["channel"],channel)
+           attributes event:attrs.put(["channel"],channel)
          }
     }
 
@@ -433,11 +432,11 @@ ruleset io.picolabs.wrangler {
       ent:wrangler_children{child{"id"}} := child; // this is bypassed when module is used
       ent:children := children(){"children"};
       raise wrangler event "new_child_created"
-        attributes child.put("rs_attrs",event:attrs());
+        attributes child.put("rs_attrs",event:attrs);
     }
     else{
       raise wrangler event "child_creation_falure"
-        attributes event:attrs()
+        attributes event:attrs
     }
   }
 
@@ -453,7 +452,7 @@ ruleset io.picolabs.wrangler {
     select when wrangler child_created
       event:send({ "eci"   : event:attr("parent_eci"),
                    "domain": "wrangler", "type": "child_initialized",
-                   "attrs" : event:attrs() })
+                   "attrs" : event:attrs })
     always {
       ent:parent_eci := event:attr("parent_eci");
       ent:name := event:attr("name");
@@ -503,7 +502,7 @@ ruleset io.picolabs.wrangler {
     noop();
     always {
       raise wrangler event "remove_child_sync"
-        attributes event:attrs().put(["engineList"],engine:listChildren())
+        attributes event:attrs.put(["engineList"],engine:listChildren())
                                 .put(["wrangler_children"],ent:wrangler_children)
     }
   }
@@ -547,7 +546,7 @@ ruleset io.picolabs.wrangler {
     noop()
     fired{
       raise wrangler event "delete_children"
-        attributes event:attrs().put(["subtreeArray"], subtreeArray.reverse())
+        attributes event:attrs.put(["subtreeArray"], subtreeArray.reverse())
                                 .put(["updated_children"], updated_children)
     }
   }
@@ -555,15 +554,11 @@ ruleset io.picolabs.wrangler {
   rule pico_intent_to_orphan {
     select when wrangler delete_children
     foreach event:attr("subtreeArray") setting(child)
-    pre{
-        a = child;
-        a = event:attr("subtreeArray");
-      }
     every{
       send_directive("notifying child of intent to kill", {"child": child});
       event:send({  "eci": child{"eci"}, "eid": 88,
                     "domain": "pico", "type": "intent_to_orphan",
-                    "attrs": event:attrs() });
+                    "attrs": event:attrs });
     }
     always{
       schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 0.005})// ui needs children to be removed very fast(0.005 seconds), !!!this smells like poor coding practice...!!!
@@ -574,7 +569,6 @@ ruleset io.picolabs.wrangler {
 
     }
   }
-
   rule delete_child {
     select when wrangler delete_child
     pre { target = event:attr("target") }
@@ -586,7 +580,7 @@ ruleset io.picolabs.wrangler {
       ent:wrangler_children := event:attr("updated_children") if target;
       ent:children := children(){"children"} if target;
       raise information event "child_deleted"
-        attributes event:attrs();
+        attributes event:attrs;
     }
   }
 

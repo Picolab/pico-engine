@@ -7,7 +7,7 @@ ruleset mischief {
       "The Cat in the Hat"
     >>
     author "Picolabs"
-    use module io.picolabs.pico alias wrangler
+    use module io.picolabs.wrangler alias wrangler
     use module io.picolabs.subscription alias Subscriptions
     shares __testing
   }
@@ -28,14 +28,14 @@ ruleset mischief {
 
   rule mischief_encrypted {
     select when mischief encrypted
-    foreach Subscriptions:getSubscriptions() setting (subscription)
+    foreach Subscriptions:established() setting (subscription)
       pre {
         thing_subs = subscription.klog("subs")
         subs_attrs = thing_subs{"attributes"}.klog("TEST1")
         map = {"encryption": 1}
         message = map.encode()
-        eci = subscription.eci.klog("ECI1")
-        encrypted_message = engine:encryptChannelMessage(subscription.eci, message, subscription.other_encryption_public_key)
+        eci = subscription{"Rx"}.klog("ECI1")
+        encrypted_message = engine:encryptChannelMessage(subscription{"Rx"}, message, subscription.Tx_public_key)
       }
       if true then
       event:send({
@@ -49,13 +49,13 @@ ruleset mischief {
 
   rule mischief_hat_lifted {
     select when mischief hat_lifted
-    foreach Subscriptions:getSubscriptions() setting (subscription)
+    foreach Subscriptions:established() setting (subscription)
       pre {
         thing_subs = subscription.klog("subs")
         subs_attrs = thing_subs{"attributes"}
         map = {"test": 1}
         message = map.encode()
-        signed_message = engine:signChannelMessage(subscription.eci, message)
+        signed_message = engine:signChannelMessage(subscription{"Rx"}, message)
       }
       if true then
       event:send({

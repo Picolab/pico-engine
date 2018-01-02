@@ -24,15 +24,14 @@ ruleset mischief.thing {
     }
   }
 
-rule bad_decrypt {
+  rule bad_decrypt {
     select when mischief encrypted
     pre {
-        subscriptions = Subscriptions:getSubscriptions()
+        subscriptions = Subscriptions:established()
         subscription = subscriptions{event:attr("sub_name")}
         nonce = event:attr("nonce")
         encrypted_message = event:attr("encryptedMessage")
-
-        decrypted_message = engine:decryptChannelMessage(subscription.eci, encrypted_message, nonce, "bad key")
+        decrypted_message = engine:decryptChannelMessage(subscription{"Rx"}, encrypted_message, nonce, "bad key")
     }
     if decrypted_message != false then
       noop()
@@ -63,12 +62,11 @@ rule bad_decrypt {
  rule mischief_hat_lifted_encrypted {
     select when mischief encrypted
     pre {
-        subscriptions = Subscriptions:getSubscriptions()
-        subscription = subscriptions{event:attr("sub_name")}
+        subscriptions = Subscriptions:established()
+        subscription = subscriptions.head()
         nonce = event:attr("nonce")
         encrypted_message = event:attr("encryptedMessage")
-
-        decrypted_message = engine:decryptChannelMessage(subscription.eci, encrypted_message, nonce, subscription{"other_encryption_public_key"})
+        decrypted_message = engine:decryptChannelMessage(subscription{"Rx"}, encrypted_message, nonce, subscription{"Tx_public_key"})
     }
     if decrypted_message != false then
       noop()
@@ -80,20 +78,20 @@ rule bad_decrypt {
 
   }
 
-   rule decryption_failed {
-      select when wrangler signature_verification_failed
-      always {
-        ent:decryption_failure := (ent:decryption_failed.defaultsTo(0) + 1)
-      }
-
+  rule decryption_failed {
+    select when wrangler signature_verification_failed
+    always {
+      ent:decryption_failure := (ent:decryption_failed.defaultsTo(0) + 1)
     }
+
+  }
 
   rule mischief_hat_lifted {
     select when mischief hat_lifted
     pre {
-        subscriptions = Subscriptions:getSubscriptions()
+        subscriptions = Subscriptions:established()
         subscription = subscriptions{event:attr("sub_name")}
-        verified_message = engine:verifySignedMessage(subscription{"other_verify_key"}, event:attr("signed_message"))
+        verified_message = engine:verifySignedMessage(subscription{"Tx_verify_key"}, event:attr("signed_message"))
     }
     if verified_message != false then
       noop()
@@ -102,8 +100,8 @@ rule bad_decrypt {
     } else {
       raise wrangler event "signature_verification_failed"
     }
-
   }
+
   rule signature_failed {
     select when wrangler signature_verification_failed
     always {

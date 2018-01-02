@@ -129,10 +129,10 @@ ent:established [
     if(channel.isnull() || channel{"type"} != "Tx_Rx") then
       engine:newChannel(meta:picoId, "wellKnown_Rx", "Tx_Rx")//wrangler:createChannel(...)
     fired{
-      raise Tx_Rx event "wellKnown_Rx_created" attributes event:attrs();
+      raise Tx_Rx event "wellKnown_Rx_created" attributes event:attrs;
     }
     else{
-      raise Tx_Rx event "wellKnown_Rx_not_created" attributes event:attrs(); //exists
+      raise Tx_Rx event "wellKnown_Rx_not_created" attributes event:attrs; //exists
     }
   }
 
@@ -153,7 +153,7 @@ ent:established [
       newBus        = pending_entry.put({ "Rx" : channel{"id"} });
       ent:outbound := outbound().append( newBus );
       raise wrangler event "pending_subscription" 
-        attributes event:attrs().put(newBus.put({"status"      : "outbound",
+        attributes event:attrs.put(newBus.put({"status"      : "outbound",
                                                  "channel_name": channel_name,
                                                  "channel_type": channel_type,
                                                  "verify_key"  : channel{"sovrin"}{"verifyKey"},
@@ -161,7 +161,7 @@ ent:established [
                                                  }));
     }
     else {
-      raise wrangler event "no_wellKnown_Tx_failure" attributes  event:attrs() // API event
+      raise wrangler event "no_wellKnown_Tx_failure" attributes  event:attrs // API event
     }
   }//end createMySubscription rule
 
@@ -170,7 +170,7 @@ ent:established [
       event:send({
           "eci"   : event:attr("wellKnown_Tx"),
           "domain": "wrangler", "type": "pending_subscription",
-          "attrs" : event:attrs().put({"status"       : "inbound",
+          "attrs" : event:attrs.put({"status"       : "inbound",
                                       "Rx_role"      : event:attr("Tx_role"),
                                       "Tx_role"      : event:attr("Rx_role"),
                                       "Tx"           : event:attr("Rx"),
@@ -183,7 +183,7 @@ ent:established [
  rule addOutboundPendingSubscription {
     select when wrangler pending_subscription status re#outbound#
     always {
-      raise wrangler event "outbound_pending_subscription_added" attributes event:attrs()// API event
+      raise wrangler event "outbound_pending_subscription_added" attributes event:attrs// API event
     }
   }
 
@@ -200,14 +200,14 @@ ent:established [
       //wrangler:createChannel(wrangler:myself(){"id"}, name ,channel_type) setting(channel); // create Rx
     fired {
       newBus       = pending_entry.put({"Rx" : channel{"id"},
-                                        "Tx_verify_key" : channel{"sovrin"}{"verifyKey"},
-                                        "Tx_public_key" : channel{"sovrin"}{"encryptionPublicKey"}
+                                        "Tx_verify_key" : event:attr("Tx_verify_key"),
+                                        "Tx_public_key" : event:attr("Tx_public_key")
                                        });
       ent:inbound := inbound().append( newBus );
-      raise wrangler event "inbound_pending_subscription_added" attributes event:attrs().put(["Rx"],channel{"id"}); // API event
+      raise wrangler event "inbound_pending_subscription_added" attributes event:attrs.put(["Rx"],channel{"id"}); // API event
     } 
     else {
-      raise wrangler event "no_Tx_failure" attributes  event:attrs() // API event
+      raise wrangler event "no_Tx_failure" attributes  event:attrs // API event
     }
   }
 
@@ -225,7 +225,7 @@ ent:established [
                     "status"        : "outbound" }
           }, bus{"Tx_host"})
     always {
-      raise wrangler event "pending_subscription_approved" attributes event:attrs().put(["status"],"inbound").put(["bus"],bus)
+      raise wrangler event "pending_subscription_approved" attributes event:attrs.put(["status"],"inbound").put(["bus"],bus)
     }
   }
 
@@ -243,7 +243,7 @@ ent:established [
     always{
       ent:established := established().append(bus);
       ent:outbound    := outbound.splice(index,1);
-      raise wrangler event "subscription_added" attributes event:attrs() // API event
+      raise wrangler event "subscription_added" attributes event:attrs // API event
     } 
   }
 
@@ -256,7 +256,7 @@ ent:established [
     always {
       ent:established := established().append( event:attr("bus") );
       ent:inbound     := inbound.splice(index,1);
-      raise wrangler event "subscription_added" attributes event:attrs() // API event
+      raise wrangler event "subscription_added" attributes event:attrs // API event
     }
   }
 
@@ -269,10 +269,10 @@ ent:established [
     event:send({
           "eci"   : bus{"Tx"},
           "domain": "wrangler", "type": "established_removal",
-          "attrs" : event:attrs().put(["Rx"],bus{"Tx"}) // change perspective
+          "attrs" : event:attrs.put(["Rx"],bus{"Tx"}) // change perspective
           }, Tx_host)
     always {
-      raise wrangler event "established_removal" attributes event:attrs()
+      raise wrangler event "established_removal" attributes event:attrs
     }
   }
   
@@ -299,10 +299,10 @@ ent:established [
     event:send({
           "eci"   : bus{"Tx"},
           "domain": "wrangler", "type": "outbound_removal",
-          "attrs" : event:attrs().put(["Rx"],bus{"Tx"})
+          "attrs" : event:attrs.put(["Rx"],bus{"Tx"})
           }, Tx_host)
     always {
-      raise wrangler event "inbound_removal" attributes event:attrs()
+      raise wrangler event "inbound_removal" attributes event:attrs
     }
   }
 
@@ -331,10 +331,10 @@ ent:established [
     event:send({
           "eci"   : bus{"wellKnown_Tx"},
           "domain": "wrangler", "type": "inbound_removal",
-          "attrs" : event:attrs().put(["Tx"],bus{"Rx"})
+          "attrs" : event:attrs.put(["Tx"],bus{"Rx"})
           }, Tx_host)
     always {
-      raise wrangler event "outbound_removal" attributes event:attrs()
+      raise wrangler event "outbound_removal" attributes event:attrs
     }
   }
 
@@ -365,8 +365,8 @@ ent:established [
     }
     if matches then noop()
     fired {
-      raise wrangler event "pending_subscription_approval" attributes event:attrs();  
-      raise wrangler event "auto_accepted_Tx_Rx_request" attributes event:attrs();  //API event
+      raise wrangler event "pending_subscription_approval" attributes event:attrs;  
+      raise wrangler event "auto_accepted_Tx_Rx_request" attributes event:attrs;  //API event
     }// else ...
   }
 
@@ -378,7 +378,7 @@ ent:established [
       ent:autoAcceptConfig := config.put([event:attr("variable")],config{event:attr("variable")}.defaultsTo([]).append([event:attr("regex_str")])); // possible to add the same regex_str multiple times.
     }
     else {
-      raise wrangler event "autoAcceptConfigUpdate_failure" attributes event:attrs() // API event
+      raise wrangler event "autoAcceptConfigUpdate_failure" attributes event:attrs // API event
     }
   }
 }

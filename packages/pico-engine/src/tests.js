@@ -776,9 +776,12 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                console.log("outbound subs",data);
+                data = data[0];
+                //console.log("outbound subs",data);
                 subscriptionPicos.picoB.subscriptions = data;
-                t.notEqual(undefined, data, "Pico B has pending subscription");
+                t.notEqual(undefined, data, "Pico B has outbound pending subscription");
+                t.notEqual(undefined, data.wellKnown_Tx, "Pico B pending has wellKnown_Tx");
+                t.notEqual(undefined, data.Rx, "Pico B pending has Rx");
                 next();
             });
         },
@@ -790,77 +793,86 @@ testPE("pico-engine", function(t, pe, root_eci){
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                console.log("inbound subs",data);
+                data = data[0];
+                //console.log("inbound subs",data);
                 subscriptionPicos.picoA.subscriptions = data;
-                t.notEqual(undefined, data, "Pico A has pending subscription");
-                next();
-            });
-        },
-        function(next) {
-            var sub1 = subscriptionPicos.picoA.subscriptions[SHARED_A];
-            var sub2 = subscriptionPicos.picoB.subscriptions[SHARED_A];
-
-            // Check that the subscription statuses are pending
-            t.equal(sub1.attributes.status, "inbound", "Pico A's subscription status is inbound");
-            t.equal(sub2.attributes.status, "outbound", "Pico B's subscription status is outbound");
-
-            // t.equal(sub1.attributes.sid, SHARED_A);
-            // t.equal(sub2.attributes.sid, SHARED_A);
-
-            pe.dbDump(function(err, dump){
-                if(err) return next(err);
-
-                // Check that the channels exist
-                t.ok(dump.channel[sub1.eci], "Subscription channel created");
-                t.ok(dump.channel[sub2.eci], "Subscription channel created");
-
+                t.notEqual(undefined, data, "Pico A has inbound pending subscription");
+                t.notEqual(undefined, data.Tx_verify_key, "Pico A pending has Tx_verify_key");
+                t.notEqual(undefined, data.Tx_public_key, "Pico A pending has Tx_public_key");
+                t.notEqual(undefined, data.Tx, "Pico A pending has Tx");
+                t.notEqual(undefined, data.Rx, "Pico A pending has Rx");
                 next();
             });
         },
         //////////////// Subscription Accept tests
-        function (next) {
+        function(next){ //accept Subscription
             console.log("////////////////// Subscription Acceptance Tests //////////////////");
-            pendingSubscriptionApproval(subscriptionPicos.picoA.eci, SHARED_A)
-                .then(function(response) {
-                    return getDBDumpWIthDelay();
-                })
-                .then(function(dump) {
-                    var picoASubs = getSubscriptionsFromDump(dump, subscriptionPicos.picoA.id);
-                    var picoBSubs = getSubscriptionsFromDump(dump, subscriptionPicos.picoB.id);
-
-                    t.equal(picoASubs[SHARED_A].attributes.status, "subscribed", "Pico A's subscription status is subscribed");
-                    t.equal(picoBSubs[SHARED_A].attributes.status, "subscribed", "Pico B's subscription status is subscribed");
-                    next();
-                })
-                .catch(function(err) {
-                    next(err);
-                });
-        },
-        function(next) {
-            console.log("////////////////// Secure Subscription Tests //////////////////");
-
-            dumpDB().then(function(dump) {
-                var picoA = subscriptionPicos["picoA"];
-                var picoB = subscriptionPicos["picoB"];
-                var picoASubs = getSubscriptionsFromDump(dump, picoA.id);
-                var picoBSubs = getSubscriptionsFromDump(dump, picoB.id);
-                subscriptionPicos["picoA"].subscriptions = picoASubs;
-                subscriptionPicos["picoB"].subscriptions = picoBSubs;
-                var picoASub = picoASubs[SHARED_A];
-                var picoBSub = picoBSubs[SHARED_A];
-                var channels = dump.channel;
-                var picoASubChannel = channels[picoASub.eci];
-                var picoBSubChannel = channels[picoBSub.eci];
-
-                t.equal(picoASub.other_verify_key, picoBSubChannel.sovrin.verifyKey, "Correct verify key exchanged");
-                t.equal(picoBSub.other_verify_key, picoASubChannel.sovrin.verifyKey, "Correct verify key exchanged");
-
-                t.equal(picoASub.other_encryption_public_key, picoBSubChannel.sovrin.encryptionPublicKey, "Correct encryption key exchanged");
-                t.equal(picoBSub.other_encryption_public_key, picoASubChannel.sovrin.encryptionPublicKey, "Correct encryption key exchanged");
-
+            pe.signalEvent({
+                eci: subscriptionPicos.picoA.subscriptions.Rx, eid: "accept", domain: "wrangler", type: "pending_subscription_approval",
+                attrs: {}
+            }, function(err, response){
                 next();
-            }).catch(function(err) {
-                next(err);
+            });
+        },
+        function(next){ // check subscriptions
+            pe.runQuery({
+                eci: subscriptionPicos["picoB"].eci,
+                rid: SUBS_RID,
+                name: "established",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                data = data[0];
+                console.log("outbound established subs",data);
+                subscriptionPicos.picoB.subscriptions = data;
+                t.notEqual(undefined, data, "Pico B has established subscription");
+                next();
+            });
+        },
+        function(next){
+            pe.runQuery({
+                eci: subscriptionPicos["picoA"].eci,
+                rid: SUBS_RID,
+                name: "established",
+                args: {},
+            }, function(err, data){
+                if(err) return next(err);
+                data = data[0];
+                console.log("inbound established subs",data);
+                subscriptionPicos.picoA.subscriptions = data;
+                t.notEqual(undefined, data, "Pico A has established subscription");
+                next();
+            });
+        },
+        function(next){ // check Pico A subscriptions
+            console.log("////////////////// Secure Subscription Tests //////////////////");
+            pe.runQuery({
+                eci: subscriptionPicos["picoA"].eci,
+                rid: "io.picolabs.wrangler",
+                name: "channel",
+                args: {value: subscriptionPicos.picoA.subscriptions.Rx },
+            }, function(err, data){
+                if(err) return next(err);
+                console.log("subscription A channel",data,subscriptionPicos.picoB.subscriptions);
+                t.equal(subscriptionPicos.picoB.subscriptions.Tx, data.sovrin.did, "Pico A has Pico B did");
+                t.equal(subscriptionPicos.picoB.subscriptions.Tx_verify_key, data.sovrin.verifyKey, "Pico A has Pico B verifyKey");
+                t.equal(subscriptionPicos.picoB.subscriptions.Tx_public_key, data.sovrin.encryptionPublicKey, "Pico A has Pico B encryptionPublicKey");
+                next();
+            });
+        },
+        function(next){ // check Pico B subscriptions
+            pe.runQuery({
+                eci: subscriptionPicos["picoB"].eci,
+                rid: "io.picolabs.wrangler",
+                name: "channel",
+                args: {value: subscriptionPicos.picoB.subscriptions.Rx },
+            }, function(err, data){
+                if(err) return next(err);
+                console.log("subscription B channel",data,subscriptionPicos.picoA.subscriptions);
+                t.equal(subscriptionPicos.picoA.subscriptions.Tx, data.sovrin.did, "Pico B has Pico A did");
+                t.equal(subscriptionPicos.picoA.subscriptions.Tx_verify_key, data.sovrin.verifyKey, "Pico B has Pico A verifyKey");
+                t.equal(subscriptionPicos.picoA.subscriptions.Tx_public_key, data.sovrin.encryptionPublicKey, "Pico B has Pico A encryptionPublicKey");
+                next();
             });
         },
         function(next) {
@@ -1016,18 +1028,6 @@ testPE("pico-engine", function(t, pe, root_eci){
     function registerRuleset (krlSource) {
         return new Promise(function(resolve, reject) {
             pe.registerRuleset(krlSource, null, function(err, response){
-                err ? reject(err) : resolve(response);
-            });
-        });
-    }
-    function pendingSubscriptionApproval (picoEci, subscriptionName) {
-        return new Promise(function(resolve, reject) {
-            pe.signalEvent({
-                eci: picoEci,
-                domain: "wrangler",
-                type: "pending_subscription_approval",
-                attrs: {"subscription_name": subscriptionName}
-            }, function(err, response){
                 err ? reject(err) : resolve(response);
             });
         });
