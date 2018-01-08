@@ -91,13 +91,13 @@ Do not disclose it or check it into a repository like GitHub.
 <b>ID: </b><a class="js-nav" href="#{{this.id}}-About">{{this.id}}</a>
 <b>ECI: </b>{{this.eci}}
 {{#if canDel}}
-<a class="js-ajax-link" href="/sky/event/{{../eci}}/delete-child/pico/delete_child_request?id={{this.id}}&eci={{this.eci}}">del</a>
+<a class="js-ajax-link" href="/sky/event/{{../eci}}/delete-child/wrangler/delete_child_request?id={{this.id}}&eci={{this.eci}}">del</a>
 {{/if}}
 <em>"{{this.dname}}"</em>
 </p>
 {{/each}}
 <p>
-<form class="js-ajax-form" action="/sky/event/{{eci}}/new-child/pico/new_child_request" method="GET">
+<form class="js-ajax-form" action="/sky/event/{{eci}}/new-child/wrangler/new_child_request" method="GET">
 <input type="text" name="dname" placeholder="display name">
 <input type="text" name="color" class="use-minicolors" value="{{color}}">
 <button type="submit">add child pico</button>
@@ -137,7 +137,7 @@ Operations Log <button class="oplog-x">x</button>
 <hr>
 Available Rulesets
 <p></p>
-<form class="js-ajax-form" action="/sky/event/{{eci}}/add-ruleset/pico/new_ruleset" method="GET">
+<form class="js-ajax-form" action="/sky/event/{{eci}}/add-ruleset/wrangler/new_ruleset" method="GET">
 <select name="rid">
 {{#each avail}}
 <option>{{this}}</option>
