@@ -236,7 +236,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         log(rr.rid+" registered");
         log("Adding "+rr.rid+" to pico: "+eci);
         $.getJSON(
-          "/sky/event/"+eci+"/add-ruleset/wrangler/new_ruleset"
+          "/sky/event/"+eci+"/add-ruleset/wrangler/install_rulesets_requested"
             +"?rid="+rr.rid,
           function(ra){
             if (ra && ra.directives) {
