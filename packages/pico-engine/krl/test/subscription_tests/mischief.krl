@@ -21,7 +21,7 @@ ruleset mischief {
   rule mischief_identity {
     select when mischief identity
     event:send(
-      { "eci": wrangler:parent_eci(){"parent"}.klog("Parent eci cleo"), "eid": "mischief-identity",
+      { "eci": wrangler:parent_eci().klog("Parent eci cleo"), "eid": "mischief-identity",
         "domain": "mischief", "type": "who",
         "attrs": { "eci": wrangler:myself(){"eci"} } } )
   }
@@ -59,6 +59,6 @@ ruleset mischief {
          "domain": "mischief",
          "type": "hat_lifted",
          "attrs": {"signed_message": signed_message }
-        })
+        },subscription{"Tx_host"})
   }
 }
