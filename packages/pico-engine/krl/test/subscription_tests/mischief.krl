@@ -23,7 +23,7 @@ ruleset mischief {
     event:send(
       { "eci": wrangler:parent_eci(){"parent"}.klog("Parent eci cleo"), "eid": "mischief-identity",
         "domain": "mischief", "type": "who",
-        "attrs": { "eci": wrangler:myself().eci } } )
+        "attrs": { "eci": wrangler:myself(){"eci"} } } )
   }
 
   rule mischief_encrypted {
@@ -32,7 +32,7 @@ ruleset mischief {
       pre {
         //thing_subs = subscription.klog("subs")
         message = {"encryption": 1}.encode()
-        encrypted_message = engine:encryptChannelMessage(subscription{"Rx"}, message, subscription.Tx_public_key)
+        encrypted_message = engine:encryptChannelMessage(subscription{"Rx"}, message, subscription{"Tx_public_key"})
       }
       if true then
       event:send({
