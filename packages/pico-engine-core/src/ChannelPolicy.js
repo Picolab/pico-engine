@@ -6,6 +6,14 @@ var isBlank = function(str){
     return !ktypes.isString(str) || str.trim().length === 0;
 };
 
+var assertOnlyAllowedProperties = function(name, obj, allowed){
+    var extra_props = _.difference(_.keys(obj), allowed);
+    if(extra_props.length > 0){
+        throw new Error(name + " does not support properties: " + extra_props.join(", "));
+    }
+};
+
+
 
 var cleanEventRules = function(rules){
     if(ktypes.isNull(rules)){
@@ -18,6 +26,8 @@ var cleanEventRules = function(rules){
         if( ! ktypes.isMap(rule_orig)){
             throw new Error("Policy rules must be Maps, not " + ktypes.typeOf(rule_orig));
         }
+        assertOnlyAllowedProperties("Policy.event rule", rule_orig, ["domain", "type"]);
+
         var rule = {};
         if(!isBlank(rule_orig.domain)){
             rule.domain = rule_orig.domain.trim();
@@ -41,6 +51,8 @@ var cleanQueryRules = function(rules){
         if( ! ktypes.isMap(rule_orig)){
             throw new Error("Policy rules must be Maps, not " + ktypes.typeOf(rule_orig));
         }
+        assertOnlyAllowedProperties("Policy.query rule", rule_orig, ["rid", "name"]);
+
         var rule = {};
         if(!isBlank(rule_orig.rid)){
             rule.rid = rule_orig.rid.trim();
@@ -52,11 +64,22 @@ var cleanQueryRules = function(rules){
     });
 };
 
-
 var clean = function(policy){
+    if( ! ktypes.isMap(policy)){
+        throw new TypeError("Policy definition should be a Map, but was " + ktypes.typeOf(policy));
+    }
 
     if(isBlank(policy.name)){
         throw new Error("missing `policy.name`");
+    }
+
+    assertOnlyAllowedProperties("Policy", policy, ["name", "event", "query"]);
+
+    if(policy.event){
+        assertOnlyAllowedProperties("Policy.event", policy.event, ["deny", "allow"]);
+    }
+    if(policy.query){
+        assertOnlyAllowedProperties("Policy.query", policy.query, ["deny", "allow"]);
     }
 
     return {

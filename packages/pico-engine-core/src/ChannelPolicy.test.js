@@ -5,6 +5,12 @@ test("policy = ChannelPolicy.clean(policy)", function(t){
     var cleanIt = ChannelPolicy.clean;
 
     try{
+        cleanIt(null);
+        t.fail("should throw");
+    }catch(e){
+        t.equals(e + "", "TypeError: Policy definition should be a Map, but was Null");
+    }
+    try{
         cleanIt({});
         t.fail("should throw");
     }catch(e){
@@ -56,6 +62,52 @@ test("policy = ChannelPolicy.clean(policy)", function(t){
     }catch(e){
         t.equals(e + "", "Error: Policy rules must be Maps, not String");
     }
+    try{
+        cleanIt({
+            name: "foo",
+            bar: {allow: ["wat"]},
+            baz: true,
+        });
+        t.fail("should throw..");
+    }catch(e){
+        t.equals(e + "", "Error: Policy does not support properties: bar, baz");
+    }
+    try{
+        cleanIt({
+            name: "foo",
+            event: {allow: [{}], wat: []},
+        });
+        t.fail("should throw..");
+    }catch(e){
+        t.equals(e + "", "Error: Policy.event does not support properties: wat");
+    }
+    try{
+        cleanIt({
+            name: "foo",
+            query: {allow: [{}], wat: []},
+        });
+        t.fail("should throw..");
+    }catch(e){
+        t.equals(e + "", "Error: Policy.query does not support properties: wat");
+    }
+    try{
+        cleanIt({
+            name: "foo",
+            event: {allow: [{wat: 1}]},
+        });
+        t.fail("should throw..");
+    }catch(e){
+        t.equals(e + "", "Error: Policy.event rule does not support properties: wat");
+    }
+    try{
+        cleanIt({
+            name: "foo",
+            query: {allow: [{wat: 1}]},
+        });
+        t.fail("should throw..");
+    }catch(e){
+        t.equals(e + "", "Error: Policy.query rule does not support properties: wat");
+    }
 
     t.deepEquals(cleanIt({
         name: "foo",
@@ -90,7 +142,7 @@ test("policy = ChannelPolicy.clean(policy)", function(t){
         name: " foo   ",
         event: {
             allow: [
-                {domain: "one ", type: "thrEE", wat: "four"},
+                {domain: "one ", type: "thrEE"},
                 {domain: "  fIVe "},
                 {type: "\tsix "},
             ]
@@ -115,7 +167,7 @@ test("policy = ChannelPolicy.clean(policy)", function(t){
         name: " foo   ",
         query: {
             allow: [
-                {rid: "one ", name: "thrEE", wat: "four"},
+                {rid: "one ", name: "thrEE"},
                 {rid: "  fIVe "},
                 {name: "\tsix "},
             ]

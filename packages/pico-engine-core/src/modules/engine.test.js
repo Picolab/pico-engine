@@ -433,7 +433,7 @@ testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", function * 
     };
 
     // Making sure ChannelPolicy.clean is on
-    yield tstErr(newPolicy(), "TypeError: Cannot read property 'name' of undefined");
+    yield tstErr(newPolicy(), "TypeError: Policy definition should be a Map, but was Null");
     yield tstErr(newPolicy({name: 1}), "Error: missing `policy.name`");
 
     var pAdmin = {
