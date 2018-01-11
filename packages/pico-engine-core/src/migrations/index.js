@@ -6,6 +6,12 @@
  *
  * This way migrations can be applied in chronological order, since each migrations
  * builds on the previous one
+ *
+ * NOTE: migrations should be immutable, meaning they should produce the same result
+ * regardless of codebase state.
+ * Therefore you should NOT depend on DB.js (i.e. do not `require("../DB")`)
+ * because DB will change how it reads/writes the leveldb but the migrations should not.
+ * Yes, that means duplicating code is the right thing to do in this context.
  */
 module.exports = {
     "20170727T211511_appvars": require("./20170727T211511_appvars"),
@@ -16,4 +22,5 @@ module.exports = {
     "20170810T170618_parent-child": require("./20170810T170618_parent-child"),
     "20170823T213214_admin_eci": require("./20170823T213214_admin_eci"),
     "20171031T182007_pvar_index": require("./20171031T182007_pvar_index"),
+    "20171117T191959_admin_policy_id": require("./20171117T191959_admin_policy_id"),
 };

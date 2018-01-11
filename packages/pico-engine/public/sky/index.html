@@ -165,7 +165,7 @@ Channels
 {{/each}}
 </table>
 <p></p>
-<form class="js-ajax-form" action="/api/pico/{{id}}/new-channel" method="GET">
+<form class="js-ajax-form" action="/sky/event/{{eci}}/0/wrangler/channel_creation_requested" method="GET">
 <input type="text" name="name" placeholder="name...">
 <input type="text" name="type" placeholder="type...">
 <button type="submit">add channel</button>

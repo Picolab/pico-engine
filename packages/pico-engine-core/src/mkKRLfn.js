@@ -4,7 +4,8 @@ var normalizeKRLArgs = require("./normalizeKRLArgs");
 
 module.exports = function(param_order, fn){
     var fixArgs = _.partial(normalizeKRLArgs, param_order);
-    return cocb.wrap(function(ctx, args, callback){
-        fn(ctx, fixArgs(args), callback);
-    });
+    var wfn = cocb.wrap(fn);
+    return function(ctx, args){
+        return wfn(ctx, fixArgs(args));
+    };
 };

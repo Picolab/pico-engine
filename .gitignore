@@ -1,3 +1,6 @@
-/node_modules
+node_modules
 /lerna-debug.log
+/packages/pico-engine/db/
+/packages/pico-engine/rulesets/
+/packages/pico-engine/pico-engine.log*
 did-simulator-eci.js

@@ -192,19 +192,6 @@ module.exports = function(pe){
         });
     });
 
-    app.all("/api/pico/:id/new-channel", function(req, res){
-        var args = mergeGetPost(req);
-
-        pe.newChannel({
-            pico_id: req.params.id,
-            name: args.name,
-            type: args.type
-        }, function(err, new_channel){
-            if(err) return errResp(res, err);
-            res.json(new_channel);
-        });
-    });
-
     app.all("/api/pico/:id/rm-channel/:eci", function(req, res){
         pe.removeChannel(req.params.eci, function(err){
             if(err) return errResp(res, err);

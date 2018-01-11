@@ -9,6 +9,7 @@ var memdown = require("memdown");
 var compiler = require("krl-compiler");
 var PicoEngine = require("./");
 var mkTestPicoEngine = require("./mkTestPicoEngine");
+var ADMIN_POLICY_ID = require("./DB").ADMIN_POLICY_ID;
 
 var url_prefix = "http://fake-url/test-rulesets/";
 
@@ -685,6 +686,7 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
                         name: "krl created chan",
                         pico_id: "id2",
                         type: "some type?",
+                        policy_id: ADMIN_POLICY_ID,
                         sovrin: {
                             did: "id4",
                             verifyKey: "verifyKey_id4",
@@ -2144,7 +2146,13 @@ test("PicoEngine - io.picolabs.test-error-messages", function(t){
 
             qError({eci: null}, "Error: missing query.eci", false),
 
-            qError({eci: "foo"}, "NotFoundError: ECI not found: foo", true),
+            qError({
+                eci: "foo",
+                rid: "not-an-rid",
+                name: "hello",
+                args: {},
+            }, "NotFoundError: ECI not found: foo", true),
+
             qError({
                 eci: "id1",
                 rid: "not-an-rid",
@@ -2389,6 +2397,218 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
 
         ], t.end);
     });
+});
+
+
+test("PicoEngine - io.picolabs.policies ruleset", function(t){
+    cocb.run(function*(){
+        var mkTPE = cocb.wrap(mkTestPicoEngine);
+
+        var pe = yield mkTPE({rootRIDs: ["io.picolabs.policies"]});
+        var newPolicy = cocb.wrap(pe.newPolicy);
+        var newChannel = cocb.wrap(pe.newChannel);
+
+        pe.emitter.on("error", function(err){
+            if(/by channel policy/.test(err + "")){
+                //ignore
+            }else{
+                t.end(err);
+            }
+        });
+
+        var mkECI = cocb.wrap(function*(policy_json){
+            var policy = yield newPolicy(policy_json);
+            var chann = yield newChannel({
+                pico_id: "id0",
+                name: "name",
+                type: "type",
+                policy_id: policy.id,
+            });
+            return chann.id;
+        });
+
+        var tstEventPolicy = cocb.wrap(function(eci, domain_type, expected, callback){
+            pe.signalEvent({
+                eci: eci,
+                domain: domain_type.split("/")[0],
+                type: domain_type.split("/")[1],
+            }, function(err, data){
+                var actual = "allowed";
+                if(err){
+                    if(/Denied by channel policy/.test(err + "")){
+                        actual = "denied";
+                    }else if(/Not allowed by channel policy/.test(err + "")){
+                        actual = "not-allowed";
+                    }else{
+                        return callback(err);
+                    }
+                }
+                t.equals(actual, expected, "tstEventPolicy " + eci + "|" + domain_type);
+                callback();
+            });
+        });
+        var tstQueryPolicy = cocb.wrap(function(eci, name, expected, callback){
+            pe.runQuery({
+                eci: eci,
+                rid: "io.picolabs.policies",
+                name: name,
+            }, function(err, data){
+                var actual = "allowed";
+                if(err){
+                    if(/Denied by channel policy/.test(err + "")){
+                        actual = "denied";
+                    }else if(/Not allowed by channel policy/.test(err + "")){
+                        actual = "not-allowed";
+                    }else{
+                        return callback(err);
+                    }
+                }
+                t.equals(actual, expected, "tstQueryPolicy " + eci + "|" + name);
+                callback();
+            });
+        });
+
+        var eci;
+
+
+        eci = yield mkECI({
+            name: "deny all implicit",
+        });
+        yield tstEventPolicy(eci, "policies/foo", "not-allowed");
+        yield tstEventPolicy(eci, "policies/bar", "not-allowed");
+        yield tstEventPolicy(eci, "policies/baz", "not-allowed");
+
+
+        eci = yield mkECI({
+            name: "deny all explicit",
+            event: {
+                deny: [{}],
+            },
+        });
+        yield tstEventPolicy(eci, "policies/foo", "denied");
+        yield tstEventPolicy(eci, "policies/bar", "denied");
+        yield tstEventPolicy(eci, "policies/baz", "denied");
+
+
+        eci = yield mkECI({
+            name: "allow all",
+            event: {
+                allow: [{}],
+            },
+        });
+        yield tstEventPolicy(eci, "policies/foo", "allowed");
+        yield tstEventPolicy(eci, "policies/bar", "allowed");
+        yield tstEventPolicy(eci, "policies/baz", "allowed");
+
+
+        eci = yield mkECI({
+            name: "deny before allow",
+            event: {
+                allow: [{}],
+                deny: [{}],
+            },
+        });
+        yield tstEventPolicy(eci, "policies/foo", "denied");
+        yield tstEventPolicy(eci, "policies/bar", "denied");
+        yield tstEventPolicy(eci, "policies/baz", "denied");
+
+
+        eci = yield mkECI({
+            name: "only policies/foo",
+            event: {
+                allow: [{domain: "policies", type: "foo"}],
+            },
+        });
+        yield tstEventPolicy(eci, "policies/foo", "allowed");
+        yield tstEventPolicy(eci, "policies/bar", "not-allowed");
+        yield tstEventPolicy(eci, "policies/baz", "not-allowed");
+
+
+        eci = yield mkECI({
+            name: "all but policies/foo",
+            event: {
+                deny: [{domain: "policies", type: "foo"}],
+                allow: [{}],
+            }
+        });
+        yield tstEventPolicy(eci, "policies/foo", "denied");
+        yield tstEventPolicy(eci, "policies/bar", "allowed");
+        yield tstEventPolicy(eci, "policies/baz", "allowed");
+
+
+        eci = yield mkECI({
+            name: "only other/*",
+            event: {
+                allow: [{domain: "other"}],
+            }
+        });
+        yield tstEventPolicy(eci, "policies/foo", "not-allowed");
+        yield tstEventPolicy(eci, "policies/bar", "not-allowed");
+        yield tstEventPolicy(eci, "policies/baz", "not-allowed");
+        yield tstEventPolicy(eci, "other/foo", "allowed");
+        yield tstEventPolicy(eci, "other/bar", "allowed");
+        yield tstEventPolicy(eci, "other/baz", "allowed");
+
+
+        eci = yield mkECI({
+            name: "only */foo",
+            event: {
+                allow: [{type: "foo"}],
+            }
+        });
+        yield tstEventPolicy(eci, "policies/foo", "allowed");
+        yield tstEventPolicy(eci, "policies/bar", "not-allowed");
+        yield tstEventPolicy(eci, "policies/baz", "not-allowed");
+        yield tstEventPolicy(eci, "other/foo", "allowed");
+        yield tstEventPolicy(eci, "other/bar", "not-allowed");
+        yield tstEventPolicy(eci, "other/baz", "not-allowed");
+
+
+        eci = yield mkECI({
+            name: "only policies/foo or other/*",
+            event: {
+                allow: [
+                    {domain: "policies", type: "foo"},
+                    {domain: "other"},
+                ],
+            }
+        });
+        yield tstEventPolicy(eci, "policies/foo", "allowed");
+        yield tstEventPolicy(eci, "policies/bar", "not-allowed");
+        yield tstEventPolicy(eci, "policies/baz", "not-allowed");
+        yield tstEventPolicy(eci, "other/foo", "allowed");
+        yield tstEventPolicy(eci, "other/bar", "allowed");
+        yield tstEventPolicy(eci, "other/baz", "allowed");
+
+
+        eci = yield mkECI({
+            name: "deny all implicit",
+        });
+        yield tstQueryPolicy(eci, "one", "not-allowed");
+        yield tstQueryPolicy(eci, "two", "not-allowed");
+        yield tstQueryPolicy(eci, "three", "not-allowed");
+
+        eci = yield mkECI({
+            name: "allow all",
+            query: {allow: [{}]}
+        });
+        yield tstQueryPolicy(eci, "one", "allowed");
+        yield tstQueryPolicy(eci, "two", "allowed");
+        yield tstQueryPolicy(eci, "three", "allowed");
+
+        eci = yield mkECI({
+            name: "allow one and three",
+            query: {allow: [
+                {name: "one"},
+                {name: "three"},
+            ]}
+        });
+        yield tstQueryPolicy(eci, "one", "allowed");
+        yield tstQueryPolicy(eci, "two", "not-allowed");
+        yield tstQueryPolicy(eci, "three", "allowed");
+
+
+    }, t.end);
 });
 
 test("PicoEngine - handle ruleset startup errors after compiler update made breaking changes", function(t){

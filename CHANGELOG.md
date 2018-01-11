@@ -1,3 +1,12 @@
+# next
+
+### New Features
+
+* Making the shell log output more human friendly (see #313)
+* Storing pico-engine log file. Json encoded for easy parsing, and stored in `$PICO_ENGINE_HOME/pico-engine.log` (see #313)
+* Channel policies. Right now it defaults to allow-all. (see #350)
+
+
 # 0.43.0 - December 11, 2017
 
 ### Deprecations

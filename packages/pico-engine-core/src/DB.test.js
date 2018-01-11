@@ -7,6 +7,8 @@ var async = require("async");
 var ktypes = require("krl-stdlib/types");
 var memdown = require("memdown");
 var migrations = require("./migrations");
+var ADMIN_POLICY_ID = require("./DB").ADMIN_POLICY_ID;
+
 
 var mkTestDB = function(){
     return DB({
@@ -21,7 +23,7 @@ test("DB - write and read", function(t){
         start_db: async.apply(db.toObj),
         pico0: async.apply(db.newPico, {}),
         rule0: async.apply(db.addRulesetToPico, "id0", "rs0"),
-        chan2: async.apply(db.newChannel, {pico_id: "id0", name: "two", type: "t"}),
+        chan2: async.apply(db.newChannel, {pico_id: "id0", name: "two", type: "t", policy_id: ADMIN_POLICY_ID}),
         pico1: async.apply(db.newPico, {parent_id: "id0"}),
         end_db: async.apply(db.toObj),
         rmpico0: async.apply(db.removePico, "id0"),
@@ -39,6 +41,7 @@ test("DB - write and read", function(t){
                     id: "id1",
                     name: "admin",
                     type: "secret",
+                    policy_id: ADMIN_POLICY_ID,
                     sovrin: {
                         did: "id1",
                         verifyKey: "verifyKey_id1",
@@ -53,6 +56,7 @@ test("DB - write and read", function(t){
                     id: "id2",
                     name: "two",
                     type: "t",
+                    policy_id: ADMIN_POLICY_ID,
                     sovrin: {
                         did: "id2",
                         verifyKey: "verifyKey_id2",
@@ -67,6 +71,7 @@ test("DB - write and read", function(t){
                     id: "id4",
                     name: "admin",
                     type: "secret",
+                    policy_id: ADMIN_POLICY_ID,
                     sovrin: {
                         did: "id4",
                         verifyKey: "verifyKey_id4",
@@ -550,8 +555,8 @@ test("DB - listChannels", function(t){
         pico0: async.apply(db.newPico, {}),
         pico2: async.apply(db.newPico, {}),
 
-        c4_p0: async.apply(db.newChannel, {pico_id: "id0", name: "four", type: "t4"}),
-        c5_p1: async.apply(db.newChannel, {pico_id: "id2", name: "five", type: "t5"}),
+        c4_p0: async.apply(db.newChannel, {pico_id: "id0", name: "four", type: "t4", policy_id: ADMIN_POLICY_ID}),
+        c5_p1: async.apply(db.newChannel, {pico_id: "id2", name: "five", type: "t5", policy_id: ADMIN_POLICY_ID}),
 
         list0: async.apply(db.listChannels, "id0"),
         list2: async.apply(db.listChannels, "id2"),
@@ -566,6 +571,7 @@ test("DB - listChannels", function(t){
                 id: eci,
                 name: name,
                 type: type,
+                policy_id: ADMIN_POLICY_ID,
                 sovrin: {
                     did: eci,
                     verifyKey: "verifyKey_" + eci,

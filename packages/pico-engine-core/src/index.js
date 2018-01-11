@@ -10,12 +10,14 @@ var PicoQueue = require("./PicoQueue");
 var Scheduler = require("./Scheduler");
 var runAction = require("./runAction");
 var cleanEvent = require("./cleanEvent");
+var cleanQuery = require("./cleanQuery");
 var krl_stdlib = require("krl-stdlib");
 var getKRLByURL = require("./getKRLByURL");
 var SymbolTable = require("symbol-table");
 var EventEmitter = require("events");
 var processEvent = require("./processEvent");
 var processQuery = require("./processQuery");
+var ChannelPolicy = require("./ChannelPolicy");
 var RulesetRegistry = require("./RulesetRegistry");
 var normalizeKRLArgs = require("./normalizeKRLArgs");
 var DependencyResolver = require("dependency-resolver");
@@ -262,66 +264,83 @@ module.exports = function(conf){
         });
     };
 
-    var picoQ = PicoQueue(function(pico_id, job, callback){
-        //now handle the next `job` on the pico queue
-        if(job.type === "event"){
-            var event = job.event;
+    var picoQ = PicoQueue(function(pico_id, type, data, callback){
+        //now handle the next task on the pico queue
+        if(type === "event"){
+            var event = data;
             event.timestamp = new Date(event.timestamp);//convert from JSON string to date
             processEvent(core, mkCTX({
                 event: event,
                 pico_id: pico_id
             }), callback);
-        }else if(job.type === "query"){
+        }else if(type === "query"){
             processQuery(core, mkCTX({
-                query: job.query,
+                query: data,
                 pico_id: pico_id
             }), callback);
         }else{
-            callback(new Error("invalid PicoQueue job.type:" + job.type));
+            callback(new Error("invalid PicoQueue type:" + type));
         }
     });
 
-    core.signalEvent = function(event_orig, callback_orig){
+    var picoTask = function(type, data_orig, callback_orig){
         var callback = _.isFunction(callback_orig) ? callback_orig : _.noop;
-        var event;
+        var data;
         try{
-            //validate + normalize event, and make sure is not mutated
-            event = cleanEvent(event_orig);
+            //validate + normalize event/query, and make sure is not mutated
+            if(type === "event"){
+                data = cleanEvent(data_orig);
+                if(data.eid === "none"){
+                    data.eid = cuid();
+                }
+            }else if(type === "query"){
+                data = cleanQuery(data_orig);
+            }else{
+                throw new Error("invalid PicoQueue type:" + type);
+            }
         }catch(err){
             emitter.emit("error", err);
             callback(err);
             return;
         }
 
-        if(event.eid === "none"){
-            event.eid = cuid();
-        }
-        event.timestamp = conf.___core_testing_mode && _.isDate(event_orig.timestamp)
-            ? event_orig.timestamp
+        //events and queries have a txn_id and timestamp
+        data.txn_id = cuid();
+        data.timestamp = conf.___core_testing_mode && _.isDate(data_orig.timestamp)
+            ? data_orig.timestamp
             : new Date();
 
-        event.txn_id = cuid();
-
-        db.getPicoIDByECI(event.eci, function(err, pico_id){
+        db.getChannelAndPolicy(data.eci, function(err, chann){
             if(err){
                 emitter.emit("error", err);
                 callback(err);
                 return;
             }
+
+            var pico_id = chann.pico_id;
+
             var emit = mkCTX({
-                event: event,
                 pico_id: pico_id,
+                event: type === "event" ? data : void 0,
+                query: type === "query" ? data : void 0,
             }).emit;
 
             emit("episode_start");
-            emit("debug", "event received: " + event.domain + "/" + event.type);
+            if(type === "event"){
+                emit("debug", "event received: " + data.domain + "/" + data.type);
+            }else if(type === "query"){
+                emit("debug", "query received: " + data.rid + "/" + data.name);
+            }
+            try{
+                ChannelPolicy.assert(chann.policy, type, data);
+            }catch(e){
+                onDone(e);
+                return;
+            }
 
-            picoQ.enqueue(pico_id, {
-                type: "event",
-                event: event,
-            }, onDone);
+            picoQ.enqueue(pico_id, type, data, onDone);
 
-            emit("debug", "event added to pico queue: " + pico_id);
+            emit("debug", type + " added to pico queue: " + pico_id);
 
             function onDone(err, data){
                 if(err){
@@ -336,54 +355,12 @@ module.exports = function(conf){
         });
     };
 
-    core.runQuery = function(query_orig, callback_orig){
-        var callback = _.isFunction(callback_orig) ? callback_orig : _.noop;
+    core.signalEvent = function(event, callback){
+        picoTask("event", event, callback);
+    };
 
-        //ensure that query is not mutated
-        var query = _.cloneDeep(query_orig);//TODO optimize
-
-        if(!_.isString(query && query.eci)){
-            var err = new Error("missing query.eci");
-            emitter.emit("error", err);
-            callback(err);
-            return;
-        }
-
-        query.timestamp = new Date();
-        query.txn_id = cuid();
-
-        db.getPicoIDByECI(query.eci, function(err, pico_id){
-            if(err){
-                emitter.emit("error", err);
-                callback(err);
-                return;
-            }
-
-            var emit = mkCTX({
-                query: query,
-                pico_id: pico_id,
-            }).emit;
-            emit("episode_start");
-            emit("debug", "query received: " + query.rid + "/" + query.name);
-
-            picoQ.enqueue(pico_id, {
-                type: "query",
-                query: query
-            }, onDone);
-
-            emit("debug", "query added to pico queue: " + pico_id);
-
-            function onDone(err, data){
-                if(err){
-                    emit("error", err);
-                }else{
-                    emit("debug", data);
-                }
-                //there should be no more emits after "episode_stop"
-                emit("episode_stop");
-                callback(err, data);
-            }
-        });
+    core.runQuery = function(query, callback){
+        picoTask("query", query, callback);
     };
 
     var registerAllEnabledRulesets = function(system_rulesets, callback){
@@ -549,7 +526,7 @@ module.exports = function(conf){
         db.listScheduled(function(err, vals){
             if(err) return callback(err);
 
-            //resume the cron tasks
+            //resume the cron jobs
             _.each(vals, function(val){
                 if(!_.isString(val.timespec)){
                     return;
@@ -585,7 +562,6 @@ module.exports = function(conf){
         flushRuleset: core.flushRuleset,
         unregisterRuleset: core.unregisterRuleset,
 
-        newChannel: db.newChannel,
         removeChannel: db.removeChannel,
         installRuleset: core.installRuleset,
         uninstallRuleset: core.uninstallRuleset,
@@ -601,6 +577,8 @@ module.exports = function(conf){
     };
     if(conf.___core_testing_mode){
         pe.newPico = db.newPico;
+        pe.newPolicy = db.newPolicy;
+        pe.newChannel = db.newChannel;
         pe.scheduler = core.scheduler;
         pe.modules = modules;
     }

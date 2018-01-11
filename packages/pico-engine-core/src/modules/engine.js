@@ -6,6 +6,7 @@ var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
 var sovrinDID = require("sovrin-did");
 var mkKRLaction = require("../mkKRLaction");
+var ADMIN_POLICY_ID = require("../DB").ADMIN_POLICY_ID;
 
 var assertArg = function(fn_name, args, key, type){
     if( ! _.has(args, key)){
@@ -84,6 +85,12 @@ module.exports = function(core){
 
                 core.db.listChildren(pico_id, callback);
             });
+        }),
+
+
+        listPolicies: mkKRLfn([
+        ], function(ctx, args, callback){
+            core.db.listPolicies(callback);
         }),
 
 
@@ -191,13 +198,40 @@ module.exports = function(core){
         }),
 
 
+        newPolicy: mkKRLaction([
+            "policy",
+        ], function(ctx, args, callback){
+            core.db.newPolicy(args.policy, callback);
+        }),
+
+
+        removePolicy: mkKRLaction([
+            "policy_id",
+        ], function(ctx, args, callback){
+            var id = args.policy_id;
+            if(!_.isString(id)){
+                return callback(new TypeError("engine:removePolicy was given " + ktypes.toString(id) + " instead of a policy_id string"));
+            }
+            core.db.removePolicy(id, callback);
+        }),
+
+
         newChannel: mkKRLaction([
             "pico_id",
             "name",
             "type",
+            "policy_id",
         ], function(ctx, args, callback){
 
             var pico_id = picoArgOrCtxPico("newChannel", ctx, args);
+            var policy_id = ADMIN_POLICY_ID;
+
+            if(_.has(args, "policy_id")){
+                if(!ktypes.isString(args.policy_id)){
+                    throw new TypeError("engine:newChannel argument `policy_id` should be String but was " + ktypes.typeOf(args.policy_id));
+                }
+                policy_id = args.policy_id;
+            }
 
             if(!_.has(args, "name")){
                 return callback(new Error("engine:newChannel needs a name string"));
@@ -209,11 +243,16 @@ module.exports = function(core){
             core.db.assertPicoID(pico_id, function(err, pico_id){
                 if(err) return callback(err);
 
-                core.db.newChannel({
-                    pico_id: pico_id,
-                    name: ktypes.toString(args.name),
-                    type: ktypes.toString(args.type),
-                }, callback);
+                core.db.assertPolicyID(policy_id, function(err, policy_id){
+                    if(err) return callback(err);
+
+                    core.db.newChannel({
+                        pico_id: pico_id,
+                        name: ktypes.toString(args.name),
+                        type: ktypes.toString(args.type),
+                        policy_id: policy_id,
+                    }, callback);
+                });
             });
         }),
 
