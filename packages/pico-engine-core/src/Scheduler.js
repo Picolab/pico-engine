@@ -54,7 +54,7 @@ module.exports = function(conf){
                     update();//check the schedule for the next
                 });
 
-                //emit the scheduled task
+                //emit the scheduled job
                 conf.onEvent(next.event);
             };
 

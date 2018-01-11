@@ -179,7 +179,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           theChannels.push(aChannel);
         }
       });
-      callback({ "id": thePicoInp.id, "channel": theChannels });
+      callback({ "id": thePicoInp.id, "eci": thePicoInp.admin_eci, "channel": theChannels });
     } else if (label == "Subscriptions") {
       var theSubscriptions = {};
       var subscriptions = get(db_dump.pico,[thePicoInp.id,"io.picolabs.subscription","vars","subscriptions"]);

@@ -10,8 +10,14 @@ var levelup = require("levelup");
 var bytewise = require("bytewise");
 var sovrinDID = require("sovrin-did");
 var migrations = require("./migrations");
+var ChannelPolicy = require("./ChannelPolicy");
 var safeJsonCodec = require("level-json-coerce-null");
 var extractRulesetID = require("./extractRulesetID");
+
+
+//NOTE: for now we are going to default to an allow all policy
+//This makes migrating easier while waiting for krl system rulesets to assume policy usage
+var ADMIN_POLICY_ID = "allow-all-policy";//NOTE: changing this requires a db migration
 
 
 var omitChannelSecret = function(channel){
@@ -239,6 +245,7 @@ module.exports = function(opts){
             pico_id: opts.pico_id,
             name: opts.name,
             type: opts.type,
+            policy_id: opts.policy_id,
             sovrin: did,
         };
         var db_ops = [
@@ -279,9 +286,10 @@ module.exports = function(opts){
         // Picos
         //
         getPicoIDByECI: function(eci, callback){
+            eci = ktypes.toString(eci);
             ldb.get(["channel", eci], function(err, data){
                 if(err && err.notFound){
-                    err = new levelup.errors.NotFoundError("ECI not found: " + ktypes.toString(eci));
+                    err = new levelup.errors.NotFoundError("ECI not found: " + eci);
                     err.notFound = true;
                 }
                 callback(err, data && data.pico_id);
@@ -290,9 +298,7 @@ module.exports = function(opts){
 
 
         assertPicoID: function(id, callback){
-            if( ! ktypes.isString(id)){
-                return callback(new TypeError("Invalid pico_id: " + ktypes.toString(id)));
-            }
+            id = ktypes.toString(id);
             ldb.get(["pico", id], function(err){
                 if(err && err.notFound){
                     err = new levelup.errors.NotFoundError("Pico not found: " + id);
@@ -451,6 +457,7 @@ module.exports = function(opts){
                 pico_id: new_pico.id,
                 name: "admin",
                 type: "secret",
+                policy_id: ADMIN_POLICY_ID,
             });
             new_pico.admin_eci = c.channel.id;
 
@@ -630,6 +637,85 @@ module.exports = function(opts){
                         {type: "del", key: ["pico-eci-list", pico.id, eci]}
                     ];
                     ldb.batch(db_ops, callback);
+                });
+            });
+        },
+
+        getChannelAndPolicy: function(eci, callback){
+            ldb.get(["channel", eci], function(err, data){
+                if(err){
+                    if(err.notFound){
+                        err = new levelup.errors.NotFoundError("ECI not found: " + ktypes.toString(eci));
+                        err.notFound = true;
+                    }
+                    callback(err);
+                    return;
+                }
+                var chann = omitChannelSecret(data);
+                ldb.get(["policy", chann.policy_id], function(err, data){
+                    if(err) return callback(err);
+                    chann.policy = data;
+                    callback(null, chann);
+                });
+            });
+        },
+
+        newPolicy: function(policy, callback){
+            var new_policy = ChannelPolicy.clean(policy);
+            new_policy.id = newID();
+            ldb.put(["policy", new_policy.id], new_policy, function(err, data){
+                callback(err, new_policy);
+            });
+        },
+
+        listPolicies: function(callback){
+            var list = [];
+            dbRange(ldb, {
+                prefix: ["policy"],
+                keys: false,
+            }, function(value){
+                list.push(value);
+            }, function(err){
+                callback(err, list);
+            });
+        },
+
+        assertPolicyID: function(id, callback){
+            id = ktypes.toString(id);
+            ldb.get(["policy", id], function(err){
+                if(err && err.notFound){
+                    err = new levelup.errors.NotFoundError("Policy not found: " + id);
+                    err.notFound = true;
+                }
+                callback(err, err ? null : id);
+            });
+        },
+
+        removePolicy: function(id, callback){
+            id = ktypes.toString(id);
+            ldb.get(["policy", id], function(err, policy){
+                if(err && err.notFound){
+                    err = new levelup.errors.NotFoundError("Policy not found: " + id);
+                    err.notFound = true;
+                }
+                if(err) return callback(err);
+
+                var is_used = false;
+                dbRange(ldb, {
+                    prefix: ["channel"],
+                    keys: false,
+                }, function(chann, stopRange){
+                    if(chann.policy_id === id){
+                        is_used = true;
+                        stopRange();
+                        return;
+                    }
+                }, function(err){
+                    if(err) return callback(err);
+                    if(is_used){
+                        return callback(new Error("Policy " + id + " is in use, cannot remove."));
+                    }
+                    ldb.del(["policy", id], callback);
                 });
             });
         },
@@ -1040,3 +1126,5 @@ module.exports = function(opts){
         },
     };
 };
+
+module.exports.ADMIN_POLICY_ID = ADMIN_POLICY_ID;

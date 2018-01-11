@@ -42,6 +42,38 @@ module.exports = function(pe){
         req.errResp = errResp;
         next();
     });
+    app.use(function(req, res, next){ // root pico lookup of rewrites
+        var result = /^(\/[A-Za-z0-9_.-]+)(\/.*)/.exec(req.url);
+        if(!result) return(next());
+        var fpc = result[1];
+        if(fpc === "/sky" || fpc === "/api"
+        || fpc === "/authorize" || fpc === "/approve" || fpc === "/token"
+        || fpc === "/login" || fpc === "/new-account"){
+            next();
+        } else {
+            console.log("[SEEK SHORTCUT] "+fpc);
+            pe.getRootECI(function(err, root_eci){
+                if(err) return errResp(res, err);
+                var query = {
+                    eci: root_eci,
+                    rid: "io.picolabs.rewrite",
+                    name: "getRewrite",
+                    args: {fpc: fpc}
+                };
+                pe.runQuery(query, function(err, data){
+                    if(data) {
+                        var eventOrQuery =
+                            data.kind==="event" ? "/sky/event/" : "/sky/cloud/";
+                        req.url = eventOrQuery + data.eci + fpc + result[2];
+                        console.log("[RE-WRITE] "+req.url);
+                    } else {
+                        console.log("[NO DATA]");
+                    }
+                    next();
+                });
+            });
+        }
+    });
 
     app.all("/sky/event/:eci/:eid/:domain/:type", function(req, res){
         var event = {
@@ -157,19 +189,6 @@ module.exports = function(pe){
         pe.getRootECI(function(err, root_eci){
             if(err) return errResp(res, err);
             res.json({ok: true, eci: root_eci});
-        });
-    });
-
-    app.all("/api/pico/:id/new-channel", function(req, res){
-        var args = mergeGetPost(req);
-
-        pe.newChannel({
-            pico_id: req.params.id,
-            name: args.name,
-            type: args.type
-        }, function(err, new_channel){
-            if(err) return errResp(res, err);
-            res.json(new_channel);
         });
     });
 

@@ -5,36 +5,43 @@ test("event = cleanEvent(event)", function(t){
 
     try{
         cleanEvent();
+        t.fail("should throw");
     }catch(e){
         t.equals(e + "", "Error: missing event.eci");
     }
     try{
         cleanEvent({eci: 0});
+        t.fail("should throw");
     }catch(e){
         t.equals(e + "", "Error: missing event.eci");
     }
     try{
         cleanEvent({eci: ""});
+        t.fail("should throw");
     }catch(e){
         t.equals(e + "", "Error: missing event.eci");
     }
     try{
         cleanEvent({eci: "  "});
+        t.fail("should throw");
     }catch(e){
         t.equals(e + "", "Error: missing event.eci");
     }
     try{
         cleanEvent({eci: "eci-1", domain: ""});
+        t.fail("should throw");
     }catch(e){
         t.equals(e + "", "Error: missing event.domain");
     }
     try{
         cleanEvent({eci: "eci-1", domain: "foo"});
+        t.fail("should throw");
     }catch(e){
         t.equals(e + "", "Error: missing event.type");
     }
     try{
         cleanEvent({eci: "eci-1", domain: "foo", type: " "});
+        t.fail("should throw");
     }catch(e){
         t.equals(e + "", "Error: missing event.type");
     }

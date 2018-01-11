@@ -17,9 +17,9 @@ module.exports = function(conf){
     });
 
 
-    console.log("Staring PicoEngine " + require("../package.json").version);
+    console.log("Starting PicoEngine " + require("../package.json").version);
     console.log(conf);
-    bunyanLog.info({conf: conf}, "Staring PicoEngine " + require("../package.json").version);
+    bunyanLog.info({conf: conf}, "Starting PicoEngine " + require("../package.json").version);
 
     conf.bunyanLog = bunyanLog;
 

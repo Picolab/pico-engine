@@ -4,7 +4,9 @@ var cocb = require("co-callback");
 var ktypes = require("krl-stdlib/types");
 var strictDeepEquals = require("krl-stdlib/src/strictEquals").strictDeepEquals;
 var kengine = require("./engine");
+var ADMIN_POLICY_ID = require("../DB").ADMIN_POLICY_ID;
 var mkTestPicoEngine = require("../mkTestPicoEngine");
+
 
 //wrap stubbed functions in this to simulate async
 var tick = function(fn){
@@ -16,10 +18,10 @@ var tick = function(fn){
     };
 };
 
-var runAction = function*(pe, ctx, domain, id, args){
+var runAction = cocb.wrap(function*(pe, ctx, domain, id, args){
     var act = yield pe.modules.get(ctx, domain, id);
     return _.head(yield act(ctx, args));
-};
+});
 
 
 var testPE = function(test_name, genfn){
@@ -36,15 +38,14 @@ var testPE = function(test_name, genfn){
     });
 };
 
-
-var testErr = function*(t, genfn, failMsg, errMsg){
+var testError = cocb.wrap(function*(t, promise, errMsg, msg){
     try{
-        yield genfn;
-        t.fail(failMsg);
+        yield promise;
+        t.fail("should fail", msg);
     }catch(err){
-        t.equals(err + "", errMsg);
+        t.equals(err + "", errMsg, msg);
     }
-};
+});
 
 var assertPicoID = function(id, callback){
     if( ! ktypes.isString(id)){
@@ -54,56 +55,37 @@ var assertPicoID = function(id, callback){
 };
 
 
-test("engine:getPicoIDByECI", function(t){
-    cocb.run(function*(){
-        var engine = kengine({
-            db: {
-                getPicoIDByECI: tick(function(eci, callback){
-                    if(eci === "foo"){
-                        return callback(null, "bar");
-                    }else if(eci === "baz"){
-                        return callback(null, "qux");
-                    }
-                    callback("NOT FOUND:" + eci);
-                })
-            }
-        });
-        var get = function*(eci){
-            var eciGiven = eci !== void 0;
-            return yield engine.def.getPicoIDByECI(
-                {},
-                eciGiven ? {eci: eci,} : {}
-            );
-        };
+testPE("engine:getPicoIDByECI", function*(t, pe){
+    var tstErr = _.partial(testError, t);
 
-        t.equals(yield get("foo"), "bar");
-        t.equals(yield get("baz"), "qux");
+    var getPicoIDByECI = yield pe.modules.get({}, "engine", "getPicoIDByECI");
+    var get = function(){
+        return getPicoIDByECI({}, _.toArray(arguments));
+    };
 
-        yield testErr(
-            t,
-            get(),
-            "should throw b/c no eci is given",
-            "Error: engine:getPicoIDByECI needs an eci string"
-        );
-        yield testErr(
-            t,
-            get(null),
-            "should throw b/c wrong eci type",
-            "TypeError: engine:getPicoIDByECI was given null instead of an eci string"
-        );
-        yield testErr(
-            t,
-            get("quux"),
-            "should throw b/c not found",
-            "NOT FOUND:quux"
-        );
+    t.equals(yield get("id1"), "id0");
 
-    }, t.end);
+    yield tstErr(
+        get(),
+        "Error: engine:getPicoIDByECI needs an eci string",
+        "no eci is given"
+    );
+    yield tstErr(
+        get(null),
+        "TypeError: engine:getPicoIDByECI was given null instead of an eci string",
+        "wrong eci type"
+    );
+    yield tstErr(
+        get("quux"),
+        "NotFoundError: ECI not found: quux",
+        "eci not found"
+    );
 });
 
 
 test("engine:registerRuleset", function(t){
     cocb.run(function*(){
+        var tstErr = _.partial(testError, t);
 
         var engine = kengine({
             registerRulesetURL: tick(function(url, callback){
@@ -122,18 +104,16 @@ test("engine:registerRuleset", function(t){
             base: "https://foo.bar/baz/",
         }))[0], "rid for: https://foo.bar/baz/qux.krl");
 
-        yield testErr(
-            t,
+        yield tstErr(
             engine.def.registerRuleset({}, []),
-            "should throw b/c no url is given",
-            "Error: engine:registerRuleset needs a url string"
+            "Error: engine:registerRuleset needs a url string",
+            "no url is given"
         );
 
-        yield testErr(
-            t,
+        yield tstErr(
             engine.def.registerRuleset({}, [_.noop]),
-            "should throw b/c wrong url type",
-            "TypeError: engine:registerRuleset was given [Function] instead of a url string"
+            "TypeError: engine:registerRuleset was given [Function] instead of a url string",
+            "wrong url type"
         );
 
     }, t.end);
@@ -141,6 +121,8 @@ test("engine:registerRuleset", function(t){
 
 test("engine:installRuleset", function(t){
     cocb.run(function*(){
+        var tstErr = _.partial(testError, t);
+
         var engine = kengine({
             installRuleset: tick(function(pico_id, rid, callback){
                 callback();
@@ -163,7 +145,7 @@ test("engine:installRuleset", function(t){
             }
         });
 
-        var inst = function*(id, rid, url, base){
+        var inst = cocb.wrap(function*(id, rid, url, base){
             var args = {};
             if(id !== void 0){
                 args.pico_id = id;
@@ -178,7 +160,7 @@ test("engine:installRuleset", function(t){
                 args.base = base;
             }
             return (yield engine.def.installRuleset({}, args))[0];
-        };
+        });
 
         t.equals(yield inst("pico0", "foo.bar"), "foo.bar");
         t.deepEquals(yield inst("pico0", ["foo.bar", "foo.qux"]), ["foo.bar", "foo.qux"]);
@@ -186,11 +168,10 @@ test("engine:installRuleset", function(t){
         t.deepEquals(yield inst("pico0", void 0, "file:///foo/bar.krl"), "REG:bar");
         t.deepEquals(yield inst("pico0", void 0, "qux.krl", "http://foo.bar/baz/"), "found");
 
-        yield testErr(
-            t,
+        yield tstErr(
             inst("pico0", void 0, "file:///too/many.krl"),
-            "should throw b/c too many matched",
-            "Error: More than one rid found for the given url: a , b , c"
+            "Error: More than one rid found for the given url: a , b , c",
+            "too many matched"
         );
 
     }, t.end);
@@ -241,6 +222,8 @@ test("engine:uninstallRuleset", function(t){
 
 test("engine:unregisterRuleset", function(t){
     cocb.run(function*(){
+        var tstErr = _.partial(testError, t);
+
         var log = [];
         var engine = kengine({
             unregisterRuleset: tick(function(rid, callback){
@@ -260,26 +243,20 @@ test("engine:unregisterRuleset", function(t){
             rid: ["baz", "qux"],
         }))[0], void 0);
 
-        yield testErr(
-            t,
+        yield tstErr(
             engine.def.unregisterRuleset({}, []),
-            void 0,
             "Error: engine:unregisterRuleset needs a rid string or array"
         );
 
-        yield testErr(
-            t,
+        yield tstErr(
             engine.def.unregisterRuleset({}, {rid: {},}),
-            void 0,
             "TypeError: engine:unregisterRuleset was given [Map] instead of a rid string or array"
         );
 
-        yield testErr(
-            t,
+        yield tstErr(
             engine.def.unregisterRuleset({}, {
                 rid: ["baz", 2, "qux"],
             }),
-            void 0,
             "TypeError: engine:unregisterRuleset was given a rid array containing a non-string (2)"
         );
 
@@ -293,6 +270,8 @@ test("engine:unregisterRuleset", function(t){
 });
 
 testPE("engine:describeRuleset", function * (t, pe){
+    var tstErr = _.partial(testError, t);
+
     var ctx = {};
     var descRID = yield pe.modules.get(ctx, "engine", "describeRuleset");
 
@@ -323,17 +302,15 @@ testPE("engine:describeRuleset", function * (t, pe){
         author: "Phil Windley",
     });
 
-    yield testErr(
-        t,
+    yield tstErr(
         descRID(ctx, []),
-        "should throw b/c no rid is given",
-        "Error: engine:describeRuleset needs a rid string"
+        "Error: engine:describeRuleset needs a rid string",
+        "no rid is given"
     );
-    yield testErr(
-        t,
+    yield tstErr(
         descRID(ctx, [[]]),
-        "should throw b/c wrong rid type",
-        "TypeError: engine:describeRuleset was given [Array] instead of a rid string"
+        "TypeError: engine:describeRuleset was given [Array] instead of a rid string",
+        "wrong rid type"
     );
     try{
         yield descRID(ctx, {rid: "not.found"});
@@ -343,22 +320,19 @@ testPE("engine:describeRuleset", function * (t, pe){
     }
 });
 
-testPE("engine:listInstalledRIDs", function * (t, pe){
-    var ctx = {};
-    var listRIDs = yield pe.modules.get(ctx, "engine", "listInstalledRIDs");
 
-    var rids = yield listRIDs(ctx, {pico_id: "id0"});
-
-    t.deepEquals(rids, [
-        "io.picolabs.engine",
-    ]);
+testPE("engine:listAllEnabledRIDs", function * (t, pe){
+    var listAllEnabledRIDs = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
+    var rids = yield listAllEnabledRIDs({}, []);
+    t.ok(rids.length > 1, "should be all the test-rulesets/");
+    t.ok(_.every(rids, _.isString));
+    t.ok(_.includes(rids, "io.picolabs.engine"));
 });
 
-//TODO testPE("engine:listAllEnabledRIDs...
 
 testPE("engine:newPico", function * (t, pe){
-    var action = function*(ctx, name, args){
-        return yield runAction(pe, ctx, "engine", name, args);
+    var action = function(ctx, name, args){
+        return runAction(pe, ctx, "engine", name, args);
     };
 
     var pico2 = yield action({}, "newPico", {
@@ -383,12 +357,13 @@ testPE("engine:newPico", function * (t, pe){
 
 
 testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:removePico", function * (t, pe){
+    var tstErr = _.partial(testError, t);
 
-    var newPico = function*(ctx, args){
-        return yield runAction(pe, ctx, "engine", "newPico", args);
+    var newPico = function(ctx, args){
+        return runAction(pe, ctx, "engine", "newPico", args);
     };
-    var removePico = function*(ctx, args){
-        return yield runAction(pe, ctx, "engine", "removePico", args);
+    var removePico = function(ctx, args){
+        return runAction(pe, ctx, "engine", "removePico", args);
     };
 
     var getParent = yield pe.modules.get({}, "engine", "getParent");
@@ -422,13 +397,8 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
     strictDeepEquals(t, yield listChildren({}, ["id2"]), []);
 
     //report error on invalid pico_id
-    var assertInvalidPicoID = function * (genfn, id, expected){
-        yield testErr(
-            t,
-            genfn({pico_id: id}, []),
-            void 0,
-            expected
-        );
+    var assertInvalidPicoID = function(genfn, id, expected){
+        return tstErr(genfn({pico_id: id}, []), expected);
     };
 
     yield assertInvalidPicoID(getParent   , void 0, "TypeError: engine:getParent was given null instead of a pico_id string");
@@ -443,30 +413,95 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
     yield assertInvalidPicoID(newPico     , "id404", "NotFoundError: Pico not found: id404");
     yield assertInvalidPicoID(removePico  , "id404", "NotFoundError: Pico not found: id404");
 
-    yield testErr(
-        t,
+    yield tstErr(
         removePico({}, ["id0"]),
-        "should have thrown b/c you can't remove a pico with children",
-        "Error: Cannot remove pico \"id0\" because it has 2 children"
+        "Error: Cannot remove pico \"id0\" because it has 2 children",
+        "you can't remove a pico with children"
     );
 });
 
-testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function * (t, pe){
 
-    var newChannel = function*(ctx, args){
-        return yield runAction(pe, ctx, "engine", "newChannel", args);
+testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", function * (t, pe){
+    var tstErr = _.partial(testError, t);
+
+    var newPolicy = function(policy){
+        return runAction(pe, {}, "engine", "newPolicy", [policy]);
     };
-    var removeChannel = function*(ctx, args){
-        return yield runAction(pe, ctx, "engine", "removeChannel", args);
+    var listPolicies = yield pe.modules.get({}, "engine", "listPolicies");
+    var removePolicy = function(id){
+        return runAction(pe, {}, "engine", "removePolicy", [id]);
+    };
+
+    // Making sure ChannelPolicy.clean is on
+    yield tstErr(newPolicy(), "TypeError: Policy definition should be a Map, but was Null");
+    yield tstErr(newPolicy({name: 1}), "Error: missing `policy.name`");
+
+    var pAdmin = {
+        id: ADMIN_POLICY_ID,
+        name: "admin channel policy",
+        event: {allow: [{}]},
+        query: {allow: [{}]},
+    };
+
+    t.deepEquals(yield listPolicies(), [pAdmin]);
+
+    var pFoo = yield newPolicy({name: "foo"});
+    t.deepEquals(pFoo, {
+        id: "id2",
+        name: "foo",
+        event: {deny: [], allow: []},
+        query: {deny: [], allow: []},
+    });
+
+    t.deepEquals(yield listPolicies(), [pAdmin, pFoo]);
+
+    var pBar = yield newPolicy({
+        name: "bar",
+        event: {allow: [{domain: "system"}]}
+    });
+    t.deepEquals(pBar, {
+        id: "id3",
+        name: "bar",
+        event: {deny: [], allow: [{domain: "system"}]},
+        query: {deny: [], allow: []},
+    });
+
+    t.deepEquals(yield listPolicies(), [pAdmin, pFoo, pBar]);
+
+    yield tstErr(removePolicy(), "TypeError: engine:removePolicy was given null instead of a policy_id string");
+    yield tstErr(removePolicy("id404"), "NotFoundError: Policy not found: id404");
+
+    yield removePolicy(pFoo.id);
+    t.deepEquals(yield listPolicies(), [pAdmin, pBar]);
+
+    yield tstErr(removePolicy(pAdmin.id), "Error: Policy " + pAdmin.id +  " is in use, cannot remove.");
+
+    yield removePolicy(pBar.id);
+    t.deepEquals(yield listPolicies(), [pAdmin]);
+});
+
+
+testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function * (t, pe){
+    var tstErr = _.partial(testError, t);
+
+    var newPolicy = function(policy){
+        return runAction(pe, {}, "engine", "newPolicy", [policy]);
+    };
+    var newChannel = function(ctx, args){
+        return runAction(pe, ctx, "engine", "newChannel", args);
+    };
+    var removeChannel = function(ctx, args){
+        return runAction(pe, ctx, "engine", "removeChannel", args);
     };
     var listChannels = yield pe.modules.get({}, "engine", "listChannels");
 
-    var mkChan = function(pico_id, eci, name, type){
+    var mkChan = function(pico_id, eci, name, type, policy_id){
         return {
             pico_id: pico_id,
             id: eci,
             name: name,
             type: type,
+            policy_id: policy_id || ADMIN_POLICY_ID,
             sovrin: {
                 did: eci,
                 verifyKey: "verifyKey_" + eci,
@@ -484,42 +519,36 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
         mkChan("id0", "id2", "a", "b"),
     ]);
 
-    yield testErr(
-        t,
+    yield tstErr(
         newChannel({}, ["id1"]),
-        "should throw b/c no name is given",
-        "Error: engine:newChannel needs a name string"
+        "Error: engine:newChannel needs a name string",
+        "no name is given"
     );
-    yield testErr(
-        t,
+    yield tstErr(
         newChannel({}, ["id1", "id1"]),
-        "should throw b/c no type is given",
-        "Error: engine:newChannel needs a type string"
+        "Error: engine:newChannel needs a type string",
+        "no type is given"
     );
 
-    yield testErr(
-        t,
+    yield tstErr(
         removeChannel({}, ["id1"]),
-        "should throw b/c removeChannel shouldn't remove the admin channel",
-        "Error: Cannot delete the pico's admin channel"
+        "Error: Cannot delete the pico's admin channel",
+        "removeChannel shouldn't remove the admin channel"
     );
-    yield testErr(
-        t,
+    yield tstErr(
         removeChannel({}, []),
-        "should throw b/c no eci is given",
-        "Error: engine:removeChannel needs an eci string"
+        "Error: engine:removeChannel needs an eci string",
+        "no eci is given"
     );
-    yield testErr(
-        t,
+    yield tstErr(
         removeChannel({}, [/id1/]),
-        "should throw b/c wrong eci type",
-        "TypeError: engine:removeChannel was given re#id1# instead of an eci string"
+        "TypeError: engine:removeChannel was given re#id1# instead of an eci string",
+        "wrong eci type"
     );
-    yield testErr(
-        t,
+    yield tstErr(
         removeChannel({}, ["eci404"]),
-        "should throw b/c not found",
-        "NotFoundError: Key not found in database [channel,eci404]"
+        "NotFoundError: Key not found in database [channel,eci404]",
+        "eci not found"
     );
 
     t.equals(yield removeChannel({}, ["id2"]), void 0);
@@ -534,13 +563,8 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
     t.deepEquals(yield newChannel({pico_id: "id0"}, {"name": "a", "type": "b"}), mkChan("id0", "id3", "a", "b"));
 
     //report error on invalid pico_id
-    var assertInvalidPicoID = function * (genfn, id, expected){
-        yield testErr(
-            t,
-            genfn({pico_id: id}, {"name": "a", "type": "b"}),
-            void 0,
-            expected
-        );
+    var assertInvalidPicoID = function(genfn, id, expected){
+        return tstErr(genfn({pico_id: id}, {"name": "a", "type": "b"}), expected);
     };
 
     yield assertInvalidPicoID(newChannel  , void 0, "TypeError: engine:newChannel was given null instead of a pico_id string");
@@ -549,16 +573,24 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
     yield assertInvalidPicoID(newChannel  , "id404", "NotFoundError: Pico not found: id404");
     yield assertInvalidPicoID(listChannels, "id404", "NotFoundError: Pico not found: id404");
 
+
+    //setting policy_id on a newChannel
+    tstErr(newChannel({}, ["id0", "a", "b", 100]), "TypeError: engine:newChannel argument `policy_id` should be String but was Number");
+    tstErr(newChannel({}, ["id0", "a", "b", "id404"]), "NotFoundError: Policy not found: id404");
+
+    var pFoo = yield newPolicy({name: "foo"});
+    t.deepEquals(yield newChannel({}, ["id0", "a", "b", pFoo.id]), mkChan("id0", "id5", "a", "b", pFoo.id));
 });
 
 
 testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset", function * (t, pe){
+    var tstErr = _.partial(testError, t);
 
-    var installRS = function*(ctx, args){
-        return yield runAction(pe, ctx, "engine", "installRuleset", args);
+    var installRS = function(ctx, args){
+        return runAction(pe, ctx, "engine", "installRuleset", args);
     };
-    var uninstallRID = function*(ctx, args){
-        return yield runAction(pe, ctx, "engine", "uninstallRuleset", args);
+    var uninstallRID = function(ctx, args){
+        return runAction(pe, ctx, "engine", "uninstallRuleset", args);
     };
     var listRIDs = yield pe.modules.get({}, "engine", "listInstalledRIDs");
 
@@ -567,29 +599,25 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
     ]);
 
     t.equals(yield installRS({}, ["id0", "io.picolabs.hello_world"]), "io.picolabs.hello_world");
-    yield testErr(
-        t,
+    yield tstErr(
         installRS({}, [NaN]),
-        "should throw b/c no rid or url is given",
-        "Error: engine:installRuleset needs either a rid string or array, or a url string"
+        "Error: engine:installRuleset needs either a rid string or array, or a url string",
+        "no rid or url is given"
     );
-    yield testErr(
-        t,
+    yield tstErr(
         installRS({}, ["id0", NaN, 0]),
-        "should throw b/c wrong rid type",
-        "TypeError: engine:installRuleset was given null instead of a rid string or array"
+        "TypeError: engine:installRuleset was given null instead of a rid string or array",
+        "wrong rid type"
     );
-    yield testErr(
-        t,
+    yield tstErr(
         installRS({}, ["id0", [[]]]),
-        "should throw b/c rid array has a non-string",
-        "TypeError: engine:installRuleset was given a rid array containing a non-string ([Array])"
+        "TypeError: engine:installRuleset was given a rid array containing a non-string ([Array])",
+        "rid array has a non-string"
     );
-    yield testErr(
-        t,
+    yield tstErr(
         installRS({"pico_id": "id0"}, {"url": {}}),
-        "should throw b/c wrong url type",
-        "TypeError: engine:installRuleset was given [Map] instead of a url string"
+        "TypeError: engine:installRuleset was given [Map] instead of a url string",
+        "wrong url type"
     );
     t.deepEquals(yield listRIDs({pico_id: "id0"}, []), [
         "io.picolabs.engine",
@@ -597,23 +625,20 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
     ]);
 
     t.equals(yield uninstallRID({}, ["id0", "io.picolabs.engine"]), void 0);
-    yield testErr(
-        t,
+    yield tstErr(
         uninstallRID({}, []),
-        "should throw b/c no rid is given",
-        "Error: engine:uninstallRuleset needs a rid string or array"
+        "Error: engine:uninstallRuleset needs a rid string or array",
+        "no rid is given"
     );
-    yield testErr(
-        t,
+    yield tstErr(
         uninstallRID({}, ["id0", void 0]),
-        "should throw b/c wrong rid type",
-        "TypeError: engine:uninstallRuleset was given null instead of a rid string or array"
+        "TypeError: engine:uninstallRuleset was given null instead of a rid string or array",
+        "wrong rid type"
     );
-    yield testErr(
-        t,
+    yield tstErr(
         uninstallRID({}, ["id0", ["null", null]]),
-        "should throw b/c rid array has a non-string",
-        "TypeError: engine:uninstallRuleset was given a rid array containing a non-string (null)"
+        "TypeError: engine:uninstallRuleset was given a rid array containing a non-string (null)",
+        "rid array has a non-string"
     );
     t.deepEquals(yield listRIDs({pico_id: "id0"}, []), [
         "io.picolabs.hello_world",
@@ -625,13 +650,8 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
     t.equals(yield installRS({pico_id: "id0"}, {rid: "io.picolabs.hello_world"}), "io.picolabs.hello_world");
 
     //report error on invalid pico_id
-    var assertInvalidPicoID = function * (genfn, id, expected){
-        yield testErr(
-            t,
-            genfn({pico_id: id}, {rid: "io.picolabs.hello_world"}),
-            void 0,
-            expected
-        );
+    var assertInvalidPicoID = function(genfn, id, expected){
+        return tstErr(genfn({pico_id: id}, {rid: "io.picolabs.hello_world"}), expected);
     };
 
     yield assertInvalidPicoID(listRIDs    , void 0, "TypeError: engine:listInstalledRIDs was given null instead of a pico_id string");
