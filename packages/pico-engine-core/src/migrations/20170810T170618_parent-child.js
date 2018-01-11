@@ -2,8 +2,8 @@ var dbRange = require("../dbRange");
 
 module.exports = {
     up: function(ldb, callback){
-        // /entvars/:pico_id/io.picolabs.wrangler/parent
-        // /entvars/:pico_id/io.picolabs.wrangler/children
+        // /entvars/:pico_id/io.picolabs.pico/parent
+        // /entvars/:pico_id/io.picolabs.pico/children
 
         var to_batch = [];
 
@@ -13,7 +13,7 @@ module.exports = {
 
             var pico_id = data.key[1];
 
-            if(data.key[2] !== "io.picolabs.wrangler"){
+            if(data.key[2] !== "io.picolabs.pico"){
                 return;
             }
             if(data.key[3] === "parent"){

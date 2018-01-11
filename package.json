@@ -16,12 +16,5 @@
     "eslint": "^4.8.0",
     "espree": "^3.5.1",
     "lerna": "^2.4.0"
-  },
-  "dependencies": {
-    "bunyan": "^1.8.12",
-    "file-url": "^2.0.2",
-    "onchange": "^3.3.0",
-    "read-pkg-up": "^3.0.0",
-    "scriptsp": "^1.0.1"
   }
 }
