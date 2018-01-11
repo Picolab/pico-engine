@@ -8,6 +8,12 @@
 * allow path rewriting as directed by root pico ([see commit](https://github.com/Picolab/pico-engine/commit/a2255507f6da3b6adb7486f20b34f6d04383ac00))
 * Switching to new wrangler and subscriptions. ([see #351](https://github.com/Picolab/pico-engine/pull/351))
 
+### Upgrade notes
+
+Because we changed `io.picolabs.pico` to `io.picolabs.wrangler`.
+* Uninstall `io.picolabs.pico` from the Root Pico. (open the root pico -> Rulesets tab -> click `del` on `io.picolabs.pico`).
+* For the other picos install wrangler then uninstall the old pico ruleset.
+
 
 # 0.43.0 - December 11, 2017
 
