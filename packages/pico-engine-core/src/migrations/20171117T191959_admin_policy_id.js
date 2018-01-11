@@ -7,7 +7,7 @@ module.exports = {
 
         //NOTE: not sharing with DB.js b/c migrations should be immutable
         //      i.e. produce the same result regardless of previous codebase states
-        var ADMIN_POLICY_ID = "admin-policy";
+        var ADMIN_POLICY_ID = "allow-all-policy";//NOTE: we default to allow-all for now
 
         //the admin policy is hard wired in, so we should create it once before
         //the engine starts up (i.e. as this migration)

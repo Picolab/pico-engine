@@ -15,7 +15,9 @@ var safeJsonCodec = require("level-json-coerce-null");
 var extractRulesetID = require("./extractRulesetID");
 
 
-var ADMIN_POLICY_ID = "admin-policy";//NOTE: changing this requires a db migration
+//NOTE: for now we are going to default to an allow all policy
+//This makes migrating easier while waiting for krl system rulesets to assume policy usage
+var ADMIN_POLICY_ID = "allow-all-policy";//NOTE: changing this requires a db migration
 
 
 var omitChannelSecret = function(channel){
