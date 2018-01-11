@@ -6,6 +6,7 @@
 * Storing pico-engine log file. Json encoded for easy parsing, and stored in `$PICO_ENGINE_HOME/pico-engine.log` ([see #313](https://github.com/Picolab/pico-engine/pull/313))
 * Channel policies. Right now it defaults to allow-all. ([see #350](https://github.com/Picolab/pico-engine/pull/350))
 * allow path rewriting as directed by root pico ([see commit](https://github.com/Picolab/pico-engine/commit/a2255507f6da3b6adb7486f20b34f6d04383ac00))
+* Switching to new wrangler and subscriptions. ([see #351](https://github.com/Picolab/pico-engine/pull/351))
 
 
 # 0.43.0 - December 11, 2017
