@@ -49,7 +49,7 @@ ruleset io.picolabs.visual_params {
 
   rule visual_update {
     select when visual update
-             or pico ruleset_added where rid == meta:rid
+             or wrangler ruleset_added where rid == meta:rid
     pre {
       dname = event:attr("dname")
       color = event:attr("color")

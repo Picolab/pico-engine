@@ -1,6 +1,6 @@
 ruleset io.picolabs.owner_authentication {
   meta {
-    use module io.picolabs.pico alias wrangler
+    use module io.picolabs.wrangler alias wrangler
     shares __testing
   }
   global {

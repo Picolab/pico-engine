@@ -1,6 +1,6 @@
 // operators are camel case, variables are snake case.
 
-ruleset io.picolabs.pico {
+ruleset io.picolabs.wrangler {
   meta {
     name "Wrangler Core"
     description <<
@@ -45,7 +45,7 @@ ruleset io.picolabs.pico {
 // ***                                                                                      ***
 // ********************************************************************************************
 
-  config= {"os_rids": [/*"io.picolabs.pds",*/"io.picolabs.pico","io.picolabs.visual_params"]}
+  config= {"os_rids": [/*"io.picolabs.pds",*/"io.picolabs.wrangler","io.picolabs.visual_params"]}
   /*
        skyQuery is used to programmatically call function inside of other picos from inside a rule.
        parameters;
@@ -81,7 +81,7 @@ ruleset io.picolabs.pico {
        root_url = _root_url || createRootUrl(_host,_path);
        web_hook = root_url + eci + "/"+mod+"/" + func;
 
-       response = http:get(web_hook.klog("URL"), {}.put(params)).klog("response ");
+       response = http:get(web_hook, {}.put(params));
        status = response{"status_code"};// pass along the status
        error_info = {
          "error": "sky query request was unsuccesful.",
@@ -104,11 +104,11 @@ ruleset io.picolabs.pico {
 
     //returns a list of children that are contained in a given subtree at the starting child. No ordering is guaranteed in the result
     gatherDescendants = function(child){
-      moreChildren = skyQuery(child{"eci"}, "io.picolabs.pico", "children"){"children"}.klog("Sky query result: ");
-      //final_pico_array = [child].append(moreChildren).klog("appendedResult");
+      moreChildren = skyQuery(child{"eci"}, "io.picolabs.wrangler", "children"){"children"};
+      //final_pico_array = [child].append(moreChildren);
 
       gatherChildrensChildren = function(moreChildren){
-        arrayOfChildrenArrays = moreChildren.map(function(x){ gatherDescendants(x.klog("moreChildren child: ")) }).klog("More,moreChildren child: ");
+        arrayOfChildrenArrays = moreChildren.map(function(x){ gatherDescendants(x) });
         arrayOfChildrenArrays.reduce(function(a,b){ a.append(b) });
       };
 
@@ -139,38 +139,25 @@ ruleset io.picolabs.pico {
       }
     }
 
-    hasChild = function(value){ // helper function, does not need return object.
-      ent_children = children(){"children"};
-      target_child = ent_children.filter(function(child){
-                                            child{"name"} ==  value || child{"id"} == value
-                                          }).head().defaultsTo({});
-      target_child
+    hasChild = function(value){
+      children().filter(function(child){
+                          child{"name"} ==  value || child{"id"} == value
+                          }).head()
     }
 // ********************************************************************************************
 // ***                                      Rulesets                                        ***
 // ********************************************************************************************
     registeredRulesets = function() {
-      eci = meta:eci;
-      rids = engine:listAllEnabledRIDs();
-      {
-        "rids"     : rids
-      }.klog("registeredRulesets :")
+      engine:listAllEnabledRIDs()
     }
 
     rulesetsInfo = function(rids) {
       _rids = ( rids.typeof() == "Array" ) => rids | ( rids.typeof() == "String" ) => rids.split(";") | "" ;
-      results = _rids.map(function(rid) {engine:describeRuleset(rid);});
-      {
-       "description"     : results
-      }.klog("rulesetsInfo :")
+      _rids.map(function(rid) {engine:describeRuleset(rid);});
     }
 
     installedRulesets = function() {
-      eci = meta:eci;
-      rids = engine:listInstalledRIDs();
-      {
-        "rids"     : rids
-      }.klog("installedRulesets :")
+      engine:listInstalledRIDs(meta:picoId)
     }
 
     installRulesets = defaction(rids){
@@ -190,16 +177,15 @@ ruleset io.picolabs.pico {
 // ***                                      Channels                                        ***
 // ********************************************************************************************
     checkName = function(name){
-      chan = channel(name, null, null){"channels"}.defaultsTo(null,"no channel found");
-      chan.isnull();
+      channel(name, null, null).isnull()
     }
 
     nameFromEci = function(eci){ // internal function call
-      channel = channel(eci,null,null){"channels"};
+      channel = channel(eci,null,null);
       channel{"name"}
     }
     eciFromName = function(name){
-      channel = channel(name,null,null){"channels"};
+      channel = channel(name,null,null);
       channel{"id"}
     }
 
@@ -210,7 +196,7 @@ ruleset io.picolabs.pico {
     }
 
     channel = function(value,collection,filtered) {
-      channels = engine:listChannels(meta:picoId.klog("channel picoId"),meta:eci.klog("channel eci"));
+      channels = engine:listChannels(meta:picoId);
 
       single_channel = function(channels){
         channel_list = channels;
@@ -224,14 +210,11 @@ ruleset io.picolabs.pico {
       };
       return1 = collection.isnull() => channels |  channels.collect(function(chan){(type(chan))}) ;
       return2 = filtered.isnull() => return1 | return1{filtered};
-      results = (value.isnull()) => return2 | single_channel(channels);
-      {
-        "channels" : results
-      }.klog("channels: ")
+      (value.isnull()) => return2 | single_channel(channels)
     }
 
     deleteChannel = defaction(value) {
-        channel = channel(value,null,null){"channels"}
+        channel = channel(value,null,null)
         eci = channel{"id"}
         engine:removeChannel(eci)
         returns channel
@@ -252,17 +235,11 @@ ruleset io.picolabs.pico {
 
   children = function(name) {
     _children = ent:wrangler_children.defaultsTo({});
-    _return = name => _children.filter(function(child){child{"name"} == name}) | _children;
-    {
-      "children" : _return.values()
-    }.klog("children :")
+    (name => _children.filter(function(child){child{"name"} == name}) | _children).values()
   }
 
   parent_eci = function() {
-    _parent = ent:parent_eci.defaultsTo("");
-    {
-      "parent" :  _parent
-    }.klog("parent :")
+    ent:parent_eci.defaultsTo("")
   }
 
   profile = function(key) {
@@ -277,14 +254,11 @@ ruleset io.picolabs.pico {
       "profile" : profile_return{"profile"},
       "settings" : settings_return{"settings"},
       "general" : general_return{"general"}
-    }.klog("pico :")
+    }
   }
 
   name = function() {
-    return = ent:name;
-    {
-      "picoName" : return
-    }.klog("name :")
+    ent:name
   }
   picoECIFromName = function (name) {
     pico = ent:wrangler_children.filter(function(rec){rec{"name"} ==  name})
@@ -307,7 +281,7 @@ ruleset io.picolabs.pico {
              "id" : child{"id"},
              "eci": channel{"id"},
              "rids": rids,
-             "rs_attrs":event:attrs()
+             "rs_attrs":event:attrs
             })
             });
         event:send( // tell child that a ruleset was added
@@ -315,7 +289,7 @@ ruleset io.picolabs.pico {
             "domain": "wrangler", "type": "ruleset_added",
             "attrs": ({
              "rids": rids,
-             "rs_attrs":event:attrs()
+             "rs_attrs":event:attrs
             })
           });
       }
@@ -351,7 +325,7 @@ ruleset io.picolabs.pico {
         name = names{"unique"} || [];
 
         unique_name =  name.head().defaultsTo("","unique name failed");
-        (unique_name).klog("randomPicoName : ")
+        (unique_name)
     }
 
     //returns true if given name is unique
@@ -360,7 +334,7 @@ ruleset io.picolabs.pico {
           names = picos.none(function(child){
             (child{"name"} ==  name)
             });
-          (names).klog("uniquePicoName : ")
+          (names)
 
     }
   }
@@ -371,31 +345,28 @@ ruleset io.picolabs.pico {
 // ********************************************************************************************
 
   rule installRulesets {
-    select when wrangler install_rulesets_requested or pico new_ruleset or pico install_rulesets_requested
+    select when wrangler install_rulesets_requested
     pre {
       rids = event:attr("rids").defaultsTo(event:attr("rid")).defaultsTo("")
       rid_list = (rids.typeof() ==  "Array") => rids | rids.split(re#;#)
-      b = rid_list.klog("attr Rids")
     }
     if(rids !=  "") then every{ // should we be valid checking?
       installRulesets(rid_list) setting(rids)
-      send_directive("rulesets installed", {"rids":rids.rids}); // should we return rids or rid_list?
+      send_directive("rulesets installed", { "rids": rid_list }); // should we return rids or rid_list?
     }
     fired {
       raise wrangler event "ruleset_added"
-        attributes event:attrs().put({"rids": rid_list});
-      raise pico event "ruleset_added" attributes event:attrs();
-      rids.klog("successfully installed rids ");
+        attributes event:attrs.put({"rids": rid_list});
     }
     else {
       error info "could not install rids, no rids attribute provide.";
     }
   }
 
-  rule uninstallRulesets { // should this handle multiple uninstalls ???
-    select when wrangler uninstall_rulesets_requested or pico uninstall_rulesets_requested
+  rule uninstallRulesets {
+    select when wrangler uninstall_rulesets_requested
     pre {
-      rids = event:attr("rids").defaultsTo("", ">>  >> ")
+      rids = event:attr("rids").defaultsTo("")
       rid_list = rids.typeof() ==  "array" => rids | rids.split(re#;#)
     } every{
       uninstallRulesets(rid_list)
@@ -407,41 +378,34 @@ ruleset io.picolabs.pico {
 // ***                                      Channels                                        ***
 // ********************************************************************************************
 
-
   rule createChannel {
-    select when wrangler channel_creation_requested or pico channel_creation_requested
-    pre {
-      channel_name = event:attr("name").defaultsTo("", "missing event attr channels")
-      type = event:attr("type").defaultsTo("Unknown", "missing event attr channel_type")
-      check_name = checkName(channel_name);
+    select when wrangler channel_creation_requested
+    pre { channel_name = event:attr("name") }
+    if(checkName(channel_name) && not channel_name.isnull() ) then every {
+      createChannel(meta:picoId,
+                    channel_name,
+                    event:attr("type").defaultsTo("_wrangler")) setting(channel);
+      send_directive("channel_Created", channel);
     }
-    if(check_name && channel_name.length() != 0 ) then every {
-      createChannel(meta:picoId, channel_name , type) setting(channel);
-      send_directive("channel_Created", {"channel":channel});
-    }
-    always {
-      channel_name.klog("successfully created channel ");
-      raise wrangler event "channel_created" // event to nothing
-            attributes event:attrs().put(["channel"], channel);
-
-      error info <<could not create channels #{channel_name}, duplicate name.>> if not check_name
+    fired {
+      raise wrangler event "channel_created" // API event
+            attributes event:attrs.put(["channel"], channel);
+    } else {
+      error info <<could not create channel #{channel_name}.>>
     }
   }
 
   rule deleteChannel {
-    select when wrangler channel_deletion_requested or pico channel_deletion_requested
-    pre {
-      value = event:attr("eci").defaultsTo(event:attr("name").defaultsTo("", "missing event attr eci or name"), "looking for name instead of eci.")
-      channel = alwaysEci(value);
-    }
+    select when wrangler channel_deletion_requested
     every {
-      deleteChannel(value) setting(channel);
-      send_directive("channel_deleted", {"channel":channel});
+      deleteChannel( alwaysEci(event:attr("eci")
+                     .defaultsTo(event:attr("name")
+                     .defaultsTo("")))) setting(channel);
+      send_directive("channel_deleted", channel);
     }
-    fired {
-     value.klog ("successfully deleted channel ");
-     raise wrangler event "channel_deleted" // event to nothing
-           attributes event:attrs().put(["channel"],channel)
+    always {
+     raise wrangler event "channel_deleted" // API event
+           attributes event:attrs.put(["channel"],channel)
          }
     }
 
@@ -451,11 +415,11 @@ ruleset io.picolabs.pico {
 // ********************************************************************************************
   //-------------------- Picos initializing  ----------------------
   rule createChild {
-    select when wrangler child_creation or wrangler new_child_request or pico new_child_request
+    select when wrangler child_creation or wrangler new_child_request
     pre {
-      check = event:attr("name").defaultsTo(event:attr("dname").defaultsTo(""));
+      check = event:attr("name").defaultsTo("");
       name = check.length() == 0 => randomPicoName() | check;
-      uniqueName = uniquePicoName(name).klog("uniqueName ");
+      uniqueName = uniquePicoName(name)
       rids = event:attr("rids").defaultsTo([]);
       _rids = (rids.typeof() == "Array" => rids | rids.split(re#;#))
     }
@@ -467,13 +431,12 @@ ruleset io.picolabs.pico {
       ent:wrangler_children := {} if ent:wrangler_children.isnull(); // this is bypassed when module is used
       ent:wrangler_children{child{"id"}} := child; // this is bypassed when module is used
       ent:children := children(){"children"};
-      child.klog("successfully created child ");
-      raise pico event "new_child_created"
-        attributes child.put("rs_attrs",event:attrs());
+      raise wrangler event "new_child_created"
+        attributes child.put("rs_attrs",event:attrs);
     }
     else{
       raise wrangler event "child_creation_falure"
-        attributes event:attrs()
+        attributes event:attrs
     }
   }
 
@@ -482,64 +445,43 @@ ruleset io.picolabs.pico {
       send_directive("Pico_Not_Created", {});
     always {
       error info <<duplicate Pico name, failed to create pico named #{event:attr("name")}>>;
-      event:attr("name").klog(" duplicate Pico name, failed to create pico named ");
     }
   }
 
   rule child_created {
-    select when wrangler child_created or pico child_created
-    pre {
-      parent_eci    = event:attr("parent_eci")
-      name          = event:attr("name")
-      id            = event:attr("id")
-      eci           = event:attr("eci")
-      rs_attrs      = event:attr("rs_attrs")
-    }
-    if true
-    then
-      event:send(
-        { "eci": parent_eci,
-          "domain": "wrangler", "type": "child_initialized",
-          "attrs": event:attrs() })
-    fired {
-      ent:parent_eci := parent_eci;
-      ent:name := name;
-      ent:id := id;
-      ent:eci := eci;
+    select when wrangler child_created
+      event:send({ "eci"   : event:attr("parent_eci"),
+                   "domain": "wrangler", "type": "child_initialized",
+                   "attrs" : event:attrs })
+    always {
+      ent:parent_eci := event:attr("parent_eci");
+      ent:name := event:attr("name");
+      ent:id := event:attr("id");
+      ent:eci := event:attr("eci");
       raise visual event "update"
-        attributes rs_attrs.put("dname",name)
+        attributes event:attr("rs_attrs").put("dname",event:attr("name"))
     }
   }
   // this pico is the primary pico
 
   rule pico_root_created {
-    select when wrangler root_created or pico root_created
-    pre {
-      id = event:attr("id")
-      eci = event:attr("eci")
-    }
+    select when wrangler root_created
     always {
-      ent:id := id;
-      ent:eci := eci;
+      ent:id := event:attr("id");
+      ent:eci := event:attr("eci");
       ent:wrangler_children := {};
       ent:children := {}
     }
   }
 
   rule pico_children_add_sync { // add hidden children to wrangler.
-    select when wrangler child_sync or
-                pico need_sync or
-                wrangler child_deletion or 
-                pico delete_child_request_by_pico_id or
-                pico delete_child_request
-
+    select when wrangler child_sync or wrangler child_deletion
     foreach engine:listChildren() setting (pico_id,count)
     pre {
       new_child = (ent:wrangler_children{pico_id}.isnull()) =>
                     { "parent_eci":"",//placeholder // could create new channel, but then we would need to send event to child, but there is no guarantee of wrangler installed in that child....
-                      "name": event:attr("id") == pico_id &&
-                              event:attr("name") => event:attr("name") | 
-                                                    "rogue_"+randomPicoName() ,
+                      "name": event:attr("id") == pico_id && event:attr("name")
+                      => event:attr("name") | "rogue_"+randomPicoName() ,
                       "id": pico_id,
                       "eci": engine:listChannels(pico_id)[0]{"id"}} | "" ; // engine creates a eci we always can get.
 
@@ -555,67 +497,56 @@ ruleset io.picolabs.pico {
 
   rule pico_children_remove_sync_prep {
     select when wrangler child_sync or
-                pico need_sync or
-                wrangler child_deletion or 
-                wrangler child_creation or
-                pico delete_child_request_by_pico_id or
-                pico delete_child_request
+                wrangler child_deletion or
+                wrangler child_creation
     noop();
     always {
       raise wrangler event "remove_child_sync"
-        attributes event:attrs().put(["engineList"],engine:listChildren())
+        attributes event:attrs.put(["engineList"],engine:listChildren())
                                 .put(["wrangler_children"],ent:wrangler_children)
     }
   }
-  
+
   rule pico_children_remove_sync {// remove dead children from wrangler. // does not work as intended, hard to test
     select when wrangler remove_child_sync
     foreach event:attr("wrangler_children") setting (child,id)
     pre {
-      dead_child = event:attr("engineList").none(function(pico_id){pico_id == id}); // if child is not in engineList
+      dead_child = event:attr("engineList").none(function(pico_id){pico_id == id}); // I dont think this should work !!!
     }
     if ( dead_child) then every{
       send_directive("dead child found and removed from cache",{"child": child});
     }
     fired {
-      ent:wrangler_children := (ent:wrangler_children.delete(id.klog("pico_idXKCD in remove_sync")));
-      ent:children := ent:wrangler_children.values();//children(){"children"}.klog("pico_idXKCD3 in remove_sync");
+      ent:wrangler_children := (ent:wrangler_children.delete(id));
+      ent:children := ent:wrangler_children.values();//children(){"children"};
     }
   }
 
   rule delete_child_check {
-    select when wrangler child_deletion or
-                pico delete_child_request_by_pico_id or
-                pico delete_child_request
-    pre {
-      value = event:attr("name").defaultsTo(event:attr("id"), "used id for deletion");
-      child = hasChild(value);
-    }
-    if child.isnull() || child == {} then every {
-      noop();
-    }
+    select when wrangler child_deletion
+    if hasChild( event:attr("name")
+                 .defaultsTo(event:attr("id"))
+                ).isnull() then every { noop();}
     fired{
      last;
     }
   }
 
-  rule gatherDescendants {
-    select when wrangler child_deletion or 
-                pico delete_child_request_by_pico_id or
-                pico delete_child_request
+  rule gatherDescendants {// this rule needs to be updated to use getters..
+    select when wrangler child_deletion
     pre {
-      value = event:attr("name").defaultsTo(event:attr("id"),"id used to delete child");
+      value = event:attr("name").defaultsTo(event:attr("id"));
       filtered_children = ent:wrangler_children.filter(function(child,key){
                                               (child{"name"} ==  value || child{"id"} == value)
-                                            }).klog("filtered_children result: ");
+                                            });
       target_child = filtered_children.values()[0];
-      subtreeArray = [target_child].append(gatherDescendants(target_child)).klog("Subtree result: ");
+      subtreeArray = [target_child].append(gatherDescendants(target_child));
       updated_children = ent:wrangler_children.delete(target_child{"id"});
     }
     noop()
     fired{
       raise wrangler event "delete_children"
-        attributes event:attrs().put(["subtreeArray"], subtreeArray.reverse())
+        attributes event:attrs.put(["subtreeArray"], subtreeArray.reverse())
                                 .put(["updated_children"], updated_children)
     }
   }
@@ -623,27 +554,22 @@ ruleset io.picolabs.pico {
   rule pico_intent_to_orphan {
     select when wrangler delete_children
     foreach event:attr("subtreeArray") setting(child)
-    pre{
-        a = child.klog("child");
-        a = event:attr("subtreeArray").klog("subtreeArray");
-      }
     every{
       send_directive("notifying child of intent to kill", {"child": child});
       event:send({  "eci": child{"eci"}, "eid": 88,
                     "domain": "pico", "type": "intent_to_orphan",
-                    "attrs": event:attrs() });
+                    "attrs": event:attrs });
     }
     always{
-      schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 0.005})// ui needs children to be removed very fast(0.005 seconds), !!!this smells like poor coding practice...!!! 
-        attributes {"name":child{"name"},
-                    "id":child{"id"}, "child_name":child{"name"},
-                    "target": (event:attr("id") == child{"id"} || event:attr("name") == child{"name"} ).klog("main child to delete"),
+      schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 0.005})// ui needs children to be removed very fast(0.005 seconds), !!!this smells like poor coding practice...!!!
+        attributes {"name"            :child{"name"},
+                    "id"              :child{"id"}, "child_name":child{"name"},
+                    "target"          :(event:attr("id") == child{"id"} || event:attr("name") == child{"name"} ),
                     "updated_children":event:attr("updated_children")}
 
     }
   }
-
-  rule delete_child { 
+  rule delete_child {
     select when wrangler delete_child
     pre { target = event:attr("target") }
     every{
@@ -654,7 +580,7 @@ ruleset io.picolabs.pico {
       ent:wrangler_children := event:attr("updated_children") if target;
       ent:children := children(){"children"} if target;
       raise information event "child_deleted"
-        attributes event:attrs();
+        attributes event:attrs;
     }
   }
 

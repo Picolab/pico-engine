@@ -3,4 +3,5 @@ node_modules
 /packages/pico-engine/db/
 /packages/pico-engine/rulesets/
 /packages/pico-engine/pico-engine.log*
+/packages/pico-engine/pico-engine_test*
 did-simulator-eci.js

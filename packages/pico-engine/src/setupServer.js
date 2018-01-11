@@ -158,7 +158,7 @@ module.exports = function(pe){
                     _.set(db_data, [
                         "pico",
                         pico_id,
-                        "io.picolabs.pico",
+                        "io.picolabs.wrangler",
                         "vars",
                         "children"
                     ], _.map(children, function(val, id){
