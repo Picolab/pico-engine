@@ -6,7 +6,7 @@ var path = require("path");
 var async = require("async");
 var tempfs = require("temp-fs");
 var startCore = require("./startCore");
-//var setupServer = require("./setupServer");
+var setupServer = require("./setupServer");
 
 var is_windows = /^win/.test(process.platform);//windows throws up when we try and delete the home dir
 var test_temp_dir = tempfs.mkdirSync({
@@ -1099,7 +1099,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         });
     }
 });
-/*
+
 testPE("pico-engine - setupServer", function(t, pe, root_eci){
     //simply setup, but don't start, the express server
     //make sure it doesn't throwup
@@ -1171,4 +1171,4 @@ testPE("pico-engine - Wrangler", function*(t, pe, root_eci){
     channels = data; // update channels cache
 
     //TODO rest
-});*/
+});
