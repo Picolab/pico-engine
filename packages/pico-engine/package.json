@@ -1,6 +1,6 @@
 {
   "name": "pico-engine",
-  "version": "0.44.0",
+  "version": "0.44.1",
   "description": "An implementation of the pico-engine targetting node.js",
   "main": "src/index.js",
   "bin": {
@@ -58,7 +58,7 @@
     "mime-types": "^2.1.17",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "pico-engine-core": "^0.44.0",
+    "pico-engine-core": "^0.44.1",
     "read-pkg-up": "^3.0.0",
     "request": "^2.83.0"
   },
