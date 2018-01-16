@@ -1,3 +1,10 @@
+# 0.44.1 - January 15, 2018
+
+### Bug Fixes
+
+* spaces in file:// urls - ([see #352](https://github.com/Picolab/pico-engine/issues/352))
+
+
 # 0.44.0 - January 10, 2018
 
 ### New Features
