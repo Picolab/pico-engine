@@ -85,9 +85,9 @@ ruleset temp_acct {
   rule owner_nonce_cleanup {
     select when owner nonce_cleanup
     always {
-      ent:code := null;
-      ent:nonce := null;
-      ent:exp := null;
+      clear ent:code;
+      clear ent:nonce;
+      clear ent:exp;
     }
   }
   rule owner_authenticate {

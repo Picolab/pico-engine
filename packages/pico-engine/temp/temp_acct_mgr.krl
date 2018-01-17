@@ -222,7 +222,7 @@ ruleset temp_acct_mgr {
     }
     if owner_id then noop();
     fired {
-      ent:owners{owner_id} := null;
+      clear ent:owners{owner_id};
     }
   }
 }
