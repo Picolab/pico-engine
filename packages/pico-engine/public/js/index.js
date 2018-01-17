@@ -92,7 +92,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       var pp_eci = getP(thePicoInp,"parent_eci",undefined);
       var pp = pp_eci ? {id:get(db_dump.channel,[pp_eci,"pico_id"]),eci:pp_eci}
                       : undefined;
-      if (pp && pp.id != rootPico.id) {
+      if (pp) {
         thePicoOut.parent = {};
         thePicoOut.parent.id = pp.id;
         thePicoOut.parent.eci = pp.eci;
@@ -208,6 +208,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       specDB($(this),function(theDB){
       if(authenticated) {
         theDB.authenticated = authenticated;
+        theDB.authenticatedOwner = theDB.owner;
       }
       $theSection.html(tabTemplate(theDB));
       var d = "";

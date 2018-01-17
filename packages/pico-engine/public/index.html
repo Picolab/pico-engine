@@ -153,12 +153,14 @@ Do not disclose it or check it into a repository like GitHub.
 <button type="submit">send event visual/update</button>
 </form>
 {{#if parent}}
+{{#unless authenticatedOwner}}
 <h2>Parent</h2>
 <p>
 <b>ID: </b><a class="js-nav" href="#{{parent.id}}-About">{{parent.id}}</a>
 <b>ECI: </b>{{parent.eci}}
 <em>"{{parent.dname}}"</em>
 </p>
+{{/unless}}
 {{/if}}
 <h2>Children</h2>
 {{#each children}}
@@ -178,8 +180,7 @@ Do not disclose it or check it into a repository like GitHub.
 <button type="submit">add child pico</button>
 </form>
 </p>
-{{#if authenticated}}
-{{#if owner}}
+{{#if authenticatedOwner}}
 <form class="js-ajax-form" action="/sky/event/{{eci}}/none/owner/new_password" method="post">
 <fieldset style="display:inline-block">
 <legend>Change password</legend>
@@ -190,7 +191,6 @@ Do not disclose it or check it into a repository like GitHub.
     <input type="submit" class="button form-login" value="New Password">
 </fieldset>
 </form>
-{{/if}}
 {{/if}}
 </script>
 <script id="rulesets-template" type="text/x-handlebars-template">
