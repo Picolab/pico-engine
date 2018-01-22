@@ -12,10 +12,19 @@ ruleset io.picolabs.owner_authentication {
                       "attrs": [  ] }
                    ] }
 
+    one_way_hash = function(salt,password) {
+      math:hash("sha256",salt + ":" + password);
+    }
+
    loginAttempt = function(password){
      _password = ent:password.defaultsTo("");
-     _password == password
+     _password.typeof() == "String" => _password == password |
+     ent:password{"password"} == one_way_hash(ent:password{"salt"},password)
    }
+
+    pwd_needs_encoding = function() {
+      ent:password.typeof() == "String"
+    }
   }
 
   rule channel_needed {
@@ -30,15 +39,18 @@ ruleset io.picolabs.owner_authentication {
             "attrs": ({
               "eci":new_channel{"id"},
               "event_type":"account",
-              "rs_attrs":event:attrs()
+              "rs_attrs":event:attrs
               })
           }
         );
       }
     fired{
-      ent:password := event:attr("rs_attrs"){"password"}.klog("Password being saved: ");
+      // ent:password := event:attr("rs_attrs"){"password"}.klog("Password being saved: ");
+      raise owner event "pwd_needs_encoding"
+        attributes { "password": event:attr("rs_attrs"){"password"} };
     }else{
-      ent:password := "toor"; // if no parent create root default password. this is a security hole....
+      // if no parent create root default password. this is a security hole....
+      raise owner event "pwd_needs_encoding" attributes { "password": "toor" };
     }
   }
 
@@ -52,7 +64,10 @@ ruleset io.picolabs.owner_authentication {
       engine:newChannel(meta:picoId, "Authentication_" + time:now(), "authenticated") setting(new_channel)
       send_directive("Obtained Token",{"eci": new_channel{"id"},
                                         "pico_id": meta:picoId});
-
+    }
+    fired {
+      raise owner event "pwd_needs_encoding" attributes { "password": password }
+        if pwd_needs_encoding();
     }
   }
 
@@ -60,7 +75,21 @@ ruleset io.picolabs.owner_authentication {
     select when owner new_password
     if loginAttempt(event:attr("password").defaultsTo("")) then noop();
     fired {
-      ent:password := event:attr("new_password");
+      raise owner event "pwd_needs_encoding"
+        attributes { "password": event:attr("new_password") };
+    }
+  }
+
+  rule owner_pwd_needs_encoding {
+    select when owner pwd_needs_encoding password re#^(.*)$# setting(password)
+    pre {
+      salt = random:uuid();
+      _pwd = one_way_hash(salt,password);
+    }
+    fired {
+      ent:password := { "salt":          salt,
+                        "password":      _pwd,
+                        "last_encoding": time:now() };
     }
   }
 
