@@ -104,7 +104,7 @@ ruleset io.picolabs.wrangler {
 
     //returns a list of children that are contained in a given subtree at the starting child. No ordering is guaranteed in the result
     gatherDescendants = function(child){
-      moreChildren = skyQuery(child{"eci"}, "io.picolabs.wrangler", "children"){"children"};
+      moreChildren = skyQuery(child{"eci"}, "io.picolabs.wrangler", "children");
       //final_pico_array = [child].append(moreChildren);
 
       gatherChildrensChildren = function(moreChildren){
@@ -117,13 +117,13 @@ ruleset io.picolabs.wrangler {
     }
 
     picoFromName = function(value){
-      return = children(){"children"}.defaultsTo([]).filter(function(child){
+      return = children().defaultsTo([]).filter(function(child){
                                               (child{"name"} ==  value || child{"id"} == value)});
       return.head().defaultsTo("Error")//no pico exists for given name
     }
 
     deleteChild = defaction(pico_name){
-      ent_children = children(){"children"}
+      ent_children = children()
       child_collection = ent_children.collect(function(child){
                                               (child{"name"} ==  pico_name) => "to_delete" | "dont_delete"
                                             })
@@ -330,7 +330,7 @@ ruleset io.picolabs.wrangler {
 
     //returns true if given name is unique
     uniquePicoName = function(name){
-          picos = children(){"children"};
+          picos = children();
           names = picos.none(function(child){
             (child{"name"} ==  name)
             });
@@ -430,7 +430,7 @@ ruleset io.picolabs.wrangler {
     fired {
       ent:wrangler_children := {} if ent:wrangler_children.isnull(); // this is bypassed when module is used
       ent:wrangler_children{child{"id"}} := child; // this is bypassed when module is used
-      ent:children := children(){"children"};
+      ent:children := children();
       raise wrangler event "new_child_created"
         attributes child.put("rs_attrs",event:attrs);
     }
@@ -491,7 +491,7 @@ ruleset io.picolabs.wrangler {
     }
     fired {
       ent:wrangler_children{pico_id} := new_child;
-      ent:children := children(){"children"};
+      ent:children := children();
     }
   }
 
@@ -518,7 +518,7 @@ ruleset io.picolabs.wrangler {
     }
     fired {
       ent:wrangler_children := (ent:wrangler_children.delete(id));
-      ent:children := ent:wrangler_children.values();//children(){"children"};
+      ent:children := ent:wrangler_children.values();//children();
     }
   }
 
@@ -578,7 +578,7 @@ ruleset io.picolabs.wrangler {
     }
     always{
       ent:wrangler_children := event:attr("updated_children") if target;
-      ent:children := children(){"children"} if target;
+      ent:children := children() if target;
       raise information event "child_deleted"
         attributes event:attrs;
     }
