@@ -29,7 +29,7 @@ ruleset io.picolabs.owner_authentication {
 
   rule channel_needed {
     select when wrangler ruleset_added where rids.klog("rids") >< meta:rid.klog("meta rid")
-    pre { parent_eci = wrangler:parent_eci(){"parent"}.klog("parent eci");}
+    pre { parent_eci = wrangler:parent_eci().klog("parent eci");}
       if parent_eci then every{
         engine:newChannel( meta:picoId ,"Router_"+time:now(),"route_from_root")
           setting(new_channel)
