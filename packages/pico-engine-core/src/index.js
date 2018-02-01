@@ -6,6 +6,7 @@ var async = require("async");
 var ktypes = require("krl-stdlib/types");
 var runKRL = require("./runKRL");
 var Modules = require("./modules");
+var DepGraph = require("dependency-graph").DepGraph;
 var PicoQueue = require("./PicoQueue");
 var Scheduler = require("./Scheduler");
 var runAction = require("./runAction");
@@ -20,7 +21,6 @@ var processQuery = require("./processQuery");
 var ChannelPolicy = require("./ChannelPolicy");
 var RulesetRegistry = require("./RulesetRegistry");
 var normalizeKRLArgs = require("./normalizeKRLArgs");
-var DependencyResolver = require("dependency-resolver");
 
 var applyFn = cocb.wrap(function*(fn, ctx, args){
     if(ktypes.isAction(fn)){
@@ -366,7 +366,7 @@ module.exports = function(conf){
     var registerAllEnabledRulesets = function(system_rulesets, callback){
 
         var rs_by_rid = {};
-        var resolver = new DependencyResolver();
+        var depGraph = new DepGraph();
 
         async.series([
             //
@@ -401,12 +401,7 @@ module.exports = function(conf){
                                 return;
                             }
                             rs_by_rid[rs.rid] = rs;
-                            resolver.add(rs.rid);
-                            _.each(rs.meta && rs.meta.use, function(use){
-                                if(use.kind === "module"){
-                                    resolver.setDependency(rs.rid, use.rid);
-                                }
-                            });
+                            depGraph.addNode(rs.rid);
                             next(null, rs);
                         });
                     });
@@ -422,13 +417,43 @@ module.exports = function(conf){
             // initialize Rulesets according to dependency order
             //
             function(nextStep){
-                if(_.isEmpty(rs_by_rid)){
-                    //resolver blows up if it's empty
-                    nextStep();
+                _.each(rs_by_rid, function(rs){
+                    _.each(rs.meta && rs.meta.use, function(use){
+                        if(use.kind === "module"){
+                            depGraph.addDependency(rs.rid, use.rid);
+                        }
+                    });
+                });
+                var getRidOrder = function getRidOrder(){
+                    try{
+                        return depGraph.overallOrder();
+                    }catch(err){
+                        var m = /Dependency Cycle Found: (.*)$/.exec(err + "");
+                        if(!m){
+                            throw err;
+                        }
+                        var cycle_rids = _.uniq(m[1].split(" -> "));
+                        _.each(cycle_rids, function(rid){
+                            // remove the rids from the graph and disable it
+                            depGraph.removeNode(rid);
+                            db.disableRuleset(rid, _.noop);
+
+                            // Let the user know the rid was disabled
+                            var err2 = new Error("Failed to initialize " + rid + ", it's in a dependency cycle. It is now disabled. You'll need to resolve the cycle then re-register it.\nCause: " + err);
+                            err2.orig_error = err;
+                            emitter.emit("error", err2, {rid: rid});
+                        });
+                        return getRidOrder();
+                    }
+                };
+                // order they need to be loaded for dependencies to work
+                var rid_order;
+                try{
+                    rid_order = getRidOrder();
+                }catch(err){
+                    nextStep(err);
                     return;
                 }
-                //order they need to be loaded in for dependencies to work
-                var rid_order = resolver.sort();
 
                 async.eachSeries(rid_order, function(rid, next){
                     var rs = rs_by_rid[rid];

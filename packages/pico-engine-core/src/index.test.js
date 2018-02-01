@@ -2705,3 +2705,34 @@ test("PicoEngine - handle ruleset initialization errors", function(t){
 
     }, _.noop);//using t.plan not t.end
 });
+
+test("PicoEngine - handle dependency cycles at startup", function(t){
+
+    t.plan(6);
+
+    var mkPE = mkPicoEngineFactoryWithKRLCompiler();
+
+    var pe = mkPE();
+
+    pe.emitter.on("error", function(err, context){
+        var m = /Failed to initialize (B|C), it's in a dependency cycle./.exec(err.message);
+        t.ok(!!m);
+        t.equals(context.rid, m[1]);
+    });
+
+    pe.start([
+        {src: "ruleset A {meta{}}", meta: {url: "http://foo/A.krl"}},
+        {src: "ruleset B {meta{use module C}}", meta: {url: "http://foo/B.krl"}},
+        {src: "ruleset C {meta{use module B}}", meta: {url: "http://foo/C.krl"}},
+        {src: "ruleset D {meta{}}", meta: {url: "http://foo/D.krl"}},
+    ], function(err){
+        t.notOk(err, "should start successfully");
+
+        cocb.run(function*(){
+            var listRids = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
+
+            t.deepEquals(yield listRids({}, []), ["A", "D"]);
+
+        }, _.noop);
+    });
+});
