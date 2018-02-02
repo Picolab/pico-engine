@@ -58,6 +58,9 @@ module.exports = function(conf){
     var host = conf.host;
     var rootRIDs = _.uniq(_.filter(conf.rootRIDs, _.isString));
     var compileAndLoadRuleset = conf.compileAndLoadRuleset;
+    var compileAndLoadRulesetYieldable = cocb.wrap(compileAndLoadRuleset);
+
+    var depGraph = new DepGraph();
 
     var core = {
         db: db,
@@ -221,36 +224,6 @@ module.exports = function(conf){
         }
     });
 
-    var initializeAndEngageRuleset = function(rs, callback){
-        initializeRulest(rs).then(function(){
-            callback();
-        }, function(err){
-            process.nextTick(function(){
-                //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
-                //when infact we are handling the rejection
-                callback(err);
-            });
-        });
-    };
-
-    var storeCompileAndEnable = function(krl_src, meta_data, callback){
-        db.storeRuleset(krl_src, meta_data, function(err, data){
-            if(err) return callback(err);
-            compileAndLoadRuleset({
-                rid: data.rid,
-                src: krl_src,
-                hash: data.hash
-            }, function(err, rs){
-                if(err) return callback(err);
-                db.enableRuleset(data.hash, function(err){
-                    callback(err, {rs: rs, hash: data.hash});
-                });
-            });
-        });
-    };
-
-    var compileAndLoadRulesetYieldable = cocb.wrap(compileAndLoadRuleset);
-    var depGraph = new DepGraph();
 
     core.registerRuleset = function(krl_src, meta_data, callback){
         cocb.run(function*(){
@@ -302,7 +275,13 @@ module.exports = function(conf){
                 rid: rs.rid,
                 hash: hash
             };
-        }, callback);
+        }, function(err, data){
+            process.nextTick(function(){
+                //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+                //when infact we are handling the rejection
+                callback(err, data);
+            });
+        });
     };
 
     var picoQ = PicoQueue(function(pico_id, type, data, callback){
@@ -404,21 +383,11 @@ module.exports = function(conf){
         picoTask("query", query, callback);
     };
 
-    var registerAllEnabledRulesets = function(system_rulesets, callback){
+    var registerAllEnabledRulesets = function(callback){
 
         var rs_by_rid = {};
 
         async.series([
-            //
-            // compile+store+enable system_rulesets first
-            //
-            function(nextStep){
-                async.each(system_rulesets, function(system_ruleset, next){
-                    storeCompileAndEnable(system_ruleset.src, system_ruleset.meta, next);
-                }, nextStep);
-            },
-
-
             //
             // load Rulesets and track dependencies
             //
@@ -442,7 +411,7 @@ module.exports = function(conf){
                             }
                             rs_by_rid[rs.rid] = rs;
                             depGraph.addNode(rs.rid);
-                            next(null, rs);
+                            next();
                         });
                     });
                 };
@@ -487,27 +456,25 @@ module.exports = function(conf){
                     }
                 };
                 // order they need to be loaded for dependencies to work
-                var rid_order;
-                try{
-                    rid_order = getRidOrder();
-                }catch(err){
-                    nextStep(err);
-                    return;
-                }
+                var rid_order = getRidOrder();
 
                 async.eachSeries(rid_order, function(rid, next){
                     var rs = rs_by_rid[rid];
-                    initializeAndEngageRuleset(rs, function(err){
-                        if(err){
+
+                    initializeRulest(rs).then(function(){
+                        next();
+                    }, function(err){
+                        process.nextTick(function(){
+                            //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+                            //when infact we are handling the rejection
+
                             //Emit an error and don't halt the engine
                             var err2 = new Error("Failed to initialize " + rid + "! It is now disabled. You'll need to edit and re-register it.\nCause: " + err);
                             err2.orig_error = err;
                             emitter.emit("error", err2, {rid: rid});
                             //disable the ruleset since it's broken
                             db.disableRuleset(rid, next);
-                            return;
-                        }
-                        next();
+                        });
                     });
                 }, nextStep);
             },
@@ -651,8 +618,28 @@ module.exports = function(conf){
     pe.start = function(system_rulesets, callback){
         async.series([
             db.checkAndRunMigrations,
+            function(nextStep){
+                // compile+store+enable system_rulesets first
+                async.each(system_rulesets, function(system_ruleset, next){
+                    var krl_src = system_ruleset.src;
+                    var meta_data = system_ruleset.meta;
+                    db.storeRuleset(krl_src, meta_data, function(err, data){
+                        if(err) return next(err);
+                        compileAndLoadRuleset({
+                            rid: data.rid,
+                            src: krl_src,
+                            hash: data.hash
+                        }, function(err, rs){
+                            if(err) return next(err);
+                            db.enableRuleset(data.hash, function(err){
+                                next(err, {rs: rs, hash: data.hash});
+                            });
+                        });
+                    });
+                }, nextStep);
+            },
             function(next){
-                registerAllEnabledRulesets(system_rulesets, next);
+                registerAllEnabledRulesets(next);
             },
             function(next){
                 if(_.isEmpty(rootRIDs)){
