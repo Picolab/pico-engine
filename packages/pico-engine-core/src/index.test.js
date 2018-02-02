@@ -2736,3 +2736,44 @@ test("PicoEngine - handle dependency cycles at startup", function(t){
         }, _.noop);
     });
 });
+
+test("PicoEngine - don't register rulesets that create dependency cycles", function(t){
+
+    var mkPE = mkPicoEngineFactoryWithKRLCompiler();
+
+    var pe = mkPE();
+
+    cocb.run(function*(){
+        yield cocb.wrap(pe.start)();
+
+        var registerRuleset = cocb.wrap(pe.registerRuleset);
+
+        var tReg = function*(src){
+            t.ok(yield registerRuleset(src));
+        };
+        var tRegErr = function*(src, error){
+            try{
+                yield registerRuleset(src);
+                t.fail("expected: " + error);
+            }catch(err){
+                t.equals(err + "", error);
+            }
+        };
+
+        yield tRegErr("ruleset A {meta {use module A}}", "Error: Dependency Cycle Found: A -> A");
+
+        yield tReg("ruleset A {}");
+
+        yield tRegErr("ruleset A {meta {use module C}}", "Error: Dependant module not loaded: C");
+        yield tRegErr("ruleset A {meta {use module B}}", "Error: Dependant module not loaded: B");
+        yield tRegErr("ruleset A {meta {use module A}}", "Error: Dependency Cycle Found: A -> A");
+
+        yield tReg("ruleset A {}");
+
+
+        yield tReg("ruleset B {meta {use module A}}");
+        yield tRegErr("ruleset A {meta {use module B}}", "Error: Dependency Cycle Found: A -> B -> A");
+
+
+    }, t.end);
+});

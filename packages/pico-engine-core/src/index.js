@@ -249,19 +249,60 @@ module.exports = function(conf){
         });
     };
 
+    var compileAndLoadRulesetYieldable = cocb.wrap(compileAndLoadRuleset);
+    var depGraph = new DepGraph();
+
     core.registerRuleset = function(krl_src, meta_data, callback){
-        storeCompileAndEnable(krl_src, meta_data, function(err, data){
-            if(err) return callback(err);
-            initializeAndEngageRuleset(data.rs, function(err){
-                if(err){
-                    db.disableRuleset(data.rs.rid, _.noop);//undo enable if failed
-                }
-                callback(err, {
-                    rid: data.rs.rid,
-                    hash: data.hash
-                });
+        cocb.run(function*(){
+            var data = yield db.storeRulesetYieldable(krl_src, meta_data);
+            var rid = data.rid;
+            var hash = data.hash;
+
+            var rs = yield compileAndLoadRulesetYieldable({
+                rid: rid,
+                src: krl_src,
+                hash: hash
             });
-        });
+
+            if(depGraph.hasNode(rs.rid)){
+                // cleanup any left over dependencies with rid
+                _.each(depGraph.dependenciesOf(rs.rid), function(rid){
+                    depGraph.removeDependency(rs.rid, rid);
+                });
+            }else{
+                depGraph.addNode(rs.rid);
+            }
+
+            try{
+                _.each(rs.meta && rs.meta.use, function(use){
+                    if(use.kind === "module"){
+                        try{
+                            depGraph.addDependency(rs.rid, use.rid);
+                        }catch(e){
+                            throw new Error("Dependant module not loaded: " + use.rid);
+                        }
+                    }
+                });
+
+                // check for dependency cycles
+                depGraph.overallOrder();// this will throw if there is a cycle
+
+                // Now enable and initialize it
+                yield db.enableRulesetYieldable(hash);
+                yield initializeRulest(rs);
+
+            }catch(err){
+                core.rsreg.del(rs.rid);
+                depGraph.removeNode(rs.rid);
+                db.disableRuleset(rs.rid, _.noop);//undo enable if failed
+                throw err;
+            }
+
+            return {
+                rid: rs.rid,
+                hash: hash
+            };
+        }, callback);
     };
 
     var picoQ = PicoQueue(function(pico_id, type, data, callback){
@@ -366,7 +407,6 @@ module.exports = function(conf){
     var registerAllEnabledRulesets = function(system_rulesets, callback){
 
         var rs_by_rid = {};
-        var depGraph = new DepGraph();
 
         async.series([
             //
