@@ -675,7 +675,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, response){
                 //console.log("children",response);
                 if(err) return next(err);
-                t.deepEqual("Pico_Created", response.directives[0].name, "correct directive for duplicate child creation");
+                t.deepEqual(response.directives[0].name, "Pico_Not_Created", "The name is not unique, therefore don't create the child");
                 next();
             });
         },
@@ -689,7 +689,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             }, function(err, response){
                 //console.log("children",response);
                 if(err) return next(err);
-                t.deepEqual("Pico_Created", response.directives[0].name, "correct directive for random named child creation");
+                t.deepEqual(response.directives[0].name, "Pico_Created", "correct directive for random named child creation");
                 next();
             });
         },/*
