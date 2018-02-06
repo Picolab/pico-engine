@@ -1,3 +1,8 @@
+# 0.4x.x - next
+
+* Prevent ruleset dependency cycles - ([see #260](https://github.com/Picolab/pico-engine/issues/260))
+
+
 # 0.44.1 - January 15, 2018
 
 ### Bug Fixes
