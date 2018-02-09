@@ -85,6 +85,21 @@ A first ruleset for the Quickstart
     }
 
     send_directive("ignored - should not see this", {});
+
+    fired {
+    } else {
+    } finally {
+    }
+  }
+  rule notfired {
+    select when events notfired
+
+    noop()
+
+    notfired {
+    } else {
+    } finally {
+    }
   }
 }
 </div>

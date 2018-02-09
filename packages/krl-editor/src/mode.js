@@ -18,7 +18,7 @@ var KRLHighlightRules = function(options) {
     var keywordMapper = this.createKeywordMapper({
 
         "keyword":
-            "ruleset|meta|global|rule|pre|always|fired|notfired|" +
+            "ruleset|meta|global|rule|pre|always|fired|notfired|finally|" +
             "function|defaction|setting|" +
             "if|then|else|choose|every|" + // conditionals
             "raise|attributes", // raise
@@ -102,6 +102,9 @@ var KRLHighlightRules = function(options) {
             }, {
                 regex: "(rule)(\\s+)(" + identifierRe + ")(\\s+)(is)(\\s+)(inactive|active)",
                 token: ["keyword", "text", "variable", "text", "keyword", "text", "constant.language"]
+            }, {
+                regex: "(rule)(\\s+)(" + identifierRe + ")(\\s+)",
+                token: ["keyword", "text", "variable", "text"]
             }, {
                 regex: "(select)(\\s+)(when)(\\s+)(" + identifierRe + ")(\\s+)(" + identifierRe + ")",
                 token: ["keyword", "text", "keyword", "text", "variable", "text", "variable"]
