@@ -1287,6 +1287,7 @@ test("RulesetID", function(t){
     };
     testName("io.picolabs.some-thing", true);
     testName("A.B-b9.c", true);
+    testName("function.not.ent.app.keys", true);
 
     testName("1.2.3", false);
     testName(".wat", false);
