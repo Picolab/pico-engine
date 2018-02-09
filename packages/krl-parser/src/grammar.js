@@ -329,7 +329,6 @@ var tok_error = tok("SYMBOL", "error");
 var tok_errors = tok("SYMBOL", "errors");
 var tok_event = tok("SYMBOL", "event");
 var tok_every = tok("SYMBOL", "every");
-var tok_eq = tok("SYMBOL", "eq");
 var tok_else = tok("SYMBOL", "else");
 var tok_false = tok("SYMBOL", "false");
 var tok_fired = tok("SYMBOL", "fired");
@@ -353,7 +352,6 @@ var tok_min = tok("SYMBOL", "min");
 var tok_meta = tok("SYMBOL", "meta");
 var tok_module = tok("SYMBOL", "module");
 var tok_name = tok("SYMBOL", "name");
-var tok_neq = tok("SYMBOL", "neq");
 var tok_not = tok("SYMBOL", "not");
 var tok_notfired = tok("SYMBOL", "notfired");
 var tok_null = tok("SYMBOL", "null");
@@ -1075,8 +1073,6 @@ var grammar = {
     {"name": "exp_comp", "symbols": ["exp_comp", tok_GTEQ, "exp_sum"], "postprocess": infixOp},
     {"name": "exp_comp", "symbols": ["exp_comp", tok_EQEQ, "exp_sum"], "postprocess": infixOp},
     {"name": "exp_comp", "symbols": ["exp_comp", tok_NOTEQ, "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp", "symbols": ["exp_comp", tok_eq, "exp_sum"], "postprocess": infixOp},
-    {"name": "exp_comp", "symbols": ["exp_comp", tok_neq, "exp_sum"], "postprocess": infixOp},
     {"name": "exp_comp", "symbols": ["exp_comp", tok_like, "exp_sum"], "postprocess": infixOp},
     {"name": "exp_comp", "symbols": ["exp_comp", tok_GTLT, "exp_sum"], "postprocess": infixOp},
     {"name": "exp_comp", "symbols": ["exp_comp", tok_FAT_ARROW_DOUBLE, "exp_sum"], "postprocess": infixOp},
