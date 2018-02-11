@@ -34,32 +34,42 @@ var iterBase = function*(val, iter){
     }
 };
 
-// some guidelines/suggestions:
-// 0. effectively check arguments.length when not fixed by the grammar (and consider null versus omitted)
-// 1. convert NaN's/void 0's when needed (i.e. use cleanNulls)
-// 2. don't mutate arguments (array/map)
-// 3. where strings/numbers/arrays are expected, convert to them when reasonable (don't coerce arrays to maps)
-// 4. prioritize errors on val's type (if applicable), then argument values/types/0. from left to right
-// 5. try to return the logical noop value (e.g. false, [], val (unchanged by 3.)) for missing or unrecoverably wrongly typed arguments
-// 6. don't worry about call stack limits when processing deep objects - Lodash is incorrect there too
-// 7. the wiki's docs take precedence over the above
+var toNumberOrNull = function(val){
+    switch(types.typeOf(val)){
+    case "Null":
+        return 0;
+    case "Boolean":
+        return val ? 1 : 0;
+    case "String":
+        var n = parseFloat(val);
+        return types.isNumber(n) ? n : null;
+    case "Number":
+        return val;
+    case "Array":
+    case "Map":
+        return _.size(val);
+    case "RegExp":
+    case "Function":
+    case "Action":
+    }
+    return null;
+};
+
+var ltEqGt = function(left, right){
+    var a = toNumberOrNull(left);
+    var b = toNumberOrNull(right);
+    if(a === null || b === null){
+        // if both are not numbers, fall back on string comparison
+        a = types.toString(left);
+        b = types.toString(right);
+    }
+    // at this point a and b are both numbers or both strings
+    return a === b ? 0 : (a > b ? 1 : -1);
+};
+
 var stdlib = {};
 
 //Infix operators///////////////////////////////////////////////////////////////
-var ltEqGt = function(left, right){
-    if(types.typeOf(left) !== types.typeOf(right)){
-        return NaN; // unlike -1/0/1, all comparisons with 0 are false
-    }
-    left = types.cleanNulls(left);
-    right = types.cleanNulls(right);
-    if(_.isEqual(left, right)){
-        return 0;
-    }
-    if(types.isArrayOrMap(left)){
-        return NaN; // don't compare unequal arrays or maps
-    }
-    return (left > right) ? 1 : -1;
-};
 
 stdlib["<"] = function(ctx, left, right){
     return ltEqGt(left, right) < 0;
@@ -156,21 +166,12 @@ stdlib.like = function(ctx, val, regex){
 };
 
 stdlib["<=>"] = function(ctx, left, right){
-    var leftNumber = types.numericCast(left);
-    var rightNumber = types.numericCast(right);
-    if(leftNumber !== null && rightNumber !== null){
-        return ltEqGt(leftNumber, rightNumber);
-    }
-    var result = ltEqGt(left, right);
-    if(_.isNaN(result)){
-        throw new TypeError("The <=> operator will not compare " + types.toString(left) + " with " + types.toString(right));
-    }
-    return result;
+    return ltEqGt(left, right);
 };
 stdlib.cmp = function(ctx, left, right){
-    var leftStr = types.toString(left);
-    var rightStr = types.toString(right);
-    return ltEqGt(leftStr, rightStr);
+    left = types.toString(left);
+    right = types.toString(right);
+    return left === right ? 0 : (left > right ? 1 : -1);
 };
 
 stdlib.beesting = function(ctx, val){
@@ -504,12 +505,11 @@ stdlib.join = function(ctx, val, str){
     }
     return _.join(val, types.toString(str));
 };
-//works for maps for weak typing purposes
 stdlib.length = function(ctx, val){
     if(types.isArrayOrMap(val) || types.isString(val)){
         return _.size(val);
     }
-    return 0; // we could check function.prototype.length
+    return 0;
 };
 stdlib.map = function*(ctx, val, iter){
     if(!types.isFunction(iter)){

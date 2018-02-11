@@ -74,16 +74,6 @@ var testFnErr = function(t, fn, args, type, message){
     }
 };
 
-var tfMatrix = function(tf, args, exp){
-    var i;
-    for(i=0; i < exp.length; i++){
-        var j;
-        for(j=0; j < args.length; j++){
-            tf(exp[i][0], args[j], exp[i][j+1]);
-        }
-    }
-};
-
 var ytfMatrix = function*(ytf, obj, args, exp){
     var i;
     for(i=0; i < exp.length; i++){
@@ -179,27 +169,9 @@ test("infix operators", function(t){
     tf("==", [0, NaN], false);
     tf("==", [false, null], false);
     tf("==", [true, 1], false);
+    tf("==", [{a: ["b"]}, {a: ["b"]}], true);
+    tf("==", [{a: ["b"]}, {a: ["c"]}], false);
 
-    tfMatrix(tf, [
-        [2, 10],              // 1
-        [6, 6],               // 2
-        [10, 2],              // 3
-        ["2", "10"],          // 4
-        ["6", "6"],           // 5
-        ["10", "2"],          // 6
-        [NaN, null],          // 7
-        [["a", 0], ["a", 0]], // 8
-        [{"a": 0}, {"a": 0}], // 9
-        [["a", 0], ["b", 1]], // 10
-        [{"a": 1}, {"b": 0}], // 11
-    ], [        // 1      2      3      4      5      6      7      8      9     10     11
-        ["<",   true, false, false, false, false,  true, false, false, false, false, false],
-        [">",  false, false,  true,  true, false, false, false, false, false, false, false],
-        ["<=",  true,  true, false, false,  true,  true,  true,  true,  true, false, false],
-        [">=", false,  true,  true,  true,  true, false,  true,  true,  true, false, false],
-        ["==", false,  true, false, false,  true, false,  true,  true,  true, false, false],
-        ["!=",  true, false,  true,  true, false,  true, false, false, false,  true,  true],
-    ]);
 
     tf("*", [5, 2], 10);
     tfe("*", ["two", 1], "TypeError");
@@ -223,21 +195,49 @@ test("infix operators", function(t){
     tf("<=>", ["5", "10"], -1);
     tf("<=>", [5, "5"], 0);
     tf("<=>", ["10", 5], 1);
-    tf("<=>", [{" ":-.5}, {" ":-.5}], 0);
     tf("<=>", [NaN, void 0], 0);
-    tfe("<=>", [null, 0], "TypeError");
-    tfe("<=>", [[0, 1], [1, 1]], "TypeError");
+    tf("<=>", [null, 0], 0);
+    tf("<=>", [null, false], 0);
+    tf("<=>", [true, 1], 0);
+    tf("<=>", [true, false], 1);
+    tf("<=>", [[0, 1], [1, 1]], 0);
+    tf("<=>", [20, 3], 1);
+    tf("<=>", ["20", 3], 1);
+    tf("<=>", [20, "3"], 1);
+    tf("<=>", ["20", "3"], 1, "parse numbers then compare");
+    tf("<=>", [".2", .02], 1, "parse numbers then compare");
+    tf("<=>", [["a", "b"], 2], 0, ".length() of arrays");
+    tf("<=>", [{" ":-.5}, 1], 0, ".length() of maps");
+    tf("<=>", [[1,2,3], {a:"b",z:"y",c:"d"}], 0, "compare the .length() of each");
+
+    tf("<=>", [_.noop, "[Function]"], 0, "Functions drop down to string compare");
+    tf("<=>", [action, "[Action]"], 0, "Actions drop down to string compare");
+    tf("<=>", [/good/, "re#good#"], 0, "RegExp drop down to string compare");
+
+    tf("<=>", [1, "a"], -1, "if both can't be numbers, then string compare");
+    tf("<=>", ["to", true], -1, "if both can't be numbers, then string compare");
+
+    // <, >, <=, >= all use <=> under the hood
+    tf("<", ["3", "20"], true);
+    tf(">", ["a", "b"], false);
+    tf("<=", ["a", "a"], true);
+    tf("<=", ["a", "b"], true);
+    tf("<=", ["b", "a"], false);
+    tf(">=", ["a", "a"], true);
+    tf(">=", ["a", "b"], false);
+    tf(">=", ["b", "a"], true);
 
     tf("cmp", ["aab", "abb"], -1);
     tf("cmp", ["aab", "aab"], 0);
     tf("cmp", ["abb", "aab"], 1);
-    tf("cmp", [void 0, NaN], 0);
+    tf("cmp", [void 0, NaN], 0, "\"null\" === \"null\"");
     tf("cmp", ["5", "10"], 1);
     tf("cmp", [5, "5"], 0);
     tf("cmp", ["10", 5], -1);
     tf("cmp", [{"":-.5}, {" ":.5}], 0);
     tf("cmp", [[], [[""]]], 0);
     tf("cmp", [null, 0], 1);
+    tf("cmp", [20, 3], -1, "cmp always converts to string then compares");
 
     t.end();
 });
@@ -522,7 +522,7 @@ ytest("collection operators", function*(t){
         "x": [4,3,2,1],
         "y": [7,5,6]
     });
-    yield ytf("collect", [null, collectFn], {"y": [null]});
+    yield ytf("collect", [null, collectFn], {"x": [null]});
     yield ytf("collect", [[], fnDontCall], {});
     yield ytf("collect", [[7]], {});
     yield ytf("collect", [[7], action], {});
