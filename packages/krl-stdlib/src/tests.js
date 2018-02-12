@@ -58,6 +58,10 @@ var testFn = function(t, fn, args, expected, emitType, errType, message){
 
     var emitCTX = mkCtx(emitType, errType);
 
+    if(!message){
+        message = "testing stdlib[\"" + fn + "\"]";
+    }
+
     if(useStrict(expected)){
         strictDeepEquals(t, stdlib[fn].apply(null, [emitCTX].concat(args)), expected, message);
     }else{
@@ -149,15 +153,16 @@ test("infix operators", function(t){
     tf("-", [2], -2);
     tf("-", ["-2"], 2);
     tfe("-", ["zero"], "TypeError");
-    tfe("-", [[0]], "TypeError");
-    tfe("-", [{}], "TypeError");
+    tf("-", [[0]], -1);
+    tf("-", [{}], 0);
 
     tf("-", [1, 3], -2);
     tf("-", ["1", 3], -2);
     tf("-", [4, "1"], 3);
     tf("-", ["4", "1"], 3);
     tfe("-", ["two", 1], "TypeError");
-    tfe("-", [[], "-1"], "TypeError");
+    tf("-", [[], "-1"], 1);
+    tf("-", [{a:1,b:1,c:1}, [1]], 2, "map.length() - array.length()");
 
     tf("==", [null, NaN], true);
     tf("==", [NaN, void 0], true);
@@ -175,17 +180,18 @@ test("infix operators", function(t){
 
     tf("*", [5, 2], 10);
     tfe("*", ["two", 1], "TypeError");
-    tfe("*", [[], "-1"], "TypeError");
+    tfe("*", [1, _.noop], "TypeError");
 
     tf("/", [4, 2], 2);
     tfe("/", ["two", 1], "TypeError");
-    tfe("/", [[], "-1"], "TypeError");
+    tfe("/", [1, _.noop], "TypeError");
     tfe("/", ["1", "0"], "RangeError");
 
     tf("%", [4, 2], 0);
     tf("%", ["1", "0"], 0);
     tfe("%", [1, "two"], "TypeError");
-    tfe("%", [[], "-1"], "TypeError");
+    tf("%", [[1,2,3,4], [1,2]], 0, ".length() % .length()");
+    tfe("%", [_.noop, 1], "TypeError");
 
     tf("like", ["wat", /a/], true);
     tf("like", ["wat", /b/], false);
@@ -271,8 +277,9 @@ test("type operators", function(t){
     tf("as", [NaN, "Number"], 0);
     tf("as", [void 0, "Number"], 0);
     tf("as", ["foo", "Number"], null);
-    tf("as", [[1,2], "Number"], null);
-    tf("as", [arguments, "Number"], null);
+    tf("as", [{}, "Number"], 0);
+    tf("as", [[1,2], "Number"], 2);
+    tf("as", [{a:"b",z:"y",c:"d"}, "Number"], 3);
 
     t.equals(stdlib.as(defaultCTX, "^a.*z$", "RegExp").source, /^a.*z$/.source);
     var test_regex = /^a.*z$/;
@@ -340,8 +347,9 @@ test("number operators", function(t){
     tf("range", [1, "-6"], [1, 0, -1, -2, -3, -4, -5, -6]);
     tf("range", ["-1.5", "-3.5"], [-1.5, -2.5, -3.5]);
     tf("range", [-4], []);
-    tf("range", [null, 0], []);
-    tf("range", [0, []], []);
+    tf("range", [-4, _.noop], []);
+    tf("range", [null, 0], [0], "range auto convert null -> 0");
+    tf("range", [0, [1,2,3]], [0, 1, 2, 3], "0.range(.length())");
 
     tf("sprintf", [.25], "");
     tf("sprintf", [.25, "That is %s"], "That is %s");
@@ -418,9 +426,9 @@ test("string operators", function(t){
     tf("substr", ["This is a string", 1, 25], "his is a string");
     tf("substr", ["This is a string", 16, 0], "");
     tf("substr", ["This is a string", 16, -1], "g");
-    tf("substr", ["This is a string", 25], null);
-    tf("substr", [["Not a string", void 0]], ["Not a string", void 0]);
-    tf("substr", [void 0, "Not an index", 2], void 0);
+    tf("substr", ["This is a string", 25], "");
+    tf("substr", [["Not a string", void 0]], "[Array]");
+    tf("substr", [void 0, "Not an index", 2], "null");
 
     tf("uc", ["loWer"], "LOWER");
 

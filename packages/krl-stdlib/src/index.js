@@ -34,30 +34,9 @@ var iterBase = function*(val, iter){
     }
 };
 
-var toNumberOrNull = function(val){
-    switch(types.typeOf(val)){
-    case "Null":
-        return 0;
-    case "Boolean":
-        return val ? 1 : 0;
-    case "String":
-        var n = parseFloat(val);
-        return types.isNumber(n) ? n : null;
-    case "Number":
-        return val;
-    case "Array":
-    case "Map":
-        return _.size(val);
-    case "RegExp":
-    case "Function":
-    case "Action":
-    }
-    return null;
-};
-
 var ltEqGt = function(left, right){
-    var a = toNumberOrNull(left);
-    var b = toNumberOrNull(right);
+    var a = types.toNumberOrNull(left);
+    var b = types.toNumberOrNull(right);
     if(a === null || b === null){
         // if both are not numbers, fall back on string comparison
         a = types.toString(left);
@@ -102,30 +81,30 @@ stdlib["+"] = function(ctx, left, right){
     return types.toString(left) + types.toString(right);
 };
 stdlib["-"] = function(ctx, left, right){
-    var leftNumber = types.numericCast(left);
+    var leftNumber = types.toNumberOrNull(left);
     if(arguments.length < 3){
         if(leftNumber === null){
             throw new TypeError("Cannot negate " + types.toString(left));
         }
         return -leftNumber;
     }
-    var rightNumber = types.numericCast(right);
+    var rightNumber = types.toNumberOrNull(right);
     if(leftNumber === null || rightNumber === null){
         throw new TypeError(types.toString(right) + " cannot be subtracted from " + types.toString(left));
     }
     return leftNumber - rightNumber;
 };
 stdlib["*"] = function(ctx, left, right){
-    var leftNumber = types.numericCast(left);
-    var rightNumber = types.numericCast(right);
+    var leftNumber = types.toNumberOrNull(left);
+    var rightNumber = types.toNumberOrNull(right);
     if(leftNumber === null || rightNumber === null){
         throw new TypeError(types.toString(left) + " cannot be multiplied by " + types.toString(right));
     }
     return leftNumber * rightNumber;
 };
 stdlib["/"] = function(ctx, left, right){
-    var leftNumber = types.numericCast(left);
-    var rightNumber = types.numericCast(right);
+    var leftNumber = types.toNumberOrNull(left);
+    var rightNumber = types.toNumberOrNull(right);
     if(leftNumber === null || rightNumber === null){
         throw new TypeError(types.toString(left) + " cannot be divided by " + types.toString(right));
     }
@@ -135,8 +114,8 @@ stdlib["/"] = function(ctx, left, right){
     return leftNumber / rightNumber;
 };
 stdlib["%"] = function(ctx, left, right){
-    var leftNumber = types.numericCast(left);
-    var rightNumber = types.numericCast(right);
+    var leftNumber = types.toNumberOrNull(left);
+    var rightNumber = types.toNumberOrNull(right);
     if(leftNumber === null || rightNumber === null){
         throw new TypeError("Cannot calculate " + types.toString(left) + " modulo " + types.toString(right));
     }
@@ -203,17 +182,7 @@ stdlib.as = function(ctx, val, type){
         return types.toString(val);
     }
     if(type === "Number"){
-        if(val_type === "Null"){
-            return 0;
-        }else if(val_type === "Boolean"){
-            return val ? 1 : 0;
-        }else if(val_type === "String"){
-            var n = parseFloat(val);
-            return types.isNumber(n)
-                ? n
-                : null;
-        }
-        return null;
+        return types.toNumberOrNull(val);
     }
     if(type === "RegExp"){
         if(val_type === "String"){
@@ -278,17 +247,20 @@ stdlib.defaultsTo = function(ctx, val, defaultVal, message){
 
 //Number operators//////////////////////////////////////////////////////////////
 stdlib.chr = function(ctx, val){
-    var code = types.numericCast(val);
+    var code = types.toNumberOrNull(val);
     if(code === null){
         return null;
     }
     return String.fromCharCode(code);
 };
 stdlib.range = function(ctx, val, end){
-    var startNumber = types.numericCast(val);
-    var endNumber = types.numericCast(end);
+    if(arguments.length < 3){
+        return [];
+    }
+    var startNumber = types.toNumberOrNull(val);
+    var endNumber = types.toNumberOrNull(end);
     if(startNumber === null || endNumber === null){
-        return []; // we could return [number] if one of them is a number
+        return [];
     }
     if(startNumber < endNumber){
         return _.range(startNumber, endNumber + 1);
@@ -362,15 +334,15 @@ stdlib.split = function(ctx, val, split_on){
     return val.split(split_on);
 };
 stdlib.substr = function(ctx, val, start, len){
-    start = types.numericCast(start);
+    val = types.toString(val);
+    start = types.toNumberOrNull(start);
+    len = types.toNumberOrNull(len);
     if(start === null){
         return val;
     }
-    val = types.toString(val);
     if(start > val.length){
-        return null;
+        return "";
     }
-    len = types.numericCast(len);
     var end;
     if(len === null){
         end = val.length;

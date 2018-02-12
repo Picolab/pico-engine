@@ -108,6 +108,27 @@ types.numericCast = function(val, round){
         : null;
 };
 
+types.toNumberOrNull = function(val){
+    switch(types.typeOf(val)){
+    case "Null":
+        return 0;
+    case "Boolean":
+        return val ? 1 : 0;
+    case "String":
+        var n = parseFloat(val);
+        return types.isNumber(n) ? n : null;
+    case "Number":
+        return val;
+    case "Array":
+    case "Map":
+        return _.size(val);
+    case "RegExp":
+    case "Function":
+    case "Action":
+    }
+    return null;
+};
+
 types.toString = function(val){
     var val_type = types.typeOf(val);
     if(val_type === "String"){
