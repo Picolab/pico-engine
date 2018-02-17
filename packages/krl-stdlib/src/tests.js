@@ -184,8 +184,13 @@ test("infix operators", function(t){
 
     tf("/", [4, 2], 2);
     tfe("/", ["two", 1], "TypeError");
+    tf("/", ["2", 1], 2);
     tfe("/", [1, _.noop], "TypeError");
-    tfe("/", ["1", "0"], "RangeError");
+    t.equals(stdlib["/"]({
+        emit: function(kind, err){
+            t.equals(kind + err, "debug[DIVISION BY ZERO] 9 / 0");
+        }
+    }, 9, 0), 0);
 
     tf("%", [4, 2], 0);
     tf("%", ["1", "0"], 0);

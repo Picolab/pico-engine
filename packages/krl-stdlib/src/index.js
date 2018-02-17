@@ -109,7 +109,8 @@ stdlib["/"] = function(ctx, left, right){
         throw new TypeError(types.toString(left) + " cannot be divided by " + types.toString(right));
     }
     if(rightNumber === 0){
-        throw new RangeError(leftNumber + " / 0 is not a number");
+        ctx.emit("debug", "[DIVISION BY ZERO] " + leftNumber + " / 0");
+        return 0;
     }
     return leftNumber / rightNumber;
 };
