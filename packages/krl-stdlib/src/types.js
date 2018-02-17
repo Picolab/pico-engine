@@ -94,19 +94,6 @@ types.cleanNulls = function(val){
     return val;
 };
 
-types.numericCast = function(val, round){
-    var roundFn = round ? _.round : _.identity;
-    if(types.isNumber(val)){
-        return roundFn(val);
-    }
-    if(!types.isString(val)){
-        return null;
-    }
-    var n = parseFloat(val);
-    return types.isNumber(n)
-        ? roundFn(n)
-        : null;
-};
 
 types.toNumberOrNull = function(val){
     switch(types.typeOf(val)){
