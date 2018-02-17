@@ -579,24 +579,22 @@ stdlib.slice = function(ctx, val, start, end){
     if(!types.isArray(val)){
         val = [val];
     }else if(val.length === 0){
-        ctx.emit("error", new Error("Cannot .slice() an empty array"));
-        return null;
+        return [];
     }
     if(arguments.length === 2){
         return val;
     }
-    var firstIndex = types.numericCast(start);
+    var firstIndex = types.toNumberOrNull(start);
     if(firstIndex === null){
         throw new TypeError("The .slice() operator cannot use " + types.toString(start) + " as an index");
     }
     if(arguments.length === 3){
         if(firstIndex > val.length){
-            ctx.emit("error", new RangeError("Cannot .slice() an array of length " + val.length + " from 0 to " + firstIndex));
-            return null;
+            return [];
         }
         return _.slice(val, 0, firstIndex + 1);
     }
-    var secondIndex = types.numericCast(end);
+    var secondIndex = types.toNumberOrNull(end);
     if(secondIndex === null){
         throw new TypeError("The .slice() operator cannot use " + types.toString(end) + " as the other index");
     }
@@ -608,37 +606,29 @@ stdlib.slice = function(ctx, val, start, end){
     if(firstIndex >= 0 && secondIndex < val.length){
         return _.slice(val, firstIndex, secondIndex + 1);
     }
-    ctx.emit("error", new RangeError("Cannot .slice() an array of length " + val.length + " from " + firstIndex + " to " + secondIndex));
-    return null;
+    return [];
 };
-stdlib.splice = function(ctx, val, start, n_elms, value){
+stdlib.splice = function(ctx, val, start, nElements, value){
     if(!types.isArray(val)){
         val = [val];
     }else if(val.length === 0){
-        throw new Error("Cannot .splice() an empty array");
+        return [];
     }
-    if(arguments.length < 4){
-        throw new Error("The .splice() operator needs more than one argument");
-    }
-    var startIndex = types.numericCast(start);
+    var startIndex = types.toNumberOrNull(start);
     if(startIndex === null){
         throw new TypeError("The .splice() operator cannot use " + types.toString(start) + "as an index");
     }
-    if(startIndex < 0){
-        throw new RangeError("Cannot start .splice() starting at index " + startIndex);
+    startIndex = Math.min(Math.max(startIndex, 0), val.length - 1);
+
+    var n_elm = types.toNumberOrNull(nElements);
+    if(n_elm === null){
+        throw new TypeError("The .splice() operator cannot use " + types.toString(nElements) + "as a number of elements");
     }
-    if(startIndex >= val.length){
-        throw new RangeError("Cannot .splice() an array of length " + val.length + " starting at index " + startIndex);
-    }
-    var n_elms_number = types.numericCast(n_elms);
-    if(n_elms_number === null){
-        throw new TypeError("The .splice() operator cannot use " + types.toString(n_elms) + "as a number of elements");
-    }
-    if(n_elms_number < 0 || startIndex + n_elms_number > val.length){
-        n_elms_number = val.length - startIndex;
+    if(n_elm < 0 || startIndex + n_elm > val.length){
+        n_elm = val.length - startIndex;
     }
     var part1 = _.slice(val, 0, startIndex);
-    var part2 = _.slice(val, startIndex + n_elms);
+    var part2 = _.slice(val, startIndex + n_elm);
     if(arguments.length < 5){
         return _.concat(part1, part2);
     }

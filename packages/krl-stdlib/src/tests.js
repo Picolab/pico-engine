@@ -637,13 +637,14 @@ ytest("collection operators", function*(t){
     tf("slice", [veggies, 2, 0], ["corn","tomato","tomato"]);
     tf("slice", [veggies, 2], ["corn","tomato","tomato"]);
     tf("slice", [veggies, 0, 0], ["corn"]);
+    tf("slice", [veggies, null, NaN], ["corn"]);
+    tf("slice", [[], 0, 0], []);
     tf("slice", [{"0": "0"}, 0, 0], [{"0": "0"}]);
-    tf("slice", [[], _.noop], null, "error", "Error");
     tfe("slice", [veggies, _.noop], "TypeError");
     tfe("slice", [veggies, 1, _.noop], "TypeError");
     tfe("slice", [veggies, -1, _.noop], "TypeError");
-    tf("slice", [veggies, 14], null, "error", "RangeError");
-    tf("slice", [veggies, 2, -1], null, "error", "RangeError");
+    tf("slice", [veggies, 14], []);
+    tf("slice", [veggies, 2, -1], []);
     t.deepEquals(veggies, ["corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"], "should not be mutated");
 
     tf("splice", [veggies, 1, 4], ["corn","lettuce","sprouts"]);
@@ -653,12 +654,18 @@ ytest("collection operators", function*(t){
     tf("splice", [veggies, 1, 10], ["corn"]);
     tf("splice", [veggies, 1, 10, "liver"], ["corn", "liver"]);
     tf("splice", [veggies, 1, 10, []], ["corn"]);
-    tfe("splice", [[], NaN], "Error");
-    tfe("splice", [void 0, NaN, []], "TypeError");
-    tfe("splice", [void 0, -1, []], "RangeError");
-    tfe("splice", [veggies, 7, []], "RangeError");
-    tfe("splice", [veggies, 6, []], "TypeError");
-    tf("splice", [void 0, 0, 0, []], [void 0]);
+    tf("splice", [[], 0, 1], []);
+    tf("splice", [[], NaN], []);
+    tfe("splice", [veggies, _.noop, 1] , "TypeError");
+    tfe("splice", [veggies, 0, _.noop] , "TypeError");
+    tf("splice", [veggies, 0, 0], veggies);
+    tf("splice", [veggies, 0, veggies.length], []);
+    tf("splice", [veggies, 0, 999], []);
+    tf("splice", [veggies, 0, -1], []);
+    tf("splice", [veggies, 0, -999], []);
+    tf("splice", [veggies, -1, 0], veggies);
+    tf("splice", [veggies, -999, 0], veggies);
+    tf("splice", [void 0, 0, 0], [void 0]);
     t.deepEquals(veggies, ["corn","tomato","tomato","tomato","sprouts","lettuce","sprouts"], "should not be mutated");
 
     var to_sort = [5, 3, 4, 1, 12];
