@@ -636,6 +636,47 @@ module.exports = {
           ctx.emit("debug", "not fired");
       }
     },
+    "where_after_setting": {
+      "name": "where_after_setting",
+      "select": {
+        "graph": { "events": { "where_after_setting": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("(.*)", "").exec(getAttrString(ctx, "a"));
+            if (!m)
+              return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
+            ctx.scope.set("a", matches[0]);
+            if (!(yield ctx.callKRLstdlib("==", [
+                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["a"]),
+                "one"
+              ])))
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["where_after_setting"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
     "implicit_match_0": {
       "name": "implicit_match_0",
       "select": {

@@ -35,12 +35,6 @@ module.exports = function(ast, comp, e){
         fn_body.push(e("var", "matches", e("array", [])));
     }
 
-    if(ast.where){
-        fn_body.push(e("if", e("!", comp(ast.where, {
-            identifiers_are_event_attributes: true
-        })), e("return", e("false"))));
-    }
-
     _.each(ast.setting, function(s, i){
         fn_body.push(e(";",
             e("call", e("id", "ctx.scope.set", s.loc), [
@@ -48,6 +42,12 @@ module.exports = function(ast, comp, e){
                 e("get", e("id", "matches", s.loc), e("num", i, s.loc), s.loc)
             ], s.loc), s.loc));
     });
+
+    if(ast.where){
+        fn_body.push(e("if", e("!", comp(ast.where, {
+            identifiers_are_event_attributes: true
+        })), e("return", e("false"))));
+    }
 
     if(ast.aggregator){
         fn_body.push(e(";",

@@ -156,6 +156,11 @@ ruleset io.picolabs.events {
 
         send_directive("where_match_empty_str");
     }
+    rule where_after_setting {
+        select when events where_after_setting a re#(.*)# setting(a) where a == "one"
+
+        send_directive("where_after_setting");
+    }
     rule implicit_match_0 {
         select when events implicit_match_0 something re#0#
 

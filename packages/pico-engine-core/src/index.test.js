@@ -363,6 +363,14 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
                 [{name: "where_match_empty_str", options: {}}]
             ],
             [
+                signal("events", "where_after_setting", {a: "one"}),
+                [{name: "where_after_setting", options: {}}]
+            ],
+            [
+                signal("events", "where_after_setting", {a: "two"}),
+                []
+            ],
+            [
                 signal("events", "implicit_match_0", {something: 0}),
                 [{name: "implicit_match_0", options: {}}]
             ],
