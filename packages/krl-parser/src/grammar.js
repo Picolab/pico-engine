@@ -1,7 +1,7 @@
-// Generated automatically by nearley
+// Generated automatically by nearley, version 2.11.1
 // http://github.com/Hardmath123/nearley
 (function () {
-function id(x) {return x[0]; }
+function id(x) { return x[0]; }
 
 
 var flatten = function(toFlatten){
@@ -657,24 +657,61 @@ var grammar = {
     {"name": "event_exp_fns", "symbols": [tok_repeat, "PositiveInteger", tok_OPEN_PAREN, "IndividualEventExpression", tok_CLSE_PAREN, "event_exp_fns$ebnf$2"], "postprocess": eventGroupOp("repeat", 1, 3, 5)},
     {"name": "event_exp_base", "symbols": [tok_OPEN_PAREN, "EventExpression", tok_CLSE_PAREN], "postprocess": getN(1)},
     {"name": "event_exp_base", "symbols": ["IndividualEventExpression"], "postprocess": id},
-    {"name": "IndividualEventExpression$ebnf$1", "symbols": []},
-    {"name": "IndividualEventExpression$ebnf$1", "symbols": ["IndividualEventExpression$ebnf$1", "event_exp_attribute_pair"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "IndividualEventExpression$ebnf$1$subexpression$1$ebnf$1", "symbols": ["event_exp_attribute_pair"]},
+    {"name": "IndividualEventExpression$ebnf$1$subexpression$1$ebnf$1", "symbols": ["IndividualEventExpression$ebnf$1$subexpression$1$ebnf$1", "event_exp_attribute_pair"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "IndividualEventExpression$ebnf$1$subexpression$1$ebnf$2$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier_list_body", tok_CLSE_PAREN]},
+    {"name": "IndividualEventExpression$ebnf$1$subexpression$1$ebnf$2", "symbols": ["IndividualEventExpression$ebnf$1$subexpression$1$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "IndividualEventExpression$ebnf$1$subexpression$1$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "IndividualEventExpression$ebnf$1$subexpression$1", "symbols": ["IndividualEventExpression$ebnf$1$subexpression$1$ebnf$1", "IndividualEventExpression$ebnf$1$subexpression$1$ebnf$2"]},
+    {"name": "IndividualEventExpression$ebnf$1", "symbols": ["IndividualEventExpression$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "IndividualEventExpression$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "IndividualEventExpression$ebnf$2$subexpression$1", "symbols": [tok_where, "event_exp_where"]},
     {"name": "IndividualEventExpression$ebnf$2", "symbols": ["IndividualEventExpression$ebnf$2$subexpression$1"], "postprocess": id},
     {"name": "IndividualEventExpression$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "IndividualEventExpression$ebnf$3$subexpression$1", "symbols": [tok_setting, tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN]},
-    {"name": "IndividualEventExpression$ebnf$3", "symbols": ["IndividualEventExpression$ebnf$3$subexpression$1"], "postprocess": id},
-    {"name": "IndividualEventExpression$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "IndividualEventExpression", "symbols": ["Identifier", "Identifier", "IndividualEventExpression$ebnf$1", "IndividualEventExpression$ebnf$2", "IndividualEventExpression$ebnf$3"], "postprocess": 
+    {"name": "IndividualEventExpression", "symbols": ["Identifier", "Identifier", "IndividualEventExpression$ebnf$1", "IndividualEventExpression$ebnf$2"], "postprocess": 
         function(data){
           return {
             type: 'EventExpression',
             loc: mkLoc(data),
             event_domain: data[0],
             event_type: data[1],
-            event_attrs: data[2],
+            event_attrs: (data[2] && data[2][0]) || [],
+            setting: (data[2] && data[2][1] && data[2][1][2]) || [],
             where: data[3] && data[3][1],
-            setting: (data[4] && data[4][2]) || [],
+            aggregator: null//this is set by EventAggregator
+          };
+        }
+        },
+    {"name": "IndividualEventExpression$ebnf$3", "symbols": []},
+    {"name": "IndividualEventExpression$ebnf$3", "symbols": ["IndividualEventExpression$ebnf$3", "event_exp_attribute_pair"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "IndividualEventExpression", "symbols": ["Identifier", "Identifier", "IndividualEventExpression$ebnf$3", tok_where, "event_exp_where", tok_setting, tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN], "postprocess": 
+        function(data){
+          return {
+            deprecated: "Move the `where` clause to be after the `setting`",
+        
+            type: 'EventExpression',
+            loc: mkLoc(data),
+            event_domain: data[0],
+            event_type: data[1],
+            event_attrs: data[2],
+            where: data[4],
+            setting: data[7],
+            aggregator: null//this is set by EventAggregator
+          };
+        }
+        },
+    {"name": "IndividualEventExpression", "symbols": ["Identifier", "Identifier", tok_setting, tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN], "postprocess": 
+        function(data){
+          return {
+            deprecated: "What are you `setting`? There are no attribute matches",
+        
+            type: 'EventExpression',
+            loc: mkLoc(data),
+            event_domain: data[0],
+            event_type: data[1],
+            event_attrs: [],
+            where: null,
+            setting: data[4],
             aggregator: null//this is set by EventAggregator
           };
         }

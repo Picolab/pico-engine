@@ -142,8 +142,8 @@ rule hello {
       "event_domain": DOMAIN,
       "event_type": TYPE,
       "event_attrs": [  ],
-      "where": null,
       "setting": [  ],
+      "where": null,
       "aggregator": null
     },
     "within": null
@@ -212,8 +212,8 @@ select when A B
   "event_domain": A,
   "event_type": B,
   "event_attrs": [  ],
-  "where": null,
   "setting": [  ],
+  "where": null,
   "aggregator": null
 }
 
@@ -229,10 +229,10 @@ select when A B attr re#^(.*)$# setting(val)
       "value": {value: /^(.*)$/, type:"RegExp"}
     }
   ],
-  "where": null,
   "setting": [
     {value: "val", type:"Identifier"}
   ],
+  "where": null,
   "aggregator": null
 }
 
@@ -246,8 +246,8 @@ select when A A or B B
       "event_domain": A,
       "event_type": A,
       "event_attrs": [  ],
-      "where": null,
       "setting": [  ],
+      "where": null,
       "aggregator": null
     },
     {
@@ -255,8 +255,8 @@ select when A A or B B
       "event_domain": B,
       "event_type": B,
       "event_attrs": [  ],
-      "where": null,
       "setting": [  ],
+      "where": null,
       "aggregator": null
     }
   ]
@@ -273,8 +273,8 @@ select when any 2 (A A, B B, C C)
       "event_domain": A,
       "event_type": A,
       "event_attrs": [  ],
-      "where": null,
       "setting": [  ],
+      "where": null,
       "aggregator": null
     },
     {
@@ -282,8 +282,8 @@ select when any 2 (A A, B B, C C)
       "event_domain": B,
       "event_type": B,
       "event_attrs": [  ],
-      "where": null,
       "setting": [  ],
+      "where": null,
       "aggregator": null
     },
     {
@@ -291,8 +291,8 @@ select when any 2 (A A, B B, C C)
       "event_domain": C,
       "event_type": C,
       "event_attrs": [  ],
-      "where": null,
       "setting": [  ],
+      "where": null,
       "aggregator": null
     }
   ]

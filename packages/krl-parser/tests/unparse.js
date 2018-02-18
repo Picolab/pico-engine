@@ -130,6 +130,11 @@ module.exports = function(options){
             stack.push({literal: "<<hello #{"});
             stack.push("Expression");
             stack.push({literal: "}!>>"});
+        }else if(currentname === "event_exp_where"){
+            // fixing error when it comes up with RegExp right away
+            stack.push("Identifier");
+            stack.push({literal: ">"});
+            stack.push("Expression");
         }else if(typeof currentname === "string"){
             _.each(selectRule(currentname).symbols, function(symbol){
                 stack.push(symbol);
