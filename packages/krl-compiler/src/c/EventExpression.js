@@ -3,6 +3,10 @@ var _ = require("lodash");
 module.exports = function(ast, comp, e){
     //FYI the graph allready vetted the domain and type
 
+    if(ast.deprecated){
+        comp.warn(ast.loc, "DEPRECATED SYNTAX - " + ast.deprecated);
+    }
+
     var fn_body = [];
 
     if(ast.where){
