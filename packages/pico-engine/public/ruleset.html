@@ -363,6 +363,7 @@
     });
     $(".js-btn-register-src").on("click", function(e){
         e.preventDefault();
+        var originalPos = editor.getCursorPosition();
         var src = editor.getValue();
         $errorMessage.text("");
         picoAPI("/api/ruleset/register", {"src": src}, "POST", function(err, data){
@@ -379,9 +380,22 @@
                 setTimeout(function(){
                     $successMessage.fadeOut();
                 }, 3000);
+
+                setTimeout(function(){
+                    editor.moveCursorToPosition(originalPos);
+                }, 100);
             });
         });
     });
+    $(document).keydown(function(event){
+        // bind ctrl+s and cmd+s
+        if((event.ctrlKey || event.metaKey) && event.which === 83){
+            event.preventDefault();
+            $(".js-btn-register-src").click();
+            return false;
+        }
+    });
+
     $areaRight.on("click", ".js-btn-flush", function(e){
         e.preventDefault();
         $errorMessage.text("");
