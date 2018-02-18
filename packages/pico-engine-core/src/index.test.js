@@ -371,6 +371,16 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
                 []
             ],
             [
+                // test that select() scope overrides the global scope
+                signal("events", "where_using_global", {a: "g one"}),
+                [{name: "where_using_global", options: {}}]
+            ],
+            [
+                // test that event:attr scope doesn't stomp over global
+                signal("events", "where_using_global", {a: "g one", global1: "haha! if this works the rule will not select"}),
+                [{name: "where_using_global", options: {}}]
+            ],
+            [
                 signal("events", "implicit_match_0", {something: 0}),
                 [{name: "implicit_match_0", options: {}}]
             ],

@@ -21,6 +21,8 @@ module.exports = {
     ctx.scope.set("getSentName", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "sent_name");
     }));
+    ctx.scope.set("global0", "g zero");
+    ctx.scope.set("global1", "g one");
   },
   "rules": {
     "set_attr": {
@@ -482,8 +484,13 @@ module.exports = {
         "graph": { "events": { "select_where": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
             if (!(yield ctx.callKRLstdlib("match", [
-                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                ctx.scope.get("something"),
                 new RegExp("^wat", "")
               ])))
               return false;
@@ -514,8 +521,13 @@ module.exports = {
         "graph": { "events": { "where_match_0": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
             if (!(yield ctx.callKRLstdlib("match", [
-                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                ctx.scope.get("something"),
                 new RegExp("0", "")
               ])))
               return false;
@@ -546,8 +558,13 @@ module.exports = {
         "graph": { "events": { "where_match_null": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
             if (!(yield ctx.callKRLstdlib("match", [
-                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                ctx.scope.get("something"),
                 new RegExp("null", "")
               ])))
               return false;
@@ -578,8 +595,13 @@ module.exports = {
         "graph": { "events": { "where_match_false": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
             if (!(yield ctx.callKRLstdlib("match", [
-                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                ctx.scope.get("something"),
                 new RegExp("false", "")
               ])))
               return false;
@@ -610,8 +632,13 @@ module.exports = {
         "graph": { "events": { "where_match_empty_str": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
             if (!(yield ctx.callKRLstdlib("match", [
-                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                ctx.scope.get("something"),
                 new RegExp("(?:)", "")
               ])))
               return false;
@@ -642,6 +669,11 @@ module.exports = {
         "graph": { "events": { "where_after_setting": { "expr_0": true } } },
         "eventexprs": {
           "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
             var matches = [];
             var m;
             var j;
@@ -652,7 +684,7 @@ module.exports = {
               matches.push(m[j]);
             ctx.scope.set("a", matches[0]);
             if (!(yield ctx.callKRLstdlib("==", [
-                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["a"]),
+                ctx.scope.get("a"),
                 "one"
               ])))
               return false;
@@ -670,6 +702,52 @@ module.exports = {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", ["where_after_setting"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "where_using_global": {
+      "name": "where_using_global",
+      "select": {
+        "graph": { "events": { "where_using_global": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("(.*)", "").exec(getAttrString(ctx, "a"));
+            if (!m)
+              return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
+            ctx.scope.set("global0", matches[0]);
+            if (!(yield ctx.callKRLstdlib("==", [
+                ctx.scope.get("global0"),
+                ctx.scope.get("global1")
+              ])))
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["where_using_global"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");

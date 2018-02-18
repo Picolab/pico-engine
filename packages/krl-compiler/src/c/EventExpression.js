@@ -5,6 +5,29 @@ module.exports = function(ast, comp, e){
 
     var fn_body = [];
 
+    if(ast.where){
+        // inject attrs as varibles in the scope
+
+        fn_body.push(e("var", "event_attrs", e("ycall",
+            e("id", "ctx.modules.get"),
+            [e("id", "ctx"), e("str", "event"), e("str", "attrs")]
+        )));
+        var attrKeys = e("call", e("id", "Object.keys"), [e("id", "event_attrs")]);
+        fn_body.push(e(";", e("call", e(".", attrKeys, e("id", "forEach")), [
+            e("fn", ["attr"], [
+
+                // don't stomp over global scope
+                e("if", e("!", e("call", e("id", "ctx.scope.has"), [e("id", "attr")])),
+
+                    e(";", e("call", e("id", "ctx.scope.set"), [
+                        e("id", "attr"),
+                        e("get", e("id", "event_attrs"), e("id", "attr")),
+                    ]))
+                )
+            ])
+        ])));
+    }
+
     if(!_.isEmpty(ast.event_attrs)){
         // select when domain type <attr> re#..#
         fn_body.push(e("var", "matches", e("array", [])));
@@ -44,9 +67,7 @@ module.exports = function(ast, comp, e){
     });
 
     if(ast.where){
-        fn_body.push(e("if", e("!", comp(ast.where, {
-            identifiers_are_event_attributes: true
-        })), e("return", e("false"))));
+        fn_body.push(e("if", e("!", comp(ast.where)), e("return", e("false"))));
     }
 
     if(ast.aggregator){

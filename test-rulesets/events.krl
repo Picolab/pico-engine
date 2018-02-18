@@ -15,6 +15,8 @@ ruleset io.picolabs.events {
         getSentName = function(){
             ent:sent_name;
         }
+        global0 = "g zero"
+        global1 = "g one"
     }
     rule set_attr {
         select when events bind name re#^(.*)$# setting(my_name)
@@ -160,6 +162,11 @@ ruleset io.picolabs.events {
         select when events where_after_setting a re#(.*)# setting(a) where a == "one"
 
         send_directive("where_after_setting");
+    }
+    rule where_using_global {
+        select when events where_using_global a re#(.*)# setting(global0) where global0 == global1
+
+        send_directive("where_using_global");
     }
     rule implicit_match_0 {
         select when events implicit_match_0 something re#0#
