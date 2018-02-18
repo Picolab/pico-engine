@@ -13,9 +13,6 @@ module.exports = function(ast, ind, gen){
     }else if(_.size(pairs) === 1){
         src += " " + pairs.join(" ");
     }
-    if(ast.where){
-        src += " where " + gen(ast.where);
-    }
     if(!_.isEmpty(ast.setting)){
         if(_.size(pairs) > 1){
             src += "\n" + ind(2);
@@ -25,6 +22,9 @@ module.exports = function(ast, ind, gen){
         src += "setting(" + _.map(ast.setting, function(a){
             return gen(a, 1);
         }).join(", ") + ")";
+    }
+    if(ast.where){
+        src += " where " + gen(ast.where);
     }
     return src;
 };

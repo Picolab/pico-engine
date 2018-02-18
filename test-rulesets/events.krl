@@ -154,7 +154,7 @@ ruleset io.picolabs.events {
         send_directive("where_match_false");
     }
     rule where_match_empty_str {
-        select when events where_match_empty_str where something.match(re##)
+        select when events where_match_empty_str where event:attr("something").match(re##)
 
         send_directive("where_match_empty_str");
     }

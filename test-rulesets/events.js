@@ -638,7 +638,7 @@ module.exports = {
                 ctx.scope.set(attr, event_attrs[attr]);
             });
             if (!(yield ctx.callKRLstdlib("match", [
-                ctx.scope.get("something"),
+                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
                 new RegExp("(?:)", "")
               ])))
               return false;
