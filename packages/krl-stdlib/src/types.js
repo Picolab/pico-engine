@@ -94,18 +94,26 @@ types.cleanNulls = function(val){
     return val;
 };
 
-types.numericCast = function(val, round){
-    var roundFn = round ? _.round : _.identity;
-    if(types.isNumber(val)){
-        return roundFn(val);
+
+types.toNumberOrNull = function(val){
+    switch(types.typeOf(val)){
+    case "Null":
+        return 0;
+    case "Boolean":
+        return val ? 1 : 0;
+    case "String":
+        var n = parseFloat(val);
+        return types.isNumber(n) ? n : null;
+    case "Number":
+        return val;
+    case "Array":
+    case "Map":
+        return _.size(val);
+    case "RegExp":
+    case "Function":
+    case "Action":
     }
-    if(!types.isString(val)){
-        return null;
-    }
-    var n = parseFloat(val);
-    return types.isNumber(n)
-        ? roundFn(n)
-        : null;
+    return null;
 };
 
 types.toString = function(val){

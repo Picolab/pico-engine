@@ -5,20 +5,26 @@ var mkKRLfn = require("../mkKRLfn");
 var randomWords = require("random-words");
 
 var fixLowerUpperArgs = function(args, round){
-    var lowerNum = ktypes.numericCast(args.lower, round);
-    var lowerIsNull = ktypes.isNull(lowerNum);
+    var lowerNum = ktypes.toNumberOrNull(args.lower);
+    if(round && lowerNum !== null){
+        lowerNum = _.round(lowerNum);
+    }
 
-    var upperNum = ktypes.numericCast(args.upper, round);
+    var upperNum = ktypes.toNumberOrNull(args.upper);
+    if(round && upperNum !== null){
+        upperNum = _.round(upperNum);
+    }
+
     var upper;
 
-    if(ktypes.isNull(upperNum)){
-        upper = lowerIsNull ? 1 : 0;
+    if(upperNum === null){
+        upper = lowerNum === null ? 1 : 0;
     }else{
         upper = upperNum;
     }
 
     return {
-        lower: lowerIsNull ? 0 : lowerNum,
+        lower: lowerNum === null ? 0 : lowerNum,
         upper: upper
     };
 };
