@@ -551,7 +551,7 @@ test("PicoEngine - io.picolabs.operators ruleset", function(t){
                     ".substr(5)": "is a string",
                     ".substr(5, 4)": "is a",
                     ".substr(5, -5)": "is a s",
-                    ".substr(25)": null,
+                    ".substr(25)": "",
                     ".uc()": "HELLO WORLD"
                 }
             ],

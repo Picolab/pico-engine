@@ -34,32 +34,21 @@ var iterBase = function*(val, iter){
     }
 };
 
-// some guidelines/suggestions:
-// 0. effectively check arguments.length when not fixed by the grammar (and consider null versus omitted)
-// 1. convert NaN's/void 0's when needed (i.e. use cleanNulls)
-// 2. don't mutate arguments (array/map)
-// 3. where strings/numbers/arrays are expected, convert to them when reasonable (don't coerce arrays to maps)
-// 4. prioritize errors on val's type (if applicable), then argument values/types/0. from left to right
-// 5. try to return the logical noop value (e.g. false, [], val (unchanged by 3.)) for missing or unrecoverably wrongly typed arguments
-// 6. don't worry about call stack limits when processing deep objects - Lodash is incorrect there too
-// 7. the wiki's docs take precedence over the above
+var ltEqGt = function(left, right){
+    var a = types.toNumberOrNull(left);
+    var b = types.toNumberOrNull(right);
+    if(a === null || b === null){
+        // if both are not numbers, fall back on string comparison
+        a = types.toString(left);
+        b = types.toString(right);
+    }
+    // at this point a and b are both numbers or both strings
+    return a === b ? 0 : (a > b ? 1 : -1);
+};
+
 var stdlib = {};
 
 //Infix operators///////////////////////////////////////////////////////////////
-var ltEqGt = function(left, right){
-    if(types.typeOf(left) !== types.typeOf(right)){
-        return NaN; // unlike -1/0/1, all comparisons with 0 are false
-    }
-    left = types.cleanNulls(left);
-    right = types.cleanNulls(right);
-    if(_.isEqual(left, right)){
-        return 0;
-    }
-    if(types.isArrayOrMap(left)){
-        return NaN; // don't compare unequal arrays or maps
-    }
-    return (left > right) ? 1 : -1;
-};
 
 stdlib["<"] = function(ctx, left, right){
     return ltEqGt(left, right) < 0;
@@ -92,41 +81,42 @@ stdlib["+"] = function(ctx, left, right){
     return types.toString(left) + types.toString(right);
 };
 stdlib["-"] = function(ctx, left, right){
-    var leftNumber = types.numericCast(left);
+    var leftNumber = types.toNumberOrNull(left);
     if(arguments.length < 3){
         if(leftNumber === null){
             throw new TypeError("Cannot negate " + types.toString(left));
         }
         return -leftNumber;
     }
-    var rightNumber = types.numericCast(right);
+    var rightNumber = types.toNumberOrNull(right);
     if(leftNumber === null || rightNumber === null){
         throw new TypeError(types.toString(right) + " cannot be subtracted from " + types.toString(left));
     }
     return leftNumber - rightNumber;
 };
 stdlib["*"] = function(ctx, left, right){
-    var leftNumber = types.numericCast(left);
-    var rightNumber = types.numericCast(right);
+    var leftNumber = types.toNumberOrNull(left);
+    var rightNumber = types.toNumberOrNull(right);
     if(leftNumber === null || rightNumber === null){
         throw new TypeError(types.toString(left) + " cannot be multiplied by " + types.toString(right));
     }
     return leftNumber * rightNumber;
 };
 stdlib["/"] = function(ctx, left, right){
-    var leftNumber = types.numericCast(left);
-    var rightNumber = types.numericCast(right);
+    var leftNumber = types.toNumberOrNull(left);
+    var rightNumber = types.toNumberOrNull(right);
     if(leftNumber === null || rightNumber === null){
         throw new TypeError(types.toString(left) + " cannot be divided by " + types.toString(right));
     }
     if(rightNumber === 0){
-        throw new RangeError(leftNumber + " / 0 is not a number");
+        ctx.emit("debug", "[DIVISION BY ZERO] " + leftNumber + " / 0");
+        return 0;
     }
     return leftNumber / rightNumber;
 };
 stdlib["%"] = function(ctx, left, right){
-    var leftNumber = types.numericCast(left);
-    var rightNumber = types.numericCast(right);
+    var leftNumber = types.toNumberOrNull(left);
+    var rightNumber = types.toNumberOrNull(right);
     if(leftNumber === null || rightNumber === null){
         throw new TypeError("Cannot calculate " + types.toString(left) + " modulo " + types.toString(right));
     }
@@ -156,21 +146,12 @@ stdlib.like = function(ctx, val, regex){
 };
 
 stdlib["<=>"] = function(ctx, left, right){
-    var leftNumber = types.numericCast(left);
-    var rightNumber = types.numericCast(right);
-    if(leftNumber !== null && rightNumber !== null){
-        return ltEqGt(leftNumber, rightNumber);
-    }
-    var result = ltEqGt(left, right);
-    if(_.isNaN(result)){
-        throw new TypeError("The <=> operator will not compare " + types.toString(left) + " with " + types.toString(right));
-    }
-    return result;
+    return ltEqGt(left, right);
 };
 stdlib.cmp = function(ctx, left, right){
-    var leftStr = types.toString(left);
-    var rightStr = types.toString(right);
-    return ltEqGt(leftStr, rightStr);
+    left = types.toString(left);
+    right = types.toString(right);
+    return left === right ? 0 : (left > right ? 1 : -1);
 };
 
 stdlib.beesting = function(ctx, val){
@@ -202,17 +183,7 @@ stdlib.as = function(ctx, val, type){
         return types.toString(val);
     }
     if(type === "Number"){
-        if(val_type === "Null"){
-            return 0;
-        }else if(val_type === "Boolean"){
-            return val ? 1 : 0;
-        }else if(val_type === "String"){
-            var n = parseFloat(val);
-            return types.isNumber(n)
-                ? n
-                : null;
-        }
-        return null;
+        return types.toNumberOrNull(val);
     }
     if(type === "RegExp"){
         if(val_type === "String"){
@@ -277,17 +248,20 @@ stdlib.defaultsTo = function(ctx, val, defaultVal, message){
 
 //Number operators//////////////////////////////////////////////////////////////
 stdlib.chr = function(ctx, val){
-    var code = types.numericCast(val);
+    var code = types.toNumberOrNull(val);
     if(code === null){
         return null;
     }
     return String.fromCharCode(code);
 };
 stdlib.range = function(ctx, val, end){
-    var startNumber = types.numericCast(val);
-    var endNumber = types.numericCast(end);
+    if(arguments.length < 3){
+        return [];
+    }
+    var startNumber = types.toNumberOrNull(val);
+    var endNumber = types.toNumberOrNull(end);
     if(startNumber === null || endNumber === null){
-        return []; // we could return [number] if one of them is a number
+        return [];
     }
     if(startNumber < endNumber){
         return _.range(startNumber, endNumber + 1);
@@ -361,15 +335,15 @@ stdlib.split = function(ctx, val, split_on){
     return val.split(split_on);
 };
 stdlib.substr = function(ctx, val, start, len){
-    start = types.numericCast(start);
+    val = types.toString(val);
+    start = types.toNumberOrNull(start);
+    len = types.toNumberOrNull(len);
     if(start === null){
         return val;
     }
-    val = types.toString(val);
     if(start > val.length){
-        return null;
+        return "";
     }
-    len = types.numericCast(len);
     var end;
     if(len === null){
         end = val.length;
@@ -504,12 +478,11 @@ stdlib.join = function(ctx, val, str){
     }
     return _.join(val, types.toString(str));
 };
-//works for maps for weak typing purposes
 stdlib.length = function(ctx, val){
     if(types.isArrayOrMap(val) || types.isString(val)){
         return _.size(val);
     }
-    return 0; // we could check function.prototype.length
+    return 0;
 };
 stdlib.map = function*(ctx, val, iter){
     if(!types.isFunction(iter)){
@@ -607,24 +580,22 @@ stdlib.slice = function(ctx, val, start, end){
     if(!types.isArray(val)){
         val = [val];
     }else if(val.length === 0){
-        ctx.emit("error", new Error("Cannot .slice() an empty array"));
-        return null;
+        return [];
     }
     if(arguments.length === 2){
         return val;
     }
-    var firstIndex = types.numericCast(start);
+    var firstIndex = types.toNumberOrNull(start);
     if(firstIndex === null){
         throw new TypeError("The .slice() operator cannot use " + types.toString(start) + " as an index");
     }
     if(arguments.length === 3){
         if(firstIndex > val.length){
-            ctx.emit("error", new RangeError("Cannot .slice() an array of length " + val.length + " from 0 to " + firstIndex));
-            return null;
+            return [];
         }
         return _.slice(val, 0, firstIndex + 1);
     }
-    var secondIndex = types.numericCast(end);
+    var secondIndex = types.toNumberOrNull(end);
     if(secondIndex === null){
         throw new TypeError("The .slice() operator cannot use " + types.toString(end) + " as the other index");
     }
@@ -636,37 +607,29 @@ stdlib.slice = function(ctx, val, start, end){
     if(firstIndex >= 0 && secondIndex < val.length){
         return _.slice(val, firstIndex, secondIndex + 1);
     }
-    ctx.emit("error", new RangeError("Cannot .slice() an array of length " + val.length + " from " + firstIndex + " to " + secondIndex));
-    return null;
+    return [];
 };
-stdlib.splice = function(ctx, val, start, n_elms, value){
+stdlib.splice = function(ctx, val, start, nElements, value){
     if(!types.isArray(val)){
         val = [val];
     }else if(val.length === 0){
-        throw new Error("Cannot .splice() an empty array");
+        return [];
     }
-    if(arguments.length < 4){
-        throw new Error("The .splice() operator needs more than one argument");
-    }
-    var startIndex = types.numericCast(start);
+    var startIndex = types.toNumberOrNull(start);
     if(startIndex === null){
         throw new TypeError("The .splice() operator cannot use " + types.toString(start) + "as an index");
     }
-    if(startIndex < 0){
-        throw new RangeError("Cannot start .splice() starting at index " + startIndex);
+    startIndex = Math.min(Math.max(startIndex, 0), val.length - 1);
+
+    var n_elm = types.toNumberOrNull(nElements);
+    if(n_elm === null){
+        throw new TypeError("The .splice() operator cannot use " + types.toString(nElements) + "as a number of elements");
     }
-    if(startIndex >= val.length){
-        throw new RangeError("Cannot .splice() an array of length " + val.length + " starting at index " + startIndex);
-    }
-    var n_elms_number = types.numericCast(n_elms);
-    if(n_elms_number === null){
-        throw new TypeError("The .splice() operator cannot use " + types.toString(n_elms) + "as a number of elements");
-    }
-    if(n_elms_number < 0 || startIndex + n_elms_number > val.length){
-        n_elms_number = val.length - startIndex;
+    if(n_elm < 0 || startIndex + n_elm > val.length){
+        n_elm = val.length - startIndex;
     }
     var part1 = _.slice(val, 0, startIndex);
-    var part2 = _.slice(val, startIndex + n_elms);
+    var part2 = _.slice(val, startIndex + n_elm);
     if(arguments.length < 5){
         return _.concat(part1, part2);
     }
