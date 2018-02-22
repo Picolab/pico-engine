@@ -754,24 +754,24 @@ module.exports = function(opts){
         //
         // event state machine and aggregators
         //
-        getStateMachineState: function(pico_id, rule, callback){
+        getStateMachine: function(pico_id, rule, callback){
             var key = ["state_machine", pico_id, rule.rid, rule.name];
-            ldb.get(key, function(err, curr_state){
+            ldb.get(key, function(err, data){
                 if(err){
                     if(err.notFound){
-                        curr_state = {state: "start"};
+                        data = {state: "start"};
                     }else{
                         return callback(err);
                     }
                 }
-                callback(undefined, _.has(rule.select.state_machine, curr_state.state)
-                    ? curr_state
+                callback(undefined, _.has(rule.select.state_machine, data.state)
+                    ? data
                     : {state: "start"});
             });
         },
-        putStateMachineState: function(pico_id, rule, state, callback){
+        putStateMachine: function(pico_id, rule, data, callback){
             var key = ["state_machine", pico_id, rule.rid, rule.name];
-            ldb.put(key, state, callback);
+            ldb.put(key, data, callback);
         },
 
 
