@@ -39,9 +39,7 @@ module.exports = function(core){
                 callback();
                 return;
             }
-            ctx.addActionResponse(ctx, "event:send", {
-                event: event,
-            });
+            core.signalEvent(event);
             callback();
         }),
     };
