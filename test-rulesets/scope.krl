@@ -28,12 +28,25 @@ ruleset io.picolabs.scope {
             n + g1;
         })
     }
-    rule eventex {
-        select when scope event0 name re#^(.*)$# setting(my_name)
+    rule eventOr {
+        select when scope eventOr0 name re#^(.*)$# setting(name0)
             or
-            scope event1
+            scope eventOr1 name re#^(.*)$# setting(name1)
 
-        send_directive("say", {"name": my_name});
+        send_directive("eventOr", {
+            "name0": name0,
+            "name1": name1
+        });
+    }
+    rule eventAnd {
+        select when scope eventAnd0 name re#^(.*)$# setting(name0)
+            and
+            scope eventAnd1 name re#^(.*)$# setting(name1)
+
+        send_directive("eventAnd", {
+            "name0": name0,
+            "name1": name1
+        });
     }
     rule prelude_scope {
         select when scope prelude name re#^(.*)$# setting(name)

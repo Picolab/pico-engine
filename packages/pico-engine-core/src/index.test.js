@@ -450,18 +450,29 @@ test("PicoEngine - io.picolabs.scope ruleset", function(t){
         var signal = mkSignalTask(pe, "id1");
 
         testOutputs(t, [
+
+            // Testing how setting() variables work on `or`
             [
-                signal("scope", "event0", {name: "name 0"}),
-                [{name: "say", options: {name: "name 0"}}]
+                signal("scope", "eventOr0", {name: "000"}),
+                [{name: "eventOr", options: {name0: "000", name1: void 0}}]
             ],
             [
-                signal("scope", "event1", {name: "name 1"}),
-                [{name: "say", options: {name: undefined}}]
+                signal("scope", "eventOr1", {name: "111"}),
+                [{name: "eventOr", options: {name0: void 0, name1: "111"}}]
             ],
             [
-                signal("scope", "event0", {}),
-                [{name: "say", options: {name: ""}}]
+                signal("scope", "eventOr0", {}),
+                [{name: "eventOr", options: {name0: "", name1: void 0}}]
             ],
+
+            // setting() variables should be persisted until the rule fires
+            [signal("scope", "eventAnd0", {name: "000"}), []],
+            [
+                signal("scope", "eventAnd1", {name: "111"}),
+                [{name: "eventAnd", options: {name0: "000", name1: "111"}}]
+            ],
+
+            // Testing the scope of the prelude block
             [
                 signal("scope", "prelude", {name: "Bill"}),
                 [{name: "say", options: {
