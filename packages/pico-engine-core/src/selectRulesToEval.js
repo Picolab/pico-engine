@@ -55,11 +55,10 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
 
     if(_.isFunction(rule.select && rule.select.within)){
 
-        var last_restart = yield core.db.getStateMachineStartTimeYieldable(ctx.pico_id, rule);
-        if(!_.isNumber(last_restart)){
-            last_restart = ctx.event.timestamp.getTime();
+        if(!_.isNumber(curr_state.starttime)){
+            curr_state.starttime = ctx.event.timestamp.getTime();
         }
-        var diff = ctx.event.timestamp.getTime() - last_restart;
+        var diff = ctx.event.timestamp.getTime() - curr_state.starttime;
         var time_limit = yield runKRL(rule.select.within, core.mkCTX({
             rid: rule.rid,
             scope: rule.scope,
@@ -70,11 +69,7 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
 
         if(diff > time_limit){
             //time has expired, reset the state machine
-            curr_state = "start";
-        }
-
-        if(curr_state === "start"){
-            yield core.db.putStateMachineStartTimeYieldable(ctx.pico_id, rule, ctx.event.timestamp.getTime());
+            curr_state.state = "start";
         }
     }
 
@@ -84,9 +79,15 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
         event: ctx.event,
         pico_id: ctx.pico_id,
         rule_name: rule.name,
-    }), rule, curr_state, aggregateEvent(core, curr_state, rule));
+    }), rule, curr_state.state, aggregateEvent(core, curr_state.state, rule));
 
-    yield core.db.putStateMachineStateYieldable(ctx.pico_id, rule, next_state);
+
+    yield core.db.putStateMachineStateYieldable(ctx.pico_id, rule, {
+        state: next_state,
+        starttime: curr_state.state === "start"
+            ? ctx.event.timestamp.getTime()
+            : curr_state.starttime
+    });
 
     return next_state === "end";
 });

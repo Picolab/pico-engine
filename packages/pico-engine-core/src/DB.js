@@ -759,38 +759,19 @@ module.exports = function(opts){
             ldb.get(key, function(err, curr_state){
                 if(err){
                     if(err.notFound){
-                        curr_state = undefined;
+                        curr_state = {state: "start"};
                     }else{
                         return callback(err);
                     }
                 }
-                callback(undefined, _.has(rule.select.state_machine, curr_state)
+                callback(undefined, _.has(rule.select.state_machine, curr_state.state)
                     ? curr_state
-                    : "start");
+                    : {state: "start"});
             });
         },
         putStateMachineState: function(pico_id, rule, state, callback){
             var key = ["state_machine", pico_id, rule.rid, rule.name];
-            ldb.put(key, state || "start", callback);
-        },
-
-
-        getStateMachineStartTime: function(pico_id, rule, callback){
-            var key = ["state_machine_starttime", pico_id, rule.rid, rule.name];
-            ldb.get(key, function(err, time){
-                if(err){
-                    if(err.notFound){
-                        time = undefined;
-                    }else{
-                        return callback(err);
-                    }
-                }
-                callback(undefined, time);
-            });
-        },
-        putStateMachineStartTime: function(pico_id, rule, time, callback){
-            var key = ["state_machine_starttime", pico_id, rule.rid, rule.name];
-            ldb.put(key, time, callback);
+            ldb.put(key, state, callback);
         },
 
 
