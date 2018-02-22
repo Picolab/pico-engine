@@ -17,10 +17,10 @@ module.exports = function(core){
                 core.scheduler.rmCron(args.id);
 
                 core.db.removeScheduled(args.id, function(err){
-                    if(err) return callback(err);
+                    if(err && !err.notFound) return callback(err);
                     //if event `at` we need to update the schedule
                     core.scheduler.update();
-                    callback();
+                    callback(null, err && err.notFound ? false : true);
                 });
             }),
         }

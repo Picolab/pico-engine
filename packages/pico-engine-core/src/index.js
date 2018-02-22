@@ -611,6 +611,7 @@ module.exports = function(conf){
         pe.newPico = db.newPico;
         pe.newPolicy = db.newPolicy;
         pe.newChannel = db.newChannel;
+        pe.scheduleEventAtYieldable = db.scheduleEventAtYieldable;
         pe.scheduler = core.scheduler;
         pe.modules = modules;
     }

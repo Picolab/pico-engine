@@ -7,6 +7,7 @@ require("./modules/engine.test");
 require("./modules/event.test");
 require("./modules/math.test");
 require("./modules/random.test");
+require("./modules/schedule.test");
 require("./cleanEvent.test");
 require("./cleanQuery.test");
 require("./runAction.test");
