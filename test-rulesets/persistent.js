@@ -31,7 +31,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -40,7 +40,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("my_name", matches[0]);
+            setting("my_name", matches[0]);
             return true;
           }
         },
@@ -71,7 +71,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "appvar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -80,7 +80,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("my_appvar", matches[0]);
+            setting("my_appvar", matches[0]);
             return true;
           }
         },
@@ -111,7 +111,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "user_firstname": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -120,7 +120,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("firstname", matches[0]);
+            setting("firstname", matches[0]);
             return true;
           }
         },
@@ -155,7 +155,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "clear_user": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -183,7 +183,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "clear_appvar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },

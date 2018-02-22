@@ -464,12 +464,36 @@ test("PicoEngine - io.picolabs.scope ruleset", function(t){
                 signal("scope", "eventOr0", {}),
                 [{name: "eventOr", options: {name0: "", name1: void 0}}]
             ],
+            [
+                signal("scope", "eventOr1", {name: "?"}),
+                [{name: "eventOr", options: {name0: void 0, name1: "?"}}]
+            ],
 
             // setting() variables should be persisted until the rule fires
             [signal("scope", "eventAnd0", {name: "000"}), []],
             [
                 signal("scope", "eventAnd1", {name: "111"}),
                 [{name: "eventAnd", options: {name0: "000", name1: "111"}}]
+            ],
+
+
+            // setting() variables should be persisted until the rule fires or time runs out
+            [signal("scope", "eventWithin1", {name: "111"}, new Date(10000000000000)), []],
+            [
+                signal("scope", "eventWithin2", {name: "222"}, new Date(10000000000007)),
+                [{name: "eventWithin", options: {name1: "111", name2: "222"}}]
+            ],
+            // now let too much time pass for it to remember 111
+            [signal("scope", "eventWithin1", {name: "111"}, new Date(10000000000000)), []],
+            [signal("scope", "eventWithin0", {}, new Date(10000000007000)), []],
+            [
+                signal("scope", "eventWithin2", {name: "222"}, new Date(10000000007007)),
+                [{name: "eventWithin", options: {name1: void 0, name2: "222"}}]
+            ],
+            [signal("scope", "eventWithin1", {name: "aaa"}, new Date(10000000007008)), []],
+            [
+                signal("scope", "eventWithin3", {}, new Date(10000000007009)),
+                [{name: "eventWithin", options: {name1: "aaa", name2: void 0}}]
             ],
 
             // Testing the scope of the prelude block

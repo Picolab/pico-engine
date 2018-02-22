@@ -23,7 +23,7 @@ module.exports = {
       "select": {
         "graph": { "echo": { "hello": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },

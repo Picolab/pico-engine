@@ -56,7 +56,7 @@ module.exports = {
       "select": {
         "graph": { "module_defined": { "store_memo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -65,7 +65,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("text", matches[0]);
+            setting("text", matches[0]);
             return true;
           }
         },

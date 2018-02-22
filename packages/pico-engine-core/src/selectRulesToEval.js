@@ -11,9 +11,9 @@ var getAttrString = function(ctx, attr){
         : "";
 };
 
-var evalExpr = cocb.wrap(function*(ctx, rule, aggregator, exp){
+var evalExpr = cocb.wrap(function*(ctx, rule, aggregator, exp, setting){
     var recur = function*(e){
-        return yield evalExpr(ctx, rule, aggregator, e);
+        return yield evalExpr(ctx, rule, aggregator, e, setting);
     };
     if(_.isArray(exp)){
         if(exp[0] === "not"){
@@ -30,15 +30,15 @@ var evalExpr = cocb.wrap(function*(ctx, rule, aggregator, exp){
     if(_.get(rule, ["select", "graph", domain, type, exp]) !== true){
         return false;
     }
-    return yield runKRL(rule.select.eventexprs[exp], ctx, aggregator, getAttrString);
+    return yield runKRL(rule.select.eventexprs[exp], ctx, aggregator, getAttrString, setting);
 });
 
-var getNextState = cocb.wrap(function*(ctx, rule, curr_state, aggregator){
+var getNextState = cocb.wrap(function*(ctx, rule, curr_state, aggregator, setting){
     var stm = rule.select.state_machine[curr_state];
 
     var i;
     for(i=0; i < stm.length; i++){
-        if(yield evalExpr(ctx, rule, aggregator, stm[i][0])){
+        if(yield evalExpr(ctx, rule, aggregator, stm[i][0], setting)){
             //found a match
             return stm[i][1];
         }
@@ -53,31 +53,55 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
 
     var sm_data = yield core.db.getStateMachineYieldable(ctx.pico_id, rule);
 
+    var bindings = sm_data.bindings || {};
+
     if(_.isFunction(rule.select && rule.select.within)){
 
         if(!_.isNumber(sm_data.starttime)){
             sm_data.starttime = ctx.event.timestamp.getTime();
         }
-        var diff = ctx.event.timestamp.getTime() - sm_data.starttime;
-        var time_limit = yield runKRL(rule.select.within, ctx);
+        var time_since_last = ctx.event.timestamp.getTime() - sm_data.starttime;
 
-        if(diff > time_limit){
-            //time has expired, reset the state machine
+        // restore any stored variables in a temporary scope
+        var ctx2 = core.mkCTX(_.assign({}, ctx, {
+            scope: ctx.scope.push(),
+        }));
+        _.each(bindings, function(val, id){
+            ctx2.scope.set(id, val);
+        });
+        var time_limit = yield runKRL(rule.select.within, ctx2);
+
+        if(time_since_last > time_limit){
+            // time has expired, reset the state machine
             sm_data.state = "start";
         }
         if(sm_data.state === "start"){
             // set or reset the clock
             sm_data.starttime = ctx.event.timestamp.getTime();
+            bindings = {};
         }
     }
 
+    // restore any variables that were stored
+    _.each(bindings, function(val, id){
+        ctx.scope.set(id, val);
+    });
+
     var aggregator = aggregateEvent(core, sm_data.state, rule);
 
-    var next_state = yield getNextState(ctx, rule, sm_data.state, aggregator);
+    var setting = function(id, val){
+        ctx.scope.set(id, val);
+        bindings[id] = val;
+    };
+
+    var next_state = yield getNextState(ctx, rule, sm_data.state, aggregator, setting);
 
     yield core.db.putStateMachineYieldable(ctx.pico_id, rule, {
         state: next_state,
-        starttime: sm_data.starttime
+        starttime: sm_data.starttime,
+        bindings: next_state === "end"
+            ? {}
+            : bindings,
     });
 
     return next_state === "end";

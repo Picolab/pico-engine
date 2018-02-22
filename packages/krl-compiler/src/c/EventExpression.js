@@ -64,7 +64,7 @@ module.exports = function(ast, comp, e){
 
     _.each(ast.setting, function(s, i){
         fn_body.push(e(";",
-            e("call", e("id", "ctx.scope.set", s.loc), [
+            e("call", e("id", "setting", s.loc), [
                 e("str", s.value, s.loc),
                 e("get", e("id", "matches", s.loc), e("num", i, s.loc), s.loc)
             ], s.loc), s.loc));
@@ -94,5 +94,5 @@ module.exports = function(ast, comp, e){
 
     fn_body.push(e("return", e(true)));
 
-    return e("genfn", ["ctx", "aggregateEvent", "getAttrString"], fn_body);
+    return e("genfn", ["ctx", "aggregateEvent", "getAttrString", "setting"], fn_body);
 };

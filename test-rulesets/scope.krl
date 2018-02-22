@@ -48,6 +48,25 @@ ruleset io.picolabs.scope {
             "name1": name1
         });
     }
+    rule eventWithin {
+        select when (
+                scope eventWithin0
+                or
+                scope eventWithin1 name re#^(.*)$# setting(name1)
+            )
+            and
+            (
+                scope eventWithin2 name re#^(.*)$# setting(name2)
+                or
+                scope eventWithin3
+            )
+            within 1 second
+
+        send_directive("eventWithin", {
+            "name1": name1,
+            "name2": name2
+        });
+    }
     rule prelude_scope {
         select when scope prelude name re#^(.*)$# setting(name)
 
