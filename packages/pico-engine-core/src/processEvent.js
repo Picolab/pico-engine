@@ -63,12 +63,6 @@ var toResponse = function(ctx, type, val){
             }
         };
     }
-    if(type === "event:send"){
-        return {
-            type: "event:send",
-            event: val.event,
-        };
-    }
     throw new Error("Unsupported action response type: " + type);
 };
 
@@ -205,14 +199,6 @@ var processEvent = cocb.wrap(function*(core, ctx){
         }
         return responses;
     });
-
-    //handle event:send() actions
-    if(_.has(r, "event:send")){
-        _.each(r["event:send"], function(o){
-            core.signalEvent(o.event);
-        });
-        delete r["event:send"];
-    }
 
 
     if(_.has(r, "directive")){
