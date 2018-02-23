@@ -1,4 +1,4 @@
-# 0.45.0 - next
+# 0.45.0 - February 23, 2018
 
 * Automated migration from `io.picolabs.pico` to `io.picolabs.wrangler` - [4c64693](https://github.com/Picolab/pico-engine/commit/4c64693c3dee9d4ccebffd1d89880d418d9c3e1d)
 * Several fixes to `select .. setting() where ..` variable scope - [#362](https://github.com/Picolab/pico-engine/pull/362), [#329](https://github.com/Picolab/pico-engine/issues/329), [#358](https://github.com/Picolab/pico-engine/issues/358), [#359](https://github.com/Picolab/pico-engine/issues/359)
