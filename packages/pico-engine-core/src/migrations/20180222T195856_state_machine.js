@@ -4,6 +4,8 @@ var dbRange = require("../dbRange");
 module.exports = {
     up: function(ldb, callback){
 
+        var db_ops = [];
+
         var new_data = {};
 
         dbRange(ldb, {
@@ -25,10 +27,12 @@ module.exports = {
                 var rule_name = data.key[3];
 
                 _.set(new_data, [pico_id, rid, rule_name, "starttime"], data.value);
+
+                db_ops.push({type: "del", key: data.key});
+
             }, function(err){
                 if(err) return callback(err);
 
-                var db_ops = [];
                 _.each(new_data, function(data, pico_id){
                     _.each(data, function(data, rid){
                         _.each(data, function(value, rule_name){
