@@ -1,6 +1,6 @@
 {
   "name": "krl-generator",
-  "version": "0.44.0",
+  "version": "0.45.0",
   "description": "Generate KRL code given krl-ast as input. (pretty printer)",
   "main": "src/index.js",
   "scripts": {
@@ -28,7 +28,7 @@
     "contra": "^1.9.4",
     "diff-lines": "^1.1.0",
     "eslint": "^4.8.0",
-    "krl-parser": "^0.44.0",
+    "krl-parser": "^0.45.0",
     "onchange": "^3.2.1"
   },
   "dependencies": {

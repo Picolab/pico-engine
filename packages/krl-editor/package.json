@@ -1,6 +1,6 @@
 {
   "name": "krl-editor",
-  "version": "0.44.0",
+  "version": "0.45.0",
   "description": "In browser editor for KRL",
   "main": "src/index.js",
   "files": [
@@ -35,6 +35,6 @@
   },
   "dependencies": {
     "brace": "^0.11.0",
-    "krl-compiler": "^0.44.0"
+    "krl-compiler": "^0.45.0"
   }
 }
