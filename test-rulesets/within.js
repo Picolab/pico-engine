@@ -11,10 +11,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -53,10 +53,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -99,13 +99,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -153,7 +153,7 @@ module.exports = {
       "select": {
         "graph": { "qux": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;

@@ -158,6 +158,15 @@ test("compiler errors", function(t){
         "DEPRECATED change `keys:foo(name)` to `keys:foo{name}`"
     );
 
+    tstWarn(
+        "ruleset a{rule a{select when a a bb re#.# where a > 0 setting(bb)}}",
+        "DEPRECATED SYNTAX - Move the `where` clause to be after the `setting`"
+    );
+    tstWarn(
+        "ruleset a{rule a{select when a a setting(bb)}}",
+        "DEPRECATED SYNTAX - What are you `setting`? There are no attribute matches"
+    );
+
     t.end();
 });
 

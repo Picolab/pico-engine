@@ -363,6 +363,29 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
                 [{name: "where_match_empty_str", options: {}}]
             ],
             [
+                signal("events", "where_after_setting", {a: "one"}),
+                [{name: "where_after_setting", options: {}}]
+            ],
+            [
+                signal("events", "where_after_setting", {a: "two"}),
+                []
+            ],
+            [
+                // test that select() scope overrides the global scope
+                signal("events", "where_using_global", {a: "g one"}),
+                [{name: "where_using_global", options: {}}]
+            ],
+            [
+                // test that event:attr scope doesn't stomp over global
+                signal("events", "where_using_global", {a: "g one", global1: "haha! if this works the rule will not select"}),
+                [{name: "where_using_global", options: {}}]
+            ],
+            [
+                // test that event:attr scope doesn't stomp over setting()
+                signal("events", "where_using_global", {a: "g one", global0: "haha! if this works the rule will not select"}),
+                [{name: "where_using_global", options: {}}]
+            ],
+            [
                 signal("events", "implicit_match_0", {something: 0}),
                 [{name: "implicit_match_0", options: {}}]
             ],
@@ -427,18 +450,53 @@ test("PicoEngine - io.picolabs.scope ruleset", function(t){
         var signal = mkSignalTask(pe, "id1");
 
         testOutputs(t, [
+
+            // Testing how setting() variables work on `or`
             [
-                signal("scope", "event0", {name: "name 0"}),
-                [{name: "say", options: {name: "name 0"}}]
+                signal("scope", "eventOr0", {name: "000"}),
+                [{name: "eventOr", options: {name0: "000", name1: void 0}}]
             ],
             [
-                signal("scope", "event1", {name: "name 1"}),
-                [{name: "say", options: {name: undefined}}]
+                signal("scope", "eventOr1", {name: "111"}),
+                [{name: "eventOr", options: {name0: void 0, name1: "111"}}]
             ],
             [
-                signal("scope", "event0", {}),
-                [{name: "say", options: {name: ""}}]
+                signal("scope", "eventOr0", {}),
+                [{name: "eventOr", options: {name0: "", name1: void 0}}]
             ],
+            [
+                signal("scope", "eventOr1", {name: "?"}),
+                [{name: "eventOr", options: {name0: void 0, name1: "?"}}]
+            ],
+
+            // setting() variables should be persisted until the rule fires
+            [signal("scope", "eventAnd0", {name: "000"}), []],
+            [
+                signal("scope", "eventAnd1", {name: "111"}),
+                [{name: "eventAnd", options: {name0: "000", name1: "111"}}]
+            ],
+
+
+            // setting() variables should be persisted until the rule fires or time runs out
+            [signal("scope", "eventWithin1", {name: "111"}, new Date(10000000000000)), []],
+            [
+                signal("scope", "eventWithin2", {name: "222"}, new Date(10000000000007)),
+                [{name: "eventWithin", options: {name1: "111", name2: "222"}}]
+            ],
+            // now let too much time pass for it to remember 111
+            [signal("scope", "eventWithin1", {name: "111"}, new Date(10000000000000)), []],
+            [signal("scope", "eventWithin0", {}, new Date(10000000007000)), []],
+            [
+                signal("scope", "eventWithin2", {name: "222"}, new Date(10000000007007)),
+                [{name: "eventWithin", options: {name1: void 0, name2: "222"}}]
+            ],
+            [signal("scope", "eventWithin1", {name: "aaa"}, new Date(10000000007008)), []],
+            [
+                signal("scope", "eventWithin3", {}, new Date(10000000007009)),
+                [{name: "eventWithin", options: {name1: "aaa", name2: void 0}}]
+            ],
+
+            // Testing the scope of the prelude block
             [
                 signal("scope", "prelude", {name: "Bill"}),
                 [{name: "say", options: {

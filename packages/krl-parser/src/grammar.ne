@@ -671,19 +671,53 @@ event_exp_fns -> event_exp_base {% id %}
 event_exp_base -> %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN {% getN(1) %}
     | IndividualEventExpression {% id %}
 
-IndividualEventExpression -> Identifier Identifier
-    event_exp_attribute_pair:*
-    (%tok_where event_exp_where):?
-    (%tok_setting %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN):? {%
+IndividualEventExpression ->
+    Identifier Identifier
+    (event_exp_attribute_pair:+ (%tok_setting %tok_OPEN_PAREN Identifier_list_body %tok_CLSE_PAREN):?):?
+    (%tok_where event_exp_where):? {%
   function(data){
     return {
       type: 'EventExpression',
       loc: mkLoc(data),
       event_domain: data[0],
       event_type: data[1],
-      event_attrs: data[2],
+      event_attrs: (data[2] && data[2][0]) || [],
+      setting: (data[2] && data[2][1] && data[2][1][2]) || [],
       where: data[3] && data[3][1],
-      setting: (data[4] && data[4][2]) || [],
+      aggregator: null//this is set by EventAggregator
+    };
+  }
+%}
+## DEPRECATED
+    | Identifier Identifier event_exp_attribute_pair:* %tok_where event_exp_where %tok_setting %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN {%
+  function(data){
+    return {
+      deprecated: "Move the `where` clause to be after the `setting`",
+
+      type: 'EventExpression',
+      loc: mkLoc(data),
+      event_domain: data[0],
+      event_type: data[1],
+      event_attrs: data[2],
+      where: data[4],
+      setting: data[7],
+      aggregator: null//this is set by EventAggregator
+    };
+  }
+%}
+## DEPRECATED
+    | Identifier Identifier %tok_setting %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN {%
+  function(data){
+    return {
+      deprecated: "What are you `setting`? There are no attribute matches",
+
+      type: 'EventExpression',
+      loc: mkLoc(data),
+      event_domain: data[0],
+      event_type: data[1],
+      event_attrs: [],
+      where: null,
+      setting: data[4],
       aggregator: null//this is set by EventAggregator
     };
   }

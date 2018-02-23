@@ -66,17 +66,17 @@ module.exports = {
     ]));
   },
   "rules": {
-    "eventex": {
-      "name": "eventex",
+    "eventOr": {
+      "name": "eventOr",
       "select": {
         "graph": {
           "scope": {
-            "event0": { "expr_0": true },
-            "event1": { "expr_1": true }
+            "eventOr0": { "expr_0": true },
+            "eventOr1": { "expr_1": true }
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -85,10 +85,19 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("my_name", matches[0]);
+            setting("name0", matches[0]);
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+            if (!m)
+              return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
+            setting("name1", matches[0]);
             return true;
           }
         },
@@ -109,8 +118,188 @@ module.exports = {
         var fired = true;
         if (fired) {
           yield runAction(ctx, void 0, "send_directive", [
-            "say",
-            { "name": ctx.scope.get("my_name") }
+            "eventOr",
+            {
+              "name0": ctx.scope.get("name0"),
+              "name1": ctx.scope.get("name1")
+            }
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "eventAnd": {
+      "name": "eventAnd",
+      "select": {
+        "graph": {
+          "scope": {
+            "eventAnd0": { "expr_0": true },
+            "eventAnd1": { "expr_1": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+            if (!m)
+              return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
+            setting("name0", matches[0]);
+            return true;
+          },
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+            if (!m)
+              return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
+            setting("name1", matches[0]);
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "s0"
+            ],
+            [
+              "expr_1",
+              "s1"
+            ]
+          ],
+          "s0": [[
+              "expr_1",
+              "end"
+            ]],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "eventAnd",
+            {
+              "name0": ctx.scope.get("name0"),
+              "name1": ctx.scope.get("name1")
+            }
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "eventWithin": {
+      "name": "eventWithin",
+      "select": {
+        "graph": {
+          "scope": {
+            "eventWithin0": { "expr_0": true },
+            "eventWithin1": { "expr_1": true },
+            "eventWithin2": { "expr_2": true },
+            "eventWithin3": { "expr_3": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          },
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+            if (!m)
+              return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
+            setting("name1", matches[0]);
+            return true;
+          },
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+            if (!m)
+              return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
+            setting("name2", matches[0]);
+            return true;
+          },
+          "expr_3": function* (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "s0"
+            ],
+            [
+              "expr_1",
+              "s0"
+            ],
+            [
+              "expr_2",
+              "s1"
+            ],
+            [
+              "expr_3",
+              "s1"
+            ]
+          ],
+          "s0": [
+            [
+              "expr_2",
+              "end"
+            ],
+            [
+              "expr_3",
+              "end"
+            ]
+          ],
+          "s1": [
+            [
+              "expr_0",
+              "end"
+            ],
+            [
+              "expr_1",
+              "end"
+            ]
+          ]
+        },
+        "within": function* (ctx) {
+          return 1 * 1000;
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", [
+            "eventWithin",
+            {
+              "name1": ctx.scope.get("name1"),
+              "name2": ctx.scope.get("name2")
+            }
           ], []);
         }
         if (fired)
@@ -124,7 +313,7 @@ module.exports = {
       "select": {
         "graph": { "scope": { "prelude": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -133,7 +322,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("name", matches[0]);
+            setting("name", matches[0]);
             return true;
           }
         },
@@ -173,7 +362,7 @@ module.exports = {
       "select": {
         "graph": { "scope": { "functions": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },

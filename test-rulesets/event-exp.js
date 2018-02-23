@@ -11,10 +11,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -50,10 +50,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -89,10 +89,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -145,10 +145,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -194,10 +194,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -236,13 +236,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -283,13 +283,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -332,13 +332,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -389,13 +389,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -452,13 +452,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -499,13 +499,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -546,13 +546,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -611,13 +611,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -715,16 +715,16 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_3": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_3": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -772,16 +772,16 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_3": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_3": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -878,7 +878,7 @@ module.exports = {
       "select": {
         "graph": { "ee_count": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -913,7 +913,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -960,7 +960,7 @@ module.exports = {
       "select": {
         "graph": { "ee_count_max": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1010,7 +1010,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_min": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1064,7 +1064,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_sum": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1118,7 +1118,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_avg": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1172,7 +1172,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_push": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1226,7 +1226,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_push_multi": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1312,7 +1312,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_sum_multi": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;

@@ -3,7 +3,34 @@ var _ = require("lodash");
 module.exports = function(ast, comp, e){
     //FYI the graph allready vetted the domain and type
 
+    if(ast.deprecated){
+        comp.warn(ast.loc, "DEPRECATED SYNTAX - " + ast.deprecated);
+    }
+
     var fn_body = [];
+
+    if(ast.where){
+        // inject attrs as varibles in the scope
+
+        fn_body.push(e("var", "event_attrs", e("ycall",
+            e("id", "ctx.modules.get"),
+            [e("id", "ctx"), e("str", "event"), e("str", "attrs")]
+        )));
+        var attrKeys = e("call", e("id", "Object.keys"), [e("id", "event_attrs")]);
+        fn_body.push(e(";", e("call", e(".", attrKeys, e("id", "forEach")), [
+            e("fn", ["attr"], [
+
+                // don't stomp over global scope
+                e("if", e("!", e("call", e("id", "ctx.scope.has"), [e("id", "attr")])),
+
+                    e(";", e("call", e("id", "ctx.scope.set"), [
+                        e("id", "attr"),
+                        e("get", e("id", "event_attrs"), e("id", "attr")),
+                    ]))
+                )
+            ])
+        ])));
+    }
 
     if(!_.isEmpty(ast.event_attrs)){
         // select when domain type <attr> re#..#
@@ -35,19 +62,17 @@ module.exports = function(ast, comp, e){
         fn_body.push(e("var", "matches", e("array", [])));
     }
 
-    if(ast.where){
-        fn_body.push(e("if", e("!", comp(ast.where, {
-            identifiers_are_event_attributes: true
-        })), e("return", e("false"))));
-    }
-
     _.each(ast.setting, function(s, i){
         fn_body.push(e(";",
-            e("call", e("id", "ctx.scope.set", s.loc), [
+            e("call", e("id", "setting", s.loc), [
                 e("str", s.value, s.loc),
                 e("get", e("id", "matches", s.loc), e("num", i, s.loc), s.loc)
             ], s.loc), s.loc));
     });
+
+    if(ast.where){
+        fn_body.push(e("if", e("!", comp(ast.where)), e("return", e("false"))));
+    }
 
     if(ast.aggregator){
         fn_body.push(e(";",
@@ -69,5 +94,5 @@ module.exports = function(ast, comp, e){
 
     fn_body.push(e("return", e(true)));
 
-    return e("genfn", ["ctx", "aggregateEvent", "getAttrString"], fn_body);
+    return e("genfn", ["ctx", "aggregateEvent", "getAttrString", "setting"], fn_body);
 };

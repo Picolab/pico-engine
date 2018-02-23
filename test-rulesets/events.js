@@ -21,6 +21,8 @@ module.exports = {
     ctx.scope.set("getSentName", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "sent_name");
     }));
+    ctx.scope.set("global0", "g zero");
+    ctx.scope.set("global1", "g one");
   },
   "rules": {
     "set_attr": {
@@ -28,7 +30,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "bind": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -37,7 +39,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("my_name", matches[0]);
+            setting("my_name", matches[0]);
             return true;
           }
         },
@@ -67,7 +69,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "set_attr2": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -81,8 +83,8 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("number", matches[0]);
-            ctx.scope.set("name", matches[1]);
+            setting("number", matches[0]);
+            setting("name", matches[1]);
             return true;
           }
         },
@@ -115,7 +117,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "get": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -146,7 +148,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "noop": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -170,7 +172,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "noop2": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -197,7 +199,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "ifthen": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -206,7 +208,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("my_name", matches[0]);
+            setting("my_name", matches[0]);
             return true;
           }
         },
@@ -233,7 +235,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "on_fired": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -242,7 +244,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("my_name", matches[0]);
+            setting("my_name", matches[0]);
             return true;
           }
         },
@@ -275,7 +277,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "on_choose": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -284,7 +286,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("thing", matches[0]);
+            setting("thing", matches[0]);
             return true;
           }
         },
@@ -324,7 +326,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "on_choose_if": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -333,7 +335,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("thing", matches[0]);
+            setting("thing", matches[0]);
             return true;
           }
         },
@@ -376,7 +378,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "on_every": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -404,7 +406,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "on_sample": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -441,7 +443,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "on_sample_if": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -481,9 +483,14 @@ module.exports = {
       "select": {
         "graph": { "events": { "select_where": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
             if (!(yield ctx.callKRLstdlib("match", [
-                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                ctx.scope.get("something"),
                 new RegExp("^wat", "")
               ])))
               return false;
@@ -513,9 +520,14 @@ module.exports = {
       "select": {
         "graph": { "events": { "where_match_0": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
             if (!(yield ctx.callKRLstdlib("match", [
-                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                ctx.scope.get("something"),
                 new RegExp("0", "")
               ])))
               return false;
@@ -545,9 +557,14 @@ module.exports = {
       "select": {
         "graph": { "events": { "where_match_null": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
             if (!(yield ctx.callKRLstdlib("match", [
-                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                ctx.scope.get("something"),
                 new RegExp("null", "")
               ])))
               return false;
@@ -577,9 +594,14 @@ module.exports = {
       "select": {
         "graph": { "events": { "where_match_false": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
             if (!(yield ctx.callKRLstdlib("match", [
-                yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
+                ctx.scope.get("something"),
                 new RegExp("false", "")
               ])))
               return false;
@@ -609,7 +631,12 @@ module.exports = {
       "select": {
         "graph": { "events": { "where_match_empty_str": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
             if (!(yield ctx.callKRLstdlib("match", [
                 yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
                 new RegExp("(?:)", "")
@@ -636,12 +663,104 @@ module.exports = {
           ctx.emit("debug", "not fired");
       }
     },
+    "where_after_setting": {
+      "name": "where_after_setting",
+      "select": {
+        "graph": { "events": { "where_after_setting": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("(.*)", "").exec(getAttrString(ctx, "a"));
+            if (!m)
+              return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
+            setting("a", matches[0]);
+            if (!(yield ctx.callKRLstdlib("==", [
+                ctx.scope.get("a"),
+                "one"
+              ])))
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["where_after_setting"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "where_using_global": {
+      "name": "where_using_global",
+      "select": {
+        "graph": { "events": { "where_using_global": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            var event_attrs = yield ctx.modules.get(ctx, "event", "attrs");
+            Object.keys(event_attrs).forEach(function (attr) {
+              if (!ctx.scope.has(attr))
+                ctx.scope.set(attr, event_attrs[attr]);
+            });
+            var matches = [];
+            var m;
+            var j;
+            m = new RegExp("(.*)", "").exec(getAttrString(ctx, "a"));
+            if (!m)
+              return false;
+            for (j = 1; j < m.length; j++)
+              matches.push(m[j]);
+            setting("global0", matches[0]);
+            if (!(yield ctx.callKRLstdlib("==", [
+                ctx.scope.get("global0"),
+                ctx.scope.get("global1")
+              ])))
+              return false;
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          yield runAction(ctx, void 0, "send_directive", ["where_using_global"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
     "implicit_match_0": {
       "name": "implicit_match_0",
       "select": {
         "graph": { "events": { "implicit_match_0": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -676,7 +795,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "implicit_match_null": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -711,7 +830,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "implicit_match_false": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -746,7 +865,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "implicit_match_empty_str": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -781,7 +900,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "no_action": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -819,7 +938,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "action_send": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -828,7 +947,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("my_name", matches[0]);
+            setting("my_name", matches[0]);
             return true;
           }
         },
@@ -861,7 +980,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "store_sent_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -870,7 +989,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("my_name", matches[0]);
+            setting("my_name", matches[0]);
             return true;
           }
         },
@@ -898,7 +1017,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "raise_set_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -907,7 +1026,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("my_name", matches[0]);
+            setting("my_name", matches[0]);
             return true;
           }
         },
@@ -939,7 +1058,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "raise_set_name_attr": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -948,7 +1067,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("my_name", matches[0]);
+            setting("my_name", matches[0]);
             return true;
           }
         },
@@ -980,7 +1099,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "raise_set_name_rid": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -989,7 +1108,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            ctx.scope.set("my_name", matches[0]);
+            setting("my_name", matches[0]);
             return true;
           }
         },
@@ -1022,7 +1141,7 @@ module.exports = {
       "select": {
         "graph": { "events": { "event_eid": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },

@@ -98,14 +98,14 @@ mk.unary = function(op, arg){
         arg: arg
     };
 };
-mk.ee = function(domain, type, attrs, where, setting, aggregator){
+mk.ee = function(domain, type, attrs, setting, where, aggregator){
     return {
         type: "EventExpression",
         event_domain: mk.id(domain),
         event_type: mk.id(type),
         event_attrs: attrs || [],
-        where: where || null,
         setting: setting ? setting.map(mk.id) : [],
+        where: where || null,
         aggregator: aggregator || null
     };
 };
@@ -1157,10 +1157,22 @@ test("EventExpression", function(t){
         aggregator: null
     });
 
-    testEE("a b setting(c) or d e setting(f) before g h", mk.eventOp("or", [
-        mk.ee("a", "b", [], null, ["c"]),
+    testEE("a b a re#.# setting(c) or d e a re#.# setting(f) before g h", mk.eventOp("or", [
+        mk.ee("a", "b", [
+            {
+                type: "AttributeMatch",
+                key: mk.id("a"),
+                value: mk(/./)
+            }
+        ], ["c"]),
         mk.eventOp("before", [
-            mk.ee("d", "e", [], null, ["f"]),
+            mk.ee("d", "e", [
+                {
+                    type: "AttributeMatch",
+                    key: mk.id("a"),
+                    value: mk(/./)
+                }
+            ], ["f"]),
             mk.ee("g", "h")
         ])
     ]));
@@ -1205,7 +1217,7 @@ test("EventExpression", function(t){
     testEE("count 5 (a b) max(d)", mk.eventGroupOp(
         "count",
         mk(5),
-        mk.ee("a", "b", [], null, [], {
+        mk.ee("a", "b", [], [], null, {
             type: "EventAggregator",
             op: "max",
             args: [mk.id("d")]
@@ -1216,7 +1228,7 @@ test("EventExpression", function(t){
         testEE("repeat 5 (a b) " + op + "(c)", mk.eventGroupOp(
             "repeat",
             mk(5),
-            mk.ee("a", "b", [], null, [], {
+            mk.ee("a", "b", [], [], null, {
                 type: "EventAggregator",
                 op: op,
                 args: [mk.id("c")]

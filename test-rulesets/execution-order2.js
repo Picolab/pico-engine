@@ -12,7 +12,7 @@ module.exports = {
       "select": {
         "graph": { "execution_order": { "reset_order": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -45,10 +45,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -85,7 +85,7 @@ module.exports = {
       "select": {
         "graph": { "execution_order": { "foo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -116,7 +116,7 @@ module.exports = {
       "select": {
         "graph": { "execution_order": { "bar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString) {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },

@@ -23,4 +23,5 @@ module.exports = {
     "20170823T213214_admin_eci": require("./20170823T213214_admin_eci"),
     "20171031T182007_pvar_index": require("./20171031T182007_pvar_index"),
     "20171117T191959_admin_policy_id": require("./20171117T191959_admin_policy_id"),
+    "20180222T195856_state_machine": require("./20180222T195856_state_machine"),
 };
