@@ -1,7 +1,15 @@
-# 0.4x.x - next
+# 0.45.0 - next
 
-* Prevent ruleset dependency cycles - ([see #260](https://github.com/Picolab/pico-engine/issues/260))
-
+* Several fixes to `select .. setting() where ..` variable scope - [#362](https://github.com/Picolab/pico-engine/pull/362), [#329](https://github.com/Picolab/pico-engine/issues/329), [#358](https://github.com/Picolab/pico-engine/issues/358), [#359](https://github.com/Picolab/pico-engine/issues/359)
+* Fixing type coercion behavior to be consistent especially for numbers and comparison operators - [#357](https://github.com/Picolab/pico-engine/issues/357), [#361](https://github.com/Picolab/pico-engine/pull/361)
+* KRL editor `ctrl+S` binding - [#356](https://github.com/Picolab/pico-engine/issues/356)
+* `schedule:remove(id)` returns true/false instead of throwing an error - [#363](https://github.com/Picolab/pico-engine/issues/363)
+* KRL editor syntax highlight fix - [#355](https://github.com/Picolab/pico-engine/issues/355)
+* Removing unused syntax - [#291](https://github.com/Picolab/pico-engine/issues/291), [#293](https://github.com/Picolab/pico-engine/issues/293)
+* Prevent ruleset dependency cycles - [#260](https://github.com/Picolab/pico-engine/issues/260), [#261](https://github.com/Picolab/pico-engine/issues/261)
+* `event:send` now signals the event right away instead of waiting for the rules to complete - [#364](https://github.com/Picolab/pico-engine/pull/364)
+* UI fixes - [9647717](https://github.com/Picolab/pico-engine/commit/9647717f9fae11f169820720b2747715d935ae38), [fa506d1](https://github.com/Picolab/pico-engine/commit/fa506d1733cb6c48c21396225e37c6167028f649), [94c1b63](https://github.com/Picolab/pico-engine/commit/94c1b63e001568a5b0701a0664e9595ecf0b0438), [a7ad98d](https://github.com/Picolab/pico-engine/commit/a7ad98d0a22b5278899115dbbddb5722cd8ad982), [97f7d5d](https://github.com/Picolab/pico-engine/commit/97f7d5ded3fbc4fabbe38d5829af9e5f940dd3000)
+* Store password as one way hash [5954b41](https://github.com/Picolab/pico-engine/commit/5954b41f05858cfab62b94831dd730c711561293)
 
 # 0.44.1 - January 15, 2018
 
