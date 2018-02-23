@@ -1,5 +1,6 @@
 # 0.45.0 - next
 
+* Automated migration from `io.picolabs.pico` to `io.picolabs.wrangler`
 * Several fixes to `select .. setting() where ..` variable scope - [#362](https://github.com/Picolab/pico-engine/pull/362), [#329](https://github.com/Picolab/pico-engine/issues/329), [#358](https://github.com/Picolab/pico-engine/issues/358), [#359](https://github.com/Picolab/pico-engine/issues/359)
 * Fixing type coercion behavior to be consistent especially for numbers and comparison operators - [#357](https://github.com/Picolab/pico-engine/issues/357), [#361](https://github.com/Picolab/pico-engine/pull/361)
 * KRL editor `ctrl+S` binding - [#356](https://github.com/Picolab/pico-engine/issues/356)
