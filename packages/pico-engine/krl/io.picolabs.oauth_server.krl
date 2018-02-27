@@ -117,7 +117,7 @@ ruleset io.picolabs.oauth_server {
         "reqid": reqid
       });
     fired {
-      ent:requests{reqid} := event:attrs();
+      ent:requests{reqid} := event:attrs;
       clear ent:client; last
     }
   }
