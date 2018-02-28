@@ -182,13 +182,19 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       callback({ "id": thePicoInp.id, "eci": thePicoInp.admin_eci, "channel": theChannels });
     } else if (label == "Subscriptions") {
       var theSubscriptions = {};
+      var subscriptionsCount = 0;
       var subscriptions = get(db_dump.pico,[thePicoInp.id,"io.picolabs.subscription","vars","established"]);
       if (subscriptions) {
         Object.keys(subscriptions).forEach(function(id){
-          theSubscriptions[id] = JSON.stringify(subscriptions[id],undefined,2);
+          ++subscriptionsCount;
+          theSubscriptions[id] = subscriptions[id];
+          theSubscriptions[id].asString = JSON.stringify(subscriptions[id],undefined,2);
+          var subs_eci = subscriptions[id].Tx;
+          var pico = { id: get(db_dump.channel,[subs_eci,"pico_id"])};
+          theSubscriptions[id].name = getV(pico,"dname");
         });
       }
-      callback({"subscriptions":theSubscriptions});
+      callback({"subscriptions":subscriptionsCount ? theSubscriptions : false});
     } else {
       callback(thePicoInp);
     }
