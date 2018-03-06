@@ -757,14 +757,10 @@ module.exports = function(opts){
         getStateMachine: function(pico_id, rule, callback){
             var key = ["state_machine", pico_id, rule.rid, rule.name];
             ldb.get(key, function(err, data){
-                if(err){
-                    if(err.notFound){
-                        data = {state: "start"};
-                    }else{
-                        return callback(err);
-                    }
+                if(err && !err.notFound){
+                    return callback(err);
                 }
-                callback(undefined, _.has(rule.select.state_machine, data.state)
+                callback(undefined, _.has(rule.select.state_machine, data && data.state)
                     ? data
                     : {state: "start"});
             });
