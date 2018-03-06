@@ -345,16 +345,18 @@ Results
 {{/if}}
 </script>
 <script id="subscriptions-template" type="text/x-handlebars-template">
+{{#unless subscriptions}}
 Subscriptions
-{{#if subscriptions}}
+{{else}}
+Subscriptions established
 <ul class="subscriptions-list" style="list-style: none;padding:0">
 {{#each subscriptions}}
-<li><input type="checkbox">{{@key}}
-<pre>{{this}}</pre>
+<li><input type="checkbox"> to pico "{{name}}" (did:npe:{{Tx}})
+<pre>{{this.asString}}</pre>
 </li>
 {{/each}}
 </ul>
-{{/if}}
+{{/unless}}
 <!--
 <p></p>
 <form class="js-ajax-form" action="/sky/event/{{eci}}/subscr/wrangler/subscription" method="GET">

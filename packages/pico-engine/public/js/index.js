@@ -182,13 +182,19 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       callback({ "id": thePicoInp.id, "eci": thePicoInp.admin_eci, "channel": theChannels });
     } else if (label == "Subscriptions") {
       var theSubscriptions = {};
-      var subscriptions = get(db_dump.pico,[thePicoInp.id,"io.picolabs.subscription","vars","subscriptions"]);
+      var subscriptionsCount = 0;
+      var subscriptions = get(db_dump.pico,[thePicoInp.id,"io.picolabs.subscription","vars","established"]);
       if (subscriptions) {
         Object.keys(subscriptions).forEach(function(id){
-          theSubscriptions[id] = JSON.stringify(subscriptions[id],undefined,2);
+          ++subscriptionsCount;
+          theSubscriptions[id] = subscriptions[id];
+          theSubscriptions[id].asString = JSON.stringify(subscriptions[id],undefined,2);
+          var subs_eci = subscriptions[id].Tx;
+          var pico = { id: get(db_dump.channel,[subs_eci,"pico_id"])};
+          theSubscriptions[id].name = getV(pico,"dname");
         });
       }
-      callback({"subscriptions":theSubscriptions});
+      callback({"subscriptions":subscriptionsCount ? theSubscriptions : false});
     } else {
       callback(thePicoInp);
     }
@@ -481,12 +487,11 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           var limitI = Math.min(i,45);
           walkPico(cp,dNumber*10+i+1,left+(limitI*10)+20,top+20);
         }
-        var subscriptions = get(db_dump.pico,[pico.id,"io.picolabs.subscription","vars","subscriptions"]);
+        var subscriptions = get(db_dump.pico,[pico.id,"io.picolabs.subscription","vars","established"]);
         if (subscriptions) {
           for ( var k in subscriptions ) {
-            var subs_status = get(subscriptions,[k,"attributes","status"]);
-            var subs_eci = get(subscriptions,[k,"attributes","subscriber_eci"]);
-            if (subs_status && subs_status==="subscribed" && subs_eci) {
+            var subs_eci = get(subscriptions,[k,"Tx"]);
+            if (subs_eci) {
               var subs_id = get(db_dump.channel,[subs_eci,"pico_id"]);
               if (subs_id) {
                 db_graph.chans.push({ class: pico.id +"-origin "+ subs_id +"-target subscription" });
