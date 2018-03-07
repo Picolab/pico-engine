@@ -194,7 +194,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           theSubscriptions[id].name = getV(pico,"dname");
         });
       }
-      callback({"subscriptions":subscriptionsCount ? theSubscriptions : false});
+      callback({eci:eci,"subscriptions":subscriptionsCount ? theSubscriptions : false});
     } else {
       callback(thePicoInp);
     }
