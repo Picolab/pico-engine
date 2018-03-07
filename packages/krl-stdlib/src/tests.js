@@ -231,6 +231,7 @@ test("infix operators", function(t){
     // <, >, <=, >= all use <=> under the hood
     tf("<", ["3", "20"], true);
     tf(">", ["a", "b"], false);
+    tf(">", ["2018-03-07", "2018-03-05"], true);
     tf("<=", ["a", "a"], true);
     tf("<=", ["a", "b"], true);
     tf("<=", ["b", "a"], false);
