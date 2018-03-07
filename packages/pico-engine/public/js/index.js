@@ -87,6 +87,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     var eci = findEciById(thePicoInp.id);
     if (label === "About") {
       var thePicoOut = {};
+      thePicoOut.pico_id = thePicoInp.id;
       thePicoOut.id = thePicoInp.id;
       thePicoOut.eci = eci;
       var pp_eci = getP(thePicoInp,"parent_eci",undefined);
@@ -152,6 +153,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     } else if (label === "Logging") {
       var logRID = "io.picolabs.logging";
       var theLoggingOut = {};
+      theLoggingOut.pico_id = thePicoInp.id;
       if (get(db_dump,["pico",thePicoInp.id,"ruleset",logRID,"on"])) {
         var theLoggingVars = get(db_dump,["pico",thePicoInp.id,logRID,"vars"]);
         theLoggingOut.status = theLoggingVars.status;
@@ -179,7 +181,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           theChannels.push(aChannel);
         }
       });
-      callback({ "id": thePicoInp.id, "eci": thePicoInp.admin_eci, "channel": theChannels });
+      callback({ "pico_id": thePicoInp.id, "id": thePicoInp.id, "eci": thePicoInp.admin_eci, "channel": theChannels });
     } else if (label == "Subscriptions") {
       var theSubscriptions = {};
       var subscriptionsCount = 0;
@@ -194,7 +196,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           theSubscriptions[id].name = getV(pico,"dname");
         });
       }
-      callback({eci:eci,"subscriptions":subscriptionsCount ? theSubscriptions : false});
+      callback({"pico_id": thePicoInp.id, eci:eci,"subscriptions":subscriptionsCount ? theSubscriptions : false});
     } else {
       callback(thePicoInp);
     }
@@ -290,9 +292,14 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           { swatches: "#ccc|#fcc|#7fffd4|#ccf|#ffc|#87CEFA|#fcf".split('|')});
         $('.minicolors-input-swatch').css('top',0);
         $('.minicolors-input-swatch').css('left',0);
-        d = theDB.id+"-About";
+        d = theDB.pico_id+"-About";
+        location.hash = d;
       } else if(liContent === "channels") {
-        d = theDB.id+"-Channels";
+        d = theDB.pico_id+"-Channels";
+        location.hash = d;
+      } else if(liContent === "subscriptions") {
+        d = theDB.pico_id+"-Subscriptions";
+        location.hash = d;
       } else if(liContent === "logging") {
         $("#logging-on").click(function(){
           $.getJSON("/sky/event/"+theDB.eci+"/logging-on/picolog/begin",function(){
@@ -306,6 +313,8 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           $("#logging-list").hide();
           $.getJSON("/sky/event/"+theDB.eci+"/logging-on/picolog/reset",function(){ });
         });
+        d = theDB.pico_id+"-Logging";
+        location.hash = d;
       }
       $theSection.find('.js-ajax-form').submit(function(e){
         e.preventDefault();
