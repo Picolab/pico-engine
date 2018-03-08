@@ -231,6 +231,8 @@ test("infix operators", function(t){
     // <, >, <=, >= all use <=> under the hood
     tf("<", ["3", "20"], true);
     tf(">", ["a", "b"], false);
+    tf(">", ["2018-03-07", "2018-03-05"], true);
+    tf(">", ["02", "1"], true);
     tf("<=", ["a", "a"], true);
     tf("<=", ["a", "b"], true);
     tf("<=", ["b", "a"], false);
@@ -285,6 +287,20 @@ test("type operators", function(t){
     tf("as", [{}, "Number"], 0);
     tf("as", [[1,2], "Number"], 2);
     tf("as", [{a:"b",z:"y",c:"d"}, "Number"], 3);
+    tf("as", ["", "Number"], 0);
+    tf("as", ["2018-03-07", "Number"], null);
+    tf("as", ["2018-03-07", "Number"], null);
+    tf("as", ["1,000", "Number"], null);
+    tf("as", ["1,000.25", "Number"], null);
+    tf("as", ["1000.25", "Number"], 1000.25);
+    tf("as", [" 123 ", "Number"], 123);
+    tf("as", [" 1 2 ", "Number"], null);
+    tf("as", [" +5  ", "Number"], 5);
+    tf("as", [" + 5  ", "Number"], null);
+    tf("as", ["0xAF", "Number"], 175);
+    tf("as", ["0o72", "Number"], 58);
+    tf("as", ["0b01101", "Number"], 13);
+    tf("as", ["0b02101", "Number"], null);
 
     t.equals(stdlib.as(defaultCTX, "^a.*z$", "RegExp").source, /^a.*z$/.source);
     var test_regex = /^a.*z$/;
@@ -305,6 +321,7 @@ test("type operators", function(t){
     tf("isnull", [{}], false);
 
     tf("typeof", [""], "String");
+    tf("typeof", ["1"], "String");
     tf("typeof", [0], "Number");
     tf("typeof", [-.01], "Number");
     tf("typeof", [10e10], "Number");
