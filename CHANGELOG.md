@@ -1,3 +1,13 @@
+# 0.45.1 - March 8, 2018
+
+* Fixing string to number coercion described in [#368](https://github.com/Picolab/pico-engine/issues/368). Fixes date compare issue [#369](https://github.com/Picolab/pico-engine/issues/369)
+* [b74dabb](https://github.com/Picolab/pico-engine/commit/b74dabb) - more consistent tab UX
+* [fbcc843](https://github.com/Picolab/pico-engine/commit/fbcc843) - initial attempt UI to delete subscription
+* [32bab20](https://github.com/Picolab/pico-engine/commit/32bab20) - fixing edge case for core.db.getStateMachine
+* [e200d6c](https://github.com/Picolab/pico-engine/commit/e200d6c) - first attempt at Subscriptions tab
+* [f747228](https://github.com/Picolab/pico-engine/commit/f747228) - first cut of UI work for subscriptions
+
+
 # 0.45.0 - February 23, 2018
 
 * Automated migration from `io.picolabs.pico` to `io.picolabs.wrangler` - [4c64693](https://github.com/Picolab/pico-engine/commit/4c64693c3dee9d4ccebffd1d89880d418d9c3e1d)
