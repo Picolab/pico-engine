@@ -102,7 +102,8 @@ types.toNumberOrNull = function(val){
     case "Boolean":
         return val ? 1 : 0;
     case "String":
-        return isNaN(val) ? null : parseFloat(val);
+        var n = _.toNumber(val);
+        return _.isNaN(n) ? null : n;
     case "Number":
         return val;
     case "Array":
