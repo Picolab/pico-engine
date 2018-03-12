@@ -364,7 +364,7 @@ Established subscriptions
 Outbound subscriptions
 <ul class="subscriptions-list" style="list-style: none;padding:0">
 {{#each outbound}}
-<li><input type="checkbox"> to pico "{{name}}" (did:npe:{{Tx}})
+<li><input type="checkbox"> to pico "{{name}}" (did:npe:{{wellKnown_Tx}})
 <a class="js-ajax-link" href="/sky/event/{{../eci}}/cancel-outbound/wrangler/outbound_cancellation?Rx={{this.Rx}}">del</a>
 <pre>{{this.asString}}</pre>
 </li>
