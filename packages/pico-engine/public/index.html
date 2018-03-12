@@ -345,19 +345,43 @@ Results
 {{/if}}
 </script>
 <script id="subscriptions-template" type="text/x-handlebars-template">
-{{#unless subscriptions}}
-Subscriptions
+{{#if disabled}}
+Subscriptions are disabled.
+To enable, add the ruleset "io.picolabs.subscriptions" to this pico.
 {{else}}
-Subscriptions established
+{{#if established}}
+Established subscriptions
 <ul class="subscriptions-list" style="list-style: none;padding:0">
-{{#each subscriptions}}
+{{#each established}}
 <li><input type="checkbox"> to pico "{{name}}" (did:npe:{{Tx}})
 <a class="js-ajax-link" href="/sky/event/{{../eci}}/delete-subscription/wrangler/subscription_cancellation?Rx={{this.Rx}}">del</a>
 <pre>{{this.asString}}</pre>
 </li>
 {{/each}}
 </ul>
-{{/unless}}
+{{/if}}
+{{#if outbound}}
+Outbound subscriptions
+<ul class="subscriptions-list" style="list-style: none;padding:0">
+{{#each outbound}}
+<li><input type="checkbox"> to pico "{{name}}" (did:npe:{{Tx}})
+<a class="js-ajax-link" href="/sky/event/{{../eci}}/cancel-outbound/wrangler/outbound_cancellation?Rx={{this.Rx}}">del</a>
+<pre>{{this.asString}}</pre>
+</li>
+{{/each}}
+</ul>
+{{/if}}
+{{#if inbound}}
+Inbound subscriptions
+<ul class="subscriptions-list" style="list-style: none;padding:0">
+{{#each inbound}}
+<li><input type="checkbox"> from pico "{{name}}" (did:npe:{{Tx}})
+<a class="js-ajax-link" href="/sky/event/{{../eci}}/reject-inbound/wrangler/inbound_rejection?Rx={{this.Rx}}">del</a>
+<pre>{{this.asString}}</pre>
+</li>
+{{/each}}
+</ul>
+{{/if}}
 <p>Propose new subscription</p>
 <form class="js-ajax-form" action="/sky/event/{{eci}}/subscr/wrangler/subscription" method="GET">
 <table>
@@ -378,6 +402,7 @@ Subscriptions established
 </table>
 <button type="submit">wrangler:subscription</button>
 </form>
+{{/if}}
 </script>
 </head>
 <body>

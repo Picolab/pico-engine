@@ -184,19 +184,33 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       callback({ "pico_id": thePicoInp.id, "id": thePicoInp.id, "eci": thePicoInp.admin_eci, "channel": theChannels });
     } else if (label == "Subscriptions") {
       var theSubscriptions = {};
-      var subscriptionsCount = 0;
-      var subscriptions = get(db_dump.pico,[thePicoInp.id,"io.picolabs.subscription","vars","established"]);
-      if (subscriptions) {
-        Object.keys(subscriptions).forEach(function(id){
-          ++subscriptionsCount;
-          theSubscriptions[id] = subscriptions[id];
-          theSubscriptions[id].asString = JSON.stringify(subscriptions[id],undefined,2);
-          var subs_eci = subscriptions[id].Tx;
-          var pico = { id: get(db_dump.channel,[subs_eci,"pico_id"])};
-          theSubscriptions[id].name = getV(pico,"dname");
-        });
+      theSubscriptions.pico_id = thePicoInp.id;
+      theSubscriptions.eci = eci;
+      var subsRID = "io.picolabs.subscription";
+      if (get(db_dump,["pico",thePicoInp.id,"ruleset",subsRID,"on"])) {
+      } else {
+        theSubscriptions.disabled = true;
       }
-      callback({"pico_id": thePicoInp.id, eci:eci,"subscriptions":subscriptionsCount ? theSubscriptions : false});
+      var theSubsVars = get(db_dump,["pico",thePicoInp.id,subsRID,"vars"]);
+      var recSubs = function(subsType) {
+        if (theSubsVars && theSubsVars[subsType]) {} else return;
+        var someSub = {};
+        var subCount = 0;
+        var theSubs = theSubsVars[subsType];
+        Object.keys(theSubs).forEach(function(id){
+          ++subCount;
+          someSub[id] = theSubs[id];
+          someSub[id].asString = JSON.stringify(theSubs[id],undefined,2);
+          var subs_eci = theSubs[id].Tx;
+          var pico = { id: get(db_dump.channel,[subs_eci,"pico_id"])};
+          someSub[id].name = getV(pico,"dname");
+        });
+        if(subCount) theSubscriptions[subsType] = someSub;
+      };
+      recSubs("established");
+      recSubs("outbound");
+      recSubs("inbound");
+      callback(theSubscriptions);
     } else {
       callback(thePicoInp);
     }
