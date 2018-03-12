@@ -378,6 +378,7 @@ Inbound subscriptions
 <li><input type="checkbox"> from pico "{{name}}" (did:npe:{{Tx}})
 <a class="js-ajax-link" href="/sky/event/{{../eci}}/reject-inbound/wrangler/inbound_rejection?Rx={{this.Rx}}">del</a>
 <pre>{{this.asString}}</pre>
+<pre><a class="js-ajax-link" href="/sky/event/{{../eci}}/accept-inbound/wrangler/pending_subscription_approval?Rx={{this.Rx}}">accept</a></pre>
 </li>
 {{/each}}
 </ul>

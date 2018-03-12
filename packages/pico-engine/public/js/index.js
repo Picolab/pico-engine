@@ -201,7 +201,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
           ++subCount;
           someSub[id] = theSubs[id];
           someSub[id].asString = JSON.stringify(theSubs[id],undefined,2);
-          var subs_eci = theSubs[id].Tx;
+          var subs_eci = theSubs[id].Tx || theSubs[id].wellKnown_Tx;
           var pico = { id: get(db_dump.channel,[subs_eci,"pico_id"])};
           someSub[id].name = getV(pico,"dname");
         });
