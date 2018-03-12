@@ -358,18 +358,26 @@ Subscriptions established
 {{/each}}
 </ul>
 {{/unless}}
-<!--
-<p></p>
+<p>Propose new subscription</p>
 <form class="js-ajax-form" action="/sky/event/{{eci}}/subscr/wrangler/subscription" method="GET">
-<input type="text" name="name" placeholder="name..."><br>
-<input type="text" name="name_space" placeholder="name_space..."><br>
-<input type="text" name="my_role" placeholder="my_role..."><br>
-<input type="text" name="subscriber_role" placeholder="subscriber_role..."><br>
-<input type="text" name="channel_type" placeholder="channel_type..." value="subscription"><br>
-<input type="text" name="subscriber_eci" placeholder="subscriber_eci..."><br>
-<button type="submit">add subscription</button>
+<table>
+<tr>
+<td>wellKnown_Tx</td>
+<td>Rx_role</td>
+<td>Tx_role</td>
+<td>name</td>
+<td>channel_type</td>
+</tr>
+<tr>
+<td><input type="text" name="wellKnown_Tx"></td>
+<td><input type="text" name="Rx_role"></td>
+<td><input type="text" name="Tx_role"></td>
+<td><input type="text" name="name"></td>
+<td><input type="text" name="channel_type" value="subscription"></td>
+</tr>
+</table>
+<button type="submit">wrangler:subscription</button>
 </form>
--->
 </script>
 </head>
 <body>
