@@ -1,3 +1,11 @@
+# 0.45.2 - March 12, 2018
+
+* Guess the `meta:host` rather than defaulting to localhost - [#370](https://github.com/Picolab/pico-engine/issues/370)
+* [85f2d35e](https://github.com/Picolab/pico-engine/commit/85f2d35e) display outbound DID
+* [bf3efbe0](https://github.com/Picolab/pico-engine/commit/bf3efbe0) a bit more subscriptions UI
+* [c4492a81](https://github.com/Picolab/pico-engine/commit/c4492a81) more subscriptions UI
+* [9b9d5655](https://github.com/Picolab/pico-engine/commit/9b9d5655) UI to propose new subscription
+
 # 0.45.1 - March 8, 2018
 
 * Fixing string to number coercion described in [#368](https://github.com/Picolab/pico-engine/issues/368). Fixes date compare issue [#369](https://github.com/Picolab/pico-engine/issues/369)
