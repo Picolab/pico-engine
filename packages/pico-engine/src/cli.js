@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var ip = require("ip");
 var path = require("path");
 var mkdirp = require("mkdirp");
 var readPkgUp = require("read-pkg-up");
@@ -54,7 +55,7 @@ conf.host = _.isString(pconf.host)
     : process.env.PICO_ENGINE_HOST || null
 ;
 if( ! _.isString(conf.host)){
-    conf.host = "http://localhost:" + conf.port;
+    conf.host = "http://" + ip.address() + ":" + conf.port;
 }
 
 

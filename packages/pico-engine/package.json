@@ -51,6 +51,7 @@
     "express": "^4.16.1",
     "file-url": "^2.0.2",
     "home-dir": "^1.0.0",
+    "ip": "^1.1.5",
     "krl-compiler": "^0.45.0",
     "krl-stdlib": "^0.45.1",
     "leveldown": "^2.0.0",
