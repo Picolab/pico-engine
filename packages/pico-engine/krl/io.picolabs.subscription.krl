@@ -269,7 +269,7 @@ ent:established [
     event:send({
           "eci"   : bus{"Tx"},
           "domain": "wrangler", "type": "established_removal",
-          "attrs" : event:attrs.put(["Rx"],bus{"Tx"}) // change perspective
+          "attrs" : event:attrs.put(["Rx"],bus{"Tx"}).put(["Tx"],bus{"RX"}) // change perspective
           }, Tx_host)
     always {
       raise wrangler event "established_removal" attributes event:attrs
