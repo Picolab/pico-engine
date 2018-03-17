@@ -30,11 +30,18 @@ test("module - event:send(event, host = null)", function(t){
     var server = http.createServer(function(req, res){
         server_reached = true;
 
-        t.equals(req.url, "/sky/event/some-eci/none/some-d/some-t?foo=bar");
+        var body = "";
+        req.on("data", function(buffer){
+            body += buffer.toString();
+        });
+        req.on("end", function(){
+            t.equals(req.url, "/sky/event/some-eci/none/some-d/some-t");
+            t.equals(body, "{\"foo\":{},\"bar\":[],\"baz\":{\"q\":\"[Function]\"}}");
 
-        res.end();
-        server.close();
-        t.end();
+            res.end();
+            server.close();
+            t.end();
+        });
     });
     server.listen(0, function(){
         var host = "http://localhost:" + server.address().port;
@@ -48,7 +55,7 @@ test("module - event:send(event, host = null)", function(t){
                         eci: "some-eci",
                         domain: "some-d",
                         type: "some-t",
-                        attrs: {foo: "bar"},
+                        attrs: {foo: {}, bar: [], baz: {"q": function(){}}},
                     },
                     host: host,
                 }))[0],

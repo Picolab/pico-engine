@@ -412,7 +412,7 @@ test("PicoEngine - io.picolabs.events ruleset", function(t){
             [query("getSentName"), "Bob"],
             [signal("events", "action_send", {name: "Jim"}), []],
             //this should in turn call store_sent_name and change it
-            [query("getSentAttrs"), {name: "Jim"}],
+            [query("getSentAttrs"), {name: "Jim", empty: [], r: "re#hi#i"}],
             [query("getSentName"), "Jim"],
 
             //////////////////////////////////////////////////////////////////////////

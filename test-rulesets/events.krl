@@ -204,7 +204,11 @@ ruleset io.picolabs.events {
             "eid": "0",
             "domain": "events",
             "type": "store_sent_name",
-            "attrs": {"name": my_name}
+            "attrs": {
+                "name": my_name,
+                "empty": [],
+                "r": re#hi#i
+            }
         });
     }
     rule store_sent_name {

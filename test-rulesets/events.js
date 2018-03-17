@@ -966,7 +966,11 @@ module.exports = {
               "eid": "0",
               "domain": "events",
               "type": "store_sent_name",
-              "attrs": { "name": ctx.scope.get("my_name") }
+              "attrs": {
+                "name": ctx.scope.get("my_name"),
+                "empty": [],
+                "r": new RegExp("hi", "i")
+              }
             }], []);
         }
         if (fired)

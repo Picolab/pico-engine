@@ -1,4 +1,5 @@
 var _ = require("lodash");
+var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
 var mkKRLaction = require("../mkKRLaction");
 var request = require("request");
@@ -30,9 +31,10 @@ module.exports = function(core){
                 url += "/" + event.domain;
                 url += "/" + event.type;
                 request({
-                    method: "GET",
+                    method: "POST",
                     url: url,
-                    qs: event.attrs,
+                    headers: {"content-type": "application/json"},
+                    body: ktypes.encode(event.attrs),
                 }, function(err, res, body){
                     //ignore it
                 });
