@@ -32,7 +32,7 @@ module.exports = {
               yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "foo"
             ]))
-            ctx.stopRulesetExecution();
+            ctx.stopRulesetExecution(ctx);
         }
       }
     },
@@ -66,7 +66,7 @@ module.exports = {
               yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "bar"
             ]))
-            ctx.stopRulesetExecution();
+            ctx.stopRulesetExecution(ctx);
         }
       }
     },
@@ -96,7 +96,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          ctx.stopRulesetExecution();
+          ctx.stopRulesetExecution(ctx);
         }
       }
     },

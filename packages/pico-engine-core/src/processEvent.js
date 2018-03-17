@@ -177,9 +177,11 @@ var processEvent = cocb.wrap(function*(core, ctx){
             responses.push(resp);
             return resp;
         },
-        stopRulesetExecution: function(){
+        stopRulesetExecution: function(ctx){
             ctx.emit("debug", "`last` control statement is stopping ruleset execution");
-            schedule = [];
+            schedule = _.dropWhile(schedule, function(s){
+                return s.rule.rid === ctx.rid;
+            });
         },
     };
 

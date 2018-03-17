@@ -2031,6 +2031,7 @@ test("PicoEngine - io.picolabs.last rulesets", function(t){
     mkTestPicoEngine({
         rootRIDs: [
             "io.picolabs.last",
+            "io.picolabs.last2",
         ],
     }, function(err, pe){
         if(err)return t.end(err);
@@ -2045,6 +2046,7 @@ test("PicoEngine - io.picolabs.last rulesets", function(t){
                     {name: "bar", options: {}},
                     {name: "baz", options: {}},
                     //qux doesn't run b/c baz stopped it
+                    {name: "last2 foo", options: {}},// still runs b/c it's a different rid
                 ]
             ],
             [
@@ -2052,12 +2054,14 @@ test("PicoEngine - io.picolabs.last rulesets", function(t){
                 [
                     {name: "foo", options: {}},
                     {name: "bar", options: {}},
+                    {name: "last2 foo", options: {}},
                 ]
             ],
             [
                 signal("last", "all", {stop: "foo"}),
                 [
                     {name: "foo", options: {}},
+                    {name: "last2 foo", options: {}},
                 ]
             ],
 
