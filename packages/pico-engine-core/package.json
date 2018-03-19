@@ -1,6 +1,6 @@
 {
   "name": "pico-engine-core",
-  "version": "0.45.1",
+  "version": "0.45.3",
   "description": "The core javascript api for the pico-engine. (no http, logging, process management etc...)",
   "main": "src/index.js",
   "files": [
@@ -30,7 +30,7 @@
   "devDependencies": {
     "eslint": "^4.8.0",
     "faucet": "0.0.1",
-    "krl-compiler": "^0.45.0",
+    "krl-compiler": "^0.45.3",
     "memdown": "^1.4.1",
     "onchange": "^3.2.1",
     "tape": "^4.6.0"
