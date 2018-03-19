@@ -1,3 +1,10 @@
+# 0.45.3 - March 19, 2018
+
+* Fixed `event:send` with empty attributes - [#371](https://github.com/Picolab/pico-engine/issues/371)
+* `last` should only stop evaluating the current ruleset - [#366](https://github.com/Picolab/pico-engine/issues/366)
+* [86f4c623](https://github.com/Picolab/pico-engine/commit/86f4c623) and [348f0c9b](https://github.com/Picolab/pico-engine/commit/348f0c9b) bug fix for subscriptions
+* [3f69e709](https://github.com/Picolab/pico-engine/commit/3f69e709) initial UI work for policies
+
 # 0.45.2 - March 12, 2018
 
 * Guess the `meta:host` rather than defaulting to localhost - [#370](https://github.com/Picolab/pico-engine/issues/370)
