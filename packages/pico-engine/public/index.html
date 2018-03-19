@@ -241,15 +241,17 @@ Available Rulesets
 <script id="channels-template" type="text/x-handlebars-template">
 Channels
 <table class="channel-table">
-<tr><th>id</th><th>name</th><th>type</th><th>&nbsp;</th></tr>
+<tr><th>id</th><th>&nbsp;</th><th>name</th><th>type</th><th>policy</th></tr>
 {{#each channel}}
 <tr>
-<td>{{id}}</td><td>{{name}}</td><td>{{type}}</td>
+<td>{{id}}</td>
 <td>
 {{#if canDel}}
 <a class="js-ajax-link" href="/api/pico/{{../id}}/rm-channel/{{id}}">del</a>
 {{/if}}
 </td>
+<td>{{name}}</td><td>{{type}}</td>
+<td>{{policy_id}}</td>
 </tr>
 {{/each}}
 </table>
