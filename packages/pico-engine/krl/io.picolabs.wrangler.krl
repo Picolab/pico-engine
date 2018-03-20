@@ -220,9 +220,9 @@ ruleset io.picolabs.wrangler {
         returns channel
     }
 
-    createChannel = defaction(id , name, type) {
+    createChannel = defaction(id , name, type, policy_id) {
       every{
-        engine:newChannel(id , name, type) setting(channel);
+        engine:newChannel(id , name, type, policy_id) setting(channel);
       }
       returns  channel
     }
@@ -384,7 +384,8 @@ ruleset io.picolabs.wrangler {
     if(checkName(channel_name) && not channel_name.isnull() ) then every {
       createChannel(meta:picoId,
                     channel_name,
-                    event:attr("type").defaultsTo("_wrangler")) setting(channel);
+                    event:attr("type").defaultsTo("_wrangler"),
+                    event:attr("policy_id")) setting(channel);
       send_directive("channel_Created", channel);
     }
     fired {

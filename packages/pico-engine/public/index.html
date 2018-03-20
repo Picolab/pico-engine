@@ -241,7 +241,8 @@ Available Rulesets
 <script id="channels-template" type="text/x-handlebars-template">
 Channels
 <table class="channel-table">
-<tr><th>id</th><th>&nbsp;</th><th>name</th><th>type</th><th>policy</th></tr>
+<tr><th>id</th><th>&nbsp;</th><th>name</th><th>type</th>
+<th>policy id</th><th>policy name</th></tr>
 {{#each channel}}
 <tr>
 <td>{{id}}</td>
@@ -251,7 +252,7 @@ Channels
 {{/if}}
 </td>
 <td>{{name}}</td><td>{{type}}</td>
-<td>{{policy_id}}</td>
+<td>{{policy_id}}</td><td>{{policy_name}}</td>
 </tr>
 {{/each}}
 </table>
@@ -259,6 +260,13 @@ Channels
 <form class="js-ajax-form" action="/sky/event/{{eci}}/0/wrangler/channel_creation_requested" method="GET">
 <input type="text" name="name" placeholder="name...">
 <input type="text" name="type" placeholder="type...">
+{{#if policy}}
+<select name="policy_id">
+{{#each policy}}
+<option value="{{id}}">{{name}}</option>
+{{/each}}
+</select>
+{{/if}}
 <button type="submit">add channel</button>
 </form>
 </script>
