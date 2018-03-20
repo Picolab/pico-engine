@@ -221,8 +221,10 @@ ruleset io.picolabs.wrangler {
     }
 
     createChannel = defaction(id , name, type, policy_id) {
-      every{
-        engine:newChannel(id , name, type, policy_id) setting(channel);
+      policy_present = policy_id.isnull() => "F" | "T";
+      choose policy_present {
+        T => engine:newChannel(id , name, type, policy_id) setting(channel);
+        F => engine:newChannel(id , name, type) setting(channel);
       }
       returns  channel
     }
