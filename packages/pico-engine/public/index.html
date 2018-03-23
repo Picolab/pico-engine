@@ -197,7 +197,9 @@ Do not disclose it or check it into a repository like GitHub.
 Pico Rulesets
 <ul id="ruleset-list" style="list-style: none;padding:0">
 {{#each installed}}
-<li><input type="checkbox"><span class="krlrid">{{@key}}</span>
+<li><input type="checkbox" id="installed-{{@index}}">
+<label for="installed-{{@index}}">{{@key}}</label>
+<a href="javascript:window.open('ruleset.html#{{@key}}','ruleset');void 0">edit</a>
 {{#if canDel}}
 <a class="js-ajax-link" href="/api/pico/{{../pico_id}}/rm-ruleset/{{@key}}">del</a>
 {{/if}}
@@ -310,7 +312,9 @@ Select an episode to see the log entries for that episode.
 Testing
 <ul class="testing-rids">
 {{#each testing}}
-<li><input type="checkbox"><span class="krlrid">{{this.rid}}</span>
+<li><input type="checkbox" id="testing-{{@index}}">
+<label class="krlrid" for="testing-{{@index}}">{{this.rid}}</label>
+<a href="javascript:window.open('ruleset.html#{{this.rid}}','ruleset');void 0">edit</a>
 </li>
 {{/each}}
 <li class="legend">Legend

@@ -243,7 +243,6 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       $theSection.html(tabTemplate(theDB));
       var d = "";
       if(liContent === "rulesets") {
-        $(".pico-edit .krlrid").click(displayKrl);
         d = theDB.pico_id+"-Rulesets";
         location.hash = d;
         $theSection.find('.rulesetFromURL').submit(function(e){
@@ -296,18 +295,18 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         $(".testing-rids li input").change(function(e){
           $("#test-results pre").html("");
           if(this.checked){
-            var $span = $(this).next(".krlrid");
-            if($span.next().length==0){
-              var rid = $span.text();
+            var $label = $(this).next(".krlrid");
+            let $editAnchor = $label.next("a");
+            if($editAnchor.next('ul').length==0){
+              var rid = $label.text();
               var eci = theDB.eci;
               $.getJSON("/sky/cloud/"+eci+"/"+rid+"/__testing",function(c){
-                $span.after(capTemplate({eci:eci,rid:rid,capabilities:c}));
-              }).fail(function(){$span.after("<ul></ul>");
+                $editAnchor.after(capTemplate({eci:eci,rid:rid,capabilities:c}));
+              }).fail(function(){$editAnchor.after("<ul></ul>");
               });
             }
           }
         });
-        $(".pico-edit .krlrid").click(displayKrl);
         location.hash = theDB.pico_id+"-Testing";
       } else if(liContent === "about") {
         $theSection.find('.use-minicolors').minicolors(
