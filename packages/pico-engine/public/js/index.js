@@ -223,9 +223,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       callback(thePicoInp);
     }
   }
-  var displayKrl = function() {
-    window.open("ruleset.html#"+$(this).html(),"ruleset").location.reload();
-  }
+  
   var renderTab =
     function(event){
       var authenticated = event.data.authenticated;
