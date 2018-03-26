@@ -106,10 +106,6 @@ a.logo {
 #ruleset-list li input[type="checkbox"]:checked ~ ul {
   display: block;
 }
-.krlrid:hover {
-  background-color: silver;
-  cursor: pointer;
-}
 .sky-cloud {
   margin: 0;
 }
