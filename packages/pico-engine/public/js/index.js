@@ -172,24 +172,20 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       callback({"pico_id": thePicoInp.id, "eci":eci, "testing":testing});
     } else if (label === "Channels") {
       var theChannels = [];
-      var thePolicies = {};
+      var thePolicies = get(db_dump,["policy"]);
       Object.keys(thePicoInp.channel).forEach(function(id){
         var aChannel = get(thePicoInp,["channel",id],undefined);
         if (aChannel) {
           if (aChannel.type!="secret" || aChannel.name!="admin") {
             aChannel.canDel = true;
           }
-          var policy_id = aChannel.policy_id;
-          var policy_name = thePolicies[policy_id];
-          if (!policy_name) {
-            policy_name = get(db_dump,["policy",policy_id,"name"]);
-            thePolicies[policy_id] = policy_name;
-          }
-          aChannel.policy_name = policy_name;
+          var the_policy = thePolicies[aChannel.policy_id];
+          aChannel.policy_name = the_policy.name;
+          aChannel.policy_text = JSON.stringify(the_policy,undefined,2);
           theChannels.push(aChannel);
         }
       });
-      callback({ "pico_id": thePicoInp.id, "id": thePicoInp.id, "eci": thePicoInp.admin_eci, "channel": theChannels, "policy": get(db_dump,["policy"]) });
+      callback({ "pico_id": thePicoInp.id, "id": thePicoInp.id, "eci": thePicoInp.admin_eci, "channel": theChannels, "policy": thePolicies });
     } else if (label == "Subscriptions") {
       var theSubscriptions = {};
       theSubscriptions.pico_id = thePicoInp.id;
