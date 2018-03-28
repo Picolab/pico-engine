@@ -5,3 +5,5 @@ node_modules
 /packages/pico-engine/pico-engine.log*
 /packages/pico-engine/pico-engine_test*
 did-simulator-eci.js
+package-lock.json
+yarn.lock

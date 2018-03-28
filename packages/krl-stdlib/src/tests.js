@@ -303,6 +303,11 @@ test("type operators", function(t){
     tf("as", ["0b02101", "Number"], null);
 
     t.equals(stdlib.as(defaultCTX, "^a.*z$", "RegExp").source, /^a.*z$/.source);
+    t.equals(stdlib.as(defaultCTX, null, "RegExp").source, "null");
+    t.equals(stdlib.as(defaultCTX, 123, "RegExp").source, "123");
+    t.equals(stdlib.as(defaultCTX, _.noop, "RegExp").source, "\\[Function\\]");
+    t.equals(stdlib.as(defaultCTX, "[Function]", "RegExp").source, "[Function]");
+
     var test_regex = /^a.*z$/;
     tf("as", [test_regex, "RegExp"], test_regex);
     tf("as", ["true", "Boolean"], true);

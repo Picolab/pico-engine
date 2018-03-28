@@ -186,9 +186,13 @@ stdlib.as = function(ctx, val, type){
         return types.toNumberOrNull(val);
     }
     if(type === "RegExp"){
-        if(val_type === "String"){
-            return new RegExp(val);
+        var regexSrc = types.toString(val);
+        if(val_type !== "String" && /^\[[a-z]+\]$/i.test(regexSrc)){
+            regexSrc = regexSrc
+                .replace(/^\[/, "\\[")
+                .replace(/\]$/, "\\]");
         }
+        return new RegExp(regexSrc);
     }
     throw new TypeError("Cannot use the .as(\""+type+"\") operator with " + types.toString(val) + " (type " + val_type + ")");
 };
