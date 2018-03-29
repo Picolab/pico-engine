@@ -1,3 +1,10 @@
+# 0.45.4 - March 29, 2018
+
+* CLI tool for `schedule:list` and `schedule:remove` - [be64ef7e](https://github.com/Picolab/pico-engine/commit/be64ef7e) [62b424fc](https://github.com/Picolab/pico-engine/commit/62b424fc)
+* `val.as("RegExp")` will now coerce any val to a string - [ca1c703f](https://github.com/Picolab/pico-engine/commit/ca1c703f)
+* Starting UI for policy - [4e243a15](https://github.com/Picolab/pico-engine/commit/4e243a15) [72cc2eec](https://github.com/Picolab/pico-engine/commit/72cc2eec) [0b285bdf](https://github.com/Picolab/pico-engine/commit/0b285bdf)
+* UI fixes - [96e4a933](https://github.com/Picolab/pico-engine/commit/96e4a933) [5ac1542d](https://github.com/Picolab/pico-engine/commit/5ac1542d) [44aedb9c](https://github.com/Picolab/pico-engine/commit/44aedb9c)
+
 # 0.45.3 - March 19, 2018
 
 * Fixed `event:send` with empty attributes - [#371](https://github.com/Picolab/pico-engine/issues/371)
