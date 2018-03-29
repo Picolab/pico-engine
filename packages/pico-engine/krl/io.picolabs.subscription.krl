@@ -69,6 +69,13 @@ ent:established [
   },...,...
 ]
 */
+    wellknown_Policy = { 
+    name: "wellknown",
+    event: {
+        allow: [
+            {domain: "wrangler", type: "subscription"}
+        ]
+    }
     autoAcceptConfig = function(){
       ent:autoAcceptConfig.defaultsTo({})
     }
@@ -127,7 +134,8 @@ ent:established [
     select when wrangler ruleset_added where rids >< meta:rid
     pre{ channel = wellKnown_Rx() }
     if(channel.isnull() || channel{"type"} != "Tx_Rx") then
-      engine:newChannel(meta:picoId, "wellKnown_Rx", "Tx_Rx")//wrangler:createChannel(...)
+      engine:newPolicy( wellknown_Policy ) setting(__wellknown_Policy)
+      engine:newChannel(pico_id = meta:picoId, name = "wellKnown_Rx", type = "Tx_Rx", policy_id = __wellknown_Policy{"id"}) //should be wrangler:createChannel(...)
     fired{
       raise Tx_Rx event "wellKnown_Rx_created" attributes event:attrs;
     }
