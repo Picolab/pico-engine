@@ -4,6 +4,7 @@ var path = require("path");
 var mkdirp = require("mkdirp");
 var readPkgUp = require("read-pkg-up");
 var PicoEngine = require("../");
+var cliCommands = require("./cliCommands");
 
 //parse the CLI args
 var args = require("minimist")(process.argv.slice(2), {
@@ -20,7 +21,16 @@ if(args.help){
     console.log("");
     console.log("USAGE");
     console.log("");
-    console.log("    pico-engine [--version] [--help|-h]");
+    console.log("    pico-engine [--version] [--help|-h] <command>");
+    console.log("");
+    console.log("Commands:");
+    console.log("    run                   this is the default");
+    console.log("    conf                  print out the configuration");
+    console.log("    schedule:list         list all the scheduled events");
+    console.log("    schedule:remove <id>  delete a given scheduled event");
+    console.log("    schedule:remove all   delete all scheduled events");
+    // TODO          db-dump <out-file>    dumps the db into a given json file, or stdout if no file is given
+    // TODO          krl-dump              extract all krl files in the db
     console.log("");
     console.log("Environment variables");
     console.log("    PORT - what port the http server should listen on. By default it's 8080");
@@ -83,6 +93,15 @@ _.each(pconf.modules, function(mod_path, id){
 });
 
 
+var command = (args._ && args._[0]) || "run";
+if(cliCommands[command]){
+    cliCommands[command](conf, args);
+    return;
+}
+if(command !== "run"){
+    console.error("Invalid command: " + command);
+    return;
+}
 ////////////////////////////////////////////////////////////////////////////////
 // start it up
 PicoEngine(conf);
