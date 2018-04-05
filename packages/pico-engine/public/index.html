@@ -115,6 +115,7 @@ http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt
 <li>About</li>
 <li>Rulesets</li>
 <li>Channels</li>
+<li>Policies</li>
 <li>Subscriptions</li>
 <li>Logging</li>
 <li>Testing</li>
@@ -418,6 +419,51 @@ Inbound subscriptions
 </table>
 <button type="submit">wrangler:subscription</button>
 </form>
+{{/if}}
+</script>
+<script id="policies-template" type="text/x-handlebars-template">
+{{#if disabled}}
+Policy display is disabled.
+To enable, add the ruleset "io.picolabs.policy" to this pico.
+{{else}}
+{{#if ui.used}}
+Policies used by this pico's channels
+<table class="channel-table">
+<tr>
+<th>policy id</th>
+<th>policy name</th>
+<th>event</th>
+<th>query</th>
+</tr>
+{{#each ui.used}}
+<tr>
+<td>{{@key}}</td>
+<td>{{name}}</td>
+<td>{{event}}</td>
+<td>{{query}}</td>
+<tr>
+{{/each}}
+</table>
+{{/if}}
+{{#if ui.unused}}
+Policies not used by this pico
+<table class="channel-table">
+<tr>
+<th>policy id</th>
+<th>policy name</th>
+<th>event</th>
+<th>query</th>
+</tr>
+{{#each ui.unused}}
+<tr>
+<td>{{@key}}</td>
+<td>{{name}}</td>
+<td>{{event}}</td>
+<td>{{query}}</td>
+<tr>
+{{/each}}
+</table>
+{{/if}}
 {{/if}}
 </script>
 </head>

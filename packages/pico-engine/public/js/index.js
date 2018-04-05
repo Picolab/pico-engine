@@ -215,6 +215,11 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       recSubs("outbound");
       recSubs("inbound");
       callback(theSubscriptions);
+    } else if (label == "Policies") {
+      var policy_ui = {"disabled": true, "pico_id": thePicoInp.id};
+      $.getJSON("/sky/cloud/"+eci+"/io.picolabs.policy/ui", function(ui){
+        callback({"pico_id": thePicoInp.id, "ui": ui, "text":JSON.stringify(ui,undefined,2)});
+      }).fail(function(){callback(policy_ui)});
     } else {
       callback(thePicoInp);
     }
@@ -314,6 +319,9 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         location.hash = d;
       } else if(liContent === "subscriptions") {
         d = theDB.pico_id+"-Subscriptions";
+        location.hash = d;
+      } else if(liContent === "policies") {
+        d = theDB.pico_id+"-Policies";
         location.hash = d;
       } else if(liContent === "logging") {
         $("#logging-on").click(function(){
