@@ -1,6 +1,7 @@
 var _ = require("lodash");
 var path = require("path");
 var express = require("express");
+var cookieParser = require("cookie-parser");
 var bodyParser = require("body-parser");
 var compiler = require("krl-compiler");
 var version = require("../package.json").version;
@@ -9,12 +10,13 @@ var mime = require("mime-types");
 
 var mergeGetPost = function(req){
     //give preference to post body params
-    return _.assign({}, req.query, req.body);
+    return _.assign({cookies:req.cookies}, req.query, req.body);
 };
 
 module.exports = function(pe){
 
     var app = express();
+    app.use(cookieParser());
     app.use(function(req, res, next) {
         res.header("Access-Control-Allow-Origin", "*");
         res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
