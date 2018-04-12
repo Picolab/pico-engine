@@ -69,7 +69,7 @@ ent:established [
   },...,...
 ]
 */
-    wellknown_Policy = { 
+    wellknown_Policy = { // we need to restrict what attributes are allowed on this channel, specifically Id. 
       "name": "wellknown",
       "event": {
           "allow": [
@@ -122,12 +122,14 @@ ent:established [
       random:word() 
     }
     pending_entry = function(){
-      roles = event:attr("Rx_role").isnull() => {} | {
+      roles  = event:attr("Rx_role").isnull() => {} | { // add possible roles 
                   "Rx_role"      : event:attr("Rx_role"),
                   "Tx_role"      : event:attr("Tx_role")
                 }; 
-      event:attr("Tx_host").isnull() => 
-                roles | roles.put(["Tx_host"] , event:attr("Tx_host"))
+      _roles = event:attr("Tx_host").isnull() => // add possible host 
+                roles  | roles.put(["Tx_host"] , event:attr("Tx_host"));
+      event:attr("Id").isnull() => // add subscription identifier
+                 _roles.put(["Id"], random:uuid()) | _roles.put(["Id"], event:attr("Id"))
     }
 
   }
