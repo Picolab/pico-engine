@@ -141,6 +141,7 @@ ent:established [
     }
     fired{
       raise Tx_Rx event "wellKnown_Rx_created" attributes event:attrs;
+      ent:wellknown_Policy := __wellknown_Policy;
     }
     else{
       raise Tx_Rx event "wellKnown_Rx_not_created" attributes event:attrs; //exists
