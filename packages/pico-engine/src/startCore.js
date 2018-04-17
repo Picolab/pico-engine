@@ -245,13 +245,7 @@ var setupLogging = function(pe, bunyanLog){
                 onRemoved();
                 return;
             }
-            pe.getEntVar(pico_id, logRID, "logs", null, function(err, data){
-                if(err) return onRemoved(err);
-
-                data[episode.key] = episode.logs;
-
-                pe.putEntVar(pico_id, logRID, "logs", null, data, onRemoved);
-            });
+            pe.putEntVar(pico_id, logRID, "logs", episode.key, episode.logs, onRemoved);
         });
     });
 };
