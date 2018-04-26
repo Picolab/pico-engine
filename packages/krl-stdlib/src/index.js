@@ -318,7 +318,7 @@ stdlib.ord = function(ctx, val){
     var code = val.charCodeAt(0);
     return _.isNaN(code) ? null : code;
 };
-stdlib.replace = function(ctx, val, regex, replacement){
+stdlib.replace = function*(ctx, val, regex, replacement){
     if(arguments.length < 3){
         return val;
     }
@@ -328,6 +328,21 @@ stdlib.replace = function(ctx, val, regex, replacement){
     }
     if(types.isNull(replacement)){
         return val.replace(regex, "");
+    }
+    if(types.isFunction(replacement)){
+        regex = stdlib.as(ctx, regex, "RegExp");
+        var out = "";
+        var lastI = 0;
+        var m;
+        while(m = regex.exec(val)){// eslint-disable-line no-cond-assign
+            out += val.substring(lastI, m.index) + (yield replacement(ctx, m.concat([m.index, val])));
+            lastI = m.index + m[0].length;
+            if(!regex.global){
+                break;
+            }
+        }
+        out += val.substring(lastI);
+        return out;
     }
     return val.replace(regex, types.toString(replacement));
 };

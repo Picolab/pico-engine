@@ -388,8 +388,9 @@ test("number operators", function(t){
     t.end();
 });
 
-test("string operators", function(t){
+ytest("string operators", function*(t){
     var tf = _.partial(testFn, t);
+    var ytf = mkTf(t);
 
     tf("sprintf", ["Bob"], "");
     tf("sprintf", ["Bob", "Yo"], "Yo");
@@ -433,11 +434,34 @@ test("string operators", function(t){
     tf("ord", ["bill"], 98);
     tf("ord", ["0"], 48);
 
-    tf("replace", ["william W.", /W/i], "illiam W.");
-    tf("replace", ["William W.", /W/g, "B"], "Billiam B.");
-    tf("replace", ["Sa5m", 5, true], "Satruem");
-    tf("replace", [[false, void 0], /(?:)/ig], "[Array]");
-    tf("replace", [[false, void 0]], [false, void 0]);
+    yield ytf("replace", ["william W.", /W/i], "illiam W.");
+    yield ytf("replace", ["William W.", /W/g, "B"], "Billiam B.");
+    yield ytf("replace", ["Sa5m", 5, true], "Satruem");
+    yield ytf("replace", [[false, void 0], /(?:)/ig], "[Array]");
+    yield ytf("replace", [[false, void 0]], [false, void 0]);
+
+    yield ytf("replace", ["start 1 then 2? 3-42 end", /(\d+)/g, function(match){
+        return (parseInt(match, 10) * 2) + "";
+    }], "start 2 then 4? 6-84 end");
+
+    yield ytf("replace", ["1 2 3", /(\d)/g, function(match, p1, offset, string){
+        t.equals(arguments.length, 4);
+        t.equals(match, p1);
+        t.equals(string.substring(offset, offset + p1.length), p1);
+        t.equals(string, "1 2 3");
+        return (parseInt(match, 10) * 2) + "";
+    }], "2 4 6");
+
+    yield ytf("replace", ["000abc333???wat", /([a-z]+)(\d*)([^\w]*)/, function(match, p1, p2, p3, offset, string){
+        t.equals(arguments.length, 6);
+        t.equals(match, "abc333???");
+        t.equals(p1, "abc");
+        t.equals(p2, "333");
+        t.equals(p3, "???");
+        t.equals(offset, 3);
+        t.equals(string, "000abc333???wat");
+        return "[" + p1 + " - " + p2 + " : " + p3 + "]";
+    }], "000[abc - 333 : ???]wat");
 
     tf("split", ["a;b;3;4;", /;/], ["a", "b", "3", "4", ""]);
     tf("split", ["a;b;3;4;", ""], ["a", ";", "b", ";", "3", ";", "4", ";"]);
@@ -458,8 +482,6 @@ test("string operators", function(t){
     tf("substr", [void 0, "Not an index", 2], "null");
 
     tf("uc", ["loWer"], "LOWER");
-
-    t.end();
 });
 
 ytest("collection operators", function*(t){
