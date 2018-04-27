@@ -1,6 +1,6 @@
 {
   "name": "pico-engine",
-  "version": "0.45.4",
+  "version": "0.45.5",
   "description": "An implementation of the pico-engine targetting node.js",
   "main": "src/index.js",
   "bin": {
@@ -53,13 +53,13 @@
     "home-dir": "^1.0.0",
     "ip": "^1.1.5",
     "krl-compiler": "^0.45.3",
-    "krl-stdlib": "^0.45.4",
+    "krl-stdlib": "^0.45.5",
     "leveldown": "^2.0.0",
     "lodash": "^4.17.4",
     "mime-types": "^2.1.17",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "pico-engine-core": "^0.45.4",
+    "pico-engine-core": "^0.45.5",
     "read-pkg-up": "^3.0.0",
     "request": "^2.83.0"
   },
