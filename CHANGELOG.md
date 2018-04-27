@@ -1,3 +1,18 @@
+# 0.45.5 - May 27, 2018
+
+* [fcb3a438](https://github.com/Picolab/pico-engine/commit/fcb3a438) - .replace() support a replacer function - resolves [#377](https://github.com/Picolab/pico-engine/issues/377)
+* [de83ff75](https://github.com/Picolab/pico-engine/commit/de83ff75) - special handling for GIF
+* [fe83de54](https://github.com/Picolab/pico-engine/commit/fe83de54) - improve Logging tab performance
+* [621e6f29](https://github.com/Picolab/pico-engine/commit/621e6f29) - subscriptions Id
+* [9bf913c9](https://github.com/Picolab/pico-engine/commit/9bf913c9) - persist wellknown policy
+* [46f45711](https://github.com/Picolab/pico-engine/commit/46f45711) - provide headers rather than just cookies
+* [c3a0dffd](https://github.com/Picolab/pico-engine/commit/c3a0dffd) - use cookie-parser package
+* [80ef8094](https://github.com/Picolab/pico-engine/commit/80ef8094) - initial cookies parsing
+* [19777521](https://github.com/Picolab/pico-engine/commit/19777521) - initial policy ruleset
+* [d6451ef2](https://github.com/Picolab/pico-engine/commit/d6451ef2) - initial policies tab
+* [e1881d1f](https://github.com/Picolab/pico-engine/commit/e1881d1f) - allow pending_subscription events
+* [a225c716](https://github.com/Picolab/pico-engine/commit/a225c716) - policy for wellknown channel.
+
 # 0.45.4 - March 29, 2018
 
 * CLI tool for `schedule:list` and `schedule:remove` - [be64ef7e](https://github.com/Picolab/pico-engine/commit/be64ef7e) [62b424fc](https://github.com/Picolab/pico-engine/commit/62b424fc)
