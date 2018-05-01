@@ -187,11 +187,30 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       });
       callback({ "pico_id": thePicoInp.id, "id": thePicoInp.id, "eci": thePicoInp.admin_eci, "channel": theChannels, "policy": thePolicies });
     } else if (label == "Subscriptions") {
+      var pico_name_sorter = function(a,b){
+        var nameA = a.pico_name.toUpperCase();
+        var nameB = b.pico_name.toUpperCase();
+        if(nameA<nameB) return -1;
+        if(nameB<nameA) return 1;
+        return 0;
+      };
       var theSubscriptions = {};
       theSubscriptions.pico_id = thePicoInp.id;
       theSubscriptions.eci = eci;
       var subsRID = "io.picolabs.subscription";
       if (get(db_dump,["pico",thePicoInp.id,"ruleset",subsRID,"on"])) {
+        var subscribable_picos = [];
+        for (var k in db_dump.channel) {
+          var aChannel = db_dump.channel[k];
+          if (aChannel.name==="wellKnown_Rx") {
+            subscribable_picos.push(
+              {id:aChannel.id, pico_name:getV({id:aChannel.pico_id},"dname")});
+            if (aChannel.pico_id===thePicoInp.id) {
+              theSubscriptions.wellKnown_Rx = k;
+            }
+          }
+        }
+        theSubscriptions.subscribable_picos = subscribable_picos.sort(pico_name_sorter);
       } else {
         theSubscriptions.disabled = true;
       }
