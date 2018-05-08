@@ -1,5 +1,6 @@
 ruleset io.picolabs.visual_params {
   meta {
+    provides dname
     shares dname, visualInfo, style, __testing
   }
   global {

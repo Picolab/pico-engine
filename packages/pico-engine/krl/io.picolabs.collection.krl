@@ -1,6 +1,7 @@
 ruleset io.picolabs.collection {
   meta {
     use module io.picolabs.subscription alias Subs
+    provides members
     shares __testing, members
   }
   global {
