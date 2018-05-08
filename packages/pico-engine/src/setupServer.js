@@ -9,7 +9,7 @@ var mime = require("mime-types");
 
 var mergeGetPost = function(req){
     //give preference to post body params
-    return _.assign({headers:req.headers}, req.query, req.body);
+    return _.assign({}, req.query, req.body, {_headers:req.headers});
 };
 
 module.exports = function(pe){
