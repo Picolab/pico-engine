@@ -1,10 +1,11 @@
 ruleset io.picolabs.rewrite {
   meta {
-    shares __testing, getRewrite, picoRewrites
+    shares __testing, getRewrite, picoRewrites, allRewrites
   }
   global {
     __testing = { "queries": [ { "name": "__testing" },
                                { "name": "getRewrite", "args": [ "fpc" ] },
+                               { "name": "allRewrites" },
                                { "name": "picoRewrites" },
                                { "name": "picoRewrites", "args": [ "picoID" ] } ],
                   "events": [ { "domain": "rewrite", "type": "new_rewrite",
@@ -18,6 +19,9 @@ ruleset io.picolabs.rewrite {
                          | engine:listChannels();
       picoECIs = channels.map(function(v){v{"id"}});
       ent:rewrites.filter(function(v){picoECIs >< v{"eci"}})
+    }
+    allRewrites = function() {
+      ent:rewrites
     }
   }
   rule initialize {
@@ -34,7 +38,9 @@ ruleset io.picolabs.rewrite {
   rule new_rewrite {
     select when rewrite new_rewrite
     pre {
-      kind = event:attr("kind").defaultsTo("query");
+      kind = event:attr("kind")
+        like re#^event|query$# => event:attr("kind")
+                                | "query";
       eci = event:attr("eci");
       fpc = event:attr("fpc");
     }
