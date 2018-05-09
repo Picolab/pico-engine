@@ -85,6 +85,25 @@ module.exports = function(pe){
         };
         pe.signalEvent(event, function(err, response){
             if(err) return errResp(res, err);
+            if(response.directives){
+                var _res;
+                // some special cases
+                _res = _.filter(response.directives,{name:"_cookie"});
+                if(_res){
+                    _.forEach(_res,function(v){
+                        if(v.options && v.options.cookie){
+                            res.append("Set-Cookie",v.options.cookie);
+                        }
+                    });
+                }
+                _res = _.find(response.directives,{name:"_gif"});
+                if(_res && _res.options.content){
+                    res.header("Content-Type", "image/gif");
+                    var data = _res.options.content;
+                    res.write(Buffer.from(Uint8Array.from(data)),"binary");
+                    return res.end();
+                }
+            }
             res.json(response);
         });
     });
