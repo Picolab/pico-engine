@@ -2457,6 +2457,10 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
             [query("getFooKey", {key: "bbb"}), null],
             [query("getBarKey", {key: "bbb"}), null],
 
+            // Test reading a map that was only set with a deep key path
+            [signal("pindex", "putbaz"), []],
+            [query("getBaz"), {one: {two: "three"}}],
+
         ], t.end);
     });
 });

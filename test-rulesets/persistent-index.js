@@ -5,7 +5,8 @@ module.exports = {
       "getFoo",
       "getFooKey",
       "getBar",
-      "getBarKey"
+      "getBarKey",
+      "getBaz"
     ]
   },
   "global": function* (ctx) {
@@ -28,6 +29,9 @@ module.exports = {
         "key": "bar",
         "path": ctx.scope.get("key")
       });
+    }));
+    ctx.scope.set("getBaz", ctx.mkFunction([], function* (ctx, args) {
+      return yield ctx.modules.get(ctx, "ent", "baz");
     }));
   },
   "rules": {
@@ -247,6 +251,37 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         yield ctx.modules.del(ctx, "app", "bar");
+      }
+    },
+    "putbaz": {
+      "name": "putbaz",
+      "select": {
+        "graph": { "pindex": { "putbaz": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", {
+          "key": "baz",
+          "path": [
+            "one",
+            "two"
+          ]
+        }, "three");
       }
     }
   }

@@ -1,6 +1,6 @@
 ruleset io.picolabs.persistent-index {
     meta {
-        shares getFoo, getFooKey, getBar, getBarKey
+        shares getFoo, getFooKey, getBar, getBarKey, getBaz
     }
     global {
         getFoo = function(){
@@ -14,6 +14,9 @@ ruleset io.picolabs.persistent-index {
         }
         getBarKey = function(key){
             app:bar{key};
+        }
+        getBaz = function(){
+            ent:baz;
         }
     }
     rule setfoo {
@@ -80,6 +83,12 @@ ruleset io.picolabs.persistent-index {
         select when pindex nukebar
         always {
             clear app:bar
+        }
+    }
+    rule putbaz {
+        select when pindex putbaz
+        always {
+            ent:baz{["one", "two"]} := "three"
         }
     }
 }

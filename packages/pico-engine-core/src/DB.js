@@ -41,21 +41,36 @@ var toKeyPath = function(path){
 var putPVar = function(ldb, key_prefix, query, val, callback){
     var path = ktypes.isNull(query) ? [] : toKeyPath(query);
     if(_.size(path) > 0){
-        var subkey_prefix = key_prefix.concat(["value", _.head(path)]);
+        var subkey = _.head(path);
+        var subkey_prefix = key_prefix.concat(["value", subkey]);
         var sub_path = _.tail(path);
-        if(_.isEmpty(sub_path)){
-            ldb.put(subkey_prefix, val, callback);
-            return;
-        }
-        ldb.get(subkey_prefix, function(err, data){
-            if(err && err.notFound){
-                data = {};
-            }else if(err){
+        ldb.get(key_prefix, function(err, root_value){
+            if(err && ! err.notFound){
                 callback(err);
                 return;
             }
-            data = _.set(data, sub_path, val);
-            ldb.put(subkey_prefix, data, callback);
+            var ops = [];
+            var type = root_value && root_value.type;
+            if(type !== "Map" && type !== "Array"){
+                type = /^\d+$/.test(subkey) ? "Array" : "Map";
+                ops.push({type: "put", key: key_prefix, value: {type: type}});
+            }
+            if(_.isEmpty(sub_path)){
+                ops.push({type: "put", key: subkey_prefix, value: val});
+                ldb.batch(ops, callback);
+                return;
+            }
+            ldb.get(subkey_prefix, function(err, data){
+                if(err && err.notFound){
+                    data = {};
+                }else if(err){
+                    callback(err);
+                    return;
+                }
+                data = _.set(data, sub_path, val);
+                ops.push({type: "put", key: subkey_prefix, value: data});
+                ldb.batch(ops, callback);
+            });
         });
         return;
     }
