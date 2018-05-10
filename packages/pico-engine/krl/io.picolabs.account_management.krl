@@ -24,6 +24,9 @@ ruleset io.picolabs.account_management {
       exists = nameExists(name);
       exists => ent:owners{name}{"eci"} | "No user found"
     }
+    
+    //rids required in every owner pico
+    base_rids = ["io.picolabs.owner_authentication"]
   }//end global
 
 //
@@ -62,7 +65,12 @@ rule eci_from_owner_name{
     select when owner creation
     pre{
       name = event:attr("name").defaultsTo(event:attr("owner_id"));
-      password = event:attr("password");
+      password = event:attr("password").defaultsTo("");
+      new_rids = event:attr("rids");
+      rids_type = new_rids.typeof();
+      rids = rids_type == "String" => base_rids.append(new_rids.split(";"))
+           | rids_type == "Array"  => base_rids.append(new_rids)
+           |                          base_rids;
       exists = nameExists(name).klog("nameExists");
     }
     if not exists then // may need to check pico name uniqueness
@@ -70,7 +78,7 @@ rule eci_from_owner_name{
 
     fired{
       raise wrangler event "new_child_request"
-        attributes event:attrs.put({"event_type":"account","rids":"io.picolabs.owner_authentication", "password": password,"name":name});
+        attributes event:attrs.put({"event_type":"account","rids":rids, "password": password,"name":name});
     }
     else{
       raise owner event "creation_failure"
