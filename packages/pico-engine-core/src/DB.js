@@ -52,7 +52,7 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
             var ops = [];
             var type = root_value && root_value.type;
             if(type !== "Map" && type !== "Array"){
-                type = /^\d+$/.test(subkey) ? "Array" : "Map";
+                type = _.isInteger(subkey) && subkey >= 0 ? "Array" : "Map";
                 ops.push({type: "put", key: key_prefix, value: {type: type}});
             }
             if(_.isEmpty(sub_path)){
