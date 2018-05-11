@@ -321,8 +321,14 @@
           + "    shares __testing\n"
           + "  }\n"
           + "  global {\n"
-          + "    __testing = { \"queries\": [ { \"name\": \"__testing\" } ],\n"
-          + "                  \"events\": [ ] }\n"
+          + "    __testing = { \"queries\":\n"
+          + "      [ { \"name\": \"__testing\" }\n"
+          + "      //, { \"name\": \"entry\", \"args\": [ \"key\" ] }\n"
+          + "      ] , \"events\":\n"
+          + "      [ //{ \"domain\": \"d1\", \"type\": \"t1\" }\n"
+          + "      //, { \"domain\": \"d2\", \"type\": \"t2\", \"attrs\": [ \"a1\", \"a2\" ] }\n"
+          + "      ]\n"
+          + "    }\n"
           + "  }\n"
           + "}\n";
         $errorMessage.text("");
