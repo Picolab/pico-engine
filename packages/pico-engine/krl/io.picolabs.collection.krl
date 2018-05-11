@@ -2,7 +2,7 @@ ruleset io.picolabs.collection {
   meta {
     description <<
       Wrapper around subscription ruleset
-      for managing a colleciton of member picos.
+      for managing a collection of member picos.
       Raises collection:new_member and collection:member_removed events.
       Intended to be wrapped by a developer-supplied ruleset
       which uses it as a module, and shields them from the
