@@ -184,14 +184,16 @@ ent:established [
       event:send({
           "eci"   : event:attr("wellKnown_Tx"),
           "domain": "wrangler", "type": "pending_subscription",
-          "attrs" : event:attrs.put({"status"       : "inbound",
+          "attrs" : event:attrs.put(//    _____perspectives_____
+                                    //    other pico | this pico
+                                     {"status"       : "inbound",
                                       "Rx_role"      : event:attr("Tx_role"),
                                       "Tx_role"      : event:attr("Rx_role"),
                                       "Tx"           : event:attr("Rx"),
-                                      "Tx_host"      : event:attr("Tx_host").isnull() => null | meta:host, // send our host as Tx_host if Tx_host was provided.
+                                      "Tx_host"      : event:attr("Rx_host").isnull() => null | meta:host, // send our host as Tx_host if Tx_host was provided.
                                       "Tx_verify_key": event:attr("verify_key"),
                                       "Tx_public_key": event:attr("public_key")})
-          }, event:attr("Tx_host"));
+          },                             event:attr(  "Tx_host"  ));
   }
 
  rule addOutboundPendingSubscription {
@@ -282,11 +284,12 @@ ent:established [
     }
     event:send({
           "eci"   : bus{"Tx"},
+          "id"   : bus{"Id"},
           "domain": "wrangler", "type": "established_removal",
           "attrs" : event:attrs.put(["Rx"],bus{"Tx"}).put(["Tx"],bus{"Rx"}) // change perspective
           }, Tx_host)
     always {
-      raise wrangler event "established_removal" attributes event:attrs
+      raise wrangler event "established_removal" attributes event:attrs.put("id",bus{"Id"})
     }
   }
   
@@ -312,11 +315,12 @@ ent:established [
     }
     event:send({
           "eci"   : bus{"Tx"},
+          "id"   : bus{"Id"},
           "domain": "wrangler", "type": "outbound_removal",
           "attrs" : event:attrs.put(["Rx"],bus{"Tx"})
           }, Tx_host)
     always {
-      raise wrangler event "inbound_removal" attributes event:attrs
+      raise wrangler event "inbound_removal" attributes event:attrs.put("id",bus{"Id"})
     }
   }
 
@@ -344,11 +348,12 @@ ent:established [
     }
     event:send({
           "eci"   : bus{"wellKnown_Tx"},
+          "id"   : bus{"Id"},
           "domain": "wrangler", "type": "inbound_removal",
           "attrs" : event:attrs.put(["Tx"],bus{"Rx"})
           }, Tx_host)
     always {
-      raise wrangler event "outbound_removal" attributes event:attrs
+      raise wrangler event "outbound_removal" attributes event:attrs.put("id",bus{"Id"})
     }
   }
 
