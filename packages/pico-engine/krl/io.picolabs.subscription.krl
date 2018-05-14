@@ -23,14 +23,16 @@ ruleset io.picolabs.subscription {
                                 "attrs": [ "wellKnown_Tx","Rx_role","Tx_role","name","channel_type","password"] },
                               { "domain": "wrangler", "type": "subscription",
                                 "attrs": [ "wellKnown_Tx","password"] },
+                              { "domain": "wrangler", "type": "subscription",
+                                "attrs": [ "wellKnown_Tx"] },
                               { "domain": "wrangler", "type": "pending_subscription_approval",
-                                "attrs": [ "Rx" ] },
+                                "attrs": [ "Id" ] },
                               { "domain": "wrangler", "type": "subscription_cancellation",
-                                "attrs": [ "Rx" ] },
+                                "attrs": [ "Id" ] },
                               { "domain": "wrangler", "type": "inbound_rejection",
-                                "attrs": [ "Rx" ] },
+                                "attrs": [ "Id" ] },
                               { "domain": "wrangler", "type": "outbound_cancellation",
-                                "attrs": [ "Rx" ] },
+                                "attrs": [ "Id" ] },
                               { "domain": "wrangler", "type": "autoAcceptConfigUpdate",
                                 "attrs": [ "variable", "regex_str" ] } ]}
 /*
@@ -100,9 +102,9 @@ ent:established [
     filterOn = function(array,key,value){
       array.filter(function(bus){ bus{key} == value})
     }
-    indexOfRx = function(buses, _eci, _eqaulity) { 
-      eci = _eci.defaultsTo(event:attr("Rx").defaultsTo(meta:eci));
-      eqaulity = _eqaulity.isnull() =>  function(bus,eci){ bus{"Rx"} == eci } | _eqaulity ;
+    indexOfRx = function(buses, _Id) { 
+      id = _Id.defaultsTo(event:attr("Id"));
+      eqaulity = function(bus,id){ bus{"Id"} == id };
 
       findIndex = function(eqaul, value ,array, i){
         array.length() == 0 => 
@@ -115,8 +117,13 @@ ent:established [
       findIndex(eqaulity, eci, buses, 0)
     }
     findBus = function(buses){
-      event:attr("Tx").isnull() => buses.filter( function(bus){ bus{"Rx"} == event:attr("Rx").defaultsTo(meta:eci) }).head() |
-                                   buses.filter( function(bus){ bus{"Tx"} == event:attr("Tx") }).head();
+      result = event:attr("Id").isnull() =>  // if Id is not provided use Rx
+                ( event:attr("Rx").isnull() => // if Rx is not provided use Tx
+                  buses.filter( function(bus){ bus{"Tx"} == event:attr("Tx") }).head() /*use Tx*/| buses.filter( function(bus){ bus{"Rx"} == event:attr("Rx")/*.defaultsTo(meta:eci)*/ }).head() ) | // use Rx
+                  buses.filter( function(bus){ bus{"Id"} == event:attr("Id") }).head();// use Id 
+      result.length().isnull() => // if no subscription is found, check if meta:eci is the Rx channel.
+        result | buses.filter( function(bus){ bus{"Rx"} == meta:eci }).head()
+
     }
     randomName = function(){
       random:word() 
@@ -167,7 +174,8 @@ ent:established [
       newBus        = pending_entry.put({ "Rx" : channel{"id"} });
       ent:outbound := outbound().append( newBus );
       raise wrangler event "pending_subscription" 
-        attributes event:attrs.put(newBus.put({"status"      : "outbound",
+        attributes event:attrs.put(newBus.put(//
+                                              {  "status"      : "outbound",
                                                  "channel_name": channel_name,
                                                  "channel_type": channel_type,
                                                  "verify_key"  : channel{"sovrin"}{"verifyKey"},
@@ -193,7 +201,7 @@ ent:established [
                                       "Tx_host"      : event:attr("Rx_host").isnull() => null | meta:host, // send our host as Tx_host if Tx_host was provided.
                                       "Tx_verify_key": event:attr("verify_key"),
                                       "Tx_public_key": event:attr("public_key")})
-          },                             event:attr(  "Tx_host"  ));
+          },                                           event:attr("Tx_host")); //send event to this host if provided
   }
 
  rule addOutboundPendingSubscription {
@@ -235,7 +243,8 @@ ent:established [
       event:send({
           "eci": bus{"Tx"},
           "domain": "wrangler", "type": "pending_subscription_approved",
-          "attrs": {"_Tx"           : bus{"Rx"} ,
+          "attrs": {"Id"            : bus{"Id"} ,
+                    "_Tx"           : bus{"Rx"} ,
                     "_Tx_verify_key": channel{"sovrin"}{"verifyKey"},
                     "_Tx_public_key": channel{"sovrin"}{"encryptionPublicKey"},
                     "status"        : "outbound" }
@@ -254,7 +263,7 @@ ent:established [
                                         "Tx_public_key": event:attr("_Tx_public_key")
                                        })// tightly coupled attr, smells like bad code..
                                   .delete(["wellKnown_Tx"])
-      index    = indexOfRx(outbound)
+      index    = indexOfRx(outbound, bus{"Id"})
     }
     always{
       ent:established := established().append(bus);
@@ -267,7 +276,7 @@ ent:established [
     select when wrangler pending_subscription_approved status re#inbound#
     pre{
       inbound = inbound()
-      index   = indexOfRx(inbound)
+      index   = indexOfRx(inbound,event:attr("Id"))
     }
     always {
       ent:established := established().append( event:attr("bus") );
@@ -284,12 +293,12 @@ ent:established [
     }
     event:send({
           "eci"   : bus{"Tx"},
-          "id"   : bus{"Id"},
+          "Id"   : bus{"Id"},
           "domain": "wrangler", "type": "established_removal",
           "attrs" : event:attrs.put(["Rx"],bus{"Tx"}).put(["Tx"],bus{"Rx"}) // change perspective
           }, Tx_host)
     always {
-      raise wrangler event "established_removal" attributes event:attrs.put("id",bus{"Id"})
+      raise wrangler event "established_removal" attributes event:attrs.put("Id",bus{"Id"})
     }
   }
   
@@ -298,7 +307,7 @@ ent:established [
     pre{
       buses = established()
       bus   = findBus(buses)
-      index = indexOfRx(buses)
+      index = indexOfRx(buses, bus{"Id"})
     }
       engine:removeChannel(bus{"Rx"}) //wrangler:removeChannel ... 
     always {
@@ -315,12 +324,12 @@ ent:established [
     }
     event:send({
           "eci"   : bus{"Tx"},
-          "id"   : bus{"Id"},
+          "Id"   : bus{"Id"},
           "domain": "wrangler", "type": "outbound_removal",
           "attrs" : event:attrs.put(["Rx"],bus{"Tx"})
           }, Tx_host)
     always {
-      raise wrangler event "inbound_removal" attributes event:attrs.put("id",bus{"Id"})
+      raise wrangler event "inbound_removal" attributes event:attrs.put("Id",bus{"Id"})
     }
   }
 
@@ -329,9 +338,7 @@ ent:established [
     pre{
       buses = inbound()
       bus   = findBus(buses)
-      index = indexOfRx(buses,event:attr("Tx"), 
-                        (event:attr("Tx").isnull() => null | 
-                          function(bus,eci){ bus{"Tx"} == eci }))
+      index = indexOfRx(buses, bus{"Id"})
     }
       engine:removeChannel(bus{"Rx"}) //wrangler:removeChannel ... 
     always {
@@ -348,12 +355,12 @@ ent:established [
     }
     event:send({
           "eci"   : bus{"wellKnown_Tx"},
-          "id"   : bus{"Id"},
+          "Id"   : bus{"Id"},
           "domain": "wrangler", "type": "inbound_removal",
           "attrs" : event:attrs.put(["Tx"],bus{"Rx"})
           }, Tx_host)
     always {
-      raise wrangler event "outbound_removal" attributes event:attrs.put("id",bus{"Id"})
+      raise wrangler event "outbound_removal" attributes event:attrs.put("Id",bus{"Id"})
     }
   }
 
@@ -362,7 +369,7 @@ ent:established [
     pre{
       buses = outbound()
       bus   = findBus(buses)
-      index = indexOfRx(buses)
+      index = indexOfRx(buses,bus{"Id"})
     }
       engine:removeChannel(bus{"Rx"}) //wrangler:removeChannel ... 
     always {
