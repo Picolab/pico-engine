@@ -71,7 +71,7 @@ ent:established [
   },...,...
 ]
 */
-    wellknown_Policy = { // we need to restrict what attributes are allowed on this channel, specifically Id. 
+    wellknown_Policy = { // we need to restrict what attributes are allowed on this channel, specifically Id.
       "name": "wellknown",
       "event": {
           "allow": [
@@ -98,39 +98,39 @@ ent:established [
     wellKnown_Rx = function(){
       wrangler:channel("wellKnown_Rx")
     }
-    
+
     filterOn = function(array,key,value){
       array.filter(function(bus){ bus{key} == value})
     }
-    indexOfRx = function(buses, _Id) { 
+    indexOfRx = function(buses, _Id) {
       id = _Id.defaultsTo(event:attr("Id"));
       eqaulity = function(bus,id){ bus{"Id"} == id };
 
       findIndex = function(eqaul, value ,array, i){
-        array.length() == 0 => 
-                          -1 | 
-                          eqaul(array.head() , value) => 
-                            i | 
+        array.length() == 0 =>
+                          -1 |
+                          eqaul(array.head() , value) =>
+                            i |
                             findIndex(eqaul, value, array.tail(), i+1 )
       };
 
       findIndex(eqaulity, eci, buses, 0)
     }
     findBus = function(buses){
-      event:attr("Id") => buses.filter( function(bus){ bus{"Id"} == event:attr("Id") }).head() | 
-        event:attr("Rx") => buses.filter( function(bus){ bus{"Rx"} == event:attr("Rx") }).head() | 
-          event:attr("Tx") => buses.filter( function(bus){ bus{"Tx"} == event:attr("Tx") }).head() |  
+      event:attr("Id") => buses.filter( function(bus){ bus{"Id"} == event:attr("Id") }).head() |
+        event:attr("Rx") => buses.filter( function(bus){ bus{"Rx"} == event:attr("Rx") }).head() |
+          event:attr("Tx") => buses.filter( function(bus){ bus{"Tx"} == event:attr("Tx") }).head() |
             buses.filter( function(bus){ bus{"Rx"} == meta:eci }).head() ;
     }
     randomName = function(){
-      random:word() 
+      random:word()
     }
     pending_entry = function(){
-      roles  = event:attr("Rx_role").isnull() => {} | { // add possible roles 
+      roles  = event:attr("Rx_role").isnull() => {} | { // add possible roles
                   "Rx_role"      : event:attr("Rx_role"),
                   "Tx_role"      : event:attr("Tx_role")
-                }; 
-      _roles = event:attr("Tx_host").isnull() => // add possible host 
+                };
+      _roles = event:attr("Tx_host").isnull() => // add possible host
                 roles  | roles.put(["Tx_host"] , event:attr("Tx_host"));
       event:attr("Id").isnull() => // add subscription identifier
                  _roles.put(["Id"], random:uuid()) | _roles.put(["Id"], event:attr("Id"))
@@ -162,7 +162,7 @@ ent:established [
     pre {
       channel_name  = event:attr("name").defaultsTo(randomName())
       channel_type  = event:attr("channel_type").defaultsTo("Tx_Rx","Tx_Rx channel_type used.")
-      pending_entry = pending_entry().put(["wellKnown_Tx"],event:attr("wellKnown_Tx")) 
+      pending_entry = pending_entry().put(["wellKnown_Tx"],event:attr("wellKnown_Tx"))
     }
     if( not pending_entry{"wellKnown_Tx"}.isnull() ) then // check if we have someone to send a request too
       engine:newChannel(meta:picoId, channel_name, channel_type) setting(channel); // create Rx
@@ -170,7 +170,7 @@ ent:established [
     fired {
       newBus        = pending_entry.put({ "Rx" : channel{"id"} });
       ent:outbound := outbound().append( newBus );
-      raise wrangler event "pending_subscription" 
+      raise wrangler event "pending_subscription"
         attributes event:attrs.put(newBus.put(//
                                               {  "status"      : "outbound",
                                                  "channel_name": channel_name,
@@ -211,7 +211,7 @@ ent:established [
   rule addInboundPendingSubscription {
     select when wrangler pending_subscription status re#inbound#
    pre {
-      pending_entry = pending_entry().put(["Tx"],event:attr("Tx")) 
+      pending_entry = pending_entry().put(["Tx"],event:attr("Tx"))
     }
     if( not pending_entry{"Tx"}.isnull()) then
       engine:newChannel(meta:picoId,
@@ -226,7 +226,7 @@ ent:established [
                                        });
       ent:inbound := inbound().append( newBus );
       raise wrangler event "inbound_pending_subscription_added" attributes event:attrs.put(["Rx"],channel{"id"}); // API event
-    } 
+    }
     else {
       raise wrangler event "no_Tx_failure" attributes  event:attrs // API event
     }
@@ -234,7 +234,7 @@ ent:established [
 
   rule approveInboundPendingSubscription {
     select when wrangler pending_subscription_approval
-    pre{ bus     = findBus(inbound()) 
+    pre{ bus     = findBus(inbound())
          channel = wrangler:channel(bus{"Rx"})
         }
       event:send({
@@ -266,7 +266,7 @@ ent:established [
       ent:established := established().append(bus);
       ent:outbound    := outbound.splice(index,1);
       raise wrangler event "subscription_added" attributes event:attrs // API event
-    } 
+    }
   }
 
   rule addInboundSubscription {
@@ -298,7 +298,7 @@ ent:established [
       raise wrangler event "established_removal" attributes event:attrs.put("Id",bus{"Id"})
     }
   }
-  
+
   rule removeEstablished {
     select when wrangler established_removal
     pre{
@@ -306,10 +306,10 @@ ent:established [
       bus   = findBus(buses)
       index = indexOfRx(buses, bus{"Id"})
     }
-      engine:removeChannel(bus{"Rx"}) //wrangler:removeChannel ... 
+      engine:removeChannel(bus{"Rx"}) //wrangler:removeChannel ...
     always {
       ent:established := buses.splice(index,1);
-      raise wrangler event "subscription_removed" attributes { "bus" : bus } // API event
+      raise wrangler event "subscription_removed" attributes event:attrs.put({ "bus" : bus }) // API event
     }
   }
 
@@ -337,10 +337,10 @@ ent:established [
       bus   = findBus(buses)
       index = indexOfRx(buses, bus{"Id"})
     }
-      engine:removeChannel(bus{"Rx"}) //wrangler:removeChannel ... 
+      engine:removeChannel(bus{"Rx"}) //wrangler:removeChannel ...
     always {
       ent:inbound := buses.splice(index,1);
-      raise wrangler event "inbound_bus_removed" attributes { "bus" : bus } // API event
+      raise wrangler event "inbound_bus_removed" attributes event:attrs.put({ "bus" : bus }) // API event
     }
   }
 
@@ -368,10 +368,10 @@ ent:established [
       bus   = findBus(buses)
       index = indexOfRx(buses,bus{"Id"})
     }
-      engine:removeChannel(bus{"Rx"}) //wrangler:removeChannel ... 
+      engine:removeChannel(bus{"Rx"}) //wrangler:removeChannel ...
     always {
       ent:outbound := buses.splice(index,1);
-      raise wrangler event "outbound_bus_removed" attributes { "bus" : bus } // API event
+      raise wrangler event "outbound_bus_removed" attributes event:attrs.put({ "bus" : bus }) // API event
     }
   }
 
@@ -388,7 +388,7 @@ ent:established [
     }
     if matches then noop()
     fired {
-      raise wrangler event "pending_subscription_approval" attributes event:attrs;  
+      raise wrangler event "pending_subscription_approval" attributes event:attrs;
       raise wrangler event "auto_accepted_Tx_Rx_request" attributes event:attrs;  //API event
     }// else ...
   }
