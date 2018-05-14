@@ -117,13 +117,10 @@ ent:established [
       findIndex(eqaulity, eci, buses, 0)
     }
     findBus = function(buses){
-      result = event:attr("Id").isnull() =>  // if Id is not provided use Rx
-                ( event:attr("Rx").isnull() => // if Rx is not provided use Tx
-                  buses.filter( function(bus){ bus{"Tx"} == event:attr("Tx") }).head() /*use Tx*/| buses.filter( function(bus){ bus{"Rx"} == event:attr("Rx")/*.defaultsTo(meta:eci)*/ }).head() ) | // use Rx
-                  buses.filter( function(bus){ bus{"Id"} == event:attr("Id") }).head();// use Id 
-      result.length().isnull() => // if no subscription is found, check if meta:eci is the Rx channel.
-        result | buses.filter( function(bus){ bus{"Rx"} == meta:eci }).head()
-
+      event:attr("Id") => buses.filter( function(bus){ bus{"Id"} == event:attr("Id") }).head() | 
+        event:attr("Rx") => buses.filter( function(bus){ bus{"Rx"} == event:attr("Rx") }).head() | 
+          event:attr("Tx") => buses.filter( function(bus){ bus{"Tx"} == event:attr("Tx") }).head() |  
+            buses.filter( function(bus){ bus{"Rx"} == meta:eci }).head() ;
     }
     randomName = function(){
       random:word() 
@@ -198,7 +195,7 @@ ent:established [
                                       "Rx_role"      : event:attr("Tx_role"),
                                       "Tx_role"      : event:attr("Rx_role"),
                                       "Tx"           : event:attr("Rx"),
-                                      "Tx_host"      : event:attr("Rx_host").isnull() => null | meta:host, // send our host as Tx_host if Tx_host was provided.
+                                      "Tx_host"      : event:attr("Rx_host")=> event:attr("Rx_host") | meta:host , // send our host as Tx_host if Tx_host was provided.
                                       "Tx_verify_key": event:attr("verify_key"),
                                       "Tx_public_key": event:attr("public_key")})
           },                                           event:attr("Tx_host")); //send event to this host if provided
