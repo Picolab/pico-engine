@@ -109,4 +109,15 @@ rule eci_from_owner_name{
     send_directive("here it is",{"owner_id":event:attr("owner_id"),"method":"password"});
   }
 
+  rule delete_owner_pico {
+    select when information child_deleted
+    pre {
+      name = event:attr("name");
+    }
+    if ent:owners >< name then noop();
+    fired {
+      clear ent:owners{name};
+    }
+  }
+
 }
