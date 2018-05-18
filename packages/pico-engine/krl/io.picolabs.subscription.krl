@@ -388,7 +388,7 @@ ent:established [
     if matches then noop()
     fired {
       raise wrangler event "pending_subscription_approval" attributes event:attrs;
-      raise wrangler event "auto_accepted_Tx_Rx_request" attributes event:attrs;  //API event
+      raise wrangler event "auto_accepted_subscription_request" attributes event:attrs;  //API event
     }// else ...
   }
 
