@@ -96,6 +96,16 @@ module.exports = function(pe){
                         }
                     });
                 }
+                _res = _.find(response.directives,{name:"_txt"});
+                if(_res && _res.options.content){
+                    res.header("Content-Type", "text/plain");
+                    return res.end(_res.options.content);
+                }
+                _res = _.find(response.directives,{name:"_html"});
+                if(_res && _res.options.content){
+                    res.header("Content-Type", "text/html");
+                    return res.end(_res.options.content);
+                }
                 _res = _.find(response.directives,{name:"_gif"});
                 if(_res && _res.options.content){
                     res.header("Content-Type", "image/gif");
