@@ -39,84 +39,99 @@ var toKeyPath = function(path){
 
 
 var putPVar = function(ldb, key_prefix, query, val, callback){
-    var path = ktypes.isNull(query) ? [] : toKeyPath(query);
+    query = ktypes.isNull(query) ? [] : query;
+    query = ktypes.isArray(query) ? query : [query];
+    // do this before toKeyPath b/c it will convert all parts to stings
+    var isArrayIndex = _.isInteger(query[0]) && query[0] >= 0;
+    var path = toKeyPath(query);
     if(_.size(path) > 0){
-        var subkey = _.head(path);
-        var subkey_prefix = key_prefix.concat(["value", subkey]);
-        var sub_path = _.tail(path);
-        ldb.get(key_prefix, function(err, root_value){
+        var subkeyPrefix = key_prefix.concat(["value", path[0]]);
+        var subPath = _.tail(path);
+        ldb.get(key_prefix, function(err, oldRoot){
             if(err && ! err.notFound){
                 callback(err);
                 return;
             }
             var ops = [];
-            var type = root_value && root_value.type;
+            var type = oldRoot && oldRoot.type;
             if(type !== "Map" && type !== "Array"){
-                type = _.isInteger(subkey) && subkey >= 0 ? "Array" : "Map";
-                ops.push({type: "put", key: key_prefix, value: {type: type}});
+                type = isArrayIndex ? "Array" : "Map";
             }
-            if(_.isEmpty(sub_path)){
-                ops.push({type: "put", key: subkey_prefix, value: val});
+            if(type === "Array" && !isArrayIndex){
+                type = "Map";// convert to map if a non-index key comes in
+            }
+            var root = {
+                type: type,
+                // this `value` helps _.set in the toObj db dump set the right type
+                value: type === "Array" ? [] : {}
+            };
+            ops.push({type: "put", key: key_prefix, value: root});
+
+            if(_.isEmpty(subPath)){
+                ops.push({type: "put", key: subkeyPrefix, value: val});
                 ldb.batch(ops, callback);
                 return;
             }
-            ldb.get(subkey_prefix, function(err, data){
+            ldb.get(subkeyPrefix, function(err, data){
                 if(err && err.notFound){
                     data = {};
                 }else if(err){
                     callback(err);
                     return;
                 }
-                data = _.set(data, sub_path, val);
-                ops.push({type: "put", key: subkey_prefix, value: data});
+                data = _.set(data, subPath, val);
+                ops.push({type: "put", key: subkeyPrefix, value: data});
                 ldb.batch(ops, callback);
             });
         });
         return;
     }
-    ldb.get(key_prefix, function(err, data){
+    ldb.get(key_prefix, function(err, oldRoot){
         if(err && ! err.notFound){
             callback(err);
             return;
         }
-        var db_ops = [];
+        var ops = [];
         dbRange(ldb, {
             prefix: key_prefix,
             values: false,
         }, function(key){
-            db_ops.push({type: "del", key: key});
+            ops.push({type: "del", key: key});
         }, function(err){
             if(err) return callback(err);
-            var index_type = ktypes.typeOf(val);
-            var root_value = {type: index_type};
-            switch(index_type){
+            var root = {
+                type: ktypes.typeOf(val)
+            };
+            switch(root.type){
             case "Null":
-                root_value.value = null;
+                root.value = null;
                 break;
             case "Function":
             case "Action":
-                root_value.type = "String";
-                root_value.value = ktypes.toString(val);
+                root.type = "String";
+                root.value = ktypes.toString(val);
                 break;
             case "Map":
             case "Array":
                 _.each(val, function(v, k){
-                    db_ops.push({
+                    ops.push({
                         type: "put",
                         key: key_prefix.concat(["value", k]),
                         value: v,
                     });
                 });
+                // this `value` helps _.set in the toObj db dump set the right type
+                root.value = root.type === "Array" ? [] : {};
                 break;
             default:
-                root_value.value = val;
+                root.value = val;
             }
-            db_ops.push({
+            ops.push({
                 type: "put",
                 key: key_prefix,
-                value: root_value,
+                value: root,
             });
-            ldb.batch(db_ops, callback);
+            ldb.batch(ops, callback);
         });
     });
 };
@@ -149,17 +164,12 @@ var getPVar = function(ldb, key_prefix, query, callback){
         if(data.type !== "Map" && data.type !== "Array"){
             return callback(null, data.value);
         }
-        var is_array = data.type === "Array";
-        var value = is_array ? [] : {};
+        var value = data.type === "Array" ? [] : {};
         dbRange(ldb, {
             prefix: key_prefix,
         }, function(data){
             if(data.key.length === (key_prefix.length + 2)){
-                if(is_array){
-                    value.push(data.value);
-                }else{
-                    value[data.key[key_prefix.length + 1]] = data.value;
-                }
+                value[data.key[key_prefix.length + 1]] = data.value;
             }
         }, function(err){
             callback(err, value);
@@ -284,14 +294,14 @@ module.exports = function(opts){
 
     return {
         toObj: function(callback){
-            var db_data = {};
+            var dump = {};
             dbRange(ldb, {}, function(data){
                 if(!_.isArray(data.key)){
                     return;
                 }
-                _.set(db_data, data.key, data.value);
+                _.set(dump, data.key, data.value);
             }, function(err){
-                callback(err, db_data);
+                callback(err, dump);
             });
         },
 
