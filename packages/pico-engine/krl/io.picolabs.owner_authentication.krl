@@ -9,6 +9,8 @@ ruleset io.picolabs.owner_authentication {
         "events": [ { "domain": "owner", "type": "authenticate",
                       "attrs": [ "password" ] } ,
                     { "domain": "wrangler", "type": "ruleset_added",
+                      "attrs": [  ] } ,
+                    { "domain": "owner", "type": "cleanup_needed",
                       "attrs": [  ] }
                    ] }
 
@@ -25,6 +27,19 @@ ruleset io.picolabs.owner_authentication {
     pwd_needs_encoding = function() {
       ent:password.typeof() == "String"
     }
+
+    superfluous_channels = function() {
+      engine:listChannels()
+        .filter(function(v){
+          v{"name"} like re#^Authentication_.*Z$#
+          && v{"type"} like re#^authenticated$#
+        })
+        .sort(function(a,b){
+          b{"name"} cmp a{"name"}
+        })
+        .tail()
+    }
+
   }
 
   rule channel_needed {
@@ -52,6 +67,12 @@ ruleset io.picolabs.owner_authentication {
       // if no parent create root default password. this is a security hole....
       raise owner event "pwd_needs_encoding" attributes { "password": "toor" };
     }
+  }
+
+  rule cleanup_superfluous_authenticated_channels {
+    select when owner cleanup_needed
+    foreach superfluous_channels() setting(channel)
+    engine:removeChannel(channel{"id"})
   }
 
   rule authenticate{
