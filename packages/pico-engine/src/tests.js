@@ -32,7 +32,7 @@ var getHomePath = function(){
 var testPE = function(name, testsFn){
     test(name, function(t){
         startCore({
-            host: "http://fake-url",//tests don't actually setup http listening
+            host: null,//"http://fake-url",//tests don't actually setup http listening
             home: getHomePath(),
             no_logging: true,
         }, function(err, pe){

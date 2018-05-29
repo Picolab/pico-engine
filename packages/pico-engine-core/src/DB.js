@@ -212,6 +212,43 @@ var delPVar = function(ldb, key_prefix, query, callback){
     });
 };
 
+var getArray= function(ldb,key,callback){
+    ldb.get(key, function(err, data){
+        if(err && !err.notFound) callback(err);
+        data = data || "[]";
+        var value = JSON.parse(data);
+        callback(null, value);
+    });
+};
+var addToArray = function(ldb,key,value,equals,callback){//needs to check input values better...
+    ldb.get(key, function(err, data){
+        if(err && !err.notFound) callback(err);
+        data = data || "[]";
+        var array = JSON.parse(data);
+        var index = _.findIndex(array, equals);
+        if (index < 0) {
+            array.push(value);
+            array = JSON.stringify(array);
+            ldb.put(key, array, callback);
+        }
+        callback(null,data);
+    });
+};
+
+var removeFromArray = function(ldb,key,value,equals,callback){
+    ldb.get(key, function(err, data){
+        if(err && !err.notFound) callback(err);
+        data = data || "[]";
+        var array = JSON.parse(data);
+        var index = _.findIndex(array, equals);
+        if (index > -1) {
+            array.splice(index, 1);
+            array = JSON.stringify(array);
+            ldb.put(key, array, callback);
+        }
+        callback();
+    });
+};
 
 module.exports = function(opts){
 
@@ -774,7 +811,55 @@ module.exports = function(opts){
             delPVar(ldb, ["appvars", rid, var_name], query, callback);
         },
 
+        ////////////////////////////////////////////////////////////////////////
+        //
+        // discovery:*
+        //
+        listResources: function(callback){
+            //getArray(ldb,"resources",callback);
+            ldb.get("resources", function(err, data){
+                if(err && !err.notFound) callback(err);
+                data = data || "{}";
+                var value = JSON.parse(data);
+                callback(null, value);
+            });
+        },
+        addResource: function(name, resource,callback){
+            //addToArray(ldb,"resources",[name,resource],function(Item) { return Item[0] == name },callback);
 
+            ldb.get("resources", function(err, data){
+                if(err && !err.notFound) callback(err);
+                data = data || "{}";
+                var map = JSON.parse(data);
+                //if (map.name) {}
+                map[name] = resource;
+                map = JSON.stringify(map);
+                ldb.put("resources", map, callback);
+                callback(null,data);
+            });
+        },
+        removeResource: function(name, resource ,callback){
+            //removeFromArray(ldb,"resources",[name,resource],function(Item) { return Item[0] == name },callback);
+            ldb.get("resources", function(err, data){
+                if(err && !err.notFound) callback(err);
+                data = data || "{}";
+                var map = JSON.parse(data);
+                //if (map.name) {  }
+                delete map[name];
+                map = JSON.stringify(map);
+                ldb.put("resources", map, callback);
+                callback(null,data);
+            });
+        },
+        listObservers: function(callback){
+            getArray(ldb,"observers",callback);
+        },
+        addObserver: function(observer ,callback){
+            addToArray(ldb,"observers",observer,function(Item) { return Item === observer; },callback);
+        },
+        removeObserver: function(observer ,callback){
+            removeFromArray(ldb,"observers",observer,function(Item) { return Item === observer; },callback);
+        },
         ////////////////////////////////////////////////////////////////////////
         //
         // event state machine and aggregators

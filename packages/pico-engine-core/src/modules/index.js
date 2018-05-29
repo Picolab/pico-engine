@@ -7,6 +7,7 @@ var mkKRLaction = require("../mkKRLaction");
 var sub_modules = {
     ent: require("./ent"),
     app: require("./app"),
+    discover: require("./discover"),
     event: require("./event"),
     engine: require("./engine"),
     http: require("./http"),
