@@ -11,9 +11,13 @@ var args = require("minimist")(process.argv.slice(2), {
     "boolean": [
         "help",
         "version",
+        "discover",
     ],
     "alias": {
         "help": "h"
+    },
+    "default": {
+        "discover": true,
     }
 });
 
@@ -21,7 +25,7 @@ if(args.help){
     console.log("");
     console.log("USAGE");
     console.log("");
-    console.log("    pico-engine [--version] [--help|-h] <command>");
+    console.log("    pico-engine [--version] [--help|-h] [--no-discover] <command>");
     console.log("");
     console.log("Commands:");
     console.log("    run                   this is the default");
@@ -48,6 +52,7 @@ if(args.version){
 // setup the configuration
 var conf = {};
 
+conf.discover = !!args.discover;
 
 //get the conf from the nearest package.json
 var pkgup = readPkgUp.sync();

@@ -2,6 +2,7 @@ var path = require("path");
 var bunyan = require("bunyan");
 var startCore = require("./startCore");
 var setupServer = require("./setupServer");
+var startDiscover = require("./startDiscover");
 
 module.exports = function(conf){
 
@@ -27,6 +28,11 @@ module.exports = function(conf){
         if(err){
             throw err;
         }
+
+        if(conf.discover){
+            startDiscover(pe);
+        }
+
         var app = setupServer(pe);
 
         app.listen(conf.port, function(){
