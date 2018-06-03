@@ -51,7 +51,7 @@ var resources = {};
 
 module.exports = function startDiscover(core){
 
-    var d, getNodes;
+    var d, getNodes = function() { return [];};
 
     function startD(config, d) {
 
