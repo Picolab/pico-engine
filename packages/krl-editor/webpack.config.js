@@ -1,7 +1,7 @@
 var path = require("path");
 var webpack = require("webpack");
 
-var is_build_mode = process.env.NODE_ENV === "production";
+var isProd = process.env.NODE_ENV === "production";
 
 var conf = {
     devtool: "eval",
@@ -12,7 +12,9 @@ var conf = {
     output: {
         path: path.resolve(__dirname, "dist"),
         publicPath: "/",
-        filename: "krl-editor.js"
+        filename: isProd
+          ? "krl-editor.min.js"
+          : "krl-editor.js",
     },
 
     module: {
@@ -44,7 +46,7 @@ var conf = {
     }
 };
 
-if(is_build_mode){
+if(isProd){
     conf.devtool = "source-map";
 
     conf.plugins = conf.plugins.concat([
