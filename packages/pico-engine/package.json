@@ -61,6 +61,8 @@
     "mkdirp": "^0.5.1",
     "pico-engine-core": "^0.45.5",
     "read-pkg-up": "^3.0.0",
+    "node-discover": "^0.6.2",
+    "tcp-ping": "^0.1.1" ,
     "request": "^2.83.0"
   },
   "engines": {
