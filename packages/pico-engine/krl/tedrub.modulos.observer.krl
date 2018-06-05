@@ -19,15 +19,19 @@ ruleset tedrub.modulos.observer {
   }
 
   engines = function(){
-    discover:engines();
+    ent:engines;
   }
 
   observers = function(){
-    discover:observers();
+    ent:observers;
+  }
+
+  connections =function(){
+    ent:connections;
   }
 
   resources = function(){
-    discover:resources();
+    ent:resources;
   }
 
   observerDid = function(){
@@ -64,17 +68,14 @@ ruleset tedrub.modulos.observer {
                         name      = "observer", 
                         type      = "discover", 
                         policy_id = __observer_Policy{"id"}) setting(channel)
-      //discover:addObserver(channel{"id"});
     }
     fired{
       raise wrangler event "addObserver" attributes event:attrs;
-      raise wrangler event "observer_created" attributes event:attrs;
       ent:observer_Policy := __observer_Policy;
-      //schedule discover event "clean_up" repeat "*/5 * * * *" attributes {} setting(foo);
-      //ent:scheduledEvent := foo.klog("scheduled event");
     }
     else{
       raise wrangler event "observer_not_created" attributes event:attrs; //exists
+      raise wrangler event "addObserver" attributes event:attrs;
     }
   }
 
@@ -84,10 +85,9 @@ ruleset tedrub.modulos.observer {
     pre{ channel = observerDid() }
     if(channel && channel{"type"} == "discover") then every{
       engine:removeChannel(channel{"id"}); 
-      discover:removeObserver(channel{"id"});
-      //schedule:remove(ent:scheduledEvent); // remove repeated clean up event
     }
     always{
+      //ent:observers := buses.splice(ent:observers.index(channel{"id"}),1);
       raise wrangler event "observer_removed" attributes event:attrs;// api
       raise discover event "remove_subs" attributes event:attrs; // clean up subscriptions
     }
@@ -99,7 +99,7 @@ ruleset tedrub.modulos.observer {
         raise wrangler event "subscription" attributes {
                  "wellKnown_Tx": event:attr("resource"), 
                  "Tx_host"     : event:attr("Tx_host"),
-                 "Rx_host"     : "http://"+discover:ip()+":8080",
+                 "Rx_host"     : event:attr("Rx_host"),//"http://"+discover:ip()+":8080",
                  "engine_Id"   : event:attr("id") } 
       }
   }
@@ -109,6 +109,7 @@ ruleset tedrub.modulos.observer {
     select when discover engine_found where advertisement{"resources"} >< "Temperature" 
       pre{ attrs = event:attrs.put({"resource" : event:attr("advertisement"){"resources"}{"Temperature"},
                    "Tx_host"    : "http://"+event:attr("address")+":8080"//event:attr("advertisement"){"_host"}
+                   //,"Rx_host"    :
                })
       }
       always{
@@ -118,9 +119,9 @@ ruleset tedrub.modulos.observer {
 
   rule new_resource {
     select when wrangler subscription_added
-    if event:attr("engine_Id") then
-      discover:addObserver(meta:eci);  
+    if event:attr("engine_Id") then noop();
     fired {
+      ent:connections := ent:connections.append(event:attr("Rx"));
       ent:engine_ids_2_subs_ids := ent:engine_ids_2_subs_ids.defaultsTo({}) 
                 .put(event:attr("engine_Id"),
                     ent:engine_ids_2_subs_ids{event:attr("engine_Id")}.defaultsTo([])
@@ -159,23 +160,29 @@ ruleset tedrub.modulos.observer {
 
   rule addResource {
     select when discover addResource
-      discover:addResource(event:attr("name"),subscription:wellKnown_Rx(){"id"});
+      always{
+        ent:resources := ent:resources.put([event:attr("name")],subscription:wellKnown_Rx(){"id"});
+      }
   }
 
   rule removeResource {
     select when discover removeResource
-      discover:removeResource(event:attr("name"),subscription:wellKnown_Rx(){"id"});
+      always{
+        ent:resources := ent:resources.delete(event:attr("name"));
+      }
   }
 
   rule addObserver {
     select when discover addObserver or
     system online 
-      discover:addObserver(observerDid(){"id"});
+      always{
+        ent:observers := ent:observers.append(observerDid(){"id"});
+      }
   }
 
   rule addedObserver {
     select when discover addObserver
-    foreach discover:engines().values() setting(engine)
+    foreach engines().values() setting(engine)
     always{
       raise discover event "engine_found" attributes engine
     }
@@ -183,7 +190,9 @@ ruleset tedrub.modulos.observer {
 
   rule removeObserver {
     select when discover removeObserver
-      discover:removeObserver(observerDid(){"id"});
+      always{
+        ent:observers := observerDid(){"id"};
+      }
   }
 
   //Accept the incoming subscription requests from other sensors.
