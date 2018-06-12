@@ -9,21 +9,21 @@ $(document).ready(function() {
   var leftRadius = function(nodeId) {
     var theNode = $('#'+nodeId);
     return Math.floor(
-             (parseFloat(theNode.css('border-left') || theNode.css('border-left-width'))
+             (parseFloat(theNode.css('border-left-width'))
              +parseFloat(theNode.css('padding-left'))
              +parseFloat(theNode.css('width'))
              +parseFloat(theNode.css('padding-right'))
-             +parseFloat(theNode.css('border-right') || theNode.css('border-right-width'))
+             +parseFloat(theNode.css('border-right-width'))
              )/2);
   }
   var topRadius = function(nodeId) {
     var theNode = $('#'+nodeId);
     return Math.floor(
-             (parseFloat(theNode.css('border-top') || theNode.css('border-top-width'))
+             (parseFloat(theNode.css('border-top-width'))
              +parseFloat(theNode.css('padding-top'))
              +parseFloat(theNode.css('height'))
              +parseFloat(theNode.css('padding-bottom'))
-             +parseFloat(theNode.css('border-bottom') || theNode.css('border-bottom-width'))
+             +parseFloat(theNode.css('border-bottom-width'))
              )/2);
   }
   var springLine = function() {
