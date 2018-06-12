@@ -9,21 +9,21 @@ $(document).ready(function() {
   var leftRadius = function(nodeId) {
     var theNode = $('#'+nodeId);
     return Math.floor(
-             (parseFloat(theNode.css('border-left'))
+             (parseFloat(theNode.css('border-left') || theNode.css('border-left-width'))
              +parseFloat(theNode.css('padding-left'))
              +parseFloat(theNode.css('width'))
              +parseFloat(theNode.css('padding-right'))
-             +parseFloat(theNode.css('border-right'))
+             +parseFloat(theNode.css('border-right') || theNode.css('border-right-width'))
              )/2);
   }
   var topRadius = function(nodeId) {
     var theNode = $('#'+nodeId);
     return Math.floor(
-             (parseFloat(theNode.css('border-top'))
+             (parseFloat(theNode.css('border-top') || theNode.css('border-top-width'))
              +parseFloat(theNode.css('padding-top'))
              +parseFloat(theNode.css('height'))
              +parseFloat(theNode.css('padding-bottom'))
-             +parseFloat(theNode.css('border-bottom'))
+             +parseFloat(theNode.css('border-bottom') || theNode.css('border-bottom-width'))
              )/2);
   }
   var springLine = function() {
@@ -111,7 +111,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         var cp = {}; cp.id = p.id; cp.eci = p.eci;
         if (db_dump.pico[p.id] === undefined) continue;
         cp.dname = getV(p,"dname",undefined);
-        cp.canDel = getP(p,"children", []).length == 0; 
+        cp.canDel = getP(p,"children", []).length == 0;
         thePicoOut.children.push(cp);
       }
       thePicoOut.dname = getV(thePicoInp,"dname",
@@ -243,7 +243,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       callback(thePicoInp);
     }
   }
-  
+
   var renderTab =
     function(event){
       var authenticated = event.data.authenticated;
