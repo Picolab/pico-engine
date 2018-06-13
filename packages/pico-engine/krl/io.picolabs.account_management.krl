@@ -13,7 +13,7 @@ ruleset io.picolabs.account_management {
                               { "domain": "wrangler", "type": "ruleset_added",
                                 "attrs": [ "rids" ] },
                               { "domain": "owner", "type": "eci_requested",
-                                "attrs": [ "name" ] } ] }
+                                "attrs": [ "owner_id" ] } ] }
 
     nameExists = function(ownername){
       ent:owners.defaultsTo({}) >< ownername
