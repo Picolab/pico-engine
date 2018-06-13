@@ -56,12 +56,18 @@ rule create_admin{
 }
 
 rule eci_from_owner_name{
-  select when owner eci_requested
-  pre{
-    eciResult = getEciFromOwnerName(event:attr("owner_id"));
+  select when owner eci_requested owner_id re#(.+)# setting(owner_id)
+  pre {
+    eci = getEciFromOwnerName(owner_id.klog("owner_id"));
+    pico_id = eci != "No user found"
+      => engine:getPicoIDByECI(eci.klog("eci"))
+       | null;
+    channel_name = "authenticate_"+time:now();
   }
-  if eciResult != "No user found" then every{
-    send_directive("Returning eci from owner name", {"eci": eciResult});
+  if pico_id then every{
+    engine:newChannel(pico_id,channel_name,"temporary",ent:ownerPolicy{"id"})
+      setting(new_channel);
+    send_directive("Returning eci from owner name", {"eci": new_channel{"id"}});
   }fired{
     raise owner event "login_attempt"
       attributes event:attrs.put({ "timestamp": time:now() });
