@@ -85,6 +85,7 @@ ruleset io.picolabs.owner_authentication {
       engine:newChannel(meta:picoId, "Authentication_" + time:now(), "authenticated") setting(new_channel)
       send_directive("Obtained Token",{"eci": new_channel{"id"},
                                         "pico_id": meta:picoId});
+      engine:removeChannel(meta:eci);
     }
     fired {
       raise owner event "pwd_needs_encoding" attributes { "password": password }

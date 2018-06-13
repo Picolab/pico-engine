@@ -71,11 +71,19 @@ rule eci_from_owner_name{
   }fired{
     raise owner event "login_attempt"
       attributes event:attrs.put({ "timestamp": time:now() });
+    schedule owner event "authenticate_channel_expired"
+      at time:add(time:now(), {"minutes": 5})
+      attributes {"eci": new_channel{"id"}}
   }else{
     raise owner event "login_attempt_failed"
       attributes event:attrs.put({ "timestamp": time:now() });
   }
 }
+
+  rule remove_expired_channel {
+    select when owner authenticate_channel_expired eci re#(.+)# setting(eci)
+    engine:removeChannel(eci)
+  }
 
   rule create_owner{
     select when owner creation
