@@ -2,7 +2,7 @@ var path = require("path");
 var bunyan = require("bunyan");
 var startCore = require("./startCore");
 var setupServer = require("./setupServer");
-var startDiscover = require("./discover");
+var Discover = require("./discover");
 
 module.exports = function(conf){
 
@@ -34,7 +34,7 @@ module.exports = function(conf){
         //signal engine started
         pe.getRootECI(function(error,root_eci){
             pe.signalEvent({
-                eid: "12345",
+                eid: "84",
                 eci: root_eci,
                 domain: "system",
                 type:"online",
@@ -42,9 +42,9 @@ module.exports = function(conf){
             }, function(err, response) { /*if(err) return errResp(res, err); */ });
         });
 
-        //if(conf.discover){
-        startDiscover(pe);
-        //}
+        if(conf.discover){
+            Discover.start();
+        }
 
         app.listen(conf.port, function(){
             console.log(conf.host);

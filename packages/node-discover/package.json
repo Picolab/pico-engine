@@ -1,0 +1,54 @@
+{
+  "_from": "node-discover@^0.6.2",
+  "_id": "node-discover@0.6.2",
+  "_inBundle": false,
+  "_integrity": "sha1-hIUG82K7eAUjcImGWSep7PUkUp4=",
+  "_location": "/node-discover",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "node-discover@^0.6.2",
+    "name": "node-discover",
+    "escapedName": "node-discover",
+    "rawSpec": "^0.6.2",
+    "saveSpec": null,
+    "fetchSpec": "^0.6.2"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/node-discover/-/node-discover-0.6.2.tgz",
+  "_shasum": "848506f362bb7805237089865927a9ecf524529e",
+  "_spec": "node-discover@^0.6.2",
+  "_where": "/Users/BurdettAdam/GitHub/pico-engine",
+  "author": {
+    "name": "Dan VerWeire"
+  },
+  "bugs": {
+    "url": "https://github.com/wankdanker/node-discover/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "node-uuid": "^1.4.3"
+  },
+  "deprecated": false,
+  "description": "Automatically discover your nodejs instances with built-in support for automatic single master and capability advertising.",
+  "devDependencies": {
+    "dnode": "^1.2.0",
+    "eventemitter2": "0.4.x",
+    "optimist": "~0.6.0",
+    "portfinder": "^0.4.0"
+  },
+  "engines": {
+    "node": ">=0.4.1 <0.5.0 || >=0.6.9"
+  },
+  "homepage": "http://github.com/wankdanker/node-discover",
+  "main": "discover",
+  "name": "node-discover",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/wankdanker/node-discover.git"
+  },
+  "version": "0.6.2"
+}

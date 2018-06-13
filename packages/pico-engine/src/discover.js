@@ -1,7 +1,7 @@
 var _ = require("lodash");
 var tcpp = require("tcp-ping");
 var mkKRLfn = require("../../pico-engine-core/src/mkKRLfn");
-var Discover = require("node-discover");
+var Discover = require("../../node-discover");
 var mkKRLaction = require("../../pico-engine-core/src/mkKRLaction");
 
 
@@ -22,10 +22,11 @@ function getIp(ifaces) {
 
 
 var config = {
-    helloInterval: 500, // How often to broadcast a hello packet in milliseconds
-    checkInterval: 2000, // How often to to check for missing nodes in milliseconds
-    nodeTimeout: 3000, // Consider a node dead if not seen in this many milliseconds
-    masterTimeout: 6000, // Consider a master node dead if not seen in this many milliseconds
+    startOnCreation: false,
+    helloInterval  : 500, // How often to broadcast a hello packet in milliseconds
+    checkInterval  : 2000, // How often to to check for missing nodes in milliseconds
+    nodeTimeout    : 3000, // Consider a node dead if not seen in this many milliseconds
+    masterTimeout  : 6000, // Consider a master node dead if not seen in this many milliseconds
     mastersRequired: 1, // The count of master processes that should always be available
     //weight: Math.random(), // A number used to determine the preference for a specific process to become master. Higher numbers win.
 
@@ -49,96 +50,131 @@ var event = {
 var observers = [];
 var resources = {};
 
-module.exports = function startDiscover(core){
 
-    var d, getNodes = function() { return [];};
+var d, getNodes = function() { return [];};
 
-    function startD(config, d) {
 
-        d = Discover(config);
-        //var port = core.port || "8080";
-        d.advertise({
-            name: "PicoEngine",
-            resources: resources//,
-            //_host: "http://" + getIp(ifaces) + ":" + port //core.host
-        });
+d = Discover(config);
+//var port = core.port || "8080";
+d.advertise({
+    name: "PicoEngine",
+    resources: resources//,
+    //_host: "http://" + getIp(ifaces) + ":" + port //core.host
+});
 
-        d.on("added", function(obj) {
-            obj.discoverId = obj.id;
-            for (var i = 0; i < observers.length; i++) {
-                event.eci = observers[i];
-                event.type = "engine_found";
-                event.attrs = obj;
-                core.signalEvent(event, function(err, response) { /*if(err) return errResp(res, err); */ });
-            }
-        });
-
-        d.on("removed", function(obj) {
-            for (var i = 0; i < observers.length; i++) {
-                event.eci = observers[i];
-                event.type = "engine_lost";
-                event.attrs = obj;
-                core.signalEvent(event, function(err, response) { /*if(err) return errResp(res, err); */ });
-            }
-        });
-
-        getNodes = function() {
-            var nodes = [];
-            d.eachNode(function(node) {
-                nodes.push(node);
-            });
-            return nodes;
-        };
-
+d.on("added", function(obj) {
+    obj.discoverId = obj.id;
+    for (var i = 0; i < observers.length; i++) {
+        event.eci = observers[i];
+        event.type = "engine_found";
+        event.attrs = obj;
+        core.signalEvent(event, function(err, response) { /*if(err) return errResp(res, err); */ });
     }
+});
 
-    setTimeout(startD, 7000, config, d); // start discover service after engine starts
+d.on("removed", function(obj) {
+    for (var i = 0; i < observers.length; i++) {
+        event.eci = observers[i];
+        event.type = "engine_lost";
+        event.attrs = obj;
+        core.signalEvent(event, function(err, response) { /*if(err) return errResp(res, err); */ });
+    }
+});
 
-    return {
-        def: {
-            alive: mkKRLfn([
-                "ip","port"
-            ], function(ctx, args, callback) {
-                tcpp.probe(args.ip, args.port, function(err, available) { callback(null, available); });
-            }),
-            ip: mkKRLfn([], function(ctx, args, callback) {
-                callback(null, getIp(ifaces));
-            }),
-            engines: mkKRLfn([], function(ctx, args, callback) {
-                callback(null, getNodes());
-            }),
-            resources: mkKRLfn([], function(ctx, args, callback) {
-                callback(null,resources);
-            }),
-            observers: mkKRLfn([], function(ctx, args, callback) {
-                callback(null,observers);
-            }),
-            addResource: mkKRLaction([
-                "key", "value"
-            ], function(ctx, args, callback) {
-                resources[args.key] = args.value; // TODO, needs to check input ...
-                callback(null,resources);
-            }),
-            removeResource: mkKRLaction([
-                "key"
-            ], function(ctx, args, callback) {
-                delete resources[args.key];
-                callback(null,resources);
-            }),
-            addObserver: mkKRLaction([
-                "did"
-            ], function(ctx, args, callback) {
-                var index = _.findIndex(observers, function(Item) { return Item === args.did; });
-                if (index < 0) { observers.push(args.did); }
-                callback(null,observers);
-            }),
-            removeObserver: mkKRLaction([
-                "did"
-            ], function(ctx, args, callback) {
-                var index = _.findIndex(observers, function(Item) { return Item === args.did; });
-                if (index > -1) { observers.splice(index, 1); }
-                callback(null,observers);
-            }),
-        }
-    };
+getNodes = function() {
+    var nodes = [];
+    d.eachNode(function(node) {
+        nodes.push(node);
+    });
+    return nodes;
+};
+
+
+
+
+
+module.exports = {
+    alive: {
+        type: "function",
+        args: ["ip","port"],
+        fn  : function( args, callback) {
+            tcpp.probe(args.ip, args.port, function(err, available) { callback(null, available); });
+        },
+    },
+    ip: {
+        type: "function",
+        args: [],
+        fn  : function( args, callback) {
+            callback(null, getIp(ifaces));
+        },
+    },
+    engines: {
+        type: "function",
+        args: [],
+        fn  : function( args, callback) {
+            callback(null, getNodes());
+        },
+    },
+    resources: {
+        type: "function",
+        args: [],
+        fn  : function( args, callback) {
+            callback(null,resources);
+        },
+    },
+    observers: {
+        type: "function",
+        args: [],
+        fn  : function( args, callback) {
+            callback(null,observers);
+        },
+    },
+    startService: {
+        type: "action",
+        args: [],
+        fn  : function( args, callback) {
+            callback(null,d.start());
+        },
+    },
+    stopService: {
+        type: "action",
+        args: [],
+        fn  : function( args, callback) {
+            callback(null,d.stop());
+        },
+    },
+    addResource: {
+        type: "action",
+        args: ["key", "value"],
+        fn  : function( args, callback) {
+            resources[args.key] = args.value; // TODO, needs to check input ...
+            callback(null,resources);
+        },
+    },
+    removeResource: {
+        type: "action",
+        args: ["key"],
+        fn  : function( args, callback) {
+            delete resources[args.key];
+            callback(null,resources);
+        },
+    },
+    addObserver:{
+        type: "action",
+        args: ["did"],
+        fn  : function( args, callback) {
+            var index = _.findIndex(observers, function(Item) { return Item === args.did; });
+            if (index < 0) { observers.push(args.did); }
+            callback(null,observers);
+        },
+    },
+    removeObserver: {
+        type: "action",
+        args: ["did"],
+        fn  : function( args, callback) {
+            var index = _.findIndex(observers, function(Item) { return Item === args.did; });
+            if (index > -1) { observers.splice(index, 1); }
+            callback(null,observers);
+        },
+    },
 };
