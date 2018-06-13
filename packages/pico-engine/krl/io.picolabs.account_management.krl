@@ -27,6 +27,12 @@ ruleset io.picolabs.account_management {
     
     //rids required in every owner pico
     base_rids = ["io.picolabs.owner_authentication"]
+
+    owner_policy_definition = {
+      "name": "only allow owner/authentication events",
+      "event": {"allow": [{"domain": "owner", "type": "authentication"}]
+    }
+}
   }//end global
 
 //
@@ -36,10 +42,12 @@ rule create_admin{
   select when wrangler ruleset_added where rids.klog("rids") >< meta:rid.klog("meta rid")
   pre{}
   every {
+    engine:newPolicy(owner_policy_definition) setting(owner_policy);
     engine:newChannel(meta:picoId, "Router_" + time:now(), "route_to_owner") setting(new_channel)
   }
   fired{
-    ent:owners := ent:owners.defaultsTo({}).put("root", {"eci": new_channel{"id"}});
+    ent:ownerPolicy := owner_policy;
+    ent:owners := {"root": {"eci": new_channel{"id"}}};
     raise wrangler event "install_rulesets_requested"
       attributes event:attrs.put({"rids":"io.picolabs.owner_authentication"});
   }
