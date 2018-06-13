@@ -29,8 +29,8 @@ ruleset io.picolabs.account_management {
     base_rids = ["io.picolabs.owner_authentication"]
 
     owner_policy_definition = {
-      "name": "only allow owner/authentication events",
-      "event": {"allow": [{"domain": "owner", "type": "authentication"}]}
+      "name": "only allow owner/authenticate events",
+      "event": {"allow": [{"domain": "owner", "type": "authenticate"}]}
     }
 
   }//end global
