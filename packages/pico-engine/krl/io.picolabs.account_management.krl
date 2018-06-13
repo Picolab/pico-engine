@@ -30,9 +30,9 @@ ruleset io.picolabs.account_management {
 
     owner_policy_definition = {
       "name": "only allow owner/authentication events",
-      "event": {"allow": [{"domain": "owner", "type": "authentication"}]
+      "event": {"allow": [{"domain": "owner", "type": "authentication"}]}
     }
-}
+
   }//end global
 
 //
@@ -40,8 +40,10 @@ ruleset io.picolabs.account_management {
 
 rule create_admin{
   select when wrangler ruleset_added where rids.klog("rids") >< meta:rid.klog("meta rid")
-  pre{}
-  every {
+  pre {
+    ok_in_this_pico = wrangler:parent_eci() == "";
+  }
+  if ok_in_this_pico then every {
     engine:newPolicy(owner_policy_definition) setting(owner_policy);
     engine:newChannel(meta:picoId, "Router_" + time:now(), "route_to_owner") setting(new_channel)
   }
