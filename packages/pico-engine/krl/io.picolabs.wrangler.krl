@@ -32,7 +32,7 @@ ruleset io.picolabs.wrangler {
                               { "domain": "wrangler", "type": "child_deletion",
                                 "attrs": [ "pico_name" ] },
                               { "domain": "wrangler", "type": "channel_creation_requested",
-                                "attrs": [ "channel_name", "channel_type" ] },
+                                "attrs": [ "name", "type" ] },
                               { "domain": "wrangler", "type": "channel_deletion_requested",
                                 "attrs": [ "eci" ] },
                               { "domain": "wrangler", "type": "install_rulesets_requested",
