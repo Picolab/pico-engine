@@ -98,7 +98,16 @@ ruleset io.picolabs.owner_authentication {
 
   rule remove_used_authenticate_channel {
     select when owner authenticate_channel_used eci re#(.+)# setting(eci)
-    engine:removeChannel(eci);
+    pre {
+      channel = engine:listChannels()
+        .filter(function(c){c{"id"}==eci})
+        .head();
+      ok = channel
+        && channel{"type"} == "temporary"
+        && channel{"name"} like re#^authenticate_.*Z$#
+    }
+    if ok then
+      engine:removeChannel(eci);
   }
 
   rule owner_new_password {
