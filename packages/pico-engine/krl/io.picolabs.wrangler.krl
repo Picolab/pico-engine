@@ -15,7 +15,7 @@ ruleset io.picolabs.wrangler {
     logging on
     provides skyQuery ,
     rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
-    channel, alwaysEci, eciFromName, nameFromEci,//channel
+    channel, alwaysEci, eciFromName, nameFromEci, createChannel, newPolicy,//channel
     children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico, myself
     shares skyQuery ,
     rulesetsInfo,installedRulesets,  installRulesets, uninstallRulesets,registeredRulesets, //ruleset
@@ -32,7 +32,7 @@ ruleset io.picolabs.wrangler {
                               { "domain": "wrangler", "type": "child_deletion",
                                 "attrs": [ "pico_name" ] },
                               { "domain": "wrangler", "type": "channel_creation_requested",
-                                "attrs": [ "name", "type" ] },
+                                "attrs": [ "channel_name", "channel_type" ] },
                               { "domain": "wrangler", "type": "channel_deletion_requested",
                                 "attrs": [ "eci" ] },
                               { "domain": "wrangler", "type": "install_rulesets_requested",
@@ -221,13 +221,24 @@ ruleset io.picolabs.wrangler {
     }
 
     createChannel = defaction(id , name, type, policy_id) {
-      policy_present = policy_id.isnull() => "F" | "T";
+      policy_present = policy_id => "T" | "F";
       choose policy_present {
         T => engine:newChannel(id , name, type, policy_id) setting(channel);
         F => engine:newChannel(id , name, type) setting(channel);
       }
       returns  channel
     }
+
+    /*
+      see https://github.com/Picolab/pico-engine/pull/350#issue-160657235 for information on the format of @param new_policy and the return value
+    */
+    newPolicy = defaction(new_policy) {
+      every{
+        engine:newPolicy( new_policy ) setting(created_policy)
+      }
+      returns created_policy
+    }
+
 // ********************************************************************************************
 // ***                                      Picos                                           ***
 // ********************************************************************************************
