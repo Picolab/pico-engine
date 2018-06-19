@@ -1,5 +1,4 @@
-//for now, this mergesort relies on its caller using co-callback
-module.exports = function*(array, comparator){
+module.exports = async function sort(array, comparator){
     var N = array.length;
     if(N < 2){
         return array;
@@ -24,7 +23,7 @@ module.exports = function*(array, comparator){
             var write = read1;
             while(read1 < startRead2 && read2 < mergeEnd){
                 other[write++] = array[
-                    (yield comparator(array[read1], array[read2])) <= 0
+                    (await comparator(array[read1], array[read2])) <= 0
                         ? read1++
                         : read2++
                 ];
