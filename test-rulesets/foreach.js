@@ -309,6 +309,63 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
       }
+    },
+    "key_vs_index": {
+      "name": "key_vs_index",
+      "select": {
+        "graph": { "foreach": { "key_vs_index": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var foreach0_pairs = toPairs({
+          "foo": "bar",
+          "baz": "qux"
+        });
+        var foreach0_len = foreach0_pairs.length;
+        var foreach0_i;
+        for (foreach0_i = 0; foreach0_i < foreach0_len; foreach0_i++) {
+          ctx.scope.set("a", foreach0_pairs[foreach0_i][1]);
+          ctx.scope.set("k", foreach0_pairs[foreach0_i][0]);
+          var foreach1_pairs = toPairs([
+            "one",
+            "two",
+            "three"
+          ]);
+          var foreach1_len = foreach1_pairs.length;
+          var foreach1_i;
+          for (foreach1_i = 0; foreach1_i < foreach1_len; foreach1_i++) {
+            var foreach_is_final = foreach0_i === foreach0_len - 1 && foreach1_i === foreach1_len - 1;
+            ctx.scope.set("b", foreach1_pairs[foreach1_i][1]);
+            ctx.scope.set("i", foreach1_pairs[foreach1_i][0]);
+            var fired = true;
+            if (fired) {
+              yield runAction(ctx, void 0, "send_directive", [
+                "key_vs_index",
+                {
+                  "a": ctx.scope.get("a"),
+                  "k": ctx.scope.get("k"),
+                  "b": ctx.scope.get("b"),
+                  "i": ctx.scope.get("i")
+                }
+              ], []);
+            }
+            if (fired)
+              ctx.emit("debug", "fired");
+            else
+              ctx.emit("debug", "not fired");
+          }
+        }
+      }
     }
   }
 };
