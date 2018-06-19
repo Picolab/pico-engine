@@ -385,7 +385,8 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
     t.equals(yield getParent({pico_id: "id6"}, []), "id2");
     t.equals(yield getAdminECI({pico_id: "id6"}, []), "id7");
     t.deepEquals(yield listChildren({pico_id: "id2"}, []), ["id6"]);
-    t.equals(yield removePico({pico_id: "id6"}, []), void 0);
+    t.equals(yield removePico({pico_id: "id6"}, []), true);
+    t.equals(yield removePico({pico_id: "id6"}, []), false);
     strictDeepEquals(t, yield listChildren({}, ["id2"]), []);
 
     //report error on invalid pico_id
@@ -403,7 +404,7 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
     t.equals(yield getParent({pico_id: "id404"}, []), void 0);
     t.equals(yield listChildren({pico_id: "id404"}, []), void 0);
     yield assertInvalidPicoID(newPico     , "id404", "NotFoundError: Pico not found: id404");
-    yield assertInvalidPicoID(removePico  , "id404", "NotFoundError: Pico not found: id404");
+    t.equals(yield removePico({}, ["id404"]), false);
 
     yield tstErr(
         removePico({}, ["id0"]),
@@ -461,14 +462,15 @@ testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", function * 
     t.deepEquals(yield listPolicies(), [pAdmin, pFoo, pBar]);
 
     yield tstErr(removePolicy(), "TypeError: engine:removePolicy was given null instead of a policy_id string");
-    yield tstErr(removePolicy("id404"), "NotFoundError: Policy not found: id404");
+    t.equals(yield removePolicy("id404"), false);
 
-    yield removePolicy(pFoo.id);
+    t.equals(yield removePolicy(pFoo.id), true);
+    t.equals(yield removePolicy(pFoo.id), false);
     t.deepEquals(yield listPolicies(), [pAdmin, pBar]);
 
     yield tstErr(removePolicy(pAdmin.id), "Error: Policy " + pAdmin.id +  " is in use, cannot remove.");
 
-    yield removePolicy(pBar.id);
+    t.equals(yield removePolicy(pBar.id), true);
     t.deepEquals(yield listPolicies(), [pAdmin]);
 });
 
@@ -537,13 +539,10 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
         "TypeError: engine:removeChannel was given re#id1# instead of an eci string",
         "wrong eci type"
     );
-    yield tstErr(
-        removeChannel({}, ["eci404"]),
-        "NotFoundError: Key not found in database [channel,eci404]",
-        "eci not found"
-    );
+    t.equals(yield removeChannel({}, ["eci404"]), false);
 
-    t.equals(yield removeChannel({}, ["id2"]), void 0);
+    t.equals(yield removeChannel({}, ["id2"]), true);
+    t.equals(yield removeChannel({}, ["id2"]), false);
     t.deepEquals(yield listChannels({}, ["id0"]), [
         mkChan("id0", "id1", "admin", "secret"),
     ]);

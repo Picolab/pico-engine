@@ -207,6 +207,7 @@ module.exports = function(core){
             var pico_id = picoArgOrCtxPico("removePico", ctx, args);
 
             core.db.assertPicoID(pico_id, function(err, pico_id){
+                if(err && err.notFound) return callback(null, false);
                 if(err) return callback(err);
 
                 core.db.listChildren(pico_id, function(err, children){
@@ -215,7 +216,11 @@ module.exports = function(core){
                         callback(new Error("Cannot remove pico \"" + pico_id + "\" because it has " + _.size(children) + " children"));
                         return;
                     }
-                    core.db.removePico(pico_id, callback);
+                    core.db.removePico(pico_id, function(){
+                        if(err && err.notFound) return callback(null, false);
+                        if(err) return callback(err);
+                        callback(null, true);
+                    });
                 });
             });
         }),
@@ -235,7 +240,11 @@ module.exports = function(core){
             if(!_.isString(id)){
                 return callback(new TypeError("engine:removePolicy was given " + ktypes.toString(id) + " instead of a policy_id string"));
             }
-            core.db.removePolicy(id, callback);
+            core.db.removePolicy(id, function(err){
+                if(err && err.notFound) return callback(null, false);
+                if(err) return callback(err);
+                callback(null, true);
+            });
         }),
 
 
@@ -291,7 +300,11 @@ module.exports = function(core){
                 return callback(new TypeError("engine:removeChannel was given " + ktypes.toString(args.eci) + " instead of an eci string"));
             }
 
-            core.db.removeChannel(args.eci, callback);
+            core.db.removeChannel(args.eci, function(err){
+                if(err && err.notFound)return callback(null, false);
+                if(err)return callback(err);
+                callback(null, true);
+            });
         }),
 
 

@@ -545,8 +545,12 @@ module.exports = function(opts){
                 }),
                 function(next){
                     ldb.get(["pico", id], function(err, pico){
+                        if((err && err.notFound) || !pico){
+                            next();
+                            return;
+                        }
                         if(err) return next(err);
-                        if(pico && pico.parent_id){
+                        if(pico.parent_id){
                             keyRange(["pico-children", pico.parent_id, id], function(key){
                                 db_ops.push({type: "del", key: key});
                             })(next);
