@@ -42,7 +42,11 @@ module.exports = function(core){
                 return callback(new TypeError("engine:getPicoIDByECI was given " + ktypes.toString(args.eci) + " instead of an eci string"));
             }
 
-            core.db.getPicoIDByECI(args.eci, callback);
+            core.db.getPicoIDByECI(args.eci, function(err, pico){
+                if(err && err.notFound) return callback();
+                if(err) return callback(err);
+                callback(null, pico);
+            });
         }),
 
 
@@ -53,9 +57,14 @@ module.exports = function(core){
             var pico_id = picoArgOrCtxPico("getParent", ctx, args);
 
             core.db.assertPicoID(pico_id, function(err, pico_id){
+                if(err && err.notFound) return callback();
                 if(err) return callback(err);
 
-                core.db.getParent(pico_id, callback);
+                core.db.getParent(pico_id, function(err, parent_id){
+                    if(err && err.notFound) return callback();
+                    if(err) return callback(err);
+                    callback(null, parent_id);
+                });
             });
         }),
 
@@ -67,9 +76,14 @@ module.exports = function(core){
             var pico_id = picoArgOrCtxPico("getAdminECI", ctx, args);
 
             core.db.assertPicoID(pico_id, function(err, pico_id){
+                if(err && err.notFound) return callback();
                 if(err) return callback(err);
 
-                core.db.getAdminECI(pico_id, callback);
+                core.db.getAdminECI(pico_id, function(err, eci){
+                    if(err && err.notFound) return callback();
+                    if(err) return callback(err);
+                    callback(null, eci);
+                });
             });
         }),
 
@@ -81,9 +95,14 @@ module.exports = function(core){
             var pico_id = picoArgOrCtxPico("listChildren", ctx, args);
 
             core.db.assertPicoID(pico_id, function(err, pico_id){
+                if(err && err.notFound) return callback();
                 if(err) return callback(err);
 
-                core.db.listChildren(pico_id, callback);
+                core.db.listChildren(pico_id, function(err, children){
+                    if(err && err.notFound) return callback();
+                    if(err) return callback(err);
+                    callback(null, children);
+                });
             });
         }),
 
@@ -101,6 +120,7 @@ module.exports = function(core){
             var pico_id = picoArgOrCtxPico("listChannels", ctx, args);
 
             core.db.assertPicoID(pico_id, function(err, pico_id){
+                if(err && err.notFound) return callback();
                 if(err) return callback(err);
 
                 core.db.listChannels(pico_id, callback);
@@ -115,9 +135,11 @@ module.exports = function(core){
             var pico_id = picoArgOrCtxPico("listInstalledRIDs", ctx, args);
 
             core.db.assertPicoID(pico_id, function(err, pico_id){
+                if(err && err.notFound) return callback();
                 if(err) return callback(err);
 
                 core.db.ridsOnPico(pico_id, function(err, rid_set){
+                    if(err && err.notFound) return callback();
                     if(err) return callback(err);
                     callback(null, _.keys(rid_set));
                 });
@@ -143,6 +165,7 @@ module.exports = function(core){
             }
 
             core.db.getEnabledRuleset(args.rid, function(err, data){
+                if(err && err.notFound) return callback();
                 if(err) return callback(err);
                 var rid = data.rid;
                 callback(null, {

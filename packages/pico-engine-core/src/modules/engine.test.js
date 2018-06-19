@@ -75,11 +75,7 @@ testPE("engine:getPicoIDByECI", function*(t, pe){
         "TypeError: engine:getPicoIDByECI was given null instead of an eci string",
         "wrong eci type"
     );
-    yield tstErr(
-        get("quux"),
-        "NotFoundError: ECI not found: quux",
-        "eci not found"
-    );
+    t.equals(yield get("quux"), void 0, "eci not found");
 });
 
 
@@ -312,12 +308,8 @@ testPE("engine:describeRuleset", function * (t, pe){
         "TypeError: engine:describeRuleset was given [Array] instead of a rid string",
         "wrong rid type"
     );
-    try{
-        yield descRID(ctx, {rid: "not.found"});
-        t.fail("should fail b/c not found");
-    }catch(err){
-        t.ok(err && err.notFound);
-    }
+
+    t.equals(yield descRID(ctx, {rid: "not.found"}), void 0);
 });
 
 
@@ -407,9 +399,9 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
     yield assertInvalidPicoID(newPico     , void 0, "TypeError: engine:newPico was given null instead of a parent_id string");
     yield assertInvalidPicoID(removePico  , void 0, "TypeError: engine:removePico was given null instead of a pico_id string");
 
-    yield assertInvalidPicoID(getAdminECI , "id404", "NotFoundError: Pico not found: id404");
-    yield assertInvalidPicoID(getParent   , "id404", "NotFoundError: Pico not found: id404");
-    yield assertInvalidPicoID(listChildren, "id404", "NotFoundError: Pico not found: id404");
+    t.equals(yield getAdminECI({}, ["id404"]), void 0);
+    t.equals(yield getParent({pico_id: "id404"}, []), void 0);
+    t.equals(yield listChildren({pico_id: "id404"}, []), void 0);
     yield assertInvalidPicoID(newPico     , "id404", "NotFoundError: Pico not found: id404");
     yield assertInvalidPicoID(removePico  , "id404", "NotFoundError: Pico not found: id404");
 
@@ -571,7 +563,7 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
     yield assertInvalidPicoID(listChannels, void 0, "TypeError: engine:listChannels was given null instead of a pico_id string");
 
     yield assertInvalidPicoID(newChannel  , "id404", "NotFoundError: Pico not found: id404");
-    yield assertInvalidPicoID(listChannels, "id404", "NotFoundError: Pico not found: id404");
+    t.deepEquals(yield listChannels({}, ["id404"]), void 0);
 
 
     //setting policy_id on a newChannel
@@ -658,7 +650,7 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
 
     yield assertInvalidPicoID(installRS   , "id404", "NotFoundError: Pico not found: id404");
     yield assertInvalidPicoID(uninstallRID, "id404", "NotFoundError: Pico not found: id404");
-    yield assertInvalidPicoID(listRIDs    , "id404", "NotFoundError: Pico not found: id404");
+    t.deepEquals(yield listRIDs({pico_id: "id404"}, []), void 0);
 
 });
 
