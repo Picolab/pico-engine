@@ -54,7 +54,6 @@ ast_node_blacklist.push("VariableDeclaration[kind=const]");
 module.exports = {
     "parserOptions": {
         "ecmaVersion": 9,
-        "sourceType": "module"
     },
     "env": {
         "browser": true,
