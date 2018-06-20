@@ -55,6 +55,23 @@ rule create_admin{
   }
 }
 
+  rule login_from_did {
+    select when owner eci_requested
+    pre {
+      did = event:attr("owner_id");
+      pico_id = did => engine:getPicoIDByECI(did) | null;
+      login = function(c){
+        c{"id"}==did && c{"type"}=="secret" && c{"name"}=="login"};
+      channel = pico_id => engine:listChannels(pico_id).filter(login).head()
+                         | null;
+   }
+   if pico_id && channel then
+     send_directive("did",{"method":"did","pico_id":pico_id,"eci":did})
+   fired {
+     last;
+   }
+  }
+
 rule eci_from_owner_name{
   select when owner eci_requested owner_id re#(.+)# setting(owner_id)
   pre {
