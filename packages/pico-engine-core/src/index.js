@@ -39,15 +39,6 @@ var log_levels = {
     "error": true,
 };
 
-var krl_stdlib_wrapped = _.mapValues(krl_stdlib, function(fn, key){
-    if(cocb.isGeneratorFunction(fn)){
-        return cocb.wrap(fn);
-    }
-    return function(){
-        return Promise.resolve(fn.apply(void 0, arguments));
-    };
-});
-
 module.exports = function(conf){
     var db = DB(conf.db);
     _.each(db, function(val, key){
@@ -162,11 +153,11 @@ module.exports = function(conf){
             }else{
                 args[0] = ctx;
             }
-            var fn = krl_stdlib_wrapped[fn_name];
-            if(fn===void 0){
+            var fn = krl_stdlib[fn_name];
+            if(fn === void 0){
                 throw new Error("Not an operator: " + fn_name);
             }
-            return fn.apply(void 0, args);
+            return Promise.resolve(fn.apply(void 0, args));
         };
 
         //don't allow anyone to mutate ctx on the fly
@@ -175,7 +166,7 @@ module.exports = function(conf){
     };
     core.mkCTX = mkCTX;
 
-    var initializeRulest = cocb.wrap(function*(rs){
+    var initializeRulest = async function(rs){
         rs.scope = SymbolTable();
         rs.modules_used = {};
         core.rsreg.setupOwnKeys(rs);
@@ -196,16 +187,16 @@ module.exports = function(conf){
                 scope: SymbolTable()
             });
             if(_.isFunction(dep_rs.meta && dep_rs.meta.configure)){
-                yield runKRL(dep_rs.meta.configure, ctx2);
+                await runKRL(dep_rs.meta.configure, ctx2);
             }
             if(_.isFunction(use["with"])){
-                yield runKRL(use["with"], mkCTX({
+                await runKRL(use["with"], mkCTX({
                     rid: rs.rid,//switch rid
                     scope: ctx2.scope//must share scope
                 }));
             }
             if(_.isFunction(dep_rs.global)){
-                yield runKRL(dep_rs.global, ctx2);
+                await runKRL(dep_rs.global, ctx2);
             }
             rs.modules_used[use.alias] = {
                 rid: use.rid,
@@ -219,13 +210,13 @@ module.exports = function(conf){
             scope: rs.scope
         });
         if(_.isFunction(rs.meta && rs.meta.configure)){
-            yield runKRL(rs.meta.configure, ctx);
+            await runKRL(rs.meta.configure, ctx);
         }
         core.rsreg.put(rs);
         if(_.isFunction(rs.global)){
-            yield runKRL(rs.global, ctx);
+            await runKRL(rs.global, ctx);
         }
-    });
+    };
 
 
     core.registerRuleset = function(krl_src, meta_data, callback){
