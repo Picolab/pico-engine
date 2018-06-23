@@ -32,7 +32,7 @@ ruleset io.picolabs.owner_authentication {
       engine:listChannels()
         .filter(function(v){
           v{"name"} like re#^Authentication_.*Z$#
-          && v{"type"} like re#^authenticated$#
+          && v{"type"} == "authenticated"
         })
         .sort(function(a,b){
           b{"name"} cmp a{"name"}
