@@ -7,7 +7,7 @@ var leveldown = require("leveldown");
 var krl_stdlib = require("krl-stdlib");
 var RulesetLoader = require("./RulesetLoader");
 var PicoEngineCore = require("pico-engine-core");
-var discoverModule = require('./discover');
+var discoverModule = require("./discover");
 
 var toKRLjson = function(val, indent){
     var message = krl_stdlib.encode({}, val, indent);
@@ -277,7 +277,7 @@ module.exports = function(conf, callback){
         //modules: conf.modules || {},
         modules: _.assign(
             {
-            discover: discoverModule
+                discover: discoverModule.module
             }, conf.modules || {}),
         //RIDs that will be automatically installed on the root pico
         rootRIDs: [

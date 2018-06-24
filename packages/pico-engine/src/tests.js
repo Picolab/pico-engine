@@ -414,11 +414,11 @@ testPE("pico-engine", function(t, pe, root_eci){
                 eci: root_eci,
                 eid: "94",
                 domain: "wrangler",
-                type: "uninstall_rulesets_requested ",
+                type: "remove_rulesets",
                 attrs: {rids:"io.picolabs.logging"}
             }, function(err, response){
                 if(err) return next(err);
-                //console.log("this is the response of uninstall_rulesets_requested: ",response.directives[0].options);
+                //console.log("this is the response of remove_rulesets: ",response.directives[0].options);
                 t.deepEqual("io.picolabs.logging", response.directives[0].options.rids[0],"correct directive");
                 next();
             });
@@ -493,11 +493,11 @@ testPE("pico-engine", function(t, pe, root_eci){
                 eci: root_eci,
                 eid: "94",
                 domain: "wrangler",
-                type: "uninstall_rulesets_requested ",
+                type: "remove_rulesets",
                 attrs: {rids:"io.picolabs.logging;io.picolabs.subscription"}
             }, function(err, response){
                 if(err) return next(err);
-                //console.log("this is the response of uninstall_rulesets_requested: ",response.directives[0].options);
+                //console.log("this is the response of remove_rulesets: ",response.directives[0].options);
                 t.deepEqual(["io.picolabs.logging","io.picolabs.subscription"], response.directives[0].options.rids, "correct directive");
                 next();
             });

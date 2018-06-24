@@ -1,8 +1,6 @@
 var _ = require("lodash");
 var tcpp = require("tcp-ping");
-var mkKRLfn = require("../../pico-engine-core/src/mkKRLfn");
 var Discover = require("../../node-discover");
-var mkKRLaction = require("../../pico-engine-core/src/mkKRLaction");
 
 
 // find ip taken from https://gist.github.com/szalishchuk/9054346
@@ -53,32 +51,12 @@ var resources = {};
 
 var d, getNodes = function() { return [];};
 
-
 d = Discover(config);
 //var port = core.port || "8080";
 d.advertise({
     name: "PicoEngine",
     resources: resources//,
     //_host: "http://" + getIp(ifaces) + ":" + port //core.host
-});
-
-d.on("added", function(obj) {
-    obj.discoverId = obj.id;
-    for (var i = 0; i < observers.length; i++) {
-        event.eci = observers[i];
-        event.type = "engine_found";
-        event.attrs = obj;
-        core.signalEvent(event, function(err, response) { /*if(err) return errResp(res, err); */ });
-    }
-});
-
-d.on("removed", function(obj) {
-    for (var i = 0; i < observers.length; i++) {
-        event.eci = observers[i];
-        event.type = "engine_lost";
-        event.attrs = obj;
-        core.signalEvent(event, function(err, response) { /*if(err) return errResp(res, err); */ });
-    }
 });
 
 getNodes = function() {
@@ -89,92 +67,113 @@ getNodes = function() {
     return nodes;
 };
 
+module.exports =  {
+    module: {
+        alive: {
+            type: "function",
+            args: ["ip","port"],
+            fn  : function( args, callback) {
+                tcpp.probe(args.ip, args.port, function(err, available) { callback(null, available); });
+            },
+        },
+        ip: {
+            type: "function",
+            args: [],
+            fn  : function( args, callback) {
+                callback(null, getIp(ifaces));
+            },
+        },
+        engines: {
+            type: "function",
+            args: [],
+            fn  : function( args, callback) {
+                callback(null, getNodes());
+            },
+        },
+        resources: {
+            type: "function",
+            args: [],
+            fn  : function( args, callback) {
+                callback(null,resources);
+            },
+        },
+        observers: {
+            type: "function",
+            args: [],
+            fn  : function( args, callback) {
+                callback(null,observers);
+            },
+        },
+        startService: {
+            type: "action",
+            args: [],
+            fn  : function( args, callback) {
+                callback(null,d.start());
+            },
+        },
+        stopService: {
+            type: "action",
+            args: [],
+            fn  : function( args, callback) {
+                callback(null,d.stop());
+            },
+        },
+        addResource: {
+            type: "action",
+            args: ["key", "value"],
+            fn  : function( args, callback) {
+                resources[args.key] = args.value; // TODO, needs to check input ...
+                callback(null,resources);
+            },
+        },
+        removeResource: {
+            type: "action",
+            args: ["key"],
+            fn  : function( args, callback) {
+                delete resources[args.key];
+                callback(null,resources);
+            },
+        },
+        addObserver:{
+            type: "action",
+            args: ["did"],
+            fn  : function( args, callback) {
+                var index = _.findIndex(observers, function(Item) { return Item === args.did; });
+                if (index < 0) { observers.push(args.did); }
+                callback(null,observers);
+            },
+        },
+        removeObserver: {
+            type: "action",
+            args: ["did"],
+            fn  : function( args, callback) {
+                var index = _.findIndex(observers, function(Item) { return Item === args.did; });
+                if (index > -1) { observers.splice(index, 1); }
+                callback(null,observers);
+            },
+        },
+    },
+    start : function(core){
+        d.start();
+        console.log("discovery service started.\n Advertising...");
+        d.on("added", function(obj) {
+            obj.discoverId = obj.id;
+            for (var i = 0; i < observers.length; i++) {
+                event.eci = observers[i];
+                event.type = "engine_found";
+                event.attrs = obj;
+                core.signalEvent(event, function(err, response) { /*if(err) return errResp(res, err); */ });
+            }
+        });
 
+        d.on("removed", function(obj) {
+            for (var i = 0; i < observers.length; i++) {
+                event.eci = observers[i];
+                event.type = "engine_lost";
+                event.attrs = obj;
+                core.signalEvent(event, function(err, response) { /*if(err) return errResp(res, err); */ });
+            }
+        });
 
-
-
-module.exports = {
-    alive: {
-        type: "function",
-        args: ["ip","port"],
-        fn  : function( args, callback) {
-            tcpp.probe(args.ip, args.port, function(err, available) { callback(null, available); });
-        },
-    },
-    ip: {
-        type: "function",
-        args: [],
-        fn  : function( args, callback) {
-            callback(null, getIp(ifaces));
-        },
-    },
-    engines: {
-        type: "function",
-        args: [],
-        fn  : function( args, callback) {
-            callback(null, getNodes());
-        },
-    },
-    resources: {
-        type: "function",
-        args: [],
-        fn  : function( args, callback) {
-            callback(null,resources);
-        },
-    },
-    observers: {
-        type: "function",
-        args: [],
-        fn  : function( args, callback) {
-            callback(null,observers);
-        },
-    },
-    startService: {
-        type: "action",
-        args: [],
-        fn  : function( args, callback) {
-            callback(null,d.start());
-        },
-    },
-    stopService: {
-        type: "action",
-        args: [],
-        fn  : function( args, callback) {
-            callback(null,d.stop());
-        },
-    },
-    addResource: {
-        type: "action",
-        args: ["key", "value"],
-        fn  : function( args, callback) {
-            resources[args.key] = args.value; // TODO, needs to check input ...
-            callback(null,resources);
-        },
-    },
-    removeResource: {
-        type: "action",
-        args: ["key"],
-        fn  : function( args, callback) {
-            delete resources[args.key];
-            callback(null,resources);
-        },
-    },
-    addObserver:{
-        type: "action",
-        args: ["did"],
-        fn  : function( args, callback) {
-            var index = _.findIndex(observers, function(Item) { return Item === args.did; });
-            if (index < 0) { observers.push(args.did); }
-            callback(null,observers);
-        },
-    },
-    removeObserver: {
-        type: "action",
-        args: ["did"],
-        fn  : function( args, callback) {
-            var index = _.findIndex(observers, function(Item) { return Item === args.did; });
-            if (index > -1) { observers.splice(index, 1); }
-            callback(null,observers);
-        },
-    },
+    }
 };

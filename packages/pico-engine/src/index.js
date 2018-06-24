@@ -42,9 +42,9 @@ module.exports = function(conf){
             }, function(err, response) { /*if(err) return errResp(res, err); */ });
         });
 
-        if(conf.discover){
-            Discover.start();
-        }
+        //if(conf.discover){
+        Discover.start(pe);
+        //}
 
         app.listen(conf.port, function(){
             console.log(conf.host);

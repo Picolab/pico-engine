@@ -267,7 +267,7 @@ d.advertise({ something : "something" });
 ```
 
 ### start()
-Start broadcasting hello packets and checking for missing nodes (start is called automatically in the constructor)
+Start broadcasting hello packets and checking for missing nodes (start is configurable and is called by default in the constructor)
 
 ```js
 var Discover = require('node-discover');
