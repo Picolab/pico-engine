@@ -72,6 +72,14 @@ rule create_admin{
    }
   }
 
+  rule guard_against_missing_policy{
+    select when owner eci_requested where ent:ownerPolicy.isnull()
+    engine:newPolicy(owner_policy_definition) setting(owner_policy)
+    fired{
+      ent:ownerPolicy := owner_policy
+    }
+  }
+
 rule eci_from_owner_name{
   select when owner eci_requested owner_id re#(.+)# setting(owner_id)
   pre {
