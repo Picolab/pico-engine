@@ -13,12 +13,14 @@ ruleset io.picolabs.wrangler {
     author "BYU Pico Lab"
 
     logging on
-    provides skyQuery ,
-    rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
+    provides
+    skyQuery, rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci, createChannel, newPolicy,//channel
     children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico, myself
-    shares skyQuery ,
-    rulesetsInfo,installedRulesets,  installRulesets, uninstallRulesets,registeredRulesets, //ruleset
+
+
+    shares
+    skyQuery, rulesetsInfo,installedRulesets,  installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
     children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico,  myself,
      __testing
@@ -27,7 +29,8 @@ ruleset io.picolabs.wrangler {
     __testing = { "queries": [  { "name": "channel", "args":["value","collection","filtered"] },
                                 {"name":"skyQuery" , "args":["eci", "mod", "func", "params","_host","_path","_root_url"]},
                                 {"name":"children" , "args":[]} ],
-                  "events": [ { "domain": "wrangler", "type": "child_creation",
+                  "events": [
+                              { "domain": "wrangler", "type": "child_creation",
                                 "attrs": [ "name" ] },
                               { "domain": "wrangler", "type": "child_deletion",
                                 "attrs": [ "pico_name" ] },
@@ -165,6 +168,13 @@ ruleset io.picolabs.wrangler {
         engine:installRuleset(meta:picoId, rids) setting(new_ruleset)
       }
       returns {"rids": new_ruleset}
+    }
+
+    installRulesetByURL = defaction(url){
+      every{
+        engine:installRuleset(meta:picoId, url=url) setting(new_ruleset)
+      }
+      returns [new_ruleset]
     }
 
     uninstallRulesets = defaction(rids){
@@ -364,7 +374,7 @@ ruleset io.picolabs.wrangler {
       rid_list = (rids.typeof() ==  "Array") => rids | rids.split(re#;#)
     }
     if(rids !=  "") then every{ // should we be valid checking?
-      installRulesets(rid_list) setting(rids)
+      installRulesets(rid_list, url) setting(rids)
       send_directive("rulesets installed", { "rids": rid_list }); // should we return rids or rid_list?
     }
     fired {
@@ -372,7 +382,26 @@ ruleset io.picolabs.wrangler {
         attributes event:attrs.put({"rids": rid_list});
     }
     else {
-      error info "could not install rids, no rids attribute provide.";
+      raise wrangler event "install_ruleset_by_url_requested"
+        attributes event:attrs if event:attr("url");
+      error info "No valid rids provided!" if not event:attr("url")
+    }
+  }
+
+  rule installURLRuleset {
+    select when wrangler install_ruleset_by_url_requested
+    pre{
+      url = event:attr("url")
+    }
+    if url then every {
+      installRulesetByURL(url) setting(rids)
+      send_directive("rulesets installed", { "rids": rids });
+    }
+    fired{
+      raise wrangler event "ruleset_added"
+        attributes event:attrs.put({"rids": rids});
+    }else{
+      error info "No valid url or rids provided!"
     }
   }
 
@@ -481,10 +510,11 @@ ruleset io.picolabs.wrangler {
   rule pico_root_created {
     select when wrangler root_created
     always {
-      ent:id := event:attr("id");
+      ent:id := meta:picoId;
       ent:eci := event:attr("eci");
       ent:wrangler_children := {};
-      ent:children := {}
+      ent:children := {};
+      ent:name := "Root Pico"
     }
   }
 
