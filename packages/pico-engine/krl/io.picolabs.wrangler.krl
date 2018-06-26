@@ -45,7 +45,7 @@ ruleset io.picolabs.wrangler {
 // ***                                                                                      ***
 // ********************************************************************************************
 
-  config= {"os_rids": [/*"io.picolabs.pds",*/"io.picolabs.wrangler","io.picolabs.visual_params"]}
+  config= {"os_rids": [/*"io.picolabs.pds",*/"io.picolabs.wrangler","io.picolabs.visual_params","io.picolabs.subscription"]}
   /*
        skyQuery is used to programmatically call function inside of other picos from inside a rule.
        parameters;
