@@ -359,7 +359,7 @@ ruleset io.picolabs.wrangler {
       error info "could not install rids: no valid rids provided";
     }
     finally {
-      raise wrangler event "install_ruleset_error"
+      raise wrangler event "install_rulesets_error"
         attributes event:attrs.put(["rids"],invalid_rids) if invalid_rids.length() > 0;
       raise wrangler event "finish_initialization"
         attributes event:attrs  if initial_install == true;
