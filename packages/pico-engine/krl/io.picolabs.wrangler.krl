@@ -356,7 +356,7 @@ ruleset io.picolabs.wrangler {
         attributes event:attrs.put(["rids"], rids{"rids"});
     }
     else {
-      error info "could not install rids, no rids attribute provided.";
+      error info "could not install rids: no valid rids provided";
     }
     finally {
       raise wrangler event "install_ruleset_error"
@@ -364,13 +364,6 @@ ruleset io.picolabs.wrangler {
       raise wrangler event "finish_initialization"
         attributes event:attrs  if initial_install == true;
       
-    }
-  }
-  
-  rule installRulesetFailure {
-    select when wrangler install_ruleset_error
-    always{
-      error info "could not install rids because they do not exist: " + event:attr("rids").join(", ")
     }
   }
 
