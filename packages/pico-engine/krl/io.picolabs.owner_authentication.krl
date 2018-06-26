@@ -32,7 +32,7 @@ ruleset io.picolabs.owner_authentication {
       engine:listChannels()
         .filter(function(v){
           v{"name"} like re#^Authentication_.*Z$#
-          && v{"type"} like re#^authenticated$#
+          && v{"type"} == "authenticated"
         })
         .sort(function(a,b){
           b{"name"} cmp a{"name"}
@@ -90,6 +90,24 @@ ruleset io.picolabs.owner_authentication {
       raise owner event "pwd_needs_encoding" attributes { "password": password }
         if pwd_needs_encoding();
     }
+    finally {
+      raise owner event "authenticate_channel_used"
+        attributes {"eci":meta:eci}
+    }
+  }
+
+  rule remove_used_authenticate_channel {
+    select when owner authenticate_channel_used eci re#(.+)# setting(eci)
+    pre {
+      channel = engine:listChannels()
+        .filter(function(c){c{"id"}==eci})
+        .head();
+      ok = channel
+        && channel{"type"} == "temporary"
+        && channel{"name"} like re#^authenticate_.*Z$#
+    }
+    if ok then
+      engine:removeChannel(eci);
   }
 
   rule owner_new_password {

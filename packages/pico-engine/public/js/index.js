@@ -100,7 +100,9 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         thePicoOut.parent.dname = getV(pp,"dname",undefined);
       }
       if (thePicoInp.id == rootPico.id || (pp && pp.id == rootPico.id)) {
-        thePicoOut.owner = true;
+        var oaRid = "io.picolabs.owner_authentication";
+        var isOwner = get(db_dump.pico,[thePicoInp.id,oaRid]) ? true : false;
+        thePicoOut.isOwner = isOwner;
       }
       thePicoOut.children = [];
       var reportedChildren = getP(thePicoInp,"children",[]);
@@ -256,7 +258,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       specDB($(this),function(theDB){
       if(authenticated) {
         theDB.authenticated = authenticated;
-        theDB.authenticatedOwner = theDB.owner;
+        theDB.authenticatedOwner = theDB.isOwner;
       }
       $theSection.html(tabTemplate(theDB));
       var d = "";
