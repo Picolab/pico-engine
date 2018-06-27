@@ -16,13 +16,13 @@ ruleset io.picolabs.wrangler {
     provides
     skyQuery, rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci, createChannel, newPolicy,//channel
-    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico, myself
+    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico, myself, id
 
 
     shares
     skyQuery, rulesetsInfo,installedRulesets,  installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
-    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico,  myself,
+    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico,  myself, id,
      __testing
   }
   global {
@@ -283,6 +283,11 @@ ruleset io.picolabs.wrangler {
   name = function() {
     ent:name
   }
+
+  id = function() {
+    meta:picoId
+  }
+
   picoECIFromName = function (name) {
     pico = ent:wrangler_children.filter(function(rec){rec{"name"} ==  name})
                           .head();
