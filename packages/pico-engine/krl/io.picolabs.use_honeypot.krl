@@ -43,12 +43,13 @@ ruleset io.picolabs.use_honeypot {
   rule intialization {
     select when wrangler ruleset_added where event:attr("rids") >< meta:rid
     pre {
-      rids = ["io.picolabs.subscription","io.picolabs.null_owner"];
+      rids = [ //"io.picolabs.logging",
+        "io.picolabs.subscription","io.picolabs.null_owner"];
       name = "io.picolabs.null_owner";
     }
     fired {
       raise wrangler event "new_child_request"
-        attributes event:attrs.put({"rids":rids,"name":name});
+        attributes {"rids":rids,"name":name,"color":"#CCCCCC"};
     }
   }
 
