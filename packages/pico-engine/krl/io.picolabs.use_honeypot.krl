@@ -12,14 +12,17 @@ ruleset io.picolabs.use_honeypot {
       //, { "domain": "d2", "type": "t2", "attrs": [ "a1", "a2" ] }
       ]
     }
-    getEciFromOwnerName = function(){
+    getHoneypotEci = function(){
       subs:established("Tx_role","honeypot").head(){"Tx"} || "No user found"
+    }
+    check_roles = function(){
+      event:attr("Rx_role")=="root" && event:attr("Tx_role")=="honeypot"
     }
   }
   rule eci_from_owner_name{
     select when owner login_attempt_failed
     pre {
-      eci = getEciFromOwnerName();
+      eci = getHoneypotEci();
       pico_id = eci != "No user found"
         => engine:getPicoIDByECI(eci.klog("eci"))
          | null;
@@ -34,6 +37,33 @@ ruleset io.picolabs.use_honeypot {
       schedule owner event "authenticate_channel_expired"
         at time:add(time:now(), {"minutes": 5})
         attributes {"eci": new_channel{"id"}};
+    }
+  }
+
+  rule intialization {
+    select when wrangler ruleset_added where event:attr("rids") >< meta:rid
+    pre {
+      rids = ["io.picolabs.subscription","io.picolabs.null_owner"];
+      name = "io.picolabs.null_owner";
+    }
+    fired {
+      raise wrangler event "new_child_request"
+        attributes event:attrs.put({"rids":rids,"name":name});
+    }
+  }
+
+  rule auto_accept {
+    select when wrangler inbound_pending_subscription_added
+    pre {
+      acceptable = check_roles();
+    }
+    if acceptable then noop();
+    fired {
+      raise wrangler event "pending_subscription_approval"
+        attributes event:attrs
+    } else {
+      raise wrangler event "inbound_rejection"
+        attributes { "Rx": event:attr("Rx") }
     }
   }
 }

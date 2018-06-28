@@ -13,12 +13,23 @@ ruleset io.picolabs.null_owner {
       ]
     }
   }
+
   rule limit_ruleset_use {
     select when wrangler ruleset_added where event:attr("rids") >< meta:rid
     pre {
       ok = wrangler:myself(){"name"} == meta:rid
     }
     if not ok then wrangler:uninstallRulesets(meta:rid)
+  }
+
+  rule propose_subscription {
+    select when wrangler ruleset_added where event:attr("rids") >< meta:rid
+    fired {
+      raise wrangler event "subscription"
+        attributes { "wellKnown_Tx": wrangler:parent_eci(),
+          "Rx_role": "honeypot", "Tx_role": "root", 
+          "name": "null_owner", "channel_type": "subscription" };
+    }
   }
 
   rule authenticate{
