@@ -103,6 +103,9 @@ rule eci_from_owner_name{
     raise owner event "login_attempt_failed"
       attributes event:attrs.put({ "timestamp": time:now() });
   }
+  finally {
+     last;
+  }
 }
 
   rule remove_expired_channel {
