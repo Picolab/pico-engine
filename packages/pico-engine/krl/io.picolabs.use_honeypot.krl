@@ -12,31 +12,15 @@ ruleset io.picolabs.use_honeypot {
       //, { "domain": "d2", "type": "t2", "attrs": [ "a1", "a2" ] }
       ]
     }
-    getHoneypotEci = function(){
-      subs:established("Tx_role","honeypot").head(){"Tx"} || "No user found"
-    }
-    check_roles = function(){
-      event:attr("Rx_role")=="root" && event:attr("Tx_role")=="honeypot"
-    }
   }
+
   rule eci_from_owner_name{
-    select when owner login_attempt_failed
+    select when owner no_such_owner_id
     pre {
-      eci = getHoneypotEci();
-      pico_id = eci != "No user found"
-        => engine:getPicoIDByECI(eci.klog("eci"))
-         | null;
-      channel_name = "authenticate_"+time:now();
-    }
-    if pico_id then every{
-      engine:newChannel(pico_id,channel_name,"temporary")
-        setting(new_channel);
-      send_directive("Returning eci from owner name", {"eci": new_channel{"id"}});
+      eci = subs:established("Tx_role","honeypot").head(){"Tx"};
     }
     fired{
-      schedule owner event "authenticate_channel_expired"
-        at time:add(time:now(), {"minutes": 5})
-        attributes {"eci": new_channel{"id"}};
+      raise owner event "eci_found" attributes event:attrs.put({"eci":eci});
     }
   }
 
@@ -56,7 +40,7 @@ ruleset io.picolabs.use_honeypot {
   rule auto_accept {
     select when wrangler inbound_pending_subscription_added
     pre {
-      acceptable = check_roles();
+      acceptable = event:attr("Rx_role")=="root" && event:attr("Tx_role")=="honeypot";
     }
     if acceptable then noop();
     fired {
