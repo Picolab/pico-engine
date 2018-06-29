@@ -14,7 +14,7 @@ ruleset io.picolabs.use_honeypot {
     }
   }
 
-  rule eci_from_owner_name{
+  rule provide_eci_for_null_owner{
     select when owner no_such_owner_id
     pre {
       eci = subs:established("Tx_role","honeypot").head(){"Tx"};
