@@ -36,7 +36,7 @@ ruleset io.picolabs.null_owner {
     select when owner authenticate
     if false then noop()
     notfired {
-      // capture information about failed login attempt here
+      raise owner event "authentication_failed" attributes event:attrs;
     }
     finally {
       raise owner event "authenticate_channel_used"
