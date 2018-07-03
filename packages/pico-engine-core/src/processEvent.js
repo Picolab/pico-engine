@@ -1,5 +1,6 @@
 var _ = require("lodash");
 var cocb = require("co-callback");
+var ktypes = require("krl-stdlib/types");
 var runKRL = require("./runKRL");
 var runAction = require("./runAction");
 var selectRulesToEval = require("./selectRulesToEval");
@@ -66,6 +67,22 @@ var toResponse = function(ctx, type, val){
     throw new Error("Unsupported action response type: " + type);
 };
 
+/**
+ * used by `foreach` in krl
+ * Array's use index numbers, maps use key strings
+ */
+function toPairs(v){
+    if(ktypes.isArray(v)){
+        var pairs = [];
+        var i;
+        for(i = 0; i < v.length; i++){
+            pairs.push([i, v[i]]);
+        }
+        return pairs;
+    }
+    return _.toPairs(v);
+}
+
 
 var runRuleBody = cocb.wrap(function*(core, rule_body_fns, scheduled){
 
@@ -89,7 +106,7 @@ var runRuleBody = cocb.wrap(function*(core, rule_body_fns, scheduled){
 
     ctx.emit("debug", "rule selected: " + rule.rid + " -> " + rule.name);
 
-    yield runKRL(rule.body, ctx, runAction, _.toPairs);
+    yield runKRL(rule.body, ctx, runAction, toPairs);
 });
 
 var processEvent = cocb.wrap(function*(core, ctx){

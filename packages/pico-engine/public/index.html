@@ -25,7 +25,7 @@
     <fieldset>
     <legend>Who are you?</legend>
     <label for="owner_id">Owner ID:</label>
-    <input type="text" placeholder="Enter owner id or DID" name="owner_id" value="" id="owner_id">
+    <input type="text" placeholder="Enter owner id or DID" name="owner_id" value="" id="owner_id" size="30">
     <input type="submit" class="button form-login" value="Login" id="login_button">
     </fieldset>
   </form>
@@ -36,7 +36,7 @@
     <fieldset>
     <legend>Can you prove it?</legend>
     <label for="password">Password:</label>
-    <input type="password" placeholder="Enter password" name="password" value="">
+    <input type="password" placeholder="Enter password" name="password" value="" size="30">
     <input type="submit" class="button form-login" value="Login">
     <input type="hidden" name="nonce" value="{{nonce}}">
     </fieldset>
@@ -58,7 +58,7 @@
     <fieldset>
     <legend>Tell us about your account</legend>
     <label for="owner-id">Pico name:</label>
-    <input type="text" name="owner_id" id="owner_id" placeholder="Enter Owner Name or DID" size="25">
+    <input type="text" name="owner_id" id="owner_id" placeholder="Enter Owner Name" size="30">
     <input type="hidden" name="dname" id="dname">
     <br>
     <label for="method">Authentication method:</label>
@@ -68,7 +68,7 @@
     </select>
     <br>
     <label class="password-entry" for="password">Password:</label>
-    <input class="password-entry" type="password" name="password" id="password" placeholder="Enter password">
+    <input class="password-entry" type="password" name="password" id="password" placeholder="Enter password" size="30">
     <br>
     <input type="submit" class="button form-login" value="Submit">
     </fieldset>
@@ -133,7 +133,7 @@ http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt
 </div>
 </script>
 <script id="about-template" type="text/x-handlebars-template">
-<h2>Pico</h2>
+<h2>{{#if authenticatedOwner}}Owner {{/if}}Pico</h2>
 <p>
 <b>ID: </b>
 <span id="about-pico-name">{{id}}</span>

@@ -163,6 +163,9 @@ module.exports = function(conf){
                 args[0] = ctx;
             }
             var fn = krl_stdlib_wrapped[fn_name];
+            if(fn===void 0){
+                throw new Error("Not an operator: " + fn_name);
+            }
             return fn.apply(void 0, args);
         };
 

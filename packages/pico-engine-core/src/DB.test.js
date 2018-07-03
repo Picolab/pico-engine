@@ -943,3 +943,52 @@ test("DB - persistent variables", function(t){
 
     }, t.end);
 });
+
+test("DB - persistent variables array/map", function(t){
+    var db = mkTestDB();
+    cocb.run(function*(){
+        var put = _.partial(cocb.wrap(db.putEntVar), "p", "r");
+        var get = _.partial(cocb.wrap(db.getEntVar), "p", "r");
+        var del = _.partial(cocb.wrap(db.delEntVar), "p", "r");
+        var toObj = cocb.wrap(db.toObj);
+        var toJson = JSON.stringify;
+
+        var tst = function*(name, type, value, msg){
+            var val = toJson(value);
+            t.equals(toJson((yield toObj()).entvars.p.r[name]), "{\"type\":\""+type+"\",\"value\":"+val+"}", msg);
+            t.equals(toJson(yield get(name)), val, msg);
+        };
+
+        yield put("foo", [0], "aaa");
+        yield put("foo", [1], "bbb");
+        yield tst("foo", "Array", ["aaa", "bbb"], "`foo` is infered to be an array based on the int index");
+
+        // Now should change to a map b/c the key is not an int index
+        yield put("foo", ["wat"], "da");
+        yield tst("foo", "Map", {0: "aaa", 1: "bbb", wat: "da"}, "`foo` is now a map");
+
+        // once a map, always a map
+        yield del("foo", ["wat"]);
+        yield tst("foo", "Map", {0: "aaa", 1: "bbb"}, "`foo` is still a map");
+        yield put("foo", [2], "ccc");
+        yield tst("foo", "Map", {0: "aaa", 1: "bbb", 2: "ccc"}, "`foo` is still a map");
+
+        // infered as map if it's a string
+        yield put("bar", ["0"], "aaa");
+        yield tst("bar", "Map", {0: "aaa"}, "`bar` is a map since the first key was a string");
+
+        // infered as an Array b/c the key is a positive integer
+        yield put("baz", [2], "ccc");
+        yield tst("baz", "Array", [null, null, "ccc"], "`baz` is an Array");
+
+        // now it's a map b/c the key is a string
+        yield put("baz", ["1"], "bbb");
+        yield tst("baz", "Map", {1: "bbb", 2: "ccc"}, "`baz` is now a Map");
+
+
+        // initialzed as array should db dump as an array
+        yield put("qux", null, ["aaa"]);
+        yield tst("qux", "Array", ["aaa"], "`qux` is an Array");
+
+    }, t.end);
+});

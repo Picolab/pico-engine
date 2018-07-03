@@ -1,4 +1,5 @@
 var ace = require("brace");
+require("brace/ext/searchbox");
 require("./mode");
 
 var themes_grouped = {

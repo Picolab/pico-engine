@@ -179,9 +179,12 @@
 <script src="js/handlebars.min.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/2.6.1/jszip.min.js"></script>
 <script src="js/picoAPI.js" type="text/javascript"></script>
-<script src="js/krl-editor.js"></script>
+<script src="js/krl-editor.min.js"></script>
+
 <script>
+
     var editor = KRL_EDITOR.edit("krl-editor");
+
     editor.$blockScrolling = Infinity;
     editor.setDisplayIndentGuides(false);
     KRL_EDITOR.themePicker("krl-editor-theme-picker");
@@ -399,6 +402,13 @@
             event.preventDefault();
             $(".js-btn-register-src").click();
             return false;
+        }
+    });
+
+    $(window).keydown(function(event) {
+        if (event.keyCode === 114 || (event.ctrlKey && event.keyCode === 70)) {
+            editor.execCommand("find")
+            event.preventDefault();
         }
     });
 

@@ -59,11 +59,10 @@ ruleset io.picolabs.logging {
   }
 
   rule pico_ruleset_added {
-    select when wrangler ruleset_added where rid == meta:rid
-    noop()
+    select when wrangler ruleset_added where event:attr("rids") >< meta:rid
     fired {
       ent:logs := {};
-      ent:status := event:attr("status")
+      ent:status := true;
     }
   }
 }

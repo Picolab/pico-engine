@@ -9,6 +9,8 @@ ruleset io.picolabs.owner_authentication {
         "events": [ { "domain": "owner", "type": "authenticate",
                       "attrs": [ "password" ] } ,
                     { "domain": "wrangler", "type": "ruleset_added",
+                      "attrs": [  ] } ,
+                    { "domain": "owner", "type": "cleanup_needed",
                       "attrs": [  ] }
                    ] }
 
@@ -25,6 +27,19 @@ ruleset io.picolabs.owner_authentication {
     pwd_needs_encoding = function() {
       ent:password.typeof() == "String"
     }
+
+    superfluous_channels = function() {
+      engine:listChannels()
+        .filter(function(v){
+          v{"name"} like re#^Authentication_.*Z$#
+          && v{"type"} == "authenticated"
+        })
+        .sort(function(a,b){
+          b{"name"} cmp a{"name"}
+        })
+        .tail()
+    }
+
   }
 
   rule channel_needed {
@@ -54,6 +69,12 @@ ruleset io.picolabs.owner_authentication {
     }
   }
 
+  rule cleanup_superfluous_authenticated_channels {
+    select when owner cleanup_needed
+    foreach superfluous_channels() setting(channel)
+    engine:removeChannel(channel{"id"})
+  }
+
   rule authenticate{
     select when owner authenticate
     pre{
@@ -68,7 +89,27 @@ ruleset io.picolabs.owner_authentication {
     fired {
       raise owner event "pwd_needs_encoding" attributes { "password": password }
         if pwd_needs_encoding();
+    } else {
+      raise owner event "authentication_failed" attributes event:attrs;
     }
+    finally {
+      raise owner event "authenticate_channel_used"
+        attributes {"eci":meta:eci}
+    }
+  }
+
+  rule remove_used_authenticate_channel {
+    select when owner authenticate_channel_used eci re#(.+)# setting(eci)
+    pre {
+      channel = engine:listChannels()
+        .filter(function(c){c{"id"}==eci})
+        .head();
+      ok = channel
+        && channel{"type"} == "temporary"
+        && channel{"name"} like re#^authenticate_.*Z$#
+    }
+    if ok then
+      engine:removeChannel(eci);
   }
 
   rule owner_new_password {

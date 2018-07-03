@@ -1246,6 +1246,17 @@ test("PicoEngine - io.picolabs.foreach ruleset", function(t){
                     {name: "final_raised", options: {x: "b", y: "1"}},
                 ]
             ],
+            [
+                signal("foreach", "key_vs_index"),
+                [
+                    {name: "key_vs_index", options: {a: "bar", k: "foo", b: "one", i: 0}},
+                    {name: "key_vs_index", options: {a: "bar", k: "foo", b: "two", i: 1}},
+                    {name: "key_vs_index", options: {a: "bar", k: "foo", b: "three", i: 2}},
+                    {name: "key_vs_index", options: {a: "qux", k: "baz", b: "one", i: 0}},
+                    {name: "key_vs_index", options: {a: "qux", k: "baz", b: "two", i: 1}},
+                    {name: "key_vs_index", options: {a: "qux", k: "baz", b: "three", i: 2}},
+                ]
+            ],
         ], t.end);
     });
 });

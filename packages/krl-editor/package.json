@@ -1,6 +1,6 @@
 {
   "name": "krl-editor",
-  "version": "0.45.3",
+  "version": "0.45.6",
   "description": "In browser editor for KRL",
   "main": "src/index.js",
   "files": [
