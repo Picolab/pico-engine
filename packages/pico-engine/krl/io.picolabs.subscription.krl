@@ -76,7 +76,8 @@ ent:established [
       "event": {
           "allow": [
               {"domain": "wrangler", "type": "subscription"},
-              {"domain": "wrangler", "type": "new_subscription_request"}
+              {"domain": "wrangler", "type": "new_subscription_request"},
+              {"domain": "wrangler", "type": "inbound_removal"}
           ]
       }
     }
