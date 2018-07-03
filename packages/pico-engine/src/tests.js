@@ -32,7 +32,7 @@ var getHomePath = function(){
 var testPE = function(name, testsFn){
     test(name, function(t){
         startCore({
-            host: "http://fake-url",//tests don't actually setup http listening
+            host: null,//tests don't actually setup http listening
             home: getHomePath(),
             no_logging: true,
         }, function(err, pe){
@@ -743,6 +743,18 @@ testPE("pico-engine", function(t, pe, root_eci){
                 attrs: {name:"A", rids: SUBS_RID}
             }, function(err, response){
                 subscriptionPicos["picoA"] = response.directives[0].options.pico;
+                next(null, subscriptionPicos.picoA);
+            });
+        },
+        function(picoA, next) {
+            pe.runQuery({
+                eci: picoA.eci,
+                rid: SUBS_RID,
+                name: "wellKnown_Rx",
+                args: {}
+            }, function(err, data) {
+                if(err) return next(err);
+                subscriptionPicos.picoA.wellKnown_Rx = data.id;
                 next();
             });
         },
@@ -761,7 +773,7 @@ testPE("pico-engine", function(t, pe, root_eci){
                 attrs: {
                     "name": "A",
                     "channel_type": "subscription",
-                    "wellKnown_Tx": subscriptionPicos["picoA"].eci
+                    "wellKnown_Tx": subscriptionPicos["picoA"].wellKnown_Rx
                 }
             }, function(err, response){
                 next();
