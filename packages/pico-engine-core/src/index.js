@@ -22,15 +22,15 @@ var ChannelPolicy = require("./ChannelPolicy");
 var RulesetRegistry = require("./RulesetRegistry");
 var normalizeKRLArgs = require("./normalizeKRLArgs");
 
-var applyFn = cocb.wrap(function*(fn, ctx, args){
+var applyFn = function(fn, ctx, args){
     if(ktypes.isAction(fn)){
         throw new Error("actions can only be called in the rule action block");
     }
     if( ! ktypes.isFunction(fn)){
         throw new Error("Not a function");
     }
-    return yield fn(ctx, args);
-});
+    return fn(ctx, args);
+};
 
 var log_levels = {
     "info": true,
@@ -87,16 +87,14 @@ module.exports = function(conf){
         };
         ctx.mkFunction = function(param_order, fn){
             var fixArgs = _.partial(normalizeKRLArgs, param_order);
-            var pfn = cocb.wrap(fn);
             return function(ctx2, args){
-                return pfn(pushCTXScope(ctx2), fixArgs(args));
+                return fn(pushCTXScope(ctx2), fixArgs(args));
             };
         };
         ctx.mkAction = function(param_order, fn){
             var fixArgs = _.partial(normalizeKRLArgs, param_order);
-            var pfn = cocb.wrap(fn);
             var actionFn = function(ctx2, args){
-                return pfn(pushCTXScope(ctx2), fixArgs(args), runAction);
+                return fn(pushCTXScope(ctx2), fixArgs(args), runAction);
             };
             actionFn.is_an_action = true;
             return actionFn;

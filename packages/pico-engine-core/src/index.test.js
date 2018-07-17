@@ -2762,7 +2762,7 @@ test("PicoEngine - handle ruleset initialization errors", function(t){
         pe = mkPE({compileAndLoadRuleset: function(rs_info, callback){
             callback(null, {
                 rid: "my-rid",
-                global: function*(){
+                global: function(){
                     throw new Error("something broke");
                 },
             });

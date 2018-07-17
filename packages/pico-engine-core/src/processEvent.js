@@ -158,14 +158,14 @@ var processEvent = cocb.wrap(function*(core, ctx){
             raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
             addEventToSchedule(raise_ctx, callback);
         }),
-        raiseError: function*(ctx, level, data){
+        raiseError: function(ctx, level, data){
 
             if(level === "error"){
                 //clear the schedule so no more rules are run
                 schedule = [];
             }
 
-            return yield ctx.raiseEvent({
+            return ctx.raiseEvent({
                 domain: "system",
                 type: "error",
                 attributes: {

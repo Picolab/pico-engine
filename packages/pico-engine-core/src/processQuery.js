@@ -1,14 +1,13 @@
 var _ = require("lodash");
-var cocb = require("co-callback");
 var runKRL = require("./runKRL");
 var ktypes = require("krl-stdlib/types");
 
 module.exports = function(core, ctx, callback){
-    cocb.run(function*(){
+    (async function(){
 
-        yield core.db.assertPicoIDYieldable(ctx.pico_id);
+        await core.db.assertPicoIDYieldable(ctx.pico_id);
 
-        var pico_rids = yield core.db.ridsOnPicoYieldable(ctx.pico_id);
+        var pico_rids = await core.db.ridsOnPicoYieldable(ctx.pico_id);
         if(pico_rids[ctx.query.rid] !== true){
             throw new Error("Pico does not have that rid: " + ctx.query.rid);
         }
@@ -39,23 +38,23 @@ module.exports = function(core, ctx, callback){
         });
         var val = ctx.scope.get(ctx.query.name);
         if(_.isFunction(val)){
-            val = yield runKRL(function*(ctx, args){
+            val = await runKRL(function(ctx, args){
                 //use ctx.applyFn so it behaves like any other fn call
                 //i.e. errors on trying defaction like a function
-                return yield ctx.applyFn(val, ctx, args);
+                return ctx.applyFn(val, ctx, args);
             }, ctx, ctx.query.args);
         }
         // To ensure we don't leak out functions etc.
         return ktypes.decode(ktypes.encode(val));
-    }, function(err, val){
-        if(err){
+    }())
+        .then(function(val){
+            callback(null, val);
+        })
+        .catch(function(err){
             process.nextTick(function(){
                 //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
                 //when infact we are handling the rejection
                 callback(err);
             });
-            return;
-        }
-        callback(null, val);
-    });
+        });
 };

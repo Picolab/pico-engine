@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var cocb = require("co-callback");
 var async = require("async");
 
 var toFloat = function(v){
@@ -53,11 +52,16 @@ var aggregators = {
 };
 
 module.exports = function(core, current_state_machine_state, rule){
-    return cocb.wrap(function(ctx, aggregator, value_pairs, callback){
-        if(_.has(aggregators, aggregator)){
-            aggregateWrap(core, current_state_machine_state, rule, ctx, value_pairs, aggregators[aggregator], callback);
-            return;
-        }
-        throw new Error("Unsupported aggregator: " + aggregator);
-    });
+    return function(ctx, aggregator, value_pairs){
+        return new Promise(function(resolve, reject){
+            if(_.has(aggregators, aggregator)){
+                aggregateWrap(core, current_state_machine_state, rule, ctx, value_pairs, aggregators[aggregator], function(err, data){
+                    if(err) reject(err);
+                    else resolve(data);
+                });
+                return;
+            }
+            throw new Error("Unsupported aggregator: " + aggregator);
+        });
+    };
 };

@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var cocb = require("co-callback");
 
 var assertCTX_keys = function(ctx, keys){
     var std_ctx_keys = [
@@ -73,8 +72,5 @@ module.exports = function(){
         }
     }
 
-    if( ! fn.wrapped){
-        fn.wrapped = cocb.wrap(fn);
-    }
-    return fn.wrapped.apply(null, args);
+    return Promise.resolve(fn.apply(null, args));
 };
