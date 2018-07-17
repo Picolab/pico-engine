@@ -15,7 +15,7 @@ ruleset io.picolabs.wrangler {
     logging on
     provides skyQuery ,
     rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
-    channel, alwaysEci, eciFromName, nameFromEci,//channel
+    channel, alwaysEci, eciFromName, nameFromEci, createChannel, newPolicy,//channel
     children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico, myself
     shares skyQuery ,
     rulesetsInfo,installedRulesets,  installRulesets, uninstallRulesets,registeredRulesets, //ruleset
@@ -45,7 +45,7 @@ ruleset io.picolabs.wrangler {
 // ***                                                                                      ***
 // ********************************************************************************************
 
-  config= {"os_rids": [/*"io.picolabs.pds",*/"io.picolabs.wrangler","io.picolabs.visual_params"]}
+  config= {"os_rids": [/*"io.picolabs.pds",*/"io.picolabs.wrangler","io.picolabs.visual_params","io.picolabs.subscription"]}
   /*
        skyQuery is used to programmatically call function inside of other picos from inside a rule.
        parameters;
@@ -221,13 +221,24 @@ ruleset io.picolabs.wrangler {
     }
 
     createChannel = defaction(id , name, type, policy_id) {
-      policy_present = policy_id.isnull() => "F" | "T";
+      policy_present = policy_id => "T" | "F";
       choose policy_present {
         T => engine:newChannel(id , name, type, policy_id) setting(channel);
         F => engine:newChannel(id , name, type) setting(channel);
       }
       returns  channel
     }
+
+    /*
+      see https://github.com/Picolab/pico-engine/pull/350#issue-160657235 for information on the format of @param new_policy and the return value
+    */
+    newPolicy = defaction(new_policy) {
+      every{
+        engine:newPolicy( new_policy ) setting(created_policy)
+      }
+      returns created_policy
+    }
+
 // ********************************************************************************************
 // ***                                      Picos                                           ***
 // ********************************************************************************************
@@ -273,8 +284,8 @@ ruleset io.picolabs.wrangler {
         engine:newChannel(meta:picoId, name, "children") setting(parent_channel);// new eci for parent to child
         engine:newPico() setting(child);// newpico
         engine:newChannel(child{"id"}, "main", "wrangler"/*"secret"*/) setting(channel);// new child root eci
-        engine:installRuleset(child{"id"},rids.append(config{"os_rids"}));// install child OS
-        event:send( // intoroduce child to itself and parent
+        engine:installRuleset(child{"id"},config{"os_rids"});// install child OS
+        event:send( // introduce child to itself and parent
           { "eci": channel{"id"},
             "domain": "wrangler", "type": "child_created",
             "attrs": ({
@@ -282,18 +293,10 @@ ruleset io.picolabs.wrangler {
              "name": name,
              "id" : child{"id"},
              "eci": channel{"id"},
-             "rids": rids,
+             "rids_to_install": rids,
              "rs_attrs":event:attrs
             })
             });
-        event:send( // tell child that a ruleset was added
-          { "eci": channel{"id"},
-            "domain": "wrangler", "type": "ruleset_added",
-            "attrs": ({
-             "rids": rids,
-             "rs_attrs":event:attrs
-            })
-          });
       }
       returns {
        "parent_eci": parent_channel{"id"},
@@ -351,17 +354,27 @@ ruleset io.picolabs.wrangler {
     pre {
       rids = event:attr("rids").defaultsTo(event:attr("rid")).defaultsTo("")
       rid_list = (rids.typeof() ==  "Array") => rids | rids.split(re#;#)
+      valid_rids = rid_list.intersection(registeredRulesets())
+      invalid_rids = rid_list.difference(valid_rids)
+      initial_install = event:attr("init").defaultsTo(false) // if this is a new pico
     }
-    if(rids !=  "") then every{ // should we be valid checking?
-      installRulesets(rid_list) setting(rids)
-      send_directive("rulesets installed", { "rids": rid_list }); // should we return rids or rid_list?
+    if(rids !=  "") && valid_rids.length() > 0 then every{
+      installRulesets(valid_rids) setting(rids)
+      send_directive("rulesets installed", { "rids": rids{"rids"} });
     }
     fired {
       raise wrangler event "ruleset_added"
-        attributes event:attrs.put({"rids": rid_list});
+        attributes event:attrs.put(["rids"], rids{"rids"});
     }
     else {
-      error info "could not install rids, no rids attribute provide.";
+      error info "could not install rids: no valid rids provided";
+    }
+    finally {
+      raise wrangler event "install_rulesets_error"
+        attributes event:attrs.put(["rids"],invalid_rids) if invalid_rids.length() > 0;
+      raise wrangler event "finish_initialization"
+        attributes event:attrs  if initial_install == true;
+      
     }
   }
 
@@ -425,6 +438,7 @@ ruleset io.picolabs.wrangler {
       uniqueName = uniquePicoName(name)
       rids = event:attr("rids").defaultsTo([]);
       _rids = (rids.typeof() == "Array" => rids | rids.split(re#;#))
+
     }
     if(uniqueName) then every {
       createPico(name,_rids) setting(child)
@@ -436,6 +450,7 @@ ruleset io.picolabs.wrangler {
       ent:children := children();
       raise wrangler event "new_child_created"
         attributes child.put("rs_attrs",event:attrs);
+      
     }
     else{
       raise wrangler event "child_creation_falure"
@@ -451,8 +466,25 @@ ruleset io.picolabs.wrangler {
     }
   }
 
-  rule child_created {
+  rule initialize_child_after_creation {
     select when wrangler child_created
+    pre {
+      rids_to_install = event:attr("rids_to_install")
+    }
+    if rids_to_install.length() > 0 then
+    noop()
+    fired {
+      raise wrangler event "install_rulesets_requested"
+        attributes event:attrs.put(["rids"], rids_to_install).put("init", true)
+    }
+    else {
+      raise wrangler event "finish_initialization"
+        attributes event:attrs
+    }
+  }
+
+  rule finish_child_initialization {
+    select when wrangler finish_initialization
       event:send({ "eci"   : event:attr("parent_eci"),
                    "domain": "wrangler", "type": "child_initialized",
                    "attrs" : event:attrs })
@@ -465,6 +497,7 @@ ruleset io.picolabs.wrangler {
         attributes event:attr("rs_attrs").put("dname",event:attr("name"))
     }
   }
+  
   // this pico is the primary pico
 
   rule pico_root_created {

@@ -55,30 +55,69 @@ rule create_admin{
   }
 }
 
-rule eci_from_owner_name{
-  select when owner eci_requested owner_id re#(.+)# setting(owner_id)
-  pre {
-    eci = getEciFromOwnerName(owner_id.klog("owner_id"));
-    pico_id = eci != "No user found"
-      => engine:getPicoIDByECI(eci.klog("eci"))
-       | null;
-    channel_name = "authenticate_"+time:now();
+  rule login_from_did {
+    select when owner eci_requested
+    pre {
+      did = event:attr("owner_id");
+      pico_id = did => engine:getPicoIDByECI(did) | null;
+      login = function(c){
+        c{"id"}==did && c{"type"}=="secret" && c{"name"}=="login"};
+      channel = pico_id => engine:listChannels(pico_id).filter(login).head()
+                         | null;
+   }
+   if pico_id && channel then
+     send_directive("did",{"method":"did","pico_id":pico_id,"eci":did})
+   fired {
+     last;
+   }
   }
-  if pico_id then every{
-    engine:newChannel(pico_id,channel_name,"temporary",ent:ownerPolicy{"id"})
-      setting(new_channel);
-    send_directive("Returning eci from owner name", {"eci": new_channel{"id"}});
-  }fired{
-    raise owner event "login_attempt"
-      attributes event:attrs.put({ "timestamp": time:now() });
-    schedule owner event "authenticate_channel_expired"
-      at time:add(time:now(), {"minutes": 5})
-      attributes {"eci": new_channel{"id"}}
-  }else{
-    raise owner event "login_attempt_failed"
-      attributes event:attrs.put({ "timestamp": time:now() });
+
+  rule guard_against_missing_policy{
+    select when owner eci_requested where ent:ownerPolicy.isnull()
+    engine:newPolicy(owner_policy_definition) setting(owner_policy)
+    fired{
+      ent:ownerPolicy := owner_policy
+    }
   }
-}
+
+  rule eci_from_owner_name{
+    select when owner eci_requested owner_id re#(.+)# setting(owner_id)
+    pre {
+      eci = getEciFromOwnerName(owner_id.klog("owner_id"));
+    }
+    if eci != "No user found" then noop();
+    fired{
+      raise owner event "eci_found" attributes event:attrs.put({"eci":eci});
+    }
+    else{
+      raise owner event "no_such_owner_id" attributes event:attrs;
+    }
+  }
+
+  rule provide_temporary_owner_eci {
+    select when owner eci_found eci re#^(.+)$# setting(eci)
+    pre {
+      pico_id = eci => engine:getPicoIDByECI(eci.klog("eci"))
+                     | null;
+      channel_name = "authenticate_"+time:now();
+    }
+    if pico_id then every{
+      engine:newChannel(pico_id,channel_name,"temporary",ent:ownerPolicy{"id"})
+        setting(new_channel);
+      send_directive("Returning eci from owner name", {"eci": new_channel{"id"}});
+    }
+    fired {
+      raise owner event "login_attempt"
+        attributes event:attrs.put({ "timestamp": time:now() });
+      schedule owner event "authenticate_channel_expired"
+        at time:add(time:now(), {"minutes": 5})
+        attributes {"eci": new_channel{"id"}};
+    }
+    else{
+      raise owner event "no_such_pico"
+        attributes event:attrs.put({ "timestamp": time:now() });
+    }
+  }
 
   rule remove_expired_channel {
     select when owner authenticate_channel_expired eci re#(.+)# setting(eci)
@@ -129,8 +168,8 @@ rule eci_from_owner_name{
   }
 
   rule owner_pico_not_found { // used by ui to indicate if admin has this rule installed.
-    select when owner eci_requested
-    send_directive("here it is",{"owner_id":event:attr("owner_id"),"method":"password"});
+    select when owner eci_requested where event:attr("owner_id").isnull()
+    send_directive("here it is",{"owner_id":null,"method":"password"});
   }
 
   rule delete_owner_pico {

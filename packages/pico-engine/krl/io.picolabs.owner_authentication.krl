@@ -32,7 +32,7 @@ ruleset io.picolabs.owner_authentication {
       engine:listChannels()
         .filter(function(v){
           v{"name"} like re#^Authentication_.*Z$#
-          && v{"type"} like re#^authenticated$#
+          && v{"type"} == "authenticated"
         })
         .sort(function(a,b){
           b{"name"} cmp a{"name"}
@@ -89,6 +89,8 @@ ruleset io.picolabs.owner_authentication {
     fired {
       raise owner event "pwd_needs_encoding" attributes { "password": password }
         if pwd_needs_encoding();
+    } else {
+      raise owner event "authentication_failed" attributes event:attrs;
     }
     finally {
       raise owner event "authenticate_channel_used"

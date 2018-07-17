@@ -25,7 +25,7 @@
     <fieldset>
     <legend>Who are you?</legend>
     <label for="owner_id">Owner ID:</label>
-    <input type="text" placeholder="Enter owner id or DID" name="owner_id" value="" id="owner_id">
+    <input type="text" placeholder="Enter owner id or DID" name="owner_id" value="" id="owner_id" size="30">
     <input type="submit" class="button form-login" value="Login" id="login_button">
     </fieldset>
   </form>
@@ -36,7 +36,7 @@
     <fieldset>
     <legend>Can you prove it?</legend>
     <label for="password">Password:</label>
-    <input type="password" placeholder="Enter password" name="password" value="">
+    <input type="password" placeholder="Enter password" name="password" value="" size="30">
     <input type="submit" class="button form-login" value="Login">
     <input type="hidden" name="nonce" value="{{nonce}}">
     </fieldset>
@@ -58,7 +58,7 @@
     <fieldset>
     <legend>Tell us about your account</legend>
     <label for="owner-id">Pico name:</label>
-    <input type="text" name="owner_id" id="owner_id" placeholder="Enter Owner Name or DID" size="25">
+    <input type="text" name="owner_id" id="owner_id" placeholder="Enter Owner Name" size="30">
     <input type="hidden" name="dname" id="dname">
     <br>
     <label for="method">Authentication method:</label>
@@ -68,7 +68,7 @@
     </select>
     <br>
     <label class="password-entry" for="password">Password:</label>
-    <input class="password-entry" type="password" name="password" id="password" placeholder="Enter password">
+    <input class="password-entry" type="password" name="password" id="password" placeholder="Enter password" size="30">
     <br>
     <input type="submit" class="button form-login" value="Submit">
     </fieldset>
@@ -370,7 +370,7 @@ Established subscriptions
 <ul class="subscriptions-list" style="list-style: none;padding:0">
 {{#each established}}
 <li><input type="checkbox"> to pico "{{name}}" (did:npe:{{Tx}})
-<a class="js-ajax-link" href="/sky/event/{{../eci}}/delete-subscription/wrangler/subscription_cancellation?Rx={{this.Rx}}">del</a>
+<a class="js-ajax-link" href="/sky/event/{{../eci}}/delete-subscription/wrangler/subscription_cancellation?Id={{this.Id}}">del</a>
 <pre>{{this.asString}}</pre>
 </li>
 {{/each}}
@@ -381,7 +381,7 @@ Outbound subscriptions
 <ul class="subscriptions-list" style="list-style: none;padding:0">
 {{#each outbound}}
 <li><input type="checkbox"> to pico "{{name}}" (did:npe:{{wellKnown_Tx}})
-<a class="js-ajax-link" href="/sky/event/{{../eci}}/cancel-outbound/wrangler/outbound_cancellation?Rx={{this.Rx}}">del</a>
+<a class="js-ajax-link" href="/sky/event/{{../eci}}/cancel-outbound/wrangler/outbound_cancellation?Id={{this.Id}}">del</a>
 <pre>{{this.asString}}</pre>
 </li>
 {{/each}}
@@ -392,9 +392,9 @@ Inbound subscriptions
 <ul class="subscriptions-list" style="list-style: none;padding:0">
 {{#each inbound}}
 <li><input type="checkbox"> from pico "{{name}}" (did:npe:{{Tx}})
-<a class="js-ajax-link" href="/sky/event/{{../eci}}/reject-inbound/wrangler/inbound_rejection?Rx={{this.Rx}}">del</a>
+<a class="js-ajax-link" href="/sky/event/{{../eci}}/reject-inbound/wrangler/inbound_rejection?Id={{this.Id}}">del</a>
 <pre>{{this.asString}}</pre>
-<pre><a class="js-ajax-link" href="/sky/event/{{../eci}}/accept-inbound/wrangler/pending_subscription_approval?Rx={{this.Rx}}">accept</a></pre>
+<pre><a class="js-ajax-link" href="/sky/event/{{../eci}}/accept-inbound/wrangler/pending_subscription_approval?Id={{this.Id}}">accept</a></pre>
 </li>
 {{/each}}
 </ul>
