@@ -3,12 +3,12 @@ var λ = require("contra");
 var fs = require("fs");
 var diff = require("diff-lines");
 var path = require("path");
-var test = require("tape");
+var test = require("ava");
 var compiler = require("./");
 
-var files_dir = path.resolve(__dirname, "../../../test-rulesets");
+var files_dir = path.resolve(__dirname, "../../test-rulesets");
 
-test("compiler", function(t){
+test.cb("compiler", function(t){
     fs.readdir(files_dir, function(err, files){
         if(err) return t.end(err);
 
@@ -37,7 +37,7 @@ test("compiler", function(t){
                 var expected = srcs.js.trim();
 
                 if(compiled === expected){
-                    t.ok(true);
+                    t.true(true);
                     next();
                 }else{
                     console.log("");
@@ -64,34 +64,34 @@ test("compiler errors", function(t){
             compiler(src);
             t.fail("Should fail: " + errorMsg);
         }catch(err){
-            t.equals(err + "", errorMsg);
+            t.is(err + "", errorMsg);
         }
     };
 
     var tstWarn = function(src, warning){
         var out = compiler(src);
-        t.equals(out.warnings.length, 1);
-        t.equals(out.warnings[0].message, warning);
+        t.is(out.warnings.length, 1);
+        t.is(out.warnings[0].message, warning);
     };
     try{
         compiler("ruleset blah {global {ent:a = 1}}\n");
         t.fail("should have thrown up b/c ent:* = * not allowed in global scope");
     }catch(err){
-        t.ok(true);
+        t.true(true);
     }
 
     try{
         compiler("function(){a = 1}");
         t.fail("function must end with an expression");
     }catch(err){
-        t.equals(err + "", "Error: function must end with an expression");
+        t.is(err + "", "Error: function must end with an expression");
     }
 
     try{
         compiler("ruleset a{meta{keys b {\"one\":function(){}}}}");
         t.fail("meta key maps can only have strings");
     }catch(err){
-        t.equals(err + "", "Error: A ruleset key that is Map, can only use Strings as values");
+        t.is(err + "", "Error: A ruleset key that is Map, can only use Strings as values");
     }
 
     tstFail(
@@ -166,8 +166,6 @@ test("compiler errors", function(t){
         "ruleset a{rule a{select when a a setting(bb)}}",
         "DEPRECATED SYNTAX - What are you `setting`? There are no attribute matches"
     );
-
-    t.end();
 });
 
 test("special cases", function(t){
@@ -178,6 +176,5 @@ test("special cases", function(t){
     expected += "  yield ctx.applyFn(ctx.scope.get(\"foo\"), ctx, [1]),\n";
     expected += "  yield ctx.applyFn(ctx.scope.get(\"baz\"), ctx, [2])\n";
     expected += "]);";
-    t.equals(js, expected);
-    t.end();
+    t.is(js, expected);
 });

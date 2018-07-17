@@ -50,12 +50,12 @@ var wrapFunctions = function(args){
     });
 };
 
-var ytfMatrix = function*(ytf, obj, args, exp){
+var ytfMatrix = async function(ytf, obj, args, exp){
     var i;
     for(i=0; i < exp.length; i++){
         var j;
         for(j=0; j < args.length; j++){
-            yield ytf(exp[i][0], [obj, args[j]], exp[i][j+1]);
+            await ytf(exp[i][0], [obj, args[j]], exp[i][j+1]);
         }
     }
 };
