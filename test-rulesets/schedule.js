@@ -6,12 +6,12 @@ module.exports = {
       "listScheduled"
     ]
   },
-  "global": function* (ctx) {
-    ctx.scope.set("getLog", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "log");
+  "global": async function (ctx) {
+    ctx.scope.set("getLog", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", "log");
     }));
-    ctx.scope.set("listScheduled", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "schedule", "list"), ctx, []);
+    ctx.scope.set("listScheduled", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.applyFn(await ctx.modules.get(ctx, "schedule", "list"), ctx, []);
     }));
   },
   "rules": {
@@ -20,7 +20,7 @@ module.exports = {
       "select": {
         "graph": { "schedule": { "clear_log": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -31,17 +31,17 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["clear_log"], []);
+          await runAction(ctx, void 0, "send_directive", ["clear_log"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "log", []);
+          await ctx.modules.set(ctx, "ent", "log", []);
         }
       }
     },
@@ -50,7 +50,7 @@ module.exports = {
       "select": {
         "graph": { "schedule": { "push_log": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -61,19 +61,19 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["push_log"], []);
+          await runAction(ctx, void 0, "send_directive", ["push_log"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "log"),
-            yield ctx.modules.get(ctx, "event", "attrs")
+          await ctx.modules.set(ctx, "ent", "log", await ctx.callKRLstdlib("append", [
+            await ctx.modules.get(ctx, "ent", "log"),
+            await ctx.modules.get(ctx, "event", "attrs")
           ]));
         }
       }
@@ -83,7 +83,7 @@ module.exports = {
       "select": {
         "graph": { "schedule": { "in_5min": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -94,30 +94,30 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["in_5min"], []);
+          await runAction(ctx, void 0, "send_directive", ["in_5min"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          ctx.scope.set("foo", yield ctx.scheduleEvent({
+          ctx.scope.set("foo", await ctx.scheduleEvent({
             "domain": "schedule",
             "type": "push_log",
             "attributes": {
               "from": "in_5min",
-              "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["name"])
+              "name": await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["name"])
             },
-            "at": yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "add"), ctx, [
-              yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "now"), ctx, []),
+            "at": await ctx.applyFn(await ctx.modules.get(ctx, "time", "add"), ctx, [
+              await ctx.applyFn(await ctx.modules.get(ctx, "time", "now"), ctx, []),
               { "minutes": 5 }
             ])
           }));
-          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "log"),
+          await ctx.modules.set(ctx, "ent", "log", await ctx.callKRLstdlib("append", [
+            await ctx.modules.get(ctx, "ent", "log"),
             { "scheduled in_5min": ctx.scope.get("foo") }
           ]));
         }
@@ -128,7 +128,7 @@ module.exports = {
       "select": {
         "graph": { "schedule": { "every_1min": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -139,27 +139,27 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["every_1min"], []);
+          await runAction(ctx, void 0, "send_directive", ["every_1min"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          ctx.scope.set("foo", yield ctx.scheduleEvent({
+          ctx.scope.set("foo", await ctx.scheduleEvent({
             "domain": "schedule",
             "type": "push_log",
             "attributes": {
               "from": "every_1min",
-              "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["name"])
+              "name": await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["name"])
             },
             "timespec": "* */1 * * * *"
           }));
-          yield ctx.modules.set(ctx, "ent", "log", yield ctx.callKRLstdlib("append", [
-            yield ctx.modules.get(ctx, "ent", "log"),
+          await ctx.modules.set(ctx, "ent", "log", await ctx.callKRLstdlib("append", [
+            await ctx.modules.get(ctx, "ent", "log"),
             { "scheduled every_1min": ctx.scope.get("foo") }
           ]));
         }
@@ -170,7 +170,7 @@ module.exports = {
       "select": {
         "graph": { "schedule": { "rm_from_schedule": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -181,10 +181,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "schedule", "remove", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["id"])], []);
+          await runAction(ctx, "schedule", "remove", [await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["id"])], []);
         }
         if (fired)
           ctx.emit("debug", "fired");

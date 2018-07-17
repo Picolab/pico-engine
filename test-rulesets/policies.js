@@ -7,7 +7,7 @@ module.exports = {
       "three"
     ]
   },
-  "global": function* (ctx) {
+  "global": async function (ctx) {
     ctx.scope.set("one", 1);
     ctx.scope.set("two", 2);
     ctx.scope.set("three", 3);
@@ -18,7 +18,7 @@ module.exports = {
       "select": {
         "graph": { "policies": { "foo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -29,7 +29,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired)
           ctx.emit("debug", "fired");
@@ -42,7 +42,7 @@ module.exports = {
       "select": {
         "graph": { "policies": { "bar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -53,7 +53,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired)
           ctx.emit("debug", "fired");
@@ -66,7 +66,7 @@ module.exports = {
       "select": {
         "graph": { "policies": { "baz": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -77,7 +77,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired)
           ctx.emit("debug", "fired");
@@ -90,7 +90,7 @@ module.exports = {
       "select": {
         "graph": { "other": { "foo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -101,7 +101,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired)
           ctx.emit("debug", "fired");
@@ -114,7 +114,7 @@ module.exports = {
       "select": {
         "graph": { "other": { "bar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -125,7 +125,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired)
           ctx.emit("debug", "fired");
@@ -138,7 +138,7 @@ module.exports = {
       "select": {
         "graph": { "other": { "baz": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -149,7 +149,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired)
           ctx.emit("debug", "fired");

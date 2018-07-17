@@ -20,6 +20,6 @@ module.exports = function(ast, comp, e){
 
     return e("call", e("id", "ctx.mkFunction"), [
         param_order,
-        e("genfn", ["ctx", "args"], body),
+        e("asyncfn", ["ctx", "args"], body),
     ]);
 };

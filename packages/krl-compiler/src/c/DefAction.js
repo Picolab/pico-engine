@@ -21,7 +21,7 @@ module.exports = function(ast, comp, e){
         e("str", ast.id.value, ast.id.loc),
         e("call", e("id", "ctx.mkAction"), [
             param_order,
-            e("genfn", [
+            e("asyncfn", [
                 "ctx",
                 "args",
                 "runAction",

@@ -7,17 +7,17 @@ module.exports = {
       "echoAction"
     ]
   },
-  "global": function* (ctx) {
-    ctx.scope.set("foo", ctx.mkAction(["a"], function* (ctx, args, runAction) {
+  "global": async function (ctx) {
+    ctx.scope.set("foo", ctx.mkAction(["a"], async function (ctx, args, runAction) {
       ctx.scope.set("a", args["a"]);
       ctx.scope.set("b", 2);
       var fired = true;
       if (fired) {
-        yield runAction(ctx, void 0, "send_directive", [
+        await runAction(ctx, void 0, "send_directive", [
           "foo",
           {
             "a": ctx.scope.get("a"),
-            "b": yield ctx.callKRLstdlib("+", [
+            "b": await ctx.callKRLstdlib("+", [
               ctx.scope.get("b"),
               3
             ])
@@ -30,10 +30,10 @@ module.exports = {
       "one",
       "two",
       "three"
-    ], function* (ctx, args, runAction) {
+    ], async function (ctx, args, runAction) {
       ctx.scope.set("one", args["one"]);
-      ctx.scope.set("two", args.hasOwnProperty("two") ? args["two"] : yield ctx.callKRLstdlib("get", [
-        yield ctx.applyFn(ctx.scope.get("add"), ctx, [
+      ctx.scope.set("two", args.hasOwnProperty("two") ? args["two"] : await ctx.callKRLstdlib("get", [
+        await ctx.applyFn(ctx.scope.get("add"), ctx, [
           1,
           1
         ]),
@@ -45,7 +45,7 @@ module.exports = {
       ctx.scope.set("three", args.hasOwnProperty("three") ? args["three"] : "3 by default");
       var fired = true;
       if (fired) {
-        yield runAction(ctx, void 0, "send_directive", [
+        await runAction(ctx, void 0, "send_directive", [
           "bar",
           {
             "a": ctx.scope.get("one"),
@@ -56,19 +56,19 @@ module.exports = {
       }
       return [ctx.scope.get("dir")];
     }));
-    ctx.scope.set("getSettingVal", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "setting_val");
+    ctx.scope.set("getSettingVal", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", "setting_val");
     }));
-    ctx.scope.set("chooser", ctx.mkAction(["val"], function* (ctx, args, runAction) {
+    ctx.scope.set("chooser", ctx.mkAction(["val"], async function (ctx, args, runAction) {
       ctx.scope.set("val", args["val"]);
       var fired = true;
       if (fired) {
         switch (ctx.scope.get("val")) {
         case "asdf":
-          yield runAction(ctx, void 0, "foo", [ctx.scope.get("val")], []);
+          await runAction(ctx, void 0, "foo", [ctx.scope.get("val")], []);
           break;
         case "fdsa":
-          yield runAction(ctx, void 0, "bar", [
+          await runAction(ctx, void 0, "bar", [
             ctx.scope.get("val"),
             "ok",
             "done"
@@ -81,13 +81,13 @@ module.exports = {
     ctx.scope.set("ifAnotB", ctx.mkAction([
       "a",
       "b"
-    ], function* (ctx, args, runAction) {
+    ], async function (ctx, args, runAction) {
       ctx.scope.set("a", args["a"]);
       ctx.scope.set("b", args["b"]);
       var fired = ctx.scope.get("a") && !ctx.scope.get("b");
       if (fired) {
-        yield runAction(ctx, void 0, "send_directive", ["yes a"], []);
-        yield runAction(ctx, void 0, "send_directive", ["not b"], []);
+        await runAction(ctx, void 0, "send_directive", ["yes a"], []);
+        await runAction(ctx, void 0, "send_directive", ["not b"], []);
       }
       return [];
     }));
@@ -95,13 +95,13 @@ module.exports = {
       "a",
       "b",
       "c"
-    ], function* (ctx, args, runAction) {
+    ], async function (ctx, args, runAction) {
       ctx.scope.set("a", args["a"]);
       ctx.scope.set("b", args["b"]);
       ctx.scope.set("c", args["c"]);
       var fired = true;
       if (fired) {
-        yield runAction(ctx, void 0, "noop", [], []);
+        await runAction(ctx, void 0, "noop", [], []);
       }
       return [
         ctx.scope.get("a"),
@@ -112,30 +112,30 @@ module.exports = {
     ctx.scope.set("complexAction", ctx.mkAction([
       "a",
       "b"
-    ], function* (ctx, args, runAction) {
+    ], async function (ctx, args, runAction) {
       ctx.scope.set("a", args["a"]);
       ctx.scope.set("b", args["b"]);
       ctx.scope.set("c", 100);
-      ctx.scope.set("d", yield ctx.callKRLstdlib("+", [
+      ctx.scope.set("d", await ctx.callKRLstdlib("+", [
         ctx.scope.get("c"),
         ctx.scope.get("b")
       ]));
-      var fired = yield ctx.callKRLstdlib(">", [
+      var fired = await ctx.callKRLstdlib(">", [
         ctx.scope.get("c"),
         0
       ]);
       if (fired) {
-        yield runAction(ctx, void 0, "send_directive", [
-          yield ctx.callKRLstdlib("+", [
+        await runAction(ctx, void 0, "send_directive", [
+          await ctx.callKRLstdlib("+", [
             "wat:",
             ctx.scope.get("a")
           ]),
           { "b": ctx.scope.get("b") }
         ], ["dir"]);
       }
-      return [yield ctx.callKRLstdlib("+", [
-          yield ctx.callKRLstdlib("+", [
-            yield ctx.callKRLstdlib("get", [
+      return [await ctx.callKRLstdlib("+", [
+          await ctx.callKRLstdlib("+", [
+            await ctx.callKRLstdlib("get", [
               ctx.scope.get("dir"),
               ["name"]
             ]),
@@ -147,14 +147,14 @@ module.exports = {
     ctx.scope.set("add", ctx.mkFunction([
       "a",
       "b"
-    ], function* (ctx, args) {
+    ], async function (ctx, args) {
       ctx.scope.set("a", args["a"]);
       ctx.scope.set("b", args["b"]);
       return {
         "type": "directive",
         "name": "add",
         "options": {
-          "resp": yield ctx.callKRLstdlib("+", [
+          "resp": await ctx.callKRLstdlib("+", [
             ctx.scope.get("a"),
             ctx.scope.get("b")
           ])
@@ -168,7 +168,7 @@ module.exports = {
       "select": {
         "graph": { "defa": { "foo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -179,10 +179,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "foo", ["bar"], []);
+          await runAction(ctx, void 0, "foo", ["bar"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -195,7 +195,7 @@ module.exports = {
       "select": {
         "graph": { "defa": { "bar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -206,10 +206,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "bar", {
+          await runAction(ctx, void 0, "bar", {
             "0": "baz",
             "two": "qux",
             "three": "quux"
@@ -226,7 +226,7 @@ module.exports = {
       "select": {
         "graph": { "defa": { "bar_setting": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -237,10 +237,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "bar", {
+          await runAction(ctx, void 0, "bar", {
             "0": "baz",
             "two": "qux",
             "three": "quux"
@@ -251,7 +251,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "setting_val", ctx.scope.get("val"));
+          await ctx.modules.set(ctx, "ent", "setting_val", ctx.scope.get("val"));
         }
       }
     },
@@ -260,7 +260,7 @@ module.exports = {
       "select": {
         "graph": { "defa": { "chooser": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -271,10 +271,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "chooser", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["val"])], []);
+          await runAction(ctx, void 0, "chooser", [await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["val"])], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -287,7 +287,7 @@ module.exports = {
       "select": {
         "graph": { "defa": { "ifAnotB": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -298,16 +298,16 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "ifAnotB", [
-            yield ctx.callKRLstdlib("==", [
-              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["a"]),
+          await runAction(ctx, void 0, "ifAnotB", [
+            await ctx.callKRLstdlib("==", [
+              await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["a"]),
               "true"
             ]),
-            yield ctx.callKRLstdlib("==", [
-              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["b"]),
+            await ctx.callKRLstdlib("==", [
+              await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["b"]),
               "true"
             ])
           ], []);
@@ -323,7 +323,7 @@ module.exports = {
       "select": {
         "graph": { "defa": { "add": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -334,10 +334,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "add", [
+          await runAction(ctx, void 0, "add", [
             1,
             2
           ], []);
@@ -353,7 +353,7 @@ module.exports = {
       "select": {
         "graph": { "defa": { "returns": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -364,10 +364,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "echoAction", [
+          await runAction(ctx, void 0, "echoAction", [
             "where",
             "in",
             "the"
@@ -376,9 +376,9 @@ module.exports = {
             "b",
             "c"
           ]);
-          yield runAction(ctx, void 0, "complexAction", [
-            yield ctx.callKRLstdlib("+", [
-              yield ctx.callKRLstdlib("+", [
+          await runAction(ctx, void 0, "complexAction", [
+            await ctx.callKRLstdlib("+", [
+              await ctx.callKRLstdlib("+", [
                 ctx.scope.get("a"),
                 ctx.scope.get("b")
               ]),
@@ -392,7 +392,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "setting_val", [
+          await ctx.modules.set(ctx, "ent", "setting_val", [
             ctx.scope.get("a"),
             ctx.scope.get("b"),
             ctx.scope.get("c"),
@@ -406,7 +406,7 @@ module.exports = {
       "select": {
         "graph": { "defa": { "scope": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -417,28 +417,28 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("noop", ctx.mkAction([], function* (ctx, args, runAction) {
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("noop", ctx.mkAction([], async function (ctx, args, runAction) {
           var fired = true;
           if (fired) {
-            yield runAction(ctx, void 0, "noop", [], []);
+            await runAction(ctx, void 0, "noop", [], []);
           }
           return ["did something!"];
         }));
-        ctx.scope.set("send_directive", ctx.mkAction([], function* (ctx, args, runAction) {
+        ctx.scope.set("send_directive", ctx.mkAction([], async function (ctx, args, runAction) {
           var fired = true;
           if (fired) {
-            yield runAction(ctx, void 0, "noop", [], ["foo"]);
+            await runAction(ctx, void 0, "noop", [], ["foo"]);
           }
-          return [yield ctx.callKRLstdlib("+", [
+          return [await ctx.callKRLstdlib("+", [
               "send wat? noop returned: ",
               ctx.scope.get("foo")
             ])];
         }));
-        ctx.scope.set("echoAction", ctx.mkAction([], function* (ctx, args, runAction) {
+        ctx.scope.set("echoAction", ctx.mkAction([], async function (ctx, args, runAction) {
           var fired = true;
           if (fired) {
-            yield runAction(ctx, void 0, "noop", [], []);
+            await runAction(ctx, void 0, "noop", [], []);
           }
           return [
             "aint",
@@ -448,7 +448,7 @@ module.exports = {
         }));
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "echoAction", [
+          await runAction(ctx, void 0, "echoAction", [
             "where",
             "in",
             "the"
@@ -457,15 +457,15 @@ module.exports = {
             "b",
             "c"
           ]);
-          yield runAction(ctx, void 0, "noop", [], ["d"]);
-          yield runAction(ctx, void 0, "send_directive", [], ["e"]);
+          await runAction(ctx, void 0, "noop", [], ["d"]);
+          await runAction(ctx, void 0, "send_directive", [], ["e"]);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "setting_val", [
+          await ctx.modules.set(ctx, "ent", "setting_val", [
             ctx.scope.get("a"),
             ctx.scope.get("b"),
             ctx.scope.get("c"),
@@ -480,7 +480,7 @@ module.exports = {
       "select": {
         "graph": { "defa": { "trying_to_use_action_as_fn": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -491,11 +491,11 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("val", yield ctx.applyFn(ctx.scope.get("foo"), ctx, [100]));
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("val", await ctx.applyFn(ctx.scope.get("foo"), ctx, [100]));
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "trying_to_use_action_as_fn",
             { "val": ctx.scope.get("val") }
           ], []);

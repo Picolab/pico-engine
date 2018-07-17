@@ -52,7 +52,7 @@ module.exports = function(ast, comp, e){
     }
 
 
-    rule.body = e("genfn", ["ctx", "runAction", "toPairs"], rule_body);
+    rule.body = e("asyncfn", ["ctx", "runAction", "toPairs"], rule_body);
 
     return e("obj", rule);
 };

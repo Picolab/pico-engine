@@ -41,7 +41,7 @@ module.exports = function(ast, comp, e){
         }
     }
 
-    return e("ycall", e("id", "ctx.applyFn"), [
+    return e("acall", e("id", "ctx.applyFn"), [
         comp(ast.callee),
         e("id", "ctx"),
         comp(ast.args)

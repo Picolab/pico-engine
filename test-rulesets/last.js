@@ -7,7 +7,7 @@ module.exports = {
       "select": {
         "graph": { "last": { "all": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -18,18 +18,18 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["foo"], []);
+          await runAction(ctx, void 0, "send_directive", ["foo"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          if (yield ctx.callKRLstdlib("==", [
-              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
+          if (await ctx.callKRLstdlib("==", [
+              await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "foo"
             ]))
             ctx.stopRulesetExecution(ctx);
@@ -41,7 +41,7 @@ module.exports = {
       "select": {
         "graph": { "last": { "all": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -52,18 +52,18 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["bar"], []);
+          await runAction(ctx, void 0, "send_directive", ["bar"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          if (yield ctx.callKRLstdlib("==", [
-              yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
+          if (await ctx.callKRLstdlib("==", [
+              await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "bar"
             ]))
             ctx.stopRulesetExecution(ctx);
@@ -75,7 +75,7 @@ module.exports = {
       "select": {
         "graph": { "last": { "all": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -86,10 +86,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["baz"], []);
+          await runAction(ctx, void 0, "send_directive", ["baz"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -105,7 +105,7 @@ module.exports = {
       "select": {
         "graph": { "last": { "all": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -116,10 +116,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["qux"], []);
+          await runAction(ctx, void 0, "send_directive", ["qux"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");

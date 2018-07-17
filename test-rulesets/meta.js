@@ -6,19 +6,19 @@ module.exports = {
     "author": "meta author",
     "shares": ["metaQuery"]
   },
-  "global": function* (ctx) {
-    ctx.scope.set("metaQuery", ctx.mkFunction([], function* (ctx, args) {
+  "global": async function (ctx) {
+    ctx.scope.set("metaQuery", ctx.mkFunction([], async function (ctx, args) {
       return {
-        "rid": yield ctx.modules.get(ctx, "meta", "rid"),
-        "host": yield ctx.modules.get(ctx, "meta", "host"),
-        "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName"),
-        "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
-        "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
-        "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
-        "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
-        "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent"),
-        "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery"),
-        "eci": yield ctx.modules.get(ctx, "meta", "eci")
+        "rid": await ctx.modules.get(ctx, "meta", "rid"),
+        "host": await ctx.modules.get(ctx, "meta", "host"),
+        "rulesetName": await ctx.modules.get(ctx, "meta", "rulesetName"),
+        "rulesetDescription": await ctx.modules.get(ctx, "meta", "rulesetDescription"),
+        "rulesetAuthor": await ctx.modules.get(ctx, "meta", "rulesetAuthor"),
+        "rulesetURI": await ctx.modules.get(ctx, "meta", "rulesetURI"),
+        "ruleName": await ctx.modules.get(ctx, "meta", "ruleName"),
+        "inEvent": await ctx.modules.get(ctx, "meta", "inEvent"),
+        "inQuery": await ctx.modules.get(ctx, "meta", "inQuery"),
+        "eci": await ctx.modules.get(ctx, "meta", "eci")
       };
     }));
   },
@@ -28,7 +28,7 @@ module.exports = {
       "select": {
         "graph": { "meta": { "event": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -39,22 +39,22 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "event",
             {
-              "rid": yield ctx.modules.get(ctx, "meta", "rid"),
-              "host": yield ctx.modules.get(ctx, "meta", "host"),
-              "rulesetName": yield ctx.modules.get(ctx, "meta", "rulesetName"),
-              "rulesetDescription": yield ctx.modules.get(ctx, "meta", "rulesetDescription"),
-              "rulesetAuthor": yield ctx.modules.get(ctx, "meta", "rulesetAuthor"),
-              "rulesetURI": yield ctx.modules.get(ctx, "meta", "rulesetURI"),
-              "ruleName": yield ctx.modules.get(ctx, "meta", "ruleName"),
-              "inEvent": yield ctx.modules.get(ctx, "meta", "inEvent"),
-              "inQuery": yield ctx.modules.get(ctx, "meta", "inQuery"),
-              "eci": yield ctx.modules.get(ctx, "meta", "eci")
+              "rid": await ctx.modules.get(ctx, "meta", "rid"),
+              "host": await ctx.modules.get(ctx, "meta", "host"),
+              "rulesetName": await ctx.modules.get(ctx, "meta", "rulesetName"),
+              "rulesetDescription": await ctx.modules.get(ctx, "meta", "rulesetDescription"),
+              "rulesetAuthor": await ctx.modules.get(ctx, "meta", "rulesetAuthor"),
+              "rulesetURI": await ctx.modules.get(ctx, "meta", "rulesetURI"),
+              "ruleName": await ctx.modules.get(ctx, "meta", "ruleName"),
+              "inEvent": await ctx.modules.get(ctx, "meta", "inEvent"),
+              "inQuery": await ctx.modules.get(ctx, "meta", "inQuery"),
+              "eci": await ctx.modules.get(ctx, "meta", "eci")
             }
           ], []);
         }

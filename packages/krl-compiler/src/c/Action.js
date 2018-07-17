@@ -8,7 +8,7 @@ module.exports = function(ast, comp, e){
         throw new Error("Unsuported RuleAction.action");
     }
 
-    return e("ycall",  e("id", "runAction"), [
+    return e("acall",  e("id", "runAction"), [
         e("id", "ctx"),
         ast.action.domain
             ? e("str", ast.action.domain, ast.action.loc)

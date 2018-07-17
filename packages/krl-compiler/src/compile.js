@@ -72,11 +72,17 @@ module.exports = function(ast, options){
             }else{
                 args.push(default_loc);
             }
-            if(args[0] === "ycall"){
-                return mkTree("yield",
-                    mkTree.apply(null, ["call"].concat(_.tail(args))),
-                    args[args.length - 1]
-                );
+            if(args[0] === "acall"){
+                return {
+                    type: "AwaitExpression",
+                    argument: mkTree.apply(null, ["call"].concat(_.tail(args))),
+                    loc: args[args.length - 1]
+                };
+            }else if(args[0] === "asyncfn"){
+                args[0] = "fn";
+                var estree =  mkTree.apply(null, args);
+                estree.async = true;
+                return estree;
             }
             return mkTree.apply(null, args);
         };

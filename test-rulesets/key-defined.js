@@ -32,9 +32,9 @@ module.exports = {
     },
     "shares": ["foo_global"]
   },
-  "global": function* (ctx) {
+  "global": async function (ctx) {
     ctx.scope.set("blah", "this is here to test that 'provides' is not stomped over by 'provides keys'");
-    ctx.scope.set("foo_global", yield ctx.modules.get(ctx, "keys", "foo"));
+    ctx.scope.set("foo_global", await ctx.modules.get(ctx, "keys", "foo"));
   },
   "rules": {}
 };

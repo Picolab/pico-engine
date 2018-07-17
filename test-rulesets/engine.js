@@ -6,7 +6,7 @@ module.exports = {
       "select": {
         "graph": { "engine": { "newPico": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -17,10 +17,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "engine", "newPico", [], []);
+          await runAction(ctx, "engine", "newPico", [], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -33,7 +33,7 @@ module.exports = {
       "select": {
         "graph": { "engine": { "newChannel": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -44,13 +44,13 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
-        ctx.scope.set("name", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["name"]));
-        ctx.scope.set("type", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["type"]));
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("pico_id", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
+        ctx.scope.set("name", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["name"]));
+        ctx.scope.set("type", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["type"]));
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "engine", "newChannel", [
+          await runAction(ctx, "engine", "newChannel", [
             ctx.scope.get("pico_id"),
             ctx.scope.get("name"),
             ctx.scope.get("type")
@@ -67,7 +67,7 @@ module.exports = {
       "select": {
         "graph": { "engine": { "removeChannel": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -78,10 +78,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "engine", "removeChannel", [yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["eci"])], []);
+          await runAction(ctx, "engine", "removeChannel", [await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["eci"])], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -94,7 +94,7 @@ module.exports = {
       "select": {
         "graph": { "engine": { "installRuleset": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -105,23 +105,23 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("pico_id", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
-        ctx.scope.set("rid", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["rid"]));
-        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
-        ctx.scope.set("base", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["base"]));
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("pico_id", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["pico_id"]));
+        ctx.scope.set("rid", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["rid"]));
+        ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+        ctx.scope.set("base", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["base"]));
         ctx.scope.set("rid_provided", !!ctx.scope.get("rid") ? "True" : "False");
         var fired = true;
         if (fired) {
           switch (ctx.scope.get("rid_provided")) {
           case "True":
-            yield runAction(ctx, "engine", "installRuleset", [
+            await runAction(ctx, "engine", "installRuleset", [
               ctx.scope.get("pico_id"),
               ctx.scope.get("rid")
             ], []);
             break;
           case "False":
-            yield runAction(ctx, "engine", "installRuleset", {
+            await runAction(ctx, "engine", "installRuleset", {
               "0": ctx.scope.get("pico_id"),
               "url": ctx.scope.get("url"),
               "base": ctx.scope.get("base")

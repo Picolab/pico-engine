@@ -20,7 +20,7 @@ module.exports = function(ast, comp, e){
             multiplier = time_period_in_ms[key];
         }
     }
-    return e("genfn", ["ctx"], [
+    return e("asyncfn", ["ctx"], [
         e("return", e("*", comp(ast.expression), e("num", multiplier)))
     ]);
 };
