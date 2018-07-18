@@ -6,7 +6,8 @@ module.exports = {
       "getFooKey",
       "getBar",
       "getBarKey",
-      "getBaz"
+      "getBaz",
+      "getMaplist"
     ]
   },
   "global": function* (ctx) {
@@ -32,6 +33,9 @@ module.exports = {
     }));
     ctx.scope.set("getBaz", ctx.mkFunction([], function* (ctx, args) {
       return yield ctx.modules.get(ctx, "ent", "baz");
+    }));
+    ctx.scope.set("getMaplist", ctx.mkFunction([], function* (ctx, args) {
+      return yield ctx.modules.get(ctx, "ent", "maplist");
     }));
   },
   "rules": {
@@ -282,6 +286,66 @@ module.exports = {
             "two"
           ]
         }, "three");
+      }
+    },
+    "setmaplist": {
+      "name": "setmaplist",
+      "select": {
+        "graph": { "pindex": { "setmaplist": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", "maplist", [
+          { "id": "one" },
+          { "id": "two" },
+          { "id": "three" }
+        ]);
+      }
+    },
+    "putmaplist": {
+      "name": "putmaplist",
+      "select": {
+        "graph": { "pindex": { "putmaplist": { "expr_0": true } } },
+        "eventexprs": {
+          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": function* (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        yield ctx.modules.set(ctx, "ent", {
+          "key": "maplist",
+          "path": [
+            1,
+            "other"
+          ]
+        }, "thing");
       }
     }
   }

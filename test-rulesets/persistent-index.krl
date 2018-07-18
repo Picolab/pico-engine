@@ -1,6 +1,6 @@
 ruleset io.picolabs.persistent-index {
     meta {
-        shares getFoo, getFooKey, getBar, getBarKey, getBaz
+        shares getFoo, getFooKey, getBar, getBarKey, getBaz, getMaplist
     }
     global {
         getFoo = function(){
@@ -17,6 +17,9 @@ ruleset io.picolabs.persistent-index {
         }
         getBaz = function(){
             ent:baz;
+        }
+        getMaplist = function(){
+            ent:maplist;
         }
     }
     rule setfoo {
@@ -89,6 +92,22 @@ ruleset io.picolabs.persistent-index {
         select when pindex putbaz
         always {
             ent:baz{["one", "two"]} := "three"
+        }
+    }
+    rule setmaplist {
+        select when pindex setmaplist
+        always {
+            ent:maplist := [
+                {"id": "one"},
+                {"id": "two"},
+                {"id": "three"}
+            ]
+        }
+    }
+    rule putmaplist {
+        select when pindex putmaplist
+        always {
+            ent:maplist{[1, "other"]} := "thing"
         }
     }
 }
