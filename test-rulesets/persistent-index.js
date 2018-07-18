@@ -34,8 +34,8 @@ module.exports = {
     ctx.scope.set("getBaz", ctx.mkFunction([], async function (ctx, args) {
       return await ctx.modules.get(ctx, "ent", "baz");
     }));
-    ctx.scope.set("getMaplist", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "maplist");
+    ctx.scope.set("getMaplist", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", "maplist");
     }));
   },
   "rules": {
@@ -293,7 +293,7 @@ module.exports = {
       "select": {
         "graph": { "pindex": { "setmaplist": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -304,13 +304,13 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "maplist", [
+        await ctx.modules.set(ctx, "ent", "maplist", [
           { "id": "one" },
           { "id": "two" },
           { "id": "three" }
@@ -322,7 +322,7 @@ module.exports = {
       "select": {
         "graph": { "pindex": { "putmaplist": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -333,13 +333,13 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", {
+        await ctx.modules.set(ctx, "ent", {
           "key": "maplist",
           "path": [
             1,

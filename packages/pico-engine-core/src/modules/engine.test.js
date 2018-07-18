@@ -18,10 +18,10 @@ var tick = function(fn){
     };
 };
 
-var runAction = cocb.wrap(function*(pe, ctx, domain, id, args){
-    var act = yield pe.modules.get(ctx, domain, id);
-    return _.head(yield act(ctx, args));
-});
+async function runAction(pe, ctx, domain, id, args){
+    var act = await pe.modules.get(ctx, domain, id);
+    return _.head(await act(ctx, args));
+}
 
 
 var testPE = function(test_name, genfn){
@@ -31,21 +31,21 @@ var testPE = function(test_name, genfn){
         }, function(err, pe){
             if(err) return t.end(err);
 
-            cocb.run(function*(){
-                yield genfn(t, pe);
-            }, t.end);
+            (async function(){
+                await genfn(t, pe);
+            }()).then(t.end).catch(t.end);
         });
     });
 };
 
-var testError = cocb.wrap(function*(t, promise, errMsg, msg){
+async function testError(t, promise, errMsg, msg){
     try{
-        yield promise;
+        await promise;
         t.fail("should fail", msg);
     }catch(err){
         t.equals(err + "", errMsg, msg);
     }
-});
+}
 
 var assertPicoID = function(id, callback){
     if( ! ktypes.isString(id)){
@@ -55,32 +55,32 @@ var assertPicoID = function(id, callback){
 };
 
 
-testPE("engine:getPicoIDByECI", function*(t, pe){
+testPE("engine:getPicoIDByECI", async function(t, pe){
     var tstErr = _.partial(testError, t);
 
-    var getPicoIDByECI = yield pe.modules.get({}, "engine", "getPicoIDByECI");
+    var getPicoIDByECI = await pe.modules.get({}, "engine", "getPicoIDByECI");
     var get = function(){
         return getPicoIDByECI({}, _.toArray(arguments));
     };
 
-    t.equals(yield get("id1"), "id0");
+    t.equals(await get("id1"), "id0");
 
-    yield tstErr(
+    await tstErr(
         get(),
         "Error: engine:getPicoIDByECI needs an eci string",
         "no eci is given"
     );
-    yield tstErr(
+    await tstErr(
         get(null),
         "TypeError: engine:getPicoIDByECI was given null instead of an eci string",
         "wrong eci type"
     );
-    t.equals(yield get("quux"), void 0, "eci not found");
+    t.equals(await get("quux"), void 0, "eci not found");
 });
 
 
 test("engine:registerRuleset", function(t){
-    cocb.run(function*(){
+    (async function(){
         var tstErr = _.partial(testError, t);
 
         var engine = kengine({
@@ -91,32 +91,32 @@ test("engine:registerRuleset", function(t){
             })
         });
 
-        t.equals((yield engine.def.registerRuleset({}, {
+        t.equals((await engine.def.registerRuleset({}, {
             url: "http://foo.bar/qux.krl",
         }))[0], "rid for: http://foo.bar/qux.krl");
 
-        t.equals((yield engine.def.registerRuleset({}, {
+        t.equals((await engine.def.registerRuleset({}, {
             url: "qux.krl",
             base: "https://foo.bar/baz/",
         }))[0], "rid for: https://foo.bar/baz/qux.krl");
 
-        yield tstErr(
+        await tstErr(
             engine.def.registerRuleset({}, []),
             "Error: engine:registerRuleset needs a url string",
             "no url is given"
         );
 
-        yield tstErr(
+        await tstErr(
             engine.def.registerRuleset({}, [_.noop]),
             "TypeError: engine:registerRuleset was given [Function] instead of a url string",
             "wrong url type"
         );
 
-    }, t.end);
+    }()).then(t.end).catch(t.end);
 });
 
 test("engine:installRuleset", function(t){
-    cocb.run(function*(){
+    (async function(){
         var tstErr = _.partial(testError, t);
 
         var engine = kengine({
@@ -141,7 +141,7 @@ test("engine:installRuleset", function(t){
             }
         });
 
-        var inst = cocb.wrap(function*(id, rid, url, base){
+        var inst = async function(id, rid, url, base){
             var args = {};
             if(id !== void 0){
                 args.pico_id = id;
@@ -155,26 +155,26 @@ test("engine:installRuleset", function(t){
             if(base !== void 0){
                 args.base = base;
             }
-            return (yield engine.def.installRuleset({}, args))[0];
-        });
+            return (await engine.def.installRuleset({}, args))[0];
+        };
 
-        t.equals(yield inst("pico0", "foo.bar"), "foo.bar");
-        t.deepEquals(yield inst("pico0", ["foo.bar", "foo.qux"]), ["foo.bar", "foo.qux"]);
-        strictDeepEquals(t, yield inst("pico0", []), []);
-        t.deepEquals(yield inst("pico0", void 0, "file:///foo/bar.krl"), "REG:bar");
-        t.deepEquals(yield inst("pico0", void 0, "qux.krl", "http://foo.bar/baz/"), "found");
+        t.equals(await inst("pico0", "foo.bar"), "foo.bar");
+        t.deepEquals(await inst("pico0", ["foo.bar", "foo.qux"]), ["foo.bar", "foo.qux"]);
+        strictDeepEquals(t, await inst("pico0", []), []);
+        t.deepEquals(await inst("pico0", void 0, "file:///foo/bar.krl"), "REG:bar");
+        t.deepEquals(await inst("pico0", void 0, "qux.krl", "http://foo.bar/baz/"), "found");
 
-        yield tstErr(
+        await tstErr(
             inst("pico0", void 0, "file:///too/many.krl"),
             "Error: More than one rid found for the given url: a , b , c",
             "too many matched"
         );
 
-    }, t.end);
+    }()).then(t.end).catch(t.end);
 });
 
 test("engine:uninstallRuleset", function(t){
-    cocb.run(function*(){
+    (async function(){
 
         var uninstalled = {};
         var order = 0;
@@ -195,12 +195,12 @@ test("engine:uninstallRuleset", function(t){
             }
         });
 
-        t.equals((yield engine.def.uninstallRuleset({}, {
+        t.equals((await engine.def.uninstallRuleset({}, {
             pico_id: "pico0",
             rid: "foo.bar",
         }))[0], void 0);
 
-        t.equals((yield engine.def.uninstallRuleset({}, {
+        t.equals((await engine.def.uninstallRuleset({}, {
             pico_id: "pico0",
             rid: ["baz", "qux"],
         }))[0], void 0);
@@ -213,11 +213,11 @@ test("engine:uninstallRuleset", function(t){
             }
         });
 
-    }, t.end);
+    }()).then(t.end).catch(t.end);
 });
 
 test("engine:unregisterRuleset", function(t){
-    cocb.run(function*(){
+    (async function(){
         var tstErr = _.partial(testError, t);
 
         var log = [];
@@ -231,25 +231,25 @@ test("engine:unregisterRuleset", function(t){
             }),
         });
 
-        t.equals((yield engine.def.unregisterRuleset({}, {
+        t.equals((await engine.def.unregisterRuleset({}, {
             rid: "foo.bar",
         }))[0], void 0);
 
-        t.equals((yield engine.def.unregisterRuleset({}, {
+        t.equals((await engine.def.unregisterRuleset({}, {
             rid: ["baz", "qux"],
         }))[0], void 0);
 
-        yield tstErr(
+        await tstErr(
             engine.def.unregisterRuleset({}, []),
             "Error: engine:unregisterRuleset needs a rid string or array"
         );
 
-        yield tstErr(
+        await tstErr(
             engine.def.unregisterRuleset({}, {rid: {},}),
             "TypeError: engine:unregisterRuleset was given [Map] instead of a rid string or array"
         );
 
-        yield tstErr(
+        await tstErr(
             engine.def.unregisterRuleset({}, {
                 rid: ["baz", 2, "qux"],
             }),
@@ -262,16 +262,16 @@ test("engine:unregisterRuleset", function(t){
             "qux",
         ]);
 
-    }, t.end);
+    }()).then(t.end).catch(t.end);
 });
 
-testPE("engine:describeRuleset", function * (t, pe){
+testPE("engine:describeRuleset", async function(t, pe){
     var tstErr = _.partial(testError, t);
 
     var ctx = {};
-    var descRID = yield pe.modules.get(ctx, "engine", "describeRuleset");
+    var descRID = await pe.modules.get(ctx, "engine", "describeRuleset");
 
-    var desc = yield descRID(ctx, {rid: "io.picolabs.hello_world"});
+    var desc = await descRID(ctx, {rid: "io.picolabs.hello_world"});
 
     var isIsoString = function(str){
         return str === (new Date(str)).toISOString();
@@ -298,36 +298,36 @@ testPE("engine:describeRuleset", function * (t, pe){
         author: "Phil Windley",
     });
 
-    yield tstErr(
+    await tstErr(
         descRID(ctx, []),
         "Error: engine:describeRuleset needs a rid string",
         "no rid is given"
     );
-    yield tstErr(
+    await tstErr(
         descRID(ctx, [[]]),
         "TypeError: engine:describeRuleset was given [Array] instead of a rid string",
         "wrong rid type"
     );
 
-    t.equals(yield descRID(ctx, {rid: "not.found"}), void 0);
+    t.equals(await descRID(ctx, {rid: "not.found"}), void 0);
 });
 
 
-testPE("engine:listAllEnabledRIDs", function * (t, pe){
-    var listAllEnabledRIDs = yield pe.modules.get({}, "engine", "listAllEnabledRIDs");
-    var rids = yield listAllEnabledRIDs({}, []);
+testPE("engine:listAllEnabledRIDs", async function (t, pe){
+    var listAllEnabledRIDs = await pe.modules.get({}, "engine", "listAllEnabledRIDs");
+    var rids = await listAllEnabledRIDs({}, []);
     t.ok(rids.length > 1, "should be all the test-rulesets/");
     t.ok(_.every(rids, _.isString));
     t.ok(_.includes(rids, "io.picolabs.engine"));
 });
 
 
-testPE("engine:newPico", function * (t, pe){
+testPE("engine:newPico", async function (t, pe){
     var action = function(ctx, name, args){
         return runAction(pe, ctx, "engine", name, args);
     };
 
-    var pico2 = yield action({}, "newPico", {
+    var pico2 = await action({}, "newPico", {
         parent_id: "id0",
     });
     t.deepEquals(pico2, {
@@ -337,7 +337,7 @@ testPE("engine:newPico", function * (t, pe){
     });
 
     //default to ctx.pico_id
-    var pico3 = yield action({
+    var pico3 = await action({
         pico_id: "id2",//called by pico2
     }, "newPico", {});
     t.deepEquals(pico3, {
@@ -348,7 +348,7 @@ testPE("engine:newPico", function * (t, pe){
 });
 
 
-testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:removePico", function * (t, pe){
+testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:removePico", async function (t, pe){
     var tstErr = _.partial(testError, t);
 
     var newPico = function(ctx, args){
@@ -358,55 +358,55 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
         return runAction(pe, ctx, "engine", "removePico", args);
     };
 
-    var getParent = yield pe.modules.get({}, "engine", "getParent");
-    var getAdminECI = yield pe.modules.get({}, "engine", "getAdminECI");
-    var listChildren = yield pe.modules.get({}, "engine", "listChildren");
+    var getParent = await pe.modules.get({}, "engine", "getParent");
+    var getAdminECI = await pe.modules.get({}, "engine", "getAdminECI");
+    var listChildren = await pe.modules.get({}, "engine", "listChildren");
 
-    yield newPico({pico_id: "id0"}, []);// id2
-    yield newPico({}, ["id0"]);// id4
-    yield newPico({pico_id: "id2"}, []);// id6
+    await newPico({pico_id: "id0"}, []);// id2
+    await newPico({}, ["id0"]);// id4
+    await newPico({pico_id: "id2"}, []);// id6
 
-    t.equals(yield getParent({}, ["id0"]), null);
-    t.equals(yield getParent({}, ["id2"]), "id0");
-    t.equals(yield getParent({}, ["id4"]), "id0");
-    t.equals(yield getParent({}, ["id6"]), "id2");
+    t.equals(await getParent({}, ["id0"]), null);
+    t.equals(await getParent({}, ["id2"]), "id0");
+    t.equals(await getParent({}, ["id4"]), "id0");
+    t.equals(await getParent({}, ["id6"]), "id2");
 
-    t.equals(yield getAdminECI({}, ["id0"]), "id1");
-    t.equals(yield getAdminECI({}, ["id2"]), "id3");
-    t.equals(yield getAdminECI({}, ["id4"]), "id5");
-    t.equals(yield getAdminECI({}, ["id6"]), "id7");
+    t.equals(await getAdminECI({}, ["id0"]), "id1");
+    t.equals(await getAdminECI({}, ["id2"]), "id3");
+    t.equals(await getAdminECI({}, ["id4"]), "id5");
+    t.equals(await getAdminECI({}, ["id6"]), "id7");
 
-    t.deepEquals(yield listChildren({}, ["id0"]), ["id2", "id4"]);
-    t.deepEquals(yield listChildren({}, ["id2"]), ["id6"]);
-    strictDeepEquals(t, yield listChildren({}, ["id4"]), []);
-    strictDeepEquals(t, yield listChildren({}, ["id6"]), []);
+    t.deepEquals(await listChildren({}, ["id0"]), ["id2", "id4"]);
+    t.deepEquals(await listChildren({}, ["id2"]), ["id6"]);
+    strictDeepEquals(t, await listChildren({}, ["id4"]), []);
+    strictDeepEquals(t, await listChildren({}, ["id6"]), []);
 
     //fallback on ctx.pico_id
-    t.equals(yield getParent({pico_id: "id6"}, []), "id2");
-    t.equals(yield getAdminECI({pico_id: "id6"}, []), "id7");
-    t.deepEquals(yield listChildren({pico_id: "id2"}, []), ["id6"]);
-    t.equals(yield removePico({pico_id: "id6"}, []), true);
-    t.equals(yield removePico({pico_id: "id6"}, []), false);
-    strictDeepEquals(t, yield listChildren({}, ["id2"]), []);
+    t.equals(await getParent({pico_id: "id6"}, []), "id2");
+    t.equals(await getAdminECI({pico_id: "id6"}, []), "id7");
+    t.deepEquals(await listChildren({pico_id: "id2"}, []), ["id6"]);
+    t.equals(await removePico({pico_id: "id6"}, []), true);
+    t.equals(await removePico({pico_id: "id6"}, []), false);
+    strictDeepEquals(t, await listChildren({}, ["id2"]), []);
 
     //report error on invalid pico_id
     var assertInvalidPicoID = function(genfn, id, expected){
         return tstErr(genfn({pico_id: id}, []), expected);
     };
 
-    yield assertInvalidPicoID(getParent   , void 0, "TypeError: engine:getParent was given null instead of a pico_id string");
-    yield assertInvalidPicoID(getAdminECI , void 0, "TypeError: engine:getAdminECI was given null instead of a pico_id string");
-    yield assertInvalidPicoID(listChildren, void 0, "TypeError: engine:listChildren was given null instead of a pico_id string");
-    yield assertInvalidPicoID(newPico     , void 0, "TypeError: engine:newPico was given null instead of a parent_id string");
-    yield assertInvalidPicoID(removePico  , void 0, "TypeError: engine:removePico was given null instead of a pico_id string");
+    await assertInvalidPicoID(getParent   , void 0, "TypeError: engine:getParent was given null instead of a pico_id string");
+    await assertInvalidPicoID(getAdminECI , void 0, "TypeError: engine:getAdminECI was given null instead of a pico_id string");
+    await assertInvalidPicoID(listChildren, void 0, "TypeError: engine:listChildren was given null instead of a pico_id string");
+    await assertInvalidPicoID(newPico     , void 0, "TypeError: engine:newPico was given null instead of a parent_id string");
+    await assertInvalidPicoID(removePico  , void 0, "TypeError: engine:removePico was given null instead of a pico_id string");
 
-    t.equals(yield getAdminECI({}, ["id404"]), void 0);
-    t.equals(yield getParent({pico_id: "id404"}, []), void 0);
-    t.equals(yield listChildren({pico_id: "id404"}, []), void 0);
-    yield assertInvalidPicoID(newPico     , "id404", "NotFoundError: Pico not found: id404");
-    t.equals(yield removePico({}, ["id404"]), false);
+    t.equals(await getAdminECI({}, ["id404"]), void 0);
+    t.equals(await getParent({pico_id: "id404"}, []), void 0);
+    t.equals(await listChildren({pico_id: "id404"}, []), void 0);
+    await assertInvalidPicoID(newPico     , "id404", "NotFoundError: Pico not found: id404");
+    t.equals(await removePico({}, ["id404"]), false);
 
-    yield tstErr(
+    await tstErr(
         removePico({}, ["id0"]),
         "Error: Cannot remove pico \"id0\" because it has 2 children",
         "you can't remove a pico with children"
@@ -414,20 +414,20 @@ testPE("engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
 });
 
 
-testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", function * (t, pe){
+testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", async function (t, pe){
     var tstErr = _.partial(testError, t);
 
     var newPolicy = function(policy){
         return runAction(pe, {}, "engine", "newPolicy", [policy]);
     };
-    var listPolicies = yield pe.modules.get({}, "engine", "listPolicies");
+    var listPolicies = await pe.modules.get({}, "engine", "listPolicies");
     var removePolicy = function(id){
         return runAction(pe, {}, "engine", "removePolicy", [id]);
     };
 
     // Making sure ChannelPolicy.clean is on
-    yield tstErr(newPolicy(), "TypeError: Policy definition should be a Map, but was Null");
-    yield tstErr(newPolicy({name: 1}), "Error: missing `policy.name`");
+    await tstErr(newPolicy(), "TypeError: Policy definition should be a Map, but was Null");
+    await tstErr(newPolicy({name: 1}), "Error: missing `policy.name`");
 
     var pAdmin = {
         id: ADMIN_POLICY_ID,
@@ -436,9 +436,9 @@ testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", function * 
         query: {allow: [{}]},
     };
 
-    t.deepEquals(yield listPolicies(), [pAdmin]);
+    t.deepEquals(await listPolicies(), [pAdmin]);
 
-    var pFoo = yield newPolicy({name: "foo"});
+    var pFoo = await newPolicy({name: "foo"});
     t.deepEquals(pFoo, {
         id: "id2",
         name: "foo",
@@ -446,9 +446,9 @@ testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", function * 
         query: {deny: [], allow: []},
     });
 
-    t.deepEquals(yield listPolicies(), [pAdmin, pFoo]);
+    t.deepEquals(await listPolicies(), [pAdmin, pFoo]);
 
-    var pBar = yield newPolicy({
+    var pBar = await newPolicy({
         name: "bar",
         event: {allow: [{domain: "system"}]}
     });
@@ -459,23 +459,23 @@ testPE("engine:newPolicy, engine:listPolicies, engine:removePolicy", function * 
         query: {deny: [], allow: []},
     });
 
-    t.deepEquals(yield listPolicies(), [pAdmin, pFoo, pBar]);
+    t.deepEquals(await listPolicies(), [pAdmin, pFoo, pBar]);
 
-    yield tstErr(removePolicy(), "TypeError: engine:removePolicy was given null instead of a policy_id string");
-    t.equals(yield removePolicy("id404"), false);
+    await tstErr(removePolicy(), "TypeError: engine:removePolicy was given null instead of a policy_id string");
+    t.equals(await removePolicy("id404"), false);
 
-    t.equals(yield removePolicy(pFoo.id), true);
-    t.equals(yield removePolicy(pFoo.id), false);
-    t.deepEquals(yield listPolicies(), [pAdmin, pBar]);
+    t.equals(await removePolicy(pFoo.id), true);
+    t.equals(await removePolicy(pFoo.id), false);
+    t.deepEquals(await listPolicies(), [pAdmin, pBar]);
 
-    yield tstErr(removePolicy(pAdmin.id), "Error: Policy " + pAdmin.id +  " is in use, cannot remove.");
+    await tstErr(removePolicy(pAdmin.id), "Error: Policy " + pAdmin.id +  " is in use, cannot remove.");
 
-    t.equals(yield removePolicy(pBar.id), true);
-    t.deepEquals(yield listPolicies(), [pAdmin]);
+    t.equals(await removePolicy(pBar.id), true);
+    t.deepEquals(await listPolicies(), [pAdmin]);
 });
 
 
-testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function * (t, pe){
+testPE("engine:newChannel, engine:listChannels, engine:removeChannel", async function (t, pe){
     var tstErr = _.partial(testError, t);
 
     var newPolicy = function(policy){
@@ -487,7 +487,7 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
     var removeChannel = function(ctx, args){
         return runAction(pe, ctx, "engine", "removeChannel", args);
     };
-    var listChannels = yield pe.modules.get({}, "engine", "listChannels");
+    var listChannels = await pe.modules.get({}, "engine", "listChannels");
 
     var mkChan = function(pico_id, eci, name, type, policy_id){
         return {
@@ -503,78 +503,78 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", function 
         };
     };
 
-    t.deepEquals(yield listChannels({}, ["id0"]), [
+    t.deepEquals(await listChannels({}, ["id0"]), [
         mkChan("id0", "id1", "admin", "secret"),
     ]);
 
-    t.deepEquals(yield newChannel({}, ["id0", "a", "b"]), mkChan("id0", "id2", "a", "b"));
-    t.deepEquals(yield listChannels({}, ["id0"]), [
+    t.deepEquals(await newChannel({}, ["id0", "a", "b"]), mkChan("id0", "id2", "a", "b"));
+    t.deepEquals(await listChannels({}, ["id0"]), [
         mkChan("id0", "id1", "admin", "secret"),
         mkChan("id0", "id2", "a", "b"),
     ]);
 
-    yield tstErr(
+    await tstErr(
         newChannel({}, ["id1"]),
         "Error: engine:newChannel needs a name string",
         "no name is given"
     );
-    yield tstErr(
+    await tstErr(
         newChannel({}, ["id1", "id1"]),
         "Error: engine:newChannel needs a type string",
         "no type is given"
     );
 
-    yield tstErr(
+    await tstErr(
         removeChannel({}, ["id1"]),
         "Error: Cannot delete the pico's admin channel",
         "removeChannel shouldn't remove the admin channel"
     );
-    yield tstErr(
+    await tstErr(
         removeChannel({}, []),
         "Error: engine:removeChannel needs an eci string",
         "no eci is given"
     );
-    yield tstErr(
+    await tstErr(
         removeChannel({}, [/id1/]),
         "TypeError: engine:removeChannel was given re#id1# instead of an eci string",
         "wrong eci type"
     );
-    t.equals(yield removeChannel({}, ["eci404"]), false);
+    t.equals(await removeChannel({}, ["eci404"]), false);
 
-    t.equals(yield removeChannel({}, ["id2"]), true);
-    t.equals(yield removeChannel({}, ["id2"]), false);
-    t.deepEquals(yield listChannels({}, ["id0"]), [
+    t.equals(await removeChannel({}, ["id2"]), true);
+    t.equals(await removeChannel({}, ["id2"]), false);
+    t.deepEquals(await listChannels({}, ["id0"]), [
         mkChan("id0", "id1", "admin", "secret"),
     ]);
 
     //fallback on ctx.pico_id
-    t.deepEquals(yield listChannels({pico_id: "id0"}, []), [
+    t.deepEquals(await listChannels({pico_id: "id0"}, []), [
         mkChan("id0", "id1", "admin", "secret"),
     ]);
-    t.deepEquals(yield newChannel({pico_id: "id0"}, {"name": "a", "type": "b"}), mkChan("id0", "id3", "a", "b"));
+    t.deepEquals(await newChannel({pico_id: "id0"}, {"name": "a", "type": "b"}), mkChan("id0", "id3", "a", "b"));
 
     //report error on invalid pico_id
     var assertInvalidPicoID = function(genfn, id, expected){
         return tstErr(genfn({pico_id: id}, {"name": "a", "type": "b"}), expected);
     };
 
-    yield assertInvalidPicoID(newChannel  , void 0, "TypeError: engine:newChannel was given null instead of a pico_id string");
-    yield assertInvalidPicoID(listChannels, void 0, "TypeError: engine:listChannels was given null instead of a pico_id string");
+    await assertInvalidPicoID(newChannel  , void 0, "TypeError: engine:newChannel was given null instead of a pico_id string");
+    await assertInvalidPicoID(listChannels, void 0, "TypeError: engine:listChannels was given null instead of a pico_id string");
 
-    yield assertInvalidPicoID(newChannel  , "id404", "NotFoundError: Pico not found: id404");
-    t.deepEquals(yield listChannels({}, ["id404"]), void 0);
+    await assertInvalidPicoID(newChannel  , "id404", "NotFoundError: Pico not found: id404");
+    t.deepEquals(await listChannels({}, ["id404"]), void 0);
 
 
     //setting policy_id on a newChannel
     tstErr(newChannel({}, ["id0", "a", "b", 100]), "TypeError: engine:newChannel argument `policy_id` should be String but was Number");
     tstErr(newChannel({}, ["id0", "a", "b", "id404"]), "NotFoundError: Policy not found: id404");
 
-    var pFoo = yield newPolicy({name: "foo"});
-    t.deepEquals(yield newChannel({}, ["id0", "a", "b", pFoo.id]), mkChan("id0", "id5", "a", "b", pFoo.id));
+    var pFoo = await newPolicy({name: "foo"});
+    t.deepEquals(await newChannel({}, ["id0", "a", "b", pFoo.id]), mkChan("id0", "id5", "a", "b", pFoo.id));
 });
 
 
-testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset", function * (t, pe){
+testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset", async function (t, pe){
     var tstErr = _.partial(testError, t);
 
     var installRS = function(ctx, args){
@@ -583,88 +583,88 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
     var uninstallRID = function(ctx, args){
         return runAction(pe, ctx, "engine", "uninstallRuleset", args);
     };
-    var listRIDs = yield pe.modules.get({}, "engine", "listInstalledRIDs");
+    var listRIDs = await pe.modules.get({}, "engine", "listInstalledRIDs");
 
-    t.deepEquals(yield listRIDs({pico_id: "id0"}, []), [
+    t.deepEquals(await listRIDs({pico_id: "id0"}, []), [
         "io.picolabs.engine",
     ]);
 
-    t.equals(yield installRS({}, ["id0", "io.picolabs.hello_world"]), "io.picolabs.hello_world");
-    yield tstErr(
+    t.equals(await installRS({}, ["id0", "io.picolabs.hello_world"]), "io.picolabs.hello_world");
+    await tstErr(
         installRS({}, [NaN]),
         "Error: engine:installRuleset needs either a rid string or array, or a url string",
         "no rid or url is given"
     );
-    yield tstErr(
+    await tstErr(
         installRS({}, ["id0", NaN, 0]),
         "TypeError: engine:installRuleset was given null instead of a rid string or array",
         "wrong rid type"
     );
-    yield tstErr(
+    await tstErr(
         installRS({}, ["id0", [[]]]),
         "TypeError: engine:installRuleset was given a rid array containing a non-string ([Array])",
         "rid array has a non-string"
     );
-    yield tstErr(
+    await tstErr(
         installRS({"pico_id": "id0"}, {"url": {}}),
         "TypeError: engine:installRuleset was given [Map] instead of a url string",
         "wrong url type"
     );
-    t.deepEquals(yield listRIDs({pico_id: "id0"}, []), [
+    t.deepEquals(await listRIDs({pico_id: "id0"}, []), [
         "io.picolabs.engine",
         "io.picolabs.hello_world",
     ]);
 
-    t.equals(yield uninstallRID({}, ["id0", "io.picolabs.engine"]), void 0);
-    yield tstErr(
+    t.equals(await uninstallRID({}, ["id0", "io.picolabs.engine"]), void 0);
+    await tstErr(
         uninstallRID({}, []),
         "Error: engine:uninstallRuleset needs a rid string or array",
         "no rid is given"
     );
-    yield tstErr(
+    await tstErr(
         uninstallRID({}, ["id0", void 0]),
         "TypeError: engine:uninstallRuleset was given null instead of a rid string or array",
         "wrong rid type"
     );
-    yield tstErr(
+    await tstErr(
         uninstallRID({}, ["id0", ["null", null]]),
         "TypeError: engine:uninstallRuleset was given a rid array containing a non-string (null)",
         "rid array has a non-string"
     );
-    t.deepEquals(yield listRIDs({pico_id: "id0"}, []), [
+    t.deepEquals(await listRIDs({pico_id: "id0"}, []), [
         "io.picolabs.hello_world",
     ]);
 
     //fallback on ctx.pico_id
-    t.equals(yield uninstallRID({pico_id: "id0"}, {rid: "io.picolabs.hello_world"}), void 0);
-    strictDeepEquals(t, yield listRIDs({pico_id: "id0"}, []), []);
-    t.equals(yield installRS({pico_id: "id0"}, {rid: "io.picolabs.hello_world"}), "io.picolabs.hello_world");
+    t.equals(await uninstallRID({pico_id: "id0"}, {rid: "io.picolabs.hello_world"}), void 0);
+    strictDeepEquals(t, await listRIDs({pico_id: "id0"}, []), []);
+    t.equals(await installRS({pico_id: "id0"}, {rid: "io.picolabs.hello_world"}), "io.picolabs.hello_world");
 
     //report error on invalid pico_id
     var assertInvalidPicoID = function(genfn, id, expected){
         return tstErr(genfn({pico_id: id}, {rid: "io.picolabs.hello_world"}), expected);
     };
 
-    yield assertInvalidPicoID(listRIDs    , void 0, "TypeError: engine:listInstalledRIDs was given null instead of a pico_id string");
+    await assertInvalidPicoID(listRIDs    , void 0, "TypeError: engine:listInstalledRIDs was given null instead of a pico_id string");
 
-    yield assertInvalidPicoID(installRS   , "id404", "NotFoundError: Pico not found: id404");
-    yield assertInvalidPicoID(uninstallRID, "id404", "NotFoundError: Pico not found: id404");
-    t.deepEquals(yield listRIDs({pico_id: "id404"}, []), void 0);
+    await assertInvalidPicoID(installRS   , "id404", "NotFoundError: Pico not found: id404");
+    await assertInvalidPicoID(uninstallRID, "id404", "NotFoundError: Pico not found: id404");
+    t.deepEquals(await listRIDs({pico_id: "id404"}, []), void 0);
 
 });
 
 test("engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptChannelMessage", function(t){
-    cocb.run(function*(){
-        var pe = yield (cocb.wrap(mkTestPicoEngine)({
+    (async function(){
+        var pe = await (cocb.wrap(mkTestPicoEngine)({
             rootRIDs: ["io.picolabs.engine"],
             __dont_use_sequential_ids_for_testing: true,
         }));
-        var getPicoIDByECI = yield pe.modules.get({}, "engine", "getPicoIDByECI");
-        var newChannel = yield pe.modules.get({}, "engine", "newChannel");
-        var signChannelMessage = yield pe.modules.get({}, "engine", "signChannelMessage");
-        var verifySignedMessage = yield pe.modules.get({}, "engine", "verifySignedMessage");
-        var encryptChannelMessage = yield pe.modules.get({}, "engine", "encryptChannelMessage");
-        var decryptChannelMessage = yield pe.modules.get({}, "engine", "decryptChannelMessage");
+        var getPicoIDByECI = await pe.modules.get({}, "engine", "getPicoIDByECI");
+        var newChannel = await pe.modules.get({}, "engine", "newChannel");
+        var signChannelMessage = await pe.modules.get({}, "engine", "signChannelMessage");
+        var verifySignedMessage = await pe.modules.get({}, "engine", "verifySignedMessage");
+        var encryptChannelMessage = await pe.modules.get({}, "engine", "encryptChannelMessage");
+        var decryptChannelMessage = await pe.modules.get({}, "engine", "decryptChannelMessage");
         var sign = function(eci, message){
             return signChannelMessage({}, [eci, message]);
         };
@@ -678,37 +678,37 @@ test("engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChann
             return decryptChannelMessage({}, [eci, encryptedMessage, nonce, otherPublicKey]);
         };
 
-        var eci = yield cocb.wrap(pe.getRootECI)();
-        var pico_id = yield getPicoIDByECI({}, [eci]);
+        var eci = await cocb.wrap(pe.getRootECI)();
+        var pico_id = await getPicoIDByECI({}, [eci]);
 
-        var chan0 = yield newChannel({}, [pico_id, "one", "one"]);
+        var chan0 = await newChannel({}, [pico_id, "one", "one"]);
         var eci0 = chan0[0].id;
         var vkey0 = chan0[0].sovrin.verifyKey;
         var publicKey0 = chan0[0].sovrin.encryptionPublicKey;
 
-        var chan1 = yield newChannel({}, [pico_id, "two", "two"]);
+        var chan1 = await newChannel({}, [pico_id, "two", "two"]);
         var eci1 = chan1[0].id;
         var vkey1 = chan1[0].sovrin.verifyKey;
         var publicKey1 = chan1[0].sovrin.encryptionPublicKey;
 
         var msg = "some long message! could be json {\"hi\":1}";
-        var signed0 = yield sign(eci0, msg);
-        var signed1 = yield sign(eci1, msg);
+        var signed0 = await sign(eci0, msg);
+        var signed1 = await sign(eci1, msg);
         t.ok(_.isString(signed0));
         t.ok(_.isString(signed1));
         t.notEquals(signed0, signed1);
 
-        t.equals(yield verify(vkey0, signed0), msg);
-        t.equals(yield verify(vkey1, signed1), msg);
+        t.equals(await verify(vkey0, signed0), msg);
+        t.equals(await verify(vkey1, signed1), msg);
 
-        t.equals(yield verify(vkey1, signed0), false, "wrong vkey");
-        t.equals(yield verify(vkey0, signed1), false, "wrong vkey");
+        t.equals(await verify(vkey1, signed0), false, "wrong vkey");
+        t.equals(await verify(vkey0, signed1), false, "wrong vkey");
 
-        t.equals(yield verify("hi", signed1), false, "rubbish vkey");
-        t.equals(yield verify(vkey0, "notbs58:%=+!"), false, "not bs58 message");
+        t.equals(await verify("hi", signed1), false, "rubbish vkey");
+        t.equals(await verify(vkey0, "notbs58:%=+!"), false, "not bs58 message");
 
-        var encrypted0 = yield encrypt(eci0, msg, publicKey1);
-        var encrypted1 = yield encrypt(eci1, msg, publicKey0);
+        var encrypted0 = await encrypt(eci0, msg, publicKey1);
+        var encrypted1 = await encrypt(eci1, msg, publicKey0);
 
         t.ok(_.isString(encrypted0.encryptedMessage));
         t.ok(_.isString(encrypted0.nonce));
@@ -719,11 +719,11 @@ test("engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChann
         var nonce = encrypted0.nonce;
         var encryptedMessage = encrypted0.encryptedMessage;
 
-        t.equals(yield decrypt(eci1, encryptedMessage, nonce, publicKey0), msg, "message decrypted correctly");
+        t.equals(await decrypt(eci1, encryptedMessage, nonce, publicKey0), msg, "message decrypted correctly");
 
-        t.equals(yield decrypt(eci1, encryptedMessage, "bad nonce", publicKey0), false, "bad nonce");
-        t.equals(yield decrypt(eci1, encryptedMessage, nonce, "Bad public key"), false, "bad key");
-        t.equals(yield decrypt(eci1, "bogus43212(*(****", nonce, publicKey0), false, "non bs58 message");
+        t.equals(await decrypt(eci1, encryptedMessage, "bad nonce", publicKey0), false, "bad nonce");
+        t.equals(await decrypt(eci1, encryptedMessage, nonce, "Bad public key"), false, "bad key");
+        t.equals(await decrypt(eci1, "bogus43212(*(****", nonce, publicKey0), false, "non bs58 message");
 
-    }, t.end);
+    }()).then(t.end).catch(t.end);
 });

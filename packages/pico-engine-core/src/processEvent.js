@@ -84,7 +84,7 @@ function toPairs(v){
 }
 
 
-var runRuleBody = cocb.wrap(function*(core, rule_body_fns, scheduled){
+function runRuleBody(core, rule_body_fns, scheduled){
 
     var rule = scheduled.rule;
     var pico_id = scheduled.pico_id;
@@ -106,10 +106,10 @@ var runRuleBody = cocb.wrap(function*(core, rule_body_fns, scheduled){
 
     ctx.emit("debug", "rule selected: " + rule.rid + " -> " + rule.name);
 
-    yield runKRL(rule.body, ctx, runAction, toPairs);
-});
+    return runKRL(rule.body, ctx, runAction, toPairs);
+}
 
-var processEvent = cocb.wrap(function*(core, ctx){
+async function processEvent(core, ctx){
     ctx.emit("debug", "event being processed");
 
     //the schedule is the list of rules and events that need to be processed
@@ -134,7 +134,7 @@ var processEvent = cocb.wrap(function*(core, ctx){
         });
     };
 
-    yield cocb.wrap(addEventToSchedule)(ctx);
+    await cocb.wrap(addEventToSchedule)(ctx);
 
     //these are special functions only to be used inside a rule body
     var rule_body_fns = {
@@ -205,7 +205,7 @@ var processEvent = cocb.wrap(function*(core, ctx){
     //using a while loop b/c schedule is MUTABLE
     //Durring execution new events may be `raised` that will mutate the schedule
     while(schedule.length > 0){
-        yield runRuleBody(core, rule_body_fns, schedule.shift());
+        await runRuleBody(core, rule_body_fns, schedule.shift());
     }
 
     var res_by_type = _.groupBy(responses, "type");
@@ -231,7 +231,7 @@ var processEvent = cocb.wrap(function*(core, ctx){
     ctx.emit("debug", "event finished processing");
 
     return r;
-});
+}
 
 module.exports = function(core, ctx, callback){
     processEvent(core, ctx).then(function(data){

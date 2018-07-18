@@ -1,7 +1,6 @@
 var _ = require("lodash");
 var test = require("tape");
 var http = require("http");
-var cocb = require("co-callback");
 var khttp = require("./http")().def;
 var ktypes = require("krl-stdlib/types");
 var testErr = require("../testErr");
@@ -38,13 +37,13 @@ test("http module", function(t){
 
     server.listen(0, function(){
         var url = "http://localhost:" + server.address().port;
-        cocb.run(function*(){
+        (async function(){
             var terr = testErr(t, khttp);
 
             var resp;
 
-            var doHttp = function*(method, args){
-                var resp = yield khttp[method]({}, args);
+            var doHttp = async function(method, args){
+                var resp = await khttp[method]({}, args);
                 if(ktypes.isAction(khttp[method])){
                     resp = resp[0];
                 }
@@ -56,7 +55,7 @@ test("http module", function(t){
                 return resp;
             };
 
-            resp = yield doHttp("get", [url, {a: 1}]);
+            resp = await doHttp("get", [url, {a: 1}]);
             resp.content = JSON.parse(resp.content);
             t.deepEquals(resp, {
                 content: {
@@ -78,7 +77,7 @@ test("http module", function(t){
             });
 
             //raw post body
-            resp = yield doHttp("post", {
+            resp = await doHttp("post", {
                 url: url,
                 qs: {"baz": "qux"},
                 headers: {"some": "header"},
@@ -114,7 +113,7 @@ test("http module", function(t){
             });
 
             //form body
-            resp = yield doHttp("post", {
+            resp = await doHttp("post", {
                 url: url,
                 qs: {"baz": "qux"},
                 headers: {"some": "header"},
@@ -145,7 +144,7 @@ test("http module", function(t){
 
 
             //json body
-            resp = yield doHttp("post", {
+            resp = await doHttp("post", {
                 url: url,
                 qs: {"baz": "qux"},
                 headers: {"some": "header"},
@@ -176,7 +175,7 @@ test("http module", function(t){
 
 
             //parseJSON
-            resp = yield doHttp("post", {
+            resp = await doHttp("post", {
                 url: url,
                 parseJSON: true,
             });
@@ -201,7 +200,7 @@ test("http module", function(t){
             });
 
             //parseJSON when not actually a json response
-            resp = yield doHttp("post", {
+            resp = await doHttp("post", {
                 url: url + "/not-json-resp",
                 parseJSON: true,
             });
@@ -223,12 +222,17 @@ test("http module", function(t){
             var i;
             for(i=0; i < numMethods; i++){
                 var msgSubstring = "Error: http:" + methods[i] + " ";
-                yield terr(methods[i], {}, errArg, msgSubstring + "needs a url string");
-                yield terr(methods[i], {}, typeErrArg, "Type" + msgSubstring + "was given null instead of a url string");
+                await terr(methods[i], {}, errArg, msgSubstring + "needs a url string");
+                await terr(methods[i], {}, typeErrArg, "Type" + msgSubstring + "was given null instead of a url string");
             }
-        }, function(err){
-            server.close();
-            t.end(err);
-        });
+        }())
+            .then(function(){
+                server.close();
+                t.end();
+            })
+            .catch(function(err){
+                server.close();
+                t.end(err);
+            });
     });
 });

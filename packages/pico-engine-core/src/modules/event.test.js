@@ -1,28 +1,25 @@
 //var _ = require("lodash");
 var test = require("tape");
 var http = require("http");
-var cocb = require("co-callback");
 var event_module = require("./event");
 
 test("module - event:attr(name)", function(t){
-    cocb.run(function*(){
+    (async function(){
         var kevent = event_module();
 
         t.equals(
-            yield kevent.def.attr({event: {attrs: {foo: "bar"}}}, ["foo"]),
+            await kevent.def.attr({event: {attrs: {foo: "bar"}}}, ["foo"]),
             "bar"
         );
 
         //just null if no ctx.event, or it doesn't match
-        t.equals(yield kevent.def.attr({}, ["baz"]), null);
+        t.equals(await kevent.def.attr({}, ["baz"]), null);
         t.equals(
-            yield kevent.def.attr({event: {attrs: {foo: "bar"}}}, ["baz"]),
+            await kevent.def.attr({event: {attrs: {foo: "bar"}}}, ["baz"]),
             null
         );
 
-    }, function(err){
-        t.end(err);
-    });
+    }()).then(t.end).catch(t.end);
 });
 
 test("module - event:send(event, host = null)", function(t){
@@ -45,12 +42,12 @@ test("module - event:send(event, host = null)", function(t){
     });
     server.listen(0, function(){
         var host = "http://localhost:" + server.address().port;
-        cocb.run(function*(){
+        (async function(){
 
             var kevent = event_module();
 
             t.equals(
-                (yield kevent.def.send({}, {
+                (await kevent.def.send({}, {
                     event: {
                         eci: "some-eci",
                         domain: "some-d",
@@ -62,10 +59,6 @@ test("module - event:send(event, host = null)", function(t){
                 void 0//returns nothing
             );
             t.equals(server_reached, false, "should be async, i.e. server not reached yet");
-        }, function(err){
-            if(err){
-                t.end(err);
-            }
-        });
+        }()).catch(t.end);
     });
 });

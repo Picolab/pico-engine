@@ -848,7 +848,7 @@ test("DB - removeChannel", function(t){
 test("DB - persistent variables", function(t){
     var db = mkTestDB();
 
-    cocb.run(function*(){
+    (async function(){
         var putEntVar = _.partial(cocb.wrap(db.putEntVar), "p", "r");
         var getEntVar = _.partial(cocb.wrap(db.getEntVar), "p", "r");
         var delEntVar = _.partial(cocb.wrap(db.delEntVar), "p", "r");
@@ -856,139 +856,139 @@ test("DB - persistent variables", function(t){
 
         var data;
 
-        yield putEntVar("foo", null, [1, 2]);
-        data = yield getEntVar("foo", null);
+        await putEntVar("foo", null, [1, 2]);
+        data = await getEntVar("foo", null);
         t.deepEquals(data, [1, 2]);
         t.ok(ktypes.isArray(data));
 
-        yield putEntVar("foo", null, {a: 3, b: 4});
-        data = yield getEntVar("foo", null);
+        await putEntVar("foo", null, {a: 3, b: 4});
+        data = await getEntVar("foo", null);
         t.deepEquals(data, {a: 3, b: 4});
         t.ok(ktypes.isMap(data));
 
-        yield delEntVar("foo", null);
-        data = yield getEntVar("foo", null);
+        await delEntVar("foo", null);
+        data = await getEntVar("foo", null);
         t.deepEquals(data, void 0);
 
-        yield putEntVar("foo", null, {one: 11, two: 22});
-        data = yield getEntVar("foo", null);
+        await putEntVar("foo", null, {one: 11, two: 22});
+        data = await getEntVar("foo", null);
         t.deepEquals(data, {one: 11, two: 22});
-        yield putEntVar("foo", null, {one: 11});
-        data = yield getEntVar("foo", null);
+        await putEntVar("foo", null, {one: 11});
+        data = await getEntVar("foo", null);
         t.deepEquals(data, {one: 11});
 
-        data = yield getEntVar("foo", "one");
+        data = await getEntVar("foo", "one");
         t.deepEquals(data, 11);
 
-        yield putEntVar("foo", ["bar", "baz"], {qux: 1});
-        data = yield getEntVar("foo", null);
+        await putEntVar("foo", ["bar", "baz"], {qux: 1});
+        data = await getEntVar("foo", null);
         t.deepEquals(data, {one: 11, bar: {baz: {qux: 1}}});
 
-        yield putEntVar("foo", ["bar", "asdf"], true);
-        data = yield getEntVar("foo", null);
+        await putEntVar("foo", ["bar", "asdf"], true);
+        data = await getEntVar("foo", null);
         t.deepEquals(data, {one: 11, bar: {
             baz: {qux: 1},
             asdf: true,
         }});
 
-        yield putEntVar("foo", ["bar", "baz", "qux"], "wat?");
-        data = yield getEntVar("foo", null);
+        await putEntVar("foo", ["bar", "baz", "qux"], "wat?");
+        data = await getEntVar("foo", null);
         t.deepEquals(data, {one: 11, bar: {
             baz: {qux: "wat?"},
             asdf: true,
         }});
-        data = yield getEntVar("foo", ["bar", "baz", "qux"]);
+        data = await getEntVar("foo", ["bar", "baz", "qux"]);
         t.deepEquals(data, "wat?");
 
 
-        yield delEntVar("foo", "one");
-        data = yield getEntVar("foo", null);
+        await delEntVar("foo", "one");
+        data = await getEntVar("foo", null);
         t.deepEquals(data, {bar: {baz: {qux: "wat?"}, asdf: true}});
 
-        yield delEntVar("foo", ["bar", "asdf"]);
-        data = yield getEntVar("foo", null);
+        await delEntVar("foo", ["bar", "asdf"]);
+        data = await getEntVar("foo", null);
         t.deepEquals(data, {bar: {baz: {qux: "wat?"}}});
 
-        yield delEntVar("foo", ["bar", "baz", "qux"]);
-        data = yield getEntVar("foo", null);
+        await delEntVar("foo", ["bar", "baz", "qux"]);
+        data = await getEntVar("foo", null);
         t.deepEquals(data, {});
 
         ///////////////////////////////////////////////////////////////////////
         // how other types are encoded
         var action = function(){};
         action.is_an_action = true;
-        yield putEntVar("act", null, action);
-        yield putEntVar("fn", null, _.noop);
-        yield putEntVar("nan", null, NaN);
+        await putEntVar("act", null, action);
+        await putEntVar("fn", null, _.noop);
+        await putEntVar("nan", null, NaN);
 
-        var dump = yield toObj();
+        var dump = await toObj();
 
-        t.equals(yield getEntVar("fn", null), "[Function]");
+        t.equals(await getEntVar("fn", null), "[Function]");
         t.deepEquals(dump.entvars.p.r.fn, {
             type: "String",
             value: "[Function]",
         });
 
-        t.equals(yield getEntVar("act", null), "[Action]");
+        t.equals(await getEntVar("act", null), "[Action]");
         t.deepEquals(dump.entvars.p.r.act, {
             type: "String",
             value: "[Action]",
         });
 
-        t.equals(yield getEntVar("nan", null), null);
+        t.equals(await getEntVar("nan", null), null);
         t.deepEquals(dump.entvars.p.r.nan, {
             type: "Null",
             value: null,
         });
 
-    }, t.end);
+    }()).then(t.end).catch(t.end);
 });
 
 test("DB - persistent variables array/map", function(t){
     var db = mkTestDB();
-    cocb.run(function*(){
+    (async function(){
         var put = _.partial(cocb.wrap(db.putEntVar), "p", "r");
         var get = _.partial(cocb.wrap(db.getEntVar), "p", "r");
         var del = _.partial(cocb.wrap(db.delEntVar), "p", "r");
         var toObj = cocb.wrap(db.toObj);
         var toJson = JSON.stringify;
 
-        var tst = function*(name, type, value, msg){
+        var tst = async function(name, type, value, msg){
             var val = toJson(value);
-            t.equals(toJson((yield toObj()).entvars.p.r[name]), "{\"type\":\""+type+"\",\"value\":"+val+"}", msg);
-            t.equals(toJson(yield get(name)), val, msg);
+            t.equals(toJson((await toObj()).entvars.p.r[name]), "{\"type\":\""+type+"\",\"value\":"+val+"}", msg);
+            t.equals(toJson(await get(name)), val, msg);
         };
 
-        yield put("foo", [0], "aaa");
-        yield put("foo", [1], "bbb");
-        yield tst("foo", "Array", ["aaa", "bbb"], "`foo` is infered to be an array based on the int index");
+        await put("foo", [0], "aaa");
+        await put("foo", [1], "bbb");
+        await tst("foo", "Array", ["aaa", "bbb"], "`foo` is infered to be an array based on the int index");
 
         // Now should change to a map b/c the key is not an int index
-        yield put("foo", ["wat"], "da");
-        yield tst("foo", "Map", {0: "aaa", 1: "bbb", wat: "da"}, "`foo` is now a map");
+        await put("foo", ["wat"], "da");
+        await tst("foo", "Map", {0: "aaa", 1: "bbb", wat: "da"}, "`foo` is now a map");
 
         // once a map, always a map
-        yield del("foo", ["wat"]);
-        yield tst("foo", "Map", {0: "aaa", 1: "bbb"}, "`foo` is still a map");
-        yield put("foo", [2], "ccc");
-        yield tst("foo", "Map", {0: "aaa", 1: "bbb", 2: "ccc"}, "`foo` is still a map");
+        await del("foo", ["wat"]);
+        await tst("foo", "Map", {0: "aaa", 1: "bbb"}, "`foo` is still a map");
+        await put("foo", [2], "ccc");
+        await tst("foo", "Map", {0: "aaa", 1: "bbb", 2: "ccc"}, "`foo` is still a map");
 
         // infered as map if it's a string
-        yield put("bar", ["0"], "aaa");
-        yield tst("bar", "Map", {0: "aaa"}, "`bar` is a map since the first key was a string");
+        await put("bar", ["0"], "aaa");
+        await tst("bar", "Map", {0: "aaa"}, "`bar` is a map since the first key was a string");
 
         // infered as an Array b/c the key is a positive integer
-        yield put("baz", [2], "ccc");
-        yield tst("baz", "Array", [null, null, "ccc"], "`baz` is an Array");
+        await put("baz", [2], "ccc");
+        await tst("baz", "Array", [null, null, "ccc"], "`baz` is an Array");
 
         // now it's a map b/c the key is a string
-        yield put("baz", ["1"], "bbb");
-        yield tst("baz", "Map", {1: "bbb", 2: "ccc"}, "`baz` is now a Map");
+        await put("baz", ["1"], "bbb");
+        await tst("baz", "Map", {1: "bbb", 2: "ccc"}, "`baz` is now a Map");
 
 
         // initialzed as array should db dump as an array
-        yield put("qux", null, ["aaa"]);
-        yield tst("qux", "Array", ["aaa"], "`qux` is an Array");
+        await put("qux", null, ["aaa"]);
+        await tst("qux", "Array", ["aaa"], "`qux` is an Array");
 
-    }, t.end);
+    }()).then(t.end).catch(t.end);
 });

@@ -218,12 +218,12 @@ module.exports = function(conf){
 
 
     core.registerRuleset = function(krl_src, meta_data, callback){
-        cocb.run(function*(){
-            var data = yield db.storeRulesetYieldable(krl_src, meta_data);
+        (async function(){
+            var data = await db.storeRulesetYieldable(krl_src, meta_data);
             var rid = data.rid;
             var hash = data.hash;
 
-            var rs = yield compileAndLoadRulesetYieldable({
+            var rs = await compileAndLoadRulesetYieldable({
                 rid: rid,
                 src: krl_src,
                 hash: hash
@@ -253,8 +253,8 @@ module.exports = function(conf){
                 depGraph.overallOrder();// this will throw if there is a cycle
 
                 // Now enable and initialize it
-                yield db.enableRulesetYieldable(hash);
-                yield initializeRulest(rs);
+                await db.enableRulesetYieldable(hash);
+                await initializeRulest(rs);
 
             }catch(err){
                 core.rsreg.del(rs.rid);
@@ -267,13 +267,17 @@ module.exports = function(conf){
                 rid: rs.rid,
                 hash: hash
             };
-        }, function(err, data){
-            process.nextTick(function(){
-                //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
-                //when infact we are handling the rejection
-                callback(err, data);
+        }())
+            .then(function(data){
+                callback(null, data);
+            })
+            .catch(function(err){
+                process.nextTick(function(){
+                    //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+                    //when infact we are handling the rejection
+                    callback(err);
+                });
             });
-        });
     };
 
     var picoQ = PicoQueue(function(pico_id, type, data, callback){

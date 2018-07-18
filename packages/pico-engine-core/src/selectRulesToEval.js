@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var cocb = require("co-callback");
 var async = require("async");
 var ktypes = require("krl-stdlib/types");
 var runKRL = require("./runKRL");
@@ -11,17 +10,17 @@ var getAttrString = function(ctx, attr){
         : "";
 };
 
-var evalExpr = cocb.wrap(function*(ctx, rule, aggregator, exp, setting){
-    var recur = function*(e){
-        return yield evalExpr(ctx, rule, aggregator, e, setting);
+async function evalExpr(ctx, rule, aggregator, exp, setting){
+    var recur = function(e){
+        return evalExpr(ctx, rule, aggregator, e, setting);
     };
     if(_.isArray(exp)){
         if(exp[0] === "not"){
-            return !(yield recur(exp[1]));
+            return !(await recur(exp[1]));
         }else if(exp[0] === "and"){
-            return (yield recur(exp[1])) && (yield recur(exp[2]));
+            return (await recur(exp[1])) && (await recur(exp[2]));
         }else if(exp[0] === "or"){
-            return (yield recur(exp[1])) || (yield recur(exp[2]));
+            return (await recur(exp[1])) || (await recur(exp[2]));
         }
     }
     //only run the function if the domain and type match
@@ -30,15 +29,15 @@ var evalExpr = cocb.wrap(function*(ctx, rule, aggregator, exp, setting){
     if(_.get(rule, ["select", "graph", domain, type, exp]) !== true){
         return false;
     }
-    return yield runKRL(rule.select.eventexprs[exp], ctx, aggregator, getAttrString, setting);
-});
+    return await runKRL(rule.select.eventexprs[exp], ctx, aggregator, getAttrString, setting);
+}
 
-var getNextState = cocb.wrap(function*(ctx, rule, curr_state, aggregator, setting){
+async function getNextState(ctx, rule, curr_state, aggregator, setting){
     var stm = rule.select.state_machine[curr_state];
 
     var i;
     for(i=0; i < stm.length; i++){
-        if(yield evalExpr(ctx, rule, aggregator, stm[i][0], setting)){
+        if(await evalExpr(ctx, rule, aggregator, stm[i][0], setting)){
             //found a match
             return stm[i][1];
         }
@@ -47,11 +46,11 @@ var getNextState = cocb.wrap(function*(ctx, rule, curr_state, aggregator, settin
         return "start";
     }
     return curr_state;//by default, stay on the current state
-});
+}
 
-var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
+async function shouldRuleSelect(core, ctx, rule){
 
-    var sm_data = yield core.db.getStateMachineYieldable(ctx.pico_id, rule);
+    var sm_data = await core.db.getStateMachineYieldable(ctx.pico_id, rule);
 
     var bindings = sm_data.bindings || {};
 
@@ -69,7 +68,7 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
         _.each(bindings, function(val, id){
             ctx2.scope.set(id, val);
         });
-        var time_limit = yield runKRL(rule.select.within, ctx2);
+        var time_limit = await runKRL(rule.select.within, ctx2);
 
         if(time_since_last > time_limit){
             // time has expired, reset the state machine
@@ -94,9 +93,9 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
         bindings[id] = val;
     };
 
-    var next_state = yield getNextState(ctx, rule, sm_data.state, aggregator, setting);
+    var next_state = await getNextState(ctx, rule, sm_data.state, aggregator, setting);
 
-    yield core.db.putStateMachineYieldable(ctx.pico_id, rule, {
+    await core.db.putStateMachineYieldable(ctx.pico_id, rule, {
         state: next_state,
         starttime: sm_data.starttime,
         bindings: next_state === "end"
@@ -105,7 +104,7 @@ var shouldRuleSelect = cocb.wrap(function*(core, ctx, rule){
     });
 
     return next_state === "end";
-});
+}
 
 var selectForPico = function(core, ctx, pico_rids, callback){
 
@@ -129,7 +128,11 @@ var selectForPico = function(core, ctx, pico_rids, callback){
             pico_id: ctx.pico_id,
             rule_name: rule.name,
         });
-        cocb.run(shouldRuleSelect(core, ruleCTX, rule), next);
+        shouldRuleSelect(core, ruleCTX, rule)
+            .then(function(data){
+                next(null, data);
+            })
+            .catch(next);
     }, function(err, rules){
         if(err){
             process.nextTick(function(){
