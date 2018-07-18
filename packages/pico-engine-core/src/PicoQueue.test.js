@@ -1,19 +1,22 @@
 var test = require("tape");
 var PicoQueue = require("./PicoQueue");
 
+function nextTick(){
+    return new Promise(function(resolve){
+        process.nextTick(resolve);
+    });
+}
+
 test("PicoQueue", function(t){
 
     var log = [];
 
-    var pq = PicoQueue(function(pico_id, type, data, callback){
+    var pq = PicoQueue(async function(pico_id, type, data){
         log.push("working_0 [" + pico_id + "] " + data);
-        process.nextTick(function(){
-            log.push("working_1 [" + pico_id + "] " + data);
-            process.nextTick(function(){
-                log.push("working_2 [" + pico_id + "] " + data);
-                callback();
-            });
-        });
+        await nextTick();
+        log.push("working_1 [" + pico_id + "] " + data);
+        await nextTick();
+        log.push("working_2 [" + pico_id + "] " + data);
     });
 
     var enqueue = function(pico_id, data, done){
@@ -41,9 +44,9 @@ test("PicoQueue", function(t){
             "working_1 [A] 0",
             "working_1 [B] 0",
             "working_2 [A] 0",//Now pico A finished work on event 0
+            "working_2 [B] 0",
             "done [A] 0",
             "working_0 [A] 1",//Now pico A can start on event 1
-            "working_2 [B] 0",
             "done [B] 0",
             "working_1 [A] 1",
             "working_2 [A] 1",
@@ -58,14 +61,12 @@ test("PicoQueue", function(t){
 });
 
 test("PicoQueue - error", function(t){
-    var pq = PicoQueue(function(pico_id, type, data, callback){
-        process.nextTick(function(){
-            if(data === "foobar"){
-                callback(new Error(data));
-                return;
-            }
-            callback(null, data);
-        });
+    var pq = PicoQueue(async function(pico_id, type, data){
+        await nextTick();
+        if(data === "foobar"){
+            throw new Error(data);
+        }
+        return data;
     });
     t.plan(6);
     pq.enqueue("A", "test", "baz", function(err, data){

@@ -24,7 +24,7 @@ var send_directive = mkKRLaction([
     }));
 });
 
-module.exports = async function(ctx, domain, id, args, setting){
+module.exports = async function runAction(ctx, domain, id, args, setting){
     var returns = [];
     if(domain){
         var modAction = await ctx.modules.get(ctx, domain, id);

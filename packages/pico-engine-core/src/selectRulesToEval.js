@@ -1,14 +1,13 @@
 var _ = require("lodash");
-var async = require("async");
 var ktypes = require("krl-stdlib/types");
 var runKRL = require("./runKRL");
 var aggregateEvent = require("./aggregateEvent");
 
-var getAttrString = function(ctx, attr){
+function getAttrString(ctx, attr){
     return _.has(ctx, ["event", "attrs", attr])
         ? ktypes.toString(ctx.event.attrs[attr])
         : "";
-};
+}
 
 async function evalExpr(ctx, rule, aggregator, exp, setting){
     var recur = function(e){
@@ -106,7 +105,9 @@ async function shouldRuleSelect(core, ctx, rule){
     return next_state === "end";
 }
 
-var selectForPico = function(core, ctx, pico_rids, callback){
+module.exports = async function selectRulesToEval(core, ctx){
+    //read this fresh everytime we select, b/c it might have changed during event processing
+    var pico_rids = await core.db.ridsOnPicoYieldable(ctx.pico_id);
 
     var rules_to_select = core.rsreg.salientRules(ctx.event.domain, ctx.event.type, function(rid){
         if(pico_rids[rid] !== true){
@@ -120,7 +121,7 @@ var selectForPico = function(core, ctx, pico_rids, callback){
         return true;
     });
 
-    async.filter(rules_to_select, function(rule, next){
+    var rules = await Promise.all(rules_to_select.map(function(rule){
         var ruleCTX = core.mkCTX({
             rid: rule.rid,
             scope: rule.scope,
@@ -128,31 +129,16 @@ var selectForPico = function(core, ctx, pico_rids, callback){
             pico_id: ctx.pico_id,
             rule_name: rule.name,
         });
-        shouldRuleSelect(core, ruleCTX, rule)
-            .then(function(data){
-                next(null, data);
-            })
-            .catch(next);
-    }, function(err, rules){
-        if(err){
-            process.nextTick(function(){
-                //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
-                //when infact we are handling the rejection
-                callback(err);
+        return shouldRuleSelect(core, ruleCTX, rule)
+            .then(function(shouldSelect){
+                return shouldSelect ? rule : null;
             });
-            return;
-        }
-        //rules in the same ruleset must fire in order
-        callback(void 0, _.reduce(_.groupBy(rules, "rid"), function(acc, rules){
-            return acc.concat(rules);
-        }, []));
-    });
-};
+    }));
+    rules = _.compact(rules);
 
-module.exports = function(core, ctx, callback){
-    //read this fresh everytime we select, b/c it might have changed during event processing
-    core.db.ridsOnPico(ctx.pico_id, function(err, pico_rids){
-        if(err) return callback(err);
-        selectForPico(core, ctx, pico_rids, callback);
-    });
+    //rules in the same ruleset must fire in order
+    rules = _.reduce(_.groupBy(rules, "rid"), function(acc, rules){
+        return acc.concat(rules);
+    }, []);
+    return rules;
 };

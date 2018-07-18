@@ -1,14 +1,12 @@
 var _ = require("lodash");
-var cocb = require("co-callback");
 var ktypes = require("krl-stdlib/types");
 var runKRL = require("./runKRL");
 var runAction = require("./runAction");
 var selectRulesToEval = require("./selectRulesToEval");
 
-var scheduleEvent = function(core, ctx, args, callback){
+async function scheduleEvent(core, ctx, args){
     if(!_.has(ctx, ["event", "eci"])){
-        callback(new Error("schedule:event must be executed in response to an event"));
-        return;
+        throw new Error("schedule:event must be executed in response to an event");
     }
     var event = {
         eci: ctx.event.eci,//in theory we are only running in an event postlude
@@ -22,35 +20,28 @@ var scheduleEvent = function(core, ctx, args, callback){
         || args.at !== void 0 && args.timespec !== void 0
         || args.at === void 0 && args.timespec === void 0
     ){
-        callback(new Error("schedule:event must use `at` -or- `timespec`"));
-        return;
+        throw new Error("schedule:event must use `at` -or- `timespec`");
     }
+    var val;
     if(args.at !== void 0){
         var at = new Date(args.at);
         if(at.toISOString() !== args.at){
-            callback(new Error("schedule:event at must be an ISO date string (i.e. `.toISOString()`)"));
-            return;
+            throw new Error("schedule:event at must be an ISO date string (i.e. `.toISOString()`)");
         }
-        core.db.scheduleEventAt(at, event, function(err, val){
-            if(err) return callback(err);
-            core.scheduler.update();
-            callback(null, val.id);
-        });
-        return;
+        val = await core.db.scheduleEventAtYieldable(at, event);
+        core.scheduler.update();
+        return val.id;
     }
     if(!_.isString(args.timespec)){
         //TODO parse it to ensure it's shaped right
-        callback(new Error("schedule:event `timespec` must be a cron format string"));
-        return;
+        throw new Error("schedule:event `timespec` must be a cron format string");
     }
-    core.db.scheduleEventRepeat(args.timespec, event, function(err, val){
-        if(err) return callback(err);
-        core.scheduler.addCron(val.timespec, val.id, val.event);
-        callback(null, val.id);
-    });
-};
+    val = await core.db.scheduleEventRepeatYieldable(args.timespec, event);
+    core.scheduler.addCron(val.timespec, val.id, val.event);
+    return val.id;
+}
 
-var toResponse = function(ctx, type, val){
+function toResponse(ctx, type, val){
     if(type === "directive"){
         return {
             type: "directive",
@@ -65,7 +56,7 @@ var toResponse = function(ctx, type, val){
         };
     }
     throw new Error("Unsupported action response type: " + type);
-};
+}
 
 /**
  * used by `foreach` in krl
@@ -109,36 +100,33 @@ function runRuleBody(core, rule_body_fns, scheduled){
     return runKRL(rule.body, ctx, runAction, toPairs);
 }
 
-async function processEvent(core, ctx){
+module.exports = async function processEvent(core, ctx){
     ctx.emit("debug", "event being processed");
 
     //the schedule is the list of rules and events that need to be processed
     var schedule = [];
     var responses = [];//i.e. directives
 
-    var addEventToSchedule = function(ctx, callback){
-        selectRulesToEval(core, ctx, function(err, rules){
-            if(err) return callback(err);
-            _.each(rules, function(rule){
-                ctx.emit("debug", "rule added to schedule: " + rule.rid + " -> " + rule.name);
-                schedule.push({
-                    rule: rule,
-                    event: ctx.event,
-                    pico_id: ctx.pico_id,
-                });
+    var addEventToSchedule = async function(ctx){
+        var rules = await selectRulesToEval(core, ctx);
+        _.each(rules, function(rule){
+            ctx.emit("debug", "rule added to schedule: " + rule.rid + " -> " + rule.name);
+            schedule.push({
+                rule: rule,
+                event: ctx.event,
+                pico_id: ctx.pico_id,
             });
-            if(schedule.length === 0){
-                ctx.emit("debug", "no rules added to schedule");
-            }
-            callback();
         });
+        if(schedule.length === 0){
+            ctx.emit("debug", "no rules added to schedule");
+        }
     };
 
-    await cocb.wrap(addEventToSchedule)(ctx);
+    await addEventToSchedule(ctx);
 
     //these are special functions only to be used inside a rule body
     var rule_body_fns = {
-        raiseEvent: cocb.wrap(function(revent, callback){
+        raiseEvent: async function(revent){
             //shape the revent like a normal event
             var event = {
                 eci: ctx.event.eci,//raise event is always to the same pico
@@ -156,8 +144,8 @@ async function processEvent(core, ctx){
                 pico_id: ctx.pico_id,//raise event is always to the same pico
             });
             raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
-            addEventToSchedule(raise_ctx, callback);
-        }),
+            await addEventToSchedule(raise_ctx);
+        },
         raiseError: function(ctx, level, data){
 
             if(level === "error"){
@@ -179,16 +167,16 @@ async function processEvent(core, ctx){
                 for_rid: ctx.rid,
             });
         },
-        scheduleEvent: cocb.wrap(function(sevent, callback){
-            scheduleEvent(core, ctx, {
+        scheduleEvent: function(sevent){
+            return scheduleEvent(core, ctx, {
                 domain: sevent.domain,
                 type: sevent.type,
                 attributes: sevent.attributes,
 
                 at: sevent.at,
                 timespec: sevent.timespec,
-            }, callback);
-        }),
+            });
+        },
         addActionResponse: function(ctx, type, val){
             var resp = toResponse(ctx, type, val);
             responses.push(resp);
@@ -231,16 +219,4 @@ async function processEvent(core, ctx){
     ctx.emit("debug", "event finished processing");
 
     return r;
-}
-
-module.exports = function(core, ctx, callback){
-    processEvent(core, ctx).then(function(data){
-        callback(null, data);
-    }, function(err){
-        process.nextTick(function(){
-            //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
-            //when infact we are handling the rejection
-            callback(err);
-        });
-    });
 };

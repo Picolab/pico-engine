@@ -9,7 +9,17 @@ module.exports = function(worker){
         if(!_.has(pico_queues, pico_id)){
             var q = async.queue(function(job, done){
                 job = JSON.parse(job);
-                worker(pico_id, job.type, job.data, done);
+                worker(pico_id, job.type, job.data)
+                    .then(function(val){
+                        done(null, val);
+                    })
+                    .catch(function(err){
+                        process.nextTick(function(){
+                            //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+                            //when infact we are handling the rejection
+                            done(err);
+                        });
+                    });
             });
             pico_queues[pico_id] = q;
         }

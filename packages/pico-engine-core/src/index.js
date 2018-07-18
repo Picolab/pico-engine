@@ -280,22 +280,22 @@ module.exports = function(conf){
             });
     };
 
-    var picoQ = PicoQueue(function(pico_id, type, data, callback){
+    var picoQ = PicoQueue(function(pico_id, type, data){
         //now handle the next task on the pico queue
         if(type === "event"){
             var event = data;
             event.timestamp = new Date(event.timestamp);//convert from JSON string to date
-            processEvent(core, mkCTX({
+            return processEvent(core, mkCTX({
                 event: event,
                 pico_id: pico_id
-            }), callback);
+            }));
         }else if(type === "query"){
-            processQuery(core, mkCTX({
+            return processQuery(core, mkCTX({
                 query: data,
                 pico_id: pico_id
-            }), callback);
+            }));
         }else{
-            callback(new Error("invalid PicoQueue type:" + type));
+            throw new Error("invalid PicoQueue type:" + type);
         }
     });
 
