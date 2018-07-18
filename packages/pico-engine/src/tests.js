@@ -1,6 +1,5 @@
 var _ = require("lodash");
 var fs = require("fs");
-var cocb = require("co-callback");
 var test = require("tape");
 var path = require("path");
 var async = require("async");
@@ -1126,24 +1125,24 @@ testPE("pico-engine - setupServer", function(t, pe, root_eci){
 
 testPE("pico-engine - Wrangler", async function(t, pe, root_eci){
 
-    var yQuery = cocb.wrap(function(eci, rid, name, args, callback){
-        pe.runQuery({
+    var yQuery = function(eci, rid, name, args){
+        return pe.runQuery({
             eci: eci,
             rid: rid,
             name: name,
             args: args || {},
-        }, callback);
-    });
-    var yEvent = cocb.wrap(function(eci, domain_type, attrs, eid, callback){
+        });
+    };
+    var yEvent = function(eci, domain_type, attrs, eid){
         domain_type = domain_type.split("/");
-        pe.signalEvent({
+        return pe.signalEvent({
             eci: eci,
             eid: eid || "85",
             domain: domain_type[0],
             type: domain_type[1],
             attrs: attrs || {}
-        }, callback);
-    });
+        });
+    };
 
     var data;
     var channel;

@@ -1,6 +1,6 @@
 var _ = require("lodash");
 var test = require("tape");
-var cocb = require("co-callback");
+var util = require("util");
 var ktypes = require("krl-stdlib/types");
 var strictDeepEquals = require("../../test/helpers/strictEquals").strictDeepEquals;
 var kengine = require("./engine");
@@ -655,7 +655,7 @@ testPE("engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
 
 test("engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptChannelMessage", function(t){
     (async function(){
-        var pe = await (cocb.wrap(mkTestPicoEngine)({
+        var pe = await (util.promisify(mkTestPicoEngine)({
             rootRIDs: ["io.picolabs.engine"],
             __dont_use_sequential_ids_for_testing: true,
         }));
@@ -678,7 +678,7 @@ test("engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChann
             return decryptChannelMessage({}, [eci, encryptedMessage, nonce, otherPublicKey]);
         };
 
-        var eci = await cocb.wrap(pe.getRootECI)();
+        var eci = await util.promisify(pe.getRootECI)();
         var pico_id = await getPicoIDByECI({}, [eci]);
 
         var chan0 = await newChannel({}, [pico_id, "one", "one"]);

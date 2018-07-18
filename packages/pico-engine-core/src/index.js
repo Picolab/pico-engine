@@ -1,6 +1,6 @@
 var _ = require("lodash");
 var DB = require("./DB");
-var cocb = require("co-callback");
+var util = require("util");
 var cuid = require("cuid");
 var async = require("async");
 var ktypes = require("krl-stdlib/types");
@@ -21,6 +21,18 @@ var processQuery = require("./processQuery");
 var ChannelPolicy = require("./ChannelPolicy");
 var RulesetRegistry = require("./RulesetRegistry");
 var normalizeKRLArgs = require("./normalizeKRLArgs");
+
+function promiseCallback(callback){
+    if(!callback){
+        var promise = new Promise(function (resolve, reject) {
+            callback = function callback (err, value) {
+                err ? reject(err) : resolve(value);
+            };
+        });
+        callback.promise = promise;
+    }
+    return callback;
+}
 
 var applyFn = function(fn, ctx, args){
     if(ktypes.isAction(fn)){
@@ -43,13 +55,13 @@ module.exports = function(conf){
     var db = DB(conf.db);
     _.each(db, function(val, key){
         if(_.isFunction(val)){
-            db[key + "Yieldable"] = cocb.wrap(val);
+            db[key + "Yieldable"] = util.promisify(val);
         }
     });
     var host = conf.host;
     var rootRIDs = _.uniq(_.filter(conf.rootRIDs, _.isString));
     var compileAndLoadRuleset = conf.compileAndLoadRuleset;
-    var compileAndLoadRulesetYieldable = cocb.wrap(compileAndLoadRuleset);
+    var compileAndLoadRulesetYieldable = util.promisify(compileAndLoadRuleset);
 
     var depGraph = new DepGraph();
 
@@ -372,11 +384,15 @@ module.exports = function(conf){
     };
 
     core.signalEvent = function(event, callback){
+        callback = promiseCallback(callback);
         picoTask("event", event, callback);
+        return callback.promise;
     };
 
     core.runQuery = function(query, callback){
+        callback = promiseCallback(callback);
         picoTask("query", query, callback);
+        return callback.promise;
     };
 
     var registerAllEnabledRulesets = function(callback){
@@ -613,6 +629,7 @@ module.exports = function(conf){
     }
 
     pe.start = function(system_rulesets, callback){
+        callback = promiseCallback(callback);
         async.series([
             db.checkAndRunMigrations,
             function(nextStep){
@@ -676,6 +693,7 @@ module.exports = function(conf){
             },
             resumeScheduler,
         ], callback);
+        return callback.promise;
     };
 
     return pe;

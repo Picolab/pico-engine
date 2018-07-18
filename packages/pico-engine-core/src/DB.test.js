@@ -1,6 +1,6 @@
 var _ = require("lodash");
 var DB = require("./DB");
-var cocb = require("co-callback");
+var util = require("util");
 var cuid = require("cuid");
 var test = require("tape");
 var async = require("async");
@@ -849,93 +849,93 @@ test("DB - persistent variables", function(t){
     var db = mkTestDB();
 
     (async function(){
-        var putEntVar = _.partial(cocb.wrap(db.putEntVar), "p", "r");
-        var getEntVar = _.partial(cocb.wrap(db.getEntVar), "p", "r");
-        var delEntVar = _.partial(cocb.wrap(db.delEntVar), "p", "r");
-        var toObj = cocb.wrap(db.toObj);
+        var put = _.partial(util.promisify(db.putEntVar), "p", "r");
+        var get = _.partial(util.promisify(db.getEntVar), "p", "r");
+        var del = _.partial(util.promisify(db.delEntVar), "p", "r");
+        var toObj = util.promisify(db.toObj);
 
         var data;
 
-        await putEntVar("foo", null, [1, 2]);
-        data = await getEntVar("foo", null);
+        await put("foo", null, [1, 2]);
+        data = await get("foo", null);
         t.deepEquals(data, [1, 2]);
         t.ok(ktypes.isArray(data));
 
-        await putEntVar("foo", null, {a: 3, b: 4});
-        data = await getEntVar("foo", null);
+        await put("foo", null, {a: 3, b: 4});
+        data = await get("foo", null);
         t.deepEquals(data, {a: 3, b: 4});
         t.ok(ktypes.isMap(data));
 
-        await delEntVar("foo", null);
-        data = await getEntVar("foo", null);
+        await del("foo", null);
+        data = await get("foo", null);
         t.deepEquals(data, void 0);
 
-        await putEntVar("foo", null, {one: 11, two: 22});
-        data = await getEntVar("foo", null);
+        await put("foo", null, {one: 11, two: 22});
+        data = await get("foo", null);
         t.deepEquals(data, {one: 11, two: 22});
-        await putEntVar("foo", null, {one: 11});
-        data = await getEntVar("foo", null);
+        await put("foo", null, {one: 11});
+        data = await get("foo", null);
         t.deepEquals(data, {one: 11});
 
-        data = await getEntVar("foo", "one");
+        data = await get("foo", "one");
         t.deepEquals(data, 11);
 
-        await putEntVar("foo", ["bar", "baz"], {qux: 1});
-        data = await getEntVar("foo", null);
+        await put("foo", ["bar", "baz"], {qux: 1});
+        data = await get("foo", null);
         t.deepEquals(data, {one: 11, bar: {baz: {qux: 1}}});
 
-        await putEntVar("foo", ["bar", "asdf"], true);
-        data = await getEntVar("foo", null);
+        await put("foo", ["bar", "asdf"], true);
+        data = await get("foo", null);
         t.deepEquals(data, {one: 11, bar: {
             baz: {qux: 1},
             asdf: true,
         }});
 
-        await putEntVar("foo", ["bar", "baz", "qux"], "wat?");
-        data = await getEntVar("foo", null);
+        await put("foo", ["bar", "baz", "qux"], "wat?");
+        data = await get("foo", null);
         t.deepEquals(data, {one: 11, bar: {
             baz: {qux: "wat?"},
             asdf: true,
         }});
-        data = await getEntVar("foo", ["bar", "baz", "qux"]);
+        data = await get("foo", ["bar", "baz", "qux"]);
         t.deepEquals(data, "wat?");
 
 
-        await delEntVar("foo", "one");
-        data = await getEntVar("foo", null);
+        await del("foo", "one");
+        data = await get("foo", null);
         t.deepEquals(data, {bar: {baz: {qux: "wat?"}, asdf: true}});
 
-        await delEntVar("foo", ["bar", "asdf"]);
-        data = await getEntVar("foo", null);
+        await del("foo", ["bar", "asdf"]);
+        data = await get("foo", null);
         t.deepEquals(data, {bar: {baz: {qux: "wat?"}}});
 
-        await delEntVar("foo", ["bar", "baz", "qux"]);
-        data = await getEntVar("foo", null);
+        await del("foo", ["bar", "baz", "qux"]);
+        data = await get("foo", null);
         t.deepEquals(data, {});
 
         ///////////////////////////////////////////////////////////////////////
         // how other types are encoded
         var action = function(){};
         action.is_an_action = true;
-        await putEntVar("act", null, action);
-        await putEntVar("fn", null, _.noop);
-        await putEntVar("nan", null, NaN);
+        await put("act", null, action);
+        await put("fn", null, _.noop);
+        await put("nan", null, NaN);
 
         var dump = await toObj();
 
-        t.equals(await getEntVar("fn", null), "[Function]");
+        t.equals(await get("fn", null), "[Function]");
         t.deepEquals(dump.entvars.p.r.fn, {
             type: "String",
             value: "[Function]",
         });
 
-        t.equals(await getEntVar("act", null), "[Action]");
+        t.equals(await get("act", null), "[Action]");
         t.deepEquals(dump.entvars.p.r.act, {
             type: "String",
             value: "[Action]",
         });
 
-        t.equals(await getEntVar("nan", null), null);
+        t.equals(await get("nan", null), null);
         t.deepEquals(dump.entvars.p.r.nan, {
             type: "Null",
             value: null,
@@ -947,16 +947,16 @@ test("DB - persistent variables", function(t){
 test("DB - persistent variables array/map", function(t){
     var db = mkTestDB();
     (async function(){
-        var put = _.partial(cocb.wrap(db.putEntVar), "p", "r");
-        var get = _.partial(cocb.wrap(db.getEntVar), "p", "r");
-        var del = _.partial(cocb.wrap(db.delEntVar), "p", "r");
-        var toObj = cocb.wrap(db.toObj);
+        var put = _.partial(util.promisify(db.putEntVar), "p", "r");
+        var get = _.partial(util.promisify(db.getEntVar), "p", "r");
+        var del = _.partial(util.promisify(db.delEntVar), "p", "r");
+        var toObj = util.promisify(db.toObj);
         var toJson = JSON.stringify;
 
         var tst = async function(name, type, value, msg){
             var val = toJson(value);
             t.equals(toJson((await toObj()).entvars.p.r[name]), "{\"type\":\""+type+"\",\"value\":"+val+"}", msg);
-            t.equals(toJson(await get(name)), val, msg);
+            t.equals(toJson(await get(name, null)), val, msg);
         };
 
         await put("foo", [0], "aaa");

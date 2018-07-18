@@ -1,10 +1,10 @@
 var _ = require("lodash");
-var cocb = require("co-callback");
+var util = require("util");
 var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
 var mkKRLaction = require("../mkKRLaction");
 
-var sub_modules = {
+var subModules = {
     ent: require("./ent"),
     app: require("./app"),
     event: require("./event"),
@@ -35,8 +35,18 @@ var normalizeId = function(domain, id){
 
 module.exports = function(core, third_party_modules){
 
-    var modules = _.mapValues(sub_modules, function(m){
-        return m(core);
+    var modules = _.mapValues(subModules, function(subModule){
+        var m = subModule(core);
+        if(m.get){
+            m.get = util.promisify(m.get);
+        }
+        if(m.set){
+            m.set = util.promisify(m.set);
+        }
+        if(m.del){
+            m.del = util.promisify(m.del);
+        }
+        return m;
     });
 
     _.each(third_party_modules, function(ops, domain){
@@ -91,50 +101,43 @@ module.exports = function(core, third_party_modules){
 
 
     return {
-        get: cocb.wrap(function(ctx, domain, id, callback){
+        get: function(ctx, domain, id){
             id = normalizeId(domain, id);
             var umod = userModuleLookup(ctx, domain, id);
             if(umod.has_it){
-                callback(null, umod.value);
-                return;
+                return umod.value;
             }
             if(_.has(modules, [domain, "def", id])){
-                callback(null, modules[domain].def[id]);
-                return;
+                return modules[domain].def[id];
             }
             if(_.has(modules, [domain, "get"])){
-                modules[domain].get(ctx, id, callback);
-                return;
+                return modules[domain].get(ctx, id);
             }
-            callback(new Error("Not defined `" + domain + ":" + id + "`"));
-        }),
+            throw new Error("Not defined `" + domain + ":" + id + "`");
+        },
 
 
-        set: cocb.wrap(function(ctx, domain, id, value, callback){
+        set: function(ctx, domain, id, value){
             id = normalizeId(domain, id);
             if(!_.has(modules, domain)){
-                callback(new Error("Module not defined `" + domain + ":" + id + "`"));
-                return;
+                throw new Error("Module not defined `" + domain + ":" + id + "`");
             }
             if(!_.has(modules[domain], "set")){
-                callback(new Error("Cannot assign to `" + domain + ":*`"));
-                return;
+                throw new Error("Cannot assign to `" + domain + ":*`");
             }
-            modules[domain].set(ctx, id, value, callback);
-        }),
+            return modules[domain].set(ctx, id, value);
+        },
 
 
-        del: cocb.wrap(function(ctx, domain, id, callback){
+        del: function(ctx, domain, id){
             id = normalizeId(domain, id);
             if(!_.has(modules, domain)){
-                callback(new Error("Module not defined `" + domain + ":" + id + "`"));
-                return;
+                throw new Error("Module not defined `" + domain + ":" + id + "`");
             }
             if(!_.has(modules[domain], "del")){
-                callback(new Error("Cannot clear/delete to `" + domain + ":*`"));
-                return;
+                throw new Error("Cannot clear/delete to `" + domain + ":*`");
             }
-            modules[domain].del(ctx, id, callback);
-        }),
+            return modules[domain].del(ctx, id);
+        },
     };
 };

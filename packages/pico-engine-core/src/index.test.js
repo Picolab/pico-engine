@@ -1,6 +1,6 @@
 var _ = require("lodash");
 var DB = require("./DB");
-var cocb = require("co-callback");
+var util = require("util");
 var cuid = require("cuid");
 var test = require("tape");
 var http = require("http");
@@ -2485,11 +2485,11 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
 
 test("PicoEngine - io.picolabs.policies ruleset", function(t){
     (async function(){
-        var mkTPE = cocb.wrap(mkTestPicoEngine);
+        var mkTPE = util.promisify(mkTestPicoEngine);
 
         var pe = await mkTPE({rootRIDs: ["io.picolabs.policies"]});
-        var newPolicy = cocb.wrap(pe.newPolicy);
-        var newChannel = cocb.wrap(pe.newChannel);
+        var newPolicy = util.promisify(pe.newPolicy);
+        var newChannel = util.promisify(pe.newChannel);
 
         pe.emitter.on("error", function(err){
             if(/by channel policy/.test(err + "")){
@@ -2510,7 +2510,7 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
             return chann.id;
         };
 
-        var tstEventPolicy = cocb.wrap(function(eci, domain_type, expected, callback){
+        var tstEventPolicy = util.promisify(function(eci, domain_type, expected, callback){
             pe.signalEvent({
                 eci: eci,
                 domain: domain_type.split("/")[0],
@@ -2530,7 +2530,7 @@ test("PicoEngine - io.picolabs.policies ruleset", function(t){
                 callback();
             });
         });
-        var tstQueryPolicy = cocb.wrap(function(eci, name, expected, callback){
+        var tstQueryPolicy = util.promisify(function(eci, name, expected, callback){
             pe.runQuery({
                 eci: eci,
                 rid: "io.picolabs.policies",
@@ -2712,7 +2712,7 @@ test("PicoEngine - handle ruleset startup errors after compiler update made brea
 
         //First try register/enable the ruleset with the old compiler
         var pe = mkPE({compileAndLoadRuleset: oldCompiler});
-        var regRS = cocb.wrap(pe.registerRuleset);
+        var regRS = util.promisify(pe.registerRuleset);
         var listRIDs = await pe.modules.get({}, "engine", "listAllEnabledRIDs");
 
         t.deepEquals(await listRIDs(), [], "no rulesets yet");
@@ -2731,7 +2731,7 @@ test("PicoEngine - handle ruleset startup errors after compiler update made brea
         });
 
         //the new compiler should blow up when it tries to initialize the rulest
-        await (cocb.wrap(pe.start))([]);
+        await pe.start([]);
         //but shouldn't crash, just emit the error and continue starting
 
         t.deepEquals(await listRIDs(), [], "the ruleset should be disabled now");
@@ -2755,7 +2755,7 @@ test("PicoEngine - handle ruleset initialization errors", function(t){
                 },
             });
         }});
-        var regRS = cocb.wrap(pe.registerRuleset);
+        var regRS = util.promisify(pe.registerRuleset);
         var listRIDs = await pe.modules.get({}, "engine", "listAllEnabledRIDs");
 
         t.deepEquals(await listRIDs(), [], "no rulesets yet");
@@ -2781,7 +2781,7 @@ test("PicoEngine - handle ruleset initialization errors", function(t){
         });
 
         //it will compile but fail to initialize
-        await (cocb.wrap(pe.start))([]);
+        await pe.start([]);
         //but shouldn't crash, just emit the error and continue starting
 
         t.deepEquals(await listRIDs(), [], "the ruleset should be disabled now");
@@ -2827,16 +2827,16 @@ test("PicoEngine - don't register rulesets that create dependency cycles", funct
     var pe = mkPE();
 
     (async function(){
-        await cocb.wrap(pe.start)();
+        await pe.start();
 
-        var registerRuleset = cocb.wrap(pe.registerRuleset);
+        var registerRuleset = util.promisify(pe.registerRuleset);
 
         var tReg = async function(src){
-            t.ok(await registerRuleset(src));
+            t.ok(await registerRuleset(src, null));
         };
         var tRegErr = async function(src, error){
             try{
-                await registerRuleset(src);
+                await registerRuleset(src, null);
                 t.fail("expected: " + error);
             }catch(err){
                 t.equals(err + "", error);
