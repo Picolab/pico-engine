@@ -21,7 +21,6 @@ var allowed_ast_nodes = [
     "FunctionDeclaration",
     "ReturnStatement",
     "CallExpression",
-    "YieldExpression",
     "AwaitExpression",
 
     "TryStatement",
