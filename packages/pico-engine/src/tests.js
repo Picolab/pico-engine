@@ -40,23 +40,25 @@ var testPE = function(name, testsFn){
             pe.getRootECI(function(err, root_eci){
                 if(err) return t.end(err);
 
-                if(cocb.isGeneratorFunction(testsFn)){
-                    cocb.wrap(testsFn)(t, pe, root_eci).then(function(){
-                        t.end();
-                    }, function(err){
+                Promise.resolve(testsFn(t, pe, root_eci))
+                    .then(t.end)
+                    .catch(function(err){
                         process.nextTick(function(){
                             t.end(err);
                         });
                     });
-                }else{
-                    testsFn(t, pe, root_eci);
-                }
             });
         });
     });
 };
 
 testPE("pico-engine", function(t, pe, root_eci){
+    var callback;
+    var promise = new Promise(function(resolve, reject){
+        callback = function(err, data){
+            err ? reject(err) : resolve(data);
+        };
+    });
     var child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
     var subscriptionPicos = {};
     var SUBS_RID = "io.picolabs.subscription";
@@ -1048,9 +1050,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         //                      end Wrangler tests
         //
         ////////////////////////////////////////////////////////////////////////
-    ], function(err){
-        t.end(err);
-    });
+    ], callback);
 
     function installRulesets (eci, rulesets) {
         return new Promise(function(resolve, reject) {
@@ -1110,6 +1110,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             });
         });
     }
+    return promise;
 });
 
 testPE("pico-engine - setupServer", function(t, pe, root_eci){
@@ -1121,10 +1122,9 @@ testPE("pico-engine - setupServer", function(t, pe, root_eci){
     }catch(e){
         t.error(e, "Failed to setupServer");
     }
-    t.end();
 });
 
-testPE("pico-engine - Wrangler", function*(t, pe, root_eci){
+testPE("pico-engine - Wrangler", async function(t, pe, root_eci){
 
     var yQuery = cocb.wrap(function(eci, rid, name, args, callback){
         pe.runQuery({
@@ -1150,25 +1150,25 @@ testPE("pico-engine - Wrangler", function*(t, pe, root_eci){
     var channels;
 
     // call myself function check if eci is the same as root.
-    data = yield yQuery(root_eci, "io.picolabs.wrangler", "myself", {});
+    data = await yQuery(root_eci, "io.picolabs.wrangler", "myself", {});
     t.equals(data.eci, root_eci);
 
 
     //// channels testing ///////////////
 
     // store channels, we don't directly test list channels.......
-    data = yield yQuery(root_eci, "io.picolabs.wrangler", "channel", {});
+    data = await yQuery(root_eci, "io.picolabs.wrangler", "channel", {});
     t.equal(data.length > 0, true,"channels returns a list greater than zero");
     channels = data;
 
     // create channels
-    data = yield yEvent(root_eci, "wrangler/channel_creation_requested", {name:"ted", type:"type"});
+    data = await yEvent(root_eci, "wrangler/channel_creation_requested", {name:"ted", type:"type"});
     //console.log("Data: ", data.directives[0].options);
     channel = data.directives[0].options;
     t.equal(channel.name, "ted", "correct directive");
 
     // compare with store,
-    data = yield yQuery(root_eci, "io.picolabs.wrangler", "channel", {});
+    data = await yQuery(root_eci, "io.picolabs.wrangler", "channel", {});
     t.equals(data.length > channels.length, true, "channel was created");
     t.equals(data.length, channels.length + 1, "single channel was created");
     var found = false;
