@@ -2472,6 +2472,12 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
             [signal("pindex", "putbaz"), []],
             [query("getBaz"), {one: {two: "three"}}],
 
+            [query("getMaplist"), null],
+            [signal("pindex", "setmaplist"), []],
+            [query("getMaplist"), [{id: "one"}, {id: "two"}, {id: "three"}]],
+            [signal("pindex", "putmaplist"), []],
+            [query("getMaplist"), [{id: "one"}, {id: "two", other: "thing"}, {id: "three"}]],
+
         ], t.end);
     });
 });

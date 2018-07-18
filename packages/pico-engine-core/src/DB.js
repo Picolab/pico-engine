@@ -114,6 +114,7 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
             case "Map":
             case "Array":
                 _.each(val, function(v, k){
+                    k = ktypes.toString(k);// represent array i as strings, otherwise bytewise will create separate keys for int and string
                     ops.push({
                         type: "put",
                         key: key_prefix.concat(["value", k]),
