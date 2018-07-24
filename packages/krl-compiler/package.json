@@ -12,8 +12,7 @@
   ],
   "scripts": {
     "start": "npm test -- -w",
-    "lint": "eslint src/ && echo lint-ok",
-    "test": "npm run lint -s && ava"
+    "test": "standard && ava"
   },
   "repository": {
     "type": "git",
@@ -34,7 +33,7 @@
     "ava": "^0.25.0",
     "contra": "^1.9.4",
     "diff-lines": "^1.1.0",
-    "eslint": "^4.8.0"
+    "standard": "^11.0.1"
   },
   "dependencies": {
     "btoa": "^1.1.2",

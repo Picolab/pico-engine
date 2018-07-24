@@ -1,3 +1,3 @@
-module.exports = function(ast, ind, gen){
-    return ast.value;
-};
+module.exports = function (ast, ind, gen) {
+  return ast.value
+}

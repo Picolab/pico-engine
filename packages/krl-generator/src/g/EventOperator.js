@@ -1,77 +1,77 @@
-var _ = require("lodash");
+var _ = require('lodash')
 
 var infixOps = {
-    "or": true,
-    "and": true,
-    "before": true,
-    "then": true,
-    "after": true
-};
+  'or': true,
+  'and': true,
+  'before': true,
+  'then': true,
+  'after': true
+}
 
 var opNArgs = {
-    "any": true,
-    "count": true,
-    "repeat": true
-};
+  'any': true,
+  'count': true,
+  'repeat': true
+}
 
 var aggregators = {
-    "max": true,
-    "min": true,
-    "sum": true,
-    "avg": true,
-    "push": true
-};
+  'max': true,
+  'min': true,
+  'sum': true,
+  'avg': true,
+  'push': true
+}
 
-var fmtArgs = function(ast, ind, gen){
-    var src = "(\n";
-    src += ind(1) + _.map(ast, function(arg){
-        return gen(arg, 1);
-    }).join(",\n" + ind(1));
-    src += "\n" + ind() + ")";
-    return src;
-};
+var fmtArgs = function (ast, ind, gen) {
+  var src = '(\n'
+  src += ind(1) + _.map(ast, function (arg) {
+    return gen(arg, 1)
+  }).join(',\n' + ind(1))
+  src += '\n' + ind() + ')'
+  return src
+}
 
-var isInfix = function(ast){
-    return infixOps[ast.op] === true && _.size(ast.args) === 2;
-};
+var isInfix = function (ast) {
+  return infixOps[ast.op] === true && _.size(ast.args) === 2
+}
 
-var genInfix = function(ast, ind, gen){
-    var left = _.first(ast.args);
-    var right = _.last(ast.args);
+var genInfix = function (ast, ind, gen) {
+  var left = _.first(ast.args)
+  var right = _.last(ast.args)
 
-    var src = "";
+  var src = ''
 
-    src += isInfix(left)
-        ? "(\n" + ind(2) + gen(left, 1) + "\n" + ind(1) + ")"
-        : gen(left);
+  src += isInfix(left)
+    ? '(\n' + ind(2) + gen(left, 1) + '\n' + ind(1) + ')'
+    : gen(left)
 
-    src += "\n" + ind(1) + ast.op + "\n" + ind(1);
+  src += '\n' + ind(1) + ast.op + '\n' + ind(1)
 
-    src += isInfix(right)
-        ? "(\n" + ind(2) + gen(right, 1) + "\n" + ind(1) + ")"
-        : gen(right);
+  src += isInfix(right)
+    ? '(\n' + ind(2) + gen(right, 1) + '\n' + ind(1) + ')'
+    : gen(right)
 
-    return src;
-};
+  return src
+}
 
-module.exports = function(ast, ind, gen){
-    if(opNArgs[ast.op] === true){
-        var src = ast.op + " " + gen(ast.args[0]) + " ";
-        return src + fmtArgs(_.tail(ast.args), ind, gen);
-    }
-    if(aggregators[ast.op] === true){
-        return gen(ast.args[0]) + " " + ast.op + "(" + _.map(_.tail(ast.args), function(arg){
-            return gen(arg);
-        }).join(", ") + ")";
-    }
-    if(ast.op === "within"){
-        return gen(ast.args[0]) + "\n" + ind(1) + ast.op + " " + gen(ast.args[1]) + " " + ast.args[2].value;
-    }
-    if(ast.op === "between" || ast.op === "not between"){
-        return gen(ast.args[0]) + " " + ast.op + fmtArgs(_.tail(ast.args), ind, gen);
-    }
-    if(isInfix(ast)){
-        return genInfix(ast, ind, gen);
-    }
-    return ast.op + fmtArgs(ast.args, ind, gen);
-};
+module.exports = function (ast, ind, gen) {
+  if (opNArgs[ast.op] === true) {
+    var src = ast.op + ' ' + gen(ast.args[0]) + ' '
+    return src + fmtArgs(_.tail(ast.args), ind, gen)
+  }
+  if (aggregators[ast.op] === true) {
+    return gen(ast.args[0]) + ' ' + ast.op + '(' + _.map(_.tail(ast.args), function (arg) {
+      return gen(arg)
+    }).join(', ') + ')'
+  }
+  if (ast.op === 'within') {
+    return gen(ast.args[0]) + '\n' + ind(1) + ast.op + ' ' + gen(ast.args[1]) + ' ' + ast.args[2].value
+  }
+  if (ast.op === 'between' || ast.op === 'not between') {
+    return gen(ast.args[0]) + ' ' + ast.op + fmtArgs(_.tail(ast.args), ind, gen)
+  }
+  if (isInfix(ast)) {
+    return genInfix(ast, ind, gen)
+  }
+  return ast.op + fmtArgs(ast.args, ind, gen)
+}
