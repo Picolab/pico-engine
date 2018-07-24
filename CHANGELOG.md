@@ -1,3 +1,14 @@
+# 0.46.0 - next
+
+### BREAKING CHANGES
+
+* We now only support node 8+
+
+### Notes
+
+* Compiled rulesets now use async+await to simulate synchronous krl code. [#411](https://github.com/Picolab/pico-engine/pull/411)
+
+
 # 0.45.6 - June 29, 2018
 
 * DID login
