@@ -97,11 +97,7 @@ ruleset io.picolabs.persistent-index {
     rule setmaplist {
         select when pindex setmaplist
         always {
-            ent:maplist := [
-                {"id": "one"},
-                {"id": "two"},
-                {"id": "three"}
-            ]
+            ent:maplist := [{"id": "one"}, {"id": "two"}, {"id": "three"}]
         }
     }
     rule putmaplist {

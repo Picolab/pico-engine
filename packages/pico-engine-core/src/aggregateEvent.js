@@ -1,18 +1,16 @@
 var _ = require("lodash");
-var cocb = require("co-callback");
-var async = require("async");
 
-var toFloat = function(v){
+function toFloat(v){
     return parseFloat(v) || 0;
-};
+}
 
-var aggregateWrap = function(core, current_state_machine_state, rule, ctx, value_pairs, fn, callback){
-    async.each(value_pairs, function(pair, next){
+function aggregateWrap(core, current_state_machine_state, rule, ctx, value_pairs, fn){
+    return Promise.all(value_pairs.map(function(pair){
         var name = pair[0];
         var value = pair[1] === void 0
             ? null//leveldb doesnt support undefined
             : pair[1];
-        core.db.updateAggregatorVar(ctx.pico_id, rule, name, function(val){
+        function updater(val){
             if(current_state_machine_state === "start"){
                 //reset the aggregated values every time the state machine resets
                 return [value];
@@ -21,13 +19,13 @@ var aggregateWrap = function(core, current_state_machine_state, rule, ctx, value
                 return _.tail(val.concat([value]));
             }
             return val.concat([value]);
-        }, function(err, val){
-            if(err) return next(err);
-            ctx.scope.set(name, fn(val));
-            next();
-        });
-    }, callback);
-};
+        }
+        return core.db.updateAggregatorVarYieldable(ctx.pico_id, rule, name, updater)
+            .then(function(val){
+                ctx.scope.set(name, fn(val));
+            });
+    }));
+}
 
 var aggregators = {
     max: function(values){
@@ -53,11 +51,11 @@ var aggregators = {
 };
 
 module.exports = function(core, current_state_machine_state, rule){
-    return cocb.wrap(function(ctx, aggregator, value_pairs, callback){
-        if(_.has(aggregators, aggregator)){
-            aggregateWrap(core, current_state_machine_state, rule, ctx, value_pairs, aggregators[aggregator], callback);
-            return;
+    return function(ctx, aggregator, value_pairs){
+        if(!_.has(aggregators, aggregator)){
+            throw new Error("Unsupported aggregator: " + aggregator);
         }
-        throw new Error("Unsupported aggregator: " + aggregator);
-    });
+        var fn = aggregators[aggregator];
+        return aggregateWrap(core, current_state_machine_state, rule, ctx, value_pairs, fn);
+    };
 };

@@ -1,5 +1,4 @@
 var _ = require("lodash");
-var cocb = require("co-callback");
 var ktypes = require("krl-stdlib/types");
 var mkKRLaction = require("./mkKRLaction");
 
@@ -25,14 +24,14 @@ var send_directive = mkKRLaction([
     }));
 });
 
-module.exports = cocb.wrap(function*(ctx, domain, id, args, setting){
+module.exports = async function runAction(ctx, domain, id, args, setting){
     var returns = [];
     if(domain){
-        var modAction = yield ctx.modules.get(ctx, domain, id);
+        var modAction = await ctx.modules.get(ctx, domain, id);
         if( ! ktypes.isAction(modAction)){
             throw new Error("`" + domain + ":" + id + "` is not an action");
         }
-        returns = yield modAction(ctx, args);
+        returns = await modAction(ctx, args);
     }else if(id === "noop"){
         returns = [];//returns nothing
     }else if(ctx.scope.has(id)){
@@ -40,9 +39,9 @@ module.exports = cocb.wrap(function*(ctx, domain, id, args, setting){
         if( ! ktypes.isAction(definedAction)){
             throw new Error("`" + id + "` is not defined as an action");
         }
-        returns = yield definedAction(ctx, args);
+        returns = await definedAction(ctx, args);
     }else if(id === "send_directive" || id === "sendDirective"){
-        returns = yield send_directive(ctx, args);
+        returns = await send_directive(ctx, args);
     }else{
         throw new Error("`" + id + "` is not defined");
     }
@@ -53,4 +52,4 @@ module.exports = cocb.wrap(function*(ctx, domain, id, args, setting){
         }
         ctx.scope.set(id, val);
     });
-});
+};

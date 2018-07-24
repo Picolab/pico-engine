@@ -39,7 +39,7 @@ var prop_types = {
                 obj.version = comp(ast.version);
             }
             if(ast["with"]){
-                obj["with"] = e("genfn", ["ctx"], comp(ast["with"]), ast["with"].loc);
+                obj["with"] = e("asyncfn", ["ctx"], comp(ast["with"]), ast["with"].loc);
             }
             return e("obj", obj, ast.loc);
         }));
@@ -49,7 +49,7 @@ var prop_types = {
             throw new Error("only 1 meta.configure allowed");
         }
         var ast = _.head(props);
-        return e("genfn", ["ctx"], comp(ast.value.declarations), ast.value.loc);
+        return e("asyncfn", ["ctx"], comp(ast.value.declarations), ast.value.loc);
     },
     "shares": function(props, comp, e){
         var ids = _.uniqBy(_.flatten(_.map(props, "value.ids")), "value");

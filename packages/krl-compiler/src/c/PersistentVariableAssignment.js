@@ -17,7 +17,7 @@ module.exports = function(ast, comp, e){
         });
     }
 
-    return e(";", e("ycall", e("id", "ctx.modules.set"), [
+    return e(";", e("acall", e("id", "ctx.modules.set"), [
         e("id", "ctx"),
         e("str", ast.left.domain, ast.left.loc),
         key,

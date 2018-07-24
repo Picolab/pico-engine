@@ -8,5 +8,5 @@ module.exports = function(ast, comp, e){
         for_rid: ast.for_rid ? comp(ast.for_rid) : e("nil"),
     };
 
-    return e(";", e("ycall", e("id", "ctx.raiseEvent"), [e("obj", args)]));
+    return e(";", e("acall", e("id", "ctx.raiseEvent"), [e("obj", args)]));
 };

@@ -15,7 +15,7 @@ module.exports = function(ast, comp, e){
         args.timespec = comp(ast.timespec);
     }
 
-    var module_call = e("ycall", e("id", "ctx.scheduleEvent"), [e("obj", args)]);
+    var module_call = e("acall", e("id", "ctx.scheduleEvent"), [e("obj", args)]);
 
     if(ast.setting){
         return e(";", e("call", e("id", "ctx.scope.set", ast.setting.loc), [

@@ -16,7 +16,7 @@ module.exports = function(ast, comp, e){
         rs.meta = comp(ast.meta);
     }
     if(!_.isEmpty(ast.global)){
-        rs.global = e("genfn", ["ctx"], declarationBlock(ast.global, comp));
+        rs.global = e("asyncfn", ["ctx"], declarationBlock(ast.global, comp));
     }
     rs.rules = e("obj", rules_obj);
     return [

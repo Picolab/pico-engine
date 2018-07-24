@@ -8,7 +8,7 @@ module.exports = function(ast, comp, e){
         });
     }
 
-    return e(";", e("ycall", e("id", "ctx.modules.del"), [
+    return e(";", e("acall", e("id", "ctx.modules.del"), [
         e("id", "ctx"),
         e("str", ast.variable.domain, ast.variable.loc),
         key,

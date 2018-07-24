@@ -6,23 +6,23 @@ module.exports = {
       "getLastPostEvent"
     ]
   },
-  "global": function* (ctx) {
-    ctx.scope.set("getResp", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "resp");
+  "global": async function (ctx) {
+    ctx.scope.set("getResp", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", "resp");
     }));
-    ctx.scope.set("getLastPostEvent", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "last_post_event");
+    ctx.scope.set("getLastPostEvent", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", "last_post_event");
     }));
-    ctx.scope.set("fmtResp", ctx.mkFunction(["r"], function* (ctx, args) {
+    ctx.scope.set("fmtResp", ctx.mkFunction(["r"], async function (ctx, args) {
       ctx.scope.set("r", args["r"]);
-      return yield ctx.callKRLstdlib("delete", [
-        yield ctx.callKRLstdlib("delete", [
-          yield ctx.callKRLstdlib("delete", [
-            yield ctx.callKRLstdlib("delete", [
-              yield ctx.callKRLstdlib("set", [
+      return await ctx.callKRLstdlib("delete", [
+        await ctx.callKRLstdlib("delete", [
+          await ctx.callKRLstdlib("delete", [
+            await ctx.callKRLstdlib("delete", [
+              await ctx.callKRLstdlib("set", [
                 ctx.scope.get("r"),
                 "content",
-                yield ctx.callKRLstdlib("decode", [yield ctx.callKRLstdlib("get", [
+                await ctx.callKRLstdlib("decode", [await ctx.callKRLstdlib("get", [
                     ctx.scope.get("r"),
                     ["content"]
                   ])])
@@ -50,14 +50,14 @@ module.exports = {
       "base_url",
       "to",
       "msg"
-    ], function* (ctx, args, runAction) {
+    ], async function (ctx, args, runAction) {
       ctx.scope.set("base_url", args["base_url"]);
       ctx.scope.set("to", args["to"]);
       ctx.scope.set("msg", args["msg"]);
       var fired = true;
       if (fired) {
-        yield runAction(ctx, "http", "post", {
-          "0": yield ctx.callKRLstdlib("+", [
+        await runAction(ctx, "http", "post", {
+          "0": await ctx.callKRLstdlib("+", [
             ctx.scope.get("url"),
             "/msg.json"
           ]),
@@ -76,7 +76,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "get": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -87,20 +87,20 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         var fired = true;
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          ctx.scope.set("resp", yield ctx.applyFn(yield ctx.modules.get(ctx, "http", "get"), ctx, {
+          ctx.scope.set("resp", await ctx.applyFn(await ctx.modules.get(ctx, "http", "get"), ctx, {
             "0": ctx.scope.get("url"),
             "qs": { "foo": "bar" },
             "headers": { "baz": "quix" }
           }));
-          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [ctx.scope.get("resp")]));
+          await ctx.modules.set(ctx, "ent", "resp", await ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [ctx.scope.get("resp")]));
         }
       }
     },
@@ -109,7 +109,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "post": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -120,21 +120,21 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "http", "post", {
+          await runAction(ctx, "http", "post", {
             "0": ctx.scope.get("url"),
             "json": {
               "foo": "bar",
               "baz": ctx.scope.get("doPost")
             }
           }, ["resp"]);
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "resp.content.body",
-            yield ctx.callKRLstdlib("decode", [yield ctx.callKRLstdlib("get", [
-                yield ctx.callKRLstdlib("decode", [yield ctx.callKRLstdlib("get", [
+            await ctx.callKRLstdlib("decode", [await ctx.callKRLstdlib("get", [
+                await ctx.callKRLstdlib("decode", [await ctx.callKRLstdlib("get", [
                     ctx.scope.get("resp"),
                     ["content"]
                   ])]),
@@ -153,7 +153,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "post_action": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -164,11 +164,11 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "doPost", [
+          await runAction(ctx, void 0, "doPost", [
             ctx.scope.get("url"),
             "bob",
             "foobar"
@@ -185,7 +185,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "post_setting": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -196,11 +196,11 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "http", "post", {
+          await runAction(ctx, "http", "post", {
             "0": ctx.scope.get("url"),
             "qs": { "foo": "bar" },
             "form": { "baz": "qux" }
@@ -211,7 +211,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [ctx.scope.get("resp")]));
+          await ctx.modules.set(ctx, "ent", "resp", await ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [ctx.scope.get("resp")]));
         }
       }
     },
@@ -220,7 +220,7 @@ module.exports = {
       "select": {
         "graph": { "http_test": { "autoraise": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -231,11 +231,11 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("url", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "http", "post", {
+          await runAction(ctx, "http", "post", {
             "0": ctx.scope.get("url"),
             "qs": { "foo": "bar" },
             "form": { "baz": "qux" },
@@ -253,7 +253,7 @@ module.exports = {
       "select": {
         "graph": { "http": { "post": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -264,11 +264,11 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("resp", yield ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [yield ctx.modules.get(ctx, "event", "attrs")]));
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("resp", await ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [await ctx.modules.get(ctx, "event", "attrs")]));
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "http_post_event_handler",
             { "attrs": ctx.scope.get("resp") }
           ], []);
@@ -278,7 +278,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          yield ctx.modules.set(ctx, "ent", "last_post_event", ctx.scope.get("resp"));
+          await ctx.modules.set(ctx, "ent", "last_post_event", ctx.scope.get("resp"));
         }
       }
     }

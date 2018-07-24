@@ -1,9 +1,9 @@
 module.exports = {
   "rid": "io.picolabs.execution-order2",
   "meta": { "shares": ["getOrder"] },
-  "global": function* (ctx) {
-    ctx.scope.set("getOrder", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "order");
+  "global": async function (ctx) {
+    ctx.scope.set("getOrder", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", "order");
     }));
   },
   "rules": {
@@ -12,7 +12,7 @@ module.exports = {
       "select": {
         "graph": { "execution_order": { "reset_order": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -23,16 +23,16 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["2 - reset_order"], []);
+          await runAction(ctx, void 0, "send_directive", ["2 - reset_order"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "order", []);
+        await ctx.modules.set(ctx, "ent", "order", []);
       }
     },
     "foo_or_bar": {
@@ -45,10 +45,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -65,17 +65,17 @@ module.exports = {
           ]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["2 - foo_or_bar"], []);
+          await runAction(ctx, void 0, "send_directive", ["2 - foo_or_bar"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
-          yield ctx.modules.get(ctx, "ent", "order"),
+        await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
+          await ctx.modules.get(ctx, "ent", "order"),
           "2 - foo_or_bar"
         ]));
       }
@@ -85,7 +85,7 @@ module.exports = {
       "select": {
         "graph": { "execution_order": { "foo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -96,17 +96,17 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["2 - foo"], []);
+          await runAction(ctx, void 0, "send_directive", ["2 - foo"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
-          yield ctx.modules.get(ctx, "ent", "order"),
+        await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
+          await ctx.modules.get(ctx, "ent", "order"),
           "2 - foo"
         ]));
       }
@@ -116,7 +116,7 @@ module.exports = {
       "select": {
         "graph": { "execution_order": { "bar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -127,17 +127,17 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["2 - bar"], []);
+          await runAction(ctx, void 0, "send_directive", ["2 - bar"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "order", yield ctx.callKRLstdlib("append", [
-          yield ctx.modules.get(ctx, "ent", "order"),
+        await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
+          await ctx.modules.get(ctx, "ent", "order"),
           "2 - bar"
         ]));
       }

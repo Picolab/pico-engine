@@ -1,5 +1,4 @@
 var test = require("tape");
-var cocb = require("co-callback");
 var ktypes = require("krl-stdlib/types");
 var krandom = require("./random")().def;
 
@@ -14,11 +13,11 @@ var assertNumRange = function(n, low, high, should_be_int){
 };
 
 test("module - random:*", function(t){
-    cocb.run(function*(){
+    (async function(){
         var i;
         for(i = 0; i < 5; i++){
-            t.ok(/^c[^\s]+$/.test(yield krandom.uuid({}, [])));
-            t.ok(/^[^\s]+$/.test(yield krandom.word({}, [])));
+            t.ok(/^c[^\s]+$/.test(await krandom.uuid({}, [])));
+            t.ok(/^[^\s]+$/.test(await krandom.word({}, [])));
 
         }
 
@@ -26,52 +25,52 @@ test("module - random:*", function(t){
         var n;
         for(i = 0; i < 100; i++){
 
-            n = yield krandom.integer({}, []);
+            n = await krandom.integer({}, []);
             assertNumRange(n, 0, 1, true);
 
-            n = yield krandom.integer({}, [0]);
+            n = await krandom.integer({}, [0]);
             assertNumRange(n, 0, 0, true);
 
-            n = yield krandom.integer({}, [10]);
+            n = await krandom.integer({}, [10]);
             assertNumRange(n, 0, 10, true);
 
-            n = yield krandom.integer({}, [-7]);
+            n = await krandom.integer({}, [-7]);
             assertNumRange(n, -7, 0, true);
 
-            n = yield krandom.integer({}, [-3, 5]);
+            n = await krandom.integer({}, [-3, 5]);
             assertNumRange(n, -3, 5, true);
 
-            n = yield krandom.integer({}, [-3, "five"]);
+            n = await krandom.integer({}, [-3, "five"]);
             assertNumRange(n, -3, 0, true);
 
-            n = yield krandom.integer({}, ["4.49", -8]);
+            n = await krandom.integer({}, ["4.49", -8]);
             assertNumRange(n, -8, 4, true);
 
-            n = yield krandom.integer({}, ["four", -8.49]);
+            n = await krandom.integer({}, ["four", -8.49]);
             assertNumRange(n, -8, 0, true);
 
-            n = yield krandom.number({}, []);
+            n = await krandom.number({}, []);
             assertNumRange(n, 0, 1);
 
-            n = yield krandom.number({}, [0]);
+            n = await krandom.number({}, [0]);
             assertNumRange(n, 0, 0);
 
-            n = yield krandom.number({}, [7]);
+            n = await krandom.number({}, [7]);
             assertNumRange(n, 0, 7);
 
-            n = yield krandom.number({}, [-1.2]);
+            n = await krandom.number({}, [-1.2]);
             assertNumRange(n, -1.2, 0);
 
-            n = yield krandom.number({}, [-3, 5]);
+            n = await krandom.number({}, [-3, 5]);
             assertNumRange(n, -3, 5);
 
-            n = yield krandom.integer({}, [-3, "five"]);
+            n = await krandom.integer({}, [-3, "five"]);
             assertNumRange(n, -3, 0, true);
 
-            n = yield krandom.integer({}, ["four", -8]);
+            n = await krandom.integer({}, ["four", -8]);
             assertNumRange(n, -8, 0, true);
 
-            n = yield krandom.number({}, [9.87, "-3.6"]);
+            n = await krandom.number({}, [9.87, "-3.6"]);
             assertNumRange(n, -3.6, 9.87);
 
         }
@@ -79,7 +78,5 @@ test("module - random:*", function(t){
         t.ok(true, "random:integer passed");
         t.ok(true, "random:number passed");
 
-    }, function(err){
-        t.end(err);
-    });
+    }()).then(t.end).catch(t.end);
 });

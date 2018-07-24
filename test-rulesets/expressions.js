@@ -10,7 +10,7 @@ module.exports = {
       "paramFnTest"
     ]
   },
-  "global": function* (ctx) {
+  "global": async function (ctx) {
     ctx.scope.set("cond_exp_1", true ? 1 : 2);
     ctx.scope.set("cond_exp_2", false ? 1 : 2);
     ctx.scope.set("obj", {
@@ -26,7 +26,7 @@ module.exports = {
         ]
       }
     });
-    ctx.scope.set("obj", yield ctx.callKRLstdlib("set", [
+    ctx.scope.set("obj", await ctx.callKRLstdlib("set", [
       ctx.scope.get("obj"),
       [
         "b",
@@ -37,12 +37,12 @@ module.exports = {
       ],
       "changed 5"
     ]));
-    ctx.scope.set("obj", yield ctx.callKRLstdlib("set", [
+    ctx.scope.set("obj", await ctx.callKRLstdlib("set", [
       ctx.scope.get("obj"),
       ["a"],
       "changed 1"
     ]));
-    ctx.scope.set("path1", yield ctx.callKRLstdlib("get", [
+    ctx.scope.set("path1", await ctx.callKRLstdlib("get", [
       ctx.scope.get("obj"),
       [
         "b",
@@ -51,7 +51,7 @@ module.exports = {
         "d"
       ]
     ]));
-    ctx.scope.set("path2", yield ctx.callKRLstdlib("get", [
+    ctx.scope.set("path2", await ctx.callKRLstdlib("get", [
       ctx.scope.get("obj"),
       [
         "b",
@@ -59,13 +59,13 @@ module.exports = {
         5
       ]
     ]));
-    ctx.scope.set("index1", yield ctx.callKRLstdlib("get", [
+    ctx.scope.set("index1", await ctx.callKRLstdlib("get", [
       ctx.scope.get("obj"),
       ["a"]
     ]));
-    ctx.scope.set("index2", yield ctx.callKRLstdlib("get", [
-      yield ctx.callKRLstdlib("get", [
-        yield ctx.callKRLstdlib("get", [
+    ctx.scope.set("index2", await ctx.callKRLstdlib("get", [
+      await ctx.callKRLstdlib("get", [
+        await ctx.callKRLstdlib("get", [
           ctx.scope.get("obj"),
           ["b"]
         ]),
@@ -77,11 +77,11 @@ module.exports = {
     ctx.scope.set("not_null", !void 0);
     ctx.scope.set("true_or_false", true || false);
     ctx.scope.set("true_and_false", true && false);
-    ctx.scope.set("incByN", ctx.mkFunction(["n"], function* (ctx, args) {
+    ctx.scope.set("incByN", ctx.mkFunction(["n"], async function (ctx, args) {
       ctx.scope.set("n", args["n"]);
-      return ctx.mkFunction(["a"], function* (ctx, args) {
+      return ctx.mkFunction(["a"], async function (ctx, args) {
         ctx.scope.set("a", args["a"]);
-        return yield ctx.callKRLstdlib("+", [
+        return await ctx.callKRLstdlib("+", [
           ctx.scope.get("a"),
           ctx.scope.get("n")
         ]);
@@ -92,14 +92,14 @@ module.exports = {
       "bar",
       "baz",
       "qux"
-    ], function* (ctx, args) {
-      ctx.scope.set("foo", args.hasOwnProperty("foo") ? args["foo"] : yield ctx.applyFn(ctx.scope.get("incByN"), ctx, [3]));
-      ctx.scope.set("bar", args.hasOwnProperty("bar") ? args["bar"] : yield ctx.applyFn(ctx.scope.get("foo"), ctx, [1]));
-      ctx.scope.set("baz", args.hasOwnProperty("baz") ? args["baz"] : yield ctx.callKRLstdlib("+", [
+    ], async function (ctx, args) {
+      ctx.scope.set("foo", args.hasOwnProperty("foo") ? args["foo"] : await ctx.applyFn(ctx.scope.get("incByN"), ctx, [3]));
+      ctx.scope.set("bar", args.hasOwnProperty("bar") ? args["bar"] : await ctx.applyFn(ctx.scope.get("foo"), ctx, [1]));
+      ctx.scope.set("baz", args.hasOwnProperty("baz") ? args["baz"] : await ctx.callKRLstdlib("+", [
         ctx.scope.get("bar"),
         2
       ]));
-      ctx.scope.set("qux", args.hasOwnProperty("qux") ? args["qux"] : yield ctx.callKRLstdlib("+", [
+      ctx.scope.set("qux", args.hasOwnProperty("qux") ? args["qux"] : await ctx.callKRLstdlib("+", [
         ctx.scope.get("baz"),
         "?"
       ]));
@@ -109,14 +109,14 @@ module.exports = {
         ctx.scope.get("qux")
       ];
     }));
-    ctx.scope.set("paramFnTest", ctx.mkFunction([], function* (ctx, args) {
+    ctx.scope.set("paramFnTest", ctx.mkFunction([], async function (ctx, args) {
       return [
-        yield ctx.applyFn(ctx.scope.get("paramFn"), ctx, []),
-        yield ctx.applyFn(ctx.scope.get("paramFn"), ctx, [
-          yield ctx.applyFn(ctx.scope.get("incByN"), ctx, [100]),
+        await ctx.applyFn(ctx.scope.get("paramFn"), ctx, []),
+        await ctx.applyFn(ctx.scope.get("paramFn"), ctx, [
+          await ctx.applyFn(ctx.scope.get("incByN"), ctx, [100]),
           "one"
         ]),
-        yield ctx.applyFn(ctx.scope.get("paramFn"), ctx, [
+        await ctx.applyFn(ctx.scope.get("paramFn"), ctx, [
           void 0,
           3,
           4,

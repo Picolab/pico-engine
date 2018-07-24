@@ -1,31 +1,21 @@
 var test = require("tape");
-var cocb = require("co-callback");
 var mkTestPicoEngine = require("../mkTestPicoEngine");
 
+test("schedule:remove", function(t){
+    mkTestPicoEngine({}, function(err, pe){
+        if(err) return t.end(err);
 
-var testPE = function(test_name, genfn){
-    test(test_name, function(t){
-        mkTestPicoEngine({}, function(err, pe){
-            if(err) return t.end(err);
+        (async function(){
+            var remove = await pe.modules.get({}, "schedule", "remove");
 
-            cocb.run(function*(){
-                yield genfn(t, pe);
-            }, t.end);
-        });
+            var val = await pe.scheduleEventAtYieldable(new Date(), {
+                domain: "d",
+                type: "t",
+                attributes: {},
+            });
+
+            t.deepEquals(await remove({}, [val.id]), [true]);
+            t.deepEquals(await remove({}, ["404"]), [false]);
+        }()).then(t.end).catch(t.end);
     });
-};
-
-
-testPE("schedule:remove", function*(t, pe){
-
-    var remove = yield pe.modules.get({}, "schedule", "remove");
-
-    var val = yield pe.scheduleEventAtYieldable(new Date(), {
-        domain: "d",
-        type: "t",
-        attributes: {},
-    });
-
-    t.deepEquals(yield remove({}, [val.id]), [true]);
-    t.deepEquals(yield remove({}, ["404"]), [false]);
 });

@@ -12,7 +12,7 @@ module.exports = function(ast, comp, e){
     if(ast.where){
         // inject attrs as varibles in the scope
 
-        fn_body.push(e("var", "event_attrs", e("ycall",
+        fn_body.push(e("var", "event_attrs", e("acall",
             e("id", "ctx.modules.get"),
             [e("id", "ctx"), e("str", "event"), e("str", "attrs")]
         )));
@@ -76,7 +76,7 @@ module.exports = function(ast, comp, e){
 
     if(ast.aggregator){
         fn_body.push(e(";",
-            e("ycall",
+            e("acall",
                 e("id", "aggregateEvent", ast.aggregator.loc),
                 [
                     e("id", "ctx", ast.aggregator.loc),
@@ -94,5 +94,5 @@ module.exports = function(ast, comp, e){
 
     fn_body.push(e("return", e(true)));
 
-    return e("genfn", ["ctx", "aggregateEvent", "getAttrString", "setting"], fn_body);
+    return e("asyncfn", ["ctx", "aggregateEvent", "getAttrString", "setting"], fn_body);
 };

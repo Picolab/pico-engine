@@ -15,19 +15,19 @@ var toKeyPath = function(path){
     return _.map(path, toKey);
 };
 
-var iterBase = function*(val, iter){
+var iterBase = async function(val, iter){
     var should_continue;
     if(types.isArray(val)){
         var i;
         for(i = 0; i < val.length; i++){
-            should_continue = yield iter(val[i], i, val);
+            should_continue = await iter(val[i], i, val);
             if(!should_continue) break;
         }
     }else{
         var key;
         for(key in val){
             if(_.has(val, key)){
-                should_continue = yield iter(val[key], key, val);
+                should_continue = await iter(val[key], key, val);
                 if(!should_continue) break;
             }
         }
@@ -318,7 +318,7 @@ stdlib.ord = function(ctx, val){
     var code = val.charCodeAt(0);
     return _.isNaN(code) ? null : code;
 };
-stdlib.replace = function*(ctx, val, regex, replacement){
+stdlib.replace = async function(ctx, val, regex, replacement){
     if(arguments.length < 3){
         return val;
     }
@@ -335,7 +335,7 @@ stdlib.replace = function*(ctx, val, regex, replacement){
         var lastI = 0;
         var m;
         while(m = regex.exec(val)){// eslint-disable-line no-cond-assign
-            out += val.substring(lastI, m.index) + (yield replacement(ctx, m.concat([m.index, val])));
+            out += val.substring(lastI, m.index) + (await replacement(ctx, m.concat([m.index, val])));
             lastI = m.index + m[0].length;
             if(!regex.global){
                 break;
@@ -379,8 +379,8 @@ stdlib.uc = function(ctx, val){
 };
 
 //Collection operators//////////////////////////////////////////////////////////
-//operators using KRL functions are generators to be async-friendly (co library)
-stdlib.all = function*(ctx, val, iter){
+// NOTE: all KRL functions are async
+stdlib.all = async function(ctx, val, iter){
     if(!types.isArray(val)){
         val = [val];
     }
@@ -388,8 +388,8 @@ stdlib.all = function*(ctx, val, iter){
         return val.length === 0;
     }
     var broke = false;
-    yield iterBase(val, function*(v, k, obj){
-        var r = yield iter(ctx, [v, k, obj]);
+    await iterBase(val, async function(v, k, obj){
+        var r = await iter(ctx, [v, k, obj]);
         if(!r){
             broke = true;
             return false;//stop
@@ -398,10 +398,13 @@ stdlib.all = function*(ctx, val, iter){
     });
     return !broke;
 };
-stdlib.notall = function*(ctx, val, iter){
-    return !(yield stdlib.all(ctx, val, iter)); // works b/c of co library
+stdlib.notall = function(ctx, val, iter){
+    return stdlib.all(ctx, val, iter)
+        .then(function(v){
+            return !v;
+        });
 };
-stdlib.any = function*(ctx, val, iter){
+stdlib.any = async function(ctx, val, iter){
     if(!types.isFunction(iter)){
         return false;
     }
@@ -409,8 +412,8 @@ stdlib.any = function*(ctx, val, iter){
         val = [val];
     }
     var broke = false;
-    yield iterBase(val, function*(v, k, obj){
-        var r = yield iter(ctx, [v, k, obj]);
+    await iterBase(val, async function(v, k, obj){
+        var r = await iter(ctx, [v, k, obj]);
         if(r){
             broke = true;
             return false;//stop
@@ -419,14 +422,17 @@ stdlib.any = function*(ctx, val, iter){
     });
     return broke;
 };
-stdlib.none = function*(ctx, val, iter){
-    return !(yield stdlib.any(ctx, val, iter));
+stdlib.none = function(ctx, val, iter){
+    return stdlib.any(ctx, val, iter)
+        .then(function(v){
+            return !v;
+        });
 };
 stdlib.append = function(ctx, val, others){
     return _.concat.apply(void 0, _.tail(_.toArray(arguments)));
 };
 // works for arrays (documented) and maps (undocumented)
-stdlib.collect = function*(ctx, val, iter){
+stdlib.collect = async function(ctx, val, iter){
     if(!types.isFunction(iter)){
         return {};
     }
@@ -434,8 +440,8 @@ stdlib.collect = function*(ctx, val, iter){
         val = [val];
     }
     var grouped = {};
-    yield iterBase(val, function*(v, k, obj){
-        var r = yield iter(ctx, [v, k, obj]);
+    await iterBase(val, async function(v, k, obj){
+        var r = await iter(ctx, [v, k, obj]);
         if(!grouped.hasOwnProperty(r)){
             grouped[r] = [];
         }
@@ -444,7 +450,7 @@ stdlib.collect = function*(ctx, val, iter){
     });
     return grouped;
 };
-stdlib.filter = function*(ctx, val, iter){
+stdlib.filter = async function(ctx, val, iter){
     if(!types.isFunction(iter)){
         return val;
     }
@@ -453,8 +459,8 @@ stdlib.filter = function*(ctx, val, iter){
         val = [val];
     }
     var rslt = is_array ? [] : {};
-    yield iterBase(val, function*(v, k, obj){
-        var r = yield iter(ctx, [v, k, obj]);
+    await iterBase(val, async function(v, k, obj){
+        var r = await iter(ctx, [v, k, obj]);
         if(r){
             if(is_array){
                 rslt.push(v);
@@ -503,7 +509,7 @@ stdlib.length = function(ctx, val){
     }
     return 0;
 };
-stdlib.map = function*(ctx, val, iter){
+stdlib.map = async function(ctx, val, iter){
     if(!types.isFunction(iter)){
         return val;
     }
@@ -512,8 +518,8 @@ stdlib.map = function*(ctx, val, iter){
         val = [val];
     }
     var rslt = is_array ? [] : {};
-    yield iterBase(val, function*(v, k, obj){
-        var r = yield iter(ctx, [v, k, obj]);
+    await iterBase(val, async function(v, k, obj){
+        var r = await iter(ctx, [v, k, obj]);
         if(is_array){
             rslt.push(r);
         }else{
@@ -523,7 +529,7 @@ stdlib.map = function*(ctx, val, iter){
     });
     return rslt;
 };
-stdlib.pairwise = function*(ctx, val, iter){
+stdlib.pairwise = async function(ctx, val, iter){
     if(!types.isArray(val)){
         throw new TypeError("The .pairwise() operator cannot be called on " + types.toString(val));
     }
@@ -554,11 +560,11 @@ stdlib.pairwise = function*(ctx, val, iter){
         for(j = 0; j < val.length; j++){
             args2.push(val[j][i]);
         }
-        r.push(yield iter(ctx, args2));
+        r.push(await iter(ctx, args2));
     }
     return r;
 };
-stdlib.reduce = function*(ctx, val, iter, dflt){
+stdlib.reduce = async function(ctx, val, iter, dflt){
     if(!types.isArray(val)){
         val = [val];
     }
@@ -578,13 +584,13 @@ stdlib.reduce = function*(ctx, val, iter, dflt){
     }
     var acc = dflt;
     var is_first = true;
-    yield iterBase(val, function*(v, k, obj){
+    await iterBase(val, async function(v, k, obj){
         if(is_first && no_default){
             is_first = false;
             acc = v;
             return true;//continue
         }
-        acc = yield iter(ctx, [acc, v, k, obj]);
+        acc = await iter(ctx, [acc, v, k, obj]);
         return true;//continue
     });
     return acc;
@@ -654,7 +660,7 @@ stdlib.splice = function(ctx, val, start, nElements, value){
     }
     return _.concat(part1, value, part2);
 };
-stdlib.sort = function*(ctx, val, sort_by){
+stdlib.sort = async function(ctx, val, sort_by){
     if(!types.isArray(val)){
         return val;
     }
@@ -679,7 +685,7 @@ stdlib.sort = function*(ctx, val, sort_by){
     if(!types.isFunction(sort_by)){
         return val.sort(sorters["default"]);
     }
-    return yield sort(val, function(a, b){
+    return await sort(val, function(a, b){
         return sort_by(ctx, [a, b]);
     });
 };

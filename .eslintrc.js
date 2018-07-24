@@ -21,7 +21,7 @@ var allowed_ast_nodes = [
     "FunctionDeclaration",
     "ReturnStatement",
     "CallExpression",
-    "YieldExpression",
+    "AwaitExpression",
 
     "TryStatement",
     "CatchClause",
@@ -51,6 +51,9 @@ ast_node_blacklist.push("VariableDeclaration[kind=let]");
 ast_node_blacklist.push("VariableDeclaration[kind=const]");
 
 module.exports = {
+    "parserOptions": {
+        "ecmaVersion": 9,
+    },
     "env": {
         "browser": true,
         "node": true,

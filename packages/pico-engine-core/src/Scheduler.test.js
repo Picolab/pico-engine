@@ -81,11 +81,6 @@ test("Scheduler - at", function(t){
     t.end();
 });
 
-if(process.env.SKIP_LONG_TESTS === "true"){
-    //skip the generative test when running the tests quick i.e. `npm start`
-    return;
-}
-
 var nTicks = function(n, callback){
     if(n === 0){
         callback();
@@ -104,6 +99,11 @@ var randomTick = function(callback){
 test("Scheduler - at - generative test", function(t){
 
     var n_events = 50000;
+
+    if(process.env.SKIP_LONG_TESTS === "true"){
+        // shorten the generative test when running the tests quick i.e. `npm start`
+        n_events = 5;
+    }
 
     var log = [];
     var event_queue = [];

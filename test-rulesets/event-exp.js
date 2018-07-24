@@ -11,10 +11,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -29,10 +29,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["before"], []);
+          await runAction(ctx, void 0, "send_directive", ["before"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -50,10 +50,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -68,10 +68,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["after"], []);
+          await runAction(ctx, void 0, "send_directive", ["after"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -89,10 +89,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -124,10 +124,10 @@ module.exports = {
           ]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["then"], []);
+          await runAction(ctx, void 0, "send_directive", ["then"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -145,10 +145,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -173,10 +173,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["and"], []);
+          await runAction(ctx, void 0, "send_directive", ["and"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -194,10 +194,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -214,10 +214,10 @@ module.exports = {
           ]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["or"], []);
+          await runAction(ctx, void 0, "send_directive", ["or"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -236,13 +236,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -261,10 +261,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["between"], []);
+          await runAction(ctx, void 0, "send_directive", ["between"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -283,13 +283,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -310,10 +310,10 @@ module.exports = {
           ]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["not between"], []);
+          await runAction(ctx, void 0, "send_directive", ["not between"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -332,13 +332,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -367,10 +367,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["(a and b) or c"], []);
+          await runAction(ctx, void 0, "send_directive", ["(a and b) or c"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -389,13 +389,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -430,10 +430,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["a and (b or c)"], []);
+          await runAction(ctx, void 0, "send_directive", ["a and (b or c)"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -452,13 +452,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -477,10 +477,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["before_n"], []);
+          await runAction(ctx, void 0, "send_directive", ["before_n"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -499,13 +499,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -524,10 +524,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["after_n"], []);
+          await runAction(ctx, void 0, "send_directive", ["after_n"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -546,13 +546,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -589,10 +589,10 @@ module.exports = {
           ]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["then_n"], []);
+          await runAction(ctx, void 0, "send_directive", ["then_n"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -611,13 +611,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -692,10 +692,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["and_n"], []);
+          await runAction(ctx, void 0, "send_directive", ["and_n"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -715,16 +715,16 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_3": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_3": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -749,10 +749,10 @@ module.exports = {
           ]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["or_n"], []);
+          await runAction(ctx, void 0, "send_directive", ["or_n"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -772,16 +772,16 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_3": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_3": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -862,10 +862,10 @@ module.exports = {
           ]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["any"], []);
+          await runAction(ctx, void 0, "send_directive", ["any"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -878,7 +878,7 @@ module.exports = {
       "select": {
         "graph": { "ee_count": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -897,10 +897,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["count"], []);
+          await runAction(ctx, void 0, "send_directive", ["count"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -913,7 +913,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -944,10 +944,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["repeat"], []);
+          await runAction(ctx, void 0, "send_directive", ["repeat"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -960,7 +960,7 @@ module.exports = {
       "select": {
         "graph": { "ee_count_max": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -969,7 +969,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            yield aggregateEvent(ctx, "max", [[
+            await aggregateEvent(ctx, "max", [[
                 "m",
                 matches[0]
               ]]);
@@ -991,10 +991,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "count_max",
             { "m": ctx.scope.get("m") }
           ], []);
@@ -1010,7 +1010,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_min": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1019,7 +1019,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            yield aggregateEvent(ctx, "min", [[
+            await aggregateEvent(ctx, "min", [[
                 "m",
                 matches[0]
               ]]);
@@ -1045,10 +1045,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "repeat_min",
             { "m": ctx.scope.get("m") }
           ], []);
@@ -1064,7 +1064,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_sum": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1073,7 +1073,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            yield aggregateEvent(ctx, "sum", [[
+            await aggregateEvent(ctx, "sum", [[
                 "m",
                 matches[0]
               ]]);
@@ -1099,10 +1099,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "repeat_sum",
             { "m": ctx.scope.get("m") }
           ], []);
@@ -1118,7 +1118,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_avg": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1127,7 +1127,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            yield aggregateEvent(ctx, "avg", [[
+            await aggregateEvent(ctx, "avg", [[
                 "m",
                 matches[0]
               ]]);
@@ -1153,10 +1153,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "repeat_avg",
             { "m": ctx.scope.get("m") }
           ], []);
@@ -1172,7 +1172,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_push": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1181,7 +1181,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            yield aggregateEvent(ctx, "push", [[
+            await aggregateEvent(ctx, "push", [[
                 "m",
                 matches[0]
               ]]);
@@ -1207,10 +1207,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "repeat_push",
             { "m": ctx.scope.get("m") }
           ], []);
@@ -1226,7 +1226,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_push_multi": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1240,7 +1240,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            yield aggregateEvent(ctx, "push", [
+            await aggregateEvent(ctx, "push", [
               [
                 "a",
                 matches[0]
@@ -1288,10 +1288,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "repeat_push_multi",
             {
               "a": ctx.scope.get("a"),
@@ -1312,7 +1312,7 @@ module.exports = {
       "select": {
         "graph": { "ee_repeat_sum_multi": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -1326,7 +1326,7 @@ module.exports = {
               return false;
             for (j = 1; j < m.length; j++)
               matches.push(m[j]);
-            yield aggregateEvent(ctx, "sum", [
+            await aggregateEvent(ctx, "sum", [
               [
                 "a",
                 matches[0]
@@ -1358,10 +1358,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "repeat_sum_multi",
             {
               "a": ctx.scope.get("a"),

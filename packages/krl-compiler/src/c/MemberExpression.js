@@ -13,7 +13,7 @@ module.exports = function(ast, comp, e){
         if(ast.object.type === "DomainIdentifier"
             && (ast.object.domain === "ent" || ast.object.domain === "app")
         ){
-            return e("ycall", e("id", "ctx.modules.get"), [
+            return e("acall", e("id", "ctx.modules.get"), [
                 e("id", "ctx"),
                 e("str", ast.object.domain),
                 e("obj", {

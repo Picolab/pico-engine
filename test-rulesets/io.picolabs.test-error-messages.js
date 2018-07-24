@@ -9,17 +9,17 @@ module.exports = {
       "infiniteRecursion"
     ]
   },
-  "global": function* (ctx) {
-    ctx.scope.set("hello", ctx.mkFunction(["obj"], function* (ctx, args) {
+  "global": async function (ctx) {
+    ctx.scope.set("hello", ctx.mkFunction(["obj"], async function (ctx, args) {
       ctx.scope.set("obj", args["obj"]);
-      return yield ctx.callKRLstdlib("+", [
+      return await ctx.callKRLstdlib("+", [
         "Hello ",
         ctx.scope.get("obj")
       ]);
     }));
     ctx.scope.set("null_val", void 0);
-    ctx.scope.set("infiniteRecursion", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.applyFn(ctx.scope.get("infiniteRecursion"), ctx, []);
+    ctx.scope.set("infiniteRecursion", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.applyFn(ctx.scope.get("infiniteRecursion"), ctx, []);
     }));
   },
   "rules": {}

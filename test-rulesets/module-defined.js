@@ -7,44 +7,44 @@ module.exports = {
       "getInfoAction"
     ],
     "shares": ["getInfo"],
-    "configure": function* (ctx) {
+    "configure": async function (ctx) {
       ctx.scope.set("configured_name", "Bob");
     }
   },
-  "global": function* (ctx) {
-    ctx.scope.set("privateFn", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.callKRLstdlib("+", [
-        yield ctx.callKRLstdlib("+", [
-          yield ctx.callKRLstdlib("+", [
+  "global": async function (ctx) {
+    ctx.scope.set("privateFn", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.callKRLstdlib("+", [
+        await ctx.callKRLstdlib("+", [
+          await ctx.callKRLstdlib("+", [
             "privateFn = name: ",
             ctx.scope.get("configured_name")
           ]),
           " memo: "
         ]),
-        yield ctx.modules.get(ctx, "ent", "memo")
+        await ctx.modules.get(ctx, "ent", "memo")
       ]);
     }));
-    ctx.scope.set("getName", ctx.mkFunction([], function* (ctx, args) {
+    ctx.scope.set("getName", ctx.mkFunction([], async function (ctx, args) {
       return ctx.scope.get("configured_name");
     }));
-    ctx.scope.set("getInfo", ctx.mkFunction([], function* (ctx, args) {
+    ctx.scope.set("getInfo", ctx.mkFunction([], async function (ctx, args) {
       return {
-        "name": yield ctx.applyFn(ctx.scope.get("getName"), ctx, []),
-        "memo": yield ctx.modules.get(ctx, "ent", "memo"),
-        "privateFn": yield ctx.applyFn(ctx.scope.get("privateFn"), ctx, [])
+        "name": await ctx.applyFn(ctx.scope.get("getName"), ctx, []),
+        "memo": await ctx.modules.get(ctx, "ent", "memo"),
+        "privateFn": await ctx.applyFn(ctx.scope.get("privateFn"), ctx, [])
       };
     }));
-    ctx.scope.set("getInfoAction", ctx.mkAction([], function* (ctx, args, runAction) {
+    ctx.scope.set("getInfoAction", ctx.mkAction([], async function (ctx, args, runAction) {
       var fired = true;
       if (fired) {
-        yield runAction(ctx, void 0, "send_directive", [
+        await runAction(ctx, void 0, "send_directive", [
           "getInfoAction",
-          yield ctx.applyFn(ctx.scope.get("getInfo"), ctx, [])
+          await ctx.applyFn(ctx.scope.get("getInfo"), ctx, [])
         ], []);
       }
       return [{
-          "name": yield ctx.callKRLstdlib("get", [
-            yield ctx.applyFn(ctx.scope.get("getInfo"), ctx, []),
+          "name": await ctx.callKRLstdlib("get", [
+            await ctx.applyFn(ctx.scope.get("getInfo"), ctx, []),
             ["name"]
           ])
         }];
@@ -56,7 +56,7 @@ module.exports = {
       "select": {
         "graph": { "module_defined": { "store_memo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -76,10 +76,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "store_memo",
             {
               "name": ctx.scope.get("configured_name"),
@@ -91,10 +91,10 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "memo", yield ctx.callKRLstdlib("+", [
-          yield ctx.callKRLstdlib("+", [
-            yield ctx.callKRLstdlib("+", [
-              yield ctx.callKRLstdlib("+", [
+        await ctx.modules.set(ctx, "ent", "memo", await ctx.callKRLstdlib("+", [
+          await ctx.callKRLstdlib("+", [
+            await ctx.callKRLstdlib("+", [
+              await ctx.callKRLstdlib("+", [
                 "[\"",
                 ctx.scope.get("text")
               ]),

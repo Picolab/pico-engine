@@ -8,18 +8,18 @@ module.exports = {
       "getUserFirstname"
     ]
   },
-  "global": function* (ctx) {
-    ctx.scope.set("getName", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "name");
+  "global": async function (ctx) {
+    ctx.scope.set("getName", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", "name");
     }));
-    ctx.scope.set("getAppVar", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "app", "appvar");
+    ctx.scope.set("getAppVar", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "app", "appvar");
     }));
-    ctx.scope.set("getUser", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "user");
+    ctx.scope.set("getUser", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", "user");
     }));
-    ctx.scope.set("getUserFirstname", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", {
+    ctx.scope.set("getUserFirstname", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", {
         "key": "user",
         "path": ["firstname"]
       });
@@ -31,7 +31,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -51,10 +51,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "store_name",
             { "name": ctx.scope.get("my_name") }
           ], []);
@@ -63,7 +63,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
+        await ctx.modules.set(ctx, "ent", "name", ctx.scope.get("my_name"));
       }
     },
     "store_appvar": {
@@ -71,7 +71,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "appvar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -91,10 +91,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "store_appvar",
             { "appvar": ctx.scope.get("my_appvar") }
           ], []);
@@ -103,7 +103,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
+        await ctx.modules.set(ctx, "app", "appvar", ctx.scope.get("my_appvar"));
       }
     },
     "store_user_firstname": {
@@ -111,7 +111,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "user_firstname": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -131,10 +131,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "store_user_firstname",
             { "name": ctx.scope.get("firstname") }
           ], []);
@@ -143,8 +143,8 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
-        yield ctx.modules.set(ctx, "ent", {
+        await ctx.modules.set(ctx, "ent", "user", { "lastname": "McCoy" });
+        await ctx.modules.set(ctx, "ent", {
           "key": "user",
           "path": ["firstname"]
         }, ctx.scope.get("firstname"));
@@ -155,7 +155,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "clear_user": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -166,16 +166,16 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["clear_user"], []);
+          await runAction(ctx, void 0, "send_directive", ["clear_user"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.del(ctx, "ent", "user");
+        await ctx.modules.del(ctx, "ent", "user");
       }
     },
     "clear_appvar": {
@@ -183,7 +183,7 @@ module.exports = {
       "select": {
         "graph": { "store": { "clear_appvar": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -194,16 +194,16 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["clear_appvar"], []);
+          await runAction(ctx, void 0, "send_directive", ["clear_appvar"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.del(ctx, "app", "appvar");
+        await ctx.modules.del(ctx, "app", "appvar");
       }
     }
   }

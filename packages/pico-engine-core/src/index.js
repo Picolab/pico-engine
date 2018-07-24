@@ -1,6 +1,6 @@
 var _ = require("lodash");
 var DB = require("./DB");
-var cocb = require("co-callback");
+var util = require("util");
 var cuid = require("cuid");
 var async = require("async");
 var ktypes = require("krl-stdlib/types");
@@ -22,15 +22,27 @@ var ChannelPolicy = require("./ChannelPolicy");
 var RulesetRegistry = require("./RulesetRegistry");
 var normalizeKRLArgs = require("./normalizeKRLArgs");
 
-var applyFn = cocb.wrap(function*(fn, ctx, args){
+function promiseCallback(callback){
+    if(!callback){
+        var promise = new Promise(function (resolve, reject) {
+            callback = function callback (err, value) {
+                err ? reject(err) : resolve(value);
+            };
+        });
+        callback.promise = promise;
+    }
+    return callback;
+}
+
+var applyFn = function(fn, ctx, args){
     if(ktypes.isAction(fn)){
         throw new Error("actions can only be called in the rule action block");
     }
     if( ! ktypes.isFunction(fn)){
         throw new Error("Not a function");
     }
-    return yield fn(ctx, args);
-});
+    return fn(ctx, args);
+};
 
 var log_levels = {
     "info": true,
@@ -39,26 +51,17 @@ var log_levels = {
     "error": true,
 };
 
-var krl_stdlib_wrapped = _.mapValues(krl_stdlib, function(fn, key){
-    if(cocb.isGeneratorFunction(fn)){
-        return cocb.wrap(fn);
-    }
-    return function(){
-        return Promise.resolve(fn.apply(void 0, arguments));
-    };
-});
-
 module.exports = function(conf){
     var db = DB(conf.db);
     _.each(db, function(val, key){
         if(_.isFunction(val)){
-            db[key + "Yieldable"] = cocb.wrap(val);
+            db[key + "Yieldable"] = util.promisify(val);
         }
     });
     var host = conf.host;
     var rootRIDs = _.uniq(_.filter(conf.rootRIDs, _.isString));
     var compileAndLoadRuleset = conf.compileAndLoadRuleset;
-    var compileAndLoadRulesetYieldable = cocb.wrap(compileAndLoadRuleset);
+    var compileAndLoadRulesetYieldable = util.promisify(compileAndLoadRuleset);
 
     var depGraph = new DepGraph();
 
@@ -96,16 +99,14 @@ module.exports = function(conf){
         };
         ctx.mkFunction = function(param_order, fn){
             var fixArgs = _.partial(normalizeKRLArgs, param_order);
-            var pfn = cocb.wrap(fn);
             return function(ctx2, args){
-                return pfn(pushCTXScope(ctx2), fixArgs(args));
+                return fn(pushCTXScope(ctx2), fixArgs(args));
             };
         };
         ctx.mkAction = function(param_order, fn){
             var fixArgs = _.partial(normalizeKRLArgs, param_order);
-            var pfn = cocb.wrap(fn);
             var actionFn = function(ctx2, args){
-                return pfn(pushCTXScope(ctx2), fixArgs(args), runAction);
+                return fn(pushCTXScope(ctx2), fixArgs(args), runAction);
             };
             actionFn.is_an_action = true;
             return actionFn;
@@ -162,11 +163,11 @@ module.exports = function(conf){
             }else{
                 args[0] = ctx;
             }
-            var fn = krl_stdlib_wrapped[fn_name];
-            if(fn===void 0){
+            var fn = krl_stdlib[fn_name];
+            if(fn === void 0){
                 throw new Error("Not an operator: " + fn_name);
             }
-            return fn.apply(void 0, args);
+            return Promise.resolve(fn.apply(void 0, args));
         };
 
         //don't allow anyone to mutate ctx on the fly
@@ -175,7 +176,7 @@ module.exports = function(conf){
     };
     core.mkCTX = mkCTX;
 
-    var initializeRulest = cocb.wrap(function*(rs){
+    var initializeRulest = async function(rs){
         rs.scope = SymbolTable();
         rs.modules_used = {};
         core.rsreg.setupOwnKeys(rs);
@@ -196,16 +197,16 @@ module.exports = function(conf){
                 scope: SymbolTable()
             });
             if(_.isFunction(dep_rs.meta && dep_rs.meta.configure)){
-                yield runKRL(dep_rs.meta.configure, ctx2);
+                await runKRL(dep_rs.meta.configure, ctx2);
             }
             if(_.isFunction(use["with"])){
-                yield runKRL(use["with"], mkCTX({
+                await runKRL(use["with"], mkCTX({
                     rid: rs.rid,//switch rid
                     scope: ctx2.scope//must share scope
                 }));
             }
             if(_.isFunction(dep_rs.global)){
-                yield runKRL(dep_rs.global, ctx2);
+                await runKRL(dep_rs.global, ctx2);
             }
             rs.modules_used[use.alias] = {
                 rid: use.rid,
@@ -219,22 +220,22 @@ module.exports = function(conf){
             scope: rs.scope
         });
         if(_.isFunction(rs.meta && rs.meta.configure)){
-            yield runKRL(rs.meta.configure, ctx);
+            await runKRL(rs.meta.configure, ctx);
         }
         core.rsreg.put(rs);
         if(_.isFunction(rs.global)){
-            yield runKRL(rs.global, ctx);
+            await runKRL(rs.global, ctx);
         }
-    });
+    };
 
 
     core.registerRuleset = function(krl_src, meta_data, callback){
-        cocb.run(function*(){
-            var data = yield db.storeRulesetYieldable(krl_src, meta_data);
+        (async function(){
+            var data = await db.storeRulesetYieldable(krl_src, meta_data);
             var rid = data.rid;
             var hash = data.hash;
 
-            var rs = yield compileAndLoadRulesetYieldable({
+            var rs = await compileAndLoadRulesetYieldable({
                 rid: rid,
                 src: krl_src,
                 hash: hash
@@ -264,8 +265,8 @@ module.exports = function(conf){
                 depGraph.overallOrder();// this will throw if there is a cycle
 
                 // Now enable and initialize it
-                yield db.enableRulesetYieldable(hash);
-                yield initializeRulest(rs);
+                await db.enableRulesetYieldable(hash);
+                await initializeRulest(rs);
 
             }catch(err){
                 core.rsreg.del(rs.rid);
@@ -278,31 +279,35 @@ module.exports = function(conf){
                 rid: rs.rid,
                 hash: hash
             };
-        }, function(err, data){
-            process.nextTick(function(){
-                //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
-                //when infact we are handling the rejection
-                callback(err, data);
+        }())
+            .then(function(data){
+                callback(null, data);
+            })
+            .catch(function(err){
+                process.nextTick(function(){
+                    //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+                    //when infact we are handling the rejection
+                    callback(err);
+                });
             });
-        });
     };
 
-    var picoQ = PicoQueue(function(pico_id, type, data, callback){
+    var picoQ = PicoQueue(function(pico_id, type, data){
         //now handle the next task on the pico queue
         if(type === "event"){
             var event = data;
             event.timestamp = new Date(event.timestamp);//convert from JSON string to date
-            processEvent(core, mkCTX({
+            return processEvent(core, mkCTX({
                 event: event,
                 pico_id: pico_id
-            }), callback);
+            }));
         }else if(type === "query"){
-            processQuery(core, mkCTX({
+            return processQuery(core, mkCTX({
                 query: data,
                 pico_id: pico_id
-            }), callback);
+            }));
         }else{
-            callback(new Error("invalid PicoQueue type:" + type));
+            throw new Error("invalid PicoQueue type:" + type);
         }
     });
 
@@ -379,11 +384,15 @@ module.exports = function(conf){
     };
 
     core.signalEvent = function(event, callback){
+        callback = promiseCallback(callback);
         picoTask("event", event, callback);
+        return callback.promise;
     };
 
     core.runQuery = function(query, callback){
+        callback = promiseCallback(callback);
         picoTask("query", query, callback);
+        return callback.promise;
     };
 
     var registerAllEnabledRulesets = function(callback){
@@ -620,6 +629,7 @@ module.exports = function(conf){
     }
 
     pe.start = function(system_rulesets, callback){
+        callback = promiseCallback(callback);
         async.series([
             db.checkAndRunMigrations,
             function(nextStep){
@@ -683,6 +693,7 @@ module.exports = function(conf){
             },
             resumeScheduler,
         ], callback);
+        return callback.promise;
     };
 
     return pe;

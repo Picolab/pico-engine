@@ -1,20 +1,26 @@
 var _ = require("lodash");
 var DB = require("./DB");
-var cocb = require("co-callback");
+var util = require("util");
 var cuid = require("cuid");
 var test = require("tape");
 var async = require("async");
+var testA = require("../test/helpers/testA");
 var ktypes = require("krl-stdlib/types");
 var memdown = require("memdown");
 var migrations = require("./migrations");
 var ADMIN_POLICY_ID = require("./DB").ADMIN_POLICY_ID;
 
-
 var mkTestDB = function(){
-    return DB({
+    var db = DB({
         db: memdown(cuid()),
         __use_sequential_ids_for_testing: true,
     });
+    _.each(db, function(val, key){
+        if(_.isFunction(val)){
+            db[key + "Yieldable"] = util.promisify(val);
+        }
+    });
+    return db;
 };
 
 test("DB - write and read", function(t){
@@ -207,18 +213,14 @@ test("DB - enableRuleset", function(t){
     ], t.end);
 });
 
-test("DB - read keys that don't exist", function(t){
+testA("DB - read keys that don't exist", async function(t){
     var db = mkTestDB();
 
-    async.series({
-        ent: async.apply(db.getEntVar, "pico0", "rid0", "var that doesn't exisit", null),
-        app: async.apply(db.getAppVar, "rid0", "var that doesn't exisit", null)
-    }, function(err, data){
-        if(err) return t.end(err);
-        t.deepEquals(data.ent, undefined);
-        t.deepEquals(data.app, undefined);
-        t.end();
-    });
+    var ent = await db.getEntVarYieldable("pico0", "rid0", "var that doesn't exisit", null);
+    t.is(ent, undefined);
+
+    var app = await db.getAppVarYieldable("rid0", "var that doesn't exisit", null);
+    t.is(app, undefined);
 });
 
 test("DB - getRootPico", function(t){
@@ -792,203 +794,187 @@ test("DB - assertPicoID", function(t){
 });
 
 
-test("DB - removeChannel", function(t){
+testA("DB - removeChannel", async function(t){
     var db = mkTestDB();
 
-    var assertECIs = function(pico_id, expected_ecis){
-        return function(next){
-            db.listChannels(pico_id, function(err, chans){
-                if(err) return next(err);
+    var assertECIs = async function(pico_id, expected_ecis){
+        var chans = await db.listChannelsYieldable(pico_id);
 
-                var eci_list = _.map(chans, "id");
-                t.deepEquals(eci_list, expected_ecis, "assert the listChannels");
-                t.deepEquals(_.uniq(_.map(chans, "pico_id")), [pico_id], "assert listChannels all come from the same pico_id");
-
-                next();
-            });
-        };
+        var eci_list = _.map(chans, "id");
+        t.is(eci_list, expected_ecis, "assert the listChannels");
+        t.is(_.uniq(_.map(chans, "pico_id")), [pico_id], "assert listChannels all come from the same pico_id");
     };
 
-    var assertFailRemoveECI = function(eci){
-        return function(next){
-            db.removeChannel(eci, function(err){
-                t.equals(err + "", "Error: Cannot delete the pico's admin channel");
-                next();
-            });
-        };
+    var assertFailRemoveECI = async function(eci){
+        try{
+            await db.removeChannelYieldable(eci);
+            t.fail("Should error");
+        }catch(err){
+            t.is(err + "", "Error: Cannot delete the pico's admin channel");
+        }
     };
 
-    async.series([
+    await db.newPicoYieldable({});
+    await assertECIs("id0", ["id1"]);
 
-        async.apply(db.newPico, {}),
-        assertECIs("id0", ["id1"]),
+    await db.newChannelYieldable({pico_id: "id0", name: "two", type: "t"});
+    await assertECIs("id0", ["id1", "id2"]);
 
-        async.apply(db.newChannel, {pico_id: "id0", name: "two", type: "t"}),
-        assertECIs("id0", ["id1", "id2"]),
+    await assertFailRemoveECI("id1");
+    await assertECIs("id0", ["id1", "id2"]);
 
+    await db.removeChannelYieldable("id2");
+    await assertECIs("id0", ["id1"]);
 
-        assertFailRemoveECI("id1"),
-        assertECIs("id0", ["id1", "id2"]),
+    await assertFailRemoveECI("id1");
+    await assertECIs("id0", ["id1"]);
 
-        async.apply(db.removeChannel, "id2"),
-        assertECIs("id0", ["id1"]),
+    await db.newPicoYieldable({parent_id: "id0"});
+    await assertECIs("id3", ["id4"]);
 
-        assertFailRemoveECI("id1"),
-        assertECIs("id0", ["id1"]),
-
-        async.apply(db.newPico, {parent_id: "id0"}),
-        assertECIs("id3", ["id4"]),
-        assertFailRemoveECI("id4"),
-        assertECIs("id3", ["id4"]),
-
-    ], t.end);
+    await assertFailRemoveECI("id4");
+    await assertECIs("id3", ["id4"]);
 });
 
 
-test("DB - persistent variables", function(t){
+testA("DB - persistent variables", async function(t){
     var db = mkTestDB();
 
-    cocb.run(function*(){
-        var putEntVar = _.partial(cocb.wrap(db.putEntVar), "p", "r");
-        var getEntVar = _.partial(cocb.wrap(db.getEntVar), "p", "r");
-        var delEntVar = _.partial(cocb.wrap(db.delEntVar), "p", "r");
-        var toObj = cocb.wrap(db.toObj);
+    var put = _.partial(db.putEntVarYieldable, "p", "r");
+    var get = _.partial(db.getEntVarYieldable, "p", "r");
+    var del = _.partial(db.delEntVarYieldable, "p", "r");
+    var toObj = db.toObjYieldable;
 
-        var data;
+    var data;
 
-        yield putEntVar("foo", null, [1, 2]);
-        data = yield getEntVar("foo", null);
-        t.deepEquals(data, [1, 2]);
-        t.ok(ktypes.isArray(data));
+    await put("foo", null, [1, 2]);
+    data = await get("foo", null);
+    t.deepEquals(data, [1, 2]);
+    t.ok(ktypes.isArray(data));
 
-        yield putEntVar("foo", null, {a: 3, b: 4});
-        data = yield getEntVar("foo", null);
-        t.deepEquals(data, {a: 3, b: 4});
-        t.ok(ktypes.isMap(data));
+    await put("foo", null, {a: 3, b: 4});
+    data = await get("foo", null);
+    t.deepEquals(data, {a: 3, b: 4});
+    t.ok(ktypes.isMap(data));
 
-        yield delEntVar("foo", null);
-        data = yield getEntVar("foo", null);
-        t.deepEquals(data, void 0);
+    await del("foo", null);
+    data = await get("foo", null);
+    t.deepEquals(data, void 0);
 
-        yield putEntVar("foo", null, {one: 11, two: 22});
-        data = yield getEntVar("foo", null);
-        t.deepEquals(data, {one: 11, two: 22});
-        yield putEntVar("foo", null, {one: 11});
-        data = yield getEntVar("foo", null);
-        t.deepEquals(data, {one: 11});
+    await put("foo", null, {one: 11, two: 22});
+    data = await get("foo", null);
+    t.deepEquals(data, {one: 11, two: 22});
+    await put("foo", null, {one: 11});
+    data = await get("foo", null);
+    t.deepEquals(data, {one: 11});
 
-        data = yield getEntVar("foo", "one");
-        t.deepEquals(data, 11);
+    data = await get("foo", "one");
+    t.deepEquals(data, 11);
 
-        yield putEntVar("foo", ["bar", "baz"], {qux: 1});
-        data = yield getEntVar("foo", null);
-        t.deepEquals(data, {one: 11, bar: {baz: {qux: 1}}});
+    await put("foo", ["bar", "baz"], {qux: 1});
+    data = await get("foo", null);
+    t.deepEquals(data, {one: 11, bar: {baz: {qux: 1}}});
 
-        yield putEntVar("foo", ["bar", "asdf"], true);
-        data = yield getEntVar("foo", null);
-        t.deepEquals(data, {one: 11, bar: {
-            baz: {qux: 1},
-            asdf: true,
-        }});
+    await put("foo", ["bar", "asdf"], true);
+    data = await get("foo", null);
+    t.deepEquals(data, {one: 11, bar: {
+        baz: {qux: 1},
+        asdf: true,
+    }});
 
-        yield putEntVar("foo", ["bar", "baz", "qux"], "wat?");
-        data = yield getEntVar("foo", null);
-        t.deepEquals(data, {one: 11, bar: {
-            baz: {qux: "wat?"},
-            asdf: true,
-        }});
-        data = yield getEntVar("foo", ["bar", "baz", "qux"]);
-        t.deepEquals(data, "wat?");
+    await put("foo", ["bar", "baz", "qux"], "wat?");
+    data = await get("foo", null);
+    t.deepEquals(data, {one: 11, bar: {
+        baz: {qux: "wat?"},
+        asdf: true,
+    }});
+    data = await get("foo", ["bar", "baz", "qux"]);
+    t.deepEquals(data, "wat?");
 
 
-        yield delEntVar("foo", "one");
-        data = yield getEntVar("foo", null);
-        t.deepEquals(data, {bar: {baz: {qux: "wat?"}, asdf: true}});
+    await del("foo", "one");
+    data = await get("foo", null);
+    t.deepEquals(data, {bar: {baz: {qux: "wat?"}, asdf: true}});
 
-        yield delEntVar("foo", ["bar", "asdf"]);
-        data = yield getEntVar("foo", null);
-        t.deepEquals(data, {bar: {baz: {qux: "wat?"}}});
+    await del("foo", ["bar", "asdf"]);
+    data = await get("foo", null);
+    t.deepEquals(data, {bar: {baz: {qux: "wat?"}}});
 
-        yield delEntVar("foo", ["bar", "baz", "qux"]);
-        data = yield getEntVar("foo", null);
-        t.deepEquals(data, {});
+    await del("foo", ["bar", "baz", "qux"]);
+    data = await get("foo", null);
+    t.deepEquals(data, {});
 
-        ///////////////////////////////////////////////////////////////////////
-        // how other types are encoded
-        var action = function(){};
-        action.is_an_action = true;
-        yield putEntVar("act", null, action);
-        yield putEntVar("fn", null, _.noop);
-        yield putEntVar("nan", null, NaN);
+    ///////////////////////////////////////////////////////////////////////
+    // how other types are encoded
+    var action = function(){};
+    action.is_an_action = true;
+    await put("act", null, action);
+    await put("fn", null, _.noop);
+    await put("nan", null, NaN);
 
-        var dump = yield toObj();
+    var dump = await toObj();
 
-        t.equals(yield getEntVar("fn", null), "[Function]");
-        t.deepEquals(dump.entvars.p.r.fn, {
-            type: "String",
-            value: "[Function]",
-        });
+    t.equals(await get("fn", null), "[Function]");
+    t.deepEquals(dump.entvars.p.r.fn, {
+        type: "String",
+        value: "[Function]",
+    });
 
-        t.equals(yield getEntVar("act", null), "[Action]");
-        t.deepEquals(dump.entvars.p.r.act, {
-            type: "String",
-            value: "[Action]",
-        });
+    t.equals(await get("act", null), "[Action]");
+    t.deepEquals(dump.entvars.p.r.act, {
+        type: "String",
+        value: "[Action]",
+    });
 
-        t.equals(yield getEntVar("nan", null), null);
-        t.deepEquals(dump.entvars.p.r.nan, {
-            type: "Null",
-            value: null,
-        });
-
-    }, t.end);
+    t.equals(await get("nan", null), null);
+    t.deepEquals(dump.entvars.p.r.nan, {
+        type: "Null",
+        value: null,
+    });
 });
 
-test("DB - persistent variables array/map", function(t){
+testA("DB - persistent variables array/map", async function(t){
     var db = mkTestDB();
-    cocb.run(function*(){
-        var put = _.partial(cocb.wrap(db.putEntVar), "p", "r");
-        var get = _.partial(cocb.wrap(db.getEntVar), "p", "r");
-        var del = _.partial(cocb.wrap(db.delEntVar), "p", "r");
-        var toObj = cocb.wrap(db.toObj);
-        var toJson = JSON.stringify;
+    var put = _.partial(db.putEntVarYieldable, "p", "r");
+    var get = _.partial(db.getEntVarYieldable, "p", "r");
+    var del = _.partial(db.delEntVarYieldable, "p", "r");
+    var toObj = db.toObjYieldable;
+    var toJson = JSON.stringify;
 
-        var tst = function*(name, type, value, msg){
-            var val = toJson(value);
-            t.equals(toJson((yield toObj()).entvars.p.r[name]), "{\"type\":\""+type+"\",\"value\":"+val+"}", msg);
-            t.equals(toJson(yield get(name)), val, msg);
-        };
+    var tst = async function(name, type, value, msg){
+        var val = toJson(value);
+        t.equals(toJson((await toObj()).entvars.p.r[name]), "{\"type\":\""+type+"\",\"value\":"+val+"}", msg);
+        t.equals(toJson(await get(name, null)), val, msg);
+    };
 
-        yield put("foo", [0], "aaa");
-        yield put("foo", [1], "bbb");
-        yield tst("foo", "Array", ["aaa", "bbb"], "`foo` is infered to be an array based on the int index");
+    await put("foo", [0], "aaa");
+    await put("foo", [1], "bbb");
+    await tst("foo", "Array", ["aaa", "bbb"], "`foo` is infered to be an array based on the int index");
 
-        // Now should change to a map b/c the key is not an int index
-        yield put("foo", ["wat"], "da");
-        yield tst("foo", "Map", {0: "aaa", 1: "bbb", wat: "da"}, "`foo` is now a map");
+    // Now should change to a map b/c the key is not an int index
+    await put("foo", ["wat"], "da");
+    await tst("foo", "Map", {0: "aaa", 1: "bbb", wat: "da"}, "`foo` is now a map");
 
-        // once a map, always a map
-        yield del("foo", ["wat"]);
-        yield tst("foo", "Map", {0: "aaa", 1: "bbb"}, "`foo` is still a map");
-        yield put("foo", [2], "ccc");
-        yield tst("foo", "Map", {0: "aaa", 1: "bbb", 2: "ccc"}, "`foo` is still a map");
+    // once a map, always a map
+    await del("foo", ["wat"]);
+    await tst("foo", "Map", {0: "aaa", 1: "bbb"}, "`foo` is still a map");
+    await put("foo", [2], "ccc");
+    await tst("foo", "Map", {0: "aaa", 1: "bbb", 2: "ccc"}, "`foo` is still a map");
 
-        // infered as map if it's a string
-        yield put("bar", ["0"], "aaa");
-        yield tst("bar", "Map", {0: "aaa"}, "`bar` is a map since the first key was a string");
+    // infered as map if it's a string
+    await put("bar", ["0"], "aaa");
+    await tst("bar", "Map", {0: "aaa"}, "`bar` is a map since the first key was a string");
 
-        // infered as an Array b/c the key is a positive integer
-        yield put("baz", [2], "ccc");
-        yield tst("baz", "Array", [null, null, "ccc"], "`baz` is an Array");
+    // infered as an Array b/c the key is a positive integer
+    await put("baz", [2], "ccc");
+    await tst("baz", "Array", [null, null, "ccc"], "`baz` is an Array");
 
-        // now it's a map b/c the key is a string
-        yield put("baz", ["1"], "bbb");
-        yield tst("baz", "Map", {1: "bbb", 2: "ccc"}, "`baz` is now a Map");
+    // now it's a map b/c the key is a string
+    await put("baz", ["1"], "bbb");
+    await tst("baz", "Map", {1: "bbb", 2: "ccc"}, "`baz` is now a Map");
 
 
-        // initialzed as array should db dump as an array
-        yield put("qux", null, ["aaa"]);
-        yield tst("qux", "Array", ["aaa"], "`qux` is an Array");
-
-    }, t.end);
+    // initialzed as array should db dump as an array
+    await put("qux", null, ["aaa"]);
+    await tst("qux", "Array", ["aaa"], "`qux` is an Array");
 });

@@ -1,9 +1,9 @@
 module.exports = {
   "rid": "io.picolabs.guard-conditions",
   "meta": { "shares": ["getB"] },
-  "global": function* (ctx) {
-    ctx.scope.set("getB", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "b");
+  "global": async function (ctx) {
+    ctx.scope.set("getB", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", "b");
     }));
   },
   "rules": {
@@ -12,7 +12,7 @@ module.exports = {
       "select": {
         "graph": { "foo": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -32,10 +32,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "foo",
             { "b": ctx.scope.get("b") }
           ], []);
@@ -44,11 +44,11 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        if (yield ctx.callKRLstdlib("match", [
+        if (await ctx.callKRLstdlib("match", [
             ctx.scope.get("b"),
             new RegExp("foo", "")
           ]))
-          yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
+          await ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
       }
     },
     "bar": {
@@ -56,7 +56,7 @@ module.exports = {
       "select": {
         "graph": { "bar": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -67,7 +67,7 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var foreach0_pairs = toPairs([
           1,
           2,
@@ -80,11 +80,11 @@ module.exports = {
           ctx.scope.set("x", foreach0_pairs[foreach0_i][1]);
           var fired = true;
           if (fired) {
-            yield runAction(ctx, void 0, "send_directive", [
+            await runAction(ctx, void 0, "send_directive", [
               "bar",
               {
                 "x": ctx.scope.get("x"),
-                "b": yield ctx.modules.get(ctx, "ent", "b")
+                "b": await ctx.modules.get(ctx, "ent", "b")
               }
             ], []);
           }
@@ -93,7 +93,7 @@ module.exports = {
           else
             ctx.emit("debug", "not fired");
           if (typeof foreach_is_final === "undefined" || foreach_is_final)
-            yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
+            await ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
         }
       }
     },
@@ -102,7 +102,7 @@ module.exports = {
       "select": {
         "graph": { "on_final_no_foreach": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -113,11 +113,11 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("x", yield ctx.applyFn(yield ctx.modules.get(ctx, "event", "attr"), ctx, ["x"]));
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("x", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["x"]));
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "on_final_no_foreach",
             { "x": ctx.scope.get("x") }
           ], []);
@@ -127,7 +127,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (typeof foreach_is_final === "undefined" || foreach_is_final)
-          yield ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
+          await ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
       }
     }
   }
