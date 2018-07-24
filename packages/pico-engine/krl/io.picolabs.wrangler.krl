@@ -481,6 +481,12 @@ ruleset io.picolabs.wrangler {
       raise wrangler event "finish_initialization"
         attributes event:attrs
     }
+    finally {
+      ent:parent_eci := event:attr("parent_eci");
+      ent:name := event:attr("name");
+      ent:id := event:attr("id");
+      ent:eci := event:attr("eci");
+    }
   }
 
   rule finish_child_initialization {
@@ -489,10 +495,6 @@ ruleset io.picolabs.wrangler {
                    "domain": "wrangler", "type": "child_initialized",
                    "attrs" : event:attrs })
     always {
-      ent:parent_eci := event:attr("parent_eci");
-      ent:name := event:attr("name");
-      ent:id := event:attr("id");
-      ent:eci := event:attr("eci");
       raise visual event "update"
         attributes event:attr("rs_attrs").put("dname",event:attr("name"))
     }
