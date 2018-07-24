@@ -42,11 +42,11 @@ var onAmbiguousProgram = function(src){
     console.log(str);
 };
 
-var n_tests = 10000;
+var nTests = 10000;
 var n;
-for(n=0; n < n_tests; n++){//eslint-disable-line
+for(n=0; n < nTests; n++){//eslint-disable-line
     if(n % 500 === 0){
-        console.log(_.padStart(n + "", 10), "/", n_tests);
+        console.log(_.padStart(n + "", 10), "/", nTests);
     }
     var src = unparse({
         always_semicolons: true,
@@ -54,7 +54,7 @@ for(n=0; n < n_tests; n++){//eslint-disable-line
     try{
         parser(src);
     }catch(e){
-        console.log("FAILED", n, "/", n_tests);
+        console.log("FAILED", n, "/", nTests);
         if(/Parsing Ambiguity/.test(e + "")){
             onAmbiguousProgram(src);
             console.error(e + "");//don't print the whole stack trace
@@ -65,4 +65,4 @@ for(n=0; n < n_tests; n++){//eslint-disable-line
         }
     }
 }
-console.log("DONE!", n_tests);
+console.log("DONE!", nTests);

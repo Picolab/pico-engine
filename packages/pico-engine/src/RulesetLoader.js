@@ -3,13 +3,13 @@ var fs = require("fs");
 var path = require("path");
 var mkdirp = require("mkdirp");
 var compiler = require("krl-compiler");
-var version_key = [
+var versionKey = [
     require("pico-engine-core/package.json").version,
     require("krl-compiler/package.json").version
 ].join("-");
 
-var fsExist = function(file_path, callback){
-    fs.stat(file_path, function(err, stats){
+var fsExist = function(filePath, callback){
+    fs.stat(filePath, function(err, stats){
         if(err){
             if(err.code === "ENOENT"){
                 return callback(undefined, false);
@@ -21,10 +21,10 @@ var fsExist = function(file_path, callback){
     });
 };
 
-var storeFile = function(file_path, src, callback){
-    mkdirp(path.dirname(file_path), function(err){
+var storeFile = function(filePath, src, callback){
+    mkdirp(path.dirname(filePath), function(err){
         if(err) return callback(err);
-        fs.writeFile(file_path, src, {
+        fs.writeFile(filePath, src, {
             encoding: "utf8"
         }, callback);
     });
@@ -32,31 +32,31 @@ var storeFile = function(file_path, src, callback){
 
 
 module.exports = function(conf){
-    var rulesets_dir = conf.rulesets_dir;
+    var rulesetsDir = conf.rulesets_dir;
     var onWarning = conf.onWarning || _.noop;
 
-    return function(rs_info, callback){
-        var hash = rs_info.hash;
-        var krl_src = rs_info.src;
+    return function(rsInfo, callback){
+        var hash = rsInfo.hash;
+        var krlSrc = rsInfo.src;
 
         var file = path.resolve(
-            rulesets_dir,
-            version_key,
+            rulesetsDir,
+            versionKey,
             hash.substr(0, 2),
             hash.substr(2, 2),
             hash + ".js"
         );
-        fsExist(file, function(err, does_exist){
+        fsExist(file, function(err, doesExist){
             if(err) return callback(err);
-            if(does_exist){
+            if(doesExist){
                 callback(undefined, require(file));
                 return;
             }
             var out;
             try{
-                out = compiler(krl_src, {
+                out = compiler(krlSrc, {
                     parser_options: {
-                        filename: rs_info.filename,
+                        filename: rsInfo.filename,
                     },
                     inline_source_map: true
                 });

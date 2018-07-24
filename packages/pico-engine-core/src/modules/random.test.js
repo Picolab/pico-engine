@@ -2,9 +2,9 @@ var test = require("tape");
 var ktypes = require("krl-stdlib/types");
 var krandom = require("./random")().def;
 
-var assertNumRange = function(n, low, high, should_be_int){
+var assertNumRange = function(n, low, high, shouldBeInt){
     if(ktypes.isNumber(n) && (n >= low) && (n <= high)){
-        if(should_be_int && (n % 1 !== 0)){
+        if(shouldBeInt && (n % 1 !== 0)){
             throw new Error("not an int: " + n);
         }
         return true;

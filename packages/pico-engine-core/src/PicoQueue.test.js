@@ -11,18 +11,18 @@ test("PicoQueue", function(t){
 
     var log = [];
 
-    var pq = PicoQueue(async function(pico_id, type, data){
-        log.push("working_0 [" + pico_id + "] " + data);
+    var pq = PicoQueue(async function(picoId, type, data){
+        log.push("working_0 [" + picoId + "] " + data);
         await nextTick();
-        log.push("working_1 [" + pico_id + "] " + data);
+        log.push("working_1 [" + picoId + "] " + data);
         await nextTick();
-        log.push("working_2 [" + pico_id + "] " + data);
+        log.push("working_2 [" + picoId + "] " + data);
     });
 
-    var enqueue = function(pico_id, data, done){
-        log.push("enqueue [" + pico_id + "] " + data);
-        pq.enqueue(pico_id, "test", data, function(){
-            log.push("done [" + pico_id + "] " + data);
+    var enqueue = function(picoId, data, done){
+        log.push("enqueue [" + picoId + "] " + data);
+        pq.enqueue(picoId, "test", data, function(){
+            log.push("done [" + picoId + "] " + data);
             if(done){
                 done();
             }
@@ -61,7 +61,7 @@ test("PicoQueue", function(t){
 });
 
 test("PicoQueue - error", function(t){
-    var pq = PicoQueue(async function(pico_id, type, data){
+    var pq = PicoQueue(async function(picoId, type, data){
         await nextTick();
         if(data === "foobar"){
             throw new Error(data);

@@ -7,9 +7,9 @@ var isBlank = function(str){
 };
 
 var assertOnlyAllowedProperties = function(name, obj, allowed){
-    var extra_props = _.difference(_.keys(obj), allowed);
-    if(extra_props.length > 0){
-        throw new Error(name + " does not support properties: " + extra_props.join(", "));
+    var extraProps = _.difference(_.keys(obj), allowed);
+    if(extraProps.length > 0){
+        throw new Error(name + " does not support properties: " + extraProps.join(", "));
     }
 };
 
@@ -22,18 +22,18 @@ var cleanEventRules = function(rules){
     if( ! _.isArray(rules)){
         throw new Error("`policy.event.<allow|deny>` must be an Array of rules");
     }
-    return _.map(rules, function(rule_orig){
-        if( ! ktypes.isMap(rule_orig)){
-            throw new Error("Policy rules must be Maps, not " + ktypes.typeOf(rule_orig));
+    return _.map(rules, function(ruleOrig){
+        if( ! ktypes.isMap(ruleOrig)){
+            throw new Error("Policy rules must be Maps, not " + ktypes.typeOf(ruleOrig));
         }
-        assertOnlyAllowedProperties("Policy.event rule", rule_orig, ["domain", "type"]);
+        assertOnlyAllowedProperties("Policy.event rule", ruleOrig, ["domain", "type"]);
 
         var rule = {};
-        if(!isBlank(rule_orig.domain)){
-            rule.domain = rule_orig.domain.trim();
+        if(!isBlank(ruleOrig.domain)){
+            rule.domain = ruleOrig.domain.trim();
         }
-        if(!isBlank(rule_orig.type)){
-            rule.type = rule_orig.type.trim();
+        if(!isBlank(ruleOrig.type)){
+            rule.type = ruleOrig.type.trim();
         }
         return rule;
     });
@@ -47,18 +47,18 @@ var cleanQueryRules = function(rules){
     if( ! _.isArray(rules)){
         throw new Error("`policy.query.<allow|deny>` must be an Array of rules");
     }
-    return _.map(rules, function(rule_orig){
-        if( ! ktypes.isMap(rule_orig)){
-            throw new Error("Policy rules must be Maps, not " + ktypes.typeOf(rule_orig));
+    return _.map(rules, function(ruleOrig){
+        if( ! ktypes.isMap(ruleOrig)){
+            throw new Error("Policy rules must be Maps, not " + ktypes.typeOf(ruleOrig));
         }
-        assertOnlyAllowedProperties("Policy.query rule", rule_orig, ["rid", "name"]);
+        assertOnlyAllowedProperties("Policy.query rule", ruleOrig, ["rid", "name"]);
 
         var rule = {};
-        if(!isBlank(rule_orig.rid)){
-            rule.rid = rule_orig.rid.trim();
+        if(!isBlank(ruleOrig.rid)){
+            rule.rid = ruleOrig.rid.trim();
         }
-        if(!isBlank(rule_orig.name)){
-            rule.name = rule_orig.name.trim();
+        if(!isBlank(ruleOrig.name)){
+            rule.name = ruleOrig.name.trim();
         }
         return rule;
     });

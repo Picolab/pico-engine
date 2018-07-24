@@ -2,7 +2,7 @@ var _ = require("lodash");
 var ktypes = require("krl-stdlib/types");
 var mkKRLaction = require("./mkKRLaction");
 
-var send_directive = mkKRLaction([
+var sendDirective = mkKRLaction([
     "name",
     "options",
 ], function(ctx, args, callback){
@@ -41,7 +41,7 @@ module.exports = async function runAction(ctx, domain, id, args, setting){
         }
         returns = await definedAction(ctx, args);
     }else if(id === "send_directive" || id === "sendDirective"){
-        returns = await send_directive(ctx, args);
+        returns = await sendDirective(ctx, args);
     }else{
         throw new Error("`" + id + "` is not defined");
     }

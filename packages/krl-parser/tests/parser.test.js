@@ -4,11 +4,11 @@ var rmLoc = require("./rmLoc");
 var parser = require("../");
 var normalizeAST = require("./normalizeASTForTestCompare");
 
-var parseRuleBody = function(rule_body, expected){
+var parseRuleBody = function(ruleBody, expected){
     var src = "";
     src += "ruleset rs {\n";
     src += "  rule r1 {\n";
-    src += "    " + rule_body + "\n";
+    src += "    " + ruleBody + "\n";
     src += "  }\n";
     src += "}";
     return parser(src).rules[0];
@@ -245,8 +245,8 @@ test("parser", function(t){
 });
 
 test("select when", function(t){
-    var asertRuleAST = function(rule_body, expected){
-        var ast = parseRuleBody(rule_body);
+    var asertRuleAST = function(ruleBody, expected){
+        var ast = parseRuleBody(ruleBody);
         t.ok(ast.select.kind === "when");
         t.deepEquals(rmLoc(ast.select.event), expected);
     };
@@ -297,13 +297,13 @@ test("select when", function(t){
 });
 
 test("ActionBlock", function(t){
-    var tstActionBlock = function(ab_src, expected){
-        var src = "ruleset rs{global{a = defaction(){"+ ab_src +"}}rule r1{select when foo bar "+ab_src+"}}";
+    var tstActionBlock = function(abSrc, expected){
+        var src = "ruleset rs{global{a = defaction(){"+ abSrc +"}}rule r1{select when foo bar "+abSrc+"}}";
         var ast = normalizeAST(rmLoc(parser(src)));
-        var exp_ast = normalizeAST(expected);
+        var expAst = normalizeAST(expected);
 
-        t.deepEquals(ast.global[0].action_block, exp_ast);
-        t.deepEquals(ast.rules[0].action_block, exp_ast);
+        t.deepEquals(ast.global[0].action_block, expAst);
+        t.deepEquals(ast.rules[0].action_block, expAst);
     };
 
     var src ="send_directive(\"say\")";
@@ -1069,8 +1069,8 @@ test("expressions", function(t){
 });
 
 test("EventExpression", function(t){
-    var testEE = function(rule_body, expected){
-        var ast = normalizeAST(rmLoc(parseRuleBody("select when " + rule_body + " noop();")));
+    var testEE = function(ruleBody, expected){
+        var ast = normalizeAST(rmLoc(parseRuleBody("select when " + ruleBody + " noop();")));
         t.deepEquals(ast.select.event, normalizeAST(expected));
     };
 
@@ -1249,8 +1249,8 @@ test("EventExpression", function(t){
         mk.ee("c", "d")
     ]));
 
-    var testWithin = function(rule_body, expected){
-        var ast = normalizeAST(rmLoc(parseRuleBody("select when " + rule_body)));
+    var testWithin = function(ruleBody, expected){
+        var ast = normalizeAST(rmLoc(parseRuleBody("select when " + ruleBody)));
         t.deepEquals(ast.select, normalizeAST(expected));
     };
 
@@ -1289,12 +1289,12 @@ test("EventExpression", function(t){
 });
 
 test("RulesetID", function(t){
-    var testName = function(name, is_valid){
+    var testName = function(name, isValid){
         try{
             parser("ruleset " + name + " {}");
-            t.ok(is_valid);
+            t.ok(isValid);
         }catch(e){
-            t.ok(!is_valid);
+            t.ok(!isValid);
         }
     };
     testName("io.picolabs.some-thing", true);
@@ -1309,8 +1309,8 @@ test("RulesetID", function(t){
 });
 
 test("Ruleset meta", function(t){
-    var testMeta = function(meta_body, expected){
-        var src = "ruleset rs{meta{" + meta_body + "}}";
+    var testMeta = function(metaBody, expected){
+        var src = "ruleset rs{meta{" + metaBody + "}}";
         var ast = normalizeAST(rmLoc(parser(src)));
         t.deepEquals(ast.meta, {
             type: "RulesetMeta",
@@ -1461,8 +1461,8 @@ test("Ruleset meta", function(t){
 });
 
 test("Rule prelude", function(t){
-    var testPre = function(pre_body, expected){
-        var src = "ruleset rs{rule r1{pre{" + pre_body + "}}}";
+    var testPre = function(preBody, expected){
+        var src = "ruleset rs{rule r1{pre{" + preBody + "}}}";
         var ast = normalizeAST(rmLoc(parser(src)));
         t.deepEquals(ast.rules[0].prelude, normalizeAST(expected));
     };
@@ -1614,11 +1614,11 @@ test("RulePostlude", function(t){
 });
 
 test("ruleset global declarations", function(t){
-    var testGlobal = function(global_body, expected){
+    var testGlobal = function(globalBody, expected){
         var src = [
             "ruleset rs {",
             "  global {",
-            "    " + global_body,
+            "    " + globalBody,
             "  }",
             "}"
         ].join("\n");
@@ -1685,16 +1685,16 @@ test("parse errors", function(t){
 
 test("no ambiguity!", function(t){
     //run $ node tests/ambiguityFinder.js to help you find them
-    var testAmb = function(src, should_be_no_parsing){
+    var testAmb = function(src, shouldBeNoParsing){
         try{
             parser(src);
-            if(should_be_no_parsing){
-                t.fail("should_be_no_parsing");
+            if(shouldBeNoParsing){
+                t.fail("shouldBeNoParsing");
                 return;
             }
             t.ok(true);
         }catch(e){
-            if(should_be_no_parsing && /No possible parsings/i.test(e + "")){
+            if(shouldBeNoParsing && /No possible parsings/i.test(e + "")){
                 //this is ok b/c it is not ambiguous
                 t.ok(true);
             }else{
@@ -1809,8 +1809,8 @@ test("DomainIdentifier", function(t){
 
 test("PersistentVariableAssignment", function(t){
 
-    var testPostlude = function(src_core, expected){
-        var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+    var testPostlude = function(srcCore, expected){
+        var src = "ruleset rs{rule a{ fired{" + srcCore + "}}}";
         var ast = parser(src).rules[0].postlude.fired;
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
@@ -1845,8 +1845,8 @@ test("PersistentVariableAssignment", function(t){
 });
 
 test("ClearPersistentVariable", function(t){
-    var testPostlude = function(src_core, expected){
-        var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+    var testPostlude = function(srcCore, expected){
+        var src = "ruleset rs{rule a{ fired{" + srcCore + "}}}";
         var ast = parser(src).rules[0].postlude.fired;
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
@@ -1894,8 +1894,8 @@ test("ClearPersistentVariable", function(t){
 
 test("raise event", function(t){
 
-    var testPostlude = function(src_core, expected){
-        var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+    var testPostlude = function(srcCore, expected){
+        var src = "ruleset rs{rule a{ fired{" + srcCore + "}}}";
         var ast = parser(src).rules[0].postlude.fired;
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
@@ -1934,8 +1934,8 @@ test("raise event", function(t){
 });
 
 test("select when ... foreach ...", function(t){
-    var tst = function(rule_body, expected){
-        var ast = parseRuleBody(rule_body);
+    var tst = function(ruleBody, expected){
+        var ast = parseRuleBody(ruleBody);
         t.deepEquals(rmLoc(ast.foreach), expected);
     };
 
@@ -2054,13 +2054,13 @@ test("GuardCondition", function(t){
 });
 
 test("DefAction", function(t){
-    var tstDA = function(da_src, expected){
-        var src = "ruleset rs{global{"+ da_src +"}rule r1{pre{"+da_src+"}}}";
+    var tstDA = function(daSrc, expected){
+        var src = "ruleset rs{global{"+ daSrc +"}rule r1{pre{"+daSrc+"}}}";
         var ast = normalizeAST(rmLoc(parser(src)));
-        var exp_ast = normalizeAST(expected);
+        var expAst = normalizeAST(expected);
 
-        t.deepEquals(ast.global, exp_ast);
-        t.deepEquals(ast.rules[0].prelude, exp_ast);
+        t.deepEquals(ast.global, expAst);
+        t.deepEquals(ast.rules[0].prelude, expAst);
     };
 
     tstDA("a = defaction(){send_directive(\"foo\")}", [
@@ -2316,8 +2316,8 @@ test("with", function(t){
 });
 
 test("LogStatement", function(t){
-    var testPostlude = function(src_core, expected){
-        var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+    var testPostlude = function(srcCore, expected){
+        var src = "ruleset rs{rule a{ fired{" + srcCore + "}}}";
         var ast = parser(src).rules[0].postlude.fired;
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
@@ -2338,8 +2338,8 @@ test("LogStatement", function(t){
 });
 
 test("ErrorStatement", function(t){
-    var testPostlude = function(src_core, expected){
-        var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+    var testPostlude = function(srcCore, expected){
+        var src = "ruleset rs{rule a{ fired{" + srcCore + "}}}";
         var ast = parser(src).rules[0].postlude.fired;
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
@@ -2372,13 +2372,13 @@ test("ErrorStatement", function(t){
 });
 
 test("Action setting", function(t){
-    var testAction = function(src_action, expected){
-        var src = "ruleset rs{rule r1{select when a b "+src_action+"}}";
+    var testAction = function(srcAction, expected){
+        var src = "ruleset rs{rule r1{select when a b "+srcAction+"}}";
         var ast = parser(src).rules[0].action_block.actions[0];
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
 
         //test it also in defaction
-        src = "ruleset rs{global{a=defaction(){"+src_action+"}}}";
+        src = "ruleset rs{global{a=defaction(){"+srcAction+"}}}";
         ast = parser(src).global[0].action_block.actions[0];
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
@@ -2418,8 +2418,8 @@ test("Action setting", function(t){
 
 test("schedule event", function(t){
 
-    var testPostlude = function(src_core, expected){
-        var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+    var testPostlude = function(srcCore, expected){
+        var src = "ruleset rs{rule a{ fired{" + srcCore + "}}}";
         var ast = parser(src).rules[0].postlude.fired;
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
@@ -2516,8 +2516,8 @@ test("schedule event", function(t){
 });
 
 test("LastStatement", function(t){
-    var testPostlude = function(src_core, expected){
-        var src = "ruleset rs{rule a{ fired{" + src_core + "}}}";
+    var testPostlude = function(srcCore, expected){
+        var src = "ruleset rs{rule a{ fired{" + srcCore + "}}}";
         var ast = parser(src).rules[0].postlude.fired;
         t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected));
     };
@@ -2546,17 +2546,17 @@ test("LastStatement", function(t){
 });
 
 test("Parameters", function(t){
-    var tstParams = function(params_src, expected){
+    var tstParams = function(paramsSrc, expected){
         var src = "ruleset rs{global{";
-        src += " a = defaction(" + params_src + "){noop()}; ";
-        src += " b = function(" + params_src + "){}; ";
+        src += " a = defaction(" + paramsSrc + "){noop()}; ";
+        src += " b = function(" + paramsSrc + "){}; ";
         src += "}}";
 
         var ast = normalizeAST(rmLoc(parser(src)));
-        var exp_ast = mk.params(normalizeAST(expected));
+        var expAst = mk.params(normalizeAST(expected));
 
-        t.deepEquals(ast.global[0].params, exp_ast);
-        t.deepEquals(ast.global[1].right.params, exp_ast);
+        t.deepEquals(ast.global[0].params, expAst);
+        t.deepEquals(ast.global[1].right.params, expAst);
     };
 
     tstParams(" asdf ", [

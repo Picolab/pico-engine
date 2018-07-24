@@ -26,21 +26,21 @@ var StateMachine = function(){
     var start = _.uniqueId("state_");
     var end = _.uniqueId("state_");
     var transitions = [];
-    var join = function(state_1, state_2){
+    var join = function(state1, state2){
         _.each(transitions, function(t){
-            if(t[0] === state_1){
-                t[0] = state_2;
+            if(t[0] === state1){
+                t[0] = state2;
             }
-            if(t[2] === state_1){
-                t[2] = state_2;
+            if(t[2] === state1){
+                t[2] = state2;
             }
         });
     };
     return {
         start: start,
         end: end,
-        add: function(from_state, on_event, to_state){
-            transitions.push([from_state, on_event, to_state]);
+        add: function(fromState, onEvent, toState){
+            transitions.push([fromState, onEvent, toState]);
         },
         getTransitions: function(){
             return transitions;
@@ -52,8 +52,8 @@ var StateMachine = function(){
         },
         join: join,
         optimize: function(){
-            var toTarget = function(sub_tree){
-                return _.uniqWith(_.compact(_.map(sub_tree, function(o){
+            var toTarget = function(subTree){
+                return _.uniqWith(_.compact(_.map(subTree, function(o){
                     var targets = _.keys(o);
                     if(_.size(targets) > 1){
                         targets.sort();
@@ -62,31 +62,31 @@ var StateMachine = function(){
                 })), _.isEqual);
             };
 
-            var tree, to_merge;
+            var tree, toMerge;
             // eslint-disable-next-line no-constant-condition
             while(true){
                 tree = {};
                 _.each(transitions, function(t){
                     _.set(tree, [JSON.stringify(t[1]), t[0], t[2]], true);
                 });
-                to_merge = _.flatten(_.map(tree, function(sub_tree){
-                    return _.uniqWith(toTarget(sub_tree), _.isEqual);
+                toMerge = _.flatten(_.map(tree, function(subTree){
+                    return _.uniqWith(toTarget(subTree), _.isEqual);
                 }));
-                if(_.isEmpty(to_merge)){
+                if(_.isEmpty(toMerge)){
                     break;
                 }
-                _.each(to_merge, function(states){
-                    var to_state = _.head(states);
-                    _.each(_.tail(states), function(from_state){
-                        join(from_state, to_state);
+                _.each(toMerge, function(states){
+                    var toState = _.head(states);
+                    _.each(_.tail(states), function(fromState){
+                        join(fromState, toState);
                     });
                 });
             }
             transitions = [];
-            _.each(tree, function(sub_tree, on_event){
-                _.each(sub_tree, function(asdf, from_state){
-                    _.each(asdf, function(bool, to_state){
-                        transitions.push([from_state, JSON.parse(on_event), to_state]);
+            _.each(tree, function(subTree, onEvent){
+                _.each(subTree, function(asdf, fromState){
+                    _.each(asdf, function(bool, toState){
+                        transitions.push([fromState, JSON.parse(onEvent), toState]);
                     });
                 });
             });
@@ -94,17 +94,17 @@ var StateMachine = function(){
         compile: function(){
             // we want to ensure we get the same output on every compile
             // that is why we are re-naming states and sorting the output
-            var out_states = {};
-            out_states[start] = "start";
-            out_states[end] = "end";
+            var outStates = {};
+            outStates[start] = "start";
+            outStates[end] = "end";
             var i = 0;
             var toOutState = function(state){
-                if(_.has(out_states, state)){
-                    return out_states[state];
+                if(_.has(outStates, state)){
+                    return outStates[state];
                 }
-                return out_states[state] = "s" + (i++);
+                return outStates[state] = "s" + (i++);
             };
-            var out_transitions = _.sortBy(_.map(transitions, function(t){
+            var outTransitions = _.sortBy(_.map(transitions, function(t){
                 return [toOutState(t[0]), t[1], toOutState(t[2])];
             }), function(t){
                 var score = 0;
@@ -120,7 +120,7 @@ var StateMachine = function(){
                 return score;
             });
             var stm = {};
-            _.each(out_transitions, function(t){
+            _.each(outTransitions, function(t){
                 if(!_.has(stm, t[0])){
                     stm[t[0]] = [];
                 }
@@ -135,7 +135,7 @@ var toLispArgs = function(ast, traverse){
     return _.map(ast.args, traverse);
 };
 
-var event_ops = {
+var eventOps = {
     "before": {
         toLispArgs: toLispArgs,
         mkStateMachine: function(args, evalEELisp){
@@ -189,7 +189,7 @@ var event_ops = {
         mkStateMachine: function(args, evalEELisp){
             var s = StateMachine();
 
-            var merge_points = [];
+            var mergePoints = [];
             var prev;
             _.each(args, function(arg, j){
                 var a = evalEELisp(arg);
@@ -202,20 +202,20 @@ var event_ops = {
                 }
                 if(prev){
                     s.join(prev.end, a.start);
-                    merge_points.push(a.start);
+                    mergePoints.push(a.start);
                 }
                 prev = a;
             });
 
             var transitions = s.getTransitions();
-            _.each(merge_points, function(da_state){
-                //if not da_state return to start
-                var not_b = wrapInOr(_.uniq(_.compact(_.map(transitions, function(t){
-                    if(t[0] === da_state){
+            _.each(mergePoints, function(daState){
+                //if not daState return to start
+                var notB = wrapInOr(_.uniq(_.compact(_.map(transitions, function(t){
+                    if(t[0] === daState){
                         return ["not", t[1]];
                     }
                 }))));
-                s.add(da_state, not_b, s.start);
+                s.add(daState, notB, s.start);
             });
 
             return s;
@@ -319,11 +319,11 @@ var event_ops = {
             var num = _.head(args);
             var eventexs = _.tail(args);
 
-            var indices_groups = _.uniqWith(_.map(permute(_.range(0, _.size(eventexs))), function(indices){
+            var indicesGroups = _.uniqWith(_.map(permute(_.range(0, _.size(eventexs))), function(indices){
                 return _.take(indices, num);
             }), _.isEqual);
 
-            _.each(indices_groups, function(indices){
+            _.each(indicesGroups, function(indices){
                 indices = _.take(indices, num);
                 var prev;
                 _.each(indices, function(i, j){
@@ -411,14 +411,14 @@ module.exports = function(ast, comp, e){
     if(ast.kind !== "when"){
         throw new Error("RuleSelect.kind not supported: " + ast.kind);
     }
-    var ee_id = 0;
+    var eeId = 0;
     var graph = {};
     var eventexprs = {};
 
     var onEE = function(ast){
         var domain = ast.event_domain.value;
         var type = ast.event_type.value;
-        var id = "expr_" + (ee_id++);
+        var id = "expr_" + (eeId++);
 
         _.set(graph, [domain, type, id], true);
 
@@ -430,13 +430,13 @@ module.exports = function(ast, comp, e){
         if(ast.type === "EventExpression"){
             return onEE(ast);
         }else if(ast.type === "EventOperator"){
-            if(_.has(event_ops, ast.op)){
-                return [ast.op].concat(event_ops[ast.op].toLispArgs(ast, traverse));
+            if(_.has(eventOps, ast.op)){
+                return [ast.op].concat(eventOps[ast.op].toLispArgs(ast, traverse));
             }
             throw new Error("EventOperator.op not supported: " + ast.op);
         }else if(ast.type === "EventGroupOperator"){
-            if(_.has(event_ops, ast.op)){
-                return [ast.op].concat(event_ops[ast.op].toLispArgs(ast, traverse));
+            if(_.has(eventOps, ast.op)){
+                return [ast.op].concat(eventOps[ast.op].toLispArgs(ast, traverse));
             }
             throw new Error("EventGroupOperator.op not supported: " + ast.op);
         }
@@ -450,8 +450,8 @@ module.exports = function(ast, comp, e){
             s.add(s.start, lisp, s.end);
             return s;
         }
-        if(_.has(event_ops, lisp[0])){
-            s = event_ops[lisp[0]].mkStateMachine(lisp.slice(1), evalEELisp);
+        if(_.has(eventOps, lisp[0])){
+            s = eventOps[lisp[0]].mkStateMachine(lisp.slice(1), evalEELisp);
             s.optimize();
             return s;
         }else{
@@ -460,12 +460,12 @@ module.exports = function(ast, comp, e){
     };
 
     var lisp = traverse(ast.event);
-    var state_machine = evalEELisp(lisp);
+    var stateMachine = evalEELisp(lisp);
 
     var r = {
         graph: e("json", graph),
         eventexprs: e("obj", eventexprs),
-        state_machine: e("json", state_machine.compile())
+        state_machine: e("json", stateMachine.compile())
     };
     if(ast.within){
         r.within = comp(ast.within);

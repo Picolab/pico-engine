@@ -1,19 +1,19 @@
 var _ = require("lodash");
 
 module.exports = function(ast, comp, e){
-    var used_ids = {};
-    var has_seen_default = false;
+    var usedIds = {};
+    var hasSeenDefault = false;
     return _.map(ast.params, function(param){
 
         var id = param.id.value;
-        if(used_ids[id]){
+        if(usedIds[id]){
             throw comp.error(param.id.loc, "Duplicate parameter: " + id);
         }
-        used_ids[id] = true;
+        usedIds[id] = true;
 
         if(param["default"]){
-            has_seen_default = true;
-        }else if(has_seen_default){
+            hasSeenDefault = true;
+        }else if(hasSeenDefault){
             throw comp.error(param.loc, "Cannot have a non-default parameter after a defaulted one");
         }
         return comp(param);

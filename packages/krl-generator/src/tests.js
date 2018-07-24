@@ -6,7 +6,7 @@ var path = require("path");
 var parser = require("krl-parser");
 var generator = require("./");
 
-var files_dir = path.resolve(__dirname, "../../../test-rulesets");
+var filesDir = path.resolve(__dirname, "../../../test-rulesets");
 
 var allDone = function(err){
     if(err){
@@ -19,14 +19,14 @@ var allDone = function(err){
 
 console.log();
 console.log("Starting tests...");
-fs.readdir(files_dir, function(err, files){
+fs.readdir(filesDir, function(err, files){
     if(err) return allDone(err);
     λ.each.series(files, function(file, next){
         if( ! /\.krl$/.test(file)){
             next();
             return;
         }
-        fs.readFile(path.resolve(files_dir, file), "utf-8", function(err, src){
+        fs.readFile(path.resolve(filesDir, file), "utf-8", function(err, src){
             if(err) return next(err);
 
             console.log("testing: " + path.basename(file));

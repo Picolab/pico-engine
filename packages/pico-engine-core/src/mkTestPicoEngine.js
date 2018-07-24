@@ -5,24 +5,24 @@ var path = require("path");
 var memdown = require("memdown");
 var PicoEngine = require("./");
 
-var test_rulesets = {};
-var test_dir = path.resolve(__dirname, "../../../test-rulesets");
-_.each(fs.readdirSync(test_dir), function(file){
+var testRulesets = {};
+var testDir = path.resolve(__dirname, "../../../test-rulesets");
+_.each(fs.readdirSync(testDir), function(file){
     if(!/\.js$/.test(file)){
         return;
     }
-    var rs = require(path.resolve(test_dir, file));
+    var rs = require(path.resolve(testDir, file));
     if(!rs.rid){
         return;
     }
-    test_rulesets[rs.rid] = rs;
-    test_rulesets[rs.rid].url = "http://fake-url/test-rulesets/" + file.replace(/\.js$/, ".krl");
+    testRulesets[rs.rid] = rs;
+    testRulesets[rs.rid].url = "http://fake-url/test-rulesets/" + file.replace(/\.js$/, ".krl");
 });
 
-var system_rulesets = _.map(_.keys(test_rulesets), function(rid){
+var systemRulesets = _.map(_.keys(testRulesets), function(rid){
     return {
         src: "ruleset " + rid + "{}",
-        meta: {url: test_rulesets[rid].url},
+        meta: {url: testRulesets[rid].url},
     };
 });
 
@@ -31,9 +31,9 @@ module.exports = function(opts, callback){
     var pe = PicoEngine({
         host: "https://test-host",
         ___core_testing_mode: true,
-        compileAndLoadRuleset: opts.compileAndLoadRuleset || function(rs_info, callback){
-            var rid = rs_info.src.substring(8, rs_info.src.length - 2);
-            var rs = test_rulesets[rid];
+        compileAndLoadRuleset: opts.compileAndLoadRuleset || function(rsInfo, callback){
+            var rid = rsInfo.src.substring(8, rsInfo.src.length - 2);
+            var rs = testRulesets[rid];
             callback(undefined, rs);
         },
         rootRIDs: opts.rootRIDs,
@@ -43,7 +43,7 @@ module.exports = function(opts, callback){
         },
         modules: opts.modules,
     });
-    pe.start(system_rulesets, function(err){
+    pe.start(systemRulesets, function(err){
         callback(err, pe);
     });
 };

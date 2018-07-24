@@ -17,8 +17,8 @@ var SalienceGraph = function(){
         return _.get(graph, [domain, type], {});
     };
     var del = function(rid){
-        _.each(graph, function(data_d, domain){
-            _.each(data_d, function(data_t, type){
+        _.each(graph, function(dataD, domain){
+            _.each(dataD, function(dataT, type){
                 //clear out any old versions graph
                 _.unset(graph, [domain, type, rid]);
             });
@@ -34,8 +34,8 @@ var SalienceGraph = function(){
 module.exports = function(){
 
     var rulesets = {};
-    var salience_graph = SalienceGraph();
-    var keys_module_data = {};
+    var salienceGraph = SalienceGraph();
+    var keysModuleData = {};
 
     return Object.freeze({
         get: function(rid){
@@ -47,11 +47,11 @@ module.exports = function(){
                 && _.has(rs, "meta.provides_keys")
             ){
                 _.each(rs.meta.provides_keys, function(p, key){
-                    _.each(p.to, function(to_rid){
-                        _.set(keys_module_data, [
+                    _.each(p.to, function(toRid){
+                        _.set(keysModuleData, [
                             "provided",
                             rs.rid,
-                            to_rid,
+                            toRid,
                             key
                         ], _.cloneDeep(rs.meta.keys[key]));
                     });
@@ -66,52 +66,52 @@ module.exports = function(){
                 });
             }
 
-            salience_graph.put(rs);
+            salienceGraph.put(rs);
             rulesets[rs.rid] = rs;
         },
         del: function(rid){
-            salience_graph.del(rid);
+            salienceGraph.del(rid);
             delete rulesets[rid];
         },
         setupOwnKeys: function(rs){
             if(rs.meta && rs.meta.keys){
                 _.each(rs.meta.keys, function(value, key){
-                    _.set(keys_module_data, ["used_keys", rs.rid, key], value);
+                    _.set(keysModuleData, ["used_keys", rs.rid, key], value);
                 });
             }
         },
-        provideKey: function(rid, use_rid){
-            if(_.has(keys_module_data, ["provided", use_rid, rid])){
-                _.each(keys_module_data.provided[use_rid][rid], function(value, key){
-                    _.set(keys_module_data, ["used_keys", rid, key], value);
+        provideKey: function(rid, useRid){
+            if(_.has(keysModuleData, ["provided", useRid, rid])){
+                _.each(keysModuleData.provided[useRid][rid], function(value, key){
+                    _.set(keysModuleData, ["used_keys", rid, key], value);
                 });
             }
         },
-        getKey: function(rid, key_id){
-            return _.get(keys_module_data, ["used_keys", rid, key_id]);
+        getKey: function(rid, keyId){
+            return _.get(keysModuleData, ["used_keys", rid, keyId]);
         },
         salientRules: function(domain, type, ridFilter){
-            var to_run = salience_graph.get(domain, type);
-            var rules_to_select = [];
-            _.each(to_run, function(rules, rid){
+            var toRun = salienceGraph.get(domain, type);
+            var rulesToSelect = [];
+            _.each(toRun, function(rules, rid){
                 if(!ridFilter(rid)){
                     return;
                 }
-                _.each(rules, function(is_on, rule_name){
-                    if(!is_on){
+                _.each(rules, function(isOn, ruleName){
+                    if(!isOn){
                         return;
                     }
-                    var rule = _.get(rulesets, [rid, "rules", rule_name]);
+                    var rule = _.get(rulesets, [rid, "rules", ruleName]);
                     if(!rule){
                         return;
                     }
                     //shallow clone with it's own scope for this run
-                    rules_to_select.push(_.assign({}, rule, {
+                    rulesToSelect.push(_.assign({}, rule, {
                         scope: rulesets[rid].scope.push()
                     }));
                 });
             });
-            return rules_to_select;
+            return rulesToSelect;
         },
         assertNoDependants: function(rid){
             _.each(rulesets, function(rs){

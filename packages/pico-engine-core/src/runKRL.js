@@ -1,7 +1,7 @@
 var _ = require("lodash");
 
-var assertCTX_keys = function(ctx, keys){
-    var std_ctx_keys = [
+function assertCTXkeys(ctx, keys){
+    var stdCtxKeys = [
         "rid",
         "scope",
         "txn_id",
@@ -21,14 +21,14 @@ var assertCTX_keys = function(ctx, keys){
             throw new Error("Invalid ctx." + k + " is not defined");
         }
         return k;
-    }), std_ctx_keys).sort().join(",");
+    }), stdCtxKeys).sort().join(",");
 
     if(actual !== expected){
         throw new Error("Invalid ctx expected " + expected + " but was " + actual);
     }
-};
+}
 
-module.exports = function(){
+module.exports = function runKRL(){
     var args = Array.prototype.slice.call(arguments);
     var fn = args.shift();
 
@@ -42,13 +42,13 @@ module.exports = function(){
             throw new Error("ctx must always have `scope`");
         }
         if(_.has(ctx, "event") && !_.has(ctx, "raiseEvent")){//event durring select/eval event exp
-            assertCTX_keys(ctx, [
+            assertCTXkeys(ctx, [
                 "event",
                 "pico_id",
                 "rule_name",
             ]);
         }else if(_.has(ctx, "event")){//event durring rule body
-            assertCTX_keys(ctx, [
+            assertCTXkeys(ctx, [
                 "event",
                 "pico_id",
                 "rule_name",
@@ -60,12 +60,12 @@ module.exports = function(){
                 "stopRulesetExecution",
             ]);
         }else if(_.has(ctx, "query")){
-            assertCTX_keys(ctx, [
+            assertCTXkeys(ctx, [
                 "query",
                 "pico_id",
             ]);
         }else{
-            assertCTX_keys(ctx, [
+            assertCTXkeys(ctx, [
                 //no extra keys when registering a ruleset
                 //TODO use a pico_id when registering rulesets
             ]);

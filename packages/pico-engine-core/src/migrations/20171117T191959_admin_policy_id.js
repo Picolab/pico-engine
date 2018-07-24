@@ -3,7 +3,7 @@ var dbRange = require("../dbRange");
 
 module.exports = {
     up: function(ldb, callback){
-        var db_ops = [];
+        var dbOps = [];
 
         //NOTE: not sharing with DB.js b/c migrations should be immutable
         //      i.e. produce the same result regardless of previous codebase states
@@ -11,7 +11,7 @@ module.exports = {
 
         //the admin policy is hard wired in, so we should create it once before
         //the engine starts up (i.e. as this migration)
-        db_ops.push({
+        dbOps.push({
             type: "put",
             key: ["policy", ADMIN_POLICY_ID],
             value: {
@@ -29,7 +29,7 @@ module.exports = {
             if(_.has(data.value, "policy_id")){
                 return;
             }
-            db_ops.push({
+            dbOps.push({
                 type: "put",
                 key: data.key,
                 value: _.assign({}, data.value, {
@@ -38,7 +38,7 @@ module.exports = {
             });
         }, function(err){
             if(err) return callback(err);
-            ldb.batch(db_ops, callback);
+            ldb.batch(dbOps, callback);
         });
     },
 };

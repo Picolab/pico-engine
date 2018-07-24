@@ -1,6 +1,6 @@
 var _ = require("lodash");
 
-var prop_types = {
+var propTypes = {
     "name": function(props, comp, e){
         if(_.size(props) !== 1){
             throw new Error("only 1 meta.name allowed");
@@ -66,8 +66,8 @@ var prop_types = {
     "provides_keys": function(props, comp, e){
         var json = {};
         _.each(props, function(p){
-            _.each(p.value.ids, function(id_ast){
-                var id = id_ast.value;
+            _.each(p.value.ids, function(idAst){
+                var id = idAst.value;
                 if(!_.has(json, id)){
                     json[id] = {to: []};
                 }
@@ -86,9 +86,9 @@ var prop_types = {
             case "String":
                 break;
             case "Map":
-                _.each(p.value[1].value, function(map_kv_pair){
-                    var v_ast_type = map_kv_pair.value.type;
-                    if(v_ast_type !== "String"){
+                _.each(p.value[1].value, function(pair){
+                    var vAstType = pair.value.type;
+                    if(vAstType !== "String"){
                         throw new Error("A ruleset key that is Map, can only use Strings as values");
                     }
                 });
@@ -119,9 +119,9 @@ module.exports = function(ast, comp, e){
         }
         return p.key.value;
     }), function(props, key){
-        if(!_.has(prop_types, key)){
+        if(!_.has(propTypes, key)){
             throw new Error("RulesetMetaProperty not supported: " + key);
         }
-        return prop_types[key](props, comp, e);
+        return propTypes[key](props, comp, e);
     }));
 };

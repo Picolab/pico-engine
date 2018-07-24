@@ -4,7 +4,7 @@ module.exports = {
     up: function(ldb, callback){
         // /pico/:pico_id/:rid/vars/:varname -> /entvars/:pico_id/:rid/:varname
 
-        var to_batch = [];
+        var dbOps = [];
 
         dbRange(ldb, {
             prefix: ["pico"],
@@ -12,22 +12,22 @@ module.exports = {
             if(data.key[3] !== "vars"){
                 return;
             }
-            var pico_id = data.key[1];
+            var picoId = data.key[1];
             var rid = data.key[2];
             var varname = data.key[4];
 
-            to_batch.push({
+            dbOps.push({
                 type: "put",
-                key: ["entvars", pico_id, rid, varname],
+                key: ["entvars", picoId, rid, varname],
                 value: data.value,
             });
 
-            to_batch.push({type: "del", key: data.key});
+            dbOps.push({type: "del", key: data.key});
 
         }, function(err){
             if(err) return callback(err);
 
-            ldb.batch(to_batch, callback);
+            ldb.batch(dbOps, callback);
         });
     },
 };

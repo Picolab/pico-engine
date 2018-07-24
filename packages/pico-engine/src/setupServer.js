@@ -4,7 +4,7 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var compiler = require("krl-compiler");
 var version = require("../package.json").version;
-var oauth_server = require("./oauth_server");
+var oauthServer = require("./oauth_server");
 var mime = require("mime-types");
 
 var mergeGetPost = function(req){
@@ -37,7 +37,7 @@ module.exports = function(pe){
     app.use(function(err, req, res, next){
         errResp(res, err);
     });
-    app.use(function(req, res, next){ // needed by oauth_server
+    app.use(function(req, res, next){ // needed by oauthServer
         req.pe = pe;
         req.errResp = errResp;
         next();
@@ -52,10 +52,10 @@ module.exports = function(pe){
             next();
         } else {
             console.log("[SEEK SHORTCUT] "+fpc);
-            pe.getRootECI(function(err, root_eci){
+            pe.getRootECI(function(err, rootEci){
                 if(err) return errResp(res, err);
                 var query = {
-                    eci: root_eci,
+                    eci: rootEci,
                     rid: "io.picolabs.rewrite",
                     name: "getRewrite",
                     args: {fpc: fpc}
@@ -144,15 +144,15 @@ module.exports = function(pe){
         });
     });
 
-    app.get("/authorize", oauth_server.authorize);
+    app.get("/authorize", oauthServer.authorize);
 
-    app.post("/approve", oauth_server.approve);
+    app.post("/approve", oauthServer.approve);
 
-    app.post("/token", oauth_server.token);
+    app.post("/token", oauthServer.token);
 
-    app.post("/new-account", oauth_server.new_account);
+    app.post("/new-account", oauthServer.new_account);
 
-    app.post("/login", oauth_server.login);
+    app.post("/login", oauthServer.login);
 
     app.all("/api/engine-version", function(req, res){
         res.json({"version": version});
@@ -171,57 +171,57 @@ module.exports = function(pe){
     };
 
     app.all("/api/db-dump", function(req, res){
-        pe.dbDump(function(err, db_data){
+        pe.dbDump(function(err, dbData){
             if(err) return errResp(res, err);
 
             if(req.query.legacy){
-                _.each(db_data.appvars, function(vars, rid){
+                _.each(dbData.appvars, function(vars, rid){
                     _.each(vars, function(val, name){
-                        _.set(db_data, ["resultset", rid, "vars", name], toLegacyPVar(val));
+                        _.set(dbData, ["resultset", rid, "vars", name], toLegacyPVar(val));
                     });
                 });
-                _.each(db_data.entvars, function(by_rid, pico_id){
-                    _.each(by_rid, function(vars, rid){
+                _.each(dbData.entvars, function(byRid, picoId){
+                    _.each(byRid, function(vars, rid){
                         _.each(vars, function(val, name){
-                            _.set(db_data, ["pico", pico_id, rid, "vars", name], toLegacyPVar(val));
+                            _.set(dbData, ["pico", picoId, rid, "vars", name], toLegacyPVar(val));
                         });
                     });
                 });
-                _.each(db_data["pico-children"], function(children, pico_id){
-                    _.set(db_data, [
+                _.each(dbData["pico-children"], function(children, picoId){
+                    _.set(dbData, [
                         "pico",
-                        pico_id,
+                        picoId,
                         "io.picolabs.wrangler",
                         "vars",
                         "children"
                     ], _.map(children, function(val, id){
                         return {
                             id: id,
-                            eci: _.get(db_data, ["pico", id, "admin_eci"]),
+                            eci: _.get(dbData, ["pico", id, "admin_eci"]),
                         };
                     }));
                 });
 
-                _.each(db_data.channel, function(chan, eci){
-                    _.set(db_data, ["pico", chan.pico_id, "channel", eci], chan);
-                    _.set(db_data, ["channel", eci, "pico_id"], chan.pico_id);
+                _.each(dbData.channel, function(chan, eci){
+                    _.set(dbData, ["pico", chan.pico_id, "channel", eci], chan);
+                    _.set(dbData, ["channel", eci, "pico_id"], chan.pico_id);
                 });
-                _.each(db_data["pico-ruleset"], function(data, pico_id){
+                _.each(dbData["pico-ruleset"], function(data, picoId){
                     _.each(data, function(val, rid){
-                        _.set(db_data, ["pico", pico_id, "ruleset", rid], val);
+                        _.set(dbData, ["pico", picoId, "ruleset", rid], val);
                     });
                 });
             }
 
 
-            res.json(db_data);
+            res.json(dbData);
         });
     });
 
     app.all("/api/root-eci", function(req, res){
-        pe.getRootECI(function(err, root_eci){
+        pe.getRootECI(function(err, rootEci){
             if(err) return errResp(res, err);
-            res.json({ok: true, eci: root_eci});
+            res.json({ok: true, eci: rootEci});
         });
     });
 
@@ -288,25 +288,25 @@ module.exports = function(pe){
     });
 
     app.all("/api/ruleset-page", function(req, res){
-        pe.dbDump(function(err, db_data){
+        pe.dbDump(function(err, dbData){
             if(err) return errResp(res, err);
             var data = {
                 version: version,
                 r: {},
             };
 
-            _.each(_.get(db_data, ["rulesets", "versions"]), function(versions, rid){
+            _.each(_.get(dbData, ["rulesets", "versions"]), function(versions, rid){
                 _.each(versions, function(hashes, date){
                     _.each(hashes, function(val, hash){
-                        var rs = _.get(db_data, ["rulesets", "krl", hash]);
+                        var rs = _.get(dbData, ["rulesets", "krl", hash]);
                         _.set(data, ["r", rid, "by_hash", hash], rs);
-                        if(hash === _.get(db_data, ["rulesets", "enabled", rid, "hash"])){
+                        if(hash === _.get(dbData, ["rulesets", "enabled", rid, "hash"])){
                             _.set(data, ["r", rid, "enabled_hash"], hash);
                         }
                     });
                 });
 
-                var latest_hash = _.get(_.head(
+                var latestHash = _.get(_.head(
                     _(versions)
                         .map(function(hashes, date){
                             return {date: new Date(date), hash: _.head(_.keys(hashes))};
@@ -317,7 +317,7 @@ module.exports = function(pe){
                 ), "hash");
 
                 _.set(data, ["r", rid, "rid"], rid);
-                _.set(data, ["r", rid, "latest_hash"], latest_hash);
+                _.set(data, ["r", rid, "latest_hash"], latestHash);
 
                 //TODO based off pe.start(system_rulesets)
                 _.set(data, ["r", rid, "is_system_ruleset"], /^io\.picolabs/.test(rid));

@@ -111,19 +111,19 @@ var ind = function(n){
     return s;
 };
 
-var printAST = function(ast, i, indent_size){
-    indent_size = indent_size || 2;
+var printAST = function(ast, i, indentSize){
+    indentSize = indentSize || 2;
     if(_.isArray(ast)){
-        var arr_strs = _.map(ast, function(ast){
-            return printAST(ast, i + indent_size, indent_size);
+        var arrStrs = _.map(ast, function(ast){
+            return printAST(ast, i + indentSize, indentSize);
         });
-        var flat_array = "[ " + arr_strs.join(" , ") + " ]";
-        if((flat_array.indexOf("\n") < 0) && (flat_array.length < 20)){
-            return flat_array;
+        var flatArray = "[ " + arrStrs.join(" , ") + " ]";
+        if((flatArray.indexOf("\n") < 0) && (flatArray.length < 20)){
+            return flatArray;
         }
         return "[\n"
-            + _.map(arr_strs, function(str){
-                return ind(i + indent_size) + str;
+            + _.map(arrStrs, function(str){
+                return ind(i + indentSize) + str;
             }).join(",\n")
             + "\n" + ind(i) + "]";
     }
@@ -140,11 +140,11 @@ var printAST = function(ast, i, indent_size){
         return "{\n"
             + _.map(ast, function(value, key){
                 var k = JSON.stringify(key);
-                var v = printAST(value, i + indent_size, indent_size);
+                var v = printAST(value, i + indentSize, indentSize);
                 if(key === "value" && ast.type === "RegExp"){
                     v = ast.value;
                 }
-                return ind(i + indent_size) + k + ": " + v;
+                return ind(i + indentSize) + k + ": " + v;
             }).join(",\n")
             + "\n" + ind(i) + "}";
     }
@@ -181,9 +181,9 @@ _.each(examples, function(srcs, head){
     console.log("```js\n" + _.map(srcs, function(src){
         var ast;
         if(_.isFunction(src)){
-            var src_ast = src();
-            src = src_ast[0];
-            ast = src_ast[1];
+            var srcAst = src();
+            src = srcAst[0];
+            ast = srcAst[1];
         }else{
             ast = parser(src);
         }

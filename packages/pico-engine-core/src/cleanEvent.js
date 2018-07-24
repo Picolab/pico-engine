@@ -14,42 +14,42 @@ var isBlank = function(str){
  *   + normalize the shape/naming conventions
  *   + make a full copy (clone) as to not mutate the original
  */
-module.exports = function(event_orig){
+module.exports = function(eventOrig){
 
-    if(isBlank(event_orig && event_orig.eci)){
+    if(isBlank(eventOrig && eventOrig.eci)){
         throw new Error("missing event.eci");
     }
-    if(isBlank(event_orig.domain)){
+    if(isBlank(eventOrig.domain)){
         throw new Error("missing event.domain");
     }
-    if(isBlank(event_orig.type)){
+    if(isBlank(eventOrig.type)){
         throw new Error("missing event.type");
     }
 
     var attrs = {};
-    if(_.has(event_orig, "attrs")){
+    if(_.has(eventOrig, "attrs")){
         //we want to make sure only json-able values are in the attrs
         //also want to clone it as to not mutate the original copy
-        var attrs_json = ktypes.encode(event_orig.attrs);
+        var attrsJson = ktypes.encode(eventOrig.attrs);
         //only if it's a map or array do we consider it valid
-        if(attrs_json[0] === "{" || attrs_json[0] === "["){
-            attrs = ktypes.decode(attrs_json);
+        if(attrsJson[0] === "{" || attrsJson[0] === "["){
+            attrs = ktypes.decode(attrsJson);
         }
     }
 
-    var eid = ktypes.toString(event_orig.eid).trim();
+    var eid = ktypes.toString(eventOrig.eid).trim();
     if(eid.length === 0 || eid === "null"){
         eid = "none";
     }
 
     return {
 
-        eci: event_orig.eci.trim(),
+        eci: eventOrig.eci.trim(),
 
         eid: eid,
 
-        domain: event_orig.domain.trim(),
-        type: event_orig.type.trim(),
+        domain: eventOrig.domain.trim(),
+        type: eventOrig.type.trim(),
 
         attrs: attrs,
 

@@ -14,14 +14,14 @@ test("migration - pvar_index", function(t){
         keyEncoding: bytewise,
         valueEncoding: safeJsonCodec,
     }));
-    var db_ops = [];
+    var dbOps = [];
     var put = function(varname, value){
-        db_ops.push({
+        dbOps.push({
             type: "put",
             key: ["entvars", "p0", "r0", varname],
             value: value,
         });
-        db_ops.push({
+        dbOps.push({
             type: "put",
             key: ["appvars", "r0", varname],
             value: value,
@@ -35,7 +35,7 @@ test("migration - pvar_index", function(t){
     put("v4", void 0);
     put("v5", 123.45);
 
-    ldb.batch(db_ops, function(err){
+    ldb.batch(dbOps, function(err){
         if(err) return t.end(err);
         migration.up(ldb, function(err){
             if(err) return t.end(err);

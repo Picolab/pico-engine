@@ -46,8 +46,8 @@ module.exports = function(core){
             integer: mkKRLfn([
                 "upper",
                 "lower",
-            ], function(ctx, args_orig, callback){
-                var args = fixLowerUpperArgs(args_orig, true);
+            ], function(ctx, argsOrig, callback){
+                var args = fixLowerUpperArgs(argsOrig, true);
 
                 callback(null, _.random(args.lower, args.upper));
             }),
@@ -55,8 +55,8 @@ module.exports = function(core){
             number: mkKRLfn([
                 "upper",
                 "lower",
-            ], function(ctx, args_orig, callback){
-                var args = fixLowerUpperArgs(args_orig);
+            ], function(ctx, argsOrig, callback){
+                var args = fixLowerUpperArgs(argsOrig);
 
                 callback(null, _.random(args.lower, args.upper, true));
             }),

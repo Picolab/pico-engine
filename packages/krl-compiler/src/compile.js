@@ -1,7 +1,7 @@
 var _ = require("lodash");
 var mkTree = require("estree-builder");
 
-var comp_by_type = _.fromPairs(_.map([
+var compByType = _.fromPairs(_.map([
     "Action",
     "ActionBlock",
     "Application",
@@ -48,29 +48,29 @@ var comp_by_type = _.fromPairs(_.map([
     return [type, require("./c/" + type)];
 }));
 
-var isKRL_loc = function(loc){
+function isKrlLoc(loc){
     return _.isPlainObject(loc) && _.has(loc, "start") && _.has(loc, "end");
-};
+}
 
 module.exports = function(ast, options){
     options = options || {};
 
     var toLoc = options.toLoc || _.noop;
 
-    var mkE = function(default_krl_loc){
-        var default_loc = toLoc(default_krl_loc.start, default_krl_loc.end);
+    var mkE = function(defaultKrlLoc){
+        var defaultLoc = toLoc(defaultKrlLoc.start, defaultKrlLoc.end);
 
         return function(){
             var args = Array.prototype.slice.call(arguments);
-            var last_i = args.length - 1;
-            if(args[0] === "json" && last_i <= 2){
-                last_i = 2;
+            var lastI = args.length - 1;
+            if(args[0] === "json" && lastI <= 2){
+                lastI = 2;
             }
-            var last = args[last_i];
-            if(isKRL_loc(last)){
-                args[last_i] = toLoc(last.start, last.end);
+            var last = args[lastI];
+            if(isKrlLoc(last)){
+                args[lastI] = toLoc(last.start, last.end);
             }else{
-                args.push(default_loc);
+                args.push(defaultLoc);
             }
             if(args[0] === "acall"){
                 return {
@@ -112,7 +112,7 @@ module.exports = function(ast, options){
             });
         }else if(!ast || !_.has(ast, "type")){
             throw krlError(ast.loc, "Invalid ast node: " + JSON.stringify(ast));
-        }else if(!_.has(comp_by_type, ast.type)){
+        }else if(!_.has(compByType, ast.type)){
             throw krlError(ast.loc, "Unsupported ast node type: " + ast.type);
         }
         var comp = compile;
@@ -126,7 +126,7 @@ module.exports = function(ast, options){
 
         var estree;
         try{
-            estree = comp_by_type[ast.type](ast, comp, mkE(ast.loc), context);
+            estree = compByType[ast.type](ast, comp, mkE(ast.loc), context);
         }catch(e){
             if(!e.krl_compiler){
                 e.krl_compiler = {

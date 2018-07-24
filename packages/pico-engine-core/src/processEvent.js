@@ -75,24 +75,24 @@ function toPairs(v){
 }
 
 
-function runRuleBody(core, rule_body_fns, scheduled){
+function runRuleBody(core, ruleBodyFns, scheduled){
 
     var rule = scheduled.rule;
-    var pico_id = scheduled.pico_id;
+    var picoId = scheduled.pico_id;
     var event = scheduled.event;
 
     var ctx = core.mkCTX({
         rid: rule.rid,
         rule_name: rule.name,
         scope: rule.scope,
-        pico_id: pico_id,
+        pico_id: picoId,
         event: event,
 
-        raiseEvent: rule_body_fns.raiseEvent,
-        raiseError: rule_body_fns.raiseError,
-        scheduleEvent: rule_body_fns.scheduleEvent,
-        addActionResponse: rule_body_fns.addActionResponse,
-        stopRulesetExecution: rule_body_fns.stopRulesetExecution,
+        raiseEvent: ruleBodyFns.raiseEvent,
+        raiseError: ruleBodyFns.raiseError,
+        scheduleEvent: ruleBodyFns.scheduleEvent,
+        addActionResponse: ruleBodyFns.addActionResponse,
+        stopRulesetExecution: ruleBodyFns.stopRulesetExecution,
     });
 
     ctx.emit("debug", "rule selected: " + rule.rid + " -> " + rule.name);
@@ -125,7 +125,7 @@ module.exports = async function processEvent(core, ctx){
     await addEventToSchedule(ctx);
 
     //these are special functions only to be used inside a rule body
-    var rule_body_fns = {
+    var ruleBodyFns = {
         raiseEvent: async function(revent){
             //shape the revent like a normal event
             var event = {
@@ -139,12 +139,12 @@ module.exports = async function processEvent(core, ctx){
                 timestamp: new Date()
             };
             //must make a new ctx for this raise b/c it's a different event
-            var raise_ctx = core.mkCTX({
+            var raiseCtx = core.mkCTX({
                 event: event,
                 pico_id: ctx.pico_id,//raise event is always to the same pico
             });
-            raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
-            await addEventToSchedule(raise_ctx);
+            raiseCtx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
+            await addEventToSchedule(raiseCtx);
         },
         raiseError: function(ctx, level, data){
 
@@ -193,12 +193,12 @@ module.exports = async function processEvent(core, ctx){
     //using a while loop b/c schedule is MUTABLE
     //Durring execution new events may be `raised` that will mutate the schedule
     while(schedule.length > 0){
-        await runRuleBody(core, rule_body_fns, schedule.shift());
+        await runRuleBody(core, ruleBodyFns, schedule.shift());
     }
 
-    var res_by_type = _.groupBy(responses, "type");
+    var resByType = _.groupBy(responses, "type");
 
-    var r = _.mapValues(res_by_type, function(responses, key){
+    var r = _.mapValues(resByType, function(responses, key){
         if(key === "directive"){
             return _.map(responses, function(d){
                 return _.omit(d, "type");

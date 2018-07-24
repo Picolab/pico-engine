@@ -15,32 +15,32 @@ module.exports = function(ast, comp, e){
     }
     rule.select = comp(ast.select);
 
-    var rule_body = [];
+    var ruleBody = [];
 
     if(!_.isEmpty(ast.prelude)){
-        rule_body = rule_body.concat(declarationBlock(ast.prelude, comp));
+        ruleBody = ruleBody.concat(declarationBlock(ast.prelude, comp));
     }
     if(ast.action_block){
-        rule_body = rule_body.concat(comp(ast.action_block));
+        ruleBody = ruleBody.concat(comp(ast.action_block));
     }else{
-        rule_body.push(e("var", "fired", e("true")));
+        ruleBody.push(e("var", "fired", e("true")));
     }
 
-    rule_body.push(e("if", e("id", "fired"),
+    ruleBody.push(e("if", e("id", "fired"),
         e(";", e("call", e("id", "ctx.emit"), [e("str", "debug"), e("str", "fired")])),
         e(";", e("call", e("id", "ctx.emit"), [e("str", "debug"), e("str", "not fired")]))
     ));
 
     if(ast.postlude){
-        rule_body = rule_body.concat(comp(ast.postlude));
+        ruleBody = ruleBody.concat(comp(ast.postlude));
     }
 
     if(!_.isEmpty(ast.foreach)){
-        var foreach_body = rule_body;
+        var foreachBody = ruleBody;
 
         var nesetedForeach = function(arr, i){
             if(_.isEmpty(arr)){
-                return foreach_body;
+                return foreachBody;
             }
             return comp(_.head(arr), {
                 foreach_i: i,
@@ -48,11 +48,11 @@ module.exports = function(ast, comp, e){
                 foreach_body: nesetedForeach(_.tail(arr), i + 1),
             });
         };
-        rule_body = nesetedForeach(ast.foreach, 0);
+        ruleBody = nesetedForeach(ast.foreach, 0);
     }
 
 
-    rule.body = e("asyncfn", ["ctx", "runAction", "toPairs"], rule_body);
+    rule.body = e("asyncfn", ["ctx", "runAction", "toPairs"], ruleBody);
 
     return e("obj", rule);
 };

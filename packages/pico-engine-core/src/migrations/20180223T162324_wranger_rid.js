@@ -5,7 +5,7 @@ var dbRange = require("../dbRange");
 module.exports = {
     up: function(ldb, callback){
 
-        var db_ops = [];
+        var dbOps = [];
 
         async.eachSeries([
             // For each of these keypath prefixes, rename the rid
@@ -19,20 +19,20 @@ module.exports = {
             dbRange(ldb, {
                 prefix: [prefix],
             }, function(data){
-                var new_key = _.map(data.key, function(p){
+                var newKey = _.map(data.key, function(p){
                     return p === "io.picolabs.pico"
                         ? "io.picolabs.wrangler"
                         : p;
                 });
-                if(_.isEqual(data.key, new_key)){
+                if(_.isEqual(data.key, newKey)){
                     return;
                 }
-                db_ops.push({type: "put", key: new_key, value: data.value});
-                db_ops.push({type: "del", key: data.key});
+                dbOps.push({type: "put", key: newKey, value: data.value});
+                dbOps.push({type: "del", key: data.key});
             }, next);
         }, function(err){
             if(err) return callback(err);
-            ldb.batch(db_ops, callback);
+            ldb.batch(dbOps, callback);
         });
     },
 };

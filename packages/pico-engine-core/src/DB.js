@@ -38,16 +38,16 @@ var toKeyPath = function(path){
 };
 
 
-var putPVar = function(ldb, key_prefix, query, val, callback){
+var putPVar = function(ldb, keyPrefix, query, val, callback){
     query = ktypes.isNull(query) ? [] : query;
     query = ktypes.isArray(query) ? query : [query];
     // do this before toKeyPath b/c it will convert all parts to stings
     var isArrayIndex = _.isInteger(query[0]) && query[0] >= 0;
     var path = toKeyPath(query);
     if(_.size(path) > 0){
-        var subkeyPrefix = key_prefix.concat(["value", path[0]]);
+        var subkeyPrefix = keyPrefix.concat(["value", path[0]]);
         var subPath = _.tail(path);
-        ldb.get(key_prefix, function(err, oldRoot){
+        ldb.get(keyPrefix, function(err, oldRoot){
             if(err && ! err.notFound){
                 callback(err);
                 return;
@@ -65,7 +65,7 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
                 // this `value` helps _.set in the toObj db dump set the right type
                 value: type === "Array" ? [] : {}
             };
-            ops.push({type: "put", key: key_prefix, value: root});
+            ops.push({type: "put", key: keyPrefix, value: root});
 
             if(_.isEmpty(subPath)){
                 ops.push({type: "put", key: subkeyPrefix, value: val});
@@ -86,14 +86,14 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
         });
         return;
     }
-    ldb.get(key_prefix, function(err, oldRoot){
+    ldb.get(keyPrefix, function(err, oldRoot){
         if(err && ! err.notFound){
             callback(err);
             return;
         }
         var ops = [];
         dbRange(ldb, {
-            prefix: key_prefix,
+            prefix: keyPrefix,
             values: false,
         }, function(key){
             ops.push({type: "del", key: key});
@@ -117,7 +117,7 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
                     k = ktypes.toString(k);// represent array i as strings, otherwise bytewise will create separate keys for int and string
                     ops.push({
                         type: "put",
-                        key: key_prefix.concat(["value", k]),
+                        key: keyPrefix.concat(["value", k]),
                         value: v,
                     });
                 });
@@ -129,7 +129,7 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
             }
             ops.push({
                 type: "put",
-                key: key_prefix,
+                key: keyPrefix,
                 value: root,
             });
             ldb.batch(ops, callback);
@@ -138,25 +138,25 @@ var putPVar = function(ldb, key_prefix, query, val, callback){
 };
 
 
-var getPVar = function(ldb, key_prefix, query, callback){
+var getPVar = function(ldb, keyPrefix, query, callback){
     var path = ktypes.isNull(query) ? [] : toKeyPath(query);
     if(_.size(path) > 0){
-        var sub_key = _.head(path);
-        var sub_path = _.tail(path);
-        ldb.get(key_prefix.concat(["value", sub_key]), function(err, data){
+        var subKey = _.head(path);
+        var subPath = _.tail(path);
+        ldb.get(keyPrefix.concat(["value", subKey]), function(err, data){
             if(err && err.notFound){
                 return callback();
             }else if(err){
                 return callback(err);
             }
-            if(!_.isEmpty(sub_path)){
-                data = _.get(data, sub_path);
+            if(!_.isEmpty(subPath)){
+                data = _.get(data, subPath);
             }
             callback(null, data);
         });
         return;
     }
-    ldb.get(key_prefix, function(err, data){
+    ldb.get(keyPrefix, function(err, data){
         if(err && err.notFound){
             return callback();
         }else if(err){
@@ -167,10 +167,10 @@ var getPVar = function(ldb, key_prefix, query, callback){
         }
         var value = data.type === "Array" ? [] : {};
         dbRange(ldb, {
-            prefix: key_prefix,
+            prefix: keyPrefix,
         }, function(data){
-            if(data.key.length === (key_prefix.length + 2)){
-                value[data.key[key_prefix.length + 1]] = data.value;
+            if(data.key.length === (keyPrefix.length + 2)){
+                value[data.key[keyPrefix.length + 1]] = data.value;
             }
         }, function(err){
             callback(err, value);
@@ -179,37 +179,37 @@ var getPVar = function(ldb, key_prefix, query, callback){
 };
 
 
-var delPVar = function(ldb, key_prefix, query, callback){
+var delPVar = function(ldb, keyPrefix, query, callback){
     var path = ktypes.isNull(query) ? [] : toKeyPath(query);
     if(_.size(path) > 0){
-        key_prefix = key_prefix.concat(["value", _.head(path)]);
-        var sub_path = _.tail(path);
-        if( ! _.isEmpty(sub_path)){
-            ldb.get(key_prefix, function(err, data){
+        keyPrefix = keyPrefix.concat(["value", _.head(path)]);
+        var subPath = _.tail(path);
+        if( ! _.isEmpty(subPath)){
+            ldb.get(keyPrefix, function(err, data){
                 if(err && err.notFound){
                     data = {};
                 }else if(err){
                     callback(err);
                     return;
                 }
-                var val = _.omit(data, sub_path);
+                var val = _.omit(data, subPath);
                 if(_.isEmpty(val)){
-                    ldb.del(key_prefix, callback);
+                    ldb.del(keyPrefix, callback);
                 }else{
-                    ldb.put(key_prefix, val, callback);
+                    ldb.put(keyPrefix, val, callback);
                 }
             });
             return;
         }
     }
-    var db_ops = [];
+    var dbOps = [];
     dbRange(ldb, {
-        prefix: key_prefix,
+        prefix: keyPrefix,
         values: false,
     }, function(key){
-        db_ops.push({type: "del", key: key});
+        dbOps.push({type: "del", key: key});
     }, function(err){
-        ldb.batch(db_ops, callback);
+        ldb.batch(dbOps, callback);
     });
 };
 
@@ -264,7 +264,7 @@ module.exports = function(opts){
     };
 
 
-    var newChannel_base = function(opts){
+    function newChannelBase(opts){
         var did = genDID();
         var channel = {
             id: did.did,
@@ -274,7 +274,7 @@ module.exports = function(opts){
             policy_id: opts.policy_id,
             sovrin: did,
         };
-        var db_ops = [
+        var dbOps = [
             {
                 type: "put",
                 key: ["channel", channel.id],
@@ -288,9 +288,9 @@ module.exports = function(opts){
         ];
         return {
             channel: channel,
-            db_ops: db_ops,
+            dbOps: dbOps,
         };
-    };
+    }
 
 
     return {
@@ -447,20 +447,20 @@ module.exports = function(opts){
         },
 
 
-        getParent: function(pico_id, callback){
-            ldb.get(["pico", pico_id], function(err, data){
+        getParent: function(picoId, callback){
+            ldb.get(["pico", picoId], function(err, data){
                 callback(err, (data && data.parent_id) || null);
             });
         },
-        getAdminECI: function(pico_id, callback){
-            ldb.get(["pico", pico_id], function(err, data){
+        getAdminECI: function(picoId, callback){
+            ldb.get(["pico", picoId], function(err, data){
                 callback(err, (data && data.admin_eci) || null);
             });
         },
-        listChildren: function(pico_id, callback){
+        listChildren: function(picoId, callback){
             var children = [];
             dbRange(ldb, {
-                prefix: ["pico-children", pico_id],
+                prefix: ["pico-children", picoId],
                 values: false,
             }, function(key){
                 children.push(key[2]);
@@ -472,51 +472,51 @@ module.exports = function(opts){
 
         newPico: function(opts, callback){
 
-            var new_pico = {
+            var newPico = {
                 id: newID(),
                 parent_id: _.isString(opts.parent_id) && opts.parent_id.length > 0
                     ? opts.parent_id
                     : null,
             };
 
-            var c = newChannel_base({
-                pico_id: new_pico.id,
+            var c = newChannelBase({
+                pico_id: newPico.id,
                 name: "admin",
                 type: "secret",
                 policy_id: ADMIN_POLICY_ID,
             });
-            new_pico.admin_eci = c.channel.id;
+            newPico.admin_eci = c.channel.id;
 
-            var db_ops = c.db_ops;
+            var dbOps = c.dbOps;
 
-            db_ops.push({
+            dbOps.push({
                 type: "put",
-                key: ["pico", new_pico.id],
-                value: new_pico,
+                key: ["pico", newPico.id],
+                value: newPico,
             });
-            if(new_pico.parent_id){
-                db_ops.push({
+            if(newPico.parent_id){
+                dbOps.push({
                     type: "put",
-                    key: ["pico-children", new_pico.parent_id, new_pico.id],
+                    key: ["pico-children", newPico.parent_id, newPico.id],
                     value: true,
                 });
             }else{
-                db_ops.push({
+                dbOps.push({
                     type: "put",
                     key: ["root_pico"],
-                    value: new_pico,
+                    value: newPico,
                 });
             }
 
-            ldb.batch(db_ops, function(err){
+            ldb.batch(dbOps, function(err){
                 if(err) return callback(err);
-                callback(undefined, new_pico);
+                callback(undefined, newPico);
             });
         },
 
 
         removePico: function(id, callback){
-            var db_ops = [];
+            var dbOps = [];
 
             var keyRange = function(prefix, fn){
                 return async.apply(dbRange, ldb, {
@@ -527,22 +527,22 @@ module.exports = function(opts){
 
             async.series([
                 keyRange(["pico", id], function(key){
-                    db_ops.push({type: "del", key: key});
+                    dbOps.push({type: "del", key: key});
                 }),
                 keyRange(["pico-eci-list", id], function(key){
                     var eci = key[2];
-                    db_ops.push({type: "del", key: key});
-                    db_ops.push({type: "del", key: ["channel", eci]});
+                    dbOps.push({type: "del", key: key});
+                    dbOps.push({type: "del", key: ["channel", eci]});
                 }),
                 keyRange(["entvars", id], function(key){
-                    db_ops.push({type: "del", key: key});
+                    dbOps.push({type: "del", key: key});
                 }),
                 keyRange(["pico-ruleset", id], function(key){
-                    db_ops.push({type: "del", key: key});
-                    db_ops.push({type: "del", key: ["ruleset-pico", key[2], key[1]]});
+                    dbOps.push({type: "del", key: key});
+                    dbOps.push({type: "del", key: ["ruleset-pico", key[2], key[1]]});
                 }),
                 keyRange(["pico-children", id], function(key){
-                    db_ops.push({type: "del", key: key});
+                    dbOps.push({type: "del", key: key});
                 }),
                 function(next){
                     ldb.get(["pico", id], function(err, pico){
@@ -553,14 +553,14 @@ module.exports = function(opts){
                         if(err) return next(err);
                         if(pico.parent_id){
                             keyRange(["pico-children", pico.parent_id, id], function(key){
-                                db_ops.push({type: "del", key: key});
+                                dbOps.push({type: "del", key: key});
                             })(next);
                             return;
                         }
                         ldb.get(["root_pico"], function(err, data){
                             if(err) return next(err);
                             if(data.id === id){
-                                db_ops.push({type: "del", key: ["root_pico"]});
+                                dbOps.push({type: "del", key: ["root_pico"]});
                             }
                             next();
                         });
@@ -568,7 +568,7 @@ module.exports = function(opts){
                 },
             ], function(err){
                 if(err)return callback(err);
-                ldb.batch(db_ops, callback);
+                ldb.batch(dbOps, callback);
             });
         },
 
@@ -577,49 +577,49 @@ module.exports = function(opts){
         //
         // installed rulesets
         //
-        ridsOnPico: function(pico_id, callback){
-            var pico_rids = {};
+        ridsOnPico: function(picoId, callback){
+            var picoRids = {};
             dbRange(ldb, {
-                prefix: ["pico-ruleset", pico_id]
+                prefix: ["pico-ruleset", picoId]
             }, function(data){
                 var rid = data.key[2];
                 if(data.value && data.value.on === true){
-                    pico_rids[rid] = true;
+                    picoRids[rid] = true;
                 }
             }, function(err){
-                callback(err, pico_rids);
+                callback(err, picoRids);
             });
         },
-        addRulesetToPico: function(pico_id, rid, callback){
+        addRulesetToPico: function(picoId, rid, callback){
             var val = {
                 on: true,
             };
             ldb.batch([
                 {
                     type: "put",
-                    key: ["pico-ruleset", pico_id, rid],
+                    key: ["pico-ruleset", picoId, rid],
                     value: val,
                 },
                 {
                     type: "put",
-                    key: ["ruleset-pico", rid, pico_id],
+                    key: ["ruleset-pico", rid, picoId],
                     value: val,
                 }
             ], callback);
         },
-        removeRulesetFromPico: function(pico_id, rid, callback){
-            var db_ops = [
-                {type: "del", key: ["pico-ruleset", pico_id, rid]},
-                {type: "del", key: ["ruleset-pico", rid, pico_id]},
+        removeRulesetFromPico: function(picoId, rid, callback){
+            var dbOps = [
+                {type: "del", key: ["pico-ruleset", picoId, rid]},
+                {type: "del", key: ["ruleset-pico", rid, picoId]},
             ];
             dbRange(ldb, {
-                prefix: ["entvars", pico_id, rid],
+                prefix: ["entvars", picoId, rid],
                 values: false,
             }, function(key){
-                db_ops.push({type: "del", key: key});
+                dbOps.push({type: "del", key: key});
             }, function(err){
                 if(err) return callback(err);
-                ldb.batch(db_ops, callback);
+                ldb.batch(dbOps, callback);
             });
         },
 
@@ -629,22 +629,22 @@ module.exports = function(opts){
         // channels
         //
         newChannel: function(opts, callback){
-            var c = newChannel_base(opts);
-            ldb.batch(c.db_ops, function(err){
+            var c = newChannelBase(opts);
+            ldb.batch(c.dbOps, function(err){
                 if(err) return callback(err);
                 callback(null, omitChannelSecret(c.channel));
             });
         },
-        listChannels: function(pico_id, callback){
-            var eci_list = [];
+        listChannels: function(picoId, callback){
+            var eciList = [];
             dbRange(ldb, {
-                prefix: ["pico-eci-list", pico_id],
+                prefix: ["pico-eci-list", picoId],
                 values: false,
             }, function(key){
-                eci_list.push(key[2]);
+                eciList.push(key[2]);
             }, function(err){
                 if(err) return callback(err);
-                async.map(eci_list, function(eci, next){
+                async.map(eciList, function(eci, next){
                     ldb.get(["channel", eci], function(err, channel){
                         if(err) return next(err);
                         next(null, omitChannelSecret(channel));
@@ -662,11 +662,11 @@ module.exports = function(opts){
                         callback(new Error("Cannot delete the pico's admin channel"));
                         return;
                     }
-                    var db_ops = [
+                    var dbOps = [
                         {type: "del", key: ["channel", eci]},
                         {type: "del", key: ["pico-eci-list", pico.id, eci]}
                     ];
-                    ldb.batch(db_ops, callback);
+                    ldb.batch(dbOps, callback);
                 });
             });
         },
@@ -691,10 +691,10 @@ module.exports = function(opts){
         },
 
         newPolicy: function(policy, callback){
-            var new_policy = ChannelPolicy.clean(policy);
-            new_policy.id = newID();
-            ldb.put(["policy", new_policy.id], new_policy, function(err, data){
-                callback(err, new_policy);
+            var newPolicy = ChannelPolicy.clean(policy);
+            newPolicy.id = newID();
+            ldb.put(["policy", newPolicy.id], newPolicy, function(err, data){
+                callback(err, newPolicy);
             });
         },
 
@@ -730,19 +730,19 @@ module.exports = function(opts){
                 }
                 if(err) return callback(err);
 
-                var is_used = false;
+                var isUsed = false;
                 dbRange(ldb, {
                     prefix: ["channel"],
                     keys: false,
                 }, function(chann, stopRange){
                     if(chann.policy_id === id){
-                        is_used = true;
+                        isUsed = true;
                         stopRange();
                         return;
                     }
                 }, function(err){
                     if(err) return callback(err);
-                    if(is_used){
+                    if(isUsed){
                         return callback(new Error("Policy " + id + " is in use, cannot remove."));
                     }
                     ldb.del(["policy", id], callback);
@@ -755,28 +755,28 @@ module.exports = function(opts){
         //
         // ent:*
         //
-        putEntVar: function(pico_id, rid, var_name, query, val, callback){
-            putPVar(ldb, ["entvars", pico_id, rid, var_name], query, val, callback);
+        putEntVar: function(picoId, rid, varName, query, val, callback){
+            putPVar(ldb, ["entvars", picoId, rid, varName], query, val, callback);
         },
-        getEntVar: function(pico_id, rid, var_name, query, callback){
-            getPVar(ldb, ["entvars", pico_id, rid, var_name], query, callback);
+        getEntVar: function(picoId, rid, varName, query, callback){
+            getPVar(ldb, ["entvars", picoId, rid, varName], query, callback);
         },
-        delEntVar: function(pico_id, rid, var_name, query, callback){
-            delPVar(ldb, ["entvars", pico_id, rid, var_name], query, callback);
+        delEntVar: function(picoId, rid, varName, query, callback){
+            delPVar(ldb, ["entvars", picoId, rid, varName], query, callback);
         },
 
         ////////////////////////////////////////////////////////////////////////
         //
         // app:*
         //
-        putAppVar: function(rid, var_name, query, val, callback){
-            putPVar(ldb, ["appvars", rid, var_name], query, val, callback);
+        putAppVar: function(rid, varName, query, val, callback){
+            putPVar(ldb, ["appvars", rid, varName], query, val, callback);
         },
-        getAppVar: function(rid, var_name, query, callback){
-            getPVar(ldb, ["appvars", rid, var_name], query, callback);
+        getAppVar: function(rid, varName, query, callback){
+            getPVar(ldb, ["appvars", rid, varName], query, callback);
         },
-        delAppVar: function(rid, var_name, query, callback){
-            delPVar(ldb, ["appvars", rid, var_name], query, callback);
+        delAppVar: function(rid, varName, query, callback){
+            delPVar(ldb, ["appvars", rid, varName], query, callback);
         },
 
 
@@ -784,8 +784,8 @@ module.exports = function(opts){
         //
         // event state machine and aggregators
         //
-        getStateMachine: function(pico_id, rule, callback){
-            var key = ["state_machine", pico_id, rule.rid, rule.name];
+        getStateMachine: function(picoId, rule, callback){
+            var key = ["state_machine", picoId, rule.rid, rule.name];
             ldb.get(key, function(err, data){
                 if(err && !err.notFound){
                     return callback(err);
@@ -795,19 +795,19 @@ module.exports = function(opts){
                     : {state: "start"});
             });
         },
-        putStateMachine: function(pico_id, rule, data, callback){
-            var key = ["state_machine", pico_id, rule.rid, rule.name];
+        putStateMachine: function(picoId, rule, data, callback){
+            var key = ["state_machine", picoId, rule.rid, rule.name];
             ldb.put(key, data, callback);
         },
 
 
-        updateAggregatorVar: function(pico_id, rule, var_key, updater, callback){
+        updateAggregatorVar: function(picoId, rule, varKey, updater, callback){
             var key = [
                 "aggregator_var",
-                pico_id,
+                picoId,
                 rule.rid,
                 rule.name,
-                var_key
+                varKey
             ];
             ldb.get(key, function(err, val){
                 if(err && !err.notFound){
@@ -831,32 +831,32 @@ module.exports = function(opts){
         //
         // rulesets
         //
-        storeRuleset: function(krl_src, meta, callback){
+        storeRuleset: function(krlSrc, meta, callback){
             var timestamp = (new Date()).toISOString();
             if(arguments.length === 4 && _.isString(arguments[3])){//for testing only
                 timestamp = arguments[3];//for testing only
             }//for testing only
 
-            var rid = extractRulesetID(krl_src);
+            var rid = extractRulesetID(krlSrc);
             if(!rid){
                 callback(new Error("Ruleset name not found"));
                 return;
             }
             var shasum = crypto.createHash("sha256");
-            shasum.update(krl_src);
+            shasum.update(krlSrc);
             var hash = shasum.digest("hex");
 
             var url = _.has(meta, "url") && _.isString(meta.url)
                 ? meta.url
                 : null;
 
-            var db_ops = [
+            var dbOps = [
                 {
                     //the source of truth for a ruleset version
                     type: "put",
                     key: ["rulesets", "krl", hash],
                     value: {
-                        src: krl_src,
+                        src: krlSrc,
                         rid: rid,
                         url: url,
                         timestamp: timestamp
@@ -871,13 +871,13 @@ module.exports = function(opts){
             ];
             if(url){
                 //index to lookup by url
-                db_ops.push({
+                dbOps.push({
                     type: "put",
                     key: ["rulesets", "url", url.toLowerCase().trim(), rid, hash],
                     value: true
                 });
             }
-            ldb.batch(db_ops, function(err){
+            ldb.batch(dbOps, function(err){
                 if(err) return callback(err);
                 callback(undefined, {
                     rid: rid,
@@ -886,15 +886,15 @@ module.exports = function(opts){
             });
         },
         hasEnabledRid: function(rid, callback){
-            var has_found = undefined;
+            var hasFound = undefined;
             dbRange(ldb, {
                 prefix: ["rulesets", "enabled", rid],
                 values: false,
                 limit: 1
             }, function(key){
-                has_found = true;
+                hasFound = true;
             }, function(err){
-                callback(err, has_found);
+                callback(err, hasFound);
             });
         },
         findRulesetsByURL: function(url, callback){
@@ -926,17 +926,17 @@ module.exports = function(opts){
             ldb.del(["rulesets", "enabled", rid], callback);
         },
         getEnabledRuleset: function(rid, callback){
-            ldb.get(["rulesets", "enabled", rid], function(err, data_e){
+            ldb.get(["rulesets", "enabled", rid], function(err, dataE){
                 if(err) return callback(err);
-                ldb.get(["rulesets", "krl", data_e.hash], function(err, data_k){
+                ldb.get(["rulesets", "krl", dataE.hash], function(err, dataK){
                     if(err) return callback(err);
                     callback(undefined, {
-                        src: data_k.src,
-                        hash: data_e.hash,
-                        rid: data_k.rid,
-                        url: data_k.url,
-                        timestamp_stored: data_k.timestamp,
-                        timestamp_enable: data_e.timestamp
+                        src: dataK.src,
+                        hash: dataE.hash,
+                        rid: dataK.rid,
+                        url: dataK.url,
+                        timestamp_stored: dataK.timestamp,
+                        timestamp_enable: dataE.timestamp
                     });
                 });
             });
@@ -953,19 +953,19 @@ module.exports = function(opts){
             });
         },
         isRulesetUsed: function(rid, callback){
-            var is_used = false;
+            var isUsed = false;
             dbRange(ldb, {
                 prefix: ["ruleset-pico", rid],
                 values: false,
                 limit: 1,
             }, function(key){
-                is_used = true;
+                isUsed = true;
             }, function(err){
-                callback(err, is_used);
+                callback(err, isUsed);
             });
         },
         deleteRuleset: function(rid, callback){
-            var to_del = [
+            var toDel = [
                 ["rulesets", "enabled", rid],
             ];
 
@@ -976,8 +976,8 @@ module.exports = function(opts){
             }, function(key){
                 var hash = key[4];
 
-                to_del.push(key);
-                to_del.push(["rulesets", "krl", hash]);
+                toDel.push(key);
+                toDel.push(["rulesets", "krl", hash]);
                 hashes.push(hash);
             }, function(err){
                 if(err) return callback(err);
@@ -985,7 +985,7 @@ module.exports = function(opts){
                     ldb.get(["rulesets", "krl", hash], function(err, data){
                         if(err) return next(err);
                         if(_.isString(data.url)){
-                            to_del.push([
+                            toDel.push([
                                 "rulesets",
                                 "url",
                                 data.url.toLowerCase().trim(),
@@ -1002,11 +1002,11 @@ module.exports = function(opts){
                         prefix: ["appvars", rid],
                         values: false
                     }, function(key){
-                        to_del.push(key);
+                        toDel.push(key);
                     }, function(err){
                         if(err) return callback(err);
 
-                        ldb.batch(_.map(to_del, function(key){
+                        ldb.batch(_.map(toDel, function(key){
                             return {type: "del", key: key};
                         }), callback);
                     });
@@ -1090,15 +1090,15 @@ module.exports = function(opts){
             ldb.get(["scheduled", id], function(err, info){
                 if(err) return callback(err);
 
-                var db_ops = [
+                var dbOps = [
                     {type: "del", key: ["scheduled", id]},
                 ];
                 if(_.has(info, "at")){
                     //also remove the `at` index
-                    db_ops.push({type: "del", key: ["scheduled_by_at", new Date(info.at), id]});
+                    dbOps.push({type: "del", key: ["scheduled_by_at", new Date(info.at), id]});
                 }
 
-                ldb.batch(db_ops, callback);
+                ldb.batch(dbOps, callback);
             });
         },
 
@@ -1114,15 +1114,15 @@ module.exports = function(opts){
             getMigrationLog(function(err, log){
                 if(err) return callback(err);
 
-                var to_run = [];
+                var toRun = [];
                 _.each(migrations, function(m, version){
                     if( ! _.has(log, version)){
-                        to_run.push(version);
+                        toRun.push(version);
                     }
                 });
-                to_run.sort();//must run in order
+                toRun.sort();//must run in order
 
-                async.eachSeries(to_run, function(version, next){
+                async.eachSeries(toRun, function(version, next){
                     var m = migrations[version];
                     m.up(ldb, function(err, data){
                         if(err) return next(err);

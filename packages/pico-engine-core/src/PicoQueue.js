@@ -3,13 +3,13 @@ var async = require("async");
 
 module.exports = function(worker){
 
-    var pico_queues = {};
+    var queues = {};
 
-    var getQ = function(pico_id){
-        if(!_.has(pico_queues, pico_id)){
+    var getQ = function(picoId){
+        if(!_.has(queues, picoId)){
             var q = async.queue(function(job, done){
                 job = JSON.parse(job);
-                worker(pico_id, job.type, job.data)
+                worker(picoId, job.type, job.data)
                     .then(function(val){
                         done(null, val);
                     })
@@ -21,14 +21,14 @@ module.exports = function(worker){
                         });
                     });
             });
-            pico_queues[pico_id] = q;
+            queues[picoId] = q;
         }
-        return pico_queues[pico_id];
+        return queues[picoId];
     };
 
     return {
-        enqueue: function(pico_id, type, data, callback){
-            getQ(pico_id).push(JSON.stringify({
+        enqueue: function(picoId, type, data, callback){
+            getQ(picoId).push(JSON.stringify({
                 type: type,
                 data: data,
             }), callback);

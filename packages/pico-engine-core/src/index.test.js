@@ -12,7 +12,7 @@ var PicoEngine = require("./");
 var mkTestPicoEngine = require("./mkTestPicoEngine");
 var ADMIN_POLICY_ID = require("./DB").ADMIN_POLICY_ID;
 
-var url_prefix = "http://fake-url/test-rulesets/";
+var urlPrefix = "http://fake-url/test-rulesets/";
 
 var omitMeta = function(resp){
     if(!_.has(resp, "directives")){
@@ -121,9 +121,9 @@ test("PicoEngine - hello_world ruleset", function(t){
         }, function(err, data){
             if(err) return t.end(err);
 
-            var txn_path = ["directives", 0, "meta", "txn_id"];
-            t.ok(/^c[^\s]+$/.test(_.get(data.hello_event, txn_path)));
-            _.set(data.hello_event, txn_path, "TXN_ID");
+            var txnPath = ["directives", 0, "meta", "txn_id"];
+            t.ok(/^c[^\s]+$/.test(_.get(data.hello_event, txnPath)));
+            _.set(data.hello_event, txnPath, "TXN_ID");
             t.deepEquals(data.hello_event, {
                 directives: [
                     {
@@ -152,14 +152,14 @@ test("PicoEngine - io.picolabs.persistent", function(t){
         if(err)return t.end(err);
 
         //two picos with the same ruleset
-        var A_query = mkQueryTask(pe, "id1", "io.picolabs.persistent");
-        var B_query = mkQueryTask(pe, "id3", "io.picolabs.persistent");
-        var A_signal = mkSignalTask(pe, "id1");
-        var B_signal = mkSignalTask(pe, "id3");
+        var queryA = mkQueryTask(pe, "id1", "io.picolabs.persistent");
+        var queryB = mkQueryTask(pe, "id3", "io.picolabs.persistent");
+        var signalA = mkSignalTask(pe, "id1");
+        var signalB = mkSignalTask(pe, "id3");
 
 
-        var entvar_path = ["entvars", "id0", "io.picolabs.persistent", "user"];
-        var appvar_path = ["appvars", "io.picolabs.persistent", "appvar"];
+        var entvarPath = ["entvars", "id0", "io.picolabs.persistent", "user"];
+        var appvarPath = ["appvars", "io.picolabs.persistent", "appvar"];
 
         testOutputs(t, [
             async.apply(pe.newPico, {}),//id0 - pico A channel id1
@@ -169,72 +169,72 @@ test("PicoEngine - io.picolabs.persistent", function(t){
 
             //////////////////////////////////////////////////////////////////////////
             //if not set, the var should return undefined
-            [A_query("getName"), null],
-            [A_query("getAppVar"), null],
+            [queryA("getName"), null],
+            [queryA("getAppVar"), null],
 
             //////////////////////////////////////////////////////////////////////////
             //store different names on each pico
             [
-                A_signal("store", "name", {name: "Alf"}),
+                signalA("store", "name", {name: "Alf"}),
                 [{name: "store_name", options: {name: "Alf"}}]
             ],
             [
-                B_signal("store", "name", {name: "Bob"}),
+                signalB("store", "name", {name: "Bob"}),
                 [{name: "store_name", options: {name: "Bob"}}]
             ],
             //pico's should have their respective names
-            [A_query("getName"), "Alf"],
-            [B_query("getName"), "Bob"],
+            [queryA("getName"), "Alf"],
+            [queryB("getName"), "Bob"],
 
             //////////////////////////////////////////////////////////////////////////
             //app vars are shared per-ruleset
             [
-                A_signal("store", "appvar", {appvar: "Some appvar"}),
+                signalA("store", "appvar", {appvar: "Some appvar"}),
                 [{name: "store_appvar", options: {appvar: "Some appvar"}}]
             ],
-            [A_query("getAppVar"), "Some appvar"],
-            [B_query("getAppVar"), "Some appvar"],
+            [queryA("getAppVar"), "Some appvar"],
+            [queryB("getAppVar"), "Some appvar"],
             [
-                B_signal("store", "appvar", {appvar: "Changed by B"}),
+                signalB("store", "appvar", {appvar: "Changed by B"}),
                 [{name: "store_appvar", options: {appvar: "Changed by B"}}]
             ],
-            [A_query("getAppVar"), "Changed by B"],
-            [B_query("getAppVar"), "Changed by B"],
+            [queryA("getAppVar"), "Changed by B"],
+            [queryB("getAppVar"), "Changed by B"],
 
             //////////////////////////////////////////////////////////////////////////
             //query paths
             [
-                A_signal("store", "user_firstname", {firstname: "Leonard"}),
+                signalA("store", "user_firstname", {firstname: "Leonard"}),
                 [{name: "store_user_firstname", options: {name: "Leonard"}}]
             ],
-            [A_query("getUser"), {firstname: "Leonard", "lastname": "McCoy"}],
-            [A_query("getUserFirstname"), "Leonard"],
+            [queryA("getUser"), {firstname: "Leonard", "lastname": "McCoy"}],
+            [queryA("getUserFirstname"), "Leonard"],
 
             //////////////////////////////////////////////////////////////////////////
             //clear vars
             function(done){
                 pe.dbDump(function(err, data){
                     if(err)return done(err);
-                    t.ok(_.has(data, entvar_path));
-                    t.ok(_.has(data, appvar_path));
+                    t.ok(_.has(data, entvarPath));
+                    t.ok(_.has(data, appvarPath));
                     done();
                 });
             },
-            [A_signal("store", "clear_user"), [{name: "clear_user", options: {}}]],
+            [signalA("store", "clear_user"), [{name: "clear_user", options: {}}]],
             function(done){
                 pe.dbDump(function(err, data){
                     if(err)return done(err);
-                    t.notOk(_.has(data, entvar_path));
-                    t.ok(_.has(data, appvar_path));
+                    t.notOk(_.has(data, entvarPath));
+                    t.ok(_.has(data, appvarPath));
                     done();
                 });
             },
-            [A_signal("store", "clear_appvar"), [{name: "clear_appvar", options: {}}]],
+            [signalA("store", "clear_appvar"), [{name: "clear_appvar", options: {}}]],
             function(done){
                 pe.dbDump(function(err, data){
                     if(err)return done(err);
-                    t.notOk(_.has(data, entvar_path));
-                    t.notOk(_.has(data, appvar_path));
+                    t.notOk(_.has(data, entvarPath));
+                    t.notOk(_.has(data, appvarPath));
                     done();
                 });
             },
@@ -719,7 +719,7 @@ test("PicoEngine - io.picolabs.engine ruleset", function(t){
             }),[]],
             [signal("engine", "installRuleset", {
                 pico_id: "id2",
-                base: url_prefix,
+                base: urlPrefix,
                 url: "scope.krl",
             }),[]],
             function(done){
@@ -977,7 +977,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetName: "testing meta module",
                     rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
-                    rulesetURI: url_prefix + "meta.krl",
+                    rulesetURI: urlPrefix + "meta.krl",
                     ruleName: "meta_event",
                     inEvent: true,
                     inQuery: false,
@@ -992,7 +992,7 @@ test("PicoEngine - io.picolabs.meta ruleset", function(t){
                     rulesetName: "testing meta module",
                     rulesetDescription: "\nsome description for the meta test module\n        ",
                     rulesetAuthor: "meta author",
-                    rulesetURI: url_prefix + "meta.krl",
+                    rulesetURI: urlPrefix + "meta.krl",
                     ruleName: null,
                     inEvent: false,
                     inQuery: true,
@@ -1720,7 +1720,7 @@ test("PicoEngine - io.picolabs.log ruleset", function(t){
 
         var signal = mkSignalTask(pe, "id1");
 
-        var log_events = [];
+        var eventLog = [];
         _.each([
             "log-info",
             "log-debug",
@@ -1728,14 +1728,14 @@ test("PicoEngine - io.picolabs.log ruleset", function(t){
             "log-error",
         ], function(level){
             pe.emitter.on(level, function(val, info){
-                log_events.push([level, val]);
+                eventLog.push([level, val]);
             });
         });
 
         testOutputs(t, [
             [signal("log", "levels"), []],
             function(done){
-                t.deepEquals(log_events, [
+                t.deepEquals(eventLog, [
                     ["log-info", "hello default"],
                     ["log-error", "hello error"],
                     ["log-warn", "hello warn"],
@@ -1764,13 +1764,13 @@ test("PicoEngine - io.picolabs.key* rulesets", function(t){
         var query2 = mkQueryTask(pe, "id1", "io.picolabs.key-used2");
         var query3 = mkQueryTask(pe, "id1", "io.picolabs.key-used3");
 
-        var qError = function(q, error_msg){
+        var qError = function(q, errorMsg){
             return function(next){
                 pe.emitter.once("error", function(err){
-                    t.equals(err+"", error_msg);
+                    t.equals(err+"", errorMsg);
                 });
                 q(function(err, resp){
-                    t.equals(err+"", error_msg);
+                    t.equals(err+"", errorMsg);
                     next();
                 });
             };
@@ -2012,12 +2012,12 @@ test("PicoEngine - installRuleset", function(t){
     mkTestPicoEngine({}, function(err, pe){
         if(err)return t.end(err);
 
-        var rid_to_use = "io.picolabs.hello_world";
+        var ridToUse = "io.picolabs.hello_world";
 
         async.series([
             async.apply(pe.newPico, {}),
             function(next){
-                pe.installRuleset("id404", rid_to_use, function(err){
+                pe.installRuleset("id404", ridToUse, function(err){
                     t.equals(err + "", "NotFoundError: Pico not found: id404");
                     t.ok(err.notFound);
                     next();
@@ -2030,7 +2030,7 @@ test("PicoEngine - installRuleset", function(t){
                 });
             },
             function(next){
-                pe.installRuleset("id0", rid_to_use, function(err){
+                pe.installRuleset("id0", ridToUse, function(err){
                     t.notOk(err);
                     next();
                 });
@@ -2140,13 +2140,13 @@ test("PicoEngine - io.picolabs.error rulesets", function(t){
 
 test("PicoEngine - (re)registering ruleset shouldn't mess up state", function(t){
     mkTestPicoEngine({
-        compileAndLoadRuleset: function(rs_info, callback){
+        compileAndLoadRuleset: function(rsInfo, callback){
             var js;
             try{
-                var js_src = compiler(rs_info.src, {
+                var jsSrc = compiler(rsInfo.src, {
                     inline_source_map: true
                 }).code;
-                js = eval(js_src);
+                js = eval(jsSrc);
             }catch(err){
                 return callback(err);
             }
@@ -2155,8 +2155,8 @@ test("PicoEngine - (re)registering ruleset shouldn't mess up state", function(t)
     }, function(err, pe){
         if(err)return t.end(err);
 
-        var krl_0 = "ruleset foo.rid {rule aa {select when foo all} rule bb {select when foo all}}";
-        var krl_1 = "ruleset foo.rid {rule ab {select when foo all} rule bb {select when foo all}}";
+        var krl0 = "ruleset foo.rid {rule aa {select when foo all} rule bb {select when foo all}}";
+        var krl1 = "ruleset foo.rid {rule ab {select when foo all} rule bb {select when foo all}}";
 
         var signal = mkSignalTask(pe, "id1");
 
@@ -2170,10 +2170,10 @@ test("PicoEngine - (re)registering ruleset shouldn't mess up state", function(t)
         });
         async.series([
             async.apply(pe.newPico, {}),
-            async.apply(pe.registerRuleset, krl_0, {}),
+            async.apply(pe.registerRuleset, krl0, {}),
             async.apply(pe.installRuleset, "id0", "foo.rid"),
             signal("foo", "all"),
-            async.apply(pe.registerRuleset, krl_1, {}),
+            async.apply(pe.registerRuleset, krl1, {}),
             signal("foo", "all"),
         ], function(err){
             if(err) return t.end(err);
@@ -2200,15 +2200,15 @@ test("PicoEngine - io.picolabs.test-error-messages", function(t){
     }, function(err, pe){
         if(err)return t.end(err);
 
-        var qError = function(q, error_msg, is_notFound){
+        var qError = function(q, errorMsg, isNotFound){
             return function(next){
                 pe.emitter.once("error", function(err){
-                    t.equals(err+"", error_msg);
-                    t.equals(err.notFound || false, is_notFound);
+                    t.equals(err+"", errorMsg);
+                    t.equals(err.notFound || false, isNotFound);
                 });
                 pe.runQuery(q, function(err, resp){
-                    t.equals(err+"", error_msg);
-                    t.equals(err.notFound || false, is_notFound);
+                    t.equals(err+"", errorMsg);
+                    t.equals(err.notFound || false, isNotFound);
                     t.notOk(resp);
                     next();
                 });
@@ -2262,13 +2262,13 @@ var mkPicoEngineFactoryWithKRLCompiler = function(){
         return PicoEngine(_.assign({}, {
             host: "https://test-host",
             ___core_testing_mode: true,
-            compileAndLoadRuleset: function(rs_info, callback){
+            compileAndLoadRuleset: function(rsInfo, callback){
                 var js;
                 try{
-                    var js_src = compiler(rs_info.src, {
+                    var jsSrc = compiler(rsInfo.src, {
                         inline_source_map: true
                     }).code;
-                    js = eval(js_src);
+                    js = eval(jsSrc);
                 }catch(err){
                     return callback(err);
                 }
@@ -2499,8 +2499,8 @@ testA("PicoEngine - io.picolabs.policies ruleset", async function(t){
         }
     });
 
-    var mkECI = async function(policy_json){
-        var policy = await newPolicy(policy_json);
+    var mkECI = async function(policyJson){
+        var policy = await newPolicy(policyJson);
         var chann = await newChannel({
             pico_id: "id0",
             name: "name",
@@ -2510,11 +2510,11 @@ testA("PicoEngine - io.picolabs.policies ruleset", async function(t){
         return chann.id;
     };
 
-    var tstEventPolicy = util.promisify(function(eci, domain_type, expected, callback){
+    var tstEventPolicy = util.promisify(function(eci, domainType, expected, callback){
         pe.signalEvent({
             eci: eci,
-            domain: domain_type.split("/")[0],
-            type: domain_type.split("/")[1],
+            domain: domainType.split("/")[0],
+            type: domainType.split("/")[1],
         }, function(err, data){
             var actual = "allowed";
             if(err){
@@ -2526,7 +2526,7 @@ testA("PicoEngine - io.picolabs.policies ruleset", async function(t){
                     return callback(err);
                 }
             }
-            t.equals(actual, expected, "tstEventPolicy " + eci + "|" + domain_type);
+            t.equals(actual, expected, "tstEventPolicy " + eci + "|" + domainType);
             callback();
         });
     });
@@ -2695,11 +2695,11 @@ test("PicoEngine - handle ruleset startup errors after compiler update made brea
     var mkPE = mkPicoEngineFactoryWithKRLCompiler();
 
     //The old compiler didn't complain when the ruleset was registered
-    var oldCompiler = function(rs_info, callback){
+    var oldCompiler = function(rsInfo, callback){
         callback(null, {rid: "my-rid"});
     };
     //The new compiler doesn't like it anymore (i.e. removed syntax)
-    var newCompiler = function(rs_info, callback){
+    var newCompiler = function(rsInfo, callback){
         callback(new Error("That won't compile anymore!"));
     };
 
@@ -2744,7 +2744,7 @@ test("PicoEngine - handle ruleset initialization errors", function(t){
     (async function(){
 
         //First register the ruleset in the db
-        var pe = mkPE({compileAndLoadRuleset: function(rs_info, callback){
+        var pe = mkPE({compileAndLoadRuleset: function(rsInfo, callback){
             callback(null, {
                 rid: "my-rid",
                 global: function*(){
@@ -2762,7 +2762,7 @@ test("PicoEngine - handle ruleset initialization errors", function(t){
 
 
         //Now in this time the ruleset won't initialize
-        pe = mkPE({compileAndLoadRuleset: function(rs_info, callback){
+        pe = mkPE({compileAndLoadRuleset: function(rsInfo, callback){
             callback(null, {
                 rid: "my-rid",
                 global: function(){

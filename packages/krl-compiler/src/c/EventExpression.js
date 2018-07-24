@@ -7,17 +7,17 @@ module.exports = function(ast, comp, e){
         comp.warn(ast.loc, "DEPRECATED SYNTAX - " + ast.deprecated);
     }
 
-    var fn_body = [];
+    var fnBody = [];
 
     if(ast.where){
         // inject attrs as varibles in the scope
 
-        fn_body.push(e("var", "event_attrs", e("acall",
+        fnBody.push(e("var", "event_attrs", e("acall",
             e("id", "ctx.modules.get"),
             [e("id", "ctx"), e("str", "event"), e("str", "attrs")]
         )));
         var attrKeys = e("call", e("id", "Object.keys"), [e("id", "event_attrs")]);
-        fn_body.push(e(";", e("call", e(".", attrKeys, e("id", "forEach")), [
+        fnBody.push(e(";", e("call", e(".", attrKeys, e("id", "forEach")), [
             e("fn", ["attr"], [
 
                 // don't stomp over global scope
@@ -34,9 +34,9 @@ module.exports = function(ast, comp, e){
 
     if(!_.isEmpty(ast.event_attrs)){
         // select when domain type <attr> re#..#
-        fn_body.push(e("var", "matches", e("array", [])));
-        fn_body.push(e("var", "m"));
-        fn_body.push(e("var", "j"));
+        fnBody.push(e("var", "matches", e("array", [])));
+        fnBody.push(e("var", "m"));
+        fnBody.push(e("var", "j"));
         _.each(ast.event_attrs, function(a){
             var id = function(str, loc){
                 return e("id", str, loc || a.loc);
@@ -46,24 +46,24 @@ module.exports = function(ast, comp, e){
             var key = e("string", a.key.value, a.key.loc);
             var attr = e("call", id("getAttrString"), [id("ctx", a.key.loc), key], a.key.loc);
             var regexExec = e(".", comp(a.value), id("exec", a.value.loc), a.value.loc);
-            fn_body.push(e(";", e("=", id("m"), e("call", regexExec, [attr], a.value.loc), a.value.loc)));
+            fnBody.push(e(";", e("=", id("m"), e("call", regexExec, [attr], a.value.loc), a.value.loc)));
 
             // if !m, then the EventExpression doesn't match
-            fn_body.push(e("if", e("!", id("m")), e("return", e("false"))));
+            fnBody.push(e("if", e("!", id("m")), e("return", e("false"))));
 
             // append to matches
             var init = e("=", id("j"), e("number", 1));
             var test = e("<", id("j"), id("m.length"));
             var update = e("++", id("j"));
             var body = e(";", e("call", id("matches.push"), [e("get", id("m"), id("j"))]));
-            fn_body.push(e("for", init, test, update, body));
+            fnBody.push(e("for", init, test, update, body));
         });
     }else if(!_.isEmpty(ast.setting)){
-        fn_body.push(e("var", "matches", e("array", [])));
+        fnBody.push(e("var", "matches", e("array", [])));
     }
 
     _.each(ast.setting, function(s, i){
-        fn_body.push(e(";",
+        fnBody.push(e(";",
             e("call", e("id", "setting", s.loc), [
                 e("str", s.value, s.loc),
                 e("get", e("id", "matches", s.loc), e("num", i, s.loc), s.loc)
@@ -71,11 +71,11 @@ module.exports = function(ast, comp, e){
     });
 
     if(ast.where){
-        fn_body.push(e("if", e("!", comp(ast.where)), e("return", e("false"))));
+        fnBody.push(e("if", e("!", comp(ast.where)), e("return", e("false"))));
     }
 
     if(ast.aggregator){
-        fn_body.push(e(";",
+        fnBody.push(e(";",
             e("acall",
                 e("id", "aggregateEvent", ast.aggregator.loc),
                 [
@@ -92,7 +92,7 @@ module.exports = function(ast, comp, e){
             ), ast.aggregator.loc));
     }
 
-    fn_body.push(e("return", e(true)));
+    fnBody.push(e("return", e(true)));
 
-    return e("asyncfn", ["ctx", "aggregateEvent", "getAttrString", "setting"], fn_body);
+    return e("asyncfn", ["ctx", "aggregateEvent", "getAttrString", "setting"], fnBody);
 };

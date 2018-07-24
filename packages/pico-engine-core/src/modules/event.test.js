@@ -1,11 +1,11 @@
 //var _ = require("lodash");
 var test = require("tape");
 var http = require("http");
-var event_module = require("./event");
+var eventModule = require("./event");
 
 test("module - event:attr(name)", function(t){
     (async function(){
-        var kevent = event_module();
+        var kevent = eventModule();
 
         t.equals(
             await kevent.def.attr({event: {attrs: {foo: "bar"}}}, ["foo"]),
@@ -23,9 +23,9 @@ test("module - event:attr(name)", function(t){
 });
 
 test("module - event:send(event, host = null)", function(t){
-    var server_reached = false;
+    var serverReached = false;
     var server = http.createServer(function(req, res){
-        server_reached = true;
+        serverReached = true;
 
         var body = "";
         req.on("data", function(buffer){
@@ -44,7 +44,7 @@ test("module - event:send(event, host = null)", function(t){
         var host = "http://localhost:" + server.address().port;
         (async function(){
 
-            var kevent = event_module();
+            var kevent = eventModule();
 
             t.equals(
                 (await kevent.def.send({}, {
@@ -58,7 +58,7 @@ test("module - event:send(event, host = null)", function(t){
                 }))[0],
                 void 0//returns nothing
             );
-            t.equals(server_reached, false, "should be async, i.e. server not reached yet");
+            t.equals(serverReached, false, "should be async, i.e. server not reached yet");
         }()).catch(t.end);
     });
 });

@@ -4,11 +4,11 @@ var tokenizer = require("./tokenizer");
 var lineColumn = require("line-column");
 var excerptAtLineCol = require("excerpt-at-line-col");
 
-var mkParseError = function(src, line, col, orig_err, filename){
-    var msg = "" + orig_err;
+var mkParseError = function(src, line, col, origErr, filename){
+    var msg = "" + origErr;
     msg = msg.trim();
 
-    if(/Error: invalid syntax at/.test(orig_err)){
+    if(/Error: invalid syntax at/.test(origErr)){
         msg = "No possible parsings";
     }
 

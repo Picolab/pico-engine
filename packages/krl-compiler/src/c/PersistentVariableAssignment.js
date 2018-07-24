@@ -6,7 +6,7 @@ module.exports = function(ast, comp, e){
         throw comp.error(ast.left.loc, "PersistentVariableAssignment - only works on ent:* or app:* variables");
     }
 
-    var value_to_store = comp(ast.right);
+    var valueToStore = comp(ast.right);
 
     var key = e("str", ast.left.value, ast.left.loc);
 
@@ -21,6 +21,6 @@ module.exports = function(ast, comp, e){
         e("id", "ctx"),
         e("str", ast.left.domain, ast.left.loc),
         key,
-        value_to_store,
+        valueToStore,
     ]));
 };

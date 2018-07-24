@@ -31,8 +31,8 @@ async function evalExpr(ctx, rule, aggregator, exp, setting){
     return await runKRL(rule.select.eventexprs[exp], ctx, aggregator, getAttrString, setting);
 }
 
-async function getNextState(ctx, rule, curr_state, aggregator, setting){
-    var stm = rule.select.state_machine[curr_state];
+async function getNextState(ctx, rule, currState, aggregator, setting){
+    var stm = rule.select.state_machine[currState];
 
     var i;
     for(i=0; i < stm.length; i++){
@@ -41,24 +41,24 @@ async function getNextState(ctx, rule, curr_state, aggregator, setting){
             return stm[i][1];
         }
     }
-    if(curr_state === "end"){
+    if(currState === "end"){
         return "start";
     }
-    return curr_state;//by default, stay on the current state
+    return currState;//by default, stay on the current state
 }
 
 async function shouldRuleSelect(core, ctx, rule){
 
-    var sm_data = await core.db.getStateMachineYieldable(ctx.pico_id, rule);
+    var smData = await core.db.getStateMachineYieldable(ctx.pico_id, rule);
 
-    var bindings = sm_data.bindings || {};
+    var bindings = smData.bindings || {};
 
     if(_.isFunction(rule.select && rule.select.within)){
 
-        if(!_.isNumber(sm_data.starttime)){
-            sm_data.starttime = ctx.event.timestamp.getTime();
+        if(!_.isNumber(smData.starttime)){
+            smData.starttime = ctx.event.timestamp.getTime();
         }
-        var time_since_last = ctx.event.timestamp.getTime() - sm_data.starttime;
+        var timeSinceLast = ctx.event.timestamp.getTime() - smData.starttime;
 
         // restore any stored variables in a temporary scope
         var ctx2 = core.mkCTX(_.assign({}, ctx, {
@@ -67,15 +67,15 @@ async function shouldRuleSelect(core, ctx, rule){
         _.each(bindings, function(val, id){
             ctx2.scope.set(id, val);
         });
-        var time_limit = await runKRL(rule.select.within, ctx2);
+        var timeLimit = await runKRL(rule.select.within, ctx2);
 
-        if(time_since_last > time_limit){
+        if(timeSinceLast > timeLimit){
             // time has expired, reset the state machine
-            sm_data.state = "start";
+            smData.state = "start";
         }
-        if(sm_data.state === "start"){
+        if(smData.state === "start"){
             // set or reset the clock
-            sm_data.starttime = ctx.event.timestamp.getTime();
+            smData.starttime = ctx.event.timestamp.getTime();
             bindings = {};
         }
     }
@@ -85,32 +85,32 @@ async function shouldRuleSelect(core, ctx, rule){
         ctx.scope.set(id, val);
     });
 
-    var aggregator = aggregateEvent(core, sm_data.state, rule);
+    var aggregator = aggregateEvent(core, smData.state, rule);
 
     var setting = function(id, val){
         ctx.scope.set(id, val);
         bindings[id] = val;
     };
 
-    var next_state = await getNextState(ctx, rule, sm_data.state, aggregator, setting);
+    var nextState = await getNextState(ctx, rule, smData.state, aggregator, setting);
 
     await core.db.putStateMachineYieldable(ctx.pico_id, rule, {
-        state: next_state,
-        starttime: sm_data.starttime,
-        bindings: next_state === "end"
+        state: nextState,
+        starttime: smData.starttime,
+        bindings: nextState === "end"
             ? {}
             : bindings,
     });
 
-    return next_state === "end";
+    return nextState === "end";
 }
 
 module.exports = async function selectRulesToEval(core, ctx){
     //read this fresh everytime we select, b/c it might have changed during event processing
-    var pico_rids = await core.db.ridsOnPicoYieldable(ctx.pico_id);
+    var picoRids = await core.db.ridsOnPicoYieldable(ctx.pico_id);
 
-    var rules_to_select = core.rsreg.salientRules(ctx.event.domain, ctx.event.type, function(rid){
-        if(pico_rids[rid] !== true){
+    var rulesToSelect = core.rsreg.salientRules(ctx.event.domain, ctx.event.type, function(rid){
+        if(picoRids[rid] !== true){
             return false;
         }
         if(_.has(ctx.event, "for_rid") && _.isString(ctx.event.for_rid)){
@@ -121,7 +121,7 @@ module.exports = async function selectRulesToEval(core, ctx){
         return true;
     });
 
-    var rules = await Promise.all(rules_to_select.map(function(rule){
+    var rules = await Promise.all(rulesToSelect.map(function(rule){
         var ruleCTX = core.mkCTX({
             rid: rule.rid,
             scope: rule.scope,

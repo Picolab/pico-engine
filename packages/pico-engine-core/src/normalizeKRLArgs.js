@@ -1,11 +1,11 @@
 var _ = require("lodash");
 
-module.exports = function(param_order, krl_args){
+module.exports = function(paramOrder, krlArgs){
     var args = {};
-    _.each(krl_args, function(arg, key){
-        if(_.has(param_order, key)){
-            args[param_order[key]] = arg;
-        }else if(_.includes(param_order, key)){
+    _.each(krlArgs, function(arg, key){
+        if(_.has(paramOrder, key)){
+            args[paramOrder[key]] = arg;
+        }else if(_.includes(paramOrder, key)){
             args[key] = arg;
         }
     });

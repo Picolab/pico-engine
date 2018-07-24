@@ -4,22 +4,22 @@ var ktypes = require("krl-stdlib/types");
 var mkKRLfn = require("../mkKRLfn");
 var strftime = require("strftime");
 
-var newDate = function(date_str, parse_utc){
+var newDate = function(dateStr, parseUtc){
     var parse = function(str){
-        return parse_utc
+        return parseUtc
             ? moment.utc(str, moment.ISO_8601)
             : moment(str, moment.ISO_8601);
     };
-    var d = parse(date_str);
+    var d = parse(dateStr);
     if(!d.isValid()){
         var today = (new Date()).toISOString().split("T")[0];
-        d = parse(today + "T" + date_str);
+        d = parse(today + "T" + dateStr);
         if(!d.isValid()){
-            d = parse(today.replace(/-/g, "") + "T" + date_str);
+            d = parse(today.replace(/-/g, "") + "T" + dateStr);
         }
     }
     if(!d.isValid()){
-        return null; // invalid date string date_str
+        return null; // invalid date string dateStr
     }
     return d;
 };

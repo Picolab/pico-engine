@@ -5,8 +5,8 @@ module.exports = function(src){
     if(!_.isString(src)){
         return;
     }
-    var src_no_comments = src.replace(commentsRegExp(), " ");
-    var m = /^\s*ruleset\s+([^\s{]+)/.exec(src_no_comments);
+    var srcNoComments = src.replace(commentsRegExp(), " ");
+    var m = /^\s*ruleset\s+([^\s{]+)/.exec(srcNoComments);
     if(!m){
         return;
     }

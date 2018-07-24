@@ -15,14 +15,14 @@ module.exports = function(ast, comp, e){
         args.timespec = comp(ast.timespec);
     }
 
-    var module_call = e("acall", e("id", "ctx.scheduleEvent"), [e("obj", args)]);
+    var moduleCall = e("acall", e("id", "ctx.scheduleEvent"), [e("obj", args)]);
 
     if(ast.setting){
         return e(";", e("call", e("id", "ctx.scope.set", ast.setting.loc), [
             e("str", ast.setting.value, ast.setting.loc),
-            module_call,
+            moduleCall,
         ], ast.setting.loc));
     }else{
-        return e(";", module_call);
+        return e(";", moduleCall);
     }
 };

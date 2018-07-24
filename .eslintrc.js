@@ -62,6 +62,7 @@ module.exports = {
     },
     "extends": "eslint:recommended",
     "rules": {
+        "camelcase": ["error", { "properties": "never" }],
         "indent":  ["error", 4],
         "no-console": "off",
         "quotes": ["error", "double"],

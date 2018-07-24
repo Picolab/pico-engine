@@ -33,7 +33,7 @@ var normalizeId = function(domain, id){
 };
 
 
-module.exports = function(core, third_party_modules){
+module.exports = function(core, thirdPartyModules){
 
     var modules = _.mapValues(subModules, function(subModule){
         var m = subModule(core);
@@ -49,7 +49,7 @@ module.exports = function(core, third_party_modules){
         return m;
     });
 
-    _.each(third_party_modules, function(ops, domain){
+    _.each(thirdPartyModules, function(ops, domain){
         if(_.has(modules, domain)){
             throw new Error("You cannot override the built-in `" + domain + ":*` module");
         }
@@ -88,13 +88,13 @@ module.exports = function(core, third_party_modules){
 
     var userModuleLookup = function(ctx, domain, id){
         var umod = _.get(core.rsreg.get(ctx.rid), ["modules_used", domain]);
-        var has_it = _.has(umod, "scope")
+        var hasIt = _.has(umod, "scope")
             && umod.scope.has(id)
             && _.includes(umod.provides, id)
             ;
-        var value = has_it ? umod.scope.get(id) : void 0;
+        var value = hasIt ? umod.scope.get(id) : void 0;
         return {
-            has_it: has_it,
+            hasIt: hasIt,
             value: value,
         };
     };
@@ -104,7 +104,7 @@ module.exports = function(core, third_party_modules){
         get: function(ctx, domain, id){
             id = normalizeId(domain, id);
             var umod = userModuleLookup(ctx, domain, id);
-            if(umod.has_it){
+            if(umod.hasIt){
                 return umod.value;
             }
             if(_.has(modules, [domain, "def", id])){

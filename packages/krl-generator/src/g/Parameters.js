@@ -4,14 +4,14 @@ module.exports = function(ast, ind, gen){
 
     var src = "";
 
-    var newline_params = false;
+    var newlineParams = false;
     var strs = _.map(ast.params, function(param){
         if(param["default"]){
-            newline_params = true;
+            newlineParams = true;
         }
         return gen(param);
     });
-    if(newline_params){
+    if(newlineParams){
         src += "\n" + ind(1);
         src += strs.join(",\n" + ind(1)) + ",";
         src += "\n" + ind();

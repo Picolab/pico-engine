@@ -1,6 +1,6 @@
 var _ = require("lodash");
 
-var time_period_in_ms = {
+var timePeriodInMs = {
     second: 1000,
     minute: 1000 * 60,
     hour  : 1000 * 60 * 60,
@@ -12,12 +12,12 @@ var time_period_in_ms = {
 
 module.exports = function(ast, comp, e){
     var multiplier = 1;
-    if(_.has(time_period_in_ms, ast.time_period)){
-        multiplier = time_period_in_ms[ast.time_period];
+    if(_.has(timePeriodInMs, ast.time_period)){
+        multiplier = timePeriodInMs[ast.time_period];
     }else{
         var key = ast.time_period.replace(/s$/i, "");
-        if(_.has(time_period_in_ms, key)){
-            multiplier = time_period_in_ms[key];
+        if(_.has(timePeriodInMs, key)){
+            multiplier = timePeriodInMs[key];
         }
     }
     return e("asyncfn", ["ctx"], [

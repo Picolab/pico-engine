@@ -4,7 +4,7 @@ var mkId = function(e, i, key){
     return e("id", "foreach" + i + "_" + key);
 };
 
-var mkIsFinal = function(e, n_indexes){
+var mkIsFinal = function(e, nIndexes){
     var mkEq = function(i){
         return e(
             "===",
@@ -14,7 +14,7 @@ var mkIsFinal = function(e, n_indexes){
     };
     var curr = mkEq(0);
     var i = 1;
-    while(i < n_indexes){
+    while(i < nIndexes){
         curr = e("&&", curr, mkEq(i));
         i++;
     }

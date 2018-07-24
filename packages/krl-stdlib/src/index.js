@@ -16,19 +16,19 @@ var toKeyPath = function(path){
 };
 
 var iterBase = async function(val, iter){
-    var should_continue;
+    var shouldContinue;
     if(types.isArray(val)){
         var i;
         for(i = 0; i < val.length; i++){
-            should_continue = await iter(val[i], i, val);
-            if(!should_continue) break;
+            shouldContinue = await iter(val[i], i, val);
+            if(!shouldContinue) break;
         }
     }else{
         var key;
         for(key in val){
             if(_.has(val, key)){
-                should_continue = await iter(val[key], key, val);
-                if(!should_continue) break;
+                shouldContinue = await iter(val[key], key, val);
+                if(!shouldContinue) break;
             }
         }
     }
@@ -166,15 +166,15 @@ stdlib.as = function(ctx, val, type){
     if(arguments.length < 3){
         return val;
     }
-    var val_type = types.typeOf(val);
-    if(val_type === type){
+    var valType = types.typeOf(val);
+    if(valType === type){
         return val;
     }
     if(type === "Boolean"){
         if(val === "false"){
             return false;
         }
-        if(val_type === "Number"){
+        if(valType === "Number"){
             return val !== 0;
         }
         return !!val;
@@ -187,14 +187,14 @@ stdlib.as = function(ctx, val, type){
     }
     if(type === "RegExp"){
         var regexSrc = types.toString(val);
-        if(val_type !== "String" && /^\[[a-z]+\]$/i.test(regexSrc)){
+        if(valType !== "String" && /^\[[a-z]+\]$/i.test(regexSrc)){
             regexSrc = regexSrc
                 .replace(/^\[/, "\\[")
                 .replace(/\]$/, "\\]");
         }
         return new RegExp(regexSrc);
     }
-    throw new TypeError("Cannot use the .as(\""+type+"\") operator with " + types.toString(val) + " (type " + val_type + ")");
+    throw new TypeError("Cannot use the .as(\""+type+"\") operator with " + types.toString(val) + " (type " + valType + ")");
 };
 
 stdlib.isnull = function(ctx, val){
@@ -346,12 +346,12 @@ stdlib.replace = async function(ctx, val, regex, replacement){
     }
     return val.replace(regex, types.toString(replacement));
 };
-stdlib.split = function(ctx, val, split_on){
+stdlib.split = function(ctx, val, splitOn){
     val = types.toString(val);
-    if( ! types.isRegExp(split_on)){
-        split_on = types.toString(split_on);
+    if( ! types.isRegExp(splitOn)){
+        splitOn = types.toString(splitOn);
     }
-    return val.split(split_on);
+    return val.split(splitOn);
 };
 stdlib.substr = function(ctx, val, start, len){
     val = types.toString(val);
@@ -454,15 +454,15 @@ stdlib.filter = async function(ctx, val, iter){
     if(!types.isFunction(iter)){
         return val;
     }
-    var is_array = !types.isMap(val);
-    if(is_array && !types.isArray(val)){
+    var isArr = !types.isMap(val);
+    if(isArr && !types.isArray(val)){
         val = [val];
     }
-    var rslt = is_array ? [] : {};
+    var rslt = isArr ? [] : {};
     await iterBase(val, async function(v, k, obj){
         var r = await iter(ctx, [v, k, obj]);
         if(r){
-            if(is_array){
+            if(isArr){
                 rslt.push(v);
             }else{
                 rslt[k] = v;
@@ -513,14 +513,14 @@ stdlib.map = async function(ctx, val, iter){
     if(!types.isFunction(iter)){
         return val;
     }
-    var is_array = !types.isMap(val);
-    if(is_array && !types.isArray(val)){
+    var isArr = !types.isMap(val);
+    if(isArr && !types.isArray(val)){
         val = [val];
     }
-    var rslt = is_array ? [] : {};
+    var rslt = isArr ? [] : {};
     await iterBase(val, async function(v, k, obj){
         var r = await iter(ctx, [v, k, obj]);
-        if(is_array){
+        if(isArr){
             rslt.push(r);
         }else{
             rslt[k] = r;
@@ -548,14 +548,14 @@ stdlib.pairwise = async function(ctx, val, iter){
         }
         return [v];
     });
-    var max_len = _.max(_.map(val, _.size));
+    var maxLen = _.max(_.map(val, _.size));
 
     var r = [];
 
     var i;
     var j;
     var args2;
-    for(i = 0; i < max_len; i++){
+    for(i = 0; i < maxLen; i++){
         args2 = [];
         for(j = 0; j < val.length; j++){
             args2.push(val[j][i]);
@@ -568,25 +568,25 @@ stdlib.reduce = async function(ctx, val, iter, dflt){
     if(!types.isArray(val)){
         val = [val];
     }
-    var no_default = arguments.length < 4;
+    var noDefault = arguments.length < 4;
     if(val.length === 0){
-        return no_default ? 0 : dflt;
+        return noDefault ? 0 : dflt;
     }
-    if(!types.isFunction(iter) && (no_default || val.length > 1)){
+    if(!types.isFunction(iter) && (noDefault || val.length > 1)){
         throw new Error("The .reduce() operator cannot use " + types.toString(iter) + " as a function");
     }
     if(val.length === 1){
         var head = val[0];
-        if(no_default){
+        if(noDefault){
             return head;
         }
         return iter(ctx, [dflt, head]);
     }
     var acc = dflt;
-    var is_first = true;
+    var isFirst = true;
     await iterBase(val, async function(v, k, obj){
-        if(is_first && no_default){
-            is_first = false;
+        if(isFirst && noDefault){
+            isFirst = false;
             acc = v;
             return true;//continue
         }
@@ -646,21 +646,21 @@ stdlib.splice = function(ctx, val, start, nElements, value){
     }
     startIndex = Math.min(Math.max(startIndex, 0), val.length - 1);
 
-    var n_elm = types.toNumberOrNull(nElements);
-    if(n_elm === null){
+    var nElm = types.toNumberOrNull(nElements);
+    if(nElm === null){
         throw new TypeError("The .splice() operator cannot use " + types.toString(nElements) + "as a number of elements");
     }
-    if(n_elm < 0 || startIndex + n_elm > val.length){
-        n_elm = val.length - startIndex;
+    if(nElm < 0 || startIndex + nElm > val.length){
+        nElm = val.length - startIndex;
     }
     var part1 = _.slice(val, 0, startIndex);
-    var part2 = _.slice(val, startIndex + n_elm);
+    var part2 = _.slice(val, startIndex + nElm);
     if(arguments.length < 5){
         return _.concat(part1, part2);
     }
     return _.concat(part1, value, part2);
 };
-stdlib.sort = async function(ctx, val, sort_by){
+stdlib.sort = async function(ctx, val, sortBy){
     if(!types.isArray(val)){
         return val;
     }
@@ -679,22 +679,22 @@ stdlib.sort = async function(ctx, val, sort_by){
             return -stdlib["<=>"](ctx, a, b);
         }
     };
-    if(_.has(sorters, sort_by)){
-        return val.sort(sorters[sort_by]);
+    if(_.has(sorters, sortBy)){
+        return val.sort(sorters[sortBy]);
     }
-    if(!types.isFunction(sort_by)){
+    if(!types.isFunction(sortBy)){
         return val.sort(sorters["default"]);
     }
     return await sort(val, function(a, b){
-        return sort_by(ctx, [a, b]);
+        return sortBy(ctx, [a, b]);
     });
 };
 stdlib["delete"] = function(ctx, val, path){
     path = toKeyPath(path);
     //TODO optimize
-    var n_val = _.cloneDeep(val);
-    _.unset(n_val, path);
-    return n_val;
+    var nVal = _.cloneDeep(val);
+    _.unset(nVal, path);
+    return nVal;
 };
 
 var isSafeArrayIndex = function(arr, key){
@@ -705,41 +705,41 @@ var isSafeArrayIndex = function(arr, key){
     return index >= 0 && index <= arr.length;//equal too b/c it's ok to append
 };
 
-stdlib.put = function(ctx, val, path, to_set){
+stdlib.put = function(ctx, val, path, toSet){
     if(!types.isArrayOrMap(val) || arguments.length < 3){
         return val;
     }
     if(arguments.length < 4){
-        to_set = path;
+        toSet = path;
         path = [];
     }
     val = _.cloneDeep(val);
     path = toKeyPath(path);
     if(_.isEmpty(path)){
-        if(types.isMap(to_set)){
+        if(types.isMap(toSet)){
             if(types.isMap(val)){
-                return _.assign({}, val, to_set);
+                return _.assign({}, val, toSet);
             }
-        }else if(types.isArray(to_set)){
+        }else if(types.isArray(toSet)){
             if(types.isArray(val)){
-                return _.assign([], val, to_set);
+                return _.assign([], val, toSet);
             }
         }
-        return to_set;
+        return toSet;
     }
-    var n_val = val;
-    var nested = n_val;
+    var nVal = val;
+    var nested = nVal;
     var i, key;
     for(i = 0; i < path.length; i++){
         key = path[i];
         if(i === path.length - 1){
-            nested[key] = to_set;
+            nested[key] = toSet;
         }else{
             if(types.isMap(nested[key])){
                 //simply traverse down
             }else if(types.isArray(nested[key])){
-                var next_key = path[i + 1];
-                if(isSafeArrayIndex(nested[key], next_key)){
+                var nextKey = path[i + 1];
+                if(isSafeArrayIndex(nested[key], nextKey)){
                     //simply traverse down
                 }else{
                     //convert Array to Map b/c the key is not a safe index
@@ -752,7 +752,7 @@ stdlib.put = function(ctx, val, path, to_set){
             nested = nested[key];
         }
     }
-    return n_val;
+    return nVal;
 };
 stdlib.encode = function(ctx, val, indent){
     return types.encode(val, indent);

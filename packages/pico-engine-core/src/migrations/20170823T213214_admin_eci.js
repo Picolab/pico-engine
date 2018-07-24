@@ -2,7 +2,7 @@ var _ = require("lodash");
 var dbRange = require("../dbRange");
 var sovrinDID = require("sovrin-did");
 
-var newChannel_base = function(opts){
+function newChannelBase(opts){
     var did = sovrinDID.gen();
     var channel = {
         id: did.did,
@@ -11,7 +11,7 @@ var newChannel_base = function(opts){
         type: opts.type,
         sovrin: did,
     };
-    var db_ops = [
+    var dbOps = [
         {
             type: "put",
             key: ["channel", channel.id],
@@ -25,18 +25,18 @@ var newChannel_base = function(opts){
     ];
     return {
         channel: channel,
-        db_ops: db_ops,
+        dbOps: dbOps,
     };
-};
+}
 
 module.exports = {
     up: function(ldb, callback){
-        var db_ops = [];
+        var dbOps = [];
 
-        ldb.get(["root_pico"], function(err, root_pico){
+        ldb.get(["root_pico"], function(err, rootPico){
             if(err){
                 if(err.notFound){
-                    root_pico = {};
+                    rootPico = {};
                 }else{
                     return callback(err);
                 }
@@ -45,28 +45,28 @@ module.exports = {
             dbRange(ldb, {
                 prefix: ["pico"],
             }, function(data){
-                var pico_id = data.key[1];
+                var picoId = data.key[1];
 
-                var c = newChannel_base({
-                    pico_id: pico_id,
+                var c = newChannelBase({
+                    pico_id: picoId,
                     name: "admin",
                     type: "secret",
                 });
 
-                db_ops = db_ops.concat(c.db_ops);
+                dbOps = dbOps.concat(c.dbOps);
 
                 var pico = _.assign({}, data.value, {
                     admin_eci: c.channel.id,
                 });
 
-                db_ops.push({
+                dbOps.push({
                     type: "put",
-                    key: ["pico", pico_id],
+                    key: ["pico", picoId],
                     value: pico,
                 });
 
-                if(root_pico.id === pico_id){
-                    db_ops.push({
+                if(rootPico.id === picoId){
+                    dbOps.push({
                         type: "put",
                         key: ["root_pico"],
                         value: pico,
@@ -76,7 +76,7 @@ module.exports = {
             }, function(err){
                 if(err) return callback(err);
 
-                ldb.batch(db_ops, callback);
+                ldb.batch(dbOps, callback);
             });
         });
     },

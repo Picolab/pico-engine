@@ -1,6 +1,6 @@
 var _ = require("lodash");
 
-var infix_ops = {
+var infixOps = {
     "or": true,
     "and": true,
     "before": true,
@@ -8,7 +8,7 @@ var infix_ops = {
     "after": true
 };
 
-var op_n_args = {
+var opNArgs = {
     "any": true,
     "count": true,
     "repeat": true
@@ -32,7 +32,7 @@ var fmtArgs = function(ast, ind, gen){
 };
 
 var isInfix = function(ast){
-    return infix_ops[ast.op] === true && _.size(ast.args) === 2;
+    return infixOps[ast.op] === true && _.size(ast.args) === 2;
 };
 
 var genInfix = function(ast, ind, gen){
@@ -55,7 +55,7 @@ var genInfix = function(ast, ind, gen){
 };
 
 module.exports = function(ast, ind, gen){
-    if(op_n_args[ast.op] === true){
+    if(opNArgs[ast.op] === true){
         var src = ast.op + " " + gen(ast.args[0]) + " ";
         return src + fmtArgs(_.tail(ast.args), ind, gen);
     }

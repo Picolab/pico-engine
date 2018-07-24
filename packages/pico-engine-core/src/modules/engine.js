@@ -8,23 +8,23 @@ var sovrinDID = require("sovrin-did");
 var mkKRLaction = require("../mkKRLaction");
 var ADMIN_POLICY_ID = require("../DB").ADMIN_POLICY_ID;
 
-var assertArg = function(fn_name, args, key, type){
+var assertArg = function(fnName, args, key, type){
     if( ! _.has(args, key)){
-        throw new Error("engine:" + fn_name + " argument `" + key + "` " + type + " is required");
+        throw new Error("engine:" + fnName + " argument `" + key + "` " + type + " is required");
     }
     if(ktypes.typeOf(args[key]) !== type){
-        throw new TypeError("engine:" + fn_name + " argument `" + key + "` should be " + type + " but was " + ktypes.typeOf(args[key]));
+        throw new TypeError("engine:" + fnName + " argument `" + key + "` should be " + type + " but was " + ktypes.typeOf(args[key]));
     }
     return args[key];
 };
 
-var picoArgOrCtxPico = function(fn_name, ctx, args, key){
+var picoArgOrCtxPico = function(fnName, ctx, args, key){
     key = key || "pico_id";
-    var pico_id = _.has(args, key) ? args[key] : ctx.pico_id;
-    if(!ktypes.isString(pico_id)){
-        throw new TypeError("engine:" + fn_name + " was given " + ktypes.toString(args.eci) + " instead of a " + key + " string");
+    var picoId = _.has(args, key) ? args[key] : ctx.pico_id;
+    if(!ktypes.isString(picoId)){
+        throw new TypeError("engine:" + fnName + " was given " + ktypes.toString(args.eci) + " instead of a " + key + " string");
     }
-    return pico_id;
+    return picoId;
 };
 
 module.exports = function(core){
@@ -54,16 +54,16 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = picoArgOrCtxPico("getParent", ctx, args);
+            var picoId = picoArgOrCtxPico("getParent", ctx, args);
 
-            core.db.assertPicoID(pico_id, function(err, pico_id){
+            core.db.assertPicoID(picoId, function(err, picoId){
                 if(err && err.notFound) return callback();
                 if(err) return callback(err);
 
-                core.db.getParent(pico_id, function(err, parent_id){
+                core.db.getParent(picoId, function(err, parentId){
                     if(err && err.notFound) return callback();
                     if(err) return callback(err);
-                    callback(null, parent_id);
+                    callback(null, parentId);
                 });
             });
         }),
@@ -73,13 +73,13 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = picoArgOrCtxPico("getAdminECI", ctx, args);
+            var picoId = picoArgOrCtxPico("getAdminECI", ctx, args);
 
-            core.db.assertPicoID(pico_id, function(err, pico_id){
+            core.db.assertPicoID(picoId, function(err, picoId){
                 if(err && err.notFound) return callback();
                 if(err) return callback(err);
 
-                core.db.getAdminECI(pico_id, function(err, eci){
+                core.db.getAdminECI(picoId, function(err, eci){
                     if(err && err.notFound) return callback();
                     if(err) return callback(err);
                     callback(null, eci);
@@ -92,13 +92,13 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = picoArgOrCtxPico("listChildren", ctx, args);
+            var picoId = picoArgOrCtxPico("listChildren", ctx, args);
 
-            core.db.assertPicoID(pico_id, function(err, pico_id){
+            core.db.assertPicoID(picoId, function(err, picoId){
                 if(err && err.notFound) return callback();
                 if(err) return callback(err);
 
-                core.db.listChildren(pico_id, function(err, children){
+                core.db.listChildren(picoId, function(err, children){
                     if(err && err.notFound) return callback();
                     if(err) return callback(err);
                     callback(null, children);
@@ -117,13 +117,13 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = picoArgOrCtxPico("listChannels", ctx, args);
+            var picoId = picoArgOrCtxPico("listChannels", ctx, args);
 
-            core.db.assertPicoID(pico_id, function(err, pico_id){
+            core.db.assertPicoID(picoId, function(err, picoId){
                 if(err && err.notFound) return callback();
                 if(err) return callback(err);
 
-                core.db.listChannels(pico_id, callback);
+                core.db.listChannels(picoId, callback);
             });
         }),
 
@@ -132,16 +132,16 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = picoArgOrCtxPico("listInstalledRIDs", ctx, args);
+            var picoId = picoArgOrCtxPico("listInstalledRIDs", ctx, args);
 
-            core.db.assertPicoID(pico_id, function(err, pico_id){
+            core.db.assertPicoID(picoId, function(err, picoId){
                 if(err && err.notFound) return callback();
                 if(err) return callback(err);
 
-                core.db.ridsOnPico(pico_id, function(err, rid_set){
+                core.db.ridsOnPico(picoId, function(err, ridSet){
                     if(err && err.notFound) return callback();
                     if(err) return callback(err);
-                    callback(null, _.keys(rid_set));
+                    callback(null, _.keys(ridSet));
                 });
             });
         }),
@@ -188,13 +188,13 @@ module.exports = function(core){
             "parent_id",
         ], function(ctx, args, callback){
 
-            var parent_id = picoArgOrCtxPico("newPico", ctx, args, "parent_id");
+            var parentId = picoArgOrCtxPico("newPico", ctx, args, "parent_id");
 
-            core.db.assertPicoID(parent_id, function(err, parent_id){
+            core.db.assertPicoID(parentId, function(err, parentId){
                 if(err) return callback(err);
 
                 core.db.newPico({
-                    parent_id: parent_id,
+                    parent_id: parentId,
                 }, callback);
             });
         }),
@@ -204,19 +204,19 @@ module.exports = function(core){
             "pico_id",
         ], function(ctx, args, callback){
 
-            var pico_id = picoArgOrCtxPico("removePico", ctx, args);
+            var picoId = picoArgOrCtxPico("removePico", ctx, args);
 
-            core.db.assertPicoID(pico_id, function(err, pico_id){
+            core.db.assertPicoID(picoId, function(err, picoId){
                 if(err && err.notFound) return callback(null, false);
                 if(err) return callback(err);
 
-                core.db.listChildren(pico_id, function(err, children){
+                core.db.listChildren(picoId, function(err, children){
                     if(err) return callback(err);
                     if(_.size(children) > 0){
-                        callback(new Error("Cannot remove pico \"" + pico_id + "\" because it has " + _.size(children) + " children"));
+                        callback(new Error("Cannot remove pico \"" + picoId + "\" because it has " + _.size(children) + " children"));
                         return;
                     }
-                    core.db.removePico(pico_id, function(){
+                    core.db.removePico(picoId, function(){
                         if(err && err.notFound) return callback(null, false);
                         if(err) return callback(err);
                         callback(null, true);
@@ -255,14 +255,14 @@ module.exports = function(core){
             "policy_id",
         ], function(ctx, args, callback){
 
-            var pico_id = picoArgOrCtxPico("newChannel", ctx, args);
-            var policy_id = ADMIN_POLICY_ID;
+            var picoId = picoArgOrCtxPico("newChannel", ctx, args);
+            var policyId = ADMIN_POLICY_ID;
 
             if(_.has(args, "policy_id")){
                 if(!ktypes.isString(args.policy_id)){
                     throw new TypeError("engine:newChannel argument `policy_id` should be String but was " + ktypes.typeOf(args.policy_id));
                 }
-                policy_id = args.policy_id;
+                policyId = args.policy_id;
             }
 
             if(!_.has(args, "name")){
@@ -272,17 +272,17 @@ module.exports = function(core){
                 return callback(new Error("engine:newChannel needs a type string"));
             }
 
-            core.db.assertPicoID(pico_id, function(err, pico_id){
+            core.db.assertPicoID(picoId, function(err, picoId){
                 if(err) return callback(err);
 
-                core.db.assertPolicyID(policy_id, function(err, policy_id){
+                core.db.assertPolicyID(policyId, function(err, policyId){
                     if(err) return callback(err);
 
                     core.db.newChannel({
-                        pico_id: pico_id,
+                        pico_id: picoId,
                         name: ktypes.toString(args.name),
                         type: ktypes.toString(args.type),
-                        policy_id: policy_id,
+                        policy_id: policyId,
                     }, callback);
                 });
             });
@@ -364,23 +364,23 @@ module.exports = function(core){
             "base",
         ], function(ctx, args, callback){
 
-            var rid_given = _.has(args, "rid");
-            if(!rid_given && !_.has(args, "url")){
+            var ridGiven = _.has(args, "rid");
+            if(!ridGiven && !_.has(args, "url")){
                 return callback(new Error("engine:installRuleset needs either a rid string or array, or a url string"));
             }
 
-            var pico_id = picoArgOrCtxPico("installRuleset", ctx, args);
+            var picoId = picoArgOrCtxPico("installRuleset", ctx, args);
 
             var install = function(rid, callback){
-                core.installRuleset(pico_id, rid, function(err){
+                core.installRuleset(picoId, rid, function(err){
                     callback(err, rid);
                 });
             };
 
-            core.db.assertPicoID(pico_id, function(err, pico_id){
+            core.db.assertPicoID(picoId, function(err, picoId){
                 if(err) return callback(err);
 
-                if(rid_given){
+                if(ridGiven){
                     var ridIsString = ktypes.isString(args.rid);
                     if(!ridIsString && !ktypes.isArray(args.rid)){
                         return callback(new TypeError("engine:installRuleset was given " + ktypes.toString(args.rid) + " instead of a rid string or array"));
@@ -435,13 +435,13 @@ module.exports = function(core){
                 return callback(new Error("engine:uninstallRuleset needs a rid string or array"));
             }
 
-            var pico_id = picoArgOrCtxPico("uninstallRuleset", ctx, args);
+            var picoId = picoArgOrCtxPico("uninstallRuleset", ctx, args);
 
             var uninstall = function(rid, callback){
-                core.uninstallRuleset(pico_id, rid, callback);
+                core.uninstallRuleset(picoId, rid, callback);
             };
 
-            core.db.assertPicoID(pico_id, function(err, pico_id){
+            core.db.assertPicoID(picoId, function(err, picoId){
                 if(err) return callback(err);
 
                 var ridIsString = ktypes.isString(args.rid);

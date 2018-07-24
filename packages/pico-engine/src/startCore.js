@@ -4,13 +4,13 @@ var path = require("path");
 var async = require("async");
 var fileUrl = require("file-url");
 var leveldown = require("leveldown");
-var krl_stdlib = require("krl-stdlib");
+var krlStdlib = require("krl-stdlib");
 var RulesetLoader = require("./RulesetLoader");
 var PicoEngineCore = require("pico-engine-core");
 
 
 var toKRLjson = function(val, indent){
-    var message = krl_stdlib.encode({}, val, indent);
+    var message = krlStdlib.encode({}, val, indent);
     if(message === "\"[JSObject]\""){
         message = val + "";
     }
@@ -19,23 +19,23 @@ var toKRLjson = function(val, indent){
 
 
 var setupRootPico = function(pe, callback){
-    pe.getRootECI(function(err, root_eci){
+    pe.getRootECI(function(err, rootEci){
         if(err) return callback(err);
 
         pe.runQuery({
-            eci: root_eci,
+            eci: rootEci,
             rid: "io.picolabs.wrangler",
             name: "myself",
         }, function(err, myself){
             if(err) return callback(err);
-            if(myself.eci === root_eci){
+            if(myself.eci === rootEci){
                 //already initialized
                 return callback();
             }
 
             var signal = function(event){
                 return function(next){
-                    pe.signalEvent(_.assign({eci: root_eci}, event), next);
+                    pe.signalEvent(_.assign({eci: rootEci}, event), next);
                 };
             };
 
@@ -45,7 +45,7 @@ var setupRootPico = function(pe, callback){
                     domain: "wrangler",
                     type: "root_created",
                     attrs: {
-                        eci: root_eci,
+                        eci: rootEci,
                     },
                 }),
                 signal({
@@ -64,12 +64,12 @@ var setupRootPico = function(pe, callback){
 
 
 var getSystemRulesets = function(callback){
-    var krl_dir = path.resolve(__dirname, "../krl");
-    fs.readdir(krl_dir, function(err, files){
+    var krlDir = path.resolve(__dirname, "../krl");
+    fs.readdir(krlDir, function(err, files){
         if(err) return callback(err);
         //.series b/c dependent modules must be registered in order
         async.map(files, function(filename, next){
-            var file = path.resolve(krl_dir, filename);
+            var file = path.resolve(krlDir, filename);
             if(!/\.krl$/.test(file)){
                 //only auto-load krl files in the top level
                 return next();
@@ -81,8 +81,8 @@ var getSystemRulesets = function(callback){
                     meta: {url: fileUrl(file, {resolve: false})},
                 });
             });
-        }, function(err, system_rulesets){
-            callback(err, _.compact(system_rulesets));
+        }, function(err, systemRulesets){
+            callback(err, _.compact(systemRulesets));
         });
     });
 };
@@ -108,7 +108,7 @@ var setupLogging = function(pe, bunyanLog){
 
         context = context || {};//"error" events may be missiong context, log it as far as possible
 
-        var episode_id = context.txn_id;
+        var episodeId = context.txn_id;
         var timestamp = (new Date()).toISOString();
 
         if(!_.isString(message)){
@@ -138,63 +138,63 @@ var setupLogging = function(pe, bunyanLog){
             message += " arguments " + toKRLjson(context.query.args);
         }
 
-        var shell_log = "";
-        shell_log += "[" + level.toUpperCase() + "] ";
-        shell_log += episode_id + " | ";
-        shell_log += message;
-        if(shell_log.length > 300){
-            shell_log = shell_log.substring(0, 300) + "...";
+        var shellLog = "";
+        shellLog += "[" + level.toUpperCase() + "] ";
+        shellLog += episodeId + " | ";
+        shellLog += message;
+        if(shellLog.length > 300){
+            shellLog = shellLog.substring(0, 300) + "...";
         }
         if(/error/i.test(level)){
-            console.error(shell_log);//use stderr
+            console.error(shellLog);//use stderr
         }else{
-            console.log(shell_log);
+            console.log(shellLog);
         }
 
-        var episode = logs[episode_id];
+        var episode = logs[episodeId];
         if (episode) {
             episode.logs.push(timestamp + " [" + level.toUpperCase() + "] " + message);
         } else {
-            console.error("[ERROR]", "no episode found for", episode_id);
+            console.error("[ERROR]", "no episode found for", episodeId);
         }
     };
 
 
     pe.emitter.on("episode_start", function(expression, context){
-        var episode_id = context.txn_id;
+        var episodeId = context.txn_id;
 
-        var shell_log = "[EPISODE_START] " + episode_id + " ";
+        var shellLog = "[EPISODE_START] " + episodeId + " ";
         if(context.event){
-            shell_log += "event"
+            shellLog += "event"
                 + "/" + context.event.eci
                 + "/" + context.event.eid
                 + "/" + context.event.domain
                 + "/" + context.event.type
             ;
         }else if(context.query){
-            shell_log += "query"
+            shellLog += "query"
                 + "/" + context.query.eci
                 + "/" + context.query.rid
                 + "/" + context.query.name
             ;
         }else{
-            shell_log += toKRLjson(context);
+            shellLog += toKRLjson(context);
         }
-        console.log(shell_log);
+        console.log(shellLog);
 
         var timestamp = (new Date()).toISOString();
-        var episode = logs[episode_id];
+        var episode = logs[episodeId];
         if (episode) {
-            console.error("[ERROR]", "episode already exists for", episode_id);
+            console.error("[ERROR]", "episode already exists for", episodeId);
         } else {
             episode = {};
             episode.key = (
-                timestamp + " - " + episode_id
+                timestamp + " - " + episodeId
                     + " - " + context.eci
                     + " - " + ((context.event) ? context.event.eid : "query")
             ).replace(/[.]/g, "-");
             episode.logs = [];
-            logs[episode_id] = episode;
+            logs[episodeId] = episode;
         }
     });
 
@@ -221,31 +221,31 @@ var setupLogging = function(pe, bunyanLog){
     });
 
     pe.emitter.on("episode_stop", function(expression, context){
-        var pico_id = context.pico_id;
-        var episode_id = context.txn_id;
+        var picoId = context.pico_id;
+        var episodeId = context.txn_id;
 
-        console.log("[EPISODE_STOP]", episode_id);
+        console.log("[EPISODE_STOP]", episodeId);
 
-        var episode = logs[episode_id];
+        var episode = logs[episodeId];
         if (!episode) {
-            console.error("[ERROR]","no episode found for", episode_id);
+            console.error("[ERROR]","no episode found for", episodeId);
             return;
         }
 
         var onRemoved = function(err){
-            delete logs[episode_id];
+            delete logs[episodeId];
             if(err){
-                console.error("[ERROR] failed to remove episode", episode_id, err + "");
+                console.error("[ERROR] failed to remove episode", episodeId, err + "");
             }
         };
 
-        pe.getEntVar(pico_id, logRID, "status", null, function(err, is_logs_on){
+        pe.getEntVar(picoId, logRID, "status", null, function(err, isLogsOn){
             if(err) return onRemoved(err);
-            if(!is_logs_on){
+            if(!isLogsOn){
                 onRemoved();
                 return;
             }
-            pe.putEntVar(pico_id, logRID, "logs", episode.key, episode.logs, onRemoved);
+            pe.putEntVar(picoId, logRID, "logs", episode.key, episode.logs, onRemoved);
         });
     });
 };
@@ -291,10 +291,10 @@ module.exports = function(conf, callback){
     }
 
     //system rulesets should be registered/updated first
-    getSystemRulesets(function(err, system_rulesets){
+    getSystemRulesets(function(err, systemRulesets){
         if(err) return callback(err);
 
-        pe.start(system_rulesets, function(err){
+        pe.start(systemRulesets, function(err){
             if(err) return callback(err);
 
             setupRootPico(pe, function(err){

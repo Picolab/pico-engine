@@ -7,23 +7,23 @@ var tempfs = require("temp-fs");
 var startCore = require("./startCore");
 var setupServer = require("./setupServer");
 
-var is_windows = /^win/.test(process.platform);//windows throws up when we try and delete the home dir
-var test_temp_dir = tempfs.mkdirSync({
+var isWindows = /^win/.test(process.platform);//windows throws up when we try and delete the home dir
+var testTempDir = tempfs.mkdirSync({
     dir: path.resolve(__dirname, ".."),
     prefix: "pico-engine_test",
     recursive: true,//It and its content will be remove recursively.
-    track: !is_windows,//Auto-delete it on fail.
+    track: !isWindows,//Auto-delete it on fail.
 });
 
 test.onFinish(function(){
     //cleanup temp home dirs after all tests are done
-    if(!is_windows){
-        test_temp_dir.unlink();
+    if(!isWindows){
+        testTempDir.unlink();
     }
 });
 
 var getHomePath = function(){
-    var homepath = path.resolve(test_temp_dir.path, _.uniqueId());
+    var homepath = path.resolve(testTempDir.path, _.uniqueId());
     fs.mkdirSync(homepath);
     return homepath;
 };
@@ -36,10 +36,10 @@ var testPE = function(name, testsFn){
             no_logging: true,
         }, function(err, pe){
             if(err) return t.end(err);
-            pe.getRootECI(function(err, root_eci){
+            pe.getRootECI(function(err, rootEci){
                 if(err) return t.end(err);
 
-                Promise.resolve(testsFn(t, pe, root_eci))
+                Promise.resolve(testsFn(t, pe, rootEci))
                     .then(t.end)
                     .catch(function(err){
                         process.nextTick(function(){
@@ -51,19 +51,19 @@ var testPE = function(name, testsFn){
     });
 };
 
-testPE("pico-engine", function(t, pe, root_eci){
+testPE("pico-engine", function(t, pe, rootEci){
     var callback;
     var promise = new Promise(function(resolve, reject){
         callback = function(err, data){
             err ? reject(err) : resolve(data);
         };
     });
-    var child_count, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parent_eci;
+    var childCount, child, channels ,channel, /*bill,*/ ted, carl,installedRids,parentEci;
     var subscriptionPicos = {};
     var SUBS_RID = "io.picolabs.subscription";
     // helper functions
     var testQuery = function( _name, _args, test, _eci, _rid, next){
-        var _query= { eci: _eci || root_eci, rid : _rid || "io.picolabs.wrangler", name: _name, args: _args || {} };
+        var _query= { eci: _eci || rootEci, rid : _rid || "io.picolabs.wrangler", name: _name, args: _args || {} };
         //console.log("_query",_query);
         pe.runQuery(_query,
             function(err, data){
@@ -74,7 +74,7 @@ testPE("pico-engine", function(t, pe, root_eci){
     };
     var defaultQueryParams = function(_funcName, _args){
         return {
-            eci: root_eci,
+            eci: rootEci,
             rid: "io.picolabs.wrangler",
             name: _funcName,
             args: _args,
@@ -95,7 +95,7 @@ testPE("pico-engine", function(t, pe, root_eci){
             testQuery("myself",null,
                 function(data){
                     //console.log("data",data);
-                    t.equals(data.eci, root_eci);
+                    t.equals(data.eci, rootEci);
                 }, null, null , next );
         },
         ///////////////////////////////// channels testing ///////////////
@@ -114,7 +114,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         //channels and newChannel variable on to the next function
         function(channels, next){// create channels
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "85",
                 domain: "wrangler",
                 type: "channel_creation_requested ",
@@ -151,7 +151,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(currentChannels, ted, next){// create duplicate channels
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "85",
                 domain: "wrangler",
                 type: "channel_creation_requested ",
@@ -172,7 +172,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(ted, next){// create channel
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "85",
                 domain: "wrangler",
                 type: "channel_creation_requested ",
@@ -188,7 +188,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(ted, next){// create channel
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "85",
                 domain: "wrangler",
                 type: "channel_creation_requested ",
@@ -269,7 +269,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(ted, next){// nameFromEci,
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "nameFromEci",
                 args: {eci:channel.id},
@@ -291,7 +291,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         function(currentChannels, ted, next){
             console.log("//////////////////Channel Deletion//////////////////");
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "85",
                 domain: "wrangler",
                 type: "channel_deletion_requested ",
@@ -325,7 +325,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "85",
                 domain: "wrangler",
                 type: "channel_deletion_requested ",
@@ -361,7 +361,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         function(next){// store installed rulesets,
             console.log("//////////////////Install single ruleset //////////////////");
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "installedRulesets",
                 args: {},
@@ -375,7 +375,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){// attempt to install logging
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "94",
                 domain: "wrangler",
                 type: "install_rulesets_requested ",
@@ -390,7 +390,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){// confirm installed rid,
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "installedRulesets",
                 args: {},
@@ -412,7 +412,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         function(next){// attempt to Un-install logging
             console.log("//////////////////Un-Install single ruleset //////////////////");
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "94",
                 domain: "wrangler",
                 type: "uninstall_rulesets_requested ",
@@ -426,7 +426,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){// confirm un-installed rid,
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "installedRulesets",
                 args: {},
@@ -448,7 +448,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         function(next){// attempt to install logging & subscriptions
             console.log("//////////////////Install two rulesets //////////////////");
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "94",
                 domain: "wrangler",
                 type: "install_rulesets_requested ",
@@ -463,7 +463,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){// confirm two installed rids,
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "installedRulesets",
                 args: {},
@@ -491,7 +491,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         function(next){// attempt to Un-install logging & subscriptions
             console.log("////////////////// Un-Install two rulesets //////////////////");
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "94",
                 domain: "wrangler",
                 type: "uninstall_rulesets_requested ",
@@ -505,7 +505,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){// confirm un-installed rid,
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "installedRulesets",
                 args: {},
@@ -528,7 +528,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         function(next){// rule set info,
             console.log("////////////////// describe one rule set //////////////////");
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "rulesetsInfo",
                 args: {rids:"io.picolabs.logging"},
@@ -544,7 +544,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         function(next){// rule set info,
             console.log("////////////////// describe two rule sets //////////////////");
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "rulesetsInfo",
                 args: {rids:"io.picolabs.logging;io.picolabs.subscription"},
@@ -567,20 +567,20 @@ testPE("pico-engine", function(t, pe, root_eci){
         function(next){// store created children
             console.log("//////////////////Create Child Pico//////////////////");
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "children",
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
-                child_count = data.length;
+                childCount = data.length;
                 t.equal(Array.isArray(data), true,"children returns list.");
                 next();
             });
         },
         function(next){// create child
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "84",
                 domain: "wrangler",
                 type: "new_child_request",
@@ -595,15 +595,15 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){// list children and check for new child
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "children",
                 args: {},
             }, function(err, data){
                 if(err) return next(err);
                 //console.log("children",data);
-                t.equals(data.length > child_count, true,"created a pico"); // created a child
-                t.equals(data.length , child_count+1, "created a single pico"); // created only 1 child
+                t.equals(data.length > childCount, true,"created a pico"); // created a child
+                t.equals(data.length , childCount+1, "created a single pico"); // created only 1 child
                 var found = false;
                 for(var i = 0; i < data.length; i++) {
                     if (data[i].id === child.id) {
@@ -618,15 +618,15 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){ // channel in parent created?
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "channel",
                 args: {value:"ted"},
             }, function(err, data){
                 if(err) return next(err);
-                //console.log("parent_eci",data);
+                //console.log("parentEci",data);
                 t.equals(data.name,"ted","channel for child created in parent");
-                parent_eci = data.id;
+                parentEci = data.id;
                 next();
             });
         },
@@ -637,8 +637,8 @@ testPE("pico-engine", function(t, pe, root_eci){
                 name: "parent_eci", args:{},
             }, function(err, data){
                 if(err) return next(err);
-                //console.log("parent_eci",data);
-                t.equals(data,parent_eci,"parent channel for child stored in child");
+                //console.log("parentEci",data);
+                t.equals(data,parentEci,"parent channel for child stored in child");
                 next();
             });
         },
@@ -668,7 +668,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){// create duplicate child
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "84",
                 domain: "wrangler",
                 type: "new_child_request",
@@ -682,7 +682,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){// create child with no name(random)
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "84",
                 domain: "wrangler",
                 type: "new_child_request",
@@ -697,7 +697,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         function(next){
             console.log("//////////////////Simple Pico Child Deletion//////////////////");
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "85",
                 domain: "wrangler",
                 type: "delete_child_request_by_pico_id",
@@ -713,7 +713,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){// compare with store,
             pe.runQuery({
-                eci: root_eci,
+                eci: rootEci,
                 rid: "io.picolabs.wrangler",
                 name: "children",
                 args: {},
@@ -740,7 +740,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         function(next){// create picoA for subscription tests
             console.log("////////////////// Subscription Pending Tests //////////////////");
             pe.signalEvent({
-                eci: root_eci, eid: "84", domain: "wrangler", type: "new_child_request",
+                eci: rootEci, eid: "84", domain: "wrangler", type: "new_child_request",
                 attrs: {name:"A", rids: SUBS_RID}
             }, function(err, response){
                 subscriptionPicos["picoA"] = response.directives[0].options.pico;
@@ -761,7 +761,7 @@ testPE("pico-engine", function(t, pe, root_eci){
         },
         function(next){// create picoB for subscription tests
             pe.signalEvent({
-                eci: root_eci, eid: "84", domain: "wrangler", type: "new_child_request",
+                eci: rootEci, eid: "84", domain: "wrangler", type: "new_child_request",
                 attrs: {name:"B", rids: SUBS_RID}
             }, function(err, response){
                 subscriptionPicos["picoB"] = response.directives[0].options.pico;
@@ -1066,7 +1066,7 @@ testPE("pico-engine", function(t, pe, root_eci){
     function createChild (name) {
         return new Promise(function(resolve, reject) {
             pe.signalEvent({
-                eci: root_eci,
+                eci: rootEci,
                 eid: "84",
                 domain: "wrangler",
                 type: "new_child_request",
@@ -1112,7 +1112,7 @@ testPE("pico-engine", function(t, pe, root_eci){
     return promise;
 });
 
-testPE("pico-engine - setupServer", function(t, pe, root_eci){
+testPE("pico-engine - setupServer", function(t, pe, rootEci){
     //simply setup, but don't start, the express server
     //make sure it doesn't throwup
     try{
@@ -1123,7 +1123,7 @@ testPE("pico-engine - setupServer", function(t, pe, root_eci){
     }
 });
 
-testPE("pico-engine - Wrangler", async function(t, pe, root_eci){
+testPE("pico-engine - Wrangler", async function(t, pe, rootEci){
 
     var yQuery = function(eci, rid, name, args){
         return pe.runQuery({
@@ -1133,13 +1133,13 @@ testPE("pico-engine - Wrangler", async function(t, pe, root_eci){
             args: args || {},
         });
     };
-    var yEvent = function(eci, domain_type, attrs, eid){
-        domain_type = domain_type.split("/");
+    var yEvent = function(eci, domainType, attrs, eid){
+        domainType = domainType.split("/");
         return pe.signalEvent({
             eci: eci,
             eid: eid || "85",
-            domain: domain_type[0],
-            type: domain_type[1],
+            domain: domainType[0],
+            type: domainType[1],
             attrs: attrs || {}
         });
     };
@@ -1149,25 +1149,25 @@ testPE("pico-engine - Wrangler", async function(t, pe, root_eci){
     var channels;
 
     // call myself function check if eci is the same as root.
-    data = await yQuery(root_eci, "io.picolabs.wrangler", "myself", {});
-    t.equals(data.eci, root_eci);
+    data = await yQuery(rootEci, "io.picolabs.wrangler", "myself", {});
+    t.equals(data.eci, rootEci);
 
 
     //// channels testing ///////////////
 
     // store channels, we don't directly test list channels.......
-    data = await yQuery(root_eci, "io.picolabs.wrangler", "channel", {});
+    data = await yQuery(rootEci, "io.picolabs.wrangler", "channel", {});
     t.equal(data.length > 0, true,"channels returns a list greater than zero");
     channels = data;
 
     // create channels
-    data = await yEvent(root_eci, "wrangler/channel_creation_requested", {name:"ted", type:"type"});
+    data = await yEvent(rootEci, "wrangler/channel_creation_requested", {name:"ted", type:"type"});
     //console.log("Data: ", data.directives[0].options);
     channel = data.directives[0].options;
     t.equal(channel.name, "ted", "correct directive");
 
     // compare with store,
-    data = await yQuery(root_eci, "io.picolabs.wrangler", "channel", {});
+    data = await yQuery(rootEci, "io.picolabs.wrangler", "channel", {});
     t.equals(data.length > channels.length, true, "channel was created");
     t.equals(data.length, channels.length + 1, "single channel was created");
     var found = false;

@@ -13,14 +13,14 @@ module.exports = function(ast, comp, e){
         return comp(ret);
     }))));
 
-    var param_order = e("array", _.map(ast.params.params, function(p){
+    var paramOrder = e("array", _.map(ast.params.params, function(p){
         return e("string", p.id.value, p.id.loc);
     }), ast.params.loc);
 
     return e(";", e("call", e("id", "ctx.scope.set"), [
         e("str", ast.id.value, ast.id.loc),
         e("call", e("id", "ctx.mkAction"), [
-            param_order,
+            paramOrder,
             e("asyncfn", [
                 "ctx",
                 "args",

@@ -24,8 +24,8 @@ async function runAction(pe, ctx, domain, id, args){
 }
 
 
-var testPE = function(test_name, genfn){
-    test(test_name, function(t){
+var testPE = function(testName, genfn){
+    test(testName, function(t){
         mkTestPicoEngine({
             rootRIDs: ["io.picolabs.engine"],
         }, function(err, pe){
@@ -120,7 +120,7 @@ test("engine:installRuleset", function(t){
         var tstErr = _.partial(testError, t);
 
         var engine = kengine({
-            installRuleset: tick(function(pico_id, rid, callback){
+            installRuleset: tick(function(picoId, rid, callback){
                 callback();
             }),
             registerRulesetURL: tick(function(url, callback){
@@ -489,13 +489,13 @@ testPE("engine:newChannel, engine:listChannels, engine:removeChannel", async fun
     };
     var listChannels = await pe.modules.get({}, "engine", "listChannels");
 
-    var mkChan = function(pico_id, eci, name, type, policy_id){
+    var mkChan = function(picoId, eci, name, type, policyId){
         return {
-            pico_id: pico_id,
+            pico_id: picoId,
             id: eci,
             name: name,
             type: type,
-            policy_id: policy_id || ADMIN_POLICY_ID,
+            policy_id: policyId || ADMIN_POLICY_ID,
             sovrin: {
                 did: eci,
                 verifyKey: "verifyKey_" + eci,
@@ -679,14 +679,14 @@ test("engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChann
         };
 
         var eci = await util.promisify(pe.getRootECI)();
-        var pico_id = await getPicoIDByECI({}, [eci]);
+        var picoId = await getPicoIDByECI({}, [eci]);
 
-        var chan0 = await newChannel({}, [pico_id, "one", "one"]);
+        var chan0 = await newChannel({}, [picoId, "one", "one"]);
         var eci0 = chan0[0].id;
         var vkey0 = chan0[0].sovrin.verifyKey;
         var publicKey0 = chan0[0].sovrin.encryptionPublicKey;
 
-        var chan1 = await newChannel({}, [pico_id, "two", "two"]);
+        var chan1 = await newChannel({}, [picoId, "two", "two"]);
         var eci1 = chan1[0].id;
         var vkey1 = chan1[0].sovrin.verifyKey;
         var publicKey1 = chan1[0].sovrin.encryptionPublicKey;

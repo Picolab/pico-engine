@@ -1,8 +1,8 @@
 var mkKRLfn = require("./mkKRLfn");
 
-module.exports = function(arg_order, fn){
+module.exports = function(paramOrder, fn){
 
-    var kfn = mkKRLfn(arg_order, fn);
+    var kfn = mkKRLfn(paramOrder, fn);
 
     var actionFn = function(ctx, args){
         return kfn(ctx, args).then(function(data){

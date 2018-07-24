@@ -1,6 +1,6 @@
 var _ = require("lodash");
 var phonetic = require("phonetic");
-var default_grammar = new require("../src/grammar.js");
+var defaultGrammar = new require("../src/grammar.js");
 
 var gen = {
     "RulesetID": function(){
@@ -53,10 +53,10 @@ var isOptionalSemiColon = function(rules){
     if((rules[0].symbols.length + rules[1].symbols.length) !== 1){
         return false;
     }
-    var semi_rule = rules[0].symbols.length > 0
+    var semiRule = rules[0].symbols.length > 0
         ? rules[0]
         : rules[1];
-    return semi_rule.symbols[0].unparse_hint_value === ";";
+    return semiRule.symbols[0].unparse_hint_value === ";";
 };
 
 var isOptionalActionBlock = function(rules){
@@ -66,24 +66,24 @@ var isOptionalActionBlock = function(rules){
     if((rules[0].symbols.length + rules[1].symbols.length) !== 1){
         return false;
     }
-    var da_rule = rules[0].symbols.length > 0
+    var daRule = rules[0].symbols.length > 0
         ? rules[0]
         : rules[1];
-    return da_rule.symbols[0] === "ActionBlock";
+    return daRule.symbols[0] === "ActionBlock";
 };
 
 module.exports = function(options){
     options = options || {};
 
-    var grammar = options.grammar || default_grammar;
+    var grammar = options.grammar || defaultGrammar;
     var start = options.start || grammar.ParserStart;
-    var always_semicolons = _.has(options, "always_semicolons")
+    var alwaysSemicolons = _.has(options, "always_semicolons")
         ? options.always_semicolons
         : false;
 
     var stack = [start];
     var output = "";
-    var stop_recusive_rules = false;
+    var stopRecusiveRules = false;
 
     var selectRule = function(currentname){
         var rules = grammar.ParserRules.filter(function(x) {
@@ -93,7 +93,7 @@ module.exports = function(options){
             throw new Error("Nothing matches rule: "+currentname+"!");
         }
         if(isOptionalSemiColon(rules)){
-            if(always_semicolons){
+            if(alwaysSemicolons){
                 return {symbols: [{literal: ";"}]};
             }
         }
@@ -105,7 +105,7 @@ module.exports = function(options){
             if(isParenRule(rule)){
                 return false;
             }
-            if(stop_recusive_rules || stack.length > 25){
+            if(stopRecusiveRules || stack.length > 25){
                 return !_.includes(rule.symbols, currentname);
             }
             return true;
@@ -116,8 +116,8 @@ module.exports = function(options){
 
     while(stack.length > 0){
         count++;
-        if(!stop_recusive_rules && count > 500){
-            stop_recusive_rules = true;
+        if(!stopRecusiveRules && count > 500){
+            stopRecusiveRules = true;
         }
         var currentname = stack.pop();
         if(currentname === "left_side_of_declaration"){

@@ -82,14 +82,14 @@ mkdirp.sync(conf.home);
 
 
 conf.modules = {};
-_.each(pconf.modules, function(mod_path, id){
-    if( ! _.isString(mod_path)){
+_.each(pconf.modules, function(modPath, id){
+    if( ! _.isString(modPath)){
         throw new Error("Module \"" + id + "\" require path must be a string");
     }
-    if(mod_path[0] === "."){
-        mod_path = path.resolve(path.dirname(pkgup.path), mod_path);
+    if(modPath[0] === "."){
+        modPath = path.resolve(path.dirname(pkgup.path), modPath);
     }
-    conf.modules[id] = require(mod_path);
+    conf.modules[id] = require(modPath);
 });
 
 

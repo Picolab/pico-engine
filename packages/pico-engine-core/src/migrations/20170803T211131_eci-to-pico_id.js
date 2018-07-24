@@ -4,7 +4,7 @@ module.exports = {
     up: function(ldb, callback){
         // /channel/:eci/pico_id -> /eci-to-pico_id/:eci
 
-        var to_batch = [];
+        var dbOps = [];
 
         dbRange(ldb, {
             prefix: ["channel"],
@@ -14,18 +14,18 @@ module.exports = {
             }
             var eci = data.key[1];
 
-            to_batch.push({
+            dbOps.push({
                 type: "put",
                 key: ["eci-to-pico_id", eci],
                 value: data.value,
             });
 
-            to_batch.push({type: "del", key: data.key});
+            dbOps.push({type: "del", key: data.key});
 
         }, function(err){
             if(err) return callback(err);
 
-            ldb.batch(to_batch, callback);
+            ldb.batch(dbOps, callback);
         });
     },
 };

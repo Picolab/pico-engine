@@ -12,7 +12,7 @@ var Scheduler = require("./Scheduler");
 var runAction = require("./runAction");
 var cleanEvent = require("./cleanEvent");
 var cleanQuery = require("./cleanQuery");
-var krl_stdlib = require("krl-stdlib");
+var krlStdlib = require("krl-stdlib");
 var getKRLByURL = require("./getKRLByURL");
 var SymbolTable = require("symbol-table");
 var EventEmitter = require("events");
@@ -44,7 +44,7 @@ var applyFn = function(fn, ctx, args){
     return fn(ctx, args);
 };
 
-var log_levels = {
+var logLevels = {
     "info": true,
     "debug": true,
     "warn": true,
@@ -97,14 +97,14 @@ module.exports = function(conf){
                 scope: ctx.scope.push(),
             }));
         };
-        ctx.mkFunction = function(param_order, fn){
-            var fixArgs = _.partial(normalizeKRLArgs, param_order);
+        ctx.mkFunction = function(paramOrder, fn){
+            var fixArgs = _.partial(normalizeKRLArgs, paramOrder);
             return function(ctx2, args){
                 return fn(pushCTXScope(ctx2), fixArgs(args));
             };
         };
-        ctx.mkAction = function(param_order, fn){
-            var fixArgs = _.partial(normalizeKRLArgs, param_order);
+        ctx.mkAction = function(paramOrder, fn){
+            var fixArgs = _.partial(normalizeKRLArgs, paramOrder);
             var actionFn = function(ctx2, args){
                 return fn(pushCTXScope(ctx2), fixArgs(args), runAction);
             };
@@ -151,21 +151,21 @@ module.exports = function(conf){
             emitter.emit(type, val, info);
         };
         ctx.log = function(level, val){
-            if(!_.has(log_levels, level)){
+            if(!_.has(logLevels, level)){
                 throw new Error("Unsupported log level: " + level);
             }
             //this 'log-' prefix distinguishes user declared log events from other system generated events
             ctx.emit("log-" + level, val);
         };
-        ctx.callKRLstdlib = function(fn_name, args){
+        ctx.callKRLstdlib = function(fnName, args){
             if(_.isArray(args)){
                 args = [ctx].concat(args);
             }else{
                 args[0] = ctx;
             }
-            var fn = krl_stdlib[fn_name];
+            var fn = krlStdlib[fnName];
             if(fn === void 0){
-                throw new Error("Not an operator: " + fn_name);
+                throw new Error("Not an operator: " + fnName);
             }
             return Promise.resolve(fn.apply(void 0, args));
         };
@@ -181,23 +181,23 @@ module.exports = function(conf){
         rs.modules_used = {};
         core.rsreg.setupOwnKeys(rs);
 
-        var use_array = _.values(rs.meta && rs.meta.use);
-        var i, use, dep_rs, ctx2;
-        for(i = 0; i < use_array.length; i++){
-            use = use_array[i];
+        var useArray = _.values(rs.meta && rs.meta.use);
+        var i, use, depRs, ctx2;
+        for(i = 0; i < useArray.length; i++){
+            use = useArray[i];
             if(use.kind !== "module"){
                 throw new Error("Unsupported 'use' kind: " + use.kind);
             }
-            dep_rs = core.rsreg.get(use.rid);
-            if(!dep_rs){
+            depRs = core.rsreg.get(use.rid);
+            if(!depRs){
                 throw new Error("Dependant module not loaded: " + use.rid);
             }
             ctx2 = mkCTX({
-                rid: dep_rs.rid,
+                rid: depRs.rid,
                 scope: SymbolTable()
             });
-            if(_.isFunction(dep_rs.meta && dep_rs.meta.configure)){
-                await runKRL(dep_rs.meta.configure, ctx2);
+            if(_.isFunction(depRs.meta && depRs.meta.configure)){
+                await runKRL(depRs.meta.configure, ctx2);
             }
             if(_.isFunction(use["with"])){
                 await runKRL(use["with"], mkCTX({
@@ -205,13 +205,13 @@ module.exports = function(conf){
                     scope: ctx2.scope//must share scope
                 }));
             }
-            if(_.isFunction(dep_rs.global)){
-                await runKRL(dep_rs.global, ctx2);
+            if(_.isFunction(depRs.global)){
+                await runKRL(depRs.global, ctx2);
             }
             rs.modules_used[use.alias] = {
                 rid: use.rid,
                 scope: ctx2.scope,
-                provides: _.get(dep_rs, ["meta", "provides"], []),
+                provides: _.get(depRs, ["meta", "provides"], []),
             };
             core.rsreg.provideKey(rs.rid, use.rid);
         }
@@ -229,15 +229,15 @@ module.exports = function(conf){
     };
 
 
-    core.registerRuleset = function(krl_src, meta_data, callback){
+    core.registerRuleset = function(krlSrc, metaData, callback){
         (async function(){
-            var data = await db.storeRulesetYieldable(krl_src, meta_data);
+            var data = await db.storeRulesetYieldable(krlSrc, metaData);
             var rid = data.rid;
             var hash = data.hash;
 
             var rs = await compileAndLoadRulesetYieldable({
                 rid: rid,
-                src: krl_src,
+                src: krlSrc,
                 hash: hash
             });
 
@@ -292,37 +292,37 @@ module.exports = function(conf){
             });
     };
 
-    var picoQ = PicoQueue(function(pico_id, type, data){
+    var picoQ = PicoQueue(function(picoId, type, data){
         //now handle the next task on the pico queue
         if(type === "event"){
             var event = data;
             event.timestamp = new Date(event.timestamp);//convert from JSON string to date
             return processEvent(core, mkCTX({
                 event: event,
-                pico_id: pico_id
+                pico_id: picoId
             }));
         }else if(type === "query"){
             return processQuery(core, mkCTX({
                 query: data,
-                pico_id: pico_id
+                pico_id: picoId
             }));
         }else{
             throw new Error("invalid PicoQueue type:" + type);
         }
     });
 
-    var picoTask = function(type, data_orig, callback_orig){
-        var callback = _.isFunction(callback_orig) ? callback_orig : _.noop;
+    var picoTask = function(type, dataOrig, callbackOrig){
+        var callback = _.isFunction(callbackOrig) ? callbackOrig : _.noop;
         var data;
         try{
             //validate + normalize event/query, and make sure is not mutated
             if(type === "event"){
-                data = cleanEvent(data_orig);
+                data = cleanEvent(dataOrig);
                 if(data.eid === "none"){
                     data.eid = cuid();
                 }
             }else if(type === "query"){
-                data = cleanQuery(data_orig);
+                data = cleanQuery(dataOrig);
             }else{
                 throw new Error("invalid PicoQueue type:" + type);
             }
@@ -334,8 +334,8 @@ module.exports = function(conf){
 
         //events and queries have a txn_id and timestamp
         data.txn_id = cuid();
-        data.timestamp = conf.___core_testing_mode && _.isDate(data_orig.timestamp)
-            ? data_orig.timestamp
+        data.timestamp = conf.___core_testing_mode && _.isDate(dataOrig.timestamp)
+            ? dataOrig.timestamp
             : new Date();
 
         db.getChannelAndPolicy(data.eci, function(err, chann){
@@ -345,10 +345,10 @@ module.exports = function(conf){
                 return;
             }
 
-            var pico_id = chann.pico_id;
+            var picoId = chann.pico_id;
 
             var emit = mkCTX({
-                pico_id: pico_id,
+                pico_id: picoId,
                 event: type === "event" ? data : void 0,
                 query: type === "query" ? data : void 0,
             }).emit;
@@ -366,9 +366,9 @@ module.exports = function(conf){
                 return;
             }
 
-            picoQ.enqueue(pico_id, type, data, onDone);
+            picoQ.enqueue(picoId, type, data, onDone);
 
-            emit("debug", type + " added to pico queue: " + pico_id);
+            emit("debug", type + " added to pico queue: " + picoId);
 
             function onDone(err, data){
                 if(err){
@@ -397,7 +397,7 @@ module.exports = function(conf){
 
     var registerAllEnabledRulesets = function(callback){
 
-        var rs_by_rid = {};
+        var rsByRid = {};
 
         async.series([
             //
@@ -421,7 +421,7 @@ module.exports = function(conf){
                                 db.disableRuleset(rid, next);
                                 return;
                             }
-                            rs_by_rid[rs.rid] = rs;
+                            rsByRid[rs.rid] = rs;
                             depGraph.addNode(rs.rid);
                             next();
                         });
@@ -438,7 +438,7 @@ module.exports = function(conf){
             // initialize Rulesets according to dependency order
             //
             function(nextStep){
-                _.each(rs_by_rid, function(rs){
+                _.each(rsByRid, function(rs){
                     _.each(rs.meta && rs.meta.use, function(use){
                         if(use.kind === "module"){
                             depGraph.addDependency(rs.rid, use.rid);
@@ -453,8 +453,8 @@ module.exports = function(conf){
                         if(!m){
                             throw err;
                         }
-                        var cycle_rids = _.uniq(m[1].split(" -> "));
-                        _.each(cycle_rids, function(rid){
+                        var cycleRids = _.uniq(m[1].split(" -> "));
+                        _.each(cycleRids, function(rid){
                             // remove the rids from the graph and disable it
                             depGraph.removeNode(rid);
                             db.disableRuleset(rid, _.noop);
@@ -468,10 +468,10 @@ module.exports = function(conf){
                     }
                 };
                 // order they need to be loaded for dependencies to work
-                var rid_order = getRidOrder();
+                var ridOrder = getRidOrder();
 
-                async.eachSeries(rid_order, function(rid, next){
-                    var rs = rs_by_rid[rid];
+                async.eachSeries(ridOrder, function(rid, next){
+                    var rs = rsByRid[rid];
 
                     initializeRulest(rs).then(function(){
                         next();
@@ -501,9 +501,9 @@ module.exports = function(conf){
             callback(err);
             return;
         }
-        db.isRulesetUsed(rid, function(err, is_used){
+        db.isRulesetUsed(rid, function(err, isUsed){
             if(err) return callback(err);
-            if(is_used){
+            if(isUsed){
                 callback(new Error("Unable to unregister \"" + rid + "\": it is installed on at least one pico"));
                 return;
             }
@@ -535,9 +535,9 @@ module.exports = function(conf){
         });
     };
     core.flushRuleset = function(rid, callback){
-        db.getEnabledRuleset(rid, function(err, rs_data){
+        db.getEnabledRuleset(rid, function(err, rsData){
             if(err) return callback(err);
-            var url = rs_data.url;
+            var url = rsData.url;
             if(!_.isString(url)){
                 callback(new Error("cannot flush a locally registered ruleset"));
                 return;
@@ -545,24 +545,24 @@ module.exports = function(conf){
             core.registerRulesetURL(url, callback);
         });
     };
-    core.installRuleset = function(pico_id, rid, callback){
-        db.assertPicoID(pico_id, function(err, pico_id){
+    core.installRuleset = function(picoId, rid, callback){
+        db.assertPicoID(picoId, function(err, picoId){
             if(err) return callback(err);
 
             db.hasEnabledRid(rid, function(err, has){
                 if(err) return callback(err);
                 if(!has) return callback(new Error("This rid is not found and/or enabled: " + rid));
 
-                db.addRulesetToPico(pico_id, rid, callback);
+                db.addRulesetToPico(picoId, rid, callback);
             });
         });
     };
 
-    core.uninstallRuleset = function(pico_id, rid, callback){
-        db.assertPicoID(pico_id, function(err, pico_id){
+    core.uninstallRuleset = function(picoId, rid, callback){
+        db.assertPicoID(picoId, function(err, picoId){
             if(err) return callback(err);
 
-            db.removeRulesetFromPico(pico_id, rid, callback);
+            db.removeRulesetFromPico(picoId, rid, callback);
         });
     };
 
@@ -593,9 +593,9 @@ module.exports = function(conf){
         runQuery: core.runQuery,
 
         getRootECI: function(callback){
-            db.getRootPico(function(err, root_pico){
+            db.getRootPico(function(err, rootPico){
                 if(err) return callback(err);
-                callback(null, root_pico.admin_eci);
+                callback(null, rootPico.admin_eci);
             });
         },
 
@@ -628,20 +628,20 @@ module.exports = function(conf){
         pe.modules = modules;
     }
 
-    pe.start = function(system_rulesets, callback){
+    pe.start = function(systemRulesets, callback){
         callback = promiseCallback(callback);
         async.series([
             db.checkAndRunMigrations,
             function(nextStep){
-                // compile+store+enable system_rulesets first
-                async.each(system_rulesets, function(system_ruleset, next){
-                    var krl_src = system_ruleset.src;
-                    var meta_data = system_ruleset.meta;
-                    db.storeRuleset(krl_src, meta_data, function(err, data){
+                // compile+store+enable systemRulesets first
+                async.each(systemRulesets, function(systemRuleset, next){
+                    var krlSrc = systemRuleset.src;
+                    var metaData = systemRuleset.meta;
+                    db.storeRuleset(krlSrc, metaData, function(err, data){
                         if(err) return next(err);
                         compileAndLoadRuleset({
                             rid: data.rid,
-                            src: krl_src,
+                            src: krlSrc,
                             hash: data.hash
                         }, function(err, rs){
                             if(err) return next(err);
@@ -659,7 +659,7 @@ module.exports = function(conf){
                 if(_.isEmpty(rootRIDs)){
                     return next();
                 }
-                db.getRootPico(function(err, root_pico){
+                db.getRootPico(function(err, rootPico){
                     if(err && ! err.notFound){
                         return next(err);
                     }else if(!err){
@@ -672,21 +672,21 @@ module.exports = function(conf){
                 if(_.isEmpty(rootRIDs)){
                     return next();
                 }
-                db.getRootPico(function(err, root_pico){
+                db.getRootPico(function(err, rootPico){
                     if(err) return next(err);
 
-                    db.ridsOnPico(root_pico.id, function(err, rids){
+                    db.ridsOnPico(rootPico.id, function(err, rids){
                         if(err) return next(err);
 
-                        var to_install = [];
-                        _.each(rootRIDs, function(r_rid){
-                            if( ! _.includes(rids, r_rid)){
-                                to_install.push(r_rid);
+                        var toInstall = [];
+                        _.each(rootRIDs, function(rid){
+                            if( ! _.includes(rids, rid)){
+                                toInstall.push(rid);
                             }
                         });
 
-                        async.eachSeries(to_install, function(rid, next){
-                            core.installRuleset(root_pico.id, rid, next);
+                        async.eachSeries(toInstall, function(rid, next){
+                            core.installRuleset(rootPico.id, rid, next);
                         }, next);
                     });
                 });

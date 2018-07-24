@@ -1,6 +1,6 @@
 var _ = require("lodash");
 
-var by_key = {
+var byKey = {
     "shares": function(ast, ind, gen){
         return ind() + gen(ast.key) + " " + _.map(ast.value.ids, function(id){
             return gen(id);
@@ -68,8 +68,8 @@ var by_key = {
 
 module.exports = function(ast, ind, gen){
     var key = ast.key.value;
-    if(_.has(by_key, key)){
-        return by_key[key](ast, ind, gen);
+    if(_.has(byKey, key)){
+        return byKey[key](ast, ind, gen);
     }else if(_.isString(ast.value.type)){
         var src = ind() + gen(ast.key) + " ";
         if(ast.value.type === "Boolean"){

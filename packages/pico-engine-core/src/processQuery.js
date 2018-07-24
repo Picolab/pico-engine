@@ -5,8 +5,8 @@ var ktypes = require("krl-stdlib/types");
 module.exports = async function processQuery(core, ctx){
     await core.db.assertPicoIDYieldable(ctx.pico_id);
 
-    var pico_rids = await core.db.ridsOnPicoYieldable(ctx.pico_id);
-    if(pico_rids[ctx.query.rid] !== true){
+    var picoRids = await core.db.ridsOnPicoYieldable(ctx.pico_id);
+    if(picoRids[ctx.query.rid] !== true){
         throw new Error("Pico does not have that rid: " + ctx.query.rid);
     }
 

@@ -5,32 +5,32 @@ module.exports = {
         // /entvars/:pico_id/io.picolabs.pico/parent
         // /entvars/:pico_id/io.picolabs.pico/children
 
-        var to_batch = [];
+        var dbOps = [];
 
         dbRange(ldb, {
             prefix: ["entvars"],
         }, function(data){
 
-            var pico_id = data.key[1];
+            var picoId = data.key[1];
 
             if(data.key[2] !== "io.picolabs.pico"){
                 return;
             }
             if(data.key[3] === "parent"){
 
-                var parent_id = data.value.id;
+                var parentId = data.value.id;
 
-                to_batch.push({
+                dbOps.push({
                     type: "put",
-                    key: ["pico", pico_id],
+                    key: ["pico", picoId],
                     value: {
-                        id: pico_id,
-                        parent_id: parent_id,
+                        id: picoId,
+                        parent_id: parentId,
                     },
                 });
-                to_batch.push({
+                dbOps.push({
                     type: "put",
-                    key: ["pico-children", parent_id, pico_id],
+                    key: ["pico-children", parentId, picoId],
                     value: true,
                 });
 
@@ -43,7 +43,7 @@ module.exports = {
                 prefix: ["channel"],
                 limit: 1,//the old schema relied on the first eci to be root
             }, function(data){
-                to_batch.push({
+                dbOps.push({
                     type: "put",
                     key: ["root_pico"],
                     value: {
@@ -54,7 +54,7 @@ module.exports = {
             }, function(err){
                 if(err) return callback(err);
 
-                ldb.batch(to_batch, callback);
+                ldb.batch(dbOps, callback);
             });
         });
     },

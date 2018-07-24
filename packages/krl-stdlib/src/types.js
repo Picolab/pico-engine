@@ -52,7 +52,7 @@ types.isAction = function(val){
 };
 
 types.typeOf = function(val){
-    var krl_types = [
+    var krlTypes = [
         "Null",
         "Boolean",
         "String",
@@ -65,8 +65,8 @@ types.typeOf = function(val){
     ];
     var i;
     var type;
-    for(i = 0; i < krl_types.length; i++){
-        type = krl_types[i];
+    for(i = 0; i < krlTypes.length; i++){
+        type = krlTypes[i];
         if(types["is" + type](val)){
             return type;
         }
@@ -117,16 +117,16 @@ types.toNumberOrNull = function(val){
 };
 
 types.toString = function(val){
-    var val_type = types.typeOf(val);
-    if(val_type === "String"){
+    var valType = types.typeOf(val);
+    if(valType === "String"){
         return val;
-    }else if(val_type === "Null"){
+    }else if(valType === "Null"){
         return "null";
-    }else if(val_type === "Boolean"){
+    }else if(valType === "Boolean"){
         return val ? "true" : "false";
-    }else if(val_type === "Number"){
+    }else if(valType === "Number"){
         return val + "";
-    }else if(val_type === "RegExp"){
+    }else if(valType === "RegExp"){
         //NOTE: val.flags doesn't work on old versions of JS
         var flags = "";
         if(val.global){
@@ -137,7 +137,7 @@ types.toString = function(val){
         }
         return "re#" + val.source + "#" + flags;
     }
-    return "[" + val_type + "]";
+    return "[" + valType + "]";
 };
 
 types.encode = function(val, indent){

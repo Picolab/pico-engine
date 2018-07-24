@@ -5,13 +5,13 @@ var Scheduler = require("./Scheduler");
 test("Scheduler - at", function(t){
 
     var log = [];
-    var queue_nextEventAt = [];
-    var queue_removeEventAt = [];
+    var queueNextEventAt = [];
+    var queueRemoveEventAt = [];
 
-    var popNextEventAt = function(id, ignore_if_empty){
+    var popNextEventAt = function(id, ignoreIfEmpty){
         //pop off the oldest callback
-        var callback = queue_nextEventAt.shift();
-        if(ignore_if_empty && !callback){
+        var callback = queueNextEventAt.shift();
+        if(ignoreIfEmpty && !callback){
             return;
         }
         if(!id){
@@ -26,7 +26,7 @@ test("Scheduler - at", function(t){
 
     var popRemoveEventAt = function(){
         //pop off the oldest callback
-        var callback = queue_removeEventAt.shift();
+        var callback = queueRemoveEventAt.shift();
         callback();
     };
 
@@ -34,10 +34,10 @@ test("Scheduler - at", function(t){
         is_test_mode: true,
         db: {
             nextScheduleEventAt: function(callback){
-                queue_nextEventAt.push(callback);
+                queueNextEventAt.push(callback);
             },
             removeScheduleEventAt: function(id, at, callback){
-                queue_removeEventAt.push(callback);
+                queueRemoveEventAt.push(callback);
             },
         },
         onError: function(err){
@@ -75,8 +75,8 @@ test("Scheduler - at", function(t){
     t.deepEquals(log, [["EVENT", "foo"]], "the event should only fire once!");
 
 
-    t.equals(queue_nextEventAt.length, 0, "should be no outstanding nextEventAt callbacks");
-    t.equals(queue_removeEventAt.length, 0, "should be no outstanding removeEventAt callbacks");
+    t.equals(queueNextEventAt.length, 0, "should be no outstanding nextEventAt callbacks");
+    t.equals(queueRemoveEventAt.length, 0, "should be no outstanding removeEventAt callbacks");
 
     t.end();
 });
@@ -98,27 +98,27 @@ var randomTick = function(callback){
 
 test("Scheduler - at - generative test", function(t){
 
-    var n_events = 50000;
+    var nEvents = 50000;
 
     if(process.env.SKIP_LONG_TESTS === "true"){
         // shorten the generative test when running the tests quick i.e. `npm start`
-        n_events = 5;
+        nEvents = 5;
     }
 
     var log = [];
-    var event_queue = [];
+    var eventQueue = [];
 
     var sch = Scheduler({
         is_test_mode: true,
         db: {
             nextScheduleEventAt: function(callback){
                 randomTick(function(){
-                    if(event_queue.length === 0){
+                    if(eventQueue.length === 0){
                         //console.log("popNextEventAt(null)");
                         return callback();
                     }
                     //read the next event to run, then tick again
-                    var id = event_queue[0];
+                    var id = eventQueue[0];
                     var next = {
                         id: id,
                         at: new Date(),//doesn't matter for this test
@@ -136,11 +136,11 @@ test("Scheduler - at - generative test", function(t){
             },
             removeScheduleEventAt: function(id, at, callback){
                 randomTick(function(){
-                    _.pull(event_queue, id);
+                    _.pull(eventQueue, id);
                     randomTick(function(){
                         //console.log("popRemoveEventAt()", id);
                         callback();
-                        if(id === n_events){
+                        if(id === nEvents){
                             process.nextTick(function(){
                                 onDone();
                             });
@@ -160,15 +160,15 @@ test("Scheduler - at - generative test", function(t){
     //console.log("update()");
     sch.update();
 
-    var event_i = 0;
+    var eventI = 0;
 
     var tickLoop = function(){
-        if(event_i >= n_events){
+        if(eventI >= nEvents){
             return;
         }
         randomTick(function(){
-            event_i++;
-            event_queue.push(event_i);
+            eventI++;
+            eventQueue.push(eventI);
             //console.log("update()");
             sch.update();
             tickLoop();

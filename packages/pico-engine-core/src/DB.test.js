@@ -128,7 +128,7 @@ test("DB - write and read", function(t){
 test("DB - storeRuleset", function(t){
     var db = mkTestDB();
 
-    var krl_src = "ruleset io.picolabs.cool {}";
+    var krlSrc = "ruleset io.picolabs.cool {}";
     var rid = "io.picolabs.cool";
     var hash = "7d71c05bc934b0d41fdd2055c7644fc4d0d3eabf303d67fb97f604eaab2c0aa1";
     var timestamp = (new Date()).toISOString();
@@ -136,7 +136,7 @@ test("DB - storeRuleset", function(t){
 
     var expected = {};
     _.set(expected, ["rulesets", "krl", hash], {
-        src: krl_src,
+        src: krlSrc,
         rid: rid,
         url: url,
         timestamp: timestamp
@@ -147,7 +147,7 @@ test("DB - storeRuleset", function(t){
     async.series({
         start_db: async.apply(db.toObj),
         store: function(next){
-            db.storeRuleset(krl_src, {
+            db.storeRuleset(krlSrc, {
                 url: url
             }, next, timestamp);
         },
@@ -169,15 +169,15 @@ test("DB - storeRuleset", function(t){
 test("DB - enableRuleset", function(t){
     var db = mkTestDB();
 
-    var krl_src = "ruleset io.picolabs.cool {}";
+    var krlSrc = "ruleset io.picolabs.cool {}";
     //TODO
     async.waterfall([
         function(callback){
             db.toObj(callback);
         },
-        function(db_json, callback){
-            t.deepEquals(_.omit(db_json, "rulesets"), {});
-            db.storeRuleset(krl_src, {}, callback);
+        function(dbJson, callback){
+            t.deepEquals(_.omit(dbJson, "rulesets"), {});
+            db.storeRuleset(krlSrc, {}, callback);
         },
         function(data, callback){
             db.enableRuleset(data.hash, function(err){
@@ -189,8 +189,8 @@ test("DB - enableRuleset", function(t){
                 callback(err, db, hash);
             });
         },
-        function(db_json, hash, callback){
-            t.deepEquals(_.get(db_json, [
+        function(dbJson, hash, callback){
+            t.deepEquals(_.get(dbJson, [
                 "rulesets",
                 "enabled",
                 "io.picolabs.cool",
@@ -198,10 +198,10 @@ test("DB - enableRuleset", function(t){
             ]), hash);
             db.getEnabledRuleset("io.picolabs.cool", function(err, data){
                 if(err) return callback(err);
-                t.equals(data.src, krl_src);
+                t.equals(data.src, krlSrc);
                 t.equals(data.hash, hash);
                 t.equals(data.rid, "io.picolabs.cool");
-                t.equals(data.timestamp_enable, _.get(db_json, [
+                t.equals(data.timestamp_enable, _.get(dbJson, [
                     "rulesets",
                     "enabled",
                     "io.picolabs.cool",
@@ -228,34 +228,34 @@ test("DB - getRootPico", function(t){
 
     var tstRoot = function(assertFn){
         return function(next){
-            db.getRootPico(function(err, r_pico){
-                assertFn(err, r_pico);
+            db.getRootPico(function(err, rPico){
+                assertFn(err, rPico);
                 next();
             });
         };
     };
 
     async.series([
-        tstRoot(function(err, r_pico){
+        tstRoot(function(err, rPico){
             t.ok(err);
             t.ok(err.notFound);
-            t.deepEquals(r_pico, void 0);
+            t.deepEquals(rPico, void 0);
         }),
         async.apply(db.newChannel, {pico_id: "foo", name: "bar", type: "baz"}),
         async.apply(db.newPico, {}),
-        tstRoot(function(err, r_pico){
+        tstRoot(function(err, rPico){
             t.notOk(err);
-            t.deepEquals(r_pico, {id: "id1", parent_id: null, admin_eci: "id2"});
+            t.deepEquals(rPico, {id: "id1", parent_id: null, admin_eci: "id2"});
         }),
         async.apply(db.newPico, {parent_id: "id1"}),
-        tstRoot(function(err, r_pico){
+        tstRoot(function(err, rPico){
             t.notOk(err);
-            t.deepEquals(r_pico, {id: "id1", parent_id: null, admin_eci: "id2"});
+            t.deepEquals(rPico, {id: "id1", parent_id: null, admin_eci: "id2"});
         }),
         async.apply(db.newPico, {parent_id: null}),
-        tstRoot(function(err, r_pico){
+        tstRoot(function(err, rPico){
             t.notOk(err);
-            t.deepEquals(r_pico, {id: "id5", parent_id: null, admin_eci: "id6"});
+            t.deepEquals(rPico, {id: "id5", parent_id: null, admin_eci: "id6"});
         }),
     ], t.end);
 });
@@ -329,17 +329,17 @@ test("DB - deleteRuleset", function(t){
 
 
         //make the `init_db` look like the expected `end_db`
-        var expected_db = _.cloneDeep(data.init_db);
-        t.deepEqual(expected_db, data.init_db, "sanity check");
+        var expectedDb = _.cloneDeep(data.init_db);
+        t.deepEqual(expectedDb, data.init_db, "sanity check");
 
-        delete expected_db.rulesets.enabled["io.picolabs.foo"];
-        delete expected_db.rulesets.krl[data.store_foo];
-        delete expected_db.rulesets.url["file:///foo.krl"];
-        delete expected_db.rulesets.versions["io.picolabs.foo"];
-        delete expected_db.appvars["io.picolabs.foo"];
+        delete expectedDb.rulesets.enabled["io.picolabs.foo"];
+        delete expectedDb.rulesets.krl[data.store_foo];
+        delete expectedDb.rulesets.url["file:///foo.krl"];
+        delete expectedDb.rulesets.versions["io.picolabs.foo"];
+        delete expectedDb.appvars["io.picolabs.foo"];
 
-        t.notDeepEqual(expected_db, data.init_db, "sanity check");
-        t.deepEquals(data.end_db, expected_db);
+        t.notDeepEqual(expectedDb, data.init_db, "sanity check");
+        t.deepEquals(data.end_db, expectedDb);
 
         t.end();
     });
@@ -567,9 +567,9 @@ test("DB - listChannels", function(t){
     }, function(err, data){
         if(err) return t.end(err);
 
-        var mkChan = function(pico_id, eci, name, type){
+        var mkChan = function(picoId, eci, name, type){
             return {
-                pico_id: pico_id,
+                pico_id: picoId,
                 id: eci,
                 name: name,
                 type: type,
@@ -707,21 +707,21 @@ test("DB - migrations", function(t){
 test("DB - parent/child", function(t){
     var db = mkTestDB();
 
-    var assertParent = function(pico_id, expected_parent_id){
+    var assertParent = function(picoId, expectedParentId){
         return function(next){
-            db.getParent(pico_id, function(err, parent_id){
+            db.getParent(picoId, function(err, parentId){
                 if(err) return next(err);
-                t.equals(parent_id, expected_parent_id, "testing db.getParent");
+                t.equals(parentId, expectedParentId, "testing db.getParent");
                 next();
             });
         };
     };
 
-    var assertChildren = function(pico_id, expected_children_ids){
+    var assertChildren = function(picoId, expectedChildrenIds){
         return function(next){
-            db.listChildren(pico_id, function(err, list){
+            db.listChildren(picoId, function(err, list){
                 if(err) return next(err);
-                t.deepEquals(list, expected_children_ids, "testing db.listChildren");
+                t.deepEquals(list, expectedChildrenIds, "testing db.listChildren");
                 next();
             });
         };
@@ -764,15 +764,15 @@ test("DB - parent/child", function(t){
 test("DB - assertPicoID", function(t){
     var db = mkTestDB();
 
-    var tstPID = function(id, expected_it){
+    var tstPID = function(id, expectedIt){
         return function(next){
-            db.assertPicoID(id, function(err, got_id){
-                if(expected_it){
+            db.assertPicoID(id, function(err, gotId){
+                if(expectedIt){
                     t.notOk(err);
-                    t.equals(got_id, id);
+                    t.equals(gotId, id);
                 }else{
                     t.ok(err);
-                    t.notOk(got_id);
+                    t.notOk(gotId);
                 }
                 next();
             });
@@ -797,12 +797,12 @@ test("DB - assertPicoID", function(t){
 testA("DB - removeChannel", async function(t){
     var db = mkTestDB();
 
-    var assertECIs = async function(pico_id, expected_ecis){
-        var chans = await db.listChannelsYieldable(pico_id);
+    var assertECIs = async function(picoId, expectedEcis){
+        var chans = await db.listChannelsYieldable(picoId);
 
-        var eci_list = _.map(chans, "id");
-        t.is(eci_list, expected_ecis, "assert the listChannels");
-        t.is(_.uniq(_.map(chans, "pico_id")), [pico_id], "assert listChannels all come from the same pico_id");
+        var eciList = _.map(chans, "id");
+        t.is(eciList, expectedEcis, "assert the listChannels");
+        t.is(_.uniq(_.map(chans, "pico_id")), [picoId], "assert listChannels all come from the same pico_id");
     };
 
     var assertFailRemoveECI = async function(eci){

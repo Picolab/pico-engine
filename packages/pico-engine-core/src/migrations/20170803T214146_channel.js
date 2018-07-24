@@ -6,7 +6,7 @@ module.exports = {
         // /pico/:pico_id/channel/:eci -> /channel/:eci {... pico_id}
         // /pico-eci-list/:pico_id/:eci true
 
-        var to_batch = [];
+        var dbOps = [];
 
         dbRange(ldb, {
             prefix: ["pico"],
@@ -14,29 +14,29 @@ module.exports = {
             if(data.key[2] !== "channel"){
                 return;
             }
-            var pico_id = data.key[1];
+            var picoId = data.key[1];
             var eci = data.key[3];
 
-            to_batch.push({
+            dbOps.push({
                 type: "put",
                 key: ["channel", eci],
                 value: _.assign({}, data.value, {
-                    pico_id: pico_id,
+                    pico_id: picoId,
                 }),
             });
-            to_batch.push({
+            dbOps.push({
                 type: "put",
-                key: ["pico-eci-list", pico_id, eci],
+                key: ["pico-eci-list", picoId, eci],
                 value: true,
             });
 
-            to_batch.push({type: "del", key: data.key});
-            to_batch.push({type: "del", key: ["eci-to-pico_id", eci]});
+            dbOps.push({type: "del", key: data.key});
+            dbOps.push({type: "del", key: ["eci-to-pico_id", eci]});
 
         }, function(err){
             if(err) return callback(err);
 
-            ldb.batch(to_batch, callback);
+            ldb.batch(dbOps, callback);
         });
     },
 };

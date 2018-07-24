@@ -15,9 +15,9 @@ var httpGetKRL = function(url, callback){
 };
 
 module.exports = function(url, callback){
-    var url_parsed = urllib.parse(url);
-    if(url_parsed.protocol === "file:"){
-        fs.readFile(decodeURI(url_parsed.path), function(err, data){
+    var urlParsed = urllib.parse(url);
+    if(urlParsed.protocol === "file:"){
+        fs.readFile(decodeURI(urlParsed.path), function(err, data){
             if(err) return callback(err);
             callback(null, data.toString());
         });

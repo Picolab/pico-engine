@@ -4,10 +4,10 @@ module.exports = {
     "authorize": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getRootECI(function(err, root_eci){
+        pe.getRootECI(function(err, rootEci){
             if(err) return errResp(res, err);
             var event = {
-                eci: root_eci,
+                eci: rootEci,
                 eid: "authorize",
                 domain: "oauth",
                 type: "authorize",
@@ -30,10 +30,10 @@ module.exports = {
     "approve": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getRootECI(function(err, root_eci){
+        pe.getRootECI(function(err, rootEci){
             if(err) return errResp(res, err);
             var event = {
-                eci: root_eci,
+                eci: rootEci,
                 eid: "approve",
                 domain: "oauth",
                 type: "approve",
@@ -46,19 +46,19 @@ module.exports = {
                 else if(d.name!=="respond"){
                     return errResp(res,"Expecting respond, not "+d.name);
                 } else {
-                    var redirect_uri;
+                    var redirectUri;
                     var qsp = [];
                     for(var key in d.options){
                         var val = encodeURIComponent(d.options[key]);
                         if (key === "redirect_uri") {
-                            redirect_uri = d.options[key];
+                            redirectUri = d.options[key];
                         } else {
                             qsp.push(key+"="+val);
                         }
                     }
-                    if(!redirect_uri) return errResp(res,"No redirect URI");
-                    var sep = redirect_uri.indexOf("?") !== -1 ? "&" : "?";
-                    res.redirect(redirect_uri+sep+qsp.join("&"));
+                    if(!redirectUri) return errResp(res,"No redirect URI");
+                    var sep = redirectUri.indexOf("?") !== -1 ? "&" : "?";
+                    res.redirect(redirectUri+sep+qsp.join("&"));
                 }
             });
         });
@@ -96,10 +96,10 @@ module.exports = {
         var attrs = req.body;
         attrs.client_id = clientId;
         attrs.client_secret = clientSecret;
-        pe.getRootECI(function(err, root_eci){
+        pe.getRootECI(function(err, rootEci){
             if(err) return errResp(res, err);
             var event = {
-                eci: root_eci,
+                eci: rootEci,
                 eid: "token",
                 domain: "oauth",
                 type: "token",
@@ -120,10 +120,10 @@ module.exports = {
     "login": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getRootECI(function(err, root_eci){
+        pe.getRootECI(function(err, rootEci){
             if(err) return errResp(res, err);
             var event = {
-                eci: root_eci,
+                eci: rootEci,
                 eid: "",
                 domain: "owner",
                 type: "eci_requested",
@@ -138,10 +138,10 @@ module.exports = {
     "new_account": function(req,res){
         var pe = req.pe;
         var errResp = req.errResp;
-        pe.getRootECI(function(err, root_eci){
+        pe.getRootECI(function(err, rootEci){
             if(err) return errResp(res, err);
             var event = {
-                eci: root_eci,
+                eci: rootEci,
                 eid: "",
                 domain: "owner",
                 type: "creation",

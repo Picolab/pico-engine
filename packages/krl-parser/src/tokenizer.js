@@ -1,4 +1,4 @@
-var raw_toks = [
+var rawToks = [
     "<=>",
     "<=",
     "<",
@@ -33,16 +33,16 @@ var raw_toks = [
 module.exports = function(src){
 
     var tokens = [];
-    var beesting_stack = [];
+    var beestingStack = [];
     var buff = ""; // modified by pushTok and addToBuffer
     var peek;
     var i = 0;
     var c = src[0];
 
     var pushTok = (function(){
-        var next_loc = 0;
+        var nextLoc = 0;
         return function(value, name){
-            var loc = {start: next_loc, end: next_loc + value.length};
+            var loc = {start: nextLoc, end: nextLoc + value.length};
 
             tokens.push({
                 type: name,
@@ -50,7 +50,7 @@ module.exports = function(src){
                 loc: loc
             });
 
-            next_loc = loc.end;
+            nextLoc = loc.end;
             buff = "";
         };
     }());
@@ -87,7 +87,7 @@ module.exports = function(src){
 
         if(peek === "#{"){
             pushTok("#{", "CHEVRON-BEESTING-OPEN");
-            beesting_stack.push({curly_count: 0});
+            beestingStack.push({curly_count: 0});
         }else if(peek === ">>"){
             pushTok(">>", "CHEVRON-CLOSE");
         }
@@ -215,36 +215,36 @@ module.exports = function(src){
             continue;
         }
 
-        if(beesting_stack.length > 0){
+        if(beestingStack.length > 0){
             if(c === "{"){
-                beesting_stack[beesting_stack.length-1].curly_count++;
+                beestingStack[beestingStack.length-1].curly_count++;
             }else if(c === "}"){
-                if(beesting_stack[beesting_stack.length-1].curly_count === 0){
+                if(beestingStack[beestingStack.length-1].curly_count === 0){
                     pushTok("}", "CHEVRON-BEESTING-CLOSE");
                     advance(1);
-                    beesting_stack.pop();
+                    beestingStack.pop();
 
                     handleChevronBody();
 
                     continue;
                 }else{
-                    beesting_stack[beesting_stack.length-1].curly_count--;
+                    beestingStack[beestingStack.length-1].curly_count--;
                 }
             }
         }
 
         var tok = 0;
 
-        while(tok < raw_toks.length){
-            if(raw_toks[tok] === src.substring(i, i + raw_toks[tok].length)){
-                pushTok(raw_toks[tok], "RAW");
-                advance(raw_toks[tok].length);
+        while(tok < rawToks.length){
+            if(rawToks[tok] === src.substring(i, i + rawToks[tok].length)){
+                pushTok(rawToks[tok], "RAW");
+                advance(rawToks[tok].length);
                 break;
             }
             tok++;
         }
 
-        if(tok === raw_toks.length){
+        if(tok === rawToks.length){
             pushTok(c, "ILLEGAL");
             advance(1);
         }

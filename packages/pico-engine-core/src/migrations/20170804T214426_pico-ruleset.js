@@ -6,7 +6,7 @@ module.exports = {
         // -> /pico-ruleset/:pico_id/:rid
         // -> /ruleset-pico/:rid/:pico_id
 
-        var to_batch = [];
+        var dbOps = [];
 
         dbRange(ldb, {
             prefix: ["pico"],
@@ -14,26 +14,26 @@ module.exports = {
             if(data.key[2] !== "ruleset"){
                 return;
             }
-            var pico_id = data.key[1];
+            var picoId = data.key[1];
             var rid = data.key[3];
 
-            to_batch.push({
+            dbOps.push({
                 type: "put",
-                key: ["pico-ruleset", pico_id, rid],
+                key: ["pico-ruleset", picoId, rid],
                 value: data.value,
             });
-            to_batch.push({
+            dbOps.push({
                 type: "put",
-                key: ["ruleset-pico", pico_id, rid],
+                key: ["ruleset-pico", picoId, rid],
                 value: data.value,
             });
 
-            to_batch.push({type: "del", key: data.key});
+            dbOps.push({type: "del", key: data.key});
 
         }, function(err){
             if(err) return callback(err);
 
-            ldb.batch(to_batch, callback);
+            ldb.batch(dbOps, callback);
         });
     },
 };
