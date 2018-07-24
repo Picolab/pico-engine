@@ -5,6 +5,7 @@ var cuid = require("cuid");
 var test = require("tape");
 var http = require("http");
 var async = require("async");
+var testA = require("../test/helpers/testA");
 var memdown = require("memdown");
 var compiler = require("krl-compiler");
 var PicoEngine = require("./");
@@ -2483,215 +2484,211 @@ test("PicoEngine - io.picolabs.persistent-index", function(t){
 });
 
 
-test("PicoEngine - io.picolabs.policies ruleset", function(t){
-    (async function(){
-        var mkTPE = util.promisify(mkTestPicoEngine);
+testA("PicoEngine - io.picolabs.policies ruleset", async function(t){
+    var mkTPE = util.promisify(mkTestPicoEngine);
 
-        var pe = await mkTPE({rootRIDs: ["io.picolabs.policies"]});
-        var newPolicy = util.promisify(pe.newPolicy);
-        var newChannel = util.promisify(pe.newChannel);
+    var pe = await mkTPE({rootRIDs: ["io.picolabs.policies"]});
+    var newPolicy = util.promisify(pe.newPolicy);
+    var newChannel = util.promisify(pe.newChannel);
 
-        pe.emitter.on("error", function(err){
-            if(/by channel policy/.test(err + "")){
-                //ignore
-            }else{
-                t.end(err);
-            }
+    pe.emitter.on("error", function(err){
+        if(/by channel policy/.test(err + "")){
+            //ignore
+        }else{
+            t.end(err);
+        }
+    });
+
+    var mkECI = async function(policy_json){
+        var policy = await newPolicy(policy_json);
+        var chann = await newChannel({
+            pico_id: "id0",
+            name: "name",
+            type: "type",
+            policy_id: policy.id,
         });
+        return chann.id;
+    };
 
-        var mkECI = async function(policy_json){
-            var policy = await newPolicy(policy_json);
-            var chann = await newChannel({
-                pico_id: "id0",
-                name: "name",
-                type: "type",
-                policy_id: policy.id,
-            });
-            return chann.id;
-        };
-
-        var tstEventPolicy = util.promisify(function(eci, domain_type, expected, callback){
-            pe.signalEvent({
-                eci: eci,
-                domain: domain_type.split("/")[0],
-                type: domain_type.split("/")[1],
-            }, function(err, data){
-                var actual = "allowed";
-                if(err){
-                    if(/Denied by channel policy/.test(err + "")){
-                        actual = "denied";
-                    }else if(/Not allowed by channel policy/.test(err + "")){
-                        actual = "not-allowed";
-                    }else{
-                        return callback(err);
-                    }
+    var tstEventPolicy = util.promisify(function(eci, domain_type, expected, callback){
+        pe.signalEvent({
+            eci: eci,
+            domain: domain_type.split("/")[0],
+            type: domain_type.split("/")[1],
+        }, function(err, data){
+            var actual = "allowed";
+            if(err){
+                if(/Denied by channel policy/.test(err + "")){
+                    actual = "denied";
+                }else if(/Not allowed by channel policy/.test(err + "")){
+                    actual = "not-allowed";
+                }else{
+                    return callback(err);
                 }
-                t.equals(actual, expected, "tstEventPolicy " + eci + "|" + domain_type);
-                callback();
-            });
+            }
+            t.equals(actual, expected, "tstEventPolicy " + eci + "|" + domain_type);
+            callback();
         });
-        var tstQueryPolicy = util.promisify(function(eci, name, expected, callback){
-            pe.runQuery({
-                eci: eci,
-                rid: "io.picolabs.policies",
-                name: name,
-            }, function(err, data){
-                var actual = "allowed";
-                if(err){
-                    if(/Denied by channel policy/.test(err + "")){
-                        actual = "denied";
-                    }else if(/Not allowed by channel policy/.test(err + "")){
-                        actual = "not-allowed";
-                    }else{
-                        return callback(err);
-                    }
+    });
+    var tstQueryPolicy = util.promisify(function(eci, name, expected, callback){
+        pe.runQuery({
+            eci: eci,
+            rid: "io.picolabs.policies",
+            name: name,
+        }, function(err, data){
+            var actual = "allowed";
+            if(err){
+                if(/Denied by channel policy/.test(err + "")){
+                    actual = "denied";
+                }else if(/Not allowed by channel policy/.test(err + "")){
+                    actual = "not-allowed";
+                }else{
+                    return callback(err);
                 }
-                t.equals(actual, expected, "tstQueryPolicy " + eci + "|" + name);
-                callback();
-            });
-        });
-
-        var eci;
-
-
-        eci = await mkECI({
-            name: "deny all implicit",
-        });
-        await tstEventPolicy(eci, "policies/foo", "not-allowed");
-        await tstEventPolicy(eci, "policies/bar", "not-allowed");
-        await tstEventPolicy(eci, "policies/baz", "not-allowed");
-
-
-        eci = await mkECI({
-            name: "deny all explicit",
-            event: {
-                deny: [{}],
-            },
-        });
-        await tstEventPolicy(eci, "policies/foo", "denied");
-        await tstEventPolicy(eci, "policies/bar", "denied");
-        await tstEventPolicy(eci, "policies/baz", "denied");
-
-
-        eci = await mkECI({
-            name: "allow all",
-            event: {
-                allow: [{}],
-            },
-        });
-        await tstEventPolicy(eci, "policies/foo", "allowed");
-        await tstEventPolicy(eci, "policies/bar", "allowed");
-        await tstEventPolicy(eci, "policies/baz", "allowed");
-
-
-        eci = await mkECI({
-            name: "deny before allow",
-            event: {
-                allow: [{}],
-                deny: [{}],
-            },
-        });
-        await tstEventPolicy(eci, "policies/foo", "denied");
-        await tstEventPolicy(eci, "policies/bar", "denied");
-        await tstEventPolicy(eci, "policies/baz", "denied");
-
-
-        eci = await mkECI({
-            name: "only policies/foo",
-            event: {
-                allow: [{domain: "policies", type: "foo"}],
-            },
-        });
-        await tstEventPolicy(eci, "policies/foo", "allowed");
-        await tstEventPolicy(eci, "policies/bar", "not-allowed");
-        await tstEventPolicy(eci, "policies/baz", "not-allowed");
-
-
-        eci = await mkECI({
-            name: "all but policies/foo",
-            event: {
-                deny: [{domain: "policies", type: "foo"}],
-                allow: [{}],
             }
+            t.equals(actual, expected, "tstQueryPolicy " + eci + "|" + name);
+            callback();
         });
-        await tstEventPolicy(eci, "policies/foo", "denied");
-        await tstEventPolicy(eci, "policies/bar", "allowed");
-        await tstEventPolicy(eci, "policies/baz", "allowed");
+    });
+
+    var eci;
 
 
-        eci = await mkECI({
-            name: "only other/*",
-            event: {
-                allow: [{domain: "other"}],
-            }
-        });
-        await tstEventPolicy(eci, "policies/foo", "not-allowed");
-        await tstEventPolicy(eci, "policies/bar", "not-allowed");
-        await tstEventPolicy(eci, "policies/baz", "not-allowed");
-        await tstEventPolicy(eci, "other/foo", "allowed");
-        await tstEventPolicy(eci, "other/bar", "allowed");
-        await tstEventPolicy(eci, "other/baz", "allowed");
+    eci = await mkECI({
+        name: "deny all implicit",
+    });
+    await tstEventPolicy(eci, "policies/foo", "not-allowed");
+    await tstEventPolicy(eci, "policies/bar", "not-allowed");
+    await tstEventPolicy(eci, "policies/baz", "not-allowed");
 
 
-        eci = await mkECI({
-            name: "only */foo",
-            event: {
-                allow: [{type: "foo"}],
-            }
-        });
-        await tstEventPolicy(eci, "policies/foo", "allowed");
-        await tstEventPolicy(eci, "policies/bar", "not-allowed");
-        await tstEventPolicy(eci, "policies/baz", "not-allowed");
-        await tstEventPolicy(eci, "other/foo", "allowed");
-        await tstEventPolicy(eci, "other/bar", "not-allowed");
-        await tstEventPolicy(eci, "other/baz", "not-allowed");
+    eci = await mkECI({
+        name: "deny all explicit",
+        event: {
+            deny: [{}],
+        },
+    });
+    await tstEventPolicy(eci, "policies/foo", "denied");
+    await tstEventPolicy(eci, "policies/bar", "denied");
+    await tstEventPolicy(eci, "policies/baz", "denied");
 
 
-        eci = await mkECI({
-            name: "only policies/foo or other/*",
-            event: {
-                allow: [
-                    {domain: "policies", type: "foo"},
-                    {domain: "other"},
-                ],
-            }
-        });
-        await tstEventPolicy(eci, "policies/foo", "allowed");
-        await tstEventPolicy(eci, "policies/bar", "not-allowed");
-        await tstEventPolicy(eci, "policies/baz", "not-allowed");
-        await tstEventPolicy(eci, "other/foo", "allowed");
-        await tstEventPolicy(eci, "other/bar", "allowed");
-        await tstEventPolicy(eci, "other/baz", "allowed");
+    eci = await mkECI({
+        name: "allow all",
+        event: {
+            allow: [{}],
+        },
+    });
+    await tstEventPolicy(eci, "policies/foo", "allowed");
+    await tstEventPolicy(eci, "policies/bar", "allowed");
+    await tstEventPolicy(eci, "policies/baz", "allowed");
 
 
-        eci = await mkECI({
-            name: "deny all implicit",
-        });
-        await tstQueryPolicy(eci, "one", "not-allowed");
-        await tstQueryPolicy(eci, "two", "not-allowed");
-        await tstQueryPolicy(eci, "three", "not-allowed");
-
-        eci = await mkECI({
-            name: "allow all",
-            query: {allow: [{}]}
-        });
-        await tstQueryPolicy(eci, "one", "allowed");
-        await tstQueryPolicy(eci, "two", "allowed");
-        await tstQueryPolicy(eci, "three", "allowed");
-
-        eci = await mkECI({
-            name: "allow one and three",
-            query: {allow: [
-                {name: "one"},
-                {name: "three"},
-            ]}
-        });
-        await tstQueryPolicy(eci, "one", "allowed");
-        await tstQueryPolicy(eci, "two", "not-allowed");
-        await tstQueryPolicy(eci, "three", "allowed");
+    eci = await mkECI({
+        name: "deny before allow",
+        event: {
+            allow: [{}],
+            deny: [{}],
+        },
+    });
+    await tstEventPolicy(eci, "policies/foo", "denied");
+    await tstEventPolicy(eci, "policies/bar", "denied");
+    await tstEventPolicy(eci, "policies/baz", "denied");
 
 
-    }()).then(t.end).catch(t.end);
+    eci = await mkECI({
+        name: "only policies/foo",
+        event: {
+            allow: [{domain: "policies", type: "foo"}],
+        },
+    });
+    await tstEventPolicy(eci, "policies/foo", "allowed");
+    await tstEventPolicy(eci, "policies/bar", "not-allowed");
+    await tstEventPolicy(eci, "policies/baz", "not-allowed");
+
+
+    eci = await mkECI({
+        name: "all but policies/foo",
+        event: {
+            deny: [{domain: "policies", type: "foo"}],
+            allow: [{}],
+        }
+    });
+    await tstEventPolicy(eci, "policies/foo", "denied");
+    await tstEventPolicy(eci, "policies/bar", "allowed");
+    await tstEventPolicy(eci, "policies/baz", "allowed");
+
+
+    eci = await mkECI({
+        name: "only other/*",
+        event: {
+            allow: [{domain: "other"}],
+        }
+    });
+    await tstEventPolicy(eci, "policies/foo", "not-allowed");
+    await tstEventPolicy(eci, "policies/bar", "not-allowed");
+    await tstEventPolicy(eci, "policies/baz", "not-allowed");
+    await tstEventPolicy(eci, "other/foo", "allowed");
+    await tstEventPolicy(eci, "other/bar", "allowed");
+    await tstEventPolicy(eci, "other/baz", "allowed");
+
+
+    eci = await mkECI({
+        name: "only */foo",
+        event: {
+            allow: [{type: "foo"}],
+        }
+    });
+    await tstEventPolicy(eci, "policies/foo", "allowed");
+    await tstEventPolicy(eci, "policies/bar", "not-allowed");
+    await tstEventPolicy(eci, "policies/baz", "not-allowed");
+    await tstEventPolicy(eci, "other/foo", "allowed");
+    await tstEventPolicy(eci, "other/bar", "not-allowed");
+    await tstEventPolicy(eci, "other/baz", "not-allowed");
+
+
+    eci = await mkECI({
+        name: "only policies/foo or other/*",
+        event: {
+            allow: [
+                {domain: "policies", type: "foo"},
+                {domain: "other"},
+            ],
+        }
+    });
+    await tstEventPolicy(eci, "policies/foo", "allowed");
+    await tstEventPolicy(eci, "policies/bar", "not-allowed");
+    await tstEventPolicy(eci, "policies/baz", "not-allowed");
+    await tstEventPolicy(eci, "other/foo", "allowed");
+    await tstEventPolicy(eci, "other/bar", "allowed");
+    await tstEventPolicy(eci, "other/baz", "allowed");
+
+
+    eci = await mkECI({
+        name: "deny all implicit",
+    });
+    await tstQueryPolicy(eci, "one", "not-allowed");
+    await tstQueryPolicy(eci, "two", "not-allowed");
+    await tstQueryPolicy(eci, "three", "not-allowed");
+
+    eci = await mkECI({
+        name: "allow all",
+        query: {allow: [{}]}
+    });
+    await tstQueryPolicy(eci, "one", "allowed");
+    await tstQueryPolicy(eci, "two", "allowed");
+    await tstQueryPolicy(eci, "three", "allowed");
+
+    eci = await mkECI({
+        name: "allow one and three",
+        query: {allow: [
+            {name: "one"},
+            {name: "three"},
+        ]}
+    });
+    await tstQueryPolicy(eci, "one", "allowed");
+    await tstQueryPolicy(eci, "two", "not-allowed");
+    await tstQueryPolicy(eci, "three", "allowed");
 });
 
 test("PicoEngine - handle ruleset startup errors after compiler update made breaking changes", function(t){
@@ -2820,43 +2817,39 @@ test("PicoEngine - handle dependency cycles at startup", function(t){
     });
 });
 
-test("PicoEngine - don't register rulesets that create dependency cycles", function(t){
+testA("PicoEngine - don't register rulesets that create dependency cycles", async function(t){
 
     var mkPE = mkPicoEngineFactoryWithKRLCompiler();
 
     var pe = mkPE();
 
-    (async function(){
-        await pe.start();
+    await pe.start();
 
-        var registerRuleset = util.promisify(pe.registerRuleset);
+    var registerRuleset = util.promisify(pe.registerRuleset);
 
-        var tReg = async function(src){
-            t.ok(await registerRuleset(src, null));
-        };
-        var tRegErr = async function(src, error){
-            try{
-                await registerRuleset(src, null);
-                t.fail("expected: " + error);
-            }catch(err){
-                t.equals(err + "", error);
-            }
-        };
+    var tReg = async function(src){
+        t.ok(await registerRuleset(src, null));
+    };
+    var tRegErr = async function(src, error){
+        try{
+            await registerRuleset(src, null);
+            t.fail("expected: " + error);
+        }catch(err){
+            t.equals(err + "", error);
+        }
+    };
 
-        await tRegErr("ruleset A {meta {use module A}}", "Error: Dependency Cycle Found: A -> A");
+    await tRegErr("ruleset A {meta {use module A}}", "Error: Dependency Cycle Found: A -> A");
 
-        await tReg("ruleset A {}");
+    await tReg("ruleset A {}");
 
-        await tRegErr("ruleset A {meta {use module C}}", "Error: Dependant module not loaded: C");
-        await tRegErr("ruleset A {meta {use module B}}", "Error: Dependant module not loaded: B");
-        await tRegErr("ruleset A {meta {use module A}}", "Error: Dependency Cycle Found: A -> A");
+    await tRegErr("ruleset A {meta {use module C}}", "Error: Dependant module not loaded: C");
+    await tRegErr("ruleset A {meta {use module B}}", "Error: Dependant module not loaded: B");
+    await tRegErr("ruleset A {meta {use module A}}", "Error: Dependency Cycle Found: A -> A");
 
-        await tReg("ruleset A {}");
-
-
-        await tReg("ruleset B {meta {use module A}}");
-        await tRegErr("ruleset A {meta {use module B}}", "Error: Dependency Cycle Found: A -> B -> A");
+    await tReg("ruleset A {}");
 
 
-    }()).then(t.end).catch(t.end);
+    await tReg("ruleset B {meta {use module A}}");
+    await tRegErr("ruleset A {meta {use module B}}", "Error: Dependency Cycle Found: A -> B -> A");
 });
