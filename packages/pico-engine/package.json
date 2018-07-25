@@ -16,9 +16,8 @@
     "start": "scriptsp watch:http watch:test",
     "watch:http": "onchange -i src/ krl/ public/ -- npm run -s runlocal",
     "watch:test": "onchange -i src/ -- npm run test -s",
-    "lint": "eslint src/ && echo lint-ok",
     "runlocal": "PICO_ENGINE_HOME=. node src/cli.js",
-    "test": "npm run lint && node src/tests.js"
+    "test": "standard && node src/tests.js"
   },
   "repository": {
     "type": "git",
@@ -37,9 +36,9 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
-    "eslint": "^4.8.0",
     "onchange": "^3.2.1",
     "scriptsp": "^1.0.1",
+    "standard": "^11.0.1",
     "tape": "^4.6.0",
     "temp-fs": "^0.9.9"
   },
@@ -61,6 +60,12 @@
     "pico-engine-core": "^0.45.6",
     "read-pkg-up": "^3.0.0",
     "request": "^2.83.0"
+  },
+  "standard": {
+    "ignore": [
+      "public/*",
+      "rulesets/*"
+    ]
   },
   "engines": {
     "node": ">=8.0.0"

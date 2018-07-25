@@ -8,9 +8,7 @@
   ],
   "scripts": {
     "start": "SKIP_LONG_TESTS=true onchange -i src/ ../../test-rulesets/ -- npm run test -s",
-    "lint": "eslint src/ && echo lint-ok",
-    "lint-fix": "eslint src/ --fix",
-    "test": "npm run lint -s && node src/tests.js | faucet"
+    "test": "standard && node src/tests.js | faucet"
   },
   "repository": {
     "type": "git",
@@ -28,11 +26,11 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
-    "eslint": "^4.8.0",
     "faucet": "0.0.1",
     "krl-compiler": "^0.45.3",
     "memdown": "^1.4.1",
     "onchange": "^3.2.1",
+    "standard": "^11.0.1",
     "tape": "^4.6.0"
   },
   "dependencies": {
