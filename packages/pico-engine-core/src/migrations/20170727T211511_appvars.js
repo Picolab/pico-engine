@@ -1,32 +1,31 @@
-var dbRange = require("../dbRange");
+var dbRange = require('../dbRange')
 
 module.exports = {
-    up: function(ldb, callback){
-        // /resultset/:rid/vars/:varname -> /appvars/:rid/:varname
+  up: function (ldb, callback) {
+    // /resultset/:rid/vars/:varname -> /appvars/:rid/:varname
 
-        var to_batch = [];
+    var dbOps = []
 
-        dbRange(ldb, {
-            prefix: ["resultset"],
-        }, function(data){
-            if(data.key[2] !== "vars"){
-                return;
-            }
-            var rid = data.key[1];
-            var varname = data.key[3];
+    dbRange(ldb, {
+      prefix: ['resultset']
+    }, function (data) {
+      if (data.key[2] !== 'vars') {
+        return
+      }
+      var rid = data.key[1]
+      var varname = data.key[3]
 
-            to_batch.push({
-                type: "put",
-                key: ["appvars", rid, varname],
-                value: data.value,
-            });
+      dbOps.push({
+        type: 'put',
+        key: ['appvars', rid, varname],
+        value: data.value
+      })
 
-            to_batch.push({type: "del", key: data.key});
+      dbOps.push({type: 'del', key: data.key})
+    }, function (err) {
+      if (err) return callback(err)
 
-        }, function(err){
-            if(err) return callback(err);
-
-            ldb.batch(to_batch, callback);
-        });
-    },
-};
+      ldb.batch(dbOps, callback)
+    })
+  }
+}

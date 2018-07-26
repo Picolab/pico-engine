@@ -8,9 +8,8 @@
   ],
   "scripts": {
     "start": "onchange 'src/' 'tests/' -e 'src/grammar.js' -i -- npm run test-all-but-ambiguityFinder -s",
-    "lint": "eslint src/ tests/ && echo lint-ok",
     "test": "npm run test-all-but-ambiguityFinder -s && node tests/ambiguityFinder.js",
-    "test-all-but-ambiguityFinder": "npm run lint -s && npm run build -s && node tests | faucet",
+    "test-all-but-ambiguityFinder": "standard && npm run build -s && node tests | faucet",
     "build": "npm run build:grammar -s && npm run build:spec -s",
     "build:grammar": "nearleyc src/grammar.ne > src/grammar.js",
     "build:spec": "node tests/genSpec.js > spec.md"
@@ -32,12 +31,15 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "diff-lines": "^1.1.0",
-    "eslint": "^4.8.0",
     "faucet": "0.0.1",
     "lodash": "^4.17.4",
     "onchange": "^3.2.1",
     "phonetic": "^0.1.1",
+    "standard": "^11.0.1",
     "tape": "^4.6.0"
+  },
+  "standard": {
+    "ignore": ["grammar.js"]
   },
   "dependencies": {
     "excerpt-at-line-col": "^1.0.0",

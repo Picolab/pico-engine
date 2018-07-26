@@ -1,12 +1,12 @@
-var _ = require("lodash");
-var ktypes = require("krl-stdlib/types");
+var _ = require('lodash')
+var ktypes = require('krl-stdlib/types')
 
-var isBlank = function(str){
-    if(!_.isString(str)){
-        return true;
-    }
-    return str.trim().length === 0;
-};
+var isBlank = function (str) {
+  if (!_.isString(str)) {
+    return true
+  }
+  return str.trim().length === 0
+}
 
 /**
  * Given an event json (i.e. from the web, or somewhere untrusted)
@@ -14,44 +14,43 @@ var isBlank = function(str){
  *   + normalize the shape/naming conventions
  *   + make a full copy (clone) as to not mutate the original
  */
-module.exports = function(event_orig){
+module.exports = function (eventOrig) {
+  if (isBlank(eventOrig && eventOrig.eci)) {
+    throw new Error('missing event.eci')
+  }
+  if (isBlank(eventOrig.domain)) {
+    throw new Error('missing event.domain')
+  }
+  if (isBlank(eventOrig.type)) {
+    throw new Error('missing event.type')
+  }
 
-    if(isBlank(event_orig && event_orig.eci)){
-        throw new Error("missing event.eci");
+  var attrs = {}
+  if (_.has(eventOrig, 'attrs')) {
+    // we want to make sure only json-able values are in the attrs
+    // also want to clone it as to not mutate the original copy
+    var attrsJson = ktypes.encode(eventOrig.attrs)
+    // only if it's a map or array do we consider it valid
+    if (attrsJson[0] === '{' || attrsJson[0] === '[') {
+      attrs = ktypes.decode(attrsJson)
     }
-    if(isBlank(event_orig.domain)){
-        throw new Error("missing event.domain");
-    }
-    if(isBlank(event_orig.type)){
-        throw new Error("missing event.type");
-    }
+  }
 
-    var attrs = {};
-    if(_.has(event_orig, "attrs")){
-        //we want to make sure only json-able values are in the attrs
-        //also want to clone it as to not mutate the original copy
-        var attrs_json = ktypes.encode(event_orig.attrs);
-        //only if it's a map or array do we consider it valid
-        if(attrs_json[0] === "{" || attrs_json[0] === "["){
-            attrs = ktypes.decode(attrs_json);
-        }
-    }
+  var eid = ktypes.toString(eventOrig.eid).trim()
+  if (eid.length === 0 || eid === 'null') {
+    eid = 'none'
+  }
 
-    var eid = ktypes.toString(event_orig.eid).trim();
-    if(eid.length === 0 || eid === "null"){
-        eid = "none";
-    }
+  return {
 
-    return {
+    eci: eventOrig.eci.trim(),
 
-        eci: event_orig.eci.trim(),
+    eid: eid,
 
-        eid: eid,
+    domain: eventOrig.domain.trim(),
+    type: eventOrig.type.trim(),
 
-        domain: event_orig.domain.trim(),
-        type: event_orig.type.trim(),
+    attrs: attrs
 
-        attrs: attrs,
-
-    };
-};
+  }
+}
