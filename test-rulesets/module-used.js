@@ -11,7 +11,7 @@ module.exports = {
         "kind": "module",
         "rid": "io.picolabs.module-defined",
         "alias": "my_module_conf",
-        "with": function* (ctx) {
+        "with": async function (ctx) {
           ctx.scope.set("configured_name", "Jim");
         }
       }
@@ -22,14 +22,14 @@ module.exports = {
       "dfltName"
     ]
   },
-  "global": function* (ctx) {
-    ctx.scope.set("now", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "time", "now"), ctx, []);
+  "global": async function (ctx) {
+    ctx.scope.set("now", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.applyFn(await ctx.modules.get(ctx, "time", "now"), ctx, []);
     }));
-    ctx.scope.set("getEntVal", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "val");
+    ctx.scope.set("getEntVal", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", "val");
     }));
-    ctx.scope.set("dfltName", yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []));
+    ctx.scope.set("dfltName", await ctx.applyFn(await ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []));
   },
   "rules": {
     "dflt_name": {
@@ -37,7 +37,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "dflt_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -48,12 +48,12 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "dflt_name",
-            { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []) }
+            { "name": await ctx.applyFn(await ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []) }
           ], []);
         }
         if (fired)
@@ -67,7 +67,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "conf_name": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -78,12 +78,12 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "conf_name",
-            { "name": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getName"), ctx, []) }
+            { "name": await ctx.applyFn(await ctx.modules.get(ctx, "my_module_conf", "getName"), ctx, []) }
           ], []);
         }
         if (fired)
@@ -97,7 +97,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "dflt_info": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -108,12 +108,12 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "dflt_info",
-            { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_dflt", "getInfo"), ctx, []) }
+            { "info": await ctx.applyFn(await ctx.modules.get(ctx, "my_module_dflt", "getInfo"), ctx, []) }
           ], []);
         }
         if (fired)
@@ -127,7 +127,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "conf_info": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -138,12 +138,12 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "conf_info",
-            { "info": yield ctx.applyFn(yield ctx.modules.get(ctx, "my_module_conf", "getInfo"), ctx, []) }
+            { "info": await ctx.applyFn(await ctx.modules.get(ctx, "my_module_conf", "getInfo"), ctx, []) }
           ], []);
         }
         if (fired)
@@ -157,7 +157,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "dflt_getInfoAction": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -168,16 +168,16 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "my_module_dflt", "getInfoAction", [], ["info"]);
+          await runAction(ctx, "my_module_dflt", "getInfoAction", [], ["info"]);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "val", ctx.scope.get("info"));
+        await ctx.modules.set(ctx, "ent", "val", ctx.scope.get("info"));
       }
     },
     "conf_getInfoAction": {
@@ -185,7 +185,7 @@ module.exports = {
       "select": {
         "graph": { "module_used": { "conf_getInfoAction": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -196,16 +196,16 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, "my_module_conf", "getInfoAction", [], ["info"]);
+          await runAction(ctx, "my_module_conf", "getInfoAction", [], ["info"]);
         }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "val", ctx.scope.get("info"));
+        await ctx.modules.set(ctx, "ent", "val", ctx.scope.get("info"));
       }
     }
   }

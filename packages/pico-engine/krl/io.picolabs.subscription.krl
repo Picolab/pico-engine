@@ -50,7 +50,7 @@ ent:inbound [
 
 ent:outbound [
   {
-    "Wellknown_Tx":""} //only in originating bus, the wellknown is the original channel on which picos are introduced to each other.
+    "Wellknown_Tx":"", //only in originating bus, the wellknown is the original channel on which picos are introduced to each other.
     "Tx":"", //The channel identifier this pico will send events to
     "Rx":"", //The channel identifier this pico will be listening and receiving events on
     "Tx_role":"", //The subscription role or purpose that the pico on the other side of the subscription serves
@@ -76,7 +76,8 @@ ent:established [
       "event": {
           "allow": [
               {"domain": "wrangler", "type": "subscription"},
-              {"domain": "wrangler", "type": "new_subscription_request"}
+              {"domain": "wrangler", "type": "new_subscription_request"},
+              {"domain": "wrangler", "type": "inbound_removal"}
           ]
       }
     }
@@ -194,7 +195,7 @@ ent:established [
                                      {"Rx_role"      : event:attr("Tx_role"),
                                       "Tx_role"      : event:attr("Rx_role"),
                                       "Tx"           : event:attr("Rx"),
-                                      "Tx_host"      : event:attr("Rx_host")/*=> event:attr("Rx_host") | meta:host*/ , // send our host as Tx_host if Tx_host was provided.
+                                      "Tx_host"      : event:attr("Rx_host") => event:attr("Rx_host") | meta:host , // send our host as Tx_host if Tx_host was provided.
                                       "Tx_verify_key": event:attr("verify_key"),
                                       "Tx_public_key": event:attr("public_key")})
           }, event:attr("Tx_host")); //send event to this host if provided

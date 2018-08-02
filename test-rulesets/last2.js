@@ -7,7 +7,7 @@ module.exports = {
       "select": {
         "graph": { "last": { "all": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -18,10 +18,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["last2 foo"], []);
+          await runAction(ctx, void 0, "send_directive", ["last2 foo"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");

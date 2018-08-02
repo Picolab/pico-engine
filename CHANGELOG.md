@@ -1,3 +1,25 @@
+# 0.46.0 - next
+
+### BREAKING CHANGES
+
+* We now only support node 8+
+
+### Notes
+
+* Compiled rulesets now use async+await to simulate synchronous krl code. [#411](https://github.com/Picolab/pico-engine/pull/411)
+
+
+# 0.45.6 - June 29, 2018
+
+* DID login
+* started io.picolabs.cookies.
+* [367](https://github.com/Picolab/pico-engine/issues/367) - Array indices should be numbers not strings
+* [390](https://github.com/Picolab/pico-engine/issues/390) - fixing pvars index issues
+* [394](https://github.com/Picolab/pico-engine/issues/394) - engine:remove\* should not throw up if the item was already removed
+* [396](https://github.com/Picolab/pico-engine/issues/396) - fixing ent var Array/Map index detection
+* [399](https://github.com/Picolab/pico-engine/issues/399) - engine:\* functions return null when an id is not found
+* [401](https://github.com/Picolab/pico-engine/issues/401) - adding find and replace to krl editor
+
 # 0.45.5 - May 27, 2018
 
 * [fcb3a438](https://github.com/Picolab/pico-engine/commit/fcb3a438) - .replace() support a replacer function - resolves [#377](https://github.com/Picolab/pico-engine/issues/377)

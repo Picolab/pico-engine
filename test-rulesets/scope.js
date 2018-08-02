@@ -11,54 +11,54 @@ module.exports = {
       "mapped"
     ]
   },
-  "global": function* (ctx) {
+  "global": async function (ctx) {
     ctx.scope.set("g0", "global 0");
     ctx.scope.set("g1", 1);
-    ctx.scope.set("getVals", ctx.mkFunction([], function* (ctx, args) {
+    ctx.scope.set("getVals", ctx.mkFunction([], async function (ctx, args) {
       return {
-        "name": yield ctx.modules.get(ctx, "ent", "ent_var_name"),
-        "p0": yield ctx.modules.get(ctx, "ent", "ent_var_p0"),
-        "p1": yield ctx.modules.get(ctx, "ent", "ent_var_p1")
+        "name": await ctx.modules.get(ctx, "ent", "ent_var_name"),
+        "p0": await ctx.modules.get(ctx, "ent", "ent_var_p0"),
+        "p1": await ctx.modules.get(ctx, "ent", "ent_var_p1")
       };
     }));
     ctx.scope.set("add", ctx.mkFunction([
       "a",
       "b"
-    ], function* (ctx, args) {
+    ], async function (ctx, args) {
       ctx.scope.set("a", args["a"]);
       ctx.scope.set("b", args["b"]);
-      return yield ctx.callKRLstdlib("+", [
+      return await ctx.callKRLstdlib("+", [
         ctx.scope.get("a"),
         ctx.scope.get("b")
       ]);
     }));
-    ctx.scope.set("sum", ctx.mkFunction(["arr"], function* (ctx, args) {
+    ctx.scope.set("sum", ctx.mkFunction(["arr"], async function (ctx, args) {
       ctx.scope.set("arr", args["arr"]);
-      return yield ctx.callKRLstdlib("reduce", [
+      return await ctx.callKRLstdlib("reduce", [
         ctx.scope.get("arr"),
         ctx.scope.get("add"),
         0
       ]);
     }));
-    ctx.scope.set("incByN", ctx.mkFunction(["n"], function* (ctx, args) {
+    ctx.scope.set("incByN", ctx.mkFunction(["n"], async function (ctx, args) {
       ctx.scope.set("n", args["n"]);
-      return ctx.mkFunction(["a"], function* (ctx, args) {
+      return ctx.mkFunction(["a"], async function (ctx, args) {
         ctx.scope.set("a", args["a"]);
-        return yield ctx.callKRLstdlib("+", [
+        return await ctx.callKRLstdlib("+", [
           ctx.scope.get("a"),
           ctx.scope.get("n")
         ]);
       });
     }));
-    ctx.scope.set("mapped", yield ctx.callKRLstdlib("map", [
+    ctx.scope.set("mapped", await ctx.callKRLstdlib("map", [
       [
         1,
         2,
         3
       ],
-      ctx.mkFunction(["n"], function* (ctx, args) {
+      ctx.mkFunction(["n"], async function (ctx, args) {
         ctx.scope.set("n", args["n"]);
-        return yield ctx.callKRLstdlib("+", [
+        return await ctx.callKRLstdlib("+", [
           ctx.scope.get("n"),
           ctx.scope.get("g1")
         ]);
@@ -76,7 +76,7 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -88,7 +88,7 @@ module.exports = {
             setting("name0", matches[0]);
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -114,10 +114,10 @@ module.exports = {
           ]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "eventOr",
             {
               "name0": ctx.scope.get("name0"),
@@ -141,7 +141,7 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -153,7 +153,7 @@ module.exports = {
             setting("name0", matches[0]);
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -187,10 +187,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "eventAnd",
             {
               "name0": ctx.scope.get("name0"),
@@ -216,10 +216,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -231,7 +231,7 @@ module.exports = {
             setting("name1", matches[0]);
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -243,7 +243,7 @@ module.exports = {
             setting("name2", matches[0]);
             return true;
           },
-          "expr_3": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_3": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -287,14 +287,14 @@ module.exports = {
             ]
           ]
         },
-        "within": function* (ctx) {
+        "within": async function (ctx) {
           return 1 * 1000;
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "eventWithin",
             {
               "name1": ctx.scope.get("name1"),
@@ -313,7 +313,7 @@ module.exports = {
       "select": {
         "graph": { "scope": { "prelude": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -333,12 +333,12 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         ctx.scope.set("p0", "prelude 0");
         ctx.scope.set("p1", "prelude 1");
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "say",
             {
               "name": ctx.scope.get("name"),
@@ -352,9 +352,9 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "ent_var_name", ctx.scope.get("name"));
-        yield ctx.modules.set(ctx, "ent", "ent_var_p0", ctx.scope.get("p0"));
-        yield ctx.modules.set(ctx, "ent", "ent_var_p1", ctx.scope.get("p1"));
+        await ctx.modules.set(ctx, "ent", "ent_var_name", ctx.scope.get("name"));
+        await ctx.modules.set(ctx, "ent", "ent_var_p0", ctx.scope.get("p0"));
+        await ctx.modules.set(ctx, "ent", "ent_var_p1", ctx.scope.get("p1"));
       }
     },
     "functions": {
@@ -362,7 +362,7 @@ module.exports = {
       "select": {
         "graph": { "scope": { "functions": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -373,19 +373,19 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         ctx.scope.set("g0", "overrided g0!");
-        ctx.scope.set("inc5", yield ctx.applyFn(ctx.scope.get("incByN"), ctx, [5]));
+        ctx.scope.set("inc5", await ctx.applyFn(ctx.scope.get("incByN"), ctx, [5]));
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "say",
             {
-              "add_one_two": yield ctx.applyFn(ctx.scope.get("add"), ctx, [
+              "add_one_two": await ctx.applyFn(ctx.scope.get("add"), ctx, [
                 1,
                 2
               ]),
-              "inc5_3": yield ctx.applyFn(ctx.scope.get("inc5"), ctx, [3]),
+              "inc5_3": await ctx.applyFn(ctx.scope.get("inc5"), ctx, [3]),
               "g0": ctx.scope.get("g0")
             }
           ], []);

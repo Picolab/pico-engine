@@ -11,10 +11,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -28,14 +28,14 @@ module.exports = {
               "end"
             ]]
         },
-        "within": function* (ctx) {
+        "within": async function (ctx) {
           return 5 * 60000;
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["foo"], []);
+          await runAction(ctx, void 0, "send_directive", ["foo"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -53,10 +53,10 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -70,17 +70,17 @@ module.exports = {
               "end"
             ]]
         },
-        "within": function* (ctx) {
-          return (yield ctx.callKRLstdlib("+", [
+        "within": async function (ctx) {
+          return (await ctx.callKRLstdlib("+", [
             1,
             3
           ])) * 1000;
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["bar"], []);
+          await runAction(ctx, void 0, "send_directive", ["bar"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -99,13 +99,13 @@ module.exports = {
           }
         },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_1": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           },
-          "expr_2": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -133,14 +133,14 @@ module.exports = {
               "end"
             ]]
         },
-        "within": function* (ctx) {
+        "within": async function (ctx) {
           return 1 * 31536000000;
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["baz"], []);
+          await runAction(ctx, void 0, "send_directive", ["baz"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");
@@ -153,7 +153,7 @@ module.exports = {
       "select": {
         "graph": { "qux": { "a": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             var matches = [];
             var m;
             var j;
@@ -183,14 +183,14 @@ module.exports = {
               "end"
             ]]
         },
-        "within": function* (ctx) {
+        "within": async function (ctx) {
           return 2 * 1000;
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", ["qux"], []);
+          await runAction(ctx, void 0, "send_directive", ["qux"], []);
         }
         if (fired)
           ctx.emit("debug", "fired");

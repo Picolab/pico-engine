@@ -1,6 +1,6 @@
 {
   "name": "pico-engine",
-  "version": "0.45.5",
+  "version": "0.45.6",
   "description": "An implementation of the pico-engine targetting node.js",
   "main": "src/index.js",
   "bin": {
@@ -16,9 +16,8 @@
     "start": "scriptsp watch:http watch:test",
     "watch:http": "onchange -i src/ krl/ public/ -- npm run -s runlocal",
     "watch:test": "onchange -i src/ -- npm run test -s",
-    "lint": "eslint src/ && echo lint-ok",
-    "runlocal": "PICO_ENGINE_HOME=. node src/cli.js",
-    "test": "npm run lint && node src/tests.js"
+    "runlocal": "node src/cli.js",
+    "test": "standard && node src/tests.js"
   },
   "repository": {
     "type": "git",
@@ -37,10 +36,9 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
-    "co-callback": "^2.0.0",
-    "eslint": "^4.8.0",
     "onchange": "^3.2.1",
     "scriptsp": "^1.0.1",
+    "standard": "^11.0.1",
     "tape": "^4.6.0",
     "temp-fs": "^0.9.9"
   },
@@ -59,11 +57,17 @@
     "mime-types": "^2.1.17",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "pico-engine-core": "^0.45.5",
+    "pico-engine-core": "^0.45.6",
     "read-pkg-up": "^3.0.0",
     "request": "^2.83.0"
   },
+  "standard": {
+    "ignore": [
+      "public/*",
+      "rulesets/*"
+    ]
+  },
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=8.0.0"
   }
 }

@@ -3,14 +3,14 @@ module.exports = {
   "meta": {
     "name": "key-configurable",
     "description": "\nThis is a test for api libraries that depend on keys as input\n        ",
-    "configure": function* (ctx) {
+    "configure": async function (ctx) {
       ctx.scope.set("key1", "default-key1");
       ctx.scope.set("key2", "default-key2");
     },
     "provides": ["getKeys"]
   },
-  "global": function* (ctx) {
-    ctx.scope.set("getKeys", ctx.mkFunction([], function* (ctx, args) {
+  "global": async function (ctx) {
+    ctx.scope.set("getKeys", ctx.mkFunction([], async function (ctx, args) {
       return [
         ctx.scope.get("key1"),
         ctx.scope.get("key2")

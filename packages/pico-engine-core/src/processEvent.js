@@ -1,229 +1,218 @@
-var _ = require("lodash");
-var cocb = require("co-callback");
-var runKRL = require("./runKRL");
-var runAction = require("./runAction");
-var selectRulesToEval = require("./selectRulesToEval");
+var _ = require('lodash')
+var ktypes = require('krl-stdlib/types')
+var runKRL = require('./runKRL')
+var runAction = require('./runAction')
+var selectRulesToEval = require('./selectRulesToEval')
 
-var scheduleEvent = function(core, ctx, args, callback){
-    if(!_.has(ctx, ["event", "eci"])){
-        callback(new Error("schedule:event must be executed in response to an event"));
-        return;
+async function scheduleEvent (core, ctx, args) {
+  if (!_.has(ctx, ['event', 'eci'])) {
+    throw new Error('schedule:event must be executed in response to an event')
+  }
+  var event = {
+    eci: ctx.event.eci, // in theory we are only running in an event postlude
+    eid: ctx.event.eid,
+    domain: args.domain,
+    type: args.type,
+    attrs: args.attributes
+  }
+
+  if (false ||
+        (args.at !== void 0 && args.timespec !== void 0) ||
+        (args.at === void 0 && args.timespec === void 0)
+  ) {
+    throw new Error('schedule:event must use `at` -or- `timespec`')
+  }
+  var val
+  if (args.at !== void 0) {
+    var at = new Date(args.at)
+    if (at.toISOString() !== args.at) {
+      throw new Error('schedule:event at must be an ISO date string (i.e. `.toISOString()`)')
     }
-    var event = {
-        eci: ctx.event.eci,//in theory we are only running in an event postlude
-        eid: ctx.event.eid,
-        domain: args.domain,
-        type: args.type,
-        attrs: args.attributes,
-    };
+    val = await core.db.scheduleEventAtYieldable(at, event)
+    core.scheduler.update()
+    return val.id
+  }
+  if (!_.isString(args.timespec)) {
+    // TODO parse it to ensure it's shaped right
+    throw new Error('schedule:event `timespec` must be a cron format string')
+  }
+  val = await core.db.scheduleEventRepeatYieldable(args.timespec, event)
+  core.scheduler.addCron(val.timespec, val.id, val.event)
+  return val.id
+}
 
-    if(false
-        || args.at !== void 0 && args.timespec !== void 0
-        || args.at === void 0 && args.timespec === void 0
-    ){
-        callback(new Error("schedule:event must use `at` -or- `timespec`"));
-        return;
+function toResponse (ctx, type, val) {
+  if (type === 'directive') {
+    return {
+      type: 'directive',
+      options: val.options,
+      name: val.name,
+      meta: {
+        rid: ctx.rid,
+        rule_name: ctx.rule_name,
+        txn_id: ctx.txn_id,
+        eid: ctx.event.eid
+      }
     }
-    if(args.at !== void 0){
-        var at = new Date(args.at);
-        if(at.toISOString() !== args.at){
-            callback(new Error("schedule:event at must be an ISO date string (i.e. `.toISOString()`)"));
-            return;
-        }
-        core.db.scheduleEventAt(at, event, function(err, val){
-            if(err) return callback(err);
-            core.scheduler.update();
-            callback(null, val.id);
-        });
-        return;
+  }
+  throw new Error('Unsupported action response type: ' + type)
+}
+
+/**
+ * used by `foreach` in krl
+ * Array's use index numbers, maps use key strings
+ */
+function toPairs (v) {
+  if (ktypes.isArray(v)) {
+    var pairs = []
+    var i
+    for (i = 0; i < v.length; i++) {
+      pairs.push([i, v[i]])
     }
-    if(!_.isString(args.timespec)){
-        //TODO parse it to ensure it's shaped right
-        callback(new Error("schedule:event `timespec` must be a cron format string"));
-        return;
+    return pairs
+  }
+  return _.toPairs(v)
+}
+
+function runRuleBody (core, ruleBodyFns, scheduled) {
+  var rule = scheduled.rule
+  var picoId = scheduled.pico_id
+  var event = scheduled.event
+
+  var ctx = core.mkCTX({
+    rid: rule.rid,
+    rule_name: rule.name,
+    scope: rule.scope,
+    pico_id: picoId,
+    event: event,
+
+    raiseEvent: ruleBodyFns.raiseEvent,
+    raiseError: ruleBodyFns.raiseError,
+    scheduleEvent: ruleBodyFns.scheduleEvent,
+    addActionResponse: ruleBodyFns.addActionResponse,
+    stopRulesetExecution: ruleBodyFns.stopRulesetExecution
+  })
+
+  ctx.emit('debug', 'rule selected: ' + rule.rid + ' -> ' + rule.name)
+
+  return runKRL(rule.body, ctx, runAction, toPairs)
+}
+
+module.exports = async function processEvent (core, ctx) {
+  ctx.emit('debug', 'event being processed')
+
+  // the schedule is the list of rules and events that need to be processed
+  var schedule = []
+  var responses = []// i.e. directives
+
+  var addEventToSchedule = async function (ctx) {
+    var rules = await selectRulesToEval(core, ctx)
+    _.each(rules, function (rule) {
+      ctx.emit('debug', 'rule added to schedule: ' + rule.rid + ' -> ' + rule.name)
+      schedule.push({
+        rule: rule,
+        event: ctx.event,
+        pico_id: ctx.pico_id
+      })
+    })
+    if (schedule.length === 0) {
+      ctx.emit('debug', 'no rules added to schedule')
     }
-    core.db.scheduleEventRepeat(args.timespec, event, function(err, val){
-        if(err) return callback(err);
-        core.scheduler.addCron(val.timespec, val.id, val.event);
-        callback(null, val.id);
-    });
-};
+  }
 
-var toResponse = function(ctx, type, val){
-    if(type === "directive"){
-        return {
-            type: "directive",
-            options: val.options,
-            name: val.name,
-            meta: {
-                rid: ctx.rid,
-                rule_name: ctx.rule_name,
-                txn_id: ctx.txn_id,
-                eid: ctx.event.eid
-            }
-        };
-    }
-    throw new Error("Unsupported action response type: " + type);
-};
+  await addEventToSchedule(ctx)
 
-
-var runRuleBody = cocb.wrap(function*(core, rule_body_fns, scheduled){
-
-    var rule = scheduled.rule;
-    var pico_id = scheduled.pico_id;
-    var event = scheduled.event;
-
-    var ctx = core.mkCTX({
-        rid: rule.rid,
-        rule_name: rule.name,
-        scope: rule.scope,
-        pico_id: pico_id,
+  // these are special functions only to be used inside a rule body
+  var ruleBodyFns = {
+    raiseEvent: async function (revent) {
+      // shape the revent like a normal event
+      var event = {
+        eci: ctx.event.eci, // raise event is always to the same pico
+        eid: ctx.event.eid, // inherit from parent event to aid in debugging
+        domain: revent.domain,
+        type: revent.type,
+        attrs: revent.attributes,
+        for_rid: revent.for_rid,
+        txn_id: ctx.event.txn_id, // inherit from parent event
+        timestamp: new Date()
+      }
+      // must make a new ctx for this raise b/c it's a different event
+      var raiseCtx = core.mkCTX({
         event: event,
+        pico_id: ctx.pico_id// raise event is always to the same pico
+      })
+      raiseCtx.emit('debug', 'adding raised event to schedule: ' + revent.domain + '/' + revent.type)
+      await addEventToSchedule(raiseCtx)
+    },
+    raiseError: function (ctx, level, data) {
+      if (level === 'error') {
+        // clear the schedule so no more rules are run
+        schedule = []
+      }
 
-        raiseEvent: rule_body_fns.raiseEvent,
-        raiseError: rule_body_fns.raiseError,
-        scheduleEvent: rule_body_fns.scheduleEvent,
-        addActionResponse: rule_body_fns.addActionResponse,
-        stopRulesetExecution: rule_body_fns.stopRulesetExecution,
-    });
-
-    ctx.emit("debug", "rule selected: " + rule.rid + " -> " + rule.name);
-
-    yield runKRL(rule.body, ctx, runAction, _.toPairs);
-});
-
-var processEvent = cocb.wrap(function*(core, ctx){
-    ctx.emit("debug", "event being processed");
-
-    //the schedule is the list of rules and events that need to be processed
-    var schedule = [];
-    var responses = [];//i.e. directives
-
-    var addEventToSchedule = function(ctx, callback){
-        selectRulesToEval(core, ctx, function(err, rules){
-            if(err) return callback(err);
-            _.each(rules, function(rule){
-                ctx.emit("debug", "rule added to schedule: " + rule.rid + " -> " + rule.name);
-                schedule.push({
-                    rule: rule,
-                    event: ctx.event,
-                    pico_id: ctx.pico_id,
-                });
-            });
-            if(schedule.length === 0){
-                ctx.emit("debug", "no rules added to schedule");
-            }
-            callback();
-        });
-    };
-
-    yield cocb.wrap(addEventToSchedule)(ctx);
-
-    //these are special functions only to be used inside a rule body
-    var rule_body_fns = {
-        raiseEvent: cocb.wrap(function(revent, callback){
-            //shape the revent like a normal event
-            var event = {
-                eci: ctx.event.eci,//raise event is always to the same pico
-                eid: ctx.event.eid,//inherit from parent event to aid in debugging
-                domain: revent.domain,
-                type: revent.type,
-                attrs: revent.attributes,
-                for_rid: revent.for_rid,
-                txn_id: ctx.event.txn_id,//inherit from parent event
-                timestamp: new Date()
-            };
-            //must make a new ctx for this raise b/c it's a different event
-            var raise_ctx = core.mkCTX({
-                event: event,
-                pico_id: ctx.pico_id,//raise event is always to the same pico
-            });
-            raise_ctx.emit("debug", "adding raised event to schedule: " + revent.domain + "/" + revent.type);
-            addEventToSchedule(raise_ctx, callback);
-        }),
-        raiseError: function*(ctx, level, data){
-
-            if(level === "error"){
-                //clear the schedule so no more rules are run
-                schedule = [];
-            }
-
-            return yield ctx.raiseEvent({
-                domain: "system",
-                type: "error",
-                attributes: {
-                    level: level,
-                    data: data,
-                    rid: ctx.rid,
-                    rule_name: ctx.rule_name,
-                    genus: "user",
-                    //species: ??,
-                },
-                for_rid: ctx.rid,
-            });
+      return ctx.raiseEvent({
+        domain: 'system',
+        type: 'error',
+        attributes: {
+          level: level,
+          data: data,
+          rid: ctx.rid,
+          rule_name: ctx.rule_name,
+          genus: 'user'
+          // species: ??,
         },
-        scheduleEvent: cocb.wrap(function(sevent, callback){
-            scheduleEvent(core, ctx, {
-                domain: sevent.domain,
-                type: sevent.type,
-                attributes: sevent.attributes,
+        for_rid: ctx.rid
+      })
+    },
+    scheduleEvent: function (sevent) {
+      return scheduleEvent(core, ctx, {
+        domain: sevent.domain,
+        type: sevent.type,
+        attributes: sevent.attributes,
 
-                at: sevent.at,
-                timespec: sevent.timespec,
-            }, callback);
-        }),
-        addActionResponse: function(ctx, type, val){
-            var resp = toResponse(ctx, type, val);
-            responses.push(resp);
-            return resp;
-        },
-        stopRulesetExecution: function(ctx){
-            ctx.emit("debug", "`last` control statement is stopping ruleset execution");
-            schedule = _.dropWhile(schedule, function(s){
-                return s.rule.rid === ctx.rid;
-            });
-        },
-    };
-
-    //using a while loop b/c schedule is MUTABLE
-    //Durring execution new events may be `raised` that will mutate the schedule
-    while(schedule.length > 0){
-        yield runRuleBody(core, rule_body_fns, schedule.shift());
+        at: sevent.at,
+        timespec: sevent.timespec
+      })
+    },
+    addActionResponse: function (ctx, type, val) {
+      var resp = toResponse(ctx, type, val)
+      responses.push(resp)
+      return resp
+    },
+    stopRulesetExecution: function (ctx) {
+      ctx.emit('debug', '`last` control statement is stopping ruleset execution')
+      schedule = _.dropWhile(schedule, function (s) {
+        return s.rule.rid === ctx.rid
+      })
     }
+  }
 
-    var res_by_type = _.groupBy(responses, "type");
+  // using a while loop b/c schedule is MUTABLE
+  // Durring execution new events may be `raised` that will mutate the schedule
+  while (schedule.length > 0) {
+    await runRuleBody(core, ruleBodyFns, schedule.shift())
+  }
 
-    var r = _.mapValues(res_by_type, function(responses, key){
-        if(key === "directive"){
-            return _.map(responses, function(d){
-                return _.omit(d, "type");
-            });
-        }
-        return responses;
-    });
+  var resByType = _.groupBy(responses, 'type')
 
-
-    if(_.has(r, "directive")){
-        r.directives = r.directive;
-        delete r.directive;
-    }else{
-        //we always want to return a directives array even if it's empty
-        r.directives = [];
+  var r = _.mapValues(resByType, function (responses, key) {
+    if (key === 'directive') {
+      return _.map(responses, function (d) {
+        return _.omit(d, 'type')
+      })
     }
+    return responses
+  })
 
-    ctx.emit("debug", "event finished processing");
+  if (_.has(r, 'directive')) {
+    r.directives = r.directive
+    delete r.directive
+  } else {
+    // we always want to return a directives array even if it's empty
+    r.directives = []
+  }
 
-    return r;
-});
+  ctx.emit('debug', 'event finished processing')
 
-module.exports = function(core, ctx, callback){
-    processEvent(core, ctx).then(function(data){
-        callback(null, data);
-    }, function(err){
-        process.nextTick(function(){
-            //wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
-            //when infact we are handling the rejection
-            callback(err);
-        });
-    });
-};
+  return r
+}

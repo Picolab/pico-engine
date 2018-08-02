@@ -5,9 +5,9 @@ module.exports = {
     "description": "\nThis is a test file who was shared a key, but doesn't \"use\" it\n        ",
     "shares": ["getFoo"]
   },
-  "global": function* (ctx) {
-    ctx.scope.set("getFoo", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "keys", "foo");
+  "global": async function (ctx) {
+    ctx.scope.set("getFoo", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "keys", "foo");
     }));
   },
   "rules": {}

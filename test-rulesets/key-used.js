@@ -13,10 +13,10 @@ module.exports = {
         "kind": "module",
         "rid": "io.picolabs.key-configurable",
         "alias": "api",
-        "with": function* (ctx) {
-          ctx.scope.set("key1", yield ctx.modules.get(ctx, "keys", "foo"));
-          ctx.scope.set("key2", yield ctx.callKRLstdlib("get", [
-            yield ctx.modules.get(ctx, "keys", "bar"),
+        "with": async function (ctx) {
+          ctx.scope.set("key1", await ctx.modules.get(ctx, "keys", "foo"));
+          ctx.scope.set("key2", await ctx.callKRLstdlib("get", [
+            await ctx.modules.get(ctx, "keys", "bar"),
             "baz"
           ]));
         }
@@ -33,33 +33,33 @@ module.exports = {
       "foo_global"
     ]
   },
-  "global": function* (ctx) {
-    ctx.scope.set("getFoo", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "keys", "foo");
+  "global": async function (ctx) {
+    ctx.scope.set("getFoo", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "keys", "foo");
     }));
-    ctx.scope.set("getBar", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "keys", "bar");
+    ctx.scope.set("getBar", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "keys", "bar");
     }));
-    ctx.scope.set("getBarN", ctx.mkFunction(["name"], function* (ctx, args) {
+    ctx.scope.set("getBarN", ctx.mkFunction(["name"], async function (ctx, args) {
       ctx.scope.set("name", args["name"]);
-      return yield ctx.callKRLstdlib("get", [
-        yield ctx.modules.get(ctx, "keys", "bar"),
+      return await ctx.callKRLstdlib("get", [
+        await ctx.modules.get(ctx, "keys", "bar"),
         ctx.scope.get("name")
       ]);
     }));
-    ctx.scope.set("getQuux", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "keys", "quux");
+    ctx.scope.set("getQuux", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "keys", "quux");
     }));
-    ctx.scope.set("getQuuz", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "keys", "quuz");
+    ctx.scope.set("getQuuz", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "keys", "quuz");
     }));
-    ctx.scope.set("getAPIKeys", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.applyFn(yield ctx.modules.get(ctx, "api", "getKeys"), ctx, []);
+    ctx.scope.set("getAPIKeys", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.applyFn(await ctx.modules.get(ctx, "api", "getKeys"), ctx, []);
     }));
-    ctx.scope.set("getFooPostlude", ctx.mkFunction([], function* (ctx, args) {
-      return yield ctx.modules.get(ctx, "ent", "foo_postlude");
+    ctx.scope.set("getFooPostlude", ctx.mkFunction([], async function (ctx, args) {
+      return await ctx.modules.get(ctx, "ent", "foo_postlude");
     }));
-    ctx.scope.set("foo_global", yield ctx.modules.get(ctx, "keys", "foo"));
+    ctx.scope.set("foo_global", await ctx.modules.get(ctx, "keys", "foo"));
   },
   "rules": {
     "key_used_foo": {
@@ -67,7 +67,7 @@ module.exports = {
       "select": {
         "graph": { "key_used": { "foo": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -78,14 +78,14 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
-        ctx.scope.set("foo_pre", yield ctx.modules.get(ctx, "keys", "foo"));
+      "body": async function (ctx, runAction, toPairs) {
+        ctx.scope.set("foo_pre", await ctx.modules.get(ctx, "keys", "foo"));
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "foo",
             {
-              "foo": yield ctx.modules.get(ctx, "keys", "foo"),
+              "foo": await ctx.modules.get(ctx, "keys", "foo"),
               "foo_pre": ctx.scope.get("foo_pre")
             }
           ], []);
@@ -94,7 +94,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        yield ctx.modules.set(ctx, "ent", "foo_postlude", yield ctx.modules.get(ctx, "keys", "foo"));
+        await ctx.modules.set(ctx, "ent", "foo_postlude", await ctx.modules.get(ctx, "keys", "foo"));
       }
     }
   }

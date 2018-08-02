@@ -1,31 +1,31 @@
-var _ = require("lodash");
+var _ = require('lodash')
 
-module.exports = function(ast, comp, e){
-    var body = comp(ast.params);
+module.exports = function (ast, comp, e) {
+  var body = comp(ast.params)
 
-    _.each(ast.body, function(d){
-        body.push(comp(d));
-    });
+  _.each(ast.body, function (d) {
+    body.push(comp(d))
+  })
 
-    body = body.concat(comp(ast.action_block));
+  body = body.concat(comp(ast.action_block))
 
-    body.push(e("return", e("array", _.map(ast.returns, function(ret){
-        return comp(ret);
-    }))));
+  body.push(e('return', e('array', _.map(ast.returns, function (ret) {
+    return comp(ret)
+  }))))
 
-    var param_order = e("array", _.map(ast.params.params, function(p){
-        return e("string", p.id.value, p.id.loc);
-    }), ast.params.loc);
+  var paramOrder = e('array', _.map(ast.params.params, function (p) {
+    return e('string', p.id.value, p.id.loc)
+  }), ast.params.loc)
 
-    return e(";", e("call", e("id", "ctx.scope.set"), [
-        e("str", ast.id.value, ast.id.loc),
-        e("call", e("id", "ctx.mkAction"), [
-            param_order,
-            e("genfn", [
-                "ctx",
-                "args",
-                "runAction",
-            ], body),
-        ]),
-    ]));
-};
+  return e(';', e('call', e('id', 'ctx.scope.set'), [
+    e('str', ast.id.value, ast.id.loc),
+    e('call', e('id', 'ctx.mkAction'), [
+      paramOrder,
+      e('asyncfn', [
+        'ctx',
+        'args',
+        'runAction'
+      ], body)
+    ])
+  ]))
+}

@@ -7,10 +7,10 @@ module.exports = {
     "logging": true,
     "shares": ["hello"]
   },
-  "global": function* (ctx) {
-    ctx.scope.set("hello", ctx.mkFunction(["obj"], function* (ctx, args) {
+  "global": async function (ctx) {
+    ctx.scope.set("hello", ctx.mkFunction(["obj"], async function (ctx, args) {
       ctx.scope.set("obj", args["obj"]);
-      ctx.scope.set("msg", yield ctx.callKRLstdlib("+", [
+      ctx.scope.set("msg", await ctx.callKRLstdlib("+", [
         "Hello ",
         ctx.scope.get("obj")
       ]));
@@ -23,7 +23,7 @@ module.exports = {
       "select": {
         "graph": { "echo": { "hello": { "expr_0": true } } },
         "eventexprs": {
-          "expr_0": function* (ctx, aggregateEvent, getAttrString, setting) {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
             return true;
           }
         },
@@ -34,10 +34,10 @@ module.exports = {
             ]]
         }
       },
-      "body": function* (ctx, runAction, toPairs) {
+      "body": async function (ctx, runAction, toPairs) {
         var fired = true;
         if (fired) {
-          yield runAction(ctx, void 0, "send_directive", [
+          await runAction(ctx, void 0, "send_directive", [
             "say",
             { "something": "Hello World" }
           ], []);

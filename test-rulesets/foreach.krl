@@ -78,4 +78,19 @@ ruleset io.picolabs.foreach {
             "y": event:attr("y")
         });
     }
+    rule key_vs_index {
+        select when foreach key_vs_index
+        foreach {
+            "foo": "bar",
+            "baz": "qux"
+        } setting(a, k)
+            foreach ["one", "two", "three"] setting(b, i)
+
+        send_directive("key_vs_index", {
+            "a": a,
+            "k": k,
+            "b": b,
+            "i": i
+        });
+    }
 }
