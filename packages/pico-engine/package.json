@@ -64,7 +64,8 @@
   "standard": {
     "ignore": [
       "public/*",
-      "rulesets/*"
+      "rulesets/*",
+      "pico-engine_test*"
     ]
   },
   "engines": {
