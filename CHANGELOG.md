@@ -1,4 +1,7 @@
-# 0.46.0 - next
+# 0.46.0 - August 3, 2018
+
+* [#408](https://github.com/Picolab/pico-engine/pull/408) Install Rulesets Validation
+* [#397](https://github.com/Picolab/pico-engine/pull/397) Subscription cleanup
 
 ### BREAKING CHANGES
 
