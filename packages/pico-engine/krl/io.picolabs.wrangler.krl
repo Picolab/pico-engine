@@ -382,6 +382,7 @@ ruleset io.picolabs.wrangler {
     else {
       raise wrangler event "install_ruleset_by_url_requested"
         attributes event:attrs if event:attr("url");
+      error info "could not install rids: no valid rids provided" if not event:attr("url");
     }
     finally {
       raise wrangler event "install_rulesets_error"
@@ -409,7 +410,7 @@ ruleset io.picolabs.wrangler {
     }
     finally {
       raise wrangler event "finish_initialization"
-        attributes event:attrs  if initial_install == true
+        attributes event:attrs if initial_install == true
     }
   }
 
