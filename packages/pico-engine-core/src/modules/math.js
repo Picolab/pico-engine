@@ -3,7 +3,7 @@ var crypto = require('crypto')
 var ktypes = require('krl-stdlib/types')
 var mkKRLfn = require('../mkKRLfn')
 
-var supportedHashFns = crypto.getHashes()
+var hashAlgorithms = Object.freeze(crypto.getHashes())
 
 module.exports = function (core) {
   return {
@@ -31,44 +31,52 @@ module.exports = function (core) {
         callback(null, Buffer.from(str, 'base64').toString('utf8'))
       }),
 
-      hashFunctions: mkKRLfn([
+      hashAlgorithms: hashAlgorithms,
+
+      hashFunctions: mkKRLfn([// DEPRECATED
       ], function (ctx, args, callback) {
-        callback(null, supportedHashFns)
+        ctx.log('warn', 'math:hashFunctions() is DEPRECATED use math:hashAlgorithms instead')
+        callback(null, hashAlgorithms)
       }),
 
       hash: mkKRLfn([
-        'hashFn',
-        'toHash'
+        'algorithm',
+        'str',
+        'encoding'
       ], function (ctx, args, callback) {
-        if (!_.has(args, 'hashFn')) {
-          return callback(new Error('math:hash needs a hashFn string'))
+        if (!_.has(args, 'algorithm')) {
+          return callback(new Error('math:hash needs a algorithm string'))
         }
-        if (!_.has(args, 'toHash')) {
-          return callback(new Error('math:hash needs a toHash string'))
+        if (!_.has(args, 'str')) {
+          return callback(new Error('math:hash needs a str string'))
         }
-        if (!_.includes(supportedHashFns, args.hashFn)) {
-          if (ktypes.isString(args.hashFn)) {
-            return callback(new Error("math:hash doesn't recognize the hash algorithm " + args.hashFn))
+        if (!_.includes(hashAlgorithms, args.algorithm)) {
+          if (ktypes.isString(args.algorithm)) {
+            return callback(new Error("math:hash doesn't recognize the hash algorithm " + args.algorithm))
           } else {
-            return callback(new TypeError('math:hash was given ' + ktypes.toString(args.hashFn) + ' instead of a hashFn string'))
+            return callback(new TypeError('math:hash was given ' + ktypes.toString(args.algorithm) + ' instead of a algorithm string'))
           }
         }
+        var encoding = args.encoding || 'hex'
+        if (!_.includes(['hex', 'base64'], encoding)) {
+          return callback(new Error('math:hash encoding must be "hex" or "base64" but was ' + encoding))
+        }
 
-        var str = ktypes.toString(args.toHash)
-        var hash = crypto.createHash(args.hashFn)
+        var str = ktypes.toString(args.str)
+        var hash = crypto.createHash(args.algorithm)
         hash.update(str)
 
-        callback(null, hash.digest('hex'))
+        callback(null, hash.digest(encoding))
       }),
 
       hmac: mkKRLfn([
-        'hashFn',
+        'algorithm',
         'key',
         'message',
         'encoding'
       ], function (ctx, args, callback) {
-        if (!_.has(args, 'hashFn')) {
-          return callback(new Error('math:hmac needs a hashFn string'))
+        if (!_.has(args, 'algorithm')) {
+          return callback(new Error('math:hmac needs a algorithm string'))
         }
         if (!_.has(args, 'key')) {
           return callback(new Error('math:hmac needs a key string'))
@@ -76,11 +84,11 @@ module.exports = function (core) {
         if (!_.has(args, 'message')) {
           return callback(new Error('math:hmac needs a message string'))
         }
-        if (!_.includes(supportedHashFns, args.hashFn)) {
-          if (ktypes.isString(args.hashFn)) {
-            return callback(new Error("math:hmac doesn't recognize the hash algorithm " + args.hashFn))
+        if (!_.includes(hashAlgorithms, args.algorithm)) {
+          if (ktypes.isString(args.algorithm)) {
+            return callback(new Error("math:hmac doesn't recognize the hash algorithm " + args.algorithm))
           } else {
-            return callback(new TypeError('math:hmac was given ' + ktypes.toString(args.hashFn) + ' instead of a hashFn string'))
+            return callback(new TypeError('math:hmac was given ' + ktypes.toString(args.algorithm) + ' instead of a algorithm string'))
           }
         }
         var encoding = args.encoding || 'hex'
@@ -90,7 +98,7 @@ module.exports = function (core) {
 
         var key = ktypes.toString(args.key)
         var message = ktypes.toString(args.message)
-        var hmac = crypto.createHmac(args.hashFn, key)
+        var hmac = crypto.createHmac(args.algorithm, key)
         hmac.update(message)
 
         callback(null, hmac.digest(encoding))
