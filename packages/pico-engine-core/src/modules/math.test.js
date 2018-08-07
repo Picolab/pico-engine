@@ -38,5 +38,16 @@ test('module - math:*', function (t) {
     await terr('hash', {}, [0], 'Error: math:hash needs a toHash string')
     await terr('hash', {}, [0, null], 'TypeError: math:hash was given 0 instead of a hashFn string')
     await terr('hash', {}, ['0', null], "Error: math:hash doesn't recognize the hash algorithm 0")
+
+    t.equals(
+      await kmath.hmac({}, ['sha256', 'a secret', 'some data to hash']),
+      '7fd04df92f636fd450bc841c9418e5825c17f33ad9c87c518115a45971f7f77e'
+    )
+    t.equals(
+      await kmath.hmac({}, ['sha256', 'a secret', 'some data to hash', 'base64']),
+      'f9BN+S9jb9RQvIQclBjlglwX8zrZyHxRgRWkWXH3934='
+    )
+    await terr('hmac', {}, [], 'Error: math:hmac needs a hashFn string')
+    await terr('hmac', {}, ['foo', '', ''], 'Error: math:hmac doesn\'t recognize the hash algorithm foo')
   }()).then(t.end).catch(t.end)
 })
