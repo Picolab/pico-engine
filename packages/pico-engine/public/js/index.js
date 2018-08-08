@@ -86,6 +86,9 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
     var thePicoInp = db_dump.pico[$li.parent().parent().prev().attr("id")];
     var eci = findEciById(thePicoInp.id);
     if (label === "About") {
+      var hasRID = function(pid,rid){
+        return get(db_dump.pico,[pid,"ruleset",rid]) ? true : false;
+      };
       var thePicoOut = {};
       thePicoOut.pico_id = thePicoInp.id;
       thePicoOut.id = thePicoInp.id;
@@ -100,9 +103,10 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
         thePicoOut.parent.dname = getV(pp,"dname",undefined);
       }
       if (thePicoInp.id == rootPico.id || (pp && pp.id == rootPico.id)) {
-        var oaRid = "io.picolabs.owner_authentication";
-        var isOwner = get(db_dump.pico,[thePicoInp.id,oaRid]) ? true : false;
-        thePicoOut.isOwner = isOwner;
+        var pswdAuth = hasRID(thePicoInp.id,"io.picolabs.owner_authentication");
+        var didAuth = hasRID(thePicoInp.id,"io.picolabs.did_auth_only");
+        thePicoOut.isOwner = pswdAuth || didAuth;
+        thePicoOut.pswdAuth = pswdAuth;
       }
       thePicoOut.children = [];
       var reportedChildren = getP(thePicoInp,"children",[]);
@@ -259,6 +263,7 @@ $.getJSON("/api/db-dump?legacy=true", function(db_dump){
       if(authenticated) {
         theDB.authenticated = authenticated;
         theDB.authenticatedOwner = theDB.isOwner;
+        theDB.passwordAuthenticated = theDB.pswdAuth;
       }
       $theSection.html(tabTemplate(theDB));
       var d = "";

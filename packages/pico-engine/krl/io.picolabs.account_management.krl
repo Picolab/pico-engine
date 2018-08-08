@@ -9,7 +9,7 @@ ruleset io.picolabs.account_management {
   global {
     __testing = { "queries": [ { "name": "__testing" } ],
                   "events": [ { "domain": "owner", "type": "creation",
-                                "attrs": [ "name", "password" ] },
+                                "attrs": [ "name", "password", "method" ] },
                               { "domain": "wrangler", "type": "ruleset_added",
                                 "attrs": [ "rids" ] },
                               { "domain": "owner", "type": "eci_requested",
@@ -25,8 +25,12 @@ ruleset io.picolabs.account_management {
       exists => ent:owners{name}{"eci"} | "No user found"
     }
     
-    //rids required in every owner pico
-    base_rids = ["io.picolabs.owner_authentication"]
+    //rids required for an owner pico
+    //  which depends on authentication method
+    base_rids = {
+      "password":["io.picolabs.owner_authentication"]
+      ,"did":    ["io.picolabs.did_auth_only"]
+    }
 
     owner_policy_definition = {
       "name": "only allow owner/authenticate events",
@@ -126,14 +130,19 @@ rule create_admin{
 
   rule create_owner{
     select when owner creation
+    // owner_id is required String
+    // password is optional String defaults to ""
+    // method is optional String from ["password","did"] defaults to "password"
+    // rids is optional ;-delimited String or Array of Strings defaults to []
     pre{
       name = event:attr("name").defaultsTo(event:attr("owner_id"));
       password = event:attr("password").defaultsTo("");
       new_rids = event:attr("rids");
-      rids_type = new_rids.typeof();
-      rids = rids_type == "String" => base_rids.append(new_rids.split(";"))
-           | rids_type == "Array"  => base_rids.append(new_rids)
-           |                          base_rids;
+      method = event:attr("method") || "password";
+      owner_rids = base_rids{method} || [];
+      rids = rids_type == "String" => owner_rids.append(new_rids.split(";"))
+           | rids_type == "Array"  => owner_rids.append(new_rids)
+           |                          owner_rids;
       exists = nameExists(name).klog("nameExists");
     }
     if not exists then // may need to check pico name uniqueness

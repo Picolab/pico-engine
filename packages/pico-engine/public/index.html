@@ -182,6 +182,7 @@ Do not disclose it or check it into a repository like GitHub.
 </form>
 </p>
 {{#if authenticatedOwner}}
+{{#if passwordAuthenticated}}
 <form class="js-ajax-form" action="/sky/event/{{eci}}/none/owner/new_password" method="post">
 <fieldset style="display:inline-block">
 <legend>Change password</legend>
@@ -192,6 +193,7 @@ Do not disclose it or check it into a repository like GitHub.
     <input type="submit" class="button form-login" value="New Password">
 </fieldset>
 </form>
+{{/if}}
 {{/if}}
 </script>
 <script id="rulesets-template" type="text/x-handlebars-template">
