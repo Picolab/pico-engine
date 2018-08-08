@@ -130,7 +130,7 @@ rule create_admin{
 
   rule create_owner{
     select when owner creation
-    // owner_id is required String
+    // owner_id is required String if name (String) is not provided
     // password is optional String defaults to ""
     // method is optional String from ["password","did"] defaults to "password"
     // rids is optional ;-delimited String or Array of Strings defaults to []
@@ -146,7 +146,7 @@ rule create_admin{
       exists = nameExists(name).klog("nameExists");
     }
     if not exists then // may need to check pico name uniqueness
-      send_directive("Creating owner", {"ownername":name,"method":"password"});
+      send_directive("Creating owner", {"ownername":name,"method": method});
 
     fired{
       raise wrangler event "new_child_request"
