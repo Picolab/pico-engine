@@ -140,6 +140,7 @@ rule create_admin{
       new_rids = event:attr("rids");
       method = event:attr("method") || "password";
       owner_rids = base_rids{method} || [];
+      rids_type = new_rids.typeof();
       rids = rids_type == "String" => owner_rids.append(new_rids.split(";"))
            | rids_type == "Array"  => owner_rids.append(new_rids)
            |                          owner_rids;
