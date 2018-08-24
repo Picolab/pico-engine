@@ -237,6 +237,18 @@ module.exports = function (opts) {
     }
   }
 
+  function forRange (opts, onData) {
+    return new Promise(function (resolve, reject) {
+      var arr = []
+      dbRange(ldb, opts, function (data) {
+        arr.push(Promise.resolve(onData(data)))
+      }, function (err) {
+        if (err) reject(err)
+        Promise.all(arr).catch(reject).then(resolve)
+      })
+    })
+  }
+
   var getMigrationLog = function (callback) {
     var log = {}
     dbRange(ldb, {
@@ -282,6 +294,23 @@ module.exports = function (opts) {
       channel: channel,
       dbOps: dbOps
     }
+  }
+
+  function getEnabledRuleset (rid, callback) {
+    ldb.get(['rulesets', 'enabled', rid], function (err, dataE) {
+      if (err) return callback(err)
+      ldb.get(['rulesets', 'krl', dataE.hash], function (err, dataK) {
+        if (err) return callback(err)
+        callback(null, {
+          src: dataK.src,
+          hash: dataE.hash,
+          rid: dataK.rid,
+          url: dataK.url,
+          timestamp_stored: dataK.timestamp,
+          timestamp_enable: dataE.timestamp
+        })
+      })
+    })
   }
 
   return {
@@ -553,6 +582,69 @@ module.exports = function (opts) {
         if (err) return callback(err)
         ldb.batch(dbOps, callback)
       })
+    },
+
+    exportPico: async function (id) {
+      var pico
+      try {
+        pico = await ldb.get(['pico', id])
+      } catch (err) {
+        if (err && err.notFound) {
+          return null
+        }
+        throw err
+      }
+
+      await forRange({
+        prefix: ['pico-eci-list', pico.id]
+      }, async function (data) {
+        var eci = data.key[2]
+        var channel = await ldb.get(['channel', eci])
+        channel = _.omit(channel, 'pico_id')
+        _.set(pico, ['channels', channel.id], channel)
+
+        if (!pico.policies || !pico.policies[channel.policy_id]) {
+          var policy = await ldb.get(['policy', channel.policy_id])
+          _.set(pico, ['policies', policy.id], _.omit(policy, 'id'))
+        }
+      })
+
+      function getRuleset (rid) {
+        return new Promise(function (resolve, reject) {
+          getEnabledRuleset(rid, function (err, rs) {
+            if (err && err.notFound) return resolve()
+            if (err) return reject(err)
+            else resolve(rs)
+          })
+        })
+      }
+      var rulesetsP = []
+      await forRange({
+        prefix: ['pico-ruleset', pico.id]
+      }, function (data) {
+        if (!data.value || !data.value.on) {
+          return
+        }
+        var rid = data.key[2]
+        rulesetsP.push(getRuleset(rid))
+      })
+      pico.rulesets = await Promise.all(rulesetsP)
+
+      await forRange({
+        prefix: ['entvars', pico.id],
+        values: false
+      }, function (key) {
+        return new Promise(function (resolve, reject) {
+          getPVar(ldb, key, [], function (err, value) {
+            if (err) reject(err)
+            _.set(pico, ['entvars'].concat(key.slice(2)), value)
+            resolve()
+          })
+        })
+      })
+      // TODO optional recursive ['pico-children', pico.id]
+
+      return pico
     },
 
     /// /////////////////////////////////////////////////////////////////////
@@ -901,22 +993,7 @@ module.exports = function (opts) {
     disableRuleset: function (rid, callback) {
       ldb.del(['rulesets', 'enabled', rid], callback)
     },
-    getEnabledRuleset: function (rid, callback) {
-      ldb.get(['rulesets', 'enabled', rid], function (err, dataE) {
-        if (err) return callback(err)
-        ldb.get(['rulesets', 'krl', dataE.hash], function (err, dataK) {
-          if (err) return callback(err)
-          callback(null, {
-            src: dataK.src,
-            hash: dataE.hash,
-            rid: dataK.rid,
-            url: dataK.url,
-            timestamp_stored: dataK.timestamp,
-            timestamp_enable: dataE.timestamp
-          })
-        })
-      })
-    },
+    getEnabledRuleset: getEnabledRuleset,
     listAllEnabledRIDs: function (callback) {
       var rids = []
       dbRange(ldb, {

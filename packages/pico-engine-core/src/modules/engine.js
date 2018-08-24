@@ -485,6 +485,20 @@ module.exports = function (core) {
       }
 
       callback(null, message)
+    }),
+
+    exportPico: mkKRLfn([
+      'pico_id'
+    ], function (ctx, args, callback) {
+      var picoId = picoArgOrCtxPico('exportPico', ctx, args)
+
+      core.db.exportPico(picoId)
+        .catch(function (err) {
+          callback(err)
+        })
+        .then(function (pico) {
+          callback(null, pico)
+        })
     })
 
   }

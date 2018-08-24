@@ -709,3 +709,58 @@ test('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChann
     t.equals(await decrypt(eci1, 'bogus43212(*(****', nonce, publicKey0), false, 'non bs58 message')
   }()).then(t.end).catch(t.end)
 })
+
+testPE('engine:exportPico', async function (t, pe) {
+  var rootEci = await util.promisify(pe.getRootECI)()
+  var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
+  var rootPicoId = await getPicoIDByECI({}, [rootEci])
+
+  function setEnt (id, val) {
+    return pe.modules.set({
+      pico_id: rootPicoId,
+      rid: 'io.picolabs.engine'
+    }, 'ent', id, val)
+  }
+
+  await setEnt('one', 1)
+  await setEnt('arr', [2, {three: 3}])
+  await setEnt('map', {a: [2, 3], b: {c: {d: 1}}})
+  await setEnt('foo', {})
+
+  var exportPico = await pe.modules.get({}, 'engine', 'exportPico')
+
+  var pico = await exportPico({}, [rootPicoId])
+  pico.rulesets.forEach(function (r) {
+    delete r.timestamp_stored
+    delete r.timestamp_enable
+  })
+  t.deepEquals(pico, {
+    id: 'id0',
+    parent_id: null,
+    admin_eci: 'id1',
+    channels: {
+      'id1': { id: 'id1', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id1', verifyKey: 'verifyKey_id1', secret: { seed: 'seed_id1', signKey: 'signKey_id1' } } }
+    },
+    policies: {
+      'allow-all-policy': {
+        name: 'admin channel policy',
+        event: {allow: [{}]},
+        query: {allow: [{}]}
+      }
+    },
+    rulesets: [
+      {src: 'ruleset io.picolabs.engine{}', hash: 'fc2e3b20af4015c17d17a222dae58b8855f165fdfe4dc8576d062b9f397bc2da', rid: 'io.picolabs.engine', url: 'http://fake-url/test-rulesets/engine.krl'}
+    ],
+    entvars: {
+      'io.picolabs.engine': {
+        one: 1,
+        arr: [2, {three: 3}],
+        map: {a: [2, 3], b: {c: {d: 1}}},
+        foo: {}
+      }
+    }
+    // TODO statemachine?
+    // TODO scheduled events?
+    // TODO children - optional
+  })
+})
