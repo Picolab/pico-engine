@@ -723,6 +723,10 @@ testA('engine:exportPico', async function (t) {
         ent:foo := {}
       }
     }
+    rule newPico {
+      select when aa newPico
+      engine:newPico()
+    }
   }`
   var pe = await mkTestPicoEngine({
     compileAndLoadRuleset: 'inline',
@@ -749,21 +753,16 @@ testA('engine:exportPico', async function (t) {
   await signalEvent(rootEci, 'aa/sum', {n: 1})
   await signalEvent(rootEci, 'aa/sum', {n: 3})
   await signalEvent(rootEci, 'aa/setvars')
+  await signalEvent(rootEci, 'aa/newPico')
 
   var exportPico = await pe.modules.get({}, 'engine', 'exportPico')
 
-  var pico = await exportPico({}, [rootPicoId])
-  pico.rulesets.forEach(function (r) {
+  var exported = await exportPico({}, [rootPicoId])
+  _.each(exported.rulesets, function (r) {
     delete r.timestamp_stored
     delete r.timestamp_enable
   })
-  t.deepEquals(pico, {
-    id: 'id0',
-    parent_id: null,
-    admin_eci: 'id1',
-    channels: {
-      'id1': { id: 'id1', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id1', verifyKey: 'verifyKey_id1', secret: { seed: 'seed_id1', signKey: 'signKey_id1' } } }
-    },
+  t.deepEquals(exported, {
     policies: {
       'allow-all-policy': {
         name: 'admin channel policy',
@@ -771,32 +770,51 @@ testA('engine:exportPico', async function (t) {
         query: {allow: [{}]}
       }
     },
-    rulesets: [
-      {
+    rulesets: {
+      'rid.export': {
         src: krl,
-        hash: '5027a58b53f0a2730688621934aa86ae457c351f9a89067686f71e722701d648',
+        hash: '6233907ebe1c7d7c8d83a3537525be8f5a1387f35989d0e6e073cd5f67bb0fca',
         rid: 'rid.export',
         url: 'wat'
       }
-    ],
-    entvars: {
-      'rid.export': {
-        one: 1,
-        arr: [2, {three: 3}],
-        map: {a: [2, 3], b: {c: {d: 1}}},
-        foo: {}
-      }
     },
-    state_machine: {
-      'rid.export': {
-        setvars: {state: 'end', bindings: {}},
-        sum: {state: 's1', bindings: {}}
-      }
-    },
-    aggregator_var: {
-      'rid.export': {sum: {n: ['1', '3']}}
+    pico: {
+      id: 'id0',
+      parent_id: null,
+      admin_eci: 'id1',
+      channels: {
+        'id1': { id: 'id1', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id1', verifyKey: 'verifyKey_id1', secret: { seed: 'seed_id1', signKey: 'signKey_id1' } } }
+      },
+      entvars: {
+        'rid.export': {
+          one: 1,
+          arr: [2, {three: 3}],
+          map: {a: [2, 3], b: {c: {d: 1}}},
+          foo: {}
+        }
+      },
+      state_machine: {
+        'rid.export': {
+          newPico: {state: 'end', bindings: {}},
+          setvars: {state: 'end', bindings: {}},
+          sum: {state: 's1', bindings: {}}
+        }
+      },
+      aggregator_var: {
+        'rid.export': {sum: {n: ['1', '3']}}
+      },
+      children: [
+        {
+          id: 'id2',
+          parent_id: 'id0',
+          admin_eci: 'id3',
+          channels: {
+            'id3': { id: 'id3', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id3', verifyKey: 'verifyKey_id3', secret: { seed: 'seed_id3', signKey: 'signKey_id3' } } }
+          },
+          children: []
+        }
+      ]
     }
   })
   // TODO scheduled events?
-  // TODO children - optional
 })

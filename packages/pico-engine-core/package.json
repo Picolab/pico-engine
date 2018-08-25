@@ -27,7 +27,6 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "faucet": "0.0.1",
-    "krl-compiler": "^0.46.0",
     "memdown": "^1.4.1",
     "onchange": "^3.2.1",
     "standard": "^11.0.1",
@@ -41,6 +40,7 @@
     "cuid": "^1.3.8",
     "dependency-graph": "^0.7.0",
     "encoding-down": "^3.0.0",
+    "krl-compiler": "^0.46.0",
     "krl-stdlib": "^0.46.0",
     "level-json-coerce-null": "^1.0.1",
     "levelup": "^2.0.0",
