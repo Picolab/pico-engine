@@ -545,6 +545,7 @@ module.exports = function (opts) {
           var eci = key[2]
           dbOps.push({type: 'del', key: key})
           dbOps.push({type: 'del', key: ['channel', eci]})
+          // TODO drop scheduled events ??
         }),
         keyRange(['entvars', id], function (key) {
           dbOps.push({type: 'del', key: key})
@@ -642,6 +643,19 @@ module.exports = function (opts) {
           })
         })
       })
+
+      await forRange({
+        prefix: ['state_machine', pico.id]
+      }, function (data) {
+        _.set(pico, ['state_machine'].concat(data.key.slice(2)), data.value)
+      })
+
+      await forRange({
+        prefix: ['aggregator_var', pico.id]
+      }, function (data) {
+        _.set(pico, ['aggregator_var'].concat(data.key.slice(2)), data.value)
+      })
+
       // TODO optional recursive ['pico-children', pico.id]
 
       return pico

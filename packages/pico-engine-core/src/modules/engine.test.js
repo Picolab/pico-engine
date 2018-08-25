@@ -6,6 +6,7 @@ var strictDeepEquals = require('../../test/helpers/strictEquals').strictDeepEqua
 var kengine = require('./engine')
 var ADMIN_POLICY_ID = require('../DB').ADMIN_POLICY_ID
 var mkTestPicoEngine = require('../mkTestPicoEngine')
+var testA = require('../../test/helpers/testA')
 
 // wrap stubbed functions in this to simulate async
 var tick = function (fn) {
@@ -22,17 +23,12 @@ async function runAction (pe, ctx, domain, id, args) {
   return _.head(await act(ctx, args))
 }
 
-var testPE = function (testName, genfn) {
-  test(testName, function (t) {
-    mkTestPicoEngine({
+function testPE (testName, genfn) {
+  testA(testName, async function (t) {
+    var pe = await mkTestPicoEngine({
       rootRIDs: ['io.picolabs.engine']
-    }, function (err, pe) {
-      if (err) return t.end(err);
-
-      (async function () {
-        await genfn(t, pe)
-      }()).then(t.end).catch(t.end)
     })
+    await genfn(t, pe)
   })
 }
 
@@ -638,10 +634,10 @@ testPE('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
 
 test('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptChannelMessage', function (t) {
   (async function () {
-    var pe = await (util.promisify(mkTestPicoEngine)({
+    var pe = await mkTestPicoEngine({
       rootRIDs: ['io.picolabs.engine'],
       __dont_use_sequential_ids_for_testing: true
-    }))
+    })
     var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
     var newChannel = await pe.modules.get({}, 'engine', 'newChannel')
     var signChannelMessage = await pe.modules.get({}, 'engine', 'signChannelMessage')
@@ -710,22 +706,49 @@ test('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChann
   }()).then(t.end).catch(t.end)
 })
 
-testPE('engine:exportPico', async function (t, pe) {
+testA('engine:exportPico', async function (t) {
+  var krl = `ruleset rid.export {
+    rule sum {
+      select when repeat 3 (
+        aa sum n re#(\\d+)#
+      ) sum(n)
+      send_directive("sum", {"n": n});
+    }
+    rule setvars {
+      select when aa setvars
+      always {
+        ent:one := 1;
+        ent:arr := [2, {"three": 3}];
+        ent:map := {"a": [2, 3], "b": {"c": {"d": 1}}};
+        ent:foo := {}
+      }
+    }
+  }`
+  var pe = await mkTestPicoEngine({
+    compileAndLoadRuleset: 'inline',
+    rootRIDs: ['rid.export'],
+    systemRulesets: [{
+      src: krl,
+      meta: {url: 'wat'}
+    }]
+  })
+
   var rootEci = await util.promisify(pe.getRootECI)()
   var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
   var rootPicoId = await getPicoIDByECI({}, [rootEci])
 
-  function setEnt (id, val) {
-    return pe.modules.set({
-      pico_id: rootPicoId,
-      rid: 'io.picolabs.engine'
-    }, 'ent', id, val)
+  function signalEvent (eci, dt, attrs) {
+    return pe.signalEvent({
+      eci: eci,
+      domain: dt.split('/')[0],
+      type: dt.split('/')[1],
+      attrs: attrs
+    })
   }
 
-  await setEnt('one', 1)
-  await setEnt('arr', [2, {three: 3}])
-  await setEnt('map', {a: [2, 3], b: {c: {d: 1}}})
-  await setEnt('foo', {})
+  await signalEvent(rootEci, 'aa/sum', {n: 1})
+  await signalEvent(rootEci, 'aa/sum', {n: 3})
+  await signalEvent(rootEci, 'aa/setvars')
 
   var exportPico = await pe.modules.get({}, 'engine', 'exportPico')
 
@@ -749,18 +772,31 @@ testPE('engine:exportPico', async function (t, pe) {
       }
     },
     rulesets: [
-      {src: 'ruleset io.picolabs.engine{}', hash: 'fc2e3b20af4015c17d17a222dae58b8855f165fdfe4dc8576d062b9f397bc2da', rid: 'io.picolabs.engine', url: 'http://fake-url/test-rulesets/engine.krl'}
+      {
+        src: krl,
+        hash: '5027a58b53f0a2730688621934aa86ae457c351f9a89067686f71e722701d648',
+        rid: 'rid.export',
+        url: 'wat'
+      }
     ],
     entvars: {
-      'io.picolabs.engine': {
+      'rid.export': {
         one: 1,
         arr: [2, {three: 3}],
         map: {a: [2, 3], b: {c: {d: 1}}},
         foo: {}
       }
+    },
+    state_machine: {
+      'rid.export': {
+        setvars: {state: 'end', bindings: {}},
+        sum: {state: 's1', bindings: {}}
+      }
+    },
+    aggregator_var: {
+      'rid.export': {sum: {n: ['1', '3']}}
     }
-    // TODO statemachine?
-    // TODO scheduled events?
-    // TODO children - optional
   })
+  // TODO scheduled events?
+  // TODO children - optional
 })

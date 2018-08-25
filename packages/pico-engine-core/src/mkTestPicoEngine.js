@@ -4,6 +4,7 @@ var cuid = require('cuid')
 var path = require('path')
 var memdown = require('memdown')
 var PicoEngine = require('./')
+var promiseCallback = require('./promiseCallback')
 
 var testRulesets = {}
 var testDir = path.resolve(__dirname, '../../../test-rulesets')
@@ -26,16 +27,27 @@ var systemRulesets = _.map(_.keys(testRulesets), function (rid) {
   }
 })
 
+function compileAndLoadRulesetTesting (rsInfo, callback) {
+  var rid = rsInfo.src.substring(8, rsInfo.src.length - 2)
+  var rs = testRulesets[rid]
+  callback(null, rs)
+}
+
 module.exports = function (opts, callback) {
   opts = opts || {}
+  callback = promiseCallback(callback)
+
+  var compileAndLoadRuleset = compileAndLoadRulesetTesting
+  if (opts.compileAndLoadRuleset === 'inline') {
+    compileAndLoadRuleset = null// use krl compiler
+  } else if (opts.compileAndLoadRuleset) {
+    compileAndLoadRuleset = opts.compileAndLoadRuleset
+  }
+
   var pe = PicoEngine({
     host: 'https://test-host',
     ___core_testing_mode: true,
-    compileAndLoadRuleset: opts.compileAndLoadRuleset || function (rsInfo, callback) {
-      var rid = rsInfo.src.substring(8, rsInfo.src.length - 2)
-      var rs = testRulesets[rid]
-      callback(null, rs)
-    },
+    compileAndLoadRuleset: compileAndLoadRuleset,
     rootRIDs: opts.rootRIDs,
     db: {
       db: opts.ldb || memdown(cuid()),
@@ -43,7 +55,8 @@ module.exports = function (opts, callback) {
     },
     modules: opts.modules
   })
-  pe.start(systemRulesets, function (err) {
+  pe.start(opts.systemRulesets || systemRulesets, function (err) {
     callback(err, pe)
   })
+  return callback.promise
 }

@@ -21,18 +21,8 @@ var processQuery = require('./processQuery')
 var ChannelPolicy = require('./ChannelPolicy')
 var RulesetRegistry = require('./RulesetRegistry')
 var normalizeKRLArgs = require('./normalizeKRLArgs')
-
-function promiseCallback (callback) {
-  if (!callback) {
-    var promise = new Promise(function (resolve, reject) {
-      callback = function callback (err, value) {
-        err ? reject(err) : resolve(value)
-      }
-    })
-    callback.promise = promise
-  }
-  return callback
-}
+var promiseCallback = require('./promiseCallback')
+var krlCompiler = require('krl-compiler')
 
 var applyFn = function (fn, ctx, args) {
   if (ktypes.isAction(fn)) {
@@ -51,6 +41,19 @@ var logLevels = {
   'error': true
 }
 
+function compileAndLoadRulesetInline (rsInfo, callback) {
+  var rs
+  try {
+    var jsSrc = krlCompiler(rsInfo.src, {
+      inline_source_map: true
+    }).code
+    rs = eval(jsSrc)// eslint-disable-line no-eval
+  } catch (err) {
+    return callback(err)
+  }
+  callback(null, rs)
+}
+
 module.exports = function (conf) {
   var db = DB(conf.db)
   _.each(db, function (val, key) {
@@ -60,7 +63,7 @@ module.exports = function (conf) {
   })
   var host = conf.host
   var rootRIDs = _.uniq(_.filter(conf.rootRIDs, _.isString))
-  var compileAndLoadRuleset = conf.compileAndLoadRuleset
+  var compileAndLoadRuleset = conf.compileAndLoadRuleset || compileAndLoadRulesetInline
   var compileAndLoadRulesetYieldable = util.promisify(compileAndLoadRuleset)
 
   var depGraph = new DepGraph()
