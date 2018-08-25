@@ -13,6 +13,7 @@ var migrations = require('./migrations')
 var ChannelPolicy = require('./ChannelPolicy')
 var safeJsonCodec = require('level-json-coerce-null')
 var extractRulesetID = require('./extractRulesetID')
+var engineCoreVersion = require('../package.json').version
 
 // NOTE: for now we are going to default to an allow all policy
 // This makes migrating easier while waiting for krl system rulesets to assume policy usage
@@ -676,7 +677,9 @@ module.exports = function (opts) {
     },
 
     exportPico: async function (id) {
-      var result = {}
+      var result = {
+        version: engineCoreVersion
+      }
       result.pico = await exportPico(id, result)
       return result
     },

@@ -763,6 +763,7 @@ testA('engine:exportPico', async function (t) {
     delete r.timestamp_enable
   })
   t.deepEquals(exported, {
+    version: require('../../package.json').version,
     policies: {
       'allow-all-policy': {
         name: 'admin channel policy',
