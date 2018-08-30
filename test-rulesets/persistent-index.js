@@ -43,11 +43,6 @@ module.exports = {
       "name": "setfoo",
       "select": {
         "graph": { "pindex": { "setfoo": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -68,11 +63,6 @@ module.exports = {
       "name": "putfoo",
       "select": {
         "graph": { "pindex": { "putfoo": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -98,11 +88,6 @@ module.exports = {
       "name": "delfoo",
       "select": {
         "graph": { "pindex": { "delfoo": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -127,11 +112,6 @@ module.exports = {
       "name": "nukefoo",
       "select": {
         "graph": { "pindex": { "nukefoo": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -152,11 +132,6 @@ module.exports = {
       "name": "setbar",
       "select": {
         "graph": { "pindex": { "setbar": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -177,11 +152,6 @@ module.exports = {
       "name": "putbar",
       "select": {
         "graph": { "pindex": { "putbar": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -207,11 +177,6 @@ module.exports = {
       "name": "delbar",
       "select": {
         "graph": { "pindex": { "delbar": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -236,11 +201,6 @@ module.exports = {
       "name": "nukebar",
       "select": {
         "graph": { "pindex": { "nukebar": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -261,11 +221,6 @@ module.exports = {
       "name": "putbaz",
       "select": {
         "graph": { "pindex": { "putbaz": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -292,11 +247,6 @@ module.exports = {
       "name": "setmaplist",
       "select": {
         "graph": { "pindex": { "setmaplist": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -321,11 +271,6 @@ module.exports = {
       "name": "putmaplist",
       "select": {
         "graph": { "pindex": { "putmaplist": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

@@ -11,11 +11,6 @@ module.exports = {
       "name": "reset_order",
       "select": {
         "graph": { "execution_order": { "reset_order": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -42,14 +37,6 @@ module.exports = {
           "execution_order": {
             "foo": { "expr_0": true },
             "bar": { "expr_1": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -84,11 +71,6 @@ module.exports = {
       "name": "foo",
       "select": {
         "graph": { "execution_order": { "foo": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -115,11 +97,6 @@ module.exports = {
       "name": "bar",
       "select": {
         "graph": { "execution_order": { "bar": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

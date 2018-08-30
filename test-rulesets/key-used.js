@@ -66,11 +66,6 @@ module.exports = {
       "name": "key_used_foo",
       "select": {
         "graph": { "key_used": { "foo": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

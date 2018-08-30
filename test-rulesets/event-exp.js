@@ -10,14 +10,6 @@ module.exports = {
             "b": { "expr_1": true }
           }
         },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -49,14 +41,6 @@ module.exports = {
             "b": { "expr_1": true }
           }
         },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_1",
@@ -85,23 +69,19 @@ module.exports = {
         "graph": {
           "ee_then": {
             "a": { "expr_0": true },
-            "b": { "expr_1": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("bob", "").exec(getAttrString(ctx, "name"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            return true;
+            "b": {
+              "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("bob", "").exec(getAttrString(ctx, "name"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -142,14 +122,6 @@ module.exports = {
           "ee_and": {
             "a": { "expr_0": true },
             "b": { "expr_1": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -193,14 +165,6 @@ module.exports = {
             "b": { "expr_1": true }
           }
         },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [
             [
@@ -233,17 +197,6 @@ module.exports = {
             "a": { "expr_0": true },
             "b": { "expr_1": true },
             "c": { "expr_2": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -282,17 +235,6 @@ module.exports = {
             "c": { "expr_2": true }
           }
         },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_1",
@@ -329,17 +271,6 @@ module.exports = {
             "a": { "expr_0": true },
             "b": { "expr_1": true },
             "c": { "expr_2": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -386,17 +317,6 @@ module.exports = {
             "a": { "expr_0": true },
             "b": { "expr_1": true },
             "c": { "expr_2": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -451,17 +371,6 @@ module.exports = {
             "c": { "expr_2": true }
           }
         },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -498,17 +407,6 @@ module.exports = {
             "c": { "expr_2": true }
           }
         },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_2",
@@ -543,17 +441,6 @@ module.exports = {
             "a": { "expr_0": true },
             "b": { "expr_1": true },
             "c": { "expr_2": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -608,17 +495,6 @@ module.exports = {
             "a": { "expr_0": true },
             "b": { "expr_1": true },
             "c": { "expr_2": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -714,20 +590,6 @@ module.exports = {
             "d": { "expr_3": true }
           }
         },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_3": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [
             [
@@ -769,20 +631,6 @@ module.exports = {
             "b": { "expr_1": true },
             "c": { "expr_2": true },
             "d": { "expr_3": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_3": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -877,11 +725,6 @@ module.exports = {
       "name": "count",
       "select": {
         "graph": { "ee_count": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -911,18 +754,21 @@ module.exports = {
     "repeat": {
       "name": "repeat",
       "select": {
-        "graph": { "ee_repeat": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("bob", "").exec(getAttrString(ctx, "name"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            return true;
+        "graph": {
+          "ee_repeat": {
+            "a": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("bob", "").exec(getAttrString(ctx, "name"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -958,22 +804,25 @@ module.exports = {
     "count_max": {
       "name": "count_max",
       "select": {
-        "graph": { "ee_count_max": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            await aggregateEvent(ctx, "max", [[
-                "m",
-                matches[0]
-              ]]);
-            return true;
+        "graph": {
+          "ee_count_max": {
+            "a": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                await aggregateEvent(ctx, "max", [[
+                    "m",
+                    matches[0]
+                  ]]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -1008,22 +857,25 @@ module.exports = {
     "repeat_min": {
       "name": "repeat_min",
       "select": {
-        "graph": { "ee_repeat_min": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            await aggregateEvent(ctx, "min", [[
-                "m",
-                matches[0]
-              ]]);
-            return true;
+        "graph": {
+          "ee_repeat_min": {
+            "a": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                await aggregateEvent(ctx, "min", [[
+                    "m",
+                    matches[0]
+                  ]]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -1062,22 +914,25 @@ module.exports = {
     "repeat_sum": {
       "name": "repeat_sum",
       "select": {
-        "graph": { "ee_repeat_sum": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            await aggregateEvent(ctx, "sum", [[
-                "m",
-                matches[0]
-              ]]);
-            return true;
+        "graph": {
+          "ee_repeat_sum": {
+            "a": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                await aggregateEvent(ctx, "sum", [[
+                    "m",
+                    matches[0]
+                  ]]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -1116,22 +971,25 @@ module.exports = {
     "repeat_avg": {
       "name": "repeat_avg",
       "select": {
-        "graph": { "ee_repeat_avg": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            await aggregateEvent(ctx, "avg", [[
-                "m",
-                matches[0]
-              ]]);
-            return true;
+        "graph": {
+          "ee_repeat_avg": {
+            "a": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                await aggregateEvent(ctx, "avg", [[
+                    "m",
+                    matches[0]
+                  ]]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -1170,22 +1028,25 @@ module.exports = {
     "repeat_push": {
       "name": "repeat_push",
       "select": {
-        "graph": { "ee_repeat_push": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            await aggregateEvent(ctx, "push", [[
-                "m",
-                matches[0]
-              ]]);
-            return true;
+        "graph": {
+          "ee_repeat_push": {
+            "a": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                await aggregateEvent(ctx, "push", [[
+                    "m",
+                    matches[0]
+                  ]]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -1224,41 +1085,44 @@ module.exports = {
     "repeat_push_multi": {
       "name": "repeat_push_multi",
       "select": {
-        "graph": { "ee_repeat_push_multi": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "a"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            m = new RegExp("(\\d+) (.*)", "").exec(getAttrString(ctx, "b"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            await aggregateEvent(ctx, "push", [
-              [
-                "a",
-                matches[0]
-              ],
-              [
-                "b",
-                matches[1]
-              ],
-              [
-                "c",
-                matches[2]
-              ],
-              [
-                "d",
-                matches[3]
-              ]
-            ]);
-            return true;
+        "graph": {
+          "ee_repeat_push_multi": {
+            "a": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "a"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                m = new RegExp("(\\d+) (.*)", "").exec(getAttrString(ctx, "b"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                await aggregateEvent(ctx, "push", [
+                  [
+                    "a",
+                    matches[0]
+                  ],
+                  [
+                    "b",
+                    matches[1]
+                  ],
+                  [
+                    "c",
+                    matches[2]
+                  ],
+                  [
+                    "d",
+                    matches[3]
+                  ]
+                ]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -1310,33 +1174,36 @@ module.exports = {
     "repeat_sum_multi": {
       "name": "repeat_sum_multi",
       "select": {
-        "graph": { "ee_repeat_sum_multi": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "a"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            await aggregateEvent(ctx, "sum", [
-              [
-                "a",
-                matches[0]
-              ],
-              [
-                "b",
-                matches[1]
-              ]
-            ]);
-            return true;
+        "graph": {
+          "ee_repeat_sum_multi": {
+            "a": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "a"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                m = new RegExp("(\\d+)", "").exec(getAttrString(ctx, "b"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                await aggregateEvent(ctx, "sum", [
+                  [
+                    "a",
+                    matches[0]
+                  ],
+                  [
+                    "b",
+                    matches[1]
+                  ]
+                ]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -1387,17 +1254,6 @@ module.exports = {
             }
           }
         },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [
             [
@@ -1438,17 +1294,6 @@ module.exports = {
             "b": { "expr_1": true }
           }
         },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_1",
@@ -1487,17 +1332,6 @@ module.exports = {
               "expr_1": true,
               "expr_2": true
             }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -1547,20 +1381,6 @@ module.exports = {
             },
             "b": { "expr_1": true },
             "c": { "expr_2": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_3": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {

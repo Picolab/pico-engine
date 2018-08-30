@@ -54,19 +54,22 @@ module.exports = {
     "store_memo": {
       "name": "store_memo",
       "select": {
-        "graph": { "module_defined": { "store_memo": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "memo"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("text", matches[0]);
-            return true;
+        "graph": {
+          "module_defined": {
+            "store_memo": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "memo"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("text", matches[0]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {

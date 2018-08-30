@@ -15,11 +15,6 @@ module.exports = {
       "name": "basic",
       "select": {
         "graph": { "foreach": { "basic": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -56,11 +51,6 @@ module.exports = {
       "name": "map",
       "select": {
         "graph": { "foreach": { "map": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -101,11 +91,6 @@ module.exports = {
       "name": "nested",
       "select": {
         "graph": { "foreach": { "nested": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -155,11 +140,6 @@ module.exports = {
       "name": "scope",
       "select": {
         "graph": { "foreach": { "scope": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -219,11 +199,6 @@ module.exports = {
       "name": "final",
       "select": {
         "graph": { "foreach": { "final": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -281,11 +256,6 @@ module.exports = {
       "name": "final_raised",
       "select": {
         "graph": { "foreach": { "final_raised": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -314,11 +284,6 @@ module.exports = {
       "name": "key_vs_index",
       "select": {
         "graph": { "foreach": { "key_vs_index": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

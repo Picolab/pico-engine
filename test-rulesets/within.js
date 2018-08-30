@@ -10,14 +10,6 @@ module.exports = {
             "b": { "expr_1": true }
           }
         },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -50,14 +42,6 @@ module.exports = {
           "bar": {
             "a": { "expr_0": true },
             "b": { "expr_1": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -96,17 +80,6 @@ module.exports = {
             "a": { "expr_0": true },
             "b": { "expr_1": true },
             "c": { "expr_2": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -151,18 +124,21 @@ module.exports = {
     "qux": {
       "name": "qux",
       "select": {
-        "graph": { "qux": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("c", "").exec(getAttrString(ctx, "b"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            return true;
+        "graph": {
+          "qux": {
+            "a": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("c", "").exec(getAttrString(ctx, "b"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {

@@ -19,11 +19,6 @@ module.exports = {
       "name": "clear_log",
       "select": {
         "graph": { "schedule": { "clear_log": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -49,11 +44,6 @@ module.exports = {
       "name": "push_log",
       "select": {
         "graph": { "schedule": { "push_log": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -82,11 +72,6 @@ module.exports = {
       "name": "in_5min",
       "select": {
         "graph": { "schedule": { "in_5min": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -127,11 +112,6 @@ module.exports = {
       "name": "every_1min",
       "select": {
         "graph": { "schedule": { "every_1min": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -169,11 +149,6 @@ module.exports = {
       "name": "rm_from_schedule",
       "select": {
         "graph": { "schedule": { "rm_from_schedule": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

@@ -25,12 +25,14 @@ async function evalExpr (ctx, rule, aggregator, exp, setting) {
     return r
   }
   // only run the function if the domain and type match
-  var domain = ctx.event.domain
-  var type = ctx.event.type
-  if (_.get(rule, ['select', 'graph', domain, type, exp]) !== true) {
-    return false
+  var ee = _.get(rule, ['select', 'graph', ctx.event.domain, ctx.event.type, exp])
+  if (ee === true) {
+    return true
   }
-  return runKRL(rule.select.eventexprs[exp], ctx, aggregator, getAttrString, setting)
+  if (_.isFunction(ee)) {
+    return runKRL(ee, ctx, aggregator, getAttrString, setting)
+  }
+  return false
 }
 
 async function getNextState (ctx, rule, currState, aggregator, setting) {

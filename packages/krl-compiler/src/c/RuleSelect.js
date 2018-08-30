@@ -414,34 +414,30 @@ module.exports = function (ast, comp, e) {
   }
   var eeId = 0
   var graph = {}
-  var eventexprs = {}
 
   var onEE = function (ast) {
     var domain = ast.event_domain.value
     var type = ast.event_type.value
+    var ee = comp(ast)
+
     var id = 'expr_' + (eeId++)
-
-    _.set(graph, [domain, type, id], true)
-
-    eventexprs[id] = comp(ast)
+    _.set(graph, [domain, type, id], ee)
     return id
   }
 
   var traverse = function (ast) {
-    if (ast.type === 'EventExpression') {
-      return onEE(ast)
-    } else if (ast.type === 'EventOperator') {
-      if (_.has(eventOps, ast.op)) {
+    switch (ast.type) {
+      case 'EventExpression':
+        return onEE(ast)
+      case 'EventOperator':
+      case 'EventGroupOperator':
+        if (!_.has(eventOps, ast.op)) {
+          throw new Error(ast.type + '.op not supported: ' + ast.op)
+        }
         return [ast.op].concat(eventOps[ast.op].toLispArgs(ast, traverse))
-      }
-      throw new Error('EventOperator.op not supported: ' + ast.op)
-    } else if (ast.type === 'EventGroupOperator') {
-      if (_.has(eventOps, ast.op)) {
-        return [ast.op].concat(eventOps[ast.op].toLispArgs(ast, traverse))
-      }
-      throw new Error('EventGroupOperator.op not supported: ' + ast.op)
+      default:
+        throw new Error('invalid event ast node: ' + ast.type)
     }
-    throw new Error('invalid event ast node: ' + ast.type)
   }
 
   var evalEELisp = function (lisp) {
@@ -464,8 +460,11 @@ module.exports = function (ast, comp, e) {
   var stateMachine = evalEELisp(lisp)
 
   var r = {
-    graph: e('json', graph),
-    eventexprs: e('obj', eventexprs),
+    graph: e('obj', _.mapValues(graph, function (types, domain) {
+      return e('obj', _.mapValues(types, function (exprs, type) {
+        return e('obj', exprs)
+      }))
+    })),
     state_machine: e('json', stateMachine.compile())
   }
   if (ast.within) {
