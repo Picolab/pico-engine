@@ -1442,7 +1442,14 @@ test('PicoEngine - io.picolabs.event-exp ruleset', function (t) {
         options: {
           a: 6,
           b: 9
-        }}]
+        }}],
+
+      ['ee_or_duppath', 'a', {}, '(a before a) or a'],
+      ['ee_or_duppath', 'a', {}, '(a before a) or a'],
+
+      ['ee_notbet_duppath', 'a'],
+      ['ee_notbet_duppath', 'b'],
+      ['ee_notbet_duppath', 'a', {}, 'a not between (b, a)']
 
     ], function (p) {
       var ans = []

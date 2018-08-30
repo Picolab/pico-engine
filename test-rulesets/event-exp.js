@@ -1374,6 +1374,242 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
       }
+    },
+    "or_duppath": {
+      "name": "or_duppath",
+      "select": {
+        "graph": {
+          "ee_or_duppath": {
+            "a": {
+              "expr_0": true,
+              "expr_1": true,
+              "expr_2": true
+            }
+          }
+        },
+        "eventexprs": {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          },
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          },
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "s0"
+            ],
+            [
+              "expr_2",
+              "end"
+            ]
+          ],
+          "s0": [[
+              "expr_1",
+              "end"
+            ]]
+        }
+      },
+      "body": async function (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          await runAction(ctx, void 0, "send_directive", ["(a before a) or a"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "notbet_duppath": {
+      "name": "notbet_duppath",
+      "select": {
+        "graph": {
+          "ee_notbet_duppath": {
+            "a": {
+              "expr_0": true,
+              "expr_2": true
+            },
+            "b": { "expr_1": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          },
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          },
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_1",
+              "s0"
+            ]],
+          "s0": [
+            [
+              "expr_0",
+              "start"
+            ],
+            [
+              "expr_2",
+              "end"
+            ]
+          ]
+        }
+      },
+      "body": async function (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          await runAction(ctx, void 0, "send_directive", ["a not between (b, a)"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "ab_or_b": {
+      "name": "ab_or_b",
+      "select": {
+        "graph": {
+          "ee_ab_or_ca": {
+            "a": { "expr_0": true },
+            "b": {
+              "expr_1": true,
+              "expr_2": true
+            }
+          }
+        },
+        "eventexprs": {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          },
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          },
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "s0"
+            ],
+            [
+              "expr_1",
+              "s1"
+            ],
+            [
+              "expr_2",
+              "end"
+            ]
+          ],
+          "s0": [[
+              "expr_1",
+              "end"
+            ]],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": async function (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          await runAction(ctx, void 0, "send_directive", ["(a and b) or b"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "ab_or_ca": {
+      "name": "ab_or_ca",
+      "select": {
+        "graph": {
+          "ee_ab_or_ca": {
+            "a": {
+              "expr_0": true,
+              "expr_3": true
+            },
+            "b": { "expr_1": true },
+            "c": { "expr_2": true }
+          }
+        },
+        "eventexprs": {
+          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          },
+          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          },
+          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          },
+          "expr_3": async function (ctx, aggregateEvent, getAttrString, setting) {
+            return true;
+          }
+        },
+        "state_machine": {
+          "start": [
+            [
+              "expr_0",
+              "s0"
+            ],
+            [
+              "expr_1",
+              "s1"
+            ],
+            [
+              "expr_2",
+              "s2"
+            ],
+            [
+              "expr_3",
+              "s3"
+            ]
+          ],
+          "s0": [[
+              "expr_1",
+              "end"
+            ]],
+          "s1": [[
+              "expr_0",
+              "end"
+            ]],
+          "s2": [[
+              "expr_3",
+              "end"
+            ]],
+          "s3": [[
+              "expr_2",
+              "end"
+            ]]
+        }
+      },
+      "body": async function (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          await runAction(ctx, void 0, "send_directive", ["(a and b) or (c and a)"], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
     }
   }
 };

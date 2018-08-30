@@ -36,13 +36,21 @@ async function evalExpr (ctx, rule, aggregator, exp, setting) {
 async function getNextState (ctx, rule, currState, aggregator, setting) {
   var stm = rule.select.state_machine[currState]
 
+  var matches = []
   var i
   for (i = 0; i < stm.length; i++) {
     if (await evalExpr(ctx, rule, aggregator, stm[i][0], setting)) {
       // found a match
-      return stm[i][1]
+      matches.push(stm[i][1])
     }
   }
+  if (_.includes(matches, 'end')) {
+    return 'end'
+  }
+  if (matches.length > 0) {
+    return matches[0]
+  }
+
   if (currState === 'end') {
     return 'start'
   }
