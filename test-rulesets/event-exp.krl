@@ -214,8 +214,8 @@ ruleset io.picolabs.event-exp {
         send_directive("a not between (b, a)");
     }
     rule ab_or_b {
-        select when (ee_ab_or_ca a and ee_ab_or_ca b)
-                 or  ee_ab_or_ca b
+        select when (ee_ab_or_b a and ee_ab_or_b b)
+                 or  ee_ab_or_b b
 
         send_directive("(a and b) or b");
     }

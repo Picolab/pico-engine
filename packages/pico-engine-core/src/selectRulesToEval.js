@@ -36,23 +36,35 @@ async function evalExpr (ctx, rule, aggregator, exp, setting) {
 }
 
 async function getNextState (ctx, rule, currState, aggregator, setting) {
-  var stm = rule.select.state_machine[currState]
-
-  var matches = []
-  var i
-  for (i = 0; i < stm.length; i++) {
-    if (await evalExpr(ctx, rule, aggregator, stm[i][0], setting)) {
-      // found a match
-      matches.push(stm[i][1])
+  currState = _.flattenDeep([currState])
+  let matches = []
+  // run every event expression that can match, and collect a unique list of next states
+  for (let cstate of currState) {
+    let transitions = rule.select.state_machine[cstate]
+    for (let transition of transitions) {
+      let expr = transition[0]
+      let state = transition[1]
+      if (await evalExpr(ctx, rule, aggregator, expr, setting)) {
+        // found a match
+        if (matches.indexOf(state) < 0) {
+          matches.push(state)
+        }
+      }
     }
   }
   if (_.includes(matches, 'end')) {
     return 'end'
   }
-  if (matches.length > 0) {
+  if (matches.length === 1) {
     return matches[0]
   }
-
+  if (matches.length > 1) {
+    // This can happen when two or more expressions match and reach different states. We want to "join" them at runtime
+    return matches
+  }
+  if (currState.length === 1) {
+    currState = currState[0]
+  }
   if (currState === 'end') {
     return 'start'
   }

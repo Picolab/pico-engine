@@ -1326,7 +1326,7 @@ module.exports = {
       "name": "ab_or_b",
       "select": {
         "graph": {
-          "ee_ab_or_ca": {
+          "ee_ab_or_b": {
             "a": { "expr_0": true },
             "b": {
               "expr_1": true,

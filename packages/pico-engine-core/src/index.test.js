@@ -1449,7 +1449,18 @@ test('PicoEngine - io.picolabs.event-exp ruleset', function (t) {
 
       ['ee_notbet_duppath', 'a'],
       ['ee_notbet_duppath', 'b'],
-      ['ee_notbet_duppath', 'a', {}, 'a not between (b, a)']
+      ['ee_notbet_duppath', 'a', {}, 'a not between (b, a)'],
+
+      ['ee_ab_or_b', 'b', {}, '(a and b) or b'],
+      ['ee_ab_or_b', 'a'],
+      ['ee_ab_or_b', 'b', {}, '(a and b) or b'],
+      ['ee_ab_or_b', 'b', {}, '(a and b) or b'],
+      ['ee_ab_or_b', 'a'],
+
+      ['ee_ab_or_ca', 'a'],
+      ['ee_ab_or_ca', 'c', {}, '(a and b) or (c and a)'],
+      ['ee_ab_or_ca', 'a'],
+      ['ee_ab_or_ca', 'b', {}, '(a and b) or (c and a)']
 
     ], function (p) {
       var ans = []

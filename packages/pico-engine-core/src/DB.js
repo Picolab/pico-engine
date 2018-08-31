@@ -768,9 +768,18 @@ module.exports = function (opts) {
         if (err && !err.notFound) {
           return callback(err)
         }
-        callback(null, _.has(rule.select.state_machine, data && data.state)
-          ? data
-          : {state: 'start'})
+        data = data || {}
+        var states = _.filter(_.flattenDeep([data.state]), function (state) {
+          return _.has(rule.select.state_machine, state)
+        })
+        if (states.length === 0) {
+          data.state = 'start'
+        } else if (states.length === 1) {
+          data.state = states[0]
+        } else {
+          data.state = states
+        }
+        callback(null, data)
       })
     },
     putStateMachine: function (picoId, rule, data, callback) {
