@@ -52,40 +52,37 @@ var StateMachine = function () {
     },
     join: join,
     optimize: function () {
-      var toTarget = function (subTree) {
-        return _.uniqWith(_.compact(_.map(subTree, function (o) {
-          var targets = _.keys(o)
-          if (_.size(targets) > 1) {
-            targets.sort()
-            return targets
-          }
-        })), _.isEqual)
-      }
-
-      var tree, toMerge
-      // eslint-disable-next-line no-constant-condition
+      // Find all cases where the same event goes to different states and join those states into one
       while (true) {
-        tree = {}
+        let toJoin = []
+        let groupped = {}
         _.each(transitions, function (t) {
-          _.set(tree, [JSON.stringify(t[1]), t[0], t[2]], true)
+          var key = t[0] + JSON.stringify(t[1])// stringify b/c ["not","expr_1"]
+          var state = t[2]
+          if (_.has(groupped, key)) {
+            if (state !== groupped[key]) {
+              toJoin.push([state, groupped[key]])
+            }
+          } else {
+            groupped[key] = state
+          }
         })
-        toMerge = _.flatten(_.map(tree, function (subTree) {
-          return _.uniqWith(toTarget(subTree), _.isEqual)
-        }))
-        if (_.isEmpty(toMerge)) {
+        if (toJoin.length === 0) {
           break
         }
-        _.each(toMerge, function (states) {
-          var toState = _.head(states)
-          _.each(_.tail(states), function (fromState) {
-            join(fromState, toState)
-          })
+        toJoin.forEach(function (j) {
+          join(j[0], j[1])
         })
       }
+      // Remove duplicate transitions
+      let tree = {}
+      _.each(transitions, function (t) {
+        _.set(tree, [JSON.stringify(t[1]), t[0], t[2]], true)
+      })
       transitions = []
-      _.each(tree, function (subTree, onEvent) {
-        _.each(subTree, function (asdf, fromState) {
-          _.each(asdf, function (bool, toState) {
+      _.each(tree, function (froms, onEvent) {
+        _.each(froms, function (tos, fromState) {
+          _.each(tos, function (bool, toState) {
             transitions.push([fromState, JSON.parse(onEvent), toState])
           })
         })
@@ -110,10 +107,10 @@ var StateMachine = function () {
       }), function (t) {
         var score = 0
         if (t[0] === 'start') {
-          score -= 1000
+          score -= Infinity
         }
         if (t[0] === 'end') {
-          score += 1000
+          score += Infinity
         }
         if (/^s[0-9]+$/.test(t[0])) {
           score += _.parseInt(t[0].substring(1), 10) || 0
