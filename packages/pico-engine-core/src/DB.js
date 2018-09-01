@@ -61,10 +61,10 @@ var putPVar = function (ldb, keyPrefix, query, val, callback) {
         // this `value` helps _.set in the toObj db dump set the right type
         value: type === 'Array' ? [] : {}
       }
-      ops.push({type: 'put', key: keyPrefix, value: root})
+      ops.push({ type: 'put', key: keyPrefix, value: root })
 
       if (_.isEmpty(subPath)) {
-        ops.push({type: 'put', key: subkeyPrefix, value: val})
+        ops.push({ type: 'put', key: subkeyPrefix, value: val })
         ldb.batch(ops, callback)
         return
       }
@@ -76,7 +76,7 @@ var putPVar = function (ldb, keyPrefix, query, val, callback) {
           return
         }
         data = _.set(data, subPath, val)
-        ops.push({type: 'put', key: subkeyPrefix, value: data})
+        ops.push({ type: 'put', key: subkeyPrefix, value: data })
         ldb.batch(ops, callback)
       })
     })
@@ -92,7 +92,7 @@ var putPVar = function (ldb, keyPrefix, query, val, callback) {
       prefix: keyPrefix,
       values: false
     }, function (key) {
-      ops.push({type: 'del', key: key})
+      ops.push({ type: 'del', key: key })
     }, function (err) {
       if (err) return callback(err)
       var root = {
@@ -201,7 +201,7 @@ var delPVar = function (ldb, keyPrefix, query, callback) {
     prefix: keyPrefix,
     values: false
   }, function (key) {
-    dbOps.push({type: 'del', key: key})
+    dbOps.push({ type: 'del', key: key })
   }, function (err) {
     if (err) return callback(err)
     ldb.batch(dbOps, callback)
@@ -510,22 +510,22 @@ module.exports = function (opts) {
 
       async.series([
         keyRange(['pico', id], function (key) {
-          dbOps.push({type: 'del', key: key})
+          dbOps.push({ type: 'del', key: key })
         }),
         keyRange(['pico-eci-list', id], function (key) {
           var eci = key[2]
-          dbOps.push({type: 'del', key: key})
-          dbOps.push({type: 'del', key: ['channel', eci]})
+          dbOps.push({ type: 'del', key: key })
+          dbOps.push({ type: 'del', key: ['channel', eci] })
         }),
         keyRange(['entvars', id], function (key) {
-          dbOps.push({type: 'del', key: key})
+          dbOps.push({ type: 'del', key: key })
         }),
         keyRange(['pico-ruleset', id], function (key) {
-          dbOps.push({type: 'del', key: key})
-          dbOps.push({type: 'del', key: ['ruleset-pico', key[2], key[1]]})
+          dbOps.push({ type: 'del', key: key })
+          dbOps.push({ type: 'del', key: ['ruleset-pico', key[2], key[1]] })
         }),
         keyRange(['pico-children', id], function (key) {
-          dbOps.push({type: 'del', key: key})
+          dbOps.push({ type: 'del', key: key })
         }),
         function (next) {
           ldb.get(['pico', id], function (err, pico) {
@@ -536,14 +536,14 @@ module.exports = function (opts) {
             if (err) return next(err)
             if (pico.parent_id) {
               keyRange(['pico-children', pico.parent_id, id], function (key) {
-                dbOps.push({type: 'del', key: key})
+                dbOps.push({ type: 'del', key: key })
               })(next)
               return
             }
             ldb.get(['root_pico'], function (err, data) {
               if (err) return next(err)
               if (data.id === id) {
-                dbOps.push({type: 'del', key: ['root_pico']})
+                dbOps.push({ type: 'del', key: ['root_pico'] })
               }
               next()
             })
@@ -591,14 +591,14 @@ module.exports = function (opts) {
     },
     removeRulesetFromPico: function (picoId, rid, callback) {
       var dbOps = [
-        {type: 'del', key: ['pico-ruleset', picoId, rid]},
-        {type: 'del', key: ['ruleset-pico', rid, picoId]}
+        { type: 'del', key: ['pico-ruleset', picoId, rid] },
+        { type: 'del', key: ['ruleset-pico', rid, picoId] }
       ]
       dbRange(ldb, {
         prefix: ['entvars', picoId, rid],
         values: false
       }, function (key) {
-        dbOps.push({type: 'del', key: key})
+        dbOps.push({ type: 'del', key: key })
       }, function (err) {
         if (err) return callback(err)
         ldb.batch(dbOps, callback)
@@ -644,8 +644,8 @@ module.exports = function (opts) {
             return
           }
           var dbOps = [
-            {type: 'del', key: ['channel', eci]},
-            {type: 'del', key: ['pico-eci-list', pico.id, eci]}
+            { type: 'del', key: ['channel', eci] },
+            { type: 'del', key: ['pico-eci-list', pico.id, eci] }
           ]
           ldb.batch(dbOps, callback)
         })
@@ -992,7 +992,7 @@ module.exports = function (opts) {
             if (err) return callback(err)
 
             ldb.batch(_.map(toDel, function (key) {
-              return {type: 'del', key: key}
+              return { type: 'del', key: key }
             }), callback)
           })
         })
@@ -1013,8 +1013,8 @@ module.exports = function (opts) {
       }
 
       ldb.batch([
-        {type: 'put', key: ['scheduled', id], value: val},
-        {type: 'put', key: ['scheduled_by_at', at, id], value: val}
+        { type: 'put', key: ['scheduled', id], value: val },
+        { type: 'put', key: ['scheduled_by_at', at, id], value: val }
       ], function (err) {
         if (err) return callback(err)
 
@@ -1038,8 +1038,8 @@ module.exports = function (opts) {
     },
     removeScheduleEventAt: function (id, at, callback) {
       ldb.batch([
-        {type: 'del', key: ['scheduled', id]},
-        {type: 'del', key: ['scheduled_by_at', at, id]}
+        { type: 'del', key: ['scheduled', id] },
+        { type: 'del', key: ['scheduled_by_at', at, id] }
       ], callback)
     },
     scheduleEventRepeat: function (timespec, event, callback) {
@@ -1052,7 +1052,7 @@ module.exports = function (opts) {
       }
 
       ldb.batch([
-        {type: 'put', key: ['scheduled', id], value: val}
+        { type: 'put', key: ['scheduled', id], value: val }
       ], function (err) {
         if (err) return callback(err)
 
@@ -1075,11 +1075,11 @@ module.exports = function (opts) {
         if (err) return callback(err)
 
         var dbOps = [
-          {type: 'del', key: ['scheduled', id]}
+          { type: 'del', key: ['scheduled', id] }
         ]
         if (_.has(info, 'at')) {
           // also remove the `at` index
-          dbOps.push({type: 'del', key: ['scheduled_by_at', new Date(info.at), id]})
+          dbOps.push({ type: 'del', key: ['scheduled_by_at', new Date(info.at), id] })
         }
 
         ldb.batch(dbOps, callback)

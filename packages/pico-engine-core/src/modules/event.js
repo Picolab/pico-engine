@@ -33,7 +33,7 @@ module.exports = function (core) {
         request({
           method: 'POST',
           url: url,
-          headers: {'content-type': 'application/json'},
+          headers: { 'content-type': 'application/json' },
           body: ktypes.encode(event.attrs)
         }, function (err, res, body) {
           if (err) {

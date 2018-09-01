@@ -115,7 +115,7 @@ test('infix operators', function (t) {
   tf('-', ['4', '1'], 3)
   tfe('-', ['two', 1], 'TypeError')
   tf('-', [[], '-1'], 1)
-  tf('-', [{a: 1, b: 1, c: 1}, [1]], 2, 'map.length() - array.length()')
+  tf('-', [{ a: 1, b: 1, c: 1 }, [1]], 2, 'map.length() - array.length()')
 
   tf('==', [null, NaN], true)
   tf('==', [NaN, void 0], true)
@@ -127,8 +127,8 @@ test('infix operators', function (t) {
   tf('==', [0, NaN], false)
   tf('==', [false, null], false)
   tf('==', [true, 1], false)
-  tf('==', [{a: ['b']}, {a: ['b']}], true)
-  tf('==', [{a: ['b']}, {a: ['c']}], false)
+  tf('==', [{ a: ['b'] }, { a: ['b'] }], true)
+  tf('==', [{ a: ['b'] }, { a: ['c'] }], false)
 
   tf('*', [5, 2], 10)
   tfe('*', ['two', 1], 'TypeError')
@@ -170,8 +170,8 @@ test('infix operators', function (t) {
   tf('<=>', ['20', '3'], 1, 'parse numbers then compare')
   tf('<=>', ['.2', 0.02], 1, 'parse numbers then compare')
   tf('<=>', [['a', 'b'], 2], 0, '.length() of arrays')
-  tf('<=>', [{' ': -0.5}, 1], 0, '.length() of maps')
-  tf('<=>', [[1, 2, 3], {a: 'b', z: 'y', c: 'd'}], 0, 'compare the .length() of each')
+  tf('<=>', [{ ' ': -0.5 }, 1], 0, '.length() of maps')
+  tf('<=>', [[1, 2, 3], { a: 'b', z: 'y', c: 'd' }], 0, 'compare the .length() of each')
 
   tf('<=>', [_.noop, '[Function]'], 0, 'Functions drop down to string compare')
   tf('<=>', [action, '[Action]'], 0, 'Actions drop down to string compare')
@@ -199,7 +199,7 @@ test('infix operators', function (t) {
   tf('cmp', ['5', '10'], 1)
   tf('cmp', [5, '5'], 0)
   tf('cmp', ['10', 5], -1)
-  tf('cmp', [{'': -0.5}, {' ': 0.5}], 0)
+  tf('cmp', [{ '': -0.5 }, { ' ': 0.5 }], 0)
   tf('cmp', [[], [['']]], 0)
   tf('cmp', [null, 0], 1)
   tf('cmp', [20, 3], -1, 'cmp always converts to string then compares')
@@ -235,7 +235,7 @@ test('type operators', function (t) {
   tf('as', ['foo', 'Number'], null)
   tf('as', [{}, 'Number'], 0)
   tf('as', [[1, 2], 'Number'], 2)
-  tf('as', [{a: 'b', z: 'y', c: 'd'}, 'Number'], 3)
+  tf('as', [{ a: 'b', z: 'y', c: 'd' }, 'Number'], 3)
   tf('as', ['', 'Number'], 0)
   tf('as', ['2018-03-07', 'Number'], null)
   tf('as', ['2018-03-07', 'Number'], null)
@@ -304,7 +304,7 @@ test('type operators', function (t) {
   t.is(types.isMap(new Number(10)), false)// eslint-disable-line
 
   t.is(types.isMap({}), true)
-  t.is(types.isMap({a: 1, b: 2}), true)
+  t.is(types.isMap({ a: 1, b: 2 }), true)
   t.is(types.isMap(arguments), true)
 
   t.is(stdlib['typeof'](defaultCTX, action), 'Action')
@@ -460,16 +460,16 @@ test('collection operators', async function (t) {
   var obj = {
     'colors': 'many',
     'pi': [3, 1, 4, 1, 5, 9, 3],
-    'foo': {'bar': {'10': 'I like cheese'}}
+    'foo': { 'bar': { '10': 'I like cheese' } }
   }
-  var obj2 = {'a': 1, 'b': 2, 'c': 3}
+  var obj2 = { 'a': 1, 'b': 2, 'c': 3 }
   var assertObjNotMutated = function () {
     t.deepEqual(obj, {
       'colors': 'many',
       'pi': [3, 1, 4, 1, 5, 9, 3],
-      'foo': {'bar': {'10': 'I like cheese'}}
+      'foo': { 'bar': { '10': 'I like cheese' } }
     }, 'should not be mutated')
-    t.deepEqual(obj2, {'a': 1, 'b': 2, 'c': 3}, 'should not be mutated')
+    t.deepEqual(obj2, { 'a': 1, 'b': 2, 'c': 3 }, 'should not be mutated')
   }
 
   var fnDontCall = function () {
@@ -541,7 +541,7 @@ test('collection operators', async function (t) {
     'x': [4, 3, 2, 1],
     'y': [7, 5, 6]
   })
-  await ytf('collect', [null, collectFn], {'x': [null]})
+  await ytf('collect', [null, collectFn], { 'x': [null] })
   await ytf('collect', [[], fnDontCall], {})
   await ytf('collect', [[7]], {})
   await ytf('collect', [[7], action], {})
@@ -553,8 +553,8 @@ test('collection operators', async function (t) {
   await ytf('filter', [b, function (x) { return stdlib.isnull({}, x) }], [null])
   await ytf('filter', [c, fnDontCall], [])
   t.deepEqual(c, [], 'should not be mutated')
-  await ytf('filter', [obj2, function (v, k) { return v < 3 }], {'a': 1, 'b': 2})
-  await ytf('filter', [obj2, function (v, k) { return k === 'b' }], {'b': 2})
+  await ytf('filter', [obj2, function (v, k) { return v < 3 }], { 'a': 1, 'b': 2 })
+  await ytf('filter', [obj2, function (v, k) { return k === 'b' }], { 'b': 2 })
   assertObjNotMutated()
   await ytf('filter', [b, action], null)
 
@@ -562,7 +562,7 @@ test('collection operators', async function (t) {
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
   tf('head', [[null, {}]], null)
   tf('head', ['string'], 'string')
-  tf('head', [{'0': null}], {'0': null})
+  tf('head', [{ '0': null }], { '0': null })
   tf('head', [[]], void 0)
 
   tf('tail', [a], [4, 5])
@@ -605,7 +605,7 @@ test('collection operators', async function (t) {
   tf('isEmpty', [[]], true)
   tf('isEmpty', [[1, 2]], false)
   tf('isEmpty', [{}], true)
-  tf('isEmpty', [{a: 1}], false)
+  tf('isEmpty', [{ a: 1 }], false)
   tf('isEmpty', [''], true)
   tf('isEmpty', [' '], false)
   tf('isEmpty', [function (a, b) {}], true)
@@ -621,7 +621,7 @@ test('collection operators', async function (t) {
   await ytf('map', ['012', function (x) { return x + '1' }], ['0121'], 'KRL strings are not arrays')
 
   await ytf('map', [{}, fnDontCall], {})
-  await ytf('map', [obj2, function (v, k) { return v + k }], {'a': '1a', 'b': '2b', 'c': '3c'})
+  await ytf('map', [obj2, function (v, k) { return v + k }], { 'a': '1a', 'b': '2b', 'c': '3c' })
   assertObjNotMutated()
 
   await ytf('pairwise', [[a, [6, 7, 8]], function (x, y) { return x + y }], [9, 11, 13])
@@ -664,7 +664,7 @@ test('collection operators', async function (t) {
   tf('slice', [veggies, 0, 0], ['corn'])
   tf('slice', [veggies, null, NaN], ['corn'])
   tf('slice', [[], 0, 0], [])
-  tf('slice', [{'0': '0'}, 0, 0], [{'0': '0'}])
+  tf('slice', [{ '0': '0' }, 0, 0], [{ '0': '0' }])
   tfe('slice', [veggies, _.noop], 'TypeError')
   tfe('slice', [veggies, 1, _.noop], 'TypeError')
   tfe('slice', [veggies, -1, _.noop], 'TypeError')
@@ -726,12 +726,12 @@ test('collection operators', async function (t) {
   tf('delete', [obj, ['foo', 'bar', 10]], {
     'colors': 'many',
     'pi': [3, 1, 4, 1, 5, 9, 3],
-    'foo': {'bar': {}}
+    'foo': { 'bar': {} }
   })
   assertObjNotMutated()
-  tf('delete', [{'0': void 0}, '1'], {'0': void 0})
+  tf('delete', [{ '0': void 0 }, '1'], { '0': void 0 })
 
-  tf('encode', [{blah: 1}], '{"blah":1}')
+  tf('encode', [{ blah: 1 }], '{"blah":1}')
   tf('encode', [[1, 2]], '[1,2]')
   tf('encode', [12], '12')
   tf('encode', ['12'], '"12"')
@@ -746,30 +746,30 @@ test('collection operators', async function (t) {
     tf('encode', [arguments], '{"0":"a","1":"b"}')
   }('a', 'b'))
   // testing it nested
-  tf('encode', [{fn: _.noop, n: NaN, u: void 0}], '{"fn":"[Function]","n":null,"u":null}')
+  tf('encode', [{ fn: _.noop, n: NaN, u: void 0 }], '{"fn":"[Function]","n":null,"u":null}')
 
   // testing indent options
-  tf('encode', [{a: 1, b: 2}, 0], '{"a":1,"b":2}')
-  tf('encode', [{a: 1, b: 2}, 4], '{\n    "a": 1,\n    "b": 2\n}')
-  tf('encode', [{a: 1, b: 2}, '2'], '{\n  "a": 1,\n  "b": 2\n}')
-  tf('encode', [{a: 1, b: 2}, null], '{"a":1,"b":2}', 'default indent to 0')
-  tf('encode', [{a: 1, b: 2}, arguments], '{"a":1,"b":2}', 'default indent to 0')
-  tf('encode', [{a: 1, b: 2}, _.noop], '{"a":1,"b":2}', 'default indent to 0')
+  tf('encode', [{ a: 1, b: 2 }, 0], '{"a":1,"b":2}')
+  tf('encode', [{ a: 1, b: 2 }, 4], '{\n    "a": 1,\n    "b": 2\n}')
+  tf('encode', [{ a: 1, b: 2 }, '2'], '{\n  "a": 1,\n  "b": 2\n}')
+  tf('encode', [{ a: 1, b: 2 }, null], '{"a":1,"b":2}', 'default indent to 0')
+  tf('encode', [{ a: 1, b: 2 }, arguments], '{"a":1,"b":2}', 'default indent to 0')
+  tf('encode', [{ a: 1, b: 2 }, _.noop], '{"a":1,"b":2}', 'default indent to 0')
 
   tf('keys', [obj], ['colors', 'pi', 'foo'])
   tf('keys', [obj, ['foo', 'bar']], ['10'])
   tf('keys', [obj, ['pi']], ['0', '1', '2', '3', '4', '5', '6'])
   tf('keys', [obj, ['foo', 'not']], [], 'bad path')
   assertObjNotMutated()
-  tf('keys', [['wat', {da: 'heck'}]], ['0', '1'])
+  tf('keys', [['wat', { da: 'heck' }]], ['0', '1'])
   tf('keys', [null], [], 'not a map or array')
   tf('keys', [_.noop], [], 'not a map or array')
-  tf('keys', [{a: 'b'}, 'not-found'], [], 'bad path')
+  tf('keys', [{ a: 'b' }, 'not-found'], [], 'bad path')
 
   tf('values', [obj], [
     'many',
     [3, 1, 4, 1, 5, 9, 3],
-    {'bar': {'10': 'I like cheese'}}
+    { 'bar': { '10': 'I like cheese' } }
   ])
   tf('values', [obj, ['foo', 'bar']], ['I like cheese'])
   tf('values', [obj, ['pi']], [3, 1, 4, 1, 5, 9, 3])
@@ -779,20 +779,20 @@ test('collection operators', async function (t) {
   tf('values', [void 0], [], 'not a map or array')
   tf('values', [_.noop], [], 'not a map or array')
 
-  tf('put', [{key: 5}, {foo: 'bar'}], {key: 5, foo: 'bar'})
-  tf('put', [{key: 5}, [], {foo: 'bar'}], {key: 5, foo: 'bar'})
-  tf('put', [{key: 5}, ['baz'], {foo: 'bar'}], {key: 5, baz: {foo: 'bar'}})
-  tf('put', [{key: 5}, ['qux'], 'wat?'], {key: 5, qux: 'wat?'})
-  tf('put', [{key: 5}, [null], 'wat?'], {key: 5, 'null': 'wat?'})
-  tf('put', [{key: 5}, [void 0], 'wat?'], {key: 5, 'null': 'wat?'})
-  tf('put', [{key: 5}, [void 0], 'wat?'], {key: 5, 'null': 'wat?'})
-  tf('put', [{key: 5}, [NaN], 'wat?'], {key: 5, 'null': 'wat?'})
-  tf('put', [{key: 5}, [_.noop], 'wat?'], {key: 5, '[Function]': 'wat?'})
+  tf('put', [{ key: 5 }, { foo: 'bar' }], { key: 5, foo: 'bar' })
+  tf('put', [{ key: 5 }, [], { foo: 'bar' }], { key: 5, foo: 'bar' })
+  tf('put', [{ key: 5 }, ['baz'], { foo: 'bar' }], { key: 5, baz: { foo: 'bar' } })
+  tf('put', [{ key: 5 }, ['qux'], 'wat?'], { key: 5, qux: 'wat?' })
+  tf('put', [{ key: 5 }, [null], 'wat?'], { key: 5, 'null': 'wat?' })
+  tf('put', [{ key: 5 }, [void 0], 'wat?'], { key: 5, 'null': 'wat?' })
+  tf('put', [{ key: 5 }, [void 0], 'wat?'], { key: 5, 'null': 'wat?' })
+  tf('put', [{ key: 5 }, [NaN], 'wat?'], { key: 5, 'null': 'wat?' })
+  tf('put', [{ key: 5 }, [_.noop], 'wat?'], { key: 5, '[Function]': 'wat?' })
 
-  tf('put', [obj, ['foo'], {baz: 'qux'}], {
+  tf('put', [obj, ['foo'], { baz: 'qux' }], {
     'colors': 'many',
     'pi': [3, 1, 4, 1, 5, 9, 3],
-    'foo': {'baz': 'qux'}
+    'foo': { 'baz': 'qux' }
   }, 'overwrite at the path, even if to_set and curr val are both maps')
   tf('put', [obj, ['foo', 'bar', 11], 'wat?'], {
     'colors': 'many',
@@ -808,26 +808,26 @@ test('collection operators', async function (t) {
     'colors': 'many',
     'pi': [3, 1, 4, 1, 5, 9, 3],
     'foo': {
-      'bar': {'10': 'no cheese'}
+      'bar': { '10': 'no cheese' }
     }
   })
-  tf('put', [obj, {flop: 12}], {
+  tf('put', [obj, { flop: 12 }], {
     'colors': 'many',
     'pi': [3, 1, 4, 1, 5, 9, 3],
-    'foo': {'bar': {'10': 'I like cheese'}},
+    'foo': { 'bar': { '10': 'I like cheese' } },
     'flop': 12
   })
   assertObjNotMutated()
-  tf('put', [{}, ['key1'], 'value2'], {key1: 'value2'})
-  tf('put', [{}, [], {key2: 'value3'}], {key2: 'value3'})
-  tf('put', [{key: 5}, 'foo', {key2: 'value3'}], {key: 5, 'foo': {key2: 'value3'}})
-  tf('put', [{key: 5}, 'key', 7], {key: 7})
-  tf('put', [{key: 5}, ['key'], 9], {key: 9})
+  tf('put', [{}, ['key1'], 'value2'], { key1: 'value2' })
+  tf('put', [{}, [], { key2: 'value3' }], { key2: 'value3' })
+  tf('put', [{ key: 5 }, 'foo', { key2: 'value3' }], { key: 5, 'foo': { key2: 'value3' } })
+  tf('put', [{ key: 5 }, 'key', 7], { key: 7 })
+  tf('put', [{ key: 5 }, ['key'], 9], { key: 9 })
 
   tf('put', [5, ['key'], 9], 5, 'if val is not a Map or Array, return the val')
   tf('put', ['wat', ['key'], 9], 'wat', 'if val is not a Map or Array, return the val')
   tf('put', [null, ['key'], 9], null, 'if val is not a Map or Array, return the val')
-  tf('put', [{a: null, b: void 0}], {a: null, b: void 0}, 'if no arguments, return the val')
+  tf('put', [{ a: null, b: void 0 }], { a: null, b: void 0 }, 'if no arguments, return the val')
 
   t.is(
     JSON.stringify(stdlib['put'](defaultCTX, {}, ['0', '0'], 'foo')),
@@ -875,37 +875,37 @@ test('collection operators', async function (t) {
     'preserve type of to_set'
   )
   t.is(
-    JSON.stringify(stdlib['put'](defaultCTX, [{foo: 1}, {bar: 2}], [1, 'bar', 'baz'], 4)),
+    JSON.stringify(stdlib['put'](defaultCTX, [{ foo: 1 }, { bar: 2 }], [1, 'bar', 'baz'], 4)),
     '[{"foo":1},{"bar":{"baz":4}}]'
   )
 
   t.is(
-    JSON.stringify(stdlib['put'](defaultCTX, {one: [2, 3]}, ['one', 1], 4)),
+    JSON.stringify(stdlib['put'](defaultCTX, { one: [2, 3] }, ['one', 1], 4)),
     '{"one":[2,4]}',
     'number index'
   )
   t.is(
-    JSON.stringify(stdlib['put'](defaultCTX, {one: [2, 3]}, ['one', '1'], 4)),
+    JSON.stringify(stdlib['put'](defaultCTX, { one: [2, 3] }, ['one', '1'], 4)),
     '{"one":[2,4]}',
     'Array index can be a string'
   )
   t.is(
-    JSON.stringify(stdlib['put'](defaultCTX, {one: [2, 3]}, ['one', '2'], 4)),
+    JSON.stringify(stdlib['put'](defaultCTX, { one: [2, 3] }, ['one', '2'], 4)),
     '{"one":[2,3,4]}',
     'Array index at the end'
   )
   t.is(
-    JSON.stringify(stdlib['put'](defaultCTX, {one: [2, 3]}, ['one', '3'], 4)),
+    JSON.stringify(stdlib['put'](defaultCTX, { one: [2, 3] }, ['one', '3'], 4)),
     '{"one":{"0":2,"1":3,"3":4}}',
     'convert Array to Map if sparse array is attempted'
   )
   t.is(
-    JSON.stringify(stdlib['put'](defaultCTX, {one: [2, 3]}, ['one', 'foo'], 4)),
+    JSON.stringify(stdlib['put'](defaultCTX, { one: [2, 3] }, ['one', 'foo'], 4)),
     '{"one":{"0":2,"1":3,"foo":4}}',
     'convert Array to Map if non-index path is given'
   )
   t.is(
-    JSON.stringify(stdlib['put'](defaultCTX, {one: [2, 3]}, ['one', 'foo', '0'], 4)),
+    JSON.stringify(stdlib['put'](defaultCTX, { one: [2, 3] }, ['one', 'foo', '0'], 4)),
     '{"one":{"0":2,"1":3,"foo":{"0":4}}}',
     'convert Array to Map if non-index path is given'
   )
@@ -914,14 +914,14 @@ test('collection operators', async function (t) {
   tf('get', [obj, 'colors'], 'many')
   tf('get', [obj, ['pi', 2]], 4)
   assertObjNotMutated()
-  tf('get', [['a', 'b', {'c': ['d', 'e']}], [2, 'c', 1]], 'e', 'get works on arrays and objects equally')
-  tf('get', [['a', 'b', {'c': ['d', 'e']}], ['2', 'c', '1']], 'e', 'array indices can be strings')
+  tf('get', [['a', 'b', { 'c': ['d', 'e'] }], [2, 'c', 1]], 'e', 'get works on arrays and objects equally')
+  tf('get', [['a', 'b', { 'c': ['d', 'e'] }], ['2', 'c', '1']], 'e', 'array indices can be strings')
 
   tf('set', [obj, ['foo', 'baz'], 'qux'], {
     'colors': 'many',
     'pi': [3, 1, 4, 1, 5, 9, 3],
     'foo': {
-      'bar': {'10': 'I like cheese'},
+      'bar': { '10': 'I like cheese' },
       'baz': 'qux'
     }
   })
@@ -929,7 +929,7 @@ test('collection operators', async function (t) {
     'colors': 'many',
     'pi': [3, 1, 4, 1, 5, 9, 3],
     'foo': {
-      'bar': {'10': 'I like cheese'}
+      'bar': { '10': 'I like cheese' }
     },
     'flop': 12
   })
@@ -937,26 +937,26 @@ test('collection operators', async function (t) {
     'colors': ['R', 'G', 'B'],
     'pi': [3, 1, 4, 1, 5, 9, 3],
     'foo': {
-      'bar': {'10': 'I like cheese'}
+      'bar': { '10': 'I like cheese' }
     }
   })
   tf('set', [obj, ['foo', 'bar', '10'], 'modified a sub object'], {
     'colors': 'many',
     'pi': [3, 1, 4, 1, 5, 9, 3],
     'foo': {
-      'bar': {'10': 'modified a sub object'}
+      'bar': { '10': 'modified a sub object' }
     }
   })
   tf('set', [obj, ['pi', 4, 'a'], 'wat?'], {
     'colors': 'many',
-    'pi': [3, 1, 4, 1, {a: 'wat?'}, 9, 3],
-    'foo': {'bar': {'10': 'I like cheese'}}
+    'pi': [3, 1, 4, 1, { a: 'wat?' }, 9, 3],
+    'foo': { 'bar': { '10': 'I like cheese' } }
   })
   assertObjNotMutated()
 
   tf('set', [['a', 'b', 'c'], [1], 'wat?'], ['a', 'wat?', 'c'])
   tf('set', [['a', 'b', 'c'], ['1'], 'wat?'], ['a', 'wat?', 'c'])
-  tf('set', [[{a: [{b: 1}]}], [0, 'a', 0, 'b'], 'wat?'], [{a: [{b: 'wat?'}]}])
+  tf('set', [[{ a: [{ b: 1 }] }], [0, 'a', 0, 'b'], 'wat?'], [{ a: [{ b: 'wat?' }] }])
 
   tf('intersection', [[[2], 2, 1, null], [[2], '1', 2, void 0]], [[2], 2, null])
   tf('intersection', [[[0], {}], [[1], []]], [])
@@ -966,17 +966,17 @@ test('collection operators', async function (t) {
 
   tf('union', [[2], [1, 2]], [2, 1])
   tf('union', [[1, 2], [1, 4]], [1, 2, 4])
-  tf('union', [[{'x': 2}], [{'x': 1}]], [{'x': 2}, {'x': 1}])
+  tf('union', [[{ 'x': 2 }], [{ 'x': 1 }]], [{ 'x': 2 }, { 'x': 1 }])
   tf('union', [[]], [])
-  tf('union', [[], {'x': 1}], [{'x': 1}])
-  tf('union', [{'x': 1}, []], [{'x': 1}])
-  tf('union', [{'x': 1}], {'x': 1})
+  tf('union', [[], { 'x': 1 }], [{ 'x': 1 }])
+  tf('union', [{ 'x': 1 }, []], [{ 'x': 1 }])
+  tf('union', [{ 'x': 1 }], { 'x': 1 })
 
   tf('difference', [[2, 1], [2, 3]], [1])
   tf('difference', [[2, 1], 2], [1])
-  tf('difference', [[{'x': 2}, {'x': 1}], [{'x': 2}, {'x': 3}]], [{'x': 1}])
-  tf('difference', [{'x': null}, []], [{'x': null}])
-  tf('difference', [{'x': null}], {'x': null})
+  tf('difference', [[{ 'x': 2 }, { 'x': 1 }], [{ 'x': 2 }, { 'x': 3 }]], [{ 'x': 1 }])
+  tf('difference', [{ 'x': null }, []], [{ 'x': null }])
+  tf('difference', [{ 'x': null }], { 'x': null })
 
   tf('has', [[1, 2, 3, 4], [4, 2]], true)
   tf('has', [[1, 2, 3, 4], [4, 5]], false)
@@ -985,15 +985,15 @@ test('collection operators', async function (t) {
   tf('has', [[]], true)
 
   tf('once', [[1, 2, 1, 3, 4, 4]], [2, 3])
-  tf('once', [{'a': void 0}], {'a': void 0})
+  tf('once', [{ 'a': void 0 }], { 'a': void 0 })
   tf('once', [[1, NaN, 'a']], [1, null, 'a'])
 
   tf('duplicates', [[1, 2, 1, 3, 4, 4]], [1, 4])
-  tf('duplicates', [{'0': 1, '1': 1}], [])
+  tf('duplicates', [{ '0': 1, '1': 1 }], [])
   tf('duplicates', [[1, 3, null, NaN, void 0, 3]], [3, null])
 
   tf('unique', [[1, 2, 1, [3], [4], [4]]], [1, 2, [3], [4]])
-  tf('unique', [{'0': 1, '1': 1}], {'0': 1, '1': 1})
+  tf('unique', [{ '0': 1, '1': 1 }], { '0': 1, '1': 1 })
 })
 
 test('klog', function (t) {

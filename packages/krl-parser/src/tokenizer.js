@@ -41,7 +41,7 @@ module.exports = function (src) {
   var pushTok = (function () {
     var nextLoc = 0
     return function (value, name) {
-      var loc = {start: nextLoc, end: nextLoc + value.length}
+      var loc = { start: nextLoc, end: nextLoc + value.length }
 
       tokens.push({
         type: name,
@@ -86,7 +86,7 @@ module.exports = function (src) {
 
     if (peek === '#{') {
       pushTok('#{', 'CHEVRON-BEESTING-OPEN')
-      beestingStack.push({curly_count: 0})
+      beestingStack.push({ curly_count: 0 })
     } else if (peek === '>>') {
       pushTok('>>', 'CHEVRON-CLOSE')
     }

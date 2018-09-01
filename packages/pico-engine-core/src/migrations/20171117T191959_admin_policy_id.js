@@ -17,8 +17,8 @@ module.exports = {
       value: {
         id: ADMIN_POLICY_ID,
         name: 'admin channel policy',
-        event: {allow: [{}]},
-        query: {allow: [{}]}
+        event: { allow: [{}] },
+        query: { allow: [{}] }
       }
     })
 

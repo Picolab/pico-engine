@@ -118,7 +118,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '85',
         domain: 'wrangler',
         type: 'channel_creation_requested ',
-        attrs: {name: 'ted', type: 'type'}
+        attrs: { name: 'ted', type: 'type' }
       }, function (err, response) {
         if (err) return next(err)
         // console.log("this is the response of createChannel: ",response.directives[0].options);
@@ -155,7 +155,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '85',
         domain: 'wrangler',
         type: 'channel_creation_requested ',
-        attrs: {name: 'ted', type: 'type'}
+        attrs: { name: 'ted', type: 'type' }
       }, function (err, response) {
         if (err) return next(err)
         t.deepEqual(response.directives, [], 'duplicate channel create')// I wish this directive was not empty on failure........
@@ -176,7 +176,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '85',
         domain: 'wrangler',
         type: 'channel_creation_requested ',
-        attrs: {name: 'carl', type: 'typeC'}
+        attrs: { name: 'carl', type: 'typeC' }
       }, function (err, response) {
         if (err) return next(err)
         // console.log("this is the response of createChannel: ",response.directives[0].options);
@@ -192,7 +192,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '85',
         domain: 'wrangler',
         type: 'channel_creation_requested ',
-        attrs: {name: 'bill', type: 'typeB'}
+        attrs: { name: 'bill', type: 'typeB' }
       }, function (err, response) {
         if (err) return next(err)
         // console.log("this is the response of createChannel: ",response.directives[0].options);
@@ -203,7 +203,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
       })
     },
     function (billsChannel, ted, next) { // list channel given name,
-      pe.runQuery(defaultQueryParams('channel', {value: billsChannel.name})
+      pe.runQuery(defaultQueryParams('channel', { value: billsChannel.name })
         , function (err, data) {
           if (err) return next(err)
           // console.log("Data in query: ", data);
@@ -212,7 +212,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         })
     },
     function (billsChannel, ted, next) { // list channel given eci,
-      pe.runQuery(defaultQueryParams('channel', {value: billsChannel.id})
+      pe.runQuery(defaultQueryParams('channel', { value: billsChannel.id })
         , function (err, data) {
           if (err) return next(err)
           t.equals(data.id, billsChannel.id, 'list channel given eci')
@@ -220,7 +220,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         })
     },
     function (billsChannel, ted, next) { // list channels by collection,
-      pe.runQuery(defaultQueryParams('channel', {collection: 'type'})
+      pe.runQuery(defaultQueryParams('channel', { collection: 'type' })
         , function (err, data) {
           if (err) return next(err)
           console.log('///////list collection of channel')
@@ -234,7 +234,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         })
     },
     function (billsChannel, ted, next) { // list channels by filtered collection,
-      pe.runQuery(defaultQueryParams('channel', {collection: 'type', filtered: 'typeB'})
+      pe.runQuery(defaultQueryParams('channel', { collection: 'type', filtered: 'typeB' })
         , function (err, data) {
           if (err) return next(err)
           t.deepEquals(data.length > 0, true, 'filtered collection has at least one channels')// should have at least one channel with this type..
@@ -243,7 +243,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         })
     },
     function (billsChannel, ted, next) { // alwaysEci,
-      pe.runQuery(defaultQueryParams('alwaysEci', {value: billsChannel.id})
+      pe.runQuery(defaultQueryParams('alwaysEci', { value: billsChannel.id })
         , function (err, data) {
           if (err) return next(err)
           // console.log("eci",data);
@@ -252,7 +252,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         })
     },
     function (ted, next) { // alwaysEci,
-      pe.runQuery(defaultQueryParams('alwaysEci', {value: channel.name})
+      pe.runQuery(defaultQueryParams('alwaysEci', { value: channel.name })
         , function (err, data) {
           if (err) return next(err)
           t.equals(data, channel.id, 'alwaysEci name')
@@ -260,7 +260,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         })
     },
     function (ted, next) { // eciFromName,
-      pe.runQuery(defaultQueryParams('eciFromName', {name: channel.name})
+      pe.runQuery(defaultQueryParams('eciFromName', { name: channel.name })
         , function (err, data) {
           if (err) return next(err)
           t.equals(data, channel.id, 'eciFromName')
@@ -272,7 +272,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eci: rootEci,
         rid: 'io.picolabs.wrangler',
         name: 'nameFromEci',
-        args: {eci: channel.id}
+        args: { eci: channel.id }
       }, function (err, data) {
         if (err) return next(err)
         t.equals(data, channel.name, 'nameFromEci')
@@ -295,7 +295,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '85',
         domain: 'wrangler',
         type: 'channel_deletion_requested ',
-        attrs: {name: 'ted'}
+        attrs: { name: 'ted' }
       }, function (err, response) {
         if (err) return next(err)
         // console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
@@ -329,7 +329,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '85',
         domain: 'wrangler',
         type: 'channel_deletion_requested ',
-        attrs: {eci: carl.id}
+        attrs: { eci: carl.id }
       }, function (err, response) {
         if (err) return next(err)
         // console.log("this is the response of channel_deletion_requested: ",response.directives[0].options);
@@ -379,7 +379,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '94',
         domain: 'wrangler',
         type: 'install_rulesets_requested ',
-        attrs: {rids: 'io.picolabs.logging'}
+        attrs: { rids: 'io.picolabs.logging' }
       }, function (err, response) {
         if (err) return next(err)
         // console.log("this is the response of install_rulesets_requested: ",response);
@@ -416,7 +416,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '94',
         domain: 'wrangler',
         type: 'uninstall_rulesets_requested ',
-        attrs: {rids: 'io.picolabs.logging'}
+        attrs: { rids: 'io.picolabs.logging' }
       }, function (err, response) {
         if (err) return next(err)
         // console.log("this is the response of uninstall_rulesets_requested: ",response.directives[0].options);
@@ -452,7 +452,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '94',
         domain: 'wrangler',
         type: 'install_rulesets_requested ',
-        attrs: {rids: 'io.picolabs.logging;io.picolabs.subscription'}
+        attrs: { rids: 'io.picolabs.logging;io.picolabs.subscription' }
       }, function (err, response) {
         if (err) return next(err)
         // console.log("this is the response of install_rulesets_requested: ",response.directives[0].options);
@@ -494,7 +494,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '94',
         domain: 'wrangler',
         type: 'uninstall_rulesets_requested ',
-        attrs: {rids: 'io.picolabs.logging;io.picolabs.subscription'}
+        attrs: { rids: 'io.picolabs.logging;io.picolabs.subscription' }
       }, function (err, response) {
         if (err) return next(err)
         // console.log("this is the response of uninstall_rulesets_requested: ",response.directives[0].options);
@@ -530,7 +530,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eci: rootEci,
         rid: 'io.picolabs.wrangler',
         name: 'rulesetsInfo',
-        args: {rids: 'io.picolabs.logging'}
+        args: { rids: 'io.picolabs.logging' }
       }, function (err, data) {
         if (err) return next(err)
         // console.log("rulesetInfo",data.description);
@@ -546,7 +546,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eci: rootEci,
         rid: 'io.picolabs.wrangler',
         name: 'rulesetsInfo',
-        args: {rids: 'io.picolabs.logging;io.picolabs.subscription'}
+        args: { rids: 'io.picolabs.logging;io.picolabs.subscription' }
       }, function (err, data) {
         if (err) return next(err)
         // console.log("rulesetInfo",data);
@@ -583,7 +583,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '84',
         domain: 'wrangler',
         type: 'new_child_request',
-        attrs: {name: 'ted'}
+        attrs: { name: 'ted' }
       }, function (err, response) {
         // console.log("children",response);
         if (err) return next(err)
@@ -620,7 +620,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eci: rootEci,
         rid: 'io.picolabs.wrangler',
         name: 'channel',
-        args: {value: 'ted'}
+        args: { value: 'ted' }
       }, function (err, data) {
         if (err) return next(err)
         // console.log("parentEci",data);
@@ -647,7 +647,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eci: child.eci,
         rid: 'io.picolabs.wrangler',
         name: 'channel',
-        args: {value: 'main'}
+        args: { value: 'main' }
       }, function (err, data) {
         if (err) return next(err)
         t.equals(data.name, 'main', "child 'main' channel created")
@@ -659,7 +659,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eci: child.eci,
         rid: 'io.picolabs.wrangler',
         name: 'channel',
-        args: {value: 'admin'}
+        args: { value: 'admin' }
       }, function (err, data) {
         if (err) return next(err)
         t.equals(data.name, 'admin', "child 'admin' channel created")
@@ -672,7 +672,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '84',
         domain: 'wrangler',
         type: 'new_child_request',
-        attrs: {name: 'ted'}
+        attrs: { name: 'ted' }
       }, function (err, response) {
         // console.log("children",response);
         if (err) return next(err)
@@ -744,7 +744,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '84',
         domain: 'wrangler',
         type: 'new_child_request',
-        attrs: {name: 'A', rids: SUBS_RID}
+        attrs: { name: 'A', rids: SUBS_RID }
       }, function (err, response) {
         subscriptionPicos['picoA'] = response.directives[0].options.pico
         if (err) return next(err)
@@ -769,7 +769,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '84',
         domain: 'wrangler',
         type: 'new_child_request',
-        attrs: {name: 'B', rids: SUBS_RID}
+        attrs: { name: 'B', rids: SUBS_RID }
       }, function (err, response) {
         if (err) return next(err)
         subscriptionPicos['picoB'] = response.directives[0].options.pico
@@ -876,7 +876,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eci: subscriptionPicos['picoA'].eci,
         rid: 'io.picolabs.wrangler',
         name: 'channel',
-        args: {value: subscriptionPicos.picoA.subscriptions.Rx}
+        args: { value: subscriptionPicos.picoA.subscriptions.Rx }
       }, function (err, data) {
         if (err) return next(err)
         // console.log("subscription A channel",data,subscriptionPicos.picoB.subscriptions);
@@ -891,7 +891,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eci: subscriptionPicos['picoB'].eci,
         rid: 'io.picolabs.wrangler',
         name: 'channel',
-        args: {value: subscriptionPicos.picoB.subscriptions.Rx}
+        args: { value: subscriptionPicos.picoB.subscriptions.Rx }
       }, function (err, data) {
         if (err) return next(err)
         // console.log("subscription B channel",data,subscriptionPicos.picoA.subscriptions);
@@ -944,7 +944,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         // console.log("ents",data);
         var failed = data.failed
         var message = data.message
-        t.deepEqual(message, {test: 1}, 'Successfully sent, received, and verified signed message')
+        t.deepEqual(message, { test: 1 }, 'Successfully sent, received, and verified signed message')
         t.equal(failed, 1, 'Successfully dealt with failed signature verification')
         next()
       })
@@ -998,7 +998,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         // console.log("ents",data);
         var message = data.decrypted_message
         var decryptionFailed = data.decryption_failure
-        t.deepEqual(message, {encryption: 1}, 'Successfully sent, received, and decrypted encrypted message')
+        t.deepEqual(message, { encryption: 1 }, 'Successfully sent, received, and decrypted encrypted message')
         t.equal(decryptionFailed, 1, 'Properly handled failed decryption')
         next()
       })
@@ -1080,7 +1080,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eci: eci,
         domain: 'wrangler',
         type: 'install_rulesets_requested ',
-        attrs: {rids: rulesets}
+        attrs: { rids: rulesets }
       }, function (err, response) {
         err ? reject(err) : resolve(response)
       })
@@ -1093,7 +1093,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '84',
         domain: 'wrangler',
         type: 'new_child_request',
-        attrs: {name: name}
+        attrs: { name: name }
       }, function (err, response) {
         err ? reject(err) : resolve(response.directives[0].options.pico)
       })
@@ -1182,7 +1182,7 @@ testPE('pico-engine - Wrangler', async function (t, pe, rootEci) {
   channels = data
 
   // create channels
-  data = await yEvent(rootEci, 'wrangler/channel_creation_requested', {name: 'ted', type: 'type'})
+  data = await yEvent(rootEci, 'wrangler/channel_creation_requested', { name: 'ted', type: 'type' })
   // console.log("Data: ", data.directives[0].options);
   channel = data.directives[0].options
   t.equal(channel.name, 'ted', 'correct directive')

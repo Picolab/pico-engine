@@ -413,7 +413,7 @@ module.exports = function (conf) {
                 // Emit an error and don't halt the engine
                 var err2 = new Error('Failed to compile ' + rid + "! It is now disabled. You'll need to edit and re-register it.\nCause: " + err)
                 err2.orig_error = err
-                emitter.emit('error', err2, {rid: rid})
+                emitter.emit('error', err2, { rid: rid })
                 // disable the ruleset since it's broken
                 db.disableRuleset(rid, next)
                 return
@@ -458,7 +458,7 @@ module.exports = function (conf) {
               // Let the user know the rid was disabled
               var err2 = new Error('Failed to initialize ' + rid + ", it's in a dependency cycle. It is now disabled. You'll need to resolve the cycle then re-register it.\nCause: " + err)
               err2.orig_error = err
-              emitter.emit('error', err2, {rid: rid})
+              emitter.emit('error', err2, { rid: rid })
             })
             return getRidOrder()
           }
@@ -479,7 +479,7 @@ module.exports = function (conf) {
               // Emit an error and don't halt the engine
               var err2 = new Error('Failed to initialize ' + rid + "! It is now disabled. You'll need to edit and re-register it.\nCause: " + err)
               err2.orig_error = err
-              emitter.emit('error', err2, {rid: rid})
+              emitter.emit('error', err2, { rid: rid })
               // disable the ruleset since it's broken
               db.disableRuleset(rid, next)
             })
@@ -516,7 +516,7 @@ module.exports = function (conf) {
   core.scheduler = Scheduler({
     db: db,
     onError: function (err) {
-      var info = {scheduler: true}
+      var info = { scheduler: true }
       emitter.emit('error', err, info)
     },
     onEvent: function (event) {
@@ -528,7 +528,7 @@ module.exports = function (conf) {
   core.registerRulesetURL = function (url, callback) {
     getKRLByURL(url, function (err, src) {
       if (err) return callback(err)
-      core.registerRuleset(src, {url: url}, callback)
+      core.registerRuleset(src, { url: url }, callback)
     })
   }
   core.flushRuleset = function (rid, callback) {
@@ -642,7 +642,7 @@ module.exports = function (conf) {
             }, function (err, rs) {
               if (err) return next(err)
               db.enableRuleset(data.hash, function (err) {
-                next(err, {rs: rs, hash: data.hash})
+                next(err, { rs: rs, hash: data.hash })
               })
             })
           })

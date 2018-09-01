@@ -55,7 +55,7 @@ test('http module', function (t) {
         return resp
       }
 
-      resp = await doHttp('get', [url, {a: 1}])
+      resp = await doHttp('get', [url, { a: 1 }])
       resp.content = JSON.parse(resp.content)
       t.deepEquals(resp, {
         content: {
@@ -79,11 +79,11 @@ test('http module', function (t) {
       // raw post body
       resp = await doHttp('post', {
         url: url,
-        qs: {'baz': 'qux'},
-        headers: {'some': 'header'},
+        qs: { 'baz': 'qux' },
+        headers: { 'some': 'header' },
         body: 'some post data',
-        json: {'json': "get's overriden by raw body"},
-        form: {'form': "get's overriden by raw body"},
+        json: { 'json': "get's overriden by raw body" },
+        form: { 'form': "get's overriden by raw body" },
         auth: {
           username: 'bob',
           password: 'nopass'
@@ -115,9 +115,9 @@ test('http module', function (t) {
       // form body
       resp = await doHttp('post', {
         url: url,
-        qs: {'baz': 'qux'},
-        headers: {'some': 'header'},
-        form: {formkey: 'formval', foo: ['bar', 'baz']}
+        qs: { 'baz': 'qux' },
+        headers: { 'some': 'header' },
+        form: { formkey: 'formval', foo: ['bar', 'baz'] }
       })
       resp.content = JSON.parse(resp.content)
       t.deepEquals(resp, {
@@ -145,9 +145,9 @@ test('http module', function (t) {
       // json body
       resp = await doHttp('post', {
         url: url,
-        qs: {'baz': 'qux'},
-        headers: {'some': 'header'},
-        json: {formkey: 'formval', foo: ['bar', 'baz']}
+        qs: { 'baz': 'qux' },
+        headers: { 'some': 'header' },
+        json: { formkey: 'formval', foo: ['bar', 'baz'] }
       })
       resp.content = JSON.parse(resp.content)
       t.deepEquals(resp, {
@@ -214,8 +214,8 @@ test('http module', function (t) {
 
       var methods = _.keys(khttp)
       var numMethods = _.size(methods)
-      var errArg = {parseJSON: true}
-      var typeErrArg = {url: NaN}
+      var errArg = { parseJSON: true }
+      var typeErrArg = { url: NaN }
 
       var i
       for (i = 0; i < numMethods; i++) {

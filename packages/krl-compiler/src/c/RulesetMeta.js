@@ -69,7 +69,7 @@ var propTypes = {
       _.each(p.value.ids, function (idAst) {
         var id = idAst.value
         if (!_.has(json, id)) {
-          json[id] = {to: []}
+          json[id] = { to: [] }
         }
         _.each(p.value.rulesets, function (r) {
           json[id].to.push(r.value)

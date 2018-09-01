@@ -85,7 +85,7 @@ module.exports = {
     if (req.body.client_id) {
       if (clientId) {
         console.log('Client attempted to authenticate with multiple methods')
-        res.status(401).json({error: 'invalid_client'})
+        res.status(401).json({ error: 'invalid_client' })
         return
       }
       clientId = req.body.client_id

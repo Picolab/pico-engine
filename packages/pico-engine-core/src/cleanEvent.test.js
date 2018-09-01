@@ -9,37 +9,37 @@ test('event = cleanEvent(event)', function (t) {
     t.equals(e + '', 'Error: missing event.eci')
   }
   try {
-    cleanEvent({eci: 0})
+    cleanEvent({ eci: 0 })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing event.eci')
   }
   try {
-    cleanEvent({eci: ''})
+    cleanEvent({ eci: '' })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing event.eci')
   }
   try {
-    cleanEvent({eci: '  '})
+    cleanEvent({ eci: '  ' })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing event.eci')
   }
   try {
-    cleanEvent({eci: 'eci-1', domain: ''})
+    cleanEvent({ eci: 'eci-1', domain: '' })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing event.domain')
   }
   try {
-    cleanEvent({eci: 'eci-1', domain: 'foo'})
+    cleanEvent({ eci: 'eci-1', domain: 'foo' })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing event.type')
   }
   try {
-    cleanEvent({eci: 'eci-1', domain: 'foo', type: ' '})
+    cleanEvent({ eci: 'eci-1', domain: 'foo', type: ' ' })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing event.type')
@@ -59,7 +59,7 @@ test('event = cleanEvent(event)', function (t) {
   })
 
   // attrs - should not be mutable
-  var attrs = {what: {is: ['this']}}
+  var attrs = { what: { is: ['this'] } }
   var event = cleanEvent({
     eci: 'eci123',
     eid: '555',
@@ -84,13 +84,13 @@ test('event = cleanEvent(event)', function (t) {
     eid: '   3 3 3 3   ',
     domain: '  foo\n ',
     type: '  \t bar  ',
-    attrs: {' foo ': " don't trim these   "}
+    attrs: { ' foo ': " don't trim these   " }
   }), {
     eci: 'eci123',
     eid: '3 3 3 3',
     domain: 'foo',
     type: 'bar',
-    attrs: {' foo ': " don't trim these   "}
+    attrs: { ' foo ': " don't trim these   " }
   })
 
   // no timestamp
@@ -146,15 +146,15 @@ test('event = cleanEvent(event)', function (t) {
   )
 
   testAttrs(
-    {a: null, b: void 0, c: NaN},
-    {a: null, b: null, c: null},
+    { a: null, b: void 0, c: NaN },
+    { a: null, b: null, c: null },
     "attrs normalize to JSON null's"
   );
 
   (function () {
     testAttrs(
       arguments,
-      {'0': 'foo', '1': 'bar'},
+      { '0': 'foo', '1': 'bar' },
       'non "plain" objects should work as Maps'
     )
   }('foo', 'bar'))
@@ -177,7 +177,7 @@ test('event = cleanEvent(event)', function (t) {
   testEid('null', 'none')
 
   testEid([1, 2], '[Array]')
-  testEid({foo: 'bar'}, '[Map]')
+  testEid({ foo: 'bar' }, '[Map]')
 
   testEid(123, '123')
   testEid(123.0, '123')

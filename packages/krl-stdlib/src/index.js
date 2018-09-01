@@ -203,9 +203,9 @@ stdlib.isnull = function (ctx, val) {
 
 stdlib.klog = function (ctx, val, message) {
   if (arguments.length < 3) {
-    ctx.emit('klog', {val: val})
+    ctx.emit('klog', { val: val })
   } else {
-    ctx.emit('klog', {val: val, message: types.toString(message)})
+    ctx.emit('klog', { val: val, message: types.toString(message) })
   }
   return val
 }

@@ -36,9 +36,9 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
-    "onchange": "^3.2.1",
+    "onchange": "^4.1.0",
     "scriptsp": "^1.0.1",
-    "standard": "^11.0.1",
+    "standard": "^12.0.1",
     "tape": "^4.6.0",
     "temp-fs": "^0.9.9"
   },

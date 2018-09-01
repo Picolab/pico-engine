@@ -13,7 +13,7 @@ module.exports = {
       // NOTE: not sharing code with DB.js b/c migrations should be immutable
       // i.e. produce the same result regardless of previous codebase states
       var indexType = ktypes.typeOf(val)
-      var rootValue = {type: indexType}
+      var rootValue = { type: indexType }
       switch (indexType) {
         case 'Null':
           rootValue.value = null

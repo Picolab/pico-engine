@@ -20,7 +20,7 @@ module.exports = {
         value: data.value
       })
 
-      dbOps.push({type: 'del', key: data.key})
+      dbOps.push({ type: 'del', key: data.key })
     }, function (err) {
       if (err) return callback(err)
 

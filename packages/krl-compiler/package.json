@@ -33,7 +33,7 @@
     "ava": "^0.25.0",
     "contra": "^1.9.4",
     "diff-lines": "^1.1.0",
-    "standard": "^11.0.1"
+    "standard": "^12.0.1"
   },
   "dependencies": {
     "btoa": "^1.1.2",
