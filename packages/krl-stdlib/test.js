@@ -373,6 +373,7 @@ test('string operators', async function (t) {
   tf('match', ['no-match', /([0-9])/g], false)
   tf('match', ['1', 1], false)
   tf('match', [0, /0/], true)
+  tf('match', ['$', new RegExp('$$$', '')], true)
 
   tf('ord', [''], null)
   tf('ord', ['a'], 97)
@@ -578,6 +579,20 @@ test('collection operators', async function (t) {
   tf('length', ['"'], 1)
   tf('length', [/'/], 0)
   tf('length', [function (a, b) {}], 0)
+
+  tf('isEmpty', [null], true)
+  tf('isEmpty', [void 0], true)
+  tf('isEmpty', [NaN], true)
+  tf('isEmpty', [0], true)
+  tf('isEmpty', [1], true)
+  tf('isEmpty', [true], true)
+  tf('isEmpty', [[]], true)
+  tf('isEmpty', [[1, 2]], false)
+  tf('isEmpty', [{}], true)
+  tf('isEmpty', [{a: 1}], false)
+  tf('isEmpty', [''], true)
+  tf('isEmpty', [' '], false)
+  tf('isEmpty', [function (a, b) {}], true)
 
   await ytf('map', [a, function (x) { return x + 2 }], [5, 6, 7])
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')

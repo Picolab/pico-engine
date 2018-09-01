@@ -509,6 +509,9 @@ stdlib.length = function (ctx, val) {
   }
   return 0
 }
+stdlib.isEmpty = function (ctx, val) {
+  return _.isEmpty(val)
+}
 stdlib.map = async function (ctx, val, iter) {
   if (!types.isFunction(iter)) {
     return val
