@@ -377,6 +377,33 @@ stdlib.uc = function (ctx, val) {
   val = types.toString(val)
   return val.toUpperCase()
 }
+stdlib.trimLeading = function (ctx, val) {
+  val = types.toString(val)
+  return _.trimStart(val)
+}
+stdlib.trimTrailing = function (ctx, val) {
+  val = types.toString(val)
+  return _.trimEnd(val)
+}
+stdlib.trim = function (ctx, val) {
+  val = types.toString(val)
+  return _.trim(val)
+}
+stdlib.startsWith = function (ctx, val, target) {
+  val = types.toString(val)
+  target = types.toString(target)
+  return _.startsWith(val, target)
+}
+stdlib.endsWith = function (ctx, val, target) {
+  val = types.toString(val)
+  target = types.toString(target)
+  return _.endsWith(val, target)
+}
+stdlib.contains = function (ctx, val, target) {
+  val = types.toString(val)
+  target = types.toString(target)
+  return _.includes(val, target)
+}
 
 // Collection operators//////////////////////////////////////////////////////////
 // NOTE: all KRL functions are async

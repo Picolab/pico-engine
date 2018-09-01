@@ -428,6 +428,22 @@ test('string operators', async function (t) {
   tf('substr', [void 0, 'Not an index', 2], 'null')
 
   tf('uc', ['loWer'], 'LOWER')
+
+  tf('trimLeading', [' \n\t hi \n\t '], 'hi \n\t ')
+  tf('trimTrailing', [' \n\t hi \n\t '], ' \n\t hi')
+  tf('trim', [' \n\t hi \n\t '], 'hi')
+  tf('trimLeading', [_.noop], '[Function]')
+  tf('trimTrailing', [_.noop], '[Function]')
+  tf('trim', [_.noop], '[Function]')
+
+  tf('startsWith', ['abcd', 'ab'], true)
+  tf('startsWith', ['abcd', 'b'], false)
+  tf('startsWith', ['ab', 'ab'], true)
+  tf('endsWith', ['abcd', 'cd'], true)
+  tf('endsWith', ['abcd', 'c'], false)
+  tf('endsWith', ['c', 'c'], true)
+  tf('contains', ['abcd', 'c'], true)
+  tf('contains', ['abcd', 'dc'], false)
 })
 
 test('collection operators', async function (t) {
