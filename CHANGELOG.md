@@ -1,3 +1,10 @@
+# 0.46.1 - September 1, 2018
+
+* added `math:hmac(algorithm, key, message [, encoding])` - see [413](https://github.com/Picolab/pico-engine/issues/413)
+* added `.isEmpty()` - see [310](https://github.com/Picolab/pico-engine/issues/310)
+* added `.trimLeading()` `.trimTrailing()` `.trim()` `.startsWith(target)` `.endsWith(target)` `.contains(target)` - see [405](https://github.com/Picolab/pico-engine/issues/405)
+* Several fixes for event expressions with duplicate matches - see [406](https://github.com/Picolab/pico-engine/issues/406), [268](https://github.com/Picolab/pico-engine/issues/268), [273](https://github.com/Picolab/pico-engine/issues/273)
+
 # 0.46.0 - August 3, 2018
 
 * [#408](https://github.com/Picolab/pico-engine/pull/408) Install Rulesets Validation
