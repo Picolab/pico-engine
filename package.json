@@ -7,7 +7,7 @@
     "clean": "lerna clean --yes",
     "clean-setup": "lerna clean --yes && rm -rf node_modules/ package-lock.json && npm run setup",
     "bootstrap": "lerna bootstrap --hoist",
-    "setup": "npm i && npm run bootstrap",
+    "setup": "npm i --no-package-lock && npm run bootstrap",
     "publish": "lerna publish",
     "start": "cd packages/pico-engine && npm start",
     "test": "lerna run test"
