@@ -245,7 +245,7 @@ module.exports = function (opts) {
         arr.push(Promise.resolve(onData(data)))
       }, function (err) {
         if (err) reject(err)
-        Promise.all(arr).catch(reject).then(resolve)
+        Promise.all(arr).then(resolve).catch(reject)
       })
     })
   }
@@ -404,6 +404,21 @@ module.exports = function (opts) {
     return pico
   }
 
+  async function assertPicoID (id) {
+    id = ktypes.toString(id)
+    try {
+      await ldb.get(['pico', id])
+    } catch (err) {
+      if (err.notFound) {
+        let err2 = new levelup.errors.NotFoundError('Pico not found: ' + id)
+        err2.notFound = true
+        throw err2
+      }
+      throw err
+    }
+    return id
+  }
+
   return {
     toObj: function (callback) {
       var dump = {}
@@ -433,14 +448,13 @@ module.exports = function (opts) {
     },
 
     assertPicoID: function (id, callback) {
-      id = ktypes.toString(id)
-      ldb.get(['pico', id], function (err) {
-        if (err && err.notFound) {
-          err = new levelup.errors.NotFoundError('Pico not found: ' + id)
-          err.notFound = true
-        }
-        callback(err, err ? null : id)
-      })
+      assertPicoID(id)
+        .then(function (id) {
+          callback(null, id)
+        })
+        .catch(function (err) {
+          callback(err)
+        })
     },
 
     decryptChannelMessage: function (eci, encryptedMessage, nonce, otherPublicKey, callback) {
@@ -682,6 +696,26 @@ module.exports = function (opts) {
       }
       result.pico = await exportPico(id, result)
       return result
+    },
+
+    setPicoStatus: async function (picoId, isLeaving, movedToHost) {
+      picoId = await assertPicoID(picoId)
+      return ldb.put(['pico-status', picoId], {
+        isLeaving: isLeaving,
+        movedToHost: movedToHost
+      })
+    },
+    getPicoStatus: function (picoId) {
+      return ldb.get(['pico-status', picoId])
+        .catch(function (err) {
+          if (err.notFound) {
+            return {
+              isLeaving: false,
+              movedToHost: null
+            }
+          }
+          return Promise.reject(err)
+        })
     },
 
     /// /////////////////////////////////////////////////////////////////////

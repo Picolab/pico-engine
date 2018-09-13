@@ -733,7 +733,7 @@ testA('engine:exportPico', async function (t) {
     rootRIDs: ['rid.export'],
     systemRulesets: [{
       src: krl,
-      meta: {url: 'wat'}
+      meta: { url: 'wat' }
     }]
   })
 
@@ -750,8 +750,8 @@ testA('engine:exportPico', async function (t) {
     })
   }
 
-  await signalEvent(rootEci, 'aa/sum', {n: 1})
-  await signalEvent(rootEci, 'aa/sum', {n: 3})
+  await signalEvent(rootEci, 'aa/sum', { n: 1 })
+  await signalEvent(rootEci, 'aa/sum', { n: 3 })
   await signalEvent(rootEci, 'aa/setvars')
   await signalEvent(rootEci, 'aa/newPico')
 
@@ -767,8 +767,8 @@ testA('engine:exportPico', async function (t) {
     policies: {
       'allow-all-policy': {
         name: 'admin channel policy',
-        event: {allow: [{}]},
-        query: {allow: [{}]}
+        event: { allow: [{}] },
+        query: { allow: [{}] }
       }
     },
     rulesets: {
@@ -789,20 +789,20 @@ testA('engine:exportPico', async function (t) {
       entvars: {
         'rid.export': {
           one: 1,
-          arr: [2, {three: 3}],
-          map: {a: [2, 3], b: {c: {d: 1}}},
+          arr: [2, { three: 3 }],
+          map: { a: [2, 3], b: { c: { d: 1 } } },
           foo: {}
         }
       },
       state_machine: {
         'rid.export': {
-          newPico: {state: 'end', bindings: {}},
-          setvars: {state: 'end', bindings: {}},
-          sum: {state: 's1', bindings: {}}
+          newPico: { state: 'end', bindings: {} },
+          setvars: { state: 'end', bindings: {} },
+          sum: { state: 's1', bindings: {} }
         }
       },
       aggregator_var: {
-        'rid.export': {sum: {n: ['1', '3']}}
+        'rid.export': { sum: { n: ['1', '3'] } }
       },
       children: [
         {
@@ -818,4 +818,50 @@ testA('engine:exportPico', async function (t) {
     }
   })
   // TODO scheduled events?
+})
+
+testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
+  var krl = `ruleset rid.status {
+    rule setStatus {
+      select when aa setStatus
+      engine:setPicoStatus(isLeaving = true, movedToHost = "http://away")
+    }
+    rule getStatus {
+      select when aa getStatus
+      send_directive("", engine:getPicoStatus())
+    }
+  }`
+  var pe = await mkTestPicoEngine({
+    compileAndLoadRuleset: 'inline',
+    rootRIDs: ['rid.status'],
+    systemRulesets: [{
+      src: krl,
+      meta: { url: 'wat' }
+    }]
+  })
+
+  var rootEci = await util.promisify(pe.getRootECI)()
+
+  function signalEvent (eci, dt, attrs) {
+    return pe.signalEvent({
+      eci: eci,
+      domain: dt.split('/')[0],
+      type: dt.split('/')[1],
+      attrs: attrs
+    })
+  }
+
+  var resp = await signalEvent(rootEci, 'aa/getStatus')
+  t.deepEquals(resp.directives[0].options, {
+    isLeaving: false,
+    movedToHost: null
+  })
+
+  await signalEvent(rootEci, 'aa/setStatus')
+
+  resp = await signalEvent(rootEci, 'aa/getStatus')
+  t.deepEquals(resp.directives[0].options, {
+    isLeaving: true,
+    movedToHost: 'http://away'
+  })
 })
