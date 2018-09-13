@@ -1,11 +1,10 @@
 var querystring = require('querystring')
 
 module.exports = {
-  'authorize': function (req, res) {
+  'authorize': function (req, res, next) {
     var pe = req.pe
-    var errResp = req.errResp
     pe.getRootECI(function (err, rootEci) {
-      if (err) return errResp(res, err)
+      if (err) return next(err)
       var event = {
         eci: rootEci,
         eid: 'authorize',
@@ -14,9 +13,9 @@ module.exports = {
         attrs: req.query
       }
       pe.signalEvent(event, function (err, response) {
-        if (err) return errResp(res, err)
+        if (err) return next(err)
         var d = response.directives[0]
-        if (!d) return errResp(res, 'No directive')
+        if (!d) return next(new Error('No directive'))
         else {
           var qsp = []
           for (var key in d.options) {
@@ -27,11 +26,10 @@ module.exports = {
       })
     })
   },
-  'approve': function (req, res) {
+  'approve': function (req, res, next) {
     var pe = req.pe
-    var errResp = req.errResp
     pe.getRootECI(function (err, rootEci) {
-      if (err) return errResp(res, err)
+      if (err) return next(err)
       var event = {
         eci: rootEci,
         eid: 'approve',
@@ -40,11 +38,11 @@ module.exports = {
         attrs: req.body
       }
       pe.signalEvent(event, function (err, response) {
-        if (err) return errResp(res, err)
+        if (err) return next(err)
         var d = response.directives[0]
-        if (!d) return errResp(res, 'No directive')
+        if (!d) return next(new Error('No directive'))
         else if (d.name !== 'respond') {
-          return errResp(res, 'Expecting respond, not ' + d.name)
+          return next(new Error('Expecting respond, not ' + d.name))
         } else {
           var redirectUri
           var qsp = []
@@ -56,16 +54,15 @@ module.exports = {
               qsp.push(key + '=' + val)
             }
           }
-          if (!redirectUri) return errResp(res, 'No redirect URI')
+          if (!redirectUri) return next(new Error('No redirect URI'))
           var sep = redirectUri.indexOf('?') !== -1 ? '&' : '?'
           res.redirect(redirectUri + sep + qsp.join('&'))
         }
       })
     })
   },
-  'token': function (req, res) {
+  'token': function (req, res, next) {
     var pe = req.pe
-    var errResp = req.errResp
     var clientId
     var clientSecret
     // start of code borrowed from OAuth in Action
@@ -97,7 +94,7 @@ module.exports = {
     attrs.client_id = clientId
     attrs.client_secret = clientSecret
     pe.getRootECI(function (err, rootEci) {
-      if (err) return errResp(res, err)
+      if (err) return next(err)
       var event = {
         eci: rootEci,
         eid: 'token',
@@ -106,22 +103,21 @@ module.exports = {
         attrs: attrs
       }
       pe.signalEvent(event, function (err, response) {
-        if (err) return errResp(res, err)
+        if (err) return next(err)
         var d = response.directives[0]
-        if (!d) return errResp(res, 'No directive')
+        if (!d) return next(new Error('No directive'))
         else if (d.name === 'error') {
-          return errResp(res, d.options)
+          return next(d.options)
         } else {
           res.json(d.options)
         }
       })
     })
   },
-  'login': function (req, res) {
+  'login': function (req, res, next) {
     var pe = req.pe
-    var errResp = req.errResp
     pe.getRootECI(function (err, rootEci) {
-      if (err) return errResp(res, err)
+      if (err) return next(err)
       var event = {
         eci: rootEci,
         eid: '',
@@ -130,16 +126,15 @@ module.exports = {
         attrs: req.body
       }
       pe.signalEvent(event, function (err, response) {
-        if (err) return errResp(res, err)
+        if (err) return next(err)
         res.json(response)
       })
     })
   },
-  'new_account': function (req, res) {
+  'new_account': function (req, res, next) {
     var pe = req.pe
-    var errResp = req.errResp
     pe.getRootECI(function (err, rootEci) {
-      if (err) return errResp(res, err)
+      if (err) return next(err)
       var event = {
         eci: rootEci,
         eid: '',
@@ -148,7 +143,7 @@ module.exports = {
         attrs: req.body
       }
       pe.signalEvent(event, function (err, response) {
-        if (err) return errResp(res, err)
+        if (err) return next(err)
         res.json(response)
       })
     })
