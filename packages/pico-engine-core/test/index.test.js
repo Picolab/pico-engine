@@ -2389,7 +2389,7 @@ test('PicoEngine - js-module', function (t) {
   })
 })
 
-test('PicoEngine - system ruleset dependency ordering', function (t) {
+testA('PicoEngine - system ruleset dependency ordering', async function (t) {
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
 
   var pe = mkPE({
@@ -2397,20 +2397,17 @@ test('PicoEngine - system ruleset dependency ordering', function (t) {
       'C'
     ]
   })
-  pe.start([
+  await pe.start([
     { src: 'ruleset C {meta{use module D}}', meta: { url: 'http://foo/C.krl' } },
     { src: 'ruleset D {}', meta: { url: 'http://foo/D.krl' } }
-  ], function (err) {
-    t.notOk(err, "if the dependencies aren't loaded in the correct order it will blow up")
-    t.ok(true, 'started successfully');
+  ])
+  // if the dependencies aren't loaded in the correct order pe.start() will blow up
+  t.ok(true, 'started successfully')
 
-    (async function () {
-      var listIns = await pe.modules.get({}, 'engine', 'listInstalledRIDs')
-      var rids = await listIns({ pico_id: 'id0' }, [])
+  var listIns = await pe.modules.get({}, 'engine', 'listInstalledRIDs')
+  var rids = await listIns({ pico_id: 'id0' }, [])
 
-      t.deepEquals(rids, ['C'])
-    }()).then(t.end).catch(t.end)
-  })
+  t.deepEquals(rids, ['C'])
 })
 
 test('PicoEngine - io.picolabs.persistent-index', function (t) {
@@ -2668,7 +2665,7 @@ testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
   await tstQueryPolicy(eci, 'three', 'allowed')
 })
 
-test('PicoEngine - handle ruleset startup errors after compiler update made breaking changes', function (t) {
+testA('PicoEngine - handle ruleset startup errors after compiler update made breaking changes', async function (t) {
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
 
   // The old compiler didn't complain when the ruleset was registered
@@ -2680,84 +2677,80 @@ test('PicoEngine - handle ruleset startup errors after compiler update made brea
     callback(new Error("That won't compile anymore!"))
   }
 
-  t.plan(5);
+  t.plan(5)
 
-  (async function () {
-    // First try register/enable the ruleset with the old compiler
-    var pe = mkPE({ compileAndLoadRuleset: oldCompiler })
-    var regRS = util.promisify(pe.registerRuleset)
-    var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
+  // First try register/enable the ruleset with the old compiler
+  var pe = mkPE({ compileAndLoadRuleset: oldCompiler })
+  var regRS = util.promisify(pe.registerRuleset)
+  var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
-    t.deepEquals(await listRIDs(), [], 'no rulesets yet')
-    await regRS('ruleset my-rid{}', {})
-    t.deepEquals(await listRIDs(), ['my-rid'], 'registered!')
-    // so the old compiler version allowed it, now it's in the DB
+  t.deepEquals(await listRIDs(), [], 'no rulesets yet')
+  await regRS('ruleset my-rid{}', {})
+  t.deepEquals(await listRIDs(), ['my-rid'], 'registered!')
+  // so the old compiler version allowed it, now it's in the DB
 
-    // Start the new engine
-    pe = mkPE({ compileAndLoadRuleset: newCompiler })
-    listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
-    t.deepEquals(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')
+  // Start the new engine
+  pe = mkPE({ compileAndLoadRuleset: newCompiler })
+  listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
+  t.deepEquals(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')
 
-    pe.emitter.on('error', function (err) {
-      t.equals(err + '', "Error: Failed to compile my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: That won't compile anymore!")
-    })
+  pe.emitter.on('error', function (err) {
+    t.equals(err + '', "Error: Failed to compile my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: That won't compile anymore!")
+  })
 
-    // the new compiler should blow up when it tries to initialize the rulest
-    await pe.start([])
-    // but shouldn't crash, just emit the error and continue starting
+  // the new compiler should blow up when it tries to initialize the rulest
+  await pe.start([])
+  // but shouldn't crash, just emit the error and continue starting
 
-    t.deepEquals(await listRIDs(), [], 'the ruleset should be disabled now')
-  }()).catch(t.end)// using t.plan not t.end
+  t.deepEquals(await listRIDs(), [], 'the ruleset should be disabled now')
 })
 
-test('PicoEngine - handle ruleset initialization errors', function (t) {
+testA('PicoEngine - handle ruleset initialization errors', async function (t) {
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
 
-  t.plan(5);
+  t.plan(5)
 
-  (async function () {
-    // First register the ruleset in the db
-    var pe = mkPE({ compileAndLoadRuleset: function (rsInfo, callback) {
-      callback(null, {
-        rid: 'my-rid',
-        global: function * () {
-          // works
-        }
-      })
-    } })
-    var regRS = util.promisify(pe.registerRuleset)
-    var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
-
-    t.deepEquals(await listRIDs(), [], 'no rulesets yet')
-    await regRS('ruleset my-rid{}', {})
-    t.deepEquals(await listRIDs(), ['my-rid'], 'registered!')
-    // so the old runtime version allowed it, now it's in the DB
-
-    // Now in this time the ruleset won't initialize
-    pe = mkPE({ compileAndLoadRuleset: function (rsInfo, callback) {
-      callback(null, {
-        rid: 'my-rid',
-        global: function () {
-          throw new Error('something broke')
-        }
-      })
-    } })
-    listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
-    t.deepEquals(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')
-
-    pe.emitter.on('error', function (err) {
-      t.equals(err + '', "Error: Failed to initialize my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: something broke")
+  // First register the ruleset in the db
+  var pe = mkPE({ compileAndLoadRuleset: function (rsInfo, callback) {
+    callback(null, {
+      rid: 'my-rid',
+      global: function * () {
+        // works
+      }
     })
+  } })
+  var regRS = util.promisify(pe.registerRuleset)
+  var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
-    // it will compile but fail to initialize
-    await pe.start([])
-    // but shouldn't crash, just emit the error and continue starting
+  t.deepEquals(await listRIDs(), [], 'no rulesets yet')
+  await regRS('ruleset my-rid{}', {})
+  t.deepEquals(await listRIDs(), ['my-rid'], 'registered!')
+  // so the old runtime version allowed it, now it's in the DB
 
-    t.deepEquals(await listRIDs(), [], 'the ruleset should be disabled now')
-  }()).catch(t.end)// using t.plan not t.end
+  // Now in this time the ruleset won't initialize
+  pe = mkPE({ compileAndLoadRuleset: function (rsInfo, callback) {
+    callback(null, {
+      rid: 'my-rid',
+      global: function () {
+        throw new Error('something broke')
+      }
+    })
+  } })
+  listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
+  t.deepEquals(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')
+
+  pe.emitter.on('error', function (err) {
+    t.equals(err + '', "Error: Failed to initialize my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: something broke")
+  })
+
+  // it will compile but fail to initialize
+  await pe.start([])
+  // but shouldn't crash, just emit the error and continue starting
+
+  t.deepEquals(await listRIDs(), [], 'the ruleset should be disabled now')
 })
 
-test('PicoEngine - handle dependency cycles at startup', function (t) {
+testA('PicoEngine - handle dependency cycles at startup', async function (t) {
   t.plan(6)
 
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
@@ -2770,20 +2763,17 @@ test('PicoEngine - handle dependency cycles at startup', function (t) {
     t.equals(context.rid, m[1])
   })
 
-  pe.start([
+  await pe.start([
     { src: 'ruleset A {meta{}}', meta: { url: 'http://foo/A.krl' } },
     { src: 'ruleset B {meta{use module C}}', meta: { url: 'http://foo/B.krl' } },
     { src: 'ruleset C {meta{use module B}}', meta: { url: 'http://foo/C.krl' } },
     { src: 'ruleset D {meta{}}', meta: { url: 'http://foo/D.krl' } }
-  ], function (err) {
-    t.notOk(err, 'should start successfully');
+  ])
+  t.ok(true, 'should start successfully')
 
-    (async function () {
-      var listRids = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
+  var listRids = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
-      t.deepEquals(await listRids({}, []), ['A', 'D'])
-    }()).catch(t.end)
-  })
+  t.deepEquals(await listRids({}, []), ['A', 'D'])
 })
 
 testA("PicoEngine - don't register rulesets that create dependency cycles", async function (t) {

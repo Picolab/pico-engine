@@ -1,5 +1,4 @@
 var _ = require('lodash')
-var test = require('tape')
 var util = require('util')
 var ktypes = require('krl-stdlib/types')
 var strictDeepEquals = require('../helpers/strictEquals').strictDeepEquals
@@ -23,15 +22,6 @@ async function runAction (pe, ctx, domain, id, args) {
   return _.head(await act(ctx, args))
 }
 
-function testPE (testName, genfn) {
-  testA(testName, async function (t) {
-    var pe = await mkTestPicoEngine({
-      rootRIDs: ['io.picolabs.engine']
-    })
-    await genfn(t, pe)
-  })
-}
-
 async function testError (t, promise, errMsg, msg) {
   try {
     await promise
@@ -48,7 +38,11 @@ var assertPicoID = function (id, callback) {
   callback(null, id)
 }
 
-testPE('engine:getPicoIDByECI', async function (t, pe) {
+testA('engine:getPicoIDByECI', async function (t) {
+  var pe = await mkTestPicoEngine({
+    rootRIDs: ['io.picolabs.engine']
+  })
+
   var tstErr = _.partial(testError, t)
 
   var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
@@ -71,188 +65,183 @@ testPE('engine:getPicoIDByECI', async function (t, pe) {
   t.equals(await get('quux'), void 0, 'eci not found')
 })
 
-test('engine:registerRuleset', function (t) {
-  (async function () {
-    var tstErr = _.partial(testError, t)
+testA('engine:registerRuleset', async function (t) {
+  var tstErr = _.partial(testError, t)
 
-    var engine = kengine({
-      registerRulesetURL: tick(function (url, callback) {
-        callback(null, {
-          rid: 'rid for: ' + url
-        })
+  var engine = kengine({
+    registerRulesetURL: tick(function (url, callback) {
+      callback(null, {
+        rid: 'rid for: ' + url
       })
     })
+  })
 
-    t.equals((await engine.def.registerRuleset({}, {
-      url: 'http://foo.bar/qux.krl'
-    }))[0], 'rid for: http://foo.bar/qux.krl')
+  t.equals((await engine.def.registerRuleset({}, {
+    url: 'http://foo.bar/qux.krl'
+  }))[0], 'rid for: http://foo.bar/qux.krl')
 
-    t.equals((await engine.def.registerRuleset({}, {
-      url: 'qux.krl',
-      base: 'https://foo.bar/baz/'
-    }))[0], 'rid for: https://foo.bar/baz/qux.krl')
+  t.equals((await engine.def.registerRuleset({}, {
+    url: 'qux.krl',
+    base: 'https://foo.bar/baz/'
+  }))[0], 'rid for: https://foo.bar/baz/qux.krl')
 
-    await tstErr(
-      engine.def.registerRuleset({}, []),
-      'Error: engine:registerRuleset needs a url string',
-      'no url is given'
-    )
+  await tstErr(
+    engine.def.registerRuleset({}, []),
+    'Error: engine:registerRuleset needs a url string',
+    'no url is given'
+  )
 
-    await tstErr(
-      engine.def.registerRuleset({}, [_.noop]),
-      'TypeError: engine:registerRuleset was given [Function] instead of a url string',
-      'wrong url type'
-    )
-  }()).then(t.end).catch(t.end)
+  await tstErr(
+    engine.def.registerRuleset({}, [_.noop]),
+    'TypeError: engine:registerRuleset was given [Function] instead of a url string',
+    'wrong url type'
+  )
 })
 
-test('engine:installRuleset', function (t) {
-  (async function () {
-    var tstErr = _.partial(testError, t)
+testA('engine:installRuleset', async function (t) {
+  var tstErr = _.partial(testError, t)
 
-    var engine = kengine({
-      installRuleset: tick(function (picoId, rid, callback) {
-        callback()
-      }),
-      registerRulesetURL: tick(function (url, callback) {
-        callback(null, {
-          rid: 'REG:' + /\/([^/]*)\.krl$/.exec(url)[1]
-        })
-      }),
-      db: {
-        assertPicoID: assertPicoID,
-        findRulesetsByURL: tick(function (url, callback) {
-          if (url === 'http://foo.bar/baz/qux.krl') {
-            return callback(null, [{ rid: 'found' }])
-          } else if (url === 'file:///too/many.krl') {
-            return callback(null, [{ rid: 'a' }, { rid: 'b' }, { rid: 'c' }])
-          }
-          callback(null, [])
-        })
-      }
-    })
-
-    var inst = async function (id, rid, url, base) {
-      var args = {}
-      if (id !== void 0) {
-        args.pico_id = id
-      }
-      if (rid !== void 0) {
-        args.rid = rid
-      }
-      if (url !== void 0) {
-        args.url = url
-      }
-      if (base !== void 0) {
-        args.base = base
-      }
-      return (await engine.def.installRuleset({}, args))[0]
+  var engine = kengine({
+    installRuleset: tick(function (picoId, rid, callback) {
+      callback()
+    }),
+    registerRulesetURL: tick(function (url, callback) {
+      callback(null, {
+        rid: 'REG:' + /\/([^/]*)\.krl$/.exec(url)[1]
+      })
+    }),
+    db: {
+      assertPicoID: assertPicoID,
+      findRulesetsByURL: tick(function (url, callback) {
+        if (url === 'http://foo.bar/baz/qux.krl') {
+          return callback(null, [{ rid: 'found' }])
+        } else if (url === 'file:///too/many.krl') {
+          return callback(null, [{ rid: 'a' }, { rid: 'b' }, { rid: 'c' }])
+        }
+        callback(null, [])
+      })
     }
+  })
 
-    t.equals(await inst('pico0', 'foo.bar'), 'foo.bar')
-    t.deepEquals(await inst('pico0', ['foo.bar', 'foo.qux']), ['foo.bar', 'foo.qux'])
-    strictDeepEquals(t, await inst('pico0', []), [])
-    t.deepEquals(await inst('pico0', void 0, 'file:///foo/bar.krl'), 'REG:bar')
-    t.deepEquals(await inst('pico0', void 0, 'qux.krl', 'http://foo.bar/baz/'), 'found')
+  var inst = async function (id, rid, url, base) {
+    var args = {}
+    if (id !== void 0) {
+      args.pico_id = id
+    }
+    if (rid !== void 0) {
+      args.rid = rid
+    }
+    if (url !== void 0) {
+      args.url = url
+    }
+    if (base !== void 0) {
+      args.base = base
+    }
+    return (await engine.def.installRuleset({}, args))[0]
+  }
 
-    await tstErr(
-      inst('pico0', void 0, 'file:///too/many.krl'),
-      'Error: More than one rid found for the given url: a , b , c',
-      'too many matched'
-    )
-  }()).then(t.end).catch(t.end)
+  t.equals(await inst('pico0', 'foo.bar'), 'foo.bar')
+  t.deepEquals(await inst('pico0', ['foo.bar', 'foo.qux']), ['foo.bar', 'foo.qux'])
+  strictDeepEquals(t, await inst('pico0', []), [])
+  t.deepEquals(await inst('pico0', void 0, 'file:///foo/bar.krl'), 'REG:bar')
+  t.deepEquals(await inst('pico0', void 0, 'qux.krl', 'http://foo.bar/baz/'), 'found')
+
+  await tstErr(
+    inst('pico0', void 0, 'file:///too/many.krl'),
+    'Error: More than one rid found for the given url: a , b , c',
+    'too many matched'
+  )
 })
 
-test('engine:uninstallRuleset', function (t) {
-  (async function () {
-    var uninstalled = {}
-    var order = 0
+testA('engine:uninstallRuleset', async function (t) {
+  var uninstalled = {}
+  var order = 0
 
-    var engine = kengine({
-      uninstallRuleset: tick(function (id, rid, callback) {
-        if (id !== 'pico0') {
-          return callback(new Error('invalid pico_id'))
-        }
-        if (!_.isString(rid)) {
-          return callback(new Error('invalid rid'))
-        }
-        _.set(uninstalled, [id, rid], order++)
-        callback()
-      }),
-      db: {
-        assertPicoID: assertPicoID
+  var engine = kengine({
+    uninstallRuleset: tick(function (id, rid, callback) {
+      if (id !== 'pico0') {
+        return callback(new Error('invalid pico_id'))
       }
-    })
-
-    t.equals((await engine.def.uninstallRuleset({}, {
-      pico_id: 'pico0',
-      rid: 'foo.bar'
-    }))[0], void 0)
-
-    t.equals((await engine.def.uninstallRuleset({}, {
-      pico_id: 'pico0',
-      rid: ['baz', 'qux']
-    }))[0], void 0)
-
-    t.deepEquals(uninstalled, {
-      pico0: {
-        'foo.bar': 0,
-        'baz': 1,
-        'qux': 2
+      if (!_.isString(rid)) {
+        return callback(new Error('invalid rid'))
       }
-    })
-  }()).then(t.end).catch(t.end)
+      _.set(uninstalled, [id, rid], order++)
+      callback()
+    }),
+    db: {
+      assertPicoID: assertPicoID
+    }
+  })
+
+  t.equals((await engine.def.uninstallRuleset({}, {
+    pico_id: 'pico0',
+    rid: 'foo.bar'
+  }))[0], void 0)
+
+  t.equals((await engine.def.uninstallRuleset({}, {
+    pico_id: 'pico0',
+    rid: ['baz', 'qux']
+  }))[0], void 0)
+
+  t.deepEquals(uninstalled, {
+    pico0: {
+      'foo.bar': 0,
+      'baz': 1,
+      'qux': 2
+    }
+  })
 })
 
-test('engine:unregisterRuleset', function (t) {
-  (async function () {
-    var tstErr = _.partial(testError, t)
+testA('engine:unregisterRuleset', async function (t) {
+  var tstErr = _.partial(testError, t)
 
-    var log = []
-    var engine = kengine({
-      unregisterRuleset: tick(function (rid, callback) {
-        if (!_.isString(rid)) {
-          return callback(new Error('invalid rid'))
-        }
-        log.push(rid)
-        callback()
-      })
+  var log = []
+  var engine = kengine({
+    unregisterRuleset: tick(function (rid, callback) {
+      if (!_.isString(rid)) {
+        return callback(new Error('invalid rid'))
+      }
+      log.push(rid)
+      callback()
     })
+  })
 
-    t.equals((await engine.def.unregisterRuleset({}, {
-      rid: 'foo.bar'
-    }))[0], void 0)
+  t.equals((await engine.def.unregisterRuleset({}, {
+    rid: 'foo.bar'
+  }))[0], void 0)
 
-    t.equals((await engine.def.unregisterRuleset({}, {
-      rid: ['baz', 'qux']
-    }))[0], void 0)
+  t.equals((await engine.def.unregisterRuleset({}, {
+    rid: ['baz', 'qux']
+  }))[0], void 0)
 
-    await tstErr(
-      engine.def.unregisterRuleset({}, []),
-      'Error: engine:unregisterRuleset needs a rid string or array'
-    )
+  await tstErr(
+    engine.def.unregisterRuleset({}, []),
+    'Error: engine:unregisterRuleset needs a rid string or array'
+  )
 
-    await tstErr(
-      engine.def.unregisterRuleset({}, { rid: {} }),
-      'TypeError: engine:unregisterRuleset was given [Map] instead of a rid string or array'
-    )
+  await tstErr(
+    engine.def.unregisterRuleset({}, { rid: {} }),
+    'TypeError: engine:unregisterRuleset was given [Map] instead of a rid string or array'
+  )
 
-    await tstErr(
-      engine.def.unregisterRuleset({}, {
-        rid: ['baz', 2, 'qux']
-      }),
-      'TypeError: engine:unregisterRuleset was given a rid array containing a non-string (2)'
-    )
+  await tstErr(
+    engine.def.unregisterRuleset({}, {
+      rid: ['baz', 2, 'qux']
+    }),
+    'TypeError: engine:unregisterRuleset was given a rid array containing a non-string (2)'
+  )
 
-    t.deepEquals(log, [
-      'foo.bar',
-      'baz',
-      'qux'
-    ])
-  }()).then(t.end).catch(t.end)
+  t.deepEquals(log, [
+    'foo.bar',
+    'baz',
+    'qux'
+  ])
 })
 
-testPE('engine:describeRuleset', async function (t, pe) {
+testA('engine:describeRuleset', async function (t) {
+  var pe = await mkTestPicoEngine({
+    rootRIDs: ['io.picolabs.engine']
+  })
   var tstErr = _.partial(testError, t)
 
   var ctx = {}
@@ -299,7 +288,10 @@ testPE('engine:describeRuleset', async function (t, pe) {
   t.equals(await descRID(ctx, { rid: 'not.found' }), void 0)
 })
 
-testPE('engine:listAllEnabledRIDs', async function (t, pe) {
+testA('engine:listAllEnabledRIDs', async function (t) {
+  var pe = await mkTestPicoEngine({
+    rootRIDs: ['io.picolabs.engine']
+  })
   var listAllEnabledRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
   var rids = await listAllEnabledRIDs({}, [])
   t.ok(rids.length > 1, 'should be all the test-rulesets/')
@@ -307,7 +299,10 @@ testPE('engine:listAllEnabledRIDs', async function (t, pe) {
   t.ok(_.includes(rids, 'io.picolabs.engine'))
 })
 
-testPE('engine:newPico', async function (t, pe) {
+testA('engine:newPico', async function (t) {
+  var pe = await mkTestPicoEngine({
+    rootRIDs: ['io.picolabs.engine']
+  })
   var action = function (ctx, name, args) {
     return runAction(pe, ctx, 'engine', name, args)
   }
@@ -332,8 +327,12 @@ testPE('engine:newPico', async function (t, pe) {
   })
 })
 
-testPE('engine:getParent, engine:getAdminECI, engine:listChildren, engine:removePico', async function (t, pe) {
+testA('engine:getParent, engine:getAdminECI, engine:listChildren, engine:removePico', async function (t) {
   var tstErr = _.partial(testError, t)
+
+  var pe = await mkTestPicoEngine({
+    rootRIDs: ['io.picolabs.engine']
+  })
 
   var newPico = function (ctx, args) {
     return runAction(pe, ctx, 'engine', 'newPico', args)
@@ -397,8 +396,12 @@ testPE('engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
   )
 })
 
-testPE('engine:newPolicy, engine:listPolicies, engine:removePolicy', async function (t, pe) {
+testA('engine:newPolicy, engine:listPolicies, engine:removePolicy', async function (t) {
   var tstErr = _.partial(testError, t)
+
+  var pe = await mkTestPicoEngine({
+    rootRIDs: ['io.picolabs.engine']
+  })
 
   var newPolicy = function (policy) {
     return runAction(pe, {}, 'engine', 'newPolicy', [policy])
@@ -457,8 +460,12 @@ testPE('engine:newPolicy, engine:listPolicies, engine:removePolicy', async funct
   t.deepEquals(await listPolicies(), [pAdmin])
 })
 
-testPE('engine:newChannel, engine:listChannels, engine:removeChannel', async function (t, pe) {
+testA('engine:newChannel, engine:listChannels, engine:removeChannel', async function (t) {
   var tstErr = _.partial(testError, t)
+
+  var pe = await mkTestPicoEngine({
+    rootRIDs: ['io.picolabs.engine']
+  })
 
   var newPolicy = function (policy) {
     return runAction(pe, {}, 'engine', 'newPolicy', [policy])
@@ -554,8 +561,12 @@ testPE('engine:newChannel, engine:listChannels, engine:removeChannel', async fun
   t.deepEquals(await newChannel({}, ['id0', 'a', 'b', pFoo.id]), mkChan('id0', 'id5', 'a', 'b', pFoo.id))
 })
 
-testPE('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset', async function (t, pe) {
+testA('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset', async function (t) {
   var tstErr = _.partial(testError, t)
+
+  var pe = await mkTestPicoEngine({
+    rootRIDs: ['io.picolabs.engine']
+  })
 
   var installRS = function (ctx, args) {
     return runAction(pe, ctx, 'engine', 'installRuleset', args)
@@ -632,78 +643,76 @@ testPE('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
   t.deepEquals(await listRIDs({ pico_id: 'id404' }, []), void 0)
 })
 
-test('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptChannelMessage', function (t) {
-  (async function () {
-    var pe = await mkTestPicoEngine({
-      rootRIDs: ['io.picolabs.engine'],
-      __dont_use_sequential_ids_for_testing: true
-    })
-    var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
-    var newChannel = await pe.modules.get({}, 'engine', 'newChannel')
-    var signChannelMessage = await pe.modules.get({}, 'engine', 'signChannelMessage')
-    var verifySignedMessage = await pe.modules.get({}, 'engine', 'verifySignedMessage')
-    var encryptChannelMessage = await pe.modules.get({}, 'engine', 'encryptChannelMessage')
-    var decryptChannelMessage = await pe.modules.get({}, 'engine', 'decryptChannelMessage')
-    var sign = function (eci, message) {
-      return signChannelMessage({}, [eci, message])
-    }
-    var verify = function (verifyKey, message) {
-      return verifySignedMessage({}, [verifyKey, message])
-    }
-    var encrypt = function (eci, message, otherPublicKey) {
-      return encryptChannelMessage({}, [eci, message, otherPublicKey])
-    }
-    var decrypt = function (eci, encryptedMessage, nonce, otherPublicKey) {
-      return decryptChannelMessage({}, [eci, encryptedMessage, nonce, otherPublicKey])
-    }
+testA('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptChannelMessage', async function (t) {
+  var pe = await mkTestPicoEngine({
+    rootRIDs: ['io.picolabs.engine'],
+    __dont_use_sequential_ids_for_testing: true
+  })
+  var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
+  var newChannel = await pe.modules.get({}, 'engine', 'newChannel')
+  var signChannelMessage = await pe.modules.get({}, 'engine', 'signChannelMessage')
+  var verifySignedMessage = await pe.modules.get({}, 'engine', 'verifySignedMessage')
+  var encryptChannelMessage = await pe.modules.get({}, 'engine', 'encryptChannelMessage')
+  var decryptChannelMessage = await pe.modules.get({}, 'engine', 'decryptChannelMessage')
+  var sign = function (eci, message) {
+    return signChannelMessage({}, [eci, message])
+  }
+  var verify = function (verifyKey, message) {
+    return verifySignedMessage({}, [verifyKey, message])
+  }
+  var encrypt = function (eci, message, otherPublicKey) {
+    return encryptChannelMessage({}, [eci, message, otherPublicKey])
+  }
+  var decrypt = function (eci, encryptedMessage, nonce, otherPublicKey) {
+    return decryptChannelMessage({}, [eci, encryptedMessage, nonce, otherPublicKey])
+  }
 
-    var eci = await util.promisify(pe.getRootECI)()
-    var picoId = await getPicoIDByECI({}, [eci])
+  var eci = await util.promisify(pe.getRootECI)()
+  var picoId = await getPicoIDByECI({}, [eci])
 
-    var chan0 = await newChannel({}, [picoId, 'one', 'one'])
-    var eci0 = chan0[0].id
-    var vkey0 = chan0[0].sovrin.verifyKey
-    var publicKey0 = chan0[0].sovrin.encryptionPublicKey
+  var chan0 = await newChannel({}, [picoId, 'one', 'one'])
+  var eci0 = chan0[0].id
+  var vkey0 = chan0[0].sovrin.verifyKey
+  var publicKey0 = chan0[0].sovrin.encryptionPublicKey
 
-    var chan1 = await newChannel({}, [picoId, 'two', 'two'])
-    var eci1 = chan1[0].id
-    var vkey1 = chan1[0].sovrin.verifyKey
-    var publicKey1 = chan1[0].sovrin.encryptionPublicKey
+  var chan1 = await newChannel({}, [picoId, 'two', 'two'])
+  var eci1 = chan1[0].id
+  var vkey1 = chan1[0].sovrin.verifyKey
+  var publicKey1 = chan1[0].sovrin.encryptionPublicKey
 
-    var msg = 'some long message! could be json {"hi":1}'
-    var signed0 = await sign(eci0, msg)
-    var signed1 = await sign(eci1, msg)
-    t.ok(_.isString(signed0))
-    t.ok(_.isString(signed1))
-    t.notEquals(signed0, signed1)
+  var msg = 'some long message! could be json {"hi":1}'
+  var signed0 = await sign(eci0, msg)
+  var signed1 = await sign(eci1, msg)
+  t.ok(_.isString(signed0))
+  t.ok(_.isString(signed1))
+  t.notEquals(signed0, signed1)
 
-    t.equals(await verify(vkey0, signed0), msg)
-    t.equals(await verify(vkey1, signed1), msg)
+  t.equals(await verify(vkey0, signed0), msg)
+  t.equals(await verify(vkey1, signed1), msg)
 
-    t.equals(await verify(vkey1, signed0), false, 'wrong vkey')
-    t.equals(await verify(vkey0, signed1), false, 'wrong vkey')
+  t.equals(await verify(vkey1, signed0), false, 'wrong vkey')
+  t.equals(await verify(vkey0, signed1), false, 'wrong vkey')
 
-    t.equals(await verify('hi', signed1), false, 'rubbish vkey')
-    t.equals(await verify(vkey0, 'notbs58:%=+!'), false, 'not bs58 message')
+  t.equals(await verify('hi', signed1), false, 'rubbish vkey')
+  t.equals(await verify(vkey0, 'notbs58:%=+!'), false, 'not bs58 message')
 
-    var encrypted0 = await encrypt(eci0, msg, publicKey1)
-    var encrypted1 = await encrypt(eci1, msg, publicKey0)
+  var encrypted0 = await encrypt(eci0, msg, publicKey1)
+  var encrypted1 = await encrypt(eci1, msg, publicKey0)
 
-    t.ok(_.isString(encrypted0.encryptedMessage))
-    t.ok(_.isString(encrypted0.nonce))
-    t.ok(_.isString(encrypted1.encryptedMessage))
-    t.ok(_.isString(encrypted1.nonce))
-    t.notEquals(encrypted0, encrypted1)
+  t.ok(_.isString(encrypted0.encryptedMessage))
+  t.ok(_.isString(encrypted0.nonce))
+  t.ok(_.isString(encrypted1.encryptedMessage))
+  t.ok(_.isString(encrypted1.nonce))
+  t.notEquals(encrypted0, encrypted1)
 
-    var nonce = encrypted0.nonce
-    var encryptedMessage = encrypted0.encryptedMessage
+  var nonce = encrypted0.nonce
+  var encryptedMessage = encrypted0.encryptedMessage
 
-    t.equals(await decrypt(eci1, encryptedMessage, nonce, publicKey0), msg, 'message decrypted correctly')
+  t.equals(await decrypt(eci1, encryptedMessage, nonce, publicKey0), msg, 'message decrypted correctly')
 
-    t.equals(await decrypt(eci1, encryptedMessage, 'bad nonce', publicKey0), false, 'bad nonce')
-    t.equals(await decrypt(eci1, encryptedMessage, nonce, 'Bad public key'), false, 'bad key')
-    t.equals(await decrypt(eci1, 'bogus43212(*(****', nonce, publicKey0), false, 'non bs58 message')
-  }()).then(t.end).catch(t.end)
+  t.equals(await decrypt(eci1, encryptedMessage, 'bad nonce', publicKey0), false, 'bad nonce')
+  t.equals(await decrypt(eci1, encryptedMessage, nonce, 'Bad public key'), false, 'bad key')
+  t.equals(await decrypt(eci1, 'bogus43212(*(****', nonce, publicKey0), false, 'non bs58 message')
 })
 
 testA('engine:exportPico', async function (t) {

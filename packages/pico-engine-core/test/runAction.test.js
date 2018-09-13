@@ -1,8 +1,8 @@
 var _ = require('lodash')
-var test = require('tape')
+var testA = require('./helpers/testA')
 var runAction = require('../src/runAction')
 
-test('runAction - send_directive', function (t) {
+testA('runAction - send_directive', async function (t) {
   var mkCtx = function (name, options) {
     return {
       addActionResponse: function (ctx, type, val) {
@@ -40,18 +40,16 @@ test('runAction - send_directive', function (t) {
   var map = { "don't": 'mutate' }
 
   var errMsg1 = 'Error: send_directive needs a name string'
-  var errMsg2 = 'TypeError: send_directive was given [Map] instead of a name string';
+  var errMsg2 = 'TypeError: send_directive was given [Map] instead of a name string'
 
-  (async function () {
-    await testFn([str, map], str, map)
-    await testFn([str], str, {})
+  await testFn([str, map], str, map)
+  await testFn([str], str, {})
 
-    await testErr([], errMsg1)
-    await testErr({ 'options': null }, errMsg1)
-    await testErr([map], errMsg2)
-    await testErr([map, map], errMsg2)
-    await testErr([map, str], errMsg2)
-    await testErr([str, void 0], 'TypeError: send_directive was given null instead of an options map')
-    await testErr([str, []], 'TypeError: send_directive was given [Array] instead of an options map')
-  }()).then(t.end).catch(t.end)
+  await testErr([], errMsg1)
+  await testErr({ 'options': null }, errMsg1)
+  await testErr([map], errMsg2)
+  await testErr([map, map], errMsg2)
+  await testErr([map, str], errMsg2)
+  await testErr([str, void 0], 'TypeError: send_directive was given null instead of an options map')
+  await testErr([str, []], 'TypeError: send_directive was given [Array] instead of an options map')
 })

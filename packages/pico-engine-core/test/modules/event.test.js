@@ -1,24 +1,23 @@
 // var _ = require("lodash");
 var test = require('tape')
 var http = require('http')
+var testA = require('../helpers/testA')
 var eventModule = require('../../src/modules/event')
 
-test('module - event:attr(name)', function (t) {
-  (async function () {
-    var kevent = eventModule()
+testA('module - event:attr(name)', async function (t) {
+  var kevent = eventModule()
 
-    t.equals(
-      await kevent.def.attr({ event: { attrs: { foo: 'bar' } } }, ['foo']),
-      'bar'
-    )
+  t.equals(
+    await kevent.def.attr({ event: { attrs: { foo: 'bar' } } }, ['foo']),
+    'bar'
+  )
 
-    // just null if no ctx.event, or it doesn't match
-    t.equals(await kevent.def.attr({}, ['baz']), null)
-    t.equals(
-      await kevent.def.attr({ event: { attrs: { foo: 'bar' } } }, ['baz']),
-      null
-    )
-  }()).then(t.end).catch(t.end)
+  // just null if no ctx.event, or it doesn't match
+  t.equals(await kevent.def.attr({}, ['baz']), null)
+  t.equals(
+    await kevent.def.attr({ event: { attrs: { foo: 'bar' } } }, ['baz']),
+    null
+  )
 })
 
 test('module - event:send(event, host = null)', function (t) {
