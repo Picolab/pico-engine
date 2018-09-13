@@ -485,6 +485,52 @@ module.exports = function (core) {
       }
 
       callback(null, message)
+    }),
+
+    exportPico: mkKRLfn([
+      'pico_id'
+    ], function (ctx, args, callback) {
+      var picoId = picoArgOrCtxPico('exportPico', ctx, args)
+
+      core.db.exportPico(picoId)
+        .then(function (pico) {
+          callback(null, pico)
+        })
+        .catch(function (err) {
+          callback(err)
+        })
+    }),
+
+    setPicoStatus: mkKRLaction([
+      'pico_id',
+      'isLeaving',
+      'movedToHost'
+    ], function (ctx, args, callback) {
+      var picoId = picoArgOrCtxPico('setPicoStatus', ctx, args)
+      var isLeaving = args.isLeaving === true
+      var movedToHost = ktypes.isString(args.movedToHost) ? args.movedToHost : null
+
+      core.db.setPicoStatus(picoId, isLeaving, movedToHost)
+        .then(function () {
+          callback(null, true)
+        })
+        .catch(function (err) {
+          callback(err)
+        })
+    }),
+
+    getPicoStatus: mkKRLfn([
+      'pico_id'
+    ], function (ctx, args, callback) {
+      var picoId = picoArgOrCtxPico('setPicoStatus', ctx, args)
+
+      core.db.getPicoStatus(picoId)
+        .then(function (status) {
+          callback(null, status)
+        })
+        .catch(function (err) {
+          callback(err)
+        })
     })
 
   }

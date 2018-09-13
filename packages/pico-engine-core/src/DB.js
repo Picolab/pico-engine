@@ -13,6 +13,7 @@ var migrations = require('./migrations')
 var ChannelPolicy = require('./ChannelPolicy')
 var safeJsonCodec = require('level-json-coerce-null')
 var extractRulesetID = require('./extractRulesetID')
+var engineCoreVersion = require('../package.json').version
 
 // NOTE: for now we are going to default to an allow all policy
 // This makes migrating easier while waiting for krl system rulesets to assume policy usage
@@ -237,6 +238,18 @@ module.exports = function (opts) {
     }
   }
 
+  function forRange (opts, onData) {
+    return new Promise(function (resolve, reject) {
+      var arr = []
+      dbRange(ldb, opts, function (data) {
+        arr.push(Promise.resolve(onData(data)))
+      }, function (err) {
+        if (err) reject(err)
+        Promise.all(arr).then(resolve).catch(reject)
+      })
+    })
+  }
+
   var getMigrationLog = function (callback) {
     var log = {}
     dbRange(ldb, {
@@ -284,6 +297,156 @@ module.exports = function (opts) {
     }
   }
 
+  function getEnabledRuleset (rid, callback) {
+    ldb.get(['rulesets', 'enabled', rid], function (err, dataE) {
+      if (err) return callback(err)
+      ldb.get(['rulesets', 'krl', dataE.hash], function (err, dataK) {
+        if (err) return callback(err)
+        callback(null, {
+          src: dataK.src,
+          hash: dataE.hash,
+          rid: dataK.rid,
+          url: dataK.url,
+          timestamp_stored: dataK.timestamp,
+          timestamp_enable: dataE.timestamp
+        })
+      })
+    })
+  }
+
+  function getEnabledRulesetP (rid) {
+    return new Promise(function (resolve, reject) {
+      getEnabledRuleset(rid, function (err, rs) {
+        if (err && err.notFound) return resolve()
+        if (err) return reject(err)
+        else resolve(rs)
+      })
+    })
+  }
+
+  async function exportPico (id, result) {
+    var pico
+    try {
+      pico = await ldb.get(['pico', id])
+    } catch (err) {
+      if (err && err.notFound) {
+        return null
+      }
+      throw err
+    }
+
+    await forRange({
+      prefix: ['pico-eci-list', pico.id]
+    }, async function (data) {
+      var eci = data.key[2]
+      var channel = await ldb.get(['channel', eci])
+      channel = _.omit(channel, 'pico_id')
+      _.set(pico, ['channels', channel.id], channel)
+
+      if (!result.policies || !result.policies[channel.policy_id]) {
+        var policy = await ldb.get(['policy', channel.policy_id])
+        _.set(result, ['policies', policy.id], _.omit(policy, 'id'))
+      }
+    })
+    await forRange({
+      prefix: ['pico-ruleset', pico.id]
+    }, function (data) {
+      if (!data.value || !data.value.on) {
+        return
+      }
+      var rid = data.key[2]
+      if (_.has(result, ['rulesets', rid])) {
+        return
+      }
+      return getEnabledRulesetP(rid)
+        .then(function (rs) {
+          _.set(result, ['rulesets', rid], rs)
+        })
+    })
+
+    await forRange({
+      prefix: ['entvars', pico.id],
+      values: false
+    }, function (key) {
+      return new Promise(function (resolve, reject) {
+        getPVar(ldb, key, [], function (err, value) {
+          if (err) reject(err)
+          _.set(pico, ['entvars'].concat(key.slice(2)), value)
+          resolve()
+        })
+      })
+    })
+
+    await forRange({
+      prefix: ['state_machine', pico.id]
+    }, function (data) {
+      _.set(pico, ['state_machine'].concat(data.key.slice(2)), data.value)
+    })
+
+    await forRange({
+      prefix: ['aggregator_var', pico.id]
+    }, function (data) {
+      _.set(pico, ['aggregator_var'].concat(data.key.slice(2)), data.value)
+    })
+
+    pico.children = []
+    await forRange({
+      prefix: ['pico-children', pico.id]
+    }, function (data) {
+      if (!data.value) return
+      var picoId = data.key[2]
+      return exportPico(picoId, result)
+        .then(function (child) {
+          pico.children.push(child)
+        })
+    })
+
+    return pico
+  }
+
+  async function recursivelyGetAllChildrenPicoIDs (picoId) {
+    var ids = []
+    await forRange({
+      prefix: ['pico-children', picoId]
+    }, function (data) {
+      if (!data.value) return
+      var id = data.key[2]
+      ids.push(id)
+      return recursivelyGetAllChildrenPicoIDs(id)
+        .then(function (subIDs) {
+          ids = ids.concat(subIDs)
+        })
+    })
+    return ids
+  }
+
+  async function getPicoID (id) {
+    id = ktypes.toString(id)
+    try {
+      return await ldb.get(['pico', id])
+    } catch (err) {
+      if (err.notFound) {
+        let err2 = new levelup.errors.NotFoundError('Pico not found: ' + id)
+        err2.notFound = true
+        throw err2
+      }
+      throw err
+    }
+  }
+
+  function getPicoStatus (picoId) {
+    return ldb.get(['pico-status', picoId])
+      .catch(function (err) {
+        if (err.notFound) {
+          return {
+            isLeaving: false,
+            movedToHost: null
+          }
+        }
+        return Promise.reject(err)
+      })
+  }
+
   return {
     toObj: function (callback) {
       var dump = {}
@@ -313,14 +476,13 @@ module.exports = function (opts) {
     },
 
     assertPicoID: function (id, callback) {
-      id = ktypes.toString(id)
-      ldb.get(['pico', id], function (err) {
-        if (err && err.notFound) {
-          err = new levelup.errors.NotFoundError('Pico not found: ' + id)
-          err.notFound = true
-        }
-        callback(err, err ? null : id)
-      })
+      getPicoID(id)
+        .then(function (pico) {
+          callback(null, pico.id)
+        })
+        .catch(function (err) {
+          callback(err)
+        })
     },
 
     decryptChannelMessage: function (eci, encryptedMessage, nonce, otherPublicKey, callback) {
@@ -516,6 +678,7 @@ module.exports = function (opts) {
           var eci = key[2]
           dbOps.push({ type: 'del', key: key })
           dbOps.push({ type: 'del', key: ['channel', eci] })
+          // TODO drop scheduled events ??
         }),
         keyRange(['entvars', id], function (key) {
           dbOps.push({ type: 'del', key: key })
@@ -554,6 +717,36 @@ module.exports = function (opts) {
         ldb.batch(dbOps, callback)
       })
     },
+
+    exportPico: async function (id) {
+      var result = {
+        version: engineCoreVersion
+      }
+      result.pico = await exportPico(id, result)
+      return result
+    },
+
+    setPicoStatus: async function (picoId, isLeaving, movedToHost) {
+      let pico = await getPicoID(picoId)
+      if (pico.parent_id) {
+        let parentStatus = await getPicoStatus(pico.parent_id)
+        if (parentStatus.isLeaving || parentStatus.movedToHost) {
+          throw new Error('Cannot change pico status b/c its parent is transient')
+        }
+      }
+      let status = {
+        isLeaving: isLeaving,
+        movedToHost: movedToHost
+      }
+      var childIDs = await recursivelyGetAllChildrenPicoIDs(pico.id)
+      return ldb.batch([pico.id].concat(childIDs).map(function (id) {
+        return {
+          key: ['pico-status', id],
+          value: status
+        }
+      }))
+    },
+    getPicoStatus: getPicoStatus,
 
     /// /////////////////////////////////////////////////////////////////////
     //
@@ -910,22 +1103,7 @@ module.exports = function (opts) {
     disableRuleset: function (rid, callback) {
       ldb.del(['rulesets', 'enabled', rid], callback)
     },
-    getEnabledRuleset: function (rid, callback) {
-      ldb.get(['rulesets', 'enabled', rid], function (err, dataE) {
-        if (err) return callback(err)
-        ldb.get(['rulesets', 'krl', dataE.hash], function (err, dataK) {
-          if (err) return callback(err)
-          callback(null, {
-            src: dataK.src,
-            hash: dataE.hash,
-            rid: dataK.rid,
-            url: dataK.url,
-            timestamp_stored: dataK.timestamp,
-            timestamp_enable: dataE.timestamp
-          })
-        })
-      })
-    },
+    getEnabledRuleset: getEnabledRuleset,
     listAllEnabledRIDs: function (callback) {
       var rids = []
       dbRange(ldb, {

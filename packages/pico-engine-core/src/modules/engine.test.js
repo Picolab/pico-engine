@@ -6,6 +6,7 @@ var strictDeepEquals = require('../../test/helpers/strictEquals').strictDeepEqua
 var kengine = require('./engine')
 var ADMIN_POLICY_ID = require('../DB').ADMIN_POLICY_ID
 var mkTestPicoEngine = require('../mkTestPicoEngine')
+var testA = require('../../test/helpers/testA')
 
 // wrap stubbed functions in this to simulate async
 var tick = function (fn) {
@@ -22,17 +23,12 @@ async function runAction (pe, ctx, domain, id, args) {
   return _.head(await act(ctx, args))
 }
 
-var testPE = function (testName, genfn) {
-  test(testName, function (t) {
-    mkTestPicoEngine({
+function testPE (testName, genfn) {
+  testA(testName, async function (t) {
+    var pe = await mkTestPicoEngine({
       rootRIDs: ['io.picolabs.engine']
-    }, function (err, pe) {
-      if (err) return t.end(err);
-
-      (async function () {
-        await genfn(t, pe)
-      }()).then(t.end).catch(t.end)
     })
+    await genfn(t, pe)
   })
 }
 
@@ -638,10 +634,10 @@ testPE('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
 
 test('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptChannelMessage', function (t) {
   (async function () {
-    var pe = await (util.promisify(mkTestPicoEngine)({
+    var pe = await mkTestPicoEngine({
       rootRIDs: ['io.picolabs.engine'],
       __dont_use_sequential_ids_for_testing: true
-    }))
+    })
     var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
     var newChannel = await pe.modules.get({}, 'engine', 'newChannel')
     var signChannelMessage = await pe.modules.get({}, 'engine', 'signChannelMessage')
@@ -708,4 +704,223 @@ test('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChann
     t.equals(await decrypt(eci1, encryptedMessage, nonce, 'Bad public key'), false, 'bad key')
     t.equals(await decrypt(eci1, 'bogus43212(*(****', nonce, publicKey0), false, 'non bs58 message')
   }()).then(t.end).catch(t.end)
+})
+
+testA('engine:exportPico', async function (t) {
+  var krl = `ruleset rid.export {
+    rule sum {
+      select when repeat 3 (
+        aa sum n re#(\\d+)#
+      ) sum(n)
+      send_directive("sum", {"n": n});
+    }
+    rule setvars {
+      select when aa setvars
+      always {
+        ent:one := 1;
+        ent:arr := [2, {"three": 3}];
+        ent:map := {"a": [2, 3], "b": {"c": {"d": 1}}};
+        ent:foo := {}
+      }
+    }
+    rule newPico {
+      select when aa newPico
+      engine:newPico()
+    }
+  }`
+  var pe = await mkTestPicoEngine({
+    compileAndLoadRuleset: 'inline',
+    rootRIDs: ['rid.export'],
+    systemRulesets: [{
+      src: krl,
+      meta: { url: 'wat' }
+    }]
+  })
+
+  var rootEci = await util.promisify(pe.getRootECI)()
+  var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
+  var rootPicoId = await getPicoIDByECI({}, [rootEci])
+
+  function signalEvent (eci, dt, attrs) {
+    return pe.signalEvent({
+      eci: eci,
+      domain: dt.split('/')[0],
+      type: dt.split('/')[1],
+      attrs: attrs
+    })
+  }
+
+  await signalEvent(rootEci, 'aa/sum', { n: 1 })
+  await signalEvent(rootEci, 'aa/sum', { n: 3 })
+  await signalEvent(rootEci, 'aa/setvars')
+  await signalEvent(rootEci, 'aa/newPico')
+
+  var exportPico = await pe.modules.get({}, 'engine', 'exportPico')
+
+  var exported = await exportPico({}, [rootPicoId])
+  _.each(exported.rulesets, function (r) {
+    delete r.timestamp_stored
+    delete r.timestamp_enable
+  })
+  t.deepEquals(exported, {
+    version: require('../../package.json').version,
+    policies: {
+      'allow-all-policy': {
+        name: 'admin channel policy',
+        event: { allow: [{}] },
+        query: { allow: [{}] }
+      }
+    },
+    rulesets: {
+      'rid.export': {
+        src: krl,
+        hash: '6233907ebe1c7d7c8d83a3537525be8f5a1387f35989d0e6e073cd5f67bb0fca',
+        rid: 'rid.export',
+        url: 'wat'
+      }
+    },
+    pico: {
+      id: 'id0',
+      parent_id: null,
+      admin_eci: 'id1',
+      channels: {
+        'id1': { id: 'id1', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id1', verifyKey: 'verifyKey_id1', secret: { seed: 'seed_id1', signKey: 'signKey_id1' } } }
+      },
+      entvars: {
+        'rid.export': {
+          one: 1,
+          arr: [2, { three: 3 }],
+          map: { a: [2, 3], b: { c: { d: 1 } } },
+          foo: {}
+        }
+      },
+      state_machine: {
+        'rid.export': {
+          newPico: { state: 'end', bindings: {} },
+          setvars: { state: 'end', bindings: {} },
+          sum: { state: 's1', bindings: {} }
+        }
+      },
+      aggregator_var: {
+        'rid.export': { sum: { n: ['1', '3'] } }
+      },
+      children: [
+        {
+          id: 'id2',
+          parent_id: 'id0',
+          admin_eci: 'id3',
+          channels: {
+            'id3': { id: 'id3', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id3', verifyKey: 'verifyKey_id3', secret: { seed: 'seed_id3', signKey: 'signKey_id3' } } }
+          },
+          children: []
+        }
+      ]
+    }
+  })
+  // TODO scheduled events?
+})
+
+testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
+  var krl = `ruleset rid.status {
+    rule setLeaving {
+      select when aa setLeaving
+      engine:setPicoStatus(isLeaving = true)
+    }
+    rule setMoving {
+      select when aa setMoving
+      engine:setPicoStatus(movedToHost = "http://away")
+    }
+    rule getStatus {
+      select when aa getStatus
+      send_directive("", engine:getPicoStatus())
+    }
+  }`
+  var pe = await mkTestPicoEngine({
+    compileAndLoadRuleset: 'inline',
+    rootRIDs: ['rid.status'],
+    systemRulesets: [{
+      src: krl,
+      meta: { url: 'wat' }
+    }]
+  })
+  pe.emitter.on('error', _.noop)
+
+  var rootEci = await util.promisify(pe.getRootECI)()
+  var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
+  var rootPicoId = await getPicoIDByECI({}, [rootEci])
+  var getStatus = await pe.modules.get({}, 'engine', 'getPicoStatus')
+  var setStatus = await pe.modules.get({}, 'engine', 'setPicoStatus')
+
+  var c1 = await runAction(pe, {}, 'engine', 'newPico', [rootPicoId])
+  var c1c1 = await runAction(pe, {}, 'engine', 'newPico', [c1.id])
+  var c1c2 = await runAction(pe, {}, 'engine', 'newPico', [c1.id])
+
+  function signalEvent (eci, dt, attrs) {
+    return pe.signalEvent({
+      eci: eci,
+      domain: dt.split('/')[0],
+      type: dt.split('/')[1],
+      attrs: attrs
+    })
+  }
+
+  var resp = await signalEvent(rootEci, 'aa/getStatus')
+  t.deepEquals(resp.directives[0].options, { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
+
+  await signalEvent(rootEci, 'aa/setLeaving')
+  try {
+    await signalEvent(rootEci, 'aa/getStatus')
+    t.fail(true, 'should fail b/c the pico is leaving')
+  } catch (err) {
+    t.is(err.picoCore_pico_isLeaving, true)
+  }
+  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: true, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: true, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: true, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: true, movedToHost: null })
+
+  await setStatus({}, [rootPicoId, false])
+
+  await signalEvent(rootEci, 'aa/setMoving')
+  try {
+    await signalEvent(rootEci, 'aa/getStatus')
+    t.fail(true, 'should fail b/c the pico is moving')
+  } catch (err) {
+    t.is(err.picoCore_pico_movedToHost, 'http://away')
+  }
+  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: 'http://away' })
+  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: 'http://away' })
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: 'http://away' })
+  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: 'http://away' })
+
+  // You can't change a childs status if the parent is transient
+  try {
+    await setStatus({}, [c1c1.id, true, 'http://haha'])
+    t.fail(true, 'should fail b/c the parent is moving')
+  } catch (e) {
+    t.is(e + '', 'Error: Cannot change pico status b/c its parent is transient')
+  }
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: 'http://away' })
+
+  // Clear the status on root and it's children
+  await setStatus({}, [rootPicoId, false, null])
+  resp = await signalEvent(rootEci, 'aa/getStatus')
+  t.deepEquals(resp.directives[0].options, { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
+
+  // Set a single pico's status and ensure it's parents/siblings are not effected
+  await setStatus({}, [c1c1.id, true])
+  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: true, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
+  await setStatus({}, [rootPicoId, false, null])
+  resp = await signalEvent(rootEci, 'aa/getStatus')
+  t.deepEquals(resp.directives[0].options, { isLeaving: false, movedToHost: null })
 })

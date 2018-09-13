@@ -1,6 +1,6 @@
 var test = require('tape')
 
-module.exports = function testA (name, fn) {
+function testA (name, fn) {
   test(name, function (t) {
     t.is = t.deepEquals
     fn(t)
@@ -8,3 +8,13 @@ module.exports = function testA (name, fn) {
       .catch(t.end)
   })
 }
+testA.only = function testAonly (name, fn) {
+  test.only(name, function (t) {
+    t.is = t.deepEquals
+    fn(t)
+      .then(t.end)
+      .catch(t.end)
+  })
+}
+
+module.exports = testA

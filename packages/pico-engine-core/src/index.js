@@ -21,18 +21,8 @@ var processQuery = require('./processQuery')
 var ChannelPolicy = require('./ChannelPolicy')
 var RulesetRegistry = require('./RulesetRegistry')
 var normalizeKRLArgs = require('./normalizeKRLArgs')
-
-function promiseCallback (callback) {
-  if (!callback) {
-    var promise = new Promise(function (resolve, reject) {
-      callback = function callback (err, value) {
-        err ? reject(err) : resolve(value)
-      }
-    })
-    callback.promise = promise
-  }
-  return callback
-}
+var promiseCallback = require('./promiseCallback')
+var krlCompiler = require('krl-compiler')
 
 var applyFn = function (fn, ctx, args) {
   if (ktypes.isAction(fn)) {
@@ -51,6 +41,19 @@ var logLevels = {
   'error': true
 }
 
+function compileAndLoadRulesetInline (rsInfo, callback) {
+  var rs
+  try {
+    var jsSrc = krlCompiler(rsInfo.src, {
+      inline_source_map: true
+    }).code
+    rs = eval(jsSrc)// eslint-disable-line no-eval
+  } catch (err) {
+    return callback(err)
+  }
+  callback(null, rs)
+}
+
 module.exports = function (conf) {
   var db = DB(conf.db)
   _.each(db, function (val, key) {
@@ -60,7 +63,7 @@ module.exports = function (conf) {
   })
   var host = conf.host
   var rootRIDs = _.uniq(_.filter(conf.rootRIDs, _.isString))
-  var compileAndLoadRuleset = conf.compileAndLoadRuleset
+  var compileAndLoadRuleset = conf.compileAndLoadRuleset || compileAndLoadRulesetInline
   var compileAndLoadRulesetYieldable = util.promisify(compileAndLoadRuleset)
 
   var depGraph = new DepGraph()
@@ -290,7 +293,18 @@ module.exports = function (conf) {
       })
   }
 
-  var picoQ = PicoQueue(function (picoId, type, data) {
+  var picoQ = PicoQueue(async function (picoId, type, data) {
+    var status = await db.getPicoStatus(picoId)
+    if (status.movedToHost) {
+      let err = new Error('Pico moved to a new host')
+      err.picoCore_pico_movedToHost = status.movedToHost
+      throw err
+    } else if (status.isLeaving) {
+      let err = new Error('Pico is leaving this host')
+      err.picoCore_pico_isLeaving = true
+      throw err
+    }
+
     // now handle the next task on the pico queue
     if (type === 'event') {
       var event = data

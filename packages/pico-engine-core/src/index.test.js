@@ -7,7 +7,6 @@ var http = require('http')
 var async = require('async')
 var testA = require('../test/helpers/testA')
 var memdown = require('memdown')
-var compiler = require('krl-compiler')
 var PicoEngine = require('./')
 var mkTestPicoEngine = require('./mkTestPicoEngine')
 var ADMIN_POLICY_ID = require('./DB').ADMIN_POLICY_ID
@@ -2160,18 +2159,7 @@ test('PicoEngine - io.picolabs.error rulesets', function (t) {
 
 test("PicoEngine - (re)registering ruleset shouldn't mess up state", function (t) {
   mkTestPicoEngine({
-    compileAndLoadRuleset: function (rsInfo, callback) {
-      var js
-      try {
-        var jsSrc = compiler(rsInfo.src, {
-          inline_source_map: true
-        }).code
-        js = eval(jsSrc)//eslint-disable-line
-      } catch (err) {
-        return callback(err)
-      }
-      callback(null, js)
-    }
+    compileAndLoadRuleset: 'inline'
   }, function (err, pe) {
     if (err) return t.end(err)
 
@@ -2282,18 +2270,6 @@ var mkPicoEngineFactoryWithKRLCompiler = function () {
     return PicoEngine(_.assign({}, {
       host: 'https://test-host',
       ___core_testing_mode: true,
-      compileAndLoadRuleset: function (rsInfo, callback) {
-        var js
-        try {
-          var jsSrc = compiler(rsInfo.src, {
-            inline_source_map: true
-          }).code
-          js = eval(jsSrc)//eslint-disable-line
-        } catch (err) {
-          return callback(err)
-        }
-        callback(null, js)
-      },
       db: {
         db: memdb,
         __use_sequential_ids_for_testing: true
