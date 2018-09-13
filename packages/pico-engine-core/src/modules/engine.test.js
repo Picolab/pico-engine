@@ -848,8 +848,12 @@ testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   var rootEci = await util.promisify(pe.getRootECI)()
   var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
   var rootPicoId = await getPicoIDByECI({}, [rootEci])
-  var getPicoStatus = await pe.modules.get({}, 'engine', 'getPicoStatus')
-  var setPicoStatus = await pe.modules.get({}, 'engine', 'setPicoStatus')
+  var getStatus = await pe.modules.get({}, 'engine', 'getPicoStatus')
+  var setStatus = await pe.modules.get({}, 'engine', 'setPicoStatus')
+
+  var c1 = await runAction(pe, {}, 'engine', 'newPico', [rootPicoId])
+  var c1c1 = await runAction(pe, {}, 'engine', 'newPico', [c1.id])
+  var c1c2 = await runAction(pe, {}, 'engine', 'newPico', [c1.id])
 
   function signalEvent (eci, dt, attrs) {
     return pe.signalEvent({
@@ -861,10 +865,10 @@ testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   }
 
   var resp = await signalEvent(rootEci, 'aa/getStatus')
-  t.deepEquals(resp.directives[0].options, {
-    isLeaving: false,
-    movedToHost: null
-  })
+  t.deepEquals(resp.directives[0].options, { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
 
   await signalEvent(rootEci, 'aa/setLeaving')
   try {
@@ -873,12 +877,12 @@ testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   } catch (err) {
     t.is(err.picoCore_pico_isLeaving, true)
   }
-  t.deepEquals(await getPicoStatus({}, [rootPicoId]), {
-    isLeaving: true,
-    movedToHost: null
-  })
+  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: true, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: true, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: true, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: true, movedToHost: null })
 
-  await setPicoStatus({}, [rootPicoId, false])
+  await setStatus({}, [rootPicoId, false])
 
   await signalEvent(rootEci, 'aa/setMoving')
   try {
@@ -887,8 +891,27 @@ testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   } catch (err) {
     t.is(err.picoCore_pico_movedToHost, 'http://away')
   }
-  t.deepEquals(await getPicoStatus({}, [rootPicoId]), {
-    isLeaving: false,
-    movedToHost: 'http://away'
-  })
+  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: 'http://away' })
+  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: 'http://away' })
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: 'http://away' })
+  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: 'http://away' })
+
+  // Clear the status on root and it's children
+  await setStatus({}, [rootPicoId, false, null])
+  resp = await signalEvent(rootEci, 'aa/getStatus')
+  t.deepEquals(resp.directives[0].options, { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
+
+  // Set a single pico's status and ensure it's parents/siblings are not effected
+  await setStatus({}, [c1c1.id, true])
+  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: true, movedToHost: null })
+  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
+  await setStatus({}, [rootPicoId, false, null])
+  resp = await signalEvent(rootEci, 'aa/getStatus')
+  t.deepEquals(resp.directives[0].options, { isLeaving: false, movedToHost: null })
 })

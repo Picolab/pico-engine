@@ -404,6 +404,22 @@ module.exports = function (opts) {
     return pico
   }
 
+  async function recursivelyGetAllChildrenPicoIDs (picoId) {
+    var ids = []
+    await forRange({
+      prefix: ['pico-children', picoId]
+    }, function (data) {
+      if (!data.value) return
+      var id = data.key[2]
+      ids.push(id)
+      return recursivelyGetAllChildrenPicoIDs(id)
+        .then(function (subIDs) {
+          ids = ids.concat(subIDs)
+        })
+    })
+    return ids
+  }
+
   async function assertPicoID (id) {
     id = ktypes.toString(id)
     try {
@@ -700,10 +716,17 @@ module.exports = function (opts) {
 
     setPicoStatus: async function (picoId, isLeaving, movedToHost) {
       picoId = await assertPicoID(picoId)
-      return ldb.put(['pico-status', picoId], {
+      let status = {
         isLeaving: isLeaving,
         movedToHost: movedToHost
-      })
+      }
+      var childIDs = await recursivelyGetAllChildrenPicoIDs(picoId)
+      return ldb.batch([picoId].concat(childIDs).map(function (id) {
+        return {
+          key: ['pico-status', id],
+          value: status
+        }
+      }))
     },
     getPicoStatus: function (picoId) {
       return ldb.get(['pico-status', picoId])
