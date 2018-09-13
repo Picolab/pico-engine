@@ -420,10 +420,10 @@ module.exports = function (opts) {
     return ids
   }
 
-  async function assertPicoID (id) {
+  async function getPicoID (id) {
     id = ktypes.toString(id)
     try {
-      await ldb.get(['pico', id])
+      return await ldb.get(['pico', id])
     } catch (err) {
       if (err.notFound) {
         let err2 = new levelup.errors.NotFoundError('Pico not found: ' + id)
@@ -432,7 +432,19 @@ module.exports = function (opts) {
       }
       throw err
     }
-    return id
+  }
+
+  function getPicoStatus (picoId) {
+    return ldb.get(['pico-status', picoId])
+      .catch(function (err) {
+        if (err.notFound) {
+          return {
+            isLeaving: false,
+            movedToHost: null
+          }
+        }
+        return Promise.reject(err)
+      })
   }
 
   return {
@@ -464,9 +476,9 @@ module.exports = function (opts) {
     },
 
     assertPicoID: function (id, callback) {
-      assertPicoID(id)
-        .then(function (id) {
-          callback(null, id)
+      getPicoID(id)
+        .then(function (pico) {
+          callback(null, pico.id)
         })
         .catch(function (err) {
           callback(err)
@@ -715,31 +727,26 @@ module.exports = function (opts) {
     },
 
     setPicoStatus: async function (picoId, isLeaving, movedToHost) {
-      picoId = await assertPicoID(picoId)
+      let pico = await getPicoID(picoId)
+      if (pico.parent_id) {
+        let parentStatus = await getPicoStatus(pico.parent_id)
+        if (parentStatus.isLeaving || parentStatus.movedToHost) {
+          throw new Error('Cannot change pico status b/c its parent is transient')
+        }
+      }
       let status = {
         isLeaving: isLeaving,
         movedToHost: movedToHost
       }
-      var childIDs = await recursivelyGetAllChildrenPicoIDs(picoId)
-      return ldb.batch([picoId].concat(childIDs).map(function (id) {
+      var childIDs = await recursivelyGetAllChildrenPicoIDs(pico.id)
+      return ldb.batch([pico.id].concat(childIDs).map(function (id) {
         return {
           key: ['pico-status', id],
           value: status
         }
       }))
     },
-    getPicoStatus: function (picoId) {
-      return ldb.get(['pico-status', picoId])
-        .catch(function (err) {
-          if (err.notFound) {
-            return {
-              isLeaving: false,
-              movedToHost: null
-            }
-          }
-          return Promise.reject(err)
-        })
-    },
+    getPicoStatus: getPicoStatus,
 
     /// /////////////////////////////////////////////////////////////////////
     //

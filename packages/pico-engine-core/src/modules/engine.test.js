@@ -896,6 +896,15 @@ testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: 'http://away' })
   t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: 'http://away' })
 
+  // You can't change a childs status if the parent is transient
+  try {
+    await setStatus({}, [c1c1.id, true, 'http://haha'])
+    t.fail(true, 'should fail b/c the parent is moving')
+  } catch (e) {
+    t.is(e + '', 'Error: Cannot change pico status b/c its parent is transient')
+  }
+  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: 'http://away' })
+
   // Clear the status on root and it's children
   await setStatus({}, [rootPicoId, false, null])
   resp = await signalEvent(rootEci, 'aa/getStatus')
