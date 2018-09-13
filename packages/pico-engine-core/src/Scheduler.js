@@ -89,7 +89,7 @@ module.exports = function (conf) {
         timespec: timespec,
         event: event,
         job: conf.is_test_mode
-          ? {handler: handler, cancel: _.noop}
+          ? { handler: handler, cancel: _.noop }
           : schedule.scheduleJob(timespec, handler)
       }
     },

@@ -33,7 +33,7 @@ var setupRootPico = function (pe, callback) {
 
       var signal = function (event) {
         return function (next) {
-          pe.signalEvent(_.assign({eci: rootEci}, event), next)
+          pe.signalEvent(_.assign({ eci: rootEci }, event), next)
         }
       }
 
@@ -75,7 +75,7 @@ var getSystemRulesets = function (callback) {
         if (err) return next(err)
         next(null, {
           src: src,
-          meta: {url: fileUrl(file, {resolve: false})}
+          meta: { url: fileUrl(file, { resolve: false }) }
         })
       })
     }, function (err, systemRulesets) {
@@ -113,7 +113,7 @@ var setupLogging = function (pe, bunyanLog) {
       }
     }
 
-    bunyanLog[krlLevelToBunyanLevel(level)]({krl_level: level, context: context}, message)
+    bunyanLog[krlLevelToBunyanLevel(level)]({ krl_level: level, context: context }, message)
 
     // decide if we want to add the event attributes to the log message
     if (context.event && _.isString(message) && (false ||

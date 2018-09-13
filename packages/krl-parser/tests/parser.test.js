@@ -17,32 +17,32 @@ var parseRuleBody = function (ruleBody, expected) {
 // do NOT use if v is/has a chevron
 var mk = function (v) {
   if (_.isNumber(v)) {
-    return {type: 'Number', value: v}
+    return { type: 'Number', value: v }
   } else if (v === true || v === false) {
-    return {type: 'Boolean', value: v}
+    return { type: 'Boolean', value: v }
   } else if (_.isString(v)) {
-    return {type: 'String', value: v}
+    return { type: 'String', value: v }
   } else if (_.isRegExp(v)) {
-    return {type: 'RegExp', value: v}
+    return { type: 'RegExp', value: v }
   } else if (_.isPlainObject(v)) {
-    return {type: 'Map',
+    return { type: 'Map',
       value: _.map(v, function (val, key) {
         return {
           type: 'MapKeyValuePair',
-          key: {type: 'String', value: key},
+          key: { type: 'String', value: key },
           value: val
         }
-      })}
+      }) }
   } else if (_.isArray(v)) {
-    return {type: 'Array', value: _.map(v, mk)}
+    return { type: 'Array', value: _.map(v, mk) }
   }
   return v
 }
 mk.id = function (value) {
-  return {type: 'Identifier', value: value}
+  return { type: 'Identifier', value: value }
 }
 mk.dID = function (domain, value) {
-  return {type: 'DomainIdentifier', value: value, domain: domain}
+  return { type: 'DomainIdentifier', value: value, domain: domain }
 }
 mk.get = function (object, property, method) {
   return {
@@ -82,7 +82,7 @@ mk.action = function (lbl, id, args, setting) {
   }
 }
 mk.key = function (value) {
-  return {type: 'Keyword', value: value}
+  return { type: 'Keyword', value: value }
 }
 mk.op = function (op, left, right) {
   return {
@@ -126,7 +126,7 @@ mk.eventGroupOp = function (op, n, event) {
   }
 }
 mk.declare = function (op, left, right) {
-  return {type: 'Declaration', op: op, left: left, right: right}
+  return { type: 'Declaration', op: op, left: left, right: right }
 }
 mk.meta = function (key, value) {
   return {
@@ -136,7 +136,7 @@ mk.meta = function (key, value) {
   }
 }
 mk.estmt = function (e) {
-  return {type: 'ExpressionStatement', expression: e}
+  return { type: 'ExpressionStatement', expression: e }
 }
 mk.param = function (id, dflt) {
   return {
@@ -168,9 +168,9 @@ test('parser', function (t) {
 
   assertAST(t, src, {
     type: 'Ruleset',
-    loc: {start: 0, end: 14},
+    loc: { start: 0, end: 14 },
 
-    rid: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
+    rid: { type: 'RulesetID', value: 'rs', loc: { start: 8, end: 10 } },
     meta: void 0,
     global: [],
     rules: []
@@ -183,16 +183,16 @@ test('parser', function (t) {
 
   assertAST(t, src, {
     type: 'Ruleset',
-    loc: {start: 0, end: 27},
+    loc: { start: 0, end: 27 },
 
-    rid: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
+    rid: { type: 'RulesetID', value: 'rs', loc: { start: 8, end: 10 } },
     meta: void 0,
     global: [],
     rules: [
       {
         type: 'Rule',
-        loc: {start: 15, end: 25},
-        name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
+        loc: { start: 15, end: 25 },
+        name: { type: 'Identifier', value: 'r1', loc: { start: 20, end: 22 } },
         rule_state: 'active',
         select: null,
         foreach: [],
@@ -211,16 +211,16 @@ test('parser', function (t) {
 
   assertAST(t, src, {
     type: 'Ruleset',
-    loc: {start: 0, end: 40},
+    loc: { start: 0, end: 40 },
 
-    rid: {type: 'RulesetID', value: 'rs', loc: {start: 8, end: 10}},
+    rid: { type: 'RulesetID', value: 'rs', loc: { start: 8, end: 10 } },
     meta: void 0,
     global: [],
     rules: [
       {
         type: 'Rule',
-        loc: {start: 15, end: 25},
-        name: {type: 'Identifier', value: 'r1', loc: {start: 20, end: 22}},
+        loc: { start: 15, end: 25 },
+        name: { type: 'Identifier', value: 'r1', loc: { start: 20, end: 22 } },
         rule_state: 'active',
         select: null,
         foreach: [],
@@ -230,8 +230,8 @@ test('parser', function (t) {
       },
       {
         type: 'Rule',
-        loc: {start: 28, end: 38},
-        name: {type: 'Identifier', value: 'r2', loc: {start: 33, end: 35}},
+        loc: { start: 28, end: 38 },
+        name: { type: 'Identifier', value: 'r2', loc: { start: 33, end: 35 } },
         rule_state: 'active',
         select: null,
         foreach: [],
@@ -255,8 +255,8 @@ test('select when', function (t) {
   var src = 'select when d t'
   asertRuleAST(src, {
     type: 'EventExpression',
-    event_domain: {type: 'Identifier', value: 'd'},
-    event_type: {type: 'Identifier', value: 't'},
+    event_domain: { type: 'Identifier', value: 'd' },
+    event_type: { type: 'Identifier', value: 't' },
     event_attrs: [],
     where: null,
     setting: [],
@@ -267,8 +267,8 @@ test('select when', function (t) {
   asertRuleAST(src, mk.eventOp('or', [
     {
       type: 'EventExpression',
-      event_domain: {type: 'Identifier', value: 'd'},
-      event_type: {type: 'Identifier', value: 'a'},
+      event_domain: { type: 'Identifier', value: 'd' },
+      event_type: { type: 'Identifier', value: 'a' },
       event_attrs: [],
       where: null,
       setting: [],
@@ -276,8 +276,8 @@ test('select when', function (t) {
     },
     {
       type: 'EventExpression',
-      event_domain: {type: 'Identifier', value: 'd'},
-      event_type: {type: 'Identifier', value: 'b'},
+      event_domain: { type: 'Identifier', value: 'd' },
+      event_type: { type: 'Identifier', value: 'b' },
       event_attrs: [],
       where: null,
       setting: [],
@@ -506,9 +506,9 @@ test('locations', function (t) {
 
   t.deepEquals(parser(src), {
     type: 'Ruleset',
-    loc: {start: 0, end: 32},
+    loc: { start: 0, end: 32 },
     rid: {
-      loc: {start: 8, end: 11},
+      loc: { start: 8, end: 11 },
       type: 'RulesetID',
       value: 'one'
     },
@@ -516,10 +516,10 @@ test('locations', function (t) {
     global: [],
     rules: [
       {
-        loc: {start: 16, end: 30},
+        loc: { start: 16, end: 30 },
         type: 'Rule',
         name: {
-          loc: {start: 21, end: 24},
+          loc: { start: 21, end: 24 },
           type: 'Identifier',
           value: 'two'
         },
@@ -535,15 +535,15 @@ test('locations', function (t) {
 
   src = 'select when a b'
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}').rules[0].select.event, {
-    loc: {start: 35, end: 38},
+    loc: { start: 35, end: 38 },
     type: 'EventExpression',
     event_domain: {
-      loc: {start: 35, end: 36},
+      loc: { start: 35, end: 36 },
       type: 'Identifier',
       value: 'a'
     },
     event_type: {
-      loc: {start: 37, end: 38},
+      loc: { start: 37, end: 38 },
       type: 'Identifier',
       value: 'b'
     },
@@ -555,20 +555,20 @@ test('locations', function (t) {
 
   src = 'select when a b or c d'
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}').rules[0].select.event, {
-    loc: {start: 35, end: 45},
+    loc: { start: 35, end: 45 },
     type: 'EventOperator',
     op: 'or',
     args: [
       {
-        loc: {start: 35, end: 38},
+        loc: { start: 35, end: 38 },
         type: 'EventExpression',
         event_domain: {
-          loc: {start: 35, end: 36},
+          loc: { start: 35, end: 36 },
           type: 'Identifier',
           value: 'a'
         },
         event_type: {
-          loc: {start: 37, end: 38},
+          loc: { start: 37, end: 38 },
           type: 'Identifier',
           value: 'b'
         },
@@ -578,15 +578,15 @@ test('locations', function (t) {
         aggregator: null
       },
       {
-        loc: {start: 42, end: 45},
+        loc: { start: 42, end: 45 },
         type: 'EventExpression',
         event_domain: {
-          loc: {start: 42, end: 43},
+          loc: { start: 42, end: 43 },
           type: 'Identifier',
           value: 'c'
         },
         event_type: {
-          loc: {start: 44, end: 45},
+          loc: { start: 44, end: 45 },
           type: 'Identifier',
           value: 'd'
         },
@@ -599,20 +599,20 @@ test('locations', function (t) {
   })
   src = 'select when a b\nsend_directive("say")'
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}').rules[0].action_block.actions[0], {
-    loc: {start: 39, end: 60},
+    loc: { start: 39, end: 60 },
     type: 'Action',
     label: null,
     action: {
-      loc: {start: 39, end: 53},
+      loc: { start: 39, end: 53 },
       type: 'Identifier',
       value: 'send_directive'
     },
     args: {
-      loc: {start: 53, end: 60},
+      loc: { start: 53, end: 60 },
       type: 'Arguments',
       args: [
         {
-          loc: {start: 54, end: 59},
+          loc: { start: 54, end: 59 },
           type: 'String',
           value: 'say'
         }
@@ -622,33 +622,33 @@ test('locations', function (t) {
   })
   src = 'select when a b\nsend_directive("say",\nblah = 1,)'
   t.deepEquals(parser('ruleset one {rule two {' + src + '}}').rules[0].action_block.actions[0], {
-    loc: {start: 39, end: 71},
+    loc: { start: 39, end: 71 },
     type: 'Action',
     label: null,
     action: {
-      loc: {start: 39, end: 53},
+      loc: { start: 39, end: 53 },
       type: 'Identifier',
       value: 'send_directive'
     },
     args: {
-      loc: {start: 53, end: 71},
+      loc: { start: 53, end: 71 },
       type: 'Arguments',
       args: [
         {
-          loc: {start: 54, end: 59},
+          loc: { start: 54, end: 59 },
           type: 'String',
           value: 'say'
         },
         {
-          loc: {start: 61, end: 69},
+          loc: { start: 61, end: 69 },
           type: 'NamedArgument',
           id: {
-            loc: {start: 61, end: 65},
+            loc: { start: 61, end: 65 },
             type: 'Identifier',
             value: 'blah'
           },
           value: {
-            loc: {start: 68, end: 69},
+            loc: { start: 68, end: 69 },
             type: 'Number',
             value: 1
           }
@@ -658,10 +658,10 @@ test('locations', function (t) {
     setting: []
   })
 
-  t.deepEquals(parser('ruleset a{meta{shares b}}').meta.properties[0].key.loc, {start: 15, end: 21})
-  t.deepEquals(parser('ruleset a{meta{share b}}').meta.properties[0].key.loc, {start: 15, end: 20})
-  t.deepEquals(parser('ruleset a{meta{share b}}').meta.properties[0].loc, {start: 15, end: 22})
-  t.deepEquals(parser('ruleset a{meta{name "b"}}').meta.properties[0].loc, {start: 15, end: 23})
+  t.deepEquals(parser('ruleset a{meta{shares b}}').meta.properties[0].key.loc, { start: 15, end: 21 })
+  t.deepEquals(parser('ruleset a{meta{share b}}').meta.properties[0].key.loc, { start: 15, end: 20 })
+  t.deepEquals(parser('ruleset a{meta{share b}}').meta.properties[0].loc, { start: 15, end: 22 })
+  t.deepEquals(parser('ruleset a{meta{name "b"}}').meta.properties[0].loc, { start: 15, end: 23 })
 
   var testTopLoc = function (src) {
     var src2 = '\n  ' + src + '  \n '
@@ -690,63 +690,63 @@ test('literals', function (t) {
     ast = ast[0].expression
     t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected))
   }
-  testLiteral('"one"', {type: 'String', value: 'one'})
-  testLiteral('"one\ntwo"', {type: 'String', value: 'one\ntwo'})
-  testLiteral('"one\\"two"', {type: 'String', value: 'one"two'})
+  testLiteral('"one"', { type: 'String', value: 'one' })
+  testLiteral('"one\ntwo"', { type: 'String', value: 'one\ntwo' })
+  testLiteral('"one\\"two"', { type: 'String', value: 'one"two' })
 
-  testLiteral('123', {type: 'Number', value: 123})
-  testLiteral('-1', mk.unary('-', {type: 'Number', value: 1}))
-  testLiteral('1.5', {type: 'Number', value: 1.5})
-  testLiteral('+1.5', mk.unary('+', {type: 'Number', value: 1.5}))
-  testLiteral('-.50', mk.unary('-', {type: 'Number', value: 0.5}))
-  testLiteral('-0.0', mk.unary('-', {type: 'Number', value: 0}))
+  testLiteral('123', { type: 'Number', value: 123 })
+  testLiteral('-1', mk.unary('-', { type: 'Number', value: 1 }))
+  testLiteral('1.5', { type: 'Number', value: 1.5 })
+  testLiteral('+1.5', mk.unary('+', { type: 'Number', value: 1.5 }))
+  testLiteral('-.50', mk.unary('-', { type: 'Number', value: 0.5 }))
+  testLiteral('-0.0', mk.unary('-', { type: 'Number', value: 0 }))
 
-  testLiteral('true', {type: 'Boolean', value: true})
-  testLiteral('false', {type: 'Boolean', value: false})
+  testLiteral('true', { type: 'Boolean', value: true })
+  testLiteral('false', { type: 'Boolean', value: false })
 
-  testLiteral('[]', {type: 'Array', value: []})
-  testLiteral('["one"]', {type: 'Array', value: [{type: 'String', value: 'one'}]})
-  testLiteral('[  1,  false ]', {type: 'Array',
+  testLiteral('[]', { type: 'Array', value: [] })
+  testLiteral('["one"]', { type: 'Array', value: [{ type: 'String', value: 'one' }] })
+  testLiteral('[  1,  false ]', { type: 'Array',
     value: [
-      {type: 'Number', value: 1},
-      {type: 'Boolean', value: false}
-    ]})
+      { type: 'Number', value: 1 },
+      { type: 'Boolean', value: false }
+    ] })
 
-  testLiteral('{}', {type: 'Map', value: []})
-  testLiteral('{ "one" : "two" }', {type: 'Map',
+  testLiteral('{}', { type: 'Map', value: [] })
+  testLiteral('{ "one" : "two" }', { type: 'Map',
     value: [
       {
         type: 'MapKeyValuePair',
-        key: {type: 'String', value: 'one'},
-        value: {type: 'String', value: 'two'}
+        key: { type: 'String', value: 'one' },
+        value: { type: 'String', value: 'two' }
       }
-    ]})
-  testLiteral('{"1":2,"3":true,"5":[]}', {type: 'Map',
+    ] })
+  testLiteral('{"1":2,"3":true,"5":[]}', { type: 'Map',
     value: [
       {
         type: 'MapKeyValuePair',
-        key: {type: 'String', value: '1'},
-        value: {type: 'Number', value: 2}
+        key: { type: 'String', value: '1' },
+        value: { type: 'Number', value: 2 }
       },
       {
         type: 'MapKeyValuePair',
-        key: {type: 'String', value: '3'},
-        value: {type: 'Boolean', value: true}
+        key: { type: 'String', value: '3' },
+        value: { type: 'Boolean', value: true }
       },
       {
         type: 'MapKeyValuePair',
-        key: {type: 'String', value: '5'},
-        value: {type: 'Array', value: []}
+        key: { type: 'String', value: '5' },
+        value: { type: 'Array', value: [] }
       }
-    ]})
+    ] })
 
-  testLiteral('re#one#', {type: 'RegExp', value: /one/})
-  testLiteral('re#one#i', {type: 'RegExp', value: /one/i})
-  testLiteral('re#one#ig', {type: 'RegExp', value: /one/ig})
-  testLiteral('re#^one(/two)? .* $#ig', {type: 'RegExp', value: /^one(\/two)? .* $/ig})
-  testLiteral('re#\\# else\\\\#ig', {type: 'RegExp', value: /# else\\/ig})
-  testLiteral('re#/ok/g#ig', {type: 'RegExp', value: /\/ok\/g/ig})
-  testLiteral('re##', {type: 'RegExp', value: new RegExp('', '')})
+  testLiteral('re#one#', { type: 'RegExp', value: /one/ })
+  testLiteral('re#one#i', { type: 'RegExp', value: /one/i })
+  testLiteral('re#one#ig', { type: 'RegExp', value: /one/ig })
+  testLiteral('re#^one(/two)? .* $#ig', { type: 'RegExp', value: /^one(\/two)? .* $/ig })
+  testLiteral('re#\\# else\\\\#ig', { type: 'RegExp', value: /# else\\/ig })
+  testLiteral('re#/ok/g#ig', { type: 'RegExp', value: /\/ok\/g/ig })
+  testLiteral('re##', { type: 'RegExp', value: new RegExp('', '') })
 
   testLiteral('<<>>', {
     type: 'Chevron',
@@ -756,79 +756,79 @@ test('literals', function (t) {
   testLiteral('<<\n  hello\n  >>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: '\n  hello\n  '}
+      { type: 'String', value: '\n  hello\n  ' }
     ]
   })
   testLiteral('<<#{1}>>', {
     type: 'Chevron',
     value: [
-      {type: 'Number', value: 1}
+      { type: 'Number', value: 1 }
     ]
   })
 
   testLiteral('<<one#{2}three>>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: 'one'},
-      {type: 'Number', value: 2},
-      {type: 'String', value: 'three'}
+      { type: 'String', value: 'one' },
+      { type: 'Number', value: 2 },
+      { type: 'String', value: 'three' }
     ]
   })
 
   testLiteral('<<one#{{"one":2}}three>>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: 'one'},
-      {type: 'Map',
+      { type: 'String', value: 'one' },
+      { type: 'Map',
         value: [
           {
             type: 'MapKeyValuePair',
-            key: {type: 'String', value: 'one'},
-            value: {type: 'Number', value: 2}
+            key: { type: 'String', value: 'one' },
+            value: { type: 'Number', value: 2 }
           }
-        ]},
-      {type: 'String', value: 'three'}
+        ] },
+      { type: 'String', value: 'three' }
     ]
   })
 
   testLiteral('<< This #{ x{"flip"} } that >>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: ' This '},
+      { type: 'String', value: ' This ' },
       {
         type: 'MemberExpression',
         object: mk.id('x'),
         property: mk('flip'),
         method: 'path'
       },
-      {type: 'String', value: ' that '}
+      { type: 'String', value: ' that ' }
     ]
   })
 
   testLiteral('<< double <<with>\\>in >>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: ' double <<with>>in '}
+      { type: 'String', value: ' double <<with>>in ' }
     ]
   })
 
   testLiteral('<<one#{<<two#{three}>>}>>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: 'one'},
-      {type: 'Chevron',
+      { type: 'String', value: 'one' },
+      { type: 'Chevron',
         value: [
-          {type: 'String', value: 'two'},
-          {type: 'Identifier', value: 'three'}
-        ]}
+          { type: 'String', value: 'two' },
+          { type: 'Identifier', value: 'three' }
+        ] }
     ]
   })
 
   testLiteral('<<one#{{"two":function(){<<#{three{four}}five>>}}}>>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: 'one'},
-      mk({two: {
+      { type: 'String', value: 'one' },
+      mk({ two: {
         type: 'Function',
         params: mk.params([]),
         body: [
@@ -838,12 +838,12 @@ test('literals', function (t) {
               type: 'Chevron',
               value: [
                 mk.get(mk.id('three'), mk.id('four'), 'path'),
-                {type: 'String', value: 'five'}
+                { type: 'String', value: 'five' }
               ]
             }
           }
         ]
-      }})
+      } })
     ]
   })
 
@@ -891,8 +891,8 @@ test('expressions', function (t) {
 
   testExp('one()', {
     type: 'Application',
-    callee: {type: 'Identifier', value: 'one'},
-    args: {type: 'Arguments', args: []}
+    callee: { type: 'Identifier', value: 'one' },
+    args: { type: 'Arguments', args: [] }
   })
   testExp('one ( 1 , 2 )', mk.app(mk.id('one'), [mk(1), mk(2)]))
   testExp('one (1,2)', mk.app(mk.id('one'), [mk(1), mk(2)]))
@@ -906,45 +906,45 @@ test('expressions', function (t) {
   testExp('1 + "two"', {
     type: 'InfixOperator',
     op: '+',
-    left: {type: 'Number', value: 1},
-    right: {type: 'String', value: 'two'}
+    left: { type: 'Number', value: 1 },
+    right: { type: 'String', value: 'two' }
   })
 
   testExp('1 like re#one#i', {
     type: 'InfixOperator',
     op: 'like',
-    left: {type: 'Number', value: 1},
-    right: {type: 'RegExp', value: /one/i}
+    left: { type: 'Number', value: 1 },
+    right: { type: 'RegExp', value: /one/i }
   })
 
   testExp('a => b | c', {
     type: 'ConditionalExpression',
-    test: {type: 'Identifier', value: 'a'},
-    consequent: {type: 'Identifier', value: 'b'},
-    alternate: {type: 'Identifier', value: 'c'}
+    test: { type: 'Identifier', value: 'a' },
+    consequent: { type: 'Identifier', value: 'b' },
+    alternate: { type: 'Identifier', value: 'c' }
   })
 
   testExp('a => b | c => d | e', {
     type: 'ConditionalExpression',
-    test: {type: 'Identifier', value: 'a'},
-    consequent: {type: 'Identifier', value: 'b'},
+    test: { type: 'Identifier', value: 'a' },
+    consequent: { type: 'Identifier', value: 'b' },
     alternate: {
       type: 'ConditionalExpression',
-      test: {type: 'Identifier', value: 'c'},
-      consequent: {type: 'Identifier', value: 'd'},
-      alternate: {type: 'Identifier', value: 'e'}
+      test: { type: 'Identifier', value: 'c' },
+      consequent: { type: 'Identifier', value: 'd' },
+      alternate: { type: 'Identifier', value: 'e' }
     }
   })
 
   testExp('a=>b|c=>d|e', {
     type: 'ConditionalExpression',
-    test: {type: 'Identifier', value: 'a'},
-    consequent: {type: 'Identifier', value: 'b'},
+    test: { type: 'Identifier', value: 'a' },
+    consequent: { type: 'Identifier', value: 'b' },
     alternate: {
       type: 'ConditionalExpression',
-      test: {type: 'Identifier', value: 'c'},
-      consequent: {type: 'Identifier', value: 'd'},
-      alternate: {type: 'Identifier', value: 'e'}
+      test: { type: 'Identifier', value: 'c' },
+      consequent: { type: 'Identifier', value: 'd' },
+      alternate: { type: 'Identifier', value: 'e' }
     }
   })
 
@@ -1344,7 +1344,7 @@ test('Ruleset meta', function (t) {
     mk.meta('description', {
       type: 'Chevron',
       value: [
-        {type: 'String', value: '\n  wat? ok\n  '}
+        { type: 'String', value: '\n  wat? ok\n  ' }
       ]
     }),
     mk.meta('author', mk('bob'))
@@ -1352,12 +1352,12 @@ test('Ruleset meta', function (t) {
 
   testMeta('keys one "one string"\n keys two {"some": "map"}', [
     mk.meta('keys', [mk.key('one'), mk('one string')]),
-    mk.meta('keys', [mk.key('two'), mk({'some': mk('map')})])
+    mk.meta('keys', [mk.key('two'), mk({ 'some': mk('map') })])
   ])
   // "key" is the same as "keys"
   testMeta('key one "one string"\n key two {"some": "map"}', [
     mk.meta('keys', [mk.key('one'), mk('one string')]),
-    mk.meta('keys', [mk.key('two'), mk({'some': mk('map')})])
+    mk.meta('keys', [mk.key('two'), mk({ 'some': mk('map') })])
   ])
 
   testMeta('logging on', [mk.meta('logging', mk(true))])
@@ -1369,14 +1369,14 @@ test('Ruleset meta', function (t) {
   ].join('\n'), [
     mk.meta('use', {
       kind: 'module',
-      rid: {type: 'RulesetID', value: 'com.blah'},
+      rid: { type: 'RulesetID', value: 'com.blah' },
       version: null,
       alias: null,
       'with': null
     }),
     mk.meta('use', {
       kind: 'module',
-      rid: {type: 'RulesetID', value: 'com.blah'},
+      rid: { type: 'RulesetID', value: 'com.blah' },
       version: mk('2'),
       alias: mk.id('blah'),
       'with': [
@@ -1391,11 +1391,11 @@ test('Ruleset meta', function (t) {
     'errors to com.blah version "2"'
   ].join('\n'), [
     mk.meta('errors', {
-      rid: {type: 'RulesetID', value: 'com.blah'},
+      rid: { type: 'RulesetID', value: 'com.blah' },
       version: null
     }),
     mk.meta('errors', {
-      rid: {type: 'RulesetID', value: 'com.blah'},
+      rid: { type: 'RulesetID', value: 'com.blah' },
       version: mk('2')
     })
   ])
@@ -1415,8 +1415,8 @@ test('Ruleset meta', function (t) {
       operator: mk.key('keys'),
       ids: [mk.id('s3'), mk.id('gmail')],
       rulesets: [
-        {type: 'RulesetID', value: 'com.google'},
-        {type: 'RulesetID', value: 'io.picolabs'}
+        { type: 'RulesetID', value: 'com.google' },
+        { type: 'RulesetID', value: 'io.picolabs' }
       ]
     })
   ])
@@ -1513,42 +1513,42 @@ test('RulePostlude', function (t) {
   // test location
   var src = 'ruleset rs{rule r1{always{one();two()}}}'
   t.deepEquals(parser(src).rules[0].postlude, {
-    loc: {start: 19, end: 38},
+    loc: { start: 19, end: 38 },
     type: 'RulePostlude',
     fired: null,
     notfired: null,
     always: [
       {
-        loc: {start: 26, end: 31},
+        loc: { start: 26, end: 31 },
         type: 'ExpressionStatement',
         expression: {
-          loc: {start: 26, end: 31},
+          loc: { start: 26, end: 31 },
           type: 'Application',
           callee: {
-            loc: {start: 26, end: 29},
+            loc: { start: 26, end: 29 },
             type: 'Identifier',
             value: 'one'
           },
           args: {
-            loc: {start: 29, end: 31},
+            loc: { start: 29, end: 31 },
             type: 'Arguments',
             args: []
           }
         }
       },
       {
-        loc: {start: 32, end: 37},
+        loc: { start: 32, end: 37 },
         type: 'ExpressionStatement',
         expression: {
-          loc: {start: 32, end: 37},
+          loc: { start: 32, end: 37 },
           type: 'Application',
           callee: {
-            loc: {start: 32, end: 35},
+            loc: { start: 32, end: 35 },
             type: 'Identifier',
             value: 'two'
           },
           args: {
-            loc: {start: 35, end: 37},
+            loc: { start: 35, end: 37 },
             type: 'Arguments',
             args: []
           }
@@ -1646,11 +1646,11 @@ test('ruleset global declarations', function (t) {
 test('comments preserve locations', function (t) {
   var ast = parser('1; //some comment\n2/*annother comment*/;3')
   t.deepEquals(ast, _.map([
-    _.assign(mk(1), {loc: {start: 0, end: 1}}),
-    _.assign(mk(2), {loc: {start: 18, end: 19}}),
-    _.assign(mk(3), {loc: {start: 40, end: 41}})
+    _.assign(mk(1), { loc: { start: 0, end: 1 } }),
+    _.assign(mk(2), { loc: { start: 18, end: 19 } }),
+    _.assign(mk(3), { loc: { start: 40, end: 41 } })
   ], function (e) {
-    return {loc: e.loc, type: 'ExpressionStatement', expression: e}
+    return { loc: e.loc, type: 'ExpressionStatement', expression: e }
   }))
   t.end()
 })
@@ -1664,7 +1664,7 @@ test('parse errors', function (t) {
   src += '  }\n'
   src += '}'
   try {
-    parser(src, {filename: 'select-blah.krl'})
+    parser(src, { filename: 'select-blah.krl' })
     t.fail()
   } catch (e) {
     var emsg = ''
@@ -1681,7 +1681,7 @@ test('parse errors', function (t) {
   src += '    select when a b setting(c)\n'
   src += '  }\n'
   src += '}'
-  parser(src, {filename: 'ruleset-ambiguity.krl'})
+  parser(src, { filename: 'ruleset-ambiguity.krl' })
   t.ok('should not throw up')
   t.end()
 })
@@ -1761,7 +1761,7 @@ test('no ambiguity!', function (t) {
 
 test('DomainIdentifier', function (t) {
   t.deepEquals(parser('ent:name')[0].expression, {
-    loc: {start: 0, end: 8},
+    loc: { start: 0, end: 8 },
     type: 'DomainIdentifier',
     value: 'name',
     domain: 'ent'
@@ -1884,7 +1884,7 @@ test('ClearPersistentVariable', function (t) {
     {
       type: 'ClearPersistentVariable',
       variable: mk.dID('app', 'bar'),
-      path_expression: {type: 'Array', value: [mk.id('key')]}
+      path_expression: { type: 'Array', value: [mk.id('key')] }
     }
   ])
 
@@ -1924,7 +1924,7 @@ test('raise event', function (t) {
       event_domain: mk.id('domain'),
       event_type: mk('type'),
       for_rid: null,
-      event_attrs: mk({a: mk(1), b: mk(2)})
+      event_attrs: mk({ a: mk(1), b: mk(2) })
     }
   ])
 
@@ -2329,7 +2329,7 @@ test('LogStatement', function (t) {
   testPostlude('log error {"baz": [1, 2]}', [{
     type: 'LogStatement',
     level: 'error',
-    expression: mk({baz: mk([1, 2])})
+    expression: mk({ baz: mk([1, 2]) })
   }])
 
   t.end()
@@ -2351,7 +2351,7 @@ test('ErrorStatement', function (t) {
   testPostlude('error warn {"baz": [1, 2]}', [{
     type: 'ErrorStatement',
     level: 'warn',
-    expression: mk({baz: mk([1, 2])})
+    expression: mk({ baz: mk([1, 2]) })
   }])
 
   testPostlude('error info info', [{
@@ -2387,7 +2387,7 @@ test('Action setting', function (t) {
     action: mk.dID('http', 'post'),
     args: mk.args([
       mk('url'),
-      mk.arg('qs', mk({foo: mk('bar')}))
+      mk.arg('qs', mk({ foo: mk('bar') }))
     ]),
     setting: []
   })
@@ -2406,7 +2406,7 @@ test('Action setting', function (t) {
     action: mk.dID('http', 'post'),
     args: mk.args([
       mk('url'),
-      mk.arg('qs', mk({foo: mk('bar')}))
+      mk.arg('qs', mk({ foo: mk('bar') }))
     ]),
     setting: [mk.id('resp')]
   })
@@ -2438,7 +2438,7 @@ test('schedule event', function (t) {
       at: mk('time'),
       event_domain: mk.id('domain'),
       event_type: mk('type'),
-      event_attrs: mk({a: mk(1), b: mk(2)}),
+      event_attrs: mk({ a: mk(1), b: mk(2) }),
       setting: null
     }
   ])
@@ -2482,7 +2482,7 @@ test('schedule event', function (t) {
       timespec: mk('5 0 * * *'),
       event_domain: mk.id('domain'),
       event_type: mk('type'),
-      event_attrs: mk({a: mk(1), b: mk(2)}),
+      event_attrs: mk({ a: mk(1), b: mk(2) }),
       setting: null
     }
   ])
@@ -2599,7 +2599,7 @@ test('escaping', function (t) {
   tst('<<one\\">>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: 'one\\"'}
+      { type: 'String', value: 'one\\"' }
     ]
   }, "don't escape '\"' in a chevron")
   // eslint-disable-next-line no-useless-escape
@@ -2609,7 +2609,7 @@ test('escaping', function (t) {
   tst('<<one\\>\\>+two\\>>>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: 'one>>+two>'}
+      { type: 'String', value: 'one>>+two>' }
     ]
   }, "escape '>' in a chevron")
   // eslint-disable-next-line no-useless-escape
@@ -2619,7 +2619,7 @@ test('escaping', function (t) {
   tst('<<one\\#{>>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: 'one#{'}
+      { type: 'String', value: 'one#{' }
     ]
   }, "escape '#{' in a chevron")
   tst('re#one\\#{#', mk(/one#{/), "escape '#{' in a regexp")
@@ -2628,7 +2628,7 @@ test('escaping', function (t) {
   tst('<<one\\#>>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: 'one\\#'}
+      { type: 'String', value: 'one\\#' }
     ]
   }, "don't escape '#' in a chevron")
   tst('re#one\\##', mk(/one#/), "escape '#' in a regexp")
@@ -2637,7 +2637,7 @@ test('escaping', function (t) {
   tst('<<one\\{>>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: 'one\\{'}
+      { type: 'String', value: 'one\\{' }
     ]
   }, "don't escape '{' in a chevron")
   tst('re#one\\{#', mk(/one\{/), "don't escape '{' in a regexp")
@@ -2646,9 +2646,9 @@ test('escaping', function (t) {
   tst('<<one\\\\#{0}+two\\\\>>', {
     type: 'Chevron',
     value: [
-      {type: 'String', value: 'one\\'},
-      {type: 'Number', value: 0},
-      {type: 'String', value: '+two\\'}
+      { type: 'String', value: 'one\\' },
+      { type: 'Number', value: 0 },
+      { type: 'String', value: '+two\\' }
     ]
   }, "leave '\\' in a chevron")
   tst('re#one\\\\#', mk(/one\\/), "leave '\\' in a regexp")

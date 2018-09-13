@@ -10,19 +10,22 @@ module.exports = {
     "foo": {
       "name": "foo",
       "select": {
-        "graph": { "foo": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "b"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("b", matches[0]);
-            return true;
+        "graph": {
+          "foo": {
+            "a": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "b"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("b", matches[0]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -55,11 +58,6 @@ module.exports = {
       "name": "bar",
       "select": {
         "graph": { "bar": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -101,11 +99,6 @@ module.exports = {
       "name": "on_final_no_foreach",
       "select": {
         "graph": { "on_final_no_foreach": { "a": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

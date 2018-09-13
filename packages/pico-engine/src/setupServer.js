@@ -9,7 +9,7 @@ var mime = require('mime-types')
 
 var mergeGetPost = function (req) {
   // give preference to post body params
-  return _.assign({}, req.query, req.body, {_headers: req.headers})
+  return _.assign({}, req.query, req.body, { _headers: req.headers })
 }
 
 module.exports = function (pe) {
@@ -20,8 +20,8 @@ module.exports = function (pe) {
     next()
   })
   app.use(express.static(path.resolve(__dirname, '..', 'public')))
-  app.use(bodyParser.json({type: 'application/json'}))
-  app.use(bodyParser.urlencoded({limit: '512mb', type: 'application/x-www-form-urlencoded', extended: false}))
+  app.use(bodyParser.json({ type: 'application/json' }))
+  app.use(bodyParser.urlencoded({ limit: '512mb', type: 'application/x-www-form-urlencoded', extended: false }))
 
   var errResp = function (res, err) {
     var code = 500
@@ -30,7 +30,7 @@ module.exports = function (pe) {
     } else if (err && err.notFound) {
       code = 404
     }
-    res.status(code).json({error: err.message})
+    res.status(code).json({ error: err.message })
   }
 
   app.use(function (err, req, res, next) {
@@ -57,7 +57,7 @@ module.exports = function (pe) {
           eci: rootEci,
           rid: 'io.picolabs.rewrite',
           name: 'getRewrite',
-          args: {fpc: fpc}
+          args: { fpc: fpc }
         }
         pe.runQuery(query, function (err, data) {
           if (err) return errResp(res, err)
@@ -88,7 +88,7 @@ module.exports = function (pe) {
       if (response.directives) {
         var _res
         // some special cases
-        _res = _.filter(response.directives, {name: '_cookie'})
+        _res = _.filter(response.directives, { name: '_cookie' })
         if (_res) {
           _.forEach(_res, function (v) {
             if (v.options && v.options.cookie) {
@@ -96,17 +96,17 @@ module.exports = function (pe) {
             }
           })
         }
-        _res = _.find(response.directives, {name: '_txt'})
+        _res = _.find(response.directives, { name: '_txt' })
         if (_res && _res.options.content) {
           res.header('Content-Type', 'text/plain')
           return res.end(_res.options.content)
         }
-        _res = _.find(response.directives, {name: '_html'})
+        _res = _.find(response.directives, { name: '_html' })
         if (_res && _res.options.content) {
           res.header('Content-Type', 'text/html')
           return res.end(_res.options.content)
         }
-        _res = _.find(response.directives, {name: '_gif'})
+        _res = _.find(response.directives, { name: '_gif' })
         if (_res && _res.options.content) {
           res.header('Content-Type', 'image/gif')
           var data = _res.options.content
@@ -155,7 +155,7 @@ module.exports = function (pe) {
   app.post('/login', oauthServer.login)
 
   app.all('/api/engine-version', function (req, res) {
-    res.json({'version': version})
+    res.json({ 'version': version })
   })
 
   var toLegacyPVar = function (val) {
@@ -220,28 +220,28 @@ module.exports = function (pe) {
   app.all('/api/root-eci', function (req, res) {
     pe.getRootECI(function (err, rootEci) {
       if (err) return errResp(res, err)
-      res.json({ok: true, eci: rootEci})
+      res.json({ ok: true, eci: rootEci })
     })
   })
 
   app.all('/api/pico/:id/rm-channel/:eci', function (req, res) {
     pe.removeChannel(req.params.eci, function (err) {
       if (err) return errResp(res, err)
-      res.json({ok: true})
+      res.json({ ok: true })
     })
   })
 
   app.all('/api/pico/:id/rm-ruleset/:rid', function (req, res) {
     pe.uninstallRuleset(req.params.id, req.params.rid, function (err) {
       if (err) return errResp(res, err)
-      res.json({ok: true})
+      res.json({ ok: true })
     })
   })
 
   app.all('/api/pico/:id/rm-ent-var/:rid/:var_name', function (req, res) {
     pe.delEntVar(req.params.id, req.params.rid, req.params.var_name, null, function (err) {
       if (err) return errResp(res, err)
-      res.json({ok: true})
+      res.json({ ok: true })
     })
   })
 
@@ -249,7 +249,7 @@ module.exports = function (pe) {
     var args = mergeGetPost(req)
 
     try {
-      res.json({ok: true, code: compiler(args.src).code})
+      res.json({ ok: true, code: compiler(args.src).code })
     } catch (err) {
       res.status(400).json({ error: err.toString() })
     }
@@ -260,7 +260,7 @@ module.exports = function (pe) {
 
     var onRegister = function (err, data) {
       if (err) return errResp(res, err)
-      res.json({ok: true, rid: data.rid, hash: data.hash})
+      res.json({ ok: true, rid: data.rid, hash: data.hash })
     }
     if (_.isString(args.src)) {
       pe.registerRuleset(args.src, {}, onRegister)
@@ -275,14 +275,14 @@ module.exports = function (pe) {
     pe.flushRuleset(req.params.rid, function (err, data) {
       if (err) return errResp(res, err)
       console.log('Ruleset successfully flushed: ' + data.rid)
-      res.json({ok: true, rid: data.rid, hash: data.hash})
+      res.json({ ok: true, rid: data.rid, hash: data.hash })
     })
   })
 
   app.all('/api/ruleset/unregister/:rid', function (req, res) {
     pe.unregisterRuleset(req.params.rid, function (err) {
       if (err) return errResp(res, err)
-      res.json({ok: true})
+      res.json({ ok: true })
     })
   })
 
@@ -308,7 +308,7 @@ module.exports = function (pe) {
         var latestHash = _.get(_.head(
           _(versions)
             .map(function (hashes, date) {
-              return {date: new Date(date), hash: _.head(_.keys(hashes))}
+              return { date: new Date(date), hash: _.head(_.keys(hashes)) }
             })
             .sortBy('date')
             .reverse()

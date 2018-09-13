@@ -92,6 +92,10 @@ module.exports = function (ast, comp, e) {
       ), ast.aggregator.loc))
   }
 
+  if (fnBody.length === 0) {
+    return e(true)
+  }
+
   fnBody.push(e('return', e(true)))
 
   return e('asyncfn', ['ctx', 'aggregateEvent', 'getAttrString', 'setting'], fnBody)

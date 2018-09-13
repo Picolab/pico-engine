@@ -94,12 +94,12 @@ module.exports = function (options) {
     }
     if (isOptionalSemiColon(rules)) {
       if (alwaysSemicolons) {
-        return {symbols: [{literal: ';'}]}
+        return { symbols: [{ literal: ';' }] }
       }
     }
     if (isOptionalActionBlock(rules)) {
       // always do an action block to avoid some strange ambiguities with event aggregator
-      return {symbols: ['ActionBlock']}
+      return { symbols: ['ActionBlock'] }
     }
     return _.sample(_.filter(rules, function (rule) {
       if (isParenRule(rule)) {
@@ -125,15 +125,15 @@ module.exports = function (options) {
       currentname = 'Identifier'
     }
     if (gen[currentname]) {
-      stack.push({literal: gen[currentname]()})
+      stack.push({ literal: gen[currentname]() })
     } else if (currentname === 'Chevron') {
-      stack.push({literal: '<<hello #{'})
+      stack.push({ literal: '<<hello #{' })
       stack.push('Expression')
-      stack.push({literal: '}!>>'})
+      stack.push({ literal: '}!>>' })
     } else if (currentname === 'event_exp_where') {
       // fixing error when it comes up with RegExp right away
       stack.push('Identifier')
-      stack.push({literal: '>'})
+      stack.push({ literal: '>' })
       stack.push('Expression')
     } else if (typeof currentname === 'string') {
       _.each(selectRule(currentname).symbols, function (symbol) {

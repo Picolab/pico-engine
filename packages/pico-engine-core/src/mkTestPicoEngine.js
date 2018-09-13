@@ -23,7 +23,7 @@ _.each(fs.readdirSync(testDir), function (file) {
 var systemRulesets = _.map(_.keys(testRulesets), function (rid) {
   return {
     src: 'ruleset ' + rid + '{}',
-    meta: {url: testRulesets[rid].url}
+    meta: { url: testRulesets[rid].url }
   }
 })
 

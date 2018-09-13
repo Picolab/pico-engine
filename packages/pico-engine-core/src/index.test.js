@@ -104,7 +104,7 @@ test('PicoEngine - hello_world ruleset', function (t) {
         eci: 'id1',
         rid: 'io.picolabs.hello_world',
         name: 'hello',
-        args: {obj: 'Bob'}
+        args: { obj: 'Bob' }
       }),
 
       error_event: function (next) {
@@ -173,12 +173,12 @@ test('PicoEngine - io.picolabs.persistent', function (t) {
       /// ///////////////////////////////////////////////////////////////////////
       // store different names on each pico
       [
-        signalA('store', 'name', {name: 'Alf'}),
-        [{name: 'store_name', options: {name: 'Alf'}}]
+        signalA('store', 'name', { name: 'Alf' }),
+        [{ name: 'store_name', options: { name: 'Alf' } }]
       ],
       [
-        signalB('store', 'name', {name: 'Bob'}),
-        [{name: 'store_name', options: {name: 'Bob'}}]
+        signalB('store', 'name', { name: 'Bob' }),
+        [{ name: 'store_name', options: { name: 'Bob' } }]
       ],
       // pico's should have their respective names
       [queryA('getName'), 'Alf'],
@@ -187,14 +187,14 @@ test('PicoEngine - io.picolabs.persistent', function (t) {
       /// ///////////////////////////////////////////////////////////////////////
       // app vars are shared per-ruleset
       [
-        signalA('store', 'appvar', {appvar: 'Some appvar'}),
-        [{name: 'store_appvar', options: {appvar: 'Some appvar'}}]
+        signalA('store', 'appvar', { appvar: 'Some appvar' }),
+        [{ name: 'store_appvar', options: { appvar: 'Some appvar' } }]
       ],
       [queryA('getAppVar'), 'Some appvar'],
       [queryB('getAppVar'), 'Some appvar'],
       [
-        signalB('store', 'appvar', {appvar: 'Changed by B'}),
-        [{name: 'store_appvar', options: {appvar: 'Changed by B'}}]
+        signalB('store', 'appvar', { appvar: 'Changed by B' }),
+        [{ name: 'store_appvar', options: { appvar: 'Changed by B' } }]
       ],
       [queryA('getAppVar'), 'Changed by B'],
       [queryB('getAppVar'), 'Changed by B'],
@@ -202,10 +202,10 @@ test('PicoEngine - io.picolabs.persistent', function (t) {
       /// ///////////////////////////////////////////////////////////////////////
       // query paths
       [
-        signalA('store', 'user_firstname', {firstname: 'Leonard'}),
-        [{name: 'store_user_firstname', options: {name: 'Leonard'}}]
+        signalA('store', 'user_firstname', { firstname: 'Leonard' }),
+        [{ name: 'store_user_firstname', options: { name: 'Leonard' } }]
       ],
-      [queryA('getUser'), {firstname: 'Leonard', 'lastname': 'McCoy'}],
+      [queryA('getUser'), { firstname: 'Leonard', 'lastname': 'McCoy' }],
       [queryA('getUserFirstname'), 'Leonard'],
 
       /// ///////////////////////////////////////////////////////////////////////
@@ -218,7 +218,7 @@ test('PicoEngine - io.picolabs.persistent', function (t) {
           done()
         })
       },
-      [signalA('store', 'clear_user'), [{name: 'clear_user', options: {}}]],
+      [signalA('store', 'clear_user'), [{ name: 'clear_user', options: {} }]],
       function (done) {
         pe.dbDump(function (err, data) {
           if (err) return done(err)
@@ -227,7 +227,7 @@ test('PicoEngine - io.picolabs.persistent', function (t) {
           done()
         })
       },
-      [signalA('store', 'clear_appvar'), [{name: 'clear_appvar', options: {}}]],
+      [signalA('store', 'clear_appvar'), [{ name: 'clear_appvar', options: {} }]],
       function (done) {
         pe.dbDump(function (err, data) {
           if (err) return done(err)
@@ -253,12 +253,12 @@ test('PicoEngine - io.picolabs.events ruleset', function (t) {
 
     testOutputs(t, [
       [
-        signal('events', 'bind', {name: 'blah?!'}),
-        [{name: 'bound', options: {name: 'blah?!'}}]
+        signal('events', 'bind', { name: 'blah?!' }),
+        [{ name: 'bound', options: { name: 'blah?!' } }]
       ],
       [
-        signal('events', 'get', {thing: 'asdf'}),
-        [{name: 'get', options: {thing: 'asdf'}}]
+        signal('events', 'get', { thing: 'asdf' }),
+        [{ name: 'get', options: { thing: 'asdf' } }]
       ],
       [
         signal('events', 'noop', {}),
@@ -273,47 +273,47 @@ test('PicoEngine - io.picolabs.events ruleset', function (t) {
         []
       ],
       [
-        signal('events', 'ifthen', {name: 'something'}),
-        [{name: 'ifthen', options: {}}]
+        signal('events', 'ifthen', { name: 'something' }),
+        [{ name: 'ifthen', options: {} }]
       ],
       [
         signal('events', 'ifthen', {}),
         []
       ],
       [
-        signal('events', 'on_fired', {name: 'blah'}),
-        [{name: 'on_fired', options: {previous_name: undefined}}]
+        signal('events', 'on_fired', { name: 'blah' }),
+        [{ name: 'on_fired', options: { previous_name: undefined } }]
       ],
       [
         signal('events', 'on_fired', {}),
-        [{name: 'on_fired', options: {previous_name: 'blah'}}]
+        [{ name: 'on_fired', options: { previous_name: 'blah' } }]
       ],
       [
-        signal('events', 'on_choose', {thing: 'one'}),
-        [{name: 'on_choose - one', options: {}}]
+        signal('events', 'on_choose', { thing: 'one' }),
+        [{ name: 'on_choose - one', options: {} }]
       ],
       [query('getOnChooseFired'), true],
       [
-        signal('events', 'on_choose', {thing: 'two'}),
-        [{name: 'on_choose - two', options: {}}]
+        signal('events', 'on_choose', { thing: 'two' }),
+        [{ name: 'on_choose - two', options: {} }]
       ],
       [
-        signal('events', 'on_choose', {thing: 'wat?'}),
+        signal('events', 'on_choose', { thing: 'wat?' }),
         []
       ],
       [query('getOnChooseFired'), true], // still true even though no match
       [
-        signal('events', 'on_choose_if', {fire: 'no', thing: 'one'}),
+        signal('events', 'on_choose_if', { fire: 'no', thing: 'one' }),
         []// condition failed
       ],
       [query('getOnChooseFired'), false], // b/c condition failed
       [
-        signal('events', 'on_choose_if', {fire: 'yes', thing: 'one'}),
-        [{name: 'on_choose_if - one', options: {}}]
+        signal('events', 'on_choose_if', { fire: 'yes', thing: 'one' }),
+        [{ name: 'on_choose_if - one', options: {} }]
       ],
       [query('getOnChooseFired'), true],
       [
-        signal('events', 'on_choose_if', {fire: 'yes', thing: 'wat?'}),
+        signal('events', 'on_choose_if', { fire: 'yes', thing: 'wat?' }),
         []
       ],
       [query('getOnChooseFired'), true], // b/c condition true
@@ -330,7 +330,7 @@ test('PicoEngine - io.picolabs.events ruleset', function (t) {
         []// nothing b/c it did not fire
       ],
       function (next) {
-        signal('events', 'on_sample_if', {fire: 'yes'})(function (err, resp) {
+        signal('events', 'on_sample_if', { fire: 'yes' })(function (err, resp) {
           if (err) return next(err)
           t.equals(_.size(resp.directives), 1, 'only one action should be sampled')
           t.ok(/^on_sample - (one|two|three)$/.test(_.head(resp.directives).name))
@@ -338,100 +338,100 @@ test('PicoEngine - io.picolabs.events ruleset', function (t) {
         })
       },
       [
-        signal('events', 'select_where', {something: 'wat?'}),
-        [{name: 'select_where', options: {}}]
+        signal('events', 'select_where', { something: 'wat?' }),
+        [{ name: 'select_where', options: {} }]
       ],
       [
-        signal('events', 'select_where', {something: 'ok wat?'}),
+        signal('events', 'select_where', { something: 'ok wat?' }),
         []
       ],
       [
-        signal('events', 'where_match_0', {something: 0}),
-        [{name: 'where_match_0', options: {}}]
+        signal('events', 'where_match_0', { something: 0 }),
+        [{ name: 'where_match_0', options: {} }]
       ],
       [
-        signal('events', 'where_match_null', {something: null}),
-        [{name: 'where_match_null', options: {}}]
+        signal('events', 'where_match_null', { something: null }),
+        [{ name: 'where_match_null', options: {} }]
       ],
       [
-        signal('events', 'where_match_false', {something: false}),
-        [{name: 'where_match_false', options: {}}]
+        signal('events', 'where_match_false', { something: false }),
+        [{ name: 'where_match_false', options: {} }]
       ],
       [
-        signal('events', 'where_match_empty_str', {something: ''}),
-        [{name: 'where_match_empty_str', options: {}}]
+        signal('events', 'where_match_empty_str', { something: '' }),
+        [{ name: 'where_match_empty_str', options: {} }]
       ],
       [
-        signal('events', 'where_after_setting', {a: 'one'}),
-        [{name: 'where_after_setting', options: {}}]
+        signal('events', 'where_after_setting', { a: 'one' }),
+        [{ name: 'where_after_setting', options: {} }]
       ],
       [
-        signal('events', 'where_after_setting', {a: 'two'}),
+        signal('events', 'where_after_setting', { a: 'two' }),
         []
       ],
       [
         // test that select() scope overrides the global scope
-        signal('events', 'where_using_global', {a: 'g one'}),
-        [{name: 'where_using_global', options: {}}]
+        signal('events', 'where_using_global', { a: 'g one' }),
+        [{ name: 'where_using_global', options: {} }]
       ],
       [
         // test that event:attr scope doesn't stomp over global
-        signal('events', 'where_using_global', {a: 'g one', global1: 'haha! if this works the rule will not select'}),
-        [{name: 'where_using_global', options: {}}]
+        signal('events', 'where_using_global', { a: 'g one', global1: 'haha! if this works the rule will not select' }),
+        [{ name: 'where_using_global', options: {} }]
       ],
       [
         // test that event:attr scope doesn't stomp over setting()
-        signal('events', 'where_using_global', {a: 'g one', global0: 'haha! if this works the rule will not select'}),
-        [{name: 'where_using_global', options: {}}]
+        signal('events', 'where_using_global', { a: 'g one', global0: 'haha! if this works the rule will not select' }),
+        [{ name: 'where_using_global', options: {} }]
       ],
       [
-        signal('events', 'implicit_match_0', {something: 0}),
-        [{name: 'implicit_match_0', options: {}}]
+        signal('events', 'implicit_match_0', { something: 0 }),
+        [{ name: 'implicit_match_0', options: {} }]
       ],
       [
-        signal('events', 'implicit_match_null', {something: null}),
-        [{options: {}, name: 'implicit_match_null'}]
+        signal('events', 'implicit_match_null', { something: null }),
+        [{ options: {}, name: 'implicit_match_null' }]
       ],
       [
-        signal('events', 'implicit_match_false', {something: false}),
-        [{options: {}, name: 'implicit_match_false'}]
+        signal('events', 'implicit_match_false', { something: false }),
+        [{ options: {}, name: 'implicit_match_false' }]
       ],
       [
-        signal('events', 'implicit_match_empty_str', {something: ''}),
-        [{options: {}, name: 'implicit_match_empty_str'}]
+        signal('events', 'implicit_match_empty_str', { something: '' }),
+        [{ options: {}, name: 'implicit_match_empty_str' }]
       ],
-      [signal('events', 'no_action', {fired: 'no'}), []],
+      [signal('events', 'no_action', { fired: 'no' }), []],
       [query('getNoActionFired'), null],
-      [signal('events', 'no_action', {fired: 'yes'}), []],
+      [signal('events', 'no_action', { fired: 'yes' }), []],
       [query('getNoActionFired'), true], // fired even though no actions
 
       // Testing action event:send
-      [signal('events', 'store_sent_name', {name: 'Bob'}), []],
-      [query('getSentAttrs'), {name: 'Bob'}],
+      [signal('events', 'store_sent_name', { name: 'Bob' }), []],
+      [query('getSentAttrs'), { name: 'Bob' }],
       [query('getSentName'), 'Bob'],
-      [signal('events', 'action_send', {name: 'Jim'}), []],
+      [signal('events', 'action_send', { name: 'Jim' }), []],
       // this should in turn call store_sent_name and change it
-      [query('getSentAttrs'), {name: 'Jim', empty: [], r: 're#hi#i'}],
+      [query('getSentAttrs'), { name: 'Jim', empty: [], r: 're#hi#i' }],
       [query('getSentName'), 'Jim'],
 
       /// ///////////////////////////////////////////////////////////////////////
       // Testing raise <domain> event
-      [signal('events', 'raise_set_name', {name: 'Raised'}), []],
-      [query('getSentAttrs'), {name: 'Raised'}],
+      [signal('events', 'raise_set_name', { name: 'Raised' }), []],
+      [query('getSentAttrs'), { name: 'Raised' }],
       [query('getSentName'), 'Raised'],
 
-      [signal('events', 'raise_set_name_attr', {name: 'Raised-2'}), []],
-      [query('getSentAttrs'), {name: 'Raised-2'}],
+      [signal('events', 'raise_set_name_attr', { name: 'Raised-2' }), []],
+      [query('getSentAttrs'), { name: 'Raised-2' }],
       [query('getSentName'), 'Raised-2'],
 
-      [signal('events', 'raise_set_name_rid', {name: 'Raised-3'}), []],
-      [query('getSentAttrs'), {name: 'Raised-3'}],
+      [signal('events', 'raise_set_name_rid', { name: 'Raised-3' }), []],
+      [query('getSentAttrs'), { name: 'Raised-3' }],
       [query('getSentName'), 'Raised-3'],
 
       /// ///////////////////////////////////////////////////////////////////////
       [
         signal('events', 'event_eid', {}, void 0, 'some eid for this test'),
-        [{name: 'event_eid', options: {eid: 'some eid for this test'}}]
+        [{ name: 'event_eid', options: { eid: 'some eid for this test' } }]
       ]
     ], t.end)
   })
@@ -452,83 +452,83 @@ test('PicoEngine - io.picolabs.scope ruleset', function (t) {
 
       // Testing how setting() variables work on `or`
       [
-        signal('scope', 'eventOr0', {name: '000'}),
-        [{name: 'eventOr', options: {name0: '000', name1: void 0}}]
+        signal('scope', 'eventOr0', { name: '000' }),
+        [{ name: 'eventOr', options: { name0: '000', name1: void 0 } }]
       ],
       [
-        signal('scope', 'eventOr1', {name: '111'}),
-        [{name: 'eventOr', options: {name0: void 0, name1: '111'}}]
+        signal('scope', 'eventOr1', { name: '111' }),
+        [{ name: 'eventOr', options: { name0: void 0, name1: '111' } }]
       ],
       [
         signal('scope', 'eventOr0', {}),
-        [{name: 'eventOr', options: {name0: '', name1: void 0}}]
+        [{ name: 'eventOr', options: { name0: '', name1: void 0 } }]
       ],
       [
-        signal('scope', 'eventOr1', {name: '?'}),
-        [{name: 'eventOr', options: {name0: void 0, name1: '?'}}]
+        signal('scope', 'eventOr1', { name: '?' }),
+        [{ name: 'eventOr', options: { name0: void 0, name1: '?' } }]
       ],
 
       // setting() variables should be persisted until the rule fires
-      [signal('scope', 'eventAnd0', {name: '000'}), []],
+      [signal('scope', 'eventAnd0', { name: '000' }), []],
       [
-        signal('scope', 'eventAnd1', {name: '111'}),
-        [{name: 'eventAnd', options: {name0: '000', name1: '111'}}]
+        signal('scope', 'eventAnd1', { name: '111' }),
+        [{ name: 'eventAnd', options: { name0: '000', name1: '111' } }]
       ],
 
       // setting() variables should be persisted until the rule fires or time runs out
-      [signal('scope', 'eventWithin1', {name: '111'}, new Date(10000000000000)), []],
+      [signal('scope', 'eventWithin1', { name: '111' }, new Date(10000000000000)), []],
       [
-        signal('scope', 'eventWithin2', {name: '222'}, new Date(10000000000007)),
-        [{name: 'eventWithin', options: {name1: '111', name2: '222'}}]
+        signal('scope', 'eventWithin2', { name: '222' }, new Date(10000000000007)),
+        [{ name: 'eventWithin', options: { name1: '111', name2: '222' } }]
       ],
       // now let too much time pass for it to remember 111
-      [signal('scope', 'eventWithin1', {name: '111'}, new Date(10000000000000)), []],
+      [signal('scope', 'eventWithin1', { name: '111' }, new Date(10000000000000)), []],
       [signal('scope', 'eventWithin0', {}, new Date(10000000007000)), []],
       [
-        signal('scope', 'eventWithin2', {name: '222'}, new Date(10000000007007)),
-        [{name: 'eventWithin', options: {name1: void 0, name2: '222'}}]
+        signal('scope', 'eventWithin2', { name: '222' }, new Date(10000000007007)),
+        [{ name: 'eventWithin', options: { name1: void 0, name2: '222' } }]
       ],
-      [signal('scope', 'eventWithin1', {name: 'aaa'}, new Date(10000000007008)), []],
+      [signal('scope', 'eventWithin1', { name: 'aaa' }, new Date(10000000007008)), []],
       [
         signal('scope', 'eventWithin3', {}, new Date(10000000007009)),
-        [{name: 'eventWithin', options: {name1: 'aaa', name2: void 0}}]
+        [{ name: 'eventWithin', options: { name1: 'aaa', name2: void 0 } }]
       ],
 
       // Testing the scope of the prelude block
       [
-        signal('scope', 'prelude', {name: 'Bill'}),
-        [{name: 'say',
+        signal('scope', 'prelude', { name: 'Bill' }),
+        [{ name: 'say',
           options: {
             name: 'Bill',
             p0: 'prelude 0',
             p1: 'prelude 1',
             g0: 'global 0'
-          }}]
+          } }]
       ],
       [
         query('getVals'),
-        {name: 'Bill', p0: 'prelude 0', p1: 'prelude 1'}
+        { name: 'Bill', p0: 'prelude 0', p1: 'prelude 1' }
       ],
       [
         query('g0'),
         'global 0'
       ],
       [
-        query('add', {'a': 10, 'b': 2}),
+        query('add', { 'a': 10, 'b': 2 }),
         12
       ],
       [
-        query('sum', {'arr': [1, 2, 3, 4, 5]}),
+        query('sum', { 'arr': [1, 2, 3, 4, 5] }),
         15
       ],
       [
         signal('scope', 'functions'),
-        [{name: 'say',
+        [{ name: 'say',
           options: {
             add_one_two: 3,
             inc5_3: 8,
             g0: 'overrided g0!'
-          }}]
+          } }]
       ],
       [
         query('mapped'),
@@ -592,7 +592,7 @@ test('PicoEngine - io.picolabs.operators ruleset', function (t) {
       ],
       [
         query('returnMapAfterKlog'),
-        {a: 1}
+        { a: 1 }
       ],
       [
         query('returnArrayAfterKlog'),
@@ -640,7 +640,7 @@ test('PicoEngine - io.picolabs.execution-order ruleset', function (t) {
       ],
       [
         signal('execution_order', 'all'),
-        [{name: 'first', options: {}}, {name: 'second', options: {}}]
+        [{ name: 'first', options: {} }, { name: 'second', options: {} }]
       ],
       [
         query('getOrder'),
@@ -648,7 +648,7 @@ test('PicoEngine - io.picolabs.execution-order ruleset', function (t) {
       ],
       [
         signal('execution_order', 'reset_order'),
-        [{name: 'reset_order', options: {}}]
+        [{ name: 'reset_order', options: {} }]
       ],
       [
         query('getOrder'),
@@ -656,11 +656,11 @@ test('PicoEngine - io.picolabs.execution-order ruleset', function (t) {
       ],
       [
         signal('execution_order', 'foo'),
-        [{name: 'foo_or_bar', options: {}}, {name: 'foo', options: {}}]
+        [{ name: 'foo_or_bar', options: {} }, { name: 'foo', options: {} }]
       ],
       [
         signal('execution_order', 'bar'),
-        [{name: 'foo_or_bar', options: {}}, {name: 'bar', options: {}}]
+        [{ name: 'foo_or_bar', options: {} }, { name: 'bar', options: {} }]
       ],
       [
         query('getOrder'),
@@ -669,15 +669,15 @@ test('PicoEngine - io.picolabs.execution-order ruleset', function (t) {
       async.apply(pe.installRuleset, 'id0', 'io.picolabs.execution-order2'),
       [
         signal('execution_order', 'reset_order'),
-        [{name: 'reset_order', options: {}}, {name: '2 - reset_order', options: {}}]
+        [{ name: 'reset_order', options: {} }, { name: '2 - reset_order', options: {} }]
       ],
       [
         signal('execution_order', 'bar'),
         [
-          {name: 'foo_or_bar', options: {}},
-          {name: 'bar', options: {}},
-          {name: '2 - foo_or_bar', options: {}},
-          {name: '2 - bar', options: {}}
+          { name: 'foo_or_bar', options: {} },
+          { name: 'bar', options: {} },
+          { name: '2 - foo_or_bar', options: {} },
+          { name: '2 - bar', options: {} }
         ]
       ],
       [
@@ -726,11 +726,11 @@ test('PicoEngine - io.picolabs.engine ruleset', function (t) {
           if (err) return done(err)
           t.deepEquals(data['pico-ruleset'], {
             'id0': {
-              'io.picolabs.engine': {on: true}
+              'io.picolabs.engine': { on: true }
             },
             'id2': {
-              'io.picolabs.meta': {on: true},
-              'io.picolabs.scope': {on: true}
+              'io.picolabs.meta': { on: true },
+              'io.picolabs.scope': { on: true }
             }
           })
           done()
@@ -791,11 +791,11 @@ test('PicoEngine - io.picolabs.module-used ruleset', function (t) {
       // Test overiding module configurations
       [
         signal('module_used', 'dflt_name'),
-        [{name: 'dflt_name', options: {name: 'Bob'}}]
+        [{ name: 'dflt_name', options: { name: 'Bob' } }]
       ],
       [
         signal('module_used', 'conf_name'),
-        [{name: 'conf_name', options: {name: 'Jim'}}]
+        [{ name: 'conf_name', options: { name: 'Jim' } }]
       ],
 
       // Test using a module in the global block
@@ -805,36 +805,36 @@ test('PicoEngine - io.picolabs.module-used ruleset', function (t) {
       // NOTE: the dependent ruleset is NOT added to the pico
       [
         signal('module_used', 'dflt_info'),
-        [{name: 'dflt_info',
-          options: {info: {
+        [{ name: 'dflt_info',
+          options: { info: {
             name: 'Bob',
             memo: void 0, // there is nothing stored in that `ent` var on this pico
             privateFn: 'privateFn = name: Bob memo: null'
-          }}}]
+          } } }]
       ],
       [
         signal('module_used', 'conf_info'),
-        [{name: 'conf_info',
-          options: {info: {
+        [{ name: 'conf_info',
+          options: { info: {
             name: 'Jim',
             memo: void 0, // there is nothing stored in that `ent` var on this pico
             privateFn: 'privateFn = name: Jim memo: null'
-          }}}]
+          } } }]
       ],
 
       // Assert dependant module is not added to the pico
       [
-        signal('module_defined', 'store_memo', {memo: 'foo'}),
+        signal('module_defined', 'store_memo', { memo: 'foo' }),
         []// should not respond to this event
       ],
       async.apply(pe.installRuleset, 'id0', 'io.picolabs.module-defined'),
       [
-        signal('module_defined', 'store_memo', {memo: 'foo'}),
-        [{name: 'store_memo',
+        signal('module_defined', 'store_memo', { memo: 'foo' }),
+        [{ name: 'store_memo',
           options: {
             name: 'Bob', // the default is used when a module is added to a pico
             memo_to_store: 'foo'
-          }}]
+          } }]
       ],
       [
         query('getInfo'),
@@ -846,21 +846,21 @@ test('PicoEngine - io.picolabs.module-used ruleset', function (t) {
       ],
       [
         signal('module_used', 'dflt_info'),
-        [{name: 'dflt_info',
-          options: {info: {
+        [{ name: 'dflt_info',
+          options: { info: {
             name: 'Bob',
             memo: '["foo" by Bob]',
             privateFn: 'privateFn = name: Bob memo: ["foo" by Bob]'
-          }}}]
+          } } }]
       ],
       [
         signal('module_used', 'conf_info'),
-        [{name: 'conf_info',
-          options: {info: {
+        [{ name: 'conf_info',
+          options: { info: {
             name: 'Jim', // the overrided config is used here
             memo: '["foo" by Bob]', // the memo was stored on the pico ruleset with default config
             privateFn: 'privateFn = name: Jim memo: ["foo" by Bob]'
-          }}}]
+          } } }]
       ],
       function (next) {
         pe.runQuery({
@@ -878,25 +878,25 @@ test('PicoEngine - io.picolabs.module-used ruleset', function (t) {
       // Test using defaction s provided by the module
       [
         signal('module_used', 'dflt_getInfoAction'),
-        [{name: 'getInfoAction',
+        [{ name: 'getInfoAction',
           options: {
             name: 'Bob',
             memo: '["foo" by Bob]',
             privateFn: 'privateFn = name: Bob memo: ["foo" by Bob]'
-          }}]
+          } }]
       ],
-      [queryUsed('getEntVal'), {name: 'Bob'}],
+      [queryUsed('getEntVal'), { name: 'Bob' }],
 
       [
         signal('module_used', 'conf_getInfoAction'),
-        [{name: 'getInfoAction',
+        [{ name: 'getInfoAction',
           options: {
             name: 'Jim', // the overrided config is used here
             memo: '["foo" by Bob]', // the memo was stored on the pico ruleset with default config
             privateFn: 'privateFn = name: Jim memo: ["foo" by Bob]'
-          }}]
+          } }]
       ],
-      [queryUsed('getEntVal'), {name: 'Jim'}],
+      [queryUsed('getEntVal'), { name: 'Jim' }],
 
       // Test unregisterRuleset checks
       function (next) {
@@ -930,12 +930,12 @@ test('PicoEngine - io.picolabs.expressions ruleset', function (t) {
         query('obj'),
         {
           a: 'changed 1',
-          b: {c: [2, 3, 4, {d: {e: 'changed 5'}}, 6, 7]}
+          b: { c: [2, 3, 4, { d: { e: 'changed 5' } }, 6, 7] }
         }
       ],
       [
         query('path1'),
-        {e: 'changed 5'}
+        { e: 'changed 5' }
       ],
       [
         query('path2'),
@@ -975,7 +975,7 @@ test('PicoEngine - io.picolabs.meta ruleset', function (t) {
     testOutputs(t, [
       [
         signal('meta', 'event'),
-        [{name: 'event',
+        [{ name: 'event',
           options: {
             rid: 'io.picolabs.meta',
             host: 'https://test-host',
@@ -987,7 +987,7 @@ test('PicoEngine - io.picolabs.meta ruleset', function (t) {
             inEvent: true,
             inQuery: false,
             eci: 'id1'
-          }}]
+          } }]
       ],
       [
         query('metaQuery'),
@@ -1042,7 +1042,7 @@ test('PicoEngine - io.picolabs.http ruleset', function (t) {
       var url = 'http://localhost:' + server.address().port
       testOutputs(t, [
         [
-          signal('http_test', 'get', {url: url}),
+          signal('http_test', 'get', { url: url }),
           []
         ],
         [
@@ -1067,15 +1067,15 @@ test('PicoEngine - io.picolabs.http ruleset', function (t) {
           }
         ],
         [
-          signal('http_test', 'post', {url: url}),
-          [{options: {
+          signal('http_test', 'post', { url: url }),
+          [{ options: {
             foo: 'bar',
             baz: '[Action]' // Notice this is using KRL's json encoding
           },
-          name: 'resp.content.body'}]
+          name: 'resp.content.body' }]
         ],
         [
-          signal('http_test', 'post_setting', {url: url}),
+          signal('http_test', 'post_setting', { url: url }),
           []// nothing should be returned
         ],
         [
@@ -1102,11 +1102,11 @@ test('PicoEngine - io.picolabs.http ruleset', function (t) {
 
         // testing autoraise
         [
-          signal('http_test', 'autoraise', {url: url}),
+          signal('http_test', 'autoraise', { url: url }),
           // autoraise happens on the same event schedule
           [{
             name: 'http_post_event_handler',
-            options: {attrs: {
+            options: { attrs: {
               content: {
                 body: 'baz=qux',
                 headers: {
@@ -1124,7 +1124,7 @@ test('PicoEngine - io.picolabs.http ruleset', function (t) {
               label: 'foobar',
               status_code: 200,
               status_line: 'OK'
-            }}
+            } }
           }]
         ],
         [
@@ -1172,96 +1172,96 @@ test('PicoEngine - io.picolabs.foreach ruleset', function (t) {
       [
         signal('foreach', 'basic'),
         [
-          {name: 'basic', options: {x: 1}},
-          {name: 'basic', options: {x: 2}},
-          {name: 'basic', options: {x: 3}}
+          { name: 'basic', options: { x: 1 } },
+          { name: 'basic', options: { x: 2 } },
+          { name: 'basic', options: { x: 3 } }
         ]
       ],
       [
         signal('foreach', 'map'),
         [
-          {name: 'map', options: {k: 'a', v: 1}},
-          {name: 'map', options: {k: 'b', v: 2}},
-          {name: 'map', options: {k: 'c', v: 3}}
+          { name: 'map', options: { k: 'a', v: 1 } },
+          { name: 'map', options: { k: 'b', v: 2 } },
+          { name: 'map', options: { k: 'c', v: 3 } }
         ]
       ],
       [
         signal('foreach', 'nested'),
         [
-          {name: 'nested', options: {x: 1, y: 'a'}},
-          {name: 'nested', options: {x: 1, y: 'b'}},
-          {name: 'nested', options: {x: 1, y: 'c'}},
-          {name: 'nested', options: {x: 2, y: 'a'}},
-          {name: 'nested', options: {x: 2, y: 'b'}},
-          {name: 'nested', options: {x: 2, y: 'c'}},
-          {name: 'nested', options: {x: 3, y: 'a'}},
-          {name: 'nested', options: {x: 3, y: 'b'}},
-          {name: 'nested', options: {x: 3, y: 'c'}}
+          { name: 'nested', options: { x: 1, y: 'a' } },
+          { name: 'nested', options: { x: 1, y: 'b' } },
+          { name: 'nested', options: { x: 1, y: 'c' } },
+          { name: 'nested', options: { x: 2, y: 'a' } },
+          { name: 'nested', options: { x: 2, y: 'b' } },
+          { name: 'nested', options: { x: 2, y: 'c' } },
+          { name: 'nested', options: { x: 3, y: 'a' } },
+          { name: 'nested', options: { x: 3, y: 'b' } },
+          { name: 'nested', options: { x: 3, y: 'c' } }
         ]
       ],
       [
         signal('foreach', 'scope'),
         [
-          {name: 'scope', options: {foo: 1, bar: 0, baz: 0}},
-          {name: 'scope', options: {foo: 1, bar: 1, baz: 1}},
+          { name: 'scope', options: { foo: 1, bar: 0, baz: 0 } },
+          { name: 'scope', options: { foo: 1, bar: 1, baz: 1 } },
 
-          {name: 'scope', options: {foo: 2, bar: 0, baz: 0}},
-          {name: 'scope', options: {foo: 2, bar: 1, baz: 2}},
-          {name: 'scope', options: {foo: 2, bar: 2, baz: 4}},
+          { name: 'scope', options: { foo: 2, bar: 0, baz: 0 } },
+          { name: 'scope', options: { foo: 2, bar: 1, baz: 2 } },
+          { name: 'scope', options: { foo: 2, bar: 2, baz: 4 } },
 
-          {name: 'scope', options: {foo: 3, bar: 0, baz: 0}},
-          {name: 'scope', options: {foo: 3, bar: 1, baz: 3}},
-          {name: 'scope', options: {foo: 3, bar: 2, baz: 6}},
-          {name: 'scope', options: {foo: 3, bar: 3, baz: 9}},
+          { name: 'scope', options: { foo: 3, bar: 0, baz: 0 } },
+          { name: 'scope', options: { foo: 3, bar: 1, baz: 3 } },
+          { name: 'scope', options: { foo: 3, bar: 2, baz: 6 } },
+          { name: 'scope', options: { foo: 3, bar: 3, baz: 9 } },
 
-          {name: 'scope', options: {foo: 1, bar: 0, baz: 0}},
-          {name: 'scope', options: {foo: 1, bar: 1, baz: 1}},
+          { name: 'scope', options: { foo: 1, bar: 0, baz: 0 } },
+          { name: 'scope', options: { foo: 1, bar: 1, baz: 1 } },
 
-          {name: 'scope', options: {foo: 2, bar: 0, baz: 0}},
-          {name: 'scope', options: {foo: 2, bar: 1, baz: 2}},
-          {name: 'scope', options: {foo: 2, bar: 2, baz: 4}},
+          { name: 'scope', options: { foo: 2, bar: 0, baz: 0 } },
+          { name: 'scope', options: { foo: 2, bar: 1, baz: 2 } },
+          { name: 'scope', options: { foo: 2, bar: 2, baz: 4 } },
 
-          {name: 'scope', options: {foo: 3, bar: 0, baz: 0}},
-          {name: 'scope', options: {foo: 3, bar: 1, baz: 3}},
-          {name: 'scope', options: {foo: 3, bar: 2, baz: 6}},
-          {name: 'scope', options: {foo: 3, bar: 3, baz: 9}}
+          { name: 'scope', options: { foo: 3, bar: 0, baz: 0 } },
+          { name: 'scope', options: { foo: 3, bar: 1, baz: 3 } },
+          { name: 'scope', options: { foo: 3, bar: 2, baz: 6 } },
+          { name: 'scope', options: { foo: 3, bar: 3, baz: 9 } }
         ]
       ],
 
       [
-        signal('foreach', 'final', {x: 'a', y: '0'}),
+        signal('foreach', 'final', { x: 'a', y: '0' }),
         [
-          {name: 'final', options: {x: 'a', y: '0'}},
-          {name: 'final_raised', options: {x: 'a', y: '0'}}
+          { name: 'final', options: { x: 'a', y: '0' } },
+          { name: 'final_raised', options: { x: 'a', y: '0' } }
         ]
       ],
       [
-        signal('foreach', 'final', {x: 'a', y: '0,1'}),
+        signal('foreach', 'final', { x: 'a', y: '0,1' }),
         [
-          {name: 'final', options: {x: 'a', y: '0'}},
-          {name: 'final', options: {x: 'a', y: '1'}},
-          {name: 'final_raised', options: {x: 'a', y: '1'}}
+          { name: 'final', options: { x: 'a', y: '0' } },
+          { name: 'final', options: { x: 'a', y: '1' } },
+          { name: 'final_raised', options: { x: 'a', y: '1' } }
         ]
       ],
       [
-        signal('foreach', 'final', {x: 'a,b', y: '0,1'}),
+        signal('foreach', 'final', { x: 'a,b', y: '0,1' }),
         [
-          {name: 'final', options: {x: 'a', y: '0'}},
-          {name: 'final', options: {x: 'a', y: '1'}},
-          {name: 'final', options: {x: 'b', y: '0'}},
-          {name: 'final', options: {x: 'b', y: '1'}},
-          {name: 'final_raised', options: {x: 'b', y: '1'}}
+          { name: 'final', options: { x: 'a', y: '0' } },
+          { name: 'final', options: { x: 'a', y: '1' } },
+          { name: 'final', options: { x: 'b', y: '0' } },
+          { name: 'final', options: { x: 'b', y: '1' } },
+          { name: 'final_raised', options: { x: 'b', y: '1' } }
         ]
       ],
       [
         signal('foreach', 'key_vs_index'),
         [
-          {name: 'key_vs_index', options: {a: 'bar', k: 'foo', b: 'one', i: 0}},
-          {name: 'key_vs_index', options: {a: 'bar', k: 'foo', b: 'two', i: 1}},
-          {name: 'key_vs_index', options: {a: 'bar', k: 'foo', b: 'three', i: 2}},
-          {name: 'key_vs_index', options: {a: 'qux', k: 'baz', b: 'one', i: 0}},
-          {name: 'key_vs_index', options: {a: 'qux', k: 'baz', b: 'two', i: 1}},
-          {name: 'key_vs_index', options: {a: 'qux', k: 'baz', b: 'three', i: 2}}
+          { name: 'key_vs_index', options: { a: 'bar', k: 'foo', b: 'one', i: 0 } },
+          { name: 'key_vs_index', options: { a: 'bar', k: 'foo', b: 'two', i: 1 } },
+          { name: 'key_vs_index', options: { a: 'bar', k: 'foo', b: 'three', i: 2 } },
+          { name: 'key_vs_index', options: { a: 'qux', k: 'baz', b: 'one', i: 0 } },
+          { name: 'key_vs_index', options: { a: 'qux', k: 'baz', b: 'two', i: 1 } },
+          { name: 'key_vs_index', options: { a: 'qux', k: 'baz', b: 'three', i: 2 } }
         ]
       ]
     ], t.end)
@@ -1298,12 +1298,12 @@ test('PicoEngine - io.picolabs.event-exp ruleset', function (t) {
       ['ee_after', 'c'],
       ['ee_after', 'a', {}, 'after'],
 
-      ['ee_then', 'a', {name: 'bob'}],
-      ['ee_then', 'b', {name: 'bob'}, 'then'],
-      ['ee_then', 'b', {name: 'bob'}],
-      ['ee_then', 'a', {name: 'bob'}],
-      ['ee_then', 'b', {name: '...'}],
-      ['ee_then', 'b', {name: 'bob'}],
+      ['ee_then', 'a', { name: 'bob' }],
+      ['ee_then', 'b', { name: 'bob' }, 'then'],
+      ['ee_then', 'b', { name: 'bob' }],
+      ['ee_then', 'a', { name: 'bob' }],
+      ['ee_then', 'b', { name: '...' }],
+      ['ee_then', 'b', { name: 'bob' }],
 
       ['ee_and', 'a'],
       ['ee_and', 'c'],
@@ -1371,82 +1371,100 @@ test('PicoEngine - io.picolabs.event-exp ruleset', function (t) {
       ['ee_count', 'a', {}, 'count'],
       ['ee_count', 'a'],
 
-      ['ee_repeat', 'a', {name: 'bob'}],
-      ['ee_repeat', 'a', {name: 'bob'}],
-      ['ee_repeat', 'a', {name: 'bob'}, 'repeat'],
-      ['ee_repeat', 'a', {name: 'bob'}, 'repeat'],
-      ['ee_repeat', 'a', {name: '...'}],
-      ['ee_repeat', 'a', {name: 'bob'}],
+      ['ee_repeat', 'a', { name: 'bob' }],
+      ['ee_repeat', 'a', { name: 'bob' }],
+      ['ee_repeat', 'a', { name: 'bob' }, 'repeat'],
+      ['ee_repeat', 'a', { name: 'bob' }, 'repeat'],
+      ['ee_repeat', 'a', { name: '...' }],
+      ['ee_repeat', 'a', { name: 'bob' }],
 
-      ['ee_count_max', 'a', {b: '3'}],
-      ['ee_count_max', 'a', {b: '8'}],
-      ['ee_count_max', 'a', {b: '5'}, {name: 'count_max', options: {m: 8}}],
-      ['ee_count_max', 'a', {b: '1'}],
-      ['ee_count_max', 'a', {b: '0'}],
-      ['ee_count_max', 'a', {b: '0'}, {name: 'count_max', options: {m: 1}}],
-      ['ee_count_max', 'a', {b: '0'}],
-      ['ee_count_max', 'a', {b: '0'}],
-      ['ee_count_max', 'a', {b: '7'}, {name: 'count_max', options: {m: 7}}],
+      ['ee_count_max', 'a', { b: '3' }],
+      ['ee_count_max', 'a', { b: '8' }],
+      ['ee_count_max', 'a', { b: '5' }, { name: 'count_max', options: { m: 8 } }],
+      ['ee_count_max', 'a', { b: '1' }],
+      ['ee_count_max', 'a', { b: '0' }],
+      ['ee_count_max', 'a', { b: '0' }, { name: 'count_max', options: { m: 1 } }],
+      ['ee_count_max', 'a', { b: '0' }],
+      ['ee_count_max', 'a', { b: '0' }],
+      ['ee_count_max', 'a', { b: '7' }, { name: 'count_max', options: { m: 7 } }],
 
-      ['ee_repeat_min', 'a', {b: '5'}],
-      ['ee_repeat_min', 'a', {b: '3'}],
-      ['ee_repeat_min', 'a', {b: '4'}, {name: 'repeat_min', options: {m: 3}}],
-      ['ee_repeat_min', 'a', {b: '5'}, {name: 'repeat_min', options: {m: 3}}],
-      ['ee_repeat_min', 'a', {b: '6'}, {name: 'repeat_min', options: {m: 4}}],
-      ['ee_repeat_min', 'a', {b: null}],
-      ['ee_repeat_min', 'a', {b: '3'}],
-      ['ee_repeat_min', 'a', {b: '8'}],
-      ['ee_repeat_min', 'a', {b: '1'}, {name: 'repeat_min', options: {m: 1}}],
-      ['ee_repeat_min', 'a', {b: '2'}, {name: 'repeat_min', options: {m: 1}}],
-      ['ee_repeat_min', 'a', {b: '3'}, {name: 'repeat_min', options: {m: 1}}],
-      ['ee_repeat_min', 'a', {b: '4'}, {name: 'repeat_min', options: {m: 2}}],
-      ['ee_repeat_min', 'a', {b: '5'}, {name: 'repeat_min', options: {m: 3}}],
-      ['ee_repeat_min', 'a', {b: '6'}, {name: 'repeat_min', options: {m: 4}}],
-      ['ee_repeat_min', 'a', {b: '7'}, {name: 'repeat_min', options: {m: 5}}],
+      ['ee_repeat_min', 'a', { b: '5' }],
+      ['ee_repeat_min', 'a', { b: '3' }],
+      ['ee_repeat_min', 'a', { b: '4' }, { name: 'repeat_min', options: { m: 3 } }],
+      ['ee_repeat_min', 'a', { b: '5' }, { name: 'repeat_min', options: { m: 3 } }],
+      ['ee_repeat_min', 'a', { b: '6' }, { name: 'repeat_min', options: { m: 4 } }],
+      ['ee_repeat_min', 'a', { b: null }],
+      ['ee_repeat_min', 'a', { b: '3' }],
+      ['ee_repeat_min', 'a', { b: '8' }],
+      ['ee_repeat_min', 'a', { b: '1' }, { name: 'repeat_min', options: { m: 1 } }],
+      ['ee_repeat_min', 'a', { b: '2' }, { name: 'repeat_min', options: { m: 1 } }],
+      ['ee_repeat_min', 'a', { b: '3' }, { name: 'repeat_min', options: { m: 1 } }],
+      ['ee_repeat_min', 'a', { b: '4' }, { name: 'repeat_min', options: { m: 2 } }],
+      ['ee_repeat_min', 'a', { b: '5' }, { name: 'repeat_min', options: { m: 3 } }],
+      ['ee_repeat_min', 'a', { b: '6' }, { name: 'repeat_min', options: { m: 4 } }],
+      ['ee_repeat_min', 'a', { b: '7' }, { name: 'repeat_min', options: { m: 5 } }],
 
-      ['ee_repeat_sum', 'a', {b: '1'}],
-      ['ee_repeat_sum', 'a', {b: '2'}],
-      ['ee_repeat_sum', 'a', {b: '3'}, {name: 'repeat_sum', options: {m: 6}}],
-      ['ee_repeat_sum', 'a', {b: '4'}, {name: 'repeat_sum', options: {m: 9}}],
+      ['ee_repeat_sum', 'a', { b: '1' }],
+      ['ee_repeat_sum', 'a', { b: '2' }],
+      ['ee_repeat_sum', 'a', { b: '3' }, { name: 'repeat_sum', options: { m: 6 } }],
+      ['ee_repeat_sum', 'a', { b: '4' }, { name: 'repeat_sum', options: { m: 9 } }],
 
-      ['ee_repeat_avg', 'a', {b: '1'}],
-      ['ee_repeat_avg', 'a', {b: '2'}],
-      ['ee_repeat_avg', 'a', {b: '3'}, {name: 'repeat_avg', options: {m: 2}}],
-      ['ee_repeat_avg', 'a', {b: '100'}, {name: 'repeat_avg', options: {m: 35}}],
+      ['ee_repeat_avg', 'a', { b: '1' }],
+      ['ee_repeat_avg', 'a', { b: '2' }],
+      ['ee_repeat_avg', 'a', { b: '3' }, { name: 'repeat_avg', options: { m: 2 } }],
+      ['ee_repeat_avg', 'a', { b: '100' }, { name: 'repeat_avg', options: { m: 35 } }],
 
-      ['ee_repeat_push', 'a', {b: '1'}],
-      ['ee_repeat_push', 'a', {b: '2'}],
-      ['ee_repeat_push', 'a', {b: '3'}, {name: 'repeat_push', options: {m: ['1', '2', '3']}}],
-      ['ee_repeat_push', 'a', {b: '4'}, {name: 'repeat_push', options: {m: ['2', '3', '4']}}],
-      ['ee_repeat_push', 'a', {b: 'five'}],
-      ['ee_repeat_push', 'a', {b: '6'}],
-      ['ee_repeat_push', 'a', {b: '7'}],
-      ['ee_repeat_push', 'a', {b: '8'}, {name: 'repeat_push', options: {m: ['6', '7', '8']}}],
+      ['ee_repeat_push', 'a', { b: '1' }],
+      ['ee_repeat_push', 'a', { b: '2' }],
+      ['ee_repeat_push', 'a', { b: '3' }, { name: 'repeat_push', options: { m: ['1', '2', '3'] } }],
+      ['ee_repeat_push', 'a', { b: '4' }, { name: 'repeat_push', options: { m: ['2', '3', '4'] } }],
+      ['ee_repeat_push', 'a', { b: 'five' }],
+      ['ee_repeat_push', 'a', { b: '6' }],
+      ['ee_repeat_push', 'a', { b: '7' }],
+      ['ee_repeat_push', 'a', { b: '8' }, { name: 'repeat_push', options: { m: ['6', '7', '8'] } }],
 
-      ['ee_repeat_push_multi', 'a', {a: '1', b: '2 three'}],
-      ['ee_repeat_push_multi', 'a', {a: '2', b: '3 four'}],
-      ['ee_repeat_push_multi', 'a', {a: '3', b: '4 five'}],
-      ['ee_repeat_push_multi', 'a', {a: '4', b: '5 six'}],
-      ['ee_repeat_push_multi', 'a', {a: '5', b: '6 seven'}, {name: 'repeat_push_multi',
+      ['ee_repeat_push_multi', 'a', { a: '1', b: '2 three' }],
+      ['ee_repeat_push_multi', 'a', { a: '2', b: '3 four' }],
+      ['ee_repeat_push_multi', 'a', { a: '3', b: '4 five' }],
+      ['ee_repeat_push_multi', 'a', { a: '4', b: '5 six' }],
+      ['ee_repeat_push_multi', 'a', { a: '5', b: '6 seven' }, { name: 'repeat_push_multi',
         options: {
           a: ['1', '2', '3', '4', '5'],
           b: ['2', '3', '4', '5', '6'],
           c: ['three', 'four', 'five', 'six', 'seven'],
           d: [null, null, null, null, null]
-        }}],
+        } }],
 
-      ['ee_repeat_sum_multi', 'a', {a: '1', b: '2'}],
-      ['ee_repeat_sum_multi', 'a', {a: '2', b: '3'}],
-      ['ee_repeat_sum_multi', 'a', {a: '3', b: '4'}, {name: 'repeat_sum_multi',
+      ['ee_repeat_sum_multi', 'a', { a: '1', b: '2' }],
+      ['ee_repeat_sum_multi', 'a', { a: '2', b: '3' }],
+      ['ee_repeat_sum_multi', 'a', { a: '3', b: '4' }, { name: 'repeat_sum_multi',
         options: {
           a: 6,
           b: 9
-        }}]
+        } }],
+
+      ['ee_or_duppath', 'a', {}, '(a before a) or a'],
+      ['ee_or_duppath', 'a', {}, '(a before a) or a'],
+
+      ['ee_notbet_duppath', 'a'],
+      ['ee_notbet_duppath', 'b'],
+      ['ee_notbet_duppath', 'a', {}, 'a not between (b, a)'],
+
+      ['ee_ab_or_b', 'b', {}, '(a and b) or b'],
+      ['ee_ab_or_b', 'a'],
+      ['ee_ab_or_b', 'b', {}, '(a and b) or b'],
+      ['ee_ab_or_b', 'b', {}, '(a and b) or b'],
+      ['ee_ab_or_b', 'a'],
+
+      ['ee_ab_or_ca', 'a'],
+      ['ee_ab_or_ca', 'c', {}, '(a and b) or (c and a)'],
+      ['ee_ab_or_ca', 'a'],
+      ['ee_ab_or_ca', 'b', {}, '(a and b) or (c and a)']
 
     ], function (p) {
       var ans = []
       if (_.isString(p[3])) {
-        ans.push({name: p[3], options: {}})
+        ans.push({ name: p[3], options: {} })
       } else if (p[3]) {
         ans.push(p[3])
       }
@@ -1488,22 +1506,22 @@ test('PicoEngine - io.picolabs.within ruleset', function (t) {
       [10040000000000, 'baz', 'b'],
       [10050000000000, 'baz', 'c', {}, 'baz'],
 
-      [10000000000000, 'qux', 'a', {b: 'c'}],
-      [10000000000001, 'qux', 'a', {b: 'c'}],
-      [10000000001002, 'qux', 'a', {b: 'c'}, 'qux'],
-      [10000000002003, 'qux', 'a', {b: 'c'}],
-      [10000000002004, 'qux', 'a', {b: 'c'}],
-      [10000000002005, 'qux', 'a', {b: 'c'}, 'qux'],
-      [10000000002006, 'qux', 'a', {b: 'c'}, 'qux'],
-      [10000000002007, 'qux', 'a', {b: 'z'}],
-      [10000000002008, 'qux', 'a', {b: 'c'}],
-      [10000000002009, 'qux', 'a', {b: 'c'}],
-      [10000000004008, 'qux', 'a', {b: 'c'}, 'qux']
+      [10000000000000, 'qux', 'a', { b: 'c' }],
+      [10000000000001, 'qux', 'a', { b: 'c' }],
+      [10000000001002, 'qux', 'a', { b: 'c' }, 'qux'],
+      [10000000002003, 'qux', 'a', { b: 'c' }],
+      [10000000002004, 'qux', 'a', { b: 'c' }],
+      [10000000002005, 'qux', 'a', { b: 'c' }, 'qux'],
+      [10000000002006, 'qux', 'a', { b: 'c' }, 'qux'],
+      [10000000002007, 'qux', 'a', { b: 'z' }],
+      [10000000002008, 'qux', 'a', { b: 'c' }],
+      [10000000002009, 'qux', 'a', { b: 'c' }],
+      [10000000004008, 'qux', 'a', { b: 'c' }, 'qux']
 
     ], function (p) {
       var ans = []
       if (_.isString(p[4])) {
-        ans.push({name: p[4], options: {}})
+        ans.push({ name: p[4], options: {} })
       } else if (p[4]) {
         ans.push(p[4])
       }
@@ -1529,24 +1547,24 @@ test('PicoEngine - io.picolabs.guard-conditions ruleset', function (t) {
         null
       ],
       [
-        signal('foo', 'a', {b: 'foo'}),
-        [{name: 'foo', options: {b: 'foo'}}]
+        signal('foo', 'a', { b: 'foo' }),
+        [{ name: 'foo', options: { b: 'foo' } }]
       ],
       [
         query('getB'),
         'foo'
       ],
       [
-        signal('foo', 'a', {b: 'bar'}),
-        [{name: 'foo', options: {b: 'bar'}}]
+        signal('foo', 'a', { b: 'bar' }),
+        [{ name: 'foo', options: { b: 'bar' } }]
       ],
       [
         query('getB'),
         'foo'
       ],
       [
-        signal('foo', 'a', {b: 'foo bar'}),
-        [{name: 'foo', options: {b: 'foo bar'}}]
+        signal('foo', 'a', { b: 'foo bar' }),
+        [{ name: 'foo', options: { b: 'foo bar' } }]
       ],
       [
         query('getB'),
@@ -1555,9 +1573,9 @@ test('PicoEngine - io.picolabs.guard-conditions ruleset', function (t) {
       [
         signal('bar', 'a', {}),
         [
-          {name: 'bar', options: {x: 1, b: 'foo bar'}},
-          {name: 'bar', options: {x: 2, b: 'foo bar'}},
-          {name: 'bar', options: {x: 3, b: 'foo bar'}}
+          { name: 'bar', options: { x: 1, b: 'foo bar' } },
+          { name: 'bar', options: { x: 2, b: 'foo bar' } },
+          { name: 'bar', options: { x: 3, b: 'foo bar' } }
         ]
       ],
       [
@@ -1565,9 +1583,9 @@ test('PicoEngine - io.picolabs.guard-conditions ruleset', function (t) {
         3
       ],
       [
-        signal('on_final_no_foreach', 'a', {x: 42}),
+        signal('on_final_no_foreach', 'a', { x: 42 }),
         [
-          {name: 'on_final_no_foreach', options: {x: 42}}
+          { name: 'on_final_no_foreach', options: { x: 42 } }
         ]
       ],
       [
@@ -1589,9 +1607,9 @@ test('PicoEngine - io.picolabs.with ruleset', function (t) {
     var query = mkQueryTask(pe, 'id1', 'io.picolabs.with')
 
     testOutputs(t, [
-      [query('add', {a: -2, b: 5}), 3],
-      [query('inc', {n: 4}), 5],
-      [query('foo', {a: 3}), 9]
+      [query('add', { a: -2, b: 5 }), 3],
+      [query('inc', { n: 4 }), 5],
+      [query('foo', { a: 3 }), 9]
     ], t.end)
   })
 })
@@ -1610,11 +1628,11 @@ test('PicoEngine - io.picolabs.defaction ruleset', function (t) {
     testOutputs(t, [
       [
         signal('defa', 'foo', {}),
-        [{name: 'foo', options: {a: 'bar', b: 5}}]
+        [{ name: 'foo', options: { a: 'bar', b: 5 } }]
       ],
       [
         signal('defa', 'bar', {}),
-        [{name: 'bar', options: {a: 'baz', b: 'qux', c: 'quux'}}]
+        [{ name: 'bar', options: { a: 'baz', b: 'qux', c: 'quux' } }]
       ],
       [
         query('getSettingVal'),
@@ -1622,7 +1640,7 @@ test('PicoEngine - io.picolabs.defaction ruleset', function (t) {
       ],
       [
         signal('defa', 'bar_setting', {}),
-        [{name: 'bar', options: {a: 'baz', b: 'qux', c: 'quux'}}]
+        [{ name: 'bar', options: { a: 'baz', b: 'qux', c: 'quux' } }]
       ],
       function (next) {
         query('getSettingVal')(function (err, data) {
@@ -1632,35 +1650,35 @@ test('PicoEngine - io.picolabs.defaction ruleset', function (t) {
           t.deepEquals(data, {
             name: 'bar',
             type: 'directive',
-            options: {a: 'baz', b: 'qux', c: 'quux'},
-            meta: {eid: '1234', rid: 'io.picolabs.defaction', rule_name: 'bar_setting', txn_id: 'TXN_ID'}
+            options: { a: 'baz', b: 'qux', c: 'quux' },
+            meta: { eid: '1234', rid: 'io.picolabs.defaction', rule_name: 'bar_setting', txn_id: 'TXN_ID' }
           })
           next()
         })
       },
       [
-        signal('defa', 'chooser', {val: 'asdf'}),
-        [{name: 'foo', options: {a: 'asdf', b: 5}}]
+        signal('defa', 'chooser', { val: 'asdf' }),
+        [{ name: 'foo', options: { a: 'asdf', b: 5 } }]
       ],
       [
-        signal('defa', 'chooser', {val: 'fdsa'}),
-        [{name: 'bar', options: {a: 'fdsa', b: 'ok', c: 'done'}}]
+        signal('defa', 'chooser', { val: 'fdsa' }),
+        [{ name: 'bar', options: { a: 'fdsa', b: 'ok', c: 'done' } }]
       ],
       [
         signal('defa', 'chooser', {}),
         []
       ],
       [
-        signal('defa', 'ifAnotB', {a: 'true', b: 'false'}),
-        [{name: 'yes a', options: {}}, {name: 'not b', options: {}}]
+        signal('defa', 'ifAnotB', { a: 'true', b: 'false' }),
+        [{ name: 'yes a', options: {} }, { name: 'not b', options: {} }]
       ],
       [
-        signal('defa', 'ifAnotB', {a: 'true', b: 'true'}),
+        signal('defa', 'ifAnotB', { a: 'true', b: 'true' }),
         []
       ],
       [
-        query('add', {a: 1, b: 2}), // try and fake an action
-        {type: 'directive', name: 'add', options: {resp: 3}}
+        query('add', { a: 1, b: 2 }), // try and fake an action
+        { type: 'directive', name: 'add', options: { resp: 3 } }
       ],
       function (next) {
         pe.emitter.once('error', function (err, info) {
@@ -1675,7 +1693,7 @@ test('PicoEngine - io.picolabs.defaction ruleset', function (t) {
       },
       [
         signal('defa', 'returns'),
-        [{name: 'wat:whereinthe', options: {b: 333}}]
+        [{ name: 'wat:whereinthe', options: { b: 333 } }]
       ],
       [
         query('getSettingVal'),
@@ -1788,10 +1806,10 @@ test('PicoEngine - io.picolabs.key* rulesets', function (t) {
       // keys:* should work directly in global block
       [query1('foo_global'), 'foo key just a string'],
 
-      [query1('getBar'), {baz: 'baz subkey for bar key', qux: 'qux subkey for bar key'}],
-      [query1('getBarN', {name: 'baz'}), 'baz subkey for bar key'],
-      [query1('getBarN', {name: 'qux'}), 'qux subkey for bar key'],
-      [query1('getBarN', {name: 'blah'}), null],
+      [query1('getBar'), { baz: 'baz subkey for bar key', qux: 'qux subkey for bar key' }],
+      [query1('getBarN', { name: 'baz' }), 'baz subkey for bar key'],
+      [query1('getBarN', { name: 'qux' }), 'qux subkey for bar key'],
+      [query1('getBarN', { name: 'blah' }), null],
 
       // not shared with either
       qError(query1('getQuux'), 'Error: keys:quux not defined'),
@@ -1838,7 +1856,7 @@ test('PicoEngine - io.picolabs.schedule rulesets', function (t) {
       eid: '1234',
       domain: 'schedule',
       type: 'push_log',
-      attrs: {from: 'startup_event', name: 'qux'}
+      attrs: { from: 'startup_event', name: 'qux' }
     }),
     async.apply(mkTestPicoEngine, {
       ldb: memdb
@@ -1867,87 +1885,87 @@ test('PicoEngine - io.picolabs.schedule rulesets', function (t) {
 
     var clearLog = [
       signal('schedule', 'clear_log'),
-      [{name: 'clear_log', options: {}}]
+      [{ name: 'clear_log', options: {} }]
     ]
 
     testOutputs(t, [
       clearLog,
       [
-        signal('schedule', 'in_5min', {name: 'foo'}),
-        [{name: 'in_5min', options: {}}]
+        signal('schedule', 'in_5min', { name: 'foo' }),
+        [{ name: 'in_5min', options: {} }]
       ],
       [query('getLog'), [
-        {'scheduled in_5min': 'id0'}
+        { 'scheduled in_5min': 'id0' }
       ]],
       [
-        signal('schedule', 'in_5min', {name: 'bar'}),
-        [{name: 'in_5min', options: {}}]
+        signal('schedule', 'in_5min', { name: 'bar' }),
+        [{ name: 'in_5min', options: {} }]
       ],
       [query('getLog'), [
-        {'scheduled in_5min': 'id0'},
-        {'scheduled in_5min': 'id1'}
+        { 'scheduled in_5min': 'id0' },
+        { 'scheduled in_5min': 'id1' }
       ]],
       triggerTimeout(), // it's been 5 minutes
       [query('getLog'), [
-        {'scheduled in_5min': 'id0'},
-        {'scheduled in_5min': 'id1'},
-        {'from': 'in_5min', 'name': 'foo'}
+        { 'scheduled in_5min': 'id0' },
+        { 'scheduled in_5min': 'id1' },
+        { 'from': 'in_5min', 'name': 'foo' }
       ]],
       triggerTimeout(), // it's been 5 more minutes
       [query('getLog'), [
-        {'scheduled in_5min': 'id0'},
-        {'scheduled in_5min': 'id1'},
-        {'from': 'in_5min', 'name': 'foo'},
-        {'from': 'in_5min', 'name': 'bar'}
+        { 'scheduled in_5min': 'id0' },
+        { 'scheduled in_5min': 'id1' },
+        { 'from': 'in_5min', 'name': 'foo' },
+        { 'from': 'in_5min', 'name': 'bar' }
       ]],
       triggerTimeout(), // it's been 5 more minutes
       [query('getLog'), [
-        {'scheduled in_5min': 'id0'},
-        {'scheduled in_5min': 'id1'},
-        {'from': 'in_5min', 'name': 'foo'},
-        {'from': 'in_5min', 'name': 'bar'}
+        { 'scheduled in_5min': 'id0' },
+        { 'scheduled in_5min': 'id1' },
+        { 'from': 'in_5min', 'name': 'foo' },
+        { 'from': 'in_5min', 'name': 'bar' }
         // nothing changed
       ]],
 
       // Start testing repeat
       clearLog,
       [
-        signal('schedule', 'every_1min', {name: 'baz'}),
-        [{name: 'every_1min', options: {}}]
+        signal('schedule', 'every_1min', { name: 'baz' }),
+        [{ name: 'every_1min', options: {} }]
       ],
       [query('getLog'), [
-        {'scheduled every_1min': 'id2'}
+        { 'scheduled every_1min': 'id2' }
       ]],
       triggerCron('id2'),
       [query('getLog'), [
-        {'scheduled every_1min': 'id2'},
-        {from: 'every_1min', name: 'baz'}
+        { 'scheduled every_1min': 'id2' },
+        { from: 'every_1min', name: 'baz' }
       ]],
       triggerCron('id2'),
       triggerCron('id2'),
       [query('getLog'), [
-        {'scheduled every_1min': 'id2'},
-        {from: 'every_1min', name: 'baz'},
-        {from: 'every_1min', name: 'baz'},
-        {from: 'every_1min', name: 'baz'}
+        { 'scheduled every_1min': 'id2' },
+        { from: 'every_1min', name: 'baz' },
+        { from: 'every_1min', name: 'baz' },
+        { from: 'every_1min', name: 'baz' }
       ]],
       triggerCron('init2'), // trigger a cron from startup
       [query('getLog'), [
-        {'scheduled every_1min': 'id2'},
-        {from: 'every_1min', name: 'baz'},
-        {from: 'every_1min', name: 'baz'},
-        {from: 'every_1min', name: 'baz'},
-        {from: 'startup_event', name: 'qux'}
+        { 'scheduled every_1min': 'id2' },
+        { from: 'every_1min', name: 'baz' },
+        { from: 'every_1min', name: 'baz' },
+        { from: 'every_1min', name: 'baz' },
+        { from: 'startup_event', name: 'qux' }
       ]],
 
       // schedule:list() and schedule:remove(id)
       [
-        signal('schedule', 'in_5min', {name: 'blah-1'}),
-        [{name: 'in_5min', options: {}}]
+        signal('schedule', 'in_5min', { name: 'blah-1' }),
+        [{ name: 'in_5min', options: {} }]
       ],
       [
-        signal('schedule', 'in_5min', {name: 'blah-2'}),
-        [{name: 'in_5min', options: {}}]
+        signal('schedule', 'in_5min', { name: 'blah-2' }),
+        [{ name: 'in_5min', options: {} }]
       ],
       clearLog,
       [function (next) {
@@ -1966,22 +1984,22 @@ test('PicoEngine - io.picolabs.schedule rulesets', function (t) {
         {
           id: 'id3',
           at: 'some-fake-date',
-          event: mkEvent('init1/1234/schedule/push_log', {from: 'in_5min', name: 'blah-1'})
+          event: mkEvent('init1/1234/schedule/push_log', { from: 'in_5min', name: 'blah-1' })
         },
         {
           id: 'id4',
           at: 'some-fake-date',
-          event: mkEvent('init1/1234/schedule/push_log', {from: 'in_5min', name: 'blah-2'})
+          event: mkEvent('init1/1234/schedule/push_log', { from: 'in_5min', name: 'blah-2' })
         },
         {
           id: 'id2',
           timespec: '* */1 * * * *',
-          event: mkEvent('init1/1234/schedule/push_log', {from: 'every_1min', name: 'baz'})
+          event: mkEvent('init1/1234/schedule/push_log', { from: 'every_1min', name: 'baz' })
         },
         {
           id: 'init2',
           timespec: '10 * * * * *',
-          event: mkEvent('init1/1234/schedule/push_log', {from: 'startup_event', name: 'qux'})
+          event: mkEvent('init1/1234/schedule/push_log', { from: 'startup_event', name: 'qux' })
         }
       ]],
       [query('getLog'), [
@@ -1989,20 +2007,20 @@ test('PicoEngine - io.picolabs.schedule rulesets', function (t) {
       ]],
       triggerTimeout(),
       [query('getLog'), [
-        {from: 'in_5min', name: 'blah-1'}
+        { from: 'in_5min', name: 'blah-1' }
       ]],
-      [signal('schedule', 'rm_from_schedule', {id: 'id4'}), []], // remove blah-2
+      [signal('schedule', 'rm_from_schedule', { id: 'id4' }), []], // remove blah-2
       triggerTimeout(),
       [query('getLog'), [
-        {from: 'in_5min', name: 'blah-1'}
+        { from: 'in_5min', name: 'blah-1' }
         // nothing new b/c we removed blah-2
       ]],
-      [signal('schedule', 'rm_from_schedule', {id: 'init2'}), []], // remove a cron
+      [signal('schedule', 'rm_from_schedule', { id: 'init2' }), []], // remove a cron
       [query('listScheduled'), [
         {
           id: 'id2',
           timespec: '* */1 * * * *',
-          event: mkEvent('init1/1234/schedule/push_log', {from: 'every_1min', name: 'baz'})
+          event: mkEvent('init1/1234/schedule/push_log', { from: 'every_1min', name: 'baz' })
         }
       ]]
     ], t.end)
@@ -2055,26 +2073,26 @@ test('PicoEngine - io.picolabs.last rulesets', function (t) {
       [
         signal('last', 'all', {}),
         [
-          {name: 'foo', options: {}},
-          {name: 'bar', options: {}},
-          {name: 'baz', options: {}},
+          { name: 'foo', options: {} },
+          { name: 'bar', options: {} },
+          { name: 'baz', options: {} },
           // qux doesn't run b/c baz stopped it
-          {name: 'last2 foo', options: {}}// still runs b/c it's a different rid
+          { name: 'last2 foo', options: {} }// still runs b/c it's a different rid
         ]
       ],
       [
-        signal('last', 'all', {stop: 'bar'}),
+        signal('last', 'all', { stop: 'bar' }),
         [
-          {name: 'foo', options: {}},
-          {name: 'bar', options: {}},
-          {name: 'last2 foo', options: {}}
+          { name: 'foo', options: {} },
+          { name: 'bar', options: {} },
+          { name: 'last2 foo', options: {} }
         ]
       ],
       [
-        signal('last', 'all', {stop: 'foo'}),
+        signal('last', 'all', { stop: 'foo' }),
         [
-          {name: 'foo', options: {}},
-          {name: 'last2 foo', options: {}}
+          { name: 'foo', options: {} },
+          { name: 'last2 foo', options: {} }
         ]
       ]
 
@@ -2100,12 +2118,12 @@ test('PicoEngine - io.picolabs.error rulesets', function (t) {
       ],
 
       [signal('error', 'continue_on_error'), [
-        {name: 'continue_on_errorA', options: {}},
-        {name: 'continue_on_errorB', options: {}}
+        { name: 'continue_on_errorA', options: {} },
+        { name: 'continue_on_errorB', options: {} }
       ]],
 
       [signal('error', 'stop_on_error'), [
-        {name: 'stop_on_errorA', options: {}}
+        { name: 'stop_on_errorA', options: {} }
         // NOTE stop_on_errorB should not execute
         // b/c stop_on_errorA raised an "error" that should stop it
       ]],
@@ -2208,7 +2226,7 @@ test('PicoEngine - io.picolabs.test-error-messages', function (t) {
     async.series([
       qError(void 0, 'Error: missing query.eci', false),
 
-      qError({eci: null}, 'Error: missing query.eci', false),
+      qError({ eci: null }, 'Error: missing query.eci', false),
 
       qError({
         eci: 'foo',
@@ -2221,19 +2239,19 @@ test('PicoEngine - io.picolabs.test-error-messages', function (t) {
         eci: 'id1',
         rid: 'not-an-rid',
         name: 'hello',
-        args: {obj: 'Bob'}
+        args: { obj: 'Bob' }
       }, 'Error: Pico does not have that rid: not-an-rid', false),
       qError({
         eci: 'id1',
         rid: 'io.picolabs.test-error-messages',
         name: 'zzz',
-        args: {obj: 'Bob'}
+        args: { obj: 'Bob' }
       }, 'Error: Not shared: zzz', false),
       qError({
         eci: 'id1',
         rid: 'io.picolabs.test-error-messages',
         name: 'somethingNotDefined',
-        args: {obj: 'Bob'}
+        args: { obj: 'Bob' }
       }, 'Error: Shared, but not defined: somethingNotDefined', true),
 
       qError({
@@ -2306,11 +2324,11 @@ test('PicoEngine - root pico creation', function (t) {
         parent_id: null,
         admin_eci: 'id1'
       })
-      t.deepEquals(db.pico, {'id0': {
+      t.deepEquals(db.pico, { 'id0': {
         id: 'id0',
         parent_id: null,
         admin_eci: 'id1'
-      }})
+      } })
       t.deepEquals(_.keys(db.channel), ['id1'])
 
       t.deepEquals(_.keys(db['pico-ruleset']['id0']), [
@@ -2360,12 +2378,12 @@ test('PicoEngine - js-module', function (t) {
 
     testOutputs(t, [
       [
-        query('qFn', {a: 3}),
+        query('qFn', { a: 3 }),
         6
       ],
       [
         signal('js_module', 'action', {}),
-        [{name: 'resp', options: {val: 0.3}}]
+        [{ name: 'resp', options: { val: 0.3 } }]
       ]
     ], t.end)
   })
@@ -2380,15 +2398,15 @@ test('PicoEngine - system ruleset dependency ordering', function (t) {
     ]
   })
   pe.start([
-    {src: 'ruleset C {meta{use module D}}', meta: {url: 'http://foo/C.krl'}},
-    {src: 'ruleset D {}', meta: {url: 'http://foo/D.krl'}}
+    { src: 'ruleset C {meta{use module D}}', meta: { url: 'http://foo/C.krl' } },
+    { src: 'ruleset D {}', meta: { url: 'http://foo/D.krl' } }
   ], function (err) {
     t.notOk(err, "if the dependencies aren't loaded in the correct order it will blow up")
     t.ok(true, 'started successfully');
 
     (async function () {
       var listIns = await pe.modules.get({}, 'engine', 'listInstalledRIDs')
-      var rids = await listIns({pico_id: 'id0'}, [])
+      var rids = await listIns({ pico_id: 'id0' }, [])
 
       t.deepEquals(rids, ['C'])
     }()).then(t.end).catch(t.end)
@@ -2396,9 +2414,9 @@ test('PicoEngine - system ruleset dependency ordering', function (t) {
 })
 
 test('PicoEngine - io.picolabs.persistent-index', function (t) {
-  mkTestPicoEngine({rootRIDs: [
+  mkTestPicoEngine({ rootRIDs: [
     'io.picolabs.persistent-index'
-  ]}, function (err, pe) {
+  ] }, function (err, pe) {
     if (err) return t.end(err)
 
     var query = mkQueryTask(pe, 'id1', 'io.picolabs.persistent-index')
@@ -2408,46 +2426,46 @@ test('PicoEngine - io.picolabs.persistent-index', function (t) {
       [query('getFoo'), null],
       [query('getBar'), null],
 
-      [signal('pindex', 'setfoo', {aaa: 'blah'}), []],
-      [signal('pindex', 'setbar', {aaa: 'blah'}), []],
-      [query('getFoo'), {aaa: 'blah'}],
-      [query('getBar'), {aaa: 'blah'}],
+      [signal('pindex', 'setfoo', { aaa: 'blah' }), []],
+      [signal('pindex', 'setbar', { aaa: 'blah' }), []],
+      [query('getFoo'), { aaa: 'blah' }],
+      [query('getBar'), { aaa: 'blah' }],
 
-      [signal('pindex', 'putfoo', {key: 'bbb', value: 'wat'}), []],
-      [signal('pindex', 'putbar', {key: 'bbb', value: 'wat'}), []],
-      [query('getFoo'), {aaa: 'blah', bbb: 'wat'}],
-      [query('getBar'), {aaa: 'blah', bbb: 'wat'}],
+      [signal('pindex', 'putfoo', { key: 'bbb', value: 'wat' }), []],
+      [signal('pindex', 'putbar', { key: 'bbb', value: 'wat' }), []],
+      [query('getFoo'), { aaa: 'blah', bbb: 'wat' }],
+      [query('getBar'), { aaa: 'blah', bbb: 'wat' }],
 
-      [query('getFooKey', {key: 'aaa'}), 'blah'],
-      [query('getBarKey', {key: 'aaa'}), 'blah'],
-      [query('getFooKey', {key: '404'}), null],
-      [query('getBarKey', {key: '404'}), null],
-      [query('getFooKey', {}), {aaa: 'blah', bbb: 'wat'}],
-      [query('getBarKey', {}), {aaa: 'blah', bbb: 'wat'}],
+      [query('getFooKey', { key: 'aaa' }), 'blah'],
+      [query('getBarKey', { key: 'aaa' }), 'blah'],
+      [query('getFooKey', { key: '404' }), null],
+      [query('getBarKey', { key: '404' }), null],
+      [query('getFooKey', {}), { aaa: 'blah', bbb: 'wat' }],
+      [query('getBarKey', {}), { aaa: 'blah', bbb: 'wat' }],
 
-      [signal('pindex', 'delfoo', {key: 'aaa'}), []],
-      [signal('pindex', 'delbar', {key: 'aaa'}), []],
-      [query('getFoo'), {bbb: 'wat'}],
-      [query('getBar'), {bbb: 'wat'}],
-      [query('getFooKey', {key: 'aaa'}), null],
-      [query('getBarKey', {key: 'aaa'}), null],
+      [signal('pindex', 'delfoo', { key: 'aaa' }), []],
+      [signal('pindex', 'delbar', { key: 'aaa' }), []],
+      [query('getFoo'), { bbb: 'wat' }],
+      [query('getBar'), { bbb: 'wat' }],
+      [query('getFooKey', { key: 'aaa' }), null],
+      [query('getBarKey', { key: 'aaa' }), null],
 
-      [signal('pindex', 'nukefoo', {key: 'aaa'}), []],
-      [signal('pindex', 'nukebar', {key: 'aaa'}), []],
+      [signal('pindex', 'nukefoo', { key: 'aaa' }), []],
+      [signal('pindex', 'nukebar', { key: 'aaa' }), []],
       [query('getFoo'), null],
       [query('getBar'), null],
-      [query('getFooKey', {key: 'bbb'}), null],
-      [query('getBarKey', {key: 'bbb'}), null],
+      [query('getFooKey', { key: 'bbb' }), null],
+      [query('getBarKey', { key: 'bbb' }), null],
 
       // Test reading a map that was only set with a deep key path
       [signal('pindex', 'putbaz'), []],
-      [query('getBaz'), {one: {two: 'three'}}],
+      [query('getBaz'), { one: { two: 'three' } }],
 
       [query('getMaplist'), null],
       [signal('pindex', 'setmaplist'), []],
-      [query('getMaplist'), [{id: 'one'}, {id: 'two'}, {id: 'three'}]],
+      [query('getMaplist'), [{ id: 'one' }, { id: 'two' }, { id: 'three' }]],
       [signal('pindex', 'putmaplist'), []],
-      [query('getMaplist'), [{id: 'one'}, {id: 'two', other: 'thing'}, {id: 'three'}]]
+      [query('getMaplist'), [{ id: 'one' }, { id: 'two', other: 'thing' }, { id: 'three' }]]
 
     ], t.end)
   })
@@ -2456,7 +2474,7 @@ test('PicoEngine - io.picolabs.persistent-index', function (t) {
 testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
   var mkTPE = util.promisify(mkTestPicoEngine)
 
-  var pe = await mkTPE({rootRIDs: ['io.picolabs.policies']})
+  var pe = await mkTPE({ rootRIDs: ['io.picolabs.policies'] })
   var newPolicy = util.promisify(pe.newPolicy)
   var newChannel = util.promisify(pe.newChannel)
 
@@ -2563,7 +2581,7 @@ testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
   eci = await mkECI({
     name: 'only policies/foo',
     event: {
-      allow: [{domain: 'policies', type: 'foo'}]
+      allow: [{ domain: 'policies', type: 'foo' }]
     }
   })
   await tstEventPolicy(eci, 'policies/foo', 'allowed')
@@ -2573,7 +2591,7 @@ testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
   eci = await mkECI({
     name: 'all but policies/foo',
     event: {
-      deny: [{domain: 'policies', type: 'foo'}],
+      deny: [{ domain: 'policies', type: 'foo' }],
       allow: [{}]
     }
   })
@@ -2584,7 +2602,7 @@ testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
   eci = await mkECI({
     name: 'only other/*',
     event: {
-      allow: [{domain: 'other'}]
+      allow: [{ domain: 'other' }]
     }
   })
   await tstEventPolicy(eci, 'policies/foo', 'not-allowed')
@@ -2597,7 +2615,7 @@ testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
   eci = await mkECI({
     name: 'only */foo',
     event: {
-      allow: [{type: 'foo'}]
+      allow: [{ type: 'foo' }]
     }
   })
   await tstEventPolicy(eci, 'policies/foo', 'allowed')
@@ -2611,8 +2629,8 @@ testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
     name: 'only policies/foo or other/*',
     event: {
       allow: [
-        {domain: 'policies', type: 'foo'},
-        {domain: 'other'}
+        { domain: 'policies', type: 'foo' },
+        { domain: 'other' }
       ]
     }
   })
@@ -2632,7 +2650,7 @@ testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
 
   eci = await mkECI({
     name: 'allow all',
-    query: {allow: [{}]}
+    query: { allow: [{}] }
   })
   await tstQueryPolicy(eci, 'one', 'allowed')
   await tstQueryPolicy(eci, 'two', 'allowed')
@@ -2640,10 +2658,10 @@ testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
 
   eci = await mkECI({
     name: 'allow one and three',
-    query: {allow: [
-      {name: 'one'},
-      {name: 'three'}
-    ]}
+    query: { allow: [
+      { name: 'one' },
+      { name: 'three' }
+    ] }
   })
   await tstQueryPolicy(eci, 'one', 'allowed')
   await tstQueryPolicy(eci, 'two', 'not-allowed')
@@ -2655,7 +2673,7 @@ test('PicoEngine - handle ruleset startup errors after compiler update made brea
 
   // The old compiler didn't complain when the ruleset was registered
   var oldCompiler = function (rsInfo, callback) {
-    callback(null, {rid: 'my-rid'})
+    callback(null, { rid: 'my-rid' })
   }
   // The new compiler doesn't like it anymore (i.e. removed syntax)
   var newCompiler = function (rsInfo, callback) {
@@ -2666,7 +2684,7 @@ test('PicoEngine - handle ruleset startup errors after compiler update made brea
 
   (async function () {
     // First try register/enable the ruleset with the old compiler
-    var pe = mkPE({compileAndLoadRuleset: oldCompiler})
+    var pe = mkPE({ compileAndLoadRuleset: oldCompiler })
     var regRS = util.promisify(pe.registerRuleset)
     var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
@@ -2676,7 +2694,7 @@ test('PicoEngine - handle ruleset startup errors after compiler update made brea
     // so the old compiler version allowed it, now it's in the DB
 
     // Start the new engine
-    pe = mkPE({compileAndLoadRuleset: newCompiler})
+    pe = mkPE({ compileAndLoadRuleset: newCompiler })
     listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
     t.deepEquals(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')
 
@@ -2699,14 +2717,14 @@ test('PicoEngine - handle ruleset initialization errors', function (t) {
 
   (async function () {
     // First register the ruleset in the db
-    var pe = mkPE({compileAndLoadRuleset: function (rsInfo, callback) {
+    var pe = mkPE({ compileAndLoadRuleset: function (rsInfo, callback) {
       callback(null, {
         rid: 'my-rid',
         global: function * () {
           // works
         }
       })
-    }})
+    } })
     var regRS = util.promisify(pe.registerRuleset)
     var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
@@ -2716,14 +2734,14 @@ test('PicoEngine - handle ruleset initialization errors', function (t) {
     // so the old runtime version allowed it, now it's in the DB
 
     // Now in this time the ruleset won't initialize
-    pe = mkPE({compileAndLoadRuleset: function (rsInfo, callback) {
+    pe = mkPE({ compileAndLoadRuleset: function (rsInfo, callback) {
       callback(null, {
         rid: 'my-rid',
         global: function () {
           throw new Error('something broke')
         }
       })
-    }})
+    } })
     listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
     t.deepEquals(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')
 
@@ -2753,10 +2771,10 @@ test('PicoEngine - handle dependency cycles at startup', function (t) {
   })
 
   pe.start([
-    {src: 'ruleset A {meta{}}', meta: {url: 'http://foo/A.krl'}},
-    {src: 'ruleset B {meta{use module C}}', meta: {url: 'http://foo/B.krl'}},
-    {src: 'ruleset C {meta{use module B}}', meta: {url: 'http://foo/C.krl'}},
-    {src: 'ruleset D {meta{}}', meta: {url: 'http://foo/D.krl'}}
+    { src: 'ruleset A {meta{}}', meta: { url: 'http://foo/A.krl' } },
+    { src: 'ruleset B {meta{use module C}}', meta: { url: 'http://foo/B.krl' } },
+    { src: 'ruleset C {meta{use module B}}', meta: { url: 'http://foo/C.krl' } },
+    { src: 'ruleset D {meta{}}', meta: { url: 'http://foo/D.krl' } }
   ], function (err) {
     t.notOk(err, 'should start successfully');
 

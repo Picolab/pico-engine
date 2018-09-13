@@ -203,9 +203,9 @@ stdlib.isnull = function (ctx, val) {
 
 stdlib.klog = function (ctx, val, message) {
   if (arguments.length < 3) {
-    ctx.emit('klog', {val: val})
+    ctx.emit('klog', { val: val })
   } else {
-    ctx.emit('klog', {val: val, message: types.toString(message)})
+    ctx.emit('klog', { val: val, message: types.toString(message) })
   }
   return val
 }
@@ -377,6 +377,33 @@ stdlib.uc = function (ctx, val) {
   val = types.toString(val)
   return val.toUpperCase()
 }
+stdlib.trimLeading = function (ctx, val) {
+  val = types.toString(val)
+  return _.trimStart(val)
+}
+stdlib.trimTrailing = function (ctx, val) {
+  val = types.toString(val)
+  return _.trimEnd(val)
+}
+stdlib.trim = function (ctx, val) {
+  val = types.toString(val)
+  return _.trim(val)
+}
+stdlib.startsWith = function (ctx, val, target) {
+  val = types.toString(val)
+  target = types.toString(target)
+  return _.startsWith(val, target)
+}
+stdlib.endsWith = function (ctx, val, target) {
+  val = types.toString(val)
+  target = types.toString(target)
+  return _.endsWith(val, target)
+}
+stdlib.contains = function (ctx, val, target) {
+  val = types.toString(val)
+  target = types.toString(target)
+  return _.includes(val, target)
+}
 
 // Collection operators//////////////////////////////////////////////////////////
 // NOTE: all KRL functions are async
@@ -508,6 +535,9 @@ stdlib.length = function (ctx, val) {
     return _.size(val)
   }
   return 0
+}
+stdlib.isEmpty = function (ctx, val) {
+  return _.isEmpty(val)
 }
 stdlib.map = async function (ctx, val, iter) {
   if (!types.isFunction(iter)) {

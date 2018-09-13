@@ -11,11 +11,6 @@ module.exports = {
       "name": "error_handle",
       "select": {
         "graph": { "system": { "error": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -41,11 +36,6 @@ module.exports = {
       "name": "continue_on_errorA",
       "select": {
         "graph": { "error": { "continue_on_error": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -71,11 +61,6 @@ module.exports = {
       "name": "continue_on_errorB",
       "select": {
         "graph": { "error": { "continue_on_error": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -101,11 +86,6 @@ module.exports = {
       "name": "stop_on_errorA",
       "select": {
         "graph": { "error": { "stop_on_error": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -130,11 +110,6 @@ module.exports = {
       "name": "stop_on_errorB",
       "select": {
         "graph": { "error": { "stop_on_error": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

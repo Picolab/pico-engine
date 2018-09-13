@@ -17,11 +17,6 @@ module.exports = {
       "name": "foo",
       "select": {
         "graph": { "policies": { "foo": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -41,11 +36,6 @@ module.exports = {
       "name": "bar",
       "select": {
         "graph": { "policies": { "bar": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -65,11 +55,6 @@ module.exports = {
       "name": "baz",
       "select": {
         "graph": { "policies": { "baz": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -89,11 +74,6 @@ module.exports = {
       "name": "foo2",
       "select": {
         "graph": { "other": { "foo": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -113,11 +93,6 @@ module.exports = {
       "name": "bar2",
       "select": {
         "graph": { "other": { "bar": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -137,11 +112,6 @@ module.exports = {
       "name": "baz2",
       "select": {
         "graph": { "other": { "baz": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

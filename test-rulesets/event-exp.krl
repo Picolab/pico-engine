@@ -203,4 +203,49 @@ ruleset io.picolabs.event-exp {
             "b": b
         });
     }
+    rule or_duppath {
+        select when (
+                ee_or_duppath a
+                before
+                ee_or_duppath a
+            )
+            or
+            ee_or_duppath a
+
+        send_directive("(a before a) or a");
+    }
+    rule notbet_duppath {
+        select when ee_notbet_duppath a not between(
+            ee_notbet_duppath b,
+            ee_notbet_duppath a
+        )
+
+        send_directive("a not between (b, a)");
+    }
+    rule ab_or_b {
+        select when (
+                ee_ab_or_b a
+                and
+                ee_ab_or_b b
+            )
+            or
+            ee_ab_or_b b
+
+        send_directive("(a and b) or b");
+    }
+    rule ab_or_ca {
+        select when (
+                ee_ab_or_ca a
+                and
+                ee_ab_or_ca b
+            )
+            or
+            (
+                ee_ab_or_ca c
+                and
+                ee_ab_or_ca a
+            )
+
+        send_directive("(a and b) or (c and a)");
+    }
 }

@@ -29,19 +29,22 @@ module.exports = {
     "store_my_name": {
       "name": "store_my_name",
       "select": {
-        "graph": { "store": { "name": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("my_name", matches[0]);
-            return true;
+        "graph": {
+          "store": {
+            "name": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("my_name", matches[0]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -69,19 +72,22 @@ module.exports = {
     "store_appvar": {
       "name": "store_appvar",
       "select": {
-        "graph": { "store": { "appvar": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "appvar"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("my_appvar", matches[0]);
-            return true;
+        "graph": {
+          "store": {
+            "appvar": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "appvar"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("my_appvar", matches[0]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -109,19 +115,22 @@ module.exports = {
     "store_user_firstname": {
       "name": "store_user_firstname",
       "select": {
-        "graph": { "store": { "user_firstname": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "firstname"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("firstname", matches[0]);
-            return true;
+        "graph": {
+          "store": {
+            "user_firstname": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "firstname"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("firstname", matches[0]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -154,11 +163,6 @@ module.exports = {
       "name": "clear_user",
       "select": {
         "graph": { "store": { "clear_user": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -182,11 +186,6 @@ module.exports = {
       "name": "clear_appvar",
       "select": {
         "graph": { "store": { "clear_appvar": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

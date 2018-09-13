@@ -1,6 +1,6 @@
 {
   "name": "krl-stdlib",
-  "version": "0.46.0",
+  "version": "0.46.1",
   "description": "Standard library for KRL",
   "main": "src/index.js",
   "scripts": {
@@ -24,7 +24,7 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "ava": "^0.25.0",
-    "standard": "^11.0.1"
+    "standard": "^12.0.1"
   },
   "dependencies": {
     "lodash": "^4.17.4"

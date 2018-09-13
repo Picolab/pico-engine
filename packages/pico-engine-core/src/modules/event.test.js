@@ -8,14 +8,14 @@ test('module - event:attr(name)', function (t) {
     var kevent = eventModule()
 
     t.equals(
-      await kevent.def.attr({event: {attrs: {foo: 'bar'}}}, ['foo']),
+      await kevent.def.attr({ event: { attrs: { foo: 'bar' } } }, ['foo']),
       'bar'
     )
 
     // just null if no ctx.event, or it doesn't match
     t.equals(await kevent.def.attr({}, ['baz']), null)
     t.equals(
-      await kevent.def.attr({event: {attrs: {foo: 'bar'}}}, ['baz']),
+      await kevent.def.attr({ event: { attrs: { foo: 'bar' } } }, ['baz']),
       null
     )
   }()).then(t.end).catch(t.end)
@@ -50,7 +50,7 @@ test('module - event:send(event, host = null)', function (t) {
             eci: 'some-eci',
             domain: 'some-d',
             type: 'some-t',
-            attrs: {foo: {}, bar: [], baz: {'q': function () {}}}
+            attrs: { foo: {}, bar: [], baz: { 'q': function () {} } }
           },
           host: host
         }))[0],

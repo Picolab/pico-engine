@@ -36,11 +36,6 @@ module.exports = {
       "name": "dflt_name",
       "select": {
         "graph": { "module_used": { "dflt_name": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -66,11 +61,6 @@ module.exports = {
       "name": "conf_name",
       "select": {
         "graph": { "module_used": { "conf_name": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -96,11 +86,6 @@ module.exports = {
       "name": "dflt_info",
       "select": {
         "graph": { "module_used": { "dflt_info": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -126,11 +111,6 @@ module.exports = {
       "name": "conf_info",
       "select": {
         "graph": { "module_used": { "conf_info": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -156,11 +136,6 @@ module.exports = {
       "name": "dflt_getInfoAction",
       "select": {
         "graph": { "module_used": { "dflt_getInfoAction": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -184,11 +159,6 @@ module.exports = {
       "name": "conf_getInfoAction",
       "select": {
         "graph": { "module_used": { "conf_getInfoAction": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

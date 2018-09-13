@@ -167,11 +167,6 @@ module.exports = {
       "name": "foo",
       "select": {
         "graph": { "defa": { "foo": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -194,11 +189,6 @@ module.exports = {
       "name": "bar",
       "select": {
         "graph": { "defa": { "bar": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -225,11 +215,6 @@ module.exports = {
       "name": "bar_setting",
       "select": {
         "graph": { "defa": { "bar_setting": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -259,11 +244,6 @@ module.exports = {
       "name": "chooser",
       "select": {
         "graph": { "defa": { "chooser": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -286,11 +266,6 @@ module.exports = {
       "name": "ifAnotB",
       "select": {
         "graph": { "defa": { "ifAnotB": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -322,11 +297,6 @@ module.exports = {
       "name": "add",
       "select": {
         "graph": { "defa": { "add": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -352,11 +322,6 @@ module.exports = {
       "name": "returns",
       "select": {
         "graph": { "defa": { "returns": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -405,11 +370,6 @@ module.exports = {
       "name": "scope",
       "select": {
         "graph": { "defa": { "scope": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -479,11 +439,6 @@ module.exports = {
       "name": "trying_to_use_action_as_fn",
       "select": {
         "graph": { "defa": { "trying_to_use_action_as_fn": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

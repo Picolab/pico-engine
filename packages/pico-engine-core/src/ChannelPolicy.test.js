@@ -17,7 +17,7 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
     t.equals(e + '', 'Error: missing `policy.name`')
   }
   try {
-    cleanIt({name: '  '})
+    cleanIt({ name: '  ' })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing `policy.name`')
@@ -26,7 +26,7 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
   try {
     cleanIt({
       name: 'foo',
-      event: {allow: '*'}
+      event: { allow: '*' }
     })
     t.fail('should throw')
   } catch (e) {
@@ -35,7 +35,7 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
   try {
     cleanIt({
       name: 'foo',
-      query: {allow: 'ALL'}
+      query: { allow: 'ALL' }
     })
     t.fail('should throw')
   } catch (e) {
@@ -45,7 +45,7 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
   try {
     cleanIt({
       name: 'foo',
-      event: {allow: ['wat']}
+      event: { allow: ['wat'] }
     })
     t.fail('should throw..')
   } catch (e) {
@@ -54,7 +54,7 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
   try {
     cleanIt({
       name: 'foo',
-      query: {allow: ['wat']}
+      query: { allow: ['wat'] }
     })
     t.fail('should throw..')
   } catch (e) {
@@ -63,7 +63,7 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
   try {
     cleanIt({
       name: 'foo',
-      bar: {allow: ['wat']},
+      bar: { allow: ['wat'] },
       baz: true
     })
     t.fail('should throw..')
@@ -73,7 +73,7 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
   try {
     cleanIt({
       name: 'foo',
-      event: {allow: [{}], wat: []}
+      event: { allow: [{}], wat: [] }
     })
     t.fail('should throw..')
   } catch (e) {
@@ -82,7 +82,7 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
   try {
     cleanIt({
       name: 'foo',
-      query: {allow: [{}], wat: []}
+      query: { allow: [{}], wat: [] }
     })
     t.fail('should throw..')
   } catch (e) {
@@ -91,7 +91,7 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
   try {
     cleanIt({
       name: 'foo',
-      event: {allow: [{wat: 1}]}
+      event: { allow: [{ wat: 1 }] }
     })
     t.fail('should throw..')
   } catch (e) {
@@ -100,7 +100,7 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
   try {
     cleanIt({
       name: 'foo',
-      query: {allow: [{wat: 1}]}
+      query: { allow: [{ wat: 1 }] }
     })
     t.fail('should throw..')
   } catch (e) {
@@ -123,7 +123,7 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
 
   t.deepEquals(cleanIt({
     name: 'foo',
-    event: {allow: [{}]}
+    event: { allow: [{}] }
   }), {
     name: 'foo',
     event: {
@@ -140,9 +140,9 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
     name: ' foo   ',
     event: {
       allow: [
-        {domain: 'one ', type: 'thrEE'},
-        {domain: '  fIVe '},
-        {type: '\tsix '}
+        { domain: 'one ', type: 'thrEE' },
+        { domain: '  fIVe ' },
+        { type: '\tsix ' }
       ]
     }
   }), {
@@ -150,9 +150,9 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
     event: {
       deny: [],
       allow: [
-        {domain: 'one', type: 'thrEE'},
-        {domain: 'fIVe'},
-        {type: 'six'}
+        { domain: 'one', type: 'thrEE' },
+        { domain: 'fIVe' },
+        { type: 'six' }
       ]
     },
     query: {
@@ -165,9 +165,9 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
     name: ' foo   ',
     query: {
       allow: [
-        {rid: 'one ', name: 'thrEE'},
-        {rid: '  fIVe '},
-        {name: '\tsix '}
+        { rid: 'one ', name: 'thrEE' },
+        { rid: '  fIVe ' },
+        { name: '\tsix ' }
       ]
     }
   }), {
@@ -179,9 +179,9 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
     query: {
       deny: [],
       allow: [
-        {rid: 'one', name: 'thrEE'},
-        {rid: 'fIVe'},
-        {name: 'six'}
+        { rid: 'one', name: 'thrEE' },
+        { rid: 'fIVe' },
+        { name: 'six' }
       ]
     }
   })

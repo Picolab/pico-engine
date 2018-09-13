@@ -123,9 +123,9 @@ test('engine:installRuleset', function (t) {
         assertPicoID: assertPicoID,
         findRulesetsByURL: tick(function (url, callback) {
           if (url === 'http://foo.bar/baz/qux.krl') {
-            return callback(null, [{rid: 'found'}])
+            return callback(null, [{ rid: 'found' }])
           } else if (url === 'file:///too/many.krl') {
-            return callback(null, [{rid: 'a'}, {rid: 'b'}, {rid: 'c'}])
+            return callback(null, [{ rid: 'a' }, { rid: 'b' }, { rid: 'c' }])
           }
           callback(null, [])
         })
@@ -233,7 +233,7 @@ test('engine:unregisterRuleset', function (t) {
     )
 
     await tstErr(
-      engine.def.unregisterRuleset({}, {rid: {}}),
+      engine.def.unregisterRuleset({}, { rid: {} }),
       'TypeError: engine:unregisterRuleset was given [Map] instead of a rid string or array'
     )
 
@@ -258,7 +258,7 @@ testPE('engine:describeRuleset', async function (t, pe) {
   var ctx = {}
   var descRID = await pe.modules.get(ctx, 'engine', 'describeRuleset')
 
-  var desc = await descRID(ctx, {rid: 'io.picolabs.hello_world'})
+  var desc = await descRID(ctx, { rid: 'io.picolabs.hello_world' })
 
   var isIsoString = function (str) {
     return str === (new Date(str)).toISOString()
@@ -296,7 +296,7 @@ testPE('engine:describeRuleset', async function (t, pe) {
     'wrong rid type'
   )
 
-  t.equals(await descRID(ctx, {rid: 'not.found'}), void 0)
+  t.equals(await descRID(ctx, { rid: 'not.found' }), void 0)
 })
 
 testPE('engine:listAllEnabledRIDs', async function (t, pe) {
@@ -346,9 +346,9 @@ testPE('engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
   var getAdminECI = await pe.modules.get({}, 'engine', 'getAdminECI')
   var listChildren = await pe.modules.get({}, 'engine', 'listChildren')
 
-  await newPico({pico_id: 'id0'}, [])// id2
+  await newPico({ pico_id: 'id0' }, [])// id2
   await newPico({}, ['id0'])// id4
-  await newPico({pico_id: 'id2'}, [])// id6
+  await newPico({ pico_id: 'id2' }, [])// id6
 
   t.equals(await getParent({}, ['id0']), null)
   t.equals(await getParent({}, ['id2']), 'id0')
@@ -366,16 +366,16 @@ testPE('engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
   strictDeepEquals(t, await listChildren({}, ['id6']), [])
 
   // fallback on ctx.pico_id
-  t.equals(await getParent({pico_id: 'id6'}, []), 'id2')
-  t.equals(await getAdminECI({pico_id: 'id6'}, []), 'id7')
-  t.deepEquals(await listChildren({pico_id: 'id2'}, []), ['id6'])
-  t.equals(await removePico({pico_id: 'id6'}, []), true)
-  t.equals(await removePico({pico_id: 'id6'}, []), false)
+  t.equals(await getParent({ pico_id: 'id6' }, []), 'id2')
+  t.equals(await getAdminECI({ pico_id: 'id6' }, []), 'id7')
+  t.deepEquals(await listChildren({ pico_id: 'id2' }, []), ['id6'])
+  t.equals(await removePico({ pico_id: 'id6' }, []), true)
+  t.equals(await removePico({ pico_id: 'id6' }, []), false)
   strictDeepEquals(t, await listChildren({}, ['id2']), [])
 
   // report error on invalid pico_id
   var assertInvalidPicoID = function (genfn, id, expected) {
-    return tstErr(genfn({pico_id: id}, []), expected)
+    return tstErr(genfn({ pico_id: id }, []), expected)
   }
 
   await assertInvalidPicoID(getParent, void 0, 'TypeError: engine:getParent was given null instead of a pico_id string')
@@ -385,8 +385,8 @@ testPE('engine:getParent, engine:getAdminECI, engine:listChildren, engine:remove
   await assertInvalidPicoID(removePico, void 0, 'TypeError: engine:removePico was given null instead of a pico_id string')
 
   t.equals(await getAdminECI({}, ['id404']), void 0)
-  t.equals(await getParent({pico_id: 'id404'}, []), void 0)
-  t.equals(await listChildren({pico_id: 'id404'}, []), void 0)
+  t.equals(await getParent({ pico_id: 'id404' }, []), void 0)
+  t.equals(await listChildren({ pico_id: 'id404' }, []), void 0)
   await assertInvalidPicoID(newPico, 'id404', 'NotFoundError: Pico not found: id404')
   t.equals(await removePico({}, ['id404']), false)
 
@@ -410,36 +410,36 @@ testPE('engine:newPolicy, engine:listPolicies, engine:removePolicy', async funct
 
   // Making sure ChannelPolicy.clean is on
   await tstErr(newPolicy(), 'TypeError: Policy definition should be a Map, but was Null')
-  await tstErr(newPolicy({name: 1}), 'Error: missing `policy.name`')
+  await tstErr(newPolicy({ name: 1 }), 'Error: missing `policy.name`')
 
   var pAdmin = {
     id: ADMIN_POLICY_ID,
     name: 'admin channel policy',
-    event: {allow: [{}]},
-    query: {allow: [{}]}
+    event: { allow: [{}] },
+    query: { allow: [{}] }
   }
 
   t.deepEquals(await listPolicies(), [pAdmin])
 
-  var pFoo = await newPolicy({name: 'foo'})
+  var pFoo = await newPolicy({ name: 'foo' })
   t.deepEquals(pFoo, {
     id: 'id2',
     name: 'foo',
-    event: {deny: [], allow: []},
-    query: {deny: [], allow: []}
+    event: { deny: [], allow: [] },
+    query: { deny: [], allow: [] }
   })
 
   t.deepEquals(await listPolicies(), [pAdmin, pFoo])
 
   var pBar = await newPolicy({
     name: 'bar',
-    event: {allow: [{domain: 'system'}]}
+    event: { allow: [{ domain: 'system' }] }
   })
   t.deepEquals(pBar, {
     id: 'id3',
     name: 'bar',
-    event: {deny: [], allow: [{domain: 'system'}]},
-    query: {deny: [], allow: []}
+    event: { deny: [], allow: [{ domain: 'system' }] },
+    query: { deny: [], allow: [] }
   })
 
   t.deepEquals(await listPolicies(), [pAdmin, pFoo, pBar])
@@ -530,14 +530,14 @@ testPE('engine:newChannel, engine:listChannels, engine:removeChannel', async fun
   ])
 
   // fallback on ctx.pico_id
-  t.deepEquals(await listChannels({pico_id: 'id0'}, []), [
+  t.deepEquals(await listChannels({ pico_id: 'id0' }, []), [
     mkChan('id0', 'id1', 'admin', 'secret')
   ])
-  t.deepEquals(await newChannel({pico_id: 'id0'}, {'name': 'a', 'type': 'b'}), mkChan('id0', 'id3', 'a', 'b'))
+  t.deepEquals(await newChannel({ pico_id: 'id0' }, { 'name': 'a', 'type': 'b' }), mkChan('id0', 'id3', 'a', 'b'))
 
   // report error on invalid pico_id
   var assertInvalidPicoID = function (genfn, id, expected) {
-    return tstErr(genfn({pico_id: id}, {'name': 'a', 'type': 'b'}), expected)
+    return tstErr(genfn({ pico_id: id }, { 'name': 'a', 'type': 'b' }), expected)
   }
 
   await assertInvalidPicoID(newChannel, void 0, 'TypeError: engine:newChannel was given null instead of a pico_id string')
@@ -550,7 +550,7 @@ testPE('engine:newChannel, engine:listChannels, engine:removeChannel', async fun
   tstErr(newChannel({}, ['id0', 'a', 'b', 100]), 'TypeError: engine:newChannel argument `policy_id` should be String but was Number')
   tstErr(newChannel({}, ['id0', 'a', 'b', 'id404']), 'NotFoundError: Policy not found: id404')
 
-  var pFoo = await newPolicy({name: 'foo'})
+  var pFoo = await newPolicy({ name: 'foo' })
   t.deepEquals(await newChannel({}, ['id0', 'a', 'b', pFoo.id]), mkChan('id0', 'id5', 'a', 'b', pFoo.id))
 })
 
@@ -565,7 +565,7 @@ testPE('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
   }
   var listRIDs = await pe.modules.get({}, 'engine', 'listInstalledRIDs')
 
-  t.deepEquals(await listRIDs({pico_id: 'id0'}, []), [
+  t.deepEquals(await listRIDs({ pico_id: 'id0' }, []), [
     'io.picolabs.engine'
   ])
 
@@ -586,11 +586,11 @@ testPE('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
     'rid array has a non-string'
   )
   await tstErr(
-    installRS({'pico_id': 'id0'}, {'url': {}}),
+    installRS({ 'pico_id': 'id0' }, { 'url': {} }),
     'TypeError: engine:installRuleset was given [Map] instead of a url string',
     'wrong url type'
   )
-  t.deepEquals(await listRIDs({pico_id: 'id0'}, []), [
+  t.deepEquals(await listRIDs({ pico_id: 'id0' }, []), [
     'io.picolabs.engine',
     'io.picolabs.hello_world'
   ])
@@ -611,25 +611,25 @@ testPE('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset
     'TypeError: engine:uninstallRuleset was given a rid array containing a non-string (null)',
     'rid array has a non-string'
   )
-  t.deepEquals(await listRIDs({pico_id: 'id0'}, []), [
+  t.deepEquals(await listRIDs({ pico_id: 'id0' }, []), [
     'io.picolabs.hello_world'
   ])
 
   // fallback on ctx.pico_id
-  t.equals(await uninstallRID({pico_id: 'id0'}, {rid: 'io.picolabs.hello_world'}), void 0)
-  strictDeepEquals(t, await listRIDs({pico_id: 'id0'}, []), [])
-  t.equals(await installRS({pico_id: 'id0'}, {rid: 'io.picolabs.hello_world'}), 'io.picolabs.hello_world')
+  t.equals(await uninstallRID({ pico_id: 'id0' }, { rid: 'io.picolabs.hello_world' }), void 0)
+  strictDeepEquals(t, await listRIDs({ pico_id: 'id0' }, []), [])
+  t.equals(await installRS({ pico_id: 'id0' }, { rid: 'io.picolabs.hello_world' }), 'io.picolabs.hello_world')
 
   // report error on invalid pico_id
   var assertInvalidPicoID = function (genfn, id, expected) {
-    return tstErr(genfn({pico_id: id}, {rid: 'io.picolabs.hello_world'}), expected)
+    return tstErr(genfn({ pico_id: id }, { rid: 'io.picolabs.hello_world' }), expected)
   }
 
   await assertInvalidPicoID(listRIDs, void 0, 'TypeError: engine:listInstalledRIDs was given null instead of a pico_id string')
 
   await assertInvalidPicoID(installRS, 'id404', 'NotFoundError: Pico not found: id404')
   await assertInvalidPicoID(uninstallRID, 'id404', 'NotFoundError: Pico not found: id404')
-  t.deepEquals(await listRIDs({pico_id: 'id404'}, []), void 0)
+  t.deepEquals(await listRIDs({ pico_id: 'id404' }, []), void 0)
 })
 
 test('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptChannelMessage', function (t) {

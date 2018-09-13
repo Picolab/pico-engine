@@ -31,7 +31,7 @@ fs.readdir(filesDir, function (err, files) {
 
       console.log('testing: ' + path.basename(file))
 
-      var out = generator(parser(src, {filename: file}))
+      var out = generator(parser(src, { filename: file }))
       var expected = _.filter(src.split('\n'), function (line) {
         return line.trim().indexOf('//') !== 0
       }).join('\n').trim()
@@ -41,7 +41,7 @@ fs.readdir(filesDir, function (err, files) {
         next()
       } else {
         console.log()
-        console.log(diff(expected, out, {n_surrounding: 3}))
+        console.log(diff(expected, out, { n_surrounding: 3 }))
         console.log()
         console.log('testing: ' + path.basename(file))
         next(new Error('see diff'))

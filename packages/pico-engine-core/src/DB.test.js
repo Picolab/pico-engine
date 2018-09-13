@@ -29,8 +29,8 @@ test('DB - write and read', function (t) {
     start_db: async.apply(db.toObj),
     pico0: async.apply(db.newPico, {}),
     rule0: async.apply(db.addRulesetToPico, 'id0', 'rs0'),
-    chan2: async.apply(db.newChannel, {pico_id: 'id0', name: 'two', type: 't', policy_id: ADMIN_POLICY_ID}),
-    pico1: async.apply(db.newPico, {parent_id: 'id0'}),
+    chan2: async.apply(db.newChannel, { pico_id: 'id0', name: 'two', type: 't', policy_id: ADMIN_POLICY_ID }),
+    pico1: async.apply(db.newPico, { parent_id: 'id0' }),
     end_db: async.apply(db.toObj),
     rmpico0: async.apply(db.removePico, 'id0'),
     rmpico1: async.apply(db.removePico, 'id3'),
@@ -100,9 +100,9 @@ test('DB - write and read', function (t) {
           admin_eci: 'id4'
         }
       },
-      'pico-ruleset': {'id0': {'rs0': {on: true}}},
-      'ruleset-pico': {'rs0': {'id0': {on: true}}},
-      'pico-children': {'id0': {'id3': true}},
+      'pico-ruleset': { 'id0': { 'rs0': { on: true } } },
+      'ruleset-pico': { 'rs0': { 'id0': { on: true } } },
+      'pico-children': { 'id0': { 'id3': true } },
       'pico-eci-list': {
         'id0': {
           'id1': true,
@@ -156,7 +156,7 @@ test('DB - storeRuleset', function (t) {
   }, function (err, data) {
     if (err) return t.end(err)
     t.deepEquals(data.start_db, {})
-    t.deepEquals(data.store, {rid: rid, hash: hash})
+    t.deepEquals(data.store, { rid: rid, hash: hash })
     t.deepEquals(data.findRulesetsByURL, [{
       rid: rid,
       hash: hash
@@ -241,21 +241,21 @@ test('DB - getRootPico', function (t) {
       t.ok(err.notFound)
       t.deepEquals(rPico, void 0)
     }),
-    async.apply(db.newChannel, {pico_id: 'foo', name: 'bar', type: 'baz'}),
+    async.apply(db.newChannel, { pico_id: 'foo', name: 'bar', type: 'baz' }),
     async.apply(db.newPico, {}),
     tstRoot(function (err, rPico) {
       t.notOk(err)
-      t.deepEquals(rPico, {id: 'id1', parent_id: null, admin_eci: 'id2'})
+      t.deepEquals(rPico, { id: 'id1', parent_id: null, admin_eci: 'id2' })
     }),
-    async.apply(db.newPico, {parent_id: 'id1'}),
+    async.apply(db.newPico, { parent_id: 'id1' }),
     tstRoot(function (err, rPico) {
       t.notOk(err)
-      t.deepEquals(rPico, {id: 'id1', parent_id: null, admin_eci: 'id2'})
+      t.deepEquals(rPico, { id: 'id1', parent_id: null, admin_eci: 'id2' })
     }),
-    async.apply(db.newPico, {parent_id: null}),
+    async.apply(db.newPico, { parent_id: null }),
     tstRoot(function (err, rPico) {
       t.notOk(err)
-      t.deepEquals(rPico, {id: 'id5', parent_id: null, admin_eci: 'id6'})
+      t.deepEquals(rPico, { id: 'id5', parent_id: null, admin_eci: 'id6' })
     })
   ], t.end)
 })
@@ -352,7 +352,7 @@ test('DB - scheduleEventAt', function (t) {
       db.scheduleEventAt(new Date(date), {
         domain: 'foobar',
         type: type,
-        attributes: {some: 'attr'}
+        attributes: { some: 'attr' }
       }, callback)
     }
   }
@@ -392,17 +392,17 @@ test('DB - scheduleEventAt', function (t) {
     t.deepEquals(data.at0, {
       id: 'id0',
       at: new Date('Feb 22, 2222'),
-      event: {domain: 'foobar', type: 'foo', attributes: {some: 'attr'}}
+      event: { domain: 'foobar', type: 'foo', attributes: { some: 'attr' } }
     })
     t.deepEquals(data.at1, {
       id: 'id1',
       at: new Date('Feb 23, 2222'),
-      event: {domain: 'foobar', type: 'bar', attributes: {some: 'attr'}}
+      event: { domain: 'foobar', type: 'bar', attributes: { some: 'attr' } }
     })
     t.deepEquals(data.at2, {
       id: 'id2',
       at: new Date('Feb  2, 2222'),
-      event: {domain: 'foobar', type: 'baz', attributes: {some: 'attr'}}
+      event: { domain: 'foobar', type: 'baz', attributes: { some: 'attr' } }
     })
 
     t.deepEquals(data.list, [
@@ -439,7 +439,7 @@ test('DB - scheduleEventRepeat', function (t) {
       db.scheduleEventRepeat(timespec, {
         domain: 'foobar',
         type: type,
-        attributes: {some: 'attr'}
+        attributes: { some: 'attr' }
       }, callback)
     }
   }
@@ -465,18 +465,18 @@ test('DB - scheduleEventRepeat', function (t) {
     t.deepEquals(data.rep0, {
       id: 'id0',
       timespec: '*/5 * * * * *',
-      event: {domain: 'foobar', type: 'foo', attributes: {some: 'attr'}}
+      event: { domain: 'foobar', type: 'foo', attributes: { some: 'attr' } }
     })
     t.deepEquals(data.rep1, {
       id: 'id1',
       timespec: '* */5 * * * *',
-      event: {domain: 'foobar', type: 'bar', attributes: {some: 'attr'}}
+      event: { domain: 'foobar', type: 'bar', attributes: { some: 'attr' } }
     })
 
-    t.deepEquals(data.mid_db, {scheduled: {
+    t.deepEquals(data.mid_db, { scheduled: {
       id0: data.rep0,
       id1: data.rep1
-    }})
+    } })
 
     t.deepEquals(data.list, [
       data.rep0,
@@ -505,12 +505,12 @@ test('DB - removeRulesetFromPico', function (t) {
     if (err) return t.end(err)
 
     t.deepEquals(data.db_before, {
-      entvars: {pico0: {rid0: {
-        foo: {type: 'String', value: 'val0'},
-        bar: {type: 'String', value: 'val1'}
-      }}},
-      'pico-ruleset': {'pico0': {'rid0': {on: true}}},
-      'ruleset-pico': {'rid0': {'pico0': {on: true}}}
+      entvars: { pico0: { rid0: {
+        foo: { type: 'String', value: 'val0' },
+        bar: { type: 'String', value: 'val1' }
+      } } },
+      'pico-ruleset': { 'pico0': { 'rid0': { on: true } } },
+      'ruleset-pico': { 'rid0': { 'pico0': { on: true } } }
     })
 
     t.deepEquals(data.db_after, {}, 'should all be gone')
@@ -525,8 +525,8 @@ test('DB - getPicoIDByECI', function (t) {
     pico0: async.apply(db.newPico, {}),
     pico2: async.apply(db.newPico, {}),
 
-    c4_p0: async.apply(db.newChannel, {pico_id: 'id0', name: 'four', type: 't'}),
-    c5_p1: async.apply(db.newChannel, {pico_id: 'id2', name: 'five', type: 't'}),
+    c4_p0: async.apply(db.newChannel, { pico_id: 'id0', name: 'four', type: 't' }),
+    c5_p1: async.apply(db.newChannel, { pico_id: 'id2', name: 'five', type: 't' }),
 
     get_c2: async.apply(db.getPicoIDByECI, 'id1'),
     get_c3: async.apply(db.getPicoIDByECI, 'id3'),
@@ -556,8 +556,8 @@ test('DB - listChannels', function (t) {
     pico0: async.apply(db.newPico, {}),
     pico2: async.apply(db.newPico, {}),
 
-    c4_p0: async.apply(db.newChannel, {pico_id: 'id0', name: 'four', type: 't4', policy_id: ADMIN_POLICY_ID}),
-    c5_p1: async.apply(db.newChannel, {pico_id: 'id2', name: 'five', type: 't5', policy_id: ADMIN_POLICY_ID}),
+    c4_p0: async.apply(db.newChannel, { pico_id: 'id0', name: 'four', type: 't4', policy_id: ADMIN_POLICY_ID }),
+    c5_p1: async.apply(db.newChannel, { pico_id: 'id2', name: 'five', type: 't5', policy_id: ADMIN_POLICY_ID }),
 
     list0: async.apply(db.listChannels, 'id0'),
     list2: async.apply(db.listChannels, 'id2'),
@@ -728,12 +728,12 @@ test('DB - parent/child', function (t) {
 
   async.series([
     async.apply(db.newPico, {}), // id0 and channel id1
-    async.apply(db.newPico, {parent_id: 'id0'}), // id2 + id3
-    async.apply(db.newPico, {parent_id: 'id0'}), // id4 + id5
-    async.apply(db.newPico, {parent_id: 'id0'}), // id6 + id7
+    async.apply(db.newPico, { parent_id: 'id0' }), // id2 + id3
+    async.apply(db.newPico, { parent_id: 'id0' }), // id4 + id5
+    async.apply(db.newPico, { parent_id: 'id0' }), // id6 + id7
 
-    async.apply(db.newPico, {parent_id: 'id6'}), // id8 + id9
-    async.apply(db.newPico, {parent_id: 'id6'}), // id10 + id11
+    async.apply(db.newPico, { parent_id: 'id6' }), // id8 + id9
+    async.apply(db.newPico, { parent_id: 'id6' }), // id10 + id11
 
     assertParent('id0', null),
     assertParent('id2', 'id0'),
@@ -813,7 +813,7 @@ testA('DB - removeChannel', async function (t) {
   await db.newPicoYieldable({})
   await assertECIs('id0', ['id1'])
 
-  await db.newChannelYieldable({pico_id: 'id0', name: 'two', type: 't'})
+  await db.newChannelYieldable({ pico_id: 'id0', name: 'two', type: 't' })
   await assertECIs('id0', ['id1', 'id2'])
 
   await assertFailRemoveECI('id1')
@@ -825,7 +825,7 @@ testA('DB - removeChannel', async function (t) {
   await assertFailRemoveECI('id1')
   await assertECIs('id0', ['id1'])
 
-  await db.newPicoYieldable({parent_id: 'id0'})
+  await db.newPicoYieldable({ parent_id: 'id0' })
   await assertECIs('id3', ['id4'])
 
   await assertFailRemoveECI('id4')
@@ -847,54 +847,54 @@ testA('DB - persistent variables', async function (t) {
   t.deepEquals(data, [1, 2])
   t.ok(ktypes.isArray(data))
 
-  await put('foo', null, {a: 3, b: 4})
+  await put('foo', null, { a: 3, b: 4 })
   data = await get('foo', null)
-  t.deepEquals(data, {a: 3, b: 4})
+  t.deepEquals(data, { a: 3, b: 4 })
   t.ok(ktypes.isMap(data))
 
   await del('foo', null)
   data = await get('foo', null)
   t.deepEquals(data, void 0)
 
-  await put('foo', null, {one: 11, two: 22})
+  await put('foo', null, { one: 11, two: 22 })
   data = await get('foo', null)
-  t.deepEquals(data, {one: 11, two: 22})
-  await put('foo', null, {one: 11})
+  t.deepEquals(data, { one: 11, two: 22 })
+  await put('foo', null, { one: 11 })
   data = await get('foo', null)
-  t.deepEquals(data, {one: 11})
+  t.deepEquals(data, { one: 11 })
 
   data = await get('foo', 'one')
   t.deepEquals(data, 11)
 
-  await put('foo', ['bar', 'baz'], {qux: 1})
+  await put('foo', ['bar', 'baz'], { qux: 1 })
   data = await get('foo', null)
-  t.deepEquals(data, {one: 11, bar: {baz: {qux: 1}}})
+  t.deepEquals(data, { one: 11, bar: { baz: { qux: 1 } } })
 
   await put('foo', ['bar', 'asdf'], true)
   data = await get('foo', null)
-  t.deepEquals(data, {one: 11,
+  t.deepEquals(data, { one: 11,
     bar: {
-      baz: {qux: 1},
+      baz: { qux: 1 },
       asdf: true
-    }})
+    } })
 
   await put('foo', ['bar', 'baz', 'qux'], 'wat?')
   data = await get('foo', null)
-  t.deepEquals(data, {one: 11,
+  t.deepEquals(data, { one: 11,
     bar: {
-      baz: {qux: 'wat?'},
+      baz: { qux: 'wat?' },
       asdf: true
-    }})
+    } })
   data = await get('foo', ['bar', 'baz', 'qux'])
   t.deepEquals(data, 'wat?')
 
   await del('foo', 'one')
   data = await get('foo', null)
-  t.deepEquals(data, {bar: {baz: {qux: 'wat?'}, asdf: true}})
+  t.deepEquals(data, { bar: { baz: { qux: 'wat?' }, asdf: true } })
 
   await del('foo', ['bar', 'asdf'])
   data = await get('foo', null)
-  t.deepEquals(data, {bar: {baz: {qux: 'wat?'}}})
+  t.deepEquals(data, { bar: { baz: { qux: 'wat?' } } })
 
   await del('foo', ['bar', 'baz', 'qux'])
   data = await get('foo', null)
@@ -949,17 +949,17 @@ testA('DB - persistent variables array/map', async function (t) {
 
   // Now should change to a map b/c the key is not an int index
   await put('foo', ['wat'], 'da')
-  await tst('foo', 'Map', {0: 'aaa', 1: 'bbb', wat: 'da'}, '`foo` is now a map')
+  await tst('foo', 'Map', { 0: 'aaa', 1: 'bbb', wat: 'da' }, '`foo` is now a map')
 
   // once a map, always a map
   await del('foo', ['wat'])
-  await tst('foo', 'Map', {0: 'aaa', 1: 'bbb'}, '`foo` is still a map')
+  await tst('foo', 'Map', { 0: 'aaa', 1: 'bbb' }, '`foo` is still a map')
   await put('foo', [2], 'ccc')
-  await tst('foo', 'Map', {0: 'aaa', 1: 'bbb', 2: 'ccc'}, '`foo` is still a map')
+  await tst('foo', 'Map', { 0: 'aaa', 1: 'bbb', 2: 'ccc' }, '`foo` is still a map')
 
   // infered as map if it's a string
   await put('bar', ['0'], 'aaa')
-  await tst('bar', 'Map', {0: 'aaa'}, '`bar` is a map since the first key was a string')
+  await tst('bar', 'Map', { 0: 'aaa' }, '`bar` is a map since the first key was a string')
 
   // infered as an Array b/c the key is a positive integer
   await put('baz', [2], 'ccc')
@@ -967,7 +967,7 @@ testA('DB - persistent variables array/map', async function (t) {
 
   // now it's a map b/c the key is a string
   await put('baz', ['1'], 'bbb')
-  await tst('baz', 'Map', {1: 'bbb', 2: 'ccc'}, '`baz` is now a Map')
+  await tst('baz', 'Map', { 1: 'bbb', 2: 'ccc' }, '`baz` is now a Map')
 
   // initialzed as array should db dump as an array
   await put('qux', null, ['aaa'])

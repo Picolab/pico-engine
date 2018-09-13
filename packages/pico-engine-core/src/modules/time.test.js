@@ -10,7 +10,7 @@ test('time module', function (t) {
 
     var now0 = await time.now(ctx, [])
     var now1 = await time.now(ctx, [
-      {tz: 'Australia/Sydney'}
+      { tz: 'Australia/Sydney' }
     ])
     t.ok(/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\dZ$/.test(now0))
     t.ok(/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\dZ$/.test(now1))
@@ -52,40 +52,40 @@ test('time module', function (t) {
     await terr('new', ctx, ['67342'], 'Error: time:new was given an invalid date string (67342)')
 
     t.equals(
-      await time['add'](ctx, ['2017-01-01', {years: -2017}]),
+      await time['add'](ctx, ['2017-01-01', { years: -2017 }]),
       '0000-01-01T00:00:00.000Z'
     )
     t.equals(
-      await time['add'](ctx, ['2017-01-01', {months: -22}]),
+      await time['add'](ctx, ['2017-01-01', { months: -22 }]),
       '2015-03-01T00:00:00.000Z'
     )
     t.equals(
-      await time['add'](ctx, ['2010-08-08', {weeks: 5}]),
+      await time['add'](ctx, ['2010-08-08', { weeks: 5 }]),
       '2010-09-12T00:00:00.000Z'
     )
     t.equals(
-      await time['add'](ctx, ['2010-08-08T05:00:00', {hours: 3}]),
+      await time['add'](ctx, ['2010-08-08T05:00:00', { hours: 3 }]),
       '2010-08-08T08:00:00.000Z'
     )
     t.equals(
-      await time['add'](ctx, ['2017-01-01', {days: -10}]),
+      await time['add'](ctx, ['2017-01-01', { days: -10 }]),
       '2016-12-22T00:00:00.000Z'
     )
     t.equals(
-      await time['add'](ctx, ['2017-01-01', {minutes: 2, seconds: 90}]),
+      await time['add'](ctx, ['2017-01-01', { minutes: 2, seconds: 90 }]),
       '2017-01-01T00:03:30.000Z'
     )
 
     t.equals(
-      await time['add'](ctx, [1967342, {'seconds': 'five'}]),
+      await time['add'](ctx, [1967342, { 'seconds': 'five' }]),
       '1967-12-08T00:00:00.000Z'
     )
     t.equals(
-      await time['add'](ctx, [1967342, {'secondz': 5}]),
+      await time['add'](ctx, [1967342, { 'secondz': 5 }]),
       '1967-12-08T00:00:00.000Z'
     )
 
-    await terr('add', ctx, {'spec': {}}, 'Error: time:add needs a date string')
+    await terr('add', ctx, { 'spec': {} }, 'Error: time:add needs a date string')
     await terr('add', ctx, [67342], 'Error: time:add needs a spec map')
     await terr('add', ctx, [67342, 5], 'TypeError: time:add was given 67342 instead of a date string')
     await terr('add', ctx, ['67342', 5], 'Error: time:add was given an invalid date string (67342)')

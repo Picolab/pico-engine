@@ -1,7 +1,8 @@
 var _ = require('lodash')
+var ktypes = require('krl-stdlib/types')
 
 function toFloat (v) {
-  return parseFloat(v) || 0
+  return ktypes.toNumberOrNull(v) || 0
 }
 
 function aggregateWrap (core, currentStateMachineState, rule, ctx, valuePairs, fn) {

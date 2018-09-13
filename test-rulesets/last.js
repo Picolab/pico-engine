@@ -6,11 +6,6 @@ module.exports = {
       "name": "foo",
       "select": {
         "graph": { "last": { "all": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -40,11 +35,6 @@ module.exports = {
       "name": "bar",
       "select": {
         "graph": { "last": { "all": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -74,11 +64,6 @@ module.exports = {
       "name": "baz",
       "select": {
         "graph": { "last": { "all": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -104,11 +89,6 @@ module.exports = {
       "name": "qux",
       "select": {
         "graph": { "last": { "all": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

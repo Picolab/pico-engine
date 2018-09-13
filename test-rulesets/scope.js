@@ -71,34 +71,34 @@ module.exports = {
       "select": {
         "graph": {
           "scope": {
-            "eventOr0": { "expr_0": true },
-            "eventOr1": { "expr_1": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("name0", matches[0]);
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("name1", matches[0]);
-            return true;
+            "eventOr0": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("name0", matches[0]);
+                return true;
+              }
+            },
+            "eventOr1": {
+              "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("name1", matches[0]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -136,34 +136,34 @@ module.exports = {
       "select": {
         "graph": {
           "scope": {
-            "eventAnd0": { "expr_0": true },
-            "eventAnd1": { "expr_1": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("name0", matches[0]);
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("name1", matches[0]);
-            return true;
+            "eventAnd0": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("name0", matches[0]);
+                return true;
+              }
+            },
+            "eventAnd1": {
+              "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("name1", matches[0]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -210,41 +210,35 @@ module.exports = {
         "graph": {
           "scope": {
             "eventWithin0": { "expr_0": true },
-            "eventWithin1": { "expr_1": true },
-            "eventWithin2": { "expr_2": true },
+            "eventWithin1": {
+              "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("name1", matches[0]);
+                return true;
+              }
+            },
+            "eventWithin2": {
+              "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("name2", matches[0]);
+                return true;
+              }
+            },
             "eventWithin3": { "expr_3": true }
-          }
-        },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          },
-          "expr_1": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("name1", matches[0]);
-            return true;
-          },
-          "expr_2": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("name2", matches[0]);
-            return true;
-          },
-          "expr_3": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
           }
         },
         "state_machine": {
@@ -311,19 +305,22 @@ module.exports = {
     "prelude_scope": {
       "name": "prelude_scope",
       "select": {
-        "graph": { "scope": { "prelude": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            var matches = [];
-            var m;
-            var j;
-            m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-            if (!m)
-              return false;
-            for (j = 1; j < m.length; j++)
-              matches.push(m[j]);
-            setting("name", matches[0]);
-            return true;
+        "graph": {
+          "scope": {
+            "prelude": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("name", matches[0]);
+                return true;
+              }
+            }
           }
         },
         "state_machine": {
@@ -361,11 +358,6 @@ module.exports = {
       "name": "functions",
       "select": {
         "graph": { "scope": { "functions": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

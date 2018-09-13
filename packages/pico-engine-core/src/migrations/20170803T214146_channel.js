@@ -30,8 +30,8 @@ module.exports = {
         value: true
       })
 
-      dbOps.push({type: 'del', key: data.key})
-      dbOps.push({type: 'del', key: ['eci-to-pico_id', eci]})
+      dbOps.push({ type: 'del', key: data.key })
+      dbOps.push({ type: 'del', key: ['eci-to-pico_id', eci] })
     }, function (err) {
       if (err) return callback(err)
 

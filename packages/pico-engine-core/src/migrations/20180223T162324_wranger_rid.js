@@ -26,8 +26,8 @@ module.exports = {
         if (_.isEqual(data.key, newKey)) {
           return
         }
-        dbOps.push({type: 'put', key: newKey, value: data.value})
-        dbOps.push({type: 'del', key: data.key})
+        dbOps.push({ type: 'put', key: newKey, value: data.value })
+        dbOps.push({ type: 'del', key: data.key })
       }, next)
     }, function (err) {
       if (err) return callback(err)

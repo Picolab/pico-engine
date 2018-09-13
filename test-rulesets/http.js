@@ -75,11 +75,6 @@ module.exports = {
       "name": "http_get",
       "select": {
         "graph": { "http_test": { "get": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -108,11 +103,6 @@ module.exports = {
       "name": "http_post",
       "select": {
         "graph": { "http_test": { "post": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -152,11 +142,6 @@ module.exports = {
       "name": "http_post_action",
       "select": {
         "graph": { "http_test": { "post_action": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -184,11 +169,6 @@ module.exports = {
       "name": "http_post_setting",
       "select": {
         "graph": { "http_test": { "post_setting": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -219,11 +199,6 @@ module.exports = {
       "name": "http_autorase",
       "select": {
         "graph": { "http_test": { "autoraise": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",
@@ -252,11 +227,6 @@ module.exports = {
       "name": "http_post_event_handler",
       "select": {
         "graph": { "http": { "post": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

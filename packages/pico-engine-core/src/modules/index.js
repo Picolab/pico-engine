@@ -28,7 +28,7 @@ var normalizeId = function (domain, id) {
       query: id.path
     }
   }
-  return {var_name: ktypes.toString(id)}
+  return { var_name: ktypes.toString(id) }
 }
 
 module.exports = function (core, thirdPartyModules) {

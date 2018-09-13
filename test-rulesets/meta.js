@@ -27,11 +27,6 @@ module.exports = {
       "name": "meta_event",
       "select": {
         "graph": { "meta": { "event": { "expr_0": true } } },
-        "eventexprs": {
-          "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-            return true;
-          }
-        },
         "state_machine": {
           "start": [[
               "expr_0",

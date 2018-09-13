@@ -28,13 +28,13 @@ var onAmbiguousProgram = function (src) {
 
   var ast0 = p.results[0]
   var ast1 = p.results[1]
-  var str = diff(generator(ast0), generator(ast1), {n_surrounding: 3})
+  var str = diff(generator(ast0), generator(ast1), { n_surrounding: 3 })
   if (str.trim().length === 0) {
     console.log(generator(ast0))
     str = diff(
       JSON.stringify(rmLoc(ast0), false, 2),
       JSON.stringify(rmLoc(ast1), false, 2),
-      {n_surrounding: 3}
+      { n_surrounding: 3 }
     )
   }
 

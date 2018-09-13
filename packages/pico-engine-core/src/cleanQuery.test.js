@@ -9,37 +9,37 @@ test('query = cleanQuery(query)', function (t) {
     t.equals(e + '', 'Error: missing query.eci')
   }
   try {
-    cleanQuery({eci: 0})
+    cleanQuery({ eci: 0 })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing query.eci')
   }
   try {
-    cleanQuery({eci: ''})
+    cleanQuery({ eci: '' })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing query.eci')
   }
   try {
-    cleanQuery({eci: '  '})
+    cleanQuery({ eci: '  ' })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing query.eci')
   }
   try {
-    cleanQuery({eci: 'eci-1', rid: ''})
+    cleanQuery({ eci: 'eci-1', rid: '' })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing query.rid')
   }
   try {
-    cleanQuery({eci: 'eci-1', rid: 'foo'})
+    cleanQuery({ eci: 'eci-1', rid: 'foo' })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing query.name')
   }
   try {
-    cleanQuery({eci: 'eci-1', rid: 'foo', name: ' '})
+    cleanQuery({ eci: 'eci-1', rid: 'foo', name: ' ' })
     t.fail('should throw')
   } catch (e) {
     t.equals(e + '', 'Error: missing query.name')
@@ -58,7 +58,7 @@ test('query = cleanQuery(query)', function (t) {
   })
 
   // args - should not be mutable
-  var args = {what: {is: ['this']}}
+  var args = { what: { is: ['this'] } }
   var query = cleanQuery({
     eci: 'eci123',
     rid: 'foo',
@@ -80,12 +80,12 @@ test('query = cleanQuery(query)', function (t) {
     eci: '  eci123   ',
     rid: '  foo\n ',
     name: '  \t bar  ',
-    args: {' foo ': " don't trim these   "}
+    args: { ' foo ': " don't trim these   " }
   }), {
     eci: 'eci123',
     rid: 'foo',
     name: 'bar',
-    args: {' foo ': " don't trim these   "}
+    args: { ' foo ': " don't trim these   " }
   })
 
   // no timestamp
@@ -138,15 +138,15 @@ test('query = cleanQuery(query)', function (t) {
   )
 
   testAttrs(
-    {a: null, b: void 0, c: NaN},
-    {a: null, b: null, c: null},
+    { a: null, b: void 0, c: NaN },
+    { a: null, b: null, c: null },
     "args normalize to JSON null's"
   );
 
   (function () {
     testAttrs(
       arguments,
-      {'0': 'foo', '1': 'bar'},
+      { '0': 'foo', '1': 'bar' },
       'non "plain" objects should work as Maps'
     )
   }('foo', 'bar'))

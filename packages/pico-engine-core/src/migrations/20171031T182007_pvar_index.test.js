@@ -28,7 +28,7 @@ test('migration - pvar_index', function (t) {
     })
   }
 
-  put('v0', {foo: 'bar', baz: 1})
+  put('v0', { foo: 'bar', baz: 1 })
   put('v1', [1, 2, 3, 'ok'])
   put('v2', 'hi')
   put('v3', true)
@@ -56,7 +56,7 @@ test('migration - pvar_index', function (t) {
 
         t.deepEquals(entvars.v0, {
           type: 'Map',
-          value: {foo: 'bar', baz: 1}
+          value: { foo: 'bar', baz: 1 }
         })
         t.deepEquals(entvars.v1, {
           type: 'Array',

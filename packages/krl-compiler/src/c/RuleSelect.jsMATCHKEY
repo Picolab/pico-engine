@@ -1,4 +1,5 @@
 var _ = require('lodash')
+var ktypes = require('krl-stdlib/types')
 
 var wrapInOr = function (states) {
   if (_.size(states) === 1) {
@@ -51,28 +52,27 @@ var StateMachine = function () {
       })
     },
     join: join,
-    optimize: function () {
-      // Find all cases where the same event goes to different states and join those states into one
+    optimize: function (eIdToMatchKey) {
+      // eslint-disable-next-line no-constant-condition
       while (true) {
-        let toJoin = []
+        let didMergeStuff = false
         let groupped = {}
         _.each(transitions, function (t) {
-          var key = t[0] + JSON.stringify(t[1])// stringify b/c ["not","expr_1"]
-          var state = t[2]
-          if (_.has(groupped, key)) {
-            if (state !== groupped[key]) {
-              toJoin.push([state, groupped[key]])
-            }
-          } else {
-            groupped[key] = state
+          _.set(groupped, [t[0] + JSON.stringify(t[1]), t[2]], true)
+        })
+        _.each(groupped, function (o, matchKey) {
+          var states = _.keys(o).sort()
+          if (_.size(states) > 1) {
+            didMergeStuff = true
+            var toState = _.head(states)
+            _.each(_.tail(states), function (fromState) {
+              join(fromState, toState)
+            })
           }
         })
-        if (toJoin.length === 0) {
+        if (!didMergeStuff) {
           break
         }
-        toJoin.forEach(function (j) {
-          join(j[0], j[1])
-        })
       }
       // Remove duplicate transitions
       let tree = {}
@@ -415,10 +415,29 @@ module.exports = function (ast, comp, e) {
   var onEE = function (ast) {
     var domain = ast.event_domain.value
     var type = ast.event_type.value
+
+    // unque for match-ability but NOT for excluding removing entirely once that capture different setting/arggregator
+    var matchKey = domain + '/' + type
+    var attrKeys = _.map(ast.event_attrs, function (attr) {
+      if (attr.type !== 'AttributeMatch' || attr.key.type !== 'Identifier' || attr.value.type !== 'RegExp') {
+        throw new Error('EventExpression.event_attrs unexpected value: ' + JSON.stringify(attr))
+      }
+      return attr.key.value + '~' + ktypes.toString(attr.value.value)
+    })
+      .sort()// sort to ensure deterministic order for comparison
+    if (attrKeys.length > 0) {
+      matchKey += '?' + attrKeys.join(',')
+    }
+    if (ast.where) {
+      // function equivalence is undecidable, so let's just make sure they are not considered compatible
+      matchKey += _.uniqueId('where')
+    }
+
     var ee = comp(ast)
 
     var id = 'expr_' + (eeId++)
     _.set(graph, [domain, type, id], ee)
+    eIdToMatchKey[id] = matchKey
     return id
   }
 
@@ -446,7 +465,7 @@ module.exports = function (ast, comp, e) {
     }
     if (_.has(eventOps, lisp[0])) {
       s = eventOps[lisp[0]].mkStateMachine(lisp.slice(1), evalEELisp)
-      s.optimize()
+      s.optimize(eIdToMatchKey)
       return s
     } else {
       throw new Error('EventOperator.op not supported: ' + ast.op)
