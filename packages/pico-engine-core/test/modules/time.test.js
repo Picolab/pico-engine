@@ -1,6 +1,6 @@
 var test = require('tape')
-var time = require('./time')().def
-var testErr = require('../testErr')
+var time = require('../../src/modules/time')().def
+var testErr = require('../helpers/testErr')
 
 test('time module', function (t) {
   var terr = testErr(t, time);

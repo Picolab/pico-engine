@@ -1,9 +1,9 @@
 var _ = require('lodash')
 var test = require('tape')
 var http = require('http')
-var khttp = require('./http')().def
+var khttp = require('../../src/modules/http')().def
 var ktypes = require('krl-stdlib/types')
-var testErr = require('../testErr')
+var testErr = require('../helpers/testErr')
 
 test('http module', function (t) {
   var server = http.createServer(function (req, res) {

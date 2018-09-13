@@ -3,11 +3,11 @@ var fs = require('fs')
 var cuid = require('cuid')
 var path = require('path')
 var memdown = require('memdown')
-var PicoEngine = require('./')
-var promiseCallback = require('./promiseCallback')
+var PicoEngine = require('../../src')
+var promiseCallback = require('../../src/promiseCallback')
 
 var testRulesets = {}
-var testDir = path.resolve(__dirname, '../../../test-rulesets')
+var testDir = path.resolve(__dirname, '../../../../test-rulesets')
 _.each(fs.readdirSync(testDir), function (file) {
   if (!/\.js$/.test(file)) {
     return

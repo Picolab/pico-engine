@@ -2,11 +2,11 @@ var _ = require('lodash')
 var test = require('tape')
 var util = require('util')
 var ktypes = require('krl-stdlib/types')
-var strictDeepEquals = require('../../test/helpers/strictEquals').strictDeepEquals
-var kengine = require('./engine')
-var ADMIN_POLICY_ID = require('../DB').ADMIN_POLICY_ID
-var mkTestPicoEngine = require('../mkTestPicoEngine')
-var testA = require('../../test/helpers/testA')
+var strictDeepEquals = require('../helpers/strictEquals').strictDeepEquals
+var kengine = require('../../src/modules/engine')
+var ADMIN_POLICY_ID = require('../../src/DB').ADMIN_POLICY_ID
+var mkTestPicoEngine = require('../helpers/mkTestPicoEngine')
+var testA = require('../helpers/testA')
 
 // wrap stubbed functions in this to simulate async
 var tick = function (fn) {

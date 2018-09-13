@@ -1,6 +1,6 @@
 var test = require('tape')
 var ktypes = require('krl-stdlib/types')
-var krandom = require('./random')().def
+var krandom = require('../../src/modules/random')().def
 
 var assertNumRange = function (n, low, high, shouldBeInt) {
   if (ktypes.isNumber(n) && (n >= low) && (n <= high)) {

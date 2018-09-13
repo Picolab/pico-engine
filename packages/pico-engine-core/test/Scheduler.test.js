@@ -1,6 +1,6 @@
 var _ = require('lodash')
 var test = require('tape')
-var Scheduler = require('./Scheduler')
+var Scheduler = require('../src/Scheduler')
 
 test('Scheduler - at', function (t) {
   var log = []

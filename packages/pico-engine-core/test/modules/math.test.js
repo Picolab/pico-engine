@@ -1,7 +1,7 @@
 var test = require('tape')
-var kmath = require('./math')().def
+var kmath = require('../../src/modules/math')().def
 
-var testErr = require('../testErr')
+var testErr = require('../helpers/testErr')
 
 test('module - math:*', function (t) {
   (async function () {

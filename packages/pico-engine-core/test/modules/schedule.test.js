@@ -1,5 +1,5 @@
 var test = require('tape')
-var mkTestPicoEngine = require('../mkTestPicoEngine')
+var mkTestPicoEngine = require('../helpers/mkTestPicoEngine')
 
 test('schedule:remove', function (t) {
   mkTestPicoEngine({}, function (err, pe) {

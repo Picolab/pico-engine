@@ -2,12 +2,12 @@ var _ = require('lodash')
 var cuid = require('cuid')
 var test = require('tape')
 var encode = require('encoding-down')
-var dbRange = require('../dbRange')
+var dbRange = require('../../src/dbRange')
 var levelup = require('levelup')
 var memdown = require('memdown')
 var bytewise = require('bytewise')
 var safeJsonCodec = require('level-json-coerce-null')
-var migration = require('./20171031T182007_pvar_index')
+var migration = require('../../src/migrations/20171031T182007_pvar_index')
 
 test('migration - pvar_index', function (t) {
   var ldb = levelup(encode(memdown(cuid()), {

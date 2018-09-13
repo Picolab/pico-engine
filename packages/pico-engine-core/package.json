@@ -7,8 +7,8 @@
     "src"
   ],
   "scripts": {
-    "start": "SKIP_LONG_TESTS=true onchange -i src/ ../../test-rulesets/ -- npm run test -s",
-    "test": "standard && node src/tests.js | faucet"
+    "start": "SKIP_LONG_TESTS=true onchange -i src/ test/ ../../test-rulesets/ -- npm run test -s",
+    "test": "standard && node test/tests.js | faucet"
   },
   "repository": {
     "type": "git",

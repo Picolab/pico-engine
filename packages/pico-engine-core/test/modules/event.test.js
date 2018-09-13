@@ -1,7 +1,7 @@
 // var _ = require("lodash");
 var test = require('tape')
 var http = require('http')
-var eventModule = require('./event')
+var eventModule = require('../../src/modules/event')
 
 test('module - event:attr(name)', function (t) {
   (async function () {

@@ -1,15 +1,15 @@
 var _ = require('lodash')
-var DB = require('./DB')
+var DB = require('../src/DB')
 var util = require('util')
 var cuid = require('cuid')
 var test = require('tape')
 var http = require('http')
 var async = require('async')
-var testA = require('../test/helpers/testA')
+var testA = require('./helpers/testA')
 var memdown = require('memdown')
-var PicoEngine = require('./')
-var mkTestPicoEngine = require('./mkTestPicoEngine')
-var ADMIN_POLICY_ID = require('./DB').ADMIN_POLICY_ID
+var PicoEngine = require('../')
+var mkTestPicoEngine = require('./helpers/mkTestPicoEngine')
+var ADMIN_POLICY_ID = require('../src/DB').ADMIN_POLICY_ID
 
 var urlPrefix = 'http://fake-url/test-rulesets/'
 

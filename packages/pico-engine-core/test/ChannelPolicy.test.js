@@ -1,5 +1,5 @@
 var test = require('tape')
-var ChannelPolicy = require('./ChannelPolicy')
+var ChannelPolicy = require('../src/ChannelPolicy')
 
 test('policy = ChannelPolicy.clean(policy)', function (t) {
   var cleanIt = ChannelPolicy.clean

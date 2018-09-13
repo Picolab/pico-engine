@@ -1,6 +1,6 @@
 var _ = require('lodash')
 var test = require('tape')
-var runAction = require('./runAction')
+var runAction = require('../src/runAction')
 
 test('runAction - send_directive', function (t) {
   var mkCtx = function (name, options) {

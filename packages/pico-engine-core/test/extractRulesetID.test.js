@@ -1,4 +1,4 @@
-var fn = require('./extractRulesetID')
+var fn = require('../src/extractRulesetID')
 var test = require('tape')
 
 test('extractRulesetID', function (t) {

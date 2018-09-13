@@ -1,5 +1,5 @@
 var test = require('tape')
-var cleanQuery = require('./cleanQuery')
+var cleanQuery = require('../src/cleanQuery')
 
 test('query = cleanQuery(query)', function (t) {
   try {

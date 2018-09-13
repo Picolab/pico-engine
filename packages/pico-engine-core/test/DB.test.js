@@ -1,14 +1,14 @@
 var _ = require('lodash')
-var DB = require('./DB')
+var DB = require('../src/DB')
 var util = require('util')
 var cuid = require('cuid')
 var test = require('tape')
 var async = require('async')
-var testA = require('../test/helpers/testA')
+var testA = require('./helpers/testA')
 var ktypes = require('krl-stdlib/types')
 var memdown = require('memdown')
-var migrations = require('./migrations')
-var ADMIN_POLICY_ID = require('./DB').ADMIN_POLICY_ID
+var migrations = require('../src/migrations')
+var ADMIN_POLICY_ID = DB.ADMIN_POLICY_ID
 
 var mkTestDB = function () {
   var db = DB({

@@ -1,5 +1,5 @@
 var test = require('tape')
-var cleanEvent = require('./cleanEvent')
+var cleanEvent = require('../src/cleanEvent')
 
 test('event = cleanEvent(event)', function (t) {
   try {

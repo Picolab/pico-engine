@@ -1,5 +1,5 @@
 var test = require('tape')
-var PicoQueue = require('./PicoQueue')
+var PicoQueue = require('../src/PicoQueue')
 
 function nextTick () {
   return new Promise(function (resolve) {
