@@ -293,7 +293,18 @@ module.exports = function (conf) {
       })
   }
 
-  var picoQ = PicoQueue(function (picoId, type, data) {
+  var picoQ = PicoQueue(async function (picoId, type, data) {
+    var status = await db.getPicoStatus(picoId)
+    if (status.movedToHost) {
+      let err = new Error('Pico moved to a new host')
+      err.picoCore_pico_movedToHost = status.movedToHost
+      throw err
+    } else if (status.isLeaving) {
+      let err = new Error('Pico is leaving this host')
+      err.picoCore_pico_isLeaving = true
+      throw err
+    }
+
     // now handle the next task on the pico queue
     if (type === 'event') {
       var event = data

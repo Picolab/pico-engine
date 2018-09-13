@@ -822,9 +822,13 @@ testA('engine:exportPico', async function (t) {
 
 testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   var krl = `ruleset rid.status {
-    rule setStatus {
-      select when aa setStatus
-      engine:setPicoStatus(isLeaving = true, movedToHost = "http://away")
+    rule setLeaving {
+      select when aa setLeaving
+      engine:setPicoStatus(isLeaving = true)
+    }
+    rule setMoving {
+      select when aa setMoving
+      engine:setPicoStatus(movedToHost = "http://away")
     }
     rule getStatus {
       select when aa getStatus
@@ -839,8 +843,13 @@ testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
       meta: { url: 'wat' }
     }]
   })
+  pe.emitter.on('error', _.noop)
 
   var rootEci = await util.promisify(pe.getRootECI)()
+  var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
+  var rootPicoId = await getPicoIDByECI({}, [rootEci])
+  var getPicoStatus = await pe.modules.get({}, 'engine', 'getPicoStatus')
+  var setPicoStatus = await pe.modules.get({}, 'engine', 'setPicoStatus')
 
   function signalEvent (eci, dt, attrs) {
     return pe.signalEvent({
@@ -857,11 +866,29 @@ testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
     movedToHost: null
   })
 
-  await signalEvent(rootEci, 'aa/setStatus')
-
-  resp = await signalEvent(rootEci, 'aa/getStatus')
-  t.deepEquals(resp.directives[0].options, {
+  await signalEvent(rootEci, 'aa/setLeaving')
+  try {
+    await signalEvent(rootEci, 'aa/getStatus')
+    t.fail(true, 'should fail b/c the pico is leaving')
+  } catch (err) {
+    t.is(err.picoCore_pico_isLeaving, true)
+  }
+  t.deepEquals(await getPicoStatus({}, [rootPicoId]), {
     isLeaving: true,
+    movedToHost: null
+  })
+
+  await setPicoStatus({}, [rootPicoId, false])
+
+  await signalEvent(rootEci, 'aa/setMoving')
+  try {
+    await signalEvent(rootEci, 'aa/getStatus')
+    t.fail(true, 'should fail b/c the pico is moving')
+  } catch (err) {
+    t.is(err.picoCore_pico_movedToHost, 'http://away')
+  }
+  t.deepEquals(await getPicoStatus({}, [rootPicoId]), {
+    isLeaving: false,
     movedToHost: 'http://away'
   })
 })
