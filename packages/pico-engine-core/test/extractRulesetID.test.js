@@ -1,7 +1,7 @@
+var testA = require('./helpers/testA')
 var fn = require('../src/extractRulesetID')
-var test = require('tape')
 
-test('extractRulesetID', function (t) {
+testA('extractRulesetID', function (t) {
   t.equals(fn(''), undefined)
   t.equals(fn('  '), undefined)
   t.equals(fn('/* ruleset not {} */ ruleset blah.ok.bye '), 'blah.ok.bye')
@@ -9,5 +9,4 @@ test('extractRulesetID', function (t) {
   t.equals(fn('rulesetok{}'), undefined)
   t.equals(fn(null), undefined)
   t.equals(fn(), undefined)
-  t.end()
 })

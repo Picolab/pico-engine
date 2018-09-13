@@ -1,5 +1,4 @@
 // var _ = require("lodash");
-var test = require('tape')
 var http = require('http')
 var testA = require('../helpers/testA')
 var eventModule = require('../../src/modules/event')
@@ -20,7 +19,7 @@ testA('module - event:attr(name)', async function (t) {
   )
 })
 
-test('module - event:send(event, host = null)', function (t) {
+testA.cb('module - event:send(event, host = null)', function (t) {
   var serverReached = false
   var server = http.createServer(function (req, res) {
     serverReached = true

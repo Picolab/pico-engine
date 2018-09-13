@@ -1,7 +1,7 @@
-var test = require('tape')
+var testA = require('./helpers/testA')
 var cleanQuery = require('../src/cleanQuery')
 
-test('query = cleanQuery(query)', function (t) {
+testA('query = cleanQuery(query)', function (t) {
   try {
     cleanQuery()
     t.fail('should throw')
@@ -150,6 +150,4 @@ test('query = cleanQuery(query)', function (t) {
       'non "plain" objects should work as Maps'
     )
   }('foo', 'bar'))
-
-  t.end()
 })

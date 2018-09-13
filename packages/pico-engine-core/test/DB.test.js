@@ -2,7 +2,6 @@ var _ = require('lodash')
 var DB = require('../src/DB')
 var util = require('util')
 var cuid = require('cuid')
-var test = require('tape')
 var async = require('async')
 var testA = require('./helpers/testA')
 var ktypes = require('krl-stdlib/types')
@@ -23,7 +22,7 @@ var mkTestDB = function () {
   return db
 }
 
-test('DB - write and read', function (t) {
+testA.cb('DB - write and read', function (t) {
   var db = mkTestDB()
   async.series({
     start_db: async.apply(db.toObj),
@@ -125,7 +124,7 @@ test('DB - write and read', function (t) {
   })
 })
 
-test('DB - storeRuleset', function (t) {
+testA.cb('DB - storeRuleset', function (t) {
   var db = mkTestDB()
 
   var krlSrc = 'ruleset io.picolabs.cool {}'
@@ -166,7 +165,7 @@ test('DB - storeRuleset', function (t) {
   })
 })
 
-test('DB - enableRuleset', function (t) {
+testA.cb('DB - enableRuleset', function (t) {
   var db = mkTestDB()
 
   var krlSrc = 'ruleset io.picolabs.cool {}'
@@ -223,7 +222,7 @@ testA("DB - read keys that don't exist", async function (t) {
   t.is(app, undefined)
 })
 
-test('DB - getRootPico', function (t) {
+testA.cb('DB - getRootPico', function (t) {
   var db = mkTestDB()
 
   var tstRoot = function (assertFn) {
@@ -260,7 +259,7 @@ test('DB - getRootPico', function (t) {
   ], t.end)
 })
 
-test('DB - isRulesetUsed', function (t) {
+testA.cb('DB - isRulesetUsed', function (t) {
   var db = mkTestDB()
 
   async.series({
@@ -285,7 +284,7 @@ test('DB - isRulesetUsed', function (t) {
   })
 })
 
-test('DB - deleteRuleset', function (t) {
+testA.cb('DB - deleteRuleset', function (t) {
   var db = mkTestDB()
 
   var storeRuleset = function (name) {
@@ -344,7 +343,7 @@ test('DB - deleteRuleset', function (t) {
   })
 })
 
-test('DB - scheduleEventAt', function (t) {
+testA.cb('DB - scheduleEventAt', function (t) {
   var db = mkTestDB()
 
   var eventAt = function (date, type) {
@@ -431,7 +430,7 @@ test('DB - scheduleEventAt', function (t) {
   })
 })
 
-test('DB - scheduleEventRepeat', function (t) {
+testA.cb('DB - scheduleEventRepeat', function (t) {
   var db = mkTestDB()
 
   var eventRep = function (timespec, type) {
@@ -489,7 +488,7 @@ test('DB - scheduleEventRepeat', function (t) {
   })
 })
 
-test('DB - removeRulesetFromPico', function (t) {
+testA.cb('DB - removeRulesetFromPico', function (t) {
   var db = mkTestDB()
 
   async.series({
@@ -519,7 +518,7 @@ test('DB - removeRulesetFromPico', function (t) {
   })
 })
 
-test('DB - getPicoIDByECI', function (t) {
+testA.cb('DB - getPicoIDByECI', function (t) {
   var db = mkTestDB()
   async.series({
     pico0: async.apply(db.newPico, {}),
@@ -550,7 +549,7 @@ test('DB - getPicoIDByECI', function (t) {
   })
 })
 
-test('DB - listChannels', function (t) {
+testA.cb('DB - listChannels', function (t) {
   var db = mkTestDB()
   async.series({
     pico0: async.apply(db.newPico, {}),
@@ -596,7 +595,7 @@ test('DB - listChannels', function (t) {
   })
 })
 
-test('DB - listAllEnabledRIDs', function (t) {
+testA.cb('DB - listAllEnabledRIDs', function (t) {
   var db = mkTestDB()
 
   var hashes = {}
@@ -646,7 +645,7 @@ test('DB - listAllEnabledRIDs', function (t) {
   })
 })
 
-test('DB - migrations', function (t) {
+testA.cb('DB - migrations', function (t) {
   var db = mkTestDB()
   async.series([
     function (next) {
@@ -703,7 +702,7 @@ test('DB - migrations', function (t) {
   ], t.end)
 })
 
-test('DB - parent/child', function (t) {
+testA.cb('DB - parent/child', function (t) {
   var db = mkTestDB()
 
   var assertParent = function (picoId, expectedParentId) {
@@ -758,7 +757,7 @@ test('DB - parent/child', function (t) {
   ], t.end)
 })
 
-test('DB - assertPicoID', function (t) {
+testA.cb('DB - assertPicoID', function (t) {
   var db = mkTestDB()
 
   var tstPID = function (id, expectedIt) {

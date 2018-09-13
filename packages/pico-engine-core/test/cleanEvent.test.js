@@ -1,7 +1,7 @@
-var test = require('tape')
+var testA = require('./helpers/testA')
 var cleanEvent = require('../src/cleanEvent')
 
-test('event = cleanEvent(event)', function (t) {
+testA('event = cleanEvent(event)', function (t) {
   try {
     cleanEvent()
     t.fail('should throw')
@@ -182,6 +182,4 @@ test('event = cleanEvent(event)', function (t) {
   testEid(123, '123')
   testEid(123.0, '123')
   testEid(0.7500, '0.75')
-
-  t.end()
 })

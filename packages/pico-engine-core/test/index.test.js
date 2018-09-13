@@ -2,7 +2,6 @@ var _ = require('lodash')
 var DB = require('../src/DB')
 var util = require('util')
 var cuid = require('cuid')
-var test = require('tape')
 var http = require('http')
 var async = require('async')
 var testA = require('./helpers/testA')
@@ -84,7 +83,7 @@ var testOutputs = function (t, pairs, callback) {
   })
 }
 
-test('PicoEngine - hello_world ruleset', function (t) {
+testA.cb('PicoEngine - hello_world ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.hello_world'
@@ -146,7 +145,7 @@ test('PicoEngine - hello_world ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.persistent', function (t) {
+testA.cb('PicoEngine - io.picolabs.persistent', function (t) {
   mkTestPicoEngine({}, function (err, pe) {
     if (err) return t.end(err)
 
@@ -240,7 +239,7 @@ test('PicoEngine - io.picolabs.persistent', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.events ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.events ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.events'
@@ -437,7 +436,7 @@ test('PicoEngine - io.picolabs.events ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.scope ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.scope ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.scope'
@@ -538,7 +537,7 @@ test('PicoEngine - io.picolabs.scope ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.operators ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.operators ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.operators'
@@ -602,7 +601,7 @@ test('PicoEngine - io.picolabs.operators ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.chevron ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.chevron ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.chevron'
@@ -621,7 +620,7 @@ test('PicoEngine - io.picolabs.chevron ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.execution-order ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.execution-order ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.execution-order'
@@ -692,7 +691,7 @@ test('PicoEngine - io.picolabs.execution-order ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.engine ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.engine ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.engine'
@@ -774,7 +773,7 @@ test('PicoEngine - io.picolabs.engine ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.module-used ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.module-used ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.module-used'
@@ -915,7 +914,7 @@ test('PicoEngine - io.picolabs.module-used ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.expressions ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.expressions ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.expressions'
@@ -961,7 +960,7 @@ test('PicoEngine - io.picolabs.expressions ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.meta ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.meta ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.meta'
@@ -1008,7 +1007,7 @@ test('PicoEngine - io.picolabs.meta ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.http ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.http ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.http'
@@ -1158,7 +1157,7 @@ test('PicoEngine - io.picolabs.http ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.foreach ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.foreach ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.foreach'
@@ -1268,7 +1267,7 @@ test('PicoEngine - io.picolabs.foreach ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.event-exp ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.event-exp ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.event-exp'
@@ -1473,7 +1472,7 @@ test('PicoEngine - io.picolabs.event-exp ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.within ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.within ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.within'
@@ -1530,7 +1529,7 @@ test('PicoEngine - io.picolabs.within ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.guard-conditions ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.guard-conditions ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.guard-conditions'
@@ -1596,7 +1595,7 @@ test('PicoEngine - io.picolabs.guard-conditions ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.with ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.with ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.with'
@@ -1614,7 +1613,7 @@ test('PicoEngine - io.picolabs.with ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.defaction ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.defaction ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.defaction'
@@ -1731,7 +1730,7 @@ test('PicoEngine - io.picolabs.defaction ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.log ruleset', function (t) {
+testA.cb('PicoEngine - io.picolabs.log ruleset', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.log'
@@ -1769,7 +1768,7 @@ test('PicoEngine - io.picolabs.log ruleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.key* rulesets', function (t) {
+testA.cb('PicoEngine - io.picolabs.key* rulesets', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.key-defined',
@@ -1840,7 +1839,7 @@ test('PicoEngine - io.picolabs.key* rulesets', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.schedule rulesets', function (t) {
+testA.cb('PicoEngine - io.picolabs.schedule rulesets', function (t) {
   // before starting the engine, write some test data to the db
   var memdb = memdown(cuid())
   var db = DB({
@@ -2027,7 +2026,7 @@ test('PicoEngine - io.picolabs.schedule rulesets', function (t) {
   }
 })
 
-test('PicoEngine - installRuleset', function (t) {
+testA.cb('PicoEngine - installRuleset', function (t) {
   mkTestPicoEngine({}, function (err, pe) {
     if (err) return t.end(err)
 
@@ -2058,7 +2057,7 @@ test('PicoEngine - installRuleset', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.last rulesets', function (t) {
+testA.cb('PicoEngine - io.picolabs.last rulesets', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.last',
@@ -2100,7 +2099,7 @@ test('PicoEngine - io.picolabs.last rulesets', function (t) {
   })
 })
 
-test('PicoEngine - io.picolabs.error rulesets', function (t) {
+testA.cb('PicoEngine - io.picolabs.error rulesets', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.error'
@@ -2157,7 +2156,7 @@ test('PicoEngine - io.picolabs.error rulesets', function (t) {
   })
 })
 
-test("PicoEngine - (re)registering ruleset shouldn't mess up state", function (t) {
+testA.cb("PicoEngine - (re)registering ruleset shouldn't mess up state", function (t) {
   mkTestPicoEngine({
     compileAndLoadRuleset: 'inline'
   }, function (err, pe) {
@@ -2200,7 +2199,7 @@ test("PicoEngine - (re)registering ruleset shouldn't mess up state", function (t
   })
 })
 
-test('PicoEngine - io.picolabs.test-error-messages', function (t) {
+testA.cb('PicoEngine - io.picolabs.test-error-messages', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.test-error-messages'
@@ -2278,7 +2277,7 @@ var mkPicoEngineFactoryWithKRLCompiler = function () {
   }
 }
 
-test('PicoEngine - startup ruleset dependency ordering', function (t) {
+testA.cb('PicoEngine - startup ruleset dependency ordering', function (t) {
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
 
   // create a blank engine
@@ -2308,7 +2307,7 @@ test('PicoEngine - startup ruleset dependency ordering', function (t) {
   })
 })
 
-test('PicoEngine - root pico creation', function (t) {
+testA.cb('PicoEngine - root pico creation', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.hello_world'
@@ -2340,7 +2339,7 @@ test('PicoEngine - root pico creation', function (t) {
   })
 })
 
-test('PicoEngine - js-module', function (t) {
+testA.cb('PicoEngine - js-module', function (t) {
   mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.js-module'
@@ -2410,7 +2409,7 @@ testA('PicoEngine - system ruleset dependency ordering', async function (t) {
   t.deepEquals(rids, ['C'])
 })
 
-test('PicoEngine - io.picolabs.persistent-index', function (t) {
+testA.cb('PicoEngine - io.picolabs.persistent-index', function (t) {
   mkTestPicoEngine({ rootRIDs: [
     'io.picolabs.persistent-index'
   ] }, function (err, pe) {

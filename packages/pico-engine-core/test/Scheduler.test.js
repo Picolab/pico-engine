@@ -1,8 +1,8 @@
 var _ = require('lodash')
-var test = require('tape')
+var testA = require('./helpers/testA')
 var Scheduler = require('../src/Scheduler')
 
-test('Scheduler - at', function (t) {
+testA('Scheduler - at', function (t) {
   var log = []
   var queueNextEventAt = []
   var queueRemoveEventAt = []
@@ -75,8 +75,6 @@ test('Scheduler - at', function (t) {
 
   t.equals(queueNextEventAt.length, 0, 'should be no outstanding nextEventAt callbacks')
   t.equals(queueRemoveEventAt.length, 0, 'should be no outstanding removeEventAt callbacks')
-
-  t.end()
 })
 
 var nTicks = function (n, callback) {
@@ -94,7 +92,7 @@ var randomTick = function (callback) {
   nTicks(_.random(0, 4), callback)
 }
 
-test('Scheduler - at - generative test', function (t) {
+testA.cb('Scheduler - at - generative test', function (t) {
   var nEvents = 50000
 
   if (process.env.SKIP_LONG_TESTS === 'true') {

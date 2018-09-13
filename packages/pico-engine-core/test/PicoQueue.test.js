@@ -1,4 +1,4 @@
-var test = require('tape')
+var testA = require('./helpers/testA')
 var PicoQueue = require('../src/PicoQueue')
 
 function nextTick () {
@@ -7,7 +7,7 @@ function nextTick () {
   })
 }
 
-test('PicoQueue', function (t) {
+testA.cb('PicoQueue', function (t) {
   var log = []
 
   var pq = PicoQueue(async function (picoId, type, data) {
@@ -58,7 +58,7 @@ test('PicoQueue', function (t) {
   })
 })
 
-test('PicoQueue - error', function (t) {
+testA.cb('PicoQueue - error', function (t) {
   var pq = PicoQueue(async function (picoId, type, data) {
     await nextTick()
     if (data === 'foobar') {

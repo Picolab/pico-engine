@@ -1,7 +1,7 @@
-var test = require('tape')
+var testA = require('./helpers/testA')
 var ChannelPolicy = require('../src/ChannelPolicy')
 
-test('policy = ChannelPolicy.clean(policy)', function (t) {
+testA('policy = ChannelPolicy.clean(policy)', function (t) {
   var cleanIt = ChannelPolicy.clean
 
   try {
@@ -185,6 +185,4 @@ test('policy = ChannelPolicy.clean(policy)', function (t) {
       ]
     }
   })
-
-  t.end()
 })
