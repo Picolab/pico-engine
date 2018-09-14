@@ -95,11 +95,6 @@ var randomTick = function (callback) {
 test.cb('Scheduler - at - generative test', function (t) {
   var nEvents = 50000
 
-  if (process.env.SKIP_LONG_TESTS === 'true') {
-    // shorten the generative test when running the tests quick i.e. `npm start`
-    nEvents = 5
-  }
-
   var log = []
   var eventQueue = []
 

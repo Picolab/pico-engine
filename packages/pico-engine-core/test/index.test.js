@@ -2121,61 +2121,67 @@ test("PicoEngine - (re)registering ruleset shouldn't mess up state", async funct
 
 test('PicoEngine - io.picolabs.test-error-messages', async function (t) {
   var pe = await mkTestPicoEngine({
-    rootRIDs: [
-      'io.picolabs.test-error-messages'
-    ]
+    rootRIDs: ['io.picolabs.test-error-messages']
   })
 
-  var qError = function (q, errorMsg, isNotFound) {
-    return new Promise(function (resolve) {
-      pe.emitter.once('error', function (err) {
-        t.is(err + '', errorMsg)
-        t.is(err.notFound || false, isNotFound)
-      })
-      pe.runQuery(q, function (err, resp) {
-        t.is(err + '', errorMsg)
-        t.is(err.notFound || false, isNotFound)
-        t.falsy(resp)
-        resolve()
-      })
-    })
-  }
+  var err
+  pe.emitter.on('error', function (error) {
+    err = error
+  })
 
-  await qError(void 0, 'Error: missing query.eci', false)
+  t.is(await t.throws(pe.runQuery(void 0)), err)
+  t.is(err + '', 'Error: missing query.eci')
+  t.is(err.notFound, void 0)
 
-  await qError({ eci: null }, 'Error: missing query.eci', false)
+  t.is(await t.throws(pe.runQuery({ eci: null })), err)
+  t.is(err + '', 'Error: missing query.eci')
+  t.is(err.notFound, void 0)
 
-  await qError({
+  t.is(await t.throws(pe.runQuery({
     eci: 'foo',
     rid: 'not-an-rid',
     name: 'hello',
     args: {}
-  }, 'NotFoundError: ECI not found: foo', true)
+  })), err)
+  t.is(err + '', 'NotFoundError: ECI not found: foo')
+  t.is(err.notFound, true)
 
-  await qError({
+  t.is(await t.throws(pe.runQuery({
     eci: 'id1',
     rid: 'not-an-rid',
     name: 'hello',
     args: { obj: 'Bob' }
-  }, 'Error: Pico does not have that rid: not-an-rid', false)
-  await qError({
+  })), err)
+  t.is(err + '', 'Error: Pico does not have that rid: not-an-rid')
+  t.is(err.notFound, void 0)
+
+  t.is(await t.throws(pe.runQuery({
     eci: 'id1',
     rid: 'io.picolabs.test-error-messages',
     name: 'zzz',
     args: { obj: 'Bob' }
-  }, 'Error: Not shared: zzz', false)
-  await qError({
+  })), err)
+  t.is(err + '', 'Error: Not shared: zzz')
+  t.is(err.notFound, void 0)
+
+  t.is(await t.throws(pe.runQuery({
     eci: 'id1',
     rid: 'io.picolabs.test-error-messages',
     name: 'somethingNotDefined',
     args: { obj: 'Bob' }
-  }, 'Error: Shared, but not defined: somethingNotDefined', true)
+  })), err)
+  t.is(err + '', 'Error: Shared, but not defined: somethingNotDefined')
+  t.is(err.notFound, true)
 
-  await qError({
+  /*
+  t.is(await t.throws(pe.runQuery({
     eci: 'id1',
     rid: 'io.picolabs.test-error-messages',
     name: 'infiniteRecursion'
-  }, 'RangeError: Maximum call stack size exceeded', false)
+  })), err)
+  t.is(err + '', 'RangeError: Maximum call stack size exceeded')
+  t.is(err.notFound, void 0)
+  */
 })
 
 var mkPicoEngineFactoryWithKRLCompiler = function () {
@@ -2215,9 +2221,7 @@ test('PicoEngine - startup ruleset dependency ordering', async function (t) {
 
 test('PicoEngine - root pico creation', async function (t) {
   var pe = await mkTestPicoEngine({
-    rootRIDs: [
-      'io.picolabs.hello_world'
-    ]
+    rootRIDs: ['io.picolabs.hello_world']
   })
 
   var db = await pe.dbDump()
@@ -2271,19 +2275,20 @@ test('PicoEngine - js-module', async function (t) {
     }
   })
 
-  var query = mkQueryTask(pe, 'id1', 'io.picolabs.js-module')
-  var signal = mkSignalTask(pe, 'id1')
+  t.is(await pe.runQuery({
+    eci: 'id1',
+    rid: 'io.picolabs.js-module',
+    name: 'qFn',
+    args: { a: 3 }
+  }), 6)
 
-  await testOutputs(t, [
-    [
-      query('qFn', { a: 3 }),
-      6
-    ],
-    [
-      signal('js_module', 'action', {}),
-      [{ name: 'resp', options: { val: 0.3 } }]
-    ]
-  ])
+  var resp = await pe.signalEvent({
+    eci: 'id1',
+    domain: 'js_module',
+    type: 'action'
+  })
+  delete resp.directives[0].meta
+  t.deepEqual(resp.directives[0], { name: 'resp', options: { val: 0.3 } })
 })
 
 test('PicoEngine - system ruleset dependency ordering', async function (t) {

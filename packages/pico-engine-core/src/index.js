@@ -325,8 +325,7 @@ module.exports = function (conf) {
     }
   })
 
-  var picoTask = function (type, dataOrig, callbackOrig) {
-    var callback = _.isFunction(callbackOrig) ? callbackOrig : _.noop
+  var picoTask = function (type, dataOrig, callback) {
     var data
     try {
       // validate + normalize event/query, and make sure is not mutated

@@ -28,7 +28,7 @@ var systemRulesets = _.map(_.keys(testRulesets), function (rid) {
 
 function compileAndLoadRulesetTesting (rsInfo, callback) {
   var rid = rsInfo.src.substring(8, rsInfo.src.length - 2)
-  var rs = testRulesets[rid]
+  var rs = _.cloneDeep(testRulesets[rid])
   callback(null, rs)
 }
 
