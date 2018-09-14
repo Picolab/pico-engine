@@ -14,6 +14,7 @@ var ChannelPolicy = require('./ChannelPolicy')
 var safeJsonCodec = require('level-json-coerce-null')
 var extractRulesetID = require('./extractRulesetID')
 var engineCoreVersion = require('../package.json').version
+var promiseCallback = require('./promiseCallback')
 
 // NOTE: for now we are going to default to an allow all policy
 // This makes migrating easier while waiting for krl system rulesets to assume policy usage
@@ -449,6 +450,8 @@ module.exports = function (opts) {
 
   return {
     toObj: function (callback) {
+      callback = promiseCallback(callback)
+
       var dump = {}
       dbRange(ldb, {}, function (data) {
         if (!_.isArray(data.key)) {
@@ -458,6 +461,7 @@ module.exports = function (opts) {
       }, function (err) {
         callback(err, dump)
       })
+      return callback.promise
     },
 
     /// ////////////////////////////////////////////////////////////////////
@@ -618,6 +622,7 @@ module.exports = function (opts) {
     },
 
     newPico: function (opts, callback) {
+      callback = promiseCallback(callback)
       var newPico = {
         id: newID(),
         parent_id: _.isString(opts.parent_id) && opts.parent_id.length > 0
@@ -658,6 +663,7 @@ module.exports = function (opts) {
         if (err) return callback(err)
         callback(null, newPico)
       })
+      return callback.promise
     },
 
     removePico: function (id, callback) {
@@ -766,6 +772,7 @@ module.exports = function (opts) {
       })
     },
     addRulesetToPico: function (picoId, rid, callback) {
+      callback = promiseCallback(callback)
       var val = {
         on: true
       }
@@ -781,6 +788,7 @@ module.exports = function (opts) {
           value: val
         }
       ], callback)
+      return callback.promise
     },
     removeRulesetFromPico: function (picoId, rid, callback) {
       var dbOps = [
@@ -1221,6 +1229,7 @@ module.exports = function (opts) {
       ], callback)
     },
     scheduleEventRepeat: function (timespec, event, callback) {
+      callback = promiseCallback(callback)
       var id = newID()
 
       var val = {
@@ -1236,6 +1245,7 @@ module.exports = function (opts) {
 
         callback(null, val)
       })
+      return callback.promise
     },
     listScheduled: function (callback) {
       var r = []

@@ -4,7 +4,6 @@ var cuid = require('cuid')
 var path = require('path')
 var memdown = require('memdown')
 var PicoEngine = require('../../src')
-var promiseCallback = require('../../src/promiseCallback')
 
 var testRulesets = {}
 var testDir = path.resolve(__dirname, '../../../../test-rulesets')
@@ -33,9 +32,8 @@ function compileAndLoadRulesetTesting (rsInfo, callback) {
   callback(null, rs)
 }
 
-module.exports = function (opts, callback) {
+module.exports = function (opts) {
   opts = opts || {}
-  callback = promiseCallback(callback)
 
   var compileAndLoadRuleset = compileAndLoadRulesetTesting
   if (opts.compileAndLoadRuleset === 'inline') {
@@ -55,8 +53,11 @@ module.exports = function (opts, callback) {
     },
     modules: opts.modules
   })
-  pe.start(opts.systemRulesets || systemRulesets, function (err) {
-    callback(err, pe)
+
+  return new Promise(function (resolve, reject) {
+    pe.start(opts.systemRulesets || systemRulesets, function (err) {
+      if (err) reject(err)
+      else resolve(pe)
+    })
   })
-  return callback.promise
 }

@@ -232,7 +232,8 @@ module.exports = function (conf) {
   }
 
   core.registerRuleset = function (krlSrc, metaData, callback) {
-    (async function () {
+    callback = promiseCallback(callback)
+    ;(async function () {
       var data = await db.storeRulesetYieldable(krlSrc, metaData)
       var rid = data.rid
       var hash = data.hash
@@ -291,6 +292,7 @@ module.exports = function (conf) {
           callback(err)
         })
       })
+    return callback.promise
   }
 
   var picoQ = PicoQueue(async function (picoId, type, data) {
@@ -557,6 +559,7 @@ module.exports = function (conf) {
     })
   }
   core.installRuleset = function (picoId, rid, callback) {
+    callback = promiseCallback(callback)
     db.assertPicoID(picoId, function (err, picoId) {
       if (err) return callback(err)
 
@@ -567,6 +570,7 @@ module.exports = function (conf) {
         db.addRulesetToPico(picoId, rid, callback)
       })
     })
+    return callback.promise
   }
 
   core.uninstallRuleset = function (picoId, rid, callback) {
