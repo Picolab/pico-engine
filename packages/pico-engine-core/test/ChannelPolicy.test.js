@@ -8,19 +8,19 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     cleanIt(null)
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'TypeError: Policy definition should be a Map, but was Null')
+    t.is(e + '', 'TypeError: Policy definition should be a Map, but was Null')
   }
   try {
     cleanIt({})
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing `policy.name`')
+    t.is(e + '', 'Error: missing `policy.name`')
   }
   try {
     cleanIt({ name: '  ' })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing `policy.name`')
+    t.is(e + '', 'Error: missing `policy.name`')
   }
 
   try {
@@ -30,7 +30,7 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: `policy.event.<allow|deny>` must be an Array of rules')
+    t.is(e + '', 'Error: `policy.event.<allow|deny>` must be an Array of rules')
   }
   try {
     cleanIt({
@@ -39,7 +39,7 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: `policy.query.<allow|deny>` must be an Array of rules')
+    t.is(e + '', 'Error: `policy.query.<allow|deny>` must be an Array of rules')
   }
 
   try {
@@ -49,7 +49,7 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     })
     t.fail('should throw..')
   } catch (e) {
-    t.equals(e + '', 'Error: Policy rules must be Maps, not String')
+    t.is(e + '', 'Error: Policy rules must be Maps, not String')
   }
   try {
     cleanIt({
@@ -58,7 +58,7 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     })
     t.fail('should throw..')
   } catch (e) {
-    t.equals(e + '', 'Error: Policy rules must be Maps, not String')
+    t.is(e + '', 'Error: Policy rules must be Maps, not String')
   }
   try {
     cleanIt({
@@ -68,7 +68,7 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     })
     t.fail('should throw..')
   } catch (e) {
-    t.equals(e + '', 'Error: Policy does not support properties: bar, baz')
+    t.is(e + '', 'Error: Policy does not support properties: bar, baz')
   }
   try {
     cleanIt({
@@ -77,7 +77,7 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     })
     t.fail('should throw..')
   } catch (e) {
-    t.equals(e + '', 'Error: Policy.event does not support properties: wat')
+    t.is(e + '', 'Error: Policy.event does not support properties: wat')
   }
   try {
     cleanIt({
@@ -86,7 +86,7 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     })
     t.fail('should throw..')
   } catch (e) {
-    t.equals(e + '', 'Error: Policy.query does not support properties: wat')
+    t.is(e + '', 'Error: Policy.query does not support properties: wat')
   }
   try {
     cleanIt({
@@ -95,7 +95,7 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     })
     t.fail('should throw..')
   } catch (e) {
-    t.equals(e + '', 'Error: Policy.event rule does not support properties: wat')
+    t.is(e + '', 'Error: Policy.event rule does not support properties: wat')
   }
   try {
     cleanIt({
@@ -104,10 +104,10 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     })
     t.fail('should throw..')
   } catch (e) {
-    t.equals(e + '', 'Error: Policy.query rule does not support properties: wat')
+    t.is(e + '', 'Error: Policy.query rule does not support properties: wat')
   }
 
-  t.deepEquals(cleanIt({
+  t.deepEqual(cleanIt({
     name: 'foo'
   }), {
     name: 'foo',
@@ -121,7 +121,7 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     }
   })
 
-  t.deepEquals(cleanIt({
+  t.deepEqual(cleanIt({
     name: 'foo',
     event: { allow: [{}] }
   }), {
@@ -136,7 +136,7 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     }
   })
 
-  t.deepEquals(cleanIt({
+  t.deepEqual(cleanIt({
     name: ' foo   ',
     event: {
       allow: [
@@ -161,7 +161,7 @@ testA('policy = ChannelPolicy.clean(policy)', function (t) {
     }
   })
 
-  t.deepEquals(cleanIt({
+  t.deepEqual(cleanIt({
     name: ' foo   ',
     query: {
       allow: [

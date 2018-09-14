@@ -78,7 +78,7 @@ var testOutputs = function (t, pairs) {
         var actual = results[i]
         var expected = pair[1]
 
-        t.deepEquals(omitMeta(actual), expected)
+        t.deepEqual(omitMeta(actual), expected)
       })
       resolve()
     })
@@ -100,9 +100,9 @@ testA('PicoEngine - hello_world ruleset', async function (t) {
     attrs: {}
   })
   var txnPath = ['directives', 0, 'meta', 'txn_id']
-  t.ok(/^c[^\s]+$/.test(_.get(helloEvent, txnPath)))
+  t.truthy(/^c[^\s]+$/.test(_.get(helloEvent, txnPath)))
   _.set(helloEvent, txnPath, 'TXN_ID')
-  t.deepEquals(helloEvent, {
+  t.deepEqual(helloEvent, {
     directives: [
       {
         name: 'say',
@@ -127,15 +127,15 @@ testA('PicoEngine - hello_world ruleset', async function (t) {
 
   await new Promise(function (resolve) {
     pe.emitter.once('error', function (err) {
-      t.equals(err + '', 'Error: missing event.eci')
+      t.is(err + '', 'Error: missing event.eci')
     })
     pe.signalEvent({}, function (err) {
-      t.equals(err + '', 'Error: missing event.eci')
+      t.is(err + '', 'Error: missing event.eci')
       resolve()
     })
   })
 
-  t.deepEquals(helloQuery, 'Hello Bob')
+  t.deepEqual(helloQuery, 'Hello Bob')
 })
 
 testA('PicoEngine - io.picolabs.persistent', async function (t) {
@@ -204,8 +204,8 @@ testA('PicoEngine - io.picolabs.persistent', async function (t) {
     function (done) {
       pe.dbDump(function (err, data) {
         if (err) return done(err)
-        t.ok(_.has(data, entvarPath))
-        t.ok(_.has(data, appvarPath))
+        t.truthy(_.has(data, entvarPath))
+        t.truthy(_.has(data, appvarPath))
         done()
       })
     },
@@ -213,8 +213,8 @@ testA('PicoEngine - io.picolabs.persistent', async function (t) {
     function (done) {
       pe.dbDump(function (err, data) {
         if (err) return done(err)
-        t.notOk(_.has(data, entvarPath))
-        t.ok(_.has(data, appvarPath))
+        t.falsy(_.has(data, entvarPath))
+        t.truthy(_.has(data, appvarPath))
         done()
       })
     },
@@ -222,8 +222,8 @@ testA('PicoEngine - io.picolabs.persistent', async function (t) {
     function (done) {
       pe.dbDump(function (err, data) {
         if (err) return done(err)
-        t.notOk(_.has(data, entvarPath))
-        t.notOk(_.has(data, appvarPath))
+        t.falsy(_.has(data, entvarPath))
+        t.falsy(_.has(data, appvarPath))
         done()
       })
     }
@@ -309,8 +309,8 @@ testA('PicoEngine - io.picolabs.events ruleset', async function (t) {
     function (next) {
       signal('events', 'on_sample')(function (err, resp) {
         if (err) return next(err)
-        t.equals(_.size(resp.directives), 1, 'only one action should be sampled')
-        t.ok(/^on_sample - (one|two|three)$/.test(_.head(resp.directives).name))
+        t.is(_.size(resp.directives), 1, 'only one action should be sampled')
+        t.truthy(/^on_sample - (one|two|three)$/.test(_.head(resp.directives).name))
         next()
       })
     },
@@ -321,8 +321,8 @@ testA('PicoEngine - io.picolabs.events ruleset', async function (t) {
     function (next) {
       signal('events', 'on_sample_if', { fire: 'yes' })(function (err, resp) {
         if (err) return next(err)
-        t.equals(_.size(resp.directives), 1, 'only one action should be sampled')
-        t.ok(/^on_sample - (one|two|three)$/.test(_.head(resp.directives).name))
+        t.is(_.size(resp.directives), 1, 'only one action should be sampled')
+        t.truthy(/^on_sample - (one|two|three)$/.test(_.head(resp.directives).name))
         next()
       })
     },
@@ -701,7 +701,7 @@ testA('PicoEngine - io.picolabs.engine ruleset', async function (t) {
     function (done) {
       pe.dbDump(function (err, data) {
         if (err) return done(err)
-        t.deepEquals(data['pico-ruleset'], {
+        t.deepEqual(data['pico-ruleset'], {
           'id0': {
             'io.picolabs.engine': { on: true }
           },
@@ -716,7 +716,7 @@ testA('PicoEngine - io.picolabs.engine ruleset', async function (t) {
     function (done) {
       pe.dbDump(function (err, data) {
         if (err) return done(err)
-        t.deepEquals(data.channel.id4, {
+        t.deepEqual(data.channel.id4, {
           id: 'id4',
           name: 'krl created chan',
           pico_id: 'id2',
@@ -743,7 +743,7 @@ testA('PicoEngine - io.picolabs.engine ruleset', async function (t) {
     function (done) {
       pe.dbDump(function (err, data) {
         if (err) return done(err)
-        t.deepEquals(data.channel.id4, void 0, 'channel has been removed')
+        t.deepEqual(data.channel.id4, void 0, 'channel has been removed')
         done()
       })
     }
@@ -845,7 +845,7 @@ testA('PicoEngine - io.picolabs.module-used ruleset', async function (t) {
         args: {}
       }, function (err, ts) {
         if (err) return next(err)
-        t.ok(/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T/.test(ts))
+        t.truthy(/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T/.test(ts))
         next()
       })
     },
@@ -876,13 +876,13 @@ testA('PicoEngine - io.picolabs.module-used ruleset', async function (t) {
     // Test unregisterRuleset checks
     function (next) {
       pe.unregisterRuleset('io.picolabs.module-defined', function (err) {
-        t.equals(err + '', 'Error: "io.picolabs.module-defined" is depended on by "io.picolabs.module-used"')
+        t.is(err + '', 'Error: "io.picolabs.module-defined" is depended on by "io.picolabs.module-used"')
         next()
       })
     },
     function (next) {
       pe.unregisterRuleset('io.picolabs.module-used', function (err) {
-        t.equals(err + '', 'Error: Unable to unregister "io.picolabs.module-used": it is installed on at least one pico')
+        t.is(err + '', 'Error: Unable to unregister "io.picolabs.module-used": it is installed on at least one pico')
         next()
       })
     }
@@ -1602,7 +1602,7 @@ testA('PicoEngine - io.picolabs.defaction ruleset', async function (t) {
         if (err) return next(err)
 
         data.meta.txn_id = 'TXN_ID'
-        t.deepEquals(data, {
+        t.deepEqual(data, {
           name: 'bar',
           type: 'directive',
           options: { a: 'baz', b: 'qux', c: 'quux' },
@@ -1637,12 +1637,12 @@ testA('PicoEngine - io.picolabs.defaction ruleset', async function (t) {
     ],
     function (next) {
       pe.emitter.once('error', function (err, info) {
-        t.equals(err + '', 'Error: `add` is not defined as an action')
-        t.equals(info.eci, 'id1')
+        t.is(err + '', 'Error: `add` is not defined as an action')
+        t.is(info.eci, 'id1')
       })
       signal('defa', 'add')(function (err, resp) {
-        t.equals(err + '', 'Error: `add` is not defined as an action')
-        t.notOk(resp)
+        t.is(err + '', 'Error: `add` is not defined as an action')
+        t.falsy(resp)
         next()
       })
     },
@@ -1664,21 +1664,21 @@ testA('PicoEngine - io.picolabs.defaction ruleset', async function (t) {
     ],
     function (next) {
       pe.emitter.once('error', function (err, info) {
-        t.equals(err + '', 'Error: actions can only be called in the rule action block')
-        t.equals(info.eci, 'id1')
+        t.is(err + '', 'Error: actions can only be called in the rule action block')
+        t.is(info.eci, 'id1')
       })
       signal('defa', 'trying_to_use_action_as_fn')(function (err) {
-        t.equals(err + '', 'Error: actions can only be called in the rule action block')
+        t.is(err + '', 'Error: actions can only be called in the rule action block')
         next()
       })
     },
     function (next) {
       pe.emitter.once('error', function (err, info) {
-        t.equals(err + '', 'Error: actions can only be called in the rule action block')
-        t.equals(info.eci, 'id1')
+        t.is(err + '', 'Error: actions can only be called in the rule action block')
+        t.is(info.eci, 'id1')
       })
       query('echoAction')(function (err) {
-        t.equals(err + '', 'Error: actions can only be called in the rule action block')
+        t.is(err + '', 'Error: actions can only be called in the rule action block')
         next()
       })
     }
@@ -1709,7 +1709,7 @@ testA('PicoEngine - io.picolabs.log ruleset', async function (t) {
   await testOutputs(t, [
     [signal('log', 'levels'), []],
     function (done) {
-      t.deepEquals(eventLog, [
+      t.deepEqual(eventLog, [
         ['log-info', 'hello default'],
         ['log-error', 'hello error'],
         ['log-warn', 'hello warn'],
@@ -1739,10 +1739,10 @@ testA('PicoEngine - io.picolabs.key* rulesets', async function (t) {
   var qError = function (q, errorMsg) {
     return function (next) {
       pe.emitter.once('error', function (err) {
-        t.equals(err + '', errorMsg)
+        t.is(err + '', errorMsg)
       })
       q(function (err, resp) {
-        t.equals(err + '', errorMsg)
+        t.is(err + '', errorMsg)
         next()
       })
     }
@@ -1916,7 +1916,7 @@ testA('PicoEngine - io.picolabs.schedule rulesets', async function (t) {
         // so we can test dates
         next(null, _.map(list, function (e) {
           if (_.has(e, 'at')) {
-            t.ok(/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\dZ$/.test(e.at))
+            t.truthy(/^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\dZ$/.test(e.at))
             e.at = 'some-fake-date'
           }
           return e
@@ -1978,17 +1978,17 @@ testA('PicoEngine - installRuleset', async function (t) {
     await pe.installRuleset('id404', ridToUse)
     t.fail('should throw')
   } catch (err) {
-    t.equals(err + '', 'NotFoundError: Pico not found: id404')
-    t.ok(err.notFound)
+    t.is(err + '', 'NotFoundError: Pico not found: id404')
+    t.truthy(err.notFound)
   }
   try {
     await pe.installRuleset('id0', 'foo.not.an.rid')
     t.fail('should throw')
   } catch (err) {
-    t.equals(err + '', 'Error: This rid is not found and/or enabled: foo.not.an.rid')
+    t.is(err + '', 'Error: This rid is not found and/or enabled: foo.not.an.rid')
   }
   await pe.installRuleset('id0', ridToUse)
-  t.ok(true, 'did not throwup')
+  t.truthy(true, 'did not throwup')
 })
 
 testA('PicoEngine - io.picolabs.last rulesets', async function (t) {
@@ -2109,7 +2109,7 @@ testA("PicoEngine - (re)registering ruleset shouldn't mess up state", async func
   await pe.registerRuleset(krl1, {})
   await pe.signalEvent({ eci: 'id1', domain: 'foo', type: 'all' })
 
-  t.deepEquals(order, [
+  t.deepEqual(order, [
     'EVENT: foo/all',
     'rule selected: foo.rid -> aa',
     'rule selected: foo.rid -> bb',
@@ -2129,13 +2129,13 @@ testA('PicoEngine - io.picolabs.test-error-messages', async function (t) {
   var qError = function (q, errorMsg, isNotFound) {
     return new Promise(function (resolve) {
       pe.emitter.once('error', function (err) {
-        t.equals(err + '', errorMsg)
-        t.equals(err.notFound || false, isNotFound)
+        t.is(err + '', errorMsg)
+        t.is(err.notFound || false, isNotFound)
       })
       pe.runQuery(q, function (err, resp) {
-        t.equals(err + '', errorMsg)
-        t.equals(err.notFound || false, isNotFound)
-        t.notOk(resp)
+        t.is(err + '', errorMsg)
+        t.is(err.notFound || false, isNotFound)
+        t.falsy(resp)
         resolve()
       })
     })
@@ -2204,13 +2204,13 @@ testA('PicoEngine - startup ruleset dependency ordering', async function (t) {
   await pe.registerRuleset('ruleset B {meta{use module C use module E}}', {})
   await pe.registerRuleset('ruleset A {meta{use module B use module D}}', {})
 
-  t.ok(true, 'registered the ruleset successfully')
+  t.truthy(true, 'registered the ruleset successfully')
 
   // now the engine shuts down, and starts up again
   pe = mkPE()
   await pe.start([])
   // if the dependencies aren't loaded in the correct order it will blow up
-  t.ok(true, 'restarted successfully')
+  t.truthy(true, 'restarted successfully')
 })
 
 testA('PicoEngine - root pico creation', async function (t) {
@@ -2222,19 +2222,19 @@ testA('PicoEngine - root pico creation', async function (t) {
 
   var db = await pe.dbDump()
 
-  t.deepEquals(db.root_pico, {
+  t.deepEqual(db.root_pico, {
     id: 'id0',
     parent_id: null,
     admin_eci: 'id1'
   })
-  t.deepEquals(db.pico, { 'id0': {
+  t.deepEqual(db.pico, { 'id0': {
     id: 'id0',
     parent_id: null,
     admin_eci: 'id1'
   } })
-  t.deepEquals(_.keys(db.channel), ['id1'])
+  t.deepEqual(_.keys(db.channel), ['id1'])
 
-  t.deepEquals(_.keys(db['pico-ruleset']['id0']), [
+  t.deepEqual(_.keys(db['pico-ruleset']['id0']), [
     'io.picolabs.hello_world'
   ])
 })
@@ -2299,12 +2299,12 @@ testA('PicoEngine - system ruleset dependency ordering', async function (t) {
     { src: 'ruleset D {}', meta: { url: 'http://foo/D.krl' } }
   ])
   // if the dependencies aren't loaded in the correct order pe.start() will blow up
-  t.ok(true, 'started successfully')
+  t.truthy(true, 'started successfully')
 
   var listIns = await pe.modules.get({}, 'engine', 'listInstalledRIDs')
   var rids = await listIns({ pico_id: 'id0' }, [])
 
-  t.deepEquals(rids, ['C'])
+  t.deepEqual(rids, ['C'])
 })
 
 testA('PicoEngine - io.picolabs.persistent-index', async function (t) {
@@ -2403,7 +2403,7 @@ testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
           return callback(err)
         }
       }
-      t.equals(actual, expected, 'tstEventPolicy ' + eci + '|' + domainType)
+      t.is(actual, expected, 'tstEventPolicy ' + eci + '|' + domainType)
       callback()
     })
   })
@@ -2423,7 +2423,7 @@ testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
           return callback(err)
         }
       }
-      t.equals(actual, expected, 'tstQueryPolicy ' + eci + '|' + name)
+      t.is(actual, expected, 'tstQueryPolicy ' + eci + '|' + name)
       callback()
     })
   })
@@ -2577,25 +2577,25 @@ testA('PicoEngine - handle ruleset startup errors after compiler update made bre
   var regRS = util.promisify(pe.registerRuleset)
   var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
-  t.deepEquals(await listRIDs(), [], 'no rulesets yet')
+  t.deepEqual(await listRIDs(), [], 'no rulesets yet')
   await regRS('ruleset my-rid{}', {})
-  t.deepEquals(await listRIDs(), ['my-rid'], 'registered!')
+  t.deepEqual(await listRIDs(), ['my-rid'], 'registered!')
   // so the old compiler version allowed it, now it's in the DB
 
   // Start the new engine
   pe = mkPE({ compileAndLoadRuleset: newCompiler })
   listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
-  t.deepEquals(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')
+  t.deepEqual(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')
 
   pe.emitter.on('error', function (err) {
-    t.equals(err + '', "Error: Failed to compile my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: That won't compile anymore!")
+    t.is(err + '', "Error: Failed to compile my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: That won't compile anymore!")
   })
 
   // the new compiler should blow up when it tries to initialize the rulest
   await pe.start([])
   // but shouldn't crash, just emit the error and continue starting
 
-  t.deepEquals(await listRIDs(), [], 'the ruleset should be disabled now')
+  t.deepEqual(await listRIDs(), [], 'the ruleset should be disabled now')
 })
 
 testA('PicoEngine - handle ruleset initialization errors', async function (t) {
@@ -2615,9 +2615,9 @@ testA('PicoEngine - handle ruleset initialization errors', async function (t) {
   var regRS = util.promisify(pe.registerRuleset)
   var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
-  t.deepEquals(await listRIDs(), [], 'no rulesets yet')
+  t.deepEqual(await listRIDs(), [], 'no rulesets yet')
   await regRS('ruleset my-rid{}', {})
-  t.deepEquals(await listRIDs(), ['my-rid'], 'registered!')
+  t.deepEqual(await listRIDs(), ['my-rid'], 'registered!')
   // so the old runtime version allowed it, now it's in the DB
 
   // Now in this time the ruleset won't initialize
@@ -2630,17 +2630,17 @@ testA('PicoEngine - handle ruleset initialization errors', async function (t) {
     })
   } })
   listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
-  t.deepEquals(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')
+  t.deepEqual(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')
 
   pe.emitter.on('error', function (err) {
-    t.equals(err + '', "Error: Failed to initialize my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: something broke")
+    t.is(err + '', "Error: Failed to initialize my-rid! It is now disabled. You'll need to edit and re-register it.\nCause: Error: something broke")
   })
 
   // it will compile but fail to initialize
   await pe.start([])
   // but shouldn't crash, just emit the error and continue starting
 
-  t.deepEquals(await listRIDs(), [], 'the ruleset should be disabled now')
+  t.deepEqual(await listRIDs(), [], 'the ruleset should be disabled now')
 })
 
 testA('PicoEngine - handle dependency cycles at startup', async function (t) {
@@ -2652,8 +2652,8 @@ testA('PicoEngine - handle dependency cycles at startup', async function (t) {
 
   pe.emitter.on('error', function (err, context) {
     var m = /Failed to initialize (B|C), it's in a dependency cycle./.exec(err.message)
-    t.ok(!!m)
-    t.equals(context.rid, m[1])
+    t.truthy(!!m)
+    t.is(context.rid, m[1])
   })
 
   await pe.start([
@@ -2662,11 +2662,11 @@ testA('PicoEngine - handle dependency cycles at startup', async function (t) {
     { src: 'ruleset C {meta{use module B}}', meta: { url: 'http://foo/C.krl' } },
     { src: 'ruleset D {meta{}}', meta: { url: 'http://foo/D.krl' } }
   ])
-  t.ok(true, 'should start successfully')
+  t.truthy(true, 'should start successfully')
 
   var listRids = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
-  t.deepEquals(await listRids({}, []), ['A', 'D'])
+  t.deepEqual(await listRids({}, []), ['A', 'D'])
 })
 
 testA("PicoEngine - don't register rulesets that create dependency cycles", async function (t) {
@@ -2679,14 +2679,14 @@ testA("PicoEngine - don't register rulesets that create dependency cycles", asyn
   var registerRuleset = util.promisify(pe.registerRuleset)
 
   var tReg = async function (src) {
-    t.ok(await registerRuleset(src, null))
+    t.truthy(await registerRuleset(src, null))
   }
   var tRegErr = async function (src, error) {
     try {
       await registerRuleset(src, null)
       t.fail('expected: ' + error)
     } catch (err) {
-      t.equals(err + '', error)
+      t.is(err + '', error)
     }
   }
 

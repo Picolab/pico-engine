@@ -37,9 +37,9 @@ testA.cb('DB - write and read', function (t) {
   }, function (err, data) {
     if (err) return t.end(err)
 
-    t.deepEquals(data.start_db, {})
+    t.deepEqual(data.start_db, {})
 
-    t.deepEquals(data.end_db, {
+    t.deepEqual(data.end_db, {
       channel: {
         id1: {
           pico_id: 'id0',
@@ -118,7 +118,7 @@ testA.cb('DB - write and read', function (t) {
       }
     })
 
-    t.deepEquals(data.post_del_db, {})
+    t.deepEqual(data.post_del_db, {})
 
     t.end()
   })
@@ -154,13 +154,13 @@ testA.cb('DB - storeRuleset', function (t) {
     end_db: async.apply(db.toObj)
   }, function (err, data) {
     if (err) return t.end(err)
-    t.deepEquals(data.start_db, {})
-    t.deepEquals(data.store, { rid: rid, hash: hash })
-    t.deepEquals(data.findRulesetsByURL, [{
+    t.deepEqual(data.start_db, {})
+    t.deepEqual(data.store, { rid: rid, hash: hash })
+    t.deepEqual(data.findRulesetsByURL, [{
       rid: rid,
       hash: hash
     }])
-    t.deepEquals(data.end_db, expected)
+    t.deepEqual(data.end_db, expected)
     t.end()
   })
 })
@@ -175,7 +175,7 @@ testA.cb('DB - enableRuleset', function (t) {
       db.toObj(callback)
     },
     function (dbJson, callback) {
-      t.deepEquals(_.omit(dbJson, 'rulesets'), {})
+      t.deepEqual(_.omit(dbJson, 'rulesets'), {})
       db.storeRuleset(krlSrc, {}, callback)
     },
     function (data, callback) {
@@ -189,7 +189,7 @@ testA.cb('DB - enableRuleset', function (t) {
       })
     },
     function (dbJson, hash, callback) {
-      t.deepEquals(_.get(dbJson, [
+      t.deepEqual(_.get(dbJson, [
         'rulesets',
         'enabled',
         'io.picolabs.cool',
@@ -197,10 +197,10 @@ testA.cb('DB - enableRuleset', function (t) {
       ]), hash)
       db.getEnabledRuleset('io.picolabs.cool', function (err, data) {
         if (err) return callback(err)
-        t.equals(data.src, krlSrc)
-        t.equals(data.hash, hash)
-        t.equals(data.rid, 'io.picolabs.cool')
-        t.equals(data.timestamp_enable, _.get(dbJson, [
+        t.is(data.src, krlSrc)
+        t.is(data.hash, hash)
+        t.is(data.rid, 'io.picolabs.cool')
+        t.is(data.timestamp_enable, _.get(dbJson, [
           'rulesets',
           'enabled',
           'io.picolabs.cool',
@@ -236,25 +236,25 @@ testA.cb('DB - getRootPico', function (t) {
 
   async.series([
     tstRoot(function (err, rPico) {
-      t.ok(err)
-      t.ok(err.notFound)
-      t.deepEquals(rPico, void 0)
+      t.truthy(err)
+      t.truthy(err.notFound)
+      t.deepEqual(rPico, void 0)
     }),
     async.apply(db.newChannel, { pico_id: 'foo', name: 'bar', type: 'baz' }),
     async.apply(db.newPico, {}),
     tstRoot(function (err, rPico) {
-      t.notOk(err)
-      t.deepEquals(rPico, { id: 'id1', parent_id: null, admin_eci: 'id2' })
+      t.falsy(err)
+      t.deepEqual(rPico, { id: 'id1', parent_id: null, admin_eci: 'id2' })
     }),
     async.apply(db.newPico, { parent_id: 'id1' }),
     tstRoot(function (err, rPico) {
-      t.notOk(err)
-      t.deepEquals(rPico, { id: 'id1', parent_id: null, admin_eci: 'id2' })
+      t.falsy(err)
+      t.deepEqual(rPico, { id: 'id1', parent_id: null, admin_eci: 'id2' })
     }),
     async.apply(db.newPico, { parent_id: null }),
     tstRoot(function (err, rPico) {
-      t.notOk(err)
-      t.deepEquals(rPico, { id: 'id5', parent_id: null, admin_eci: 'id6' })
+      t.falsy(err)
+      t.deepEqual(rPico, { id: 'id5', parent_id: null, admin_eci: 'id6' })
     })
   ], t.end)
 })
@@ -276,10 +276,10 @@ testA.cb('DB - isRulesetUsed', function (t) {
     is_qux: async.apply(db.isRulesetUsed, 'rs-qux')
   }, function (err, data) {
     if (err) return t.end(err)
-    t.equals(data.is_foo, true)
-    t.equals(data.is_bar, true)
-    t.equals(data.is_baz, false)
-    t.equals(data.is_qux, false)
+    t.is(data.is_foo, true)
+    t.is(data.is_bar, true)
+    t.is(data.is_baz, false)
+    t.is(data.is_qux, false)
     t.end()
   })
 })
@@ -317,12 +317,12 @@ testA.cb('DB - deleteRuleset', function (t) {
   }, function (err, data) {
     if (err) return t.end(err)
 
-    t.deepEquals(_.keys(data.init_db.rulesets.versions), [
+    t.deepEqual(_.keys(data.init_db.rulesets.versions), [
       'io.picolabs.bar',
       'io.picolabs.foo'
     ], 'ensure all were actually stored in the db')
 
-    t.deepEquals(_.keys(data.end_db.rulesets.versions), [
+    t.deepEqual(_.keys(data.end_db.rulesets.versions), [
       'io.picolabs.bar'
     ], 'ensure io.picolabs.foo was removed')
 
@@ -337,7 +337,7 @@ testA.cb('DB - deleteRuleset', function (t) {
     delete expectedDb.appvars['io.picolabs.foo']
 
     t.notDeepEqual(expectedDb, data.init_db, 'sanity check')
-    t.deepEquals(data.end_db, expectedDb)
+    t.deepEqual(data.end_db, expectedDb)
 
     t.end()
   })
@@ -386,25 +386,25 @@ testA.cb('DB - scheduleEventAt', function (t) {
   }, function (err, data) {
     if (err) return t.end(err)
 
-    t.deepEquals(data.init_db, {})
+    t.deepEqual(data.init_db, {})
 
-    t.deepEquals(data.at0, {
+    t.deepEqual(data.at0, {
       id: 'id0',
       at: new Date('Feb 22, 2222'),
       event: { domain: 'foobar', type: 'foo', attributes: { some: 'attr' } }
     })
-    t.deepEquals(data.at1, {
+    t.deepEqual(data.at1, {
       id: 'id1',
       at: new Date('Feb 23, 2222'),
       event: { domain: 'foobar', type: 'bar', attributes: { some: 'attr' } }
     })
-    t.deepEquals(data.at2, {
+    t.deepEqual(data.at2, {
       id: 'id2',
       at: new Date('Feb  2, 2222'),
       event: { domain: 'foobar', type: 'baz', attributes: { some: 'attr' } }
     })
 
-    t.deepEquals(data.list, [
+    t.deepEqual(data.list, [
       data.at2,
       data.at0,
       data.at1
@@ -414,17 +414,17 @@ testA.cb('DB - scheduleEventAt', function (t) {
       })
     }))
 
-    t.deepEquals(data.next0, void 0, 'nothing scheduled')
-    t.ok(_.has(data, 'next0'), 'ensure next0 was actually tested')
-    t.deepEquals(data.next1, data.at0, 'only one scheduled')
-    t.deepEquals(data.next2, data.at0, 'at0 is still sooner than at1')
-    t.deepEquals(data.next3, data.at2, 'at2 is sooner than at0')
-    t.deepEquals(data.next4, data.at2)
-    t.deepEquals(data.next5, data.at1, 'at1 is soonest now that at0 and at2 were removed')
-    t.deepEquals(data.next6, void 0, 'nothing scheduled')
-    t.ok(_.has(data, 'next6'), 'ensure next6 was actually tested')
+    t.deepEqual(data.next0, void 0, 'nothing scheduled')
+    t.truthy(_.has(data, 'next0'), 'ensure next0 was actually tested')
+    t.deepEqual(data.next1, data.at0, 'only one scheduled')
+    t.deepEqual(data.next2, data.at0, 'at0 is still sooner than at1')
+    t.deepEqual(data.next3, data.at2, 'at2 is sooner than at0')
+    t.deepEqual(data.next4, data.at2)
+    t.deepEqual(data.next5, data.at1, 'at1 is soonest now that at0 and at2 were removed')
+    t.deepEqual(data.next6, void 0, 'nothing scheduled')
+    t.truthy(_.has(data, 'next6'), 'ensure next6 was actually tested')
 
-    t.deepEquals(data.end_db, {}, 'should be nothing left in the db')
+    t.deepEqual(data.end_db, {}, 'should be nothing left in the db')
 
     t.end()
   })
@@ -459,30 +459,30 @@ testA.cb('DB - scheduleEventRepeat', function (t) {
   }, function (err, data) {
     if (err) return t.end(err)
 
-    t.deepEquals(data.init_db, {})
+    t.deepEqual(data.init_db, {})
 
-    t.deepEquals(data.rep0, {
+    t.deepEqual(data.rep0, {
       id: 'id0',
       timespec: '*/5 * * * * *',
       event: { domain: 'foobar', type: 'foo', attributes: { some: 'attr' } }
     })
-    t.deepEquals(data.rep1, {
+    t.deepEqual(data.rep1, {
       id: 'id1',
       timespec: '* */5 * * * *',
       event: { domain: 'foobar', type: 'bar', attributes: { some: 'attr' } }
     })
 
-    t.deepEquals(data.mid_db, { scheduled: {
+    t.deepEqual(data.mid_db, { scheduled: {
       id0: data.rep0,
       id1: data.rep1
     } })
 
-    t.deepEquals(data.list, [
+    t.deepEqual(data.list, [
       data.rep0,
       data.rep1
     ])
 
-    t.deepEquals(data.end_db, {}, 'should be nothing left in the db')
+    t.deepEqual(data.end_db, {}, 'should be nothing left in the db')
 
     t.end()
   })
@@ -503,7 +503,7 @@ testA.cb('DB - removeRulesetFromPico', function (t) {
   }, function (err, data) {
     if (err) return t.end(err)
 
-    t.deepEquals(data.db_before, {
+    t.deepEqual(data.db_before, {
       entvars: { pico0: { rid0: {
         foo: { type: 'String', value: 'val0' },
         bar: { type: 'String', value: 'val1' }
@@ -512,7 +512,7 @@ testA.cb('DB - removeRulesetFromPico', function (t) {
       'ruleset-pico': { 'rid0': { 'pico0': { on: true } } }
     })
 
-    t.deepEquals(data.db_after, {}, 'should all be gone')
+    t.deepEqual(data.db_after, {}, 'should all be gone')
 
     t.end()
   })
@@ -535,15 +535,15 @@ testA.cb('DB - getPicoIDByECI', function (t) {
   }, function (err, data) {
     if (err) return t.end(err)
 
-    t.deepEquals(data.get_c2, 'id0')
-    t.deepEquals(data.get_c3, 'id2')
-    t.deepEquals(data.get_c4, 'id0')
-    t.deepEquals(data.get_c5, 'id2')
+    t.deepEqual(data.get_c2, 'id0')
+    t.deepEqual(data.get_c3, 'id2')
+    t.deepEqual(data.get_c4, 'id0')
+    t.deepEqual(data.get_c5, 'id2')
 
     db.getPicoIDByECI('bad-id', function (err, id) {
-      t.ok(err)
-      t.ok((err && err.notFound) === true)
-      t.notOk(id)
+      t.truthy(err)
+      t.truthy((err && err.notFound) === true)
+      t.falsy(id)
       t.end()
     })
   })
@@ -584,12 +584,12 @@ testA.cb('DB - listChannels', function (t) {
     var c4 = mkChan('id0', 'id4', 'four', 't4')
     var c5 = mkChan('id2', 'id5', 'five', 't5')
 
-    t.deepEquals(data.c4_p0, c4)
-    t.deepEquals(data.c5_p1, c5)
+    t.deepEqual(data.c4_p0, c4)
+    t.deepEqual(data.c5_p1, c5)
 
-    t.deepEquals(data.list0, [c1, c4])
-    t.deepEquals(data.list2, [c3, c5])
-    t.deepEquals(data.list404, [])
+    t.deepEqual(data.list0, [c1, c4])
+    t.deepEqual(data.list2, [c3, c5])
+    t.deepEqual(data.list404, [])
 
     t.end()
   })
@@ -635,11 +635,11 @@ testA.cb('DB - listAllEnabledRIDs', function (t) {
   }, function (err, data) {
     if (err) return t.end(err)
 
-    t.deepEquals(data.list0, [])
-    t.deepEquals(data.list1, [])
-    t.deepEquals(data.list2, ['foo'])
-    t.deepEquals(data.list3, ['bar', 'baz', 'foo'])
-    t.deepEquals(data.list4, ['bar', 'baz'])
+    t.deepEqual(data.list0, [])
+    t.deepEqual(data.list1, [])
+    t.deepEqual(data.list2, ['foo'])
+    t.deepEqual(data.list3, ['bar', 'baz', 'foo'])
+    t.deepEqual(data.list4, ['bar', 'baz'])
 
     t.end()
   })
@@ -651,7 +651,7 @@ testA.cb('DB - migrations', function (t) {
     function (next) {
       db.getMigrationLog(function (err, log) {
         if (err) return next(err)
-        t.deepEquals(log, {})
+        t.deepEqual(log, {})
         next()
       })
     },
@@ -660,9 +660,9 @@ testA.cb('DB - migrations', function (t) {
       db.getMigrationLog(function (err, log) {
         if (err) return next(err)
 
-        t.deepEquals(_.keys(log), ['v1'])
-        t.deepEquals(_.keys(log['v1']), ['timestamp'])
-        t.equals(log['v1'].timestamp, (new Date(log['v1'].timestamp)).toISOString())
+        t.deepEqual(_.keys(log), ['v1'])
+        t.deepEqual(_.keys(log['v1']), ['timestamp'])
+        t.is(log['v1'].timestamp, (new Date(log['v1'].timestamp)).toISOString())
 
         next()
       })
@@ -671,7 +671,7 @@ testA.cb('DB - migrations', function (t) {
     function (next) {
       db.getMigrationLog(function (err, log) {
         if (err) return next(err)
-        t.deepEquals(_.keys(log), ['v1', 'v200'])
+        t.deepEqual(_.keys(log), ['v1', 'v200'])
         next()
       })
     },
@@ -679,7 +679,7 @@ testA.cb('DB - migrations', function (t) {
     function (next) {
       db.getMigrationLog(function (err, log) {
         if (err) return next(err)
-        t.deepEquals(_.keys(log), ['v1'])
+        t.deepEqual(_.keys(log), ['v1'])
         next()
       })
     },
@@ -687,7 +687,7 @@ testA.cb('DB - migrations', function (t) {
     function (next) {
       db.getMigrationLog(function (err, log) {
         if (err) return next(err)
-        t.deepEquals(log, {})
+        t.deepEqual(log, {})
         next()
       })
     },
@@ -695,7 +695,7 @@ testA.cb('DB - migrations', function (t) {
     function (next) {
       db.getMigrationLog(function (err, log) {
         if (err) return next(err)
-        t.deepEquals(_.keys(log), _.keys(migrations))
+        t.deepEqual(_.keys(log), _.keys(migrations))
         next()
       })
     }
@@ -709,7 +709,7 @@ testA.cb('DB - parent/child', function (t) {
     return function (next) {
       db.getParent(picoId, function (err, parentId) {
         if (err) return next(err)
-        t.equals(parentId, expectedParentId, 'testing db.getParent')
+        t.is(parentId, expectedParentId, 'testing db.getParent')
         next()
       })
     }
@@ -719,7 +719,7 @@ testA.cb('DB - parent/child', function (t) {
     return function (next) {
       db.listChildren(picoId, function (err, list) {
         if (err) return next(err)
-        t.deepEquals(list, expectedChildrenIds, 'testing db.listChildren')
+        t.deepEqual(list, expectedChildrenIds, 'testing db.listChildren')
         next()
       })
     }
@@ -764,11 +764,11 @@ testA.cb('DB - assertPicoID', function (t) {
     return function (next) {
       db.assertPicoID(id, function (err, gotId) {
         if (expectedIt) {
-          t.notOk(err)
-          t.equals(gotId, id)
+          t.falsy(err)
+          t.is(gotId, id)
         } else {
-          t.ok(err)
-          t.notOk(gotId)
+          t.truthy(err)
+          t.falsy(gotId)
         }
         next()
       })
@@ -796,8 +796,8 @@ testA('DB - removeChannel', async function (t) {
     var chans = await db.listChannelsYieldable(picoId)
 
     var eciList = _.map(chans, 'id')
-    t.is(eciList, expectedEcis, 'assert the listChannels')
-    t.is(_.uniq(_.map(chans, 'pico_id')), [picoId], 'assert listChannels all come from the same pico_id')
+    t.deepEqual(eciList, expectedEcis, 'assert the listChannels')
+    t.deepEqual(_.uniq(_.map(chans, 'pico_id')), [picoId], 'assert listChannels all come from the same pico_id')
   }
 
   var assertFailRemoveECI = async function (eci) {
@@ -843,35 +843,35 @@ testA('DB - persistent variables', async function (t) {
 
   await put('foo', null, [1, 2])
   data = await get('foo', null)
-  t.deepEquals(data, [1, 2])
-  t.ok(ktypes.isArray(data))
+  t.deepEqual(data, [1, 2])
+  t.truthy(ktypes.isArray(data))
 
   await put('foo', null, { a: 3, b: 4 })
   data = await get('foo', null)
-  t.deepEquals(data, { a: 3, b: 4 })
-  t.ok(ktypes.isMap(data))
+  t.deepEqual(data, { a: 3, b: 4 })
+  t.truthy(ktypes.isMap(data))
 
   await del('foo', null)
   data = await get('foo', null)
-  t.deepEquals(data, void 0)
+  t.deepEqual(data, void 0)
 
   await put('foo', null, { one: 11, two: 22 })
   data = await get('foo', null)
-  t.deepEquals(data, { one: 11, two: 22 })
+  t.deepEqual(data, { one: 11, two: 22 })
   await put('foo', null, { one: 11 })
   data = await get('foo', null)
-  t.deepEquals(data, { one: 11 })
+  t.deepEqual(data, { one: 11 })
 
   data = await get('foo', 'one')
-  t.deepEquals(data, 11)
+  t.deepEqual(data, 11)
 
   await put('foo', ['bar', 'baz'], { qux: 1 })
   data = await get('foo', null)
-  t.deepEquals(data, { one: 11, bar: { baz: { qux: 1 } } })
+  t.deepEqual(data, { one: 11, bar: { baz: { qux: 1 } } })
 
   await put('foo', ['bar', 'asdf'], true)
   data = await get('foo', null)
-  t.deepEquals(data, { one: 11,
+  t.deepEqual(data, { one: 11,
     bar: {
       baz: { qux: 1 },
       asdf: true
@@ -879,25 +879,25 @@ testA('DB - persistent variables', async function (t) {
 
   await put('foo', ['bar', 'baz', 'qux'], 'wat?')
   data = await get('foo', null)
-  t.deepEquals(data, { one: 11,
+  t.deepEqual(data, { one: 11,
     bar: {
       baz: { qux: 'wat?' },
       asdf: true
     } })
   data = await get('foo', ['bar', 'baz', 'qux'])
-  t.deepEquals(data, 'wat?')
+  t.deepEqual(data, 'wat?')
 
   await del('foo', 'one')
   data = await get('foo', null)
-  t.deepEquals(data, { bar: { baz: { qux: 'wat?' }, asdf: true } })
+  t.deepEqual(data, { bar: { baz: { qux: 'wat?' }, asdf: true } })
 
   await del('foo', ['bar', 'asdf'])
   data = await get('foo', null)
-  t.deepEquals(data, { bar: { baz: { qux: 'wat?' } } })
+  t.deepEqual(data, { bar: { baz: { qux: 'wat?' } } })
 
   await del('foo', ['bar', 'baz', 'qux'])
   data = await get('foo', null)
-  t.deepEquals(data, {})
+  t.deepEqual(data, {})
 
   /// ////////////////////////////////////////////////////////////////////
   // how other types are encoded
@@ -909,20 +909,20 @@ testA('DB - persistent variables', async function (t) {
 
   var dump = await toObj()
 
-  t.equals(await get('fn', null), '[Function]')
-  t.deepEquals(dump.entvars.p.r.fn, {
+  t.is(await get('fn', null), '[Function]')
+  t.deepEqual(dump.entvars.p.r.fn, {
     type: 'String',
     value: '[Function]'
   })
 
-  t.equals(await get('act', null), '[Action]')
-  t.deepEquals(dump.entvars.p.r.act, {
+  t.is(await get('act', null), '[Action]')
+  t.deepEqual(dump.entvars.p.r.act, {
     type: 'String',
     value: '[Action]'
   })
 
-  t.equals(await get('nan', null), null)
-  t.deepEquals(dump.entvars.p.r.nan, {
+  t.is(await get('nan', null), null)
+  t.deepEqual(dump.entvars.p.r.nan, {
     type: 'Null',
     value: null
   })
@@ -938,8 +938,8 @@ testA('DB - persistent variables array/map', async function (t) {
 
   var tst = async function (name, type, value, msg) {
     var val = toJson(value)
-    t.equals(toJson((await toObj()).entvars.p.r[name]), '{"type":"' + type + '","value":' + val + '}', msg)
-    t.equals(toJson(await get(name, null)), val, msg)
+    t.is(toJson((await toObj()).entvars.p.r[name]), '{"type":"' + type + '","value":' + val + '}', msg)
+    t.is(toJson(await get(name, null)), val, msg)
   }
 
   await put('foo', [0], 'aaa')

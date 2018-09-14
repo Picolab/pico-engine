@@ -48,8 +48,8 @@ testA('http module', async function (t) {
     if (ktypes.isAction(khttp[method])) {
       resp = resp[0]
     }
-    t.ok(_.isNumber(resp.content_length))
-    t.ok(!_.isNaN(resp.content_length))
+    t.truthy(_.isNumber(resp.content_length))
+    t.truthy(!_.isNaN(resp.content_length))
     delete resp.content_length// windows can return off by 1 so it breaks tests
     delete resp.headers['content-length']// windows can return off by 1 so it breaks tests
     delete resp.headers['date']
@@ -58,7 +58,7 @@ testA('http module', async function (t) {
 
   resp = await doHttp('get', [url, { a: 1 }])
   resp.content = JSON.parse(resp.content)
-  t.deepEquals(resp, {
+  t.deepEqual(resp, {
     content: {
       'url': '/?a=1',
       'headers': {
@@ -91,7 +91,7 @@ testA('http module', async function (t) {
     }
   })
   resp.content = JSON.parse(resp.content)
-  t.deepEquals(resp, {
+  t.deepEqual(resp, {
     content: {
       'url': '/?baz=qux',
       'headers': {
@@ -121,7 +121,7 @@ testA('http module', async function (t) {
     form: { formkey: 'formval', foo: ['bar', 'baz'] }
   })
   resp.content = JSON.parse(resp.content)
-  t.deepEquals(resp, {
+  t.deepEqual(resp, {
     content: {
       'url': '/?baz=qux',
       'headers': {
@@ -151,7 +151,7 @@ testA('http module', async function (t) {
     json: { formkey: 'formval', foo: ['bar', 'baz'] }
   })
   resp.content = JSON.parse(resp.content)
-  t.deepEquals(resp, {
+  t.deepEqual(resp, {
     content: {
       'url': '/?baz=qux',
       'headers': {
@@ -178,7 +178,7 @@ testA('http module', async function (t) {
     url: url,
     parseJSON: true
   })
-  t.deepEquals(resp, {
+  t.deepEqual(resp, {
     content: {
       'url': '/',
       'headers': {
@@ -203,7 +203,7 @@ testA('http module', async function (t) {
     url: url + '/not-json-resp',
     parseJSON: true
   })
-  t.deepEquals(resp, {
+  t.deepEqual(resp, {
     content: 'this is not json',
     content_type: void 0,
     status_code: 200,

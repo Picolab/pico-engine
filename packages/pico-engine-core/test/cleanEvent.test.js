@@ -6,47 +6,47 @@ testA('event = cleanEvent(event)', function (t) {
     cleanEvent()
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing event.eci')
+    t.is(e + '', 'Error: missing event.eci')
   }
   try {
     cleanEvent({ eci: 0 })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing event.eci')
+    t.is(e + '', 'Error: missing event.eci')
   }
   try {
     cleanEvent({ eci: '' })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing event.eci')
+    t.is(e + '', 'Error: missing event.eci')
   }
   try {
     cleanEvent({ eci: '  ' })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing event.eci')
+    t.is(e + '', 'Error: missing event.eci')
   }
   try {
     cleanEvent({ eci: 'eci-1', domain: '' })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing event.domain')
+    t.is(e + '', 'Error: missing event.domain')
   }
   try {
     cleanEvent({ eci: 'eci-1', domain: 'foo' })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing event.type')
+    t.is(e + '', 'Error: missing event.type')
   }
   try {
     cleanEvent({ eci: 'eci-1', domain: 'foo', type: ' ' })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing event.type')
+    t.is(e + '', 'Error: missing event.type')
   }
 
   // bare minimum
-  t.deepEquals(cleanEvent({
+  t.deepEqual(cleanEvent({
     eci: 'eci123',
     domain: 'foo',
     type: 'bar'
@@ -67,19 +67,19 @@ testA('event = cleanEvent(event)', function (t) {
     type: 'bar',
     attrs: attrs
   })
-  t.deepEquals(event, {
+  t.deepEqual(event, {
     eci: 'eci123',
     eid: '555',
     domain: 'foo',
     type: 'bar',
     attrs: attrs
   })
-  t.deepEquals(event.attrs, attrs, 'they should match before event.attrs mutates')
+  t.deepEqual(event.attrs, attrs, 'they should match before event.attrs mutates')
   event.attrs.what = 'blah'
   t.notDeepEqual(event.attrs, attrs, 'oops, attrs was mutable')
 
   // trim up inputs
-  t.deepEquals(cleanEvent({
+  t.deepEqual(cleanEvent({
     eci: '  eci123   ',
     eid: '   3 3 3 3   ',
     domain: '  foo\n ',
@@ -94,7 +94,7 @@ testA('event = cleanEvent(event)', function (t) {
   })
 
   // no timestamp
-  t.deepEquals(cleanEvent({
+  t.deepEqual(cleanEvent({
     eci: 'eci123',
     domain: 'foo',
     type: 'bar',
@@ -108,7 +108,7 @@ testA('event = cleanEvent(event)', function (t) {
   })
 
   // no for_rid
-  t.deepEquals(cleanEvent({
+  t.deepEqual(cleanEvent({
     eci: 'eci123',
     domain: 'foo',
     type: 'bar',
@@ -122,7 +122,7 @@ testA('event = cleanEvent(event)', function (t) {
   })
 
   var testAttrs = function (input, output, msg) {
-    t.deepEquals(cleanEvent({
+    t.deepEqual(cleanEvent({
       eci: 'eci123',
       eid: 'eid',
       domain: 'foo',
@@ -160,7 +160,7 @@ testA('event = cleanEvent(event)', function (t) {
   }('foo', 'bar'))
 
   var testEid = function (input, output, msg) {
-    t.deepEquals(cleanEvent({
+    t.deepEqual(cleanEvent({
       eci: 'eci123',
       eid: input,
       domain: 'foo',

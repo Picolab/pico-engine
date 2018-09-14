@@ -1,7 +1,6 @@
 var _ = require('lodash')
 var util = require('util')
 var ktypes = require('krl-stdlib/types')
-var strictDeepEquals = require('../helpers/strictEquals').strictDeepEquals
 var kengine = require('../../src/modules/engine')
 var ADMIN_POLICY_ID = require('../../src/DB').ADMIN_POLICY_ID
 var mkTestPicoEngine = require('../helpers/mkTestPicoEngine')
@@ -27,7 +26,7 @@ async function testError (t, promise, errMsg, msg) {
     await promise
     t.fail('should fail', msg)
   } catch (err) {
-    t.equals(err + '', errMsg, msg)
+    t.is(err + '', errMsg, msg)
   }
 }
 
@@ -50,7 +49,7 @@ testA('engine:getPicoIDByECI', async function (t) {
     return getPicoIDByECI({}, _.toArray(arguments))
   }
 
-  t.equals(await get('id1'), 'id0')
+  t.is(await get('id1'), 'id0')
 
   await tstErr(
     get(),
@@ -62,7 +61,7 @@ testA('engine:getPicoIDByECI', async function (t) {
     'TypeError: engine:getPicoIDByECI was given null instead of an eci string',
     'wrong eci type'
   )
-  t.equals(await get('quux'), void 0, 'eci not found')
+  t.is(await get('quux'), void 0, 'eci not found')
 })
 
 testA('engine:registerRuleset', async function (t) {
@@ -76,11 +75,11 @@ testA('engine:registerRuleset', async function (t) {
     })
   })
 
-  t.equals((await engine.def.registerRuleset({}, {
+  t.is((await engine.def.registerRuleset({}, {
     url: 'http://foo.bar/qux.krl'
   }))[0], 'rid for: http://foo.bar/qux.krl')
 
-  t.equals((await engine.def.registerRuleset({}, {
+  t.is((await engine.def.registerRuleset({}, {
     url: 'qux.krl',
     base: 'https://foo.bar/baz/'
   }))[0], 'rid for: https://foo.bar/baz/qux.krl')
@@ -140,11 +139,11 @@ testA('engine:installRuleset', async function (t) {
     return (await engine.def.installRuleset({}, args))[0]
   }
 
-  t.equals(await inst('pico0', 'foo.bar'), 'foo.bar')
-  t.deepEquals(await inst('pico0', ['foo.bar', 'foo.qux']), ['foo.bar', 'foo.qux'])
-  strictDeepEquals(t, await inst('pico0', []), [])
-  t.deepEquals(await inst('pico0', void 0, 'file:///foo/bar.krl'), 'REG:bar')
-  t.deepEquals(await inst('pico0', void 0, 'qux.krl', 'http://foo.bar/baz/'), 'found')
+  t.is(await inst('pico0', 'foo.bar'), 'foo.bar')
+  t.deepEqual(await inst('pico0', ['foo.bar', 'foo.qux']), ['foo.bar', 'foo.qux'])
+  t.deepEqual(await inst('pico0', []), [])
+  t.deepEqual(await inst('pico0', void 0, 'file:///foo/bar.krl'), 'REG:bar')
+  t.deepEqual(await inst('pico0', void 0, 'qux.krl', 'http://foo.bar/baz/'), 'found')
 
   await tstErr(
     inst('pico0', void 0, 'file:///too/many.krl'),
@@ -173,17 +172,17 @@ testA('engine:uninstallRuleset', async function (t) {
     }
   })
 
-  t.equals((await engine.def.uninstallRuleset({}, {
+  t.is((await engine.def.uninstallRuleset({}, {
     pico_id: 'pico0',
     rid: 'foo.bar'
   }))[0], void 0)
 
-  t.equals((await engine.def.uninstallRuleset({}, {
+  t.is((await engine.def.uninstallRuleset({}, {
     pico_id: 'pico0',
     rid: ['baz', 'qux']
   }))[0], void 0)
 
-  t.deepEquals(uninstalled, {
+  t.deepEqual(uninstalled, {
     pico0: {
       'foo.bar': 0,
       'baz': 1,
@@ -206,11 +205,11 @@ testA('engine:unregisterRuleset', async function (t) {
     })
   })
 
-  t.equals((await engine.def.unregisterRuleset({}, {
+  t.is((await engine.def.unregisterRuleset({}, {
     rid: 'foo.bar'
   }))[0], void 0)
 
-  t.equals((await engine.def.unregisterRuleset({}, {
+  t.is((await engine.def.unregisterRuleset({}, {
     rid: ['baz', 'qux']
   }))[0], void 0)
 
@@ -231,7 +230,7 @@ testA('engine:unregisterRuleset', async function (t) {
     'TypeError: engine:unregisterRuleset was given a rid array containing a non-string (2)'
   )
 
-  t.deepEquals(log, [
+  t.deepEqual(log, [
     'foo.bar',
     'baz',
     'qux'
@@ -253,7 +252,7 @@ testA('engine:describeRuleset', async function (t) {
     return str === (new Date(str)).toISOString()
   }
 
-  t.deepEquals(_.keys(desc), [
+  t.deepEqual(_.keys(desc), [
     'rid',
     'src',
     'hash',
@@ -262,13 +261,13 @@ testA('engine:describeRuleset', async function (t) {
     'timestamp_enable',
     'meta'
   ])
-  t.equals(desc.rid, 'io.picolabs.hello_world')
-  t.ok(_.isString(desc.src))
-  t.ok(_.isString(desc.hash))
-  t.ok(_.isString(desc.url))
-  t.ok(isIsoString(desc.timestamp_stored))
-  t.ok(isIsoString(desc.timestamp_enable))
-  t.deepEquals(desc.meta, {
+  t.is(desc.rid, 'io.picolabs.hello_world')
+  t.truthy(_.isString(desc.src))
+  t.truthy(_.isString(desc.hash))
+  t.truthy(_.isString(desc.url))
+  t.truthy(isIsoString(desc.timestamp_stored))
+  t.truthy(isIsoString(desc.timestamp_enable))
+  t.deepEqual(desc.meta, {
     name: 'Hello World',
     description: '\nA first ruleset for the Quickstart\n        ',
     author: 'Phil Windley'
@@ -285,7 +284,7 @@ testA('engine:describeRuleset', async function (t) {
     'wrong rid type'
   )
 
-  t.equals(await descRID(ctx, { rid: 'not.found' }), void 0)
+  t.is(await descRID(ctx, { rid: 'not.found' }), void 0)
 })
 
 testA('engine:listAllEnabledRIDs', async function (t) {
@@ -294,9 +293,9 @@ testA('engine:listAllEnabledRIDs', async function (t) {
   })
   var listAllEnabledRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
   var rids = await listAllEnabledRIDs({}, [])
-  t.ok(rids.length > 1, 'should be all the test-rulesets/')
-  t.ok(_.every(rids, _.isString))
-  t.ok(_.includes(rids, 'io.picolabs.engine'))
+  t.truthy(rids.length > 1, 'should be all the test-rulesets/')
+  t.truthy(_.every(rids, _.isString))
+  t.truthy(_.includes(rids, 'io.picolabs.engine'))
 })
 
 testA('engine:newPico', async function (t) {
@@ -310,7 +309,7 @@ testA('engine:newPico', async function (t) {
   var pico2 = await action({}, 'newPico', {
     parent_id: 'id0'
   })
-  t.deepEquals(pico2, {
+  t.deepEqual(pico2, {
     id: 'id2',
     parent_id: 'id0',
     admin_eci: 'id3'
@@ -320,7 +319,7 @@ testA('engine:newPico', async function (t) {
   var pico3 = await action({
     pico_id: 'id2' // called by pico2
   }, 'newPico', {})
-  t.deepEquals(pico3, {
+  t.deepEqual(pico3, {
     id: 'id4',
     parent_id: 'id2',
     admin_eci: 'id5'
@@ -349,28 +348,28 @@ testA('engine:getParent, engine:getAdminECI, engine:listChildren, engine:removeP
   await newPico({}, ['id0'])// id4
   await newPico({ pico_id: 'id2' }, [])// id6
 
-  t.equals(await getParent({}, ['id0']), null)
-  t.equals(await getParent({}, ['id2']), 'id0')
-  t.equals(await getParent({}, ['id4']), 'id0')
-  t.equals(await getParent({}, ['id6']), 'id2')
+  t.is(await getParent({}, ['id0']), null)
+  t.is(await getParent({}, ['id2']), 'id0')
+  t.is(await getParent({}, ['id4']), 'id0')
+  t.is(await getParent({}, ['id6']), 'id2')
 
-  t.equals(await getAdminECI({}, ['id0']), 'id1')
-  t.equals(await getAdminECI({}, ['id2']), 'id3')
-  t.equals(await getAdminECI({}, ['id4']), 'id5')
-  t.equals(await getAdminECI({}, ['id6']), 'id7')
+  t.is(await getAdminECI({}, ['id0']), 'id1')
+  t.is(await getAdminECI({}, ['id2']), 'id3')
+  t.is(await getAdminECI({}, ['id4']), 'id5')
+  t.is(await getAdminECI({}, ['id6']), 'id7')
 
-  t.deepEquals(await listChildren({}, ['id0']), ['id2', 'id4'])
-  t.deepEquals(await listChildren({}, ['id2']), ['id6'])
-  strictDeepEquals(t, await listChildren({}, ['id4']), [])
-  strictDeepEquals(t, await listChildren({}, ['id6']), [])
+  t.deepEqual(await listChildren({}, ['id0']), ['id2', 'id4'])
+  t.deepEqual(await listChildren({}, ['id2']), ['id6'])
+  t.deepEqual(await listChildren({}, ['id4']), [])
+  t.deepEqual(await listChildren({}, ['id6']), [])
 
   // fallback on ctx.pico_id
-  t.equals(await getParent({ pico_id: 'id6' }, []), 'id2')
-  t.equals(await getAdminECI({ pico_id: 'id6' }, []), 'id7')
-  t.deepEquals(await listChildren({ pico_id: 'id2' }, []), ['id6'])
-  t.equals(await removePico({ pico_id: 'id6' }, []), true)
-  t.equals(await removePico({ pico_id: 'id6' }, []), false)
-  strictDeepEquals(t, await listChildren({}, ['id2']), [])
+  t.is(await getParent({ pico_id: 'id6' }, []), 'id2')
+  t.is(await getAdminECI({ pico_id: 'id6' }, []), 'id7')
+  t.deepEqual(await listChildren({ pico_id: 'id2' }, []), ['id6'])
+  t.is(await removePico({ pico_id: 'id6' }, []), true)
+  t.is(await removePico({ pico_id: 'id6' }, []), false)
+  t.deepEqual(await listChildren({}, ['id2']), [])
 
   // report error on invalid pico_id
   var assertInvalidPicoID = function (genfn, id, expected) {
@@ -383,11 +382,11 @@ testA('engine:getParent, engine:getAdminECI, engine:listChildren, engine:removeP
   await assertInvalidPicoID(newPico, void 0, 'TypeError: engine:newPico was given null instead of a parent_id string')
   await assertInvalidPicoID(removePico, void 0, 'TypeError: engine:removePico was given null instead of a pico_id string')
 
-  t.equals(await getAdminECI({}, ['id404']), void 0)
-  t.equals(await getParent({ pico_id: 'id404' }, []), void 0)
-  t.equals(await listChildren({ pico_id: 'id404' }, []), void 0)
+  t.is(await getAdminECI({}, ['id404']), void 0)
+  t.is(await getParent({ pico_id: 'id404' }, []), void 0)
+  t.is(await listChildren({ pico_id: 'id404' }, []), void 0)
   await assertInvalidPicoID(newPico, 'id404', 'NotFoundError: Pico not found: id404')
-  t.equals(await removePico({}, ['id404']), false)
+  t.is(await removePico({}, ['id404']), false)
 
   await tstErr(
     removePico({}, ['id0']),
@@ -422,42 +421,42 @@ testA('engine:newPolicy, engine:listPolicies, engine:removePolicy', async functi
     query: { allow: [{}] }
   }
 
-  t.deepEquals(await listPolicies(), [pAdmin])
+  t.deepEqual(await listPolicies(), [pAdmin])
 
   var pFoo = await newPolicy({ name: 'foo' })
-  t.deepEquals(pFoo, {
+  t.deepEqual(pFoo, {
     id: 'id2',
     name: 'foo',
     event: { deny: [], allow: [] },
     query: { deny: [], allow: [] }
   })
 
-  t.deepEquals(await listPolicies(), [pAdmin, pFoo])
+  t.deepEqual(await listPolicies(), [pAdmin, pFoo])
 
   var pBar = await newPolicy({
     name: 'bar',
     event: { allow: [{ domain: 'system' }] }
   })
-  t.deepEquals(pBar, {
+  t.deepEqual(pBar, {
     id: 'id3',
     name: 'bar',
     event: { deny: [], allow: [{ domain: 'system' }] },
     query: { deny: [], allow: [] }
   })
 
-  t.deepEquals(await listPolicies(), [pAdmin, pFoo, pBar])
+  t.deepEqual(await listPolicies(), [pAdmin, pFoo, pBar])
 
   await tstErr(removePolicy(), 'TypeError: engine:removePolicy was given null instead of a policy_id string')
-  t.equals(await removePolicy('id404'), false)
+  t.is(await removePolicy('id404'), false)
 
-  t.equals(await removePolicy(pFoo.id), true)
-  t.equals(await removePolicy(pFoo.id), false)
-  t.deepEquals(await listPolicies(), [pAdmin, pBar])
+  t.is(await removePolicy(pFoo.id), true)
+  t.is(await removePolicy(pFoo.id), false)
+  t.deepEqual(await listPolicies(), [pAdmin, pBar])
 
   await tstErr(removePolicy(pAdmin.id), 'Error: Policy ' + pAdmin.id + ' is in use, cannot remove.')
 
-  t.equals(await removePolicy(pBar.id), true)
-  t.deepEquals(await listPolicies(), [pAdmin])
+  t.is(await removePolicy(pBar.id), true)
+  t.deepEqual(await listPolicies(), [pAdmin])
 })
 
 testA('engine:newChannel, engine:listChannels, engine:removeChannel', async function (t) {
@@ -492,12 +491,12 @@ testA('engine:newChannel, engine:listChannels, engine:removeChannel', async func
     }
   }
 
-  t.deepEquals(await listChannels({}, ['id0']), [
+  t.deepEqual(await listChannels({}, ['id0']), [
     mkChan('id0', 'id1', 'admin', 'secret')
   ])
 
-  t.deepEquals(await newChannel({}, ['id0', 'a', 'b']), mkChan('id0', 'id2', 'a', 'b'))
-  t.deepEquals(await listChannels({}, ['id0']), [
+  t.deepEqual(await newChannel({}, ['id0', 'a', 'b']), mkChan('id0', 'id2', 'a', 'b'))
+  t.deepEqual(await listChannels({}, ['id0']), [
     mkChan('id0', 'id1', 'admin', 'secret'),
     mkChan('id0', 'id2', 'a', 'b')
   ])
@@ -528,19 +527,19 @@ testA('engine:newChannel, engine:listChannels, engine:removeChannel', async func
     'TypeError: engine:removeChannel was given re#id1# instead of an eci string',
     'wrong eci type'
   )
-  t.equals(await removeChannel({}, ['eci404']), false)
+  t.is(await removeChannel({}, ['eci404']), false)
 
-  t.equals(await removeChannel({}, ['id2']), true)
-  t.equals(await removeChannel({}, ['id2']), false)
-  t.deepEquals(await listChannels({}, ['id0']), [
+  t.is(await removeChannel({}, ['id2']), true)
+  t.is(await removeChannel({}, ['id2']), false)
+  t.deepEqual(await listChannels({}, ['id0']), [
     mkChan('id0', 'id1', 'admin', 'secret')
   ])
 
   // fallback on ctx.pico_id
-  t.deepEquals(await listChannels({ pico_id: 'id0' }, []), [
+  t.deepEqual(await listChannels({ pico_id: 'id0' }, []), [
     mkChan('id0', 'id1', 'admin', 'secret')
   ])
-  t.deepEquals(await newChannel({ pico_id: 'id0' }, { 'name': 'a', 'type': 'b' }), mkChan('id0', 'id3', 'a', 'b'))
+  t.deepEqual(await newChannel({ pico_id: 'id0' }, { 'name': 'a', 'type': 'b' }), mkChan('id0', 'id3', 'a', 'b'))
 
   // report error on invalid pico_id
   var assertInvalidPicoID = function (genfn, id, expected) {
@@ -551,14 +550,14 @@ testA('engine:newChannel, engine:listChannels, engine:removeChannel', async func
   await assertInvalidPicoID(listChannels, void 0, 'TypeError: engine:listChannels was given null instead of a pico_id string')
 
   await assertInvalidPicoID(newChannel, 'id404', 'NotFoundError: Pico not found: id404')
-  t.deepEquals(await listChannels({}, ['id404']), void 0)
+  t.deepEqual(await listChannels({}, ['id404']), void 0)
 
   // setting policy_id on a newChannel
   tstErr(newChannel({}, ['id0', 'a', 'b', 100]), 'TypeError: engine:newChannel argument `policy_id` should be String but was Number')
   tstErr(newChannel({}, ['id0', 'a', 'b', 'id404']), 'NotFoundError: Policy not found: id404')
 
   var pFoo = await newPolicy({ name: 'foo' })
-  t.deepEquals(await newChannel({}, ['id0', 'a', 'b', pFoo.id]), mkChan('id0', 'id5', 'a', 'b', pFoo.id))
+  t.deepEqual(await newChannel({}, ['id0', 'a', 'b', pFoo.id]), mkChan('id0', 'id5', 'a', 'b', pFoo.id))
 })
 
 testA('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset', async function (t) {
@@ -576,11 +575,11 @@ testA('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset'
   }
   var listRIDs = await pe.modules.get({}, 'engine', 'listInstalledRIDs')
 
-  t.deepEquals(await listRIDs({ pico_id: 'id0' }, []), [
+  t.deepEqual(await listRIDs({ pico_id: 'id0' }, []), [
     'io.picolabs.engine'
   ])
 
-  t.equals(await installRS({}, ['id0', 'io.picolabs.hello_world']), 'io.picolabs.hello_world')
+  t.is(await installRS({}, ['id0', 'io.picolabs.hello_world']), 'io.picolabs.hello_world')
   await tstErr(
     installRS({}, [NaN]),
     'Error: engine:installRuleset needs either a rid string or array, or a url string',
@@ -601,12 +600,12 @@ testA('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset'
     'TypeError: engine:installRuleset was given [Map] instead of a url string',
     'wrong url type'
   )
-  t.deepEquals(await listRIDs({ pico_id: 'id0' }, []), [
+  t.deepEqual(await listRIDs({ pico_id: 'id0' }, []), [
     'io.picolabs.engine',
     'io.picolabs.hello_world'
   ])
 
-  t.equals(await uninstallRID({}, ['id0', 'io.picolabs.engine']), void 0)
+  t.is(await uninstallRID({}, ['id0', 'io.picolabs.engine']), void 0)
   await tstErr(
     uninstallRID({}, []),
     'Error: engine:uninstallRuleset needs a rid string or array',
@@ -622,14 +621,14 @@ testA('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset'
     'TypeError: engine:uninstallRuleset was given a rid array containing a non-string (null)',
     'rid array has a non-string'
   )
-  t.deepEquals(await listRIDs({ pico_id: 'id0' }, []), [
+  t.deepEqual(await listRIDs({ pico_id: 'id0' }, []), [
     'io.picolabs.hello_world'
   ])
 
   // fallback on ctx.pico_id
-  t.equals(await uninstallRID({ pico_id: 'id0' }, { rid: 'io.picolabs.hello_world' }), void 0)
-  strictDeepEquals(t, await listRIDs({ pico_id: 'id0' }, []), [])
-  t.equals(await installRS({ pico_id: 'id0' }, { rid: 'io.picolabs.hello_world' }), 'io.picolabs.hello_world')
+  t.is(await uninstallRID({ pico_id: 'id0' }, { rid: 'io.picolabs.hello_world' }), void 0)
+  t.deepEqual(await listRIDs({ pico_id: 'id0' }, []), [])
+  t.is(await installRS({ pico_id: 'id0' }, { rid: 'io.picolabs.hello_world' }), 'io.picolabs.hello_world')
 
   // report error on invalid pico_id
   var assertInvalidPicoID = function (genfn, id, expected) {
@@ -640,7 +639,7 @@ testA('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset'
 
   await assertInvalidPicoID(installRS, 'id404', 'NotFoundError: Pico not found: id404')
   await assertInvalidPicoID(uninstallRID, 'id404', 'NotFoundError: Pico not found: id404')
-  t.deepEquals(await listRIDs({ pico_id: 'id404' }, []), void 0)
+  t.deepEqual(await listRIDs({ pico_id: 'id404' }, []), void 0)
 })
 
 testA('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptChannelMessage', async function (t) {
@@ -683,36 +682,36 @@ testA('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChan
   var msg = 'some long message! could be json {"hi":1}'
   var signed0 = await sign(eci0, msg)
   var signed1 = await sign(eci1, msg)
-  t.ok(_.isString(signed0))
-  t.ok(_.isString(signed1))
-  t.notEquals(signed0, signed1)
+  t.truthy(_.isString(signed0))
+  t.truthy(_.isString(signed1))
+  t.not(signed0, signed1)
 
-  t.equals(await verify(vkey0, signed0), msg)
-  t.equals(await verify(vkey1, signed1), msg)
+  t.is(await verify(vkey0, signed0), msg)
+  t.is(await verify(vkey1, signed1), msg)
 
-  t.equals(await verify(vkey1, signed0), false, 'wrong vkey')
-  t.equals(await verify(vkey0, signed1), false, 'wrong vkey')
+  t.is(await verify(vkey1, signed0), false, 'wrong vkey')
+  t.is(await verify(vkey0, signed1), false, 'wrong vkey')
 
-  t.equals(await verify('hi', signed1), false, 'rubbish vkey')
-  t.equals(await verify(vkey0, 'notbs58:%=+!'), false, 'not bs58 message')
+  t.is(await verify('hi', signed1), false, 'rubbish vkey')
+  t.is(await verify(vkey0, 'notbs58:%=+!'), false, 'not bs58 message')
 
   var encrypted0 = await encrypt(eci0, msg, publicKey1)
   var encrypted1 = await encrypt(eci1, msg, publicKey0)
 
-  t.ok(_.isString(encrypted0.encryptedMessage))
-  t.ok(_.isString(encrypted0.nonce))
-  t.ok(_.isString(encrypted1.encryptedMessage))
-  t.ok(_.isString(encrypted1.nonce))
-  t.notEquals(encrypted0, encrypted1)
+  t.truthy(_.isString(encrypted0.encryptedMessage))
+  t.truthy(_.isString(encrypted0.nonce))
+  t.truthy(_.isString(encrypted1.encryptedMessage))
+  t.truthy(_.isString(encrypted1.nonce))
+  t.not(encrypted0, encrypted1)
 
   var nonce = encrypted0.nonce
   var encryptedMessage = encrypted0.encryptedMessage
 
-  t.equals(await decrypt(eci1, encryptedMessage, nonce, publicKey0), msg, 'message decrypted correctly')
+  t.is(await decrypt(eci1, encryptedMessage, nonce, publicKey0), msg, 'message decrypted correctly')
 
-  t.equals(await decrypt(eci1, encryptedMessage, 'bad nonce', publicKey0), false, 'bad nonce')
-  t.equals(await decrypt(eci1, encryptedMessage, nonce, 'Bad public key'), false, 'bad key')
-  t.equals(await decrypt(eci1, 'bogus43212(*(****', nonce, publicKey0), false, 'non bs58 message')
+  t.is(await decrypt(eci1, encryptedMessage, 'bad nonce', publicKey0), false, 'bad nonce')
+  t.is(await decrypt(eci1, encryptedMessage, nonce, 'Bad public key'), false, 'bad key')
+  t.is(await decrypt(eci1, 'bogus43212(*(****', nonce, publicKey0), false, 'non bs58 message')
 })
 
 testA('engine:exportPico', async function (t) {
@@ -771,7 +770,7 @@ testA('engine:exportPico', async function (t) {
     delete r.timestamp_stored
     delete r.timestamp_enable
   })
-  t.deepEquals(exported, {
+  t.deepEqual(exported, {
     version: require('../../package.json').version,
     policies: {
       'allow-all-policy': {
@@ -874,10 +873,10 @@ testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   }
 
   var resp = await signalEvent(rootEci, 'aa/getStatus')
-  t.deepEquals(resp.directives[0].options, { isLeaving: false, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
+  t.deepEqual(resp.directives[0].options, { isLeaving: false, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
 
   await signalEvent(rootEci, 'aa/setLeaving')
   try {
@@ -886,10 +885,10 @@ testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   } catch (err) {
     t.is(err.picoCore_pico_isLeaving, true)
   }
-  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: true, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: true, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: true, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: true, movedToHost: null })
+  t.deepEqual(await getStatus({}, [rootPicoId]), { isLeaving: true, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1.id]), { isLeaving: true, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1c1.id]), { isLeaving: true, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1c2.id]), { isLeaving: true, movedToHost: null })
 
   await setStatus({}, [rootPicoId, false])
 
@@ -900,10 +899,10 @@ testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   } catch (err) {
     t.is(err.picoCore_pico_movedToHost, 'http://away')
   }
-  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: 'http://away' })
-  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: 'http://away' })
-  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: 'http://away' })
-  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: 'http://away' })
+  t.deepEqual(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: 'http://away' })
+  t.deepEqual(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: 'http://away' })
+  t.deepEqual(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: 'http://away' })
+  t.deepEqual(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: 'http://away' })
 
   // You can't change a childs status if the parent is transient
   try {
@@ -912,24 +911,24 @@ testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   } catch (e) {
     t.is(e + '', 'Error: Cannot change pico status b/c its parent is transient')
   }
-  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: 'http://away' })
+  t.deepEqual(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: 'http://away' })
 
   // Clear the status on root and it's children
   await setStatus({}, [rootPicoId, false, null])
   resp = await signalEvent(rootEci, 'aa/getStatus')
-  t.deepEquals(resp.directives[0].options, { isLeaving: false, movedToHost: null })
-  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
+  t.deepEqual(resp.directives[0].options, { isLeaving: false, movedToHost: null })
+  t.deepEqual(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
 
   // Set a single pico's status and ensure it's parents/siblings are not effected
   await setStatus({}, [c1c1.id, true])
-  t.deepEquals(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1c1.id]), { isLeaving: true, movedToHost: null })
-  t.deepEquals(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
+  t.deepEqual(await getStatus({}, [rootPicoId]), { isLeaving: false, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1.id]), { isLeaving: false, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1c1.id]), { isLeaving: true, movedToHost: null })
+  t.deepEqual(await getStatus({}, [c1c2.id]), { isLeaving: false, movedToHost: null })
   await setStatus({}, [rootPicoId, false, null])
   resp = await signalEvent(rootEci, 'aa/getStatus')
-  t.deepEquals(resp.directives[0].options, { isLeaving: false, movedToHost: null })
+  t.deepEqual(resp.directives[0].options, { isLeaving: false, movedToHost: null })
 })

@@ -32,7 +32,7 @@ testA.cb('PicoQueue', function (t) {
   enqueue('A', 1)
   enqueue('B', 0)
   enqueue('A', 2, function () {
-    t.deepEquals(log, [
+    t.deepEqual(log, [
       'enqueue [A] 0',
       'enqueue [A] 1',
       'enqueue [B] 0',
@@ -68,15 +68,15 @@ testA.cb('PicoQueue - error', function (t) {
   })
   t.plan(6)
   pq.enqueue('A', 'test', 'baz', function (err, data) {
-    t.equals(err, null)
-    t.equals(data, 'baz')
+    t.is(err, null)
+    t.is(data, 'baz')
   })
   pq.enqueue('A', 'test', 'foobar', function (err, data) {
-    t.equals(err + '', 'Error: foobar')
-    t.equals(data, void 0)
+    t.is(err + '', 'Error: foobar')
+    t.is(data, void 0)
   })
   pq.enqueue('A', 'test', 'qux', function (err, data) {
-    t.equals(err, null)
-    t.equals(data, 'qux')
+    t.is(err, null)
+    t.is(data, 'qux')
   })
 })

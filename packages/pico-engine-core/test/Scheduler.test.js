@@ -56,7 +56,7 @@ testA('Scheduler - at', function (t) {
   popRemoveEventAt()
   popNextEventAt(null)
 
-  t.deepEquals(log, [['EVENT', '1']], 'the event should only fire once!')
+  t.deepEqual(log, [['EVENT', '1']], 'the event should only fire once!')
 
   log = []
 
@@ -71,10 +71,10 @@ testA('Scheduler - at', function (t) {
   popNextEventAt(null, true)
   popNextEventAt(null, true)
 
-  t.deepEquals(log, [['EVENT', 'foo']], 'the event should only fire once!')
+  t.deepEqual(log, [['EVENT', 'foo']], 'the event should only fire once!')
 
-  t.equals(queueNextEventAt.length, 0, 'should be no outstanding nextEventAt callbacks')
-  t.equals(queueRemoveEventAt.length, 0, 'should be no outstanding removeEventAt callbacks')
+  t.is(queueNextEventAt.length, 0, 'should be no outstanding nextEventAt callbacks')
+  t.is(queueRemoveEventAt.length, 0, 'should be no outstanding removeEventAt callbacks')
 })
 
 var nTicks = function (n, callback) {
@@ -183,7 +183,7 @@ testA.cb('Scheduler - at - generative test', function (t) {
     if (fail) {
       t.fail('events out of order! ' + log.join(','))
     } else {
-      t.ok(true, 'events in order')
+      t.truthy(true, 'events in order')
     }
     t.end()
   }

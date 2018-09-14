@@ -6,8 +6,8 @@ testA('runAction - send_directive', async function (t) {
   var mkCtx = function (name, options) {
     return {
       addActionResponse: function (ctx, type, val) {
-        t.equals(val.name, name)
-        t.ok(_.isEqual(val.options, options))// to t.deepEqual, [] == {}
+        t.is(val.name, name)
+        t.truthy(_.isEqual(val.options, options))// to t.deepEqual, [] == {}
       },
       scope: {
         has: _.noop
@@ -32,7 +32,7 @@ testA('runAction - send_directive', async function (t) {
       await runAction(noopCtx, void 0, 'send_directive', args, [])
       t.fail('Failed to throw an error')
     } catch (err) {
-      t.equals(err + '', error)
+      t.is(err + '', error)
     }
   }
 

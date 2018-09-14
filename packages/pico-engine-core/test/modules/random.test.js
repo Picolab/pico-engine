@@ -15,8 +15,8 @@ var assertNumRange = function (n, low, high, shouldBeInt) {
 testA('module - random:*', async function (t) {
   var i
   for (i = 0; i < 5; i++) {
-    t.ok(/^c[^\s]+$/.test(await krandom.uuid({}, [])))
-    t.ok(/^[^\s]+$/.test(await krandom.word({}, [])))
+    t.truthy(/^c[^\s]+$/.test(await krandom.uuid({}, [])))
+    t.truthy(/^[^\s]+$/.test(await krandom.word({}, [])))
   }
 
   // just throwup when there is a fail, so we don't polute the tap log with 100s of asserts
@@ -71,6 +71,6 @@ testA('module - random:*', async function (t) {
     assertNumRange(n, -3.6, 9.87)
   }
   // if an assert hasn't thrown up by now, we're good
-  t.ok(true, 'random:integer passed')
-  t.ok(true, 'random:number passed')
+  t.truthy(true, 'random:integer passed')
+  t.truthy(true, 'random:number passed')
 })

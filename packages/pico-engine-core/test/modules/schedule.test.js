@@ -12,6 +12,6 @@ testA('schedule:remove', async function (t) {
     attributes: {}
   })
 
-  t.deepEquals(await remove({}, [val.id]), [true])
-  t.deepEquals(await remove({}, ['404']), [false])
+  t.deepEqual(await remove({}, [val.id]), [true])
+  t.deepEqual(await remove({}, ['404']), [false])
 })

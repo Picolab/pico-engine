@@ -4,7 +4,7 @@ module.exports = function (t, module) {
       await module[fnName](ctx, args)
       t.fail('Failed to throw an error')
     } catch (err) {
-      t.equals(err + '', error, message)
+      t.is(err + '', error, message)
     }
   }
 }

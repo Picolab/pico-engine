@@ -52,29 +52,29 @@ testA.cb('migration - pvar_index', function (t) {
       }, function (err) {
         if (err) return t.end(err)
 
-        t.deepEquals(entvars, appvars, 'ent and app should be the same for these tests')
+        t.deepEqual(entvars, appvars, 'ent and app should be the same for these tests')
 
-        t.deepEquals(entvars.v0, {
+        t.deepEqual(entvars.v0, {
           type: 'Map',
           value: { foo: 'bar', baz: 1 }
         })
-        t.deepEquals(entvars.v1, {
+        t.deepEqual(entvars.v1, {
           type: 'Array',
           value: [1, 2, 3, 'ok']
         })
-        t.deepEquals(entvars.v2, {
+        t.deepEqual(entvars.v2, {
           type: 'String',
           value: 'hi'
         })
-        t.deepEquals(entvars.v3, {
+        t.deepEqual(entvars.v3, {
           type: 'Boolean',
           value: true
         })
-        t.deepEquals(entvars.v4, {
+        t.deepEqual(entvars.v4, {
           type: 'Null',
           value: null
         })
-        t.deepEquals(entvars.v5, {
+        t.deepEqual(entvars.v5, {
           type: 'Number',
           value: 123.45
         })

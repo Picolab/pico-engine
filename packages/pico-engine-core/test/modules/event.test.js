@@ -6,14 +6,14 @@ var eventModule = require('../../src/modules/event')
 testA('module - event:attr(name)', async function (t) {
   var kevent = eventModule()
 
-  t.equals(
+  t.is(
     await kevent.def.attr({ event: { attrs: { foo: 'bar' } } }, ['foo']),
     'bar'
   )
 
   // just null if no ctx.event, or it doesn't match
-  t.equals(await kevent.def.attr({}, ['baz']), null)
-  t.equals(
+  t.is(await kevent.def.attr({}, ['baz']), null)
+  t.is(
     await kevent.def.attr({ event: { attrs: { foo: 'bar' } } }, ['baz']),
     null
   )
@@ -29,8 +29,8 @@ testA.cb('module - event:send(event, host = null)', function (t) {
       body += buffer.toString()
     })
     req.on('end', function () {
-      t.equals(req.url, '/sky/event/some-eci/none/some-d/some-t')
-      t.equals(body, '{"foo":{},"bar":[],"baz":{"q":"[Function]"}}')
+      t.is(req.url, '/sky/event/some-eci/none/some-d/some-t')
+      t.is(body, '{"foo":{},"bar":[],"baz":{"q":"[Function]"}}')
 
       res.end()
       server.close()
@@ -42,7 +42,7 @@ testA.cb('module - event:send(event, host = null)', function (t) {
     (async function () {
       var kevent = eventModule()
 
-      t.equals(
+      t.is(
         (await kevent.def.send({}, {
           event: {
             eci: 'some-eci',
@@ -54,7 +54,7 @@ testA.cb('module - event:send(event, host = null)', function (t) {
         }))[0],
         void 0// returns nothing
       )
-      t.equals(serverReached, false, 'should be async, i.e. server not reached yet')
+      t.is(serverReached, false, 'should be async, i.e. server not reached yet')
     }()).catch(t.end)
   })
 })

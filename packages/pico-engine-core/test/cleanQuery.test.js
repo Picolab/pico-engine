@@ -6,47 +6,47 @@ testA('query = cleanQuery(query)', function (t) {
     cleanQuery()
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing query.eci')
+    t.is(e + '', 'Error: missing query.eci')
   }
   try {
     cleanQuery({ eci: 0 })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing query.eci')
+    t.is(e + '', 'Error: missing query.eci')
   }
   try {
     cleanQuery({ eci: '' })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing query.eci')
+    t.is(e + '', 'Error: missing query.eci')
   }
   try {
     cleanQuery({ eci: '  ' })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing query.eci')
+    t.is(e + '', 'Error: missing query.eci')
   }
   try {
     cleanQuery({ eci: 'eci-1', rid: '' })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing query.rid')
+    t.is(e + '', 'Error: missing query.rid')
   }
   try {
     cleanQuery({ eci: 'eci-1', rid: 'foo' })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing query.name')
+    t.is(e + '', 'Error: missing query.name')
   }
   try {
     cleanQuery({ eci: 'eci-1', rid: 'foo', name: ' ' })
     t.fail('should throw')
   } catch (e) {
-    t.equals(e + '', 'Error: missing query.name')
+    t.is(e + '', 'Error: missing query.name')
   }
 
   // bare minimum
-  t.deepEquals(cleanQuery({
+  t.deepEqual(cleanQuery({
     eci: 'eci123',
     rid: 'foo',
     name: 'bar'
@@ -65,18 +65,18 @@ testA('query = cleanQuery(query)', function (t) {
     name: 'bar',
     args: args
   })
-  t.deepEquals(query, {
+  t.deepEqual(query, {
     eci: 'eci123',
     rid: 'foo',
     name: 'bar',
     args: args
   })
-  t.deepEquals(query.args, args, 'they should match before query.args mutates')
+  t.deepEqual(query.args, args, 'they should match before query.args mutates')
   query.args.what = 'blah'
   t.notDeepEqual(query.args, args, 'oops, args was mutable')
 
   // trim up inputs
-  t.deepEquals(cleanQuery({
+  t.deepEqual(cleanQuery({
     eci: '  eci123   ',
     rid: '  foo\n ',
     name: '  \t bar  ',
@@ -89,7 +89,7 @@ testA('query = cleanQuery(query)', function (t) {
   })
 
   // no timestamp
-  t.deepEquals(cleanQuery({
+  t.deepEqual(cleanQuery({
     eci: 'eci123',
     rid: 'foo',
     name: 'bar',
@@ -102,7 +102,7 @@ testA('query = cleanQuery(query)', function (t) {
   })
 
   // no for_rid
-  t.deepEquals(cleanQuery({
+  t.deepEqual(cleanQuery({
     eci: 'eci123',
     rid: 'foo',
     name: 'bar',
@@ -115,7 +115,7 @@ testA('query = cleanQuery(query)', function (t) {
   })
 
   var testAttrs = function (input, output, msg) {
-    t.deepEquals(cleanQuery({
+    t.deepEqual(cleanQuery({
       eci: 'eci123',
       rid: 'foo',
       name: 'bar',
