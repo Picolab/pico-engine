@@ -1,9 +1,9 @@
-var testA = require('../helpers/testA')
+var test = require('ava')
 var kmath = require('../../src/modules/math')().def
 
 var testErr = require('../helpers/testErr')
 
-testA('module - math:*', async function (t) {
+test('module - math:*', async function (t) {
   var terr = testErr(t, kmath)
 
   t.is(await kmath.base64encode({}, ['}{']), 'fXs=', 'base64encode')

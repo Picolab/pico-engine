@@ -1,7 +1,7 @@
-var testA = require('./helpers/testA')
+var test = require('ava')
 var fn = require('../src/extractRulesetID')
 
-testA('extractRulesetID', function (t) {
+test('extractRulesetID', function (t) {
   t.is(fn(''), undefined)
   t.is(fn('  '), undefined)
   t.is(fn('/* ruleset not {} */ ruleset blah.ok.bye '), 'blah.ok.bye')

@@ -4,7 +4,7 @@ var ktypes = require('krl-stdlib/types')
 var kengine = require('../../src/modules/engine')
 var ADMIN_POLICY_ID = require('../../src/DB').ADMIN_POLICY_ID
 var mkTestPicoEngine = require('../helpers/mkTestPicoEngine')
-var testA = require('../helpers/testA')
+var test = require('ava')
 
 // wrap stubbed functions in this to simulate async
 var tick = function (fn) {
@@ -37,7 +37,7 @@ var assertPicoID = function (id, callback) {
   callback(null, id)
 }
 
-testA('engine:getPicoIDByECI', async function (t) {
+test('engine:getPicoIDByECI', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: ['io.picolabs.engine']
   })
@@ -64,7 +64,7 @@ testA('engine:getPicoIDByECI', async function (t) {
   t.is(await get('quux'), void 0, 'eci not found')
 })
 
-testA('engine:registerRuleset', async function (t) {
+test('engine:registerRuleset', async function (t) {
   var tstErr = _.partial(testError, t)
 
   var engine = kengine({
@@ -97,7 +97,7 @@ testA('engine:registerRuleset', async function (t) {
   )
 })
 
-testA('engine:installRuleset', async function (t) {
+test('engine:installRuleset', async function (t) {
   var tstErr = _.partial(testError, t)
 
   var engine = kengine({
@@ -152,7 +152,7 @@ testA('engine:installRuleset', async function (t) {
   )
 })
 
-testA('engine:uninstallRuleset', async function (t) {
+test('engine:uninstallRuleset', async function (t) {
   var uninstalled = {}
   var order = 0
 
@@ -191,7 +191,7 @@ testA('engine:uninstallRuleset', async function (t) {
   })
 })
 
-testA('engine:unregisterRuleset', async function (t) {
+test('engine:unregisterRuleset', async function (t) {
   var tstErr = _.partial(testError, t)
 
   var log = []
@@ -237,7 +237,7 @@ testA('engine:unregisterRuleset', async function (t) {
   ])
 })
 
-testA('engine:describeRuleset', async function (t) {
+test('engine:describeRuleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: ['io.picolabs.engine']
   })
@@ -287,7 +287,7 @@ testA('engine:describeRuleset', async function (t) {
   t.is(await descRID(ctx, { rid: 'not.found' }), void 0)
 })
 
-testA('engine:listAllEnabledRIDs', async function (t) {
+test('engine:listAllEnabledRIDs', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: ['io.picolabs.engine']
   })
@@ -298,7 +298,7 @@ testA('engine:listAllEnabledRIDs', async function (t) {
   t.truthy(_.includes(rids, 'io.picolabs.engine'))
 })
 
-testA('engine:newPico', async function (t) {
+test('engine:newPico', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: ['io.picolabs.engine']
   })
@@ -326,7 +326,7 @@ testA('engine:newPico', async function (t) {
   })
 })
 
-testA('engine:getParent, engine:getAdminECI, engine:listChildren, engine:removePico', async function (t) {
+test('engine:getParent, engine:getAdminECI, engine:listChildren, engine:removePico', async function (t) {
   var tstErr = _.partial(testError, t)
 
   var pe = await mkTestPicoEngine({
@@ -395,7 +395,7 @@ testA('engine:getParent, engine:getAdminECI, engine:listChildren, engine:removeP
   )
 })
 
-testA('engine:newPolicy, engine:listPolicies, engine:removePolicy', async function (t) {
+test('engine:newPolicy, engine:listPolicies, engine:removePolicy', async function (t) {
   var tstErr = _.partial(testError, t)
 
   var pe = await mkTestPicoEngine({
@@ -459,7 +459,7 @@ testA('engine:newPolicy, engine:listPolicies, engine:removePolicy', async functi
   t.deepEqual(await listPolicies(), [pAdmin])
 })
 
-testA('engine:newChannel, engine:listChannels, engine:removeChannel', async function (t) {
+test('engine:newChannel, engine:listChannels, engine:removeChannel', async function (t) {
   var tstErr = _.partial(testError, t)
 
   var pe = await mkTestPicoEngine({
@@ -560,7 +560,7 @@ testA('engine:newChannel, engine:listChannels, engine:removeChannel', async func
   t.deepEqual(await newChannel({}, ['id0', 'a', 'b', pFoo.id]), mkChan('id0', 'id5', 'a', 'b', pFoo.id))
 })
 
-testA('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset', async function (t) {
+test('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset', async function (t) {
   var tstErr = _.partial(testError, t)
 
   var pe = await mkTestPicoEngine({
@@ -642,7 +642,7 @@ testA('engine:installRuleset, engine:listInstalledRIDs, engine:uninstallRuleset'
   t.deepEqual(await listRIDs({ pico_id: 'id404' }, []), void 0)
 })
 
-testA('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptChannelMessage', async function (t) {
+test('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChannelMessage, engine:decryptChannelMessage', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: ['io.picolabs.engine'],
     __dont_use_sequential_ids_for_testing: true
@@ -714,7 +714,7 @@ testA('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChan
   t.is(await decrypt(eci1, 'bogus43212(*(****', nonce, publicKey0), false, 'non bs58 message')
 })
 
-testA('engine:exportPico', async function (t) {
+test('engine:exportPico', async function (t) {
   var krl = `ruleset rid.export {
     rule sum {
       select when repeat 3 (
@@ -828,7 +828,7 @@ testA('engine:exportPico', async function (t) {
   // TODO scheduled events?
 })
 
-testA('engine:setPicoStatus engine:getPicoStatus', async function (t) {
+test('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   var krl = `ruleset rid.status {
     rule setLeaving {
       select when aa setLeaving

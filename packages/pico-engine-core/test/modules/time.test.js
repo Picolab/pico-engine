@@ -1,8 +1,8 @@
-var testA = require('../helpers/testA')
+var test = require('ava')
 var time = require('../../src/modules/time')().def
 var testErr = require('../helpers/testErr')
 
-testA('time module', async function (t) {
+test('time module', async function (t) {
   var terr = testErr(t, time)
 
   var ctx = {}

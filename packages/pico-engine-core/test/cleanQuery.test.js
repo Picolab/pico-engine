@@ -1,7 +1,7 @@
-var testA = require('./helpers/testA')
+var test = require('ava')
 var cleanQuery = require('../src/cleanQuery')
 
-testA('query = cleanQuery(query)', function (t) {
+test('query = cleanQuery(query)', function (t) {
   try {
     cleanQuery()
     t.fail('should throw')

@@ -1,11 +1,11 @@
 var _ = require('lodash')
-var testA = require('../helpers/testA')
+var test = require('ava')
 var http = require('http')
 var khttp = require('../../src/modules/http')().def
 var ktypes = require('krl-stdlib/types')
 var testErr = require('../helpers/testErr')
 
-testA('http module', async function (t) {
+test('http module', async function (t) {
   var server = http.createServer(function (req, res) {
     var body = ''
     req.on('data', function (buffer) {

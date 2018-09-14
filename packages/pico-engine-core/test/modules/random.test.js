@@ -1,4 +1,4 @@
-var testA = require('../helpers/testA')
+var test = require('ava')
 var ktypes = require('krl-stdlib/types')
 var krandom = require('../../src/modules/random')().def
 
@@ -12,7 +12,7 @@ var assertNumRange = function (n, low, high, shouldBeInt) {
   throw new Error('invalid number range: ' + low + ' <= ' + n + ' <= ' + high)
 }
 
-testA('module - random:*', async function (t) {
+test('module - random:*', async function (t) {
   var i
   for (i = 0; i < 5; i++) {
     t.truthy(/^c[^\s]+$/.test(await krandom.uuid({}, [])))

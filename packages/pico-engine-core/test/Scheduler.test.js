@@ -1,8 +1,8 @@
 var _ = require('lodash')
-var testA = require('./helpers/testA')
+var test = require('ava')
 var Scheduler = require('../src/Scheduler')
 
-testA('Scheduler - at', function (t) {
+test('Scheduler - at', function (t) {
   var log = []
   var queueNextEventAt = []
   var queueRemoveEventAt = []
@@ -92,7 +92,7 @@ var randomTick = function (callback) {
   nTicks(_.random(0, 4), callback)
 }
 
-testA.cb('Scheduler - at - generative test', function (t) {
+test.cb('Scheduler - at - generative test', function (t) {
   var nEvents = 50000
 
   if (process.env.SKIP_LONG_TESTS === 'true') {

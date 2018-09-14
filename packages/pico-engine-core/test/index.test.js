@@ -4,7 +4,7 @@ var util = require('util')
 var cuid = require('cuid')
 var http = require('http')
 var async = require('async')
-var testA = require('./helpers/testA')
+var test = require('ava')
 var memdown = require('memdown')
 var PicoEngine = require('../')
 var mkTestPicoEngine = require('./helpers/mkTestPicoEngine')
@@ -85,7 +85,7 @@ var testOutputs = function (t, pairs) {
   })
 }
 
-testA('PicoEngine - hello_world ruleset', async function (t) {
+test('PicoEngine - hello_world ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.hello_world'
@@ -138,7 +138,7 @@ testA('PicoEngine - hello_world ruleset', async function (t) {
   t.deepEqual(helloQuery, 'Hello Bob')
 })
 
-testA('PicoEngine - io.picolabs.persistent', async function (t) {
+test('PicoEngine - io.picolabs.persistent', async function (t) {
   var pe = await mkTestPicoEngine()
 
   // two picos with the same ruleset
@@ -230,7 +230,7 @@ testA('PicoEngine - io.picolabs.persistent', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.events ruleset', async function (t) {
+test('PicoEngine - io.picolabs.events ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.events'
@@ -425,7 +425,7 @@ testA('PicoEngine - io.picolabs.events ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.scope ruleset', async function (t) {
+test('PicoEngine - io.picolabs.scope ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.scope'
@@ -524,7 +524,7 @@ testA('PicoEngine - io.picolabs.scope ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.operators ruleset', async function (t) {
+test('PicoEngine - io.picolabs.operators ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.operators'
@@ -586,7 +586,7 @@ testA('PicoEngine - io.picolabs.operators ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.chevron ruleset', async function (t) {
+test('PicoEngine - io.picolabs.chevron ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.chevron'
@@ -601,7 +601,7 @@ testA('PicoEngine - io.picolabs.chevron ruleset', async function (t) {
   t.is(resp, '\n            hi 1 + 2 = 3\n            <h1>some<b>html</b></h1>\n        ')
 })
 
-testA('PicoEngine - io.picolabs.execution-order ruleset', async function (t) {
+test('PicoEngine - io.picolabs.execution-order ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.execution-order'
@@ -670,7 +670,7 @@ testA('PicoEngine - io.picolabs.execution-order ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.engine ruleset', async function (t) {
+test('PicoEngine - io.picolabs.engine ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.engine'
@@ -750,7 +750,7 @@ testA('PicoEngine - io.picolabs.engine ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.module-used ruleset', async function (t) {
+test('PicoEngine - io.picolabs.module-used ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.module-used'
@@ -889,7 +889,7 @@ testA('PicoEngine - io.picolabs.module-used ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.expressions ruleset', async function (t) {
+test('PicoEngine - io.picolabs.expressions ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.expressions'
@@ -933,7 +933,7 @@ testA('PicoEngine - io.picolabs.expressions ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.meta ruleset', async function (t) {
+test('PicoEngine - io.picolabs.meta ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.meta'
@@ -978,7 +978,7 @@ testA('PicoEngine - io.picolabs.meta ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.http ruleset', async function (t) {
+test('PicoEngine - io.picolabs.http ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.http'
@@ -1124,7 +1124,7 @@ testA('PicoEngine - io.picolabs.http ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.foreach ruleset', async function (t) {
+test('PicoEngine - io.picolabs.foreach ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.foreach'
@@ -1232,7 +1232,7 @@ testA('PicoEngine - io.picolabs.foreach ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.event-exp ruleset', async function (t) {
+test('PicoEngine - io.picolabs.event-exp ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.event-exp'
@@ -1435,7 +1435,7 @@ testA('PicoEngine - io.picolabs.event-exp ruleset', async function (t) {
   }))
 })
 
-testA('PicoEngine - io.picolabs.within ruleset', async function (t) {
+test('PicoEngine - io.picolabs.within ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.within'
@@ -1490,7 +1490,7 @@ testA('PicoEngine - io.picolabs.within ruleset', async function (t) {
   }))
 })
 
-testA('PicoEngine - io.picolabs.guard-conditions ruleset', async function (t) {
+test('PicoEngine - io.picolabs.guard-conditions ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.guard-conditions'
@@ -1554,7 +1554,7 @@ testA('PicoEngine - io.picolabs.guard-conditions ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.with ruleset', async function (t) {
+test('PicoEngine - io.picolabs.with ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.with'
@@ -1570,7 +1570,7 @@ testA('PicoEngine - io.picolabs.with ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.defaction ruleset', async function (t) {
+test('PicoEngine - io.picolabs.defaction ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.defaction'
@@ -1685,7 +1685,7 @@ testA('PicoEngine - io.picolabs.defaction ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.log ruleset', async function (t) {
+test('PicoEngine - io.picolabs.log ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.log'
@@ -1721,7 +1721,7 @@ testA('PicoEngine - io.picolabs.log ruleset', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.key* rulesets', async function (t) {
+test('PicoEngine - io.picolabs.key* rulesets', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.key-defined',
@@ -1790,7 +1790,7 @@ testA('PicoEngine - io.picolabs.key* rulesets', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.schedule rulesets', async function (t) {
+test('PicoEngine - io.picolabs.schedule rulesets', async function (t) {
   // before starting the engine, write some test data to the db
   var memdb = memdown(cuid())
   var db = DB({
@@ -1968,7 +1968,7 @@ testA('PicoEngine - io.picolabs.schedule rulesets', async function (t) {
   ])
 })
 
-testA('PicoEngine - installRuleset', async function (t) {
+test('PicoEngine - installRuleset', async function (t) {
   var pe = await mkTestPicoEngine()
 
   var ridToUse = 'io.picolabs.hello_world'
@@ -1991,7 +1991,7 @@ testA('PicoEngine - installRuleset', async function (t) {
   t.truthy(true, 'did not throwup')
 })
 
-testA('PicoEngine - io.picolabs.last rulesets', async function (t) {
+test('PicoEngine - io.picolabs.last rulesets', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.last',
@@ -2031,7 +2031,7 @@ testA('PicoEngine - io.picolabs.last rulesets', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.error rulesets', async function (t) {
+test('PicoEngine - io.picolabs.error rulesets', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.error'
@@ -2086,7 +2086,7 @@ testA('PicoEngine - io.picolabs.error rulesets', async function (t) {
   ])
 })
 
-testA("PicoEngine - (re)registering ruleset shouldn't mess up state", async function (t) {
+test("PicoEngine - (re)registering ruleset shouldn't mess up state", async function (t) {
   var pe = await mkTestPicoEngine({
     compileAndLoadRuleset: 'inline'
   })
@@ -2119,7 +2119,7 @@ testA("PicoEngine - (re)registering ruleset shouldn't mess up state", async func
   ])
 })
 
-testA('PicoEngine - io.picolabs.test-error-messages', async function (t) {
+test('PicoEngine - io.picolabs.test-error-messages', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.test-error-messages'
@@ -2192,7 +2192,7 @@ var mkPicoEngineFactoryWithKRLCompiler = function () {
   }
 }
 
-testA('PicoEngine - startup ruleset dependency ordering', async function (t) {
+test('PicoEngine - startup ruleset dependency ordering', async function (t) {
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
 
   // create a blank engine
@@ -2213,7 +2213,7 @@ testA('PicoEngine - startup ruleset dependency ordering', async function (t) {
   t.truthy(true, 'restarted successfully')
 })
 
-testA('PicoEngine - root pico creation', async function (t) {
+test('PicoEngine - root pico creation', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.hello_world'
@@ -2239,7 +2239,7 @@ testA('PicoEngine - root pico creation', async function (t) {
   ])
 })
 
-testA('PicoEngine - js-module', async function (t) {
+test('PicoEngine - js-module', async function (t) {
   var pe = await mkTestPicoEngine({
     rootRIDs: [
       'io.picolabs.js-module'
@@ -2286,7 +2286,7 @@ testA('PicoEngine - js-module', async function (t) {
   ])
 })
 
-testA('PicoEngine - system ruleset dependency ordering', async function (t) {
+test('PicoEngine - system ruleset dependency ordering', async function (t) {
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
 
   var pe = mkPE({
@@ -2307,7 +2307,7 @@ testA('PicoEngine - system ruleset dependency ordering', async function (t) {
   t.deepEqual(rids, ['C'])
 })
 
-testA('PicoEngine - io.picolabs.persistent-index', async function (t) {
+test('PicoEngine - io.picolabs.persistent-index', async function (t) {
   var pe = await mkTestPicoEngine({ rootRIDs: [
     'io.picolabs.persistent-index'
   ] })
@@ -2363,7 +2363,7 @@ testA('PicoEngine - io.picolabs.persistent-index', async function (t) {
   ])
 })
 
-testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
+test('PicoEngine - io.picolabs.policies ruleset', async function (t) {
   var pe = await mkTestPicoEngine({ rootRIDs: ['io.picolabs.policies'] })
   var newPolicy = util.promisify(pe.newPolicy)
   var newChannel = util.promisify(pe.newChannel)
@@ -2558,7 +2558,7 @@ testA('PicoEngine - io.picolabs.policies ruleset', async function (t) {
   await tstQueryPolicy(eci, 'three', 'allowed')
 })
 
-testA('PicoEngine - handle ruleset startup errors after compiler update made breaking changes', async function (t) {
+test('PicoEngine - handle ruleset startup errors after compiler update made breaking changes', async function (t) {
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
 
   // The old compiler didn't complain when the ruleset was registered
@@ -2598,7 +2598,7 @@ testA('PicoEngine - handle ruleset startup errors after compiler update made bre
   t.deepEqual(await listRIDs(), [], 'the ruleset should be disabled now')
 })
 
-testA('PicoEngine - handle ruleset initialization errors', async function (t) {
+test('PicoEngine - handle ruleset initialization errors', async function (t) {
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
 
   t.plan(5)
@@ -2643,7 +2643,7 @@ testA('PicoEngine - handle ruleset initialization errors', async function (t) {
   t.deepEqual(await listRIDs(), [], 'the ruleset should be disabled now')
 })
 
-testA('PicoEngine - handle dependency cycles at startup', async function (t) {
+test('PicoEngine - handle dependency cycles at startup', async function (t) {
   t.plan(6)
 
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
@@ -2669,7 +2669,7 @@ testA('PicoEngine - handle dependency cycles at startup', async function (t) {
   t.deepEqual(await listRids({}, []), ['A', 'D'])
 })
 
-testA("PicoEngine - don't register rulesets that create dependency cycles", async function (t) {
+test("PicoEngine - don't register rulesets that create dependency cycles", async function (t) {
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
 
   var pe = mkPE()

@@ -54,10 +54,8 @@ module.exports = function (opts) {
     modules: opts.modules
   })
 
-  return new Promise(function (resolve, reject) {
-    pe.start(opts.systemRulesets || systemRulesets, function (err) {
-      if (err) reject(err)
-      else resolve(pe)
+  return pe.start(opts.systemRulesets || systemRulesets)
+    .then(function () {
+      return pe
     })
-  })
 }

@@ -1,7 +1,7 @@
-var testA = require('../helpers/testA')
+var test = require('ava')
 var mkTestPicoEngine = require('../helpers/mkTestPicoEngine')
 
-testA('schedule:remove', async function (t) {
+test('schedule:remove', async function (t) {
   var pe = await mkTestPicoEngine()
 
   var remove = await pe.modules.get({}, 'schedule', 'remove')

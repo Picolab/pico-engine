@@ -1,6 +1,6 @@
 var _ = require('lodash')
 var cuid = require('cuid')
-var testA = require('../helpers/testA')
+var test = require('ava')
 var encode = require('encoding-down')
 var dbRange = require('../../src/dbRange')
 var levelup = require('levelup')
@@ -9,7 +9,7 @@ var bytewise = require('bytewise')
 var safeJsonCodec = require('level-json-coerce-null')
 var migration = require('../../src/migrations/20171031T182007_pvar_index')
 
-testA.cb('migration - pvar_index', function (t) {
+test.cb('migration - pvar_index', function (t) {
   var ldb = levelup(encode(memdown(cuid()), {
     keyEncoding: bytewise,
     valueEncoding: safeJsonCodec

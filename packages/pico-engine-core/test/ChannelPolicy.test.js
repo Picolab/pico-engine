@@ -1,7 +1,7 @@
-var testA = require('./helpers/testA')
+var test = require('ava')
 var ChannelPolicy = require('../src/ChannelPolicy')
 
-testA('policy = ChannelPolicy.clean(policy)', function (t) {
+test('policy = ChannelPolicy.clean(policy)', function (t) {
   var cleanIt = ChannelPolicy.clean
 
   try {

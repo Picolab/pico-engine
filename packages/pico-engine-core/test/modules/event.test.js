@@ -1,9 +1,9 @@
 // var _ = require("lodash");
 var http = require('http')
-var testA = require('../helpers/testA')
+var test = require('ava')
 var eventModule = require('../../src/modules/event')
 
-testA('module - event:attr(name)', async function (t) {
+test('module - event:attr(name)', async function (t) {
   var kevent = eventModule()
 
   t.is(
@@ -19,7 +19,7 @@ testA('module - event:attr(name)', async function (t) {
   )
 })
 
-testA.cb('module - event:send(event, host = null)', function (t) {
+test.cb('module - event:send(event, host = null)', function (t) {
   var serverReached = false
   var server = http.createServer(function (req, res) {
     serverReached = true

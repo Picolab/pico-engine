@@ -1,7 +1,7 @@
-var testA = require('./helpers/testA')
+var test = require('ava')
 var cleanEvent = require('../src/cleanEvent')
 
-testA('event = cleanEvent(event)', function (t) {
+test('event = cleanEvent(event)', function (t) {
   try {
     cleanEvent()
     t.fail('should throw')

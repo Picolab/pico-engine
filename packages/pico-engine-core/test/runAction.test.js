@@ -1,8 +1,8 @@
 var _ = require('lodash')
-var testA = require('./helpers/testA')
+var test = require('ava')
 var runAction = require('../src/runAction')
 
-testA('runAction - send_directive', async function (t) {
+test('runAction - send_directive', async function (t) {
   var mkCtx = function (name, options) {
     return {
       addActionResponse: function (ctx, type, val) {

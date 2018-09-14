@@ -1,4 +1,4 @@
-var testA = require('./helpers/testA')
+var test = require('ava')
 var PicoQueue = require('../src/PicoQueue')
 
 function nextTick () {
@@ -7,7 +7,7 @@ function nextTick () {
   })
 }
 
-testA.cb('PicoQueue', function (t) {
+test.cb('PicoQueue', function (t) {
   var log = []
 
   var pq = PicoQueue(async function (picoId, type, data) {
@@ -58,7 +58,7 @@ testA.cb('PicoQueue', function (t) {
   })
 })
 
-testA.cb('PicoQueue - error', function (t) {
+test.cb('PicoQueue - error', function (t) {
   var pq = PicoQueue(async function (picoId, type, data) {
     await nextTick()
     if (data === 'foobar') {
@@ -78,5 +78,6 @@ testA.cb('PicoQueue - error', function (t) {
   pq.enqueue('A', 'test', 'qux', function (err, data) {
     t.is(err, null)
     t.is(data, 'qux')
+    t.end()
   })
 })
