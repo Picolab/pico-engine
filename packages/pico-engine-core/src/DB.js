@@ -37,6 +37,8 @@ var toKeyPath = function (path) {
 }
 
 var putPVar = function (ldb, keyPrefix, query, val, callback) {
+  callback = promiseCallback(callback)
+
   query = ktypes.isNull(query) ? [] : query
   query = ktypes.isArray(query) ? query : [query]
   // do this before toKeyPath b/c it will convert all parts to stings
@@ -67,7 +69,7 @@ var putPVar = function (ldb, keyPrefix, query, val, callback) {
 
       if (_.isEmpty(subPath)) {
         ops.push({ type: 'put', key: subkeyPrefix, value: val })
-        ldb.batch(ops, callback)
+        callback(null, ops)
         return
       }
       ldb.get(subkeyPrefix, function (err, data) {
@@ -79,10 +81,10 @@ var putPVar = function (ldb, keyPrefix, query, val, callback) {
         }
         data = _.set(data, subPath, val)
         ops.push({ type: 'put', key: subkeyPrefix, value: data })
-        ldb.batch(ops, callback)
+        callback(null, ops)
       })
     })
-    return
+    return callback.promise
   }
   ldb.get(keyPrefix, function (err, oldRoot) {
     if (err && !err.notFound) {
@@ -130,9 +132,10 @@ var putPVar = function (ldb, keyPrefix, query, val, callback) {
         key: keyPrefix,
         value: root
       })
-      ldb.batch(ops, callback)
+      callback(null, ops)
     })
   })
+  return callback.promise
 }
 
 var getPVar = function (ldb, keyPrefix, query, callback) {
@@ -237,6 +240,15 @@ module.exports = function (opts) {
         }
       }
     }
+  }
+
+  function getNF (key) {
+    return ldb.get(key)
+      .catch(function (err) {
+        return err && err.notFound
+          ? null
+          : Promise.reject(err)
+      })
   }
 
   function forRange (opts, onData) {
@@ -436,7 +448,15 @@ module.exports = function (opts) {
   }
 
   function getPicoStatus (picoId) {
-    return ldb.get(['pico-status', picoId])
+    return getNF(['pico-status', picoId])
+      .then(function (data) {
+        return {
+          isLeaving: !!(data && data.isLeaving),
+          movedToHost: data && ktypes.isString(data.movedToHost)
+            ? data.movedToHost
+            : null
+        }
+      })
       .catch(function (err) {
         if (err.notFound) {
           return {
@@ -445,6 +465,15 @@ module.exports = function (opts) {
           }
         }
         return Promise.reject(err)
+      })
+  }
+
+  function newPolicy (policy) {
+    var newPolicy = ChannelPolicy.clean(policy)
+    newPolicy.id = newID()
+    return ldb.put(['policy', newPolicy.id], newPolicy)
+      .then(function () {
+        return newPolicy
       })
   }
 
@@ -732,6 +761,127 @@ module.exports = function (opts) {
       return result
     },
 
+    importPico: async function (parentId, data) {
+      if (!data || data.version !== engineCoreVersion) {
+        throw new Error('importPico incompatible version')
+      }
+
+      // policies
+      let polIdMap = {}
+      for (let id of Object.keys(data.policies || {})) {
+        let theirs = data.policies[id]
+        theirs.id = id
+        let mine = await getNF(['policy', id])
+        if (mine && _.isEqual(mine, theirs)) {
+          polIdMap[id] = id
+        } else {
+          let newP = await newPolicy(_.omit(theirs, 'id'))
+          polIdMap[id] = newP.id
+        }
+      }
+
+      // rulesets
+      for (let rid of Object.keys(data.rulesets || {})) {
+        let theirs = data.rulesets[rid]
+        theirs.rid = rid
+        let mine = await getNF(['rulesets', 'krl', theirs.hash])
+        if (mine && _.isEqual(theirs, {
+          src: mine.src,
+          hash: theirs.hash,
+          rid: mine.rid,
+          url: mine.url
+        })) {
+          // success
+        } else {
+          // TODO register this ruleset version, and enable it for the pico
+          throw new Error('TODO register this ruleset version, and enable it for the pico')
+        }
+      }
+
+      if (!data.pico) {
+        return null
+      }
+
+      var picoIdMap = {}
+      var chanIdMap = {}
+      var dbOps = []
+
+      var impPico = {
+        id: newID(),
+        parent_id: parentId
+      }
+      picoIdMap[data.pico.id] = impPico.id
+
+      _.each(data.pico.channels, function (channelOrig) {
+        let channel = _.assign({}, channelOrig, {
+          id: newID(),
+          pico_id: impPico.id,
+          policy_id: polIdMap[channelOrig.policy_id]
+        })
+        chanIdMap[channelOrig.id] = channel.id
+
+        dbOps.push({
+          type: 'put',
+          key: ['channel', channel.id],
+          value: channel
+        })
+        dbOps.push({
+          type: 'put',
+          key: ['pico-eci-list', channel.pico_id, channel.id],
+          value: true
+        })
+      })
+      impPico.admin_eci = chanIdMap[data.pico.admin_eci]
+
+      dbOps.push({
+        type: 'put',
+        key: ['pico', impPico.id],
+        value: impPico
+      })
+      dbOps.push({
+        type: 'put',
+        key: ['pico-children', impPico.parent_id, impPico.id],
+        value: true
+      })
+
+      let toWaits = []
+      _.each(data.pico.entvars, function (vars, rid) {
+        _.each(vars, function (val, vname) {
+          toWaits.push(putPVar(ldb, ['entvars', impPico.id, rid, vname], null, val))
+        })
+      })
+      let entOps = await Promise.all(toWaits)
+      dbOps = dbOps.concat(_.flattenDeep(entOps))
+
+      _.each(data.pico.state_machine, function (rules, rid) {
+        _.each(rules, function (data, rname) {
+          dbOps.push({
+            type: 'put',
+            key: ['state_machine', impPico.id, rid, rname],
+            value: data
+          })
+        })
+      })
+
+      _.each(data.pico.aggregator_var, function (rules, rid) {
+        _.each(rules, function (vars, rname) {
+          _.each(vars, function (val, varKey) {
+            dbOps.push({
+              type: 'put',
+              key: ['aggregator_var', impPico.id, rid, rname, varKey],
+              value: val
+            })
+          })
+        })
+      })
+
+      // TODO descendants
+
+      await ldb.batch(dbOps)
+
+      return impPico.id
+    },
+
     setPicoStatus: async function (picoId, isLeaving, movedToHost) {
       let pico = await getPicoID(picoId)
       if (pico.parent_id) {
@@ -872,13 +1022,7 @@ module.exports = function (opts) {
       })
     },
 
-    newPolicy: function (policy, callback) {
-      var newPolicy = ChannelPolicy.clean(policy)
-      newPolicy.id = newID()
-      ldb.put(['policy', newPolicy.id], newPolicy, function (err, data) {
-        callback(err, newPolicy)
-      })
-    },
+    newPolicy: newPolicy,
 
     listPolicies: function (callback) {
       var list = []
@@ -936,7 +1080,13 @@ module.exports = function (opts) {
     // ent:*
     //
     putEntVar: function (picoId, rid, varName, query, val, callback) {
-      putPVar(ldb, ['entvars', picoId, rid, varName], query, val, callback)
+      putPVar(ldb, ['entvars', picoId, rid, varName], query, val)
+        .then(function (ops) {
+          ldb.batch(ops, callback)
+        })
+        .catch(function (err) {
+          callback(err)
+        })
     },
     getEntVar: function (picoId, rid, varName, query, callback) {
       getPVar(ldb, ['entvars', picoId, rid, varName], query, callback)
@@ -950,7 +1100,13 @@ module.exports = function (opts) {
     // app:*
     //
     putAppVar: function (rid, varName, query, val, callback) {
-      putPVar(ldb, ['appvars', rid, varName], query, val, callback)
+      putPVar(ldb, ['appvars', rid, varName], query, val)
+        .then(function (ops) {
+          ldb.batch(ops, callback)
+        })
+        .catch(function (err) {
+          callback(err)
+        })
     },
     getAppVar: function (rid, varName, query, callback) {
       getPVar(ldb, ['appvars', rid, varName], query, callback)

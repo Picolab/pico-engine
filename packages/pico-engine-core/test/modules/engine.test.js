@@ -4,6 +4,7 @@ var ktypes = require('krl-stdlib/types')
 var kengine = require('../../src/modules/engine')
 var ADMIN_POLICY_ID = require('../../src/DB').ADMIN_POLICY_ID
 var mkTestPicoEngine = require('../helpers/mkTestPicoEngine')
+var engineCoreVersion = require('../../package.json').version
 var test = require('ava')
 
 // wrap stubbed functions in this to simulate async
@@ -826,6 +827,107 @@ test('engine:exportPico', async function (t) {
     }
   })
   // TODO scheduled events?
+})
+
+test('engine:importPico', async function (t) {
+  var krl = `ruleset rid.export {
+    rule asdf {
+      select when asdf asdf
+    }
+  }`
+  var pe = await mkTestPicoEngine({
+    compileAndLoadRuleset: 'inline',
+    rootRIDs: ['rid.export'],
+    systemRulesets: [{
+      src: krl,
+      meta: { url: 'wat' }
+    }]
+  })
+
+  var rootEci = await util.promisify(pe.getRootECI)()
+  var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
+  var rootPicoId = await getPicoIDByECI({}, [rootEci])
+
+  var importPico = await pe.modules.get({}, 'engine', 'importPico')
+  var listPolicies = await pe.modules.get({}, 'engine', 'listPolicies')
+
+  function imp (data) {
+    return importPico({}, [rootPicoId, data])
+      .catch(function (err) {
+        return '' + err
+      })
+  }
+
+  // for now, only the exact version will let you import/export
+  t.is(await imp(), 'Error: importPico incompatible version')
+  t.is(await imp({ version: '?' }), 'Error: importPico incompatible version')
+
+  // import policies, re-use existing when possible
+  t.deepEqual(_.map(await listPolicies(), 'id'), ['allow-all-policy'])
+  t.is(await imp({
+    version: engineCoreVersion,
+    policies: {
+      'allow-all-policy': {
+        name: 'admin channel policy',
+        event: { allow: [{}] },
+        query: { allow: [{}] }
+      }
+    }
+  }), null)
+  // changed, even with the same id, should create a new policy
+  t.is(await imp({
+    version: engineCoreVersion,
+    policies: {
+      'allow-all-policy': {
+        name: 'admin channel policy CHANGED',
+        event: { allow: [{ domain: 'CHANGED' }] },
+        query: { allow: [{}] }
+      }
+    }
+  }), null)
+  t.deepEqual(_.map(await listPolicies(), 'id'), ['allow-all-policy', 'id2'])
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    rulesets: {
+      'rid.export': {
+        src: 'ruleset rid.export {rule newVersion{select when a b}}',
+        hash: 'some-new-hash',
+        url: 'wat'
+      }
+    }
+  }), 'Error: TODO register this ruleset version, and enable it for the pico')
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    pico: {
+      id: 'will-be-changed',
+      parent_id: 'will-be-stomped-over',
+      admin_eci: 'id1',
+      channels: {
+        'id1': { id: 'id1', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id1', verifyKey: 'verifyKey_id1', secret: { seed: 'seed_id1', signKey: 'signKey_id1' } } }
+      },
+      entvars: {
+        'rid.export': {
+          one: 1,
+          arr: [2, { three: 3 }],
+          map: { a: [2, 3], b: { c: { d: 1 } } },
+          foo: {}
+        }
+      },
+      state_machine: {
+        'rid.export': {
+          newPico: { state: 'end', bindings: {} },
+          setvars: { state: 'end', bindings: {} },
+          sum: { state: 's1', bindings: {} }
+        }
+      },
+      aggregator_var: {
+        'rid.export': { sum: { n: ['1', '3'] } }
+      },
+      children: []
+    }
+  }), 'id3')
 })
 
 test('engine:setPicoStatus engine:getPicoStatus', async function (t) {

@@ -209,7 +209,13 @@ module.exports = function (core) {
     newPolicy: mkKRLaction([
       'policy'
     ], function (ctx, args, callback) {
-      core.db.newPolicy(args.policy, callback)
+      core.db.newPolicy(args.policy)
+        .then(function (data) {
+          callback(null, data)
+        })
+        .catch(function (err) {
+          callback(err)
+        })
     }),
 
     removePolicy: mkKRLaction([
@@ -495,6 +501,21 @@ module.exports = function (core) {
       core.db.exportPico(picoId)
         .then(function (pico) {
           callback(null, pico)
+        })
+        .catch(function (err) {
+          callback(err)
+        })
+    }),
+
+    importPico: mkKRLfn([
+      'parent_id',
+      'data'
+    ], function (ctx, args, callback) {
+      var parentId = picoArgOrCtxPico('importPico', ctx, args, 'parent_id')
+      var data = args.data
+      core.db.importPico(parentId, data)
+        .then(function (data) {
+          callback(null, data)
         })
         .catch(function (err) {
           callback(err)
