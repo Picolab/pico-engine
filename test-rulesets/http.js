@@ -3,7 +3,9 @@ module.exports = {
   "meta": {
     "shares": [
       "getResp",
-      "getLastPostEvent"
+      "getLastPostEvent",
+      "fnGet",
+      "fnPost"
     ]
   },
   "global": async function (ctx) {
@@ -69,6 +71,28 @@ module.exports = {
       }
       return [];
     }));
+    ctx.scope.set("fnGet", ctx.mkFunction([
+      "url",
+      "qs"
+    ], async function (ctx, args) {
+      ctx.scope.set("url", args["url"]);
+      ctx.scope.set("qs", args["qs"]);
+      return await ctx.applyFn(await ctx.modules.get(ctx, "http", "get"), ctx, {
+        "0": ctx.scope.get("url"),
+        "qs": ctx.scope.get("qs")
+      });
+    }));
+    ctx.scope.set("fnPost", ctx.mkFunction([
+      "url",
+      "json"
+    ], async function (ctx, args) {
+      ctx.scope.set("url", args["url"]);
+      ctx.scope.set("json", args["json"]);
+      return await ctx.applyFn(await ctx.modules.get(ctx, "http", "post"), ctx, {
+        "0": ctx.scope.get("url"),
+        "json": ctx.scope.get("json")
+      });
+    }));
   },
   "rules": {
     "http_get": {
@@ -85,16 +109,18 @@ module.exports = {
       "body": async function (ctx, runAction, toPairs) {
         ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
         var fired = true;
+        if (fired) {
+          await runAction(ctx, "http", "get", {
+            "0": ctx.scope.get("url"),
+            "qs": { "foo": "bar" },
+            "headers": { "baz": "quix" }
+          }, ["resp"]);
+        }
         if (fired)
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          ctx.scope.set("resp", await ctx.applyFn(await ctx.modules.get(ctx, "http", "get"), ctx, {
-            "0": ctx.scope.get("url"),
-            "qs": { "foo": "bar" },
-            "headers": { "baz": "quix" }
-          }));
           await ctx.modules.set(ctx, "ent", "resp", await ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [ctx.scope.get("resp")]));
         }
       }

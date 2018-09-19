@@ -1,6 +1,6 @@
 ruleset io.picolabs.http {
     meta {
-        shares getResp, getLastPostEvent
+        shares getResp, getLastPostEvent, fnGet, fnPost
     }
     global {
         getResp = function(){
@@ -23,6 +23,12 @@ ruleset io.picolabs.http {
                 "Msg": msg
             });
         }
+        fnGet = function(url, qs){
+            http:get(url, qs = qs);
+        }
+        fnPost = function(url, json){
+            http:post(url, json = json);
+        }
     }
     rule http_get {
         select when http_test get
@@ -30,12 +36,14 @@ ruleset io.picolabs.http {
         pre {
             url = event:attr("url")
         }
+
+        http:get(
+            url,
+            qs = {"foo": "bar"},
+            headers = {"baz": "quix"},
+        ) setting(resp);
+
         fired {
-            resp = http:get(
-                url,
-                qs = {"foo": "bar"},
-                headers = {"baz": "quix"},
-            );
             ent:resp := fmtResp(resp)
         }
     }

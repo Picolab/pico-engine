@@ -51,9 +51,33 @@ var mkSignalTask = function (pe, eci) {
   }
 }
 
+var mkSignalTaskP = function (pe, eci) {
+  return function (domain, type, attrs, timestamp, eid) {
+    return pe.signalEvent({
+      eci: eci,
+      eid: eid || '1234',
+      domain: domain,
+      type: type,
+      attrs: attrs || {},
+      timestamp: timestamp
+    }).then(omitMeta)
+  }
+}
+
 var mkQueryTask = function (pe, eci, rid) {
   return function (name, args) {
     return async.apply(pe.runQuery, {
+      eci: eci,
+      rid: rid,
+      name: name,
+      args: args || {}
+    })
+  }
+}
+
+var mkQueryTaskP = function (pe, eci, rid) {
+  return function (name, args) {
+    return pe.runQuery({
       eci: eci,
       rid: rid,
       name: name,
@@ -980,13 +1004,11 @@ test('PicoEngine - io.picolabs.meta ruleset', async function (t) {
 
 test('PicoEngine - io.picolabs.http ruleset', async function (t) {
   var pe = await mkTestPicoEngine({
-    rootRIDs: [
-      'io.picolabs.http'
-    ]
+    rootRIDs: ['io.picolabs.http']
   })
 
-  var query = mkQueryTask(pe, 'id1', 'io.picolabs.http')
-  var signal = mkSignalTask(pe, 'id1')
+  var query = mkQueryTaskP(pe, 'id1', 'io.picolabs.http')
+  var signal = mkSignalTaskP(pe, 'id1')
 
   var server = http.createServer(function (req, res) {
     var body = ''
@@ -1012,96 +1034,62 @@ test('PicoEngine - io.picolabs.http ruleset', async function (t) {
   })
 
   var url = 'http://localhost:' + server.address().port
-  await testOutputs(t, [
-    [
-      signal('http_test', 'get', { url: url }),
-      []
-    ],
-    [
-      query('getResp'),
-      {
-        content: {
-          url: '/?foo=bar',
-          headers: {
-            baz: 'quix',
-            connection: 'close',
-            host: 'localhost:' + server.address().port
-          },
-          body: ''
-        },
-        content_type: 'application/json',
-        status_code: 200,
-        status_line: 'OK',
-        headers: {
-          'content-type': 'application/json',
-          'connection': 'close'
-        }
-      }
-    ],
-    [
-      signal('http_test', 'post', { url: url }),
-      [{ options: {
-        foo: 'bar',
-        baz: '[Action]' // Notice this is using KRL's json encoding
-      },
-      name: 'resp.content.body' }]
-    ],
-    [
-      signal('http_test', 'post_setting', { url: url }),
-      []// nothing should be returned
-    ],
-    [
-      query('getResp'),
-      {
-        content: {
-          url: '/?foo=bar',
-          headers: {
-            connection: 'close',
-            'content-type': 'application/x-www-form-urlencoded',
-            host: 'localhost:' + server.address().port
-          },
-          body: 'baz=qux'
-        },
-        content_type: 'application/json',
-        status_code: 200,
-        status_line: 'OK',
-        headers: {
-          'content-type': 'application/json',
-          'connection': 'close'
-        }
-      }
-    ],
 
-    // testing autoraise
-    [
-      signal('http_test', 'autoraise', { url: url }),
-      // autoraise happens on the same event schedule
-      [{
-        name: 'http_post_event_handler',
-        options: { attrs: {
-          content: {
-            body: 'baz=qux',
-            headers: {
-              connection: 'close',
-              'content-type': 'application/x-www-form-urlencoded',
-              host: 'localhost:' + server.address().port
-            },
-            url: '/?foo=bar'
-          },
-          content_type: 'application/json',
-          headers: {
-            connection: 'close',
-            'content-type': 'application/json'
-          },
-          label: 'foobar',
-          status_code: 200,
-          status_line: 'OK'
-        } }
-      }]
-    ],
-    [
-      query('getLastPostEvent'),
-      {
+  t.deepEqual(await signal('http_test', 'get', { url: url }), [])
+
+  t.deepEqual(await query('getResp'), {
+    content: {
+      url: '/?foo=bar',
+      headers: {
+        baz: 'quix',
+        connection: 'close',
+        host: 'localhost:' + server.address().port
+      },
+      body: ''
+    },
+    content_type: 'application/json',
+    status_code: 200,
+    status_line: 'OK',
+    headers: {
+      'content-type': 'application/json',
+      'connection': 'close'
+    }
+  })
+
+  t.deepEqual(await signal('http_test', 'post', { url: url }), [
+    { options: {
+      foo: 'bar',
+      baz: '[Action]' // Notice this is using KRL's json encoding
+    },
+    name: 'resp.content.body' }
+  ])
+  t.deepEqual(await signal('http_test', 'post_setting', { url: url }), [], 'nothing should be returned')
+
+  t.deepEqual(await query('getResp'), {
+    content: {
+      url: '/?foo=bar',
+      headers: {
+        connection: 'close',
+        'content-type': 'application/x-www-form-urlencoded',
+        host: 'localhost:' + server.address().port
+      },
+      body: 'baz=qux'
+    },
+    content_type: 'application/json',
+    status_code: 200,
+    status_line: 'OK',
+    headers: {
+      'content-type': 'application/json',
+      'connection': 'close'
+    }
+  })
+
+  // testing autoraise
+  t.deepEqual(await signal('http_test', 'autoraise', { url: url }), [
+    // autoraise happens on the same event schedule
+    {
+      name: 'http_post_event_handler',
+      options: { attrs: {
         content: {
           body: 'baz=qux',
           headers: {
@@ -1119,9 +1107,32 @@ test('PicoEngine - io.picolabs.http ruleset', async function (t) {
         label: 'foobar',
         status_code: 200,
         status_line: 'OK'
-      }
-    ]
+      } }
+    }
   ])
+  t.deepEqual(await query('getLastPostEvent'), {
+    content: {
+      body: 'baz=qux',
+      headers: {
+        connection: 'close',
+        'content-type': 'application/x-www-form-urlencoded',
+        host: 'localhost:' + server.address().port
+      },
+      url: '/?foo=bar'
+    },
+    content_type: 'application/json',
+    headers: {
+      connection: 'close',
+      'content-type': 'application/json'
+    },
+    label: 'foobar',
+    status_code: 200,
+    status_line: 'OK'
+  })
+
+  await t.notThrows(query('fnGet', { url: url, qs: { hi: 'fn' } }))
+  pe.emitter.once('error', _.noop)
+  t.is('' + await t.throws(query('fnPost')), 'Error: actions can only be called in the rule action block')
 })
 
 test('PicoEngine - io.picolabs.foreach ruleset', async function (t) {

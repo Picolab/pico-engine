@@ -26,6 +26,9 @@ var krlCompiler = require('krl-compiler')
 
 var applyFn = function (fn, ctx, args) {
   if (ktypes.isAction(fn)) {
+    if (ktypes.isFunction(fn.also_krlFn_of_this_action)) {
+      return fn.also_krlFn_of_this_action(ctx, args)
+    }
     throw new Error('actions can only be called in the rule action block')
   }
   if (!ktypes.isFunction(fn)) {

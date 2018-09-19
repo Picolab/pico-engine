@@ -1,7 +1,6 @@
 var _ = require('lodash')
 var ktypes = require('krl-stdlib/types')
 var request = require('request')
-var mkKRLfn = require('../mkKRLfn')
 var mkKRLaction = require('../mkKRLaction')
 
 var ensureMap = function (arg, defaultTo) {
@@ -10,9 +9,8 @@ var ensureMap = function (arg, defaultTo) {
     : defaultTo
 }
 
-var mkMethod = function (method, isAction) {
-  var mk = isAction ? mkKRLaction : mkKRLfn
-  return mk([
+var mkMethod = function (method, canAlsoBeUsedAsAFunction) {
+  return mkKRLaction([
     // NOTE: order is significant so it's a breaking API change to change argument ordering
     'url',
     'qs',
@@ -90,19 +88,19 @@ var mkMethod = function (method, isAction) {
         callback(null, r)
       }
     })
-  })
+  }, canAlsoBeUsedAsAFunction)
 }
 
 module.exports = function (core) {
   return {
     def: {
-      get: mkMethod('GET'),
-      head: mkMethod('HEAD'),
+      get: mkMethod('GET', true),
+      head: mkMethod('HEAD', true),
 
-      post: mkMethod('POST', true),
-      put: mkMethod('PUT', true),
-      patch: mkMethod('PATCH', true),
-      'delete': mkMethod('DELETE', true)
+      post: mkMethod('POST'),
+      put: mkMethod('PUT'),
+      patch: mkMethod('PATCH'),
+      'delete': mkMethod('DELETE')
     }
   }
 }
