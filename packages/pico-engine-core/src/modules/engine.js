@@ -507,7 +507,7 @@ module.exports = function (core) {
         })
     }),
 
-    importPico: mkKRLfn([
+    importPico: mkKRLaction([
       'parent_id',
       'data'
     ], function (ctx, args, callback) {

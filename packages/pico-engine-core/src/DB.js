@@ -863,21 +863,19 @@ module.exports = function (opts) {
       }
 
       async function importPicoBase (pico, parentId) {
-        var chanIdMap = {}
         var dbOps = []
 
         var impPico = {
           id: newID(),
-          parent_id: parentId
+          parent_id: parentId,
+          admin_eci: pico.admin_eci
         }
 
         _.each(pico.channels, function (channelOrig) {
           let channel = _.assign({}, channelOrig, {
-            id: newID(),
             pico_id: impPico.id,
             policy_id: polIdMap[channelOrig.policy_id]
           })
-          chanIdMap[channelOrig.id] = channel.id
 
           dbOps.push({
             type: 'put',
@@ -890,7 +888,6 @@ module.exports = function (opts) {
             value: true
           })
         })
-        impPico.admin_eci = chanIdMap[pico.admin_eci]
         if (!impPico.admin_eci) {
           let c = mkAdminChannel(impPico.id)
           impPico.admin_eci = c.channel.id
