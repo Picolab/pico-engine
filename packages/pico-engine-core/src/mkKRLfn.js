@@ -4,8 +4,11 @@ var normalizeKRLArgs = require('./normalizeKRLArgs')
 
 module.exports = function (paramOrder, fn) {
   var fixArgs = _.partial(normalizeKRLArgs, paramOrder)
-  var wfn = util.promisify(fn)
+  if (fn.length === 3) {
+    // TODO remove this
+    fn = util.promisify(fn)
+  }
   return function (ctx, args) {
-    return wfn(ctx, fixArgs(args))
+    return fn(ctx, fixArgs(args))
   }
 }

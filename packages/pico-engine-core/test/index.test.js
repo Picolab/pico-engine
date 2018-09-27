@@ -2590,7 +2590,7 @@ test('PicoEngine - handle ruleset startup errors after compiler update made brea
 
   // First try register/enable the ruleset with the old compiler
   var pe = mkPE({ compileAndLoadRuleset: oldCompiler })
-  var regRS = util.promisify(pe.registerRuleset)
+  var regRS = pe.registerRuleset
   var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
   t.deepEqual(await listRIDs(), [], 'no rulesets yet')
@@ -2628,7 +2628,7 @@ test('PicoEngine - handle ruleset initialization errors', async function (t) {
       }
     })
   } })
-  var regRS = util.promisify(pe.registerRuleset)
+  var regRS = pe.registerRuleset
   var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
   t.deepEqual(await listRIDs(), [], 'no rulesets yet')
@@ -2692,14 +2692,12 @@ test("PicoEngine - don't register rulesets that create dependency cycles", async
 
   await pe.start()
 
-  var registerRuleset = util.promisify(pe.registerRuleset)
-
   var tReg = async function (src) {
-    t.truthy(await registerRuleset(src, null))
+    t.truthy(await pe.registerRuleset(src, null))
   }
   var tRegErr = async function (src, error) {
     try {
-      await registerRuleset(src, null)
+      await pe.registerRuleset(src, null)
       t.fail('expected: ' + error)
     } catch (err) {
       t.is(err + '', error)

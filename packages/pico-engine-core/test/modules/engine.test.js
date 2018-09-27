@@ -7,13 +7,27 @@ var mkTestPicoEngine = require('../helpers/mkTestPicoEngine')
 var engineCoreVersion = require('../../package.json').version
 var test = require('ava')
 
+function nextTick () {
+  return new Promise(function (resolve) {
+    process.nextTick(resolve)
+  })
+}
+
 // wrap stubbed functions in this to simulate async
 var tick = function (fn) {
-  return function () {
-    var args = _.toArray(arguments)
-    process.nextTick(function () {
-      fn.apply(null, args)
-    })
+  return async function () {
+    let args = _.toArray(arguments)
+    let callback = args[fn.length] || _.noop
+    await nextTick()
+    let data
+    try {
+      data = await Promise.resolve(fn.apply(null, args))
+    } catch (err) {
+      callback(err)
+      throw err
+    }
+    callback(null, data)
+    return data
   }
 }
 
@@ -69,10 +83,10 @@ test('engine:registerRuleset', async function (t) {
   var tstErr = _.partial(testError, t)
 
   var engine = kengine({
-    registerRulesetURL: tick(function (url, callback) {
-      callback(null, {
+    registerRulesetURL: tick(function (url) {
+      return {
         rid: 'rid for: ' + url
-      })
+      }
     })
   })
 
@@ -102,23 +116,22 @@ test('engine:installRuleset', async function (t) {
   var tstErr = _.partial(testError, t)
 
   var engine = kengine({
-    installRuleset: tick(function (picoId, rid, callback) {
-      callback()
+    installRuleset: tick(function (picoId, rid) {
     }),
-    registerRulesetURL: tick(function (url, callback) {
-      callback(null, {
+    registerRulesetURL: tick(function (url) {
+      return {
         rid: 'REG:' + /\/([^/]*)\.krl$/.exec(url)[1]
-      })
+      }
     }),
     db: {
       assertPicoID: assertPicoID,
-      findRulesetsByURL: tick(function (url, callback) {
+      findRulesetsByURL: tick(function (url) {
         if (url === 'http://foo.bar/baz/qux.krl') {
-          return callback(null, [{ rid: 'found' }])
+          return [{ rid: 'found' }]
         } else if (url === 'file:///too/many.krl') {
-          return callback(null, [{ rid: 'a' }, { rid: 'b' }, { rid: 'c' }])
+          return [{ rid: 'a' }, { rid: 'b' }, { rid: 'c' }]
         }
-        callback(null, [])
+        return []
       })
     }
   })
@@ -158,18 +171,18 @@ test('engine:uninstallRuleset', async function (t) {
   var order = 0
 
   var engine = kengine({
-    uninstallRuleset: tick(function (id, rid, callback) {
+    uninstallRuleset: tick(function (id, rid) {
       if (id !== 'pico0') {
-        return callback(new Error('invalid pico_id'))
+        throw new Error('invalid pico_id')
       }
       if (!_.isString(rid)) {
-        return callback(new Error('invalid rid'))
+        throw new Error('invalid rid')
       }
       _.set(uninstalled, [id, rid], order++)
-      callback()
     }),
     db: {
-      assertPicoID: assertPicoID
+      assertPicoID: assertPicoID,
+      assertPicoIDYieldable: util.promisify(assertPicoID)
     }
   })
 
@@ -197,12 +210,11 @@ test('engine:unregisterRuleset', async function (t) {
 
   var log = []
   var engine = kengine({
-    unregisterRuleset: tick(function (rid, callback) {
+    unregisterRuleset: tick(function (rid) {
       if (!_.isString(rid)) {
-        return callback(new Error('invalid rid'))
+        throw new Error('invalid rid')
       }
       log.push(rid)
-      callback()
     })
   })
 

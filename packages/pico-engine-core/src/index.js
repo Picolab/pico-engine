@@ -546,11 +546,9 @@ module.exports = function (conf) {
     is_test_mode: !!conf.___core_testing_mode
   })
 
-  core.registerRulesetURL = function (url, callback) {
-    getKRLByURL(url, function (err, src) {
-      if (err) return callback(err)
-      core.registerRuleset(src, { url: url }, callback)
-    })
+  core.registerRulesetURL = async function (url) {
+    let src = await getKRLByURL(url)
+    return core.registerRuleset(src, { url: url })
   }
   core.flushRuleset = function (rid, callback) {
     db.getEnabledRuleset(rid, function (err, rsData) {
@@ -578,12 +576,9 @@ module.exports = function (conf) {
     return callback.promise
   }
 
-  core.uninstallRuleset = function (picoId, rid, callback) {
-    db.assertPicoID(picoId, function (err, picoId) {
-      if (err) return callback(err)
-
-      db.removeRulesetFromPico(picoId, rid, callback)
-    })
+  core.uninstallRuleset = async function (picoId, rid) {
+    picoId = await db.assertPicoIDYieldable(picoId)
+    await db.removeRulesetFromPicoYieldable(picoId, rid)
   }
 
   var resumeScheduler = function (callback) {
