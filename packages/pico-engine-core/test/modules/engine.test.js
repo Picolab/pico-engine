@@ -850,6 +850,9 @@ test('engine:importPico', async function (t) {
 
   var importPico = await pe.modules.get({}, 'engine', 'importPico')
   var listPolicies = await pe.modules.get({}, 'engine', 'listPolicies')
+  var getAdminECI = await pe.modules.get({}, 'engine', 'getAdminECI')
+  var listChannels = await pe.modules.get({}, 'engine', 'listChannels')
+  var listChildren = await pe.modules.get({}, 'engine', 'listChildren')
 
   function imp (data) {
     return importPico({}, [rootPicoId, data])
@@ -874,6 +877,7 @@ test('engine:importPico', async function (t) {
       }
     }
   }), null)
+
   // changed, even with the same id, should create a new policy
   t.is(await imp({
     version: engineCoreVersion,
@@ -928,6 +932,39 @@ test('engine:importPico', async function (t) {
       children: []
     }
   }), 'id3')
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    pico: {
+      id: 'will-be-changed'
+    }
+  }), 'id5', 'minimal import')
+  // create an admin eci if one is not given
+  t.deepEqual(_.map(await listChannels({}, ['id5']), 'id'), ['id6'])
+  t.deepEqual(_.map(await listChannels({}, ['id5']), 'name'), ['admin'])
+  t.deepEqual(await listChildren({}, ['id5']), [])
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    pico: {
+      id: 'will-be-changed',
+      children: [
+        { id: 'one' },
+        {
+          id: 'two',
+          children: [
+            { id: 'two-one' }
+          ]
+        },
+        { id: 'three' }
+      ]
+    }
+  }), 'id7', 'minimal import')
+  t.deepEqual(_.map(await listChannels({}, ['id7']), 'id'), ['id8'])
+  t.deepEqual(await listChildren({}, ['id7']), ['id11', 'id13', 'id9'])
+  t.deepEqual(await listChildren({}, ['id9']), [], 'child "one" has 0')
+  t.deepEqual(await listChildren({}, ['id11']), ['id15'], 'child "two" has 1')
+  t.deepEqual(await listChildren({}, ['id13']), [], 'child "three" has 0')
 })
 
 test('engine:setPicoStatus engine:getPicoStatus', async function (t) {

@@ -310,6 +310,15 @@ module.exports = function (opts) {
     }
   }
 
+  function mkAdminChannel (picoId) {
+    return newChannelBase({
+      pico_id: picoId,
+      name: 'admin',
+      type: 'secret',
+      policy_id: ADMIN_POLICY_ID
+    })
+  }
+
   function getEnabledRuleset (rid, callback) {
     ldb.get(['rulesets', 'enabled', rid], function (err, dataE) {
       if (err) return callback(err)
@@ -659,12 +668,7 @@ module.exports = function (opts) {
           : null
       }
 
-      var c = newChannelBase({
-        pico_id: newPico.id,
-        name: 'admin',
-        type: 'secret',
-        policy_id: ADMIN_POLICY_ID
-      })
+      var c = mkAdminChannel(newPico.id)
       newPico.admin_eci = c.channel.id
 
       var dbOps = c.dbOps
@@ -802,84 +806,97 @@ module.exports = function (opts) {
         return null
       }
 
-      var picoIdMap = {}
-      var chanIdMap = {}
-      var dbOps = []
+      async function importPicoBase (pico, parentId) {
+        var picoIdMap = {}
+        var chanIdMap = {}
+        var dbOps = []
 
-      var impPico = {
-        id: newID(),
-        parent_id: parentId
-      }
-      picoIdMap[data.pico.id] = impPico.id
-
-      _.each(data.pico.channels, function (channelOrig) {
-        let channel = _.assign({}, channelOrig, {
+        var impPico = {
           id: newID(),
-          pico_id: impPico.id,
-          policy_id: polIdMap[channelOrig.policy_id]
-        })
-        chanIdMap[channelOrig.id] = channel.id
+          parent_id: parentId
+        }
+        picoIdMap[pico.id] = impPico.id
 
-        dbOps.push({
-          type: 'put',
-          key: ['channel', channel.id],
-          value: channel
-        })
-        dbOps.push({
-          type: 'put',
-          key: ['pico-eci-list', channel.pico_id, channel.id],
-          value: true
-        })
-      })
-      impPico.admin_eci = chanIdMap[data.pico.admin_eci]
+        _.each(pico.channels, function (channelOrig) {
+          let channel = _.assign({}, channelOrig, {
+            id: newID(),
+            pico_id: impPico.id,
+            policy_id: polIdMap[channelOrig.policy_id]
+          })
+          chanIdMap[channelOrig.id] = channel.id
 
-      dbOps.push({
-        type: 'put',
-        key: ['pico', impPico.id],
-        value: impPico
-      })
-      dbOps.push({
-        type: 'put',
-        key: ['pico-children', impPico.parent_id, impPico.id],
-        value: true
-      })
-
-      let toWaits = []
-      _.each(data.pico.entvars, function (vars, rid) {
-        _.each(vars, function (val, vname) {
-          toWaits.push(putPVar(ldb, ['entvars', impPico.id, rid, vname], null, val))
-        })
-      })
-      let entOps = await Promise.all(toWaits)
-      dbOps = dbOps.concat(_.flattenDeep(entOps))
-
-      _.each(data.pico.state_machine, function (rules, rid) {
-        _.each(rules, function (data, rname) {
           dbOps.push({
             type: 'put',
-            key: ['state_machine', impPico.id, rid, rname],
-            value: data
+            key: ['channel', channel.id],
+            value: channel
+          })
+          dbOps.push({
+            type: 'put',
+            key: ['pico-eci-list', channel.pico_id, channel.id],
+            value: true
           })
         })
-      })
+        impPico.admin_eci = chanIdMap[pico.admin_eci]
+        if (!impPico.admin_eci) {
+          let c = mkAdminChannel(impPico.id)
+          impPico.admin_eci = c.channel.id
+          dbOps.push(c.dbOps)
+        }
 
-      _.each(data.pico.aggregator_var, function (rules, rid) {
-        _.each(rules, function (vars, rname) {
-          _.each(vars, function (val, varKey) {
+        dbOps.push({
+          type: 'put',
+          key: ['pico', impPico.id],
+          value: impPico
+        })
+        dbOps.push({
+          type: 'put',
+          key: ['pico-children', impPico.parent_id, impPico.id],
+          value: true
+        })
+
+        let toWaits = []
+        _.each(pico.entvars, function (vars, rid) {
+          _.each(vars, function (val, vname) {
+            toWaits.push(putPVar(ldb, ['entvars', impPico.id, rid, vname], null, val))
+          })
+        })
+        dbOps.push(await Promise.all(toWaits))
+
+        _.each(pico.state_machine, function (rules, rid) {
+          _.each(rules, function (data, rname) {
             dbOps.push({
               type: 'put',
-              key: ['aggregator_var', impPico.id, rid, rname, varKey],
-              value: val
+              key: ['state_machine', impPico.id, rid, rname],
+              value: data
             })
           })
         })
-      })
 
-      // TODO descendants
+        _.each(pico.aggregator_var, function (rules, rid) {
+          _.each(rules, function (vars, rname) {
+            _.each(vars, function (val, varKey) {
+              dbOps.push({
+                type: 'put',
+                key: ['aggregator_var', impPico.id, rid, rname, varKey],
+                value: val
+              })
+            })
+          })
+        })
 
+        await Promise.all(_.map(pico.children, function (subPico) {
+          return importPicoBase(subPico, impPico.id)
+            .then(function ([id, ops]) {
+              dbOps.push(ops)
+            })
+        }))
+
+        return [impPico.id, _.flattenDeep(dbOps)]
+      }
+
+      let [newPicoId, dbOps] = await importPicoBase(data.pico, parentId)
       await ldb.batch(dbOps)
-
-      return impPico.id
+      return newPicoId
     },
 
     setPicoStatus: async function (picoId, isLeaving, movedToHost) {
