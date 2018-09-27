@@ -125,7 +125,8 @@ test('engine:installRuleset', async function (t) {
     }),
     db: {
       assertPicoID: assertPicoID,
-      findRulesetsByURL: tick(function (url) {
+      assertPicoIDYieldable: util.promisify(assertPicoID),
+      findRulesetsByURLYieldable: tick(function (url) {
         if (url === 'http://foo.bar/baz/qux.krl') {
           return [{ rid: 'found' }]
         } else if (url === 'file:///too/many.krl') {
@@ -679,7 +680,7 @@ test('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChann
     return decryptChannelMessage({}, [eci, encryptedMessage, nonce, otherPublicKey])
   }
 
-  var eci = await util.promisify(pe.getRootECI)()
+  var eci = await pe.getRootECI()
   var picoId = await getPicoIDByECI({}, [eci])
 
   var chan0 = await newChannel({}, [picoId, 'one', 'one'])
@@ -758,7 +759,7 @@ test('engine:exportPico', async function (t) {
     }]
   })
 
-  var rootEci = await util.promisify(pe.getRootECI)()
+  var rootEci = await pe.getRootECI()
   var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
   var rootPicoId = await getPicoIDByECI({}, [rootEci])
 
@@ -860,7 +861,7 @@ test('engine:importPico', async function (t) {
     }]
   })
 
-  var rootEci = await util.promisify(pe.getRootECI)()
+  var rootEci = await pe.getRootECI()
   var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
   var rootPicoId = await getPicoIDByECI({}, [rootEci])
 
@@ -1053,7 +1054,7 @@ test('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   })
   pe.emitter.on('error', _.noop)
 
-  var rootEci = await util.promisify(pe.getRootECI)()
+  var rootEci = await pe.getRootECI()
   var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
   var rootPicoId = await getPicoIDByECI({}, [rootEci])
   var getStatus = await pe.modules.get({}, 'engine', 'getPicoStatus')

@@ -174,12 +174,12 @@ test('PicoEngine - io.picolabs.persistent', async function (t) {
   var entvarPath = ['entvars', 'id0', 'io.picolabs.persistent', 'user']
   var appvarPath = ['appvars', 'io.picolabs.persistent', 'appvar']
 
-  await testOutputs(t, [
-    async.apply(pe.newPico, {}), // id0 - pico A channel id1
-    async.apply(pe.newPico, {}), // id2 - pico B channel id3
-    async.apply(pe.installRuleset, 'id0', 'io.picolabs.persistent'),
-    async.apply(pe.installRuleset, 'id2', 'io.picolabs.persistent'),
+  await pe.newPico({}) // id0 - pico A channel id1
+  await pe.newPico({}) // id2 - pico B channel id3
+  await pe.installRuleset('id0', 'io.picolabs.persistent')
+  await pe.installRuleset('id2', 'io.picolabs.persistent')
 
+  await testOutputs(t, [
     /// ///////////////////////////////////////////////////////////////////////
     // if not set, the var should return undefined
     [queryA('getName'), null],
@@ -669,7 +669,10 @@ test('PicoEngine - io.picolabs.execution-order ruleset', async function (t) {
       query('getOrder'),
       ['foo_or_bar', 'foo', 'foo_or_bar', 'bar']
     ],
-    async.apply(pe.installRuleset, 'id0', 'io.picolabs.execution-order2'),
+    function (next) {
+      pe.installRuleset('id0', 'io.picolabs.execution-order2')
+        .then(function (data) { next(null, data) }, next)
+    },
     [
       signal('execution_order', 'reset_order'),
       [{ name: 'reset_order', options: {} }, { name: '2 - reset_order', options: {} }]
@@ -826,7 +829,10 @@ test('PicoEngine - io.picolabs.module-used ruleset', async function (t) {
       signal('module_defined', 'store_memo', { memo: 'foo' }),
       []// should not respond to this event
     ],
-    async.apply(pe.installRuleset, 'id0', 'io.picolabs.module-defined'),
+    function (next) {
+      pe.installRuleset('id0', 'io.picolabs.module-defined')
+        .then(function (data) { next(null, data) }, next)
+    },
     [
       signal('module_defined', 'store_memo', { memo: 'foo' }),
       [{ name: 'store_memo',
@@ -895,22 +901,15 @@ test('PicoEngine - io.picolabs.module-used ruleset', async function (t) {
           privateFn: 'privateFn = name: Jim memo: ["foo" by Bob]'
         } }]
     ],
-    [queryUsed('getEntVal'), { name: 'Jim' }],
-
-    // Test unregisterRuleset checks
-    function (next) {
-      pe.unregisterRuleset('io.picolabs.module-defined', function (err) {
-        t.is(err + '', 'Error: "io.picolabs.module-defined" is depended on by "io.picolabs.module-used"')
-        next()
-      })
-    },
-    function (next) {
-      pe.unregisterRuleset('io.picolabs.module-used', function (err) {
-        t.is(err + '', 'Error: Unable to unregister "io.picolabs.module-used": it is installed on at least one pico')
-        next()
-      })
-    }
+    [queryUsed('getEntVal'), { name: 'Jim' }]
   ])
+
+  // Test unregisterRuleset checks
+  let err = await t.throws(pe.unregisterRuleset('io.picolabs.module-defined'))
+  t.is(err + '', 'Error: "io.picolabs.module-defined" is depended on by "io.picolabs.module-used"')
+
+  err = await t.throws(pe.unregisterRuleset('io.picolabs.module-used'))
+  t.is(err + '', 'Error: Unable to unregister "io.picolabs.module-used": it is installed on at least one pico')
 })
 
 test('PicoEngine - io.picolabs.expressions ruleset', async function (t) {

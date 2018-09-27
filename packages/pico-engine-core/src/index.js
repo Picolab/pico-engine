@@ -182,7 +182,7 @@ module.exports = function (conf) {
   }
   core.mkCTX = mkCTX
 
-  var initializeRulest = async function (rs) {
+  async function initializeRulest (rs) {
     rs.scope = SymbolTable()
     rs.modules_used = {}
     core.rsreg.setupOwnKeys(rs)
@@ -234,68 +234,54 @@ module.exports = function (conf) {
     }
   }
 
-  core.registerRuleset = function (krlSrc, metaData, callback) {
-    callback = promiseCallback(callback)
-    ;(async function () {
-      var data = await db.storeRulesetYieldable(krlSrc, metaData)
-      var rid = data.rid
-      var hash = data.hash
+  core.registerRuleset = async function (krlSrc, metaData) {
+    var data = await db.storeRulesetYieldable(krlSrc, metaData)
+    var rid = data.rid
+    var hash = data.hash
 
-      var rs = await compileAndLoadRulesetYieldable({
-        rid: rid,
-        src: krlSrc,
-        hash: hash
+    var rs = await compileAndLoadRulesetYieldable({
+      rid: rid,
+      src: krlSrc,
+      hash: hash
+    })
+
+    if (depGraph.hasNode(rs.rid)) {
+      // cleanup any left over dependencies with rid
+      _.each(depGraph.dependenciesOf(rs.rid), function (rid) {
+        depGraph.removeDependency(rs.rid, rid)
       })
+    } else {
+      depGraph.addNode(rs.rid)
+    }
 
-      if (depGraph.hasNode(rs.rid)) {
-        // cleanup any left over dependencies with rid
-        _.each(depGraph.dependenciesOf(rs.rid), function (rid) {
-          depGraph.removeDependency(rs.rid, rid)
-        })
-      } else {
-        depGraph.addNode(rs.rid)
-      }
-
-      try {
-        _.each(rs.meta && rs.meta.use, function (use) {
-          if (use.kind === 'module') {
-            try {
-              depGraph.addDependency(rs.rid, use.rid)
-            } catch (e) {
-              throw new Error('Dependant module not loaded: ' + use.rid)
-            }
+    try {
+      _.each(rs.meta && rs.meta.use, function (use) {
+        if (use.kind === 'module') {
+          try {
+            depGraph.addDependency(rs.rid, use.rid)
+          } catch (e) {
+            throw new Error('Dependant module not loaded: ' + use.rid)
           }
-        })
-
-        // check for dependency cycles
-        depGraph.overallOrder()// this will throw if there is a cycle
-
-        // Now enable and initialize it
-        await db.enableRulesetYieldable(hash)
-        await initializeRulest(rs)
-      } catch (err) {
-        core.rsreg.del(rs.rid)
-        depGraph.removeNode(rs.rid)
-        db.disableRuleset(rs.rid, _.noop)// undo enable if failed
-        throw err
-      }
-
-      return {
-        rid: rs.rid,
-        hash: hash
-      }
-    }())
-      .then(function (data) {
-        callback(null, data)
+        }
       })
-      .catch(function (err) {
-        process.nextTick(function () {
-          // wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
-          // when infact we are handling the rejection
-          callback(err)
-        })
-      })
-    return callback.promise
+
+      // check for dependency cycles
+      depGraph.overallOrder()// this will throw if there is a cycle
+
+      // Now enable and initialize it
+      await db.enableRulesetYieldable(hash)
+      await initializeRulest(rs)
+    } catch (err) {
+      core.rsreg.del(rs.rid)
+      depGraph.removeNode(rs.rid)
+      db.disableRuleset(rs.rid, _.noop)// undo enable if failed
+      throw err
+    }
+
+    return {
+      rid: rs.rid,
+      hash: hash
+    }
   }
 
   var picoQ = PicoQueue(async function (picoId, type, data) {
@@ -328,7 +314,7 @@ module.exports = function (conf) {
     }
   })
 
-  var picoTask = function (type, dataOrig, callback) {
+  function picoTask (type, dataOrig, callback) {
     var data
     try {
       // validate + normalize event/query, and make sure is not mutated
@@ -411,8 +397,8 @@ module.exports = function (conf) {
     return callback.promise
   }
 
-  core.registerAllEnabledRulesets = function (callback) {
-    callback = promiseCallback(callback)
+  core.registerAllEnabledRulesets = function () {
+    let callback = promiseCallback()
     var rsByRid = {}
 
     async.series([
@@ -510,28 +496,17 @@ module.exports = function (conf) {
     return callback.promise
   }
 
-  core.unregisterRuleset = function (rid, callback) {
+  core.unregisterRuleset = async function (rid) {
     // first assert rid is not depended on as a module
-    try {
-      core.rsreg.assertNoDependants(rid)
-    } catch (err) {
-      callback(err)
-      return
+    core.rsreg.assertNoDependants(rid)
+
+    let isUsed = await db.isRulesetUsedYieldable(rid)
+    if (isUsed) {
+      throw new Error('Unable to unregister "' + rid + '": it is installed on at least one pico')
     }
-    db.isRulesetUsed(rid, function (err, isUsed) {
-      if (err) return callback(err)
-      if (isUsed) {
-        callback(new Error('Unable to unregister "' + rid + '": it is installed on at least one pico'))
-        return
-      }
-      db.deleteRuleset(rid, function (err) {
-        if (err) return callback(err)
+    await db.deleteRulesetYieldable(rid)
 
-        core.rsreg.del(rid)
-
-        callback()
-      })
-    })
+    core.rsreg.del(rid)
   }
 
   core.scheduler = Scheduler({
@@ -550,54 +525,26 @@ module.exports = function (conf) {
     let src = await getKRLByURL(url)
     return core.registerRuleset(src, { url: url })
   }
-  core.flushRuleset = function (rid, callback) {
-    db.getEnabledRuleset(rid, function (err, rsData) {
-      if (err) return callback(err)
-      var url = rsData.url
-      if (!_.isString(url)) {
-        callback(new Error('cannot flush a locally registered ruleset'))
-        return
-      }
-      core.registerRulesetURL(url, callback)
-    })
+  core.flushRuleset = async function (rid) {
+    let rsData = await db.getEnabledRulesetYieldable(rid)
+    var url = rsData.url
+    if (!_.isString(url)) {
+      throw new Error('cannot flush a locally registered ruleset')
+    }
+    return core.registerRulesetURL(url)
   }
-  core.installRuleset = function (picoId, rid, callback) {
-    callback = promiseCallback(callback)
-    db.assertPicoID(picoId, function (err, picoId) {
-      if (err) return callback(err)
+  core.installRuleset = async function (picoId, rid) {
+    picoId = await db.assertPicoIDYieldable(picoId)
 
-      db.hasEnabledRid(rid, function (err, has) {
-        if (err) return callback(err)
-        if (!has) return callback(new Error('This rid is not found and/or enabled: ' + rid))
+    let has = await db.hasEnabledRidYieldable(rid)
+    if (!has) throw new Error('This rid is not found and/or enabled: ' + rid)
 
-        db.addRulesetToPico(picoId, rid, callback)
-      })
-    })
-    return callback.promise
+    return db.addRulesetToPicoYieldable(picoId, rid)
   }
 
   core.uninstallRuleset = async function (picoId, rid) {
     picoId = await db.assertPicoIDYieldable(picoId)
     await db.removeRulesetFromPicoYieldable(picoId, rid)
-  }
-
-  var resumeScheduler = function (callback) {
-    db.listScheduled(function (err, vals) {
-      if (err) return callback(err)
-
-      // resume the cron jobs
-      _.each(vals, function (val) {
-        if (!_.isString(val.timespec)) {
-          return
-        }
-        core.scheduler.addCron(val.timespec, val.id, val.event)
-      })
-
-      // resume `schedule .. at` queue
-      core.scheduler.update()
-
-      callback()
-    })
   }
 
   var pe = {
@@ -606,11 +553,11 @@ module.exports = function (conf) {
     signalEvent: core.signalEvent,
     runQuery: core.runQuery,
 
-    getRootECI: function (callback) {
-      db.getRootPico(function (err, rootPico) {
-        if (err) return callback(err)
-        callback(null, rootPico.admin_eci)
-      })
+    getRootECI: function () {
+      return db.getRootPicoYieldable()
+        .then(function (rootPico) {
+          return rootPico.admin_eci
+        })
     },
 
     /// //////////////////
@@ -642,8 +589,8 @@ module.exports = function (conf) {
     pe.modules = modules
   }
 
-  pe.start = function (systemRulesets, callback) {
-    callback = promiseCallback(callback)
+  pe.start = function (systemRulesets) {
+    let callback = promiseCallback()
     async.series([
       db.checkAndRunMigrations,
       function (nextStep) {
@@ -667,7 +614,10 @@ module.exports = function (conf) {
         }, nextStep)
       },
       function (next) {
-        core.registerAllEnabledRulesets(next)
+        core.registerAllEnabledRulesets()
+          .then(function () {
+            next()
+          }, next)
       },
       function (next) {
         if (_.isEmpty(rootRIDs)) {
@@ -700,12 +650,32 @@ module.exports = function (conf) {
             })
 
             async.eachSeries(toInstall, function (rid, next) {
-              core.installRuleset(rootPico.id, rid, next)
+              core.installRuleset(rootPico.id, rid)
+                .then(function (data) {
+                  next(null, data)
+                }, next)
             }, next)
           })
         })
       },
-      resumeScheduler
+      function resumeScheduler (callback) {
+        db.listScheduled(function (err, vals) {
+          if (err) return callback(err)
+
+          // resume the cron jobs
+          _.each(vals, function (val) {
+            if (!_.isString(val.timespec)) {
+              return
+            }
+            core.scheduler.addCron(val.timespec, val.id, val.event)
+          })
+
+          // resume `schedule .. at` queue
+          core.scheduler.update()
+
+          callback()
+        })
+      }
     ], callback)
     return callback.promise
   }

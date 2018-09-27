@@ -175,26 +175,28 @@ module.exports = function (core) {
 
     removePico: mkKRLaction([
       'pico_id'
-    ], function (ctx, args, callback) {
+    ], async function (ctx, args) {
       var picoId = picoArgOrCtxPico('removePico', ctx, args)
 
-      core.db.assertPicoID(picoId, function (err, picoId) {
-        if (err && err.notFound) return callback(null, false)
-        if (err) return callback(err)
+      try {
+        picoId = await core.db.assertPicoIDYieldable(picoId)
+      } catch (err) {
+        if (err && err.notFound) return false
+        throw err
+      }
 
-        core.db.listChildren(picoId, function (err, children) {
-          if (err) return callback(err)
-          if (_.size(children) > 0) {
-            callback(new Error('Cannot remove pico "' + picoId + '" because it has ' + _.size(children) + ' children'))
-            return
-          }
-          core.db.removePico(picoId, function () {
-            if (err && err.notFound) return callback(null, false)
-            if (err) return callback(err)
-            callback(null, true)
-          })
-        })
-      })
+      let children = await core.db.listChildrenYieldable(picoId)
+      if (_.size(children) > 0) {
+        throw new Error('Cannot remove pico "' + picoId + '" because it has ' + _.size(children) + ' children')
+      }
+
+      try {
+        await core.db.removePicoYieldable(picoId)
+      } catch (err) {
+        if (err && err.notFound) return false
+        throw err
+      }
+      return true
     }),
 
     newPolicy: mkKRLaction([
@@ -205,16 +207,18 @@ module.exports = function (core) {
 
     removePolicy: mkKRLaction([
       'policy_id'
-    ], function (ctx, args, callback) {
+    ], async function (ctx, args) {
       var id = args.policy_id
       if (!_.isString(id)) {
-        return callback(new TypeError('engine:removePolicy was given ' + ktypes.toString(id) + ' instead of a policy_id string'))
+        throw new TypeError('engine:removePolicy was given ' + ktypes.toString(id) + ' instead of a policy_id string')
       }
-      core.db.removePolicy(id, function (err) {
-        if (err && err.notFound) return callback(null, false)
-        if (err) return callback(err)
-        callback(null, true)
-      })
+      try {
+        await core.db.removePolicyYieldable(id)
+        return true
+      } catch (err) {
+        if (err && err.notFound) return false
+        throw err
+      }
     }),
 
     newChannel: mkKRLaction([
@@ -291,27 +295,29 @@ module.exports = function (core) {
 
     unregisterRuleset: mkKRLaction([
       'rid'
-    ], function (ctx, args, callback) {
+    ], async function (ctx, args) {
       if (!_.has(args, 'rid')) {
-        return callback(new Error('engine:unregisterRuleset needs a rid string or array'))
+        throw new Error('engine:unregisterRuleset needs a rid string or array')
       }
       if (ktypes.isString(args.rid)) {
-        return core.unregisterRuleset(args.rid, callback)
+        await core.unregisterRuleset(args.rid)
+        return
       }
       if (!ktypes.isArray(args.rid)) {
-        return callback(new TypeError('engine:unregisterRuleset was given ' + ktypes.toString(args.rid) + ' instead of a rid string or array'))
+        throw new TypeError('engine:unregisterRuleset was given ' + ktypes.toString(args.rid) + ' instead of a rid string or array')
       }
 
       var rids = _.uniq(args.rid)
 
-      var i
-      for (i = 0; i < rids.length; i++) {
-        if (!ktypes.isString(rids[i])) {
-          return callback(new TypeError('engine:unregisterRuleset was given a rid array containing a non-string (' + ktypes.toString(rids[i]) + ')'))
+      for (let rid of rids) {
+        if (!ktypes.isString(rid)) {
+          throw new TypeError('engine:unregisterRuleset was given a rid array containing a non-string (' + ktypes.toString(rid) + ')')
         }
       }
 
-      async.eachSeries(rids, core.unregisterRuleset, callback)
+      for (let rid of rids) {
+        await core.unregisterRuleset(rid)
+      }
     }),
 
     installRuleset: mkKRLaction([
@@ -319,66 +325,59 @@ module.exports = function (core) {
       'rid',
       'url',
       'base'
-    ], function (ctx, args, callback) {
+    ], async function (ctx, args) {
       var ridGiven = _.has(args, 'rid')
       if (!ridGiven && !_.has(args, 'url')) {
-        return callback(new Error('engine:installRuleset needs either a rid string or array, or a url string'))
+        throw new Error('engine:installRuleset needs either a rid string or array, or a url string')
       }
 
       var picoId = picoArgOrCtxPico('installRuleset', ctx, args)
+      picoId = await core.db.assertPicoIDYieldable(picoId)
 
-      var install = function (rid, callback) {
-        core.installRuleset(picoId, rid, function (err) {
-          callback(err, rid)
-        })
+      var install = function (rid) {
+        return core.installRuleset(picoId, rid)
+          .then(function () {
+            return rid
+          })
       }
 
-      core.db.assertPicoID(picoId, function (err, picoId) {
-        if (err) return callback(err)
-
-        if (ridGiven) {
-          var ridIsString = ktypes.isString(args.rid)
-          if (!ridIsString && !ktypes.isArray(args.rid)) {
-            return callback(new TypeError('engine:installRuleset was given ' + ktypes.toString(args.rid) + ' instead of a rid string or array'))
-          }
-          if (ridIsString) {
-            return install(args.rid, callback)
-          }
-
-          var rids = _.uniq(args.rid)
-
-          var i
-          for (i = 0; i < rids.length; i++) {
-            if (!ktypes.isString(rids[i])) {
-              return callback(new TypeError('engine:installRuleset was given a rid array containing a non-string (' + ktypes.toString(rids[i]) + ')'))
-            }
-          }
-
-          return async.mapSeries(rids, install, callback)
+      if (ridGiven) {
+        var ridIsString = ktypes.isString(args.rid)
+        if (!ridIsString && !ktypes.isArray(args.rid)) {
+          throw new TypeError('engine:installRuleset was given ' + ktypes.toString(args.rid) + ' instead of a rid string or array')
+        }
+        if (ridIsString) {
+          return install(args.rid)
         }
 
-        if (!ktypes.isString(args.url)) {
-          return callback(new TypeError('engine:installRuleset was given ' + ktypes.toString(args.url) + ' instead of a url string'))
+        var rids = _.uniq(args.rid)
+
+        var i
+        for (i = 0; i < rids.length; i++) {
+          if (!ktypes.isString(rids[i])) {
+            throw new TypeError('engine:installRuleset was given a rid array containing a non-string (' + ktypes.toString(rids[i]) + ')')
+          }
         }
-        var uri = ktypes.isString(args.base)
-          ? urllib.resolve(args.base, args.url)
-          : args.url
-        core.db.findRulesetsByURL(uri, function (err, results) {
-          if (err) return callback(err)
-          var rids = _.uniq(_.map(results, 'rid'))
-          if (_.size(rids) === 0) {
-            core.registerRulesetURL(uri, function (err, data) {
-              if (err) return callback(err)
-              install(data.rid, callback)
-            })
-            return
-          }
-          if (_.size(rids) !== 1) {
-            return callback(new Error('More than one rid found for the given url: ' + rids.join(' , ')))
-          }
-          install(_.head(rids), callback)
-        })
-      })
+        return Promise.all(_.map(rids, install))
+      }
+
+      if (!ktypes.isString(args.url)) {
+        throw new TypeError('engine:installRuleset was given ' + ktypes.toString(args.url) + ' instead of a url string')
+      }
+      var uri = ktypes.isString(args.base)
+        ? urllib.resolve(args.base, args.url)
+        : args.url
+
+      let results = await core.db.findRulesetsByURLYieldable(uri)
+      var rids = _.uniq(_.map(results, 'rid'))
+      if (_.size(rids) === 0) {
+        let data = await core.registerRulesetURL(uri)
+        return install(data.rid)
+      }
+      if (_.size(rids) !== 1) {
+        throw new Error('More than one rid found for the given url: ' + rids.join(' , '))
+      }
+      return install(_.head(rids))
     }),
 
     uninstallRuleset: mkKRLaction([
