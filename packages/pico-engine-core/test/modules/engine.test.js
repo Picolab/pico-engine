@@ -795,6 +795,9 @@ test('engine:exportPico', async function (t) {
       channels: {
         'id1': { id: 'id1', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id1', verifyKey: 'verifyKey_id1', secret: { seed: 'seed_id1', signKey: 'signKey_id1' } } }
       },
+      rulesets: [
+        'rid.export'
+      ],
       entvars: {
         'rid.export': {
           one: 1,
@@ -821,6 +824,7 @@ test('engine:exportPico', async function (t) {
           channels: {
             'id3': { id: 'id3', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id3', verifyKey: 'verifyKey_id3', secret: { seed: 'seed_id3', signKey: 'signKey_id3' } } }
           },
+          rulesets: [],
           children: []
         }
       ]
@@ -853,6 +857,8 @@ test('engine:importPico', async function (t) {
   var getAdminECI = await pe.modules.get({}, 'engine', 'getAdminECI')
   var listChannels = await pe.modules.get({}, 'engine', 'listChannels')
   var listChildren = await pe.modules.get({}, 'engine', 'listChildren')
+  var listInstalledRIDs = await pe.modules.get({}, 'engine', 'listInstalledRIDs')
+  var listAllEnabledRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
   function imp (data) {
     return importPico({}, [rootPicoId, data])
@@ -900,7 +906,20 @@ test('engine:importPico', async function (t) {
         url: 'wat'
       }
     }
-  }), 'Error: TODO register this ruleset version, and enable it for the pico')
+  }), 'Error: Cannot import pico. This engine has a different version of rid.export enabled.')
+
+  t.deepEqual(await listAllEnabledRIDs(), ['rid.export'])
+  t.is(await imp({
+    version: engineCoreVersion,
+    rulesets: {
+      'some.new.rid': {
+        src: 'ruleset some.new.rid {rule hi{select when hi hi}}',
+        hash: 'some-hash',
+        url: 'wat'
+      }
+    }
+  }), null)
+  t.deepEqual(await listAllEnabledRIDs(), ['rid.export', 'some.new.rid'])
 
   t.is(await imp({
     version: engineCoreVersion,
@@ -911,6 +930,7 @@ test('engine:importPico', async function (t) {
       channels: {
         'id1': { id: 'id1', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id1', verifyKey: 'verifyKey_id1', secret: { seed: 'seed_id1', signKey: 'signKey_id1' } } }
       },
+      rulesets: ['rid.export'],
       entvars: {
         'rid.export': {
           one: 1,
@@ -932,12 +952,12 @@ test('engine:importPico', async function (t) {
       children: []
     }
   }), 'id3')
+  t.deepEqual(_.map(await listChannels({}, ['id3']), 'id'), ['id4'])
+  t.deepEqual(await listInstalledRIDs({}, ['id3']), ['rid.export'])
 
   t.is(await imp({
     version: engineCoreVersion,
-    pico: {
-      id: 'will-be-changed'
-    }
+    pico: {}
   }), 'id5', 'minimal import')
   // create an admin eci if one is not given
   t.deepEqual(_.map(await listChannels({}, ['id5']), 'id'), ['id6'])

@@ -370,6 +370,8 @@ module.exports = function (opts) {
         _.set(result, ['policies', policy.id], _.omit(policy, 'id'))
       }
     })
+
+    pico.rulesets = []
     await forRange({
       prefix: ['pico-ruleset', pico.id]
     }, function (data) {
@@ -380,6 +382,7 @@ module.exports = function (opts) {
       if (_.has(result, ['rulesets', rid])) {
         return
       }
+      pico.rulesets.push(rid)
       return getEnabledRulesetP(rid)
         .then(function (rs) {
           _.set(result, ['rulesets', rid], rs)
@@ -484,6 +487,60 @@ module.exports = function (opts) {
       .then(function () {
         return newPolicy
       })
+  }
+
+  async function storeRuleset (krlSrc, meta, timestamp) {
+    timestamp = timestamp || (new Date()).toISOString()
+
+    var rid = extractRulesetID(krlSrc)
+    if (!rid) {
+      throw new Error('Ruleset name not found')
+    }
+    var shasum = crypto.createHash('sha256')
+    shasum.update(krlSrc)
+    var hash = shasum.digest('hex')
+
+    var url = _.has(meta, 'url') && _.isString(meta.url)
+      ? meta.url
+      : null
+
+    var dbOps = [
+      {
+        // the source of truth for a ruleset version
+        type: 'put',
+        key: ['rulesets', 'krl', hash],
+        value: {
+          src: krlSrc,
+          rid: rid,
+          url: url,
+          timestamp: timestamp
+        }
+      },
+      {
+        // index to view all the versions of a given ruleset name
+        type: 'put',
+        key: ['rulesets', 'versions', rid, timestamp, hash],
+        value: true
+      }
+    ]
+    if (url) {
+      // index to lookup by url
+      dbOps.push({
+        type: 'put',
+        key: ['rulesets', 'url', url.toLowerCase().trim(), rid, hash],
+        value: true
+      })
+    }
+    await ldb.batch(dbOps)
+    return { rid: rid, hash: hash }
+  }
+
+  async function enableRuleset (hash) {
+    let data = await ldb.get(['rulesets', 'krl', hash])
+    await ldb.put(['rulesets', 'enabled', data.rid], {
+      hash: hash,
+      timestamp: (new Date()).toISOString()
+    })
   }
 
   return {
@@ -788,17 +845,16 @@ module.exports = function (opts) {
       for (let rid of Object.keys(data.rulesets || {})) {
         let theirs = data.rulesets[rid]
         theirs.rid = rid
-        let mine = await getNF(['rulesets', 'krl', theirs.hash])
-        if (mine && _.isEqual(theirs, {
-          src: mine.src,
-          hash: theirs.hash,
-          rid: mine.rid,
-          url: mine.url
-        })) {
-          // success
+        let enabled = await getNF(['rulesets', 'enabled', rid])
+        if (enabled) {
+          if (theirs.hash === enabled.hash) {
+            // good to go
+          } else {
+            throw new Error('Cannot import pico. This engine has a different version of ' + rid + ' enabled.')
+          }
         } else {
-          // TODO register this ruleset version, and enable it for the pico
-          throw new Error('TODO register this ruleset version, and enable it for the pico')
+          let rsinfo = await storeRuleset(theirs.src, { url: theirs.url })
+          await enableRuleset(rsinfo.hash)
         }
       }
 
@@ -807,7 +863,6 @@ module.exports = function (opts) {
       }
 
       async function importPicoBase (pico, parentId) {
-        var picoIdMap = {}
         var chanIdMap = {}
         var dbOps = []
 
@@ -815,7 +870,6 @@ module.exports = function (opts) {
           id: newID(),
           parent_id: parentId
         }
-        picoIdMap[pico.id] = impPico.id
 
         _.each(pico.channels, function (channelOrig) {
           let channel = _.assign({}, channelOrig, {
@@ -852,6 +906,19 @@ module.exports = function (opts) {
           type: 'put',
           key: ['pico-children', impPico.parent_id, impPico.id],
           value: true
+        })
+
+        _.each(pico.rulesets, function (rid) {
+          dbOps.push({
+            type: 'put',
+            key: ['pico-ruleset', impPico.id, rid],
+            value: { on: true }
+          })
+          dbOps.push({
+            type: 'put',
+            key: ['ruleset-pico', rid, impPico.id],
+            value: { on: true }
+          })
         })
 
         let toWaits = []
@@ -1191,58 +1258,15 @@ module.exports = function (opts) {
     // rulesets
     //
     storeRuleset: function (krlSrc, meta, callback) {
-      var timestamp = (new Date()).toISOString()
+      var timestamp
       if (arguments.length === 4 && _.isString(arguments[3])) { // for testing only
         timestamp = arguments[3]// for testing only
       }// for testing only
-
-      var rid = extractRulesetID(krlSrc)
-      if (!rid) {
-        callback(new Error('Ruleset name not found'))
-        return
-      }
-      var shasum = crypto.createHash('sha256')
-      shasum.update(krlSrc)
-      var hash = shasum.digest('hex')
-
-      var url = _.has(meta, 'url') && _.isString(meta.url)
-        ? meta.url
-        : null
-
-      var dbOps = [
-        {
-          // the source of truth for a ruleset version
-          type: 'put',
-          key: ['rulesets', 'krl', hash],
-          value: {
-            src: krlSrc,
-            rid: rid,
-            url: url,
-            timestamp: timestamp
-          }
-        },
-        {
-          // index to view all the versions of a given ruleset name
-          type: 'put',
-          key: ['rulesets', 'versions', rid, timestamp, hash],
-          value: true
-        }
-      ]
-      if (url) {
-        // index to lookup by url
-        dbOps.push({
-          type: 'put',
-          key: ['rulesets', 'url', url.toLowerCase().trim(), rid, hash],
-          value: true
+      storeRuleset(krlSrc, meta, timestamp)
+        .then(function (data) {
+          callback(null, data)
         })
-      }
-      ldb.batch(dbOps, function (err) {
-        if (err) return callback(err)
-        callback(null, {
-          rid: rid,
-          hash: hash
-        })
-      })
+        .catch(callback)
     },
     hasEnabledRid: function (rid, callback) {
       var hasFound = false
@@ -1273,13 +1297,10 @@ module.exports = function (opts) {
       })
     },
     enableRuleset: function (hash, callback) {
-      ldb.get(['rulesets', 'krl', hash], function (err, data) {
-        if (err) return callback(err)
-        ldb.put(['rulesets', 'enabled', data.rid], {
-          hash: hash,
-          timestamp: (new Date()).toISOString()
-        }, callback)
-      })
+      enableRuleset(hash)
+        .then(function (data) {
+          callback(null, data)
+        }).catch(callback)
     },
     disableRuleset: function (rid, callback) {
       ldb.del(['rulesets', 'enabled', rid], callback)
