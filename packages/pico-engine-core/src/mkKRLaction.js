@@ -1,6 +1,6 @@
 var mkKRLfn = require('./mkKRLfn')
 
-module.exports = function (paramOrder, fn) {
+module.exports = function (paramOrder, fn, canAlsoBeUsedAsAFunction) {
   var kfn = mkKRLfn(paramOrder, fn)
 
   var actionFn = function (ctx, args) {
@@ -13,6 +13,10 @@ module.exports = function (paramOrder, fn) {
   }
 
   actionFn.is_an_action = true
+
+  if (canAlsoBeUsedAsAFunction) {
+    actionFn.also_krlFn_of_this_action = kfn
+  }
 
   return actionFn
 }
