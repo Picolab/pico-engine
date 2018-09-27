@@ -2381,7 +2381,7 @@ test('PicoEngine - io.picolabs.persistent-index', async function (t) {
 
 test('PicoEngine - io.picolabs.policies ruleset', async function (t) {
   var pe = await mkTestPicoEngine({ rootRIDs: ['io.picolabs.policies'] })
-  var newPolicy = util.promisify(pe.newPolicy)
+  var newPolicy = pe.newPolicy
   var newChannel = util.promisify(pe.newChannel)
 
   pe.emitter.on('error', function (err) {

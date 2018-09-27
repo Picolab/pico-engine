@@ -411,7 +411,8 @@ module.exports = function (conf) {
     return callback.promise
   }
 
-  var registerAllEnabledRulesets = function (callback) {
+  core.registerAllEnabledRulesets = function (callback) {
+    callback = promiseCallback(callback)
     var rsByRid = {}
 
     async.series([
@@ -499,12 +500,14 @@ module.exports = function (conf) {
               err2.orig_error = err
               emitter.emit('error', err2, { rid: rid })
               // disable the ruleset since it's broken
+              depGraph.removeNode(rid)
               db.disableRuleset(rid, next)
             })
           })
         }, nextStep)
       }
     ], callback)
+    return callback.promise
   }
 
   core.unregisterRuleset = function (rid, callback) {
@@ -669,7 +672,7 @@ module.exports = function (conf) {
         }, nextStep)
       },
       function (next) {
-        registerAllEnabledRulesets(next)
+        core.registerAllEnabledRulesets(next)
       },
       function (next) {
         if (_.isEmpty(rootRIDs)) {

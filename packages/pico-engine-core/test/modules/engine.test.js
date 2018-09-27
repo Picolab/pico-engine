@@ -4,6 +4,7 @@ var ktypes = require('krl-stdlib/types')
 var kengine = require('../../src/modules/engine')
 var ADMIN_POLICY_ID = require('../../src/DB').ADMIN_POLICY_ID
 var mkTestPicoEngine = require('../helpers/mkTestPicoEngine')
+var engineCoreVersion = require('../../package.json').version
 var test = require('ava')
 
 // wrap stubbed functions in this to simulate async
@@ -794,6 +795,9 @@ test('engine:exportPico', async function (t) {
       channels: {
         'id1': { id: 'id1', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id1', verifyKey: 'verifyKey_id1', secret: { seed: 'seed_id1', signKey: 'signKey_id1' } } }
       },
+      rulesets: [
+        'rid.export'
+      ],
       entvars: {
         'rid.export': {
           one: 1,
@@ -820,12 +824,192 @@ test('engine:exportPico', async function (t) {
           channels: {
             'id3': { id: 'id3', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id3', verifyKey: 'verifyKey_id3', secret: { seed: 'seed_id3', signKey: 'signKey_id3' } } }
           },
+          rulesets: [],
           children: []
         }
       ]
     }
   })
   // TODO scheduled events?
+})
+
+test('engine:importPico', async function (t) {
+  var krl = `ruleset rid.export {
+    rule asdf {
+      select when asdf asdf
+    }
+  }`
+  var pe = await mkTestPicoEngine({
+    compileAndLoadRuleset: 'inline',
+    rootRIDs: ['rid.export'],
+    systemRulesets: [{
+      src: krl,
+      meta: { url: 'wat' }
+    }]
+  })
+
+  var rootEci = await util.promisify(pe.getRootECI)()
+  var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
+  var rootPicoId = await getPicoIDByECI({}, [rootEci])
+
+  var importPico = await pe.modules.get({}, 'engine', 'importPico')
+  var listPolicies = await pe.modules.get({}, 'engine', 'listPolicies')
+  var getAdminECI = await pe.modules.get({}, 'engine', 'getAdminECI')
+  var listChannels = await pe.modules.get({}, 'engine', 'listChannels')
+  var listChildren = await pe.modules.get({}, 'engine', 'listChildren')
+  var listInstalledRIDs = await pe.modules.get({}, 'engine', 'listInstalledRIDs')
+  var listAllEnabledRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
+
+  function imp (data) {
+    return importPico({}, [rootPicoId, data])
+      .catch(function (err) {
+        return '' + err
+      })
+  }
+
+  // for now, only the exact version will let you import/export
+  t.is(await imp(), 'Error: importPico incompatible version')
+  t.is(await imp({ version: '?' }), 'Error: importPico incompatible version')
+
+  // import policies, re-use existing when possible
+  t.deepEqual(_.map(await listPolicies(), 'id'), ['allow-all-policy'])
+  t.is(await imp({
+    version: engineCoreVersion,
+    policies: {
+      'allow-all-policy': {
+        name: 'admin channel policy',
+        event: { allow: [{}] },
+        query: { allow: [{}] }
+      }
+    }
+  }), null)
+
+  // changed, even with the same id, should create a new policy
+  t.is(await imp({
+    version: engineCoreVersion,
+    policies: {
+      'allow-all-policy': {
+        name: 'admin channel policy CHANGED',
+        event: { allow: [{ domain: 'CHANGED' }] },
+        query: { allow: [{}] }
+      }
+    }
+  }), null)
+  t.deepEqual(_.map(await listPolicies(), 'id'), ['allow-all-policy', 'id2'])
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    rulesets: {
+      'rid.export': {
+        src: 'ruleset rid.export {rule newVersion{select when a b}}',
+        hash: 'some-new-hash',
+        url: 'wat'
+      }
+    }
+  }), 'Error: Cannot import pico. This engine has a different version of rid.export enabled.')
+
+  t.deepEqual(await listAllEnabledRIDs(), ['rid.export'])
+  t.is(await imp({
+    version: engineCoreVersion,
+    rulesets: {
+      'some.new.rid': {
+        src: 'ruleset some.new.rid {rule hi{select when hi hi}}',
+        hash: 'some-hash',
+        url: 'wat'
+      }
+    }
+  }), null)
+  t.deepEqual(await listAllEnabledRIDs(), ['rid.export', 'some.new.rid'])
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    pico: {
+      id: 'will-be-changed',
+      parent_id: 'will-be-stomped-over',
+      admin_eci: 'id1',
+      channels: {
+        'id1': { id: 'id1', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id1', verifyKey: 'verifyKey_id1', secret: { seed: 'seed_id1', signKey: 'signKey_id1' } } }
+      },
+      rulesets: ['rid.export'],
+      entvars: {
+        'rid.export': {
+          one: 1,
+          arr: [2, { three: 3 }],
+          map: { a: [2, 3], b: { c: { d: 1 } } },
+          foo: {}
+        }
+      },
+      state_machine: {
+        'rid.export': {
+          newPico: { state: 'end', bindings: {} },
+          setvars: { state: 'end', bindings: {} },
+          sum: { state: 's1', bindings: {} }
+        }
+      },
+      aggregator_var: {
+        'rid.export': { sum: { n: ['1', '3'] } }
+      },
+      children: []
+    }
+  }), 'id3')
+  t.deepEqual(_.map(await listChannels({}, ['id3']), 'id'), ['id4'])
+  t.deepEqual(await listInstalledRIDs({}, ['id3']), ['rid.export'])
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    pico: {}
+  }), 'id5', 'minimal import')
+  // create an admin eci if one is not given
+  t.is(await getAdminECI({}, ['id5']), 'id6')
+  t.deepEqual(_.map(await listChannels({}, ['id5']), 'id'), ['id6'])
+  t.deepEqual(_.map(await listChannels({}, ['id5']), 'name'), ['admin'])
+  t.deepEqual(await listChildren({}, ['id5']), [])
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    pico: {
+      id: 'will-be-changed',
+      children: [
+        { id: 'one' },
+        {
+          id: 'two',
+          children: [
+            { id: 'two-one' }
+          ]
+        },
+        { id: 'three' }
+      ]
+    }
+  }), 'id7', 'minimal import')
+  t.deepEqual(_.map(await listChannels({}, ['id7']), 'id'), ['id8'])
+  t.deepEqual(await listChildren({}, ['id7']), ['id11', 'id13', 'id9'])
+  t.deepEqual(await listChildren({}, ['id9']), [], 'child "one" has 0')
+  t.deepEqual(await listChildren({}, ['id11']), ['id15'], 'child "two" has 1')
+  t.deepEqual(await listChildren({}, ['id13']), [], 'child "three" has 0')
+
+  // import a pico with a new ruleset,
+  // then ensure it's properly initialized to receive events
+  t.is(await imp({
+    version: engineCoreVersion,
+    rulesets: {
+      'say.hello.rid': {
+        src: `ruleset say.hello.rid {
+          rule hi{
+            select when say hello
+            send_directive("i say hello")
+          }
+        }`,
+        hash: 'some-hash',
+        url: 'whatever'
+      }
+    },
+    pico: {
+      rulesets: ['say.hello.rid']
+    }
+  }), 'id17', 'minimal import')
+
+  let resp = await pe.signalEvent({ eci: 'id18', domain: 'say', type: 'hello' })
+  t.deepEqual(resp.directives[0].name, 'i say hello')
 })
 
 test('engine:setPicoStatus engine:getPicoStatus', async function (t) {
