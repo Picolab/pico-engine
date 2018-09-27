@@ -960,6 +960,7 @@ test('engine:importPico', async function (t) {
     pico: {}
   }), 'id5', 'minimal import')
   // create an admin eci if one is not given
+  t.is(await getAdminECI({}, ['id5']), 'id6')
   t.deepEqual(_.map(await listChannels({}, ['id5']), 'id'), ['id6'])
   t.deepEqual(_.map(await listChannels({}, ['id5']), 'name'), ['admin'])
   t.deepEqual(await listChildren({}, ['id5']), [])
@@ -985,6 +986,30 @@ test('engine:importPico', async function (t) {
   t.deepEqual(await listChildren({}, ['id9']), [], 'child "one" has 0')
   t.deepEqual(await listChildren({}, ['id11']), ['id15'], 'child "two" has 1')
   t.deepEqual(await listChildren({}, ['id13']), [], 'child "three" has 0')
+
+  // import a pico with a new ruleset,
+  // then ensure it's properly initialized to receive events
+  t.is(await imp({
+    version: engineCoreVersion,
+    rulesets: {
+      'say.hello.rid': {
+        src: `ruleset say.hello.rid {
+          rule hi{
+            select when say hello
+            send_directive("i say hello")
+          }
+        }`,
+        hash: 'some-hash',
+        url: 'whatever'
+      }
+    },
+    pico: {
+      rulesets: ['say.hello.rid']
+    }
+  }), 'id17', 'minimal import')
+
+  let resp = await pe.signalEvent({ eci: 'id18', domain: 'say', type: 'hello' })
+  t.deepEqual(resp.directives[0].name, 'i say hello')
 })
 
 test('engine:setPicoStatus engine:getPicoStatus', async function (t) {

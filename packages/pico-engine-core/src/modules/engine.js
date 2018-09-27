@@ -514,8 +514,14 @@ module.exports = function (core) {
       var parentId = picoArgOrCtxPico('importPico', ctx, args, 'parent_id')
       var data = args.data
       core.db.importPico(parentId, data)
-        .then(function (data) {
-          callback(null, data)
+        .then(function (newPicoID) {
+          return core.registerAllEnabledRulesets()
+            .then(function () {
+              return newPicoID
+            })
+        })
+        .then(function (newPicoID) {
+          callback(null, newPicoID)
         })
         .catch(function (err) {
           callback(err)
