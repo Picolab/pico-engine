@@ -2266,9 +2266,8 @@ test('PicoEngine - js-module', async function (t) {
         fun0: {
           type: 'function',
           args: ['a', 'b'],
-          fn: function (args, callback) {
-            var data = args.a * args.b
-            callback(null, data)
+          fn: function (args) {
+            return args.a * args.b
           }
         },
 
@@ -2276,9 +2275,8 @@ test('PicoEngine - js-module', async function (t) {
         act: {
           type: 'action',
           args: ['a', 'b'],
-          fn: function (args, callback) {
-            var data = args.b / args.a
-            callback(null, data)
+          fn: function (args) {
+            return args.b / args.a
           }
         }
       }

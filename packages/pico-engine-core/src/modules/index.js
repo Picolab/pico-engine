@@ -65,11 +65,11 @@ module.exports = function (core, thirdPartyModules) {
         throw mkErr('`args` must be a unique array of strings')
       }
       if (!_.isFunction(op.fn)) {
-        throw mkErr('`fn` must be `function(args, callback){...}`')
+        throw mkErr('`fn` must be `function(args){...}`')
       }
 
-      var fn = function (ctx, args, callback) {
-        op.fn(args, callback)
+      var fn = function (ctx, args) {
+        return Promise.resolve(op.fn(args))
       }
 
       if (op.type === 'function') {
