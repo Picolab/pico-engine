@@ -1,6 +1,7 @@
 var _ = require('lodash')
 var bs58 = require('bs58')
 var cuid = require('cuid')
+let util = require('util')
 var async = require('async')
 var crypto = require('crypto')
 var encode = require('encoding-down')
@@ -543,7 +544,7 @@ module.exports = function (opts) {
     })
   }
 
-  return {
+  let dbAPI = {
     toObj: function (callback) {
       callback = promiseCallback(callback)
 
@@ -1042,11 +1043,13 @@ module.exports = function (opts) {
     // channels
     //
     newChannel: function (opts, callback) {
+      callback = promiseCallback(callback)
       var c = newChannelBase(opts)
       ldb.batch(c.dbOps, function (err) {
         if (err) return callback(err)
         callback(null, omitChannelSecret(c.channel))
       })
+      return callback.promise
     },
     listChannels: function (picoId, callback) {
       var eciList = []
@@ -1085,6 +1088,7 @@ module.exports = function (opts) {
     },
 
     getChannelAndPolicy: function (eci, callback) {
+      callback = promiseCallback(callback)
       ldb.get(['channel', eci], function (err, data) {
         if (err) {
           if (err.notFound) {
@@ -1101,6 +1105,7 @@ module.exports = function (opts) {
           callback(null, chann)
         })
       })
+      return callback.promise
     },
 
     newPolicy: newPolicy,
@@ -1254,17 +1259,7 @@ module.exports = function (opts) {
     //
     // rulesets
     //
-    storeRuleset: function (krlSrc, meta, callback) {
-      var timestamp
-      if (arguments.length === 4 && _.isString(arguments[3])) { // for testing only
-        timestamp = arguments[3]// for testing only
-      }// for testing only
-      storeRuleset(krlSrc, meta, timestamp)
-        .then(function (data) {
-          callback(null, data)
-        })
-        .catch(callback)
-    },
+    storeRuleset: storeRuleset,
     hasEnabledRid: function (rid, callback) {
       var hasFound = false
       dbRange(ldb, {
@@ -1399,6 +1394,7 @@ module.exports = function (opts) {
       })
     },
     nextScheduleEventAt: function (callback) {
+      callback = promiseCallback(callback)
       var r
       dbRange(ldb, {
         prefix: ['scheduled_by_at'],
@@ -1412,12 +1408,15 @@ module.exports = function (opts) {
       }, function (err) {
         callback(err, r)
       })
+      return callback.promise
     },
     removeScheduleEventAt: function (id, at, callback) {
+      callback = promiseCallback(callback)
       ldb.batch([
         { type: 'del', key: ['scheduled', id] },
         { type: 'del', key: ['scheduled_by_at', at, id] }
       ], callback)
+      return callback.promise
     },
     scheduleEventRepeat: function (timespec, event, callback) {
       callback = promiseCallback(callback)
@@ -1494,6 +1493,13 @@ module.exports = function (opts) {
       })
     }
   }
+
+  _.each(dbAPI, function (val, key) {
+    if (_.isFunction(val)) {
+      dbAPI[key + 'Yieldable'] = util.promisify(val)
+    }
+  })
+  return dbAPI
 }
 
 module.exports.ADMIN_POLICY_ID = ADMIN_POLICY_ID

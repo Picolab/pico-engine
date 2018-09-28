@@ -1,6 +1,5 @@
 let _ = require('lodash')
 let DB = require('./DB')
-let util = require('util')
 let cuid = require('cuid')
 let ktypes = require('krl-stdlib/types')
 let runKRL = require('./runKRL')
@@ -52,11 +51,6 @@ function compileAndLoadRulesetInline (rsInfo) {
 
 module.exports = function (conf) {
   let db = DB(conf.db)
-  _.each(db, function (val, key) {
-    if (_.isFunction(val)) {
-      db[key + 'Yieldable'] = util.promisify(val)
-    }
-  })
   let host = conf.host
   let rootRIDs = _.uniq(_.filter(conf.rootRIDs, _.isString))
   let compileAndLoadRuleset = conf.compileAndLoadRuleset || compileAndLoadRulesetInline
@@ -224,7 +218,7 @@ module.exports = function (conf) {
   }
 
   core.registerRuleset = async function (krlSrc, metaData) {
-    let data = await db.storeRulesetYieldable(krlSrc, metaData)
+    let data = await db.storeRuleset(krlSrc, metaData)
     let rid = data.rid
     let hash = data.hash
 
@@ -263,7 +257,7 @@ module.exports = function (conf) {
     } catch (err) {
       core.rsreg.del(rs.rid)
       depGraph.removeNode(rs.rid)
-      db.disableRuleset(rs.rid, _.noop)// undo enable if failed
+      db.disableRulesetYieldable(rs.rid)// undo enable if failed
       throw err
     }
 
@@ -437,7 +431,7 @@ module.exports = function (conf) {
         _.each(cycleRids, function (rid) {
           // remove the rids from the graph and disable it
           depGraph.removeNode(rid)
-          db.disableRuleset(rid, _.noop)
+          db.disableRulesetYieldable(rid)
 
           // Let the user know the rid was disabled
           let err2 = new Error('Failed to initialize ' + rid + ", it's in a dependency cycle. It is now disabled. You'll need to resolve the cycle then re-register it.\nCause: " + err)
@@ -568,7 +562,7 @@ module.exports = function (conf) {
     // compile+store+enable systemRulesets first
     for (let systemRuleset of systemRulesets) {
       let src = systemRuleset.src
-      let data = await db.storeRulesetYieldable(src, systemRuleset.meta)
+      let data = await db.storeRuleset(src, systemRuleset.meta)
       await compileAndLoadRuleset({
         rid: data.rid,
         src: src,
