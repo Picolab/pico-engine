@@ -34,31 +34,31 @@ module.exports = function (core) {
     def: {
 
       uuid: mkKRLfn([
-      ], function (ctx, args, callback) {
-        callback(null, cuid())
+      ], function (ctx, args) {
+        return cuid()
       }),
 
       word: mkKRLfn([
-      ], function (ctx, args, callback) {
-        callback(null, randomWords())
+      ], function (ctx, args) {
+        return randomWords()
       }),
 
       integer: mkKRLfn([
         'upper',
         'lower'
-      ], function (ctx, argsOrig, callback) {
+      ], function (ctx, argsOrig) {
         var args = fixLowerUpperArgs(argsOrig, true)
 
-        callback(null, _.random(args.lower, args.upper))
+        return _.random(args.lower, args.upper)
       }),
 
       number: mkKRLfn([
         'upper',
         'lower'
-      ], function (ctx, argsOrig, callback) {
+      ], function (ctx, argsOrig) {
         var args = fixLowerUpperArgs(argsOrig)
 
-        callback(null, _.random(args.lower, args.upper, true))
+        return _.random(args.lower, args.upper, true)
       })
 
     }

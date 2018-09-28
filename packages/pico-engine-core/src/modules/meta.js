@@ -39,19 +39,15 @@ var getCoreCTXval = {
 
 module.exports = function (core) {
   return {
-    get: function (ctx, id, callback) {
+    get: async function (ctx, id) {
       if (_.has(getCoreCTXval, id)) {
-        callback(null, getCoreCTXval[id](core, ctx))
-        return
+        return getCoreCTXval[id](core, ctx)
       }
       if (id === 'rulesetURI') {
-        core.db.getEnabledRuleset(ctx.rid, function (err, data) {
-          if (err) return callback(err)
-          callback(null, data.url)
-        })
-        return
+        let data = await core.db.getEnabledRulesetYieldable(ctx.rid)
+        return data.url
       }
-      callback(new Error('Meta attribute not defined `' + id + '`'))
+      throw new Error('Meta attribute not defined `' + id + '`')
     }
   }
 }

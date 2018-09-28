@@ -1,15 +1,24 @@
-var _ = require('lodash')
-var ktypes = require('krl-stdlib/types')
-var request = require('request')
-var mkKRLaction = require('../mkKRLaction')
+let _ = require('lodash')
+let ktypes = require('krl-stdlib/types')
+let request = require('request')
+let mkKRLaction = require('../mkKRLaction')
 
-var ensureMap = function (arg, defaultTo) {
+function ensureMap (arg, defaultTo) {
   return ktypes.isMap(arg)
     ? arg
     : defaultTo
 }
 
-var mkMethod = function (method, canAlsoBeUsedAsAFunction) {
+function requestP (opts) {
+  return new Promise(function (resolve, reject) {
+    request(opts, function (err, res) {
+      if (err) reject(err)
+      else resolve(res)
+    })
+  })
+}
+
+let mkMethod = function (method, canAlsoBeUsedAsAFunction) {
   return mkKRLaction([
     // NOTE: order is significant so it's a breaking API change to change argument ordering
     'url',
@@ -21,15 +30,15 @@ var mkMethod = function (method, canAlsoBeUsedAsAFunction) {
     'form',
     'parseJSON',
     'autoraise'
-  ], function (ctx, args, callback) {
+  ], async function (ctx, args) {
     if (!_.has(args, 'url')) {
-      return callback(new Error('http:' + method.toLowerCase() + ' needs a url string'))
+      throw new Error('http:' + method.toLowerCase() + ' needs a url string')
     }
     if (!ktypes.isString(args.url)) {
-      return callback(new TypeError('http:' + method.toLowerCase() + ' was given ' + ktypes.toString(args.url) + ' instead of a url string'))
+      throw new TypeError('http:' + method.toLowerCase() + ' was given ' + ktypes.toString(args.url) + ' instead of a url string')
     }
 
-    var opts = {
+    let opts = {
       method: method,
       url: args.url,
       qs: ensureMap(args.qs, {}),
@@ -48,46 +57,34 @@ var mkMethod = function (method, canAlsoBeUsedAsAFunction) {
       opts.form = ensureMap(args.form)
     }
 
-    request(opts, function (err, res, body) {
-      if (err) {
-        callback(err)
-        return
+    let res = await requestP(opts)
+
+    let r = {
+      content: res.body,
+      content_type: res.headers['content-type'],
+      content_length: _.parseInt(res.headers['content-length'], 0) || 0,
+      headers: res.headers,
+      status_code: res.statusCode,
+      status_line: res.statusMessage
+    }
+    if (args.parseJSON === true) {
+      try {
+        r.content = JSON.parse(r.content)
+      } catch (e) {
+        // just leave the content as is
       }
-      var r = {
-        content: body,
-        content_type: res.headers['content-type'],
-        content_length: _.parseInt(res.headers['content-length'], 0) || 0,
-        headers: res.headers,
-        status_code: res.statusCode,
-        status_line: res.statusMessage
-      }
-      if (args.parseJSON === true) {
-        try {
-          r.content = JSON.parse(r.content)
-        } catch (e) {
-          // just leave the content as is
-        }
-      }
-      if (_.has(args, 'autoraise')) {
-        r.label = ktypes.toString(args.autoraise)
-        ctx.raiseEvent({
-          domain: 'http',
-          type: method.toLowerCase(),
-          attributes: r
-          // for_rid: "",
-        }).then(function (r) {
-          callback(null, r)
-        }, function (err) {
-          process.nextTick(function () {
-            // wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
-            // when infact we are handling the rejection
-            callback(err)
-          })
-        })
-      } else {
-        callback(null, r)
-      }
-    })
+    }
+    if (_.has(args, 'autoraise')) {
+      r.label = ktypes.toString(args.autoraise)
+      return ctx.raiseEvent({
+        domain: 'http',
+        type: method.toLowerCase(),
+        attributes: r
+        // for_rid: "",
+      })
+    } else {
+      return r
+    }
   }, canAlsoBeUsedAsAFunction)
 }
 

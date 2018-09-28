@@ -5,22 +5,26 @@ module.exports = function (core) {
   return {
     def: {
       list: mkKRLfn([
-      ], function (ctx, args, callback) {
-        core.db.listScheduled(callback)
+      ], function (ctx, args) {
+        return core.db.listScheduledYieldable()
       }),
 
       remove: mkKRLaction([
         'id'
-      ], function (ctx, args, callback) {
+      ], async function (ctx, args) {
         // if it's a `repeat` we need to stop it
         core.scheduler.rmCron(args.id)
 
-        core.db.removeScheduled(args.id, function (err) {
-          if (err && !err.notFound) return callback(err)
-          // if event `at` we need to update the schedule
-          core.scheduler.update()
-          callback(null, !(err && err.notFound))
-        })
+        let found = false
+        try {
+          await core.db.removeScheduledYieldable(args.id)
+          found = true
+        } catch (err) {
+          if (err && !err.notFound) throw err
+        }
+        // if event `at` we need to update the schedule
+        core.scheduler.update()
+        return found
       })
     }
   }

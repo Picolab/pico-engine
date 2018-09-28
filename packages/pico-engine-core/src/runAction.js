@@ -5,23 +5,23 @@ var mkKRLaction = require('./mkKRLaction')
 var sendDirective = mkKRLaction([
   'name',
   'options'
-], function (ctx, args, callback) {
+], function (ctx, args) {
   if (!_.has(args, 'name')) {
-    return callback(new Error('send_directive needs a name string'))
+    throw new Error('send_directive needs a name string')
   }
   if (!ktypes.isString(args.name)) {
-    return callback(new TypeError('send_directive was given ' + ktypes.toString(args.name) + ' instead of a name string'))
+    throw new TypeError('send_directive was given ' + ktypes.toString(args.name) + ' instead of a name string')
   }
   if (!_.has(args, 'options')) {
     args.options = {}
   } else if (!ktypes.isMap(args.options)) {
-    return callback(new TypeError('send_directive was given ' + ktypes.toString(args.options) + ' instead of an options map'))
+    throw new TypeError('send_directive was given ' + ktypes.toString(args.options) + ' instead of an options map')
   }
 
-  callback(null, ctx.addActionResponse(ctx, 'directive', {
+  return ctx.addActionResponse(ctx, 'directive', {
     name: args.name,
     options: args.options
-  }))
+  })
 })
 
 module.exports = async function runAction (ctx, domain, id, args, setting) {

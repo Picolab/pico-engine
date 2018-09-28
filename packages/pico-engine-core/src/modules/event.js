@@ -9,20 +9,15 @@ module.exports = function (core) {
   var fns = {
     attr: mkKRLfn([
       'name'
-    ], function (ctx, args, callback) {
-      callback(null, _.get(ctx, ['event', 'attrs', args.name], null))
+    ], function (ctx, args) {
+      return _.get(ctx, ['event', 'attrs', args.name], null)
     }),
     send: mkKRLaction([
       'event',
       'host'
-    ], function (ctx, args, callback) {
-      var event
-      try {
-        // validate + normalize event, and make sure is not mutated
-        event = cleanEvent(args.event)
-      } catch (err) {
-        return callback(err)
-      }
+    ], function (ctx, args) {
+      // validate + normalize event, and make sure is not mutated
+      let event = cleanEvent(args.event)
       if (args.host) {
         var url = args.host
         url += '/sky/event'
@@ -41,26 +36,23 @@ module.exports = function (core) {
           }
           // ignore
         })
-        callback()
         return
       }
       core.signalEvent(event)
-      callback()
+      // don't return the promise b/c it's fire-n-move on
     })
   }
   return {
     def: fns,
-    get: function (ctx, id, callback) {
+    get: function (ctx, id) {
       if (id === 'eid') {
-        callback(null, _.get(ctx, ['event', 'eid']))
-        return
+        return _.get(ctx, ['event', 'eid'])
       } else if (id === 'attrs') {
         // the user may mutate their copy
         var attrs = _.cloneDeep(ctx.event.attrs)
-        callback(null, attrs)
-        return
+        return attrs
       }
-      callback(new Error('Not defined `event:' + id + '`'))
+      throw new Error('Not defined `event:' + id + '`')
     }
   }
 }
