@@ -1,14 +1,13 @@
-var _ = require('lodash')
-var bs58 = require('bs58')
-var async = require('async')
-var urllib = require('url')
-var ktypes = require('krl-stdlib/types')
-var mkKRLfn = require('../mkKRLfn')
-var sovrinDID = require('sovrin-did')
-var mkKRLaction = require('../mkKRLaction')
-var ADMIN_POLICY_ID = require('../DB').ADMIN_POLICY_ID
+let _ = require('lodash')
+let bs58 = require('bs58')
+let urllib = require('url')
+let ktypes = require('krl-stdlib/types')
+let mkKRLfn = require('../mkKRLfn')
+let sovrinDID = require('sovrin-did')
+let mkKRLaction = require('../mkKRLaction')
+let ADMIN_POLICY_ID = require('../DB').ADMIN_POLICY_ID
 
-var assertArg = function (fnName, args, key, type) {
+let assertArg = function (fnName, args, key, type) {
   if (!_.has(args, key)) {
     throw new Error('engine:' + fnName + ' argument `' + key + '` ' + type + ' is required')
   }
@@ -18,9 +17,9 @@ var assertArg = function (fnName, args, key, type) {
   return args[key]
 }
 
-var picoArgOrCtxPico = function (fnName, ctx, args, key) {
+let picoArgOrCtxPico = function (fnName, ctx, args, key) {
   key = key || 'pico_id'
-  var picoId = _.has(args, key) ? args[key] : ctx.pico_id
+  let picoId = _.has(args, key) ? args[key] : ctx.pico_id
   if (!ktypes.isString(picoId)) {
     throw new TypeError('engine:' + fnName + ' was given ' + ktypes.toString(args.eci) + ' instead of a ' + key + ' string')
   }
@@ -28,7 +27,7 @@ var picoArgOrCtxPico = function (fnName, ctx, args, key) {
 }
 
 module.exports = function (core) {
-  var fns = {
+  let fns = {
 
     getPicoIDByECI: mkKRLfn([
       'eci'
@@ -53,7 +52,7 @@ module.exports = function (core) {
     getParent: mkKRLfn([
       'pico_id'
     ], async function (ctx, args) {
-      var picoId = picoArgOrCtxPico('getParent', ctx, args)
+      let picoId = picoArgOrCtxPico('getParent', ctx, args)
       try {
         picoId = await core.db.assertPicoIDYieldable(picoId)
         let parentId = await core.db.getParentYieldable(picoId)
@@ -67,7 +66,7 @@ module.exports = function (core) {
     getAdminECI: mkKRLfn([
       'pico_id'
     ], async function (ctx, args) {
-      var picoId = picoArgOrCtxPico('getAdminECI', ctx, args)
+      let picoId = picoArgOrCtxPico('getAdminECI', ctx, args)
       try {
         picoId = await core.db.assertPicoIDYieldable(picoId)
         let eci = await core.db.getAdminECIYieldable(picoId)
@@ -81,7 +80,7 @@ module.exports = function (core) {
     listChildren: mkKRLfn([
       'pico_id'
     ], async function (ctx, args) {
-      var picoId = picoArgOrCtxPico('listChildren', ctx, args)
+      let picoId = picoArgOrCtxPico('listChildren', ctx, args)
       try {
         picoId = await core.db.assertPicoIDYieldable(picoId)
         let children = await core.db.listChildrenYieldable(picoId)
@@ -100,7 +99,7 @@ module.exports = function (core) {
     listChannels: mkKRLfn([
       'pico_id'
     ], async function (ctx, args) {
-      var picoId = picoArgOrCtxPico('listChannels', ctx, args)
+      let picoId = picoArgOrCtxPico('listChannels', ctx, args)
       try {
         picoId = await core.db.assertPicoIDYieldable(picoId)
       } catch (err) {
@@ -113,7 +112,7 @@ module.exports = function (core) {
     listInstalledRIDs: mkKRLfn([
       'pico_id'
     ], async function (ctx, args) {
-      var picoId = picoArgOrCtxPico('listInstalledRIDs', ctx, args)
+      let picoId = picoArgOrCtxPico('listInstalledRIDs', ctx, args)
       try {
         picoId = await core.db.assertPicoIDYieldable(picoId)
         let ridSet = await core.db.ridsOnPicoYieldable(picoId)
@@ -145,7 +144,7 @@ module.exports = function (core) {
         if (err && err.notFound) return
         throw err
       }
-      var rid = data.rid
+      let rid = data.rid
       return {
         rid: rid,
         src: data.src,
@@ -164,7 +163,7 @@ module.exports = function (core) {
     newPico: mkKRLaction([
       'parent_id'
     ], async function (ctx, args) {
-      var parentId = picoArgOrCtxPico('newPico', ctx, args, 'parent_id')
+      let parentId = picoArgOrCtxPico('newPico', ctx, args, 'parent_id')
 
       parentId = await core.db.assertPicoIDYieldable(parentId)
 
@@ -176,7 +175,7 @@ module.exports = function (core) {
     removePico: mkKRLaction([
       'pico_id'
     ], async function (ctx, args) {
-      var picoId = picoArgOrCtxPico('removePico', ctx, args)
+      let picoId = picoArgOrCtxPico('removePico', ctx, args)
 
       try {
         picoId = await core.db.assertPicoIDYieldable(picoId)
@@ -208,7 +207,7 @@ module.exports = function (core) {
     removePolicy: mkKRLaction([
       'policy_id'
     ], async function (ctx, args) {
-      var id = args.policy_id
+      let id = args.policy_id
       if (!_.isString(id)) {
         throw new TypeError('engine:removePolicy was given ' + ktypes.toString(id) + ' instead of a policy_id string')
       }
@@ -227,8 +226,8 @@ module.exports = function (core) {
       'type',
       'policy_id'
     ], async function (ctx, args) {
-      var picoId = picoArgOrCtxPico('newChannel', ctx, args)
-      var policyId = ADMIN_POLICY_ID
+      let picoId = picoArgOrCtxPico('newChannel', ctx, args)
+      let policyId = ADMIN_POLICY_ID
 
       if (_.has(args, 'policy_id')) {
         if (!ktypes.isString(args.policy_id)) {
@@ -286,7 +285,7 @@ module.exports = function (core) {
         throw new TypeError('engine:registerRuleset was given ' + ktypes.toString(args.url) + ' instead of a url string')
       }
 
-      var uri = ktypes.isString(args.base)
+      let uri = ktypes.isString(args.base)
         ? urllib.resolve(args.base, args.url)
         : args.url
       let data = await core.registerRulesetURL(uri)
@@ -307,7 +306,7 @@ module.exports = function (core) {
         throw new TypeError('engine:unregisterRuleset was given ' + ktypes.toString(args.rid) + ' instead of a rid string or array')
       }
 
-      var rids = _.uniq(args.rid)
+      let rids = _.uniq(args.rid)
 
       for (let rid of rids) {
         if (!ktypes.isString(rid)) {
@@ -326,15 +325,15 @@ module.exports = function (core) {
       'url',
       'base'
     ], async function (ctx, args) {
-      var ridGiven = _.has(args, 'rid')
+      let ridGiven = _.has(args, 'rid')
       if (!ridGiven && !_.has(args, 'url')) {
         throw new Error('engine:installRuleset needs either a rid string or array, or a url string')
       }
 
-      var picoId = picoArgOrCtxPico('installRuleset', ctx, args)
+      let picoId = picoArgOrCtxPico('installRuleset', ctx, args)
       picoId = await core.db.assertPicoIDYieldable(picoId)
 
-      var install = function (rid) {
+      let install = function (rid) {
         return core.installRuleset(picoId, rid)
           .then(function () {
             return rid
@@ -342,7 +341,7 @@ module.exports = function (core) {
       }
 
       if (ridGiven) {
-        var ridIsString = ktypes.isString(args.rid)
+        let ridIsString = ktypes.isString(args.rid)
         if (!ridIsString && !ktypes.isArray(args.rid)) {
           throw new TypeError('engine:installRuleset was given ' + ktypes.toString(args.rid) + ' instead of a rid string or array')
         }
@@ -350,12 +349,11 @@ module.exports = function (core) {
           return install(args.rid)
         }
 
-        var rids = _.uniq(args.rid)
+        let rids = _.uniq(args.rid)
 
-        var i
-        for (i = 0; i < rids.length; i++) {
-          if (!ktypes.isString(rids[i])) {
-            throw new TypeError('engine:installRuleset was given a rid array containing a non-string (' + ktypes.toString(rids[i]) + ')')
+        for (let rid of rids) {
+          if (!ktypes.isString(rid)) {
+            throw new TypeError('engine:installRuleset was given a rid array containing a non-string (' + ktypes.toString(rid) + ')')
           }
         }
         return Promise.all(_.map(rids, install))
@@ -364,12 +362,12 @@ module.exports = function (core) {
       if (!ktypes.isString(args.url)) {
         throw new TypeError('engine:installRuleset was given ' + ktypes.toString(args.url) + ' instead of a url string')
       }
-      var uri = ktypes.isString(args.base)
+      let uri = ktypes.isString(args.base)
         ? urllib.resolve(args.base, args.url)
         : args.url
 
       let results = await core.db.findRulesetsByURLYieldable(uri)
-      var rids = _.uniq(_.map(results, 'rid'))
+      let rids = _.uniq(_.map(results, 'rid'))
       if (_.size(rids) === 0) {
         let data = await core.registerRulesetURL(uri)
         return install(data.rid)
@@ -388,10 +386,10 @@ module.exports = function (core) {
         throw new Error('engine:uninstallRuleset needs a rid string or array')
       }
 
-      var picoId = picoArgOrCtxPico('uninstallRuleset', ctx, args)
+      let picoId = picoArgOrCtxPico('uninstallRuleset', ctx, args)
       picoId = await core.db.assertPicoIDYieldable(picoId)
 
-      var ridIsString = ktypes.isString(args.rid)
+      let ridIsString = ktypes.isString(args.rid)
       if (!ridIsString && !ktypes.isArray(args.rid)) {
         throw new TypeError('engine:uninstallRuleset was given ' + ktypes.toString(args.rid) + ' instead of a rid string or array')
       }
@@ -400,12 +398,10 @@ module.exports = function (core) {
         return
       }
 
-      var rids = _.uniq(args.rid)
-
-      var i
-      for (i = 0; i < rids.length; i++) {
-        if (!ktypes.isString(rids[i])) {
-          throw new TypeError('engine:uninstallRuleset was given a rid array containing a non-string (' + ktypes.toString(rids[i]) + ')')
+      let rids = _.uniq(args.rid)
+      for (let rid of rids) {
+        if (!ktypes.isString(rid)) {
+          throw new TypeError('engine:uninstallRuleset was given a rid array containing a non-string (' + ktypes.toString(rid) + ')')
         }
       }
 
@@ -419,9 +415,9 @@ module.exports = function (core) {
       'message',
       'otherPublicKey'
     ], function (ctx, args) {
-      var eci = assertArg('encryptChannelMessage', args, 'eci', 'String')
-      var message = assertArg('encryptChannelMessage', args, 'message', 'String')
-      var otherPublicKey = assertArg('encryptChannelMessage', args, 'otherPublicKey', 'String')
+      let eci = assertArg('encryptChannelMessage', args, 'eci', 'String')
+      let message = assertArg('encryptChannelMessage', args, 'message', 'String')
+      let otherPublicKey = assertArg('encryptChannelMessage', args, 'otherPublicKey', 'String')
 
       return core.db.encryptChannelMessageYieldable(eci, message, otherPublicKey)
     }),
@@ -432,10 +428,10 @@ module.exports = function (core) {
       'nonce',
       'otherPublicKey'
     ], function (ctx, args) {
-      var eci = assertArg('decryptChannelMessage', args, 'eci', 'String')
-      var encryptedMessage = assertArg('decryptChannelMessage', args, 'encryptedMessage', 'String')
-      var nonce = assertArg('decryptChannelMessage', args, 'nonce', 'String')
-      var otherPublicKey = assertArg('decryptChannelMessage', args, 'otherPublicKey', 'String')
+      let eci = assertArg('decryptChannelMessage', args, 'eci', 'String')
+      let encryptedMessage = assertArg('decryptChannelMessage', args, 'encryptedMessage', 'String')
+      let nonce = assertArg('decryptChannelMessage', args, 'nonce', 'String')
+      let otherPublicKey = assertArg('decryptChannelMessage', args, 'otherPublicKey', 'String')
 
       return core.db.decryptChannelMessageYieldable(eci, encryptedMessage, nonce, otherPublicKey)
     }),
@@ -444,8 +440,8 @@ module.exports = function (core) {
       'eci',
       'message'
     ], function (ctx, args) {
-      var eci = assertArg('signChannelMessage', args, 'eci', 'String')
-      var message = assertArg('signChannelMessage', args, 'message', 'String')
+      let eci = assertArg('signChannelMessage', args, 'eci', 'String')
+      let message = assertArg('signChannelMessage', args, 'message', 'String')
 
       return core.db.signChannelMessageYieldable(eci, message)
     }),
@@ -454,8 +450,8 @@ module.exports = function (core) {
       'verifyKey',
       'message'
     ], function (ctx, args) {
-      var verifyKey = assertArg('verifySignedMessage', args, 'verifyKey', 'String')
-      var message = assertArg('verifySignedMessage', args, 'message', 'String')
+      let verifyKey = assertArg('verifySignedMessage', args, 'verifyKey', 'String')
+      let message = assertArg('verifySignedMessage', args, 'message', 'String')
 
       try {
         message = bs58.decode(message)
@@ -471,7 +467,7 @@ module.exports = function (core) {
     exportPico: mkKRLfn([
       'pico_id'
     ], function (ctx, args) {
-      var picoId = picoArgOrCtxPico('exportPico', ctx, args)
+      let picoId = picoArgOrCtxPico('exportPico', ctx, args)
 
       return core.db.exportPico(picoId)
     }),
@@ -480,8 +476,8 @@ module.exports = function (core) {
       'parent_id',
       'data'
     ], async function (ctx, args) {
-      var parentId = picoArgOrCtxPico('importPico', ctx, args, 'parent_id')
-      var data = args.data
+      let parentId = picoArgOrCtxPico('importPico', ctx, args, 'parent_id')
+      let data = args.data
 
       let newPicoID = await core.db.importPico(parentId, data)
 
@@ -496,9 +492,9 @@ module.exports = function (core) {
       'isLeaving',
       'movedToHost'
     ], async function (ctx, args) {
-      var picoId = picoArgOrCtxPico('setPicoStatus', ctx, args)
-      var isLeaving = args.isLeaving === true
-      var movedToHost = ktypes.isString(args.movedToHost) ? args.movedToHost : null
+      let picoId = picoArgOrCtxPico('setPicoStatus', ctx, args)
+      let isLeaving = args.isLeaving === true
+      let movedToHost = ktypes.isString(args.movedToHost) ? args.movedToHost : null
 
       await core.db.setPicoStatus(picoId, isLeaving, movedToHost)
 
@@ -508,7 +504,7 @@ module.exports = function (core) {
     getPicoStatus: mkKRLfn([
       'pico_id'
     ], function (ctx, args) {
-      var picoId = picoArgOrCtxPico('setPicoStatus', ctx, args)
+      let picoId = picoArgOrCtxPico('setPicoStatus', ctx, args)
 
       return core.db.getPicoStatus(picoId)
     })

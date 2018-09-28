@@ -2575,12 +2575,12 @@ test('PicoEngine - handle ruleset startup errors after compiler update made brea
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
 
   // The old compiler didn't complain when the ruleset was registered
-  var oldCompiler = function (rsInfo, callback) {
-    callback(null, { rid: 'my-rid' })
+  var oldCompiler = function (rsInfo) {
+    return { rid: 'my-rid' }
   }
   // The new compiler doesn't like it anymore (i.e. removed syntax)
-  var newCompiler = function (rsInfo, callback) {
-    callback(new Error("That won't compile anymore!"))
+  var newCompiler = function (rsInfo) {
+    throw new Error("That won't compile anymore!")
   }
 
   t.plan(5)
@@ -2617,13 +2617,13 @@ test('PicoEngine - handle ruleset initialization errors', async function (t) {
   t.plan(5)
 
   // First register the ruleset in the db
-  var pe = mkPE({ compileAndLoadRuleset: function (rsInfo, callback) {
-    callback(null, {
+  var pe = mkPE({ compileAndLoadRuleset: function (rsInfo) {
+    return {
       rid: 'my-rid',
-      global: function * () {
+      global: function () {
         // works
       }
-    })
+    }
   } })
   var regRS = pe.registerRuleset
   var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
@@ -2634,13 +2634,13 @@ test('PicoEngine - handle ruleset initialization errors', async function (t) {
   // so the old runtime version allowed it, now it's in the DB
 
   // Now in this time the ruleset won't initialize
-  pe = mkPE({ compileAndLoadRuleset: function (rsInfo, callback) {
-    callback(null, {
+  pe = mkPE({ compileAndLoadRuleset: function (rsInfo) {
+    return {
       rid: 'my-rid',
       global: function () {
         throw new Error('something broke')
       }
-    })
+    }
   } })
   listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
   t.deepEqual(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')

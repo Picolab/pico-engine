@@ -1,30 +1,29 @@
-var _ = require('lodash')
-var DB = require('./DB')
-var util = require('util')
-var cuid = require('cuid')
-var async = require('async')
-var ktypes = require('krl-stdlib/types')
-var runKRL = require('./runKRL')
-var Modules = require('./modules')
-var DepGraph = require('dependency-graph').DepGraph
-var PicoQueue = require('./PicoQueue')
-var Scheduler = require('./Scheduler')
-var runAction = require('./runAction')
-var cleanEvent = require('./cleanEvent')
-var cleanQuery = require('./cleanQuery')
-var krlStdlib = require('krl-stdlib')
-var getKRLByURL = require('./getKRLByURL')
-var SymbolTable = require('symbol-table')
-var EventEmitter = require('events')
-var processEvent = require('./processEvent')
-var processQuery = require('./processQuery')
-var ChannelPolicy = require('./ChannelPolicy')
-var RulesetRegistry = require('./RulesetRegistry')
-var normalizeKRLArgs = require('./normalizeKRLArgs')
-var promiseCallback = require('./promiseCallback')
-var krlCompiler = require('krl-compiler')
+let _ = require('lodash')
+let DB = require('./DB')
+let util = require('util')
+let cuid = require('cuid')
+let ktypes = require('krl-stdlib/types')
+let runKRL = require('./runKRL')
+let Modules = require('./modules')
+let DepGraph = require('dependency-graph').DepGraph
+let PicoQueue = require('./PicoQueue')
+let Scheduler = require('./Scheduler')
+let runAction = require('./runAction')
+let cleanEvent = require('./cleanEvent')
+let cleanQuery = require('./cleanQuery')
+let krlStdlib = require('krl-stdlib')
+let getKRLByURL = require('./getKRLByURL')
+let SymbolTable = require('symbol-table')
+let EventEmitter = require('events')
+let processEvent = require('./processEvent')
+let processQuery = require('./processQuery')
+let ChannelPolicy = require('./ChannelPolicy')
+let RulesetRegistry = require('./RulesetRegistry')
+let normalizeKRLArgs = require('./normalizeKRLArgs')
+let promiseCallback = require('./promiseCallback')
+let krlCompiler = require('krl-compiler')
 
-var applyFn = function (fn, ctx, args) {
+function applyFn (fn, ctx, args) {
   if (ktypes.isAction(fn)) {
     if (ktypes.isFunction(fn.also_krlFn_of_this_action)) {
       return fn.also_krlFn_of_this_action(ctx, args)
@@ -37,50 +36,43 @@ var applyFn = function (fn, ctx, args) {
   return fn(ctx, args)
 }
 
-var logLevels = {
+let logLevels = {
   'info': true,
   'debug': true,
   'warn': true,
   'error': true
 }
 
-function compileAndLoadRulesetInline (rsInfo, callback) {
-  var rs
-  try {
-    var jsSrc = krlCompiler(rsInfo.src, {
-      inline_source_map: true
-    }).code
-    rs = eval(jsSrc)// eslint-disable-line no-eval
-  } catch (err) {
-    return callback(err)
-  }
-  callback(null, rs)
+function compileAndLoadRulesetInline (rsInfo) {
+  let jsSrc = krlCompiler(rsInfo.src, {
+    inline_source_map: true
+  }).code
+  return eval(jsSrc)// eslint-disable-line no-eval
 }
 
 module.exports = function (conf) {
-  var db = DB(conf.db)
+  let db = DB(conf.db)
   _.each(db, function (val, key) {
     if (_.isFunction(val)) {
       db[key + 'Yieldable'] = util.promisify(val)
     }
   })
-  var host = conf.host
-  var rootRIDs = _.uniq(_.filter(conf.rootRIDs, _.isString))
-  var compileAndLoadRuleset = conf.compileAndLoadRuleset || compileAndLoadRulesetInline
-  var compileAndLoadRulesetYieldable = util.promisify(compileAndLoadRuleset)
+  let host = conf.host
+  let rootRIDs = _.uniq(_.filter(conf.rootRIDs, _.isString))
+  let compileAndLoadRuleset = conf.compileAndLoadRuleset || compileAndLoadRulesetInline
 
-  var depGraph = new DepGraph()
+  let depGraph = new DepGraph()
 
-  var core = {
+  let core = {
     db: db,
     host: host,
     rsreg: RulesetRegistry()
   }
 
-  var emitter = new EventEmitter()
-  var modules = Modules(core, conf.modules)
+  let emitter = new EventEmitter()
+  let modules = Modules(core, conf.modules)
 
-  var mkCTX = function (ctx) {
+  let mkCTX = function (ctx) {
     ctx.getMyKey = (function (rid) {
       // we do it this way so all the keys are not leaked out to other built in modules or rulesets
       return function (id) {
@@ -97,21 +89,21 @@ module.exports = function (conf) {
 
     ctx.modules = modules
     ctx.applyFn = applyFn
-    var pushCTXScope = function (ctx2) {
+    let pushCTXScope = function (ctx2) {
       return mkCTX(_.assign({}, ctx2, {
         rid: ctx.rid, // keep your original rid
         scope: ctx.scope.push()
       }))
     }
     ctx.mkFunction = function (paramOrder, fn) {
-      var fixArgs = _.partial(normalizeKRLArgs, paramOrder)
+      let fixArgs = _.partial(normalizeKRLArgs, paramOrder)
       return function (ctx2, args) {
         return fn(pushCTXScope(ctx2), fixArgs(args))
       }
     }
     ctx.mkAction = function (paramOrder, fn) {
-      var fixArgs = _.partial(normalizeKRLArgs, paramOrder)
-      var actionFn = function (ctx2, args) {
+      let fixArgs = _.partial(normalizeKRLArgs, paramOrder)
+      let actionFn = function (ctx2, args) {
         return fn(pushCTXScope(ctx2), fixArgs(args), runAction)
       }
       actionFn.is_an_action = true
@@ -119,7 +111,7 @@ module.exports = function (conf) {
     }
 
     ctx.emit = function (type, val) {
-      var info = {}
+      let info = {}
       info.rid = ctx.rid
       info.txn_id = ctx.txn_id
       if (ctx.pico_id) {
@@ -169,7 +161,7 @@ module.exports = function (conf) {
       } else {
         args[0] = ctx
       }
-      var fn = krlStdlib[fnName]
+      let fn = krlStdlib[fnName]
       if (fn === void 0) {
         throw new Error('Not an operator: ' + fnName)
       }
@@ -187,18 +179,15 @@ module.exports = function (conf) {
     rs.modules_used = {}
     core.rsreg.setupOwnKeys(rs)
 
-    var useArray = _.values(rs.meta && rs.meta.use)
-    var i, use, depRs, ctx2
-    for (i = 0; i < useArray.length; i++) {
-      use = useArray[i]
+    for (let use of _.values(rs.meta && rs.meta.use)) {
       if (use.kind !== 'module') {
         throw new Error("Unsupported 'use' kind: " + use.kind)
       }
-      depRs = core.rsreg.get(use.rid)
+      let depRs = core.rsreg.get(use.rid)
       if (!depRs) {
         throw new Error('Dependant module not loaded: ' + use.rid)
       }
-      ctx2 = mkCTX({
+      let ctx2 = mkCTX({
         rid: depRs.rid,
         scope: SymbolTable()
       })
@@ -221,7 +210,7 @@ module.exports = function (conf) {
       }
       core.rsreg.provideKey(rs.rid, use.rid)
     }
-    var ctx = mkCTX({
+    let ctx = mkCTX({
       rid: rs.rid,
       scope: rs.scope
     })
@@ -235,11 +224,11 @@ module.exports = function (conf) {
   }
 
   core.registerRuleset = async function (krlSrc, metaData) {
-    var data = await db.storeRulesetYieldable(krlSrc, metaData)
-    var rid = data.rid
-    var hash = data.hash
+    let data = await db.storeRulesetYieldable(krlSrc, metaData)
+    let rid = data.rid
+    let hash = data.hash
 
-    var rs = await compileAndLoadRulesetYieldable({
+    let rs = await compileAndLoadRuleset({
       rid: rid,
       src: krlSrc,
       hash: hash
@@ -284,8 +273,8 @@ module.exports = function (conf) {
     }
   }
 
-  var picoQ = PicoQueue(async function (picoId, type, data) {
-    var status = await db.getPicoStatus(picoId)
+  let picoQ = PicoQueue(async function (picoId, type, data) {
+    let status = await db.getPicoStatus(picoId)
     if (status.movedToHost) {
       let err = new Error('Pico moved to a new host')
       err.picoCore_pico_movedToHost = status.movedToHost
@@ -298,7 +287,7 @@ module.exports = function (conf) {
 
     // now handle the next task on the pico queue
     if (type === 'event') {
-      var event = data
+      let event = data
       event.timestamp = new Date(event.timestamp)// convert from JSON string to date
       return processEvent(core, mkCTX({
         event: event,
@@ -315,7 +304,7 @@ module.exports = function (conf) {
   })
 
   function picoTask (type, dataOrig, callback) {
-    var data
+    let data
     try {
       // validate + normalize event/query, and make sure is not mutated
       if (type === 'event') {
@@ -347,9 +336,9 @@ module.exports = function (conf) {
         return
       }
 
-      var picoId = chann.pico_id
+      let picoId = chann.pico_id
 
-      var emit = mkCTX({
+      let emit = mkCTX({
         pico_id: picoId,
         event: type === 'event' ? data : void 0,
         query: type === 'query' ? data : void 0
@@ -397,103 +386,85 @@ module.exports = function (conf) {
     return callback.promise
   }
 
-  core.registerAllEnabledRulesets = function () {
-    let callback = promiseCallback()
-    var rsByRid = {}
+  core.registerAllEnabledRulesets = async function () {
+    let rsByRid = {}
 
-    async.series([
-      //
-      // load Rulesets and track dependencies
-      //
-      function (nextStep) {
-        var onRID = function (rid, next) {
-          db.getEnabledRuleset(rid, function (err, data) {
-            if (err) return next(err)
-            compileAndLoadRuleset({
-              rid: rid,
-              src: data.src,
-              hash: data.hash
-            }, function (err, rs) {
-              if (err) {
-                // Emit an error and don't halt the engine
-                var err2 = new Error('Failed to compile ' + rid + "! It is now disabled. You'll need to edit and re-register it.\nCause: " + err)
-                err2.orig_error = err
-                emitter.emit('error', err2, { rid: rid })
-                // disable the ruleset since it's broken
-                db.disableRuleset(rid, next)
-                return
-              }
-              rsByRid[rs.rid] = rs
-              depGraph.addNode(rs.rid)
-              next()
-            })
-          })
-        }
-        db.listAllEnabledRIDs(function (err, rids) {
-          if (err) return nextStep(err)
-          async.each(rids, onRID, nextStep)
+    //
+    // load Rulesets and track dependencies
+    //
+    let rids = await db.listAllEnabledRIDsYieldable()
+    for (let rid of rids) {
+      let data = await db.getEnabledRulesetYieldable(rid)
+      let rs
+      try {
+        rs = await compileAndLoadRuleset({
+          rid: rid,
+          src: data.src,
+          hash: data.hash
         })
-      },
-
-      //
-      // initialize Rulesets according to dependency order
-      //
-      function (nextStep) {
-        _.each(rsByRid, function (rs) {
-          _.each(rs.meta && rs.meta.use, function (use) {
-            if (use.kind === 'module') {
-              depGraph.addDependency(rs.rid, use.rid)
-            }
-          })
-        })
-        var getRidOrder = function getRidOrder () {
-          try {
-            return depGraph.overallOrder()
-          } catch (err) {
-            var m = /Dependency Cycle Found: (.*)$/.exec(err + '')
-            if (!m) {
-              throw err
-            }
-            var cycleRids = _.uniq(m[1].split(' -> '))
-            _.each(cycleRids, function (rid) {
-              // remove the rids from the graph and disable it
-              depGraph.removeNode(rid)
-              db.disableRuleset(rid, _.noop)
-
-              // Let the user know the rid was disabled
-              var err2 = new Error('Failed to initialize ' + rid + ", it's in a dependency cycle. It is now disabled. You'll need to resolve the cycle then re-register it.\nCause: " + err)
-              err2.orig_error = err
-              emitter.emit('error', err2, { rid: rid })
-            })
-            return getRidOrder()
-          }
-        }
-        // order they need to be loaded for dependencies to work
-        var ridOrder = getRidOrder()
-
-        async.eachSeries(ridOrder, function (rid, next) {
-          var rs = rsByRid[rid]
-
-          initializeRulest(rs).then(function () {
-            next()
-          }, function (err) {
-            process.nextTick(function () {
-              // wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
-              // when infact we are handling the rejection
-
-              // Emit an error and don't halt the engine
-              var err2 = new Error('Failed to initialize ' + rid + "! It is now disabled. You'll need to edit and re-register it.\nCause: " + err)
-              err2.orig_error = err
-              emitter.emit('error', err2, { rid: rid })
-              // disable the ruleset since it's broken
-              depGraph.removeNode(rid)
-              db.disableRuleset(rid, next)
-            })
-          })
-        }, nextStep)
+      } catch (err) {
+        // Emit an error and don't halt the engine
+        let err2 = new Error('Failed to compile ' + rid + "! It is now disabled. You'll need to edit and re-register it.\nCause: " + err)
+        err2.orig_error = err
+        emitter.emit('error', err2, { rid: rid })
+        // disable the ruleset since it's broken
+        await db.disableRulesetYieldable(rid)
+        continue
       }
-    ], callback)
-    return callback.promise
+      rsByRid[rs.rid] = rs
+      depGraph.addNode(rs.rid)
+    }
+
+    //
+    // initialize Rulesets according to dependency order
+    //
+    _.each(rsByRid, function (rs) {
+      _.each(rs.meta && rs.meta.use, function (use) {
+        if (use.kind === 'module') {
+          depGraph.addDependency(rs.rid, use.rid)
+        }
+      })
+    })
+    function getRidOrder () {
+      try {
+        return depGraph.overallOrder()
+      } catch (err) {
+        let m = /Dependency Cycle Found: (.*)$/.exec(err + '')
+        if (!m) {
+          throw err
+        }
+        let cycleRids = _.uniq(m[1].split(' -> '))
+        _.each(cycleRids, function (rid) {
+          // remove the rids from the graph and disable it
+          depGraph.removeNode(rid)
+          db.disableRuleset(rid, _.noop)
+
+          // Let the user know the rid was disabled
+          let err2 = new Error('Failed to initialize ' + rid + ", it's in a dependency cycle. It is now disabled. You'll need to resolve the cycle then re-register it.\nCause: " + err)
+          err2.orig_error = err
+          emitter.emit('error', err2, { rid: rid })
+        })
+        return getRidOrder()
+      }
+    }
+    // order they need to be loaded for dependencies to work
+    let ridOrder = getRidOrder()
+
+    for (let rid of ridOrder) {
+      let rs = rsByRid[rid]
+      try {
+        await initializeRulest(rs)
+      } catch (err) {
+        // Emit an error and don't halt the engine
+        let err2 = new Error('Failed to initialize ' + rid + "! It is now disabled. You'll need to edit and re-register it.\nCause: " + err)
+        err2.orig_error = err
+        emitter.emit('error', err2, { rid: rid })
+        // disable the ruleset since it's broken
+        depGraph.removeNode(rid)
+        await db.disableRulesetYieldable(rid)
+        continue
+      }
+    }
   }
 
   core.unregisterRuleset = async function (rid) {
@@ -512,7 +483,7 @@ module.exports = function (conf) {
   core.scheduler = Scheduler({
     db: db,
     onError: function (err) {
-      var info = { scheduler: true }
+      let info = { scheduler: true }
       emitter.emit('error', err, info)
     },
     onEvent: function (event) {
@@ -527,7 +498,7 @@ module.exports = function (conf) {
   }
   core.flushRuleset = async function (rid) {
     let rsData = await db.getEnabledRulesetYieldable(rid)
-    var url = rsData.url
+    let url = rsData.url
     if (!_.isString(url)) {
       throw new Error('cannot flush a locally registered ruleset')
     }
@@ -547,7 +518,7 @@ module.exports = function (conf) {
     await db.removeRulesetFromPicoYieldable(picoId, rid)
   }
 
-  var pe = {
+  let pe = {
     emitter: emitter,
 
     signalEvent: core.signalEvent,
@@ -589,95 +560,65 @@ module.exports = function (conf) {
     pe.modules = modules
   }
 
-  pe.start = function (systemRulesets) {
-    let callback = promiseCallback()
-    async.series([
-      db.checkAndRunMigrations,
-      function (nextStep) {
-        // compile+store+enable systemRulesets first
-        async.each(systemRulesets, function (systemRuleset, next) {
-          var krlSrc = systemRuleset.src
-          var metaData = systemRuleset.meta
-          db.storeRuleset(krlSrc, metaData, function (err, data) {
-            if (err) return next(err)
-            compileAndLoadRuleset({
-              rid: data.rid,
-              src: krlSrc,
-              hash: data.hash
-            }, function (err, rs) {
-              if (err) return next(err)
-              db.enableRuleset(data.hash, function (err) {
-                next(err, { rs: rs, hash: data.hash })
-              })
-            })
-          })
-        }, nextStep)
-      },
-      function (next) {
-        core.registerAllEnabledRulesets()
-          .then(function () {
-            next()
-          }, next)
-      },
-      function (next) {
-        if (_.isEmpty(rootRIDs)) {
-          return next()
+  pe.start = async function (systemRulesets) {
+    systemRulesets = systemRulesets || []
+
+    await db.checkAndRunMigrationsYieldable()
+
+    // compile+store+enable systemRulesets first
+    for (let systemRuleset of systemRulesets) {
+      let src = systemRuleset.src
+      let data = await db.storeRulesetYieldable(src, systemRuleset.meta)
+      await compileAndLoadRuleset({
+        rid: data.rid,
+        src: src,
+        hash: data.hash
+      })
+      await db.enableRulesetYieldable(data.hash)
+    }
+
+    // wake up the rulesets from the db
+    await core.registerAllEnabledRulesets()
+
+    // install rootRIDs on the root pico
+    if (!_.isEmpty(rootRIDs)) {
+      let rootPico
+      try {
+        rootPico = await db.getRootPicoYieldable()
+      } catch (err) {
+        if (err && err.notFound) {
+          // create the root pico
+          await db.newPicoYieldable({})
+          rootPico = await db.getRootPicoYieldable()
+        } else {
+          throw err
         }
-        db.getRootPico(function (err, rootPico) {
-          if (err && !err.notFound) {
-            return next(err)
-          } else if (!err) {
-            return next()
-          }
-          db.newPico({}, next)
-        })
-      },
-      function (next) {
-        if (_.isEmpty(rootRIDs)) {
-          return next()
-        }
-        db.getRootPico(function (err, rootPico) {
-          if (err) return next(err)
-
-          db.ridsOnPico(rootPico.id, function (err, rids) {
-            if (err) return next(err)
-
-            var toInstall = []
-            _.each(rootRIDs, function (rid) {
-              if (!_.includes(rids, rid)) {
-                toInstall.push(rid)
-              }
-            })
-
-            async.eachSeries(toInstall, function (rid, next) {
-              core.installRuleset(rootPico.id, rid)
-                .then(function (data) {
-                  next(null, data)
-                }, next)
-            }, next)
-          })
-        })
-      },
-      function resumeScheduler (callback) {
-        db.listScheduled(function (err, vals) {
-          if (err) return callback(err)
-
-          // resume the cron jobs
-          _.each(vals, function (val) {
-            if (!_.isString(val.timespec)) {
-              return
-            }
-            core.scheduler.addCron(val.timespec, val.id, val.event)
-          })
-
-          // resume `schedule .. at` queue
-          core.scheduler.update()
-
-          callback()
-        })
       }
-    ], callback)
-    return callback.promise
+      let rids = db.ridsOnPicoYieldable(rootPico.id)
+      let toInstall = []
+      _.each(rootRIDs, function (rid) {
+        if (!_.includes(rids, rid)) {
+          toInstall.push(rid)
+        }
+      })
+      for (let rid of toInstall) {
+        await core.installRuleset(rootPico.id, rid)
+      }
+    }
+
+    // resumeScheduler
+    let vals = await db.listScheduledYieldable()
+
+    // resume the cron jobs
+    _.each(vals, function (val) {
+      if (!_.isString(val.timespec)) {
+        return
+      }
+      core.scheduler.addCron(val.timespec, val.id, val.event)
+    })
+
+    // resume `schedule .. at` queue
+    core.scheduler.update()
   }
 
   return pe
