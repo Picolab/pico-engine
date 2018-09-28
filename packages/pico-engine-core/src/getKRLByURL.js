@@ -1,7 +1,6 @@
 var fs = require('fs')
 var urllib = require('url')
 var request = require('request')
-var promiseCallback = require('./promiseCallback')
 
 var httpGetKRL = function (url, callback) {
   request(url, function (err, resp, body) {
@@ -16,16 +15,18 @@ var httpGetKRL = function (url, callback) {
 }
 
 module.exports = function (url) {
-  var callback = promiseCallback()
-  var urlParsed = urllib.parse(url)
-  if (urlParsed.protocol === 'file:') {
-    fs.readFile(decodeURI(urlParsed.path), function (err, data) {
-      if (err) return callback(err)
-      callback(null, data.toString())
+  return new Promise(function (resolve, reject) {
+    var urlParsed = urllib.parse(url)
+    if (urlParsed.protocol === 'file:') {
+      fs.readFile(decodeURI(urlParsed.path), function (err, data) {
+        if (err) reject(err)
+        else resolve(data.toString())
+      })
+      return
+    }
+    httpGetKRL(url, function (err, body) {
+      if (err) reject(err)
+      else resolve(body)
     })
-    return
-  }
-  httpGetKRL(url, callback)
-
-  return callback.promise
+  })
 }

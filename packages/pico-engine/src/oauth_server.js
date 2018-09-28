@@ -3,8 +3,7 @@ var querystring = require('querystring')
 module.exports = {
   'authorize': function (req, res, next) {
     var pe = req.pe
-    pe.getRootECI(function (err, rootEci) {
-      if (err) return next(err)
+    pe.getRootECI().then(function (rootEci) {
       var event = {
         eci: rootEci,
         eid: 'authorize',
@@ -12,24 +11,23 @@ module.exports = {
         type: 'authorize',
         attrs: req.query
       }
-      pe.signalEvent(event, function (err, response) {
-        if (err) return next(err)
+      return pe.signalEvent(event)
+    })
+      .then(function (response) {
         var d = response.directives[0]
         if (!d) return next(new Error('No directive'))
-        else {
-          var qsp = []
-          for (var key in d.options) {
-            qsp.push(key + '=' + encodeURIComponent(d.options[key]))
-          }
-          res.redirect('/server.html#/' + d.name + '?' + qsp.join('&'))
+
+        var qsp = []
+        for (var key in d.options) {
+          qsp.push(key + '=' + encodeURIComponent(d.options[key]))
         }
+        res.redirect('/server.html#/' + d.name + '?' + qsp.join('&'))
       })
-    })
+      .catch(next)
   },
   'approve': function (req, res, next) {
     var pe = req.pe
-    pe.getRootECI(function (err, rootEci) {
-      if (err) return next(err)
+    pe.getRootECI().then(function (rootEci) {
       var event = {
         eci: rootEci,
         eid: 'approve',
@@ -37,8 +35,9 @@ module.exports = {
         type: 'approve',
         attrs: req.body
       }
-      pe.signalEvent(event, function (err, response) {
-        if (err) return next(err)
+      return pe.signalEvent(event)
+    })
+      .then(function (response) {
         var d = response.directives[0]
         if (!d) return next(new Error('No directive'))
         else if (d.name !== 'respond') {
@@ -59,7 +58,7 @@ module.exports = {
           res.redirect(redirectUri + sep + qsp.join('&'))
         }
       })
-    })
+      .catch(next)
   },
   'token': function (req, res, next) {
     var pe = req.pe
@@ -93,8 +92,7 @@ module.exports = {
     var attrs = req.body
     attrs.client_id = clientId
     attrs.client_secret = clientSecret
-    pe.getRootECI(function (err, rootEci) {
-      if (err) return next(err)
+    pe.getRootECI().then(function (rootEci) {
       var event = {
         eci: rootEci,
         eid: 'token',
@@ -102,8 +100,9 @@ module.exports = {
         type: 'token',
         attrs: attrs
       }
-      pe.signalEvent(event, function (err, response) {
-        if (err) return next(err)
+      return pe.signalEvent(event)
+    })
+      .then(function (response) {
         var d = response.directives[0]
         if (!d) return next(new Error('No directive'))
         else if (d.name === 'error') {
@@ -112,12 +111,11 @@ module.exports = {
           res.json(d.options)
         }
       })
-    })
+      .catch(next)
   },
   'login': function (req, res, next) {
     var pe = req.pe
-    pe.getRootECI(function (err, rootEci) {
-      if (err) return next(err)
+    pe.getRootECI().then(function (rootEci) {
       var event = {
         eci: rootEci,
         eid: '',
@@ -125,16 +123,16 @@ module.exports = {
         type: 'eci_requested',
         attrs: req.body
       }
-      pe.signalEvent(event, function (err, response) {
-        if (err) return next(err)
+      return pe.signalEvent(event)
+    })
+      .then(function (response) {
         res.json(response)
       })
-    })
+      .catch(next)
   },
   'new_account': function (req, res, next) {
     var pe = req.pe
-    pe.getRootECI(function (err, rootEci) {
-      if (err) return next(err)
+    pe.getRootECI().then(function (rootEci) {
       var event = {
         eci: rootEci,
         eid: '',
@@ -142,10 +140,11 @@ module.exports = {
         type: 'creation',
         attrs: req.body
       }
-      pe.signalEvent(event, function (err, response) {
-        if (err) return next(err)
+      return pe.signalEvent(event)
+    })
+      .then(function (response) {
         res.json(response)
       })
-    })
+      .catch(next)
   }
 }

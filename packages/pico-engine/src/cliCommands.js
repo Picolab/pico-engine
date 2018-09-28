@@ -17,12 +17,12 @@ module.exports = {
   'conf': function (conf) {
     console.log(JSON.stringify(conf, void 0, 2))
   },
-  'schedule:list': function (conf) {
+  'schedule:list': async function (conf) {
     var db = getDB(conf)
-    db.listScheduled(function (err, list) {
-      if (err) return printErr(err)
-      list.forEach(function (s) {
-        var str = s.id + ' '
+    try {
+      let list = await db.listScheduled()
+      for (let s of list) {
+        let str = s.id + ' '
         if (s.at) {
           str += 'at ' + s.at
         }
@@ -35,30 +35,28 @@ module.exports = {
                   '/' + s.event.type +
                   ' ' + JSON.stringify(s.event.attrs)
         console.log(str)
-      })
-    })
+      }
+    } catch (err) {
+      printErr(err)
+    }
   },
-  'schedule:remove': function (conf, args) {
+  'schedule:remove': async function (conf, args) {
     var id = args._[1]
     if (!_.isString(id)) {
       console.error('Missing id')
       return
     }
     var db = getDB(conf)
-    if (id === 'all') {
-      db.listScheduled(function (err, list) {
-        if (err) return printErr(err)
-        list.forEach(function (s) {
-          db.removeScheduled(s.id, function (err) {
-            if (err) return printErr(err)
-          })
-        })
-      })
-      return
+    try {
+      let list = id === 'all'
+        ? await db.listScheduled()
+        : [id]
+      for (let s of list) {
+        await db.removeScheduled(s.id)
+        console.log('removed ' + id)
+      }
+    } catch (err) {
+      printErr(err)
     }
-    db.removeScheduled(id, function (err) {
-      if (err) return printErr(err)
-      console.log('removed ' + id)
-    })
   }
 }

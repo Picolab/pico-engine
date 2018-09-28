@@ -38,16 +38,16 @@ module.exports = function (pe) {
       next()
     } else {
       console.log('[SEEK SHORTCUT] ' + fpc)
-      pe.getRootECI(function (err, rootEci) {
-        if (err) return next(err)
+      pe.getRootECI().then(function (rootEci) {
         var query = {
           eci: rootEci,
           rid: 'io.picolabs.rewrite',
           name: 'getRewrite',
           args: { fpc: fpc }
         }
-        pe.runQuery(query, function (err, data) {
-          if (err) return next(err)
+        return pe.runQuery(query)
+      })
+        .then(function (data) {
           if (data) {
             var eventOrQuery =
                             data.kind === 'event' ? '/sky/event/' : '/sky/cloud/'
@@ -58,7 +58,7 @@ module.exports = function (pe) {
           }
           next()
         })
-      })
+        .catch(next)
     }
   })
 
@@ -70,8 +70,7 @@ module.exports = function (pe) {
       type: req.params.type,
       attrs: mergeGetPost(req)
     }
-    pe.signalEvent(event, function (err, response) {
-      if (err) return next(err)
+    pe.signalEvent(event).then(function (response) {
       if (response.directives) {
         var _res
         // some special cases
@@ -103,6 +102,7 @@ module.exports = function (pe) {
       }
       res.json(response)
     })
+      .catch(next)
   })
 
   app.all('/sky/cloud/:eci/:rid/:function', function (req, res, next) {
@@ -114,8 +114,7 @@ module.exports = function (pe) {
       name: funcPart[0],
       args: mergeGetPost(req)
     }
-    pe.runQuery(query, function (err, data) {
-      if (err) return next(err)
+    pe.runQuery(query).then(function (data) {
       if (_.isFunction(data)) {
         data(res)
       } else if (respType && funcPart[1] === 'gif') {
@@ -129,6 +128,7 @@ module.exports = function (pe) {
         res.json(data)
       }
     })
+      .catch(next)
   })
 
   app.get('/authorize', oauthServer.authorize)
@@ -158,9 +158,7 @@ module.exports = function (pe) {
   }
 
   app.all('/api/db-dump', function (req, res, next) {
-    pe.dbDump(function (err, dbData) {
-      if (err) return next(err)
-
+    pe.dbDump().then(function (dbData) {
       if (req.query.legacy) {
         _.each(dbData.appvars, function (vars, rid) {
           _.each(vars, function (val, name) {
@@ -202,34 +200,35 @@ module.exports = function (pe) {
 
       res.json(dbData)
     })
+      .catch(next)
   })
 
   app.all('/api/root-eci', function (req, res, next) {
-    pe.getRootECI(function (err, rootEci) {
-      if (err) return next(err)
+    pe.getRootECI().then(function (rootEci) {
       res.json({ ok: true, eci: rootEci })
     })
+      .catch(next)
   })
 
   app.all('/api/pico/:id/rm-channel/:eci', function (req, res, next) {
-    pe.removeChannel(req.params.eci, function (err) {
-      if (err) return next(err)
+    pe.removeChannel(req.params.eci).then(function () {
       res.json({ ok: true })
     })
+      .catch(next)
   })
 
   app.all('/api/pico/:id/rm-ruleset/:rid', function (req, res, next) {
-    pe.uninstallRuleset(req.params.id, req.params.rid, function (err) {
-      if (err) return next(err)
+    pe.uninstallRuleset(req.params.id, req.params.rid).then(function () {
       res.json({ ok: true })
     })
+      .catch(next)
   })
 
   app.all('/api/pico/:id/rm-ent-var/:rid/:var_name', function (req, res, next) {
-    pe.delEntVar(req.params.id, req.params.rid, req.params.var_name, null, function (err) {
-      if (err) return next(err)
+    pe.delEntVar(req.params.id, req.params.rid, req.params.var_name).then(function () {
       res.json({ ok: true })
     })
+      .catch(next)
   })
 
   app.all('/api/ruleset/compile', function (req, res, next) {
@@ -245,37 +244,39 @@ module.exports = function (pe) {
   app.all('/api/ruleset/register', function (req, res, next) {
     var args = mergeGetPost(req)
 
-    var onRegister = function (err, data) {
-      if (err) return next(err)
+    var onRegister = function (data) {
       res.json({ ok: true, rid: data.rid, hash: data.hash })
     }
     if (_.isString(args.src)) {
-      pe.registerRuleset(args.src, {}, onRegister)
+      pe.registerRuleset(args.src, {})
+        .then(onRegister)
+        .catch(next)
     } else if (_.isString(args.url)) {
-      pe.registerRulesetURL(args.url, onRegister)
+      pe.registerRulesetURL(args.url)
+        .then(onRegister)
+        .catch(next)
     } else {
       next(new Error('expected `src` or `url`'))
     }
   })
 
   app.all('/api/ruleset/flush/:rid', function (req, res, next) {
-    pe.flushRuleset(req.params.rid, function (err, data) {
-      if (err) return next(err)
+    pe.flushRuleset(req.params.rid).then(function (data) {
       console.log('Ruleset successfully flushed: ' + data.rid)
       res.json({ ok: true, rid: data.rid, hash: data.hash })
     })
+      .catch(next)
   })
 
   app.all('/api/ruleset/unregister/:rid', function (req, res, next) {
-    pe.unregisterRuleset(req.params.rid, function (err) {
-      if (err) return next(err)
+    pe.unregisterRuleset(req.params.rid).then(function () {
       res.json({ ok: true })
     })
+      .catch(next)
   })
 
   app.all('/api/ruleset-page', function (req, res, next) {
-    pe.dbDump(function (err, dbData) {
-      if (err) return next(err)
+    pe.dbDump().then(function (dbData) {
       var data = {
         version: version,
         r: {}
@@ -328,6 +329,7 @@ module.exports = function (pe) {
       data.ok = true
       res.json(data)
     })
+      .catch(next)
   })
 
   app.use(function (err, req, res, next) {
