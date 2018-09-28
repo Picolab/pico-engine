@@ -34,20 +34,15 @@ var testPE = function (name, testsFn) {
       host: null, // tests don't actually setup http listening
       home: getHomePath(),
       no_logging: true
-    }, function (err, pe) {
-      if (err) return t.end(err)
-      pe.getRootECI(function (err, rootEci) {
-        if (err) return t.end(err)
-
-        Promise.resolve(testsFn(t, pe, rootEci))
-          .then(t.end)
-          .catch(function (err) {
-            process.nextTick(function () {
-              t.end(err)
-            })
+    })
+      .then(function (pe) {
+        return pe.getRootECI()
+          .then(function (rootEci) {
+            return Promise.resolve(testsFn(t, pe, rootEci))
           })
       })
-    })
+      .then(t.end)
+      .catch(t.end)
   })
 }
 
@@ -905,11 +900,11 @@ testPE('pico-engine', function (t, pe, rootEci) {
       var picoA = subscriptionPicos['picoA']
       var picoB = subscriptionPicos['picoB']
       readFile('krl/test/subscription_tests/mischief.krl').then(function (data) { // console.log("opened mischief ruleset");
-        return registerRuleset(data)
+        return pe.registerRuleset(data)
       }).then(function (response) { // console.log("registered mischief ruleset");
         return readFile('krl/test/subscription_tests/mischief.thing.krl')
       }).then(function (data) { // console.log("opened mischief.thing ruleset");
-        return registerRuleset(data)
+        return pe.registerRuleset(data)
       }).then(function (response) { // console.log("registered mischief.thing ruleset");
         return installRulesets(picoA.eci, 'mischief')
       }).then(function (installResponse) { // console.log("installed mischief ruleset");
@@ -1075,42 +1070,30 @@ testPE('pico-engine', function (t, pe, rootEci) {
   ], callback)
 
   function installRulesets (eci, rulesets) {
-    return new Promise(function (resolve, reject) {
-      pe.signalEvent({
-        eci: eci,
-        domain: 'wrangler',
-        type: 'install_rulesets_requested ',
-        attrs: { rids: rulesets }
-      }, function (err, response) {
-        err ? reject(err) : resolve(response)
-      })
+    return pe.signalEvent({
+      eci: eci,
+      domain: 'wrangler',
+      type: 'install_rulesets_requested ',
+      attrs: { rids: rulesets }
     })
   }
   function createChild (name) {
-    return new Promise(function (resolve, reject) {
-      pe.signalEvent({
-        eci: rootEci,
-        eid: '84',
-        domain: 'wrangler',
-        type: 'new_child_request',
-        attrs: { name: name }
-      }, function (err, response) {
-        err ? reject(err) : resolve(response.directives[0].options.pico)
-      })
+    return pe.signalEvent({
+      eci: rootEci,
+      eid: '84',
+      domain: 'wrangler',
+      type: 'new_child_request',
+      attrs: { name: name }
     })
+      .then(function (response) {
+        return response.directives[0].options.pico
+      })
   }
   function readFile (filePath, encoding) {
     encoding = encoding || 'utf8'
     return new Promise(function (resolve, reject) {
       fs.readFile(filePath, encoding, function (err, data) {
         err ? reject(err) : resolve(data)
-      })
-    })
-  }
-  function registerRuleset (krlSource) {
-    return new Promise(function (resolve, reject) {
-      pe.registerRuleset(krlSource, null, function (err, response) {
-        err ? reject(err) : resolve(response)
       })
     })
   }

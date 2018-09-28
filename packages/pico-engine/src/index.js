@@ -21,15 +21,14 @@ module.exports = function (conf) {
 
   conf.bunyanLog = bunyanLog
 
-  startCore(conf, function (err, pe) {
-    if (err) {
-      throw err
-    }
+  startCore(conf).then(function (pe) {
     var app = setupServer(pe)
 
     app.listen(conf.port, function () {
       console.log(conf.host)
       bunyanLog.info('HTTP server listening on port ' + conf.port)
     })
+  }, function (err) {
+    throw err
   })
 }

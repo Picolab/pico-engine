@@ -1,6 +1,7 @@
 var _ = require('lodash')
 var fs = require('fs')
 var path = require('path')
+var util = require('util')
 var async = require('async')
 var fileUrl = require('file-url')
 var leveldown = require('leveldown')
@@ -16,51 +17,43 @@ var toKRLjson = function (val, indent) {
   return message
 }
 
-var setupRootPico = function (pe, callback) {
-  pe.getRootECI(function (err, rootEci) {
-    if (err) return callback(err)
+async function setupRootPico (pe) {
+  let rootEci = await pe.getRootECI()
 
-    pe.runQuery({
-      eci: rootEci,
-      rid: 'io.picolabs.wrangler',
-      name: 'myself'
-    }, function (err, myself) {
-      if (err) return callback(err)
-      if (myself.eci === rootEci) {
-        // already initialized
-        return callback()
-      }
+  let myself = await pe.runQuery({
+    eci: rootEci,
+    rid: 'io.picolabs.wrangler',
+    name: 'myself'
+  })
+  if (myself.eci === rootEci) {
+    // already initialized
+    return
+  }
 
-      var signal = function (event) {
-        return function (next) {
-          pe.signalEvent(_.assign({ eci: rootEci }, event), next)
-        }
-      }
+  var signal = function (event) {
+    return pe.signalEvent(_.assign({ eci: rootEci }, event))
+  }
 
-      async.series([
-        signal({
-          eid: '19',
-          domain: 'wrangler',
-          type: 'root_created',
-          attrs: {
-            eci: rootEci
-          }
-        }),
-        signal({
-          eid: '31',
-          domain: 'visual',
-          type: 'update',
-          attrs: {
-            dname: 'Root Pico',
-            color: '#87cefa'
-          }
-        })
-      ], callback)
-    })
+  await signal({
+    eid: '19',
+    domain: 'wrangler',
+    type: 'root_created',
+    attrs: {
+      eci: rootEci
+    }
+  })
+  await signal({
+    eid: '31',
+    domain: 'visual',
+    type: 'update',
+    attrs: {
+      dname: 'Root Pico',
+      color: '#87cefa'
+    }
   })
 }
 
-var getSystemRulesets = function (callback) {
+var getSystemRulesets = util.promisify(function (callback) {
   var krlDir = path.resolve(__dirname, '../krl')
   fs.readdir(krlDir, function (err, files) {
     if (err) return callback(err)
@@ -82,7 +75,7 @@ var getSystemRulesets = function (callback) {
       callback(err, _.compact(systemRulesets))
     })
   })
-}
+})
 
 var setupLogging = function (pe, bunyanLog) {
   var logs = {}
@@ -229,18 +222,22 @@ var setupLogging = function (pe, bunyanLog) {
       }
     }
 
-    pe.getEntVar(picoId, logRID, 'status', null, function (err, isLogsOn) {
-      if (err) return onRemoved(err)
-      if (!isLogsOn) {
+    pe.getEntVar(picoId, logRID, 'status')
+      .then(function (isLogsOn) {
+        if (!isLogsOn) {
+          onRemoved()
+          return
+        }
+        return pe.putEntVar(picoId, logRID, 'logs', episode.key, episode.logs)
+      })
+      .then(function () {
         onRemoved()
-        return
-      }
-      pe.putEntVar(picoId, logRID, 'logs', episode.key, episode.logs, onRemoved)
-    })
+      })
+      .catch(onRemoved)
   })
 }
 
-module.exports = function (conf, callback) {
+module.exports = async function (conf) {
   var pe = PicoEngineCore({
 
     host: conf.host,
@@ -277,16 +274,10 @@ module.exports = function (conf, callback) {
   }
 
   // system rulesets should be registered/updated first
-  getSystemRulesets(function (err, systemRulesets) {
-    if (err) return callback(err)
+  let systemRulesets = await getSystemRulesets()
 
-    pe.start(systemRulesets, function (err) {
-      if (err) return callback(err)
+  await pe.start(systemRulesets)
+  await setupRootPico(pe)
 
-      setupRootPico(pe, function (err) {
-        if (err) return callback(err)
-        callback(null, pe)
-      })
-    })
-  })
+  return pe
 }

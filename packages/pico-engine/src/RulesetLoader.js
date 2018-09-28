@@ -1,5 +1,6 @@
 var _ = require('lodash')
 var fs = require('fs')
+var util = require('util')
 var path = require('path')
 var mkdirp = require('mkdirp')
 var compiler = require('krl-compiler')
@@ -34,7 +35,7 @@ module.exports = function (conf) {
   var rulesetsDir = conf.rulesets_dir
   var onWarning = conf.onWarning || _.noop
 
-  return function (rsInfo, callback) {
+  return util.promisify(function (rsInfo, callback) {
     var hash = rsInfo.hash
     var krlSrc = rsInfo.src
 
@@ -71,5 +72,5 @@ module.exports = function (conf) {
         callback(null, rs)
       })
     })
-  }
+  })
 }
