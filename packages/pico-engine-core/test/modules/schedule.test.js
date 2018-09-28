@@ -6,7 +6,7 @@ test('schedule:remove', async function (t) {
 
   var remove = await pe.modules.get({}, 'schedule', 'remove')
 
-  var val = await pe.scheduleEventAtYieldable(new Date(), {
+  var val = await pe.scheduleEventAt(new Date(), {
     domain: 'd',
     type: 't',
     attributes: {}

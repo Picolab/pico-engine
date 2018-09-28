@@ -41,7 +41,7 @@ module.exports = function (core) {
 
       let pico
       try {
-        pico = await core.db.getPicoIDByECIYieldable(args.eci)
+        pico = await core.db.getPicoIDByECI(args.eci)
       } catch (err) {
         if (err && err.notFound) return
         throw err
@@ -54,8 +54,8 @@ module.exports = function (core) {
     ], async function (ctx, args) {
       let picoId = picoArgOrCtxPico('getParent', ctx, args)
       try {
-        picoId = await core.db.assertPicoIDYieldable(picoId)
-        let parentId = await core.db.getParentYieldable(picoId)
+        picoId = await core.db.assertPicoID(picoId)
+        let parentId = await core.db.getParent(picoId)
         return parentId
       } catch (err) {
         if (err && err.notFound) return
@@ -68,8 +68,8 @@ module.exports = function (core) {
     ], async function (ctx, args) {
       let picoId = picoArgOrCtxPico('getAdminECI', ctx, args)
       try {
-        picoId = await core.db.assertPicoIDYieldable(picoId)
-        let eci = await core.db.getAdminECIYieldable(picoId)
+        picoId = await core.db.assertPicoID(picoId)
+        let eci = await core.db.getAdminECI(picoId)
         return eci
       } catch (err) {
         if (err && err.notFound) return
@@ -82,8 +82,8 @@ module.exports = function (core) {
     ], async function (ctx, args) {
       let picoId = picoArgOrCtxPico('listChildren', ctx, args)
       try {
-        picoId = await core.db.assertPicoIDYieldable(picoId)
-        let children = await core.db.listChildrenYieldable(picoId)
+        picoId = await core.db.assertPicoID(picoId)
+        let children = await core.db.listChildren(picoId)
         return children
       } catch (err) {
         if (err && err.notFound) return
@@ -93,7 +93,7 @@ module.exports = function (core) {
 
     listPolicies: mkKRLfn([
     ], function (ctx, args) {
-      return core.db.listPoliciesYieldable()
+      return core.db.listPolicies()
     }),
 
     listChannels: mkKRLfn([
@@ -101,12 +101,12 @@ module.exports = function (core) {
     ], async function (ctx, args) {
       let picoId = picoArgOrCtxPico('listChannels', ctx, args)
       try {
-        picoId = await core.db.assertPicoIDYieldable(picoId)
+        picoId = await core.db.assertPicoID(picoId)
       } catch (err) {
         if (err && err.notFound) return
         throw err
       }
-      return core.db.listChannelsYieldable(picoId)
+      return core.db.listChannels(picoId)
     }),
 
     listInstalledRIDs: mkKRLfn([
@@ -114,8 +114,8 @@ module.exports = function (core) {
     ], async function (ctx, args) {
       let picoId = picoArgOrCtxPico('listInstalledRIDs', ctx, args)
       try {
-        picoId = await core.db.assertPicoIDYieldable(picoId)
-        let ridSet = await core.db.ridsOnPicoYieldable(picoId)
+        picoId = await core.db.assertPicoID(picoId)
+        let ridSet = await core.db.ridsOnPico(picoId)
         return _.keys(ridSet)
       } catch (err) {
         if (err && err.notFound) return
@@ -125,7 +125,7 @@ module.exports = function (core) {
 
     listAllEnabledRIDs: mkKRLfn([
     ], function (ctx, args) {
-      return core.db.listAllEnabledRIDsYieldable()
+      return core.db.listAllEnabledRIDs()
     }),
 
     describeRuleset: mkKRLfn([
@@ -137,12 +137,9 @@ module.exports = function (core) {
       if (!ktypes.isString(args.rid)) {
         throw new TypeError('engine:describeRuleset was given ' + ktypes.toString(args.rid) + ' instead of a rid string')
       }
-      let data
-      try {
-        data = await core.db.getEnabledRulesetYieldable(args.rid)
-      } catch (err) {
-        if (err && err.notFound) return
-        throw err
+      let data = await core.db.getEnabledRuleset(args.rid)
+      if (!data) {
+        return
       }
       let rid = data.rid
       return {
@@ -165,9 +162,9 @@ module.exports = function (core) {
     ], async function (ctx, args) {
       let parentId = picoArgOrCtxPico('newPico', ctx, args, 'parent_id')
 
-      parentId = await core.db.assertPicoIDYieldable(parentId)
+      parentId = await core.db.assertPicoID(parentId)
 
-      return core.db.newPicoYieldable({
+      return core.db.newPico({
         parent_id: parentId
       })
     }),
@@ -178,19 +175,19 @@ module.exports = function (core) {
       let picoId = picoArgOrCtxPico('removePico', ctx, args)
 
       try {
-        picoId = await core.db.assertPicoIDYieldable(picoId)
+        picoId = await core.db.assertPicoID(picoId)
       } catch (err) {
         if (err && err.notFound) return false
         throw err
       }
 
-      let children = await core.db.listChildrenYieldable(picoId)
+      let children = await core.db.listChildren(picoId)
       if (_.size(children) > 0) {
         throw new Error('Cannot remove pico "' + picoId + '" because it has ' + _.size(children) + ' children')
       }
 
       try {
-        await core.db.removePicoYieldable(picoId)
+        await core.db.removePico(picoId)
       } catch (err) {
         if (err && err.notFound) return false
         throw err
@@ -212,7 +209,7 @@ module.exports = function (core) {
         throw new TypeError('engine:removePolicy was given ' + ktypes.toString(id) + ' instead of a policy_id string')
       }
       try {
-        await core.db.removePolicyYieldable(id)
+        await core.db.removePolicy(id)
         return true
       } catch (err) {
         if (err && err.notFound) return false
@@ -243,11 +240,11 @@ module.exports = function (core) {
         throw new Error('engine:newChannel needs a type string')
       }
 
-      picoId = await core.db.assertPicoIDYieldable(picoId)
+      picoId = await core.db.assertPicoID(picoId)
 
-      policyId = await core.db.assertPolicyIDYieldable(policyId)
+      policyId = await core.db.assertPolicyID(policyId)
 
-      return core.db.newChannelYieldable({
+      return core.db.newChannel({
         pico_id: picoId,
         name: ktypes.toString(args.name),
         type: ktypes.toString(args.type),
@@ -266,7 +263,7 @@ module.exports = function (core) {
       }
 
       try {
-        await core.db.removeChannelYieldable(args.eci)
+        await core.db.removeChannel(args.eci)
         return true
       } catch (err) {
         if (err && err.notFound) return false
@@ -331,7 +328,7 @@ module.exports = function (core) {
       }
 
       let picoId = picoArgOrCtxPico('installRuleset', ctx, args)
-      picoId = await core.db.assertPicoIDYieldable(picoId)
+      picoId = await core.db.assertPicoID(picoId)
 
       let install = function (rid) {
         return core.installRuleset(picoId, rid)
@@ -366,7 +363,7 @@ module.exports = function (core) {
         ? urllib.resolve(args.base, args.url)
         : args.url
 
-      let results = await core.db.findRulesetsByURLYieldable(uri)
+      let results = await core.db.findRulesetsByURL(uri)
       let rids = _.uniq(_.map(results, 'rid'))
       if (_.size(rids) === 0) {
         let data = await core.registerRulesetURL(uri)
@@ -387,7 +384,7 @@ module.exports = function (core) {
       }
 
       let picoId = picoArgOrCtxPico('uninstallRuleset', ctx, args)
-      picoId = await core.db.assertPicoIDYieldable(picoId)
+      picoId = await core.db.assertPicoID(picoId)
 
       let ridIsString = ktypes.isString(args.rid)
       if (!ridIsString && !ktypes.isArray(args.rid)) {
@@ -419,7 +416,7 @@ module.exports = function (core) {
       let message = assertArg('encryptChannelMessage', args, 'message', 'String')
       let otherPublicKey = assertArg('encryptChannelMessage', args, 'otherPublicKey', 'String')
 
-      return core.db.encryptChannelMessageYieldable(eci, message, otherPublicKey)
+      return core.db.encryptChannelMessage(eci, message, otherPublicKey)
     }),
 
     decryptChannelMessage: mkKRLfn([
@@ -433,7 +430,7 @@ module.exports = function (core) {
       let nonce = assertArg('decryptChannelMessage', args, 'nonce', 'String')
       let otherPublicKey = assertArg('decryptChannelMessage', args, 'otherPublicKey', 'String')
 
-      return core.db.decryptChannelMessageYieldable(eci, encryptedMessage, nonce, otherPublicKey)
+      return core.db.decryptChannelMessage(eci, encryptedMessage, nonce, otherPublicKey)
     }),
 
     signChannelMessage: mkKRLfn([
@@ -443,7 +440,7 @@ module.exports = function (core) {
       let eci = assertArg('signChannelMessage', args, 'eci', 'String')
       let message = assertArg('signChannelMessage', args, 'message', 'String')
 
-      return core.db.signChannelMessageYieldable(eci, message)
+      return core.db.signChannelMessage(eci, message)
     }),
 
     verifySignedMessage: mkKRLfn([

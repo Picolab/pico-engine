@@ -44,7 +44,7 @@ module.exports = function (core) {
         return getCoreCTXval[id](core, ctx)
       }
       if (id === 'rulesetURI') {
-        let data = await core.db.getEnabledRulesetYieldable(ctx.rid)
+        let data = await core.db.getEnabledRuleset(ctx.rid)
         return data.url
       }
       throw new Error('Meta attribute not defined `' + id + '`')

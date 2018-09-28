@@ -21,7 +21,7 @@ test('DB - write and read', async function (t) {
 
   await db.newPico({})
 
-  await db.addRulesetToPicoYieldable('id0', 'rs0')
+  await db.addRulesetToPico('id0', 'rs0')
   await db.newChannel({ pico_id: 'id0', name: 'two', type: 't', policy_id: ADMIN_POLICY_ID })
   await db.newPico({ parent_id: 'id0' })
 
@@ -104,8 +104,8 @@ test('DB - write and read', async function (t) {
     }
   })
 
-  await db.removePicoYieldable('id0')
-  await db.removePicoYieldable('id3')
+  await db.removePico('id0')
+  await db.removePico('id3')
 
   t.deepEqual(await db.toObj(), {})
 })
@@ -135,7 +135,7 @@ test('DB - storeRuleset', async function (t) {
     url: url
   }, timestamp), { rid: rid, hash: hash })
 
-  t.deepEqual(await db.findRulesetsByURLYieldable(url), [{
+  t.deepEqual(await db.findRulesetsByURL(url), [{
     rid: rid,
     hash: hash
   }])
@@ -151,7 +151,7 @@ test('DB - enableRuleset', async function (t) {
 
   let data = await db.storeRuleset(krlSrc, {})
   let hash = data.hash
-  await db.enableRulesetYieldable(hash)
+  await db.enableRuleset(hash)
   let dbJson = await db.toObj()
   t.deepEqual(_.get(dbJson, [
     'rulesets',
@@ -160,7 +160,7 @@ test('DB - enableRuleset', async function (t) {
     'hash'
   ]), hash)
 
-  data = await db.getEnabledRulesetYieldable('io.picolabs.cool')
+  data = await db.getEnabledRuleset('io.picolabs.cool')
   t.is(data.src, krlSrc)
   t.is(data.hash, hash)
   t.is(data.rid, 'io.picolabs.cool')
@@ -175,33 +175,33 @@ test('DB - enableRuleset', async function (t) {
 test("DB - read keys that don't exist", async function (t) {
   var db = mkTestDB()
 
-  var ent = await db.getEntVarYieldable('pico0', 'rid0', "var that doesn't exisit", null)
+  var ent = await db.getEntVar('pico0', 'rid0', "var that doesn't exisit", null)
   t.is(ent, undefined)
 
-  var app = await db.getAppVarYieldable('rid0', "var that doesn't exisit", null)
+  var app = await db.getAppVar('rid0', "var that doesn't exisit", null)
   t.is(app, undefined)
 })
 
 test('DB - getRootPico', async function (t) {
   var db = mkTestDB()
 
-  let err = await t.throws(db.getRootPicoYieldable())
+  let err = await t.throws(db.getRootPico())
   t.truthy(err.notFound)
 
   await db.newChannel({ pico_id: 'foo', name: 'bar', type: 'baz' })
   await db.newPico({})
 
-  let rPico = await db.getRootPicoYieldable()
+  let rPico = await db.getRootPico()
   t.deepEqual(rPico, { id: 'id1', parent_id: null, admin_eci: 'id2' })
 
   await db.newPico({ parent_id: 'id1' })
 
-  rPico = await db.getRootPicoYieldable()
+  rPico = await db.getRootPico()
   t.deepEqual(rPico, { id: 'id1', parent_id: null, admin_eci: 'id2' })
 
   await db.newPico({ parent_id: null })
 
-  rPico = await db.getRootPicoYieldable()
+  rPico = await db.getRootPico()
   t.deepEqual(rPico, { id: 'id5', parent_id: null, admin_eci: 'id6' })
 })
 
@@ -211,14 +211,14 @@ test('DB - isRulesetUsed', async function (t) {
   await db.newPico({})
   await db.newPico({})
 
-  await db.addRulesetToPicoYieldable('id0', 'rs-foo')
-  await db.addRulesetToPicoYieldable('id1', 'rs-foo')
-  await db.addRulesetToPicoYieldable('id0', 'rs-bar')
+  await db.addRulesetToPico('id0', 'rs-foo')
+  await db.addRulesetToPico('id1', 'rs-foo')
+  await db.addRulesetToPico('id0', 'rs-bar')
 
-  t.is(await db.isRulesetUsedYieldable('rs-foo'), true)
-  t.is(await db.isRulesetUsedYieldable('rs-bar'), true)
-  t.is(await db.isRulesetUsedYieldable('rs-baz'), false)
-  t.is(await db.isRulesetUsedYieldable('rs-qux'), false)
+  t.is(await db.isRulesetUsed('rs-foo'), true)
+  t.is(await db.isRulesetUsed('rs-bar'), true)
+  t.is(await db.isRulesetUsed('rs-baz'), false)
+  t.is(await db.isRulesetUsed('rs-qux'), false)
 })
 
 test('DB - deleteRuleset', async function (t) {
@@ -230,8 +230,8 @@ test('DB - deleteRuleset', async function (t) {
     let data = await db.storeRuleset(krl, {
       url: 'file:///' + name + '.krl'
     })
-    await db.enableRulesetYieldable(data.hash)
-    await db.putAppVarYieldable(rid, 'my_var', null, 'appvar value')
+    await db.enableRuleset(data.hash)
+    await db.putAppVar(rid, 'my_var', null, 'appvar value')
     return data.hash
   }
 
@@ -240,7 +240,7 @@ test('DB - deleteRuleset', async function (t) {
 
   let initDb = await db.toObj()
 
-  await db.deleteRulesetYieldable('io.picolabs.foo')
+  await db.deleteRuleset('io.picolabs.foo')
 
   let endDb = await db.toObj()
 
@@ -271,17 +271,17 @@ test('DB - scheduleEventAt', async function (t) {
   var db = mkTestDB()
 
   var eventAt = function (date, type) {
-    return db.scheduleEventAtYieldable(new Date(date), {
+    return db.scheduleEventAt(new Date(date), {
       domain: 'foobar',
       type: type,
       attributes: { some: 'attr' }
     })
   }
   var rmAt = function (id) {
-    return db.removeScheduledYieldable(id)
+    return db.removeScheduled(id)
   }
 
-  var getNext = db.nextScheduleEventAtYieldable
+  var getNext = db.nextScheduleEventAt
 
   t.deepEqual(await db.toObj(), {})
   t.deepEqual(await getNext(), void 0, 'nothing scheduled')
@@ -294,7 +294,7 @@ test('DB - scheduleEventAt', async function (t) {
   let at2 = await eventAt('Feb  2, 2222', 'baz')
   let next3 = await getNext()
 
-  let list = await db.listScheduledYieldable()
+  let list = await db.listScheduled()
 
   await rmAt('id0')
   let next4 = await getNext()
@@ -343,7 +343,7 @@ test('DB - scheduleEventRepeat', async function (t) {
   var db = mkTestDB()
 
   var eventRep = function (timespec, type) {
-    return db.scheduleEventRepeatYieldable(timespec, {
+    return db.scheduleEventRepeat(timespec, {
       domain: 'foobar',
       type: type,
       attributes: { some: 'attr' }
@@ -370,13 +370,13 @@ test('DB - scheduleEventRepeat', async function (t) {
     id1: rep1
   } })
 
-  t.deepEqual(await db.listScheduledYieldable(), [
+  t.deepEqual(await db.listScheduled(), [
     rep0,
     rep1
   ])
 
-  await db.removeScheduledYieldable('id0')
-  await db.removeScheduledYieldable('id1')
+  await db.removeScheduled('id0')
+  await db.removeScheduled('id1')
 
   t.deepEqual(await db.toObj(), {}, 'should be nothing left in the db')
 })
@@ -384,9 +384,9 @@ test('DB - scheduleEventRepeat', async function (t) {
 test('DB - removeRulesetFromPico', async function (t) {
   var db = mkTestDB()
 
-  await db.addRulesetToPicoYieldable('pico0', 'rid0')
-  await db.putEntVarYieldable('pico0', 'rid0', 'foo', null, 'val0')
-  await db.putEntVarYieldable('pico0', 'rid0', 'bar', null, 'val1')
+  await db.addRulesetToPico('pico0', 'rid0')
+  await db.putEntVar('pico0', 'rid0', 'foo', null, 'val0')
+  await db.putEntVar('pico0', 'rid0', 'bar', null, 'val1')
 
   t.deepEqual(await db.toObj(), {
     entvars: { pico0: { rid0: {
@@ -397,7 +397,7 @@ test('DB - removeRulesetFromPico', async function (t) {
     'ruleset-pico': { 'rid0': { 'pico0': { on: true } } }
   })
 
-  await db.removeRulesetFromPicoYieldable('pico0', 'rid0')
+  await db.removeRulesetFromPico('pico0', 'rid0')
 
   t.deepEqual(await db.toObj(), {}, 'should all be gone')
 })
@@ -411,12 +411,12 @@ test('DB - getPicoIDByECI', async function (t) {
   await db.newChannel({ pico_id: 'id0', name: 'four', type: 't' })
   await db.newChannel({ pico_id: 'id2', name: 'five', type: 't' })
 
-  t.is(await db.getPicoIDByECIYieldable('id1'), 'id0')
-  t.is(await db.getPicoIDByECIYieldable('id3'), 'id2')
-  t.is(await db.getPicoIDByECIYieldable('id4'), 'id0')
-  t.is(await db.getPicoIDByECIYieldable('id5'), 'id2')
+  t.is(await db.getPicoIDByECI('id1'), 'id0')
+  t.is(await db.getPicoIDByECI('id3'), 'id2')
+  t.is(await db.getPicoIDByECI('id4'), 'id0')
+  t.is(await db.getPicoIDByECI('id5'), 'id2')
 
-  let err = await t.throws(db.getPicoIDByECIYieldable('bad-id'))
+  let err = await t.throws(db.getPicoIDByECI('bad-id'))
   t.truthy((err && err.notFound) === true)
 })
 
@@ -429,9 +429,9 @@ test('DB - listChannels', async function (t) {
   let c4p0 = await db.newChannel({ pico_id: 'id0', name: 'four', type: 't4', policy_id: ADMIN_POLICY_ID })
   let c5p1 = await db.newChannel({ pico_id: 'id2', name: 'five', type: 't5', policy_id: ADMIN_POLICY_ID })
 
-  let list0 = await db.listChannelsYieldable('id0')
-  let list2 = await db.listChannelsYieldable('id2')
-  let list404 = await db.listChannelsYieldable('id404')
+  let list0 = await db.listChannels('id0')
+  let list2 = await db.listChannels('id2')
+  let list404 = await db.listChannels('id404')
 
   var mkChan = function (picoId, eci, name, type) {
     return {
@@ -470,57 +470,57 @@ test('DB - listAllEnabledRIDs', async function (t) {
   }
 
   var enable = function (rid) {
-    return db.enableRulesetYieldable(hashes[rid])
+    return db.enableRuleset(hashes[rid])
   }
 
-  t.deepEqual(await db.listAllEnabledRIDsYieldable(), [])
+  t.deepEqual(await db.listAllEnabledRIDs(), [])
 
   await store('foo')
   await store('bar')
   await store('baz')
-  t.deepEqual(await db.listAllEnabledRIDsYieldable(), [])
+  t.deepEqual(await db.listAllEnabledRIDs(), [])
 
   await enable('foo')
-  t.deepEqual(await db.listAllEnabledRIDsYieldable(), ['foo'])
+  t.deepEqual(await db.listAllEnabledRIDs(), ['foo'])
 
   await enable('bar')
   await enable('baz')
-  t.deepEqual(await db.listAllEnabledRIDsYieldable(), ['bar', 'baz', 'foo'])
+  t.deepEqual(await db.listAllEnabledRIDs(), ['bar', 'baz', 'foo'])
 
-  await db.disableRulesetYieldable('foo')
-  t.deepEqual(await db.listAllEnabledRIDsYieldable(), ['bar', 'baz'])
+  await db.disableRuleset('foo')
+  t.deepEqual(await db.listAllEnabledRIDs(), ['bar', 'baz'])
 })
 
 test('DB - migrations', async function (t) {
   let db = mkTestDB()
 
-  let log = await db.getMigrationLogYieldable()
+  let log = await db.getMigrationLog()
   t.deepEqual(log, {})
 
-  await db.recordMigrationYieldable('v1')
+  await db.recordMigration('v1')
 
-  log = await db.getMigrationLogYieldable()
+  log = await db.getMigrationLog()
   t.deepEqual(_.keys(log), ['v1'])
   t.deepEqual(_.keys(log['v1']), ['timestamp'])
   t.is(log['v1'].timestamp, (new Date(log['v1'].timestamp)).toISOString())
 
-  await db.recordMigrationYieldable('v200')
+  await db.recordMigration('v200')
 
-  log = await db.getMigrationLogYieldable()
+  log = await db.getMigrationLog()
   t.deepEqual(_.keys(log), ['v1', 'v200'])
 
-  await db.removeMigrationYieldable('v200')
+  await db.removeMigration('v200')
 
-  log = await db.getMigrationLogYieldable()
+  log = await db.getMigrationLog()
   t.deepEqual(_.keys(log), ['v1'])
 
-  await db.removeMigrationYieldable('v1')
+  await db.removeMigration('v1')
 
-  log = await db.getMigrationLogYieldable()
+  log = await db.getMigrationLog()
   t.deepEqual(log, {})
 
-  await db.checkAndRunMigrationsYieldable()
-  log = await db.getMigrationLogYieldable()
+  await db.checkAndRunMigrations()
+  log = await db.getMigrationLog()
   t.deepEqual(_.keys(log), _.keys(migrations))
 })
 
@@ -528,12 +528,12 @@ test('DB - parent/child', async function (t) {
   var db = mkTestDB()
 
   var assertParent = async function (picoId, expectedParentId) {
-    let parentId = await db.getParentYieldable(picoId)
+    let parentId = await db.getParent(picoId)
     t.is(parentId, expectedParentId, 'testing db.getParent')
   }
 
   var assertChildren = async function (picoId, expectedChildrenIds) {
-    let list = await db.listChildrenYieldable(picoId)
+    let list = await db.listChildren(picoId)
     t.deepEqual(list, expectedChildrenIds, 'testing db.listChildren')
   }
 
@@ -559,10 +559,10 @@ test('DB - parent/child', async function (t) {
   await assertChildren('id8', [])
   await assertChildren('id10', [])
 
-  await db.removePicoYieldable('id8')
+  await db.removePico('id8')
   await assertChildren('id6', ['id10'])
 
-  await db.removePicoYieldable('id6')
+  await db.removePico('id6')
   await assertChildren('id6', [])
 })
 
@@ -572,7 +572,7 @@ test('DB - assertPicoID', async function (t) {
   var tstPID = async function (id, expectedIt) {
     let gotId, err
     try {
-      gotId = await db.assertPicoIDYieldable(id)
+      gotId = await db.assertPicoID(id)
     } catch (e) {
       err = e
     }
@@ -600,7 +600,7 @@ test('DB - removeChannel', async function (t) {
   var db = mkTestDB()
 
   var assertECIs = async function (picoId, expectedEcis) {
-    var chans = await db.listChannelsYieldable(picoId)
+    var chans = await db.listChannels(picoId)
 
     var eciList = _.map(chans, 'id')
     t.deepEqual(eciList, expectedEcis, 'assert the listChannels')
@@ -609,29 +609,29 @@ test('DB - removeChannel', async function (t) {
 
   var assertFailRemoveECI = async function (eci) {
     try {
-      await db.removeChannelYieldable(eci)
+      await db.removeChannel(eci)
       t.fail('Should error')
     } catch (err) {
       t.is(err + '', "Error: Cannot delete the pico's admin channel")
     }
   }
 
-  await db.newPicoYieldable({})
+  await db.newPico({})
   await assertECIs('id0', ['id1'])
 
-  await db.newChannelYieldable({ pico_id: 'id0', name: 'two', type: 't' })
+  await db.newChannel({ pico_id: 'id0', name: 'two', type: 't' })
   await assertECIs('id0', ['id1', 'id2'])
 
   await assertFailRemoveECI('id1')
   await assertECIs('id0', ['id1', 'id2'])
 
-  await db.removeChannelYieldable('id2')
+  await db.removeChannel('id2')
   await assertECIs('id0', ['id1'])
 
   await assertFailRemoveECI('id1')
   await assertECIs('id0', ['id1'])
 
-  await db.newPicoYieldable({ parent_id: 'id0' })
+  await db.newPico({ parent_id: 'id0' })
   await assertECIs('id3', ['id4'])
 
   await assertFailRemoveECI('id4')
@@ -641,10 +641,10 @@ test('DB - removeChannel', async function (t) {
 test('DB - persistent variables', async function (t) {
   var db = mkTestDB()
 
-  var put = _.partial(db.putEntVarYieldable, 'p', 'r')
-  var get = _.partial(db.getEntVarYieldable, 'p', 'r')
-  var del = _.partial(db.delEntVarYieldable, 'p', 'r')
-  var toObj = db.toObjYieldable
+  var put = _.partial(db.putEntVar, 'p', 'r')
+  var get = _.partial(db.getEntVar, 'p', 'r')
+  var del = _.partial(db.delEntVar, 'p', 'r')
+  var toObj = db.toObj
 
   var data
 
@@ -737,10 +737,10 @@ test('DB - persistent variables', async function (t) {
 
 test('DB - persistent variables array/map', async function (t) {
   var db = mkTestDB()
-  var put = _.partial(db.putEntVarYieldable, 'p', 'r')
-  var get = _.partial(db.getEntVarYieldable, 'p', 'r')
-  var del = _.partial(db.delEntVarYieldable, 'p', 'r')
-  var toObj = db.toObjYieldable
+  var put = _.partial(db.putEntVar, 'p', 'r')
+  var get = _.partial(db.getEntVar, 'p', 'r')
+  var del = _.partial(db.delEntVar, 'p', 'r')
+  var toObj = db.toObj
   var toJson = JSON.stringify
 
   var tst = async function (name, type, value, msg) {

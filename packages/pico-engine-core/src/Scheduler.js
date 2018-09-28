@@ -18,8 +18,8 @@ module.exports = function (conf) {
   var pendingAtRemoves = 0
 
   /**
-     * call update everytime the schedule in the db changes
-     */
+   * call update everytime the schedule in the db changes
+   */
   var update = function update () {
     if (pendingAtRemoves !== 0) {
       return// remove will call update() when it's done

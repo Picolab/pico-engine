@@ -226,30 +226,27 @@ test('PicoEngine - io.picolabs.persistent', async function (t) {
     /// ///////////////////////////////////////////////////////////////////////
     // clear vars
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.truthy(_.has(data, entvarPath))
         t.truthy(_.has(data, appvarPath))
         done()
-      })
+      }, done)
     },
     [signalA('store', 'clear_user'), [{ name: 'clear_user', options: {} }]],
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.falsy(_.has(data, entvarPath))
         t.truthy(_.has(data, appvarPath))
         done()
-      })
+      }, done)
     },
     [signalA('store', 'clear_appvar'), [{ name: 'clear_appvar', options: {} }]],
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.falsy(_.has(data, entvarPath))
         t.falsy(_.has(data, appvarPath))
         done()
-      })
+      }, done)
     }
   ])
 })
@@ -726,8 +723,7 @@ test('PicoEngine - io.picolabs.engine ruleset', async function (t) {
       url: 'scope.krl'
     }), []],
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.deepEqual(data['pico-ruleset'], {
           'id0': {
             'io.picolabs.engine': { on: true }
@@ -738,11 +734,10 @@ test('PicoEngine - io.picolabs.engine ruleset', async function (t) {
           }
         })
         done()
-      })
+      }, done)
     },
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.deepEqual(data.channel.id4, {
           id: 'id4',
           name: 'krl created chan',
@@ -759,7 +754,7 @@ test('PicoEngine - io.picolabs.engine ruleset', async function (t) {
           }
         }, 'channel is there before')
         done()
-      })
+      }, done)
     },
     [
       signal('engine', 'removeChannel', {
@@ -768,11 +763,10 @@ test('PicoEngine - io.picolabs.engine ruleset', async function (t) {
       []
     ],
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.deepEqual(data.channel.id4, void 0, 'channel has been removed')
         done()
-      })
+      }, done)
     }
   ])
 })
@@ -2379,7 +2373,7 @@ test('PicoEngine - io.picolabs.persistent-index', async function (t) {
 test('PicoEngine - io.picolabs.policies ruleset', async function (t) {
   var pe = await mkTestPicoEngine({ rootRIDs: ['io.picolabs.policies'] })
   var newPolicy = pe.newPolicy
-  var newChannel = util.promisify(pe.newChannel)
+  var newChannel = pe.newChannel
 
   pe.emitter.on('error', function (err) {
     if (/by channel policy/.test(err + '')) {

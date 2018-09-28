@@ -252,12 +252,12 @@ module.exports = function (conf) {
       depGraph.overallOrder()// this will throw if there is a cycle
 
       // Now enable and initialize it
-      await db.enableRulesetYieldable(hash)
+      await db.enableRuleset(hash)
       await initializeRulest(rs)
     } catch (err) {
       core.rsreg.del(rs.rid)
       depGraph.removeNode(rs.rid)
-      db.disableRulesetYieldable(rs.rid)// undo enable if failed
+      db.disableRuleset(rs.rid)// undo enable if failed
       throw err
     }
 
@@ -323,13 +323,7 @@ module.exports = function (conf) {
       ? dataOrig.timestamp
       : new Date()
 
-    db.getChannelAndPolicy(data.eci, function (err, chann) {
-      if (err) {
-        emitter.emit('error', err)
-        callback(err)
-        return
-      }
-
+    db.getChannelAndPolicy(data.eci).then(function (chann) {
       let picoId = chann.pico_id
 
       let emit = mkCTX({
@@ -365,6 +359,9 @@ module.exports = function (conf) {
         emit('episode_stop')
         callback(err, data)
       }
+    }, function (err) {
+      emitter.emit('error', err)
+      callback(err)
     })
   }
 
@@ -386,9 +383,9 @@ module.exports = function (conf) {
     //
     // load Rulesets and track dependencies
     //
-    let rids = await db.listAllEnabledRIDsYieldable()
+    let rids = await db.listAllEnabledRIDs()
     for (let rid of rids) {
-      let data = await db.getEnabledRulesetYieldable(rid)
+      let data = await db.getEnabledRuleset(rid)
       let rs
       try {
         rs = await compileAndLoadRuleset({
@@ -402,7 +399,7 @@ module.exports = function (conf) {
         err2.orig_error = err
         emitter.emit('error', err2, { rid: rid })
         // disable the ruleset since it's broken
-        await db.disableRulesetYieldable(rid)
+        await db.disableRuleset(rid)
         continue
       }
       rsByRid[rs.rid] = rs
@@ -431,7 +428,7 @@ module.exports = function (conf) {
         _.each(cycleRids, function (rid) {
           // remove the rids from the graph and disable it
           depGraph.removeNode(rid)
-          db.disableRulesetYieldable(rid)
+          db.disableRuleset(rid)
 
           // Let the user know the rid was disabled
           let err2 = new Error('Failed to initialize ' + rid + ", it's in a dependency cycle. It is now disabled. You'll need to resolve the cycle then re-register it.\nCause: " + err)
@@ -455,7 +452,7 @@ module.exports = function (conf) {
         emitter.emit('error', err2, { rid: rid })
         // disable the ruleset since it's broken
         depGraph.removeNode(rid)
-        await db.disableRulesetYieldable(rid)
+        await db.disableRuleset(rid)
         continue
       }
     }
@@ -465,11 +462,11 @@ module.exports = function (conf) {
     // first assert rid is not depended on as a module
     core.rsreg.assertNoDependants(rid)
 
-    let isUsed = await db.isRulesetUsedYieldable(rid)
+    let isUsed = await db.isRulesetUsed(rid)
     if (isUsed) {
       throw new Error('Unable to unregister "' + rid + '": it is installed on at least one pico')
     }
-    await db.deleteRulesetYieldable(rid)
+    await db.deleteRuleset(rid)
 
     core.rsreg.del(rid)
   }
@@ -491,7 +488,7 @@ module.exports = function (conf) {
     return core.registerRuleset(src, { url: url })
   }
   core.flushRuleset = async function (rid) {
-    let rsData = await db.getEnabledRulesetYieldable(rid)
+    let rsData = await db.getEnabledRuleset(rid)
     let url = rsData.url
     if (!_.isString(url)) {
       throw new Error('cannot flush a locally registered ruleset')
@@ -499,17 +496,17 @@ module.exports = function (conf) {
     return core.registerRulesetURL(url)
   }
   core.installRuleset = async function (picoId, rid) {
-    picoId = await db.assertPicoIDYieldable(picoId)
+    picoId = await db.assertPicoID(picoId)
 
-    let has = await db.hasEnabledRidYieldable(rid)
+    let has = await db.hasEnabledRid(rid)
     if (!has) throw new Error('This rid is not found and/or enabled: ' + rid)
 
-    return db.addRulesetToPicoYieldable(picoId, rid)
+    return db.addRulesetToPico(picoId, rid)
   }
 
   core.uninstallRuleset = async function (picoId, rid) {
-    picoId = await db.assertPicoIDYieldable(picoId)
-    await db.removeRulesetFromPicoYieldable(picoId, rid)
+    picoId = await db.assertPicoID(picoId)
+    await db.removeRulesetFromPico(picoId, rid)
   }
 
   let pe = {
@@ -519,7 +516,7 @@ module.exports = function (conf) {
     runQuery: core.runQuery,
 
     getRootECI: function () {
-      return db.getRootPicoYieldable()
+      return db.getRootPico()
         .then(function (rootPico) {
           return rootPico.admin_eci
         })
@@ -549,7 +546,7 @@ module.exports = function (conf) {
     pe.newPico = db.newPico
     pe.newPolicy = db.newPolicy
     pe.newChannel = db.newChannel
-    pe.scheduleEventAtYieldable = db.scheduleEventAtYieldable
+    pe.scheduleEventAt = db.scheduleEventAt
     pe.scheduler = core.scheduler
     pe.modules = modules
   }
@@ -557,7 +554,7 @@ module.exports = function (conf) {
   pe.start = async function (systemRulesets) {
     systemRulesets = systemRulesets || []
 
-    await db.checkAndRunMigrationsYieldable()
+    await db.checkAndRunMigrations()
 
     // compile+store+enable systemRulesets first
     for (let systemRuleset of systemRulesets) {
@@ -568,7 +565,7 @@ module.exports = function (conf) {
         src: src,
         hash: data.hash
       })
-      await db.enableRulesetYieldable(data.hash)
+      await db.enableRuleset(data.hash)
     }
 
     // wake up the rulesets from the db
@@ -578,17 +575,17 @@ module.exports = function (conf) {
     if (!_.isEmpty(rootRIDs)) {
       let rootPico
       try {
-        rootPico = await db.getRootPicoYieldable()
+        rootPico = await db.getRootPico()
       } catch (err) {
         if (err && err.notFound) {
           // create the root pico
-          await db.newPicoYieldable({})
-          rootPico = await db.getRootPicoYieldable()
+          await db.newPico({})
+          rootPico = await db.getRootPico()
         } else {
           throw err
         }
       }
-      let rids = db.ridsOnPicoYieldable(rootPico.id)
+      let rids = db.ridsOnPico(rootPico.id)
       let toInstall = []
       _.each(rootRIDs, function (rid) {
         if (!_.includes(rids, rid)) {
@@ -601,7 +598,7 @@ module.exports = function (conf) {
     }
 
     // resumeScheduler
-    let vals = await db.listScheduledYieldable()
+    let vals = await db.listScheduled()
 
     // resume the cron jobs
     _.each(vals, function (val) {

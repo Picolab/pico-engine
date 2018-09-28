@@ -6,7 +6,7 @@ module.exports = function (core) {
     def: {
       list: mkKRLfn([
       ], function (ctx, args) {
-        return core.db.listScheduledYieldable()
+        return core.db.listScheduled()
       }),
 
       remove: mkKRLaction([
@@ -17,7 +17,7 @@ module.exports = function (core) {
 
         let found = false
         try {
-          await core.db.removeScheduledYieldable(args.id)
+          await core.db.removeScheduled(args.id)
           found = true
         } catch (err) {
           if (err && !err.notFound) throw err

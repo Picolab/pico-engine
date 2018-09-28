@@ -1,5 +1,4 @@
 var _ = require('lodash')
-var util = require('util')
 var ktypes = require('krl-stdlib/types')
 var kengine = require('../../src/modules/engine')
 var ADMIN_POLICY_ID = require('../../src/DB').ADMIN_POLICY_ID
@@ -47,9 +46,9 @@ async function testError (t, promise, errMsg, msg) {
 
 var assertPicoID = function (id, callback) {
   if (!ktypes.isString(id)) {
-    return callback(new TypeError('Invalid pico_id: ' + ktypes.toString(id)))
+    throw new TypeError('Invalid pico_id: ' + ktypes.toString(id))
   }
-  callback(null, id)
+  return id
 }
 
 test('engine:getPicoIDByECI', async function (t) {
@@ -125,8 +124,7 @@ test('engine:installRuleset', async function (t) {
     }),
     db: {
       assertPicoID: assertPicoID,
-      assertPicoIDYieldable: util.promisify(assertPicoID),
-      findRulesetsByURLYieldable: tick(function (url) {
+      findRulesetsByURL: tick(function (url) {
         if (url === 'http://foo.bar/baz/qux.krl') {
           return [{ rid: 'found' }]
         } else if (url === 'file:///too/many.krl') {
@@ -182,8 +180,7 @@ test('engine:uninstallRuleset', async function (t) {
       _.set(uninstalled, [id, rid], order++)
     }),
     db: {
-      assertPicoID: assertPicoID,
-      assertPicoIDYieldable: util.promisify(assertPicoID)
+      assertPicoID: assertPicoID
     }
   })
 
