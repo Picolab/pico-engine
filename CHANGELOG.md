@@ -1,3 +1,14 @@
+# 0.47.0 - September 29, 2018
+
+* added `data = engine:exportPico(pico_id)` - see [414](https://github.com/Picolab/pico-engine/pull/414)
+* added `engine:importPico(parent_id, data) setting(newPicoId)` - see [415](https://github.com/Picolab/pico-engine/pull/415)
+* added `engine:setPicoStatus(pico_id, isLeaving, movedToHost)` - see [414](https://github.com/Picolab/pico-engine/pull/414)
+* added `status = engine:getPicoStatus(pico_id)` - see [414](https://github.com/Picolab/pico-engine/pull/414)
+
+### BREAKING CHANGES
+
+* All pico-engine-core API's now use promises rather than callbacks. Including 3rd party modules and `compileAndLoadRuleset`.
+
 # 0.46.1 - September 1, 2018
 
 * added `math:hmac(algorithm, key, message [, encoding])` - see [413](https://github.com/Picolab/pico-engine/issues/413)
