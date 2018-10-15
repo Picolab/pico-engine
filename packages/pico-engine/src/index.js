@@ -15,9 +15,9 @@ module.exports = function (conf) {
     }]
   })
 
-  console.log('Starting PicoEngine ' + require('../package.json').version)
+  console.log('          ██████╗ ██╗ ██████╗ ██████╗ ███████╗███╗   ██╗ ██████╗ ██╗███╗   ██╗███████╗ \n          ██╔══██╗██║██╔════╝██╔═══██╗██╔════╝████╗  ██║██╔════╝ ██║████╗  ██║██╔════╝ \n          ██████╔╝██║██║     ██║   ██║█████╗  ██╔██╗ ██║██║  ███╗██║██╔██╗ ██║█████╗   \n          ██╔═══╝ ██║██║     ██║   ██║██╔══╝  ██║╚██╗██║██║   ██║██║██║╚██╗██║██╔══╝   \nStarting  ██║     ██║╚██████╗╚██████╔╝███████╗██║ ╚████║╚██████╔╝██║██║ ╚████║███████╗ ' + require('../package.json').version + '\n          ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝╚══════╝ ')
   console.log(conf)
-  bunyanLog.info({ conf: conf }, 'Starting PicoEngine ' + require('../package.json').version)
+  bunyanLog.info({ conf: conf }, '          ██████╗ ██╗ ██████╗ ██████╗ ███████╗███╗   ██╗ ██████╗ ██╗███╗   ██╗███████╗ \n          ██╔══██╗██║██╔════╝██╔═══██╗██╔════╝████╗  ██║██╔════╝ ██║████╗  ██║██╔════╝ \n          ██████╔╝██║██║     ██║   ██║█████╗  ██╔██╗ ██║██║  ███╗██║██╔██╗ ██║█████╗   \n          ██╔═══╝ ██║██║     ██║   ██║██╔══╝  ██║╚██╗██║██║   ██║██║██║╚██╗██║██╔══╝   \nStarting  ██║     ██║╚██████╗╚██████╔╝███████╗██║ ╚████║╚██████╔╝██║██║ ╚████║███████╗ ' + require('../package.json').version + '\n          ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝╚══════╝ ')
 
   conf.bunyanLog = bunyanLog
 
@@ -26,7 +26,17 @@ module.exports = function (conf) {
       throw err
     }
     var app = setupServer(pe)
-
+    // signal engine started
+    pe.getRootECI(function (error, rootEci) {
+      if (error) {}
+      pe.signalEvent({
+        eid: '12345',
+        eci: rootEci,
+        domain: 'system',
+        type: 'online',
+        attrs: {}
+      }, function (err, response) { if (err) {} })
+    })
     app.listen(conf.port, function () {
       console.log(conf.host)
       bunyanLog.info('HTTP server listening on port ' + conf.port)
