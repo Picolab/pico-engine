@@ -45,7 +45,8 @@ ruleset io.picolabs.wrangler {
 // ***                                                                                      ***
 // ********************************************************************************************
 
-  config= {"os_rids": [/*"io.picolabs.pds",*/"io.picolabs.wrangler","io.picolabs.visual_params","io.picolabs.subscription"]}
+  config= {"os_rids"        : [/*"io.picolabs.pds",*/"io.picolabs.wrangler","io.picolabs.visual_params"],
+           "connection_rids": ["io.picolabs.subscription"] }
   /*
        skyQuery is used to programmatically call function inside of other picos from inside a rule.
        parameters;
@@ -293,7 +294,7 @@ ruleset io.picolabs.wrangler {
              "name": name,
              "id" : child{"id"},
              "eci": channel{"id"},
-             "rids_to_install": rids,
+             "rids_to_install": rids.defaultsTo([]).append(config{"connection_rids"}),
              "rs_attrs":event:attrs
             })
             });
