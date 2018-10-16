@@ -553,6 +553,10 @@ module.exports = function (opts) {
         }
         _.set(dump, data.key, data.value)
       })
+      _.each(dump.channel, function (chan) {
+        // keep it secret
+        delete chan.sovrin.secret
+      })
       return dump
     },
 

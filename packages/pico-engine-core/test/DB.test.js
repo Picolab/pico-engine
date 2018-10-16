@@ -35,11 +35,7 @@ test('DB - write and read', async function (t) {
         policy_id: ADMIN_POLICY_ID,
         sovrin: {
           did: 'id1',
-          verifyKey: 'verifyKey_id1',
-          secret: {
-            seed: 'seed_id1',
-            signKey: 'signKey_id1'
-          }
+          verifyKey: 'verifyKey_id1'
         }
       },
       id2: {
@@ -50,11 +46,7 @@ test('DB - write and read', async function (t) {
         policy_id: ADMIN_POLICY_ID,
         sovrin: {
           did: 'id2',
-          verifyKey: 'verifyKey_id2',
-          secret: {
-            seed: 'seed_id2',
-            signKey: 'signKey_id2'
-          }
+          verifyKey: 'verifyKey_id2'
         }
       },
       id4: {
@@ -65,11 +57,7 @@ test('DB - write and read', async function (t) {
         policy_id: ADMIN_POLICY_ID,
         sovrin: {
           did: 'id4',
-          verifyKey: 'verifyKey_id4',
-          secret: {
-            seed: 'seed_id4',
-            signKey: 'signKey_id4'
-          }
+          verifyKey: 'verifyKey_id4'
         }
       }
     },

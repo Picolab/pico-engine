@@ -746,11 +746,7 @@ test('PicoEngine - io.picolabs.engine ruleset', async function (t) {
           policy_id: ADMIN_POLICY_ID,
           sovrin: {
             did: 'id4',
-            verifyKey: 'verifyKey_id4',
-            secret: {
-              seed: 'seed_id4',
-              signKey: 'signKey_id4'
-            }
+            verifyKey: 'verifyKey_id4'
           }
         }, 'channel is there before')
         done()
