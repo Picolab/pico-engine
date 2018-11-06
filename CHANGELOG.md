@@ -1,3 +1,10 @@
+# 0.48.0 - November 6, 2018
+
+* system started event - see [419](https://github.com/Picolab/pico-engine/pull/419)
+* wrangler system online event - see [420](https://github.com/Picolab/pico-engine/pull/420)
+* fix so a well-known channel is created with subscription - see [421](https://github.com/Picolab/pico-engine/pull/421)
+* renamed event `pico:intent_to_orphan` to `wrangler:garbage_collection` - see [422](https://github.com/Picolab/pico-engine/pull/422)
+
 # 0.47.0 - September 29, 2018
 
 * added `data = engine:exportPico(pico_id)` - see [414](https://github.com/Picolab/pico-engine/pull/414)
