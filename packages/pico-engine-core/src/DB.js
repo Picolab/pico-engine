@@ -602,7 +602,7 @@ module.exports = function (opts) {
           if (!sharedSecret) {
             var privateKey = channel.sovrin.secret.encryptionPrivateKey
             sharedSecret = sovrinDID.getSharedSecret(otherPublicKey, privateKey)
-            ldb.put(['channel', eci, 'sovrin', 'secret', 'sharedSecret'], bs58.encode(sharedSecret), function (err) {
+            ldb.put(['channel', eci, 'sovrin', 'secret', 'sharedSecret'], bs58.encode(Buffer.from(sharedSecret)), function (err) {
               if (err) {
                 callback(err)
               }
@@ -641,7 +641,7 @@ module.exports = function (opts) {
         var sharedSecret = channel.sovrin.sharedSecret
         if (!sharedSecret) {
           sharedSecret = sovrinDID.getSharedSecret(otherPublicKey, privateKey)
-          ldb.put(['channel', eci, 'sovrin', 'secret', 'sharedSecret'], bs58.encode(sharedSecret), function (err) {
+          ldb.put(['channel', eci, 'sovrin', 'secret', 'sharedSecret'], bs58.encode(Buffer.from(sharedSecret)), function (err) {
             if (err) {
               callback(err)
             }
@@ -658,8 +658,8 @@ module.exports = function (opts) {
         }
 
         var returnObj = {}
-        returnObj.encryptedMessage = bs58.encode(encryptedMessage)
-        returnObj.nonce = bs58.encode(nonce)
+        returnObj.encryptedMessage = bs58.encode(Buffer.from(encryptedMessage))
+        returnObj.nonce = bs58.encode(Buffer.from(nonce))
         callback(null, returnObj)
       })
     }),
@@ -683,7 +683,7 @@ module.exports = function (opts) {
           callback(new Error('Failed to sign message'))
           return
         }
-        signedMessage = bs58.encode(signedMessage)
+        signedMessage = bs58.encode(Buffer.from(signedMessage))
         callback(null, signedMessage)
       })
     }),

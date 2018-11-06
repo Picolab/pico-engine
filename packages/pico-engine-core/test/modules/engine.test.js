@@ -6,18 +6,14 @@ var mkTestPicoEngine = require('../helpers/mkTestPicoEngine')
 var engineCoreVersion = require('../../package.json').version
 var test = require('ava')
 
-function nextTick () {
-  return new Promise(function (resolve) {
-    process.nextTick(resolve)
-  })
-}
-
 // wrap stubbed functions in this to simulate async
 var tick = function (fn) {
   return async function () {
     let args = _.toArray(arguments)
     let callback = args[fn.length] || _.noop
-    await nextTick()
+    await new Promise(function (resolve) {
+      setImmediate(resolve)
+    })
     let data
     try {
       data = await Promise.resolve(fn.apply(null, args))

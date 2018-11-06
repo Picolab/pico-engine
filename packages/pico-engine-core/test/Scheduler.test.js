@@ -82,7 +82,7 @@ var nTicks = function (n, callback) {
     callback()
     return
   }
-  process.nextTick(function () {
+  setImmediate(function () {
     nTicks(n - 1, callback)
   })
 }
@@ -131,7 +131,7 @@ test.cb('Scheduler - at - generative test', function (t) {
             // console.log("popRemoveEventAt()", id);
             callback()
             if (id === nEvents) {
-              process.nextTick(function () {
+              setImmediate(function () {
                 onDone()
               })
             }
