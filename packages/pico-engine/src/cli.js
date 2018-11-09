@@ -99,4 +99,8 @@ function main (args) {
   /// /////////////////////////////////////////////////////////////////////////////
   // start it up
   PicoEngine(conf)
+    .catch(function (err) {
+      console.error('Failed to start pico-engine')
+      throw err
+    })
 }

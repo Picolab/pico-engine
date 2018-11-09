@@ -3,7 +3,7 @@ var bunyan = require('bunyan')
 var startCore = require('./startCore')
 var setupServer = require('./setupServer')
 
-module.exports = function (conf) {
+module.exports = async function (conf) {
   var bunyanLog = bunyan.createLogger({
     name: 'pico-engine',
     streams: [{
@@ -28,22 +28,22 @@ Starting ██║     ██║╚██████╗╚██████╔
 
   conf.bunyanLog = bunyanLog
 
-  startCore(conf).then(function (pe) {
-    var app = setupServer(pe)
-    // signal engine started
-    pe.getRootECI(function (error, rootEci) {
-      if (error) {}
-      pe.signalEvent({
-        eci: rootEci,
-        domain: 'system',
-        type: 'online'
-      }, function (err, response) { if (err) {} })
-    })
-    app.listen(conf.port, function () {
-      console.log(conf.host)
-      bunyanLog.info('HTTP server listening on port ' + conf.port)
-    })
-  }, function (err) {
-    throw err
+  const pe = await startCore(conf)
+
+  const app = setupServer(pe)
+
+  // start http server
+  await new Promise(resolve => app.listen(conf.port, resolve))
+  console.log(conf.host)
+  bunyanLog.info('HTTP server listening on port ' + conf.port)
+
+  // signal system:online
+  const rootEci = await pe.getRootECI()
+  await pe.signalEvent({
+    eci: rootEci,
+    domain: 'system',
+    type: 'online'
   })
+
+  return pe
 }
