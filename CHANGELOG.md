@@ -1,3 +1,7 @@
+# 0.48.1 - November 9, 2018
+
+* [6ebe6cc7](https://github.com/Picolab/pico-engine/commit/6ebe6cc7) - fixing `system:online` event
+
 # 0.48.0 - November 6, 2018
 
 * system started event - see [419](https://github.com/Picolab/pico-engine/pull/419)
