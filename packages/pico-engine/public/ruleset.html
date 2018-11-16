@@ -453,7 +453,7 @@
         picoAPI("/api/ruleset-page", {}, "GET", function(err, data){
             if(err){
                 if(callback) callback(err);
-                $errorMessage.text("Failed to get db-dump");
+                $errorMessage.text("Failed to get from api.");
                 return;
             }
             if(callback) callback(null, data);
