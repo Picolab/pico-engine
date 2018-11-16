@@ -1,481 +1,511 @@
 <html lang="en-US">
-<head>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-<link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png">
-<title>TITLE</title>
-<link rel="stylesheet" href="css/index.css">
-<link rel="stylesheet" href="css/jquery.minicolors.css">
-<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
-<script src="js/jquery-ui-1.11.4.min.js" type="text/javascript"></script>
-<script src="js/jquery.minicolors.js"></script>
-<script src="js/handlebars.min.js" type="text/javascript"></script>
-<script src="js/picoAPI.js" type="text/javascript"></script>
-<script src="js/index.js" type="text/javascript"></script>
-<script src="js/picoLogin.js" type="text/javascript"></script>
-<script id="login-template" type="text/x-handlebars-template">
-<a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
-<h1 class="title">Login</h1>
-<div id="container" style="position:relative">
-<div id="login-display-switch">
-</div>
-</div>
-</script>
-<script id="owner-id-template" type="text/x-handlebars-template">
-  <form class="js-ajax-form-auth" action="/login" method="post">
-    <fieldset>
-    <legend>Who are you?</legend>
-    <label for="owner_id">Owner ID:</label>
-    <input type="text" placeholder="Enter owner id or DID" name="owner_id" value="" id="owner_id" size="30">
-    <input type="submit" class="button form-login" value="Login" id="login_button">
-    </fieldset>
-  </form>
-  <a id="need-account" class="no-red" href="#">Need an owner pico?</a>
-</script>
-<script id="password-template" type="text/x-handlebars-template">
-  <form class="js-ajax-form-auth" action="/sky/event/{{eci}}/{{eid}}/owner/authenticate" method="post">
-    <fieldset>
-    <legend>Can you prove it?</legend>
-    <label for="password">Password:</label>
-    <input type="password" placeholder="Enter password" name="password" value="" size="30">
-    <input type="submit" class="button form-login" value="Login">
-    <input type="hidden" name="nonce" value="{{nonce}}">
-    </fieldset>
-  </form>
-</script>
-<script id="code-template" type="text/x-handlebars-template">
-  <form class="js-ajax-form-auth" action="/sky/event/{{eci}}/{{eid}}/owner/code_presented" method="post">
-    <fieldset>
-    <legend>Can you present the code words?</legend>
-    <label for="code">Code words:</label>
-    <input type="password" placeholder="Enter code words"" name="code" value="" id="code">
-    <input type="submit" class="button form-login" value="Login">
-    <input type="hidden" name="nonce" value="{{nonce}}">
-    </fieldset>
-  </form>
-</script>
-<script id="new-account-template" type="text/x-handlebars-template">
-  <form class="js-ajax-form-auth" action="/new-account" method="POST">
-    <fieldset>
-    <legend>Tell us about your account</legend>
-    <label for="owner-id">Pico name:</label>
-    <input type="text" name="owner_id" id="owner_id" placeholder="Enter Owner Name" size="30">
-    <input type="hidden" name="dname" id="dname">
-    <br>
-    <label for="method">Authentication method:</label>
-    <select id="method" name="method">
-      <option value="password">password</option>
-      <option value="code">code words</option>
-    </select>
-    <br>
-    <label class="password-entry" for="password">Password:</label>
-    <input class="password-entry" type="password" name="password" id="password" placeholder="Enter password" size="30">
-    <br>
-    <input type="submit" class="button form-login" value="Submit">
-    </fieldset>
-  </form>
-  <a id="already-account" class="no-red" href="#">Already have an owner pico?</a>
-</script>
-<script id="code-words-template" type="text/x-handlebars-template">
-<h2>How to obtain code words</h2>
-<p>
-Make careful note of either this URL or this QR code.
-When you need to login, you can use either of them to obtain
-the current code words.
-</p>
-<iframe src="/qrcode.html?http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt" width="600" height="350">
-<p>
-http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt
-</p>
-</iframe>
-<br>
-<a href="{{redirect}}">Got it</a>
-</script>
-<script id="the-template" type="text/x-handlebars-template">
-<a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
-<h1 class="title">{{title}}</h1>
-{{#if authenticated}}
-<div id="user-logout">
-<span></span>
-<a href="#">logout</a>
-</div>
-{{/if}}
-<div id="container" style="position:relative">
-<p class="description">
-{{descr}}
-(version: <span id="version"></span>)
-</p>
-{{#picos}}
-<div class="pico" id="{{id}}" style="{{style}}" title="{{dname}}">
-{{dname}}
-<div class="resize-handle ui-resizable-handle ui-resizable-se"></div>
-</div>
-<div class="pico-edit" style="{{style}}">
-{{dname}}
-<ul class="horiz-menu">
-<li>About</li>
-<li>Rulesets</li>
-<li>Channels</li>
-<li>Policies</li>
-<li>Subscriptions</li>
-<li>Logging</li>
-<li>Testing</li>
-</ul>
-<div class="pico-section"></div>
-</div>
-{{/picos}}
-{{#if chans}}
-<svg>
-{{#chans}}
-  <line class="{{class}}"></line>
-{{/chans}}
-</svg>
-{{/if}}
-</div>
-</script>
-<script id="about-template" type="text/x-handlebars-template">
-<h2>{{#if authenticatedOwner}}Owner {{/if}}Pico</h2>
-<p>
-<b>ID: </b>
-<span id="about-pico-name">{{id}}</span>
-<b>ECI: </b>
-<span id="about-eci">{{eci}}</span>
-<em>"{{dname}}"</em>
-</p>
-<p>
-<b>Note: </b>
-the ECI is the path into your pico and should be treated as a
-<em>shared secret</em> between the pico and the application using
-the pico's Event-Query API.
-Do not disclose it or check it into a repository like GitHub.
-</p>
-<form class="js-ajax-form" action="/sky/event/{{eci}}/31/visual/update" method="GET">
-<input type="text" name="dname" value="{{dname}}" placeholder="display name">
-<input type="text" name="color" class="use-minicolors" value="{{color}}">
-<button type="submit">send event visual/update</button>
-</form>
-{{#if parent}}
-{{#unless authenticatedOwner}}
-<h2>Parent</h2>
-<p>
-<b>ID: </b><a class="js-nav" href="#{{parent.id}}-About">{{parent.id}}</a>
-<b>ECI: </b>{{parent.eci}}
-<em>"{{parent.dname}}"</em>
-</p>
-{{/unless}}
-{{/if}}
-<h2>Children</h2>
-{{#each children}}
-<p>
-<b>ID: </b><a class="js-nav" href="#{{this.id}}-About">{{this.id}}</a>
-<b>ECI: </b>{{this.eci}}
-{{#if canDel}}
-<a class="js-ajax-link" href="/sky/event/{{../eci}}/delete-child/wrangler/child_deletion?id={{this.id}}&eci={{this.eci}}">del</a>
-{{/if}}
-<em>"{{this.dname}}"</em>
-</p>
-{{/each}}
-<p>
-<form class="js-ajax-form" action="/sky/event/{{eci}}/new-child/wrangler/new_child_request" method="GET">
-<input type="text" name="name" placeholder="display name">
-<input type="text" name="color" class="use-minicolors" value="{{color}}">
-<button type="submit">add child pico</button>
-</form>
-</p>
-{{#if authenticatedOwner}}
-{{#if passwordAuthenticated}}
-<form class="js-ajax-form" action="/sky/event/{{eci}}/none/owner/new_password" method="post">
-<fieldset style="display:inline-block">
-<legend>Change password</legend>
-    <label for="password">Current password:</label>
-    <input type="password" placeholder="Enter current password" name="password" value="">
-    <label for="password">New password:</label>
-    <input type="password" placeholder="Enter new password" name="new_password" value="">
-    <input type="submit" class="button form-login" value="New Password">
-</fieldset>
-</form>
-{{/if}}
-{{/if}}
-</script>
-<script id="rulesets-template" type="text/x-handlebars-template">
-Pico Rulesets
-<ul id="ruleset-list" style="list-style: none;padding:0">
-{{#each installed}}
-<li><input type="checkbox" id="installed-{{@index}}">
-<label for="installed-{{@index}}">{{@key}}</label>
-<a href="javascript:window.open('ruleset.html#{{@key}}','ruleset');void 0">edit</a>
-{{#if canDel}}
-<a class="js-ajax-link" href="/api/pico/{{../pico_id}}/rm-ruleset/{{@key}}">del</a>
-{{/if}}
-<ul>
-{{#each vars}}
-<li><span style="white-space: nowrap;">ent:{{@key}}={{this}}
-{{#if ../canDel}}
-<a class="js-ajax-link" href="/api/pico/{{../../pico_id}}/rm-ent-var/{{@../key}}/{{@key}}">del</a>
-{{/if}}
-</span></li>
-{{/each}}
-</ul>
-</li>
-{{/each}}
-</ul>
-<form class="rulesetFromURL" method="POST">
-<input type="hidden" name="eci" value="{{eci}}">
-<button type="submit">install ruleset from URL:</button>
-<input name="url" size="100">
-</form>
-<div class="oplog">
-Operations Log <button class="oplog-x">x</button>
-<pre class="rfuops"></pre>
-</div>
-{{#if avail}}
-<hr>
-Available Rulesets
-<p></p>
-<form class="js-ajax-form" action="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested" method="GET">
-<select name="rid">
-{{#each avail}}
-<option>{{this}}</option>
-{{/each}}
-</select>
-<button type="submit">install ruleset</button>
-</form>
-{{/if}}
-<hr>
-<a href="ruleset.html" target="ruleset">Engine Rulesets</a>
-</script>
-<script id="channels-template" type="text/x-handlebars-template">
-Channels
-<table class="channel-table">
-<tr><th>id</th><th>&nbsp;</th><th>name</th><th>type</th>
-<th>policy id</th><th>policy name</th></tr>
-{{#each channel}}
-<tr>
-<td>{{id}}</td>
-<td>
-{{#if canDel}}
-<a class="js-ajax-link" href="/api/pico/{{../id}}/rm-channel/{{id}}">del</a>
-{{/if}}
-</td>
-<td>{{name}}</td><td>{{type}}</td>
-<td title="{{policy_text}}">{{policy_id}}</td><td>{{policy_name}}</td>
-</tr>
-{{/each}}
-</table>
-<p></p>
-<form class="js-ajax-form" action="/sky/event/{{eci}}/0/wrangler/channel_creation_requested" method="GET">
-<input type="text" name="name" placeholder="name...">
-<input type="text" name="type" placeholder="type...">
-{{#if policy}}
-<select name="policy_id">
-{{#each policy}}
-<option value="{{id}}">{{name}}</option>
-{{/each}}
-</select>
-{{/if}}
-<button type="submit">add channel</button>
-</form>
-</script>
-<script id="logging-template" type="text/x-handlebars-template">
-<div>
-Logging
-{{#if disabled}}
-is disabled.
-To enable, add the ruleset "io.picolabs.logging" to this pico.
-{{else}}
-<span id="switch">
-<input id="logging-off" type="radio" name="status" value="off"{{#unless status}} checked=""{{/unless}}>
-<label for="logging-off"> Off </label>
-<input id="logging-on" type="radio" name="status" value="on"{{#if status}} checked=""{{/if}}>
-<label for="logging-on"> On </label>
-</span>
-<div id="logging-list">
-<p>
-Select an episode to see the log entries for that episode.
-</p>
-{{#if logs}}
-<code style="margin-left:25px;font-family:monospace;white-space:pre">timestamp                - episode identifier        - event channel id (eci) - event identifier</code>
-<ul>
-{{#each logs}}
-<li><input type="checkbox" id="episode-{{@index}}">
-<label for="episode-{{@index}}">{{@key}}</label>
-<pre class="logging-detail">
-{{#each this}}
-{{this}}
-{{/each}}
-</pre>
-</li>
-{{/each}}
-</ul>
-{{/if}}
-{{/if}}
-</div>
-</script>
-<script id="testing-template" type="text/x-handlebars-template">
-<div style="float:left;width:40%;height=100%">
-Testing
-<ul class="testing-rids">
-{{#each testing}}
-<li>
-    <input type="checkbox" id="testing-{{@index}}">
-    <label class="krlrid" for="testing-{{@index}}">{{this.rid}}</label>
-    <a href="javascript:window.open('ruleset.html#{{this.rid}}','ruleset');void 0">edit</a>
-</li>
-{{/each}}
-<li class="legend">Legend
-<ul>
-<li class="testing-queries sky-cloud"><button disabled="">query</button></li>
-<li class="testing-events sky-event"><button disabled="">event</button></li>
-</ul>
-</li>
-</ul>
-</div>
-<div id="test-results" style="margin-left:40%">
-Results
-<pre></pre>
-</div>
-</script>
-<script id="capabilities-template" type="text/x-handlebars-template">
-{{#if capabilities.queries}}
-<ul class="testing-queries">
-{{#each capabilities.queries}}
-<li><form class="js-test sky-cloud" action="/sky/cloud/{{../eci}}/{{../rid}}/{{this.name}}">
-{{#if this.args}}
-{{#each this.args}}
-<input type="text" name="{{this}}" placeholder="{{this}}">
-{{/each}}
-{{/if}}
-<button type="submit">{{this.name}}</button></form></li>
-{{/each}}
-</ul>
-{{/if}}
-{{#if capabilities.events}}
-<ul class="testing-events">
-{{#each capabilities.events}}
-<li><form class="js-test sky-event" action="/sky/event/{{../eci}}/__testing/{{this.domain}}/{{this.type}}">
-{{#if this.attrs}}
-{{#each this.attrs}}
-<input type="text" name="{{this}}" placeholder="{{this}}">
-{{/each}}
-{{/if}}
-<button type="submit">{{this.domain}}/{{this.type}}</button></form></li>
-{{/each}}
-</ul>
-{{/if}}
-</script>
-<script id="subscriptions-template" type="text/x-handlebars-template">
-{{#if disabled}}
-Subscriptions are disabled.
-To enable, add the ruleset "io.picolabs.subscription" to this pico.
-{{else}}
-{{#if established}}
-Established subscriptions
-<ul class="subscriptions-list" style="list-style: none;padding:0">
-{{#each established}}
-<li><input type="checkbox"> to pico "{{name}}" (did:npe:{{Tx}})
-<a class="js-ajax-link" href="/sky/event/{{../eci}}/delete-subscription/wrangler/subscription_cancellation?Id={{this.Id}}">del</a>
-<pre>{{this.asString}}</pre>
-</li>
-{{/each}}
-</ul>
-{{/if}}
-{{#if outbound}}
-Outbound subscriptions
-<ul class="subscriptions-list" style="list-style: none;padding:0">
-{{#each outbound}}
-<li><input type="checkbox"> to pico "{{name}}" (did:npe:{{wellKnown_Tx}})
-<a class="js-ajax-link" href="/sky/event/{{../eci}}/cancel-outbound/wrangler/outbound_cancellation?Id={{this.Id}}">del</a>
-<pre>{{this.asString}}</pre>
-</li>
-{{/each}}
-</ul>
-{{/if}}
-{{#if inbound}}
-Inbound subscriptions
-<ul class="subscriptions-list" style="list-style: none;padding:0">
-{{#each inbound}}
-<li><input type="checkbox"> from pico "{{name}}" (did:npe:{{Tx}})
-<a class="js-ajax-link" href="/sky/event/{{../eci}}/reject-inbound/wrangler/inbound_rejection?Id={{this.Id}}">del</a>
-<pre>{{this.asString}}</pre>
-<pre><a class="js-ajax-link" href="/sky/event/{{../eci}}/accept-inbound/wrangler/pending_subscription_approval?Id={{this.Id}}">accept</a></pre>
-</li>
-{{/each}}
-</ul>
-{{/if}}
-<p>Propose new subscription</p>
-<form class="js-ajax-form" action="/sky/event/{{eci}}/subscr/wrangler/subscription" method="GET">
-<table>
-<tr>
-<td>wellKnown_Tx</td>
-<td>Rx_role</td>
-<td>Tx_role</td>
-<td>name</td>
-<td>channel_type</td>
-</tr>
-<tr>
-<td>
-<select name="wellKnown_Tx">
-{{#each subscribable_picos}}
-<option value="{{id}}">{{pico_name}}</option>
-{{/each}}
-</select>
-</td>
-<td><input type="text" name="Rx_role"></td>
-<td><input type="text" name="Tx_role"></td>
-<td><input type="text" name="name"></td>
-<td><input type="text" name="channel_type" value="subscription"></td>
-</tr>
-</table>
-<button type="submit">wrangler:subscription</button>
-</form>
-{{/if}}
-</script>
-<script id="policies-template" type="text/x-handlebars-template">
-{{#if disabled}}
-Policy display is disabled.
-To enable, add the ruleset "io.picolabs.policy" to this pico.
-{{else}}
-{{#if ui.used}}
-Policies used by this pico's channels
-<table class="channel-table">
-<tr>
-<th>policy id</th>
-<th>policy name</th>
-<th>event</th>
-<th>query</th>
-</tr>
-{{#each ui.used}}
-<tr>
-<td>{{@key}}</td>
-<td>{{name}}</td>
-<td>{{event}}</td>
-<td>{{query}}</td>
-<tr>
-{{/each}}
-</table>
-{{/if}}
-{{#if ui.unused}}
-Policies not used by this pico
-<table class="channel-table">
-<tr>
-<th>policy id</th>
-<th>policy name</th>
-<th>event</th>
-<th>query</th>
-</tr>
-{{#each ui.unused}}
-<tr>
-<td>{{@key}}</td>
-<td>{{name}}</td>
-<td>{{event}}</td>
-<td>{{query}}</td>
-<tr>
-{{/each}}
-</table>
-{{/if}}
-{{/if}}
-</script>
-</head>
-<body>
-<p>Loading...</p>
-</body>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="icon" type="image/png" href="pico-logo-transparent-48x48.png" />
+    <title>TITLE</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/jquery.minicolors.css" />
+    <script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+    <script src="js/jquery-ui-1.11.4.min.js" type="text/javascript"></script>
+    <script src="js/jquery.minicolors.js"></script>
+    <script src="js/handlebars.min.js" type="text/javascript"></script>
+    <script src="js/picoAPI.js" type="text/javascript"></script>
+    <script src="js/index.js" type="text/javascript"></script>
+    <script src="js/picoLogin.js" type="text/javascript"></script>
+    <script id="login-template" type="text/x-handlebars-template">
+      <a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
+      <h1 class="title">Login</h1>
+      <div id="container" style="position:relative">
+        <div id="login-display-switch">
+        </div>
+      </div>
+    </script>
+    <script id="owner-id-template" type="text/x-handlebars-template">
+      <form class="js-ajax-form-auth" action="/login" method="post">
+        <fieldset>
+          <legend>Who are you?</legend>
+          <label for="owner_id">Owner ID:</label>
+          <input type="text" placeholder="Enter owner id or DID" name="owner_id" value="" id="owner_id" size="30">
+          <input type="submit" class="button form-login" value="Login" id="login_button">
+        </fieldset>
+      </form>
+      <a id="need-account" class="no-red" href="#">Need an owner pico?</a>
+    </script>
+    <script id="password-template" type="text/x-handlebars-template">
+      <form class="js-ajax-form-auth" action="/sky/event/{{eci}}/{{eid}}/owner/authenticate" method="post">
+        <fieldset>
+          <legend>Can you prove it?</legend>
+          <label for="password">Password:</label>
+          <input type="password" placeholder="Enter password" name="password" value="" size="30">
+          <input type="submit" class="button form-login" value="Login">
+          <input type="hidden" name="nonce" value="{{nonce}}">
+        </fieldset>
+      </form>
+    </script>
+    <script id="code-template" type="text/x-handlebars-template">
+      <form class="js-ajax-form-auth" action="/sky/event/{{eci}}/{{eid}}/owner/code_presented" method="post">
+        <fieldset>
+          <legend>Can you present the code words?</legend>
+          <label for="code">Code words:</label>
+          <input type="password" placeholder="Enter code words"" name="code" value="" id="code">
+          <input type="submit" class="button form-login" value="Login">
+          <input type="hidden" name="nonce" value="{{nonce}}">
+        </fieldset>
+      </form>
+    </script>
+    <script id="new-account-template" type="text/x-handlebars-template">
+      <form class="js-ajax-form-auth" action="/new-account" method="POST">
+        <fieldset>
+          <legend>Tell us about your account</legend>
+          <label for="owner-id">Pico name:</label>
+          <input type="text" name="owner_id" id="owner_id" placeholder="Enter Owner Name" size="30">
+          <input type="hidden" name="dname" id="dname">
+          <br>
+          <label for="method">Authentication method:</label>
+          <select id="method" name="method">
+            <option value="password">password</option>
+            <option value="code">code words</option>
+          </select>
+          <br>
+          <label class="password-entry" for="password">Password:</label>
+          <input class="password-entry" type="password" name="password" id="password" placeholder="Enter password" size="30">
+          <br>
+          <input type="submit" class="button form-login" value="Submit">
+        </fieldset>
+      </form>
+      <a id="already-account" class="no-red" href="#">Already have an owner pico?</a>
+    </script>
+    <script id="code-words-template" type="text/x-handlebars-template">
+      <h2>How to obtain code words</h2>
+      <p>
+        Make careful note of either this URL or this QR code.
+        When you need to login, you can use either of them to obtain
+        the current code words.
+      </p>
+      <iframe src="/qrcode.html?http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt" width="600" height="350">
+        <p>
+          http://localhost:8080/sky/cloud/{{eci}}/temp_acct/code.txt
+        </p>
+      </iframe>
+      <br>
+      <a href="{{redirect}}">Got it</a>
+    </script>
+    <script id="the-template" type="text/x-handlebars-template">
+      <a class="logo" href="http://picolabs.io"><img src="logo.png" alt="logo"></a>
+      <h1 class="title">{{title}}</h1>
+      {{#if authenticated}}
+        <div id="user-logout">
+          <span></span>
+          <a href="#">logout</a>
+        </div>
+      {{/if}}
+      <div id="container" style="position:relative">
+        <p class="description">
+          {{descr}}
+          (version: <span id="version"></span>)
+        </p>
+        {{#picos}}
+          <div class="pico" id="{{id}}" style="{{style}}" title="{{dname}}">
+            {{dname}}
+            <div class="resize-handle ui-resizable-handle ui-resizable-se"></div>
+          </div>
+          <div class="pico-edit" style="{{style}}">
+            {{dname}}
+            <ul class="horiz-menu">
+              <li>About</li>
+              <li>Rulesets</li>
+              <li>Channels</li>
+              <li>Policies</li>
+              <li>Subscriptions</li>
+              <li>Logging</li>
+              <li>Testing</li>
+            </ul>
+            <div class="pico-section"></div>
+          </div>
+        {{/picos}}
+        {{#if chans}}
+          <svg>
+            {{#chans}}
+              <line class="{{class}}"></line>
+            {{/chans}}
+          </svg>
+        {{/if}}
+      </div>
+    </script>
+    <script id="about-template" type="text/x-handlebars-template">
+      <h2>{{#if authenticatedOwner}}Owner {{/if}}Pico</h2>
+      <p>
+        <b>ID: </b>
+        <span id="about-pico-name">{{id}}</span>
+        <b>ECI: </b>
+        <span id="about-eci">{{eci}}</span>
+        <em>"{{dname}}"</em>
+      </p>
+      <p>
+        <b>Note: </b>
+        the ECI is the path into your pico and should be treated as a
+        <em>shared secret</em> between the pico and the application using
+        the pico's Event-Query API.
+        Do not disclose it or check it into a repository like GitHub.
+      </p>
+      <form class="js-ajax-form" action="/sky/event/{{eci}}/31/visual/update" method="GET">
+        <input type="text" name="dname" value="{{dname}}" placeholder="display name">
+        <input type="text" name="color" class="use-minicolors" value="{{color}}">
+        <button type="submit">send event visual/update</button>
+      </form>
+      {{#if parent}}
+        {{#unless authenticatedOwner}}
+          <h2>Parent</h2>
+          <p>
+            <b>ID: </b><a class="js-nav" href="#{{parent.id}}-About">{{parent.id}}</a>
+            <b>ECI: </b>{{parent.eci}}
+            <em>"{{parent.dname}}"</em>
+          </p>
+        {{/unless}}
+      {{/if}}
+      <h2>Children</h2>
+      {{#each children}}
+        <p>
+          <b>ID: </b><a class="js-nav" href="#{{this.id}}-About">{{this.id}}</a>
+          <b>ECI: </b>{{this.eci}}
+          {{#if canDel}}
+            <a class="js-ajax-link" href="/sky/event/{{../eci}}/delete-child/wrangler/child_deletion?id={{this.id}}&eci={{this.eci}}">del</a>
+          {{/if}}
+          <em>"{{this.dname}}"</em>
+        </p>
+      {{/each}}
+      <p>
+        <form class="js-ajax-form" action="/sky/event/{{eci}}/new-child/wrangler/new_child_request" method="GET">
+          <input type="text" name="name" placeholder="display name">
+          <input type="text" name="color" class="use-minicolors" value="{{color}}">
+          <button type="submit">add child pico</button>
+        </form>
+      </p>
+      {{#if authenticatedOwner}}
+        {{#if passwordAuthenticated}}
+          <form class="js-ajax-form" action="/sky/event/{{eci}}/none/owner/new_password" method="post">
+            <fieldset style="display:inline-block">
+              <legend>Change password</legend>
+              <label for="password">Current password:</label>
+              <input type="password" placeholder="Enter current password" name="password" value="">
+              <label for="password">New password:</label>
+              <input type="password" placeholder="Enter new password" name="new_password" value="">
+              <input type="submit" class="button form-login" value="New Password">
+            </fieldset>
+          </form>
+        {{/if}}
+      {{/if}}
+    </script>
+    <script id="rulesets-template" type="text/x-handlebars-template">
+      Pico Rulesets
+      <ul id="ruleset-list" style="list-style: none;padding:0">
+        {{#each installed}}
+          <li>
+            <input type="checkbox" id="installed-{{@index}}">
+            <label for="installed-{{@index}}">{{@key}}</label>
+            <a href="javascript:window.open('ruleset.html#{{@key}}','ruleset');void 0">edit</a>
+            {{#if canDel}}
+              <a class="js-ajax-link" href="/api/pico/{{../pico_id}}/rm-ruleset/{{@key}}">del</a>
+            {{/if}}
+            <ul>
+              {{#each vars}}
+                <li>
+                  <span style="white-space: nowrap;">ent:{{@key}}={{this}}
+                    {{#if ../canDel}}
+                      <a class="js-ajax-link" href="/api/pico/{{../../pico_id}}/rm-ent-var/{{@../key}}/{{@key}}">del</a>
+                    {{/if}}
+                  </span>
+                </li>
+              {{/each}}
+            </ul>
+          </li>
+        {{/each}}
+      </ul>
+      <form class="rulesetFromURL" method="POST">
+        <input type="hidden" name="eci" value="{{eci}}">
+        <button type="submit">install ruleset from URL:</button>
+        <input name="url" size="100">
+      </form>
+      <div class="oplog">
+        Operations Log <button class="oplog-x">x</button>
+        <pre class="rfuops"></pre>
+      </div>
+      {{#if avail}}
+        <hr>
+        Available Rulesets
+        <p></p>
+        <form class="js-ajax-form" action="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested" method="GET">
+          <select name="rid">
+            {{#each avail}}
+              <option>{{this}}</option>
+            {{/each}}
+          </select>
+          <button type="submit">install ruleset</button>
+        </form>
+      {{/if}}
+      <hr>
+      <a href="ruleset.html" target="ruleset">Engine Rulesets</a>
+    </script>
+    <script id="channels-template" type="text/x-handlebars-template">
+      Channels
+      <table class="channel-table">
+        <tr>
+          <th>id</th>
+          <th>&nbsp;</th>
+          <th>name</th>
+          <th>type</th>
+          <th>policy id</th>
+          <th>policy name</th>
+        </tr>
+        {{#each channel}}
+          <tr>
+            <td>{{id}}</td>
+            <td>
+              {{#if canDel}}
+                <a class="js-ajax-link" href="/api/pico/{{../id}}/rm-channel/{{id}}">del</a>
+              {{/if}}
+            </td>
+            <td>{{name}}</td>
+            <td>{{type}}</td>
+            <td title="{{policy_text}}">{{policy_id}}</td>
+            <td>{{policy_name}}</td>
+          </tr>
+        {{/each}}
+      </table>
+      <p></p>
+      <form class="js-ajax-form" action="/sky/event/{{eci}}/0/wrangler/channel_creation_requested" method="GET">
+        <input type="text" name="name" placeholder="name...">
+        <input type="text" name="type" placeholder="type...">
+        {{#if policy}}
+          <select name="policy_id">
+            {{#each policy}}
+              <option value="{{id}}">{{name}}</option>
+            {{/each}}
+          </select>
+        {{/if}}
+        <button type="submit">add channel</button>
+      </form>
+    </script>
+    <script id="logging-template" type="text/x-handlebars-template">
+      <div>
+      Logging
+      {{#if disabled}}
+        is disabled.
+        To enable, add the ruleset "io.picolabs.logging" to this pico.
+      {{else}}
+        <span id="switch">
+          <input id="logging-off" type="radio" name="status" value="off"{{#unless status}} checked=""{{/unless}}>
+          <label for="logging-off"> Off </label>
+          <input id="logging-on" type="radio" name="status" value="on"{{#if status}} checked=""{{/if}}>
+          <label for="logging-on"> On </label>
+        </span>
+        <div id="logging-list">
+          <p>
+            Select an episode to see the log entries for that episode.
+          </p>
+          {{#if logs}}
+            <code style="margin-left:25px;font-family:monospace;white-space:pre">timestamp                - episode identifier        - event channel id (eci) - event identifier</code>
+            <ul>
+              {{#each logs}}
+                <li>
+                  <input type="checkbox" id="episode-{{@index}}">
+                  <label for="episode-{{@index}}">{{@key}}</label>
+                  <pre class="logging-detail">{{#each this}}{{this}}{{/each}}</pre>
+                </li>
+              {{/each}}
+            </ul>
+          {{/if}}
+        </div>
+      {{/if}}
+    </script>
+    <script id="testing-template" type="text/x-handlebars-template">
+      <div style="float:left;width:40%;height:100%">
+        Testing
+        <ul class="testing-rids">
+          {{#each testing}}
+            <li>
+                <input type="checkbox" id="testing-{{@index}}">
+                <label class="krlrid" for="testing-{{@index}}">{{this.rid}}</label>
+                <a href="javascript:window.open('ruleset.html#{{this.rid}}','ruleset');void 0">edit</a>
+            </li>
+          {{/each}}
+          <li class="legend">
+            Legend
+            <ul>
+              <li class="testing-queries sky-cloud"><button disabled="">query</button></li>
+              <li class="testing-events sky-event"><button disabled="">event</button></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div id="test-results" style="margin-left:40%">
+        Results
+        <pre></pre>
+      </div>
+    </script>
+    <script id="capabilities-template" type="text/x-handlebars-template">
+      {{#if capabilities.queries}}
+        <ul class="testing-queries">
+          {{#each capabilities.queries}}
+            <li>
+              <form class="js-test sky-cloud" action="/sky/cloud/{{../eci}}/{{../rid}}/{{this.name}}">
+                {{#if this.args}}
+                  {{#each this.args}}
+                    <input type="text" name="{{this}}" placeholder="{{this}}">
+                  {{/each}}
+                {{/if}}
+                <button type="submit">{{this.name}}</button>
+              </form>
+            </li>
+          {{/each}}
+        </ul>
+      {{/if}}
+      {{#if capabilities.events}}
+        <ul class="testing-events">
+          {{#each capabilities.events}}
+            <li>
+              <form class="js-test sky-event" action="/sky/event/{{../eci}}/__testing/{{this.domain}}/{{this.type}}">
+                {{#if this.attrs}}
+                  {{#each this.attrs}}
+                    <input type="text" name="{{this}}" placeholder="{{this}}">
+                  {{/each}}
+                {{/if}}
+                <button type="submit">{{this.domain}}/{{this.type}}</button>
+              </form>
+            </li>
+          {{/each}}
+        </ul>
+      {{/if}}
+    </script>
+    <script id="subscriptions-template" type="text/x-handlebars-template">
+      {{#if disabled}}
+        Subscriptions are disabled.
+        To enable, add the ruleset "io.picolabs.subscription" to this pico.
+      {{else}}
+        {{#if established}}
+          Established subscriptions
+          <ul class="subscriptions-list" style="list-style: none;padding:0">
+            {{#each established}}
+              <li>
+                <input type="checkbox"> to pico "{{name}}" (did:npe:{{Tx}})
+                <a class="js-ajax-link"
+                  href="/sky/event/{{../eci}}/delete-subscription/wrangler/subscription_cancellation?Id={{this.Id}}"
+                  >del</a
+                >
+                <pre>{{this.asString}}</pre>
+              </li>
+            {{/each}}
+          </ul>
+        {{/if}}
+        {{#if outbound}}
+          Outbound subscriptions
+          <ul class="subscriptions-list" style="list-style: none;padding:0">
+            {{#each outbound}}
+              <li>
+                <input type="checkbox"> to pico "{{name}}" (did:npe:{{wellKnown_Tx}})
+                <a class="js-ajax-link"
+                  href="/sky/event/{{../eci}}/cancel-outbound/wrangler/outbound_cancellation?Id={{this.Id}}"
+                  >del</a>
+                <pre>{{this.asString}}</pre>
+              </li>
+            {{/each}}
+          </ul>
+        {{/if}}
+        {{#if inbound}}
+          Inbound subscriptions
+          <ul class="subscriptions-list" style="list-style: none;padding:0">
+            {{#each inbound}}
+            <li>
+              <input type="checkbox"> from pico "{{name}}" (did:npe:{{Tx}})
+              <a class="js-ajax-link"
+                href="/sky/event/{{../eci}}/reject-inbound/wrangler/inbound_rejection?Id={{this.Id}}"
+                >del</a
+              >
+              <pre>{{this.asString}}</pre>
+              <pre><a class="js-ajax-link" href="/sky/event/{{../eci}}/accept-inbound/wrangler/pending_subscription_approval?Id={{this.Id}}">accept</a></pre>
+            </li>
+            {{/each}}
+          </ul>
+        {{/if}}
+        <p>Propose new subscription</p>
+        <form
+          class="js-ajax-form"
+          action="/sky/event/{{eci}}/subscr/wrangler/subscription"
+          method="GET"
+        >
+          <table>
+            <tr>
+              <td>wellKnown_Tx</td>
+              <td>Rx_role</td>
+              <td>Tx_role</td>
+              <td>name</td>
+              <td>channel_type</td>
+            </tr>
+            <tr>
+              <td>
+                <select name="wellKnown_Tx">
+                  {{#each subscribable_picos}}
+                    <option value="{{id}}">{{pico_name}}</option>
+                  {{/each}}
+                </select>
+              </td>
+              <td><input type="text" name="Rx_role"></td>
+              <td><input type="text" name="Tx_role"></td>
+              <td><input type="text" name="name"></td>
+              <td><input type="text" name="channel_type" value="subscription"></td>
+            </tr>
+          </table>
+          <button type="submit">wrangler:subscription</button>
+        </form>
+      {{/if}}
+    </script>
+    <script id="policies-template" type="text/x-handlebars-template">
+      {{#if disabled}}
+        Policy display is disabled.
+        To enable, add the ruleset "io.picolabs.policy" to this pico.
+      {{else}}
+        {{#if ui.used}}
+          Policies used by this pico's channels
+          <table class="channel-table">
+            <tr>
+              <th>policy id</th>
+              <th>policy name</th>
+              <th>event</th>
+              <th>query</th>
+            </tr>
+            {{#each ui.used}}
+              <tr>
+                <td>{{@key}}</td>
+                <td>{{name}}</td>
+                <td>{{event}}</td>
+                <td>{{query}}</td>
+              </tr>
+            {{/each}}
+          </table>
+        {{/if}}
+        {{#if ui.unused}}
+          Policies not used by this pico
+          <table class="channel-table">
+            <tr>
+              <th>policy id</th>
+              <th>policy name</th>
+              <th>event</th>
+              <th>query</th>
+            </tr>
+            {{#each ui.unused}}
+              <tr>
+                <td>{{@key}}</td>
+                <td>{{name}}</td>
+                <td>{{event}}</td>
+                <td>{{query}}</td>
+              </tr>
+            {{/each}}
+          </table>
+        {{/if}}
+      {{/if}}
+    </script>
+  </head>
+  <body>
+    <p>Loading...</p>
+  </body>
 </html>
