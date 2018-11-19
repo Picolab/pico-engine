@@ -162,7 +162,7 @@ module.exports = function (pe) {
       if (req.query.legacy) {
         _.each(dbData.appvars, function (vars, rid) {
           _.each(vars, function (val, name) {
-            _.set(dbData, ['resultset', rid, 'vars', name], toLegacyPVar(val))
+            _.set(dbData, ['ruleset', rid, 'vars', name], toLegacyPVar(val))
           })
         })
         _.each(dbData.entvars, function (byRid, picoId) {

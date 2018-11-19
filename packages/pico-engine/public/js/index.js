@@ -1,8 +1,9 @@
+/* global $, sessionStorage, location, handlePicoLogin, Handlebars, picoAPI */
 $(document).ready(function () {
-  var json_name = location.search.substring(1)
-  var renderDemo = json_name.length > 0
+  var jsonName = location.search.substring(1)
+  var renderDemo = jsonName.length > 0
   if (!String.prototype.escapeHTML) {
-    String.prototype.escapeHTML = function () {
+    String.prototype.escapeHTML = function () { // eslint-disable-line
       return this.replace(/&/g, '&amp;').replace(/</g, '&lt;')
     }
   }
@@ -72,7 +73,7 @@ $(document).ready(function () {
     return json
   }
   var capTemplate = Handlebars.compile($('#capabilities-template').html())
-  $.getJSON('/api/db-dump?legacy=true', function (db_dump) {
+  $.getJSON('/api/db-dump?legacy=true', function (dbDump) {
     var dragstop = function (event, ui) {
       var nodeId = ui.helper[0].getAttribute('id')
       $('#' + nodeId)
@@ -96,26 +97,25 @@ $(document).ready(function () {
     // specialize the db for the particular tab
     var specDB = function ($li, callback) {
       var label = $li.html()
-      var thePicoInp =
-        db_dump.pico[
+      var thePicoInpId =
           $li
             .parent()
             .parent()
             .prev()
             .attr('id')
-        ]
+      var thePicoInp = dbDump.pico[thePicoInpId]
       var eci = findEciById(thePicoInp.id)
       if (label === 'About') {
         var hasRID = function (pid, rid) {
-          return !!get(db_dump.pico, [pid, 'ruleset', rid])
+          return !!get(dbDump.pico, [pid, 'ruleset', rid])
         }
         var thePicoOut = {}
         thePicoOut.pico_id = thePicoInp.id
         thePicoOut.id = thePicoInp.id
         thePicoOut.eci = eci
-        var pp_eci = getP(thePicoInp, 'parent_eci', undefined)
-        var pp = pp_eci
-          ? { id: get(db_dump.channel, [pp_eci, 'pico_id']), eci: pp_eci }
+        var ppECI = getP(thePicoInp, 'parent_eci', undefined)
+        var pp = ppECI
+          ? { id: get(dbDump.channel, [ppECI, 'pico_id']), eci: ppECI }
           : undefined
         if (pp) {
           thePicoOut.parent = {}
@@ -123,7 +123,7 @@ $(document).ready(function () {
           thePicoOut.parent.eci = pp.eci
           thePicoOut.parent.dname = getV(pp, 'dname', undefined)
         }
-        if (thePicoInp.id == rootPico.id || (pp && pp.id == rootPico.id)) {
+        if (thePicoInp.id === rootPico.id || (pp && pp.id === rootPico.id)) {
           var pswdAuth = hasRID(
             thePicoInp.id,
             'io.picolabs.owner_authentication'
@@ -141,9 +141,9 @@ $(document).ready(function () {
           var cp = {}
           cp.id = p.id
           cp.eci = p.eci
-          if (db_dump.pico[p.id] === undefined) continue
+          if (dbDump.pico[p.id] === undefined) continue
           cp.dname = getV(p, 'dname', undefined)
-          cp.canDel = getP(p, 'children', []).length == 0
+          cp.canDel = getP(p, 'children', []).length === 0
           thePicoOut.children.push(cp)
         }
         thePicoOut.dname = getV(
@@ -183,8 +183,8 @@ $(document).ready(function () {
           }
         }
         var avail = []
-        if (db_dump.rulesets) {
-          for (var rid in db_dump.rulesets.enabled) {
+        if (dbDump.rulesets) {
+          for (var rid in dbDump.rulesets.enabled) {
             if (installedRS[rid] === undefined) {
               avail.push(rid)
             }
@@ -201,8 +201,8 @@ $(document).ready(function () {
         var logRID = 'io.picolabs.logging'
         var theLoggingOut = {}
         theLoggingOut.pico_id = thePicoInp.id
-        if (get(db_dump, ['pico', thePicoInp.id, 'ruleset', logRID, 'on'])) {
-          var theLoggingVars = get(db_dump, [
+        if (get(dbDump, ['pico', thePicoInp.id, 'ruleset', logRID, 'on'])) {
+          var theLoggingVars = get(dbDump, [
             'pico',
             thePicoInp.id,
             logRID,
@@ -217,23 +217,23 @@ $(document).ready(function () {
         callback(theLoggingOut)
       } else if (label === 'Testing') {
         var testing = []
-        var eci = findEciById(thePicoInp.id)
-        for (var rid in thePicoInp.ruleset) {
+        eci = findEciById(thePicoInp.id)
+        for (rid in thePicoInp.ruleset) {
           testing.push({ rid: rid })
         }
         callback({ pico_id: thePicoInp.id, eci: eci, testing: testing })
       } else if (label === 'Channels') {
         var theChannels = []
-        var thePolicies = get(db_dump, ['policy'])
+        var thePolicies = get(dbDump, ['policy'])
         Object.keys(thePicoInp.channel).forEach(function (id) {
           var aChannel = get(thePicoInp, ['channel', id], undefined)
           if (aChannel) {
-            if (aChannel.type != 'secret' || aChannel.name != 'admin') {
+            if (aChannel.type !== 'secret' || aChannel.name !== 'admin') {
               aChannel.canDel = true
             }
-            var the_policy = thePolicies[aChannel.policy_id]
-            aChannel.policy_name = the_policy.name
-            aChannel.policy_text = JSON.stringify(the_policy, undefined, 2)
+            var thePolicy = thePolicies[aChannel.policy_id]
+            aChannel.policy_name = thePolicy.name
+            aChannel.policy_text = JSON.stringify(thePolicy, undefined, 2)
             theChannels.push(aChannel)
           }
         })
@@ -244,24 +244,17 @@ $(document).ready(function () {
           channel: theChannels,
           policy: thePolicies
         })
-      } else if (label == 'Subscriptions') {
-        var pico_name_sorter = function (a, b) {
-          var nameA = a.pico_name.toUpperCase()
-          var nameB = b.pico_name.toUpperCase()
-          if (nameA < nameB) return -1
-          if (nameB < nameA) return 1
-          return 0
-        }
+      } else if (label === 'Subscriptions') {
         var theSubscriptions = {}
         theSubscriptions.pico_id = thePicoInp.id
         theSubscriptions.eci = eci
         var subsRID = 'io.picolabs.subscription'
-        if (get(db_dump, ['pico', thePicoInp.id, 'ruleset', subsRID, 'on'])) {
-          var subscribable_picos = []
-          for (var k in db_dump.channel) {
-            var aChannel = db_dump.channel[k]
+        if (get(dbDump, ['pico', thePicoInp.id, 'ruleset', subsRID, 'on'])) {
+          var subscribablePicos = []
+          for (var k in dbDump.channel) {
+            var aChannel = dbDump.channel[k]
             if (aChannel.name === 'wellKnown_Rx') {
-              subscribable_picos.push({
+              subscribablePicos.push({
                 id: aChannel.id,
                 pico_name: getV({ id: aChannel.pico_id }, 'dname')
               })
@@ -270,13 +263,19 @@ $(document).ready(function () {
               }
             }
           }
-          theSubscriptions.subscribable_picos = subscribable_picos.sort(
-            pico_name_sorter
+          theSubscriptions.subscribable_picos = subscribablePicos.sort(
+            function (a, b) {
+              var nameA = a.pico_name.toUpperCase()
+              var nameB = b.pico_name.toUpperCase()
+              if (nameA < nameB) return -1
+              if (nameB < nameA) return 1
+              return 0
+            }
           )
         } else {
           theSubscriptions.disabled = true
         }
-        var theSubsVars = get(db_dump, [
+        var theSubsVars = get(dbDump, [
           'pico',
           thePicoInp.id,
           subsRID,
@@ -292,8 +291,8 @@ $(document).ready(function () {
             ++subCount
             someSub[id] = theSubs[id]
             someSub[id].asString = JSON.stringify(theSubs[id], undefined, 2)
-            var subs_eci = theSubs[id].Tx || theSubs[id].wellKnown_Tx
-            var pico = { id: get(db_dump.channel, [subs_eci, 'pico_id']) }
+            var subsECI = theSubs[id].Tx || theSubs[id].wellKnown_Tx
+            var pico = { id: get(dbDump.channel, [subsECI, 'pico_id']) }
             someSub[id].name = getV(pico, 'dname')
           })
           if (subCount) theSubscriptions[subsType] = someSub
@@ -302,8 +301,8 @@ $(document).ready(function () {
         recSubs('outbound')
         recSubs('inbound')
         callback(theSubscriptions)
-      } else if (label == 'Policies') {
-        var policy_ui = { disabled: true, pico_id: thePicoInp.id }
+      } else if (label === 'Policies') {
+        var policyUI = { disabled: true, pico_id: thePicoInp.id }
         $.getJSON('/sky/cloud/' + eci + '/io.picolabs.policy/ui', function (ui) {
           callback({
             pico_id: thePicoInp.id,
@@ -311,7 +310,7 @@ $(document).ready(function () {
             text: JSON.stringify(ui, undefined, 2)
           })
         }).fail(function () {
-          callback(policy_ui)
+          callback(policyUI)
         })
       } else {
         callback(thePicoInp)
@@ -407,7 +406,7 @@ $(document).ready(function () {
             if (this.checked) {
               var $label = $(this).next('.krlrid')
               let $editAnchor = $label.next('a')
-              if ($editAnchor.next('ul').length == 0) {
+              if ($editAnchor.next('ul').length === 0) {
                 var rid = $label.text()
                 var eci = theDB.eci
                 $.getJSON(
@@ -510,7 +509,7 @@ $(document).ready(function () {
     }
     var mpl = Handlebars.compile($('#the-template').html())
     var findEciById = function (id) {
-      return db_dump.pico[id].admin_eci
+      return dbDump.pico[id].admin_eci
     }
     var resizeOptions = {
       maxHeight: 200,
@@ -595,32 +594,32 @@ $(document).ready(function () {
     }
     var getP = function (p, n, d) {
       if (p === undefined) return d
-      return get(db_dump.pico, [p.id, 'io.picolabs.wrangler', 'vars', n], d)
+      return get(dbDump.pico, [p.id, 'io.picolabs.wrangler', 'vars', n], d)
     }
     var getV = function (p, n, d) {
       if (p === undefined) return d
       return get(
-        db_dump.pico,
+        dbDump.pico,
         [p.id, 'io.picolabs.visual_params', 'vars', n],
         d
       )
     }
     var rootPico = {}
-    for (var k in db_dump.pico) {
+    for (var k in dbDump.pico) {
       rootPico.id = k
       rootPico.eci = findEciById(k)
       break
     }
-    var do_main_page = function (ownerPico, authenticated) {
-      var db_graph = {}
-      db_graph.title = getV(ownerPico, 'title', 'My Picos')
-      db_graph.descr = getV(
+    var doMainPage = function (ownerPico, authenticated) {
+      var dbGraph = {}
+      dbGraph.title = getV(ownerPico, 'title', 'My Picos')
+      dbGraph.descr = getV(
         ownerPico,
         'descr',
         'These picos are hosted on this pico engine.'
       )
-      db_graph.picos = []
-      db_graph.chans = []
+      dbGraph.picos = []
+      dbGraph.chans = []
       var yiq = function (hexcolor) {
         if (hexcolor.startsWith('#') && hexcolor.length === 7) {
           var r = parseInt(hexcolor.substr(1, 2), 16)
@@ -672,21 +671,21 @@ $(document).ready(function () {
             'color:' +
             contrast(color)
         )
-        db_graph.picos.push(pico)
+        dbGraph.picos.push(pico)
         var children = getP(pico, 'children', [])
         var i = 0
 
         var l = children.length
         for (; i < l; ++i) {
-          if (db_dump.pico[children[i].id] === undefined) continue
+          if (dbDump.pico[children[i].id] === undefined) continue
           var cp = { id: children[i].id }
-          db_graph.chans.push({
+          dbGraph.chans.push({
             class: pico.id + '-origin ' + cp.id + '-target'
           })
           var limitI = Math.min(i, 45)
           walkPico(cp, dNumber * 10 + i + 1, left + limitI * 10 + 20, top + 20)
         }
-        var subscriptions = get(db_dump.pico, [
+        var subscriptions = get(dbDump.pico, [
           pico.id,
           'io.picolabs.subscription',
           'vars',
@@ -694,12 +693,12 @@ $(document).ready(function () {
         ])
         if (subscriptions) {
           for (var k in subscriptions) {
-            var subs_eci = get(subscriptions, [k, 'Tx'])
-            if (subs_eci) {
-              var subs_id = get(db_dump.channel, [subs_eci, 'pico_id'])
-              if (subs_id) {
-                db_graph.chans.push({
-                  class: pico.id + '-origin ' + subs_id + '-target subscription'
+            var subsECI = get(subscriptions, [k, 'Tx'])
+            if (subsECI) {
+              var subsId = get(dbDump.channel, [subsECI, 'pico_id'])
+              if (subsId) {
+                dbGraph.chans.push({
+                  class: pico.id + '-origin ' + subsId + '-target subscription'
                 })
               }
             }
@@ -707,7 +706,7 @@ $(document).ready(function () {
         }
       }
       walkPico(ownerPico, 0, '300', '50')
-      renderGraph(db_graph, authenticated)
+      renderGraph(dbGraph, authenticated)
       $.getJSON('/api/engine-version', function (data) {
         $('#version').text(data ? data.version : 'undefined')
       })
@@ -718,22 +717,22 @@ $(document).ready(function () {
         location.reload()
       })
     }
-    var logged_in_pico = {
+    var loggedInPico = {
       id: sessionStorage.getItem('owner_pico_id'),
       eci: sessionStorage.getItem('owner_pico_eci')
     }
     var noLoginRequired = function () {
       sessionStorage.removeItem('owner_pico_id')
       sessionStorage.removeItem('owner_pico_eci')
-      do_main_page(rootPico)
+      doMainPage(rootPico)
     }
     if (renderDemo) {
-      $.getJSON(json_name + '.json', renderGraph)
+      $.getJSON(jsonName + '.json', renderGraph)
       $.getJSON('/api/engine-version', function (data) {
         $('#version').text(data ? data.version : 'undefined')
       })
-    } else if (logged_in_pico.id) {
-      do_main_page(logged_in_pico, true)
+    } else if (loggedInPico.id) {
+      doMainPage(loggedInPico, true)
     } else {
       if (typeof handlePicoLogin === 'function') {
         $.post(
@@ -748,7 +747,7 @@ $(document).ready(function () {
               handlePicoLogin(d.directives[0].options, formToJSON, function (
                 authenticatedPico
               ) {
-                do_main_page(authenticatedPico, true)
+                doMainPage(authenticatedPico, true)
               })
             } else {
               noLoginRequired()
