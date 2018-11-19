@@ -545,6 +545,9 @@ module.exports = function (opts) {
   }
 
   return {
+    // for legacy-ui api routes
+    forRange: forRange,
+
     toObj: async function () {
       var dump = {}
       await forRange({}, function (data) {

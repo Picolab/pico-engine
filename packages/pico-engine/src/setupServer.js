@@ -158,77 +158,104 @@ module.exports = function (pe) {
   }
 
   app.all('/api/legacy-ui-data-dump', function (req, res, next) {
-    // TODO don't use pe.dbDump
-    pe.dbDump()
-      .then(function (dbData) {
-        _.each(dbData.entvars, function (byRid, picoId) {
-          _.each(byRid, function (vars, rid) {
-            if (rid === 'io.picolabs.logging' ||
-                rid === 'io.picolabs.subscription' ||
-                rid === 'io.picolabs.visual_params' ||
-                rid === 'io.picolabs.wrangler'
-            ) {
-              _.each(vars, function (val, name) {
-                _.set(dbData, ['pico', picoId, rid, 'vars', name], toLegacyPVar(val))
-              })
-            }
-          })
+    (async function () {
+      var dbData = {}
+      function dumpRange (prefix) {
+        return pe.dbRange({ prefix }, function (data) {
+          _.set(dbData, data.key, data.value)
         })
-        _.each(dbData['pico-children'], function (children, picoId) {
-          _.set(dbData, [
-            'pico',
-            picoId,
-            'io.picolabs.wrangler',
-            'vars',
-            'children'
-          ], _.map(children, function (val, id) {
-            return {
-              id: id,
-              eci: _.get(dbData, ['pico', id, 'admin_eci'])
-            }
-          }))
-        })
+      }
+      await pe.dbRange({
+        prefix: ['entvars']
+      }, function (data) {
+        const rid = data.key[2]
+        if (rid === 'io.picolabs.logging' ||
+            rid === 'io.picolabs.subscription' ||
+            rid === 'io.picolabs.visual_params' ||
+            rid === 'io.picolabs.wrangler'
+        ) {
+          _.set(dbData, data.key, data.value)
+        }
+      })
+      await dumpRange(['channel'])
+      await dumpRange(['pico'])
+      await dumpRange(['pico-children'])
+      await dumpRange(['pico-ruleset'])
+      await dumpRange(['policy'])
 
-        _.each(dbData.channel, function (chan, eci) {
-          _.set(dbData, ['pico', chan.pico_id, 'channel', eci], chan)
-          _.set(dbData, ['channel', eci, 'pico_id'], chan.pico_id)
-        })
-        _.each(dbData['pico-ruleset'], function (data, picoId) {
-          _.each(data, function (val, rid) {
-            _.set(dbData, ['pico', picoId, 'ruleset', rid], val)
+      _.each(dbData.entvars, function (byRid, picoId) {
+        _.each(byRid, function (vars, rid) {
+          _.each(vars, function (val, name) {
+            _.set(dbData, ['pico', picoId, rid, 'vars', name], toLegacyPVar(val))
           })
-        })
-
-        res.json({
-          channel: dbData.channel,
-          pico: dbData.pico,
-          policy: dbData.policy,
-          enabledRIDs: _.keys(dbData.rulesets.enabled)
         })
       })
-      .catch(next)
+      _.each(dbData['pico-children'], function (children, picoId) {
+        _.set(dbData, [
+          'pico',
+          picoId,
+          'io.picolabs.wrangler',
+          'vars',
+          'children'
+        ], _.map(children, function (val, id) {
+          return {
+            id: id,
+            eci: _.get(dbData, ['pico', id, 'admin_eci'])
+          }
+        }))
+      })
+
+      _.each(dbData.channel, function (chan, eci) {
+        _.set(dbData, ['pico', chan.pico_id, 'channel', eci], chan)
+        _.set(dbData, ['channel', eci, 'pico_id'], chan.pico_id)
+        // keep it secret
+        delete chan.sovrin.secret
+      })
+      _.each(dbData['pico-ruleset'], function (data, picoId) {
+        _.each(data, function (val, rid) {
+          _.set(dbData, ['pico', picoId, 'ruleset', rid], val)
+        })
+      })
+
+      const enabledRIDs = await pe.dbRange({
+        prefix: ['rulesets', 'enabled'],
+        keys: true,
+        values: false
+      }, function (key) {
+        return key[2]
+      })
+
+      res.json({
+        channel: dbData.channel,
+        pico: dbData.pico,
+        policy: dbData.policy,
+        enabledRIDs: enabledRIDs
+      })
+    }()).catch(next)
   })
   app.all('/api/legacy-ui-get-vars/:picoId/:rid', function (req, res, next) {
     const { picoId, rid } = req.params
-    // TODO don't use pe.dbDump
-    pe.dbDump()
-      .then(function (dbData) {
-        const result = []
-        _.each(_.get(dbData, ['appvars', rid]), function (val, name) {
-          result.push({ kind: 'app', name, val: toLegacyPVar(val) })
-        })
-        _.each(_.get(dbData, ['entvars', picoId, rid]), function (val, name) {
-          result.push({ kind: 'ent', name, val: toLegacyPVar(val) })
-        })
-        res.json(result)
+    ;(async function () {
+      var dbData = {}
+      await pe.dbRange({
+        prefix: ['appvars', rid]
+      }, function (data) {
+        _.set(dbData, data.key, data.value)
       })
-      .catch(next)
-  })
-
-  app.all('/api/db-dump', function (req, res, next) {
-    pe.dbDump()
-      .then(dbData => res.json(dbData))
-      .catch(next)
+      await pe.dbRange({
+        prefix: ['entvars', picoId, rid]
+      }, function (data) {
+        _.set(dbData, data.key, data.value)
+      })
+      const result = []
+      _.each(_.get(dbData, ['appvars', rid]), function (val, name) {
+        result.push({ kind: 'app', name, val: toLegacyPVar(val) })
+      })
+      _.each(_.get(dbData, ['entvars', picoId, rid]), function (val, name) {
+        result.push({ kind: 'ent', name, val: toLegacyPVar(val) })
+      })
+      res.json(result)
+    }()).catch(next)
   })
 
   app.all('/api/root-eci', function (req, res, next) {
@@ -304,11 +331,18 @@ module.exports = function (pe) {
   })
 
   app.all('/api/ruleset-page', function (req, res, next) {
-    pe.dbDump().then(function (dbData) {
+    (async function () {
       var data = {
         version: version,
         r: {}
       }
+
+      const dbData = {}
+      await pe.dbRange({
+        prefix: ['rulesets']
+      }, function (data) {
+        _.set(dbData, data.key, data.value)
+      })
 
       _.each(_.get(dbData, ['rulesets', 'versions']), function (versions, rid) {
         _.each(versions, function (hashes, date) {
@@ -356,8 +390,7 @@ module.exports = function (pe) {
 
       data.ok = true
       res.json(data)
-    })
-      .catch(next)
+    }()).catch(next)
   })
 
   app.use(function (err, req, res, next) {
