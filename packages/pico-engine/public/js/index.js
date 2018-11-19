@@ -73,6 +73,7 @@ $(document).ready(function () {
     return json
   }
   var capTemplate = Handlebars.compile($('#capabilities-template').html())
+  var rulesetVarsTemplate = Handlebars.compile($('#rulesets-template-vars').html())
   $.getJSON('/api/legacy-ui-data-dump', function (dbDump) {
     var dragstop = function (event, ui) {
       var nodeId = ui.helper[0].getAttribute('id')
@@ -148,14 +149,6 @@ $(document).ready(function () {
             rs !== 'io.picolabs.visual_params'
           ) {
             installedRS[rs].canDel = true
-          }
-          if (theRulesetInp[rs]) {
-            var theVarsInp = theRulesetInp[rs].vars
-            var theVarsOut = {}
-            for (var ent in theVarsInp) {
-              theVarsOut[ent] = JSON.stringify(theVarsInp[ent])
-            }
-            installedRS[rs].vars = theVarsOut
           }
         }
         var avail = []
@@ -333,6 +326,25 @@ $(document).ready(function () {
         if (tabName === 'rulesets') {
           d = theDB.pico_id + '-Rulesets'
           location.hash = d
+          $theSection.on('change', '.js-toggle-pvars', function (e) {
+            if (!e.target.checked) {
+              return
+            }
+            var rid = $(e.target).parent().data('rid')
+            var $ul = $(e.target).parent().find('ul')
+            $.getJSON('/api/legacy-ui-get-vars/' +theDB.pico_id +'/' +rid, function (data) {
+                data.forEach(function (v) {
+                  v.pico_id = theDB.pico_id
+                  v.rid = rid
+                  v.canDel = rid !== 'io.picolabs.wrangler' && rid !== 'io.picolabs.visual_params'
+                  v.val = JSON.stringify(v.val)
+                })
+                $ul.html(rulesetVarsTemplate(data))
+              })
+              .fail(function(){
+                $ul.html('<li style="color:red">Error loading vars</li>')
+              })
+          })
           $theSection.find('.rulesetFromURL').submit(function (e) {
             var installAndAddRuleset = function (url, eci, callback) {
               var log = function (m) {

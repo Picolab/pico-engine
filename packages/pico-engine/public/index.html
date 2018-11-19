@@ -201,23 +201,15 @@
       Pico Rulesets
       <ul id="ruleset-list" style="list-style: none;padding:0">
         {{#each installed}}
-          <li>
-            <input type="checkbox" id="installed-{{@index}}">
+          <li data-rid="{{@key}}">
+            <input type="checkbox" id="installed-{{@index}}" class="js-toggle-pvars">
             <label for="installed-{{@index}}">{{@key}}</label>
             <a href="javascript:window.open('ruleset.html#{{@key}}','ruleset');void 0">edit</a>
             {{#if canDel}}
               <a class="js-ajax-link" href="/api/pico/{{../pico_id}}/rm-ruleset/{{@key}}">del</a>
             {{/if}}
             <ul>
-              {{#each vars}}
-                <li>
-                  <span style="white-space: nowrap;">ent:{{@key}}={{this}}
-                    {{#if ../canDel}}
-                      <a class="js-ajax-link" href="/api/pico/{{../../pico_id}}/rm-ent-var/{{@../key}}/{{@key}}">del</a>
-                    {{/if}}
-                  </span>
-                </li>
-              {{/each}}
+              <!-- see rulesets-template-vars -->
             </ul>
           </li>
         {{/each}}
@@ -246,6 +238,17 @@
       {{/if}}
       <hr>
       <a href="ruleset.html" target="ruleset">Engine Rulesets</a>
+    </script>
+    <script id="rulesets-template-vars" type="text/x-handlebars-template">
+      {{#each this}}
+        <li>
+          <span style="white-space: nowrap;">{{kind}}:{{name}}={{val}}
+            {{#if canDel}}
+              <a class="js-ajax-link" href="/api/pico/{{pico_id}}/rm-ent-var/{{rid}}/{{name}}">del</a>
+            {{/if}}
+          </span>
+        </li>
+      {{/each}}
     </script>
     <script id="channels-template" type="text/x-handlebars-template">
       Channels

@@ -208,6 +208,22 @@ module.exports = function (pe) {
       })
       .catch(next)
   })
+  app.all('/api/legacy-ui-get-vars/:picoId/:rid', function (req, res, next) {
+    const { picoId, rid } = req.params
+    // TODO don't use pe.dbDump
+    pe.dbDump()
+      .then(function (dbData) {
+        const result = []
+        _.each(_.get(dbData, ['appvars', rid]), function (val, name) {
+          result.push({ kind: 'app', name, val: toLegacyPVar(val) })
+        })
+        _.each(_.get(dbData, ['entvars', picoId, rid]), function (val, name) {
+          result.push({ kind: 'ent', name, val: toLegacyPVar(val) })
+        })
+        res.json(result)
+      })
+      .catch(next)
+  })
 
   app.all('/api/db-dump', function (req, res, next) {
     pe.dbDump()
