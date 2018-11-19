@@ -538,7 +538,7 @@ module.exports = function (conf) {
     getEntVar: db.getEntVar,
     delEntVar: db.delEntVar,
 
-    dbDump: db.toObj
+    dbRange: db.forRange // for legacy-ui api routes
     // ^^^ deprecated ^^^
     /// //////////////////
   }
@@ -549,6 +549,7 @@ module.exports = function (conf) {
     pe.scheduleEventAt = db.scheduleEventAt
     pe.scheduler = core.scheduler
     pe.modules = modules
+    pe.dbDump = db.toObj
   }
 
   pe.start = async function (systemRulesets) {
