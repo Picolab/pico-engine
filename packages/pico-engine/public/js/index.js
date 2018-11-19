@@ -87,25 +87,10 @@ $(document).ready(function () {
         )
       }
     }
-    var fadeInOptions = {
-      width: '95%',
-      height: '85%',
-      top: 0,
-      left: 0
-    }
-    var fadeOutOptions
     // specialize the db for the particular tab
-    var specDB = function ($li, callback) {
-      var label = $li.html()
-      var thePicoInpId =
-          $li
-            .parent()
-            .parent()
-            .prev()
-            .attr('id')
-      var thePicoInp = dbDump.pico[thePicoInpId]
+    var specDB = function (tabName, thePicoInp, dname, callback) {
       var eci = findEciById(thePicoInp.id)
-      if (label === 'About') {
+      if (tabName === 'about') {
         var hasRID = function (pid, rid) {
           return !!get(dbDump.pico, [pid, 'ruleset', rid])
         }
@@ -146,23 +131,14 @@ $(document).ready(function () {
           cp.canDel = getP(p, 'children', []).length === 0
           thePicoOut.children.push(cp)
         }
-        thePicoOut.dname = getV(
-          thePicoInp,
-          'dname',
-          $li
-            .parent()
-            .parent()
-            .prev()
-            .text()
-            .trim()
-        )
+        thePicoOut.dname = getV(thePicoInp, 'dname', dname)
         thePicoOut.color = getV(
           thePicoInp,
           'color',
           thePicoOut.parent ? '#7FFFD4' : '#87CEFA'
         )
-        callback(thePicoOut)
-      } else if (label === 'Rulesets') {
+        callback(null, thePicoOut)
+      } else if (tabName === 'rulesets') {
         var theRulesetInp = thePicoInp
         var installedRS = {}
         for (var rs in theRulesetInp.ruleset) {
@@ -196,8 +172,8 @@ $(document).ready(function () {
           installed: installedRS,
           avail: avail
         }
-        callback(theRulesetOut)
-      } else if (label === 'Logging') {
+        callback(null, theRulesetOut)
+      } else if (tabName === 'logging') {
         var logRID = 'io.picolabs.logging'
         var theLoggingOut = {}
         theLoggingOut.pico_id = thePicoInp.id
@@ -214,15 +190,15 @@ $(document).ready(function () {
         } else {
           theLoggingOut.disabled = true
         }
-        callback(theLoggingOut)
-      } else if (label === 'Testing') {
+        callback(null, theLoggingOut)
+      } else if (tabName === 'testing') {
         var testing = []
         eci = findEciById(thePicoInp.id)
         for (rid in thePicoInp.ruleset) {
           testing.push({ rid: rid })
         }
-        callback({ pico_id: thePicoInp.id, eci: eci, testing: testing })
-      } else if (label === 'Channels') {
+        callback(null, { pico_id: thePicoInp.id, eci: eci, testing: testing })
+      } else if (tabName === 'channels') {
         var theChannels = []
         var thePolicies = get(dbDump, ['policy'])
         Object.keys(thePicoInp.channel).forEach(function (id) {
@@ -237,14 +213,14 @@ $(document).ready(function () {
             theChannels.push(aChannel)
           }
         })
-        callback({
+        callback(null, {
           pico_id: thePicoInp.id,
           id: thePicoInp.id,
           eci: thePicoInp.admin_eci,
           channel: theChannels,
           policy: thePolicies
         })
-      } else if (label === 'Subscriptions') {
+      } else if (tabName === 'subscriptions') {
         var theSubscriptions = {}
         theSubscriptions.pico_id = thePicoInp.id
         theSubscriptions.eci = eci
@@ -300,20 +276,20 @@ $(document).ready(function () {
         recSubs('established')
         recSubs('outbound')
         recSubs('inbound')
-        callback(theSubscriptions)
-      } else if (label === 'Policies') {
+        callback(null, theSubscriptions)
+      } else if (tabName === 'policies') {
         var policyUI = { disabled: true, pico_id: thePicoInp.id }
         $.getJSON('/sky/cloud/' + eci + '/io.picolabs.policy/ui', function (ui) {
-          callback({
+          callback(null, {
             pico_id: thePicoInp.id,
             ui: ui,
             text: JSON.stringify(ui, undefined, 2)
           })
         }).fail(function () {
-          callback(policyUI)
+          callback(null, policyUI)
         })
       } else {
-        callback(thePicoInp)
+        callback(null, thePicoInp)
       }
     }
 
@@ -325,16 +301,30 @@ $(document).ready(function () {
         .toggleClass('active')
       $(this).toggleClass('active')
       if (renderDemo) return // nothing to render for demos
-      var liContent = $(this)
+      var tabName = $(this)
         .html()
         .toLowerCase()
+        .trim()
       var tabTemplate = Handlebars.compile(
-        $('#' + liContent + '-template').html()
+        $('#' + tabName + '-template').html()
       )
       var $theSection = $(this)
         .parent()
         .next('.pico-section')
-      specDB($(this), function (theDB) {
+      var thePicoInpId = $(this)
+        .parent()
+        .parent()
+        .prev()
+        .attr('id')
+      var thePicoInp = dbDump.pico[thePicoInpId]
+      var thePicoInpName = $(this)
+        .parent()
+        .parent()
+        .prev()
+        .text()
+        .trim()
+      specDB(tabName, thePicoInp, thePicoInpName, function (err, theDB) {
+        if (err) return window.alert('specDB error: ' + err)
         if (authenticated) {
           theDB.authenticated = authenticated
           theDB.authenticatedOwner = theDB.isOwner
@@ -342,7 +332,7 @@ $(document).ready(function () {
         }
         $theSection.html(tabTemplate(theDB))
         var d = ''
-        if (liContent === 'rulesets') {
+        if (tabName === 'rulesets') {
           d = theDB.pico_id + '-Rulesets'
           location.hash = d
           $theSection.find('.rulesetFromURL').submit(function (e) {
@@ -400,7 +390,7 @@ $(document).ready(function () {
               location.reload()
             })
           })
-        } else if (liContent === 'testing') {
+        } else if (tabName === 'testing') {
           $('.testing-rids li input').change(function (e) {
             $('#test-results pre').html('')
             if (this.checked) {
@@ -423,7 +413,7 @@ $(document).ready(function () {
             }
           })
           location.hash = theDB.pico_id + '-Testing'
-        } else if (liContent === 'about') {
+        } else if (tabName === 'about') {
           $theSection
             .find('.use-minicolors')
             .minicolors({
@@ -433,16 +423,16 @@ $(document).ready(function () {
           $('.minicolors-input-swatch').css('left', 0)
           d = theDB.pico_id + '-About'
           location.hash = d
-        } else if (liContent === 'channels') {
+        } else if (tabName === 'channels') {
           d = theDB.pico_id + '-Channels'
           location.hash = d
-        } else if (liContent === 'subscriptions') {
+        } else if (tabName === 'subscriptions') {
           d = theDB.pico_id + '-Subscriptions'
           location.hash = d
-        } else if (liContent === 'policies') {
+        } else if (tabName === 'policies') {
           d = theDB.pico_id + '-Policies'
           location.hash = d
-        } else if (liContent === 'logging') {
+        } else if (tabName === 'logging') {
           $('#logging-on').click(function () {
             $.getJSON(
               '/sky/event/' + theDB.eci + '/logging-on/picolog/begin',
@@ -511,24 +501,9 @@ $(document).ready(function () {
     var findEciById = function (id) {
       return dbDump.pico[id].admin_eci
     }
-    var resizeOptions = {
-      maxHeight: 200,
-      maxWidth: 200,
-      minHeight: 50,
-      minWidth: 50,
-      resize: dragmove,
-      stop: function (event, ui) {
-        if (!renderDemo) {
-          var nodeId = ui.helper[0].getAttribute('id')
-          var width = Math.round(ui.size.width)
-          var height = Math.round(ui.size.height)
-          $.getJSON('/sky/event/' + findEciById(nodeId) + '/25/visual/config', {
-            width: width,
-            height: height
-          })
-        }
-      }
-    }
+    //
+    // /////////////////////////////////////////////////////////////////////////
+    //
     var renderGraph = function (data, authenticated) {
       if (authenticated) {
         data.authenticated = true
@@ -539,10 +514,27 @@ $(document).ready(function () {
         $('#user-logout span').html(data.picos[0].dname)
       }
       $('div.pico')
-        .resizable(resizeOptions)
+        .resizable({
+          maxHeight: 200,
+          maxWidth: 200,
+          minHeight: 50,
+          minWidth: 50,
+          resize: dragmove,
+          stop: function (event, ui) {
+            if (!renderDemo) {
+              var nodeId = ui.helper[0].getAttribute('id')
+              var width = Math.round(ui.size.width)
+              var height = Math.round(ui.size.height)
+              $.getJSON('/sky/event/' + findEciById(nodeId) + '/25/visual/config', {
+                width: width,
+                height: height
+              })
+            }
+          }
+        })
         .draggable({ containment: 'parent', drag: dragmove, stop: dragstop })
         .click(function () {
-          fadeOutOptions = {
+          var fadeOutOptions = {
             width: $(this).css('width'),
             height: $(this).css('height'),
             top: $(this).css('top'),
@@ -557,7 +549,12 @@ $(document).ready(function () {
             location.hash = ''
           }
           $pediv.fadeIn(200)
-          $pediv.animate(fadeInOptions, 200, function () {
+          $pediv.animate({
+            width: '95%',
+            height: '85%',
+            top: 0,
+            left: 0
+          }, 200, function () {
             $pediv.prepend('<button class="x">&ndash;</button>')
             $pediv.find('button.x').click(fadeAway)
           })
