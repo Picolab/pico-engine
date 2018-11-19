@@ -73,7 +73,7 @@ $(document).ready(function () {
     return json
   }
   var capTemplate = Handlebars.compile($('#capabilities-template').html())
-  $.getJSON('/api/db-dump?legacy=true', function (dbDump) {
+  $.getJSON('/api/legacy-ui-data-dump', function (dbDump) {
     var dragstop = function (event, ui) {
       var nodeId = ui.helper[0].getAttribute('id')
       $('#' + nodeId)
@@ -159,13 +159,11 @@ $(document).ready(function () {
           }
         }
         var avail = []
-        if (dbDump.rulesets) {
-          for (var rid in dbDump.rulesets.enabled) {
-            if (installedRS[rid] === undefined) {
-              avail.push(rid)
-            }
+        dbDump.enabledRIDs.forEach(function (rid) {
+          if (installedRS[rid] === undefined) {
+            avail.push(rid)
           }
-        }
+        })
         var theRulesetOut = {
           pico_id: thePicoInp.id,
           eci: eci,

@@ -157,19 +157,21 @@ module.exports = function (pe) {
     return value
   }
 
-  app.all('/api/db-dump', function (req, res, next) {
-    pe.dbDump().then(function (dbData) {
-      if (req.query.legacy) {
-        _.each(dbData.appvars, function (vars, rid) {
-          _.each(vars, function (val, name) {
-            _.set(dbData, ['ruleset', rid, 'vars', name], toLegacyPVar(val))
-          })
-        })
+  app.all('/api/legacy-ui-data-dump', function (req, res, next) {
+    // TODO don't use pe.dbDump
+    pe.dbDump()
+      .then(function (dbData) {
         _.each(dbData.entvars, function (byRid, picoId) {
           _.each(byRid, function (vars, rid) {
-            _.each(vars, function (val, name) {
-              _.set(dbData, ['pico', picoId, rid, 'vars', name], toLegacyPVar(val))
-            })
+            if (rid === 'io.picolabs.logging' ||
+                rid === 'io.picolabs.subscription' ||
+                rid === 'io.picolabs.visual_params' ||
+                rid === 'io.picolabs.wrangler'
+            ) {
+              _.each(vars, function (val, name) {
+                _.set(dbData, ['pico', picoId, rid, 'vars', name], toLegacyPVar(val))
+              })
+            }
           })
         })
         _.each(dbData['pico-children'], function (children, picoId) {
@@ -196,10 +198,20 @@ module.exports = function (pe) {
             _.set(dbData, ['pico', picoId, 'ruleset', rid], val)
           })
         })
-      }
 
-      res.json(dbData)
-    })
+        res.json({
+          channel: dbData.channel,
+          pico: dbData.pico,
+          policy: dbData.policy,
+          enabledRIDs: _.keys(dbData.rulesets.enabled)
+        })
+      })
+      .catch(next)
+  })
+
+  app.all('/api/db-dump', function (req, res, next) {
+    pe.dbDump()
+      .then(dbData => res.json(dbData))
       .catch(next)
   })
 
