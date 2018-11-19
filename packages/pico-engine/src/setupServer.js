@@ -169,8 +169,7 @@ module.exports = function (pe) {
         prefix: ['entvars']
       }, function (data) {
         const rid = data.key[2]
-        if (rid === 'io.picolabs.logging' ||
-            rid === 'io.picolabs.subscription' ||
+        if (rid === 'io.picolabs.subscription' ||
             rid === 'io.picolabs.visual_params' ||
             rid === 'io.picolabs.wrangler'
         ) {

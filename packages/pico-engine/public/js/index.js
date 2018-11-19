@@ -165,23 +165,22 @@ $(document).ready(function () {
         }
         callback(null, theRulesetOut)
       } else if (tabName === 'logging') {
-        var logRID = 'io.picolabs.logging'
         var theLoggingOut = {}
         theLoggingOut.pico_id = thePicoInp.id
-        if (get(dbDump, ['pico', thePicoInp.id, 'ruleset', logRID, 'on'])) {
-          var theLoggingVars = get(dbDump, [
-            'pico',
-            thePicoInp.id,
-            logRID,
-            'vars'
-          ])
-          theLoggingOut.status = theLoggingVars.status
-          theLoggingOut.logs = theLoggingVars.logs
+        if (get(dbDump, ['pico', thePicoInp.id, 'ruleset', 'io.picolabs.logging', 'on'])) {
           theLoggingOut.eci = eci
+          $.getJSON('/sky/cloud/' + eci + '/io.picolabs.logging/getLogs', function (data) {
+            theLoggingOut.status = data.status
+            theLoggingOut.logs = data.logs
+            callback(null, theLoggingOut)
+          }).fail(function(err){
+            theLoggingOut.error = 'Failed to get data'
+            callback(null, theLoggingOut)
+          })
         } else {
           theLoggingOut.disabled = true
+          callback(null, theLoggingOut)
         }
-        callback(null, theLoggingOut)
       } else if (tabName === 'testing') {
         var testing = []
         eci = findEciById(thePicoInp.id)

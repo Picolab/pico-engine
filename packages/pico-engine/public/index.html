@@ -293,6 +293,9 @@
     <script id="logging-template" type="text/x-handlebars-template">
       <div>
       Logging
+      {{#if error}}
+        <div style="color:red">{{error}}</div>
+      {{/if}}
       {{#if disabled}}
         is disabled.
         To enable, add the ruleset "io.picolabs.logging" to this pico.
