@@ -317,7 +317,7 @@
                 <li>
                   <input type="checkbox" id="episode-{{@index}}">
                   <label for="episode-{{@index}}">{{@key}}</label>
-                  <pre class="logging-detail">{{#each this}}{{this}}{{/each}}</pre>
+                  <pre class="logging-detail">{{#each this}}{{this}}&#10;{{/each}}</pre>
                 </li>
               {{/each}}
             </ul>
