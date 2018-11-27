@@ -100,6 +100,10 @@ module.exports = function (pe) {
           res.write(Buffer.from(Uint8Array.from(data)), 'binary')
           return res.end()
         }
+        _res = _.find(response.directives, { name: '_redirect' })
+        if (_res && _res.options.url) {
+          return res.redirect(_res.options.url)
+        }
       }
       res.json(response)
     })
