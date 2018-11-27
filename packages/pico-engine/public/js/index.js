@@ -220,12 +220,13 @@ $(document).ready(function () {
           for (var k in dbDump.channel) {
             var aChannel = dbDump.channel[k]
             if (aChannel.name === 'wellKnown_Rx') {
-              subscribablePicos.push({
-                id: aChannel.id,
-                pico_name: getV({ id: aChannel.pico_id }, 'dname')
-              })
               if (aChannel.pico_id === thePicoInp.id) {
                 theSubscriptions.wellKnown_Rx = k
+              } else { // avoid offering subscription to self
+                subscribablePicos.push({
+                  id: aChannel.id,
+                  pico_name: getV({ id: aChannel.pico_id }, 'dname')
+                })
               }
             }
           }

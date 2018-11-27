@@ -389,6 +389,7 @@
         Subscriptions are disabled.
         To enable, add the ruleset "io.picolabs.subscription" to this pico.
       {{else}}
+        <p>Subscriptions are enabled at {{wellKnown_Rx}}.</p>
         {{#if established}}
           Established subscriptions
           <ul class="subscriptions-list" style="list-style: none;padding:0">
@@ -434,36 +435,38 @@
             {{/each}}
           </ul>
         {{/if}}
-        <p>Propose new subscription</p>
-        <form
-          class="js-ajax-form"
-          action="/sky/event/{{eci}}/subscr/wrangler/subscription"
-          method="GET"
-        >
-          <table>
-            <tr>
-              <td>wellKnown_Tx</td>
-              <td>Rx_role</td>
-              <td>Tx_role</td>
-              <td>name</td>
-              <td>channel_type</td>
-            </tr>
-            <tr>
-              <td>
-                <select name="wellKnown_Tx">
-                  {{#each subscribable_picos}}
-                    <option value="{{id}}">{{pico_name}}</option>
-                  {{/each}}
-                </select>
-              </td>
-              <td><input type="text" name="Rx_role"></td>
-              <td><input type="text" name="Tx_role"></td>
-              <td><input type="text" name="name"></td>
-              <td><input type="text" name="channel_type" value="subscription"></td>
-            </tr>
-          </table>
-          <button type="submit">wrangler:subscription</button>
-        </form>
+        {{#if subscribable_picos}}
+          <p>Propose new subscription</p>
+          <form
+            class="js-ajax-form"
+            action="/sky/event/{{eci}}/subscr/wrangler/subscription"
+            method="GET"
+          >
+            <table>
+              <tr>
+                <td>wellKnown_Tx</td>
+                <td>Rx_role</td>
+                <td>Tx_role</td>
+                <td>name</td>
+                <td>channel_type</td>
+              </tr>
+              <tr>
+                <td>
+                  <select name="wellKnown_Tx">
+                    {{#each subscribable_picos}}
+                      <option value="{{id}}">{{pico_name}}</option>
+                    {{/each}}
+                  </select>
+                </td>
+                <td><input type="text" name="Rx_role"></td>
+                <td><input type="text" name="Tx_role"></td>
+                <td><input type="text" name="name"></td>
+                <td><input type="text" name="channel_type" value="subscription"></td>
+              </tr>
+            </table>
+            <button type="submit">wrangler:subscription</button>
+          </form>
+        {{/if}}
       {{/if}}
     </script>
     <script id="policies-template" type="text/x-handlebars-template">
