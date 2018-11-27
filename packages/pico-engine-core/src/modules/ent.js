@@ -1,13 +1,13 @@
 module.exports = function (core) {
   return {
-    get: function (ctx, id, callback) {
-      core.db.getEntVar(ctx.pico_id, ctx.rid, id.var_name, id.query, callback)
+    get: function (ctx, id) {
+      return core.db.getEntVar(ctx.pico_id, ctx.rid, id.var_name, id.query)
     },
-    set: function (ctx, id, value, callback) {
-      core.db.putEntVar(ctx.pico_id, ctx.rid, id.var_name, id.query, value, callback)
+    set: function (ctx, id, value) {
+      return core.db.putEntVar(ctx.pico_id, ctx.rid, id.var_name, id.query, value)
     },
-    del: function (ctx, id, callback) {
-      core.db.delEntVar(ctx.pico_id, ctx.rid, id.var_name, id.query, callback)
+    del: function (ctx, id) {
+      return core.db.delEntVar(ctx.pico_id, ctx.rid, id.var_name, id.query)
     }
   }
 }

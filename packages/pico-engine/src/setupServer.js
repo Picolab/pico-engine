@@ -38,16 +38,16 @@ module.exports = function (pe) {
       next()
     } else {
       console.log('[SEEK SHORTCUT] ' + fpc)
-      pe.getRootECI(function (err, rootEci) {
-        if (err) return next(err)
+      pe.getRootECI().then(function (rootEci) {
         var query = {
           eci: rootEci,
           rid: 'io.picolabs.rewrite',
           name: 'getRewrite',
           args: { fpc: fpc }
         }
-        pe.runQuery(query, function (err, data) {
-          if (err) return next(err)
+        return pe.runQuery(query)
+      })
+        .then(function (data) {
           if (data) {
             var eventOrQuery =
                             data.kind === 'event' ? '/sky/event/' : '/sky/cloud/'
@@ -58,7 +58,7 @@ module.exports = function (pe) {
           }
           next()
         })
-      })
+        .catch(next)
     }
   })
 
@@ -70,8 +70,7 @@ module.exports = function (pe) {
       type: req.params.type,
       attrs: mergeGetPost(req)
     }
-    pe.signalEvent(event, function (err, response) {
-      if (err) return next(err)
+    pe.signalEvent(event).then(function (response) {
       if (response.directives) {
         var _res
         // some special cases
@@ -107,6 +106,7 @@ module.exports = function (pe) {
       }
       res.json(response)
     })
+      .catch(next)
   })
 
   app.all('/sky/cloud/:eci/:rid/:function', function (req, res, next) {
@@ -118,8 +118,7 @@ module.exports = function (pe) {
       name: funcPart[0],
       args: mergeGetPost(req)
     }
-    pe.runQuery(query, function (err, data) {
-      if (err) return next(err)
+    pe.runQuery(query).then(function (data) {
       if (_.isFunction(data)) {
         data(res)
       } else if (respType && funcPart[1] === 'gif') {
@@ -133,6 +132,7 @@ module.exports = function (pe) {
         res.json(data)
       }
     })
+      .catch(next)
   })
 
   app.get('/authorize', oauthServer.authorize)
@@ -161,79 +161,132 @@ module.exports = function (pe) {
     return value
   }
 
-  app.all('/api/db-dump', function (req, res, next) {
-    pe.dbDump(function (err, dbData) {
-      if (err) return next(err)
-
-      if (req.query.legacy) {
-        _.each(dbData.appvars, function (vars, rid) {
-          _.each(vars, function (val, name) {
-            _.set(dbData, ['resultset', rid, 'vars', name], toLegacyPVar(val))
-          })
-        })
-        _.each(dbData.entvars, function (byRid, picoId) {
-          _.each(byRid, function (vars, rid) {
-            _.each(vars, function (val, name) {
-              _.set(dbData, ['pico', picoId, rid, 'vars', name], toLegacyPVar(val))
-            })
-          })
-        })
-        _.each(dbData['pico-children'], function (children, picoId) {
-          _.set(dbData, [
-            'pico',
-            picoId,
-            'io.picolabs.wrangler',
-            'vars',
-            'children'
-          ], _.map(children, function (val, id) {
-            return {
-              id: id,
-              eci: _.get(dbData, ['pico', id, 'admin_eci'])
-            }
-          }))
-        })
-
-        _.each(dbData.channel, function (chan, eci) {
-          _.set(dbData, ['pico', chan.pico_id, 'channel', eci], chan)
-          _.set(dbData, ['channel', eci, 'pico_id'], chan.pico_id)
-        })
-        _.each(dbData['pico-ruleset'], function (data, picoId) {
-          _.each(data, function (val, rid) {
-            _.set(dbData, ['pico', picoId, 'ruleset', rid], val)
-          })
+  app.all('/api/legacy-ui-data-dump', function (req, res, next) {
+    (async function () {
+      var dbData = {}
+      function dumpRange (prefix) {
+        return pe.dbRange({ prefix }, function (data) {
+          _.set(dbData, data.key, data.value)
         })
       }
+      await pe.dbRange({
+        prefix: ['entvars']
+      }, function (data) {
+        const rid = data.key[2]
+        if (rid === 'io.picolabs.subscription' ||
+            rid === 'io.picolabs.visual_params' ||
+            rid === 'io.picolabs.wrangler'
+        ) {
+          _.set(dbData, data.key, data.value)
+        }
+      })
+      await dumpRange(['channel'])
+      await dumpRange(['pico'])
+      await dumpRange(['pico-children'])
+      await dumpRange(['pico-ruleset'])
+      await dumpRange(['policy'])
 
-      res.json(dbData)
-    })
+      _.each(dbData.entvars, function (byRid, picoId) {
+        _.each(byRid, function (vars, rid) {
+          _.each(vars, function (val, name) {
+            _.set(dbData, ['pico', picoId, rid, 'vars', name], toLegacyPVar(val))
+          })
+        })
+      })
+      _.each(dbData['pico-children'], function (children, picoId) {
+        _.set(dbData, [
+          'pico',
+          picoId,
+          'io.picolabs.wrangler',
+          'vars',
+          'children'
+        ], _.map(children, function (val, id) {
+          return {
+            id: id,
+            eci: _.get(dbData, ['pico', id, 'admin_eci'])
+          }
+        }))
+      })
+
+      _.each(dbData.channel, function (chan, eci) {
+        _.set(dbData, ['pico', chan.pico_id, 'channel', eci], chan)
+        _.set(dbData, ['channel', eci, 'pico_id'], chan.pico_id)
+        // keep it secret
+        delete chan.sovrin.secret
+      })
+      _.each(dbData['pico-ruleset'], function (data, picoId) {
+        _.each(data, function (val, rid) {
+          _.set(dbData, ['pico', picoId, 'ruleset', rid], val)
+        })
+      })
+
+      const enabledRIDs = await pe.dbRange({
+        prefix: ['rulesets', 'enabled'],
+        keys: true,
+        values: false
+      }, function (key) {
+        return key[2]
+      })
+
+      res.json({
+        channel: dbData.channel,
+        pico: dbData.pico,
+        policy: dbData.policy,
+        enabledRIDs: enabledRIDs
+      })
+    }()).catch(next)
+  })
+  app.all('/api/legacy-ui-get-vars/:picoId/:rid', function (req, res, next) {
+    const { picoId, rid } = req.params
+    ;(async function () {
+      var dbData = {}
+      await pe.dbRange({
+        prefix: ['appvars', rid]
+      }, function (data) {
+        _.set(dbData, data.key, data.value)
+      })
+      await pe.dbRange({
+        prefix: ['entvars', picoId, rid]
+      }, function (data) {
+        _.set(dbData, data.key, data.value)
+      })
+      const result = []
+      _.each(_.get(dbData, ['appvars', rid]), function (val, name) {
+        result.push({ kind: 'app', name, val: toLegacyPVar(val) })
+      })
+      _.each(_.get(dbData, ['entvars', picoId, rid]), function (val, name) {
+        result.push({ kind: 'ent', name, val: toLegacyPVar(val) })
+      })
+      res.json(result)
+    }()).catch(next)
   })
 
   app.all('/api/root-eci', function (req, res, next) {
-    pe.getRootECI(function (err, rootEci) {
-      if (err) return next(err)
+    pe.getRootECI().then(function (rootEci) {
       res.json({ ok: true, eci: rootEci })
     })
+      .catch(next)
   })
 
   app.all('/api/pico/:id/rm-channel/:eci', function (req, res, next) {
-    pe.removeChannel(req.params.eci, function (err) {
-      if (err) return next(err)
+    pe.removeChannel(req.params.eci).then(function () {
       res.json({ ok: true })
     })
+      .catch(next)
   })
 
   app.all('/api/pico/:id/rm-ruleset/:rid', function (req, res, next) {
-    pe.uninstallRuleset(req.params.id, req.params.rid, function (err) {
-      if (err) return next(err)
+    pe.uninstallRuleset(req.params.id, req.params.rid).then(function () {
       res.json({ ok: true })
     })
+      .catch(next)
   })
 
   app.all('/api/pico/:id/rm-ent-var/:rid/:var_name', function (req, res, next) {
-    pe.delEntVar(req.params.id, req.params.rid, req.params.var_name, null, function (err) {
-      if (err) return next(err)
+    pe.delEntVar(req.params.id, req.params.rid, req.params.var_name).then(function () {
       res.json({ ok: true })
     })
+      .catch(next)
   })
 
   app.all('/api/ruleset/compile', function (req, res, next) {
@@ -249,41 +302,50 @@ module.exports = function (pe) {
   app.all('/api/ruleset/register', function (req, res, next) {
     var args = mergeGetPost(req)
 
-    var onRegister = function (err, data) {
-      if (err) return next(err)
+    var onRegister = function (data) {
       res.json({ ok: true, rid: data.rid, hash: data.hash })
     }
     if (_.isString(args.src)) {
-      pe.registerRuleset(args.src, {}, onRegister)
+      pe.registerRuleset(args.src, {})
+        .then(onRegister)
+        .catch(next)
     } else if (_.isString(args.url)) {
-      pe.registerRulesetURL(args.url, onRegister)
+      pe.registerRulesetURL(args.url)
+        .then(onRegister)
+        .catch(next)
     } else {
       next(new Error('expected `src` or `url`'))
     }
   })
 
   app.all('/api/ruleset/flush/:rid', function (req, res, next) {
-    pe.flushRuleset(req.params.rid, function (err, data) {
-      if (err) return next(err)
+    pe.flushRuleset(req.params.rid).then(function (data) {
       console.log('Ruleset successfully flushed: ' + data.rid)
       res.json({ ok: true, rid: data.rid, hash: data.hash })
     })
+      .catch(next)
   })
 
   app.all('/api/ruleset/unregister/:rid', function (req, res, next) {
-    pe.unregisterRuleset(req.params.rid, function (err) {
-      if (err) return next(err)
+    pe.unregisterRuleset(req.params.rid).then(function () {
       res.json({ ok: true })
     })
+      .catch(next)
   })
 
   app.all('/api/ruleset-page', function (req, res, next) {
-    pe.dbDump(function (err, dbData) {
-      if (err) return next(err)
+    (async function () {
       var data = {
         version: version,
         r: {}
       }
+
+      const dbData = {}
+      await pe.dbRange({
+        prefix: ['rulesets']
+      }, function (data) {
+        _.set(dbData, data.key, data.value)
+      })
 
       _.each(_.get(dbData, ['rulesets', 'versions']), function (versions, rid) {
         _.each(versions, function (hashes, date) {
@@ -331,7 +393,7 @@ module.exports = function (pe) {
 
       data.ok = true
       res.json(data)
-    })
+    }()).catch(next)
   })
 
   app.use(function (err, req, res, next) {

@@ -165,6 +165,18 @@ test('compiler errors', function (t) {
     'ruleset a{rule a{select when a a setting(bb)}}',
     'DEPRECATED SYNTAX - What are you `setting`? There are no attribute matches'
   )
+
+  tstWarn(
+    'ruleset a{rule b{select when a b always{ent:v:=ent:v.put("k",1)}}}',
+    'Performance Hint: to leverage indexes use `ent:v{key} := value` instead of .put(key, value)'
+  )
+  tstWarn(
+    'ruleset a{rule b{select when a b always{app:hi:=app:hi.put("k",1)}}}',
+    'Performance Hint: to leverage indexes use `app:hi{key} := value` instead of .put(key, value)'
+  )
+  // if different ent vars, don't hint
+  t.is(compiler('ruleset a{rule b{select when a b always{ent:hi:=ent:ih.put("k",1)}}}').warnings.length, 0)
+  t.is(compiler('ruleset a{rule b{select when a b always{ent:hi:=app:hi.put("k",1)}}}').warnings.length, 0)
 })
 
 test('special cases', function (t) {

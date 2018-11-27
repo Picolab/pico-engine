@@ -1,3 +1,25 @@
+# 0.48.1 - November 9, 2018
+
+* [6ebe6cc7](https://github.com/Picolab/pico-engine/commit/6ebe6cc7) - fixing `system:online` event
+
+# 0.48.0 - November 6, 2018
+
+* system started event - see [419](https://github.com/Picolab/pico-engine/pull/419)
+* wrangler system online event - see [420](https://github.com/Picolab/pico-engine/pull/420)
+* fix so a well-known channel is created with subscription - see [421](https://github.com/Picolab/pico-engine/pull/421)
+* renamed event `pico:intent_to_orphan` to `wrangler:garbage_collection` - see [422](https://github.com/Picolab/pico-engine/pull/422)
+
+# 0.47.0 - September 29, 2018
+
+* added `data = engine:exportPico(pico_id)` - see [414](https://github.com/Picolab/pico-engine/pull/414)
+* added `engine:importPico(parent_id, data) setting(newPicoId)` - see [415](https://github.com/Picolab/pico-engine/pull/415)
+* added `engine:setPicoStatus(pico_id, isLeaving, movedToHost)` - see [414](https://github.com/Picolab/pico-engine/pull/414)
+* added `status = engine:getPicoStatus(pico_id)` - see [414](https://github.com/Picolab/pico-engine/pull/414)
+
+### BREAKING CHANGES
+
+* All pico-engine-core API's now use promises rather than callbacks. Including 3rd party modules and `compileAndLoadRuleset`.
+
 # 0.46.1 - September 1, 2018
 
 * added `math:hmac(algorithm, key, message [, encoding])` - see [413](https://github.com/Picolab/pico-engine/issues/413)

@@ -13,8 +13,8 @@ module.exports = function (worker) {
             done(null, val)
           })
           .catch(function (err) {
-            process.nextTick(function () {
-              // wrapping in nextTick resolves strange issues with UnhandledPromiseRejectionWarning
+            setImmediate(function () {
+              // wrapping in setImmediate resolves strange issues with UnhandledPromiseRejectionWarning
               // when infact we are handling the rejection
               done(err)
             })

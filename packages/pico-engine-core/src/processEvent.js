@@ -28,7 +28,7 @@ async function scheduleEvent (core, ctx, args) {
     if (at.toISOString() !== args.at) {
       throw new Error('schedule:event at must be an ISO date string (i.e. `.toISOString()`)')
     }
-    val = await core.db.scheduleEventAtYieldable(at, event)
+    val = await core.db.scheduleEventAt(at, event)
     core.scheduler.update()
     return val.id
   }
@@ -36,7 +36,7 @@ async function scheduleEvent (core, ctx, args) {
     // TODO parse it to ensure it's shaped right
     throw new Error('schedule:event `timespec` must be a cron format string')
   }
-  val = await core.db.scheduleEventRepeatYieldable(args.timespec, event)
+  val = await core.db.scheduleEventRepeat(args.timespec, event)
   core.scheduler.addCron(val.timespec, val.id, val.event)
   return val.id
 }

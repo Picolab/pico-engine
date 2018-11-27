@@ -21,7 +21,7 @@ function aggregateWrap (core, currentStateMachineState, rule, ctx, valuePairs, f
       }
       return val.concat([value])
     }
-    return core.db.updateAggregatorVarYieldable(ctx.pico_id, rule, name, updater)
+    return core.db.updateAggregatorVar(ctx.pico_id, rule, name, updater)
       .then(function (val) {
         ctx.scope.set(name, fn(val))
       })

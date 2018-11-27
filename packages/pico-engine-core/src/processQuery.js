@@ -3,9 +3,9 @@ var runKRL = require('./runKRL')
 var ktypes = require('krl-stdlib/types')
 
 module.exports = async function processQuery (core, ctx) {
-  await core.db.assertPicoIDYieldable(ctx.pico_id)
+  await core.db.assertPicoID(ctx.pico_id)
 
-  var picoRids = await core.db.ridsOnPicoYieldable(ctx.pico_id)
+  var picoRids = await core.db.ridsOnPico(ctx.pico_id)
   if (picoRids[ctx.query.rid] !== true) {
     throw new Error('Pico does not have that rid: ' + ctx.query.rid)
   }

@@ -174,12 +174,12 @@ test('PicoEngine - io.picolabs.persistent', async function (t) {
   var entvarPath = ['entvars', 'id0', 'io.picolabs.persistent', 'user']
   var appvarPath = ['appvars', 'io.picolabs.persistent', 'appvar']
 
-  await testOutputs(t, [
-    async.apply(pe.newPico, {}), // id0 - pico A channel id1
-    async.apply(pe.newPico, {}), // id2 - pico B channel id3
-    async.apply(pe.installRuleset, 'id0', 'io.picolabs.persistent'),
-    async.apply(pe.installRuleset, 'id2', 'io.picolabs.persistent'),
+  await pe.newPico({}) // id0 - pico A channel id1
+  await pe.newPico({}) // id2 - pico B channel id3
+  await pe.installRuleset('id0', 'io.picolabs.persistent')
+  await pe.installRuleset('id2', 'io.picolabs.persistent')
 
+  await testOutputs(t, [
     /// ///////////////////////////////////////////////////////////////////////
     // if not set, the var should return undefined
     [queryA('getName'), null],
@@ -226,30 +226,27 @@ test('PicoEngine - io.picolabs.persistent', async function (t) {
     /// ///////////////////////////////////////////////////////////////////////
     // clear vars
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.truthy(_.has(data, entvarPath))
         t.truthy(_.has(data, appvarPath))
         done()
-      })
+      }, done)
     },
     [signalA('store', 'clear_user'), [{ name: 'clear_user', options: {} }]],
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.falsy(_.has(data, entvarPath))
         t.truthy(_.has(data, appvarPath))
         done()
-      })
+      }, done)
     },
     [signalA('store', 'clear_appvar'), [{ name: 'clear_appvar', options: {} }]],
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.falsy(_.has(data, entvarPath))
         t.falsy(_.has(data, appvarPath))
         done()
-      })
+      }, done)
     }
   ])
 })
@@ -669,7 +666,10 @@ test('PicoEngine - io.picolabs.execution-order ruleset', async function (t) {
       query('getOrder'),
       ['foo_or_bar', 'foo', 'foo_or_bar', 'bar']
     ],
-    async.apply(pe.installRuleset, 'id0', 'io.picolabs.execution-order2'),
+    function (next) {
+      pe.installRuleset('id0', 'io.picolabs.execution-order2')
+        .then(function (data) { next(null, data) }, next)
+    },
     [
       signal('execution_order', 'reset_order'),
       [{ name: 'reset_order', options: {} }, { name: '2 - reset_order', options: {} }]
@@ -723,8 +723,7 @@ test('PicoEngine - io.picolabs.engine ruleset', async function (t) {
       url: 'scope.krl'
     }), []],
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.deepEqual(data['pico-ruleset'], {
           'id0': {
             'io.picolabs.engine': { on: true }
@@ -735,11 +734,10 @@ test('PicoEngine - io.picolabs.engine ruleset', async function (t) {
           }
         })
         done()
-      })
+      }, done)
     },
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.deepEqual(data.channel.id4, {
           id: 'id4',
           name: 'krl created chan',
@@ -748,15 +746,11 @@ test('PicoEngine - io.picolabs.engine ruleset', async function (t) {
           policy_id: ADMIN_POLICY_ID,
           sovrin: {
             did: 'id4',
-            verifyKey: 'verifyKey_id4',
-            secret: {
-              seed: 'seed_id4',
-              signKey: 'signKey_id4'
-            }
+            verifyKey: 'verifyKey_id4'
           }
         }, 'channel is there before')
         done()
-      })
+      }, done)
     },
     [
       signal('engine', 'removeChannel', {
@@ -765,11 +759,10 @@ test('PicoEngine - io.picolabs.engine ruleset', async function (t) {
       []
     ],
     function (done) {
-      pe.dbDump(function (err, data) {
-        if (err) return done(err)
+      pe.dbDump().then(function (data) {
         t.deepEqual(data.channel.id4, void 0, 'channel has been removed')
         done()
-      })
+      }, done)
     }
   ])
 })
@@ -826,7 +819,10 @@ test('PicoEngine - io.picolabs.module-used ruleset', async function (t) {
       signal('module_defined', 'store_memo', { memo: 'foo' }),
       []// should not respond to this event
     ],
-    async.apply(pe.installRuleset, 'id0', 'io.picolabs.module-defined'),
+    function (next) {
+      pe.installRuleset('id0', 'io.picolabs.module-defined')
+        .then(function (data) { next(null, data) }, next)
+    },
     [
       signal('module_defined', 'store_memo', { memo: 'foo' }),
       [{ name: 'store_memo',
@@ -895,22 +891,15 @@ test('PicoEngine - io.picolabs.module-used ruleset', async function (t) {
           privateFn: 'privateFn = name: Jim memo: ["foo" by Bob]'
         } }]
     ],
-    [queryUsed('getEntVal'), { name: 'Jim' }],
-
-    // Test unregisterRuleset checks
-    function (next) {
-      pe.unregisterRuleset('io.picolabs.module-defined', function (err) {
-        t.is(err + '', 'Error: "io.picolabs.module-defined" is depended on by "io.picolabs.module-used"')
-        next()
-      })
-    },
-    function (next) {
-      pe.unregisterRuleset('io.picolabs.module-used', function (err) {
-        t.is(err + '', 'Error: Unable to unregister "io.picolabs.module-used": it is installed on at least one pico')
-        next()
-      })
-    }
+    [queryUsed('getEntVal'), { name: 'Jim' }]
   ])
+
+  // Test unregisterRuleset checks
+  let err = await t.throws(pe.unregisterRuleset('io.picolabs.module-defined'))
+  t.is(err + '', 'Error: "io.picolabs.module-defined" is depended on by "io.picolabs.module-used"')
+
+  err = await t.throws(pe.unregisterRuleset('io.picolabs.module-used'))
+  t.is(err + '', 'Error: Unable to unregister "io.picolabs.module-used": it is installed on at least one pico')
 })
 
 test('PicoEngine - io.picolabs.expressions ruleset', async function (t) {
@@ -2267,9 +2256,8 @@ test('PicoEngine - js-module', async function (t) {
         fun0: {
           type: 'function',
           args: ['a', 'b'],
-          fn: function (args, callback) {
-            var data = args.a * args.b
-            callback(null, data)
+          fn: function (args) {
+            return args.a * args.b
           }
         },
 
@@ -2277,9 +2265,8 @@ test('PicoEngine - js-module', async function (t) {
         act: {
           type: 'action',
           args: ['a', 'b'],
-          fn: function (args, callback) {
-            var data = args.b / args.a
-            callback(null, data)
+          fn: function (args) {
+            return args.b / args.a
           }
         }
       }
@@ -2381,8 +2368,8 @@ test('PicoEngine - io.picolabs.persistent-index', async function (t) {
 
 test('PicoEngine - io.picolabs.policies ruleset', async function (t) {
   var pe = await mkTestPicoEngine({ rootRIDs: ['io.picolabs.policies'] })
-  var newPolicy = util.promisify(pe.newPolicy)
-  var newChannel = util.promisify(pe.newChannel)
+  var newPolicy = pe.newPolicy
+  var newChannel = pe.newChannel
 
   pe.emitter.on('error', function (err) {
     if (/by channel policy/.test(err + '')) {
@@ -2578,19 +2565,19 @@ test('PicoEngine - handle ruleset startup errors after compiler update made brea
   var mkPE = mkPicoEngineFactoryWithKRLCompiler()
 
   // The old compiler didn't complain when the ruleset was registered
-  var oldCompiler = function (rsInfo, callback) {
-    callback(null, { rid: 'my-rid' })
+  var oldCompiler = function (rsInfo) {
+    return { rid: 'my-rid' }
   }
   // The new compiler doesn't like it anymore (i.e. removed syntax)
-  var newCompiler = function (rsInfo, callback) {
-    callback(new Error("That won't compile anymore!"))
+  var newCompiler = function (rsInfo) {
+    throw new Error("That won't compile anymore!")
   }
 
   t.plan(5)
 
   // First try register/enable the ruleset with the old compiler
   var pe = mkPE({ compileAndLoadRuleset: oldCompiler })
-  var regRS = util.promisify(pe.registerRuleset)
+  var regRS = pe.registerRuleset
   var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
   t.deepEqual(await listRIDs(), [], 'no rulesets yet')
@@ -2620,15 +2607,15 @@ test('PicoEngine - handle ruleset initialization errors', async function (t) {
   t.plan(5)
 
   // First register the ruleset in the db
-  var pe = mkPE({ compileAndLoadRuleset: function (rsInfo, callback) {
-    callback(null, {
+  var pe = mkPE({ compileAndLoadRuleset: function (rsInfo) {
+    return {
       rid: 'my-rid',
-      global: function * () {
+      global: function () {
         // works
       }
-    })
+    }
   } })
-  var regRS = util.promisify(pe.registerRuleset)
+  var regRS = pe.registerRuleset
   var listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
 
   t.deepEqual(await listRIDs(), [], 'no rulesets yet')
@@ -2637,13 +2624,13 @@ test('PicoEngine - handle ruleset initialization errors', async function (t) {
   // so the old runtime version allowed it, now it's in the DB
 
   // Now in this time the ruleset won't initialize
-  pe = mkPE({ compileAndLoadRuleset: function (rsInfo, callback) {
-    callback(null, {
+  pe = mkPE({ compileAndLoadRuleset: function (rsInfo) {
+    return {
       rid: 'my-rid',
       global: function () {
         throw new Error('something broke')
       }
-    })
+    }
   } })
   listRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
   t.deepEqual(await listRIDs(), ['my-rid'], 'the ruleset is still in the DB and enabled')
@@ -2692,14 +2679,12 @@ test("PicoEngine - don't register rulesets that create dependency cycles", async
 
   await pe.start()
 
-  var registerRuleset = util.promisify(pe.registerRuleset)
-
   var tReg = async function (src) {
-    t.truthy(await registerRuleset(src, null))
+    t.truthy(await pe.registerRuleset(src, null))
   }
   var tRegErr = async function (src, error) {
     try {
-      await registerRuleset(src, null)
+      await pe.registerRuleset(src, null)
       t.fail('expected: ' + error)
     } catch (err) {
       t.is(err + '', error)

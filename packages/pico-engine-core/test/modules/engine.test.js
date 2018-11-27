@@ -1,18 +1,28 @@
 var _ = require('lodash')
-var util = require('util')
 var ktypes = require('krl-stdlib/types')
 var kengine = require('../../src/modules/engine')
 var ADMIN_POLICY_ID = require('../../src/DB').ADMIN_POLICY_ID
 var mkTestPicoEngine = require('../helpers/mkTestPicoEngine')
+var engineCoreVersion = require('../../package.json').version
 var test = require('ava')
 
 // wrap stubbed functions in this to simulate async
 var tick = function (fn) {
-  return function () {
-    var args = _.toArray(arguments)
-    process.nextTick(function () {
-      fn.apply(null, args)
+  return async function () {
+    let args = _.toArray(arguments)
+    let callback = args[fn.length] || _.noop
+    await new Promise(function (resolve) {
+      setImmediate(resolve)
     })
+    let data
+    try {
+      data = await Promise.resolve(fn.apply(null, args))
+    } catch (err) {
+      callback(err)
+      throw err
+    }
+    callback(null, data)
+    return data
   }
 }
 
@@ -32,9 +42,9 @@ async function testError (t, promise, errMsg, msg) {
 
 var assertPicoID = function (id, callback) {
   if (!ktypes.isString(id)) {
-    return callback(new TypeError('Invalid pico_id: ' + ktypes.toString(id)))
+    throw new TypeError('Invalid pico_id: ' + ktypes.toString(id))
   }
-  callback(null, id)
+  return id
 }
 
 test('engine:getPicoIDByECI', async function (t) {
@@ -68,10 +78,10 @@ test('engine:registerRuleset', async function (t) {
   var tstErr = _.partial(testError, t)
 
   var engine = kengine({
-    registerRulesetURL: tick(function (url, callback) {
-      callback(null, {
+    registerRulesetURL: tick(function (url) {
+      return {
         rid: 'rid for: ' + url
-      })
+      }
     })
   })
 
@@ -101,23 +111,22 @@ test('engine:installRuleset', async function (t) {
   var tstErr = _.partial(testError, t)
 
   var engine = kengine({
-    installRuleset: tick(function (picoId, rid, callback) {
-      callback()
+    installRuleset: tick(function (picoId, rid) {
     }),
-    registerRulesetURL: tick(function (url, callback) {
-      callback(null, {
+    registerRulesetURL: tick(function (url) {
+      return {
         rid: 'REG:' + /\/([^/]*)\.krl$/.exec(url)[1]
-      })
+      }
     }),
     db: {
       assertPicoID: assertPicoID,
-      findRulesetsByURL: tick(function (url, callback) {
+      findRulesetsByURL: tick(function (url) {
         if (url === 'http://foo.bar/baz/qux.krl') {
-          return callback(null, [{ rid: 'found' }])
+          return [{ rid: 'found' }]
         } else if (url === 'file:///too/many.krl') {
-          return callback(null, [{ rid: 'a' }, { rid: 'b' }, { rid: 'c' }])
+          return [{ rid: 'a' }, { rid: 'b' }, { rid: 'c' }]
         }
-        callback(null, [])
+        return []
       })
     }
   })
@@ -157,15 +166,14 @@ test('engine:uninstallRuleset', async function (t) {
   var order = 0
 
   var engine = kengine({
-    uninstallRuleset: tick(function (id, rid, callback) {
+    uninstallRuleset: tick(function (id, rid) {
       if (id !== 'pico0') {
-        return callback(new Error('invalid pico_id'))
+        throw new Error('invalid pico_id')
       }
       if (!_.isString(rid)) {
-        return callback(new Error('invalid rid'))
+        throw new Error('invalid rid')
       }
       _.set(uninstalled, [id, rid], order++)
-      callback()
     }),
     db: {
       assertPicoID: assertPicoID
@@ -196,12 +204,11 @@ test('engine:unregisterRuleset', async function (t) {
 
   var log = []
   var engine = kengine({
-    unregisterRuleset: tick(function (rid, callback) {
+    unregisterRuleset: tick(function (rid) {
       if (!_.isString(rid)) {
-        return callback(new Error('invalid rid'))
+        throw new Error('invalid rid')
       }
       log.push(rid)
-      callback()
     })
   })
 
@@ -666,7 +673,7 @@ test('engine:signChannelMessage, engine:verifySignedMessage, engine:encryptChann
     return decryptChannelMessage({}, [eci, encryptedMessage, nonce, otherPublicKey])
   }
 
-  var eci = await util.promisify(pe.getRootECI)()
+  var eci = await pe.getRootECI()
   var picoId = await getPicoIDByECI({}, [eci])
 
   var chan0 = await newChannel({}, [picoId, 'one', 'one'])
@@ -745,7 +752,7 @@ test('engine:exportPico', async function (t) {
     }]
   })
 
-  var rootEci = await util.promisify(pe.getRootECI)()
+  var rootEci = await pe.getRootECI()
   var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
   var rootPicoId = await getPicoIDByECI({}, [rootEci])
 
@@ -794,6 +801,9 @@ test('engine:exportPico', async function (t) {
       channels: {
         'id1': { id: 'id1', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id1', verifyKey: 'verifyKey_id1', secret: { seed: 'seed_id1', signKey: 'signKey_id1' } } }
       },
+      rulesets: [
+        'rid.export'
+      ],
       entvars: {
         'rid.export': {
           one: 1,
@@ -820,12 +830,196 @@ test('engine:exportPico', async function (t) {
           channels: {
             'id3': { id: 'id3', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'id3', verifyKey: 'verifyKey_id3', secret: { seed: 'seed_id3', signKey: 'signKey_id3' } } }
           },
+          rulesets: [],
           children: []
         }
       ]
     }
   })
   // TODO scheduled events?
+})
+
+test('engine:importPico', async function (t) {
+  var krl = `ruleset rid.export {
+    rule asdf {
+      select when asdf asdf
+    }
+  }`
+  var pe = await mkTestPicoEngine({
+    compileAndLoadRuleset: 'inline',
+    rootRIDs: ['rid.export'],
+    systemRulesets: [{
+      src: krl,
+      meta: { url: 'wat' }
+    }]
+  })
+
+  var rootEci = await pe.getRootECI()
+  var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
+  var rootPicoId = await getPicoIDByECI({}, [rootEci])
+
+  var importPicoAction = await pe.modules.get({}, 'engine', 'importPico')
+  var importPico = function () {
+    return importPicoAction.apply(null, arguments).then(_.head)
+  }
+  var listPolicies = await pe.modules.get({}, 'engine', 'listPolicies')
+  var getAdminECI = await pe.modules.get({}, 'engine', 'getAdminECI')
+  var listChannels = await pe.modules.get({}, 'engine', 'listChannels')
+  var listChildren = await pe.modules.get({}, 'engine', 'listChildren')
+  var listInstalledRIDs = await pe.modules.get({}, 'engine', 'listInstalledRIDs')
+  var listAllEnabledRIDs = await pe.modules.get({}, 'engine', 'listAllEnabledRIDs')
+
+  function imp (data) {
+    return importPico({}, [rootPicoId, data])
+      .catch(function (err) {
+        return '' + err
+      })
+  }
+
+  // for now, only the exact version will let you import/export
+  t.is(await imp(), 'Error: importPico incompatible version')
+  t.is(await imp({ version: '?' }), 'Error: importPico incompatible version')
+
+  // import policies, re-use existing when possible
+  t.deepEqual(_.map(await listPolicies(), 'id'), ['allow-all-policy'])
+  t.is(await imp({
+    version: engineCoreVersion,
+    policies: {
+      'allow-all-policy': {
+        name: 'admin channel policy',
+        event: { allow: [{}] },
+        query: { allow: [{}] }
+      }
+    }
+  }), null)
+
+  // changed, even with the same id, should create a new policy
+  t.is(await imp({
+    version: engineCoreVersion,
+    policies: {
+      'allow-all-policy': {
+        name: 'admin channel policy CHANGED',
+        event: { allow: [{ domain: 'CHANGED' }] },
+        query: { allow: [{}] }
+      }
+    }
+  }), null)
+  t.deepEqual(_.map(await listPolicies(), 'id'), ['allow-all-policy', 'id2'])
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    rulesets: {
+      'rid.export': {
+        src: 'ruleset rid.export {rule newVersion{select when a b}}',
+        hash: 'some-new-hash',
+        url: 'wat'
+      }
+    }
+  }), 'Error: Cannot import pico. This engine has a different version of rid.export enabled.')
+
+  t.deepEqual(await listAllEnabledRIDs(), ['rid.export'])
+  t.is(await imp({
+    version: engineCoreVersion,
+    rulesets: {
+      'some.new.rid': {
+        src: 'ruleset some.new.rid {rule hi{select when hi hi}}',
+        hash: 'some-hash',
+        url: 'wat'
+      }
+    }
+  }), null)
+  t.deepEqual(await listAllEnabledRIDs(), ['rid.export', 'some.new.rid'])
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    pico: {
+      id: 'will-be-changed',
+      parent_id: 'will-be-stomped-over',
+      admin_eci: 'fooId',
+      channels: {
+        'fooId': { id: 'fooId', name: 'admin', type: 'secret', policy_id: 'allow-all-policy', sovrin: { did: 'fooId', verifyKey: 'verifyKey_id1', secret: { seed: 'seed_id1', signKey: 'signKey_id1' } } }
+      },
+      rulesets: ['rid.export'],
+      entvars: {
+        'rid.export': {
+          one: 1,
+          arr: [2, { three: 3 }],
+          map: { a: [2, 3], b: { c: { d: 1 } } },
+          foo: {}
+        }
+      },
+      state_machine: {
+        'rid.export': {
+          newPico: { state: 'end', bindings: {} },
+          setvars: { state: 'end', bindings: {} },
+          sum: { state: 's1', bindings: {} }
+        }
+      },
+      aggregator_var: {
+        'rid.export': { sum: { n: ['1', '3'] } }
+      },
+      children: []
+    }
+  }), 'id3')
+  t.deepEqual(_.map(await listChannels({}, ['id3']), 'id'), ['fooId'])
+  t.deepEqual(await listInstalledRIDs({}, ['id3']), ['rid.export'])
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    pico: {}
+  }), 'id4', 'minimal import')
+  // create an admin eci if one is not given
+  t.is(await getAdminECI({}, ['id4']), 'id5')
+  t.deepEqual(_.map(await listChannels({}, ['id4']), 'id'), ['id5'])
+  t.deepEqual(_.map(await listChannels({}, ['id4']), 'name'), ['admin'])
+  t.deepEqual(await listChildren({}, ['id4']), [])
+
+  t.is(await imp({
+    version: engineCoreVersion,
+    pico: {
+      id: 'will-be-changed',
+      children: [
+        { id: 'one' },
+        {
+          id: 'two',
+          children: [
+            { id: 'two-one' }
+          ]
+        },
+        { id: 'three' }
+      ]
+    }
+  }), 'id6', 'minimal import')
+  t.deepEqual(_.map(await listChannels({}, ['id6']), 'id'), ['id7'])
+  t.deepEqual(await listChildren({}, ['id6']), ['id10', 'id12', 'id8'])
+  t.deepEqual(await listChildren({}, ['id8']), [], 'child "one" has 0')
+  t.deepEqual(await listChildren({}, ['id10']), ['id14'], 'child "two" has 1')
+  t.deepEqual(await listChildren({}, ['id12']), [], 'child "three" has 0')
+
+  // import a pico with a new ruleset,
+  // then ensure it's properly initialized to receive events
+  t.is(await imp({
+    version: engineCoreVersion,
+    rulesets: {
+      'say.hello.rid': {
+        src: `ruleset say.hello.rid {
+          rule hi{
+            select when say hello
+            send_directive("i say hello")
+          }
+        }`,
+        hash: 'some-hash',
+        url: 'whatever'
+      }
+    },
+    pico: {
+      rulesets: ['say.hello.rid']
+    }
+  }), 'id16', 'minimal import')
+
+  t.is(await getAdminECI({}, ['id16']), 'id17')
+  let resp = await pe.signalEvent({ eci: 'id17', domain: 'say', type: 'hello' })
+  t.deepEqual(resp.directives[0].name, 'i say hello')
 })
 
 test('engine:setPicoStatus engine:getPicoStatus', async function (t) {
@@ -853,7 +1047,7 @@ test('engine:setPicoStatus engine:getPicoStatus', async function (t) {
   })
   pe.emitter.on('error', _.noop)
 
-  var rootEci = await util.promisify(pe.getRootECI)()
+  var rootEci = await pe.getRootECI()
   var getPicoIDByECI = await pe.modules.get({}, 'engine', 'getPicoIDByECI')
   var rootPicoId = await getPicoIDByECI({}, [rootEci])
   var getStatus = await pe.modules.get({}, 'engine', 'getPicoStatus')

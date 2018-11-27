@@ -45,7 +45,8 @@ ruleset io.picolabs.wrangler {
 // ***                                                                                      ***
 // ********************************************************************************************
 
-  config= {"os_rids": [/*"io.picolabs.pds",*/"io.picolabs.wrangler","io.picolabs.visual_params","io.picolabs.subscription"]}
+  config= {"os_rids"        : [/*"io.picolabs.pds",*/"io.picolabs.wrangler","io.picolabs.visual_params"],
+           "connection_rids": ["io.picolabs.subscription"] }
   /*
        skyQuery is used to programmatically call function inside of other picos from inside a rule.
        parameters;
@@ -293,7 +294,7 @@ ruleset io.picolabs.wrangler {
              "name": name,
              "id" : child{"id"},
              "eci": channel{"id"},
-             "rids_to_install": rids,
+             "rids_to_install": rids.defaultsTo([]).append(config{"connection_rids"}),
              "rs_attrs":event:attrs
             })
             });
@@ -343,6 +344,18 @@ ruleset io.picolabs.wrangler {
 
     }
   }
+// ********************************************************************************************
+// ***                                                                                      ***
+// ***                                      System                                          ***
+// ***                                                                                      ***
+// ********************************************************************************************
+  rule systemOnLine {
+    select when system online
+    foreach children() setting(child)
+      event:send({ "eci"   : child{"eci"},
+                   "domain": "system", "type": "online",
+                   "attrs" : event:attrs })  
+    }
 // ********************************************************************************************
 // ***                                                                                      ***
 // ***                                      Rulesets                                        ***
@@ -589,13 +602,13 @@ ruleset io.picolabs.wrangler {
     }
   }
 
-  rule pico_intent_to_orphan {
+  rule child_garbage_collection {
     select when wrangler delete_children
     foreach event:attr("subtreeArray") setting(child)
     every{
-      send_directive("notifying child of intent to kill", {"child": child});
+      send_directive("notifying child of intent to destroy", {"child": child});
       event:send({  "eci": child{"eci"}, "eid": 88,
-                    "domain": "pico", "type": "intent_to_orphan",
+                    "domain": "wrangler", "type": "garbage_collection",
                     "attrs": event:attrs });
     }
     always{

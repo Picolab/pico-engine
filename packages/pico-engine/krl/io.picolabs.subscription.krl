@@ -141,7 +141,7 @@ ent:established [
   }//end global
 
   rule create_wellKnown_Rx{
-    select when wrangler ruleset_added where rids >< meta:rid
+    select when wrangler ruleset_added where event:attr("rids") >< meta:rid
     pre{ channel = wellKnown_Rx() }
     if(channel.isnull() || channel{"type"} != "Tx_Rx") then every{
       wrangler:newPolicy(wellknown_Policy) setting(__wellknown_Policy)

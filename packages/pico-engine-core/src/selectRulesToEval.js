@@ -72,7 +72,7 @@ async function getNextState (ctx, rule, currState, aggregator, setting) {
 }
 
 async function shouldRuleSelect (core, ctx, rule) {
-  var smData = await core.db.getStateMachineYieldable(ctx.pico_id, rule)
+  var smData = await core.db.getStateMachine(ctx.pico_id, rule)
 
   var bindings = smData.bindings || {}
 
@@ -116,7 +116,7 @@ async function shouldRuleSelect (core, ctx, rule) {
 
   var nextState = await getNextState(ctx, rule, smData.state, aggregator, setting)
 
-  await core.db.putStateMachineYieldable(ctx.pico_id, rule, {
+  await core.db.putStateMachine(ctx.pico_id, rule, {
     state: nextState,
     starttime: smData.starttime,
     bindings: nextState === 'end'
@@ -129,7 +129,7 @@ async function shouldRuleSelect (core, ctx, rule) {
 
 module.exports = async function selectRulesToEval (core, ctx) {
   // read this fresh everytime we select, b/c it might have changed during event processing
-  var picoRids = await core.db.ridsOnPicoYieldable(ctx.pico_id)
+  var picoRids = await core.db.ridsOnPico(ctx.pico_id)
 
   var rulesToSelect = core.rsreg.salientRules(ctx.event.domain, ctx.event.type, function (rid) {
     if (picoRids[rid] !== true) {

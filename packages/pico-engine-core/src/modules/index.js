@@ -1,5 +1,4 @@
 var _ = require('lodash')
-var util = require('util')
 var ktypes = require('krl-stdlib/types')
 var mkKRLfn = require('../mkKRLfn')
 var mkKRLaction = require('../mkKRLaction')
@@ -33,17 +32,7 @@ var normalizeId = function (domain, id) {
 
 module.exports = function (core, thirdPartyModules) {
   var modules = _.mapValues(subModules, function (subModule) {
-    var m = subModule(core)
-    if (m.get) {
-      m.get = util.promisify(m.get)
-    }
-    if (m.set) {
-      m.set = util.promisify(m.set)
-    }
-    if (m.del) {
-      m.del = util.promisify(m.del)
-    }
-    return m
+    return subModule(core)
   })
 
   _.each(thirdPartyModules, function (ops, domain) {
@@ -65,11 +54,11 @@ module.exports = function (core, thirdPartyModules) {
         throw mkErr('`args` must be a unique array of strings')
       }
       if (!_.isFunction(op.fn)) {
-        throw mkErr('`fn` must be `function(args, callback){...}`')
+        throw mkErr('`fn` must be `function(args){...}`')
       }
 
-      var fn = function (ctx, args, callback) {
-        op.fn(args, callback)
+      var fn = function (ctx, args) {
+        return op.fn(args)
       }
 
       if (op.type === 'function') {

@@ -1,6 +1,7 @@
 var _ = require('lodash')
 var bs58 = require('bs58')
 var cuid = require('cuid')
+let util = require('util')
 var async = require('async')
 var crypto = require('crypto')
 var encode = require('encoding-down')
@@ -36,7 +37,9 @@ var toKeyPath = function (path) {
   })
 }
 
-var putPVar = function (ldb, keyPrefix, query, val, callback) {
+var putPVar = function (ldb, keyPrefix, query, val) {
+  let callback = promiseCallback()
+
   query = ktypes.isNull(query) ? [] : query
   query = ktypes.isArray(query) ? query : [query]
   // do this before toKeyPath b/c it will convert all parts to stings
@@ -67,7 +70,7 @@ var putPVar = function (ldb, keyPrefix, query, val, callback) {
 
       if (_.isEmpty(subPath)) {
         ops.push({ type: 'put', key: subkeyPrefix, value: val })
-        ldb.batch(ops, callback)
+        callback(null, ops)
         return
       }
       ldb.get(subkeyPrefix, function (err, data) {
@@ -79,10 +82,10 @@ var putPVar = function (ldb, keyPrefix, query, val, callback) {
         }
         data = _.set(data, subPath, val)
         ops.push({ type: 'put', key: subkeyPrefix, value: data })
-        ldb.batch(ops, callback)
+        callback(null, ops)
       })
     })
-    return
+    return callback.promise
   }
   ldb.get(keyPrefix, function (err, oldRoot) {
     if (err && !err.notFound) {
@@ -130,12 +133,13 @@ var putPVar = function (ldb, keyPrefix, query, val, callback) {
         key: keyPrefix,
         value: root
       })
-      ldb.batch(ops, callback)
+      callback(null, ops)
     })
   })
+  return callback.promise
 }
 
-var getPVar = function (ldb, keyPrefix, query, callback) {
+var getPVar = util.promisify(function (ldb, keyPrefix, query, callback) {
   var path = ktypes.isNull(query) ? [] : toKeyPath(query)
   if (_.size(path) > 0) {
     var subKey = _.head(path)
@@ -173,9 +177,9 @@ var getPVar = function (ldb, keyPrefix, query, callback) {
       callback(err, value)
     })
   })
-}
+})
 
-var delPVar = function (ldb, keyPrefix, query, callback) {
+var delPVar = util.promisify(function (ldb, keyPrefix, query, callback) {
   var path = ktypes.isNull(query) ? [] : toKeyPath(query)
   if (_.size(path) > 0) {
     keyPrefix = keyPrefix.concat(['value', _.head(path)])
@@ -208,7 +212,7 @@ var delPVar = function (ldb, keyPrefix, query, callback) {
     if (err) return callback(err)
     ldb.batch(dbOps, callback)
   })
-}
+})
 
 module.exports = function (opts) {
   var ldb = levelup(encode(opts.db, {
@@ -237,6 +241,15 @@ module.exports = function (opts) {
         }
       }
     }
+  }
+
+  function getNF (key) {
+    return ldb.get(key)
+      .catch(function (err) {
+        return err && err.notFound
+          ? null
+          : Promise.reject(err)
+      })
   }
 
   function forRange (opts, onData) {
@@ -298,6 +311,15 @@ module.exports = function (opts) {
     }
   }
 
+  function mkAdminChannel (picoId) {
+    return newChannelBase({
+      pico_id: picoId,
+      name: 'admin',
+      type: 'secret',
+      policy_id: ADMIN_POLICY_ID
+    })
+  }
+
   function getEnabledRuleset (rid, callback) {
     ldb.get(['rulesets', 'enabled', rid], function (err, dataE) {
       if (err) return callback(err)
@@ -349,6 +371,8 @@ module.exports = function (opts) {
         _.set(result, ['policies', policy.id], _.omit(policy, 'id'))
       }
     })
+
+    pico.rulesets = []
     await forRange({
       prefix: ['pico-ruleset', pico.id]
     }, function (data) {
@@ -359,6 +383,7 @@ module.exports = function (opts) {
       if (_.has(result, ['rulesets', rid])) {
         return
       }
+      pico.rulesets.push(rid)
       return getEnabledRulesetP(rid)
         .then(function (rs) {
           _.set(result, ['rulesets', rid], rs)
@@ -436,7 +461,15 @@ module.exports = function (opts) {
   }
 
   function getPicoStatus (picoId) {
-    return ldb.get(['pico-status', picoId])
+    return getNF(['pico-status', picoId])
+      .then(function (data) {
+        return {
+          isLeaving: !!(data && data.isLeaving),
+          movedToHost: data && ktypes.isString(data.movedToHost)
+            ? data.movedToHost
+            : null
+        }
+      })
       .catch(function (err) {
         if (err.notFound) {
           return {
@@ -448,27 +481,93 @@ module.exports = function (opts) {
       })
   }
 
-  return {
-    toObj: function (callback) {
-      callback = promiseCallback(callback)
+  function newPolicy (policy) {
+    var newPolicy = ChannelPolicy.clean(policy)
+    newPolicy.id = newID()
+    return ldb.put(['policy', newPolicy.id], newPolicy)
+      .then(function () {
+        return newPolicy
+      })
+  }
 
+  async function storeRuleset (krlSrc, meta, timestamp) {
+    timestamp = timestamp || (new Date()).toISOString()
+
+    var rid = extractRulesetID(krlSrc)
+    if (!rid) {
+      throw new Error('Ruleset name not found')
+    }
+    var shasum = crypto.createHash('sha256')
+    shasum.update(krlSrc)
+    var hash = shasum.digest('hex')
+
+    var url = _.has(meta, 'url') && _.isString(meta.url)
+      ? meta.url
+      : null
+
+    var dbOps = [
+      {
+        // the source of truth for a ruleset version
+        type: 'put',
+        key: ['rulesets', 'krl', hash],
+        value: {
+          src: krlSrc,
+          rid: rid,
+          url: url,
+          timestamp: timestamp
+        }
+      },
+      {
+        // index to view all the versions of a given ruleset name
+        type: 'put',
+        key: ['rulesets', 'versions', rid, timestamp, hash],
+        value: true
+      }
+    ]
+    if (url) {
+      // index to lookup by url
+      dbOps.push({
+        type: 'put',
+        key: ['rulesets', 'url', url.toLowerCase().trim(), rid, hash],
+        value: true
+      })
+    }
+    await ldb.batch(dbOps)
+    return { rid: rid, hash: hash }
+  }
+
+  async function enableRuleset (hash) {
+    let data = await ldb.get(['rulesets', 'krl', hash])
+    await ldb.put(['rulesets', 'enabled', data.rid], {
+      hash: hash,
+      timestamp: (new Date()).toISOString()
+    })
+  }
+
+  return {
+    // for legacy-ui api routes
+    forRange: forRange,
+
+    toObj: async function () {
       var dump = {}
-      dbRange(ldb, {}, function (data) {
+      await forRange({}, function (data) {
         if (!_.isArray(data.key)) {
           return
         }
         _.set(dump, data.key, data.value)
-      }, function (err) {
-        callback(err, dump)
       })
-      return callback.promise
+      _.each(dump.channel, function (chan) {
+        // keep it secret
+        delete chan.sovrin.secret
+      })
+      return dump
     },
 
     /// ////////////////////////////////////////////////////////////////////
     //
     // Picos
     //
-    getPicoIDByECI: function (eci, callback) {
+    getPicoIDByECI: util.promisify(function (eci, callback) {
       eci = ktypes.toString(eci)
       ldb.get(['channel', eci], function (err, data) {
         if (err && err.notFound) {
@@ -477,19 +576,16 @@ module.exports = function (opts) {
         }
         callback(err, data && data.pico_id)
       })
-    },
+    }),
 
-    assertPicoID: function (id, callback) {
-      getPicoID(id)
+    assertPicoID: function (id) {
+      return getPicoID(id)
         .then(function (pico) {
-          callback(null, pico.id)
-        })
-        .catch(function (err) {
-          callback(err)
+          return pico.id
         })
     },
 
-    decryptChannelMessage: function (eci, encryptedMessage, nonce, otherPublicKey, callback) {
+    decryptChannelMessage: util.promisify(function (eci, encryptedMessage, nonce, otherPublicKey, callback) {
       eci = ktypes.toString(eci)
       encryptedMessage = ktypes.toString(encryptedMessage)
       nonce = ktypes.toString(nonce)
@@ -509,7 +605,7 @@ module.exports = function (opts) {
           if (!sharedSecret) {
             var privateKey = channel.sovrin.secret.encryptionPrivateKey
             sharedSecret = sovrinDID.getSharedSecret(otherPublicKey, privateKey)
-            ldb.put(['channel', eci, 'sovrin', 'secret', 'sharedSecret'], bs58.encode(sharedSecret), function (err) {
+            ldb.put(['channel', eci, 'sovrin', 'secret', 'sharedSecret'], bs58.encode(Buffer.from(sharedSecret)), function (err) {
               if (err) {
                 callback(err)
               }
@@ -529,8 +625,8 @@ module.exports = function (opts) {
 
         callback(null, decryptedMessage)
       })
-    },
-    encryptChannelMessage: function (eci, message, otherPublicKey, callback) {
+    }),
+    encryptChannelMessage: util.promisify(function (eci, message, otherPublicKey, callback) {
       eci = ktypes.toString(eci)
       message = ktypes.toString(message)
       otherPublicKey = ktypes.toString(otherPublicKey)
@@ -548,7 +644,7 @@ module.exports = function (opts) {
         var sharedSecret = channel.sovrin.sharedSecret
         if (!sharedSecret) {
           sharedSecret = sovrinDID.getSharedSecret(otherPublicKey, privateKey)
-          ldb.put(['channel', eci, 'sovrin', 'secret', 'sharedSecret'], bs58.encode(sharedSecret), function (err) {
+          ldb.put(['channel', eci, 'sovrin', 'secret', 'sharedSecret'], bs58.encode(Buffer.from(sharedSecret)), function (err) {
             if (err) {
               callback(err)
             }
@@ -565,13 +661,13 @@ module.exports = function (opts) {
         }
 
         var returnObj = {}
-        returnObj.encryptedMessage = bs58.encode(encryptedMessage)
-        returnObj.nonce = bs58.encode(nonce)
+        returnObj.encryptedMessage = bs58.encode(Buffer.from(encryptedMessage))
+        returnObj.nonce = bs58.encode(Buffer.from(nonce))
         callback(null, returnObj)
       })
-    },
+    }),
 
-    signChannelMessage: function (eci, message, callback) {
+    signChannelMessage: util.promisify(function (eci, message, callback) {
       eci = ktypes.toString(eci)
       message = ktypes.toString(message)
       ldb.get(['channel', eci], function (err, channel) {
@@ -590,26 +686,26 @@ module.exports = function (opts) {
           callback(new Error('Failed to sign message'))
           return
         }
-        signedMessage = bs58.encode(signedMessage)
+        signedMessage = bs58.encode(Buffer.from(signedMessage))
         callback(null, signedMessage)
       })
+    }),
+
+    getRootPico: function () {
+      return ldb.get(['root_pico'])
     },
 
-    getRootPico: function (callback) {
-      ldb.get(['root_pico'], callback)
-    },
-
-    getParent: function (picoId, callback) {
+    getParent: util.promisify(function (picoId, callback) {
       ldb.get(['pico', picoId], function (err, data) {
         callback(err, (data && data.parent_id) || null)
       })
-    },
-    getAdminECI: function (picoId, callback) {
+    }),
+    getAdminECI: util.promisify(function (picoId, callback) {
       ldb.get(['pico', picoId], function (err, data) {
         callback(err, (data && data.admin_eci) || null)
       })
-    },
-    listChildren: function (picoId, callback) {
+    }),
+    listChildren: util.promisify(function (picoId, callback) {
       var children = []
       dbRange(ldb, {
         prefix: ['pico-children', picoId],
@@ -619,10 +715,9 @@ module.exports = function (opts) {
       }, function (err) {
         callback(err, children)
       })
-    },
+    }),
 
-    newPico: function (opts, callback) {
-      callback = promiseCallback(callback)
+    newPico: async function (opts) {
       var newPico = {
         id: newID(),
         parent_id: _.isString(opts.parent_id) && opts.parent_id.length > 0
@@ -630,12 +725,7 @@ module.exports = function (opts) {
           : null
       }
 
-      var c = newChannelBase({
-        pico_id: newPico.id,
-        name: 'admin',
-        type: 'secret',
-        policy_id: ADMIN_POLICY_ID
-      })
+      var c = mkAdminChannel(newPico.id)
       newPico.admin_eci = c.channel.id
 
       var dbOps = c.dbOps
@@ -659,14 +749,12 @@ module.exports = function (opts) {
         })
       }
 
-      ldb.batch(dbOps, function (err) {
-        if (err) return callback(err)
-        callback(null, newPico)
-      })
-      return callback.promise
+      await ldb.batch(dbOps)
+
+      return newPico
     },
 
-    removePico: function (id, callback) {
+    removePico: util.promisify(function (id, callback) {
       var dbOps = []
 
       var keyRange = function (prefix, fn) {
@@ -722,7 +810,7 @@ module.exports = function (opts) {
         if (err) return callback(err)
         ldb.batch(dbOps, callback)
       })
-    },
+    }),
 
     exportPico: async function (id) {
       var result = {
@@ -730,6 +818,147 @@ module.exports = function (opts) {
       }
       result.pico = await exportPico(id, result)
       return result
+    },
+
+    importPico: async function (parentId, data) {
+      if (!data || data.version !== engineCoreVersion) {
+        throw new Error('importPico incompatible version')
+      }
+
+      // policies
+      let polIdMap = {}
+      for (let id of Object.keys(data.policies || {})) {
+        let theirs = data.policies[id]
+        theirs.id = id
+        let mine = await getNF(['policy', id])
+        if (mine && _.isEqual(mine, theirs)) {
+          polIdMap[id] = id
+        } else {
+          let newP = await newPolicy(_.omit(theirs, 'id'))
+          polIdMap[id] = newP.id
+        }
+      }
+
+      // rulesets
+      for (let rid of Object.keys(data.rulesets || {})) {
+        let theirs = data.rulesets[rid]
+        theirs.rid = rid
+        let enabled = await getNF(['rulesets', 'enabled', rid])
+        if (enabled) {
+          if (theirs.hash === enabled.hash) {
+            // good to go
+          } else {
+            throw new Error('Cannot import pico. This engine has a different version of ' + rid + ' enabled.')
+          }
+        } else {
+          let rsinfo = await storeRuleset(theirs.src, { url: theirs.url })
+          await enableRuleset(rsinfo.hash)
+        }
+      }
+
+      if (!data.pico) {
+        return null
+      }
+
+      async function importPicoBase (pico, parentId) {
+        var dbOps = []
+
+        var impPico = {
+          id: newID(),
+          parent_id: parentId,
+          admin_eci: pico.admin_eci
+        }
+
+        _.each(pico.channels, function (channelOrig) {
+          let channel = _.assign({}, channelOrig, {
+            pico_id: impPico.id,
+            policy_id: polIdMap[channelOrig.policy_id]
+          })
+
+          dbOps.push({
+            type: 'put',
+            key: ['channel', channel.id],
+            value: channel
+          })
+          dbOps.push({
+            type: 'put',
+            key: ['pico-eci-list', channel.pico_id, channel.id],
+            value: true
+          })
+        })
+        if (!impPico.admin_eci) {
+          let c = mkAdminChannel(impPico.id)
+          impPico.admin_eci = c.channel.id
+          dbOps.push(c.dbOps)
+        }
+
+        dbOps.push({
+          type: 'put',
+          key: ['pico', impPico.id],
+          value: impPico
+        })
+        dbOps.push({
+          type: 'put',
+          key: ['pico-children', impPico.parent_id, impPico.id],
+          value: true
+        })
+
+        _.each(pico.rulesets, function (rid) {
+          dbOps.push({
+            type: 'put',
+            key: ['pico-ruleset', impPico.id, rid],
+            value: { on: true }
+          })
+          dbOps.push({
+            type: 'put',
+            key: ['ruleset-pico', rid, impPico.id],
+            value: { on: true }
+          })
+        })
+
+        let toWaits = []
+        _.each(pico.entvars, function (vars, rid) {
+          _.each(vars, function (val, vname) {
+            toWaits.push(putPVar(ldb, ['entvars', impPico.id, rid, vname], null, val))
+          })
+        })
+        dbOps.push(await Promise.all(toWaits))
+
+        _.each(pico.state_machine, function (rules, rid) {
+          _.each(rules, function (data, rname) {
+            dbOps.push({
+              type: 'put',
+              key: ['state_machine', impPico.id, rid, rname],
+              value: data
+            })
+          })
+        })
+
+        _.each(pico.aggregator_var, function (rules, rid) {
+          _.each(rules, function (vars, rname) {
+            _.each(vars, function (val, varKey) {
+              dbOps.push({
+                type: 'put',
+                key: ['aggregator_var', impPico.id, rid, rname, varKey],
+                value: val
+              })
+            })
+          })
+        })
+
+        await Promise.all(_.map(pico.children, function (subPico) {
+          return importPicoBase(subPico, impPico.id)
+            .then(function ([id, ops]) {
+              dbOps.push(ops)
+            })
+        }))
+
+        return [impPico.id, _.flattenDeep(dbOps)]
+      }
+
+      let [newPicoId, dbOps] = await importPicoBase(data.pico, parentId)
+      await ldb.batch(dbOps)
+      return newPicoId
     },
 
     setPicoStatus: async function (picoId, isLeaving, movedToHost) {
@@ -758,7 +987,7 @@ module.exports = function (opts) {
     //
     // installed rulesets
     //
-    ridsOnPico: function (picoId, callback) {
+    ridsOnPico: util.promisify(function (picoId, callback) {
       var picoRids = {}
       dbRange(ldb, {
         prefix: ['pico-ruleset', picoId]
@@ -770,13 +999,12 @@ module.exports = function (opts) {
       }, function (err) {
         callback(err, picoRids)
       })
-    },
-    addRulesetToPico: function (picoId, rid, callback) {
-      callback = promiseCallback(callback)
+    }),
+    addRulesetToPico: async function (picoId, rid) {
       var val = {
         on: true
       }
-      ldb.batch([
+      await ldb.batch([
         {
           type: 'put',
           key: ['pico-ruleset', picoId, rid],
@@ -787,10 +1015,9 @@ module.exports = function (opts) {
           key: ['ruleset-pico', rid, picoId],
           value: val
         }
-      ], callback)
-      return callback.promise
+      ])
     },
-    removeRulesetFromPico: function (picoId, rid, callback) {
+    removeRulesetFromPico: util.promisify(function (picoId, rid, callback) {
       var dbOps = [
         { type: 'del', key: ['pico-ruleset', picoId, rid] },
         { type: 'del', key: ['ruleset-pico', rid, picoId] }
@@ -804,20 +1031,18 @@ module.exports = function (opts) {
         if (err) return callback(err)
         ldb.batch(dbOps, callback)
       })
-    },
+    }),
 
     /// /////////////////////////////////////////////////////////////////////
     //
     // channels
     //
-    newChannel: function (opts, callback) {
+    newChannel: async function (opts) {
       var c = newChannelBase(opts)
-      ldb.batch(c.dbOps, function (err) {
-        if (err) return callback(err)
-        callback(null, omitChannelSecret(c.channel))
-      })
+      await ldb.batch(c.dbOps)
+      return omitChannelSecret(c.channel)
     },
-    listChannels: function (picoId, callback) {
+    listChannels: util.promisify(function (picoId, callback) {
       var eciList = []
       dbRange(ldb, {
         prefix: ['pico-eci-list', picoId],
@@ -833,8 +1058,8 @@ module.exports = function (opts) {
           })
         }, callback)
       })
-    },
-    removeChannel: function (eci, callback) {
+    }),
+    removeChannel: util.promisify(function (eci, callback) {
       ldb.get(['channel', eci], function (err, data) {
         if (err) return callback(err)
 
@@ -851,36 +1076,28 @@ module.exports = function (opts) {
           ldb.batch(dbOps, callback)
         })
       })
-    },
+    }),
 
-    getChannelAndPolicy: function (eci, callback) {
-      ldb.get(['channel', eci], function (err, data) {
-        if (err) {
-          if (err.notFound) {
-            err = new levelup.errors.NotFoundError('ECI not found: ' + ktypes.toString(eci))
-            err.notFound = true
-          }
-          callback(err)
-          return
+    getChannelAndPolicy: async function (eci) {
+      let data
+      try {
+        data = await ldb.get(['channel', eci])
+      } catch (err) {
+        if (err.notFound) {
+          err = new levelup.errors.NotFoundError('ECI not found: ' + ktypes.toString(eci))//eslint-disable-line
+          err.notFound = true
         }
-        var chann = omitChannelSecret(data)
-        ldb.get(['policy', chann.policy_id], function (err, data) {
-          if (err) return callback(err)
-          chann.policy = data
-          callback(null, chann)
-        })
-      })
+        throw err
+      }
+      var chann = omitChannelSecret(data)
+      data = await ldb.get(['policy', chann.policy_id])
+      chann.policy = data
+      return chann
     },
 
-    newPolicy: function (policy, callback) {
-      var newPolicy = ChannelPolicy.clean(policy)
-      newPolicy.id = newID()
-      ldb.put(['policy', newPolicy.id], newPolicy, function (err, data) {
-        callback(err, newPolicy)
-      })
-    },
+    newPolicy: newPolicy,
 
-    listPolicies: function (callback) {
+    listPolicies: util.promisify(function (callback) {
       var list = []
       dbRange(ldb, {
         prefix: ['policy'],
@@ -890,9 +1107,9 @@ module.exports = function (opts) {
       }, function (err) {
         callback(err, list)
       })
-    },
+    }),
 
-    assertPolicyID: function (id, callback) {
+    assertPolicyID: util.promisify(function (id, callback) {
       id = ktypes.toString(id)
       ldb.get(['policy', id], function (err) {
         if (err && err.notFound) {
@@ -901,9 +1118,9 @@ module.exports = function (opts) {
         }
         callback(err, err ? null : id)
       })
-    },
+    }),
 
-    removePolicy: function (id, callback) {
+    removePolicy: util.promisify(function (id, callback) {
       id = ktypes.toString(id)
       ldb.get(['policy', id], function (err, policy) {
         if (err && err.notFound) {
@@ -929,41 +1146,43 @@ module.exports = function (opts) {
           ldb.del(['policy', id], callback)
         })
       })
-    },
+    }),
 
     /// /////////////////////////////////////////////////////////////////////
     //
     // ent:*
     //
-    putEntVar: function (picoId, rid, varName, query, val, callback) {
-      putPVar(ldb, ['entvars', picoId, rid, varName], query, val, callback)
+    putEntVar: async function (picoId, rid, varName, query, val) {
+      let ops = await putPVar(ldb, ['entvars', picoId, rid, varName], query, val)
+      await ldb.batch(ops)
     },
-    getEntVar: function (picoId, rid, varName, query, callback) {
-      getPVar(ldb, ['entvars', picoId, rid, varName], query, callback)
+    getEntVar: function (picoId, rid, varName, query) {
+      return getPVar(ldb, ['entvars', picoId, rid, varName], query)
     },
-    delEntVar: function (picoId, rid, varName, query, callback) {
-      delPVar(ldb, ['entvars', picoId, rid, varName], query, callback)
+    delEntVar: function (picoId, rid, varName, query) {
+      return delPVar(ldb, ['entvars', picoId, rid, varName], query)
     },
 
     /// /////////////////////////////////////////////////////////////////////
     //
     // app:*
     //
-    putAppVar: function (rid, varName, query, val, callback) {
-      putPVar(ldb, ['appvars', rid, varName], query, val, callback)
+    putAppVar: async function (rid, varName, query, val) {
+      let ops = await putPVar(ldb, ['appvars', rid, varName], query, val)
+      await ldb.batch(ops)
     },
-    getAppVar: function (rid, varName, query, callback) {
-      getPVar(ldb, ['appvars', rid, varName], query, callback)
+    getAppVar: function (rid, varName, query) {
+      return getPVar(ldb, ['appvars', rid, varName], query)
     },
-    delAppVar: function (rid, varName, query, callback) {
-      delPVar(ldb, ['appvars', rid, varName], query, callback)
+    delAppVar: function (rid, varName, query) {
+      return delPVar(ldb, ['appvars', rid, varName], query)
     },
 
     /// /////////////////////////////////////////////////////////////////////
     //
     // event state machine and aggregators
     //
-    getStateMachine: function (picoId, rule, callback) {
+    getStateMachine: util.promisify(function (picoId, rule, callback) {
       var key = ['state_machine', picoId, rule.rid, rule.name]
       ldb.get(key, function (err, data) {
         if (err && !err.notFound) {
@@ -982,13 +1201,13 @@ module.exports = function (opts) {
         }
         callback(null, data)
       })
-    },
-    putStateMachine: function (picoId, rule, data, callback) {
+    }),
+    putStateMachine: function (picoId, rule, data) {
       var key = ['state_machine', picoId, rule.rid, rule.name]
-      ldb.put(key, data, callback)
+      return ldb.put(key, data)
     },
 
-    updateAggregatorVar: function (picoId, rule, varKey, updater, callback) {
+    updateAggregatorVar: util.promisify(function (picoId, rule, varKey, updater, callback) {
       var key = [
         'aggregator_var',
         picoId,
@@ -1011,67 +1230,14 @@ module.exports = function (opts) {
           callback(err, val)
         })
       })
-    },
+    }),
 
     /// /////////////////////////////////////////////////////////////////////
     //
     // rulesets
     //
-    storeRuleset: function (krlSrc, meta, callback) {
-      var timestamp = (new Date()).toISOString()
-      if (arguments.length === 4 && _.isString(arguments[3])) { // for testing only
-        timestamp = arguments[3]// for testing only
-      }// for testing only
-
-      var rid = extractRulesetID(krlSrc)
-      if (!rid) {
-        callback(new Error('Ruleset name not found'))
-        return
-      }
-      var shasum = crypto.createHash('sha256')
-      shasum.update(krlSrc)
-      var hash = shasum.digest('hex')
-
-      var url = _.has(meta, 'url') && _.isString(meta.url)
-        ? meta.url
-        : null
-
-      var dbOps = [
-        {
-          // the source of truth for a ruleset version
-          type: 'put',
-          key: ['rulesets', 'krl', hash],
-          value: {
-            src: krlSrc,
-            rid: rid,
-            url: url,
-            timestamp: timestamp
-          }
-        },
-        {
-          // index to view all the versions of a given ruleset name
-          type: 'put',
-          key: ['rulesets', 'versions', rid, timestamp, hash],
-          value: true
-        }
-      ]
-      if (url) {
-        // index to lookup by url
-        dbOps.push({
-          type: 'put',
-          key: ['rulesets', 'url', url.toLowerCase().trim(), rid, hash],
-          value: true
-        })
-      }
-      ldb.batch(dbOps, function (err) {
-        if (err) return callback(err)
-        callback(null, {
-          rid: rid,
-          hash: hash
-        })
-      })
-    },
-    hasEnabledRid: function (rid, callback) {
+    storeRuleset: storeRuleset,
+    hasEnabledRid: util.promisify(function (rid, callback) {
       var hasFound = false
       dbRange(ldb, {
         prefix: ['rulesets', 'enabled', rid],
@@ -1082,8 +1248,8 @@ module.exports = function (opts) {
       }, function (err) {
         callback(err, hasFound)
       })
-    },
-    findRulesetsByURL: function (url, callback) {
+    }),
+    findRulesetsByURL: util.promisify(function (url, callback) {
       var r = []
       dbRange(ldb, {
         prefix: ['rulesets', 'url', url.toLowerCase().trim()]
@@ -1098,21 +1264,13 @@ module.exports = function (opts) {
         if (err) return callback(err)
         callback(null, r)
       })
+    }),
+    enableRuleset: enableRuleset,
+    disableRuleset: function (rid) {
+      return ldb.del(['rulesets', 'enabled', rid])
     },
-    enableRuleset: function (hash, callback) {
-      ldb.get(['rulesets', 'krl', hash], function (err, data) {
-        if (err) return callback(err)
-        ldb.put(['rulesets', 'enabled', data.rid], {
-          hash: hash,
-          timestamp: (new Date()).toISOString()
-        }, callback)
-      })
-    },
-    disableRuleset: function (rid, callback) {
-      ldb.del(['rulesets', 'enabled', rid], callback)
-    },
-    getEnabledRuleset: getEnabledRuleset,
-    listAllEnabledRIDs: function (callback) {
+    getEnabledRuleset: getEnabledRulesetP,
+    listAllEnabledRIDs: util.promisify(function (callback) {
       var rids = []
       dbRange(ldb, {
         prefix: ['rulesets', 'enabled'],
@@ -1122,8 +1280,8 @@ module.exports = function (opts) {
       }, function (err) {
         callback(err, rids)
       })
-    },
-    isRulesetUsed: function (rid, callback) {
+    }),
+    isRulesetUsed: util.promisify(function (rid, callback) {
       var isUsed = false
       dbRange(ldb, {
         prefix: ['ruleset-pico', rid],
@@ -1134,8 +1292,8 @@ module.exports = function (opts) {
       }, function (err) {
         callback(err, isUsed)
       })
-    },
-    deleteRuleset: function (rid, callback) {
+    }),
+    deleteRuleset: util.promisify(function (rid, callback) {
       var toDel = [
         ['rulesets', 'enabled', rid]
       ]
@@ -1183,13 +1341,13 @@ module.exports = function (opts) {
           })
         })
       })
-    },
+    }),
 
     /// /////////////////////////////////////////////////////////////////////
     //
     // scheduled events
     //
-    scheduleEventAt: function (at, event, callback) {
+    scheduleEventAt: util.promisify(function (at, event, callback) {
       var id = newID()
 
       var val = {
@@ -1206,8 +1364,9 @@ module.exports = function (opts) {
 
         callback(null, val)
       })
-    },
+    }),
     nextScheduleEventAt: function (callback) {
+      callback = promiseCallback(callback)
       var r
       dbRange(ldb, {
         prefix: ['scheduled_by_at'],
@@ -1221,15 +1380,17 @@ module.exports = function (opts) {
       }, function (err) {
         callback(err, r)
       })
+      return callback.promise
     },
     removeScheduleEventAt: function (id, at, callback) {
+      callback = promiseCallback(callback)
       ldb.batch([
         { type: 'del', key: ['scheduled', id] },
         { type: 'del', key: ['scheduled_by_at', at, id] }
       ], callback)
+      return callback.promise
     },
-    scheduleEventRepeat: function (timespec, event, callback) {
-      callback = promiseCallback(callback)
+    scheduleEventRepeat: async function (timespec, event) {
       var id = newID()
 
       var val = {
@@ -1238,16 +1399,12 @@ module.exports = function (opts) {
         event: event
       }
 
-      ldb.batch([
+      await ldb.batch([
         { type: 'put', key: ['scheduled', id], value: val }
-      ], function (err) {
-        if (err) return callback(err)
-
-        callback(null, val)
-      })
-      return callback.promise
+      ])
+      return val
     },
-    listScheduled: function (callback) {
+    listScheduled: util.promisify(function (callback) {
       var r = []
       dbRange(ldb, {
         prefix: ['scheduled']
@@ -1257,8 +1414,8 @@ module.exports = function (opts) {
       }, function (err) {
         callback(err, _.sortBy(r, 'at'))
       })
-    },
-    removeScheduled: function (id, callback) {
+    }),
+    removeScheduled: util.promisify(function (id, callback) {
       ldb.get(['scheduled', id], function (err, info) {
         if (err) return callback(err)
 
@@ -1272,16 +1429,16 @@ module.exports = function (opts) {
 
         ldb.batch(dbOps, callback)
       })
-    },
+    }),
 
     /// /////////////////////////////////////////////////////////////////////
     //
     // db migrations
     //
-    getMigrationLog: getMigrationLog,
-    recordMigration: recordMigration,
-    removeMigration: removeMigration,
-    checkAndRunMigrations: function (callback) {
+    getMigrationLog: util.promisify(getMigrationLog),
+    recordMigration: util.promisify(recordMigration),
+    removeMigration: util.promisify(removeMigration),
+    checkAndRunMigrations: util.promisify(function (callback) {
       getMigrationLog(function (err, log) {
         if (err) return callback(err)
 
@@ -1301,7 +1458,7 @@ module.exports = function (opts) {
           })
         }, callback)
       })
-    }
+    })
   }
 }
 

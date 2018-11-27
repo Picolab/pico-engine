@@ -3,7 +3,7 @@ var bunyan = require('bunyan')
 var startCore = require('./startCore')
 var setupServer = require('./setupServer')
 
-module.exports = function (conf) {
+module.exports = async function (conf) {
   var bunyanLog = bunyan.createLogger({
     name: 'pico-engine',
     streams: [{
@@ -15,21 +15,35 @@ module.exports = function (conf) {
     }]
   })
 
-  console.log('Starting PicoEngine ' + require('../package.json').version)
+  console.log(`
+         ██████╗ ██╗ ██████╗ ██████╗ ███████╗███╗   ██╗ ██████╗ ██╗███╗   ██╗███████╗
+         ██╔══██╗██║██╔════╝██╔═══██╗██╔════╝████╗  ██║██╔════╝ ██║████╗  ██║██╔════╝
+         ██████╔╝██║██║     ██║   ██║█████╗  ██╔██╗ ██║██║  ███╗██║██╔██╗ ██║█████╗
+         ██╔═══╝ ██║██║     ██║   ██║██╔══╝  ██║╚██╗██║██║   ██║██║██║╚██╗██║██╔══╝
+Starting ██║     ██║╚██████╗╚██████╔╝███████╗██║ ╚████║╚██████╔╝██║██║ ╚████║███████╗ ${require('../package.json').version}
+         ╚═╝     ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝╚═╝  ╚═══╝╚══════╝
+`)
   console.log(conf)
   bunyanLog.info({ conf: conf }, 'Starting PicoEngine ' + require('../package.json').version)
 
   conf.bunyanLog = bunyanLog
 
-  startCore(conf, function (err, pe) {
-    if (err) {
-      throw err
-    }
-    var app = setupServer(pe)
+  const pe = await startCore(conf)
 
-    app.listen(conf.port, function () {
-      console.log(conf.host)
-      bunyanLog.info('HTTP server listening on port ' + conf.port)
-    })
+  const app = setupServer(pe)
+
+  // start http server
+  await new Promise(resolve => app.listen(conf.port, resolve))
+  console.log(conf.host)
+  bunyanLog.info('HTTP server listening on port ' + conf.port)
+
+  // signal system:online
+  const rootEci = await pe.getRootECI()
+  await pe.signalEvent({
+    eci: rootEci,
+    domain: 'system',
+    type: 'online'
   })
+
+  return pe
 }
