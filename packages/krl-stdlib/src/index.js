@@ -154,10 +154,6 @@ stdlib.cmp = function (ctx, left, right) {
   return left === right ? 0 : (left > right ? 1 : -1)
 }
 
-stdlib.beesting = function (ctx, val) {
-  return stdlib.as(ctx, val, 'String')
-}
-
 /// /////////////////////////////////////////////////////////////////////////////
 //
 // Operators
