@@ -1,3 +1,12 @@
+# 0.49.0 - November 29, 2018
+
+* user defined `.` operators i.e. `a.b(c)` is syntax sugar for `b(a, c)` - see [171](https://github.com/Picolab/pico-engine/issues/171)
+* performance optimization for `ent:v := ent:v.append(..)` - see [425](https://github.com/Picolab/pico-engine/issues/425)
+* compiler performance hint for `ent:v := ent:v.put(..)` - see [425](https://github.com/Picolab/pico-engine/issues/425)
+* `/api/db-dump` is gone! The UI scales better now - see [424](https://github.com/Picolab/pico-engine/issues/424)
+* enhance subscriptions tab - see [7a4ccc31](https://github.com/Picolab/pico-engine/commit/7a4ccc31)
+* Add redirect directive - see [ebeb516d](https://github.com/Picolab/pico-engine/commit/ebeb516d)
+
 # 0.48.1 - November 9, 2018
 
 * [6ebe6cc7](https://github.com/Picolab/pico-engine/commit/6ebe6cc7) - fixing `system:online` event
