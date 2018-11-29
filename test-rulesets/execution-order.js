@@ -28,15 +28,9 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
-            await ctx.modules.get(ctx, "ent", "order"),
-            "first-fired"
-          ]));
+          await ctx.modules.append(ctx, "ent", "order", ["first-fired"]);
         }
-        await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
-          await ctx.modules.get(ctx, "ent", "order"),
-          "first-finally"
-        ]));
+        await ctx.modules.append(ctx, "ent", "order", ["first-finally"]);
       }
     },
     "second": {
@@ -60,15 +54,9 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
-            await ctx.modules.get(ctx, "ent", "order"),
-            "second-fired"
-          ]));
+          await ctx.modules.append(ctx, "ent", "order", ["second-fired"]);
         }
-        await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
-          await ctx.modules.get(ctx, "ent", "order"),
-          "second-finally"
-        ]));
+        await ctx.modules.append(ctx, "ent", "order", ["second-finally"]);
       }
     },
     "reset_order": {
@@ -125,10 +113,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
-          await ctx.modules.get(ctx, "ent", "order"),
-          "foo_or_bar"
-        ]));
+        await ctx.modules.append(ctx, "ent", "order", ["foo_or_bar"]);
       }
     },
     "foo": {
@@ -151,10 +136,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
-          await ctx.modules.get(ctx, "ent", "order"),
-          "foo"
-        ]));
+        await ctx.modules.append(ctx, "ent", "order", ["foo"]);
       }
     },
     "bar": {
@@ -177,10 +159,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
-          await ctx.modules.get(ctx, "ent", "order"),
-          "bar"
-        ]));
+        await ctx.modules.append(ctx, "ent", "order", ["bar"]);
       }
     }
   }

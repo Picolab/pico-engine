@@ -1008,5 +1008,9 @@ test('DB - persistent variable append to array', async function (t) {
     'value|0 => {}'
   ])
 
-  // TODO test lex-sort of string index
+  // set empty array
+  await put('arr', null, [])
+  t.deepEqual(await dump('arr'), [
+    ' => {"type":"Array","value":[],"length":0}'
+  ])
 })

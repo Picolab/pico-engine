@@ -61,10 +61,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          await ctx.modules.set(ctx, "ent", "log", await ctx.callKRLstdlib("append", [
-            await ctx.modules.get(ctx, "ent", "log"),
-            await ctx.modules.get(ctx, "event", "attrs")
-          ]));
+          await ctx.modules.append(ctx, "ent", "log", [await ctx.modules.get(ctx, "event", "attrs")]);
         }
       }
     },
@@ -101,10 +98,7 @@ module.exports = {
               { "minutes": 5 }
             ])
           }));
-          await ctx.modules.set(ctx, "ent", "log", await ctx.callKRLstdlib("append", [
-            await ctx.modules.get(ctx, "ent", "log"),
-            { "scheduled in_5min": ctx.scope.get("foo") }
-          ]));
+          await ctx.modules.append(ctx, "ent", "log", [{ "scheduled in_5min": ctx.scope.get("foo") }]);
         }
       }
     },
@@ -138,10 +132,7 @@ module.exports = {
             },
             "timespec": "* */1 * * * *"
           }));
-          await ctx.modules.set(ctx, "ent", "log", await ctx.callKRLstdlib("append", [
-            await ctx.modules.get(ctx, "ent", "log"),
-            { "scheduled every_1min": ctx.scope.get("foo") }
-          ]));
+          await ctx.modules.append(ctx, "ent", "log", [{ "scheduled every_1min": ctx.scope.get("foo") }]);
         }
       }
     },

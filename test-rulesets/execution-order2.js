@@ -61,10 +61,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
-          await ctx.modules.get(ctx, "ent", "order"),
-          "2 - foo_or_bar"
-        ]));
+        await ctx.modules.append(ctx, "ent", "order", ["2 - foo_or_bar"]);
       }
     },
     "foo": {
@@ -87,10 +84,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
-          await ctx.modules.get(ctx, "ent", "order"),
-          "2 - foo"
-        ]));
+        await ctx.modules.append(ctx, "ent", "order", ["2 - foo"]);
       }
     },
     "bar": {
@@ -113,10 +107,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "order", await ctx.callKRLstdlib("append", [
-          await ctx.modules.get(ctx, "ent", "order"),
-          "2 - bar"
-        ]));
+        await ctx.modules.append(ctx, "ent", "order", ["2 - bar"]);
       }
     }
   }

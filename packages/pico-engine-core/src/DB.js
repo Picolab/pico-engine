@@ -119,9 +119,7 @@ async function putPVar (ldb, keyPrefix, query, val) {
         break
       case 'Map':
       case 'Array':
-        let maxIndex = 0
         _.each(val, function (v, k) {
-          maxIndex = Math.max(maxIndex, parseInt(k, 10) || 0)
           k = ktypes.toString(k)// represent array i as strings, otherwise bytewise will create separate keys for int and string
           dbOps.push({
             type: 'put',
@@ -132,7 +130,7 @@ async function putPVar (ldb, keyPrefix, query, val) {
         // this `value` helps _.set in the toObj db dump set the right type
         root.value = root.type === 'Array' ? [] : {}
         if (root.type === 'Array') {
-          root.length = maxIndex + 1
+          root.length = val.length
         }
         break
       default:

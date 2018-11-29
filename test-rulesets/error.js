@@ -25,10 +25,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          await ctx.modules.set(ctx, "ent", "error_log", await ctx.callKRLstdlib("append", [
-            await ctx.modules.get(ctx, "ent", "error_log"),
-            await ctx.modules.get(ctx, "event", "attrs")
-          ]));
+          await ctx.modules.append(ctx, "ent", "error_log", [await ctx.modules.get(ctx, "event", "attrs")]);
         }
       }
     },

@@ -177,6 +177,8 @@ test('compiler errors', function (t) {
   // if different ent vars, don't hint
   t.is(compiler('ruleset a{rule b{select when a b always{ent:hi:=ent:ih.put("k",1)}}}').warnings.length, 0)
   t.is(compiler('ruleset a{rule b{select when a b always{ent:hi:=app:hi.put("k",1)}}}').warnings.length, 0)
+  // if already has subpath don't hint
+  t.is(compiler('ruleset a{rule b{select when a b always{ent:v{"a"}:=ent:v.put("k",1)}}}').warnings.length, 0)
 })
 
 test('special cases', function (t) {

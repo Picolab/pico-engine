@@ -111,6 +111,17 @@ module.exports = function (core, thirdPartyModules) {
       return modules[domain].set(ctx, id, value)
     },
 
+    append: function (ctx, domain, id, values) {
+      id = normalizeId(domain, id)
+      if (!_.has(modules, domain)) {
+        throw new Error('Module not defined `' + domain + ':' + id + '`')
+      }
+      if (!_.has(modules[domain], 'append')) {
+        throw new Error('Cannot append to `' + domain + ':*`')
+      }
+      return modules[domain].append(ctx, id, values)
+    },
+
     del: function (ctx, domain, id) {
       id = normalizeId(domain, id)
       if (!_.has(modules, domain)) {
