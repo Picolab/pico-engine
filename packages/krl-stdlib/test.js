@@ -533,6 +533,15 @@ test('collection operators', async function (t) {
   tf('append', [c, [[]]], [[]])
   t.deepEqual(c, [], 'should not be mutated')
 
+  tf('append', [['a'], 'b'], ['a', 'b'])
+  tf('append', [{ 0: 'a' }, 'b'], [{ 0: 'a' }, 'b'], 'object that looks like an array, is not auto-magically converted to an array')
+  tf('append', [[['a']], 'b'], [['a'], 'b'])
+  tf('append', [null, 'b'], [null, 'b'])
+  tf('append', [[null], 'b'], [null, 'b'])
+  tf('append', [void 0, 'b'], [void 0, 'b'])
+  tf('append', [[void 0], 'b'], [void 0, 'b'])
+  tf('append', [[], 'b'], ['b'])
+
   var collectFn = function (a) {
     return stdlib['<']({}, a, 5) ? 'x' : 'y'
   }

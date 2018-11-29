@@ -860,12 +860,14 @@ test('DB - persistent variable append to array', async function (t) {
   ])
 
   // append to an array that doesn't exist yet
+  // NOTE: this must work the same as krl-stdlib .append()
   t.deepEqual(await dump('bar'), [])
   await append('bar', ['hi', 'bye'])
   t.deepEqual(await dump('bar'), [
-    ' => {"type":"Array","value":[],"length":2}',
-    'value|0 => "hi"',
-    'value|1 => "bye"'
+    ' => {"type":"Array","value":[],"length":3}',
+    'value|0 => null',
+    'value|1 => "hi"',
+    'value|2 => "bye"'
   ])
 
   // append to a null ent var
@@ -875,9 +877,17 @@ test('DB - persistent variable append to array', async function (t) {
   ])
   await append('bar', ['hi', 'bye'])
   t.deepEqual(await dump('bar'), [
-    ' => {"type":"Array","value":[],"length":2}',
-    'value|0 => "hi"',
-    'value|1 => "bye"'
+    ' => {"type":"Array","value":[],"length":3}',
+    'value|0 => null',
+    'value|1 => "hi"',
+    'value|2 => "bye"'
+  ])
+
+  await put('bar', null, null)
+  await append('bar', [])
+  t.deepEqual(await dump('bar'), [
+    ' => {"type":"Array","value":[],"length":1}',
+    'value|0 => null'
   ])
 
   // append to a scalar
@@ -892,8 +902,18 @@ test('DB - persistent variable append to array', async function (t) {
     'value|1 => "hi"',
     'value|2 => "bye"'
   ])
+  await put('baz', null, 0)
+  t.deepEqual(await dump('baz'), [
+    ' => {"type":"Number","value":0}'
+  ])
+  await append('baz', [])
+  t.deepEqual(await dump('baz'), [
+    ' => {"type":"Array","value":[],"length":1}',
+    'value|0 => 0'
+  ])
 
   // append to a Map
+  // NOTE: this must work the same as krl-stdlib .append()
   await put('qux', null, { one: 'hi', two: 'bye', '3': 'looks like an array index' })
   t.deepEqual(await dump('qux'), [
     ' => {"type":"Map","value":{}}',
@@ -903,46 +923,37 @@ test('DB - persistent variable append to array', async function (t) {
   ])
   await append('qux', ['some', 'more'])
   t.deepEqual(await dump('qux'), [
-    ' => {"type":"Map","value":{}}',
-    'value|3 => "looks like an array index"',
-    'value|4 => "some"',
-    'value|5 => "more"',
-    'value|one => "hi"',
-    'value|two => "bye"'
-  ])
-  // if there are no index looking keys
-  await put('qux', null, { one: 'hi' })
-  await append('qux', ['some', 'more'])
-  t.deepEqual(await dump('qux'), [
-    ' => {"type":"Map","value":{}}',
-    'value|0 => "some"',
-    'value|1 => "more"',
-    'value|one => "hi"'
+    ' => {"type":"Array","value":[],"length":3}',
+    'value|0 => {"3":"looks like an array index","one":"hi","two":"bye"}',
+    'value|1 => "some"',
+    'value|2 => "more"'
   ])
 
-  // if it's an empty Map, convert it to an array
+  // if it's an empty Map
   await put('qux', null, {})
   await append('qux', ['some', 'more'])
   t.deepEqual(await dump('qux'), [
-    ' => {"type":"Array","value":[],"length":2}',
-    'value|0 => "some"',
-    'value|1 => "more"'
+    ' => {"type":"Array","value":[],"length":3}',
+    'value|0 => {}',
+    'value|1 => "some"',
+    'value|2 => "more"'
   ])
   // still can convert back to map if they use a map-like key
   await put('qux', ['wat'], 'no longer an array')
   t.deepEqual(await dump('qux'), [
     ' => {"type":"Map","value":{}}',
-    'value|0 => "some"',
-    'value|1 => "more"',
+    'value|0 => {}',
+    'value|1 => "some"',
+    'value|2 => "more"',
     'value|wat => "no longer an array"'
   ])
   // append nothing still converts it to an array
   await put('qux', null, {})
   await append('qux', [])
   t.deepEqual(await dump('qux'), [
-    ' => {"type":"Array","value":[],"length":0}'
+    ' => {"type":"Array","value":[],"length":1}',
+    'value|0 => {}'
   ])
 
-  // TODO convert Map to Array if all the keys are index-like and not sparse
   // TODO test lex-sort of string index
 })

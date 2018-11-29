@@ -37,111 +37,110 @@ function toKeyPath (path) {
   })
 }
 
-function putPVar (ldb, keyPrefix, query, val) {
-  let callback = promiseCallback()
+async function discoverPVarLength (ldb, keyPrefix) {
+  let oldLength = 0
+  await dbRange.promise(ldb, {
+    prefix: keyPrefix.concat(['value']),
+    values: false
+  }, function (key) {
+    const i = parseInt(key.slice(keyPrefix.length + 1)[0], 10)
+    if (!_.isNaN(i)) {
+      oldLength = Math.max(oldLength, i + 1)
+    }
+  })
+  return oldLength
+}
 
+async function putPVar (ldb, keyPrefix, query, val) {
   query = ktypes.isNull(query) ? [] : query
   query = ktypes.isArray(query) ? query : [query]
   // do this before toKeyPath b/c it will convert all parts to stings
-  var isArrayIndex = _.isInteger(query[0]) && query[0] >= 0
-  var path = toKeyPath(query)
-  if (_.size(path) > 0) {
-    var subkeyPrefix = keyPrefix.concat(['value', path[0]])
-    var subPath = _.tail(path)
-    ldb.get(keyPrefix, function (err, oldRoot) {
-      if (err && !err.notFound) {
-        callback(err)
-        return
-      }
-      var ops = []
-      var type = oldRoot && oldRoot.type
-      if (type !== 'Map' && type !== 'Array') {
-        type = isArrayIndex ? 'Array' : 'Map'
-      }
-      if (type === 'Array' && !isArrayIndex) {
-        type = 'Map'// convert to map if a non-index key comes in
-      }
-      var root = {
-        type: type,
-        // this `value` helps _.set in the toObj db dump set the right type
-        value: type === 'Array' ? [] : {}
-      }
-      ops.push({ type: 'put', key: keyPrefix, value: root })
+  const isArrayIndex = _.isInteger(query[0]) && query[0] >= 0
+  const path = toKeyPath(query)
 
-      if (_.isEmpty(subPath)) {
-        ops.push({ type: 'put', key: subkeyPrefix, value: val })
-        callback(null, ops)
-        return
-      }
-      ldb.get(subkeyPrefix, function (err, data) {
-        if (err && err.notFound) {
-          data = {}
-        } else if (err) {
-          callback(err)
-          return
-        }
-        data = _.set(data, subPath, val)
-        ops.push({ type: 'put', key: subkeyPrefix, value: data })
-        callback(null, ops)
-      })
-    })
-    return callback.promise
-  }
-  ldb.get(keyPrefix, function (err, oldRoot) {
-    if (err && !err.notFound) {
-      callback(err)
-      return
+  const oldRoot = (await ldb.getNF(keyPrefix)) || { type: 'Null', value: null }
+  const dbOps = []
+
+  if (_.size(path) > 0) {
+    const subkeyPrefix = keyPrefix.concat(['value', path[0]])
+    const subPath = _.tail(path)
+    const root = {
+      type: oldRoot.type
     }
-    var ops = []
-    dbRange(ldb, {
+    if (root.type !== 'Map' && root.type !== 'Array') {
+      root.type = isArrayIndex ? 'Array' : 'Map'
+    }
+    if (root.type === 'Array' && !isArrayIndex) {
+      root.type = 'Map'// convert to map if a non-index key comes in
+    }
+
+    // this `value` helps _.set in the toObj db dump set the right type
+    root.value = root.type === 'Array' ? [] : {}
+
+    if (root.type === 'Array') {
+      let oldLength = oldRoot.length
+      if (!_.isInteger(oldLength) || oldLength < 0) {
+        oldLength = await discoverPVarLength(ldb, keyPrefix)
+      }
+      root.length = Math.max(oldLength, (parseInt(path[0], 10) || 0) + 1)
+    }
+
+    dbOps.push({ type: 'put', key: keyPrefix, value: root })
+
+    if (_.isEmpty(subPath)) {
+      dbOps.push({ type: 'put', key: subkeyPrefix, value: val })
+    } else {
+      let data = (await ldb.getNF(subkeyPrefix)) || {}
+      data = _.set(data, subPath, val)
+      dbOps.push({ type: 'put', key: subkeyPrefix, value: data })
+    }
+  } else {
+    await dbRange.promise(ldb, {
       prefix: keyPrefix,
       values: false
     }, function (key) {
-      ops.push({ type: 'del', key: key })
-    }, function (err) {
-      if (err) return callback(err)
-      var root = {
-        type: ktypes.typeOf(val)
-      }
-      switch (root.type) {
-        case 'Null':
-          root.value = null
-          break
-        case 'Function':
-        case 'Action':
-          root.type = 'String'
-          root.value = ktypes.toString(val)
-          break
-        case 'Map':
-        case 'Array':
-          let maxIndex = 0
-          _.each(val, function (v, k) {
-            maxIndex = Math.max(maxIndex, parseInt(k, 10) || 0)
-            k = ktypes.toString(k)// represent array i as strings, otherwise bytewise will create separate keys for int and string
-            ops.push({
-              type: 'put',
-              key: keyPrefix.concat(['value', k]),
-              value: v
-            })
-          })
-          // this `value` helps _.set in the toObj db dump set the right type
-          root.value = root.type === 'Array' ? [] : {}
-          if (root.type === 'Array') {
-            root.length = maxIndex + 1
-          }
-          break
-        default:
-          root.value = val
-      }
-      ops.push({
-        type: 'put',
-        key: keyPrefix,
-        value: root
-      })
-      callback(null, ops)
+      dbOps.push({ type: 'del', key: key })
     })
-  })
-  return callback.promise
+    let root = {
+      type: ktypes.typeOf(val)
+    }
+    switch (root.type) {
+      case 'Null':
+        root.value = null
+        break
+      case 'Function':
+      case 'Action':
+        root.type = 'String'
+        root.value = ktypes.toString(val)
+        break
+      case 'Map':
+      case 'Array':
+        let maxIndex = 0
+        _.each(val, function (v, k) {
+          maxIndex = Math.max(maxIndex, parseInt(k, 10) || 0)
+          k = ktypes.toString(k)// represent array i as strings, otherwise bytewise will create separate keys for int and string
+          dbOps.push({
+            type: 'put',
+            key: keyPrefix.concat(['value', k]),
+            value: v
+          })
+        })
+        // this `value` helps _.set in the toObj db dump set the right type
+        root.value = root.type === 'Array' ? [] : {}
+        if (root.type === 'Array') {
+          root.length = maxIndex + 1
+        }
+        break
+      default:
+        root.value = val
+    }
+    dbOps.push({
+      type: 'put',
+      key: keyPrefix,
+      value: root
+    })
+  }
+  return dbOps
 }
 
 async function appendPVar (ldb, keyPrefix, values) {
@@ -153,83 +152,36 @@ async function appendPVar (ldb, keyPrefix, values) {
   let oldLength = 0
 
   switch (oldRoot.type) {
-    case 'Null':
-      oldLength = 0
-      dbOps.push({
-        type: 'put',
-        key: keyPrefix,
-        value: {
-          type: 'Array',
-          value: [],
-          length: values.length
-        }
-      })
-      break
     case 'Array':
       oldLength = oldRoot.length
       if (!_.isInteger(oldLength) || oldLength < 0) {
-        // need to discover the length
-        oldLength = 0
-        await dbRange.promise(ldb, {
-          prefix: keyPrefix.concat(['value']),
-          values: false
-        }, function (key) {
-          const i = parseInt(key.slice(keyPrefix.length + 1)[0], 10)
-          if (i === i) { // not NaN
-            oldLength = Math.max(oldLength, i + 1)
-          }
-        })
+        oldLength = await discoverPVarLength(ldb, keyPrefix)
       }
-      dbOps.push({
-        type: 'put',
-        key: keyPrefix,
-        value: {
-          type: 'Array',
-          value: [],
-          length: oldLength + values.length
-        }
-      })
       break
     case 'Map':
-      oldLength = 0
-      let mapHasKeys = false
+      const mapValue = {}
       await dbRange.promise(ldb, {
-        prefix: keyPrefix.concat(['value']),
-        values: false
-      }, function (key) {
-        mapHasKeys = true
-        const i = parseInt(key.slice(keyPrefix.length + 1)[0], 10)
-        if (i === i) { // not NaN
-          oldLength = Math.max(oldLength, i + 1)
-        }
+        prefix: keyPrefix.concat(['value'])
+      }, function (data) {
+        dbOps.push({ type: 'del', key: data.key })
+        const key = data.key.slice(keyPrefix.length + 1)[0]
+        mapValue[key] = data.value
       })
-      if (!mapHasKeys) {
-        // empty map, so let's convert it to an array
-        dbOps.push({
-          type: 'put',
-          key: keyPrefix,
-          value: {
-            type: 'Array',
-            value: [],
-            length: oldLength + values.length
-          }
-        })
-      }
+      values = [mapValue].concat(values)
       break
     default:
-      values.unshift(oldRoot.value)
-      oldLength = 0
-      dbOps.push({
-        type: 'put',
-        key: keyPrefix,
-        value: {
-          type: 'Array',
-          value: [],
-          length: values.length
-        }
-      })
+      values = [oldRoot.value].concat(values)
       break
   }
+  dbOps.push({
+    type: 'put',
+    key: keyPrefix,
+    value: {
+      type: 'Array',
+      value: [],
+      length: oldLength + values.length
+    }
+  })
   _.each(values, function (val, valI) {
     const i = ktypes.toString(oldLength + valI)// represent array i as strings, otherwise bytewise will create separate keys for int and string
     dbOps.push({
