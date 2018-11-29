@@ -26,7 +26,7 @@ module.exports = {
         ]
       }
     });
-    ctx.scope.set("obj", await ctx.callKRLstdlib("set", [
+    ctx.scope.set("obj", await ctx.applyFn(ctx.scope.get("set"), ctx, [
       ctx.scope.get("obj"),
       [
         "b",
@@ -37,12 +37,12 @@ module.exports = {
       ],
       "changed 5"
     ]));
-    ctx.scope.set("obj", await ctx.callKRLstdlib("set", [
+    ctx.scope.set("obj", await ctx.applyFn(ctx.scope.get("set"), ctx, [
       ctx.scope.get("obj"),
       ["a"],
       "changed 1"
     ]));
-    ctx.scope.set("path1", await ctx.callKRLstdlib("get", [
+    ctx.scope.set("path1", await ctx.applyFn(ctx.scope.get("get"), ctx, [
       ctx.scope.get("obj"),
       [
         "b",
@@ -51,7 +51,7 @@ module.exports = {
         "d"
       ]
     ]));
-    ctx.scope.set("path2", await ctx.callKRLstdlib("get", [
+    ctx.scope.set("path2", await ctx.applyFn(ctx.scope.get("get"), ctx, [
       ctx.scope.get("obj"),
       [
         "b",
@@ -59,13 +59,13 @@ module.exports = {
         5
       ]
     ]));
-    ctx.scope.set("index1", await ctx.callKRLstdlib("get", [
+    ctx.scope.set("index1", await ctx.applyFn(ctx.scope.get("get"), ctx, [
       ctx.scope.get("obj"),
       ["a"]
     ]));
-    ctx.scope.set("index2", await ctx.callKRLstdlib("get", [
-      await ctx.callKRLstdlib("get", [
-        await ctx.callKRLstdlib("get", [
+    ctx.scope.set("index2", await ctx.applyFn(ctx.scope.get("get"), ctx, [
+      await ctx.applyFn(ctx.scope.get("get"), ctx, [
+        await ctx.applyFn(ctx.scope.get("get"), ctx, [
           ctx.scope.get("obj"),
           ["b"]
         ]),
@@ -81,7 +81,7 @@ module.exports = {
       ctx.scope.set("n", args["n"]);
       return ctx.mkFunction(["a"], async function (ctx, args) {
         ctx.scope.set("a", args["a"]);
-        return await ctx.callKRLstdlib("+", [
+        return await ctx.applyFn(ctx.scope.get("+"), ctx, [
           ctx.scope.get("a"),
           ctx.scope.get("n")
         ]);
@@ -95,11 +95,11 @@ module.exports = {
     ], async function (ctx, args) {
       ctx.scope.set("foo", args.hasOwnProperty("foo") ? args["foo"] : await ctx.applyFn(ctx.scope.get("incByN"), ctx, [3]));
       ctx.scope.set("bar", args.hasOwnProperty("bar") ? args["bar"] : await ctx.applyFn(ctx.scope.get("foo"), ctx, [1]));
-      ctx.scope.set("baz", args.hasOwnProperty("baz") ? args["baz"] : await ctx.callKRLstdlib("+", [
+      ctx.scope.set("baz", args.hasOwnProperty("baz") ? args["baz"] : await ctx.applyFn(ctx.scope.get("+"), ctx, [
         ctx.scope.get("bar"),
         2
       ]));
-      ctx.scope.set("qux", args.hasOwnProperty("qux") ? args["qux"] : await ctx.callKRLstdlib("+", [
+      ctx.scope.set("qux", args.hasOwnProperty("qux") ? args["qux"] : await ctx.applyFn(ctx.scope.get("+"), ctx, [
         ctx.scope.get("baz"),
         "?"
       ]));

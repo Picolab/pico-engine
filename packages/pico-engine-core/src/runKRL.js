@@ -10,7 +10,6 @@ function assertCTXkeys (ctx, keys) {
     'mkFunction',
     'emit',
     'log',
-    'callKRLstdlib',
     'mkAction',
     'applyFn'
   ]

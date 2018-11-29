@@ -14,7 +14,7 @@ module.exports = {
     ], async function (ctx, args) {
       ctx.scope.set("a", args["a"]);
       ctx.scope.set("b", args["b"]);
-      return await ctx.callKRLstdlib("+", [
+      return await ctx.applyFn(ctx.scope.get("+"), ctx, [
         ctx.scope.get("a"),
         ctx.scope.get("b")
       ]);
@@ -29,7 +29,7 @@ module.exports = {
     ctx.scope.set("foo", ctx.mkFunction(["a"], async function (ctx, args) {
       ctx.scope.set("a", args["a"]);
       return await ctx.applyFn(ctx.scope.get("add"), ctx, {
-        "a": await ctx.callKRLstdlib("*", [
+        "a": await ctx.applyFn(ctx.scope.get("*"), ctx, [
           ctx.scope.get("a"),
           2
         ]),

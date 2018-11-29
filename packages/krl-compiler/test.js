@@ -185,7 +185,7 @@ test('special cases', function (t) {
   // args shouldn't be dependent on each other and cause strange duplication
   var js = compiler('foo(1).bar(baz(2))').code
   var expected = ''
-  expected += 'await ctx.callKRLstdlib("bar", [\n'
+  expected += 'await ctx.applyFn(ctx.scope.get("bar"), ctx, [\n'
   expected += '  await ctx.applyFn(ctx.scope.get("foo"), ctx, [1]),\n'
   expected += '  await ctx.applyFn(ctx.scope.get("baz"), ctx, [2])\n'
   expected += ']);'

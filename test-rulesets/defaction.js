@@ -17,7 +17,7 @@ module.exports = {
           "foo",
           {
             "a": ctx.scope.get("a"),
-            "b": await ctx.callKRLstdlib("+", [
+            "b": await ctx.applyFn(ctx.scope.get("+"), ctx, [
               ctx.scope.get("b"),
               3
             ])
@@ -32,7 +32,7 @@ module.exports = {
       "three"
     ], async function (ctx, args, runAction) {
       ctx.scope.set("one", args["one"]);
-      ctx.scope.set("two", args.hasOwnProperty("two") ? args["two"] : await ctx.callKRLstdlib("get", [
+      ctx.scope.set("two", args.hasOwnProperty("two") ? args["two"] : await ctx.applyFn(ctx.scope.get("get"), ctx, [
         await ctx.applyFn(ctx.scope.get("add"), ctx, [
           1,
           1
@@ -116,26 +116,26 @@ module.exports = {
       ctx.scope.set("a", args["a"]);
       ctx.scope.set("b", args["b"]);
       ctx.scope.set("c", 100);
-      ctx.scope.set("d", await ctx.callKRLstdlib("+", [
+      ctx.scope.set("d", await ctx.applyFn(ctx.scope.get("+"), ctx, [
         ctx.scope.get("c"),
         ctx.scope.get("b")
       ]));
-      var fired = await ctx.callKRLstdlib(">", [
+      var fired = await ctx.applyFn(ctx.scope.get(">"), ctx, [
         ctx.scope.get("c"),
         0
       ]);
       if (fired) {
         await runAction(ctx, void 0, "send_directive", [
-          await ctx.callKRLstdlib("+", [
+          await ctx.applyFn(ctx.scope.get("+"), ctx, [
             "wat:",
             ctx.scope.get("a")
           ]),
           { "b": ctx.scope.get("b") }
         ], ["dir"]);
       }
-      return [await ctx.callKRLstdlib("+", [
-          await ctx.callKRLstdlib("+", [
-            await ctx.callKRLstdlib("get", [
+      return [await ctx.applyFn(ctx.scope.get("+"), ctx, [
+          await ctx.applyFn(ctx.scope.get("+"), ctx, [
+            await ctx.applyFn(ctx.scope.get("get"), ctx, [
               ctx.scope.get("dir"),
               ["name"]
             ]),
@@ -154,7 +154,7 @@ module.exports = {
         "type": "directive",
         "name": "add",
         "options": {
-          "resp": await ctx.callKRLstdlib("+", [
+          "resp": await ctx.applyFn(ctx.scope.get("+"), ctx, [
             ctx.scope.get("a"),
             ctx.scope.get("b")
           ])
@@ -277,11 +277,11 @@ module.exports = {
         var fired = true;
         if (fired) {
           await runAction(ctx, void 0, "ifAnotB", [
-            await ctx.callKRLstdlib("==", [
+            await ctx.applyFn(ctx.scope.get("=="), ctx, [
               await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["a"]),
               "true"
             ]),
-            await ctx.callKRLstdlib("==", [
+            await ctx.applyFn(ctx.scope.get("=="), ctx, [
               await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["b"]),
               "true"
             ])
@@ -342,8 +342,8 @@ module.exports = {
             "c"
           ]);
           await runAction(ctx, void 0, "complexAction", [
-            await ctx.callKRLstdlib("+", [
-              await ctx.callKRLstdlib("+", [
+            await ctx.applyFn(ctx.scope.get("+"), ctx, [
+              await ctx.applyFn(ctx.scope.get("+"), ctx, [
                 ctx.scope.get("a"),
                 ctx.scope.get("b")
               ]),
@@ -390,7 +390,7 @@ module.exports = {
           if (fired) {
             await runAction(ctx, void 0, "noop", [], ["foo"]);
           }
-          return [await ctx.callKRLstdlib("+", [
+          return [await ctx.applyFn(ctx.scope.get("+"), ctx, [
               "send wat? noop returned: ",
               ctx.scope.get("foo")
             ])];

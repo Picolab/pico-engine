@@ -350,7 +350,7 @@ module.exports = {
         }
       },
       "body": async function (ctx, runAction, toPairs) {
-        var fired = await ctx.callKRLstdlib("==", [
+        var fired = await ctx.applyFn(ctx.scope.get("=="), ctx, [
           await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["fire"]),
           "yes"
         ]);
@@ -443,7 +443,7 @@ module.exports = {
         }
       },
       "body": async function (ctx, runAction, toPairs) {
-        var fired = await ctx.callKRLstdlib("==", [
+        var fired = await ctx.applyFn(ctx.scope.get("=="), ctx, [
           await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["fire"]),
           "yes"
         ]);
@@ -478,7 +478,7 @@ module.exports = {
                   if (!ctx.scope.has(attr))
                     ctx.scope.set(attr, event_attrs[attr]);
                 });
-                if (!(await ctx.callKRLstdlib("match", [
+                if (!(await ctx.applyFn(ctx.scope.get("match"), ctx, [
                     ctx.scope.get("something"),
                     new RegExp("^wat", "")
                   ])))
@@ -518,7 +518,7 @@ module.exports = {
                   if (!ctx.scope.has(attr))
                     ctx.scope.set(attr, event_attrs[attr]);
                 });
-                if (!(await ctx.callKRLstdlib("match", [
+                if (!(await ctx.applyFn(ctx.scope.get("match"), ctx, [
                     ctx.scope.get("something"),
                     new RegExp("0", "")
                   ])))
@@ -558,7 +558,7 @@ module.exports = {
                   if (!ctx.scope.has(attr))
                     ctx.scope.set(attr, event_attrs[attr]);
                 });
-                if (!(await ctx.callKRLstdlib("match", [
+                if (!(await ctx.applyFn(ctx.scope.get("match"), ctx, [
                     ctx.scope.get("something"),
                     new RegExp("null", "")
                   ])))
@@ -598,7 +598,7 @@ module.exports = {
                   if (!ctx.scope.has(attr))
                     ctx.scope.set(attr, event_attrs[attr]);
                 });
-                if (!(await ctx.callKRLstdlib("match", [
+                if (!(await ctx.applyFn(ctx.scope.get("match"), ctx, [
                     ctx.scope.get("something"),
                     new RegExp("false", "")
                   ])))
@@ -638,7 +638,7 @@ module.exports = {
                   if (!ctx.scope.has(attr))
                     ctx.scope.set(attr, event_attrs[attr]);
                 });
-                if (!(await ctx.callKRLstdlib("match", [
+                if (!(await ctx.applyFn(ctx.scope.get("match"), ctx, [
                     await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
                     new RegExp("(?:)", "")
                   ])))
@@ -687,7 +687,7 @@ module.exports = {
                 for (j = 1; j < m.length; j++)
                   matches.push(m[j]);
                 setting("a", matches[0]);
-                if (!(await ctx.callKRLstdlib("==", [
+                if (!(await ctx.applyFn(ctx.scope.get("=="), ctx, [
                     ctx.scope.get("a"),
                     "one"
                   ])))
@@ -736,7 +736,7 @@ module.exports = {
                 for (j = 1; j < m.length; j++)
                   matches.push(m[j]);
                 setting("global0", matches[0]);
-                if (!(await ctx.callKRLstdlib("==", [
+                if (!(await ctx.applyFn(ctx.scope.get("=="), ctx, [
                     ctx.scope.get("global0"),
                     ctx.scope.get("global1")
                   ])))

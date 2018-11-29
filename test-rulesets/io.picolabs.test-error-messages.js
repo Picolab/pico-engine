@@ -12,7 +12,7 @@ module.exports = {
   "global": async function (ctx) {
     ctx.scope.set("hello", ctx.mkFunction(["obj"], async function (ctx, args) {
       ctx.scope.set("obj", args["obj"]);
-      return await ctx.callKRLstdlib("+", [
+      return await ctx.applyFn(ctx.scope.get("+"), ctx, [
         "Hello ",
         ctx.scope.get("obj")
       ]);

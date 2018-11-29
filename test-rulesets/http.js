@@ -17,14 +17,14 @@ module.exports = {
     }));
     ctx.scope.set("fmtResp", ctx.mkFunction(["r"], async function (ctx, args) {
       ctx.scope.set("r", args["r"]);
-      return await ctx.callKRLstdlib("delete", [
-        await ctx.callKRLstdlib("delete", [
-          await ctx.callKRLstdlib("delete", [
-            await ctx.callKRLstdlib("delete", [
-              await ctx.callKRLstdlib("set", [
+      return await ctx.applyFn(ctx.scope.get("delete"), ctx, [
+        await ctx.applyFn(ctx.scope.get("delete"), ctx, [
+          await ctx.applyFn(ctx.scope.get("delete"), ctx, [
+            await ctx.applyFn(ctx.scope.get("delete"), ctx, [
+              await ctx.applyFn(ctx.scope.get("set"), ctx, [
                 ctx.scope.get("r"),
                 "content",
-                await ctx.callKRLstdlib("decode", [await ctx.callKRLstdlib("get", [
+                await ctx.applyFn(ctx.scope.get("decode"), ctx, [await ctx.applyFn(ctx.scope.get("get"), ctx, [
                     ctx.scope.get("r"),
                     ["content"]
                   ])])
@@ -59,7 +59,7 @@ module.exports = {
       var fired = true;
       if (fired) {
         await runAction(ctx, "http", "post", {
-          "0": await ctx.callKRLstdlib("+", [
+          "0": await ctx.applyFn(ctx.scope.get("+"), ctx, [
             ctx.scope.get("url"),
             "/msg.json"
           ]),
@@ -149,8 +149,8 @@ module.exports = {
           }, ["resp"]);
           await runAction(ctx, void 0, "send_directive", [
             "resp.content.body",
-            await ctx.callKRLstdlib("decode", [await ctx.callKRLstdlib("get", [
-                await ctx.callKRLstdlib("decode", [await ctx.callKRLstdlib("get", [
+            await ctx.applyFn(ctx.scope.get("decode"), ctx, [await ctx.applyFn(ctx.scope.get("get"), ctx, [
+                await ctx.applyFn(ctx.scope.get("decode"), ctx, [await ctx.applyFn(ctx.scope.get("get"), ctx, [
                     ctx.scope.get("resp"),
                     ["content"]
                   ])]),

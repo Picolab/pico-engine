@@ -15,7 +15,7 @@ module.exports = {
         "alias": "api",
         "with": async function (ctx) {
           ctx.scope.set("key1", await ctx.modules.get(ctx, "keys", "foo"));
-          ctx.scope.set("key2", await ctx.callKRLstdlib("get", [
+          ctx.scope.set("key2", await ctx.applyFn(ctx.scope.get("get"), ctx, [
             await ctx.modules.get(ctx, "keys", "bar"),
             "baz"
           ]));
@@ -42,7 +42,7 @@ module.exports = {
     }));
     ctx.scope.set("getBarN", ctx.mkFunction(["name"], async function (ctx, args) {
       ctx.scope.set("name", args["name"]);
-      return await ctx.callKRLstdlib("get", [
+      return await ctx.applyFn(ctx.scope.get("get"), ctx, [
         await ctx.modules.get(ctx, "keys", "bar"),
         ctx.scope.get("name")
       ]);

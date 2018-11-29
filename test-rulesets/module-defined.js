@@ -13,9 +13,9 @@ module.exports = {
   },
   "global": async function (ctx) {
     ctx.scope.set("privateFn", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.callKRLstdlib("+", [
-        await ctx.callKRLstdlib("+", [
-          await ctx.callKRLstdlib("+", [
+      return await ctx.applyFn(ctx.scope.get("+"), ctx, [
+        await ctx.applyFn(ctx.scope.get("+"), ctx, [
+          await ctx.applyFn(ctx.scope.get("+"), ctx, [
             "privateFn = name: ",
             ctx.scope.get("configured_name")
           ]),
@@ -43,7 +43,7 @@ module.exports = {
         ], []);
       }
       return [{
-          "name": await ctx.callKRLstdlib("get", [
+          "name": await ctx.applyFn(ctx.scope.get("get"), ctx, [
             await ctx.applyFn(ctx.scope.get("getInfo"), ctx, []),
             ["name"]
           ])
@@ -94,10 +94,10 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "memo", await ctx.callKRLstdlib("+", [
-          await ctx.callKRLstdlib("+", [
-            await ctx.callKRLstdlib("+", [
-              await ctx.callKRLstdlib("+", [
+        await ctx.modules.set(ctx, "ent", "memo", await ctx.applyFn(ctx.scope.get("+"), ctx, [
+          await ctx.applyFn(ctx.scope.get("+"), ctx, [
+            await ctx.applyFn(ctx.scope.get("+"), ctx, [
+              await ctx.applyFn(ctx.scope.get("+"), ctx, [
                 "[\"",
                 ctx.scope.get("text")
               ]),

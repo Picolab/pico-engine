@@ -27,14 +27,14 @@ module.exports = {
     ], async function (ctx, args) {
       ctx.scope.set("a", args["a"]);
       ctx.scope.set("b", args["b"]);
-      return await ctx.callKRLstdlib("+", [
+      return await ctx.applyFn(ctx.scope.get("+"), ctx, [
         ctx.scope.get("a"),
         ctx.scope.get("b")
       ]);
     }));
     ctx.scope.set("sum", ctx.mkFunction(["arr"], async function (ctx, args) {
       ctx.scope.set("arr", args["arr"]);
-      return await ctx.callKRLstdlib("reduce", [
+      return await ctx.applyFn(ctx.scope.get("reduce"), ctx, [
         ctx.scope.get("arr"),
         ctx.scope.get("add"),
         0
@@ -44,13 +44,13 @@ module.exports = {
       ctx.scope.set("n", args["n"]);
       return ctx.mkFunction(["a"], async function (ctx, args) {
         ctx.scope.set("a", args["a"]);
-        return await ctx.callKRLstdlib("+", [
+        return await ctx.applyFn(ctx.scope.get("+"), ctx, [
           ctx.scope.get("a"),
           ctx.scope.get("n")
         ]);
       });
     }));
-    ctx.scope.set("mapped", await ctx.callKRLstdlib("map", [
+    ctx.scope.set("mapped", await ctx.applyFn(ctx.scope.get("map"), ctx, [
       [
         1,
         2,
@@ -58,7 +58,7 @@ module.exports = {
       ],
       ctx.mkFunction(["n"], async function (ctx, args) {
         ctx.scope.set("n", args["n"]);
-        return await ctx.callKRLstdlib("+", [
+        return await ctx.applyFn(ctx.scope.get("+"), ctx, [
           ctx.scope.get("n"),
           ctx.scope.get("g1")
         ]);

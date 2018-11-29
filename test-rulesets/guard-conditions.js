@@ -47,7 +47,7 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
-        if (await ctx.callKRLstdlib("match", [
+        if (await ctx.applyFn(ctx.scope.get("match"), ctx, [
             ctx.scope.get("b"),
             new RegExp("foo", "")
           ]))

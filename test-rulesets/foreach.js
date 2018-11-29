@@ -162,7 +162,7 @@ module.exports = {
           var foreach1_i;
           for (foreach1_i = 0; foreach1_i < foreach1_len; foreach1_i++) {
             ctx.scope.set("foo", foreach1_pairs[foreach1_i][1]);
-            var foreach2_pairs = toPairs(await ctx.callKRLstdlib("range", [
+            var foreach2_pairs = toPairs(await ctx.applyFn(ctx.scope.get("range"), ctx, [
               0,
               ctx.scope.get("foo")
             ]));
@@ -171,7 +171,7 @@ module.exports = {
             for (foreach2_i = 0; foreach2_i < foreach2_len; foreach2_i++) {
               var foreach_is_final = foreach0_i === foreach0_len - 1 && foreach1_i === foreach1_len - 1 && foreach2_i === foreach2_len - 1;
               ctx.scope.set("bar", foreach2_pairs[foreach2_i][1]);
-              ctx.scope.set("baz", await ctx.callKRLstdlib("*", [
+              ctx.scope.set("baz", await ctx.applyFn(ctx.scope.get("*"), ctx, [
                 ctx.scope.get("foo"),
                 ctx.scope.get("bar")
               ]));
@@ -207,7 +207,7 @@ module.exports = {
         }
       },
       "body": async function (ctx, runAction, toPairs) {
-        var foreach0_pairs = toPairs(await ctx.callKRLstdlib("split", [
+        var foreach0_pairs = toPairs(await ctx.applyFn(ctx.scope.get("split"), ctx, [
           await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["x"]),
           ","
         ]));
@@ -215,7 +215,7 @@ module.exports = {
         var foreach0_i;
         for (foreach0_i = 0; foreach0_i < foreach0_len; foreach0_i++) {
           ctx.scope.set("x", foreach0_pairs[foreach0_i][1]);
-          var foreach1_pairs = toPairs(await ctx.callKRLstdlib("split", [
+          var foreach1_pairs = toPairs(await ctx.applyFn(ctx.scope.get("split"), ctx, [
             await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["y"]),
             ","
           ]));

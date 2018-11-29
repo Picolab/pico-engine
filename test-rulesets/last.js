@@ -23,7 +23,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          if (await ctx.callKRLstdlib("==", [
+          if (await ctx.applyFn(ctx.scope.get("=="), ctx, [
               await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "foo"
             ]))
@@ -52,7 +52,7 @@ module.exports = {
         else
           ctx.emit("debug", "not fired");
         if (fired) {
-          if (await ctx.callKRLstdlib("==", [
+          if (await ctx.applyFn(ctx.scope.get("=="), ctx, [
               await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
               "bar"
             ]))

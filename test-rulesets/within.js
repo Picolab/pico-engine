@@ -55,7 +55,7 @@ module.exports = {
             ]]
         },
         "within": async function (ctx) {
-          return (await ctx.callKRLstdlib("+", [
+          return (await ctx.applyFn(ctx.scope.get("+"), ctx, [
             1,
             3
           ])) * 1000;

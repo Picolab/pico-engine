@@ -22,6 +22,21 @@ let normalizeKRLArgs = require('./normalizeKRLArgs')
 let promiseCallback = require('./promiseCallback')
 let krlCompiler = require('krl-compiler')
 
+const rootKRLScope = SymbolTable()
+_.each(krlStdlib, function (fn, fnName) {
+  if (!_.isFunction(fn)) {
+    return
+  }
+  rootKRLScope.set(fnName, function (ctx, args) {
+    if (_.isArray(args)) {
+      args = [ctx].concat(args)
+    } else {
+      args[0] = ctx
+    }
+    return Promise.resolve(fn.apply(void 0, args))
+  })
+})
+
 function applyFn (fn, ctx, args) {
   if (ktypes.isAction(fn)) {
     if (ktypes.isFunction(fn.also_krlFn_of_this_action)) {
@@ -149,18 +164,6 @@ module.exports = function (conf) {
       // this 'log-' prefix distinguishes user declared log events from other system generated events
       ctx.emit('log-' + level, val)
     }
-    ctx.callKRLstdlib = function (fnName, args) {
-      if (_.isArray(args)) {
-        args = [ctx].concat(args)
-      } else {
-        args[0] = ctx
-      }
-      let fn = krlStdlib[fnName]
-      if (fn === void 0) {
-        throw new Error('Not an operator: ' + fnName)
-      }
-      return Promise.resolve(fn.apply(void 0, args))
-    }
 
     // don't allow anyone to mutate ctx on the fly
     Object.freeze(ctx)
@@ -169,7 +172,7 @@ module.exports = function (conf) {
   core.mkCTX = mkCTX
 
   async function initializeRulest (rs) {
-    rs.scope = SymbolTable()
+    rs.scope = rootKRLScope.push()
     rs.modules_used = {}
     core.rsreg.setupOwnKeys(rs)
 
@@ -183,7 +186,7 @@ module.exports = function (conf) {
       }
       let ctx2 = mkCTX({
         rid: depRs.rid,
-        scope: SymbolTable()
+        scope: rootKRLScope.push()
       })
       if (_.isFunction(depRs.meta && depRs.meta.configure)) {
         await runKRL(depRs.meta.configure, ctx2)
