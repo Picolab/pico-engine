@@ -37,7 +37,8 @@ function toKeyPath (path) {
   })
 }
 
-async function discoverPVarLength (ldb, keyPrefix) {
+async function discoverPVarLength (ldb, keyPrefix, ops) {
+  ops = ops || {}
   let oldLength = 0
   await dbRange.promise(ldb, {
     prefix: keyPrefix.concat(['value']),
@@ -45,6 +46,9 @@ async function discoverPVarLength (ldb, keyPrefix) {
   }, function (key) {
     const i = parseInt(key.slice(keyPrefix.length + 1)[0], 10)
     if (!_.isNaN(i)) {
+      if (ops.excludeI === i) {
+        return
+      }
       oldLength = Math.max(oldLength, i + 1)
     }
   })
@@ -193,7 +197,7 @@ async function appendPVar (ldb, keyPrefix, values) {
   return dbOps
 }
 
-var getPVar = util.promisify(function (ldb, keyPrefix, query, callback) {
+const getPVar = util.promisify(function (ldb, keyPrefix, query, callback) {
   var path = ktypes.isNull(query) ? [] : toKeyPath(query)
   if (_.size(path) > 0) {
     var subKey = _.head(path)
@@ -233,40 +237,60 @@ var getPVar = util.promisify(function (ldb, keyPrefix, query, callback) {
   })
 })
 
-var delPVar = util.promisify(function (ldb, keyPrefix, query, callback) {
-  var path = ktypes.isNull(query) ? [] : toKeyPath(query)
+async function delPVar (ldb, keyPrefix, query, callback) {
+  const path = ktypes.isNull(query) ? [] : toKeyPath(query)
+
+  const dbOps = []
+
   if (_.size(path) > 0) {
-    keyPrefix = keyPrefix.concat(['value', _.head(path)])
-    var subPath = _.tail(path)
-    if (!_.isEmpty(subPath)) {
-      ldb.get(keyPrefix, function (err, data) {
-        if (err && err.notFound) {
-          data = {}
-        } else if (err) {
-          callback(err)
-          return
-        }
-        var val = _.omit(data, subPath)
-        if (_.isEmpty(val)) {
-          ldb.del(keyPrefix, callback)
-        } else {
-          ldb.put(keyPrefix, val, callback)
-        }
-      })
-      return
+    const subkeyPrefix = keyPrefix.concat(['value', path[0]])
+    const subPath = _.tail(path)
+
+    let removedAKey = false
+    if (_.isEmpty(subPath)) {
+      dbOps.push({ type: 'del', key: subkeyPrefix })
+      removedAKey = true
+    } else {
+      const data = (await ldb.getNF(subkeyPrefix)) || {}
+      const val = _.omit(data, subPath)
+      if (_.isEmpty(val)) {
+        dbOps.push({ type: 'del', key: subkeyPrefix })
+        removedAKey = true
+      } else {
+        dbOps.push({ type: 'put', key: subkeyPrefix, value: val })
+      }
     }
+    const removedI = parseInt(path[0], 10)
+    if (removedAKey && _.isInteger(removedI) && removedI >= 0) {
+      const oldRoot = (await ldb.getNF(keyPrefix)) || { type: 'Null', value: null }
+      if (oldRoot.type === 'Array') {
+        // the array may be sparce b/c delete is any arbitrary index
+        // therefore we should re-scan the index everytime to find it's true length
+        let newLength = await discoverPVarLength(ldb, keyPrefix, { excludeI: removedI })
+        if (newLength !== oldRoot.length) {
+          dbOps.push({
+            type: 'put',
+            key: keyPrefix,
+            value: {
+              type: 'Array',
+              value: [],
+              length: newLength
+            }
+          })
+        }
+      }
+    }
+  } else {
+    // delete the whole thing
+    await dbRange.promise(ldb, {
+      prefix: keyPrefix,
+      values: false
+    }, function (key) {
+      dbOps.push({ type: 'del', key: key })
+    })
   }
-  var dbOps = []
-  dbRange(ldb, {
-    prefix: keyPrefix,
-    values: false
-  }, function (key) {
-    dbOps.push({ type: 'del', key: key })
-  }, function (err) {
-    if (err) return callback(err)
-    ldb.batch(dbOps, callback)
-  })
-})
+  return dbOps
+}
 
 module.exports = function (opts) {
   var ldb = levelup(encode(opts.db, {
@@ -1201,18 +1225,19 @@ module.exports = function (opts) {
     // ent:*
     //
     putEntVar: async function (picoId, rid, varName, query, val) {
-      let ops = await putPVar(ldb, ['entvars', picoId, rid, varName], query, val)
+      const ops = await putPVar(ldb, ['entvars', picoId, rid, varName], query, val)
       await ldb.batch(ops)
     },
     appendEntVar: async function (picoId, rid, varName, values) {
-      let ops = await appendPVar(ldb, ['entvars', picoId, rid, varName], values)
+      const ops = await appendPVar(ldb, ['entvars', picoId, rid, varName], values)
       await ldb.batch(ops)
     },
     getEntVar: function (picoId, rid, varName, query) {
       return getPVar(ldb, ['entvars', picoId, rid, varName], query)
     },
-    delEntVar: function (picoId, rid, varName, query) {
-      return delPVar(ldb, ['entvars', picoId, rid, varName], query)
+    delEntVar: async function (picoId, rid, varName, query) {
+      const ops = await delPVar(ldb, ['entvars', picoId, rid, varName], query)
+      await ldb.batch(ops)
     },
 
     /// /////////////////////////////////////////////////////////////////////
@@ -1220,18 +1245,19 @@ module.exports = function (opts) {
     // app:*
     //
     putAppVar: async function (rid, varName, query, val) {
-      let ops = await putPVar(ldb, ['appvars', rid, varName], query, val)
+      const ops = await putPVar(ldb, ['appvars', rid, varName], query, val)
       await ldb.batch(ops)
     },
     appendAppVar: async function (rid, varName, values) {
-      let ops = await appendPVar(ldb, ['appvars', rid, varName], values)
+      const ops = await appendPVar(ldb, ['appvars', rid, varName], values)
       await ldb.batch(ops)
     },
     getAppVar: function (rid, varName, query) {
       return getPVar(ldb, ['appvars', rid, varName], query)
     },
-    delAppVar: function (rid, varName, query) {
-      return delPVar(ldb, ['appvars', rid, varName], query)
+    delAppVar: async function (rid, varName, query) {
+      const ops = await delPVar(ldb, ['appvars', rid, varName], query)
+      await ldb.batch(ops)
     },
 
     /// /////////////////////////////////////////////////////////////////////

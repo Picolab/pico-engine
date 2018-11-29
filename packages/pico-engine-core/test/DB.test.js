@@ -773,9 +773,11 @@ test('DB - persistent variables array/map', async function (t) {
 })
 
 test('DB - persistent variable append to array', async function (t) {
-  var db = mkTestDB()
-  var put = _.partial(db.putEntVar, 'p', 'r')
-  var append = _.partial(db.appendEntVar, 'p', 'r')
+  const db = mkTestDB()
+  const put = _.partial(db.putEntVar, 'p', 'r')
+  const get = _.partial(db.getEntVar, 'p', 'r')
+  const del = _.partial(db.delEntVar, 'p', 'r')
+  const append = _.partial(db.appendEntVar, 'p', 'r')
   function dump (name) {
     return db.forRange({
       prefix: ['entvars', 'p', 'r', name]
@@ -857,6 +859,57 @@ test('DB - persistent variable append to array', async function (t) {
     'value|5 => "f"',
     'value|6 => "g"',
     'value|9 => "SKIP"'
+  ])
+  t.deepEqual(await get('foo'), [
+    'a',
+    'b',
+    'c',
+    'CHANGE',
+    'e',
+    'f',
+    'g',
+    undefined,
+    undefined,
+    'SKIP'
+  ])
+
+  // maintain length when deleting at an index
+  await del('foo', [9])
+  t.deepEqual(await dump('foo'), [
+    ' => {"type":"Array","value":[],"length":7}',
+    'value|0 => "a"',
+    'value|1 => "b"',
+    'value|2 => "c"',
+    'value|3 => "CHANGE"',
+    'value|4 => "e"',
+    'value|5 => "f"',
+    'value|6 => "g"'
+  ])
+  await del('foo', [2])
+  t.deepEqual(await dump('foo'), [
+    ' => {"type":"Array","value":[],"length":7}',
+    'value|0 => "a"',
+    'value|1 => "b"',
+    'value|3 => "CHANGE"',
+    'value|4 => "e"',
+    'value|5 => "f"',
+    'value|6 => "g"'
+  ])
+  await del('foo', [3])
+  await del('foo', [4])
+  await del('foo', [5])
+  t.deepEqual(await dump('foo'), [
+    ' => {"type":"Array","value":[],"length":7}',
+    'value|0 => "a"',
+    'value|1 => "b"',
+    // sparce array, still length 7 b/c that's the next open index
+    'value|6 => "g"'
+  ])
+  await del('foo', [6])
+  t.deepEqual(await dump('foo'), [
+    ' => {"type":"Array","value":[],"length":2}',
+    'value|0 => "a"',
+    'value|1 => "b"'
   ])
 
   // append to an array that doesn't exist yet
