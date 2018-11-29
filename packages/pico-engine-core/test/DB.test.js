@@ -10,7 +10,8 @@ var ADMIN_POLICY_ID = DB.ADMIN_POLICY_ID
 var mkTestDB = function () {
   return DB({
     db: memdown(cuid()),
-    __use_sequential_ids_for_testing: true
+    __use_sequential_ids_for_testing: true,
+    __expose_ldb_for_testing: true
   })
 }
 
@@ -733,7 +734,10 @@ test('DB - persistent variables array/map', async function (t) {
 
   var tst = async function (name, type, value, msg) {
     var val = toJson(value)
-    t.is(toJson((await toObj()).entvars.p.r[name]), '{"type":"' + type + '","value":' + val + '}', msg)
+    const expectedRoot = _.isArray(value)
+      ? `{"type":"${type}","value":${val},"length":${value.length}}`
+      : '{"type":"' + type + '","value":' + val + '}'
+    t.is(toJson((await toObj()).entvars.p.r[name]), expectedRoot, msg)
     t.is(toJson(await get(name, null)), val, msg)
   }
 
@@ -766,4 +770,179 @@ test('DB - persistent variables array/map', async function (t) {
   // initialzed as array should db dump as an array
   await put('qux', null, ['aaa'])
   await tst('qux', 'Array', ['aaa'], '`qux` is an Array')
+})
+
+test('DB - persistent variable append to array', async function (t) {
+  var db = mkTestDB()
+  var put = _.partial(db.putEntVar, 'p', 'r')
+  var append = _.partial(db.appendEntVar, 'p', 'r')
+  function dump (name) {
+    return db.forRange({
+      prefix: ['entvars', 'p', 'r', name]
+    }, function (data) {
+      return data.key.slice(4).join('|') + ' => ' + JSON.stringify(data.value)
+    })
+  }
+
+  await put('foo', null, 'abc'.split(''))
+  t.deepEqual(await dump('foo'), [
+    ' => {"type":"Array","value":[],"length":3}',
+    'value|0 => "a"',
+    'value|1 => "b"',
+    'value|2 => "c"'
+  ])
+
+  await append('foo', ['d', 'e'])
+  t.deepEqual(await dump('foo'), [
+    ' => {"type":"Array","value":[],"length":5}',
+    'value|0 => "a"',
+    'value|1 => "b"',
+    'value|2 => "c"',
+    'value|3 => "d"',
+    'value|4 => "e"'
+  ])
+
+  // test old ent vars that don't have a length yet
+  await db.ldb.put(['entvars', 'p', 'r', 'foo'], { type: 'Array', value: [] })
+  t.deepEqual(await dump('foo'), [
+    ' => {"type":"Array","value":[]}',
+    'value|0 => "a"',
+    'value|1 => "b"',
+    'value|2 => "c"',
+    'value|3 => "d"',
+    'value|4 => "e"'
+  ])
+  await append('foo', ['f'])
+  t.deepEqual(await dump('foo'), [
+    ' => {"type":"Array","value":[],"length":6}',
+    'value|0 => "a"',
+    'value|1 => "b"',
+    'value|2 => "c"',
+    'value|3 => "d"',
+    'value|4 => "e"',
+    'value|5 => "f"'
+  ])
+
+  // maintain length when puting at an index
+  await put('foo', [6], 'g')
+  t.deepEqual(await dump('foo'), [
+    ' => {"type":"Array","value":[],"length":7}',
+    'value|0 => "a"',
+    'value|1 => "b"',
+    'value|2 => "c"',
+    'value|3 => "d"',
+    'value|4 => "e"',
+    'value|5 => "f"',
+    'value|6 => "g"'
+  ])
+  await put('foo', [3], 'CHANGE')
+  t.deepEqual(await dump('foo'), [
+    ' => {"type":"Array","value":[],"length":7}',
+    'value|0 => "a"',
+    'value|1 => "b"',
+    'value|2 => "c"',
+    'value|3 => "CHANGE"',
+    'value|4 => "e"',
+    'value|5 => "f"',
+    'value|6 => "g"'
+  ])
+  await put('foo', [9], 'SKIP')
+  t.deepEqual(await dump('foo'), [
+    ' => {"type":"Array","value":[],"length":10}',
+    'value|0 => "a"',
+    'value|1 => "b"',
+    'value|2 => "c"',
+    'value|3 => "CHANGE"',
+    'value|4 => "e"',
+    'value|5 => "f"',
+    'value|6 => "g"',
+    'value|9 => "SKIP"'
+  ])
+
+  // append to an array that doesn't exist yet
+  t.deepEqual(await dump('bar'), [])
+  await append('bar', ['hi', 'bye'])
+  t.deepEqual(await dump('bar'), [
+    ' => {"type":"Array","value":[],"length":2}',
+    'value|0 => "hi"',
+    'value|1 => "bye"'
+  ])
+
+  // append to a null ent var
+  await put('bar', null, null)
+  t.deepEqual(await dump('bar'), [
+    ' => {"type":"Null","value":null}'
+  ])
+  await append('bar', ['hi', 'bye'])
+  t.deepEqual(await dump('bar'), [
+    ' => {"type":"Array","value":[],"length":2}',
+    'value|0 => "hi"',
+    'value|1 => "bye"'
+  ])
+
+  // append to a scalar
+  await put('baz', null, 'blah')
+  t.deepEqual(await dump('baz'), [
+    ' => {"type":"String","value":"blah"}'
+  ])
+  await append('baz', ['hi', 'bye'])
+  t.deepEqual(await dump('baz'), [
+    ' => {"type":"Array","value":[],"length":3}',
+    'value|0 => "blah"',
+    'value|1 => "hi"',
+    'value|2 => "bye"'
+  ])
+
+  // append to a Map
+  await put('qux', null, { one: 'hi', two: 'bye', '3': 'looks like an array index' })
+  t.deepEqual(await dump('qux'), [
+    ' => {"type":"Map","value":{}}',
+    'value|3 => "looks like an array index"',
+    'value|one => "hi"',
+    'value|two => "bye"'
+  ])
+  await append('qux', ['some', 'more'])
+  t.deepEqual(await dump('qux'), [
+    ' => {"type":"Map","value":{}}',
+    'value|3 => "looks like an array index"',
+    'value|4 => "some"',
+    'value|5 => "more"',
+    'value|one => "hi"',
+    'value|two => "bye"'
+  ])
+  // if there are no index looking keys
+  await put('qux', null, { one: 'hi' })
+  await append('qux', ['some', 'more'])
+  t.deepEqual(await dump('qux'), [
+    ' => {"type":"Map","value":{}}',
+    'value|0 => "some"',
+    'value|1 => "more"',
+    'value|one => "hi"'
+  ])
+
+  // if it's an empty Map, convert it to an array
+  await put('qux', null, {})
+  await append('qux', ['some', 'more'])
+  t.deepEqual(await dump('qux'), [
+    ' => {"type":"Array","value":[],"length":2}',
+    'value|0 => "some"',
+    'value|1 => "more"'
+  ])
+  // still can convert back to map if they use a map-like key
+  await put('qux', ['wat'], 'no longer an array')
+  t.deepEqual(await dump('qux'), [
+    ' => {"type":"Map","value":{}}',
+    'value|0 => "some"',
+    'value|1 => "more"',
+    'value|wat => "no longer an array"'
+  ])
+  // append nothing still converts it to an array
+  await put('qux', null, {})
+  await append('qux', [])
+  t.deepEqual(await dump('qux'), [
+    ' => {"type":"Array","value":[],"length":0}'
+  ])
+
+  // TODO convert Map to Array if all the keys are index-like and not sparse
+  // TODO test lex-sort of string index
 })

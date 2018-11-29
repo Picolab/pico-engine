@@ -21,14 +21,14 @@ var promiseCallback = require('./promiseCallback')
 // This makes migrating easier while waiting for krl system rulesets to assume policy usage
 var ADMIN_POLICY_ID = 'allow-all-policy'// NOTE: changing this requires a db migration
 
-var omitChannelSecret = function (channel) {
+function omitChannelSecret (channel) {
   return _.assign({}, channel, {
     sovrin: _.omit(channel.sovrin, 'secret')
   })
 }
 
 // coerce the value into an array of key strings
-var toKeyPath = function (path) {
+function toKeyPath (path) {
   if (!ktypes.isArray(path)) {
     path = [path]
   }
@@ -37,7 +37,7 @@ var toKeyPath = function (path) {
   })
 }
 
-var putPVar = function (ldb, keyPrefix, query, val) {
+function putPVar (ldb, keyPrefix, query, val) {
   let callback = promiseCallback()
 
   query = ktypes.isNull(query) ? [] : query
@@ -114,7 +114,9 @@ var putPVar = function (ldb, keyPrefix, query, val) {
           break
         case 'Map':
         case 'Array':
+          let maxIndex = 0
           _.each(val, function (v, k) {
+            maxIndex = Math.max(maxIndex, parseInt(k, 10) || 0)
             k = ktypes.toString(k)// represent array i as strings, otherwise bytewise will create separate keys for int and string
             ops.push({
               type: 'put',
@@ -124,6 +126,9 @@ var putPVar = function (ldb, keyPrefix, query, val) {
           })
           // this `value` helps _.set in the toObj db dump set the right type
           root.value = root.type === 'Array' ? [] : {}
+          if (root.type === 'Array') {
+            root.length = maxIndex + 1
+          }
           break
         default:
           root.value = val
@@ -137,6 +142,103 @@ var putPVar = function (ldb, keyPrefix, query, val) {
     })
   })
   return callback.promise
+}
+
+async function appendPVar (ldb, keyPrefix, values) {
+  if (!_.isArray(values)) {
+    throw new TypeError('appendPVar `values` must be an Array')
+  }
+  const oldRoot = (await ldb.getNF(keyPrefix)) || { type: 'Null', value: null }
+  const dbOps = []
+  let oldLength = 0
+
+  switch (oldRoot.type) {
+    case 'Null':
+      oldLength = 0
+      dbOps.push({
+        type: 'put',
+        key: keyPrefix,
+        value: {
+          type: 'Array',
+          value: [],
+          length: values.length
+        }
+      })
+      break
+    case 'Array':
+      oldLength = oldRoot.length
+      if (!_.isInteger(oldLength) || oldLength < 0) {
+        // need to discover the length
+        oldLength = 0
+        await dbRange.promise(ldb, {
+          prefix: keyPrefix.concat(['value']),
+          values: false
+        }, function (key) {
+          const i = parseInt(key.slice(keyPrefix.length + 1)[0], 10)
+          if (i === i) { // not NaN
+            oldLength = Math.max(oldLength, i + 1)
+          }
+        })
+      }
+      dbOps.push({
+        type: 'put',
+        key: keyPrefix,
+        value: {
+          type: 'Array',
+          value: [],
+          length: oldLength + values.length
+        }
+      })
+      break
+    case 'Map':
+      oldLength = 0
+      let mapHasKeys = false
+      await dbRange.promise(ldb, {
+        prefix: keyPrefix.concat(['value']),
+        values: false
+      }, function (key) {
+        mapHasKeys = true
+        const i = parseInt(key.slice(keyPrefix.length + 1)[0], 10)
+        if (i === i) { // not NaN
+          oldLength = Math.max(oldLength, i + 1)
+        }
+      })
+      if (!mapHasKeys) {
+        // empty map, so let's convert it to an array
+        dbOps.push({
+          type: 'put',
+          key: keyPrefix,
+          value: {
+            type: 'Array',
+            value: [],
+            length: oldLength + values.length
+          }
+        })
+      }
+      break
+    default:
+      values.unshift(oldRoot.value)
+      oldLength = 0
+      dbOps.push({
+        type: 'put',
+        key: keyPrefix,
+        value: {
+          type: 'Array',
+          value: [],
+          length: values.length
+        }
+      })
+      break
+  }
+  _.each(values, function (val, valI) {
+    const i = ktypes.toString(oldLength + valI)// represent array i as strings, otherwise bytewise will create separate keys for int and string
+    dbOps.push({
+      type: 'put',
+      key: keyPrefix.concat(['value', i]),
+      value: val
+    })
+  })
+  return dbOps
 }
 
 var getPVar = util.promisify(function (ldb, keyPrefix, query, callback) {
@@ -243,7 +345,7 @@ module.exports = function (opts) {
     }
   }
 
-  function getNF (key) {
+  ldb.getNF = function (key) {
     return ldb.get(key)
       .catch(function (err) {
         return err && err.notFound
@@ -253,15 +355,7 @@ module.exports = function (opts) {
   }
 
   function forRange (opts, onData) {
-    return new Promise(function (resolve, reject) {
-      var arr = []
-      dbRange(ldb, opts, function (data) {
-        arr.push(Promise.resolve(onData(data)))
-      }, function (err) {
-        if (err) reject(err)
-        Promise.all(arr).then(resolve).catch(reject)
-      })
-    })
+    return dbRange.promise(ldb, opts, onData)
   }
 
   var getMigrationLog = function (callback) {
@@ -461,7 +555,7 @@ module.exports = function (opts) {
   }
 
   function getPicoStatus (picoId) {
-    return getNF(['pico-status', picoId])
+    return ldb.getNF(['pico-status', picoId])
       .then(function (data) {
         return {
           isLeaving: !!(data && data.isLeaving),
@@ -545,6 +639,8 @@ module.exports = function (opts) {
   }
 
   return {
+    ldb: opts.__expose_ldb_for_testing ? ldb : null,
+
     // for legacy-ui api routes
     forRange: forRange,
 
@@ -830,7 +926,7 @@ module.exports = function (opts) {
       for (let id of Object.keys(data.policies || {})) {
         let theirs = data.policies[id]
         theirs.id = id
-        let mine = await getNF(['policy', id])
+        let mine = await ldb.getNF(['policy', id])
         if (mine && _.isEqual(mine, theirs)) {
           polIdMap[id] = id
         } else {
@@ -843,7 +939,7 @@ module.exports = function (opts) {
       for (let rid of Object.keys(data.rulesets || {})) {
         let theirs = data.rulesets[rid]
         theirs.rid = rid
-        let enabled = await getNF(['rulesets', 'enabled', rid])
+        let enabled = await ldb.getNF(['rulesets', 'enabled', rid])
         if (enabled) {
           if (theirs.hash === enabled.hash) {
             // good to go
@@ -1156,6 +1252,10 @@ module.exports = function (opts) {
       let ops = await putPVar(ldb, ['entvars', picoId, rid, varName], query, val)
       await ldb.batch(ops)
     },
+    appendEntVar: async function (picoId, rid, varName, values) {
+      let ops = await appendPVar(ldb, ['entvars', picoId, rid, varName], values)
+      await ldb.batch(ops)
+    },
     getEntVar: function (picoId, rid, varName, query) {
       return getPVar(ldb, ['entvars', picoId, rid, varName], query)
     },
@@ -1169,6 +1269,10 @@ module.exports = function (opts) {
     //
     putAppVar: async function (rid, varName, query, val) {
       let ops = await putPVar(ldb, ['appvars', rid, varName], query, val)
+      await ldb.batch(ops)
+    },
+    appendAppVar: async function (rid, varName, values) {
+      let ops = await appendPVar(ldb, ['appvars', rid, varName], values)
       await ldb.batch(ops)
     },
     getAppVar: function (rid, varName, query) {

@@ -1,6 +1,6 @@
 var _ = require('lodash')
 
-module.exports = function (ldb, opts, onData, callbackOrig) {
+function dbRange (ldb, opts, onData, callbackOrig) {
   var hasCalledback = false
   var callback = function () {
     if (hasCalledback) return
@@ -28,3 +28,17 @@ module.exports = function (ldb, opts, onData, callbackOrig) {
     onData(data, stopRange)
   })
 }
+
+dbRange.promise = function dbRangeP (ldb, opts, onData) {
+  return new Promise(function (resolve, reject) {
+    var arr = []
+    dbRange(ldb, opts, function (data) {
+      arr.push(Promise.resolve(onData(data)))
+    }, function (err) {
+      if (err) reject(err)
+      Promise.all(arr).then(resolve).catch(reject)
+    })
+  })
+}
+
+module.exports = dbRange
