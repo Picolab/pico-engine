@@ -25,6 +25,9 @@ ruleset io.picolabs.module-defined {
 
             return {"name": getInfo()["name"]};
         }
+        sayHello = function(name){
+            <<hello #{name}.>>;
+        }
     }
     rule store_memo {
         select when module_defined store_memo memo re#^(.*)$# setting(text)

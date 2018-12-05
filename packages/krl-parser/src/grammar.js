@@ -1128,7 +1128,7 @@ var grammar = {
     {"name": "MemberExpression", "symbols": ["PrimaryExpression"], "postprocess": id},
     {"name": "MemberExpression", "symbols": ["MemberExpression", tok_OPEN_SQARE, "Expression", tok_CLSE_SQARE], "postprocess": MemberExpression_method('index')},
     {"name": "MemberExpression", "symbols": ["MemberExpression", tok_OPEN_CURLY, "Expression", tok_CLSE_CURLY], "postprocess": MemberExpression_method('path')},
-    {"name": "MemberExpression", "symbols": ["MemberExpression", tok_DOT, "Identifier"], "postprocess": MemberExpression_method('dot')},
+    {"name": "MemberExpression", "symbols": ["MemberExpression", tok_DOT, "Identifier_or_DomainIdentifier"], "postprocess": MemberExpression_method('dot')},
     {"name": "PrimaryExpression", "symbols": ["Identifier"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["DomainIdentifier"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["Literal"], "postprocess": id},

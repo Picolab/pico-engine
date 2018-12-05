@@ -1789,12 +1789,7 @@ test('DomainIdentifier', function (t) {
   )
 
   testIt('ent:name.blah', mk.get(mk.dID('ent', 'name'), mk.id('blah')))
-  try {
-    parser('blah.ent:name')
-    t.fail()
-  } catch (e) {
-    t.ok(/No possible parsings/i.test(e + ''))
-  }
+  testIt('blah.ent:name', mk.get(mk.id('blah'), mk.dID('ent', 'name')))
 
   testIt('ent:name = "bob"', mk.declare('=', mk.dID('ent', 'name'), mk('bob')))
   testIt('ent:names[0] = "jim"', mk.declare('=', mk.get(mk.dID('ent', 'names'), mk(0), 'index'), mk('jim')))

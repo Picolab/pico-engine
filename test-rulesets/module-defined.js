@@ -49,6 +49,13 @@ module.exports = {
           ])
         }];
     }));
+    ctx.scope.set("sayHello", ctx.mkFunction(["name"], async function (ctx, args) {
+      ctx.scope.set("name", args["name"]);
+      return "hello " + (await ctx.applyFn(ctx.scope.get("as"), ctx, [
+        ctx.scope.get("name"),
+        "String"
+      ])) + ".";
+    }));
   },
   "rules": {
     "store_memo": {

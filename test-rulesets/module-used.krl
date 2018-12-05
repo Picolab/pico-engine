@@ -57,4 +57,9 @@ ruleset io.picolabs.module-used {
             ent:val := info
         }
     }
+    rule sayHelloWithOperator {
+        select when module_used sayHelloWithOperator
+
+        send_directive("bob".my_module_dflt:sayHello());
+    }
 }

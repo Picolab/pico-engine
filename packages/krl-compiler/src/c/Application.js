@@ -4,17 +4,21 @@ var callStdLibFn = require('../utils/callStdLibFn')
 module.exports = function (ast, comp, e) {
   if (ast.callee.type === 'MemberExpression' &&
             ast.callee.method === 'dot' &&
-            ast.callee.property.type === 'Identifier'
+            (ast.callee.property.type === 'Identifier' || ast.callee.property.type === 'DomainIdentifier')
   ) {
-    // operator syntax is just sugar for stdlib functions
-    var operator = ast.callee.property
+    // dot operator syntax sugar
+    // i.e.
+    // "foo".bar(baz)
+    // bar("foo",baz)
 
-    var args = comp(_.assign({}, ast.args, {
-      // the object is the first argument in the stdlib function
-      args: [ast.callee.object].concat(ast.args.args)
-    }))
-
-    return callStdLibFn(e, operator.value, args, operator.loc)
+    return e('acall', e('id', 'ctx.applyFn'), [
+      comp(ast.callee.property),
+      e('id', 'ctx'),
+      comp(_.assign({}, ast.args, {
+        // inject left-hand of the dot as the first argument
+        args: [ast.callee.object].concat(ast.args.args)
+      }))
+    ])
   }
 
   if (ast.callee.type === 'DomainIdentifier' &&

@@ -177,6 +177,28 @@ module.exports = {
           ctx.emit("debug", "not fired");
         await ctx.modules.set(ctx, "ent", "val", ctx.scope.get("info"));
       }
+    },
+    "sayHelloWithOperator": {
+      "name": "sayHelloWithOperator",
+      "select": {
+        "graph": { "module_used": { "sayHelloWithOperator": { "expr_0": true } } },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": async function (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          await runAction(ctx, void 0, "send_directive", [await ctx.applyFn(await ctx.modules.get(ctx, "my_module_dflt", "sayHello"), ctx, ["bob"])], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
     }
   }
 };

@@ -1177,7 +1177,7 @@ MemberExpression -> PrimaryExpression {% id %}
       {% MemberExpression_method('index') %}
     | MemberExpression %tok_OPEN_CURLY Expression %tok_CLSE_CURLY
       {% MemberExpression_method('path') %}
-    | MemberExpression %tok_DOT Identifier
+    | MemberExpression %tok_DOT Identifier_or_DomainIdentifier
       {% MemberExpression_method('dot') %}
 
 PrimaryExpression ->
