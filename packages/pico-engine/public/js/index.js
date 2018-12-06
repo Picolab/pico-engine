@@ -166,9 +166,9 @@ $(document).ready(function () {
         callback(null, theRulesetOut)
       } else if (tabName === 'logging') {
         var theLoggingOut = {}
+        theLoggingOut.eci = eci
         theLoggingOut.pico_id = thePicoInp.id
         if (get(dbDump, ['pico', thePicoInp.id, 'ruleset', 'io.picolabs.logging', 'on'])) {
-          theLoggingOut.eci = eci
           $.getJSON('/sky/cloud/' + eci + '/io.picolabs.logging/getLogs', function (data) {
             theLoggingOut.status = data.status
             theLoggingOut.logs = data.logs
@@ -269,7 +269,7 @@ $(document).ready(function () {
         recSubs('inbound')
         callback(null, theSubscriptions)
       } else if (tabName === 'policies') {
-        var policyUI = { disabled: true, pico_id: thePicoInp.id }
+        var policyUI = { disabled: true, eci: eci, pico_id: thePicoInp.id }
         $.getJSON('/sky/cloud/' + eci + '/io.picolabs.policy/ui', function (ui) {
           callback(null, {
             pico_id: thePicoInp.id,

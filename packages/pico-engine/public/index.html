@@ -298,7 +298,7 @@
       {{/if}}
       {{#if disabled}}
         is disabled.
-        To enable, add the ruleset "io.picolabs.logging" to this pico.
+        To enable, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rid=io.picolabs.logging">install</a> the "io.picolabs.logging" ruleset
       {{else}}
         <span id="switch">
           <input id="logging-off" type="radio" name="status" value="off"{{#unless status}} checked=""{{/unless}}>
@@ -387,7 +387,7 @@
     <script id="subscriptions-template" type="text/x-handlebars-template">
       {{#if disabled}}
         Subscriptions are disabled.
-        To enable, add the ruleset "io.picolabs.subscription" to this pico.
+        To enable, install the "io.picolabs.subscription" ruleset
       {{else}}
         <p>Subscriptions are enabled at {{wellKnown_Rx}}.</p>
         {{#if established}}
@@ -472,7 +472,7 @@
     <script id="policies-template" type="text/x-handlebars-template">
       {{#if disabled}}
         Policy display is disabled.
-        To enable, add the ruleset "io.picolabs.policy" to this pico.
+        To enable, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rid=io.picolabs.policy">install</a> the "io.picolabs.policy" ruleset
       {{else}}
         {{#if ui.used}}
           Policies used by this pico's channels
