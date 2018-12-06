@@ -187,6 +187,11 @@ ent:established [
 
   rule requestSubscription {
     select when wrangler subscription_request_needed
+      pre {
+        myHost = event:attr("Rx_host") == "localhost" => null                  |
+                 event:attr("Rx_host")                => event:attr("Rx_host") |
+                                                         meta:host
+      }
       event:send({
           "eci"   : event:attr("wellKnown_Tx"),
           "domain": "wrangler", "type": "new_subscription_request",
@@ -195,7 +200,7 @@ ent:established [
                                      {"Rx_role"      : event:attr("Tx_role"),
                                       "Tx_role"      : event:attr("Rx_role"),
                                       "Tx"           : event:attr("Rx"),
-                                      "Tx_host"      : event:attr("Rx_host") => event:attr("Rx_host") | meta:host , // send our host as Tx_host if Tx_host was provided.
+                                      "Tx_host"      : myHost,
                                       "Tx_verify_key": event:attr("verify_key"),
                                       "Tx_public_key": event:attr("public_key")})
           }, event:attr("Tx_host")); //send event to this host if provided
