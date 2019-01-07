@@ -79,7 +79,7 @@ The server is configured via some environment variables.
 
  * `PORT` - what port the http server should listen on. By default it's `8080`
  * `PICO_ENGINE_HOME` - where the database and other files should be stored. By default it's `~/.pico-engine/`
- * `PICO_ENGINE_HOST` - the url prefix used to reach your engine, i.e. `"https://example.com"`. By default it's `"http://localhost:8080"`
+ * `PICO_ENGINE_HOST` - the hostname or IP address to listen on.  By default it's "http://localhost:8080"
 
 ## Contributing
 
