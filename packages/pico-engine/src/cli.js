@@ -35,8 +35,9 @@ function main (args) {
     // TODO          krl-dump              extract all krl files in the db
     console.log('')
     console.log('Environment variables')
-    console.log("    PORT - what port the http server should listen on. By default it's 8080")
-    console.log("    PICO_ENGINE_HOME - where the database and other files should be stored. By default it's ~/.pico-engine/")
+    console.log("    PORT - The port the http server should listen on. By default it's 8080")
+    console.log("    PICO_ENGINE_HOME - Where the database and other files should be stored. By default it's ~/.pico-engine/")
+    console.log("    PICO_ENGINE_HOST - The public url prefix to reach this engine. This is the `meta:host` value in KRL. By default it's http://localhost:8080")
     console.log('')
     return
   }
