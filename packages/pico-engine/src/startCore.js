@@ -263,7 +263,8 @@ module.exports = async function (conf) {
     // RIDs that will be automatically installed on the root pico
     rootRIDs: [
       'io.picolabs.wrangler',
-      'io.picolabs.visual_params'
+      'io.picolabs.visual_params',
+      'io.picolabs.subscription'
     ]
   })
 
