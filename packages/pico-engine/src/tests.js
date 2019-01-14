@@ -447,11 +447,11 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '94',
         domain: 'wrangler',
         type: 'install_rulesets_requested ',
-        attrs: { rids: 'io.picolabs.logging;io.picolabs.subscription' }
+        attrs: { rids: 'io.picolabs.logging;io.picolabs.rewrite' }
       }, function (err, response) {
         if (err) return next(err)
         // console.log("this is the response of install_rulesets_requested: ",response.directives[0].options);
-        t.deepEqual(['io.picolabs.logging', 'io.picolabs.subscription'], response.directives[0].options.rids, 'correct directive')
+        t.deepEqual(['io.picolabs.logging', 'io.picolabs.rewrite'], response.directives[0].options.rids, 'correct directive')
         // rids = response.directives[0].options.rids;
         next()
       })
@@ -468,14 +468,14 @@ testPE('pico-engine', function (t, pe, rootEci) {
         t.equals(data.length >= installedRids.length, true, 'rulesets installed')
         t.equals(data.length, installedRids.length + 2, 'two rulesets were installed')
         for (var i = 0; i < data.length; i++) {
-          if (data[i] === 'io.picolabs.logging' || data[i] === 'io.picolabs.subscription') {
+          if (data[i] === 'io.picolabs.logging' || data[i] === 'io.picolabs.rewrite') {
             found++
             // break;
           }
           if (data[i] === 'io.picolabs.logging') {
             t.deepEqual(data[i], 'io.picolabs.logging', 'logging installed')
-          } else if (data[i] === 'io.picolabs.subscription') {
-            t.deepEqual(data[i], 'io.picolabs.subscription', 'subscription installed')
+          } else if (data[i] === 'io.picolabs.rewrite') {
+            t.deepEqual(data[i], 'io.picolabs.rewrite', 'rewrite installed')
           }
         }
         t.equals(found, 2, 'both rulesets installed')
@@ -489,11 +489,11 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eid: '94',
         domain: 'wrangler',
         type: 'uninstall_rulesets_requested ',
-        attrs: { rids: 'io.picolabs.logging;io.picolabs.subscription' }
+        attrs: { rids: 'io.picolabs.logging;io.picolabs.rewrite' }
       }, function (err, response) {
         if (err) return next(err)
         // console.log("this is the response of uninstall_rulesets_requested: ",response.directives[0].options);
-        t.deepEqual(['io.picolabs.logging', 'io.picolabs.subscription'], response.directives[0].options.rids, 'correct directive')
+        t.deepEqual(['io.picolabs.logging', 'io.picolabs.rewrite'], response.directives[0].options.rids, 'correct directive')
         next()
       })
     },
@@ -509,7 +509,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         t.equals(data.length <= installedRids.length, true, 'rulesets un-installed')
         t.equals(data.length, installedRids.length, 'two rulesets un-installed')
         for (var i = 0; i < data.length; i++) {
-          if (data[i] === 'io.picolabs.logging' || data[i] === 'io.picolabs.subscription') {
+          if (data[i] === 'io.picolabs.logging' || data[i] === 'io.picolabs.rewrite') {
             found++
             // break;
           }
