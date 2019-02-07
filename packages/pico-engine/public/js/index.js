@@ -169,9 +169,9 @@ $(document).ready(function () {
         theLoggingOut.eci = eci
         theLoggingOut.pico_id = thePicoInp.id
         if (get(dbDump, ['pico', thePicoInp.id, 'ruleset', 'io.picolabs.logging', 'on'])) {
-          $.getJSON('/sky/cloud/' + eci + '/io.picolabs.logging/getLogs', function (data) {
-            theLoggingOut.status = data.status
-            theLoggingOut.logs = data.logs
+          $.getJSON('/api/legacy-ui-get-vars/' + thePicoInp.id + '/io.picolabs.logging', function (data) {
+            theLoggingOut.status = data[1].val
+            theLoggingOut.logs = data[0].val
             callback(null, theLoggingOut)
           }).fail(function(err){
             theLoggingOut.error = 'Failed to get data'
