@@ -7,13 +7,16 @@ var version = require('../package.json').version
 var oauthServer = require('./oauth_server')
 var mime = require('mime-types')
 var urllib = require('url')
+var fs = require('fs')
+var split = require('split')
+var through2 = require('through2')
 
 function mergeGetPost (req) {
   // give preference to post body params
   return _.assign({}, req.query, req.body, { _headers: req.headers })
 }
 
-module.exports = function (pe) {
+module.exports = function (pe, conf) {
   var app = express()
   app.use(function (req, res, next) {
     res.header('Access-Control-Allow-Origin', '*')
@@ -287,6 +290,46 @@ module.exports = function (pe) {
       res.json({ ok: true })
     })
       .catch(next)
+  })
+
+  app.all('/api/pico/:id/logs', function (req, res, next) {
+    var picoId = req.params.id
+    res.setHeader('Content-Type', 'application/json')
+    res.write('[')
+    fs.createReadStream(conf.log_path)
+      .pipe(split())
+      .pipe(through2(function (chunk, enc, callback) {
+        const line = chunk.toString()
+        if (line.indexOf(picoId) < 0) {
+          // not my pico
+          return callback()
+        }
+        let entry
+        try {
+          entry = JSON.parse(line)
+        } catch (err) {
+        }
+        if (!entry || !entry.context || entry.context.pico_id !== picoId) {
+          // not my pico
+          return callback()
+        }
+        const time = (new Date(entry.time)).getTime()
+        if ((Date.now() - time) > 1000 * 60 * 60 * 12) {
+          // too old
+          return callback()
+        }
+
+        // keep
+        res.write(JSON.stringify(entry, false, 2) + ',')
+        callback()
+      }))
+      .on('finish', () => {
+        // so we don't have a dangling `,`
+        res.end('null]')
+      })
+      .on('error', err => {
+        res.end('error')
+      })
   })
 
   app.all('/api/ruleset/compile', function (req, res, next) {

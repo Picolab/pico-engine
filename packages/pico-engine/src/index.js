@@ -4,12 +4,14 @@ var startCore = require('./startCore')
 var setupServer = require('./setupServer')
 
 module.exports = async function (conf) {
+  conf.log_path = path.resolve(conf.home, 'pico-engine.log')
+
   var bunyanLog = bunyan.createLogger({
     name: 'pico-engine',
     streams: [{
       type: 'rotating-file',
       level: 'debug',
-      path: path.resolve(conf.home, 'pico-engine.log'),
+      path: conf.log_path,
       period: '1w', // rotate every week
       count: 12// keep up to 12 weeks of logs
     }]
@@ -30,7 +32,7 @@ Starting ██║     ██║╚██████╗╚██████╔
 
   const pe = await startCore(conf)
 
-  const app = setupServer(pe)
+  const app = setupServer(pe, conf)
 
   // start http server
   await new Promise(resolve => app.listen(conf.port, resolve))

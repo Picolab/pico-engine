@@ -169,11 +169,11 @@ $(document).ready(function () {
         theLoggingOut.eci = eci
         theLoggingOut.pico_id = thePicoInp.id
         if (get(dbDump, ['pico', thePicoInp.id, 'ruleset', 'io.picolabs.logging', 'on'])) {
-          $.getJSON('/api/legacy-ui-get-vars/' + thePicoInp.id + '/io.picolabs.logging', function (data) {
-            theLoggingOut.status = data[1].val
-            theLoggingOut.logs = data[0].val
+          theLoggingOut.status = true
+          $.getJSON('/api/pico/' + thePicoInp.id + '/logs', function (data) {
+            theLoggingOut.logs = groupLogsByEpisode(data)
             callback(null, theLoggingOut)
-          }).fail(function(err){
+          }).fail(function (err) {
             theLoggingOut.error = 'Failed to get data'
             callback(null, theLoggingOut)
           })
@@ -332,16 +332,16 @@ $(document).ready(function () {
             }
             var rid = $(e.target).parent().data('rid')
             var $ul = $(e.target).parent().find('ul')
-            $.getJSON('/api/legacy-ui-get-vars/' +theDB.pico_id +'/' +rid, function (data) {
-                data.forEach(function (v) {
-                  v.pico_id = theDB.pico_id
-                  v.rid = rid
-                  v.canDel = rid !== 'io.picolabs.wrangler' && rid !== 'io.picolabs.visual_params'
-                  v.val = JSON.stringify(v.val)
-                })
-                $ul.html(rulesetVarsTemplate(data))
+            $.getJSON('/api/legacy-ui-get-vars/' + theDB.pico_id + '/' + rid, function (data) {
+              data.forEach(function (v) {
+                v.pico_id = theDB.pico_id
+                v.rid = rid
+                v.canDel = rid !== 'io.picolabs.wrangler' && rid !== 'io.picolabs.visual_params'
+                v.val = JSON.stringify(v.val)
               })
-              .fail(function(){
+              $ul.html(rulesetVarsTemplate(data))
+            })
+              .fail(function () {
                 $ul.html('<li style="color:red">Error loading vars</li>')
               })
           })
@@ -767,3 +767,38 @@ $(document).ready(function () {
     }
   })
 })
+
+function groupLogsByEpisode(logs){
+  var entries = []
+  logs.forEach(function(entry){
+    if(entry){
+      entries.push({
+        txn_id: entry.context.txn_id,
+        msg: entry.time + ' ['+entry.krl_level.toUpperCase() + '] ' +entry.msg,
+        time: new Date(entry.time)
+      })
+    }
+  })
+  entries.sort(function(a, b){
+    return a.time.getTime() - b.time.getTime()
+  })
+  var groups = {}
+  entries.forEach(function(entry){
+    if(!groups[entry.txn_id]){
+      groups[entry.txn_id] = []
+    }
+    groups[entry.txn_id].push(entry.msg)
+  })
+  var groupByHead = {}
+  Object.keys(groups).forEach(function(txnId){
+    var head = groups[txnId][0].replace(/\[EPISODE_START\]/, '|')
+    groupByHead[head] = groups[txnId]
+  })
+  var groupsSorted = {}
+  var groupOrder = Object.keys(groupByHead)
+  groupOrder.sort().reverse()
+  groupOrder.forEach(function(header){
+    groupsSorted[header] = groupByHead[header]
+  })
+  return groupsSorted
+}

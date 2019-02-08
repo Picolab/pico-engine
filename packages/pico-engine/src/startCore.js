@@ -78,7 +78,6 @@ var getSystemRulesets = util.promisify(function (callback) {
 })
 
 var setupLogging = function (pe, bunyanLog) {
-  var logs = {}
   var logRID = 'io.picolabs.logging'
 
   var krlLevelToBunyanLevel = function (level) {
@@ -95,7 +94,6 @@ var setupLogging = function (pe, bunyanLog) {
   var logEntry = function (level, message, context) {
     context = context || {}// "error" events may be missiong context, log it as far as possible
 
-    var episodeId = context.txn_id
     var timestamp = (new Date()).toISOString()
 
     if (!_.isString(message)) {
@@ -106,28 +104,28 @@ var setupLogging = function (pe, bunyanLog) {
       }
     }
 
-    bunyanLog[krlLevelToBunyanLevel(level)]({ krl_level: level, context: context }, message)
-
     // decide if we want to add the event attributes to the log message
     if (context.event && _.isString(message) && (false ||
-            message.startsWith('event received:') ||
-            message.startsWith('adding raised event to schedule:')
+      message.startsWith('event received:') ||
+      message.startsWith('adding raised event to schedule:')
     )) {
       message += ' attributes ' + toKRLjson(context.event.attrs)
     }
 
     // decide if we want to add the query arguments to the log message
     if (context.query &&
-            context.query.args &&
-            _.isString(message) &&
-            message.startsWith('query received:')
+      context.query.args &&
+      _.isString(message) &&
+      message.startsWith('query received:')
     ) {
       message += ' arguments ' + toKRLjson(context.query.args)
     }
 
+    bunyanLog[krlLevelToBunyanLevel(level)]({ krl_level: level, context: context }, message)
+
     var shellLog = ''
     shellLog += '[' + level.toUpperCase() + '] '
-    shellLog += episodeId + ' | '
+    shellLog += context.txn_id + ' | '
     shellLog += message
     if (shellLog.length > 300) {
       shellLog = shellLog.substring(0, 300) + '...'
@@ -137,49 +135,25 @@ var setupLogging = function (pe, bunyanLog) {
     } else {
       console.log(shellLog)
     }
-
-    var episode = logs[episodeId]
-    if (episode) {
-      episode.logs.push(timestamp + ' [' + level.toUpperCase() + '] ' + message)
-    } else {
-      console.error('[ERROR]', 'no episode found for', episodeId)
-    }
   }
 
   pe.emitter.on('episode_start', function (expression, context) {
-    var episodeId = context.txn_id
-
-    var shellLog = '[EPISODE_START] ' + episodeId + ' '
+    var message = ''
     if (context.event) {
-      shellLog += 'event' +
+      message += 'event' +
                 '/' + context.event.eci +
                 '/' + context.event.eid +
                 '/' + context.event.domain +
                 '/' + context.event.type
     } else if (context.query) {
-      shellLog += 'query' +
+      message += 'query' +
                 '/' + context.query.eci +
                 '/' + context.query.rid +
                 '/' + context.query.name
     } else {
-      shellLog += toKRLjson(context)
+      message += toKRLjson(context)
     }
-    console.log(shellLog)
-
-    var timestamp = (new Date()).toISOString()
-    var episode = logs[episodeId]
-    if (episode) {
-      console.error('[ERROR]', 'episode already exists for', episodeId)
-    } else {
-      episode = {}
-      episode.key = (
-        timestamp + ' - ' + episodeId +
-                    ' - ' + context.eci +
-                    ' - ' + ((context.event) ? context.event.eid : 'query')
-      ).replace(/[.]/g, '-')
-      episode.logs = []
-      logs[episodeId] = episode
-    }
+    logEntry('episode_start', message, context)
   })
 
   var logEntriesForLevel = function (level) {
@@ -204,36 +178,7 @@ var setupLogging = function (pe, bunyanLog) {
   })
 
   pe.emitter.on('episode_stop', function (expression, context) {
-    var picoId = context.pico_id
-    var episodeId = context.txn_id
-
-    console.log('[EPISODE_STOP]', episodeId)
-
-    var episode = logs[episodeId]
-    if (!episode) {
-      console.error('[ERROR]', 'no episode found for', episodeId)
-      return
-    }
-
-    var onRemoved = function (err) {
-      delete logs[episodeId]
-      if (err) {
-        console.error('[ERROR] failed to remove episode', episodeId, err + '')
-      }
-    }
-
-    pe.getEntVar(picoId, logRID, 'status')
-      .then(function (isLogsOn) {
-        if (!isLogsOn) {
-          onRemoved()
-          return
-        }
-        return pe.putEntVar(picoId, logRID, 'logs', episode.key, episode.logs)
-      })
-      .then(function () {
-        onRemoved()
-      })
-      .catch(onRemoved)
+    logEntry('episode_stop', '', context)
   })
 }
 
