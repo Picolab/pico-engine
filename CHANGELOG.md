@@ -1,3 +1,8 @@
+# 0.49.1 - February 8, 2019
+
+* logging tab now streams from log files - see [435](https://github.com/Picolab/pico-engine/issues/435)
+* dot operator syntax for module functions - see [428](https://github.com/Picolab/pico-engine/issues/428)
+
 # 0.49.0 - November 29, 2018
 
 * user defined `.` operators i.e. `a.b(c)` is syntax sugar for `b(a, c)` - see [171](https://github.com/Picolab/pico-engine/issues/171)
