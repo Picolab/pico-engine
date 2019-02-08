@@ -1,6 +1,6 @@
 {
   "name": "pico-engine-core",
-  "version": "0.49.0",
+  "version": "0.49.1",
   "description": "The core javascript api for the pico-engine. (no http, logging, process management etc...)",
   "main": "src/index.js",
   "files": [
@@ -38,7 +38,7 @@
     "cuid": "^2.1.4",
     "dependency-graph": "^0.7.0",
     "encoding-down": "^3.0.0",
-    "krl-compiler": "^0.49.0",
+    "krl-compiler": "^0.49.1",
     "krl-stdlib": "^0.49.0",
     "level-json-coerce-null": "^1.0.1",
     "levelup": "^2.0.0",
