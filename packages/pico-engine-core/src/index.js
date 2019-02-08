@@ -537,8 +537,6 @@ module.exports = function (conf) {
     uninstallRuleset: core.uninstallRuleset,
     removePico: db.removePico,
 
-    putEntVar: db.putEntVar,
-    getEntVar: db.getEntVar,
     delEntVar: db.delEntVar,
 
     dbRange: db.forRange // for legacy-ui api routes

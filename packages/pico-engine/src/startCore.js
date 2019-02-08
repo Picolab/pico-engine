@@ -78,8 +78,6 @@ var getSystemRulesets = util.promisify(function (callback) {
 })
 
 var setupLogging = function (pe, bunyanLog) {
-  var logRID = 'io.picolabs.logging'
-
   var krlLevelToBunyanLevel = function (level) {
     if (/error/.test(level)) {
       return 'error'
@@ -93,8 +91,6 @@ var setupLogging = function (pe, bunyanLog) {
 
   var logEntry = function (level, message, context) {
     context = context || {}// "error" events may be missiong context, log it as far as possible
-
-    var timestamp = (new Date()).toISOString()
 
     if (!_.isString(message)) {
       if (_.isError(message)) {

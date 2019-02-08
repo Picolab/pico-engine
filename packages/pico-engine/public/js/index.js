@@ -768,36 +768,36 @@ $(document).ready(function () {
   })
 })
 
-function groupLogsByEpisode(logs){
+function groupLogsByEpisode (logs) {
   var entries = []
-  logs.forEach(function(entry){
-    if(entry){
+  logs.forEach(function (entry) {
+    if (entry) {
       entries.push({
-        txn_id: entry.context.txn_id,
-        msg: entry.time + ' ['+entry.krl_level.toUpperCase() + '] ' +entry.msg,
+        txn_id: entry.txn_id,
+        msg: entry.time + ' [' + (entry.krl_level + '').toUpperCase() + '] ' + entry.msg,
         time: new Date(entry.time)
       })
     }
   })
-  entries.sort(function(a, b){
+  entries.sort(function (a, b) {
     return a.time.getTime() - b.time.getTime()
   })
   var groups = {}
-  entries.forEach(function(entry){
-    if(!groups[entry.txn_id]){
+  entries.forEach(function (entry) {
+    if (!groups[entry.txn_id]) {
       groups[entry.txn_id] = []
     }
     groups[entry.txn_id].push(entry.msg)
   })
   var groupByHead = {}
-  Object.keys(groups).forEach(function(txnId){
+  Object.keys(groups).forEach(function (txnId) {
     var head = groups[txnId][0].replace(/\[EPISODE_START\]/, '|')
     groupByHead[head] = groups[txnId]
   })
   var groupsSorted = {}
   var groupOrder = Object.keys(groupByHead)
   groupOrder.sort().reverse()
-  groupOrder.forEach(function(header){
+  groupOrder.forEach(function (header) {
     groupsSorted[header] = groupByHead[header]
   })
   return groupsSorted

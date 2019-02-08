@@ -46,6 +46,6 @@
   "dependencies": {
     "excerpt-at-line-col": "^1.0.0",
     "line-column": "^1.0.2",
-    "nearley": "^2.10.5"
+    "nearley": "2.15.1"
   }
 }

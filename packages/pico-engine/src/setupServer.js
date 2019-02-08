@@ -320,7 +320,12 @@ module.exports = function (pe, conf) {
         }
 
         // keep
-        res.write(JSON.stringify(entry, false, 2) + ',')
+        res.write(JSON.stringify({
+          time: entry.time,
+          krl_level: entry.krl_level,
+          txn_id: entry.context.txn_id,
+          msg: entry.msg
+        }) + ',')
         callback()
       }))
       .on('finish', () => {
@@ -328,7 +333,7 @@ module.exports = function (pe, conf) {
         res.end('null]')
       })
       .on('error', err => {
-        res.end('error')
+        res.end(err + '')
       })
   })
 
