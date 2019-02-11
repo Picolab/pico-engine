@@ -122,7 +122,7 @@ module.exports = function (core) {
           throw new Error('math:ceiling needs a number')
         }
 
-        return _.ceil(args.number,args.precision)
+        return _.ceil(args.number, args.precision)
       }),
 
       floor: mkKRLfn([
@@ -133,7 +133,7 @@ module.exports = function (core) {
           throw new Error('math:floor needs a number')
         }
 
-        return _.floor(args.number,args.precision)
+        return _.floor(args.number, args.precision)
       }),
 
       int: mkKRLfn([
@@ -143,7 +143,7 @@ module.exports = function (core) {
           throw new Error('math:int needs a number')
         }
 
-        return _.floor(Math.abs(args.number),0)
+        return _.floor(Math.abs(args.number), 0)
       }),
 
       round: mkKRLfn([
@@ -154,7 +154,7 @@ module.exports = function (core) {
           throw new Error('math:round needs a number')
         }
 
-        return _.round(args.number,args.precision)
+        return _.round(args.number, args.precision)
       })
 
     }
