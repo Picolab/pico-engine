@@ -102,6 +102,59 @@ module.exports = function (core) {
         hmac.update(message)
 
         return hmac.digest(encoding)
+      }),
+
+      abs: mkKRLfn([
+        'number'
+      ], function (ctx, args) {
+        if (!_.has(args, 'number')) {
+          throw new Error('math:abs needs a number')
+        }
+
+        return Math.abs(args.number)
+      }),
+
+      ceiling: mkKRLfn([
+        'number',
+        'precision'
+      ], function (ctx, args) {
+        if (!_.has(args, 'number')) {
+          throw new Error('math:ceiling needs a number')
+        }
+
+        return _.ceil(args.number,args.precision)
+      }),
+
+      floor: mkKRLfn([
+        'number',
+        'precision'
+      ], function (ctx, args) {
+        if (!_.has(args, 'number')) {
+          throw new Error('math:floor needs a number')
+        }
+
+        return _.floor(args.number,args.precision)
+      }),
+
+      int: mkKRLfn([
+        'number'
+      ], function (ctx, args) {
+        if (!_.has(args, 'number')) {
+          throw new Error('math:int needs a number')
+        }
+
+        return _.floor(Math.abs(args.number),0)
+      }),
+
+      round: mkKRLfn([
+        'number',
+        'precision'
+      ], function (ctx, args) {
+        if (!_.has(args, 'number')) {
+          throw new Error('math:round needs a number')
+        }
+
+        return _.round(args.number,args.precision)
       })
 
     }
