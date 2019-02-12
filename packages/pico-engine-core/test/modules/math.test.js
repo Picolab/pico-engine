@@ -53,4 +53,57 @@ test('module - math:*', async function (t) {
   )
   await terr('hmac', {}, [], 'Error: math:hmac needs a algorithm string')
   await terr('hmac', {}, ['foo', '', ''], 'Error: math:hmac doesn\'t recognize the hash algorithm foo')
+  t.is(
+    await kmath.abs({}, [0.46]), 0.46
+  )
+  t.is(
+    await kmath.abs({}, [-0.46]), 0.46
+  )
+  await terr('abs', {}, [], 'Error: math:abs needs a number')
+  t.is(
+    await kmath.ceiling({}, [0.46]), 1
+  )
+  t.is(
+    await kmath.ceiling({}, [-0.46]), -0
+  )
+  await terr('ceiling', {}, [], 'Error: math:ceiling needs a number')
+  t.is(
+    await kmath.floor({}, [0.46]), 0
+  )
+  t.is(
+    await kmath.floor({}, [-0.46]), -1
+  )
+  await terr('floor', {}, [], 'Error: math:floor needs a number')
+  t.is(
+    await kmath.int({}, [0.46]), 0
+  )
+  t.is(
+    await kmath.int({}, [-0.46]), 0
+  )
+  await terr('int', {}, [], 'Error: math:int needs a number')
+  t.is(
+    await kmath.round({}, [0.46]), 0
+  )
+  t.is(
+    await kmath.round({}, [-0.46]), -0
+  )
+  t.is(
+    await kmath.round({}, [-0.46, 1]), -0.5
+  )
+  t.is(
+    await kmath.round({}, [4066, 0]), 4066
+  )
+  t.is(
+    await kmath.round({}, [4066, -1]), 4070
+  )
+  t.is(
+    await kmath.round({}, [4066, -2]), 4100
+  )
+  t.is(
+    await kmath.round({}, [4066, -3]), 4000
+  )
+  t.is(
+    await kmath.round({}, [4066, -4]), 0
+  )
+  await terr('round', {}, [], 'Error: math:round needs a number')
 })
