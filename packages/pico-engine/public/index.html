@@ -293,9 +293,6 @@
     <script id="logging-template" type="text/x-handlebars-template">
       <div>
       Logging
-      {{#if error}}
-        <div style="color:red">{{error}}</div>
-      {{/if}}
       {{#if disabled}}
         is disabled.
         To enable, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rid=io.picolabs.logging">install</a> the "io.picolabs.logging" ruleset
@@ -306,6 +303,9 @@
           <input id="logging-on" type="radio" name="status" value="on"{{#if status}} checked=""{{/if}}>
           <label for="logging-on"> On </label>
         </span>
+      {{#if error}}
+        <div style="color:red">{{error}}</div>
+      {{/if}}
         <div id="logging-list">
           <p>
             Select an episode to see the log entries for that episode.
@@ -333,6 +333,7 @@
             <li>
                 <input type="checkbox" id="testing-{{@index}}">
                 <label class="krlrid" for="testing-{{@index}}">{{this.rid}}</label>
+                {{#if loggingoff}}[logging off]{{/if}}
                 <a href="javascript:window.open('ruleset.html#{{this.rid}}','ruleset');void 0">edit</a>
             </li>
           {{/each}}

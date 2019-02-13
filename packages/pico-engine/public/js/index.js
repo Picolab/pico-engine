@@ -185,7 +185,7 @@ $(document).ready(function () {
         var testing = []
         eci = findEciById(thePicoInp.id)
         for (rid in thePicoInp.ruleset) {
-          testing.push({ rid: rid })
+          testing.push({ rid: rid, loggingoff: (rid==='logging' ? true : null) })
         }
         callback(null, { pico_id: thePicoInp.id, eci: eci, testing: testing })
       } else if (tabName === 'channels') {

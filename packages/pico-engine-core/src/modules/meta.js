@@ -26,6 +26,9 @@ var getCoreCTXval = {
   'rulesetAuthor': function (core, ctx) {
     return _.get(core.rsreg.get(ctx.rid), ['meta', 'author'])
   },
+  'rulesetLogging': function (core, ctx) {
+    return _.get(core.rsreg.get(ctx.rid), ['meta', 'logging']) || false
+  },
   'ruleName': function (core, ctx) {
     return ctx.rule_name
   },
