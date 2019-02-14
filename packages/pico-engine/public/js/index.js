@@ -170,7 +170,10 @@ $(document).ready(function () {
         theLoggingOut.pico_id = thePicoInp.id
         if (get(dbDump, ['pico', thePicoInp.id, 'ruleset', 'io.picolabs.logging', 'on'])) {
           $.getJSON('/api/legacy-ui-get-vars/' + thePicoInp.id + '/io.picolabs.logging', function (data) {
-            theLoggingOut.status = data[0].val // ASSUMES status is only entity var
+            var ent_status = data.find(function(o){
+              return o.name === 'status'
+            })
+            theLoggingOut.status = ent_status.val
             if (theLoggingOut.status) {
               $.getJSON('/api/pico/' + thePicoInp.id + '/logs', function (data) {
                 theLoggingOut.logs = groupLogsByEpisode(data)
