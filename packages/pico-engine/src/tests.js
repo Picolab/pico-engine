@@ -440,7 +440,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         next()
       })
     },
-    function (next) { // attempt to install logging & subscriptions
+    function (next) { // attempt to install logging & rewrite
       console.log('//////////////////Install two rulesets //////////////////')
       pe.signalEvent({
         eci: rootEci,
@@ -482,7 +482,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         next()
       })
     },
-    function (next) { // attempt to Un-install logging & subscriptions
+    function (next) { // attempt to Un-install logging & rewrite
       console.log('////////////////// Un-Install two rulesets //////////////////')
       pe.signalEvent({
         eci: rootEci,

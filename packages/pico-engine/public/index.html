@@ -118,7 +118,7 @@
               <li>Channels</li>
               <li>Policies</li>
               <li>Subscriptions</li>
-              <li>Logging</li>
+              <li id="loggingTab-{{id}}">Logging</li>
               <li>Testing</li>
             </ul>
             <div class="pico-section"></div>
@@ -303,9 +303,9 @@
           <input id="logging-on" type="radio" name="status" value="on"{{#if status}} checked=""{{/if}}>
           <label for="logging-on"> On </label>
         </span>
-      {{#if error}}
-        <div style="color:red">{{error}}</div>
-      {{/if}}
+        {{#if error}}
+          <div style="color:red">{{error}}</div>
+        {{/if}}
         <div id="logging-list">
           <p>
             Select an episode to see the log entries for that episode.
@@ -322,8 +322,8 @@
               {{/each}}
             </ul>
           {{/if}}
-        </div>
       {{/if}}
+      </div>
     </script>
     <script id="testing-template" type="text/x-handlebars-template">
       <div style="float:left;width:40%;height:100%">

@@ -169,12 +169,22 @@ $(document).ready(function () {
         theLoggingOut.eci = eci
         theLoggingOut.pico_id = thePicoInp.id
         if (get(dbDump, ['pico', thePicoInp.id, 'ruleset', 'io.picolabs.logging', 'on'])) {
-          theLoggingOut.status = true
-          $.getJSON('/api/pico/' + thePicoInp.id + '/logs', function (data) {
-            theLoggingOut.logs = groupLogsByEpisode(data)
-            callback(null, theLoggingOut)
-          }).fail(function (err) {
-            theLoggingOut.error = 'Failed to get data'
+          $.getJSON('/api/legacy-ui-get-vars/' + thePicoInp.id + '/io.picolabs.logging', function (data) {
+            theLoggingOut.status = data[0].val // ASSUMES status is only entity var
+            if (theLoggingOut.status) {
+              $.getJSON('/api/pico/' + thePicoInp.id + '/logs', function (data) {
+                theLoggingOut.logs = groupLogsByEpisode(data)
+                callback(null, theLoggingOut)
+              }).fail(function (err) {
+                theLoggingOut.error = 'Failed to get data'
+                callback(null, theLoggingOut)
+              })
+            } else {
+              callback(null, theLoggingOut)
+            }
+          }).fail(function(err){
+            theLoggingOut.status = false
+            theLoggingOut.error = 'Failed to get status'
             callback(null, theLoggingOut)
           })
         } else {
@@ -443,26 +453,30 @@ $(document).ready(function () {
           d = theDB.pico_id + '-Policies'
           location.hash = d
         } else if (tabName === 'logging') {
+          if (theDB.status) {
+            $('#logging-list').show()
+          }
+          d = theDB.pico_id + '-Logging'
+          location.hash = d
+          tabId = '#loggingTab-' + theDB.pico_id
           $('#logging-on').click(function () {
             $.getJSON(
               '/sky/event/' + theDB.eci + '/logging-on/picolog/begin',
               function () {
+                $(tabId).trigger('click')
                 $('#logging-list').fadeIn()
               }
             )
           })
-          if (theDB.status) {
-            $('#logging-list').show()
-          }
           $('#logging-off').click(function () {
             $('#logging-list').hide()
             $.getJSON(
-              '/sky/event/' + theDB.eci + '/logging-on/picolog/reset',
-              function () {}
+              '/sky/event/' + theDB.eci + '/logging-off/picolog/reset',
+              function () {
+                $(tabId).trigger('click')
+              }
             )
           })
-          d = theDB.pico_id + '-Logging'
-          location.hash = d
         }
         $theSection.find('.js-ajax-form').submit(function (e) {
           e.preventDefault()

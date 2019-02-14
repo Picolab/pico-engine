@@ -1,19 +1,13 @@
 ruleset io.picolabs.logging {
   meta {
-    shares __testing, getLogs
+    shares __testing
   }
   global {
-    __testing = { "queries": [ { "name": "__testing" },
-                               { "name": "getLogs" } ],
+    __testing = { "queries": [ { "name": "__testing" } ],
                   "events": [ { "domain": "picolog", "type": "reset" },
                               { "domain": "picolog", "type": "begin" },
                               { "domain": "picolog", "type": "prune",
                                 "attrs": [ "leaving" ] } ] }
-
-    getLogs = function() {
-      { "status": ent:status,
-        "logs": ent:logs }
-    }
   }
 
   rule picolog_reset {
@@ -21,16 +15,6 @@ ruleset io.picolabs.logging {
     noop()
     fired {
       ent:status := false;
-      raise picolog event "empty" attributes {}
-    }
-  }
-
-  rule picolog_empty {
-    select when picolog empty
-    noop()
-    fired {
-      ent:logs := {};
-      raise picolog event "emptied" attributes {}
     }
   }
 
@@ -42,26 +26,9 @@ ruleset io.picolabs.logging {
     }
   }
 
-  rule picolog_prune {
-    select when picolog prune
-    pre {
-      episodes = ent:logs.keys()
-      old_size = episodes.length()
-      remove = old_size - event:attr("leaving")
-      keys_to_remove = remove <= 0 || remove > old_size
-                         => []
-                          | episodes.slice(remove - 1)
-    }
-    if keys_to_remove.length() > 0 then noop()
-    fired {
-      ent:logs := ent:logs.filter(function(v,k){not (keys_to_remove >< k)})
-    }
-  }
-
   rule pico_ruleset_added {
     select when wrangler ruleset_added where event:attr("rids") >< meta:rid
     fired {
-      ent:logs := {};
       ent:status := true;
     }
   }
