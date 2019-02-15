@@ -117,7 +117,7 @@ var setupLogging = function (pe, bunyanLog) {
       message += ' arguments ' + toKRLjson(context.query.args)
     }
 
-    if (context.rid === 'logging') {
+    if (/logging$/.test(context.rid)) {
     } else {
       bunyanLog[krlLevelToBunyanLevel(level)]({ krl_level: level, context: context }, message)
     }
