@@ -5,11 +5,10 @@ ruleset io.picolabs.logging {
   }
   global {
     __testing = { "queries": [ { "name": "__testing" },
-                               { "name": "fmtLogs", "args": [ "limit" ] } ],
+                               { "name": "fmtLogs" } ],
                   "events": [ { "domain": "picolog", "type": "reset" },
                               { "domain": "picolog", "type": "begin" } ] }
-    fmtLogs = function(limit){
-      howMany = math:int(limit.as("Number")).klog("howMany");
+    fmtLogs = function(){
       episode_line = function(x,i){
         level = x{"krl_level"}.uc();
         x{"time"}+" | [" + level + "] "+x{"msg"}
@@ -22,16 +21,14 @@ ruleset io.picolabs.logging {
         )
       };
       url = meta:host+"/api/pico/"+meta:picoId+"/logs";
-      logs = http:get(url.klog("url")){"content"}
+      http:get(url){"content"}
         .decode()
         .filter(function(x){x})
         .sort(function(a,b){a{"time"} cmp b{"time"}})
         .collect(function(x){x{"txn_id"}})
         .map(episode)
         .values()
-        .reverse();
-      klog(logs.length(),"logs.length()");
-      logs.filter(function(x,i){i<howMany})
+        .reverse()
         .reduce(function(a,x){a.put(x)},{})
     }
   }

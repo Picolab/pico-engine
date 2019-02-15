@@ -175,8 +175,17 @@ $(document).ready(function () {
             })
             theLoggingOut.status = ent_status ? ent_status.val : false
             if (theLoggingOut.status) {
-              $.getJSON('/sky/cloud/' + eci + '/io.picolabs.logging/fmtLogs?limit=12', function (data) {
-                theLoggingOut.logs = data
+              var episode_limit = $('#episode_limit').val() || 10
+              $.getJSON('/sky/cloud/' + eci + '/io.picolabs.logging/fmtLogs?limit='+episode_limit, function (data) {
+                var episode_keys = data ? Object.keys(data) : []
+                theLoggingOut.episode_count = episode_keys.length
+                if (episode_keys.length > episode_limit) {
+                  episode_keys.length = episode_limit
+                }
+                theLoggingOut.logs = {}
+                episode_keys.forEach(function (key) {
+                  theLoggingOut.logs[key] = data[key]
+                })
                 callback(null, theLoggingOut)
               }).fail(function (err) {
                 theLoggingOut.error = 'Failed to get data'
@@ -458,6 +467,9 @@ $(document).ready(function () {
         } else if (tabName === 'logging') {
           if (theDB.status) {
             $('#logging-list').show()
+            if (theDB.logs) {
+              $('#episode_limit').val(Object.keys(theDB.logs).length)
+            }
           }
           d = theDB.pico_id + '-Logging'
           location.hash = d

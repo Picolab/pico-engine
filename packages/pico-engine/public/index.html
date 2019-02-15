@@ -303,6 +303,12 @@
           <input id="logging-on" type="radio" name="status" value="on"{{#if status}} checked=""{{/if}}>
           <label for="logging-on"> On </label>
         </span>
+        <span style="padding-left:1em">
+        {{#if status}}
+          limited to <input id="episode_limit" size="2"> episodes
+          (of {{episode_count}} from the last 12 hours).
+        {{/if}}
+        </span>
         {{#if error}}
           <div style="color:red">{{error}}</div>
         {{/if}}
