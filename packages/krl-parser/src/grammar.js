@@ -1225,7 +1225,9 @@ var grammar = {
     {"name": "Argument_list", "symbols": ["Argument_list_body", "Argument_list$ebnf$1"], "postprocess": id},
     {"name": "Argument_list_body", "symbols": ["Argument"], "postprocess": idArr},
     {"name": "Argument_list_body", "symbols": ["Argument_list_body", tok_COMMA, "Argument"], "postprocess": concatArr(2)},
-    {"name": "Array", "symbols": [tok_OPEN_SQARE, "Expression_list", tok_CLSE_SQARE], "postprocess": 
+    {"name": "Array$ebnf$1", "symbols": [tok_COMMA], "postprocess": id},
+    {"name": "Array$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Array", "symbols": [tok_OPEN_SQARE, "Expression_list", "Array$ebnf$1", tok_CLSE_SQARE], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
@@ -1234,7 +1236,9 @@ var grammar = {
           };
         }
         },
-    {"name": "Map", "symbols": [tok_OPEN_CURLY, "Map_body", tok_CLSE_CURLY], "postprocess": 
+    {"name": "Map$ebnf$1", "symbols": [tok_COMMA], "postprocess": id},
+    {"name": "Map$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Map", "symbols": [tok_OPEN_CURLY, "Map_body", "Map$ebnf$1", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),

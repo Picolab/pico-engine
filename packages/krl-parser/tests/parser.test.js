@@ -712,6 +712,17 @@ test('literals', function (t) {
       { type: 'Boolean', value: false }
     ] })
 
+  // allow dangling comma
+  testLiteral('[ 1, ]', { type: 'Array', value: [ { type: 'Number', value: 1 } ] })
+  testLiteral('{ "one" : "two", }', { type: 'Map',
+    value: [
+      {
+        type: 'MapKeyValuePair',
+        key: { type: 'String', value: 'one' },
+        value: { type: 'String', value: 'two' }
+      }
+    ] })
+
   testLiteral('{}', { type: 'Map', value: [] })
   testLiteral('{ "one" : "two" }', { type: 'Map',
     value: [
