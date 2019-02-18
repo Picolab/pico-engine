@@ -591,15 +591,15 @@ stdlib.pairwise = async function (ctx, val, iter) {
   return r
 }
 stdlib.reduce = async function (ctx, val, iter, dflt) {
-  if (!types.isArray(val)) {
-    val = [val]
+  if (!types.isArrayOrMap(val)) {
+    throw new TypeError(`.reduce() only works on Arrays and Maps`)
   }
   var noDefault = arguments.length < 4
-  if (val.length === 0) {
-    return noDefault ? 0 : dflt
+  if (_.size(val) === 0) {
+    return dflt
   }
-  if (!types.isFunction(iter) && (noDefault || val.length > 1)) {
-    throw new Error('The .reduce() operator cannot use ' + types.toString(iter) + ' as a function')
+  if (!types.isFunction(iter) && (noDefault || _.size(val) > 1)) {
+    throw new TypeError('The .reduce() operator cannot use ' + types.toString(iter) + ' as a function')
   }
   if (val.length === 1) {
     var head = val[0]

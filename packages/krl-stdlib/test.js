@@ -657,10 +657,14 @@ test('collection operators', async function (t) {
   await ytf('reduce', [a, function (a, b) { return a + b }, 10], 22)
   await ytf('reduce', [a, function (a, b) { return a - b }], -6)
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
-  await ytf('reduce', [[], fnDontCall], 0)
-  await ytf('reduce', [[], fnDontCall, void 0], void 0)
-  await ytf('reduce', [76, fnDontCall], 76)
-  await ytf('reduce', [null, function (a, b) { return a + b }, '76'], '76null')
+  await ytf('reduce', [{ a: 1, b: 2, c: 10 }, function (a, b) { return a + b }], 13)
+  await ytf('reduce', [{ a: 1, b: 2, c: 10 }, function (a, val, key) {
+    return a.concat(key + val)
+  }, []], ['a1', 'b2', 'c10' ])
+  await ytf('reduce', [[], fnDontCall], void 0)
+  await ytf('reduce', [[], fnDontCall, 'default'], 'default')
+  await ytf('reduce', [{}, fnDontCall, 'default'], 'default')
+  await ytfe('reduce', [76, fnDontCall], 'TypeError')
 
   tf('reverse', [a], [5, 4, 3])
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
