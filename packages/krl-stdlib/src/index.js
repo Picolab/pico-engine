@@ -158,7 +158,7 @@ stdlib.cmp = function (ctx, left, right) {
 //
 // Operators
 //
-stdlib.as = function (ctx, val, type) {
+stdlib.as = function (ctx, val, type, extra) {
   if (arguments.length < 3) {
     return val
   }
@@ -188,7 +188,7 @@ stdlib.as = function (ctx, val, type) {
         .replace(/^\[/, '\\[')
         .replace(/\]$/, '\\]')
     }
-    return new RegExp(regexSrc)
+    return new RegExp(regexSrc, extra)
   }
   throw new TypeError('Cannot use the .as("' + type + '") operator with ' + types.toString(val) + ' (type ' + valType + ')')
 }

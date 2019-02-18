@@ -256,6 +256,9 @@ test('type operators', function (t) {
   t.is(stdlib.as(defaultCTX, 123, 'RegExp').source, '123')
   t.is(stdlib.as(defaultCTX, _.noop, 'RegExp').source, '\\[Function\\]')
   t.is(stdlib.as(defaultCTX, '[Function]', 'RegExp').source, '[Function]')
+  t.is(stdlib.as(defaultCTX, 'a', 'RegExp', 'i') + '', '/a/i')
+  t.is(stdlib.as(defaultCTX, 'a', 'RegExp', 'g') + '', '/a/g')
+  t.is(stdlib.as(defaultCTX, 'a', 'RegExp', 'ig') + '', '/a/gi')
 
   var testRegex = /^a.*z$/
   tf('as', [testRegex, 'RegExp'], testRegex)
