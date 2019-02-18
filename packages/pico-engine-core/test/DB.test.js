@@ -174,7 +174,7 @@ test("DB - read keys that don't exist", async function (t) {
 test('DB - getRootPico', async function (t) {
   var db = mkTestDB()
 
-  let err = await t.throws(db.getRootPico())
+  let err = await t.throwsAsync(db.getRootPico())
   t.truthy(err.notFound)
 
   await db.newChannel({ pico_id: 'foo', name: 'bar', type: 'baz' })
@@ -405,7 +405,7 @@ test('DB - getPicoIDByECI', async function (t) {
   t.is(await db.getPicoIDByECI('id4'), 'id0')
   t.is(await db.getPicoIDByECI('id5'), 'id2')
 
-  let err = await t.throws(db.getPicoIDByECI('bad-id'))
+  let err = await t.throwsAsync(db.getPicoIDByECI('bad-id'))
   t.truthy((err && err.notFound) === true)
 })
 
