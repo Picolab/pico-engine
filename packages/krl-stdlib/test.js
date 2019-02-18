@@ -457,7 +457,6 @@ test('collection operators', async function (t) {
   var ytfm = _.partial(ytfMatrix, ytf)
 
   var a = [3, 4, 5]
-  var b = null
   var c = []
 
   var obj = {
@@ -502,16 +501,6 @@ test('collection operators', async function (t) {
   ])
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
 
-  await ytfm(b, [
-    function (x) { return stdlib.isnull({}, x) }, // 1
-    action // 2
-  ], [ // 1      2
-    ['all', true, false],
-    ['notall', false, true],
-    ['any', true, false],
-    ['none', false, true]
-  ])
-
   await ytfm(c, [
     fnDontCall, // 1
     action // 2
@@ -529,8 +518,8 @@ test('collection operators', async function (t) {
   tf('append', [a, [6]], [3, 4, 5, 6])
   tf('append', [a, [[]]], [3, 4, 5, []])
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
-  tf('append', [b, []], [null])
-  tf('append', [b], [null])
+  tf('append', [null, []], [null])
+  tf('append', [null], [null])
   tf('append', [c, []], [])
   tf('append', [c], [])
   tf('append', [c, [[]]], [[]])
@@ -553,50 +542,50 @@ test('collection operators', async function (t) {
     'x': [4, 3, 2, 1],
     'y': [7, 5, 6]
   })
-  await ytf('collect', [null, collectFn], { 'x': [null] })
+  await ytfe('collect', [null, collectFn], 'TypeError')
   await ytf('collect', [[], fnDontCall], {})
-  await ytf('collect', [[7]], {})
-  await ytf('collect', [[7], action], {})
+  await ytfe('collect', [[7]], 'TypeError')
+  await ytf('collect', [[7], (a) => 'foo'], { foo: [7] })
+  await ytf('collect', [{ foo: 'bar', baz: 'qux' }, (val, key) => key + val], { foobar: ['bar'], bazqux: ['qux'] })
   // map tests
 
   await ytf('filter', [a, function (x) { return x < 5 }], [3, 4])
   await ytf('filter', [a, function (x) { return x > 5 }], [])
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
-  await ytf('filter', [b, function (x) { return stdlib.isnull({}, x) }], [null])
+  await ytfe('filter', [null, function (x) {}], 'TypeError')
   await ytf('filter', [c, fnDontCall], [])
   t.deepEqual(c, [], 'should not be mutated')
   await ytf('filter', [obj2, function (v, k) { return v < 3 }], { 'a': 1, 'b': 2 })
   await ytf('filter', [obj2, function (v, k) { return k === 'b' }], { 'b': 2 })
   assertObjNotMutated()
-  await ytf('filter', [b, action], null)
 
   tf('head', [a], 3)
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
   tf('head', [[null, {}]], null)
-  tf('head', ['string'], 'string')
-  tf('head', [{ '0': null }], { '0': null })
+  tf('head', ['string'], 's')
+  tf('head', [{ '0': null }], null)
   tf('head', [[]], void 0)
 
   tf('tail', [a], [4, 5])
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
   tf('tail', [obj], [])
   assertObjNotMutated()
-  tf('tail', ['string'], [])
+  tf('tail', ['string'], 'tring')
 
-  tf('index', [a, 5], 2)
+  await ytf('index', [a, 5], 2)
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
-  tf('index', [b, NaN], 0)
-  tf('index', [obj, 'colors'], -1)
-  tf('index', [obj2, 2], -1)
+  await ytfe('index', [null, NaN], 'TypeError')
+  await ytf('index', [obj, 'colors'], -1)
+  await ytf('index', [obj2, 2], 'b')
   assertObjNotMutated()
-  tf('index', [c], -1)
+  await ytf('index', [c], -1)
   t.deepEqual(c, [], 'should not be mutated')
-  tf('index', [[[[0], 0], [0, [0]], [[0], 0], [0, [0]]], [0, [0]]], 1)
+  await ytf('index', [[[[0], 0], [0, [0]], [[0], 0], [0, [0]]], [0, [0]]], 1)
 
   tf('join', [a, ';'], '3;4;5')
   tf('join', [a], '3,4,5', 'default to ,')
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
-  tf('join', [b], 'null')
+  tf('join', [null], 'null')
   tf('join', [NaN], 'null')
   tf('join', [c, action], '')
   t.deepEqual(c, [], 'should not be mutated')
@@ -624,13 +613,11 @@ test('collection operators', async function (t) {
 
   await ytf('map', [a, function (x) { return x + 2 }], [5, 6, 7])
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
-  await ytf('map', [[3, 4, void 0]], [3, 4, void 0])
-  await ytf('map', [b, function (x) { return x + '2' }], ['null2'])
-  await ytf('map', [action, action], action)
-  t.true(types.isAction(action), 'should not be mutated')
+  await ytfe('map', [[3, 4, void 0]], 'TypeError')
+  await ytfe('map', [null, function (x) { return x + '2' }], 'TypeError')
   await ytf('map', [c, fnDontCall], [])
   t.deepEqual(c, [], 'should not be mutated')
-  await ytf('map', ['012', function (x) { return x + '1' }], ['0121'], 'KRL strings are not arrays')
+  await ytfe('map', ['012', function (x) { return x + '1' }], 'TypeError', 'KRL strings are not arrays')
 
   await ytf('map', [{}, fnDontCall], {})
   await ytf('map', [obj2, function (v, k) { return v + k }], { 'a': '1a', 'b': '2b', 'c': '3c' })
@@ -663,7 +650,7 @@ test('collection operators', async function (t) {
   await ytf('reduce', [{ a: 1, b: 2, c: 10 }, function (a, b) { return a + b }], 13)
   await ytf('reduce', [{ a: 1, b: 2, c: 10 }, function (a, val, key) {
     return a.concat(key + val)
-  }, []], ['a1', 'b2', 'c10' ])
+  }, []], ['a1', 'b2', 'c10'])
   await ytf('reduce', [[], fnDontCall], void 0)
   await ytf('reduce', [[], fnDontCall, 'default'], 'default')
   await ytf('reduce', [{}, fnDontCall, 'default'], 'default')
@@ -680,7 +667,7 @@ test('collection operators', async function (t) {
   tf('slice', [veggies, 0, 0], ['corn'])
   tf('slice', [veggies, null, NaN], ['corn'])
   tf('slice', [[], 0, 0], [])
-  tf('slice', [{ '0': '0' }, 0, 0], [{ '0': '0' }])
+  tfe('slice', [{ '0': '0' }, 0, 0], 'TypeError')
   tfe('slice', [veggies, _.noop], 'TypeError')
   tfe('slice', [veggies, 1, _.noop], 'TypeError')
   tfe('slice', [veggies, -1, _.noop], 'TypeError')
@@ -706,11 +693,11 @@ test('collection operators', async function (t) {
   tf('splice', [veggies, 0, -999], [])
   tf('splice', [veggies, -1, 0], veggies)
   tf('splice', [veggies, -999, 0], veggies)
-  tf('splice', [void 0, 0, 0], [void 0])
+  tfe('splice', [void 0, 0, 0], 'TypeError')
   t.deepEqual(veggies, ['corn', 'tomato', 'tomato', 'tomato', 'sprouts', 'lettuce', 'sprouts'], 'should not be mutated')
 
   var toSort = [5, 3, 4, 1, 12]
-  await ytf('sort', [null, 'numeric'], null)
+  await ytfe('sort', [null, 'numeric'], 'TypeError')
   await ytf('sort', [toSort], [1, 12, 3, 4, 5])
   await ytf('sort', [toSort, action], [1, 12, 3, 4, 5])
   await ytf('sort', [toSort, 'default'], [1, 12, 3, 4, 5])
@@ -1001,15 +988,15 @@ test('collection operators', async function (t) {
   tf('has', [[]], true)
 
   tf('once', [[1, 2, 1, 3, 4, 4]], [2, 3])
-  tf('once', [{ 'a': void 0 }], { 'a': void 0 })
+  tfe('once', [{ 'a': void 0 }], 'TypeError')
   tf('once', [[1, NaN, 'a']], [1, null, 'a'])
 
   tf('duplicates', [[1, 2, 1, 3, 4, 4]], [1, 4])
-  tf('duplicates', [{ '0': 1, '1': 1 }], [])
+  tfe('duplicates', [{ '0': 1, '1': 1 }], 'TypeError')
   tf('duplicates', [[1, 3, null, NaN, void 0, 3]], [3, null])
 
   tf('unique', [[1, 2, 1, [3], [4], [4]]], [1, 2, [3], [4]])
-  tf('unique', [{ '0': 1, '1': 1 }], { '0': 1, '1': 1 })
+  tfe('unique', [{ '0': 1, '1': 1 }], 'TypeError')
 })
 
 test('klog', function (t) {

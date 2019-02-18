@@ -23,7 +23,7 @@ var iterBase = async function (val, iter) {
       shouldContinue = await iter(val[i], i, val)
       if (!shouldContinue) break
     }
-  } else {
+  } else if (types.isMap(val)) {
     var key
     for (key in val) {
       if (_.has(val, key)) {
@@ -31,6 +31,8 @@ var iterBase = async function (val, iter) {
         if (!shouldContinue) break
       }
     }
+  } else {
+    throw new TypeError(types.toString(val) + ' is not an Array or Map')
   }
 }
 
@@ -135,7 +137,7 @@ stdlib['><'] = function (ctx, obj, val) {
   } else {
     keys = [obj]
   }
-  return stdlib.index(ctx, keys, val) >= 0
+  return _.findIndex(keys, (k) => types.isEqual(k, val)) >= 0
 }
 
 stdlib.like = function (ctx, val, regex) {
@@ -404,12 +406,6 @@ stdlib.contains = function (ctx, val, target) {
 // Collection operators//////////////////////////////////////////////////////////
 // NOTE: all KRL functions are async
 stdlib.all = async function (ctx, val, iter) {
-  if (!types.isArray(val)) {
-    val = [val]
-  }
-  if (!types.isFunction(iter)) {
-    return val.length === 0
-  }
   var broke = false
   await iterBase(val, async function (v, k, obj) {
     var r = await iter(ctx, [v, k, obj])
@@ -428,12 +424,6 @@ stdlib.notall = function (ctx, val, iter) {
     })
 }
 stdlib.any = async function (ctx, val, iter) {
-  if (!types.isFunction(iter)) {
-    return false
-  }
-  if (!types.isArray(val)) {
-    val = [val]
-  }
   var broke = false
   await iterBase(val, async function (v, k, obj) {
     var r = await iter(ctx, [v, k, obj])
@@ -454,14 +444,7 @@ stdlib.none = function (ctx, val, iter) {
 stdlib.append = function (ctx, val, others) {
   return _.concat.apply(void 0, _.tail(_.toArray(arguments)))
 }
-// works for arrays (documented) and maps (undocumented)
 stdlib.collect = async function (ctx, val, iter) {
-  if (!types.isFunction(iter)) {
-    return {}
-  }
-  if (!types.isArrayOrMap(val)) {
-    val = [val]
-  }
   var grouped = {}
   await iterBase(val, async function (v, k, obj) {
     var r = await iter(ctx, [v, k, obj])
@@ -474,13 +457,7 @@ stdlib.collect = async function (ctx, val, iter) {
   return grouped
 }
 stdlib.filter = async function (ctx, val, iter) {
-  if (!types.isFunction(iter)) {
-    return val
-  }
-  var isArr = !types.isMap(val)
-  if (isArr && !types.isArray(val)) {
-    val = [val]
-  }
+  var isArr = types.isArray(val)
   var rslt = isArr ? [] : {}
   await iterBase(val, async function (v, k, obj) {
     var r = await iter(ctx, [v, k, obj])
@@ -496,25 +473,33 @@ stdlib.filter = async function (ctx, val, iter) {
   return rslt
 }
 stdlib.head = function (ctx, val) {
-  if (!types.isArray(val)) {
-    return val // head is for arrays; pretend val is a one-value array
+  if (!types.isArray(val) && !types.isString(val)) {
+    return null
   }
   return val[0]
 }
 stdlib.tail = function (ctx, val) {
-  if (!types.isArray(val)) {
-    return []
+  if (types.isArray(val)) {
+    return val.slice(1)
   }
-  return _.tail(val)
+  if (types.isString(val)) {
+    return val.substring(1)
+  }
+  return []
 }
-stdlib.index = function (ctx, val, elm) {
-  if (arguments.length < 3) {
-    return -1
+stdlib.index = async function (ctx, val, elm, isEq) {
+  if (!isEq) {
+    isEq = types.isEqual
   }
-  if (!types.isArray(val)) {
-    val = [val]
-  }
-  return _.findIndex(val, _.partial(types.isEqual, elm))
+  var match = -1
+  await iterBase(val, async function (v, k, obj) {
+    if (await isEq(v, elm)) {
+      match = k
+      return false// stop
+    }
+    return true
+  })
+  return match
 }
 stdlib.join = function (ctx, val, str) {
   if (!types.isArray(val)) {
@@ -536,13 +521,7 @@ stdlib.isEmpty = function (ctx, val) {
   return _.isEmpty(val)
 }
 stdlib.map = async function (ctx, val, iter) {
-  if (!types.isFunction(iter)) {
-    return val
-  }
-  var isArr = !types.isMap(val)
-  if (isArr && !types.isArray(val)) {
-    val = [val]
-  }
+  var isArr = types.isArray(val)
   var rslt = isArr ? [] : {}
   await iterBase(val, async function (v, k, obj) {
     var r = await iter(ctx, [v, k, obj])
@@ -629,7 +608,7 @@ stdlib.reverse = function (ctx, val) {
 }
 stdlib.slice = function (ctx, val, start, end) {
   if (!types.isArray(val)) {
-    val = [val]
+    throw new TypeError('.slice() only works on Arrays')
   } else if (val.length === 0) {
     return []
   }
@@ -662,7 +641,7 @@ stdlib.slice = function (ctx, val, start, end) {
 }
 stdlib.splice = function (ctx, val, start, nElements, value) {
   if (!types.isArray(val)) {
-    val = [val]
+    throw new TypeError('.splice() only works on Arrays')
   } else if (val.length === 0) {
     return []
   }
@@ -688,7 +667,7 @@ stdlib.splice = function (ctx, val, start, nElements, value) {
 }
 stdlib.sort = function (ctx, val, sortBy) {
   if (!types.isArray(val)) {
-    return val
+    throw new TypeError('.sort() only works on Arrays')
   }
   val = _.cloneDeep(val)
   var sorters = {
@@ -844,13 +823,13 @@ stdlib.has = function (ctx, val, other) {
     return true
   }
   if (!types.isArray(val)) {
-    val = [val]
+    throw new TypeError('.has() only works on Arrays')
   }
   return stdlib.difference(ctx, other, val).length === 0
 }
 stdlib.once = function (ctx, val) {
   if (!types.isArray(val)) {
-    return val
+    throw new TypeError('.once() only works on Arrays')
   }
   // TODO optimize
   val = types.cleanNulls(val)
@@ -864,7 +843,7 @@ stdlib.once = function (ctx, val) {
 }
 stdlib.duplicates = function (ctx, val) {
   if (!types.isArray(val)) {
-    return []
+    throw new TypeError('.duplicates() only works on Arrays')
   }
   // TODO optimize
   val = types.cleanNulls(val)
@@ -879,7 +858,7 @@ stdlib.duplicates = function (ctx, val) {
 
 stdlib.unique = function (ctx, val) {
   if (!types.isArray(val)) {
-    return val
+    throw new TypeError('.unique() only works on Arrays')
   }
   return _.uniqWith(val, types.isEqual)
 }

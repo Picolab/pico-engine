@@ -386,7 +386,7 @@ ent:established [
       /*autoAcceptConfig{
         var : [regex_str,..,..]
       }*/
-      matches = ent:autoAcceptConfig.map(function(regs,k) {
+      matches = autoAcceptConfig().map(function(regs,k) {
                               var = event:attr(k);
                               matches = not var.isnull() => regs.map(function(regex_str){ var.match(regex_str)}).any( function(bool){ bool == true }) | false;
                               matches }).values().any( function(bool){ bool == true })
