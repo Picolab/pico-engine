@@ -55,10 +55,10 @@ module.exports = {
             ]]
         },
         "within": async function (ctx) {
-          return (await ctx.applyFn(ctx.scope.get("+"), ctx, [
+          return await ctx.applyFn(ctx.scope.get("+"), ctx, [
             1,
             3
-          ])) * 1000;
+          ]) * 1000;
         }
       },
       "body": async function (ctx, runAction, toPairs) {

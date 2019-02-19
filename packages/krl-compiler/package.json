@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "btoa": "^1.1.2",
-    "escodegen": "^1.9.0",
+    "escodegen": "^1.11.1",
     "estree-builder": "^1.10.0",
     "estree-loc": "^2.0.0",
     "krl-parser": "^0.49.1",
