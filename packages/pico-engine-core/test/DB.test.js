@@ -868,8 +868,8 @@ test('DB - persistent variable append to array', async function (t) {
     'e',
     'f',
     'g',
-    undefined,
-    undefined,
+    null,
+    null,
     'SKIP'
   ])
 
@@ -918,7 +918,6 @@ test('DB - persistent variable append to array', async function (t) {
   await append('bar', ['hi', 'bye'])
   t.deepEqual(await dump('bar'), [
     ' => {"type":"Array","value":[],"length":3}',
-    'value|0 => null',
     'value|1 => "hi"',
     'value|2 => "bye"'
   ])
@@ -931,17 +930,17 @@ test('DB - persistent variable append to array', async function (t) {
   await append('bar', ['hi', 'bye'])
   t.deepEqual(await dump('bar'), [
     ' => {"type":"Array","value":[],"length":3}',
-    'value|0 => null',
     'value|1 => "hi"',
     'value|2 => "bye"'
   ])
+  t.deepEqual(await get('bar'), [null, 'hi', 'bye'])
 
   await put('bar', null, null)
   await append('bar', [])
   t.deepEqual(await dump('bar'), [
-    ' => {"type":"Array","value":[],"length":1}',
-    'value|0 => null'
+    ' => {"type":"Array","value":[],"length":1}'
   ])
+  t.deepEqual(await get('bar'), [null])
 
   // append to a scalar
   await put('baz', null, 'blah')
