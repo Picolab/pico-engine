@@ -104,7 +104,6 @@ test.cb('Scheduler - at - generative test', function (t) {
       nextScheduleEventAt: function (callback) {
         randomTick(function () {
           if (eventQueue.length === 0) {
-            // console.log("popNextEventAt(null)");
             return callback()
           }
           // read the next event to run, then tick again
@@ -115,10 +114,8 @@ test.cb('Scheduler - at - generative test', function (t) {
             event: id// shape doesn't matter for this test
           }
           randomTick(function () {
-            // console.log("popNextEventAt(", id, ")");
             callback(null, next)
             nTicks(_.random(1, 4), function () {
-              // console.log("test_mode_triggerTimeout()");
               sch.test_mode_triggerTimeout()
             })
           })
@@ -128,7 +125,6 @@ test.cb('Scheduler - at - generative test', function (t) {
         randomTick(function () {
           _.pull(eventQueue, id)
           randomTick(function () {
-            // console.log("popRemoveEventAt()", id);
             callback()
             if (id === nEvents) {
               setImmediate(function () {
@@ -147,7 +143,6 @@ test.cb('Scheduler - at - generative test', function (t) {
       log.push(event)
     }
   })
-  // console.log("update()");
   sch.update()
 
   var eventI = 0
@@ -159,7 +154,6 @@ test.cb('Scheduler - at - generative test', function (t) {
     randomTick(function () {
       eventI++
       eventQueue.push(eventI)
-      // console.log("update()");
       sch.update()
       tickLoop()
     })
