@@ -198,14 +198,24 @@ async function appendPVar (ldb, keyPrefix, values) {
 function filterNullOps (ops) {
   return ops.filter(function (op) {
     if (op.type === 'put') {
-      if (op.value === null || op.value === void 0) {
+      if (ktypes.isNull(op.value)) {
         if (op.key[op.key.length - 2] === 'value') {
           return false
         }
       }
     }
     return true
+  }).map(function (op) {
+    if (ktypes.isMap(op.value)) {
+      // remove nulls from nest Maps, so nested Maps behave the same ast top-level Maps
+      op.value = _.pickBy(op.value, notKRLNull)
+    }
+    return op
   })
+}
+
+function notKRLNull (v) {
+  return !ktypes.isNull(v)
 }
 
 const getPVar = util.promisify(function (ldb, keyPrefix, query, callback) {
