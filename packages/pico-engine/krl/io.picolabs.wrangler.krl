@@ -20,7 +20,7 @@ ruleset io.picolabs.wrangler {
     shares skyQuery ,
     rulesetsInfo,installedRulesets,  installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
-    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico,  myself,
+    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico,  myself, MAX_RAND_ENGL_NAMES,
      __testing
   }
   global {
@@ -30,7 +30,9 @@ ruleset io.picolabs.wrangler {
                   "events": [ { "domain": "wrangler", "type": "child_creation",
                                 "attrs": [ "name" ] },
                               { "domain": "wrangler", "type": "child_deletion",
-                                "attrs": [ "pico_name" ] },
+                                "attrs": [ "name"] },
+                              { "domain": "wrangler", "type": "child_deletion",
+                              "attrs": [ "id"] },
                               { "domain": "wrangler", "type": "channel_creation_requested",
                                 "attrs": [ "name", "type" ] },
                               { "domain": "wrangler", "type": "channel_deletion_requested",
@@ -319,29 +321,16 @@ ruleset io.picolabs.wrangler {
     }
 */
     // optimize by taking a list of names, to prevent multiple network calls to channels when checking for unique name
-
+    MAX_RAND_ENGL_NAMES = 200
+    
     randomPicoName = function(){
-        n = 5;
-        array = (0).range(n).map(function(n){
-          (random:word())
-          });
-        names= array.collect(function(name){
-          (uniquePicoName( name )) => "unique" | "taken"
-        });
-        name = names{"unique"} || [];
-
-        unique_name =  name.head().defaultsTo("","unique name failed");
-        (unique_name)
-    }
-
-    //returns true if given name is unique
-    uniquePicoName = function(name){
-          picos = children();
-          names = picos.none(function(child){
-            (child{"name"} ==  name)
-            });
-          (names)
-
+        w_children = children();
+        generateName = function() {
+          word = random:word();
+          w_children.none(function(child){child{"name"} == word}) => word | generateName()
+        };
+        
+        w_children.length() > MAX_RAND_ENGL_NAMES => random:uuid() | generateName()
     }
   }
 // ********************************************************************************************
@@ -446,14 +435,13 @@ ruleset io.picolabs.wrangler {
   rule createChild {
     select when wrangler child_creation or wrangler new_child_request
     pre {
-      check = event:attr("name").defaultsTo("");
-      name = check.length() == 0 => randomPicoName() | check;
-      uniqueName = uniquePicoName(name)
+      given_name = event:attr("name").defaultsTo("");
+      name = given_name.length() == 0 => randomPicoName() | given_name;
       rids = event:attr("rids").defaultsTo([]);
       _rids = (rids.typeof() == "Array" => rids | rids.split(re#;#))
 
     }
-    if(uniqueName) then every {
+    if(name) then every {
       createPico(name,_rids) setting(child)
       send_directive("Pico_Created", {"pico":child});
     }
@@ -466,13 +454,13 @@ ruleset io.picolabs.wrangler {
       
     }
     else{
-      raise wrangler event "child_creation_falure"
+      raise wrangler event "child_creation_failure"
         attributes event:attrs
     }
   }
 
   rule createChild_failure {
-    select when wrangler child_creation_falure
+    select when wrangler child_creation_failure
       send_directive("Pico_Not_Created", {});
     always {
       error info <<duplicate Pico name, failed to create pico named #{event:attr("name")}>>;
