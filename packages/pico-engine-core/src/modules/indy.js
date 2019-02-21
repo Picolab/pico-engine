@@ -51,8 +51,8 @@ module.exports = function (core) {
     let cek = null
     if (nonce && encSender) {
       senderVK = sodium.to_string(sodium.crypto_box_seal_open(encSender, pk, sk))
-      let sender_pk = sodium.crypto_sign_ed25519_pk_to_curve25519(bs58.decode(senderVK))
-      cek = sodium.crypto_box_open_easy(encrytpedKey, nonce, sender_pk, sk)
+      const senderPK = sodium.crypto_sign_ed25519_pk_to_curve25519(bs58.decode(senderVK))
+      cek = sodium.crypto_box_open_easy(encrytpedKey, nonce, senderPK, sk)
     } else {
       cek = sodium.crypto_box_seal_open(encrytpedKey, pk, sk)
     }
@@ -63,6 +63,7 @@ module.exports = function (core) {
         if (!senderVK) {
           throw new Error('Sender public key not provided in Authcrypt message')
         }
+        break
       case 'Anoncrypt':
         break
       default:

@@ -298,7 +298,13 @@ module.exports = function (opts) {
   }))
 
   var newID = cuid
-  var genDID = sovrinDID.gen
+  var genDID = function () {
+    const data = sovrinDID.gen()
+    const indyPairs = sodium.crypto_sign_keypair()
+    data.indyPublic = bs58.encode(Buffer.from(indyPairs.publicKey))
+    data.secret.indyPrivate = bs58.encode(Buffer.from(indyPairs.privateKey))
+    return data
+  }
   if (opts.__use_sequential_ids_for_testing) {
     newID = (function () {
       var prefix = opts.__sequential_id_prefix_for_testing || 'id'
@@ -362,9 +368,6 @@ module.exports = function (opts) {
       policy_id: opts.policy_id,
       sovrin: did
     }
-    const indyPairs = sodium.crypto_sign_keypair()
-    channel.sovrin.indyPublic = bs58.encode(Buffer.from(indyPairs.publicKey))
-    channel.sovrin.secret.indyPrivate = bs58.encode(Buffer.from(indyPairs.privateKey))
     var dbOps = [
       {
         type: 'put',
