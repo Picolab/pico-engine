@@ -1148,6 +1148,20 @@ module.exports = function (opts) {
       })
     }),
 
+    getChannelSecrets: async function (eci) {
+      let data
+      try {
+        data = await ldb.get(['channel', eci])
+      } catch (err) {
+        if (err.notFound) {
+          err = new levelup.errors.NotFoundError('ECI not found: ' + ktypes.toString(eci))//eslint-disable-line
+          err.notFound = true
+        }
+        throw err
+      }
+      return data
+    },
+
     getChannelAndPolicy: async function (eci) {
       let data
       try {
