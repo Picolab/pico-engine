@@ -518,6 +518,59 @@ testPE('pico-engine', function (t, pe, rootEci) {
         next()
       })
     },
+    function (next) { // Create a new pico with parameters to install prexisting rulesets
+      pe.signalEvent({
+        eci: rootEci,
+        eid: '94',
+        domain: 'wrangler',
+        type: 'child_creation',
+        attrs: { rids: 'io.picolabs.logging;io.picolabs.policy', name: 'testRulesetsPico' }
+      }, function (err, response) {
+        if (err) return next(err)
+        t.deepEqual('Pico_Created', response.directives[0].name, 'New pico should be created')
+        next(null, response.directives[0].options.pico.eci)
+      })
+    },
+    function (createdPicoECI, next) {
+      pe.runQuery({
+        eci: createdPicoECI,
+        rid: 'io.picolabs.wrangler',
+        name: 'installedRulesets',
+        args: {}
+      }, function (err, data) {
+        if (err) return next(err)
+        t.deepEqual(data.includes('io.picolabs.logging'), true, 'new pico should have passed in ruleset installed')
+        t.deepEqual(data.includes('io.picolabs.policy'), true, 'new pico should have passed in ruleset installed')
+        next()
+      })
+    },
+    function (next) { // create a new pico with parameters to install mix of prexisting and nonexistent rulesets
+      pe.signalEvent({
+        eci: rootEci,
+        eid: '94',
+        domain: 'wrangler',
+        type: 'child_creation',
+        attrs: { rids: 'io.picolabs.logging;io.picolabs.policy;nonexistent_ruleset_asdaeg', name: 'testMixRulesetsPico' }
+      }, function (err, response) {
+        if (err) return next(err)
+        t.deepEqual('Pico_Created', response.directives[0].name, 'New pico should be created')
+        next(null, response.directives[0].options.pico.eci)
+      })
+    },
+    function (createdPicoECI, next) {
+      pe.runQuery({
+        eci: createdPicoECI,
+        rid: 'io.picolabs.wrangler',
+        name: 'installedRulesets',
+        args: {}
+      }, function (err, data) {
+        if (err) return next(err)
+        t.deepEqual(data.includes('io.picolabs.logging'), true, 'new pico should have passed in ruleset installed')
+        t.deepEqual(data.includes('io.picolabs.policy'), true, 'new pico should have passed in ruleset installed')
+        t.deepEqual(data.includes('nonexistent_ruleset_asdaeg'), false, 'new pico will not have the nonexistent ruleset installed')
+        next()
+      })
+    },
     /// ////////////////////////////// rulesets info tests ///////////////
     function (next) { // rule set info,
       console.log('////////////////// describe one rule set //////////////////')
@@ -661,20 +714,21 @@ testPE('pico-engine', function (t, pe, rootEci) {
         next()
       })
     },
-    function (next) { // create duplicate child
-      pe.signalEvent({
-        eci: rootEci,
-        eid: '84',
-        domain: 'wrangler',
-        type: 'new_child_request',
-        attrs: { name: 'ted' }
-      }, function (err, response) {
-        // console.log("children",response);
-        if (err) return next(err)
-        t.deepEqual(response.directives[0].name, 'Pico_Not_Created', "The name is not unique, therefore don't create the child")
-        next()
-      })
-    },
+    // NAMES DO NOT HAVE TO BE UNIQUE ANYMORE
+    // function (next) { // create duplicate child
+    //   pe.signalEvent({
+    //     eci: rootEci,
+    //     eid: '84',
+    //     domain: 'wrangler',
+    //     type: 'new_child_request',
+    //     attrs: { name: 'ted' }
+    //   }, function (err, response) {
+    //     // console.log("children",response);
+    //     if (err) return next(err)
+    //     t.deepEqual(response.directives[0].name, 'Pico_Not_Created', "The name is not unique, therefore don't create the child")
+    //     next()
+    //   })
+    // },
     function (next) { // create child with no name(random)
       pe.signalEvent({
         eci: rootEci,
