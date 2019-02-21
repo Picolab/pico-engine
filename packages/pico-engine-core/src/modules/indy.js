@@ -1,8 +1,20 @@
 // Thanks to https://github.com/dbluhm/indy-pack-unpack-js
-const _sodium = require('libsodium-wrappers')
 const bs58 = require('bs58')
 const ktypes = require('krl-stdlib/types')
 const mkKRLfn = require('../mkKRLfn')
+const sodium = require('libsodium-wrappers')
+
+function b64url (input) {
+  return sodium.to_base64(input, sodium.base64_variants.URLSAFE_NO_PADDING)
+}
+
+function b64dec (input) {
+  return sodium.from_base64(input, sodium.base64_variants.URLSAFE_NO_PADDING)
+}
+
+function b64decStr (input) {
+  return sodium.to_string(sodium.from_base64(input, sodium.base64_variants.URLSAFE_NO_PADDING))
+}
 
 module.exports = function (core) {
   const def = {}
@@ -11,14 +23,72 @@ module.exports = function (core) {
     'message',
     'eci'
   ], async (ctx, args) => {
-    await _sodium.ready
-    const sodium = _sodium
+    const chann = await core.db.getChannelSecrets(args.eci)
+    const keys = {
+      public: bs58.decode(chann.sovrin.indyPublic),
+      public58: chann.sovrin.indyPublic,
+      private: bs58.decode(chann.sovrin.secret.indyPrivate)
+    }
 
-    const msg = ktypes.isString(args.message)
+    const wrapper = ktypes.isString(args.message)
       ? JSON.parse(args.message)
       : args.message
 
-    return { message: 'secret message' }
+    const recipsOuter = JSON.parse(b64decStr(wrapper.protected))
+
+    const recipient = recipsOuter.recipients.find(r => {
+      return r.header.kid === keys.public58
+    })
+    if (!recipient) {
+      throw new Error('No corresponding recipient key found')
+    }
+    let pk = sodium.crypto_sign_ed25519_pk_to_curve25519(keys.public)
+    let sk = sodium.crypto_sign_ed25519_sk_to_curve25519(keys.private)
+    let encrytpedKey = b64dec(recipient.encrypted_key)
+    let nonce = recipient.header.iv ? b64dec(recipient.header.iv) : null
+    let encSender = recipient.header.sender ? b64dec(recipient.header.sender) : null
+    let senderVK = null
+    let cek = null
+    if (nonce && encSender) {
+      senderVK = sodium.to_string(sodium.crypto_box_seal_open(encSender, pk, sk))
+      let sender_pk = sodium.crypto_sign_ed25519_pk_to_curve25519(bs58.decode(senderVK))
+      cek = sodium.crypto_box_open_easy(encrytpedKey, nonce, sender_pk, sk)
+    } else {
+      cek = sodium.crypto_box_seal_open(encrytpedKey, pk, sk)
+    }
+    // return [cek, senderVK, recipient.header.kid];
+
+    switch (recipsOuter.alg) {
+      case 'Authcrypt':
+        if (!senderVK) {
+          throw new Error('Sender public key not provided in Authcrypt message')
+        }
+      case 'Anoncrypt':
+        break
+      default:
+        throw new Error(`Unsupported pack algorithm: ${recipsOuter.alg}`)
+    }
+
+    const ciphertext = b64dec(wrapper.ciphertext)
+    nonce = b64dec(wrapper.iv)
+    const mac = b64dec(wrapper.tag)
+
+    const message = sodium.to_string(
+      sodium.crypto_aead_chacha20poly1305_ietf_decrypt_detached(
+        null, // nsec
+        ciphertext,
+        mac,
+        wrapper.protected, // ad
+        nonce, // npub
+        cek
+      )
+    )
+
+    return {
+      message,
+      sender_key: senderVK,
+      recipient_key: recipient.header.kid
+    }
   })
 
   def.pack = mkKRLfn([
@@ -27,21 +97,15 @@ module.exports = function (core) {
     'fromECI'
   ], async (ctx, args) => {
     const message = ktypes.toString(args.message)
-    const toKeys = await Promise.all(args.toECIs.map(eci => core.db.getChannelSecrets(eci).then(chann => bs58.decode(chann.sovrin.verifyKey))))
-
-    await _sodium.ready
-    const sodium = _sodium
-    function b64url (input) {
-      return sodium.to_base64(input, sodium.base64_variants.URLSAFE_NO_PADDING)
-    }
+    const toKeys = await Promise.all(args.toECIs.map(eci => core.db.getChannelSecrets(eci).then(chann => bs58.decode(chann.sovrin.indyPublic))))
 
     let sender
     if (args.fromECI) {
       const fromChann = await core.db.getChannelSecrets(args.fromECI)
       sender = {}
-      sender.vk = fromChann.sovrin.verifyKey
-      const privateKey = bs58.decode(fromChann.sovrin.secret.encryptionPrivateKey)
-      sender.sk = sodium.crypto_sign_ed25519_sk_to_curve25519(from.privateKey)
+      sender.vk = fromChann.sovrin.indyPublic
+      const privateKey = bs58.decode(fromChann.sovrin.secret.indyPrivate)
+      sender.sk = sodium.crypto_sign_ed25519_sk_to_curve25519(privateKey)
     }
 
     const cek = sodium.crypto_secretstream_xchacha20poly1305_keygen()

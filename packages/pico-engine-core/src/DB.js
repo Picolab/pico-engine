@@ -16,6 +16,7 @@ var safeJsonCodec = require('level-json-coerce-null')
 var extractRulesetID = require('./extractRulesetID')
 var engineCoreVersion = require('../package.json').version
 var promiseCallback = require('./promiseCallback')
+const sodium = require('libsodium-wrappers')
 
 // NOTE: for now we are going to default to an allow all policy
 // This makes migrating easier while waiting for krl system rulesets to assume policy usage
@@ -361,6 +362,9 @@ module.exports = function (opts) {
       policy_id: opts.policy_id,
       sovrin: did
     }
+    const indyPairs = sodium.crypto_sign_keypair()
+    channel.sovrin.indyPublic = bs58.encode(Buffer.from(indyPairs.publicKey))
+    channel.sovrin.secret.indyPrivate = bs58.encode(Buffer.from(indyPairs.privateKey))
     var dbOps = [
       {
         type: 'put',

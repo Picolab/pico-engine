@@ -23,10 +23,10 @@ test('module - sovrin:pack/unpack', async function (t) {
   // Anoncrypt
   let packed = await pack(ctx, ['something secret', [eciBob]])
   let unpacked = await unpack(ctx, [packed, eciBob])
-  t.deepEqual(unpacked, { message: 'secret message' })
+  t.is(unpacked.message, 'something secret')
 
   // Authcrypt
-  // packed = await pack(ctx, ['something else secret', [eciBob], eciAlice])
-  // unpacked = await unpack(ctx, [packed, eciBob])
-  // t.deepEqual(unpacked, { message: 'secret else message' })
+  packed = await pack(ctx, ['something else secret', [eciBob], eciAlice])
+  unpacked = await unpack(ctx, [packed, eciBob])
+  t.is(unpacked.message, 'something else secret')
 })
