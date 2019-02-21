@@ -5,15 +5,15 @@ const mkKRLfn = require('../mkKRLfn')
 const sodium = require('libsodium-wrappers')
 
 function b64url (input) {
-  return sodium.to_base64(input, sodium.base64_variants.URLSAFE_NO_PADDING)
+  return sodium.to_base64(input, sodium.base64_variants.URLSAFE)
 }
 
 function b64dec (input) {
-  return sodium.from_base64(input, sodium.base64_variants.URLSAFE_NO_PADDING)
+  return sodium.from_base64(input, sodium.base64_variants.URLSAFE)
 }
 
 function b64decStr (input) {
-  return sodium.to_string(sodium.from_base64(input, sodium.base64_variants.URLSAFE_NO_PADDING))
+  return sodium.to_string(sodium.from_base64(input, sodium.base64_variants.URLSAFE))
 }
 
 module.exports = function (core) {
