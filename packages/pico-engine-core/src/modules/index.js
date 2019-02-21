@@ -9,6 +9,7 @@ var subModules = {
   event: require('./event'),
   engine: require('./engine'),
   http: require('./http'),
+  indy: require('./indy'),
   keys: require('./keys'),
   math: require('./math'),
   meta: require('./meta'),
