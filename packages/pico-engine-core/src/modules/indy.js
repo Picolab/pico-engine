@@ -94,11 +94,10 @@ module.exports = function (core) {
 
   def.pack = mkKRLfn([
     'message',
-    'toECIs',
+    'toPublicKeys',
     'fromECI'
   ], async (ctx, args) => {
     const message = ktypes.toString(args.message)
-    const toKeys = await Promise.all(args.toECIs.map(eci => core.db.getChannelSecrets(eci).then(chann => bs58.decode(chann.sovrin.indyPublic))))
 
     let sender
     if (args.fromECI) {
@@ -111,7 +110,10 @@ module.exports = function (core) {
 
     const cek = sodium.crypto_secretstream_xchacha20poly1305_keygen()
 
-    const recipients = toKeys.map(targetVKey => {
+    const recipients = args.toPublicKeys.map(targetVKey => {
+      if (typeof targetVKey === 'string') {
+        targetVKey = bs58.decode(targetVKey)
+      }
       let encSender = null
       let nonce = null
       let encCEK = null
