@@ -9,6 +9,7 @@
   "scripts": {
     "start": "webpack-dev-server",
     "test": "echo passed",
+    "lerna-hack": "rm -rf node_modules && npm i && cp -r ../krl-compiler/ node_modules/. && cp -r ../krl-parser/ node_modules/. && cp -r ../krl-stdlib/ node_modules/.",
     "build": "NODE_ENV=production webpack && mv dist/krl-editor* ../pico-engine/public/js/."
   },
   "repository": {

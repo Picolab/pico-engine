@@ -1,3 +1,9 @@
+# 0.49.2 - February 22, 2019
+
+* added additional `math:*` functions - see [437](https://github.com/Picolab/pico-engine/issues/437)
+* reregister modules - see [442](https://github.com/Picolab/pico-engine/issues/442)
+* allow dangling commas for Arrays and Maps - see [438](https://github.com/Picolab/pico-engine/issues/438)
+
 # 0.49.1 - February 8, 2019
 
 * logging tab now streams from log files - see [435](https://github.com/Picolab/pico-engine/issues/435)
