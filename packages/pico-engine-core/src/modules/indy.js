@@ -19,6 +19,22 @@ function b64decStr (input) {
 module.exports = function (core) {
   const def = {}
 
+  def.sig_data = mkKRLfn([
+    'bytes'
+  ], async (ctx, args) => {
+      return b64url(Uint8Array.from(args.bytes))
+    })
+
+  def.crypto_sign = mkKRLfn([
+    'bytes',
+    'eci'
+  ], async (ctx, args) => {
+    const chann = await core.db.getChannelSecrets(args.eci)
+    const key = bs58.decode(chann.sovrin.secret.indyPrivate)
+    return b64url(sodium.crypto_sign_detached(Uint8Array.from(args.bytes),key))
+  })
+
+
   def.unpack = mkKRLfn([
     'message',
     'eci'
