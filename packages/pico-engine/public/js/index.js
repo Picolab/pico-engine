@@ -169,12 +169,34 @@ $(document).ready(function () {
         theLoggingOut.eci = eci
         theLoggingOut.pico_id = thePicoInp.id
         if (get(dbDump, ['pico', thePicoInp.id, 'ruleset', 'io.picolabs.logging', 'on'])) {
-          theLoggingOut.status = true
-          $.getJSON('/api/pico/' + thePicoInp.id + '/logs', function (data) {
-            theLoggingOut.logs = groupLogsByEpisode(data)
-            callback(null, theLoggingOut)
-          }).fail(function (err) {
-            theLoggingOut.error = 'Failed to get data'
+          $.getJSON('/api/legacy-ui-get-vars/' + thePicoInp.id + '/io.picolabs.logging', function (data) {
+            var ent_status = data.find(function(o){
+              return o.name === 'status'
+            })
+            theLoggingOut.status = ent_status ? ent_status.val : false
+            if (theLoggingOut.status) {
+              var episode_limit = $('#episode_limit').val() || 10
+              $.getJSON('/sky/cloud/' + eci + '/io.picolabs.logging/fmtLogs?limit='+episode_limit, function (data) {
+                var episode_keys = data ? Object.keys(data) : []
+                theLoggingOut.episode_count = episode_keys.length
+                if (episode_keys.length > episode_limit) {
+                  episode_keys.length = episode_limit
+                }
+                theLoggingOut.logs = {}
+                episode_keys.forEach(function (key) {
+                  theLoggingOut.logs[key] = data[key]
+                })
+                callback(null, theLoggingOut)
+              }).fail(function (err) {
+                theLoggingOut.error = 'Failed to get data'
+                callback(null, theLoggingOut)
+              })
+            } else {
+              callback(null, theLoggingOut)
+            }
+          }).fail(function(err){
+            theLoggingOut.status = false
+            theLoggingOut.error = 'Failed to get status'
             callback(null, theLoggingOut)
           })
         } else {
@@ -185,7 +207,7 @@ $(document).ready(function () {
         var testing = []
         eci = findEciById(thePicoInp.id)
         for (rid in thePicoInp.ruleset) {
-          testing.push({ rid: rid })
+          testing.push({ rid: rid, loggingoff: (/logging$/.test(rid) ? true : null) })
         }
         callback(null, { pico_id: thePicoInp.id, eci: eci, testing: testing })
       } else if (tabName === 'channels') {
@@ -443,26 +465,33 @@ $(document).ready(function () {
           d = theDB.pico_id + '-Policies'
           location.hash = d
         } else if (tabName === 'logging') {
+          if (theDB.status) {
+            $('#logging-list').show()
+            if (theDB.logs) {
+              $('#episode_limit').val(Object.keys(theDB.logs).length)
+            }
+          }
+          d = theDB.pico_id + '-Logging'
+          location.hash = d
+          tabId = '#loggingTab-' + theDB.pico_id
           $('#logging-on').click(function () {
             $.getJSON(
               '/sky/event/' + theDB.eci + '/logging-on/picolog/begin',
               function () {
+                $(tabId).trigger('click')
                 $('#logging-list').fadeIn()
               }
             )
           })
-          if (theDB.status) {
-            $('#logging-list').show()
-          }
           $('#logging-off').click(function () {
             $('#logging-list').hide()
             $.getJSON(
-              '/sky/event/' + theDB.eci + '/logging-on/picolog/reset',
-              function () {}
+              '/sky/event/' + theDB.eci + '/logging-off/picolog/reset',
+              function () {
+                $(tabId).trigger('click')
+              }
             )
           })
-          d = theDB.pico_id + '-Logging'
-          location.hash = d
         }
         $theSection.find('.js-ajax-form').submit(function (e) {
           e.preventDefault()
@@ -767,38 +796,3 @@ $(document).ready(function () {
     }
   })
 })
-
-function groupLogsByEpisode (logs) {
-  var entries = []
-  logs.forEach(function (entry) {
-    if (entry) {
-      entries.push({
-        txn_id: entry.txn_id,
-        msg: entry.time + ' [' + (entry.krl_level + '').toUpperCase() + '] ' + entry.msg,
-        time: new Date(entry.time)
-      })
-    }
-  })
-  entries.sort(function (a, b) {
-    return a.time.getTime() - b.time.getTime()
-  })
-  var groups = {}
-  entries.forEach(function (entry) {
-    if (!groups[entry.txn_id]) {
-      groups[entry.txn_id] = []
-    }
-    groups[entry.txn_id].push(entry.msg)
-  })
-  var groupByHead = {}
-  Object.keys(groups).forEach(function (txnId) {
-    var head = groups[txnId][0].replace(/\[EPISODE_START\]/, '|')
-    groupByHead[head] = groups[txnId]
-  })
-  var groupsSorted = {}
-  var groupOrder = Object.keys(groupByHead)
-  groupOrder.sort().reverse()
-  groupOrder.forEach(function (header) {
-    groupsSorted[header] = groupByHead[header]
-  })
-  return groupsSorted
-}

@@ -118,7 +118,7 @@
               <li>Channels</li>
               <li>Policies</li>
               <li>Subscriptions</li>
-              <li>Logging</li>
+              <li id="loggingTab-{{id}}">Logging</li>
               <li>Testing</li>
             </ul>
             <div class="pico-section"></div>
@@ -293,9 +293,6 @@
     <script id="logging-template" type="text/x-handlebars-template">
       <div>
       Logging
-      {{#if error}}
-        <div style="color:red">{{error}}</div>
-      {{/if}}
       {{#if disabled}}
         is disabled.
         To enable, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rid=io.picolabs.logging">install</a> the "io.picolabs.logging" ruleset
@@ -306,6 +303,15 @@
           <input id="logging-on" type="radio" name="status" value="on"{{#if status}} checked=""{{/if}}>
           <label for="logging-on"> On </label>
         </span>
+        <span style="padding-left:1em">
+        {{#if status}}
+          limited to <input id="episode_limit" size="2"> episodes
+          (of {{episode_count}} from the last 12 hours).
+        {{/if}}
+        </span>
+        {{#if error}}
+          <div style="color:red">{{error}}</div>
+        {{/if}}
         <div id="logging-list">
           <p>
             Select an episode to see the log entries for that episode.
@@ -322,8 +328,8 @@
               {{/each}}
             </ul>
           {{/if}}
-        </div>
       {{/if}}
+      </div>
     </script>
     <script id="testing-template" type="text/x-handlebars-template">
       <div style="float:left;width:40%;height:100%">
@@ -333,6 +339,7 @@
             <li>
                 <input type="checkbox" id="testing-{{@index}}">
                 <label class="krlrid" for="testing-{{@index}}">{{this.rid}}</label>
+                {{#if loggingoff}}[logging off]{{/if}}
                 <a href="javascript:window.open('ruleset.html#{{this.rid}}','ruleset');void 0">edit</a>
             </li>
           {{/each}}
