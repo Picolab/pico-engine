@@ -567,7 +567,7 @@ ruleset io.picolabs.wrangler {
     }
     fired {
       ent:wrangler_children{pico_id} := new_child;
-      ent:children := children();
+      ent:children := children() on final; // Only need to update once after all has changed
     }
   }
 
@@ -594,7 +594,7 @@ ruleset io.picolabs.wrangler {
     }
     fired {
       ent:wrangler_children := (ent:wrangler_children.delete(id));
-      ent:children := ent:wrangler_children.values();//children();
+      ent:children := ent:wrangler_children.values() on final; // Only need to update once after all has changed; children();
     }
   }
 
