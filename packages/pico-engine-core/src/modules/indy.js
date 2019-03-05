@@ -34,7 +34,23 @@ module.exports = function (core) {
     return b64url(sodium.crypto_sign_detached(Uint8Array.from(args.bytes),key))
   })
 
-
+  def.verify_signed_field = mkKRLfn([
+    'signed_field'
+  ], async (ctx, args) => {
+    const signature_bytes = b64dec(args.signed_field.signature)
+    const sig_data_bytes = b64dec(args.signed_field.sig_data)
+    const signer = bs58.decode(args.signed_field.signer)
+    const verified = sodium.crypto_sign_verify_detached(
+      signature_bytes,
+      sig_data_bytes,
+      signer)
+    const data = Buffer.from(sig_data_bytes.slice(8)).toString('ascii')
+    return {
+      'sig_verified': verified,
+      'field': data,
+      'timestamp': sig_data_bytes.slice(0,8)
+    }
+  })
   def.unpack = mkKRLfn([
     'message',
     'eci'
