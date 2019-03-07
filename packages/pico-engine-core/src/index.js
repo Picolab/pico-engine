@@ -264,9 +264,29 @@ module.exports = function (conf) {
       throw err
     }
 
+    // have dependants re-load the module they depend on
+    await reInitDependants(rs.rid)
+
     return {
       rid: rs.rid,
       hash: hash
+    }
+  }
+
+  async function reInitDependants (rid, done = []) {
+    if (done.indexOf(rid) < 0) {
+      done.push(rid)
+    }
+    const dependants = core.rsreg.getImmediateDependants(rid)
+    for (const dRid of dependants) {
+      if (done.indexOf(dRid) < 0) { // only run once
+        await initializeRulest(core.rsreg.get(dRid))
+        done.push(dRid)
+      }
+    }
+    // after the first level is done, proceed onward
+    for (const dRid of dependants) {
+      await reInitDependants(dRid, done)
     }
   }
 
