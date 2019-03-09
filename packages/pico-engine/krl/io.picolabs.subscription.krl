@@ -386,8 +386,16 @@ ent:established [
       /*autoAcceptConfig{
         var : [regex_str,..,..]
       }*/
+      /**
+       * 
+       * If any event attr matches a key,
+       *  loop over the regex strings matched to that key to return a modified map ->
+       *    if any of those regex strings match the key, transform their value to true, otherwise false
+       *    if any of the regex strings were changed to true return true, otherwise false
+       * 
+       */
       matches = ent:autoAcceptConfig.map(function(regs,k) {
-                              var = event:attr(k);
+                              var = event:attr(k); 
                               matches = not var.isnull() => regs.map(function(regex_str){ var.match(regex_str)}).any( function(bool){ bool == true }) | false;
                               matches }).values().any( function(bool){ bool == true })
     }

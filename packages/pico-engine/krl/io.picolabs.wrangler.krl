@@ -16,17 +16,18 @@ ruleset io.picolabs.wrangler {
     provides skyQuery ,
     rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci, createChannel, newPolicy,//channel
-    children, parent_eci, name, profile, pico, uniquePicoName, randomPicoName, createPico, deleteChild, pico, myself
+    children, parent_eci, name, profile, pico, randomPicoName, deleteChild, pico, myself
     shares skyQuery ,
-    rulesetsInfo,installedRulesets,  installRulesets, uninstallRulesets,registeredRulesets, //ruleset
+    rulesetsInfo,installedRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
-    children, parent_eci, name, profile, pico, randomPicoName, createPico, deleteChild, pico,  myself, id, MAX_RAND_ENGL_NAMES,
+    children, parent_eci, name, profile, pico, randomPicoName, pico,  myself, id, MAX_RAND_ENGL_NAMES, test,
      __testing
   }
   global {
     __testing = { "queries": [  { "name": "channel", "args":["value","collection","filtered"] },
                                 {"name":"skyQuery" , "args":["eci", "mod", "func", "params","_host","_path","_root_url"]},
-                                {"name":"children" , "args":[]} ],
+                                {"name":"children" , "args":[]},
+                                {"name":"test" , "args":[]}],
                   "events": [
                               { "domain": "wrangler", "type": "child_creation",
                                 "attrs": [ "name" ] },
@@ -42,6 +43,10 @@ ruleset io.picolabs.wrangler {
                                 "attrs": [ "rids" ] },
                               { "domain": "wrangler", "type": "deletion_requested",
                                 "attrs": [ ] } ] }
+                                
+  test = function() {
+   engine:listChannels(meta:picoId)[0]
+  }
 // ********************************************************************************************
 // ***                                                                                      ***
 // ***                                      FUNCTIONS                                       ***
@@ -104,6 +109,16 @@ ruleset io.picolabs.wrangler {
        is_bad_response = (response_content.isnull() || (response_content == "null") || response_error || response_error_str);
        // if HTTP status was OK & the response was not null and there were no errors...
        (status == 200 && not is_bad_response ) => response_content | error
+     }
+     
+     // Default domain for responding API events to use
+     D_RESPONSE_DOM = "wrangler"
+     
+     sendNotifyingEvent = defaction(defaultEventType = "", attrs = {}) {
+      responseDomain = event:attr("responseDomain").defaultsTo(D_RESPONSE_DOM);
+      responseType = event:attr("responseType").defaultsTo(defaultEventType);
+      responseHost = event:attr("responseHost").defaultsTo(meta:host);
+      event:send({"eci":ent:eci, "eid":"wrangler", "domain":responseDomain, "type":responseType, "attrs":attrs}, responseHost);
      }
 
     //returns a list of children that are contained in a given subtree at the starting child. No ordering is guaranteed in the result
@@ -364,7 +379,52 @@ ruleset io.picolabs.wrangler {
 // ***                                                                                      ***
 // ********************************************************************************************
 
-  rule installRulesets {
+  // rule installRulesetsIfOnEngine {
+  //   select when wrangler install_rulesets_requested
+  //   pre {
+  //     rids = event:attr("rids").defaultsTo(event:attr("rid")).defaultsTo("")
+  //     rid_list = (rids.typeof() ==  "Array") => rids | rids.split(re#;#)
+  //     valid_rids = rid_list.intersection(registeredRulesets())
+  //     invalid_rids = rid_list.difference(valid_rids)
+  //   }
+  //   if(rids !=  "") && valid_rids.length() > 0 then every{
+  //     noop()//installRulesets(valid_rids) setting(rids)
+  //     //send_directive("rulesets installed", { "rids": rids{"rids"} });
+  //   }
+  //   fired {
+  //     //event:attrs.put(["rids"],rids{"rids"});
+  //     // raise wrangler event "ruleset_added"
+  //     //   attributes event:attrs.put(["rids"], rids{"rids"});
+  //   }
+  //   finally {
+  //     raise wrangler event "install_rulesets_error"
+  //       attributes event:attrs.put(["rids"],invalid_rids) if invalid_rids.length() > 0;
+      
+  //   }
+  // }
+  
+  // rule installRulesetsIfURLGiven {
+  //   select when wrangler install_rulesets_requested
+  //   pre{
+  //     url = event:attr("url")
+  //     installed_from_engine = event:attr("rids")
+  //     initial_install = event:attr("init").defaultsTo(false) // if this is a new pico
+  //   }
+  //   if url then every {
+  //     noop();//installRulesetByURL(url) setting(rids)
+  //     //send_directive("rulesets installed", { "rids": rids });
+  //   }
+  //   fired{
+  //     raise wrangler event "ruleset_added"
+  //       attributes event:attrs.put({"rids": installed_from_engine.defaultsTo([]).append(rids)});
+  //   }
+  //   finally {
+  //     raise wrangler event "finish_initialization"
+  //       attributes event:attrs if initial_install == true
+  //   }
+  // }
+  
+    rule installRulesets {
     select when wrangler install_rulesets_requested
     pre {
       rids = event:attr("rids").defaultsTo(event:attr("rid")).defaultsTo("")
@@ -451,11 +511,15 @@ ruleset io.picolabs.wrangler {
 
   rule deleteChannel {
     select when wrangler channel_deletion_requested
+    pre {
+
+    }
     every {
       deleteChannel( alwaysEci(event:attr("eci")
                      .defaultsTo(event:attr("name")
                      .defaultsTo("")))) setting(channel);
       send_directive("channel_deleted", channel);
+      sendNotifyingEvent("channel_deleted"); // API event
     }
     always {
      raise wrangler event "channel_deleted" // API event
@@ -559,7 +623,8 @@ ruleset io.picolabs.wrangler {
                       "name": event:attr("id") == pico_id && event:attr("name")
                       => event:attr("name") | "rogue_"+randomPicoName() ,
                       "id": pico_id,
-                      "eci": engine:listChannels(pico_id)[0]{"id"}} | "" ; // engine creates a eci we always can get.
+                      //INVALID ASSUMPTION, channels returned from listChannels are sorted according to alphabetic order by ECI. Policy may not allow wrangler events!
+                      "eci": engine:listChannels(pico_id)[0]{"id"}} | "" ; // engine creates a eci we always can get. 
 
     }
     if ( ent:wrangler_children{pico_id}.isnull()) then every{
@@ -567,7 +632,7 @@ ruleset io.picolabs.wrangler {
     }
     fired {
       ent:wrangler_children{pico_id} := new_child;
-      ent:children := children() on final; // Only need to update once after all has changed
+      ent:children := children(); // Only need to update once after all has changed
     }
   }
 
@@ -594,7 +659,7 @@ ruleset io.picolabs.wrangler {
     }
     fired {
       ent:wrangler_children := (ent:wrangler_children.delete(id));
-      ent:children := ent:wrangler_children.values() on final; // Only need to update once after all has changed; children();
+      ent:children := ent:wrangler_children.values(); // Only need to update once after all has changed; children();
     }
   }
 
