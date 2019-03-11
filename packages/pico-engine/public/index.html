@@ -120,6 +120,7 @@
               <li>Subscriptions</li>
               <li id="loggingTab-{{id}}">Logging</li>
               <li>Testing</li>
+              <li>Agent</li>
             </ul>
             <div class="pico-section"></div>
           </div>
@@ -520,6 +521,25 @@
             {{/each}}
           </table>
         {{/if}}
+      {{/if}}
+    </script>
+    <script id="agent-template" type="text/x-handlebars-template">
+      {{#if disabled}}
+        not an agent
+      {{else}}
+        <h2>{{ui.name}}</h2>
+        {{#if ui.connections}}
+          <h3>Connections</h3>
+          <ul>
+          {{#each ui.connections}}
+            <li>{{label}}</li>
+          {{/each}}
+          </ul>
+        {{else}}
+          <h3>No connections</h3>
+        {{/if}}
+        <a href="/sky/event/{{eci}}/ui/sovrin/need_invitation">invitation</a>
+        <pre>{{text}}</pre>
       {{/if}}
     </script>
   </head>

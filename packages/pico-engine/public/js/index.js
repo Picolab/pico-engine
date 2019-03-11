@@ -301,6 +301,18 @@ $(document).ready(function () {
         }).fail(function () {
           callback(null, policyUI)
         })
+      } else if (tabName === 'agent') {
+        var agentUI = { disabled: true, eci: eci, pico_id: thePicoInp.id }
+        $.getJSON('/sky/cloud/' + eci + '/org.sovrin.agent/ui', function (ui) {
+          callback(null, {
+            eci: eci,
+            pico_id: thePicoInp.id,
+            ui: ui,
+            text: JSON.stringify(ui, undefined, 2)
+          })
+        }).fail(function () {
+          callback(null, agentUI)
+        })
       } else {
         callback(null, thePicoInp)
       }
@@ -464,6 +476,8 @@ $(document).ready(function () {
         } else if (tabName === 'policies') {
           d = theDB.pico_id + '-Policies'
           location.hash = d
+        } else if (tabName === 'agent') {
+          location.hash = theDB.pico_id + '-Agent'
         } else if (tabName === 'logging') {
           if (theDB.status) {
             $('#logging-list').show()
