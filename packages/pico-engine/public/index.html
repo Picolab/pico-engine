@@ -532,7 +532,7 @@
           <h3>Connections</h3>
           <ul>
           {{#each ui.connections}}
-            <li>{{label}}</li>
+            <li>{{label}} <a href="/sky/event/{{my_did}}/ui/sovrin/connection_expired?their_vk={{their_vk}}">del</a></li>
           {{/each}}
           </ul>
         {{else}}
