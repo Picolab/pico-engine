@@ -528,14 +528,16 @@
         To be an agent, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rids=org.sovrin.agent.ui;org.sovrin.agent_message;org.sovrin.agent">install</a> the org.sovrin.agent rulesets
       {{else}}
         <h2>{{ui.name}}</h2>
-        Generated Invitation
-        <input value="{{ui.invitation}}">
-        <button onclick="$(this).prev().select();document.execCommand('copy')">Copy</button>
-        <br>
         <form class="js-ajax-form" action="/sky/event/{{eci}}/accept/sovrin/new_invitation">
-          Received Invitation
-          <input type="text" name="url" placeholder="paste invitation URL here">
-          <button type="submit">Accept</button>
+        <table><tr>
+          <th align="right">Generated Invitation</th>
+          <td><input id="invite" value="{{ui.invitation}}"></td>
+          <td><button type="button" onclick="$('#invite').select();document.execCommand('copy')">Copy</button></td>
+        </tr><tr>
+          <th align="right">Received Invitation</th>
+          <td><input type="text" name="url" placeholder="paste invitation URL here"></td>
+          <td><button type="submit">Accept</button></td>
+        </tr></table>
         </form>
         {{#if ui.connections}}
           <h3>Connections</h3>
