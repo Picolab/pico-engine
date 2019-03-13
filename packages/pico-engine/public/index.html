@@ -528,6 +528,10 @@
         To be an agent, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rids=org.sovrin.agent.ui;org.sovrin.agent_message;org.sovrin.agent">install</a> the org.sovrin.agent rulesets
       {{else}}
         <h2>{{ui.name}}</h2>
+        Generated Invitation
+        <input value="{{ui.invitation}}">
+        <button onclick="$(this).prev().select();document.execCommand('copy')">Copy</button>
+        <br>
         {{#if ui.connections}}
           <h3>Connections</h3>
           <ul>
@@ -538,7 +542,6 @@
         {{else}}
           <h3>No connections</h3>
         {{/if}}
-        <a href="/sky/event/{{eci}}/ui/sovrin/need_invitation">invitation</a>
         <pre>{{text}}</pre>
       {{/if}}
     </script>
