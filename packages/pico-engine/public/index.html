@@ -525,14 +525,14 @@
     </script>
     <script id="agent-template" type="text/x-handlebars-template">
       {{#if disabled}}
-        not an agent
+        To be an agent, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rids=org.sovrin.agent.ui;org.sovrin.agent_message;org.sovrin.agent">install</a> the org.sovrin.agent rulesets
       {{else}}
         <h2>{{ui.name}}</h2>
         {{#if ui.connections}}
           <h3>Connections</h3>
           <ul>
           {{#each ui.connections}}
-            <li>{{label}} <a href="/sky/event/{{my_did}}/ui/sovrin/connection_expired?their_vk={{their_vk}}">del</a></li>
+            <li>{{label}} <a class="js-ajax-link" href="/sky/event/{{my_did}}/ui/sovrin/connection_expired?their_vk={{their_vk}}">del</a></li>
           {{/each}}
           </ul>
         {{else}}

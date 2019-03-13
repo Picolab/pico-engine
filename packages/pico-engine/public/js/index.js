@@ -477,7 +477,8 @@ $(document).ready(function () {
           d = theDB.pico_id + '-Policies'
           location.hash = d
         } else if (tabName === 'agent') {
-          location.hash = theDB.pico_id + '-Agent'
+          d = theDB.pico_id + '-Agent'
+          location.hash = d
         } else if (tabName === 'logging') {
           if (theDB.status) {
             $('#logging-list').show()
