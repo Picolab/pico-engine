@@ -22,8 +22,8 @@ module.exports = function (core) {
   def.sig_data = mkKRLfn([
     'bytes'
   ], async (ctx, args) => {
-      return b64url(Uint8Array.from(args.bytes))
-    })
+    return b64url(Uint8Array.from(args.bytes))
+  })
 
   def.crypto_sign = mkKRLfn([
     'bytes',
@@ -31,24 +31,24 @@ module.exports = function (core) {
   ], async (ctx, args) => {
     const chann = await core.db.getChannelSecrets(args.eci)
     const key = bs58.decode(chann.sovrin.secret.indyPrivate)
-    return b64url(sodium.crypto_sign_detached(Uint8Array.from(args.bytes),key))
+    return b64url(sodium.crypto_sign_detached(Uint8Array.from(args.bytes), key))
   })
 
   def.verify_signed_field = mkKRLfn([
     'signed_field'
   ], async (ctx, args) => {
-    const signature_bytes = b64dec(args.signed_field.signature)
-    const sig_data_bytes = b64dec(args.signed_field.sig_data)
+    const signatureBytes = b64dec(args.signed_field.signature)
+    const sigDataBytes = b64dec(args.signed_field.sig_data)
     const signer = bs58.decode(args.signed_field.signer)
     const verified = sodium.crypto_sign_verify_detached(
-      signature_bytes,
-      sig_data_bytes,
+      signatureBytes,
+      sigDataBytes,
       signer)
-    const data = Buffer.from(sig_data_bytes.slice(8)).toString('ascii')
+    const data = Buffer.from(sigDataBytes.slice(8)).toString('ascii')
     return {
       'sig_verified': verified,
       'field': data,
-      'timestamp': sig_data_bytes.slice(0,8)
+      'timestamp': sigDataBytes.slice(0, 8)
     }
   })
   def.unpack = mkKRLfn([
