@@ -532,6 +532,11 @@
         <input value="{{ui.invitation}}">
         <button onclick="$(this).prev().select();document.execCommand('copy')">Copy</button>
         <br>
+        <form class="js-ajax-form" action="/sky/event/{{eci}}/accept/sovrin/new_invitation">
+          Received Invitation
+          <input type="text" name="url" placeholder="paste invitation URL here">
+          <button type="submit">Accept</button>
+        </form>
         {{#if ui.connections}}
           <h3>Connections</h3>
           <ul>
