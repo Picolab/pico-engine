@@ -545,7 +545,7 @@
           {{#each ui.connections}}
             <li>{{label}}
               <a class="js-ajax-link" href="/sky/event/{{my_did}}/ui/sovrin/connection_expired?their_vk={{their_vk}}">del</a>
-              <a class="js-ajax-link" href="/sky/event/{{my_did}}/ping/sovrin/trust_ping_requested">Send Trust Ping</a>
+              <a class="js-ajax-link" href="/sky/event/{{my_did}}/ping/sovrin/trust_ping_requested?their_vk={{their_vk}}">Send Trust Ping</a>
             </li>
           {{/each}}
           </ul>
