@@ -656,6 +656,16 @@ test('collection operators', async function (t) {
   await ytf('reduce', [{}, fnDontCall, 'default'], 'default')
   await ytfe('reduce', [76, fnDontCall], 'TypeError')
 
+  await ytf('reduce', [['a'], (a, v, i) => `${a},${v}${i}`, 'start'], 'start,a0')
+  await ytf('reduce', [['a'], (a, v, i) => `${a},${v}${i}`], 'a')
+  await ytf('reduce', [['a', 'b'], (a, v, i) => `${a},${v}${i}`], 'a,b1')
+  await ytf('reduce', [['a', 'b'], (a, v, i) => `${a},${v}${i}`, 'start'], 'start,a0,b1')
+
+  await ytf('reduce', [{ foo: 'a' }, (a, v, i) => `${a},${v}${i}`, 'start'], 'start,afoo')
+  await ytf('reduce', [{ foo: 'a' }, (a, v, i) => `${a},${v}${i}`], 'a')
+  await ytf('reduce', [{ foo: 'a', bar: 'b' }, (a, v, i) => `${a},${v}${i}`], 'a,bbar')
+  await ytf('reduce', [{ foo: 'a', bar: 'b' }, (a, v, i) => `${a},${v}${i}`, 'start'], 'start,afoo,bbar')
+
   tf('reverse', [a], [5, 4, 3])
   t.deepEqual(a, [3, 4, 5], 'should not be mutated')
   tf('reverse', ['not an array'], 'not an array')
