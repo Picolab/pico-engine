@@ -524,6 +524,7 @@
       {{/if}}
     </script>
     <script id="agent-template" type="text/x-handlebars-template">
+      <div id="connection-list">
       {{#if disabled}}
         To be an agent, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rids=org.sovrin.agent.ui;org.sovrin.agent_message;org.sovrin.agent">install</a> the org.sovrin.agent rulesets
       {{else}}
@@ -543,9 +544,17 @@
           <h3>Connections</h3>
           <ul>
           {{#each ui.connections}}
-            <li>{{label}}
-              <a class="js-ajax-link" href="/sky/event/{{my_did}}/ui/sovrin/connection_expired?their_vk={{their_vk}}">del</a>
-              <a class="js-ajax-link" href="/sky/event/{{my_did}}/ping/sovrin/trust_ping_requested?their_vk={{their_vk}}">Send Trust Ping</a>
+            <li>
+              <input type="checkbox" id="connection-{{@index}}">
+              <label for="connection-{{@index}}">{{label}}</label>
+              <div class="connection-detail">
+              <h4>My DID: {{my_did}}</h4>
+              <h4>Their DID: {{their_did}}</h4>
+              <form class="js-ajax-form" action="/sky/event/{{my_did}}/ping/sovrin/trust_ping_requested?their_vk={{their_vk}}">
+                <button>Send Trust Ping</button>
+              </form>
+              <a class="js-ajax-link" href="/sky/event/{{my_did}}/ui/sovrin/connection_expired?their_vk={{their_vk}}">delete connection with {{label}}</a>
+              </div>
             </li>
           {{/each}}
           </ul>
@@ -553,6 +562,7 @@
           <h3>No connections</h3>
         {{/if}}
         <pre>{{text}}</pre>
+        </div>
       {{/if}}
     </script>
   </head>

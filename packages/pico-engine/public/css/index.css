@@ -249,3 +249,25 @@ svg line.subscription {
 .no-red:active {
   color: rgb(85,26,139);
 }
+#connection-list label {
+  cursor: pointer;
+}
+#connection-list button {
+  cursor: pointer;
+}
+#connection-list li input[type="checkbox"]:checked ~ .connection-detail {
+  display: block;
+}
+#connection-list ul {
+  margin: 0px;
+  padding: 0px;
+  list-style-type: none;
+  width: auto;
+}
+.connection-detail {
+  margin-left: 18px;
+  display: none;
+}
+.connection-detail h4 {
+  margin: 0;
+}
