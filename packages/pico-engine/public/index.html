@@ -533,7 +533,10 @@
         <table><tr>
           <th align="right">Generated Invitation</th>
           <td><input id="invite" value="{{ui.invitation}}"></td>
-          <td><button type="button" onclick="$('#invite').select();document.execCommand('copy')">Copy</button></td>
+          <td>
+            <button type="button" onclick="$('#invite').select();document.execCommand('copy')">Copy</button>
+            <button type="button" onclick="window.open($('#invite').val(),'invitation')">View</button>
+          </td>
         </tr><tr>
           <th align="right">Received Invitation</th>
           <td><input type="text" name="url" placeholder="paste invitation URL here"></td>
