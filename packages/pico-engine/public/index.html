@@ -565,7 +565,9 @@
           <h3>No connections</h3>
         {{/if}}
         <h3>Technical details</h3>
-        <pre>{{text}}</pre>
+        <input type="checkbox" id="connection-technical-details">
+        <label for="connection-technical-details">shown</label>
+        <pre class="connection-detail">{{text}}</pre>
         </div>
       {{/if}}
     </script>

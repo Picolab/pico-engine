@@ -255,7 +255,7 @@ svg line.subscription {
 #connection-list button {
   cursor: pointer;
 }
-#connection-list li input[type="checkbox"]:checked ~ .connection-detail {
+#connection-list input[type="checkbox"]:checked ~ .connection-detail {
   display: block;
 }
 #connection-list ul {
