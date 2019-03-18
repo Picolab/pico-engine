@@ -265,7 +265,8 @@ svg line.subscription {
   width: auto;
 }
 .connection-detail {
-  margin-left: 18px;
+  width: fit-content;
+  margin-left: 20px;
   display: none;
 }
 .connection-detail h4 {
@@ -277,4 +278,20 @@ img.icon {
   width: 25px;
   height: 25px;
   margin-right: 1em;
+}
+.connection-detail p {
+  margin: 1px;
+  padding: 2px;
+  border: 1px solid black;
+  border-radius: 5px;
+  width: fit-content;
+}
+.connection-detail p.outgoing {
+  float: right;
+}
+.connection-detail hr {
+  clear: both;
+  height: 1px;
+  visibility: hidden;
+  margin: -1px 0;
 }

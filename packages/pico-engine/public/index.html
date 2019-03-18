@@ -557,13 +557,15 @@
               {{#if messages}}
               <h4>Messages:</h4>
               {{#each messages}}
-              <p>{{content}}</p>
+              <p class="{{from}}">{{content}}</p>
+              <hr>
               {{/each}}
               {{/if}}
-              <form class="js-ajax-form" action="/sky/event/{{my_did}}/msg/sovrin/send_basicmessage?their_vk={{their_vk}}">
+              <form class="js-ajax-form" action="/sky/event/{{my_did}}/msg/sovrin/send_basicmessage?their_vk={{their_vk}}" style="float:right">
                 <input name="content">
                 <button>Send</button>
               </form>
+              <br clear="all">
               <form class="js-ajax-form" action="/sky/event/{{my_did}}/ping/sovrin/trust_ping_requested?their_vk={{their_vk}}">
                 <button>Send Trust Ping</button>
               </form>
