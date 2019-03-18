@@ -554,6 +554,16 @@
               <div class="connection-detail">
               <h4>My DID: {{my_did}}</h4>
               <h4>Their DID: {{their_did}}</h4>
+              {{#if messages}}
+              <h4>Messages:</h4>
+              {{#each messages}}
+              <p>{{content}}</p>
+              {{/each}}
+              {{/if}}
+              <form class="js-ajax-form" action="/sky/event/{{my_did}}/msg/sovrin/send_basicmessage?their_vk={{their_vk}}">
+                <input name="content">
+                <button>Send</button>
+              </form>
               <form class="js-ajax-form" action="/sky/event/{{my_did}}/ping/sovrin/trust_ping_requested?their_vk={{their_vk}}">
                 <button>Send Trust Ping</button>
               </form>
