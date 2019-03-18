@@ -271,3 +271,10 @@ svg line.subscription {
 .connection-detail h4 {
   margin: 0;
 }
+img.icon {
+  display: inline-block;
+  float: left;
+  width: 25px;
+  height: 25px;
+  margin-right: 1em;
+}
