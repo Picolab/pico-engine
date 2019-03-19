@@ -548,7 +548,7 @@
           <h3>Connections</h3>
           <ul>
           {{#each ui.connections}}
-            <li>
+            <li id="{{my_did}}">
               <input type="checkbox" id="connection-{{@index}}">
               <label for="connection-{{@index}}">{{label}}</label>
               <div class="connection-detail">

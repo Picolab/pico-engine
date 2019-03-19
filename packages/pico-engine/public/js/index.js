@@ -319,6 +319,7 @@ $(document).ready(function () {
     }
 
     var renderTab = function (event) {
+      var whereSpec = location.hash.substring(1).split('-')
       var authenticated = event.data.authenticated
       $(this)
         .parent()
@@ -478,7 +479,20 @@ $(document).ready(function () {
           location.hash = d
         } else if (tabName === 'agent') {
           d = theDB.pico_id + '-Agent'
-          location.hash = d
+          if (whereSpec.length > 2) {
+            var $theLi = $('li#' + whereSpec[2])
+            $theLi.find('input').first().trigger('click')
+          } else {
+            location.hash = d
+          }
+          $('#connection-list li input[type="checkbox"]').click(function() {
+            var base_hash = location.hash.substring(0,32)
+            if (this.checked) {
+              location.hash = base_hash + '-' + $(this).parent().attr('id')
+            } else {
+              location.hash = base_hash
+            }
+          })
         } else if (tabName === 'logging') {
           if (theDB.status) {
             $('#logging-list').show()
@@ -613,9 +627,9 @@ $(document).ready(function () {
             $pediv.find('button.x').click(fadeAway)
           })
           var $horizMenu = $pediv.find('ul.horiz-menu')
-          if ($horizMenu.find('li.active').length === 0) {
-            $horizMenu.find('li:first').trigger('click')
-          }
+          //if ($horizMenu.find('li.active').length === 0) {
+            //$horizMenu.find('li:first').trigger('click')
+          //}
         })
         .each(function () {
           updateEdges($(this).attr('id'))
