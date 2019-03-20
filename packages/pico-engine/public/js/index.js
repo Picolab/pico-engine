@@ -482,10 +482,15 @@ $(document).ready(function () {
           if (whereSpec.length > 2) {
             var $theLi = $('li#' + whereSpec[2])
             $theLi.find('input').first().trigger('click')
+            var theScroller = $theLi.closest('.pico-section').get(0)
+            theScroller.scrollTop = $theLi.outerHeight() - 300
+            setTimeout(function(){
+              $theLi.find('button').first().prev().focus()
+            },300)
           } else {
             location.hash = d
           }
-          $('#connection-list li input[type="checkbox"]').click(function() {
+          $('#connection-list li > input').click(function() {
             var base_hash = location.hash.substring(0,32)
             if (this.checked) {
               location.hash = base_hash + '-' + $(this).parent().attr('id')
@@ -525,7 +530,7 @@ $(document).ready(function () {
         $theSection.find('.js-ajax-form').submit(function (e) {
           e.preventDefault()
           $.getJSON($(this).attr('action'), formToJSON(this), function () {
-            if (location.hash !== d) {
+            if (location.hash !== d && location.hash.length <= d.length) {
               location.hash = d
             }
             location.reload()
@@ -627,9 +632,10 @@ $(document).ready(function () {
             $pediv.find('button.x').click(fadeAway)
           })
           var $horizMenu = $pediv.find('ul.horiz-menu')
-          //if ($horizMenu.find('li.active').length === 0) {
-            //$horizMenu.find('li:first').trigger('click')
-          //}
+          if ($horizMenu.find('li.active').length === 0
+            && location.hash.length <= 1) {
+            $horizMenu.find('li:first').trigger('click')
+          }
         })
         .each(function () {
           updateEdges($(this).attr('id'))
