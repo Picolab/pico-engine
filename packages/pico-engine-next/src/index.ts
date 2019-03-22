@@ -1,70 +1,25 @@
-const leveldown = require("leveldown");
-import * as bodyParser from "body-parser";
-import * as express from "express";
-import * as path from "path";
-import * as _ from "lodash";
 import { PicoFramework } from "pico-framework";
-import { Request } from "express";
+import { inputToConf, PicoEngineSettings } from "./configuration";
+import { server } from "./server";
+const leveldown = require("leveldown");
 
-const engineVersion = require("../package.json").version;
+export async function startEngine(settings?: PicoEngineSettings) {
+  const conf = inputToConf(settings);
 
-// import * as helmet from "helmet";
-
-function mergeGetPost(req: Request) {
-  // give preference to post body params
-  return _.assign({}, req.query, req.body, { _headers: req.headers });
-}
-
-interface PicoEngineConf {
-  home: string;
-  port: number;
-  base_url: string;
-  log_path: string;
-}
-
-async function main(conf: PicoEngineConf) {
   const pf = new PicoFramework({
-    leveldown: leveldown(path.join(conf.home, "db"))
+    leveldown: leveldown(conf.db_path)
   });
   await pf.start();
 
-  console.log(`Pico Engine ${engineVersion}`);
+  console.log(`Starting pico-engine-NEXT ${conf.version}`);
   console.log(conf);
 
-  const app = express();
-  app.use(express.static(path.resolve(__dirname, "..", "public")));
-  app.use(bodyParser.json({ type: "application/json" }));
-  app.use(
-    bodyParser.urlencoded({
-      limit: "512mb",
-      type: "application/x-www-form-urlencoded",
-      extended: false
-    })
+  const app = server(pf, conf);
+  await new Promise((resolve, reject) =>
+    app.listen(conf.port, (err: any) => (err ? reject(err) : resolve()))
   );
 
-  app.all("/c/:eci/event/:domain/:name", function(req, res, next) {
-    pf.event({
-      eci: req.params.eci,
-      domain: req.params.domain,
-      name: req.params.name,
-      data: { attrs: mergeGetPost(req) },
-      time: 0 // TODO remove this typescript requirement
-    })
-      .then(function(data) {
-        res.json(data);
-      })
-      .catch(next);
-  });
+  console.log(`Listening on ${conf.base_url}`);
 
-  // app.all('/c/:eci/query/:rid/:name', function (req, res, next) {
-  // })
-
-  app.listen(conf.port);
+  // TODO  pf.event ... engine:started
 }
-
-main({
-  home: __dirname,
-  port: 2020,
-  base_url: "http://localhost:2020",
-  log_path: path.resolve(__dirname, "pico-engine.log")
-});

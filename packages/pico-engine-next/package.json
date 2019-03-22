@@ -6,16 +6,19 @@
     "start": "npm run dev -s",
     "dev": "scriptsp -r dev:tsc dev:api",
     "dev:tsc": "tsc -w --preserveWatchOutput",
-    "dev:api": "nodemon dist/server.js"
+    "dev:api": "nodemon dist/cli.js"
   },
   "dependencies": {
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
+    "helmet": "^3.16.0",
+    "home-dir": "^1.0.0",
     "leveldown": "^4.0.2",
     "pico-framework": "0.0.0"
   },
   "devDependencies": {
     "@types/express": "^4.16.1",
+    "@types/helmet": "0.0.43",
     "@types/levelup": "^3.1.0",
     "@types/lodash": "^4.14.123",
     "@types/node": "^11.11.5",
