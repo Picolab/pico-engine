@@ -17,10 +17,27 @@ ruleset io.picolabs.collection {
                                { "name": "members" } ],
                   "events": [ {"domain": "wrangler", "type": "deletion_imminent"} ] }
     members = function(){
-      Subs:established("Tx_role","member")
+      Subs:established("Tx_role",ent:Tx_role)
     }
     check_roles = function(){
-      event:attr("Rx_role")=="collection" && event:attr("Tx_role")=="member"
+      event:attr("Rx_role")==ent:Rx_role && event:attr("Tx_role")==ent:Tx_role
+    }
+  }
+  rule initialize_role_names {
+    select when wrangler ruleset_added where event:attr("rids") >< meta:rid
+    if ent:Tx_role.isnull() && ent:Rx_role.isnull() then noop()
+    fired {
+      ent:Tx_role := "member";
+      ent:Rx_role := "collection"
+    }
+  }
+  rule establish_new_role_names {
+    select when collection new_role_names
+      Tx_role re#(.+)# Rx_role re#(.+)# setting(Tx_role,Rx_role)
+    if ent:Tx_role && members().length() == 0 then noop()
+    fired {
+      ent:Tx_role := Tx_role;
+      ent:Rx_role := Rx_role
     }
   }
   rule auto_accept {
