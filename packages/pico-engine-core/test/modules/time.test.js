@@ -30,7 +30,7 @@ test('time module', async function (t) {
 
   t.is(
     await time['new'](ctx, [1967342]),
-    '1967-12-08T00:00:00.000Z',
+    '1970-01-23T18:29:02.000Z',
     'Year DayOfYear'
   )
 
@@ -47,7 +47,6 @@ test('time module', async function (t) {
   )
 
   await terr('new', ctx, [], 'Error: time:new needs a date string')
-  await terr('new', ctx, [67342], 'TypeError: time:new was given 67342 instead of a date string')
   await terr('new', ctx, ['67342'], 'Error: time:new was given an invalid date string (67342)')
 
   t.is(

@@ -1,6 +1,7 @@
 let _ = require('lodash')
 let ktypes = require('krl-stdlib/types')
 let request = require('request')
+let cleanEvent = require('../cleanEvent')
 let mkKRLaction = require('../mkKRLaction')
 
 function ensureMap (arg, defaultTo) {
@@ -58,7 +59,7 @@ async function httpBase (method, ctx, args) {
   return r
 }
 
-function mkMethod (method, canAlsoBeUsedAsAFunction) {
+function mkMethod (core, method, canAlsoBeUsedAsAFunction) {
   return mkKRLaction([
     // NOTE: order is significant so it's a breaking API change to change argument ordering
     'url',
@@ -69,13 +70,28 @@ function mkMethod (method, canAlsoBeUsedAsAFunction) {
     'json',
     'form',
     'parseJSON',
-    'autoraise'
+    'autoraise',
+    'autosend'
   ], async function (ctx, args) {
     if (!_.has(args, 'url')) {
       throw new Error('http:' + method.toLowerCase() + ' needs a url string')
     }
     if (!ktypes.isString(args.url)) {
       throw new TypeError('http:' + method.toLowerCase() + ' was given ' + ktypes.toString(args.url) + ' instead of a url string')
+    }
+
+    if (_.has(args, 'autosend')) {
+      const event = cleanEvent(args.autosend)
+      httpBase(method, ctx, args)
+        .then(r => {
+          core.signalEvent(Object.assign({}, event, {
+            attrs: Object.assign({}, event.attrs, r)
+          }))
+        })
+        .catch(err => {
+          ctx.log('error', err + '')// TODO better handling
+        })
+      return
     }
 
     const r = await httpBase(method, ctx, args)
@@ -97,13 +113,13 @@ function mkMethod (method, canAlsoBeUsedAsAFunction) {
 module.exports = function (core) {
   return {
     def: {
-      get: mkMethod('GET', true),
-      head: mkMethod('HEAD', true),
+      get: mkMethod(core, 'GET', true),
+      head: mkMethod(core, 'HEAD', true),
 
-      post: mkMethod('POST'),
-      put: mkMethod('PUT'),
-      patch: mkMethod('PATCH'),
-      'delete': mkMethod('DELETE')
+      post: mkMethod(core, 'POST'),
+      put: mkMethod(core, 'PUT'),
+      patch: mkMethod(core, 'PATCH'),
+      'delete': mkMethod(core, 'DELETE')
     }
   }
 }
