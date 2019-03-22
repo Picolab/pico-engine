@@ -18,7 +18,47 @@ function requestP (opts) {
   })
 }
 
-let mkMethod = function (method, canAlsoBeUsedAsAFunction) {
+async function httpBase (method, ctx, args) {
+  let opts = {
+    method: method,
+    url: args.url,
+    qs: ensureMap(args.qs, {}),
+    headers: ensureMap(args.headers, {}),
+    auth: ensureMap(args.auth)
+  }
+
+  if (_.has(args, 'body')) {
+    opts.body = ktypes.toString(args.body)
+  } else if (_.has(args, 'json')) {
+    opts.body = ktypes.encode(args.json)
+    if (!_.has(opts.headers, 'content-type')) {
+      opts.headers['content-type'] = 'application/json'
+    }
+  } else if (_.has(args, 'form')) {
+    opts.form = ensureMap(args.form)
+  }
+
+  let res = await requestP(opts)
+
+  let r = {
+    content: res.body,
+    content_type: res.headers['content-type'],
+    content_length: _.parseInt(res.headers['content-length'], 0) || 0,
+    headers: res.headers,
+    status_code: res.statusCode,
+    status_line: res.statusMessage
+  }
+  if (args.parseJSON === true) {
+    try {
+      r.content = JSON.parse(r.content)
+    } catch (e) {
+      // just leave the content as is
+    }
+  }
+  return r
+}
+
+function mkMethod (method, canAlsoBeUsedAsAFunction) {
   return mkKRLaction([
     // NOTE: order is significant so it's a breaking API change to change argument ordering
     'url',
@@ -38,42 +78,8 @@ let mkMethod = function (method, canAlsoBeUsedAsAFunction) {
       throw new TypeError('http:' + method.toLowerCase() + ' was given ' + ktypes.toString(args.url) + ' instead of a url string')
     }
 
-    let opts = {
-      method: method,
-      url: args.url,
-      qs: ensureMap(args.qs, {}),
-      headers: ensureMap(args.headers, {}),
-      auth: ensureMap(args.auth)
-    }
+    const r = await httpBase(method, ctx, args)
 
-    if (_.has(args, 'body')) {
-      opts.body = ktypes.toString(args.body)
-    } else if (_.has(args, 'json')) {
-      opts.body = ktypes.encode(args.json)
-      if (!_.has(opts.headers, 'content-type')) {
-        opts.headers['content-type'] = 'application/json'
-      }
-    } else if (_.has(args, 'form')) {
-      opts.form = ensureMap(args.form)
-    }
-
-    let res = await requestP(opts)
-
-    let r = {
-      content: res.body,
-      content_type: res.headers['content-type'],
-      content_length: _.parseInt(res.headers['content-length'], 0) || 0,
-      headers: res.headers,
-      status_code: res.statusCode,
-      status_line: res.statusMessage
-    }
-    if (args.parseJSON === true) {
-      try {
-        r.content = JSON.parse(r.content)
-      } catch (e) {
-        // just leave the content as is
-      }
-    }
     if (_.has(args, 'autoraise')) {
       r.label = ktypes.toString(args.autoraise)
       return ctx.raiseEvent({
