@@ -12,7 +12,11 @@ function mergeGetPost(req: Request) {
   return _.assign({}, req.query, req.body, { _headers: req.headers });
 }
 
-export function server(pf: PicoFramework, conf: PicoEngineConf): Express {
+export function server(
+  pf: PicoFramework,
+  conf: PicoEngineConf,
+  uiECI: string
+): Express {
   const app = express();
 
   app.use(helmet());
@@ -25,6 +29,10 @@ export function server(pf: PicoFramework, conf: PicoEngineConf): Express {
       extended: false
     })
   );
+
+  app.all("/ui-eci", function(req, res, next) {
+    res.json(uiECI);
+  });
 
   app.all("/c/:eci/event/:domain/:name", function(req, res, next) {
     pf.event({
@@ -40,8 +48,18 @@ export function server(pf: PicoFramework, conf: PicoEngineConf): Express {
       .catch(next);
   });
 
-  // app.all('/c/:eci/query/:rid/:name', function (req, res, next) {
-  // })
+  app.all("/c/:eci/query/:rid/:name", function(req, res, next) {
+    pf.query({
+      eci: req.params.eci,
+      rid: req.params.rid,
+      name: req.params.name,
+      args: { attrs: mergeGetPost(req) }
+    })
+      .then(function(data) {
+        res.json(data);
+      })
+      .catch(next);
+  });
 
   return app;
 }

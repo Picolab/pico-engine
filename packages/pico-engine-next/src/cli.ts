@@ -24,4 +24,8 @@ if (
   env.base_url = process.env.PICO_ENGINE_BASE_URL;
 }
 
-startEngine(env);
+startEngine(env).catch(err => {
+  console.error("Failed to start engine.");
+  console.error(err);
+  process.exit(1);
+});

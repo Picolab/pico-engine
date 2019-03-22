@@ -2,8 +2,32 @@
 <html lang="en">
   <head>
     <title>pico-engine NEXT</title>
+    <style>
+      .pico {
+        background-color: blue;
+        border-radius: 20px;
+        min-height: 100px;
+        min-width: 100px;
+      }
+    </style>
   </head>
   <body>
     <h1>pico-engine NEXT</h1>
+    <div class="pico">
+      TODO
+    </div>
   </body>
+  <script>
+    fetch("/ui-eci")
+      .then(res => res.json())
+      .then(eci => {
+        console.log("got", eci);
+
+        return fetch(`/c/${eci}/query/io.picolabs.next/pico`);
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log("got", data);
+      });
+  </script>
 </html>
