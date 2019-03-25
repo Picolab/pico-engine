@@ -30,8 +30,8 @@ export function server(
     })
   );
 
-  app.all("/ui-eci", function(req, res, next) {
-    res.json(uiECI);
+  app.all("/api/ui-context", function(req, res, next) {
+    res.json({ version: conf.version, eci: uiECI });
   });
 
   app.all("/c/:eci/event/:domain/:name", function(req, res, next) {

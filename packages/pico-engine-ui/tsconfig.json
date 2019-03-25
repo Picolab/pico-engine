@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "lib": ["es5", "es2015.promise", "dom"],
+    "allowJs": true,
+    "strict": true,
+    "sourceMap": true,
+    "jsx": "react"
+  },
+  "include": ["src"]
+}
