@@ -1,12 +1,16 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { Dispatch, putPicoBox, newPico, delPico } from "../../Action";
-import { PicoBox, State } from "../../State";
+import { PicoBox, State, PicoDetails } from "../../State";
 import { Link } from "react-router-dom";
 
-interface Props {
-  dispatch: Dispatch;
+interface PropsFromParent {
   pico: PicoBox;
+}
+
+interface Props extends PropsFromParent {
+  dispatch: Dispatch;
+  picoDetails?: PicoDetails;
 }
 
 function getRefVal(ref: React.RefObject<HTMLInputElement>) {
@@ -147,6 +151,9 @@ class About extends React.Component<Props> {
   }
 }
 
-export default connect((state: State) => {
-  return {};
+export default connect((state: State, props: PropsFromParent) => {
+  const picoState = state.picos[props.pico.eci];
+  return {
+    picoDetails: picoState && picoState.details
+  };
 })(About);

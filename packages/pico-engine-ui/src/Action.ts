@@ -1,5 +1,5 @@
 import { ThunkAction, ThunkDispatch } from "redux-thunk";
-import { State, PicoBox } from "./State";
+import { State, PicoBox, PicoDetails } from "./State";
 
 type AsyncAction = ThunkAction<void, State, {}, Action>;
 export type Dispatch = ThunkDispatch<State, {}, Action>;
@@ -233,6 +233,34 @@ interface DEL_PICO_ERROR {
   error: string;
 }
 
+export function getPicoDetails(eci: string): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "GET_PICODETAILS_START", eci });
+    fetch(`/c/${eci}/query/io.picolabs.next/pico`)
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "GET_PICODETAILS_OK", eci, data });
+      })
+      .catch(err => {
+        dispatch({ type: "GET_PICODETAILS_ERROR", eci, error: err + "" });
+      });
+  };
+}
+interface GET_PICODETAILS_START {
+  type: "GET_PICODETAILS_START";
+  eci: string;
+}
+interface GET_PICODETAILS_OK {
+  type: "GET_PICODETAILS_OK";
+  eci: string;
+  data: PicoDetails;
+}
+interface GET_PICODETAILS_ERROR {
+  type: "GET_PICODETAILS_ERROR";
+  eci: string;
+  error: string;
+}
+
 export type Action =
   | GET_UI_CONTEXT_START
   | GET_UI_CONTEXT_OK
@@ -252,4 +280,7 @@ export type Action =
   | NEW_PICO_ERROR
   | DEL_PICO_START
   | DEL_PICO_OK
-  | DEL_PICO_ERROR;
+  | DEL_PICO_ERROR
+  | GET_PICODETAILS_START
+  | GET_PICODETAILS_OK
+  | GET_PICODETAILS_ERROR;

@@ -1,6 +1,12 @@
 import produce from "immer";
 import { Action } from "./Action";
-import { initialState, State, apiCallStatus, PicoBox } from "./State";
+import {
+  initialState,
+  State,
+  apiCallStatus,
+  PicoBox,
+  PicoState
+} from "./State";
 
 /**
  * The root reducer
@@ -65,56 +71,54 @@ function producer(state: State, action: Action): void {
       return;
 
     case "GET_PICOBOX_START":
-      if (state.picos[action.eci]) {
-        state.picos[action.eci].box_apiSt = apiCallStatus.waiting();
-      } else {
-        state.picos[action.eci] = {
-          box_apiSt: apiCallStatus.waiting(),
-          new_apiSt: apiCallStatus.init()
-        };
-      }
+      updatePico(state, action.eci, pico => {
+        pico.box_apiSt = apiCallStatus.waiting();
+      });
       return;
     case "GET_PICOBOX_OK":
-      if (state.picos[action.eci]) {
-        state.picos[action.eci].box = action.data;
-      }
+      updatePico(state, action.eci, pico => {
+        pico.box_apiSt = apiCallStatus.ok();
+        pico.box = action.data;
+      });
       return;
     case "GET_PICOBOX_ERROR":
-      if (state.picos[action.eci]) {
-        state.picos[action.eci].box_apiSt = apiCallStatus.error(action.error);
-      }
+      updatePico(state, action.eci, pico => {
+        pico.box_apiSt = apiCallStatus.error(action.error);
+      });
       return;
 
     case "PUT_PICOBOX_START":
-      if (state.picos[action.eci]) {
-        state.picos[action.eci].box_apiSt = apiCallStatus.waiting();
-      }
+      updatePico(state, action.eci, pico => {
+        pico.box_apiSt = apiCallStatus.waiting();
+      });
       return;
     case "PUT_PICOBOX_OK":
-      if (state.picos[action.eci]) {
-        state.picos[action.eci].box = action.data;
-      }
+      updatePico(state, action.eci, pico => {
+        pico.box_apiSt = apiCallStatus.ok();
+        pico.box = action.data;
+      });
       return;
     case "PUT_PICOBOX_ERROR":
-      if (state.picos[action.eci]) {
-        state.picos[action.eci].box_apiSt = apiCallStatus.error(action.error);
-      }
+      updatePico(state, action.eci, pico => {
+        pico.box_apiSt = apiCallStatus.error(action.error);
+      });
       return;
 
     case "NEW_PICO_START":
-      if (state.picos[action.eci]) {
-        state.picos[action.eci].new_apiSt = apiCallStatus.waiting();
-      }
+      updatePico(state, action.eci, pico => {
+        pico.new_apiSt = apiCallStatus.waiting();
+      });
       return;
     case "NEW_PICO_OK":
-      if (state.picos[action.eci]) {
-        state.picos[action.eci].box = action.data;
-      }
+      updatePico(state, action.eci, pico => {
+        pico.new_apiSt = apiCallStatus.ok();
+        pico.box = action.data;
+      });
       return;
     case "NEW_PICO_ERROR":
-      if (state.picos[action.eci]) {
-        state.picos[action.eci].new_apiSt = apiCallStatus.error(action.error);
-      }
+      updatePico(state, action.eci, pico => {
+        pico.new_apiSt = apiCallStatus.error(action.error);
+      });
       return;
 
     case "DEL_PICO_START":
@@ -134,6 +138,23 @@ function producer(state: State, action: Action): void {
     case "DEL_PICO_ERROR":
       // TODO api status for delete?
       return;
+
+    case "GET_PICODETAILS_START":
+      updatePico(state, action.eci, pico => {
+        pico.details_apiSt = apiCallStatus.waiting();
+      });
+      return;
+    case "GET_PICODETAILS_OK":
+      updatePico(state, action.eci, pico => {
+        pico.details_apiSt = apiCallStatus.ok();
+        pico.details = action.data;
+      });
+      return;
+    case "GET_PICODETAILS_ERROR":
+      updatePico(state, action.eci, pico => {
+        pico.details_apiSt = apiCallStatus.error(action.error);
+      });
+      return;
   }
 }
 
@@ -146,4 +167,21 @@ function updatePicoBox(
   if (pico && pico.box) {
     update(pico.box);
   }
+}
+
+function updatePico(
+  state: State,
+  eci: string,
+  update: (pico: PicoState) => void
+) {
+  let pico = state.picos[eci];
+  if (!pico) {
+    pico = {
+      details_apiSt: apiCallStatus.init(),
+      box_apiSt: apiCallStatus.init(),
+      new_apiSt: apiCallStatus.init()
+    };
+    state.picos[eci] = pico;
+  }
+  update(pico);
 }

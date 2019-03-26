@@ -1,14 +1,32 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link, NavLink } from "react-router-dom";
-import { Dispatch, startPicoMove, startPicoResize } from "../Action";
-import { PicoBox, State } from "../State";
+import {
+  Dispatch,
+  getPicoDetails,
+  startPicoMove,
+  startPicoResize
+} from "../Action";
+import { PicoBox, PicoState, State } from "../State";
 import About from "./PicoTabs/About";
 import Channels from "./PicoTabs/Channels";
+import Logging from "./PicoTabs/Logging";
 import Rulesets from "./PicoTabs/Rulesets";
 import Subscriptions from "./PicoTabs/Subscriptions";
-import Logging from "./PicoTabs/Logging";
 import Testing from "./PicoTabs/Testing";
+
+/**
+ * Simple component to detect when the pico view has been opened
+ */
+class PicoOpened extends React.Component<{ dispatch: Dispatch; eci: string }> {
+  componentDidMount() {
+    const { dispatch, eci } = this.props;
+    dispatch(getPicoDetails(eci));
+  }
+  render() {
+    return null;
+  }
+}
 
 interface PropsFromParent {
   pico: PicoBox;
@@ -19,6 +37,7 @@ interface PropsFromParent {
 interface Props extends PropsFromParent {
   dispatch: Dispatch;
   isMovingOrResizing: boolean;
+  picoState: PicoState;
 }
 
 class Pico extends React.Component<Props> {
@@ -39,7 +58,7 @@ class Pico extends React.Component<Props> {
   }
 
   render() {
-    const { pico, isMovingOrResizing, openEci, openTab } = this.props;
+    const { pico, isMovingOrResizing, openEci, picoState } = this.props;
     const isOpen = pico.eci === openEci;
 
     return (
@@ -79,8 +98,17 @@ class Pico extends React.Component<Props> {
               </ul>
             </div>
             <div className="card-body bg-white overflow-auto">
+              {picoState.details_apiSt.error ? (
+                <div className="alert alert-danger">
+                  {picoState.details_apiSt.error}
+                </div>
+              ) : (
+                ""
+              )}
               {this.renderTabsBody()}
+              {picoState.details_apiSt.waiting ? "Loading..." : ""}
             </div>
+            <PicoOpened dispatch={this.props.dispatch} eci={pico.eci} />
           </React.Fragment>
         ) : (
           <React.Fragment>
@@ -144,7 +172,9 @@ class Pico extends React.Component<Props> {
 
 export default connect((state: State, props: PropsFromParent) => {
   const { pico } = props;
+  const picoState = state.picos[pico.eci];
   return {
+    picoState,
     isMovingOrResizing:
       pico.eci === state.pico_moving || pico.eci === state.pico_resizing
   };

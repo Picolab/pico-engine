@@ -63,7 +63,8 @@ export async function startEngine(settings?: PicoEngineSettings) {
         queryPolicy: {
           allow: [
             { rid: "io.picolabs.next", name: "uiECI" },
-            { rid: "io.picolabs.next", name: "box" }
+            { rid: "io.picolabs.next", name: "box" },
+            { rid: "io.picolabs.next", name: "pico" }
           ],
           deny: []
         }
@@ -130,7 +131,7 @@ export async function startEngine(settings?: PicoEngineSettings) {
                     args: {}
                   });
                   if (attrs.eci === uiEci) {
-                    // await ctx.delPico(eci);
+                    await ctx.delPico(eci);
                   }
                 }
               }
