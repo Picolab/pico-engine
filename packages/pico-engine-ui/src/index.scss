@@ -7,4 +7,33 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color: #f2f2f2;
+}
+
+#picos-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.pico {
+  position: fixed;
+  min-width: 50px;
+  min-height: 50px;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+
+  .pico-resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 25px;
+    height: 25px;
+    cursor: nwse-resize;
+  }
 }

@@ -6,6 +6,8 @@ import { applyMiddleware, createStore } from "redux";
 import thunk, { ThunkMiddleware } from "redux-thunk";
 import "whatwg-fetch"; // polyfill for fetch
 import { Action, getUiContext } from "./Action";
+import PicosPage from "./components/PicosPage";
+import RulesetsPage from "./components/RulesetsPage";
 import "./index.scss";
 import reducer from "./reducer";
 import { State } from "./State";
@@ -15,27 +17,17 @@ const store = createStore(
   applyMiddleware(thunk as ThunkMiddleware<State, Action, {}>)
 );
 
-const Picos = () => {
-  return <div>TODO Picos page</div>;
-};
-
-const Rulesets = () => {
-  return <div>TODO Ruleset editor</div>;
-};
-
 const Index = () => {
   return (
     <HashRouter>
       <RouterSwitch>
-        <Route path="/rulesets" component={Rulesets} />
-        <Route component={Picos} />
+        <Route path="/rulesets" component={RulesetsPage} />
+        <Route component={PicosPage} />
       </RouterSwitch>
     </HashRouter>
   );
 };
 
-const div = document.createElement("DIV");
-document.body.append(div);
 ReactDOM.render(
   <React.Fragment>
     <Provider store={store}>
