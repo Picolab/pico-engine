@@ -109,6 +109,55 @@ interface GET_PICOBOX_ERROR {
   error: string;
 }
 
+export function putPicoBox(
+  eci: string,
+  name: string,
+  backgroundColor: string
+): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "PUT_PICOBOX_START", eci });
+    fetch(`/c/${eci}/event/engine-ui/box/query/io.picolabs.next/box`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify({ name, backgroundColor })
+    })
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "PUT_PICOBOX_OK", eci, data });
+      })
+      .catch(err => {
+        dispatch({ type: "PUT_PICOBOX_ERROR", eci, error: err + "" });
+      });
+  };
+}
+interface PUT_PICOBOX_START {
+  type: "PUT_PICOBOX_START";
+  eci: string;
+}
+interface PUT_PICOBOX_OK {
+  type: "PUT_PICOBOX_OK";
+  eci: string;
+  data: {
+    eci: string;
+    children: string[];
+
+    name: string;
+    backgroundColor: string;
+
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+interface PUT_PICOBOX_ERROR {
+  type: "PUT_PICOBOX_ERROR";
+  eci: string;
+  error: string;
+}
+
 export type Action =
   | GET_UI_CONTEXT_START
   | GET_UI_CONTEXT_OK
@@ -119,4 +168,7 @@ export type Action =
   | PICOS_MOUSE_UP
   | GET_PICOBOX_START
   | GET_PICOBOX_OK
-  | GET_PICOBOX_ERROR;
+  | GET_PICOBOX_ERROR
+  | PUT_PICOBOX_START
+  | PUT_PICOBOX_OK
+  | PUT_PICOBOX_ERROR;

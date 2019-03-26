@@ -63,10 +63,29 @@ export async function startEngine(settings?: PicoEngineSettings) {
       });
 
       return {
-        event(event) {},
+        async event(event) {
+          switch (`${event.domain}:${event.name}`) {
+            case "engine-ui:box":
+              if (event.data) {
+                const attrs = event.data.attrs;
+                for (const key of ["x", "y", "width", "height"]) {
+                  const n = parseFloat(attrs[key]);
+                  if (typeof n === "number" && n === n) {
+                    await ctx.putEnt(key, n);
+                  }
+                }
+                for (const key of ["name", "backgroundColor"]) {
+                  let val = attrs[key];
+                  if (typeof val === "string") {
+                    await ctx.putEnt(key, val.trim());
+                  }
+                }
+              }
+          }
+        },
         query: {
           async box() {
-            const [bgColor, name, x, y, w, h] = await Promise.all([
+            const [name, bgColor, x, y, w, h] = await Promise.all([
               ctx.getEnt("name"),
               ctx.getEnt("backgroundColor"),
 
@@ -98,6 +117,7 @@ export async function startEngine(settings?: PicoEngineSettings) {
               height: h || 100
             };
           },
+
           uiECI() {
             return uiChannel.id;
           },

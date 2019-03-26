@@ -82,6 +82,24 @@ function producer(state: State, action: Action): void {
         state.picos[action.eci].box_apiSt = apiCallStatus.error(action.error);
       }
       return;
+
+    case "PUT_PICOBOX_START":
+      if (state.picos[action.eci]) {
+        state.picos[action.eci].box_apiSt = apiCallStatus.waiting();
+      } else {
+        state.picos[action.eci] = { box_apiSt: apiCallStatus.waiting() };
+      }
+      return;
+    case "PUT_PICOBOX_OK":
+      if (state.picos[action.eci]) {
+        state.picos[action.eci].box = action.data;
+      }
+      return;
+    case "PUT_PICOBOX_ERROR":
+      if (state.picos[action.eci]) {
+        state.picos[action.eci].box_apiSt = apiCallStatus.error(action.error);
+      }
+      return;
   }
 }
 

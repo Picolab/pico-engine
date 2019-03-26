@@ -1,6 +1,6 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { Dispatch } from "../../Action";
+import { Dispatch, putPicoBox } from "../../Action";
 import { PicoBox, State } from "../../State";
 
 interface Props {
@@ -28,11 +28,12 @@ class About extends React.Component<Props> {
 
   savePico(e: React.FormEvent) {
     e.preventDefault();
-    const name = getRefVal(this.input_name);
-    const backgroundColor = getRefVal(this.input_backgroundColor);
+    const name = getRefVal(this.input_name) || "";
+    const backgroundColor = getRefVal(this.input_backgroundColor) || "";
 
-    console.log(name, backgroundColor);
-    // TODO send add event
+    const { pico, dispatch } = this.props;
+
+    dispatch(putPicoBox(pico.eci, name, backgroundColor));
   }
 
   addPico(e: React.FormEvent) {
@@ -41,7 +42,7 @@ class About extends React.Component<Props> {
     const backgroundColor = getRefVal(this.input_add_backgroundColor);
 
     console.log(name, backgroundColor);
-    // TODO send ui update event
+    // TODO send add  event
   }
 
   render() {

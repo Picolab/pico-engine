@@ -62,7 +62,14 @@ class PicosPage extends React.Component<Props> {
         </div>
 
         {picoBoxes.map(pico => {
-          return <Pico pico={pico} openEci={openEci} openTab={openTab} />;
+          return (
+            <Pico
+              key={pico.eci}
+              pico={pico}
+              openEci={openEci}
+              openTab={openTab}
+            />
+          );
         })}
       </div>
     );

@@ -48,12 +48,39 @@ export function server(
       .catch(next);
   });
 
+  app.all("/c/:eci/event/:domain/:name/query/:rid/:qname", function(
+    req,
+    res,
+    next
+  ) {
+    const attrs = mergeGetPost(req);
+    pf.eventQuery(
+      {
+        eci: req.params.eci,
+        domain: req.params.domain,
+        name: req.params.name,
+        data: { attrs },
+        time: 0 // TODO remove this typescript requirement
+      },
+      {
+        eci: req.params.eci,
+        rid: req.params.rid,
+        name: req.params.qname,
+        args: attrs
+      }
+    )
+      .then(function(data) {
+        res.json(data);
+      })
+      .catch(next);
+  });
+
   app.all("/c/:eci/query/:rid/:name", function(req, res, next) {
     pf.query({
       eci: req.params.eci,
       rid: req.params.rid,
       name: req.params.name,
-      args: { attrs: mergeGetPost(req) }
+      args: mergeGetPost(req)
     })
       .then(function(data) {
         res.json(data);
