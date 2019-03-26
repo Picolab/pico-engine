@@ -54,13 +54,50 @@ export async function startEngine(settings?: PicoEngineSettings) {
         tags: ["engine", "ui"],
         eventPolicy: { allow: [{ domain: "engine-ui", name: "*" }], deny: [] },
         queryPolicy: {
-          allow: [{ rid: "io.picolabs.next", name: "pico" }],
+          allow: [
+            { rid: "io.picolabs.next", name: "uiECI" },
+            { rid: "io.picolabs.next", name: "box" }
+          ],
           deny: []
         }
       });
+
       return {
         event(event) {},
         query: {
+          async box() {
+            const [bgColor, name, x, y, w, h] = await Promise.all([
+              ctx.getEnt("name"),
+              ctx.getEnt("backgroundColor"),
+
+              ctx.getEnt("x"),
+              ctx.getEnt("y"),
+              ctx.getEnt("width"),
+              ctx.getEnt("height")
+            ]);
+
+            return {
+              eci: uiChannel.id,
+              children: await Promise.all(
+                ctx.pico().children.map(eci => {
+                  return ctx.query({
+                    eci,
+                    rid: "io.picolabs.next",
+                    name: "uiECI",
+                    args: {}
+                  });
+                })
+              ),
+
+              name: name || "Pico",
+              backgroundColor: bgColor || "#87cefa",
+
+              x: x || 100,
+              y: y || 100,
+              width: w || 100,
+              height: h || 100
+            };
+          },
           uiECI() {
             return uiChannel.id;
           },

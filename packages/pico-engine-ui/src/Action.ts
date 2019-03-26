@@ -11,6 +11,7 @@ export function getUiContext(): AsyncAction {
       .then(resp => resp.json())
       .then(data => {
         dispatch({ type: "GET_UI_CONTEXT_OK", data });
+        dispatch(getPicoBox(data.eci));
       })
       .catch(err => {
         dispatch({ type: "GET_UI_CONTEXT_ERROR", error: err + "" });
@@ -65,6 +66,49 @@ interface PICOS_MOUSE_UP {
   type: "PICOS_MOUSE_UP";
 }
 
+export function getPicoBox(eci: string): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "GET_PICOBOX_START", eci });
+    fetch(`/c/${eci}/query/io.picolabs.next/box`)
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "GET_PICOBOX_OK", eci, data });
+        for (const eci of data.children) {
+          dispatch(getPicoBox(eci));
+        }
+      })
+      .catch(err => {
+        dispatch({ type: "GET_PICOBOX_ERROR", eci, error: err + "" });
+      });
+  };
+}
+
+interface GET_PICOBOX_START {
+  type: "GET_PICOBOX_START";
+  eci: string;
+}
+interface GET_PICOBOX_OK {
+  type: "GET_PICOBOX_OK";
+  eci: string;
+  data: {
+    eci: string;
+    children: string[];
+
+    name: string;
+    backgroundColor: string;
+
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+interface GET_PICOBOX_ERROR {
+  type: "GET_PICOBOX_ERROR";
+  eci: string;
+  error: string;
+}
+
 export type Action =
   | GET_UI_CONTEXT_START
   | GET_UI_CONTEXT_OK
@@ -72,4 +116,7 @@ export type Action =
   | START_PICO_MOVE
   | START_PICO_RESIZE
   | PICOS_MOUSE_MOVE
-  | PICOS_MOUSE_UP;
+  | PICOS_MOUSE_UP
+  | GET_PICOBOX_START
+  | GET_PICOBOX_OK
+  | GET_PICOBOX_ERROR;

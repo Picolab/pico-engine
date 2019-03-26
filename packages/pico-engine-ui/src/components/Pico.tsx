@@ -10,14 +10,15 @@ import Subscriptions from "./PicoTabs/Subscriptions";
 import Logging from "./PicoTabs/Logging";
 import Testing from "./PicoTabs/Testing";
 
-interface Props {
-  dispatch: Dispatch;
+interface PropsFromParent {
   pico: PicoBox;
-  isMovingOrResizing: boolean;
-
-  // from parent
   openEci?: string;
   openTab?: string;
+}
+
+interface Props extends PropsFromParent {
+  dispatch: Dispatch;
+  isMovingOrResizing: boolean;
 }
 
 class Pico extends React.Component<Props> {
@@ -141,11 +142,9 @@ class Pico extends React.Component<Props> {
   }
 }
 
-export default connect((state: State) => {
-  const pico = state.rootPico;
+export default connect((state: State, props: PropsFromParent) => {
+  const { pico } = props;
   return {
-    pico,
-
     isMovingOrResizing:
       pico.eci === state.pico_moving || pico.eci === state.pico_resizing
   };

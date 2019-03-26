@@ -1,6 +1,6 @@
 import produce from "immer";
 import { Action } from "./Action";
-import { initialState, State, apiCallStatus } from "./State";
+import { initialState, State, apiCallStatus, PicoBox } from "./State";
 
 /**
  * The root reducer
@@ -46,12 +46,16 @@ function producer(state: State, action: Action): void {
       return;
 
     case "PICOS_MOUSE_MOVE":
-      if (state.pico_moving === state.rootPico.eci) {
-        state.rootPico.x = action.x;
-        state.rootPico.y = action.y;
-      } else if (state.pico_resizing === state.rootPico.eci) {
-        state.rootPico.width = Math.max(0, action.x - state.rootPico.x);
-        state.rootPico.height = Math.max(0, action.y - state.rootPico.y);
+      if (state.pico_moving) {
+        updatePicoBox(state, state.pico_moving, box => {
+          box.x = action.x;
+          box.y = action.y;
+        });
+      } else if (state.pico_resizing) {
+        updatePicoBox(state, state.pico_resizing, box => {
+          box.width = Math.max(0, action.x - box.x);
+          box.height = Math.max(0, action.y - box.y);
+        });
       }
       return;
 
@@ -60,5 +64,34 @@ function producer(state: State, action: Action): void {
       state.pico_moving = undefined;
       state.pico_resizing = undefined;
       return;
+
+    case "GET_PICOBOX_START":
+      if (state.picos[action.eci]) {
+        state.picos[action.eci].box_apiSt = apiCallStatus.waiting();
+      } else {
+        state.picos[action.eci] = { box_apiSt: apiCallStatus.waiting() };
+      }
+      return;
+    case "GET_PICOBOX_OK":
+      if (state.picos[action.eci]) {
+        state.picos[action.eci].box = action.data;
+      }
+      return;
+    case "GET_PICOBOX_ERROR":
+      if (state.picos[action.eci]) {
+        state.picos[action.eci].box_apiSt = apiCallStatus.error(action.error);
+      }
+      return;
+  }
+}
+
+function updatePicoBox(
+  state: State,
+  eci: string,
+  update: (box: PicoBox) => void
+) {
+  const pico = state.picos[eci];
+  if (pico && pico.box) {
+    update(pico.box);
   }
 }

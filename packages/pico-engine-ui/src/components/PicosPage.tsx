@@ -1,8 +1,7 @@
 import * as React from "react";
-import * as ReactDOM from "react-dom";
 import { connect } from "react-redux";
 import { Dispatch, picosMouseMove, picosMouseUp } from "../Action";
-import { State } from "../State";
+import { PicoBox, State } from "../State";
 import Pico from "./Pico";
 
 interface Props {
@@ -12,6 +11,8 @@ interface Props {
   uiContext: State["uiContext"];
 
   isDraggingSomething: boolean;
+
+  picoBoxes: PicoBox[];
 
   // react-router
   match: { params: { [name: string]: string } };
@@ -38,7 +39,7 @@ class PicosPage extends React.Component<Props> {
   }
 
   render() {
-    const { uiContext_apiSt, uiContext, match } = this.props;
+    const { uiContext_apiSt, uiContext, picoBoxes, match } = this.props;
 
     const openEci: string | undefined = match.params.eci;
     const openTab: string | undefined = match.params.tab;
@@ -60,7 +61,9 @@ class PicosPage extends React.Component<Props> {
           )}
         </div>
 
-        <Pico openEci={openEci} openTab={openTab} />
+        {picoBoxes.map(pico => {
+          return <Pico pico={pico} openEci={openEci} openTab={openTab} />;
+        })}
       </div>
     );
   }
@@ -71,6 +74,10 @@ export default connect((state: State) => {
     uiContext_apiSt: state.uiContext_apiSt,
     uiContext: state.uiContext,
 
-    isDraggingSomething: !!state.pico_moving || !!state.pico_resizing
+    isDraggingSomething: !!state.pico_moving || !!state.pico_resizing,
+
+    picoBoxes: Object.values(state.picos)
+      .map(p => p.box)
+      .filter(b => !!b) as PicoBox[]
   };
 })(PicosPage);

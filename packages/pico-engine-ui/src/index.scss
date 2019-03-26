@@ -25,6 +25,8 @@ body {
   overflow: auto;
   min-width: 100%;
   min-height: 100%;
+
+  user-select: none;
 }
 
 .pico {
@@ -61,5 +63,9 @@ body {
     left: 10px !important;
     max-width: 100% !important;
     max-height: 100% !important;
+
+    .card-body {
+      user-select: text;
+    }
   }
 }

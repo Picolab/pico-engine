@@ -5,8 +5,13 @@ export interface State {
     eci: string;
   };
 
-  // TODO load from channel query
-  rootPico: PicoBox;
+  picos: {
+    [eci: string]: {
+      box_apiSt: ApiCallStatus;
+      box?: PicoBox;
+      // TODO separate query for ctx.pico()
+    };
+  };
 
   pico_moving?: string;
   pico_resizing?: string;
@@ -14,13 +19,15 @@ export interface State {
 
 export interface PicoBox {
   eci: string;
+  children: string[];
+
+  name: string;
+  backgroundColor: string;
+
   x: number;
   y: number;
   width: number;
   height: number;
-  backgroundColor: string;
-
-  name: string;
 }
 
 export interface ApiCallStatus {
@@ -48,16 +55,5 @@ export const apiCallStatus = {
 
 export const initialState: State = {
   uiContext_apiSt: apiCallStatus.init(),
-
-  // TODO load from channel query
-  rootPico: {
-    eci: "foo",
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-    backgroundColor: "#87cefa",
-
-    name: "TEST"
-  }
+  picos: {}
 };
