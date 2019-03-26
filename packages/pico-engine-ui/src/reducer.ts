@@ -68,7 +68,10 @@ function producer(state: State, action: Action): void {
       if (state.picos[action.eci]) {
         state.picos[action.eci].box_apiSt = apiCallStatus.waiting();
       } else {
-        state.picos[action.eci] = { box_apiSt: apiCallStatus.waiting() };
+        state.picos[action.eci] = {
+          box_apiSt: apiCallStatus.waiting(),
+          new_apiSt: apiCallStatus.init()
+        };
       }
       return;
     case "GET_PICOBOX_OK":
@@ -85,8 +88,6 @@ function producer(state: State, action: Action): void {
     case "PUT_PICOBOX_START":
       if (state.picos[action.eci]) {
         state.picos[action.eci].box_apiSt = apiCallStatus.waiting();
-      } else {
-        state.picos[action.eci] = { box_apiSt: apiCallStatus.waiting() };
       }
       return;
     case "PUT_PICOBOX_OK":
@@ -98,6 +99,40 @@ function producer(state: State, action: Action): void {
       if (state.picos[action.eci]) {
         state.picos[action.eci].box_apiSt = apiCallStatus.error(action.error);
       }
+      return;
+
+    case "NEW_PICO_START":
+      if (state.picos[action.eci]) {
+        state.picos[action.eci].new_apiSt = apiCallStatus.waiting();
+      }
+      return;
+    case "NEW_PICO_OK":
+      if (state.picos[action.eci]) {
+        state.picos[action.eci].box = action.data;
+      }
+      return;
+    case "NEW_PICO_ERROR":
+      if (state.picos[action.eci]) {
+        state.picos[action.eci].new_apiSt = apiCallStatus.error(action.error);
+      }
+      return;
+
+    case "DEL_PICO_START":
+      // TODO api status for delete?
+      return;
+    case "DEL_PICO_OK":
+      if (state.picos[action.parentEci]) {
+        const pico = state.picos[action.parentEci];
+        if (pico.box) {
+          pico.box.children = pico.box.children.filter(
+            eci => eci !== action.eci
+          );
+        }
+      }
+      delete state.picos[action.eci];
+      return;
+    case "DEL_PICO_ERROR":
+      // TODO api status for delete?
       return;
   }
 }

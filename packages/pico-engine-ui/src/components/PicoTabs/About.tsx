@@ -1,7 +1,8 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { Dispatch, putPicoBox } from "../../Action";
+import { Dispatch, putPicoBox, newPico, delPico } from "../../Action";
 import { PicoBox, State } from "../../State";
+import { Link } from "react-router-dom";
 
 interface Props {
   dispatch: Dispatch;
@@ -38,11 +39,17 @@ class About extends React.Component<Props> {
 
   addPico(e: React.FormEvent) {
     e.preventDefault();
-    const name = getRefVal(this.input_add_name);
-    const backgroundColor = getRefVal(this.input_add_backgroundColor);
+    const name = getRefVal(this.input_add_name) || "";
+    const backgroundColor = getRefVal(this.input_add_backgroundColor) || "";
 
-    console.log(name, backgroundColor);
-    // TODO send add  event
+    const { pico, dispatch } = this.props;
+
+    dispatch(newPico(pico.eci, { name, backgroundColor }));
+  }
+
+  delPico(eci: string) {
+    const { pico, dispatch } = this.props;
+    dispatch(delPico(pico.eci, eci));
   }
 
   render() {
@@ -85,7 +92,34 @@ class About extends React.Component<Props> {
 
         <h3 className="mt-3">Children</h3>
 
-        <form className="form-inline" onSubmit={this.addPico}>
+        {pico.children.length === 0 ? (
+          <span className="text-muted">- no children -</span>
+        ) : (
+          <ul>
+            {pico.children.map(eci => {
+              return (
+                <li key={eci}>
+                  <Link to={"/pico/" + eci} className="text-mono mr-2">
+                    {eci}
+                  </Link>
+                  |
+                  <button
+                    className="btn btn-link btn-sm"
+                    type="button"
+                    onClick={e => {
+                      e.preventDefault();
+                      this.delPico(eci);
+                    }}
+                  >
+                    delete
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        <form className="form-inline mt-2" onSubmit={this.addPico}>
           <div className="form-group">
             <label className="sr-only">Name</label>
             <input

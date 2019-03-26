@@ -6,15 +6,19 @@ export interface State {
   };
 
   picos: {
-    [eci: string]: {
-      box_apiSt: ApiCallStatus;
-      box?: PicoBox;
-      // TODO separate query for ctx.pico()
-    };
+    [eci: string]: PicoState;
   };
 
   pico_moving?: string;
   pico_resizing?: string;
+}
+
+export interface PicoState {
+  box_apiSt: ApiCallStatus;
+  box?: PicoBox;
+  // TODO separate query for ctx.pico()
+
+  new_apiSt: ApiCallStatus;
 }
 
 export interface PicoBox {

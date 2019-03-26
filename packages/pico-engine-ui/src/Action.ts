@@ -1,5 +1,5 @@
 import { ThunkAction, ThunkDispatch } from "redux-thunk";
-import { State } from "./State";
+import { State, PicoBox } from "./State";
 
 type AsyncAction = ThunkAction<void, State, {}, Action>;
 export type Dispatch = ThunkDispatch<State, {}, Action>;
@@ -106,18 +106,7 @@ interface GET_PICOBOX_START {
 interface GET_PICOBOX_OK {
   type: "GET_PICOBOX_OK";
   eci: string;
-  data: {
-    eci: string;
-    children: string[];
-
-    name: string;
-    backgroundColor: string;
-
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
+  data: PicoBox;
 }
 interface GET_PICOBOX_ERROR {
   type: "GET_PICOBOX_ERROR";
@@ -161,21 +150,85 @@ interface PUT_PICOBOX_START {
 interface PUT_PICOBOX_OK {
   type: "PUT_PICOBOX_OK";
   eci: string;
-  data: {
-    eci: string;
-    children: string[];
-
-    name: string;
-    backgroundColor: string;
-
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
+  data: PicoBox;
 }
 interface PUT_PICOBOX_ERROR {
   type: "PUT_PICOBOX_ERROR";
+  eci: string;
+  error: string;
+}
+
+export function newPico(
+  eci: string,
+  attrs: {
+    name: string;
+    backgroundColor: string;
+  }
+): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "NEW_PICO_START", eci });
+    fetch(`/c/${eci}/event/engine-ui/new/query/io.picolabs.next/box`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(attrs)
+    })
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "NEW_PICO_OK", eci, data });
+
+        // TODO use getState to only load the new ECI
+        for (const eci of data.children) {
+          dispatch(getPicoBox(eci));
+        }
+      })
+      .catch(err => {
+        dispatch({ type: "NEW_PICO_ERROR", eci, error: err + "" });
+      });
+  };
+}
+interface NEW_PICO_START {
+  type: "NEW_PICO_START";
+  eci: string;
+}
+interface NEW_PICO_OK {
+  type: "NEW_PICO_OK";
+  eci: string;
+  data: PicoBox;
+}
+interface NEW_PICO_ERROR {
+  type: "NEW_PICO_ERROR";
+  eci: string;
+  error: string;
+}
+
+export function delPico(parentEci: string, eci: string): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "DEL_PICO_START", parentEci, eci });
+    fetch(`/c/${parentEci}/event-wait/engine-ui/del?eci=${eci}`)
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "DEL_PICO_OK", parentEci, eci });
+      })
+      .catch(err => {
+        dispatch({ type: "DEL_PICO_ERROR", parentEci, eci, error: err + "" });
+      });
+  };
+}
+interface DEL_PICO_START {
+  type: "DEL_PICO_START";
+  parentEci: string;
+  eci: string;
+}
+interface DEL_PICO_OK {
+  type: "DEL_PICO_OK";
+  parentEci: string;
+  eci: string;
+}
+interface DEL_PICO_ERROR {
+  type: "DEL_PICO_ERROR";
+  parentEci: string;
   eci: string;
   error: string;
 }
@@ -193,4 +246,10 @@ export type Action =
   | GET_PICOBOX_ERROR
   | PUT_PICOBOX_START
   | PUT_PICOBOX_OK
-  | PUT_PICOBOX_ERROR;
+  | PUT_PICOBOX_ERROR
+  | NEW_PICO_START
+  | NEW_PICO_OK
+  | NEW_PICO_ERROR
+  | DEL_PICO_START
+  | DEL_PICO_OK
+  | DEL_PICO_ERROR;

@@ -63,6 +63,7 @@ body {
     left: 10px !important;
     max-width: 100% !important;
     max-height: 100% !important;
+    z-index: 10000;
 
     .card-body {
       user-select: text;

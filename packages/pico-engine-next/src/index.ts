@@ -52,7 +52,14 @@ export async function startEngine(settings?: PicoEngineSettings) {
     async init(ctx): Promise<RulesetInstance> {
       const uiChannel = await upsertChannel(ctx, {
         tags: ["engine", "ui"],
-        eventPolicy: { allow: [{ domain: "engine-ui", name: "*" }], deny: [] },
+        eventPolicy: {
+          allow: [
+            { domain: "engine-ui", name: "box" },
+            { domain: "engine-ui", name: "new" },
+            { domain: "engine-ui", name: "del" }
+          ],
+          deny: []
+        },
         queryPolicy: {
           allow: [
             { rid: "io.picolabs.next", name: "uiECI" },
@@ -81,6 +88,53 @@ export async function startEngine(settings?: PicoEngineSettings) {
                   }
                 }
               }
+              return;
+
+            case "engine-ui:new":
+              const child = await ctx.newPico({
+                rulesets: [{ rid: "io.picolabs.next", version: "0.0.0" }]
+              });
+              // TODO ctx.newPico should probably just return the ECI
+              const childEci = child.channels.find(
+                c => !!c.familyChannelPicoID
+              );
+              if (childEci) {
+                const childEciUI = await ctx.query({
+                  eci: childEci.id,
+                  rid: "io.picolabs.next",
+                  name: "uiECI",
+                  args: {}
+                });
+
+                if (event.data) {
+                  const attrs = event.data.attrs;
+                  await ctx.event({
+                    eci: childEciUI,
+                    domain: "engine-ui",
+                    name: "box",
+                    data: { attrs },
+                    time: 0 // TODO remove this typescript requirement
+                  });
+                }
+              }
+              return;
+
+            case "engine-ui:del":
+              if (event.data) {
+                const attrs = event.data.attrs;
+                for (const eci of ctx.pico().children) {
+                  const uiEci = await ctx.query({
+                    eci,
+                    rid: "io.picolabs.next",
+                    name: "uiECI",
+                    args: {}
+                  });
+                  if (attrs.eci === uiEci) {
+                    // await ctx.delPico(eci);
+                  }
+                }
+              }
+              return;
           }
         },
         query: {

@@ -48,6 +48,20 @@ export function server(
       .catch(next);
   });
 
+  app.all("/c/:eci/event-wait/:domain/:name", function(req, res, next) {
+    pf.eventWait({
+      eci: req.params.eci,
+      domain: req.params.domain,
+      name: req.params.name,
+      data: { attrs: mergeGetPost(req) },
+      time: 0 // TODO remove this typescript requirement
+    })
+      .then(() => {
+        res.json({ ok: true });
+      })
+      .catch(next);
+  });
+
   app.all("/c/:eci/event/:domain/:name/query/:rid/:qname", function(
     req,
     res,
