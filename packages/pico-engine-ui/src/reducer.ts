@@ -60,7 +60,6 @@ function producer(state: State, action: Action): void {
       return;
 
     case "PICOS_MOUSE_UP":
-      // TODO signal event to save state
       state.pico_moving = undefined;
       state.pico_resizing = undefined;
       return;

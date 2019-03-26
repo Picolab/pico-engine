@@ -59,8 +59,24 @@ interface PICOS_MOUSE_MOVE {
   y: number;
 }
 
-export function picosMouseUp(): PICOS_MOUSE_UP {
-  return { type: "PICOS_MOUSE_UP" };
+export function picosMouseUp(): AsyncAction {
+  return function(dispatch, getState) {
+    const state = getState();
+    for (const eci of [state.pico_moving, state.pico_resizing]) {
+      const pico = eci && state.picos[eci];
+      if (pico && pico.box) {
+        dispatch(
+          putPicoBox(pico.box.eci, {
+            x: pico.box.x,
+            y: pico.box.y,
+            width: pico.box.width,
+            height: pico.box.height
+          })
+        );
+      }
+    }
+    dispatch({ type: "PICOS_MOUSE_UP" });
+  };
 }
 interface PICOS_MOUSE_UP {
   type: "PICOS_MOUSE_UP";
@@ -111,8 +127,14 @@ interface GET_PICOBOX_ERROR {
 
 export function putPicoBox(
   eci: string,
-  name: string,
-  backgroundColor: string
+  toUpdate: {
+    name?: string;
+    backgroundColor?: string;
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+  }
 ): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "PUT_PICOBOX_START", eci });
@@ -121,7 +143,7 @@ export function putPicoBox(
       headers: {
         "Content-Type": "application/json; charset=utf-8"
       },
-      body: JSON.stringify({ name, backgroundColor })
+      body: JSON.stringify(toUpdate)
     })
       .then(resp => resp.json())
       .then(data => {

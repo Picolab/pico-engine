@@ -33,7 +33,7 @@ class About extends React.Component<Props> {
 
     const { pico, dispatch } = this.props;
 
-    dispatch(putPicoBox(pico.eci, name, backgroundColor));
+    dispatch(putPicoBox(pico.eci, { name, backgroundColor }));
   }
 
   addPico(e: React.FormEvent) {
