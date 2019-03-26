@@ -289,7 +289,8 @@ interface GET_RULESETS_ERROR {
 export function installRuleset(
   eci: string,
   rid: string,
-  version: string
+  version: string,
+  config: any
 ): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "INSTALL_RULESET_START", eci });
@@ -298,7 +299,7 @@ export function installRuleset(
       headers: {
         "Content-Type": "application/json; charset=utf-8"
       },
-      body: JSON.stringify({ rid, version })
+      body: JSON.stringify({ rid, version, config })
     })
       .then(resp => resp.json())
       .then(data => {

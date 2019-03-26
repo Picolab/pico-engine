@@ -17,6 +17,7 @@ interface Props extends PropsFromParent {
 interface LocalState {
   rid: string | null;
   version: string | null;
+  config: string;
 }
 
 class Rulesets extends React.Component<Props, LocalState> {
@@ -26,27 +27,34 @@ class Rulesets extends React.Component<Props, LocalState> {
 
     this.state = {
       rid: null,
-      version: null
+      version: null,
+      config: "{}"
     };
   }
 
   isReadyToInstall() {
-    const { rid, version } = this.state;
+    const { rid, version, config } = this.state;
     const { rulesets } = this.props;
-    return !!(
-      rid &&
-      version &&
-      rulesets[rid] &&
-      rulesets[rid].indexOf(version) >= 0
-    );
+    if (!rid || !version) {
+      return false;
+    }
+    if (!rulesets[rid] && rulesets[rid].indexOf(version) === 0) {
+      return false;
+    }
+    try {
+      JSON.parse(config);
+    } catch (err) {
+      return false;
+    }
+    return true;
   }
 
   install(e: React.FormEvent) {
     e.preventDefault();
-    const { rid, version } = this.state;
+    const { rid, version, config } = this.state;
     const { pico, dispatch } = this.props;
     if (this.isReadyToInstall() && rid && version) {
-      dispatch(installRuleset(pico.eci, rid, version));
+      dispatch(installRuleset(pico.eci, rid, version, JSON.parse(config)));
     }
   }
 
@@ -107,35 +115,46 @@ class Rulesets extends React.Component<Props, LocalState> {
           <span className="text-muted">- no rulesets -</span>
         )}
         <hr />
-        <form className="form-inline mt-2" onSubmit={this.install}>
-          <div className="form-group">
-            <select
-              className="form-control"
-              value={this.state.rid || "--"}
-              onChange={e => this.setState({ rid: e.target.value })}
-            >
-              <option value="--" />
-              {Object.keys(rulesets).map(rid => (
-                <option key={rid} value={rid}>
-                  {rid}
-                </option>
-              ))}
-            </select>
+        Install Ruleset:
+        <form onSubmit={this.install}>
+          <div className="form-row mb-2">
+            <div className="col-auto">
+              <select
+                className="form-control"
+                value={this.state.rid || "--"}
+                onChange={e => this.setState({ rid: e.target.value })}
+              >
+                <option value="--" />
+                {Object.keys(rulesets).map(rid => (
+                  <option key={rid} value={rid}>
+                    {rid}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-auto">
+              <select
+                className="form-control"
+                disabled={!rulesets[this.state.rid || ""]}
+                value={this.state.version || "--"}
+                onChange={e => this.setState({ version: e.target.value })}
+              >
+                <option value="--" />
+                {(rulesets[this.state.rid || ""] || []).map(version => (
+                  <option key={version} value={version}>
+                    {version}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="form-group ml-1 mr-1">
-            <select
+          <div className="form-group">
+            <textarea
+              rows={3}
               className="form-control"
-              disabled={!rulesets[this.state.rid || ""]}
-              value={this.state.version || "--"}
-              onChange={e => this.setState({ version: e.target.value })}
-            >
-              <option value="--" />
-              {(rulesets[this.state.rid || ""] || []).map(version => (
-                <option key={version} value={version}>
-                  {version}
-                </option>
-              ))}
-            </select>
+              value={this.state.config}
+              onChange={e => this.setState({ config: e.target.value })}
+            />
           </div>
           <button
             type="submit"
