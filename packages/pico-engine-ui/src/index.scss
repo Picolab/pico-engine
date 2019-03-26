@@ -10,6 +10,11 @@ body {
   background-color: #f2f2f2;
 }
 
+.text-mono {
+  font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+}
+
 #picos-page {
   position: fixed;
   top: 0;

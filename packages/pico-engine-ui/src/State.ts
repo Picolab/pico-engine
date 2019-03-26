@@ -56,7 +56,7 @@ export const initialState: State = {
     y: 0,
     width: 0,
     height: 0,
-    backgroundColor: "red",
+    backgroundColor: "#87cefa",
 
     name: "TEST"
   }

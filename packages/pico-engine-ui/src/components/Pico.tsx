@@ -1,9 +1,14 @@
 import * as React from "react";
-import * as ReactDOM from "react-dom";
 import { connect } from "react-redux";
-import { Dispatch, startPicoResize, startPicoMove } from "../Action";
-import { State, PicoBox } from "../State";
 import { Link, NavLink } from "react-router-dom";
+import { Dispatch, startPicoMove, startPicoResize } from "../Action";
+import { PicoBox, State } from "../State";
+import About from "./PicoTabs/About";
+import Channels from "./PicoTabs/Channels";
+import Rulesets from "./PicoTabs/Rulesets";
+import Subscriptions from "./PicoTabs/Subscriptions";
+import Logging from "./PicoTabs/Logging";
+import Testing from "./PicoTabs/Testing";
 
 interface Props {
   dispatch: Dispatch;
@@ -66,7 +71,7 @@ class Pico extends React.Component<Props> {
                 {this.returnTabLink("About")}
                 {this.returnTabLink("Rulesets", "rulesets")}
                 {this.returnTabLink("Channels", "channels")}
-                {this.returnTabLink("Policies", "policies")}
+
                 {this.returnTabLink("Subscriptions", "subscriptions")}
                 {this.returnTabLink("Logging", "logging")}
                 {this.returnTabLink("Testing", "testing")}
@@ -117,25 +122,22 @@ class Pico extends React.Component<Props> {
 
     switch (tab) {
       case "rulesets":
-        return <div>TODO rulesets</div>;
+        return <Rulesets pico={pico} />;
 
       case "channels":
-        return <div>TODO channels</div>;
-
-      case "policies":
-        return <div>TODO policies</div>;
+        return <Channels pico={pico} />;
 
       case "subscriptions":
-        return <div>TODO subscriptions</div>;
+        return <Subscriptions pico={pico} />;
 
       case "logging":
-        return <div>TODO logging</div>;
+        return <Logging pico={pico} />;
 
       case "testing":
-        return <div>TODO testing</div>;
+        return <Testing pico={pico} />;
     }
 
-    return <div>TODO about</div>;
+    return <About pico={pico} />;
   }
 }
 
