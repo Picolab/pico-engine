@@ -34,6 +34,18 @@ export function server(
     res.json({ version: conf.version, eci: uiECI });
   });
 
+  app.all("/api/rulesets", function(req, res, next) {
+    // TODO load from pf
+
+    res.json({
+      rulesets: {
+        "io.picolabs.next": ["0.0.0"],
+        "io.picolabs.foo": ["0.0.0", "1.1.1", "2.2.2"],
+        "io.picolabs.bar": ["1.1.1", "2.2.2", "3.3.3"]
+      }
+    });
+  });
+
   app.all("/c/:eci/event/:domain/:name", function(req, res, next) {
     pf.event({
       eci: req.params.eci,

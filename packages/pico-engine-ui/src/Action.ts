@@ -261,6 +261,103 @@ interface GET_PICODETAILS_ERROR {
   error: string;
 }
 
+export function getRulesets(): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "GET_RULESETS_START" });
+    fetch(`/api/rulesets`)
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "GET_RULESETS_OK", data: data.rulesets });
+      })
+      .catch(err => {
+        dispatch({ type: "GET_RULESETS_ERROR", error: err + "" });
+      });
+  };
+}
+interface GET_RULESETS_START {
+  type: "GET_RULESETS_START";
+}
+interface GET_RULESETS_OK {
+  type: "GET_RULESETS_OK";
+  data: { [rid: string]: string[] };
+}
+interface GET_RULESETS_ERROR {
+  type: "GET_RULESETS_ERROR";
+  error: string;
+}
+
+export function installRuleset(
+  eci: string,
+  rid: string,
+  version: string
+): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "INSTALL_RULESET_START", eci });
+    fetch(`/c/${eci}/event/engine-ui/install/query/io.picolabs.next/pico`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify({ rid, version })
+    })
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "INSTALL_RULESET_OK", eci, data });
+      })
+      .catch(err => {
+        dispatch({ type: "INSTALL_RULESET_ERROR", eci, error: err + "" });
+      });
+  };
+}
+interface INSTALL_RULESET_START {
+  type: "INSTALL_RULESET_START";
+  eci: string;
+}
+interface INSTALL_RULESET_OK {
+  type: "INSTALL_RULESET_OK";
+  eci: string;
+  data: PicoDetails;
+}
+interface INSTALL_RULESET_ERROR {
+  type: "INSTALL_RULESET_ERROR";
+  eci: string;
+  error: string;
+}
+
+export function uninstallRuleset(eci: string, rid: string): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "UNINSTALL_RULESET_START", eci });
+    fetch(`/c/${eci}/event/engine-ui/uninstall/query/io.picolabs.next/pico`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify({ rid })
+    })
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "UNINSTALL_RULESET_OK", eci, data });
+      })
+      .catch(err => {
+        dispatch({ type: "UNINSTALL_RULESET_ERROR", eci, error: err + "" });
+      });
+  };
+}
+interface UNINSTALL_RULESET_START {
+  type: "UNINSTALL_RULESET_START";
+  eci: string;
+}
+interface UNINSTALL_RULESET_OK {
+  type: "UNINSTALL_RULESET_OK";
+  eci: string;
+  data: PicoDetails;
+}
+interface UNINSTALL_RULESET_ERROR {
+  type: "UNINSTALL_RULESET_ERROR";
+  eci: string;
+  error: string;
+}
+
 export type Action =
   | GET_UI_CONTEXT_START
   | GET_UI_CONTEXT_OK
@@ -283,4 +380,13 @@ export type Action =
   | DEL_PICO_ERROR
   | GET_PICODETAILS_START
   | GET_PICODETAILS_OK
-  | GET_PICODETAILS_ERROR;
+  | GET_PICODETAILS_ERROR
+  | GET_RULESETS_START
+  | GET_RULESETS_OK
+  | GET_RULESETS_ERROR
+  | INSTALL_RULESET_START
+  | INSTALL_RULESET_OK
+  | INSTALL_RULESET_ERROR
+  | UNINSTALL_RULESET_START
+  | UNINSTALL_RULESET_OK
+  | UNINSTALL_RULESET_ERROR;

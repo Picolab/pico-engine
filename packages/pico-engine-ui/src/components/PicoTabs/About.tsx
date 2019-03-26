@@ -62,6 +62,16 @@ class About extends React.Component<Props> {
     return (
       <div>
         <h3>Pico</h3>
+        {pico.parent ? (
+          <div>
+            <b className="text-muted">Parent:</b>{" "}
+            <Link to={"/pico/" + pico.parent} className="text-mono mr-2">
+              {pico.parent}
+            </Link>
+          </div>
+        ) : (
+          ""
+        )}
         <div>
           <b className="text-muted" title="This is the channel used by the UI">
             UI ECI:

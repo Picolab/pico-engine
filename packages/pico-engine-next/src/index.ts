@@ -56,7 +56,9 @@ export async function startEngine(settings?: PicoEngineSettings) {
           allow: [
             { domain: "engine-ui", name: "box" },
             { domain: "engine-ui", name: "new" },
-            { domain: "engine-ui", name: "del" }
+            { domain: "engine-ui", name: "del" },
+            { domain: "engine-ui", name: "install" },
+            { domain: "engine-ui", name: "uninstall" }
           ],
           deny: []
         },
@@ -136,6 +138,20 @@ export async function startEngine(settings?: PicoEngineSettings) {
                 }
               }
               return;
+
+            case "engine-ui:install":
+              if (event.data) {
+                const attrs = event.data.attrs;
+                await ctx.install(attrs.rid, attrs.version, attrs.config);
+              }
+              return;
+
+            case "engine-ui:uninstall":
+              if (event.data) {
+                const attrs = event.data.attrs;
+                await ctx.uninstall(attrs.rid);
+              }
+              return;
           }
         },
         query: {
@@ -150,10 +166,20 @@ export async function startEngine(settings?: PicoEngineSettings) {
               ctx.getEnt("height")
             ]);
 
+            const me = ctx.pico();
+
             return {
               eci: uiChannel.id,
+              parent: me.parent
+                ? await ctx.query({
+                    eci: me.parent,
+                    rid: "io.picolabs.next",
+                    name: "uiECI",
+                    args: {}
+                  })
+                : null,
               children: await Promise.all(
-                ctx.pico().children.map(eci => {
+                me.children.map(eci => {
                   return ctx.query({
                     eci,
                     rid: "io.picolabs.next",

@@ -155,6 +155,51 @@ function producer(state: State, action: Action): void {
         pico.details_apiSt = apiCallStatus.error(action.error);
       });
       return;
+
+    case "GET_RULESETS_START":
+      state.rulesets_apiSt = apiCallStatus.init();
+      return;
+    case "GET_RULESETS_OK":
+      state.rulesets_apiSt = apiCallStatus.ok();
+      state.rulesets = action.data;
+      return;
+    case "GET_RULESETS_ERROR":
+      state.rulesets_apiSt = apiCallStatus.error(action.error);
+      return;
+
+    case "INSTALL_RULESET_START":
+      updatePico(state, action.eci, pico => {
+        pico.install_apiSt = apiCallStatus.waiting();
+      });
+      return;
+    case "INSTALL_RULESET_OK":
+      updatePico(state, action.eci, pico => {
+        pico.install_apiSt = apiCallStatus.ok();
+        pico.details = action.data;
+      });
+      return;
+    case "INSTALL_RULESET_ERROR":
+      updatePico(state, action.eci, pico => {
+        pico.install_apiSt = apiCallStatus.error(action.error);
+      });
+      return;
+
+    case "UNINSTALL_RULESET_START":
+      updatePico(state, action.eci, pico => {
+        pico.uninstall_apiSt = apiCallStatus.waiting();
+      });
+      return;
+    case "UNINSTALL_RULESET_OK":
+      updatePico(state, action.eci, pico => {
+        pico.uninstall_apiSt = apiCallStatus.ok();
+        pico.details = action.data;
+      });
+      return;
+    case "UNINSTALL_RULESET_ERROR":
+      updatePico(state, action.eci, pico => {
+        pico.uninstall_apiSt = apiCallStatus.error(action.error);
+      });
+      return;
   }
 }
 
@@ -179,7 +224,9 @@ function updatePico(
     pico = {
       details_apiSt: apiCallStatus.init(),
       box_apiSt: apiCallStatus.init(),
-      new_apiSt: apiCallStatus.init()
+      new_apiSt: apiCallStatus.init(),
+      install_apiSt: apiCallStatus.init(),
+      uninstall_apiSt: apiCallStatus.init()
     };
     state.picos[eci] = pico;
   }

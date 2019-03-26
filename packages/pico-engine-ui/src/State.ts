@@ -5,6 +5,9 @@ export interface State {
     eci: string;
   };
 
+  rulesets_apiSt: ApiCallStatus;
+  rulesets: { [rid: string]: string[] };
+
   picos: {
     [eci: string]: PicoState;
   };
@@ -21,10 +24,14 @@ export interface PicoState {
   details?: PicoDetails;
 
   new_apiSt: ApiCallStatus;
+
+  install_apiSt: ApiCallStatus;
+  uninstall_apiSt: ApiCallStatus;
 }
 
 export interface PicoBox {
   eci: string;
+  parent: string | null;
   children: string[];
 
   name: string;
@@ -96,5 +103,7 @@ export const apiCallStatus = {
 
 export const initialState: State = {
   uiContext_apiSt: apiCallStatus.init(),
+  rulesets_apiSt: apiCallStatus.init(),
+  rulesets: {},
   picos: {}
 };
