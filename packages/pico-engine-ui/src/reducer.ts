@@ -9,9 +9,8 @@ export default function reducer(
   stateIn: State = initialState,
   action: Action
 ): State {
-  console.log(action.type, stateIn);
   const state = produce(stateIn, draft => producer(draft, action));
-  console.log(state);
+  console.log(action.type, stateIn, state);
 
   return state;
 }

@@ -17,23 +17,19 @@ const store = createStore(
   applyMiddleware(thunk as ThunkMiddleware<State, Action, {}>)
 );
 
-const Index = () => {
-  return (
+ReactDOM.render(
+  <Provider store={store}>
     <HashRouter>
       <RouterSwitch>
         <Route path="/rulesets" component={RulesetsPage} />
+
+        {/* NOTE: Order matters, go from specific to general */}
+        <Route path="/pico/:eci/:tab" component={PicosPage} />
+        <Route path="/pico/:eci" component={PicosPage} />
         <Route component={PicosPage} />
       </RouterSwitch>
     </HashRouter>
-  );
-};
-
-ReactDOM.render(
-  <React.Fragment>
-    <Provider store={store}>
-      <Index />
-    </Provider>
-  </React.Fragment>,
+  </Provider>,
   document.getElementById("react-app")
 );
 

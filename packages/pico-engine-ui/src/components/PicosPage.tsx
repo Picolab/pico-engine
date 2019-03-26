@@ -12,6 +12,9 @@ interface Props {
   uiContext: State["uiContext"];
 
   isDraggingSomething: boolean;
+
+  // react-router
+  match: { params: { [name: string]: string } };
 }
 
 class PicosPage extends React.Component<Props> {
@@ -35,7 +38,10 @@ class PicosPage extends React.Component<Props> {
   }
 
   render() {
-    const { uiContext_apiSt, uiContext } = this.props;
+    const { uiContext_apiSt, uiContext, match } = this.props;
+
+    const openEci: string | undefined = match.params.eci;
+    const openTab: string | undefined = match.params.tab;
 
     return (
       <div
@@ -54,14 +60,13 @@ class PicosPage extends React.Component<Props> {
           )}
         </div>
 
-        <Pico />
+        <Pico openEci={openEci} openTab={openTab} />
       </div>
     );
   }
 }
 
 export default connect((state: State) => {
-  console.log("render", state);
   return {
     uiContext_apiSt: state.uiContext_apiSt,
     uiContext: state.uiContext,

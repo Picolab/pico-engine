@@ -14,18 +14,20 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
   padding: 0;
   margin: 0;
+
+  overflow: auto;
+  min-width: 100%;
+  min-height: 100%;
 }
 
 .pico {
-  position: fixed;
+  position: absolute;
   min-width: 50px;
   min-height: 50px;
   overflow: hidden;
-  cursor: pointer;
+  cursor: move;
   user-select: none;
 
   .pico-resize-handle {
@@ -35,5 +37,24 @@ body {
     width: 25px;
     height: 25px;
     cursor: nwse-resize;
+  }
+
+  right: 10px; // for when it's open css transition will work
+  bottom: 10px;
+  width: auto; // use max-width instead of width for css transition to work
+  height: auto;
+
+  &.pico-not-moving-or-resizing {
+    // we don't want to show slow transitions when dragging or resizing
+    transition: all 0.5s ease;
+  }
+
+  &.open {
+    cursor: default;
+    position: fixed;
+    top: 10px !important;
+    left: 10px !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
   }
 }
