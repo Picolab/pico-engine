@@ -36,6 +36,12 @@ body {
   overflow: hidden;
   cursor: move;
   user-select: none;
+  border: 1px solid black;
+
+  .pico-name-open-btn {
+    color: black;
+    display: block;
+  }
 
   .pico-resize-handle {
     position: absolute;
@@ -68,5 +74,18 @@ body {
     .card-body {
       user-select: text;
     }
+  }
+}
+
+svg#picos-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: -1;
+  line {
+    stroke: #000000;
+    stroke-width: 5px;
   }
 }

@@ -34,12 +34,18 @@ interface GET_UI_CONTEXT_ERROR {
   error: string;
 }
 
-export function startPicoMove(eci: string): START_PICO_MOVE {
-  return { type: "START_PICO_MOVE", eci };
+export function startPicoMove(
+  eci: string,
+  x: number,
+  y: number
+): START_PICO_MOVE {
+  return { type: "START_PICO_MOVE", eci, x, y };
 }
 interface START_PICO_MOVE {
   type: "START_PICO_MOVE";
   eci: string;
+  x: number;
+  y: number;
 }
 
 export function startPicoResize(eci: string): START_PICO_RESIZE {

@@ -41,6 +41,8 @@ interface Props extends PropsFromParent {
 }
 
 class Pico extends React.Component<Props> {
+  private rootElm = React.createRef<HTMLInputElement>();
+
   constructor(props: Props) {
     super(props);
 
@@ -49,7 +51,14 @@ class Pico extends React.Component<Props> {
   }
 
   mouseDownMove(e: React.MouseEvent) {
-    this.props.dispatch(startPicoMove(this.props.pico.eci));
+    let relX = 0;
+    let relY = 0;
+    const elm = this.rootElm.current;
+    if (elm) {
+      relX = e.clientX - elm.offsetLeft;
+      relY = e.clientY - elm.offsetTop;
+    }
+    this.props.dispatch(startPicoMove(this.props.pico.eci, relX, relY));
   }
 
   mouseDownResize(e: React.MouseEvent) {
@@ -63,6 +72,7 @@ class Pico extends React.Component<Props> {
 
     return (
       <div
+        ref={this.rootElm}
         className={
           "card pico" +
           (isOpen ? " open" : "") +
@@ -115,6 +125,7 @@ class Pico extends React.Component<Props> {
             <div className="card-body">
               <Link
                 to={"/pico/" + pico.eci}
+                className="pico-name-open-btn"
                 onMouseDown={e => e.stopPropagation()}
               >
                 {pico.name}

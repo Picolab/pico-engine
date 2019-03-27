@@ -4,6 +4,9 @@ import { Dispatch, picosMouseMove, picosMouseUp } from "../Action";
 import { PicoBox, State } from "../State";
 import Pico from "./Pico";
 
+type XY = { x: number; y: number };
+type LineXYs = { from: XY; to: XY };
+
 interface Props {
   dispatch: Dispatch;
 
@@ -13,6 +16,7 @@ interface Props {
   isDraggingSomething: boolean;
 
   picoBoxes: PicoBox[];
+  channelLines: LineXYs[];
 
   // react-router
   match: { params: { [name: string]: string } };
@@ -39,7 +43,13 @@ class PicosPage extends React.Component<Props> {
   }
 
   render() {
-    const { uiContext_apiSt, uiContext, picoBoxes, match } = this.props;
+    const {
+      uiContext_apiSt,
+      uiContext,
+      picoBoxes,
+      match,
+      channelLines
+    } = this.props;
 
     const openEci: string | undefined = match.params.eci;
     const openTab: string | undefined = match.params.tab;
@@ -71,20 +81,52 @@ class PicosPage extends React.Component<Props> {
             />
           );
         })}
+
+        <svg id="picos-svg">
+          {channelLines.map((line, i) => {
+            return (
+              <line
+                key={i}
+                x1={line.from.x}
+                y1={line.from.y}
+                x2={line.to.x}
+                y2={line.to.y}
+              />
+            );
+          })}
+        </svg>
       </div>
     );
   }
 }
 
 export default connect((state: State) => {
+  const picoBoxes = Object.values(state.picos)
+    .map(p => p.box)
+    .filter(b => !!b) as PicoBox[];
+
+  const picoXYs: { [eci: string]: XY } = {};
+  for (const box of picoBoxes) {
+    picoXYs[box.eci] = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  }
+  const channelLines: LineXYs[] = [];
+  for (const box of picoBoxes) {
+    const from = picoXYs[box.eci];
+    for (const eci of box.children) {
+      const to = picoXYs[eci];
+      if (from && to) {
+        channelLines.push({ from, to });
+      }
+    }
+  }
+
   return {
     uiContext_apiSt: state.uiContext_apiSt,
     uiContext: state.uiContext,
 
     isDraggingSomething: !!state.pico_moving || !!state.pico_resizing,
 
-    picoBoxes: Object.values(state.picos)
-      .map(p => p.box)
-      .filter(b => !!b) as PicoBox[]
+    picoBoxes,
+    channelLines
   };
 })(PicosPage);

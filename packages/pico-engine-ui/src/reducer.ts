@@ -44,6 +44,8 @@ function producer(state: State, action: Action): void {
     case "START_PICO_MOVE":
       state.pico_moving = action.eci;
       state.pico_resizing = undefined;
+      state.pico_moving_relX = action.x;
+      state.pico_moving_relY = action.y;
       return;
 
     case "START_PICO_RESIZE":
@@ -54,8 +56,8 @@ function producer(state: State, action: Action): void {
     case "PICOS_MOUSE_MOVE":
       if (state.pico_moving) {
         updatePicoBox(state, state.pico_moving, box => {
-          box.x = action.x;
-          box.y = action.y;
+          box.x = action.x - (state.pico_moving_relX || 0);
+          box.y = action.y - (state.pico_moving_relY || 0);
         });
       } else if (state.pico_resizing) {
         updatePicoBox(state, state.pico_resizing, box => {

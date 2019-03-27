@@ -13,6 +13,8 @@ export interface State {
   };
 
   pico_moving?: string;
+  pico_moving_relX?: number;
+  pico_moving_relY?: number;
   pico_resizing?: string;
 }
 
