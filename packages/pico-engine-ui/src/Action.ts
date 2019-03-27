@@ -461,11 +461,18 @@ interface GET_TESTING_ERROR {
 export function sendTestQuery(
   eci: string,
   rid: string,
-  name: string
+  name: string,
+  args: any
 ): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "TEST_RESULT_CLEAR", eci });
-    fetch(`/c/${eci}/query/${rid}/${name}`)
+    fetch(`/c/${eci}/query/${rid}/${name}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(args)
+    })
       .then(resp => resp.json())
       .then(data => {
         dispatch({ type: "TEST_RESULT_OK", eci, data });

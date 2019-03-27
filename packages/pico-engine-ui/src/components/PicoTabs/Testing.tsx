@@ -23,6 +23,24 @@ interface LocalState {
   expandedRIDs: { [rid: string]: boolean };
 }
 
+function serializeFormAttrsOrArgs(e: React.FormEvent<HTMLFormElement>) {
+  const form = e.currentTarget;
+  const attrs: { [name: string]: any } = {};
+  for (let i = 0; i < form.elements.length; i++) {
+    const elm = form.elements[i] as any;
+    if (elm && elm.name && elm.value) {
+      let val = elm.value;
+      try {
+        val = JSON.parse(val);
+      } catch (e) {
+        // just leave it as a string then
+      }
+      attrs[elm.name] = val;
+    }
+  }
+  return attrs;
+}
+
 class Testing extends React.Component<Props, LocalState> {
   constructor(props: Props) {
     super(props);
@@ -47,22 +65,18 @@ class Testing extends React.Component<Props, LocalState> {
   }
 
   sendTestQuery(rid: string, name: string) {
-    const { pico, dispatch } = this.props;
-    dispatch(sendTestQuery(pico.eci, rid, name));
+    return (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const args = serializeFormAttrsOrArgs(e);
+      const { pico, dispatch } = this.props;
+      dispatch(sendTestQuery(pico.eci, rid, name, args));
+    };
   }
 
   sendTestEvent(domain: string, name: string) {
     return (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const form = e.currentTarget;
-      const attrs: { [name: string]: string } = {};
-      for (let i = 0; i < form.elements.length; i++) {
-        const elm = form.elements[i] as any;
-        if (elm && elm.name && elm.value) {
-          attrs[elm.name] = elm.value;
-        }
-      }
-
+      const attrs = serializeFormAttrsOrArgs(e);
       const { pico, dispatch } = this.props;
       dispatch(sendTestEvent(pico.eci, domain, name, attrs));
     };
@@ -124,16 +138,31 @@ class Testing extends React.Component<Props, LocalState> {
                                   key={q.name}
                                   style={{ listStyle: "circle" }}
                                 >
-                                  <button
-                                    type="button"
-                                    className="btn btn-link btn-sm"
-                                    onClick={e => {
-                                      e.preventDefault();
-                                      this.sendTestQuery(rs.rid, q.name);
-                                    }}
+                                  <form
+                                    onSubmit={this.sendTestQuery(
+                                      rs.rid,
+                                      q.name
+                                    )}
+                                    className="border border-primary p-2"
                                   >
-                                    {q.name}
-                                  </button>
+                                    <div>
+                                      {(q.args || []).map(arg => {
+                                        return (
+                                          <input
+                                            key={arg}
+                                            name={arg}
+                                            placeholder={arg}
+                                          />
+                                        );
+                                      })}
+                                    </div>
+                                    <button
+                                      type="submit"
+                                      className="btn btn-sm btn-primary"
+                                    >
+                                      {q.name}
+                                    </button>
+                                  </form>
                                 </li>
                               );
                             })}
@@ -147,7 +176,7 @@ class Testing extends React.Component<Props, LocalState> {
                                       e.domain,
                                       e.name
                                     )}
-                                    className="border border-dark p-2"
+                                    className="border border-warning p-2"
                                   >
                                     <div>
                                       {(e.attrs || []).map(attr => {
@@ -162,7 +191,7 @@ class Testing extends React.Component<Props, LocalState> {
                                     </div>
                                     <button
                                       type="submit"
-                                      className="btn btn-secondary btn-sm"
+                                      className="btn btn-sm btn-warning"
                                     >
                                       {doname}
                                     </button>
@@ -170,8 +199,6 @@ class Testing extends React.Component<Props, LocalState> {
                                 </li>
                               );
                             })}
-
-                            <li>event</li>
                           </ul>
                         </div>
                       ) : (
@@ -185,6 +212,16 @@ class Testing extends React.Component<Props, LocalState> {
                 </div>
               );
             })}
+
+            <h4 className="text-muted">Legend</h4>
+            <ul>
+              <li style={{ listStyle: "circle" }}>
+                <div className="border border-primary p-2">query</div>
+              </li>
+              <li>
+                <div className="border border-warning p-2">event</div>
+              </li>
+            </ul>
           </div>
           <div className="col">
             <h3>Results</h3>
