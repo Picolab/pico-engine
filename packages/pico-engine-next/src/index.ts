@@ -58,7 +58,8 @@ export async function startEngine(settings?: PicoEngineSettings) {
             { domain: "engine-ui", name: "new" },
             { domain: "engine-ui", name: "del" },
             { domain: "engine-ui", name: "install" },
-            { domain: "engine-ui", name: "uninstall" }
+            { domain: "engine-ui", name: "uninstall" },
+            { domain: "engine-ui", name: "new-channel" }
           ],
           deny: []
         },
@@ -150,6 +151,13 @@ export async function startEngine(settings?: PicoEngineSettings) {
               if (event.data) {
                 const attrs = event.data.attrs;
                 await ctx.uninstall(attrs.rid);
+              }
+              return;
+
+            case "engine-ui:new-channel":
+              if (event.data) {
+                const attrs = event.data.attrs;
+                await ctx.newChannel(attrs);
               }
               return;
           }

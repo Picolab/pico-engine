@@ -27,6 +27,8 @@ export interface PicoState {
 
   install_apiSt: ApiCallStatus;
   uninstall_apiSt: ApiCallStatus;
+
+  addChannel_apiSt: ApiCallStatus;
 }
 
 export interface PicoBox {

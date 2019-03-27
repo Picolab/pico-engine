@@ -200,6 +200,23 @@ function producer(state: State, action: Action): void {
         pico.uninstall_apiSt = apiCallStatus.error(action.error);
       });
       return;
+
+    case "NEW_CHANNEL_START":
+      updatePico(state, action.eci, pico => {
+        pico.addChannel_apiSt = apiCallStatus.waiting();
+      });
+      return;
+    case "NEW_CHANNEL_OK":
+      updatePico(state, action.eci, pico => {
+        pico.addChannel_apiSt = apiCallStatus.ok();
+        pico.details = action.data;
+      });
+      return;
+    case "NEW_CHANNEL_ERROR":
+      updatePico(state, action.eci, pico => {
+        pico.addChannel_apiSt = apiCallStatus.error(action.error);
+      });
+      return;
   }
 }
 
@@ -226,7 +243,8 @@ function updatePico(
       box_apiSt: apiCallStatus.init(),
       new_apiSt: apiCallStatus.init(),
       install_apiSt: apiCallStatus.init(),
-      uninstall_apiSt: apiCallStatus.init()
+      uninstall_apiSt: apiCallStatus.init(),
+      addChannel_apiSt: apiCallStatus.init()
     };
     state.picos[eci] = pico;
   }

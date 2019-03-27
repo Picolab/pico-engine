@@ -359,6 +359,40 @@ interface UNINSTALL_RULESET_ERROR {
   error: string;
 }
 
+export function newChannel(eci: string, data: any): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "NEW_CHANNEL_START", eci });
+    fetch(`/c/${eci}/event/engine-ui/new-channel/query/io.picolabs.next/pico`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(data)
+    })
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "NEW_CHANNEL_OK", eci, data });
+      })
+      .catch(err => {
+        dispatch({ type: "NEW_CHANNEL_ERROR", eci, error: err + "" });
+      });
+  };
+}
+interface NEW_CHANNEL_START {
+  type: "NEW_CHANNEL_START";
+  eci: string;
+}
+interface NEW_CHANNEL_OK {
+  type: "NEW_CHANNEL_OK";
+  eci: string;
+  data: PicoDetails;
+}
+interface NEW_CHANNEL_ERROR {
+  type: "NEW_CHANNEL_ERROR";
+  eci: string;
+  error: string;
+}
+
 export type Action =
   | GET_UI_CONTEXT_START
   | GET_UI_CONTEXT_OK
@@ -390,4 +424,7 @@ export type Action =
   | INSTALL_RULESET_ERROR
   | UNINSTALL_RULESET_START
   | UNINSTALL_RULESET_OK
-  | UNINSTALL_RULESET_ERROR;
+  | UNINSTALL_RULESET_ERROR
+  | NEW_CHANNEL_START
+  | NEW_CHANNEL_OK
+  | NEW_CHANNEL_ERROR;
