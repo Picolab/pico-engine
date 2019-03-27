@@ -217,6 +217,23 @@ function producer(state: State, action: Action): void {
         pico.addChannel_apiSt = apiCallStatus.error(action.error);
       });
       return;
+
+    case "DEL_CHANNEL_START":
+      updatePico(state, action.eci, pico => {
+        pico.delChannel_apiSt = apiCallStatus.waiting();
+      });
+      return;
+    case "DEL_CHANNEL_OK":
+      updatePico(state, action.eci, pico => {
+        pico.delChannel_apiSt = apiCallStatus.ok();
+        pico.details = action.data;
+      });
+      return;
+    case "DEL_CHANNEL_ERROR":
+      updatePico(state, action.eci, pico => {
+        pico.delChannel_apiSt = apiCallStatus.error(action.error);
+      });
+      return;
   }
 }
 
@@ -244,7 +261,8 @@ function updatePico(
       new_apiSt: apiCallStatus.init(),
       install_apiSt: apiCallStatus.init(),
       uninstall_apiSt: apiCallStatus.init(),
-      addChannel_apiSt: apiCallStatus.init()
+      addChannel_apiSt: apiCallStatus.init(),
+      delChannel_apiSt: apiCallStatus.init()
     };
     state.picos[eci] = pico;
   }

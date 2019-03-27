@@ -1,6 +1,6 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { Dispatch, newChannel } from "../../Action";
+import { Dispatch, newChannel, delChannel } from "../../Action";
 import { PicoBox, State, PicoState, Channel } from "../../State";
 
 interface PropsFromParent {
@@ -79,15 +79,25 @@ class Channels extends React.Component<Props, LocalState> {
     this.setState({ expandedChannels: map });
   }
 
+  delChannel(eci: string) {
+    const { dispatch, pico } = this.props;
+    dispatch(delChannel(pico.eci, eci));
+  }
+
   render() {
     const { pico, picoState } = this.props;
     const { expandedChannels } = this.state;
 
     const waiting: boolean = picoState
-      ? picoState.addChannel_apiSt.waiting
+      ? picoState.addChannel_apiSt.waiting || picoState.delChannel_apiSt.waiting
       : true;
+
     const newChannelError: string | null | undefined = picoState
       ? picoState.addChannel_apiSt.error
+      : null;
+
+    const delChannelError: string | null | undefined = picoState
+      ? picoState.delChannel_apiSt.error
       : null;
 
     const channels: Channel[] =
@@ -96,6 +106,11 @@ class Channels extends React.Component<Props, LocalState> {
     return (
       <div>
         <h3>Channels</h3>
+        {delChannelError ? (
+          <span className="text-danger">{delChannelError}</span>
+        ) : (
+          ""
+        )}
         {channels.length === 0 ? (
           <div className="text-muted">- no channels -</div>
         ) : (
@@ -103,21 +118,23 @@ class Channels extends React.Component<Props, LocalState> {
             const isOpen = !!expandedChannels[channel.id];
             return (
               <div key={channel.id}>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id={`chann-${channel.id}`}
-                    onChange={e =>
-                      this.toggleChannel(e.target.checked, channel.id)
-                    }
-                    checked={isOpen}
-                  />
-                  <label
-                    className="form-check-label"
-                    htmlFor={`chann-${channel.id}`}
-                  >
-                    <span className="text-mono">{channel.id}</span>{" "}
+                <div>
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id={`chann-${channel.id}`}
+                      onChange={e =>
+                        this.toggleChannel(e.target.checked, channel.id)
+                      }
+                      checked={isOpen}
+                    />
+                    <label
+                      className="form-check-label"
+                      htmlFor={`chann-${channel.id}`}
+                    >
+                      <span className="text-mono">{channel.id}</span>
+                    </label>
                     {channel.tags.map((tag, i) => {
                       return (
                         <span key={i} className="badge badge-secondary ml-1">
@@ -125,7 +142,18 @@ class Channels extends React.Component<Props, LocalState> {
                         </span>
                       );
                     })}
-                  </label>
+                    <button
+                      className="btn btn-link btn-sm"
+                      type="button"
+                      onClick={e => {
+                        e.preventDefault();
+                        this.delChannel(channel.id);
+                      }}
+                      disabled={waiting}
+                    >
+                      delete
+                    </button>
+                  </div>
                 </div>
                 {isOpen ? (
                   <div className="ml-3">

@@ -393,6 +393,40 @@ interface NEW_CHANNEL_ERROR {
   error: string;
 }
 
+export function delChannel(eci: string, channelId: any): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "DEL_CHANNEL_START", eci });
+    fetch(`/c/${eci}/event/engine-ui/del-channel/query/io.picolabs.next/pico`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify({ eci: channelId })
+    })
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "DEL_CHANNEL_OK", eci, data });
+      })
+      .catch(err => {
+        dispatch({ type: "DEL_CHANNEL_ERROR", eci, error: err + "" });
+      });
+  };
+}
+interface DEL_CHANNEL_START {
+  type: "DEL_CHANNEL_START";
+  eci: string;
+}
+interface DEL_CHANNEL_OK {
+  type: "DEL_CHANNEL_OK";
+  eci: string;
+  data: PicoDetails;
+}
+interface DEL_CHANNEL_ERROR {
+  type: "DEL_CHANNEL_ERROR";
+  eci: string;
+  error: string;
+}
+
 export type Action =
   | GET_UI_CONTEXT_START
   | GET_UI_CONTEXT_OK
@@ -427,4 +461,7 @@ export type Action =
   | UNINSTALL_RULESET_ERROR
   | NEW_CHANNEL_START
   | NEW_CHANNEL_OK
-  | NEW_CHANNEL_ERROR;
+  | NEW_CHANNEL_ERROR
+  | DEL_CHANNEL_START
+  | DEL_CHANNEL_OK
+  | DEL_CHANNEL_ERROR;
