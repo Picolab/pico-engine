@@ -1,5 +1,5 @@
 import { ThunkAction, ThunkDispatch } from "redux-thunk";
-import { State, PicoBox, PicoDetails } from "./State";
+import { State, PicoBox, PicoDetails, TestingSchema } from "./State";
 
 type AsyncAction = ThunkAction<void, State, {}, Action>;
 export type Dispatch = ThunkDispatch<State, {}, Action>;
@@ -427,6 +427,93 @@ interface DEL_CHANNEL_ERROR {
   error: string;
 }
 
+export function getTesting(eci: string, rid: string): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "GET_TESTING_START", eci, rid });
+    fetch(`/c/${eci}/query/${rid}/__testing`)
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "GET_TESTING_OK", eci, rid, data });
+      })
+      .catch(err => {
+        dispatch({ type: "GET_TESTING_ERROR", eci, rid, error: err + "" });
+      });
+  };
+}
+interface GET_TESTING_START {
+  type: "GET_TESTING_START";
+  eci: string;
+  rid: string;
+}
+interface GET_TESTING_OK {
+  type: "GET_TESTING_OK";
+  eci: string;
+  rid: string;
+  data: TestingSchema;
+}
+interface GET_TESTING_ERROR {
+  type: "GET_TESTING_ERROR";
+  eci: string;
+  rid: string;
+  error: string;
+}
+
+export function sendTestQuery(
+  eci: string,
+  rid: string,
+  name: string
+): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "TEST_RESULT_CLEAR", eci });
+    fetch(`/c/${eci}/query/${rid}/${name}`)
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "TEST_RESULT_OK", eci, data });
+      })
+      .catch(err => {
+        dispatch({ type: "TEST_RESULT_ERROR", eci, error: err + "" });
+      });
+  };
+}
+export function sendTestEvent(
+  eci: string,
+  domain: string,
+  name: string,
+  attrs: any
+): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "TEST_RESULT_CLEAR", eci });
+    fetch(`/c/${eci}/event-wait/${domain}/${name}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(attrs)
+    })
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "TEST_RESULT_OK", eci, data });
+      })
+      .catch(err => {
+        dispatch({ type: "TEST_RESULT_ERROR", eci, error: err + "" });
+      });
+  };
+}
+interface TEST_RESULT_CLEAR {
+  type: "TEST_RESULT_CLEAR";
+  eci: string;
+}
+interface TEST_RESULT_OK {
+  type: "TEST_RESULT_OK";
+  eci: string;
+  data: any;
+}
+interface TEST_RESULT_ERROR {
+  type: "TEST_RESULT_ERROR";
+  eci: string;
+  error: string;
+}
+
 export type Action =
   | GET_UI_CONTEXT_START
   | GET_UI_CONTEXT_OK
@@ -464,4 +551,10 @@ export type Action =
   | NEW_CHANNEL_ERROR
   | DEL_CHANNEL_START
   | DEL_CHANNEL_OK
-  | DEL_CHANNEL_ERROR;
+  | DEL_CHANNEL_ERROR
+  | GET_TESTING_START
+  | GET_TESTING_OK
+  | GET_TESTING_ERROR
+  | TEST_RESULT_CLEAR
+  | TEST_RESULT_OK
+  | TEST_RESULT_ERROR;

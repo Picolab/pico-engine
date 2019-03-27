@@ -30,6 +30,13 @@ export interface PicoState {
 
   addChannel_apiSt: ApiCallStatus;
   delChannel_apiSt: ApiCallStatus;
+
+  testing: {
+    [rid: string]: { schema_apiSt: ApiCallStatus; schema?: TestingSchema };
+  };
+
+  testResult_error?: string;
+  testResult?: any;
 }
 
 export interface PicoBox {
@@ -79,6 +86,11 @@ export interface QueryPolicy {
 export interface QueryPolicyRule {
   rid: string;
   name: string;
+}
+
+export interface TestingSchema {
+  queries?: { name: string }[];
+  events?: { domain: string; name: string; attrs?: string[] }[];
 }
 
 export interface ApiCallStatus {

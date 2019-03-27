@@ -234,6 +234,41 @@ function producer(state: State, action: Action): void {
         pico.delChannel_apiSt = apiCallStatus.error(action.error);
       });
       return;
+
+    case "GET_TESTING_START":
+      updatePicoTesting(state, action.eci, action.rid, testing => {
+        testing.schema_apiSt = apiCallStatus.waiting();
+      });
+      return;
+    case "GET_TESTING_OK":
+      updatePicoTesting(state, action.eci, action.rid, testing => {
+        testing.schema_apiSt = apiCallStatus.ok();
+        testing.schema = action.data;
+      });
+      return;
+    case "GET_TESTING_ERROR":
+      updatePicoTesting(state, action.eci, action.rid, testing => {
+        testing.schema_apiSt = apiCallStatus.error(action.error);
+      });
+      return;
+
+    case "TEST_RESULT_CLEAR":
+      updatePico(state, action.eci, pico => {
+        delete pico.testResult_error;
+        delete pico.testResult;
+      });
+      return;
+    case "TEST_RESULT_OK":
+      updatePico(state, action.eci, pico => {
+        delete pico.testResult_error;
+        pico.testResult = action.data;
+      });
+      return;
+    case "TEST_RESULT_ERROR":
+      updatePico(state, action.eci, pico => {
+        pico.testResult_error = action.error;
+      });
+      return;
   }
 }
 
@@ -262,9 +297,26 @@ function updatePico(
       install_apiSt: apiCallStatus.init(),
       uninstall_apiSt: apiCallStatus.init(),
       addChannel_apiSt: apiCallStatus.init(),
-      delChannel_apiSt: apiCallStatus.init()
+      delChannel_apiSt: apiCallStatus.init(),
+      testing: {}
     };
     state.picos[eci] = pico;
   }
   update(pico);
+}
+
+function updatePicoTesting(
+  state: State,
+  eci: string,
+  rid: string,
+  update: (testing: PicoState["testing"][string]) => void
+) {
+  updatePico(state, eci, pico => {
+    if (!pico.testing[rid]) {
+      pico.testing[rid] = {
+        schema_apiSt: apiCallStatus.init()
+      };
+    }
+    update(pico.testing[rid]);
+  });
 }

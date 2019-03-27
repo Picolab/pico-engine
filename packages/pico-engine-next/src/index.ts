@@ -66,6 +66,7 @@ export async function startEngine(settings?: PicoEngineSettings) {
         },
         queryPolicy: {
           allow: [
+            { rid: "io.picolabs.next", name: "__testing" },
             { rid: "io.picolabs.next", name: "uiECI" },
             { rid: "io.picolabs.next", name: "box" },
             { rid: "io.picolabs.next", name: "pico" }
@@ -171,6 +172,30 @@ export async function startEngine(settings?: PicoEngineSettings) {
           }
         },
         query: {
+          __testing() {
+            return {
+              queries: [
+                { name: "__testing" },
+                { name: "box" },
+                { name: "uiECI" },
+                { name: "pico" }
+              ],
+              events: [
+                {
+                  domain: "engine-ui",
+                  name: "box",
+                  attrs: [
+                    "name",
+                    "backgroundColor",
+                    "x",
+                    "y",
+                    "width",
+                    "height"
+                  ]
+                }
+              ]
+            };
+          },
           async box() {
             const [name, bgColor, x, y, w, h] = await Promise.all([
               ctx.getEnt("name"),
