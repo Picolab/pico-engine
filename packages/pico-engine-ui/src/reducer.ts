@@ -286,6 +286,14 @@ function producer(state: State, action: Action): void {
     case "MAKE_NEWRULESET_ERROR":
       state.rulesetPage.newRuleset_apiSt = apiCallStatus.error(action.error);
       return;
+
+    case "KRL_SET_THEME":
+      state.rulesetPage.theme = action.theme;
+      localStorage["krl-editor-theme"] = action.theme;
+      return;
+    case "KRL_SET_STATUS":
+      state.rulesetPage.status = action.status;
+      return;
   }
 }
 

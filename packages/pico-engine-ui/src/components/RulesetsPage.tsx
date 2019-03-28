@@ -1,8 +1,16 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link, NavLink } from "react-router-dom";
-import { Dispatch, changeNewRulesetRid, makeNewRuleset } from "../Action";
+import {
+  Dispatch,
+  changeNewRulesetRid,
+  makeNewRuleset,
+  krlSetTheme,
+  krlSetStatus
+} from "../Action";
 import { State, ApiCallStatus } from "../State";
+import KrlEditor from "./KrlEditor";
+import { themes } from "./KrlEditor";
 const logoUrl = require("../img/nav-logo.png");
 
 interface Props {
@@ -11,6 +19,9 @@ interface Props {
 
   newRuleset_ridInput: string;
   newRuleset_apiSt: ApiCallStatus;
+
+  theme: string | null;
+  status: string | null;
 }
 
 class RulesetsPage extends React.Component<Props> {
@@ -19,6 +30,8 @@ class RulesetsPage extends React.Component<Props> {
 
     this.newRuleset = this.newRuleset.bind(this);
     this.changeNewRuleset = this.changeNewRuleset.bind(this);
+    this.setTheme = this.setTheme.bind(this);
+    this.onKrlStatus = this.onKrlStatus.bind(this);
   }
 
   newRuleset(e: React.FormEvent) {
@@ -32,8 +45,24 @@ class RulesetsPage extends React.Component<Props> {
     dispatch(changeNewRulesetRid(e.target.value));
   }
 
+  setTheme(e: React.ChangeEvent<HTMLSelectElement>) {
+    const { dispatch } = this.props;
+    dispatch(krlSetTheme(e.target.value));
+  }
+
+  onKrlStatus(msg: string) {
+    const { dispatch } = this.props;
+    dispatch(krlSetStatus(msg));
+  }
+
   render() {
-    const { rulesets, newRuleset_ridInput, newRuleset_apiSt } = this.props;
+    const {
+      rulesets,
+      newRuleset_ridInput,
+      newRuleset_apiSt,
+      theme,
+      status
+    } = this.props;
 
     // TODO ability to open/close the right hand side
     return (
@@ -98,15 +127,31 @@ class RulesetsPage extends React.Component<Props> {
             <div className="flex-grow-1" />
             <form className="form-inline">
               <label>Theme</label>
-              <select className="form-control form-control-sm ml-2">
-                <option>one</option>
+              <select
+                className="form-control form-control-sm ml-2"
+                value={theme || ""}
+                onChange={this.setTheme}
+              >
+                {Object.keys(themes).map(group => {
+                  return (
+                    <optgroup key={group} label={group}>
+                      {themes[group].map(theme => {
+                        return (
+                          <option key={theme} value={theme}>
+                            {theme}
+                          </option>
+                        );
+                      })}
+                    </optgroup>
+                  );
+                })}
               </select>
             </form>
           </div>
-          <div className="flex-grow-1 bg-info">TODO editor</div>
+          <KrlEditor theme={theme} onStatus={this.onKrlStatus} />
           <div>
             <span className="text-muted">status:</span>{" "}
-            <span className="text-mono">TODO</span>
+            <span className="text-mono">{status || ""}</span>
           </div>
         </div>
         <div className="overflow-auto" style={{ width: 300 }}>
@@ -122,6 +167,9 @@ export default connect((state: State) => {
     rulesets: state.rulesets,
 
     newRuleset_ridInput: state.rulesetPage.newRuleset_ridInput,
-    newRuleset_apiSt: state.rulesetPage.newRuleset_apiSt
+    newRuleset_apiSt: state.rulesetPage.newRuleset_apiSt,
+
+    theme: state.rulesetPage.theme,
+    status: state.rulesetPage.status
   };
 })(RulesetsPage);

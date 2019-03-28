@@ -100,6 +100,9 @@ export interface TestingSchema {
 export interface RulesetPageState {
   newRuleset_ridInput: string;
   newRuleset_apiSt: ApiCallStatus;
+
+  theme: string | null;
+  status: string | null;
 }
 
 export interface ApiCallStatus {
@@ -133,6 +136,8 @@ export const initialState: State = {
 
   rulesetPage: {
     newRuleset_ridInput: "",
-    newRuleset_apiSt: apiCallStatus.init()
+    newRuleset_apiSt: apiCallStatus.init(),
+    theme: localStorage["krl-editor-theme"] || null,
+    status: null
   }
 };

@@ -566,6 +566,22 @@ interface MAKE_NEWRULESET_ERROR {
   error: string;
 }
 
+export function krlSetTheme(theme: string): Action {
+  return { type: "KRL_SET_THEME", theme };
+}
+interface KRL_SET_THEME {
+  type: "KRL_SET_THEME";
+  theme: string;
+}
+
+export function krlSetStatus(status: string): Action {
+  return { type: "KRL_SET_STATUS", status };
+}
+interface KRL_SET_STATUS {
+  type: "KRL_SET_STATUS";
+  status: string;
+}
+
 export type Action =
   | GET_UI_CONTEXT_START
   | GET_UI_CONTEXT_OK
@@ -613,4 +629,6 @@ export type Action =
   | CHANGE_NEWRULESET_RID
   | MAKE_NEWRULESET_START
   | MAKE_NEWRULESET_OK
-  | MAKE_NEWRULESET_ERROR;
+  | MAKE_NEWRULESET_ERROR
+  | KRL_SET_THEME
+  | KRL_SET_STATUS;

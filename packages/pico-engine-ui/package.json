@@ -5,6 +5,7 @@
     "build": "rm -rf ../pico-engine-next/www && NODE_ENV=production webpack && cp src/img/favicon* ../pico-engine-next/www/."
   },
   "dependencies": {
+    "ace-builds": "^1.4.3",
     "bootstrap": "^4.3.1",
     "immer": "^2.1.4",
     "react": "^16.8.5",
