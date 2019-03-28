@@ -35,15 +35,15 @@ export function server(
   });
 
   app.all("/api/rulesets", function(req, res, next) {
-    // TODO load from pf
-
-    res.json({
-      rulesets: {
-        "io.picolabs.next": ["0.0.0"],
-        "io.picolabs.foo": ["0.0.0", "1.1.1", "2.2.2"],
-        "io.picolabs.bar": ["1.1.1", "2.2.2", "3.3.3"]
+    const rulesets: { [rid: string]: string[] } = {};
+    pf.listRulesets().forEach(rs => {
+      if (!rulesets[rs.rid]) {
+        rulesets[rs.rid] = [];
       }
+      rulesets[rs.rid].push(rs.version);
     });
+
+    res.json({ rulesets });
   });
 
   app.all("/c/:eci/event/:domain/:name", function(req, res, next) {

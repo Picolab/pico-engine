@@ -37,16 +37,16 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "onchange": "^5.2.0",
-    "scriptsp": "^1.0.1",
+    "scriptsp": "^1.1.1",
     "standard": "^12.0.1",
     "tape": "^4.6.0",
     "temp-fs": "^0.9.9"
   },
   "dependencies": {
     "async": "^2.5.0",
-    "body-parser": "^1.18.2",
+    "body-parser": "^1.18.3",
     "bunyan": "^1.8.12",
-    "express": "^4.16.1",
+    "express": "^4.16.4",
     "file-url": "^2.0.2",
     "home-dir": "^1.0.0",
     "ip": "^1.1.5",

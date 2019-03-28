@@ -121,7 +121,7 @@ class RulesetsPage extends React.Component<Props> {
         </div>
         <div className="flex-grow-1 d-flex flex-column">
           <div className="pt-2 pb-2 d-flex">
-            <button type="buttton" className="btn btn-success btn-sm">
+            <button type="button" className="btn btn-success btn-sm">
               Register
             </button>
             <div className="flex-grow-1" />

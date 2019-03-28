@@ -6,7 +6,8 @@
     "allowJs": true,
     "strict": true,
     "sourceMap": true,
-    "jsx": "react"
+    "jsx": "react",
+    "outDir": "dist"
   },
   "include": ["src"]
 }

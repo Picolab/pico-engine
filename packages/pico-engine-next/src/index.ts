@@ -97,16 +97,12 @@ export async function startEngine(settings?: PicoEngineSettings) {
               return;
 
             case "engine-ui:new":
-              const child = await ctx.newPico({
+              const childEci = await ctx.newPico({
                 rulesets: [{ rid: "io.picolabs.next", version: "0.0.0" }]
               });
-              // TODO ctx.newPico should probably just return the ECI
-              const childEci = child.channels.find(
-                c => !!c.familyChannelPicoID
-              );
               if (childEci) {
                 const childEciUI = await ctx.query({
-                  eci: childEci.id,
+                  eci: childEci,
                   rid: "io.picolabs.next",
                   name: "uiECI",
                   args: {}
