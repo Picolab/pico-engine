@@ -34,7 +34,7 @@ ruleset io.picolabs.collection {
   rule establish_new_role_names {
     select when collection new_role_names
       Tx_role re#(.+)# Rx_role re#(.+)# setting(Tx_role,Rx_role)
-    if ent:Tx_role && members().length() == 0 then noop()
+    if ent:Tx_role.isnull() || members().length() == 0 then noop()
     fired {
       ent:Tx_role := Tx_role;
       ent:Rx_role := Rx_role
