@@ -3,7 +3,12 @@
 //  https://ace.c9.io/tool/mode_creator.html
 
 // NOTE: krl-mode depends on ace/mode/javascript
-// NOTE: this is a raw js file that ace will include on the page, not bundled with webpack
+import "ace-builds/src-noconflict/mode-javascript"; // import things like ace/mode/matching_brace_outdent and ace/mode/folding/cstyle
+
+ace.config.setModuleUrl(
+  "ace/mode/krl_worker",
+  require("ace-webworker-loader!./worker-krl.js")
+);
 
 ace.define(
   "ace/mode/krl_highlight_rules",
@@ -384,7 +389,25 @@ ace.define(
         this.$outdent.autoOutdent(doc, row);
       };
 
-      // TODO this.createWorker
+      this.createWorker = function(session) {
+        const worker = new WorkerClient(
+          ["ace"],
+          "ace/mode/krl_worker",
+          "KRLWorker"
+        );
+
+        worker.attachToDocument(session.getDocument());
+
+        worker.on("annotate", function(results) {
+          session.setAnnotations(results.data);
+        });
+
+        worker.on("terminate", function() {
+          session.clearAnnotations();
+        });
+
+        return worker;
+      };
 
       this.$id = "ace/mode/krl";
     }.call(Mode.prototype));

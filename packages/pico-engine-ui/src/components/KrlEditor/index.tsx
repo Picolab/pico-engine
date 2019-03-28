@@ -1,10 +1,7 @@
 import * as React from "react";
 import * as ace from "ace-builds";
 import "ace-builds/webpack-resolver";
-
-// NOTE: krl-mode depends on ace/mode/javascript
-ace.config.loadModule("ace/mode/javascript", () => null); // import things like ace/mode/matching_brace_outdent and ace/mode/folding/cstyle
-ace.config.setModuleUrl("ace/mode/krl", require("file-loader!./mode-krl.js"));
+import "./mode-krl";
 
 ace.config.loadModule("ace/ext/searchbox", () => null);
 
