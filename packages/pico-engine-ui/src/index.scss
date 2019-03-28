@@ -15,6 +15,14 @@ body {
     monospace;
 }
 
+.btn-light {
+  background: #fff;
+  border-color: #c1c2c3;
+}
+.btn-light:hover {
+  background: #eee;
+}
+
 #picos-page {
   position: fixed;
   top: 0;

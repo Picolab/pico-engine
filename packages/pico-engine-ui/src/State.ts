@@ -16,6 +16,8 @@ export interface State {
   pico_moving_relX?: number;
   pico_moving_relY?: number;
   pico_resizing?: string;
+
+  rulesetPage: RulesetPageState;
 }
 
 export interface PicoState {
@@ -95,6 +97,11 @@ export interface TestingSchema {
   events?: { domain: string; name: string; attrs?: string[] }[];
 }
 
+export interface RulesetPageState {
+  newRuleset_ridInput: string;
+  newRuleset_apiSt: ApiCallStatus;
+}
+
 export interface ApiCallStatus {
   waiting: boolean;
   error?: string | null;
@@ -122,5 +129,10 @@ export const initialState: State = {
   uiContext_apiSt: apiCallStatus.init(),
   rulesets_apiSt: apiCallStatus.init(),
   rulesets: {},
-  picos: {}
+  picos: {},
+
+  rulesetPage: {
+    newRuleset_ridInput: "",
+    newRuleset_apiSt: apiCallStatus.init()
+  }
 };

@@ -527,6 +527,45 @@ interface TEST_RESULT_ERROR {
   error: string;
 }
 
+export function changeNewRulesetRid(value: string): Action {
+  return { type: "CHANGE_NEWRULESET_RID", value };
+}
+interface CHANGE_NEWRULESET_RID {
+  type: "CHANGE_NEWRULESET_RID";
+  value: string;
+}
+
+export function makeNewRuleset(rid: string): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "MAKE_NEWRULESET_START" });
+    fetch(`/api/new-ruleset`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify({ rid })
+    })
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "MAKE_NEWRULESET_OK", rid: data.rid });
+      })
+      .catch(err => {
+        dispatch({ type: "MAKE_NEWRULESET_ERROR", error: err + "" });
+      });
+  };
+}
+interface MAKE_NEWRULESET_START {
+  type: "MAKE_NEWRULESET_START";
+}
+interface MAKE_NEWRULESET_OK {
+  type: "MAKE_NEWRULESET_OK";
+  rid: string;
+}
+interface MAKE_NEWRULESET_ERROR {
+  type: "MAKE_NEWRULESET_ERROR";
+  error: string;
+}
+
 export type Action =
   | GET_UI_CONTEXT_START
   | GET_UI_CONTEXT_OK
@@ -570,4 +609,8 @@ export type Action =
   | GET_TESTING_ERROR
   | TEST_RESULT_CLEAR
   | TEST_RESULT_OK
-  | TEST_RESULT_ERROR;
+  | TEST_RESULT_ERROR
+  | CHANGE_NEWRULESET_RID
+  | MAKE_NEWRULESET_START
+  | MAKE_NEWRULESET_OK
+  | MAKE_NEWRULESET_ERROR;

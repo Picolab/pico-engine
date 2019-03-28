@@ -1,18 +1,40 @@
 import * as React from "react";
 import { connect } from "react-redux";
 import { Link, NavLink } from "react-router-dom";
-import { Dispatch } from "../Action";
-import { State } from "../State";
+import { Dispatch, changeNewRulesetRid, makeNewRuleset } from "../Action";
+import { State, ApiCallStatus } from "../State";
 const logoUrl = require("../img/nav-logo.png");
 
 interface Props {
   dispatch: Dispatch;
   rulesets: State["rulesets"];
+
+  newRuleset_ridInput: string;
+  newRuleset_apiSt: ApiCallStatus;
 }
 
 class RulesetsPage extends React.Component<Props> {
+  constructor(props: Props) {
+    super(props);
+
+    this.newRuleset = this.newRuleset.bind(this);
+    this.changeNewRuleset = this.changeNewRuleset.bind(this);
+  }
+
+  newRuleset(e: React.FormEvent) {
+    e.preventDefault();
+    const { dispatch, newRuleset_ridInput } = this.props;
+    dispatch(makeNewRuleset(newRuleset_ridInput));
+  }
+
+  changeNewRuleset(e: React.ChangeEvent<HTMLInputElement>) {
+    const { dispatch } = this.props;
+    dispatch(changeNewRulesetRid(e.target.value));
+  }
+
   render() {
-    const { rulesets } = this.props;
+    const { rulesets, newRuleset_ridInput, newRuleset_apiSt } = this.props;
+
     // TODO ability to open/close the right hand side
     return (
       <div id="rulesets-page" className="d-flex">
@@ -43,6 +65,29 @@ class RulesetsPage extends React.Component<Props> {
                 })}
               </ul>
             </div>
+            <form onSubmit={this.newRuleset}>
+              <fieldset disabled={newRuleset_apiSt.waiting}>
+                <div className="input-group">
+                  <input
+                    type="text"
+                    className="form-control form-control-sm"
+                    placeholder="ruleset id"
+                    value={newRuleset_ridInput}
+                    onChange={this.changeNewRuleset}
+                  />
+                  <div className="input-group-append">
+                    <button className="btn btn-light btn-sm" type="submit">
+                      new ruleset
+                    </button>
+                  </div>
+                </div>
+                {newRuleset_apiSt.error ? (
+                  <div className="text-danger">{newRuleset_apiSt.error}</div>
+                ) : (
+                  ""
+                )}
+              </fieldset>
+            </form>
           </div>
         </div>
         <div className="flex-grow-1 d-flex flex-column">
@@ -51,12 +96,12 @@ class RulesetsPage extends React.Component<Props> {
               Register
             </button>
             <div className="flex-grow-1" />
-            <div>
-              Theme{" "}
-              <select>
+            <form className="form-inline">
+              <label>Theme</label>
+              <select className="form-control form-control-sm ml-2">
                 <option>one</option>
               </select>
-            </div>
+            </form>
           </div>
           <div className="flex-grow-1 bg-info">TODO editor</div>
           <div>
@@ -74,6 +119,9 @@ class RulesetsPage extends React.Component<Props> {
 
 export default connect((state: State) => {
   return {
-    rulesets: state.rulesets
+    rulesets: state.rulesets,
+
+    newRuleset_ridInput: state.rulesetPage.newRuleset_ridInput,
+    newRuleset_apiSt: state.rulesetPage.newRuleset_apiSt
   };
 })(RulesetsPage);

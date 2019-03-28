@@ -271,6 +271,21 @@ function producer(state: State, action: Action): void {
         pico.testResult_error = action.error;
       });
       return;
+
+    case "CHANGE_NEWRULESET_RID":
+      state.rulesetPage.newRuleset_ridInput = action.value;
+      return;
+
+    case "MAKE_NEWRULESET_START":
+      state.rulesetPage.newRuleset_apiSt = apiCallStatus.waiting();
+      return;
+    case "MAKE_NEWRULESET_OK":
+      state.rulesetPage.newRuleset_ridInput = "";
+      state.rulesetPage.newRuleset_apiSt = apiCallStatus.ok();
+      return;
+    case "MAKE_NEWRULESET_ERROR":
+      state.rulesetPage.newRuleset_apiSt = apiCallStatus.error(action.error);
+      return;
   }
 }
 
