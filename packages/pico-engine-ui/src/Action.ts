@@ -466,13 +466,14 @@ interface GET_TESTING_ERROR {
 
 export function sendTestQuery(
   eci: string,
+  useECI: string,
   rid: string,
   name: string,
   args: any
 ): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "TEST_RESULT_CLEAR", eci });
-    fetch(`/c/${eci}/query/${rid}/${name}`, {
+    fetch(`/c/${useECI}/query/${rid}/${name}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -490,13 +491,14 @@ export function sendTestQuery(
 }
 export function sendTestEvent(
   eci: string,
+  useECI: string,
   domain: string,
   name: string,
   attrs: any
 ): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "TEST_RESULT_CLEAR", eci });
-    fetch(`/c/${eci}/event-wait/${domain}/${name}`, {
+    fetch(`/c/${useECI}/event-wait/${domain}/${name}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8"
@@ -582,6 +584,15 @@ interface KRL_SET_STATUS {
   status: string;
 }
 
+export function setTestingECI(eci: string, testingECI: string): Action {
+  return { type: "SET_TESTING_ECI", eci, testingECI };
+}
+interface SET_TESTING_ECI {
+  type: "SET_TESTING_ECI";
+  eci: string;
+  testingECI: string;
+}
+
 export type Action =
   | GET_UI_CONTEXT_START
   | GET_UI_CONTEXT_OK
@@ -631,4 +642,5 @@ export type Action =
   | MAKE_NEWRULESET_OK
   | MAKE_NEWRULESET_ERROR
   | KRL_SET_THEME
-  | KRL_SET_STATUS;
+  | KRL_SET_STATUS
+  | SET_TESTING_ECI;

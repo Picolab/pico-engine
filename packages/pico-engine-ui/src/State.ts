@@ -39,6 +39,8 @@ export interface PicoState {
     [rid: string]: { schema_apiSt: ApiCallStatus; schema?: TestingSchema };
   };
 
+  testingECI?: string;
+
   testResult_error?: string;
   testResult?: any;
 }

@@ -294,6 +294,12 @@ function producer(state: State, action: Action): void {
     case "KRL_SET_STATUS":
       state.rulesetPage.status = action.status;
       return;
+
+    case "SET_TESTING_ECI":
+      updatePico(state, action.eci, pico => {
+        pico.testingECI = action.testingECI;
+      });
+      return;
   }
 }
 
