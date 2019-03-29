@@ -1,21 +1,32 @@
 import { Ruleset, RulesetInstance } from "pico-framework";
 import { SelectWhen, e } from "select-when";
 import { PicoEventPayload } from "pico-framework/dist/src/PicoEvent";
+import _ = require("lodash");
+
+function krlNamedArgs(paramOrder: string[]) {
+  return function(args: any) {
+    const namedArgs: { [name: string]: any } = {};
+    _.each(args, function(arg, key: any) {
+      if (_.has(paramOrder, key)) {
+        namedArgs[paramOrder[key]] = arg;
+      } else if (_.includes(paramOrder, key)) {
+        namedArgs[key] = arg;
+      }
+    });
+    return namedArgs;
+  };
+}
 
 const $krl = {
   SelectWhen: SelectWhen,
   e: e,
   function(
-    args: string[],
+    paramOrder: string[],
     fn: (args: { [name: string]: any }) => Promise<any>
   ) {
-    return (...origArgs: any[]) => {
-      const namedArgs: { [name: string]: any } = {};
-      for (let i = 0; i < args.length; i++) {
-        const name = args[i];
-        namedArgs[name] = origArgs[i];
-      }
-      return fn(namedArgs);
+    const fixArgs = krlNamedArgs(paramOrder);
+    return function(args: any) {
+      return fn(fixArgs(args));
     };
   }
 };
@@ -56,7 +67,7 @@ export const rsHello: Ruleset = {
             events: [{ domain: "say", name: "hello", attrs: ["name"] }]
           };
         },
-        hello: hello,
+        hello,
         said: said
       }
     };

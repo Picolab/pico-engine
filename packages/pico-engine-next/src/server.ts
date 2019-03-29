@@ -20,7 +20,7 @@ export function server(
   const app = express();
 
   app.use(helmet());
-  app.use(express.static(path.resolve(__dirname, "..", "public")));
+  app.use(express.static(path.resolve(__dirname, "..", "www")));
   app.use(bodyParser.json({ type: "application/json" }));
   app.use(
     bodyParser.urlencoded({
@@ -112,6 +112,17 @@ export function server(
         res.json(data);
       })
       .catch(next);
+  });
+
+  app.use(function(
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) {
+    let message = err + "";
+    console.error(err);
+    res.json({ error: message });
   });
 
   return app;
