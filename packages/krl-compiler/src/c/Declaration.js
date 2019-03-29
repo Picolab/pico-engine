@@ -1,4 +1,5 @@
-var callStdLibFn = require('../utils/callStdLibFn')
+const callStdLibFn = require('../utils/callStdLibFn')
+const jsIdent = require('../utils/jsIdent')
 
 var ePathSet = function (ast, comp, e, path) {
   return e(';', e('call', e('id', 'ctx.scope.set'), [
@@ -28,10 +29,10 @@ module.exports = function (ast, comp, e) {
     if (ast.left.value === 'null') {
       throw comp.error(ast.loc, 'Cannot declare: ' + ast.left.value)
     }
-    return e(';', e('call', e('id', 'ctx.scope.set'), [
-      e('str', ast.left.value, ast.left.loc),
+    return e('const',
+      e('id', jsIdent(ast.left.value), ast.left.loc),
       comp(ast.right)
-    ]))
+    )
   }
   throw comp.error(ast.loc, 'Cannot declare ' + ast.left.type)
 }

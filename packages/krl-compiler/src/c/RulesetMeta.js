@@ -19,12 +19,6 @@ var propTypes = {
     }
     return comp(_.head(props).value)
   },
-  'logging': function (props, comp, e) {
-    if (_.size(props) !== 1) {
-      throw new Error('only 1 meta.logging allowed')
-    }
-    return comp(_.head(props).value)
-  },
   'use': function (props, comp, e) {
     return e('arr', _.map(props, function (prop) {
       var ast = prop.value
@@ -56,49 +50,6 @@ var propTypes = {
     return e('arr', _.map(ids, function (id) {
       return e('str', id.value, id.loc)
     }))
-  },
-  'provides': function (props, comp, e) {
-    var ids = _.uniqBy(_.flatten(_.map(props, 'value.ids')), 'value')
-    return e('arr', _.map(ids, function (id) {
-      return e('str', id.value, id.loc)
-    }))
-  },
-  'provides_keys': function (props, comp, e) {
-    var json = {}
-    _.each(props, function (p) {
-      _.each(p.value.ids, function (idAst) {
-        var id = idAst.value
-        if (!_.has(json, id)) {
-          json[id] = { to: [] }
-        }
-        _.each(p.value.rulesets, function (r) {
-          json[id].to.push(r.value)
-        })
-      })
-    })
-    return e('json', json)
-  },
-  'keys': function (props, comp, e) {
-    var obj = {}
-    _.each(props, function (p) {
-      switch (_.get(p, ['value', 1, 'type'])) {
-        case 'String':
-          break
-        case 'Map':
-          _.each(p.value[1].value, function (pair) {
-            var vAstType = pair.value.type
-            if (vAstType !== 'String') {
-              throw new Error('A ruleset key that is Map, can only use Strings as values')
-            }
-          })
-          break
-        default:
-          throw new Error('Ruleset keys must be a String, or Map of Strings')
-      }
-
-      obj[p.value[0].value] = comp(p.value[1])
-    })
-    return e('obj', obj)
   }
 }
 

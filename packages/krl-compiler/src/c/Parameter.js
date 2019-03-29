@@ -1,22 +1,14 @@
+const jsIdent = require('../utils/jsIdent')
+
 module.exports = function (ast, comp, e) {
-  var mkIdStr = function () {
-    return e('string', ast.id.value, ast.id.loc)
-  }
-
-  var getArg = e('get', e('id', 'args'), mkIdStr())
-
-  var val = getArg
+  const argId = e('id', jsIdent(ast.id.value), ast.id.loc)
 
   if (ast['default']) {
-    // only evaluate default if needed i.e. default may be calling an function
-    val = e('?',
-      e('call', e('id', 'args.hasOwnProperty'), [mkIdStr()]),
-      getArg,
-      comp(ast['default'])
-    )
+    return {
+      type: 'AssignmentPattern',
+      left: argId,
+      right: comp(ast['default'])
+    }
   }
-  return e(';', e('call', e('id', 'ctx.scope.set'), [
-    mkIdStr(),
-    val
-  ]))
+  return argId
 }

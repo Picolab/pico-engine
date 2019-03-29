@@ -2,18 +2,16 @@ var _ = require('lodash')
 var declarationBlock = require('../utils/declarationBlock')
 
 module.exports = function (ast, comp, e) {
-  var rule = {
-    name: e('string', ast.name.value, ast.name.loc)
-  }
+  // TODO use symbol-table to store ast.name.value
   if (ast.rule_state !== 'active') {
-    rule.rule_state = e('string', ast.rule_state)
     comp.warn(ast.loc, 'rule ' + ast.name.value + ' is inactive, i.e. commented out')
-    return e('obj', rule)
+    return e(';', e('null'))
   }
   if (!ast.select) {
     throw comp.error(ast.loc, 'rule ' + ast.name.value + ' is missing a `select`')
   }
-  rule.select = comp(ast.select)
+
+  const selectWhenRule = comp(ast.select)
 
   var ruleBody = []
 
@@ -27,8 +25,16 @@ module.exports = function (ast, comp, e) {
   }
 
   ruleBody.push(e('if', e('id', 'fired'),
-    e(';', e('call', e('id', 'ctx.emit'), [e('str', 'debug'), e('str', 'fired')])),
-    e(';', e('call', e('id', 'ctx.emit'), [e('str', 'debug'), e('str', 'not fired')]))
+    e(';', e('call', e('id', '$krl.log.debug'), [
+      e('id', '$ctx'),
+      e('id', '$event'),
+      e('str', 'fired')
+    ])),
+    e(';', e('call', e('id', '$krl.log.debug'), [
+      e('id', '$ctx'),
+      e('id', '$event'),
+      e('str', 'not fired')
+    ]))
   ))
 
   if (ast.postlude) {
@@ -51,7 +57,8 @@ module.exports = function (ast, comp, e) {
     ruleBody = nesetedForeach(ast.foreach, 0)
   }
 
-  rule.body = e('asyncfn', ['ctx', 'runAction', 'toPairs'], ruleBody)
-
-  return e('obj', rule)
+  return e(';', e('call', e('id', '$rs.when'), [
+    selectWhenRule,
+    e('asyncfn', ['$event', '$state'], ruleBody)
+  ]))
 }

@@ -8,13 +8,15 @@ var compiler = require('./')
 
 var filesDir = path.resolve(__dirname, '../../test-rulesets')
 
-test.cb('compiler', function (t) {
+test.cb.only('compiler', function (t) {
   fs.readdir(filesDir, function (err, files) {
     if (err) return t.end(err)
 
     var basenames = _.uniq(_.map(files, function (file) {
       return path.basename(path.basename(file, '.krl'), '.js')
     }))
+
+    basenames = ['hello-world']
 
     λ.each(basenames, function (basename, next) {
       var jsFile = path.join(filesDir, basename) + '.js'

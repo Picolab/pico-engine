@@ -1,7 +1,7 @@
 var _ = require('lodash')
 
 module.exports = function (ast, comp, e) {
-  var body = comp(ast.params)
+  var body = []
 
   _.each(ast.body, function (part, i) {
     if (i < (ast.body.length - 1)) {
@@ -18,8 +18,16 @@ module.exports = function (ast, comp, e) {
     return e('string', p.id.value, p.id.loc)
   }), ast.params.loc)
 
-  return e('call', e('id', 'ctx.mkFunction'), [
+  return e('call', e('id', '$krl.function'), [
     paramOrder,
-    e('asyncfn', ['ctx', 'args'], body)
+    {
+      type: 'FunctionExpression',
+      params: comp(ast.params),
+      body: {
+        type: 'BlockStatement',
+        body: body
+      },
+      async: true
+    }
   ])
 }

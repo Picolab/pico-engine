@@ -1,23 +1,27 @@
 ruleset io.picolabs.hello_world {
-    meta {
-        name "Hello World"
-        description <<
+  meta {
+    name "Hello World"
+    description <<
 A first ruleset for the Quickstart
-        >>
+    >>
 
-        author "Phil Windley"
-        logging on
-        shares hello
+    author "Phil Windley"
+    shares hello, said
+  }
+  global {
+    hello = function(name = "default"){
+      msg = "Hello " + name;
+      msg;
     }
-    global {
-        hello = function(obj){
-            msg = "Hello " + obj;
-            msg;
-        }
+    said = function(){
+      ent:said;
     }
-    rule say_hello {
-        select when echo hello
+  }
+  rule say_hello {
+    select when say hello
 
-        send_directive("say", {"something": "Hello World"});
+    always {
+      ent:said := event:attrs{"name"}
     }
+  }
 }

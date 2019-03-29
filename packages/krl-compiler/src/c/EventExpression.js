@@ -92,11 +92,15 @@ module.exports = function (ast, comp, e) {
       ), ast.aggregator.loc))
   }
 
-  if (fnBody.length === 0) {
-    return e(true)
+  const ee = [
+    e('str', `${ast.event_domain.value}:${ast.event_type.value}`)
+
+  ]
+
+  if (fnBody.length > 0) {
+    fnBody.push(e('return', e('obj', { match: e(true) })))
+    ee.push(e('asyncfn', ['$event', '$state'], fnBody))
   }
 
-  fnBody.push(e('return', e(true)))
-
-  return e('asyncfn', ['ctx', 'aggregateEvent', 'getAttrString', 'setting'], fnBody)
+  return e('call', e('id', '$krl.e'), ee)
 }

@@ -2,8 +2,8 @@ module.exports = function (ast, comp, e) {
   if (ast.op !== ':=') {
     throw comp.error(ast.loc, 'Unsuported PersistentVariableAssignment.op: ' + ast.op)
   }
-  if (ast.left.type !== 'DomainIdentifier' || !/^(ent|app)$/.test(ast.left.domain)) {
-    throw comp.error(ast.left.loc, 'PersistentVariableAssignment - only works on ent:* or app:* variables')
+  if (ast.left.type !== 'DomainIdentifier' || !/^ent$/.test(ast.left.domain)) {
+    throw comp.error(ast.left.loc, 'PersistentVariableAssignment - only works on ent:* variables')
   }
 
   if (ast.right.type === 'Application' &&
@@ -43,9 +43,7 @@ module.exports = function (ast, comp, e) {
     })
   }
 
-  return e(';', e('acall', e('id', 'ctx.modules.set'), [
-    e('id', 'ctx'),
-    e('str', ast.left.domain, ast.left.loc),
+  return e(';', e('acall', e('id', '$ctx.putEnt'), [
     key,
     valueToStore
   ]))
