@@ -138,6 +138,14 @@ $(document).ready(function () {
           'color',
           thePicoOut.parent ? '#7FFFD4' : '#87CEFA'
         )
+        if (thePicoOut.color.charAt() != '#') {
+          var colorCode = '#'+$('#'+thePicoInp.id).css('background-color')
+            .match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+            .slice(1).map(function(n){
+              return (Number(n)<16?"0":"")+Number(n).toString(16)
+            }).join('')
+          thePicoOut.color = colorCode
+        }
         callback(null, thePicoOut)
       } else if (tabName === 'rulesets') {
         var theRulesetInp = thePicoInp
