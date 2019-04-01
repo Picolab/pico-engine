@@ -531,7 +531,7 @@
       {{else}}
         <a href="https://sovrin.org" target="_blank"><img src="img/SovrinIcon.png" alt="Sovrin Icon" class="icon"></a>
         {{#if ui.wf}}
-          {{#if ui.wf.profile}}<a href="{{ui.wf.profile}}" target="_blank">{{/if}}{{#if ui.wf.avatar}}<img src="{{ui.wf.avatar}}" alt="avatar" class="icon">{{else}}profile{{/if}}{{#if ui.wf.profile}}</a>{{/if}}
+          {{#if ui.wf.url}}<a href="{{ui.wf.url}}" target="_blank">{{/if}}{{#if ui.wf.photo}}<img src="{{ui.wf.photo}}" alt="photo" class="icon">{{else}}profile{{/if}}{{#if ui.wf.url}}</a>{{/if}}
         {{/if}}
         <h2>{{ui.name}}</h2>
         <form class="js-ajax-form" action="/sky/event/{{eci}}/accept/sovrin/new_invitation">
