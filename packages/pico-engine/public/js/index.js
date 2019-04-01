@@ -140,7 +140,7 @@ $(document).ready(function () {
         )
         if (thePicoOut.color.charAt() != '#') {
           var colorCode = '#'+$('#'+thePicoInp.id).css('background-color')
-            .match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+            .match(/rgba?\((\d+),\s*(\d+),\s*(\d+).*\)/)
             .slice(1).map(function(n){
               return (Number(n)<16?"0":"")+Number(n).toString(16)
             }).join('')
