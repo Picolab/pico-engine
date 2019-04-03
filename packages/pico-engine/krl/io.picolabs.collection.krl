@@ -19,8 +19,8 @@ ruleset io.picolabs.collection {
     members = function(){
       Subs:established("Tx_role",ent:Tx_role)
     }
-    check_roles = function(){
-      event:attr("Rx_role")==ent:Rx_role && event:attr("Tx_role")==ent:Tx_role
+    check_roles = function(attrs){
+      attrs{"Rx_role"}==ent:Rx_role && attrs{"Tx_role"}==ent:Tx_role
     }
   }
   rule initialize_role_names {
@@ -43,7 +43,7 @@ ruleset io.picolabs.collection {
   rule auto_accept {
     select when wrangler inbound_pending_subscription_added
     pre {
-      acceptable = check_roles();
+      acceptable = check_roles(event:attrs);
     }
     if acceptable then noop();
     fired {
@@ -66,7 +66,7 @@ ruleset io.picolabs.collection {
   rule new_member {
     select when wrangler subscription_added
     pre {
-      pertinent = check_roles();
+      pertinent = check_roles(event:attrs);
     }
     if pertinent then noop();
     fired {
@@ -76,7 +76,7 @@ ruleset io.picolabs.collection {
   rule member_removed {
     select when wrangler subscription_removed
     pre {
-      pertinent = check_roles();
+      pertinent = check_roles(event:attr("bus"));
     }
     if pertinent then noop();
     fired {
