@@ -34,7 +34,7 @@ ruleset io.picolabs.subscription {
                               { "domain": "wrangler", "type": "outbound_cancellation",
                                 "attrs": [ "Id" ] },
                               { "domain": "wrangler", "type": "autoAcceptConfigUpdate",
-                                "attrs": [ "variable", "regex_str" ] } ]}
+                                "attrs": [ "configName", "password", "regexMap","delete" ] } ]}
 /*
 ent:inbound [
   {
@@ -84,6 +84,13 @@ ent:established [
     autoAcceptConfig = function(){
       ent:autoAcceptConfig.defaultsTo({})
     }
+    configMatchesPassword = function(config, entryName, hashedPassword) {
+      doesntExist = config{[entryName]}.isnull();
+      passwordMatched = config{[entryName, "password"]} == hashedPassword;
+      
+      doesntExist || passwordMatched
+    }
+    
     established = function(key,value){
       filterOn(ent:established, key, value)
     }
@@ -383,21 +390,26 @@ ent:established [
   rule autoAccept {
     select when wrangler inbound_pending_subscription_added
     pre{
-      /*autoAcceptConfig{
-        var : [regex_str,..,..]
+      /*
+      autoAcceptConfig{
+        configName : {
+          configName: "name"
+          password: "<hashedPassword>"
+          entries: {
+            <entries>
+          }
+        }
+        . . .
+   * entry:
+   * 
+   * entryVar: [regEx, regEx, ...]
       }*/
-      /**
-       * 
-       * If any event attr matches a key,
-       *  loop over the regex strings matched to that key to return a modified map ->
-       *    if any of those regex strings match the key, transform their value to true, otherwise false
-       *    if any of the regex strings were changed to true return true, otherwise false
-       * 
-       */
-      matches = ent:autoAcceptConfig.map(function(regs,k) {
-                              var = event:attr(k); 
-                              matches = not var.isnull() => regs.map(function(regex_str){ var.match(regex_str)}).any( function(bool){ bool == true }) | false;
-                              matches }).values().any( function(bool){ bool == true })
+      matches = ent:autoAcceptConfig.map(function(config, configName) { 
+                                      config{["entries"]}.klog("entries map").map(function(regs,k) {
+                                        var = event:attr(k).klog("with event attr from " + k + "\n"); 
+                                        matches = not var.isnull() => regs.map(function(regex_str){ var.match(regex_str.as("RegExp").klog("matching with ")).klog("function returned ")}).any( function(bool){ bool == true }) | false;
+                                        matches }).klog("resulting map").values().any(function(bool){bool})
+                                    }).klog("final map").values().any(function(bool){bool})
     }
     if matches then noop()
     fired {
@@ -406,12 +418,46 @@ ent:established [
     }// else ...
   }
 
-  rule autoAcceptConfigUpdate { // consider single time use password
+  /**
+   * 
+   * event:attr("config"):
+   * {
+      configName: "name"
+      password: "<hashedPassword>"
+      entries: {
+        <entries>
+      }
+     }
+   * entry:
+   * 
+   * entryVar: [regEx, regEx, ...]
+   * 
+   */
+  rule autoAcceptConfigUpdate {
     select when wrangler autoAcceptConfigUpdate
-    pre{ config = autoAcceptConfig() }
-    if (event:attr("variable") && event:attr("regex_str") ) then noop()
+    pre { 
+      givenConfig = event:attr("config").defaultsTo({
+        "configName": event:attr("configName"),
+        "password": event:attr("password"),
+        "entries": event:attr("regexMap").decode()
+      });
+      givenName = givenConfig["configName"]
+      configPassword = givenConfig["password"].defaultsTo("")
+      
+      hashedPassword = math:hash("sha256", configPassword) // Not meant to be robust, just so you can't easily query it
+      config = autoAcceptConfig()
+      existingConfig = config[givenName].defaultsTo({})
+      passwordMatch = configMatchesPassword(config, givenName, hashedPassword)
+      
+      configToAdd = event:attr("delete") => null | givenConfig.put("password", hashedPassword);
+      
+      }
+    if (givenName.klog("configName") && configPassword.klog("configPassword") && passwordMatch.klog("passwordMatch")) then noop()
     fired {
-      ent:autoAcceptConfig := config.put([event:attr("variable")],config{event:attr("variable")}.defaultsTo([]).append([event:attr("regex_str")])); // possible to add the same regex_str multiple times.
+      ent:autoAcceptConfig{[givenName]} := configToAdd.klog("added config");
+      ent:autoAcceptConfig := ent:autoAcceptConfig.delete(givenName) if event:attr("delete");
+        config.put( [event:attr("variable")] ,
+        config{event:attr("variable")}.defaultsTo([]).append([event:attr("regex_str")])); // possible to add the same regex_str multiple times.
     }
     else {
       raise wrangler event "autoAcceptConfigUpdate_failure" attributes event:attrs // API event
