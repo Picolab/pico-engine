@@ -87,7 +87,7 @@ ruleset io.picolabs.wrangler {
                                     "content": "{\"error\":\"Pico should not query itself\"}"};
      skyQuery = function(eci, mod, func, params,_host,_path,_root_url) { // path must start with "/"", _host must include protocol(http:// or https://)
        //.../sky/cloud/<eci>/<rid>/<name>?name0=value0&...&namen=valuen
-       ownPico = engine:getPicoIDByECI(eci) == meta:picoId;
+       thisPico = engine:getPicoIDByECI(eci) == meta:picoId;
        
        createRootUrl = function (_host,_path){
          host = _host || meta:host;
@@ -98,7 +98,7 @@ ruleset io.picolabs.wrangler {
        root_url = _root_url || createRootUrl(_host,_path);
        web_hook = root_url + eci + "/"+mod+"/" + func;
 
-       response = (not ownPico) => http:get(web_hook, {}.put(params)) | QUERY_SELF_INVALID_HTTP_MAP;
+       response = (not thisPico) => http:get(web_hook, {}.put(params)) | QUERY_SELF_INVALID_HTTP_MAP;
        status = response{"status_code"};// pass along the status
        error_info = {
          "error": "sky query request was unsuccesful.",
@@ -116,7 +116,7 @@ ruleset io.picolabs.wrangler {
                                "skyQueryReturnValue": response_content});
        is_bad_response = (response_content.isnull() || (response_content == "null") || response_error || response_error_str);
        // if HTTP status was OK & the response was not null and there were no errors...
-       (ownPico) => error | (status == 200 && not is_bad_response ) => response_content | error
+       (thisPico) => error | (status == 200 && not is_bad_response ) => response_content | error
      }
      
      // Default domain for responding API events to use
@@ -213,6 +213,13 @@ ruleset io.picolabs.wrangler {
     channelNameExists = function(name){
       not channel(name, null, null).isnull()
     }
+    
+    channelNameExistsForType = function(name, type){
+      channel_array = channel(null, "type", type);
+      channel_array.any(function(channel){
+        channel{"name"} == name
+      });
+    }
 
     nameFromEci = function(eci){ // internal function call
       channel = channel(eci,null,null);
@@ -260,7 +267,7 @@ ruleset io.picolabs.wrangler {
         T => engine:newChannel(id , name, type, policy_id) setting(channel);
         F => engine:newChannel(id , name, type) setting(channel);
       }
-      returns  channel
+      returns channel
     }
 
     /*
@@ -501,11 +508,14 @@ ruleset io.picolabs.wrangler {
 
   rule createChannel {
     select when wrangler channel_creation_requested
-    pre { channel_name = event:attr("name") }
-    if(not channelNameExists(channel_name) && not channel_name.isnull() ) then every {
+    pre { 
+      channel_name = event:attr("name") 
+      channel_type = event:attr("type").defaultsTo("_wrangler")
+    }
+    if(not channelNameExistsForType(channel_name, channel_type) && not channel_name.isnull() ) then every {
       createChannel(meta:picoId,
                     channel_name,
-                    event:attr("type").defaultsTo("_wrangler"),
+                    channel_type,
                     event:attr("policy_id")) setting(channel);
       send_directive("channel_Created", channel);
     }
