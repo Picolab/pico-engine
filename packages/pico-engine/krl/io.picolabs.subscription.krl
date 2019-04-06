@@ -71,6 +71,9 @@ ent:established [
   },...,...
 ]
 */
+    // regex to identify proper formatting of a channel ID
+    TYPICAL_CHANNEL_FORMAT = re#^[a-zA-Z0-9]{22}$#
+    
     wellknown_Policy = { // we need to restrict what attributes are allowed on this channel, specifically Id.
       "name": "wellknown",
       "event": {
@@ -172,8 +175,9 @@ ent:established [
       channel_name  = event:attr("name").defaultsTo(random:word())
       channel_type  = event:attr("channel_type").defaultsTo("Tx_Rx","Tx_Rx channel_type used.")
       pending_entry = pending_entry().put(["wellKnown_Tx"],event:attr("wellKnown_Tx"))
+      well_known_matches = event:attr("wellKnown_Tx").defaultsTo("").match(TYPICAL_CHANNEL_FORMAT)
     }
-    if( pending_entry{"wellKnown_Tx"} ) then // check if we have someone to send a request to
+    if( pending_entry{"wellKnown_Tx"} && well_known_matches) then // check if we have someone to send a request to
       wrangler:createChannel(meta:picoId, channel_name ,channel_type) setting(channel); // create Rx
     fired {
       newBus        = pending_entry.put({ "Rx" : channel{"id"} });
@@ -188,7 +192,7 @@ ent:established [
       raise wrangler event "outbound_pending_subscription_added" attributes event:attrs// API event
     }
     else {
-      raise wrangler event "no_wellKnown_Tx_failure" attributes  event:attrs // API event
+      raise wrangler event "wellKnown_Tx_format_failure" attributes  event:attrs // API event
     }
   }//end createMySubscription rule
 
@@ -403,13 +407,13 @@ ent:established [
    * entry:
    * 
    * entryVar: [regEx, regEx, ...]
-      }*/
-      matches = ent:autoAcceptConfig.map(function(config, configName) { 
-                                      config{["entries"]}.klog("entries map").map(function(regs,k) {
+      }*/                                                                         
+      matches = ent:autoAcceptConfig.map(function(config, configName) { // For eaech config
+                                      config{["entries"]}.klog("entries map").map(function(regs,k) { //See if any of its entries match with an event:attr and its key
                                         var = event:attr(k).klog("with event attr from " + k + "\n"); 
                                         matches = not var.isnull() => regs.map(function(regex_str){ var.match(regex_str.as("RegExp").klog("matching with ")).klog("function returned ")}).any( function(bool){ bool == true }) | false;
                                         matches }).klog("resulting map").values().any(function(bool){bool})
-                                    }).klog("final map").values().any(function(bool){bool})
+                                    }).klog("final map").values().any(function(bool){bool}) // If any did match then we can approve the subscription
     }
     if matches then noop()
     fired {
@@ -423,7 +427,7 @@ ent:established [
    * event:attr("config"):
    * {
       configName: "name"
-      password: "<hashedPassword>"
+      password: <password>
       entries: {
         <entries>
       }
@@ -456,8 +460,8 @@ ent:established [
     fired {
       ent:autoAcceptConfig{[givenName]} := configToAdd.klog("added config");
       ent:autoAcceptConfig := ent:autoAcceptConfig.delete(givenName) if event:attr("delete");
-        config.put( [event:attr("variable")] ,
-        config{event:attr("variable")}.defaultsTo([]).append([event:attr("regex_str")])); // possible to add the same regex_str multiple times.
+        // config.put( [event:attr("variable")] ,
+        // config{event:attr("variable")}.defaultsTo([]).append([event:attr("regex_str")])); // possible to add the same regex_str multiple times.
     }
     else {
       raise wrangler event "autoAcceptConfigUpdate_failure" attributes event:attrs // API event
