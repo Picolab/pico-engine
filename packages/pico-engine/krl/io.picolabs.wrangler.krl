@@ -1,4 +1,4 @@
-// operators are camel case, variables are snake case.
+// Rules with a public facing point of entry are camelCase, internal rules are snake_case
 
 ruleset io.picolabs.wrangler {
   meta {
@@ -48,6 +48,8 @@ ruleset io.picolabs.wrangler {
    //engine:listChannels(meta:picoId)[0]
    //engine:getPicoIDByECI("a");
    skyQuery(meta:eci, "io.picolabs.wrangler", "myself");
+   ent:wrangler_children;
+   engine:listChildren()
   }
 // ********************************************************************************************
 // ***                                                                                      ***
@@ -78,7 +80,7 @@ ruleset io.picolabs.wrangler {
        skyQuery on failure (if status code of request is not 200) returns a Map of error information which contains;
                error - general error message.
                httpStatus - status code returned from http get command.
-               skyQueryError - The value of the "error key", if it exist, of the function results.
+               skyQueryError - The value of the "error key", if it exist, aof the function results.
                skyQueryErrorMsg - The value of the "error_str", if it exist, of the function results.
                skyQueryReturnValue - The function call results.
      */
@@ -559,7 +561,8 @@ ruleset io.picolabs.wrangler {
       _rids = (rids.typeof() == "Array" => rids | rids.split(re#;#))
 
     }
-    if(name) then every {
+    // If we have a name and this pico isn't currently trying to destroy itself
+    if (name) && not (ent:marked_for_death) then every {
       createPico(name,_rids) setting(child)
       send_directive("Pico_Created", {"pico":child});
     }
@@ -632,115 +635,286 @@ ruleset io.picolabs.wrangler {
     }
   }
 
-  rule pico_children_add_sync { // add hidden children to wrangler.
-    select when wrangler child_sync or wrangler child_deletion
-    foreach engine:listChildren() setting (pico_id,count)
+  // rule pico_children_add_sync { // add hidden children to wrangler.
+  //   select when wrangler child_sync or wrangler child_deletion
+  //   foreach engine:listChildren() setting (pico_id,count)
+  //   pre {
+  //     new_child = (ent:wrangler_children{pico_id}.isnull()) =>
+  //                   { "parent_eci":"",//placeholder // could create new channel, but then we would need to send event to child, but there is no guarantee of wrangler installed in that child....
+  //                     "name": event:attr("id") == pico_id && event:attr("name")
+  //                     => event:attr("name") | "rogue_"+randomPicoName() ,
+  //                     "id": pico_id,
+  //                     //INVALID ASSUMPTION, channels returned from listChannels are sorted according to alphabetic order by ECI. Policy may not allow wrangler events!
+  //                     "eci": engine:listChannels(pico_id)[0]{"id"}} | "" ; // engine creates a eci we always can get. 
+
+  //   }
+  //   if ( ent:wrangler_children{pico_id}.isnull()) then every{
+  //     send_directive("new child found and added to cache",{"child": new_child});
+  //   }
+  //   fired {
+  //     ent:wrangler_children{pico_id} := new_child;
+  //     ent:children := children(); // Only need to update once after all has changed
+  //   }
+  // }
+  
+  
+  // rule pico_children_remove_sync_prep {
+  //   select when wrangler child_sync or
+  //               wrangler child_deletion or
+  //               wrangler child_creation
+  //   noop();
+  //   always {
+  //     raise wrangler event "remove_child_sync"
+  //       attributes event:attrs.put(["engineList"],engine:listChildren())
+  //                               .put(["wrangler_children"],ent:wrangler_children)
+  //   }
+  // }
+
+  // rule pico_children_remove_sync {// remove dead children from wrangler. // does not work as intended, hard to test
+  //   select when wrangler remove_child_sync
+  //   foreach event:attr("wrangler_children") setting (child,id)
+  //   pre {
+  //     dead_child = event:attr("engineList").none(function(pico_id){pico_id == id}); // I dont think this should work !!!
+  //   }
+  //   if ( dead_child) then every{
+  //     send_directive("dead child found and removed from cache",{"child": child});
+  //   }
+  //   fired {
+  //     ent:wrangler_children := (ent:wrangler_children.delete(id));
+  //     ent:children := ent:wrangler_children.values(); // Only need to update once after all has changed; children();
+  //   }
+  // }
+
+  // rule delete_child_check {
+  //   select when wrangler child_deletion
+  //   if hasChild( event:attr("name")
+  //               .defaultsTo(event:attr("id"))
+  //               ).isnull() then every { noop();}
+  //   fired{
+  //   last;
+  //   }
+  // }
+
+  // rule gatherDescendants {// this rule needs to be updated to use getters..
+  //   select when wrangler child_deletion
+  //   pre {
+  //     value = event:attr("name").defaultsTo(event:attr("id"));
+  //     filtered_children = ent:wrangler_children.filter(function(child,key){
+  //                                             (child{"name"} ==  value || child{"id"} == value)
+  //                                           });
+  //     target_child = filtered_children.values()[0];
+  //     subtreeArray = [target_child].append(gatherDescendants(target_child));
+  //     updated_children = ent:wrangler_children.delete(target_child{"id"});
+  //   }
+  //   noop()
+  //   fired{
+  //     raise wrangler event "delete_children"
+  //       attributes event:attrs.put(["subtreeArray"], subtreeArray.reverse())
+  //                               .put(["updated_children"], updated_children)
+  //   }
+  // }
+
+  // rule child_garbage_collection {
+  //   select when wrangler delete_children
+  //   foreach event:attr("subtreeArray") setting(child)
+  //   every{
+  //     send_directive("notifying child of intent to destroy", {"child": child});
+  //     event:send({  "eci": child{"eci"}, "eid": 88,
+  //                   "domain": "wrangler", "type": "garbage_collection",
+  //                   "attrs": event:attrs });
+  //   }
+  //   always{
+  //     schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 0.005})// ui needs children to be removed very fast(0.005 seconds), !!!this smells like poor coding practice...!!!
+  //       attributes {"name"            :child{"name"},
+  //                   "id"              :child{"id"}, "child_name":child{"name"},
+  //                   "target"          :(event:attr("id") == child{"id"} || event:attr("name") == child{"name"} ),
+  //                   "updated_children":event:attr("updated_children")}
+
+  //   }
+  // }
+  // rule delete_child {
+  //   select when wrangler delete_child
+  //   pre { target = event:attr("target") }
+  //   every{
+  //     engine:removePico(event:attr("id"))
+  //     deleteChannel(event:attr("child_name"))
+  //   }
+  //   always{
+  //     ent:wrangler_children := event:attr("updated_children") if target;
+  //     ent:children := children() if target;
+  //     raise information event "child_deleted"
+  //       attributes event:attrs;
+  //   }
+    
+    
+    
+  //}
+  
+  //-------------------- PARENT PERSPECTIVE  ----------------------
+  rule deleteChild {
+    select when wrangler delete_child or wrangler delete_children
     pre {
-      new_child = (ent:wrangler_children{pico_id}.isnull()) =>
-                    { "parent_eci":"",//placeholder // could create new channel, but then we would need to send event to child, but there is no guarantee of wrangler installed in that child....
-                      "name": event:attr("id") == pico_id && event:attr("name")
-                      => event:attr("name") | "rogue_"+randomPicoName() ,
-                      "id": pico_id,
-                      //INVALID ASSUMPTION, channels returned from listChannels are sorted according to alphabetic order by ECI. Policy may not allow wrangler events!
-                      "eci": engine:listChannels(pico_id)[0]{"id"}} | "" ; // engine creates a eci we always can get. 
-
+      picoIDMap = getPicosToDelete(event:attrs);
+      picoIDArray = picoIDMap.keys();
     }
-    if ( ent:wrangler_children{pico_id}.isnull()) then every{
-      send_directive("new child found and added to cache",{"child": new_child});
-    }
-    fired {
-      ent:wrangler_children{pico_id} := new_child;
-      ent:children := children(); // Only need to update once after all has changed
-    }
-  }
-
-  rule pico_children_remove_sync_prep {
-    select when wrangler child_sync or
-                wrangler child_deletion or
-                wrangler child_creation
-    noop();
     always {
-      raise wrangler event "remove_child_sync"
-        attributes event:attrs.put(["engineList"],engine:listChildren())
-                                .put(["wrangler_children"],ent:wrangler_children)
+      ent:children_being_deleted.defaultsTo({}).put(picoIDMap);
+      picoIDMap.keys().map(function(picoID) {
+        ent:wrangler_children.delete(picoID);
+      });
+      raise wrangler event "send_intent_to_delete" attributes event:attrs.put({
+        "picoIDArray":picoIDArray
+      });
     }
   }
-
-  rule pico_children_remove_sync {// remove dead children from wrangler. // does not work as intended, hard to test
-    select when wrangler remove_child_sync
-    foreach event:attr("wrangler_children") setting (child,id)
+  
+  rule send_intent_to_delete {
+    select when wrangler send_intent_to_delete
+    foreach event:attr("picoIDArray") setting (picoID)
     pre {
-      dead_child = event:attr("engineList").none(function(pico_id){pico_id == id}); // I dont think this should work !!!
+      picoEci = ent:wrangler_children{[picoID, "eci"]};
+      attrsToSend = event:attrs.delete("picoIDArray")
+  
     }
-    if ( dead_child) then every{
-      send_directive("dead child found and removed from cache",{"child": child});
-    }
-    fired {
-      ent:wrangler_children := (ent:wrangler_children.delete(id));
-      ent:children := ent:wrangler_children.values(); // Only need to update once after all has changed; children();
-    }
+    event:send({"eci":picoEci, "domain":"wrangler", "type":"intent_to_delete_pico", "attrs":attrsToSend});
   }
-
-  rule delete_child_check {
-    select when wrangler child_deletion
-    if hasChild( event:attr("name")
-                 .defaultsTo(event:attr("id"))
-                ).isnull() then every { noop();}
-    fired{
-     last;
-    }
-  }
-
-  rule gatherDescendants {// this rule needs to be updated to use getters..
-    select when wrangler child_deletion
-    pre {
-      value = event:attr("name").defaultsTo(event:attr("id"));
-      filtered_children = ent:wrangler_children.filter(function(child,key){
-                                              (child{"name"} ==  value || child{"id"} == value)
-                                            });
-      target_child = filtered_children.values()[0];
-      subtreeArray = [target_child].append(gatherDescendants(target_child));
-      updated_children = ent:wrangler_children.delete(target_child{"id"});
-    }
-    noop()
-    fired{
-      raise wrangler event "delete_children"
-        attributes event:attrs.put(["subtreeArray"], subtreeArray.reverse())
-                                .put(["updated_children"], updated_children)
-    }
-  }
-
-  rule child_garbage_collection {
-    select when wrangler delete_children
-    foreach event:attr("subtreeArray") setting(child)
-    every{
-      send_directive("notifying child of intent to destroy", {"child": child});
-      event:send({  "eci": child{"eci"}, "eid": 88,
-                    "domain": "wrangler", "type": "garbage_collection",
-                    "attrs": event:attrs });
-    }
-    always{
-      schedule wrangler event "delete_child" at time:add(time:now(), {"seconds": 0.005})// ui needs children to be removed very fast(0.005 seconds), !!!this smells like poor coding practice...!!!
-        attributes {"name"            :child{"name"},
-                    "id"              :child{"id"}, "child_name":child{"name"},
-                    "target"          :(event:attr("id") == child{"id"} || event:attr("name") == child{"name"} ),
-                    "updated_children":event:attr("updated_children")}
-
-    }
-  }
+  
   rule delete_child {
-    select when wrangler delete_child
-    pre { target = event:attr("target") }
+    select when wrangler child_ready_for_deletion
+    pre {
+      picoID = event:attr("id");
+    }
     every{
       engine:removePico(event:attr("id"))
-      deleteChannel(event:attr("child_name"))
+      deleteChannel(event:attr("name")) // SELECT FOR WRANGLER CHANNEL TYPE
     }
     always{
-      ent:wrangler_children := event:attr("updated_children") if target;
-      ent:children := children() if target;
-      raise information event "child_deleted"
+      ent:children_being_deleted.delete(picoID);
+      raise wrangler event "child_deleted"
         attributes event:attrs;
+      raise wrangler event "delete_this_pico_if_ready" // for parents in the subtree
+        attributes event:attrs
     }
   }
+  
+  // Sync with children that may not have been created or deleted by wrangler.
+  // Assumes all picos have a channel of type "admin" with a policy that will allow all events from a parent ruleset
+  // If the child does not have wrangler installed, any wrangler event chains requiring child cooperation will not work
+  rule syncChildren {
+    select when wrangler child_sync
+    pre {
+      // Children that wrangler knows about
+      wranglerChildren = ent:wrangler_children.keys();
+      engineChildren = engine:listChildren();
+      
+      //Children that exist but wrangler doesn't know about
+      ghostChildren = engineChildren.difference(wranglerChildren);
+      
+      ghostChildrenMap = getChildMapFromIDs(ghostChildren);
+      
+      //Children that don't exist but wrangler still has record of
+      extraChildren = wranglerChildren.difference(engineChildren)
+    }
+    always {
+      extraChildren.all(function(picoID){
+        ent:wrangler_children.delete(picoID)
+      });
+      ent:wrangler_children.put(ghostChildrenMap);
+      ent:children := children();
+    }
+  }
+  
+  rule forceChildrenDeletion {
+    select when wrangler force_child_deletion or wrangler force_children_deletion
+    pre {
+      picoIDMap = getPicosToDelete(event:attrs);
+      picoIDArray = picoIDMap.keys();
+      picoSubtreeArrays = picoIDArray.map(function(picoID) {
+        gatherDescendants(picoID)
+      })
+      flatArray = picoSubtreeArrays.reduce(function(id_array_a, id_array_b){
+                                            id_array_a.append(id_array_b);
+                                          }, picoIDArray)
+    }
+    always {
+      raise wrangler event "picos_to_force_delete_ready" attributes event:attrs
+                                                                    .put("picoIDArray", flatArray)
+    }
+  }
+    
+    rule delete_each_pico_id {
+      select when wrangler picos_to_force_delete_ready
+      foreach event:attr("picoIDArray") setting (picoID)
+      
+      engine:removePico(event:attr("id"))
+
+      always {
+        raise wrangler event "pico_forcibly_removed" attributes event:attrs
+                                                                   .delete("picoIDArray")
+                                                                   .put("id", picoID)
+      }
+    }
+  
+    //-------------------- CHILD PERSPECTIVE  ----------------------
+    
+  rule parent_requested_deletion {
+    select when wrangler intent_to_delete_pico
+    always {
+      ent:marked_for_death := true;
+      raise wrangler event "children_deletion_requested" attributes event:attrs
+                                                                    .put("delete_all", true);
+      raise wrangler event "rulesets_need_to_cleanup" attributes event:attrs;
+    }  
+  }
+  
+  rule registerForCleanup {
+    select when wrangler ruleset_needs_cleanup_period
+    pre {
+      domain = event:attr("domain")
+    }
+    if domain && not ent:marked_for_death then
+    noop()
+    fired {
+      ent:registered_for_cleanup := ent:registered_for_cleanup.append(domain);
+    }
+    else {
+      raise wrangler event "cleanup_domain_registration_failure" attributes event:attrs.put(
+        "error","Failed to register domain for cleanup guarantee"
+      )
+    }
+  }
+  
+  
+  rule cleanupFinished {
+    select when wrangler cleanup_finished
+    pre {
+      domain = event:attr("domain")
+    }
+    always {
+      ent:needs_to_cleanup := ent:needs_to_cleanup.filter(function(registeredDomain) {
+        registeredDomain != domain
+      });
+    raise wrangler event "delete_this_pico_if_ready"
+        attributes event:attrs
+    }
+  }
+    
+  rule is_pico_ready_to_delete {
+    select when wrangler delete_this_pico_if_ready
+    pre {
+      ready_to_delete = ent:marked_for_death
+                        &&  ent:children_being_deleted.defaultsTo([]).length() == 0
+                        &&   ent:needs_to_cleanup.defaultsTo([]).length() == 0;
+      attrsToSend = event:attrs
+    }
+    if ready_to_delete then
+      event:send({"eci":parent_eci(), "domain":"wrangler", "type":"child_ready_for_deletion", "attrs":event:attrs
+                                                                                                      .put(getPicoMap())
+      })
+      
+  }
+  
+    
+
 
 }//end ruleset
