@@ -34,7 +34,7 @@ module.exports = function (ast, comp, e) {
 
   const testingJSON = {
     queries: [],
-    events: []
+    events: comp.eventScope.getTestingJSON()
   }
 
   const queries = {}

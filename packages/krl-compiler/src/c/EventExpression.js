@@ -92,6 +92,8 @@ module.exports = function (ast, comp, e) {
       ), ast.aggregator.loc))
   }
 
+  comp.eventScope.add(ast.event_domain.value, ast.event_type.value)
+
   const ee = [
     e('str', `${ast.event_domain.value}:${ast.event_type.value}`)
 

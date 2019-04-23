@@ -1,7 +1,7 @@
 var _ = require('lodash')
 var declarationBlock = require('../utils/declarationBlock')
 
-module.exports = function (ast, comp, e) {
+function Rule (ast, comp, e) {
   // TODO use symbol-table to store ast.name.value
   if (ast.rule_state !== 'active') {
     comp.warn(ast.loc, 'rule ' + ast.name.value + ' is inactive, i.e. commented out')
@@ -61,4 +61,12 @@ module.exports = function (ast, comp, e) {
     selectWhenRule,
     e('asyncfn', ['$event', '$state'], ruleBody)
   ]))
+}
+
+module.exports = function (ast, comp, e) {
+  comp.scope.push()
+  comp.scope.set('$rule_name', ast.name.value)
+  let estree = Rule(ast, comp, e)
+  comp.scope.pop()
+  return estree
 }

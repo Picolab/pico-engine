@@ -22,6 +22,15 @@ module.exports = function (ast, comp, e) {
         })
       ], ast.loc)
     }
+    if (ast.object.type === 'DomainIdentifier' &&
+      ast.object.domain === 'event' &&
+      ast.object.value === 'attrs'
+    ) {
+      const val = ast.property
+      if (val && val.type === 'String') {
+        comp.eventScope.addAttr(val.value)
+      }
+    }
     return callStdLibFn(e, 'get', [
       comp(ast.object),
       comp(ast.property)

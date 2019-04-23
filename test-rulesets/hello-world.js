@@ -52,13 +52,11 @@ module.exports = {
                 "args": []
               }
             ],
-            "events": [
-              {
+            "events": [{
                 "domain": "say",
                 "name": "hello",
                 "attrs": ["name"]
-              }
-            ]
+              }]
           };
         }
       }

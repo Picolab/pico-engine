@@ -1,5 +1,6 @@
 var _ = require('lodash')
 var mkTree = require('estree-builder')
+var SymbolTableStack = require('symbol-table/stack')
 
 var compByType = _.fromPairs(_.map([
   'Action',
@@ -105,6 +106,41 @@ module.exports = function (ast, options) {
     })
   }
 
+  var scope = SymbolTableStack()
+  var eventScope = (function () {
+    const map = {}
+    return {
+      add (domain, name) {
+        const rule_name = scope.get('$rule_name')
+        const path = [rule_name, domain, name]
+        if (!_.has(map, path)) {
+          _.set(map, path, { attrs: {} })
+        }
+      },
+      addAttr (key) {
+        const rname = scope.get('$rule_name')
+        for (const domain of Object.keys(map[rname] || {})) {
+          for (const name of Object.keys(map[rname][domain])) {
+            _.set(map, [rname, domain, name, 'attrs', key], true)
+          }
+        }
+      },
+      getTestingJSON () {
+        const result = []
+        for (const rname of Object.keys(map)) {
+          for (const domain of Object.keys(map[rname])) {
+            for (const name of Object.keys(map[rname][domain])) {
+              const e = map[rname][domain][name]
+              const attrs = Object.keys(e.attrs)
+              result.push({ domain, name, attrs })
+            }
+          }
+        }
+        return result
+      }
+    }
+  }())
+
   var compile = function compile (ast, context) {
     if (_.isArray(ast)) {
       return _.map(ast, function (a) {
@@ -123,6 +159,8 @@ module.exports = function (ast, options) {
     }
     comp.error = krlError
     comp.warn = warn
+    comp.scope = scope
+    comp.eventScope = eventScope
 
     var estree
     try {
