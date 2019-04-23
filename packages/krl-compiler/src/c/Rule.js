@@ -66,7 +66,7 @@ function Rule (ast, comp, e) {
 module.exports = function (ast, comp, e) {
   comp.scope.push()
   comp.scope.set('$rule_name', ast.name.value)
-  let estree = Rule(ast, comp, e)
+  const estree = Rule(ast, comp, e)
   comp.scope.pop()
   return estree
 }

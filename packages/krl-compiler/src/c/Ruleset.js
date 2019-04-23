@@ -40,9 +40,12 @@ module.exports = function (ast, comp, e) {
   const queries = {}
   for (const share of shares) {
     queries[share] = e('id', jsIdent(share))
+    const annotation = comp.scope.get(share)
     testingJSON.queries.push({
       name: share,
-      args: []// TODO use symbol-table to track these
+      args: annotation && annotation.type === 'Function'
+        ? annotation.params
+        : []
     })
   }
   queries['__testing'] = e('fn', [], [e('return', e('json', testingJSON))])

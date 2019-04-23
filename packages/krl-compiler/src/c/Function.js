@@ -3,6 +3,7 @@ var _ = require('lodash')
 module.exports = function (ast, comp, e) {
   var body = []
 
+  comp.scope.push()
   _.each(ast.body, function (part, i) {
     if (i < (ast.body.length - 1)) {
       return body.push(comp(part))
@@ -13,12 +14,15 @@ module.exports = function (ast, comp, e) {
     part = part.expression
     return body.push(e('return', comp(part)))
   })
+  comp.scope.pop()
 
+  var paramNames = []
   var paramOrder = e('array', _.map(ast.params.params, function (p) {
+    paramNames.push(p.id.value)
     return e('string', p.id.value, p.id.loc)
   }), ast.params.loc)
 
-  return e('call', e('id', '$krl.function'), [
+  const estree = e('call', e('id', '$krl.function'), [
     paramOrder,
     {
       type: 'FunctionExpression',
@@ -30,4 +34,9 @@ module.exports = function (ast, comp, e) {
       async: true
     }
   ])
+  estree.$$Annotation = {
+    type: 'Function',
+    params: paramNames
+  }
+  return estree
 }

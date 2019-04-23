@@ -29,9 +29,11 @@ module.exports = function (ast, comp, e) {
     if (ast.left.value === 'null') {
       throw comp.error(ast.loc, 'Cannot declare: ' + ast.left.value)
     }
+    const estree = comp(ast.right)
+    comp.scope.set(ast.left.value, estree.$$Annotation || { type: 'Unknown' })
     return e('const',
       e('id', jsIdent(ast.left.value), ast.left.loc),
-      comp(ast.right)
+      estree
     )
   }
   throw comp.error(ast.loc, 'Cannot declare ' + ast.left.type)
