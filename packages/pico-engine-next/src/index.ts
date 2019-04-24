@@ -2,9 +2,11 @@ import leveldown from "leveldown";
 import * as makeDir from "make-dir";
 import { PicoFramework } from "pico-framework";
 import { inputToConf, PicoEngineSettings } from "./configuration";
-import { rsHello } from "./io.picolabs.hello";
 import { rsNext } from "./io.picolabs.next";
+import { $krl } from "./krl";
 import { server } from "./server";
+
+const helloWorld = require("../../../test-rulesets/hello-world.js");
 
 export async function startEngine(settings?: PicoEngineSettings) {
   const conf = inputToConf(settings);
@@ -14,9 +16,14 @@ export async function startEngine(settings?: PicoEngineSettings) {
   const pf = new PicoFramework({
     leveldown: leveldown(conf.db_path)
   });
+
   pf.addRuleset(rsNext);
-  pf.addRuleset(rsHello);
+
   // TODO need to add ALL rulesets used in db before start
+  pf.addRuleset(helloWorld($krl));
+
+  // TODO if ruleset is not loaded then mark it as not installed and raise an error event
+
   await pf.start();
   await pf.rootPico.install("io.picolabs.next", "0.0.0");
   const uiChannel = await Object.values(pf.rootPico.channels).find(chann => {

@@ -60,6 +60,8 @@ module.exports = function (ast, comp, e) {
   rs.init = e('asyncfn', ['$ctx'], initBody)
 
   return [
-    e(';', e('=', e('id', 'module.exports'), e('obj', rs)))
+    e(';', e('=', e('id', 'module.exports'),
+      e('fn', ['$krl'], [e('return', e('obj', rs))])
+    ))
   ]
 }
