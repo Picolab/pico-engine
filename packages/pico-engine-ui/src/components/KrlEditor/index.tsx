@@ -9,6 +9,7 @@ interface Props {
   src?: string;
   theme?: string | null;
   onStatus?: (msg: string) => void;
+  onValue?: (src: string) => void;
   readOnly?: boolean;
 }
 
@@ -83,6 +84,7 @@ class KrlEditor extends React.Component<Props> {
     }
     this.editor.setReadOnly(this.props.readOnly === true);
 
+    let lastStatus = "ok";
     (this.editor.getSession() as any).on(
       "changeAnnotation",
       (ignore: any, f: any) => {
@@ -91,12 +93,24 @@ class KrlEditor extends React.Component<Props> {
         if (ann) {
           msg = `${ann.type} at ${ann.row + 1}:${ann.column}`;
         }
+        if (lastStatus === msg) {
+          return;
+        }
+        lastStatus = msg;
         const { onStatus } = this.props;
         if (onStatus) {
           onStatus(msg);
         }
       }
     );
+
+    (this.editor.getSession() as any).on("change", () => {
+      const { onValue } = this.props;
+      if (this.editor && onValue) {
+        const krl = this.editor.getSession().getValue();
+        onValue(krl);
+      }
+    });
   }
 
   componentWillUnmount() {

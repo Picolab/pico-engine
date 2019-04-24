@@ -6,6 +6,7 @@ import * as _ from "lodash";
 import * as path from "path";
 import { PicoFramework } from "pico-framework";
 import { PicoEngineConf } from "./configuration";
+const krlCompiler = require("krl-compiler");
 
 function mergeGetPost(req: Request) {
   // give preference to post body params
@@ -30,11 +31,11 @@ export function server(
     })
   );
 
-  app.all("/api/ui-context", function(req, res, next) {
+  app.get("/api/ui-context", function(req, res, next) {
     res.json({ version: conf.version, eci: uiECI });
   });
 
-  app.all("/api/rulesets", function(req, res, next) {
+  app.get("/api/rulesets", function(req, res, next) {
     const rulesets: { [rid: string]: string[] } = {};
     pf.listRulesets().forEach(rs => {
       if (!rulesets[rs.rid]) {
@@ -47,7 +48,28 @@ export function server(
   });
 
   app.get("/api/ruleset/:rid/:version", function(req, res, next) {
-    res.json({ krl: "TODO" });
+    res.json({ krl: "TODO " + req.params.rid });
+  });
+
+  app.post("/api/ruleset", function(req, res, next) {
+    const data = _.assign({}, req.query, req.body);
+    if (typeof data.krl !== "string") {
+      throw new TypeError("Missing krl source");
+    }
+
+    const out = krlCompiler(data.krl, {
+      parser_options: {
+        filename: data.rid
+      },
+      inline_source_map: true
+    });
+
+    // TODO check the rid and versions
+    // TODO don't allow stomping over old versions, instead convert it to a draft
+    // TODO get the source hash and store it in the version meta-data
+    console.log("TODO use compile output", out);
+
+    res.json({ todo: true });
   });
 
   app.all("/c/:eci/event/:domain/:name", function(req, res, next) {

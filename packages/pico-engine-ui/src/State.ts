@@ -109,6 +109,8 @@ export interface RulesetPageState {
 
   theme: string | null;
   status: string | null;
+
+  register_apiSt: ApiCallStatus;
 }
 
 export interface RulesetState {
@@ -152,6 +154,8 @@ export const initialState: State = {
     newRuleset_ridInput: "",
     newRuleset_apiSt: apiCallStatus.init(),
     theme: localStorage["krl-editor-theme"] || null,
-    status: null
+    status: null,
+
+    register_apiSt: apiCallStatus.init()
   }
 };

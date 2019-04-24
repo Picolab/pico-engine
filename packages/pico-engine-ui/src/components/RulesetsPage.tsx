@@ -2,16 +2,16 @@ import * as React from "react";
 import { connect } from "react-redux";
 import { Link, NavLink } from "react-router-dom";
 import {
-  Dispatch,
   changeNewRulesetRid,
-  makeNewRuleset,
-  krlSetTheme,
+  Dispatch,
+  getRuleset,
   krlSetStatus,
-  getRuleset
+  krlSetTheme,
+  makeNewRuleset,
+  registerRuleset
 } from "../Action";
-import { State, ApiCallStatus, RulesetState } from "../State";
-import KrlEditor from "./KrlEditor";
-import { themes } from "./KrlEditor";
+import { ApiCallStatus, RulesetState, State } from "../State";
+import KrlEditor, { themes } from "./KrlEditor";
 import ErrorStatus from "./widgets/ErrorStatus";
 const logoUrl = require("../img/nav-logo.png");
 
@@ -23,11 +23,17 @@ interface Props {
   newRuleset_ridInput: string;
   newRuleset_apiSt: ApiCallStatus;
 
+  register_apiSt: ApiCallStatus;
+
   theme: string | null;
   status: string | null;
 
   // react-router
   match: { params: { [name: string]: string } };
+}
+
+interface LocalState {
+  source: string;
 }
 
 function selectedRsRoute(props: Props): { rid: string; version: string } {
@@ -41,14 +47,20 @@ function selectedRsRoute(props: Props): { rid: string; version: string } {
   return { rid, version };
 }
 
-class RulesetsPage extends React.Component<Props> {
+class RulesetsPage extends React.Component<Props, LocalState> {
   constructor(props: Props) {
     super(props);
+
+    this.state = {
+      source: ""
+    };
 
     this.newRuleset = this.newRuleset.bind(this);
     this.changeNewRuleset = this.changeNewRuleset.bind(this);
     this.setTheme = this.setTheme.bind(this);
     this.onKrlStatus = this.onKrlStatus.bind(this);
+    this.onValue = this.onValue.bind(this);
+    this.registerRuleset = this.registerRuleset.bind(this);
   }
 
   componentDidMount() {
@@ -85,12 +97,23 @@ class RulesetsPage extends React.Component<Props> {
     dispatch(krlSetStatus(msg));
   }
 
+  onValue(source: string) {
+    this.setState({ source });
+  }
+
+  registerRuleset() {
+    const { source } = this.state;
+    const { dispatch } = this.props;
+    dispatch(registerRuleset(source));
+  }
+
   render() {
     const {
       rulesets,
       rulesets_apiSt,
       newRuleset_ridInput,
       newRuleset_apiSt,
+      register_apiSt,
       theme,
       status
     } = this.props;
@@ -98,6 +121,10 @@ class RulesetsPage extends React.Component<Props> {
 
     const rsState: RulesetState | null =
       (rulesets[rid] && rulesets[rid][version]) || null;
+
+    const krlSrc =
+      (rulesets[rid] && rulesets[rid][version] && rulesets[rid][version].krl) ||
+      "";
 
     // TODO ability to open/close the right hand side
     return (
@@ -153,10 +180,16 @@ class RulesetsPage extends React.Component<Props> {
         </div>
         <div className="flex-grow-1 d-flex flex-column">
           <div className="pt-2 pb-2 d-flex">
-            <button type="button" className="btn btn-success btn-sm">
+            <button
+              type="button"
+              className="btn btn-success btn-sm"
+              onClick={this.registerRuleset}
+              disabled={register_apiSt.waiting}
+            >
               Register
             </button>
             <div className="flex-grow-1">
+              <ErrorStatus error={register_apiSt.error} />
               <ErrorStatus error={rsState ? rsState.krl_apiSt.error : null} />
             </div>
             <form className="form-inline">
@@ -182,7 +215,12 @@ class RulesetsPage extends React.Component<Props> {
               </select>
             </form>
           </div>
-          <KrlEditor theme={theme} onStatus={this.onKrlStatus} />
+          <KrlEditor
+            theme={theme}
+            src={krlSrc}
+            onStatus={this.onKrlStatus}
+            onValue={this.onValue}
+          />
           <div>
             <span className="text-muted">status:</span>{" "}
             <span className="text-mono">{status || ""}</span>
@@ -219,6 +257,8 @@ export default connect((state: State) => {
 
     newRuleset_ridInput: state.rulesetPage.newRuleset_ridInput,
     newRuleset_apiSt: state.rulesetPage.newRuleset_apiSt,
+
+    register_apiSt: state.rulesetPage.register_apiSt,
 
     theme: state.rulesetPage.theme,
     status: state.rulesetPage.status

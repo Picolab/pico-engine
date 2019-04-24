@@ -323,6 +323,44 @@ interface GET_RULESET_ERROR {
   error: string;
 }
 
+export function registerRuleset(krl: string): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "REGISTER_RULESET_START" });
+    fetch(`/api/ruleset`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify({ krl })
+    })
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "REGISTER_RULESET_OK", data });
+      })
+      .catch(err => {
+        dispatch({
+          type: "REGISTER_RULESET_ERROR",
+          error: err + ""
+        });
+      });
+  };
+}
+interface REGISTER_RULESET_START {
+  type: "REGISTER_RULESET_START";
+}
+interface REGISTER_RULESET_OK {
+  type: "REGISTER_RULESET_OK";
+  data: {
+    rid: string;
+    version: string;
+    krl: string;
+  };
+}
+interface REGISTER_RULESET_ERROR {
+  type: "REGISTER_RULESET_ERROR";
+  error: string;
+}
+
 export function installRuleset(
   eci: string,
   rid: string,
@@ -653,6 +691,9 @@ export type Action =
   | GET_RULESET_START
   | GET_RULESET_OK
   | GET_RULESET_ERROR
+  | REGISTER_RULESET_START
+  | REGISTER_RULESET_OK
+  | REGISTER_RULESET_ERROR
   | INSTALL_RULESET_START
   | INSTALL_RULESET_OK
   | INSTALL_RULESET_ERROR

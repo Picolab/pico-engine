@@ -32,6 +32,11 @@ export const $krl = {
       return fn.apply(null, fixArgs(args));
     };
   },
+  log: {
+    debug(...args: any[]) {
+      console.debug("TODO logging:", ...args);
+    }
+  },
   // TODO action
   // TODO postlude
   // TODO built-in modules

@@ -191,6 +191,16 @@ function producer(state: State, action: Action): void {
       });
       return;
 
+    case "REGISTER_RULESET_START":
+      state.rulesetPage.register_apiSt = apiCallStatus.waiting();
+      return;
+    case "REGISTER_RULESET_OK":
+      state.rulesetPage.register_apiSt = apiCallStatus.ok();
+      return;
+    case "REGISTER_RULESET_ERROR":
+      state.rulesetPage.register_apiSt = apiCallStatus.error(action.error);
+      return;
+
     case "INSTALL_RULESET_START":
       updatePico(state, action.eci, pico => {
         pico.install_apiSt = apiCallStatus.waiting();
