@@ -38,7 +38,7 @@ class Rulesets extends React.Component<Props, LocalState> {
     if (!rid || !version) {
       return false;
     }
-    if (!rulesets[rid] && rulesets[rid].indexOf(version) === 0) {
+    if (!rulesets[rid] && !rulesets[rid][version]) {
       return false;
     }
     try {
@@ -140,11 +140,13 @@ class Rulesets extends React.Component<Props, LocalState> {
                 onChange={e => this.setState({ version: e.target.value })}
               >
                 <option value="--" />
-                {(rulesets[this.state.rid || ""] || []).map(version => (
-                  <option key={version} value={version}>
-                    {version}
-                  </option>
-                ))}
+                {Object.keys(rulesets[this.state.rid || ""] || {}).map(
+                  version => (
+                    <option key={version} value={version}>
+                      {version}
+                    </option>
+                  )
+                )}
               </select>
             </div>
           </div>

@@ -6,7 +6,11 @@ export interface State {
   };
 
   rulesets_apiSt: ApiCallStatus;
-  rulesets: { [rid: string]: string[] };
+  rulesets: {
+    [rid: string]: {
+      [version: string]: RulesetState;
+    };
+  };
 
   picos: {
     [eci: string]: PicoState;
@@ -105,6 +109,14 @@ export interface RulesetPageState {
 
   theme: string | null;
   status: string | null;
+}
+
+export interface RulesetState {
+  rid: string;
+  version: string;
+
+  krl_apiSt: ApiCallStatus;
+  krl: string | null;
 }
 
 export interface ApiCallStatus {

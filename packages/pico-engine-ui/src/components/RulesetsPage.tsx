@@ -6,7 +6,8 @@ import {
   changeNewRulesetRid,
   makeNewRuleset,
   krlSetTheme,
-  krlSetStatus
+  krlSetStatus,
+  getRuleset
 } from "../Action";
 import { State, ApiCallStatus } from "../State";
 import KrlEditor from "./KrlEditor";
@@ -16,12 +17,27 @@ const logoUrl = require("../img/nav-logo.png");
 interface Props {
   dispatch: Dispatch;
   rulesets: State["rulesets"];
+  rulesets_apiSt: State["rulesets_apiSt"];
 
   newRuleset_ridInput: string;
   newRuleset_apiSt: ApiCallStatus;
 
   theme: string | null;
   status: string | null;
+
+  // react-router
+  match: { params: { [name: string]: string } };
+}
+
+function selectedRsRoute(props: Props): { rid: string; version: string } {
+  const params = props.match.params;
+  const rid = params.rid ? params.rid : Object.keys(props.rulesets)[0] || "";
+  const version = params.version
+    ? params.version
+    : props.rulesets[rid]
+    ? Object.keys(props.rulesets[rid])[0]
+    : "draft";
+  return { rid, version };
 }
 
 class RulesetsPage extends React.Component<Props> {
@@ -32,6 +48,19 @@ class RulesetsPage extends React.Component<Props> {
     this.changeNewRuleset = this.changeNewRuleset.bind(this);
     this.setTheme = this.setTheme.bind(this);
     this.onKrlStatus = this.onKrlStatus.bind(this);
+  }
+
+  componentDidMount() {
+    const { rid, version } = selectedRsRoute(this.props);
+    this.props.dispatch(getRuleset(rid, version));
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    const { rid, version } = selectedRsRoute(this.props);
+    const { rid: ridNext, version: versionNext } = selectedRsRoute(nextProps);
+    if (rid !== ridNext || version !== versionNext) {
+      nextProps.dispatch(getRuleset(ridNext, versionNext));
+    }
   }
 
   newRuleset(e: React.FormEvent) {
@@ -58,11 +87,15 @@ class RulesetsPage extends React.Component<Props> {
   render() {
     const {
       rulesets,
+      rulesets_apiSt,
       newRuleset_ridInput,
       newRuleset_apiSt,
       theme,
       status
     } = this.props;
+    const { rid, version } = selectedRsRoute(this.props);
+
+    const versions = Object.keys(rulesets[rid] || {});
 
     // TODO ability to open/close the right hand side
     return (
@@ -79,6 +112,11 @@ class RulesetsPage extends React.Component<Props> {
             </div>
             <div className="mt-4 mb-4">
               <div className="text-muted">Rulesets</div>
+              {rulesets_apiSt.error ? (
+                <div className="text-danger">{rulesets_apiSt.error}</div>
+              ) : (
+                ""
+              )}
               <ul className="nav nav-pills flex-column ruleset-list">
                 {Object.keys(rulesets).map(rid => {
                   return (
@@ -155,7 +193,23 @@ class RulesetsPage extends React.Component<Props> {
           </div>
         </div>
         <div className="overflow-auto" style={{ width: 300 }}>
-          <div className="container-fluid">TODO versions</div>
+          <div className="container-fluid">
+            <h3>Versions</h3>
+            <ul className="nav nav-pills flex-column ruleset-list">
+              {Object.keys(rulesets[rid] || {}).map(version => {
+                return (
+                  <li key={version} className="nav-item">
+                    <NavLink
+                      to={`/rulesets/${rid}/${version}`}
+                      className="nav-link text-mono"
+                    >
+                      {version}
+                    </NavLink>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </div>
       </div>
     );
@@ -165,6 +219,7 @@ class RulesetsPage extends React.Component<Props> {
 export default connect((state: State) => {
   return {
     rulesets: state.rulesets,
+    rulesets_apiSt: state.rulesets_apiSt,
 
     newRuleset_ridInput: state.rulesetPage.newRuleset_ridInput,
     newRuleset_apiSt: state.rulesetPage.newRuleset_apiSt,

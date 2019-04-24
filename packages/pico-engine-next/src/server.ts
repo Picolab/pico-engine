@@ -46,6 +46,10 @@ export function server(
     res.json({ rulesets });
   });
 
+  app.get("/api/ruleset/:rid/:version", function(req, res, next) {
+    res.json({ krl: "TODO" });
+  });
+
   app.all("/c/:eci/event/:domain/:name", function(req, res, next) {
     pf.event({
       eci: req.params.eci,

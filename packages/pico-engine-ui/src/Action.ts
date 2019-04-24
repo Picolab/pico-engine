@@ -292,6 +292,37 @@ interface GET_RULESETS_ERROR {
   error: string;
 }
 
+export function getRuleset(rid: string, version: string): AsyncAction {
+  return function(dispatch, getState) {
+    dispatch({ type: "GET_RULESET_START", rid, version });
+    fetch(`/api/ruleset/${rid}/${version}`)
+      .then(resp => resp.json())
+      .then(data => {
+        dispatch({ type: "GET_RULESET_OK", rid, version, data });
+      })
+      .catch(err => {
+        dispatch({ type: "GET_RULESET_ERROR", rid, version, error: err + "" });
+      });
+  };
+}
+interface GET_RULESET_START {
+  type: "GET_RULESET_START";
+  rid: string;
+  version: string;
+}
+interface GET_RULESET_OK {
+  type: "GET_RULESET_OK";
+  rid: string;
+  version: string;
+  data: { krl: string };
+}
+interface GET_RULESET_ERROR {
+  type: "GET_RULESET_ERROR";
+  rid: string;
+  version: string;
+  error: string;
+}
+
 export function installRuleset(
   eci: string,
   rid: string,
@@ -619,6 +650,9 @@ export type Action =
   | GET_RULESETS_START
   | GET_RULESETS_OK
   | GET_RULESETS_ERROR
+  | GET_RULESET_START
+  | GET_RULESET_OK
+  | GET_RULESET_ERROR
   | INSTALL_RULESET_START
   | INSTALL_RULESET_OK
   | INSTALL_RULESET_ERROR

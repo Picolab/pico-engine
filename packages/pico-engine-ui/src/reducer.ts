@@ -5,7 +5,8 @@ import {
   State,
   apiCallStatus,
   PicoBox,
-  PicoState
+  PicoState,
+  RulesetState
 } from "./State";
 
 /**
@@ -163,10 +164,31 @@ function producer(state: State, action: Action): void {
       return;
     case "GET_RULESETS_OK":
       state.rulesets_apiSt = apiCallStatus.ok();
-      state.rulesets = action.data;
+      for (const rid of Object.keys(action.data)) {
+        for (const version of action.data[rid]) {
+          setupRulesetState(state, rid, version);
+        }
+      }
       return;
     case "GET_RULESETS_ERROR":
       state.rulesets_apiSt = apiCallStatus.error(action.error);
+      return;
+
+    case "GET_RULESET_START":
+      updateRuleset(state, action.rid, action.version, rs => {
+        rs.krl_apiSt = apiCallStatus.waiting();
+      });
+      return;
+    case "GET_RULESET_OK":
+      updateRuleset(state, action.rid, action.version, rs => {
+        rs.krl_apiSt = apiCallStatus.ok();
+        rs.krl = action.data.krl;
+      });
+      return;
+    case "GET_RULESET_ERROR":
+      updateRuleset(state, action.rid, action.version, rs => {
+        rs.krl_apiSt = apiCallStatus.error(action.error);
+      });
       return;
 
     case "INSTALL_RULESET_START":
@@ -350,4 +372,27 @@ function updatePicoTesting(
     }
     update(pico.testing[rid]);
   });
+}
+
+function setupRulesetState(state: State, rid: string, version: string) {
+  if (!state.rulesets[rid]) {
+    state.rulesets[rid] = {};
+  }
+  if (!state.rulesets[rid][version]) {
+    state.rulesets[rid][version] = {
+      rid,
+      version,
+      krl_apiSt: apiCallStatus.init(),
+      krl: null
+    };
+  }
+}
+function updateRuleset(
+  state: State,
+  rid: string,
+  version: string,
+  update: (rs: RulesetState) => void
+) {
+  setupRulesetState(state, rid, version);
+  update(state.rulesets[rid][version]);
 }

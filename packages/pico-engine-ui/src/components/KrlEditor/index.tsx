@@ -9,6 +9,7 @@ interface Props {
   src?: string;
   theme?: string | null;
   onStatus?: (msg: string) => void;
+  readOnly?: boolean;
 }
 
 export const themes: { [group: string]: string[] } = {
@@ -80,6 +81,7 @@ class KrlEditor extends React.Component<Props> {
     if (this.props.src) {
       this.editor.getSession().setValue(this.props.src);
     }
+    this.editor.setReadOnly(this.props.readOnly === true);
 
     (this.editor.getSession() as any).on(
       "changeAnnotation",
@@ -117,6 +119,10 @@ class KrlEditor extends React.Component<Props> {
     const nextSrc = nextProps.src || "";
     if (oldSrc !== nextSrc) {
       this.editor.getSession().setValue(nextSrc);
+    }
+
+    if (this.props.readOnly !== nextProps.readOnly) {
+      this.editor.setReadOnly(nextProps.readOnly === true);
     }
   }
 

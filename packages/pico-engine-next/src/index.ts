@@ -1,5 +1,5 @@
 import leveldown from "leveldown";
-import makeDir from "make-dir";
+import * as makeDir from "make-dir";
 import { PicoFramework } from "pico-framework";
 import { inputToConf, PicoEngineSettings } from "./configuration";
 import { rsHello } from "./io.picolabs.hello";
