@@ -391,21 +391,25 @@ var grammar = {
     ParserRules: [
     {"name": "main", "symbols": ["Ruleset"], "postprocess": id},
     {"name": "main", "symbols": ["Statement_list"], "postprocess": id},
-    {"name": "Ruleset$ebnf$1", "symbols": ["RulesetMeta"], "postprocess": id},
+    {"name": "Ruleset$ebnf$1$subexpression$1", "symbols": [tok_version, "String"]},
+    {"name": "Ruleset$ebnf$1", "symbols": ["Ruleset$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "Ruleset$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Ruleset$ebnf$2", "symbols": ["RulesetGlobal"], "postprocess": id},
+    {"name": "Ruleset$ebnf$2", "symbols": ["RulesetMeta"], "postprocess": id},
     {"name": "Ruleset$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "Ruleset$ebnf$3", "symbols": []},
-    {"name": "Ruleset$ebnf$3", "symbols": ["Ruleset$ebnf$3", "Rule"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "Ruleset", "symbols": [tok_ruleset, "RulesetID", tok_OPEN_CURLY, "Ruleset$ebnf$1", "Ruleset$ebnf$2", "Ruleset$ebnf$3", tok_CLSE_CURLY], "postprocess": 
+    {"name": "Ruleset$ebnf$3", "symbols": ["RulesetGlobal"], "postprocess": id},
+    {"name": "Ruleset$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "Ruleset$ebnf$4", "symbols": []},
+    {"name": "Ruleset$ebnf$4", "symbols": ["Ruleset$ebnf$4", "Rule"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
+    {"name": "Ruleset", "symbols": [tok_ruleset, "RulesetID", tok_OPEN_CURLY, "Ruleset$ebnf$1", "Ruleset$ebnf$2", "Ruleset$ebnf$3", "Ruleset$ebnf$4", tok_CLSE_CURLY], "postprocess": 
         function(data){
           return {
             loc: mkLoc(data),
             type: 'Ruleset',
             rid: data[1],
-            meta: data[3] || void 0,
-            global: data[4] || [],
-            rules: data[5]
+            version: (data[3] && data[3][1]) || void 0,
+            meta: data[4] || void 0,
+            global: data[5] || [],
+            rules: data[6]
           };
         }
         },

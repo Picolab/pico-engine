@@ -9,9 +9,10 @@ import {
   krlSetStatus,
   getRuleset
 } from "../Action";
-import { State, ApiCallStatus } from "../State";
+import { State, ApiCallStatus, RulesetState } from "../State";
 import KrlEditor from "./KrlEditor";
 import { themes } from "./KrlEditor";
+import ErrorStatus from "./widgets/ErrorStatus";
 const logoUrl = require("../img/nav-logo.png");
 
 interface Props {
@@ -95,7 +96,8 @@ class RulesetsPage extends React.Component<Props> {
     } = this.props;
     const { rid, version } = selectedRsRoute(this.props);
 
-    const versions = Object.keys(rulesets[rid] || {});
+    const rsState: RulesetState | null =
+      (rulesets[rid] && rulesets[rid][version]) || null;
 
     // TODO ability to open/close the right hand side
     return (
@@ -112,11 +114,7 @@ class RulesetsPage extends React.Component<Props> {
             </div>
             <div className="mt-4 mb-4">
               <div className="text-muted">Rulesets</div>
-              {rulesets_apiSt.error ? (
-                <div className="text-danger">{rulesets_apiSt.error}</div>
-              ) : (
-                ""
-              )}
+              <ErrorStatus error={rulesets_apiSt.error} />
               <ul className="nav nav-pills flex-column ruleset-list">
                 {Object.keys(rulesets).map(rid => {
                   return (
@@ -148,11 +146,7 @@ class RulesetsPage extends React.Component<Props> {
                     </button>
                   </div>
                 </div>
-                {newRuleset_apiSt.error ? (
-                  <div className="text-danger">{newRuleset_apiSt.error}</div>
-                ) : (
-                  ""
-                )}
+                <ErrorStatus error={newRuleset_apiSt.error} />
               </fieldset>
             </form>
           </div>
@@ -162,7 +156,9 @@ class RulesetsPage extends React.Component<Props> {
             <button type="button" className="btn btn-success btn-sm">
               Register
             </button>
-            <div className="flex-grow-1" />
+            <div className="flex-grow-1">
+              <ErrorStatus error={rsState ? rsState.krl_apiSt.error : null} />
+            </div>
             <form className="form-inline">
               <label>Theme</label>
               <select

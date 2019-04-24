@@ -5,7 +5,7 @@ const jsIdent = require('../utils/jsIdent')
 module.exports = function (ast, comp, e) {
   var rs = {
     rid: comp(ast.rid),
-    version: e('str', 'TODO')
+    version: ast.version ? comp(ast.version) : e('str', 'draft')
   }
   const shares = []
   if (ast.meta) {

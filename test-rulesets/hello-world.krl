@@ -1,4 +1,5 @@
 ruleset io.picolabs.hello_world {
+  version "0.0.0"
   meta {
     name "Hello World"
     description <<

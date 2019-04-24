@@ -111,8 +111,8 @@ module.exports = function (ast, options) {
     const map = {}
     return {
       add (domain, name) {
-        const rule_name = scope.get('$rule_name')
-        const path = [rule_name, domain, name]
+        const rname = scope.get('$rule_name')
+        const path = [rname, domain, name]
         if (!_.has(map, path)) {
           _.set(map, path, { attrs: {} })
         }

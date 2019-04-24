@@ -393,6 +393,7 @@ main -> Ruleset {% id %}
 #
 
 Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
+  (%tok_version String):?
   RulesetMeta:?
   RulesetGlobal:?
   Rule:*
@@ -402,9 +403,10 @@ Ruleset -> %tok_ruleset RulesetID %tok_OPEN_CURLY
       loc: mkLoc(data),
       type: 'Ruleset',
       rid: data[1],
-      meta: data[3] || void 0,
-      global: data[4] || [],
-      rules: data[5]
+      version: (data[3] && data[3][1]) || void 0,
+      meta: data[4] || void 0,
+      global: data[5] || [],
+      rules: data[6]
     };
   }
 %}

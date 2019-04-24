@@ -171,6 +171,7 @@ test('parser', function (t) {
     loc: { start: 0, end: 14 },
 
     rid: { type: 'RulesetID', value: 'rs', loc: { start: 8, end: 10 } },
+    version: void 0,
     meta: void 0,
     global: [],
     rules: []
@@ -186,6 +187,7 @@ test('parser', function (t) {
     loc: { start: 0, end: 27 },
 
     rid: { type: 'RulesetID', value: 'rs', loc: { start: 8, end: 10 } },
+    version: void 0,
     meta: void 0,
     global: [],
     rules: [
@@ -214,6 +216,7 @@ test('parser', function (t) {
     loc: { start: 0, end: 40 },
 
     rid: { type: 'RulesetID', value: 'rs', loc: { start: 8, end: 10 } },
+    version: void 0,
     meta: void 0,
     global: [],
     rules: [
@@ -240,6 +243,16 @@ test('parser', function (t) {
         postlude: null
       }
     ]
+  })
+
+  assertAST(t, 'ruleset rs{version "3.2.1"}', {
+    type: 'Ruleset',
+    loc: { start: 0, end: 27 },
+    rid: { type: 'RulesetID', value: 'rs', loc: { start: 8, end: 10 } },
+    version: { type: 'String', value: '3.2.1', loc: { start: 19, end: 26 } },
+    meta: void 0,
+    global: [],
+    rules: []
   })
 
   t.end()
@@ -512,6 +525,7 @@ test('locations', function (t) {
       type: 'RulesetID',
       value: 'one'
     },
+    version: void 0,
     meta: void 0,
     global: [],
     rules: [
