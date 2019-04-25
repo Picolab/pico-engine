@@ -176,10 +176,23 @@ module.exports = function (ast, options) {
     return estree
   }
 
-  var body = compile(ast)
-  body = _.isArray(body) ? body : []
+  var rid
+  var version
+  if (ast && ast.type === 'Ruleset') {
+    if (ast.rid && ast.rid.type === 'RulesetID') {
+      rid = ast.rid.value
+    }
+    if (ast.version && ast.version.type === 'String') {
+      version = ast.version.value
+    }
+  }
+
+  var estree = compile(ast)
+  estree = _.isArray(estree) ? estree : []
   return {
-    body: body,
-    warnings: warnings
+    rid,
+    version,
+    estree,
+    warnings
   }
 }

@@ -19,7 +19,7 @@ module.exports = function (input, options) {
   var out = escodegen.generate({
     'loc': toLoc(0, src.length - 1),
     'type': 'Program',
-    'body': compiled.body
+    'body': compiled.estree
   }, {
     format: {
       quotes: 'double',
@@ -34,6 +34,8 @@ module.exports = function (input, options) {
 
   var r = {
     code: out.code,
+    rid: compiled.rid,
+    version: compiled.version,
     warnings: compiled.warnings
   }
 
