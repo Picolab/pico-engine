@@ -36,19 +36,21 @@ export function server(
   });
 
   app.get("/api/rulesets", function(req, res, next) {
-    const rulesets: { [rid: string]: string[] } = {};
-    pf.listRulesets().forEach(rs => {
-      if (!rulesets[rs.rid]) {
-        rulesets[rs.rid] = [];
-      }
-      rulesets[rs.rid].push(rs.version);
-    });
-
-    res.json({ rulesets });
+    conf.rsRegistry
+      .list()
+      .then(data => {
+        res.json({ rulesets: data });
+      })
+      .catch(next);
   });
 
   app.get("/api/ruleset/:rid/:version", function(req, res, next) {
-    res.json({ krl: "TODO " + req.params.rid });
+    conf.rsRegistry
+      .get(req.params.rid, req.params.version)
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
   });
 
   app.post("/api/ruleset", function(req, res, next) {
@@ -57,7 +59,7 @@ export function server(
       throw new TypeError("Missing krl source");
     }
     conf.rsRegistry
-      .registerDraft(data.krl)
+      .publish(data.krl)
       .then(data => {
         pf.addRuleset(data.rs); // TODO also flush picos that may have the draft installed
 

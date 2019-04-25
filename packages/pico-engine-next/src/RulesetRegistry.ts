@@ -50,7 +50,7 @@ export class RulesetRegistry {
     );
   }
 
-  async registerDraft(krl: string) {
+  async publish(krl: string) {
     const out = krlCompiler(krl);
     if (typeof out.rid !== "string") {
       throw new Error("Compile failed, missing rid");
@@ -105,7 +105,34 @@ export class RulesetRegistry {
     return Object.assign({ rs }, toSave);
   }
 
-  async publish(krl: string) {
-    // TODO error if already published
+  list(): Promise<{ [rid: string]: string[] }> {
+    return new Promise((resolve, reject) => {
+      const rulesets: { [rid: string]: string[] } = {};
+
+      const s = this.db.createReadStream({
+        keys: true,
+        values: false,
+        gte: ["ruleset"],
+        lte: ["ruleset", undefined] // charwise sorts with null at bottom and undefined at top
+      });
+      s.on("error", reject);
+      s.on("end", function() {
+        resolve(rulesets);
+      });
+      s.on("data", function(key) {
+        if (key.length === 3) {
+          const rid = key[1];
+          const version = key[2];
+          if (!rulesets[rid]) {
+            rulesets[rid] = [];
+          }
+          rulesets[rid].push(version);
+        }
+      });
+    });
+  }
+
+  get(rid: string, version: string) {
+    return this.db.get(["ruleset", rid, version]);
   }
 }
