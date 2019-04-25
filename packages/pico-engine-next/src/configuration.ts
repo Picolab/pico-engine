@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import * as path from "path";
+import { RulesetRegistry } from "./RulesetRegistry";
 const homeDir = require("home-dir");
 const version = require("../package.json").version;
 
@@ -39,6 +40,8 @@ export interface PicoEngineConf {
   log_path: string;
   db_path: string;
   version: string;
+
+  rsRegistry: RulesetRegistry;
 }
 
 export function inputToConf(input: PicoEngineSettings = {}): PicoEngineConf {
@@ -62,6 +65,8 @@ export function inputToConf(input: PicoEngineSettings = {}): PicoEngineConf {
     base_url: base_url,
     log_path: path.resolve(home, "pico-engine.log"),
     db_path: path.resolve(home, "db"),
-    version
+    version,
+
+    rsRegistry: new RulesetRegistry(home)
   };
 }

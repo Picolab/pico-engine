@@ -5,7 +5,7 @@
   "scripts": {
     "out": "lerna clean --yes && lerna exec -- npm i && rm -rf packages/*/package-lock.json && lerna exec --bail=false -- npm out",
     "clean": "lerna clean --yes",
-    "clean-setup": "lerna clean --yes && rm -rf node_modules/ package-lock.json && npm run setup",
+    "clean-setup": "lerna clean --yes && rm -rf node_modules/ package-lock.json && npm run setup -s",
     "bootstrap": "lerna bootstrap --hoist --no-ci --nohoist=@types/* --nohoist=pico-framework",
     "setup": "npm i --no-package-lock && npm run bootstrap",
     "publish": "lerna publish",

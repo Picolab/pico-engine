@@ -14,7 +14,7 @@ export async function startEngine(settings?: PicoEngineSettings) {
   await makeDir(conf.home);
 
   const pf = new PicoFramework({
-    leveldown: leveldown(conf.db_path)
+    leveldown: leveldown(conf.db_path) as any
   });
 
   pf.addRuleset(rsNext);

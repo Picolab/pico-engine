@@ -335,6 +335,15 @@ export function registerRuleset(krl: string): AsyncAction {
     })
       .then(resp => resp.json())
       .then(data => {
+        if (!data) {
+          return Promise.reject(new Error("Empty response"));
+        }
+        if (data.error) {
+          return Promise.reject(data.error);
+        }
+        return data;
+      })
+      .then(data => {
         dispatch({ type: "REGISTER_RULESET_OK", data });
       })
       .catch(err => {

@@ -56,20 +56,15 @@ export function server(
     if (typeof data.krl !== "string") {
       throw new TypeError("Missing krl source");
     }
+    conf.rsRegistry
+      .registerDraft(data.krl)
+      .then(data => {
+        pf.addRuleset(data.rs); // TODO also flush picos that may have the draft installed
 
-    const out = krlCompiler(data.krl, {
-      parser_options: {
-        filename: data.rid
-      },
-      inline_source_map: true
-    });
-
-    // TODO check the rid and versions
-    // TODO don't allow stomping over old versions, instead convert it to a draft
-    // TODO get the source hash and store it in the version meta-data
-    console.log("TODO use compile output", out);
-
-    res.json({ todo: true });
+        delete data.rs;
+        res.json(data);
+      })
+      .catch(next);
   });
 
   app.all("/c/:eci/event/:domain/:name", function(req, res, next) {
