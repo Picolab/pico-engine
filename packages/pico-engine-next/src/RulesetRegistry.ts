@@ -161,6 +161,20 @@ export class RulesetRegistry {
       }
     }
 
+    const rsDir = path.resolve(this.rulesetDir, rid, version);
+    const jsFile = path.resolve(rsDir, "compiled.js");
+
+    // if the compiler version hasn't changed, load the cached version
+    if (data.compiler && data.compiler.version === krlCompilerVersion) {
+      try {
+        // try and load the cached version
+        const rsConstructor = require(jsFile);
+        return rsConstructor($krl);
+      } catch (err) {
+        // no worries, let's continue and compile it
+      }
+    }
+
     const out = krlCompiler(data.krl);
     out.version = normalizeVersion(out.version);
     if (out.rid !== rid || out.version !== version) {
@@ -171,10 +185,7 @@ export class RulesetRegistry {
       );
     }
 
-    const rsDir = path.resolve(this.rulesetDir, out.rid, out.version);
     await makeDir(rsDir);
-    const jsFile = path.resolve(rsDir, "compiled.js");
-
     await new Promise((resolve, reject) => {
       fs.writeFile(jsFile, out.code, { encoding: "utf8" }, err =>
         err ? reject(err) : resolve()
