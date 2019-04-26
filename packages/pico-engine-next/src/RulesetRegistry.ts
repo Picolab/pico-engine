@@ -78,7 +78,27 @@ export class RulesetRegistry {
 
     const key = ["ruleset", out.rid, out.version];
 
-    if (!isDraft) {
+    if (isDraft) {
+      // clear the cached draft
+      if (this.rsCache[out.rid]) {
+        delete this.rsCache[out.rid][out.version];
+      }
+      const jsFile = this.getJsOutputFile(out.rid, out.version);
+      await new Promise((resolve, reject) => {
+        fs.unlink(jsFile, err => {
+          if (err && err.code !== "ENOENT") {
+            reject(err);
+            return;
+          }
+          resolve();
+        });
+      });
+      try {
+        delete require.cache[require.resolve(jsFile)];
+      } catch (err) {
+        // don't care b/c it must not be loaded
+      }
+    } else {
       let isFound = false;
       try {
         await this.db.get(key);
@@ -161,8 +181,7 @@ export class RulesetRegistry {
       }
     }
 
-    const rsDir = path.resolve(this.rulesetDir, rid, version);
-    const jsFile = path.resolve(rsDir, "compiled.js");
+    const jsFile = this.getJsOutputFile(rid, version);
 
     // if the compiler version hasn't changed, load the cached version
     if (data.compiler && data.compiler.version === krlCompilerVersion) {
@@ -185,7 +204,7 @@ export class RulesetRegistry {
       );
     }
 
-    await makeDir(rsDir);
+    await makeDir(path.dirname(jsFile));
     await new Promise((resolve, reject) => {
       fs.writeFile(jsFile, out.code, { encoding: "utf8" }, err =>
         err ? reject(err) : resolve()
@@ -194,5 +213,9 @@ export class RulesetRegistry {
     const rsConstructor = require(jsFile);
 
     return rsConstructor($krl);
+  }
+
+  private getJsOutputFile(rid: string, version: string) {
+    return path.resolve(this.rulesetDir, rid, version + ".js");
   }
 }

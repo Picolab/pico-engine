@@ -345,6 +345,7 @@ export function registerRuleset(krl: string): AsyncAction {
       })
       .then(data => {
         dispatch({ type: "REGISTER_RULESET_OK", data });
+        dispatch(getRulesets());
       })
       .catch(err => {
         dispatch({
