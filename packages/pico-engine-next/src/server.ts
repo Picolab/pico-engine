@@ -60,6 +60,17 @@ export function server(
     conf.rsRegistry
       .publish(data.krl)
       .then(data => {
+        pf.reInitRuleset(data.rid, data.version)
+          .then(errors => {
+            // TODO signal init error
+            for (const error of errors) {
+              console.error("TODO signal error", error);
+            }
+          })
+          .catch(err => {
+            // TODO signal error
+            console.error("TODO signal error", err);
+          });
         res.json(data);
       })
       .catch(next);

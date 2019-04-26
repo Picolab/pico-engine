@@ -52,7 +52,7 @@
     "leveldown": "^5.0.2",
     "levelup": "^4.0.1",
     "make-dir": "^3.0.0",
-    "pico-framework": "^0.2.0",
+    "pico-framework": "^0.2.1",
     "select-when": "^0.1.0"
   },
   "devDependencies": {
