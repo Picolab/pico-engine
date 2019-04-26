@@ -1,12 +1,12 @@
 import produce from "immer";
 import { Action } from "./Action";
 import {
-  initialState,
-  State,
   apiCallStatus,
+  initialState,
   PicoBox,
   PicoState,
-  RulesetState
+  RulesetState,
+  State
 } from "./State";
 
 /**

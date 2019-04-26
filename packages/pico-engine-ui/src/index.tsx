@@ -5,7 +5,7 @@ import { HashRouter, Route, Switch as RouterSwitch } from "react-router-dom";
 import { applyMiddleware, createStore } from "redux";
 import thunk, { ThunkMiddleware } from "redux-thunk";
 import "whatwg-fetch"; // polyfill for fetch
-import { Action, getUiContext, getRulesets } from "./Action";
+import { Action, getRulesets, getUiContext } from "./Action";
 import PicosPage from "./components/PicosPage";
 import RulesetsPage from "./components/RulesetsPage";
 import "./index.scss";

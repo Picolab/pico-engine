@@ -1,14 +1,43 @@
 import { ThunkAction, ThunkDispatch } from "redux-thunk";
 import { State, PicoBox, PicoDetails, TestingSchema } from "./State";
 
+function apiResponse(resp: Promise<Response>) {
+  return resp
+    .then(resp => resp.json())
+    .then(data => {
+      if (!data) {
+        return Promise.reject(new Error("Empty response"));
+      }
+      if (data.error) {
+        return Promise.reject(data.error);
+      }
+      return data;
+    });
+}
+
+function apiGet(path: string) {
+  return apiResponse(fetch(path));
+}
+
+function apiPost(path: string, body: any) {
+  return apiResponse(
+    fetch(path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(body)
+    })
+  );
+}
+
 type AsyncAction = ThunkAction<void, State, {}, Action>;
 export type Dispatch = ThunkDispatch<State, {}, Action>;
 
 export function getUiContext(): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "GET_UI_CONTEXT_START" });
-    fetch("/api/ui-context")
-      .then(resp => resp.json())
+    apiGet("/api/ui-context")
       .then(data => {
         dispatch({ type: "GET_UI_CONTEXT_OK", data });
         dispatch(getPicoBox(data.eci));
@@ -91,8 +120,7 @@ interface PICOS_MOUSE_UP {
 export function getPicoBox(eci: string): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "GET_PICOBOX_START", eci });
-    fetch(`/c/${eci}/query/io.picolabs.next/box`)
-      .then(resp => resp.json())
+    apiGet(`/c/${eci}/query/io.picolabs.next/box`)
       .then(data => {
         dispatch({ type: "GET_PICOBOX_OK", eci, data });
         for (const eci of data.children) {
@@ -133,14 +161,10 @@ export function putPicoBox(
 ): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "PUT_PICOBOX_START", eci });
-    fetch(`/c/${eci}/event/engine-ui/box/query/io.picolabs.next/box`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(toUpdate)
-    })
-      .then(resp => resp.json())
+    apiPost(
+      `/c/${eci}/event/engine-ui/box/query/io.picolabs.next/box`,
+      toUpdate
+    )
       .then(data => {
         dispatch({ type: "PUT_PICOBOX_OK", eci, data });
       })
@@ -173,14 +197,7 @@ export function newPico(
 ): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "NEW_PICO_START", eci });
-    fetch(`/c/${eci}/event/engine-ui/new/query/io.picolabs.next/box`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(attrs)
-    })
-      .then(resp => resp.json())
+    apiPost(`/c/${eci}/event/engine-ui/new/query/io.picolabs.next/box`, attrs)
       .then(data => {
         dispatch({ type: "NEW_PICO_OK", eci, data });
 
@@ -212,8 +229,7 @@ interface NEW_PICO_ERROR {
 export function delPico(parentEci: string, eci: string): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "DEL_PICO_START", parentEci, eci });
-    fetch(`/c/${parentEci}/event-wait/engine-ui/del?eci=${eci}`)
-      .then(resp => resp.json())
+    apiGet(`/c/${parentEci}/event-wait/engine-ui/del?eci=${eci}`)
       .then(data => {
         dispatch({ type: "DEL_PICO_OK", parentEci, eci });
       })
@@ -242,8 +258,7 @@ interface DEL_PICO_ERROR {
 export function getPicoDetails(eci: string): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "GET_PICODETAILS_START", eci });
-    fetch(`/c/${eci}/query/io.picolabs.next/pico`)
-      .then(resp => resp.json())
+    apiGet(`/c/${eci}/query/io.picolabs.next/pico`)
       .then(data => {
         dispatch({ type: "GET_PICODETAILS_OK", eci, data });
       })
@@ -270,8 +285,7 @@ interface GET_PICODETAILS_ERROR {
 export function getRulesets(): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "GET_RULESETS_START" });
-    fetch(`/api/rulesets`)
-      .then(resp => resp.json())
+    apiGet(`/api/rulesets`)
       .then(data => {
         dispatch({ type: "GET_RULESETS_OK", data: data.rulesets });
       })
@@ -295,8 +309,7 @@ interface GET_RULESETS_ERROR {
 export function getRuleset(rid: string, version: string): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "GET_RULESET_START", rid, version });
-    fetch(`/api/ruleset/${rid}/${version}`)
-      .then(resp => resp.json())
+    apiGet(`/api/ruleset/${rid}/${version}`)
       .then(data => {
         dispatch({ type: "GET_RULESET_OK", rid, version, data });
       })
@@ -326,23 +339,7 @@ interface GET_RULESET_ERROR {
 export function registerRuleset(krl: string): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "REGISTER_RULESET_START" });
-    fetch(`/api/ruleset`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify({ krl })
-    })
-      .then(resp => resp.json())
-      .then(data => {
-        if (!data) {
-          return Promise.reject(new Error("Empty response"));
-        }
-        if (data.error) {
-          return Promise.reject(data.error);
-        }
-        return data;
-      })
+    apiPost(`/api/ruleset`, { krl })
       .then(data => {
         dispatch({ type: "REGISTER_RULESET_OK", data });
         dispatch(getRulesets());
@@ -379,14 +376,11 @@ export function installRuleset(
 ): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "INSTALL_RULESET_START", eci });
-    fetch(`/c/${eci}/event/engine-ui/install/query/io.picolabs.next/pico`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify({ rid, version, config })
+    apiPost(`/c/${eci}/event/engine-ui/install/query/io.picolabs.next/pico`, {
+      rid,
+      version,
+      config
     })
-      .then(resp => resp.json())
       .then(data => {
         dispatch({ type: "INSTALL_RULESET_OK", eci, data });
       })
@@ -413,14 +407,9 @@ interface INSTALL_RULESET_ERROR {
 export function uninstallRuleset(eci: string, rid: string): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "UNINSTALL_RULESET_START", eci });
-    fetch(`/c/${eci}/event/engine-ui/uninstall/query/io.picolabs.next/pico`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify({ rid })
+    apiPost(`/c/${eci}/event/engine-ui/uninstall/query/io.picolabs.next/pico`, {
+      rid
     })
-      .then(resp => resp.json())
       .then(data => {
         dispatch({ type: "UNINSTALL_RULESET_OK", eci, data });
       })
@@ -447,14 +436,10 @@ interface UNINSTALL_RULESET_ERROR {
 export function newChannel(eci: string, data: any): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "NEW_CHANNEL_START", eci });
-    fetch(`/c/${eci}/event/engine-ui/new-channel/query/io.picolabs.next/pico`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(data)
-    })
-      .then(resp => resp.json())
+    apiPost(
+      `/c/${eci}/event/engine-ui/new-channel/query/io.picolabs.next/pico`,
+      data
+    )
       .then(data => {
         dispatch({ type: "NEW_CHANNEL_OK", eci, data });
       })
@@ -481,14 +466,10 @@ interface NEW_CHANNEL_ERROR {
 export function delChannel(eci: string, channelId: any): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "DEL_CHANNEL_START", eci });
-    fetch(`/c/${eci}/event/engine-ui/del-channel/query/io.picolabs.next/pico`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify({ eci: channelId })
-    })
-      .then(resp => resp.json())
+    apiPost(
+      `/c/${eci}/event/engine-ui/del-channel/query/io.picolabs.next/pico`,
+      { eci: channelId }
+    )
       .then(data => {
         dispatch({ type: "DEL_CHANNEL_OK", eci, data });
       })
@@ -515,8 +496,7 @@ interface DEL_CHANNEL_ERROR {
 export function getTesting(eci: string, rid: string): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "GET_TESTING_START", eci, rid });
-    fetch(`/c/${eci}/query/${rid}/__testing`)
-      .then(resp => resp.json())
+    apiGet(`/c/${eci}/query/${rid}/__testing`)
       .then(data => {
         dispatch({ type: "GET_TESTING_OK", eci, rid, data });
       })
@@ -552,14 +532,7 @@ export function sendTestQuery(
 ): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "TEST_RESULT_CLEAR", eci });
-    fetch(`/c/${useECI}/query/${rid}/${name}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(args)
-    })
-      .then(resp => resp.json())
+    apiPost(`/c/${useECI}/query/${rid}/${name}`, args)
       .then(data => {
         dispatch({ type: "TEST_RESULT_OK", eci, data });
       })
@@ -577,14 +550,7 @@ export function sendTestEvent(
 ): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "TEST_RESULT_CLEAR", eci });
-    fetch(`/c/${useECI}/event-wait/${domain}/${name}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify(attrs)
-    })
-      .then(resp => resp.json())
+    apiPost(`/c/${useECI}/event-wait/${domain}/${name}`, attrs)
       .then(data => {
         dispatch({ type: "TEST_RESULT_OK", eci, data });
       })
@@ -619,14 +585,7 @@ interface CHANGE_NEWRULESET_RID {
 export function makeNewRuleset(rid: string): AsyncAction {
   return function(dispatch, getState) {
     dispatch({ type: "MAKE_NEWRULESET_START" });
-    fetch(`/api/new-ruleset`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify({ rid })
-    })
-      .then(resp => resp.json())
+    apiPost(`/api/new-ruleset`, { rid })
       .then(data => {
         dispatch({ type: "MAKE_NEWRULESET_OK", rid: data.rid });
       })
