@@ -1,8 +1,10 @@
+import * as fs from "fs";
 import leveldown from "leveldown";
 import { default as level, LevelUp } from "levelup";
-import * as path from "path";
-import * as fs from "fs";
 import * as makeDir from "make-dir";
+import * as path from "path";
+import { Ruleset } from "pico-framework";
+import { $krl } from "./krl";
 const krlCompiler = require("krl-compiler");
 const krlCompilerVersion = require("krl-compiler/package.json").version;
 const charwise = require("charwise");
@@ -39,6 +41,10 @@ export class RulesetRegistry {
   public readonly rulesetDir: string;
 
   private db: LevelUp;
+
+  private rsCache: {
+    [rid: string]: { [version: string]: Promise<Ruleset | null> };
+  } = {};
 
   constructor(engineHomeDir: string) {
     this.rulesetDir = path.resolve(engineHomeDir, "rulesets");
@@ -91,18 +97,7 @@ export class RulesetRegistry {
 
     await this.db.put(key, toSave);
 
-    const rsDir = path.resolve(this.rulesetDir, out.rid, out.version);
-    await makeDir(rsDir);
-    const jsFile = path.resolve(rsDir, "compiled.js");
-
-    await new Promise((resolve, reject) => {
-      fs.writeFile(jsFile, out.code, { encoding: "utf8" }, err =>
-        err ? reject(err) : resolve()
-      );
-    });
-    const rs = require(jsFile);
-
-    return Object.assign({ rs }, toSave);
+    return toSave;
   }
 
   list(): Promise<{ [rid: string]: string[] }> {
@@ -134,5 +129,59 @@ export class RulesetRegistry {
 
   get(rid: string, version: string) {
     return this.db.get(["ruleset", rid, version]);
+  }
+
+  load(rid: string, version: string): Promise<Ruleset | null> {
+    if (!this.rsCache[rid]) {
+      this.rsCache[rid] = {};
+    }
+    if (this.rsCache[rid][version]) {
+      return this.rsCache[rid][version];
+    }
+
+    this.rsCache[rid][version] = this.compileAndLoadRuleset(rid, version);
+
+    return this.rsCache[rid][version];
+  }
+
+  private async compileAndLoadRuleset(
+    rid: string,
+    version: string
+  ): Promise<Ruleset | null> {
+    let data;
+    try {
+      data = await this.db.get(["ruleset", rid, version]);
+    } catch (err) {
+      if (err.notFound) {
+        if (this.rsCache[rid]) {
+          // remove this so next time it will check the db again
+          delete this.rsCache[rid][version];
+        }
+        return null;
+      }
+    }
+
+    const out = krlCompiler(data.krl);
+    out.version = normalizeVersion(out.version);
+    if (out.rid !== rid || out.version !== version) {
+      throw new Error(
+        `Compiled krl rid+version miss-match. Wanted ${rid}@${version} but got ${
+          out.rid
+        }@${out.version}`
+      );
+    }
+
+    const rsDir = path.resolve(this.rulesetDir, out.rid, out.version);
+    await makeDir(rsDir);
+    const jsFile = path.resolve(rsDir, "compiled.js");
+
+    await new Promise((resolve, reject) => {
+      fs.writeFile(jsFile, out.code, { encoding: "utf8" }, err =>
+        err ? reject(err) : resolve()
+      );
+    });
+    const rsConstructor = require(jsFile);
+
+    return rsConstructor($krl);
   }
 }

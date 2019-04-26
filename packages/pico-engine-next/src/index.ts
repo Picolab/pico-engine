@@ -1,12 +1,10 @@
 import leveldown from "leveldown";
 import * as makeDir from "make-dir";
-import { PicoFramework } from "pico-framework";
+import { PicoFramework, RulesetConfig } from "pico-framework";
+import { Pico } from "pico-framework/dist/src/Pico";
 import { inputToConf, PicoEngineSettings } from "./configuration";
 import { rsNext } from "./io.picolabs.next";
-import { $krl } from "./krl";
 import { server } from "./server";
-
-const helloWorld = require("../../../test-rulesets/hello-world.js");
 
 export async function startEngine(settings?: PicoEngineSettings) {
   const conf = inputToConf(settings);
@@ -14,15 +12,26 @@ export async function startEngine(settings?: PicoEngineSettings) {
   await makeDir(conf.home);
 
   const pf = new PicoFramework({
-    leveldown: leveldown(conf.db_path) as any
+    leveldown: leveldown(conf.db_path) as any,
+
+    rulesetLoader(rid: string, version: string) {
+      return conf.rsRegistry.load(rid, version);
+    },
+
+    onStartupRulesetInitError(
+      pico: Pico,
+      rid: string,
+      version: string,
+      config: RulesetConfig,
+      error: any
+    ) {
+      // TODO mark it as not installed and raise an error event
+      // throw error;
+      console.error("TODO raise error", pico.id, rid, version, config, error);
+    }
   });
 
   pf.addRuleset(rsNext);
-
-  // TODO need to add ALL rulesets used in db before start
-  pf.addRuleset(helloWorld($krl));
-
-  // TODO if ruleset is not loaded then mark it as not installed and raise an error event
 
   await pf.start();
   await pf.rootPico.install("io.picolabs.next", "0.0.0");

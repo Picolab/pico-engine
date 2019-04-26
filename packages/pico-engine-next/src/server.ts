@@ -6,7 +6,6 @@ import * as _ from "lodash";
 import * as path from "path";
 import { PicoFramework } from "pico-framework";
 import { PicoEngineConf } from "./configuration";
-const krlCompiler = require("krl-compiler");
 
 function mergeGetPost(req: Request) {
   // give preference to post body params
@@ -61,9 +60,6 @@ export function server(
     conf.rsRegistry
       .publish(data.krl)
       .then(data => {
-        pf.addRuleset(data.rs); // TODO also flush picos that may have the draft installed
-
-        delete data.rs;
         res.json(data);
       })
       .catch(next);
