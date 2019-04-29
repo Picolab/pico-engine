@@ -1,0 +1,8 @@
+- [KRL Manual](/krl/)
+  - [Rulesets](/krl/rulesets)
+  - [Standard Library](/krl/stdlib)
+  - [Modules](/krl/modules)
+  - [ctx](/krl/modules/ctx)
+  - [http](/krl/modules/http)
+  - [math](/krl/modules/math)
+  - [schedule](/krl/modules/schedule)

@@ -4,7 +4,6 @@ import { default as level, LevelUp } from "levelup";
 import * as makeDir from "make-dir";
 import * as path from "path";
 import { Ruleset } from "pico-framework";
-import { $krl } from "./krl";
 const krlCompiler = require("krl-compiler");
 const krlCompilerVersion = require("krl-compiler/package.json").version;
 const charwise = require("charwise");
@@ -187,8 +186,7 @@ export class RulesetRegistry {
     if (data.compiler && data.compiler.version === krlCompilerVersion) {
       try {
         // try and load the cached version
-        const rsConstructor = require(jsFile);
-        return rsConstructor($krl);
+        return require(jsFile);
       } catch (err) {
         // no worries, let's continue and compile it
       }
@@ -210,9 +208,7 @@ export class RulesetRegistry {
         err ? reject(err) : resolve()
       );
     });
-    const rsConstructor = require(jsFile);
-
-    return rsConstructor($krl);
+    return require(jsFile);
   }
 
   private getJsOutputFile(rid: string, version: string) {

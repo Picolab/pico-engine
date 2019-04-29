@@ -51,6 +51,7 @@
     "level-json-coerce-null": "^1.0.1",
     "leveldown": "^5.0.2",
     "levelup": "^4.0.1",
+    "lodash": "^4.17.11",
     "make-dir": "^3.0.0",
     "pico-framework": "^0.2.1",
     "select-when": "^0.1.0"
