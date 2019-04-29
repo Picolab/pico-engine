@@ -2,10 +2,10 @@
 
 TODO explain how modules work
 
-## ctx
+## Create a KRL module
 
-TODO
+TODO explain how
 
-## http
+## Create a Node.js module for KRL
 
-TODO
+TODO explain how
