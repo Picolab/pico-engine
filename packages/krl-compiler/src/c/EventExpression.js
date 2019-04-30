@@ -104,5 +104,5 @@ module.exports = function (ast, comp, e) {
     ee.push(e('asyncfn', ['$event', '$state'], fnBody))
   }
 
-  return e('call', e('id', '$krl.e'), ee)
+  return e('call', e('id', '$env.SelectWhen.e'), ee)
 }

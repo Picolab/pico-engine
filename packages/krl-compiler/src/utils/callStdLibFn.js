@@ -1,8 +1,9 @@
 var _ = require('lodash')
 
 module.exports = function (e, name, args, loc) {
-  return e('acall', e('id', '$krl.stdlib'), [
-    e('str', name),
+  const stdlib = e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])
+  return e('acall', e('get', stdlib, e('str', name)), [
+    e('id', '$ctx'),
     _.isArray(args)
       ? e('array', args)
       : args

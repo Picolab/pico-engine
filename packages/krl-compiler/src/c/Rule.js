@@ -25,14 +25,12 @@ function Rule (ast, comp, e) {
   }
 
   ruleBody.push(e('if', e('id', 'fired'),
-    e(';', e('call', e('id', '$krl.log.debug'), [
-      e('id', '$ctx'),
-      e('id', '$event'),
+    e(';', e('call', e('id', '$ctx.log'), [
+      e('str', 'debug'),
       e('str', 'fired')
     ])),
-    e(';', e('call', e('id', '$krl.log.debug'), [
-      e('id', '$ctx'),
-      e('id', '$event'),
+    e(';', e('call', e('id', '$ctx.log'), [
+      e('str', 'debug'),
       e('str', 'not fired')
     ]))
   ))

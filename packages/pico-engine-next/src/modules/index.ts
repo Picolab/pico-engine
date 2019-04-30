@@ -1,3 +1,4 @@
 import ctx from "./ctx";
+import stdlib from "./stdlib";
 
-export { ctx };
+export { ctx, stdlib };

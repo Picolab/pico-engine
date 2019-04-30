@@ -21,7 +21,9 @@ module.exports = function (ast, comp, e) {
 
   const initBody = declarationBlock(ast.global, comp)
 
-  initBody.push(e('const', '$rs', e('new', e('id', '$krl.SelectWhen'), [])))
+  initBody.unshift(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
+
+  initBody.push(e('const', '$rs', e('new', e('id', '$env.SelectWhen.SelectWhen'), [])))
 
   const rulesObj = {}
   _.each(ast.rules, function (rule) {
@@ -39,7 +41,9 @@ module.exports = function (ast, comp, e) {
 
   const queries = {}
   for (const share of shares) {
-    queries[share] = e('id', jsIdent(share))
+    queries[share] = e('fn', ['$args'], [
+      e('return', e('call', e('id', jsIdent(share)), [e('id', '$ctx'), e('id', '$args')]))
+    ])
     const annotation = comp.scope.get(share)
     testingJSON.queries.push({
       name: share,
@@ -57,11 +61,11 @@ module.exports = function (ast, comp, e) {
     query: e('obj', queries)
   })))
 
-  rs.init = e('asyncfn', ['$ctx'], initBody)
+  rs.init = e('asyncfn', ['$rsCtx', '$env'], initBody)
 
   return [
     e(';', e('=', e('id', 'module.exports'),
-      e('fn', ['$krl'], [e('return', e('obj', rs))])
+      e('obj', rs)
     ))
   ]
 }

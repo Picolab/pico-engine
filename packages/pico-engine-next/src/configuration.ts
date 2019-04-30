@@ -1,8 +1,8 @@
 import * as _ from "lodash";
 import * as path from "path";
 import { RulesetEnvironment } from "./KrlCtx";
-import * as modules from "./modules";
 import { RulesetRegistry } from "./RulesetRegistry";
+
 const homeDir = require("home-dir");
 const version = require("../package.json").version;
 
@@ -73,8 +73,6 @@ export function inputToConf(input: PicoEngineSettings = {}): PicoEngineConf {
 
     rsRegistry: new RulesetRegistry(home),
 
-    rsEnvironment: {
-      modules
-    }
+    rsEnvironment: new RulesetEnvironment()
   };
 }

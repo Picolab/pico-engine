@@ -28,8 +28,8 @@ class Channels extends React.Component<Props, LocalState> {
       expandedChannels: {},
 
       tags: "one, two",
-      eventPolicy: `{\n"allow": [],\n"deny": []\n}`,
-      queryPolicy: `{\n"allow": [],\n"deny": []\n}`
+      eventPolicy: `{\n"allow": [{"domain":"*","name":"*"}],\n"deny": []\n}`,
+      queryPolicy: `{\n"allow": [{"rid":"*","name":"*"}],\n"deny": []\n}`
     };
 
     this.addChannel = this.addChannel.bind(this);

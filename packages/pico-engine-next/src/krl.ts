@@ -25,7 +25,6 @@ function krlFunctionMaker(krlTypeName: string) {
     const wrapped = function(ctx: KrlCtx, args: any) {
       return fn.apply(ctx, fixArgs(args));
     };
-    wrapped.name = fn.name;
 
     // add this for the compiler to know the type
     (wrapped as any)["$krl_" + krlTypeName] = true;
@@ -38,7 +37,6 @@ function krlProperty(fn: (this: KrlCtx) => any) {
   const wrapped = function(ctx: KrlCtx) {
     return fn.apply(ctx);
   };
-  wrapped.name = fn.name;
 
   // add this for the compiler to know the type
   (wrapped as any)["$krl_property"] = true;

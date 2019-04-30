@@ -1,11 +1,21 @@
 import * as _ from "lodash";
 import { PicoEvent, RulesetContext } from "pico-framework";
-import { KrlModule } from "./krl";
+import * as SelectWhen from "select-when";
+import krl, { KrlModule } from "./krl";
+import * as modules from "./modules";
 
-export interface RulesetEnvironment {
+export class RulesetEnvironment {
   // TODO logger
 
-  modules: { [domain: string]: KrlModule };
+  krl = krl;
+
+  SelectWhen = SelectWhen;
+
+  modules: { [domain: string]: KrlModule } = modules;
+
+  mkCtx(rsCtx: RulesetContext) {
+    return MakeCtx(rsCtx, this);
+  }
 }
 
 export type Runtime = RuntimeGlobal | RuntimeEvent | RuntimeQuery;
@@ -40,7 +50,7 @@ export interface KrlCtx {
   getCurrentRuntime(): Runtime;
 
   log(level: KrlLogLevels, message: string): void;
-  module(domain: string, name: string): KrlModule | null;
+  module(domain: string): KrlModule | null;
 }
 
 export type KrlLogLevels = "klog" | "debug" | "info" | "warn" | "error";
