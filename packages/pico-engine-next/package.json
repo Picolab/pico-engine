@@ -1,7 +1,7 @@
 {
   "name": "pico-engine-next",
   "version": "0.49.2",
-  "description": "An implementation of the pico-engine targetting node.js",
+  "description": "An implementation of the pico-engine targeting node.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Picolab/pico-engine.git"
@@ -53,7 +53,7 @@
     "levelup": "^4.0.1",
     "lodash": "^4.17.11",
     "make-dir": "^3.0.0",
-    "pico-framework": "^0.2.1",
+    "pico-framework": "^0.2.2",
     "select-when": "^0.1.0"
   },
   "devDependencies": {

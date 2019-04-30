@@ -14,6 +14,8 @@ export async function startEngine(settings?: PicoEngineSettings) {
   const pf = new PicoFramework({
     leveldown: leveldown(conf.db_path) as any,
 
+    environment: conf.rsEnvironment,
+
     rulesetLoader(rid: string, version: string) {
       return conf.rsRegistry.load(rid, version);
     },
