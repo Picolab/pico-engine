@@ -48,15 +48,21 @@ export async function startEngine(settings?: PicoEngineSettings) {
   });
   const uiECI = uiChannel ? uiChannel.id : "";
 
-  console.log(`Starting pico-engine-NEXT ${conf.version}`);
-  console.log(conf);
+  conf.log.info("Starting pico-engine", {
+    home: conf.home,
+    port: conf.port,
+    base_url: conf.base_url,
+    log_path: conf.log_path,
+    db_path: conf.db_path,
+    version: conf.version
+  });
 
   const app = server(pf, conf, uiECI);
   await new Promise((resolve, reject) =>
     app.listen(conf.port, (err: any) => (err ? reject(err) : resolve()))
   );
 
-  console.log(`Listening on ${conf.base_url}`);
+  conf.log.info(`Listening at ${conf.base_url}`);
 
   pf.event({
     eci: uiECI,
@@ -64,8 +70,8 @@ export async function startEngine(settings?: PicoEngineSettings) {
     name: "started",
     data: { attrs: {} },
     time: 0 // TODO remove this typescript requirement
-  }).catch(err => {
-    console.error(err);
+  }).catch(error => {
+    conf.log.error("Error signaling engine:started event", { error });
     // TODO signal all errors engine:error
   });
 }

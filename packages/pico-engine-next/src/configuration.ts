@@ -2,6 +2,7 @@ import * as _ from "lodash";
 import * as path from "path";
 import { RulesetEnvironment } from "./KrlCtx";
 import { RulesetRegistry } from "./RulesetRegistry";
+import { KrlLogger } from "./KrlLogger";
 
 const homeDir = require("home-dir");
 const version = require("../package.json").version;
@@ -43,8 +44,9 @@ export interface PicoEngineConf {
   db_path: string;
   version: string;
 
-  rsRegistry: RulesetRegistry;
+  log: KrlLogger;
 
+  rsRegistry: RulesetRegistry;
   rsEnvironment: RulesetEnvironment;
 }
 
@@ -63,16 +65,22 @@ export function inputToConf(input: PicoEngineSettings = {}): PicoEngineConf {
     base_url = `http://localhost:${port}`;
   }
 
+  const log_path = path.resolve(home, "pico-engine.log");
+
+  const log = new KrlLogger("");
+
   return {
-    home: home,
-    port: port,
-    base_url: base_url,
-    log_path: path.resolve(home, "pico-engine.log"),
+    home,
+    port,
+    base_url,
+    log_path,
     db_path: path.resolve(home, "db"),
     version,
 
+    log,
+
     rsRegistry: new RulesetRegistry(home),
 
-    rsEnvironment: new RulesetEnvironment()
+    rsEnvironment: new RulesetEnvironment(log)
   };
 }

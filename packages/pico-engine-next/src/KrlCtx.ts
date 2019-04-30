@@ -3,6 +3,7 @@ import { PicoEvent, RulesetContext } from "pico-framework";
 import * as SelectWhen from "select-when";
 import krl, { KrlModule } from "./krl";
 import * as modules from "./modules";
+import { KrlLogger } from "./KrlLogger";
 
 export class RulesetEnvironment {
   // TODO logger
@@ -12,6 +13,8 @@ export class RulesetEnvironment {
   SelectWhen = SelectWhen;
 
   modules: { [domain: string]: KrlModule } = modules;
+
+  constructor(public log: KrlLogger) {}
 
   mkCtx(rsCtx: RulesetContext) {
     return MakeCtx(rsCtx, this);
@@ -49,11 +52,9 @@ export interface KrlCtx {
   startRule(rule_name: string): void;
   getCurrentRuntime(): Runtime;
 
-  log(level: KrlLogLevels, message: string): void;
+  log: KrlLogger;
   module(domain: string): KrlModule | null;
 }
-
-export type KrlLogLevels = "klog" | "debug" | "info" | "warn" | "error";
 
 /**
  *
@@ -66,6 +67,11 @@ export function MakeCtx(
   environment: RulesetEnvironment
 ): KrlCtx {
   let current: Runtime = { type: "global" };
+
+  const log = environment.log.child({
+    rid: rsCtx.ruleset.rid
+    // TODO more
+  });
 
   const ctx: KrlCtx = {
     rsCtx,
@@ -97,10 +103,7 @@ export function MakeCtx(
       return current;
     },
 
-    log(level: KrlLogLevels, message: string) {
-      // TODO append to engine json log
-      // TODO use environment.log
-    },
+    log,
 
     module(domain: string) {
       return environment.modules[domain] || null;
