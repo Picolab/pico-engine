@@ -586,7 +586,6 @@ ruleset io.picolabs.wrangler {
                      .defaultsTo(event:attr("name")
                      .defaultsTo("")))) setting(channel);
       send_directive("channel_deleted", channel);
-      sendNotifyingEvent("channel_deleted"); // API event
     }
     always {
      raise wrangler event "channel_deleted" // API event
