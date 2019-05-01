@@ -67,7 +67,7 @@ export function inputToConf(input: PicoEngineSettings = {}): PicoEngineConf {
 
   const log_path = path.resolve(home, "pico-engine.log");
 
-  const log = new KrlLogger("");
+  const log = new KrlLogger(log_path, "");
 
   return {
     home,

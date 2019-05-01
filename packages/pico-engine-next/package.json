@@ -55,6 +55,7 @@
     "lodash": "^4.17.11",
     "make-dir": "^3.0.0",
     "pico-framework": "^0.2.2",
+    "rotating-file-stream": "^1.4.1",
     "select-when": "^0.1.0"
   },
   "devDependencies": {
