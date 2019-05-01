@@ -43,7 +43,7 @@ module.exports = function (ast, comp, e) {
     })
   }
 
-  return e(';', e('acall', e('id', '$ctx.putEnt'), [
+  return e(';', e('acall', e('id', '$ctx.rsCtx.putEnt'), [
     key,
     valueToStore
   ]))

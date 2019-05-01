@@ -12,24 +12,25 @@ module.exports = {
   },
   "init": async function ($rsCtx, $env) {
     const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
     const hello = $env.krl.function(["name"], async function (name = "default") {
-      const msg = await $ctx.module("stdlib")["+"]($ctx, [
+      const msg = await $stdlib["+"]($ctx, [
         "Hello ",
         name
       ]);
       return msg;
     });
     const said = $env.krl.function([], async function () {
-      return await $ctx.getEnt("said");
+      return await $ctx.rsCtx.getEnt("said");
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("say:hello"), async function ($event, $state) {
       var fired = true;
       if (fired)
-        $ctx.log("debug", "fired");
+        $ctx.log.debug("fired");
       else
-        $ctx.log("debug", "not fired");
-      await $ctx.putEnt("said", await $ctx.module("stdlib")["get"]($ctx, [
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.putEnt("said", await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "name"
       ]));

@@ -45,11 +45,11 @@ export class KrlLogger {
       this.fileStream.write(line);
     };
 
-    this.error = mkLevel("error", timeFns.iso, ctx, write);
-    this.warn = mkLevel("warn", timeFns.iso, ctx, write);
-    this.info = mkLevel("info", timeFns.iso, ctx, write);
-    this.klog = mkLevel("klog", timeFns.iso, ctx, write);
-    this.debug = mkLevel("debug", timeFns.iso, ctx, write);
+    this.error = mkLevel(10, timeFns.iso, ctx, write);
+    this.warn = mkLevel(20, timeFns.iso, ctx, write);
+    this.info = mkLevel(30, timeFns.iso, ctx, write);
+    this.klog = mkLevel(40, timeFns.iso, ctx, write);
+    this.debug = mkLevel(50, timeFns.iso, ctx, write);
   }
 
   child(moreCtx: any) {

@@ -1,6 +1,6 @@
 module.exports = function (ast, comp, e) {
   if (ast.domain === 'ent') {
-    return e('acall', e('id', '$ctx.getEnt'), [
+    return e('acall', e('id', '$ctx.rsCtx.getEnt'), [
       e('str', ast.value)
     ])
   }

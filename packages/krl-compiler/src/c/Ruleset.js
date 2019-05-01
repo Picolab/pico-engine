@@ -21,6 +21,7 @@ module.exports = function (ast, comp, e) {
 
   const initBody = declarationBlock(ast.global, comp)
 
+  initBody.unshift(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
   initBody.unshift(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
 
   initBody.push(e('const', '$rs', e('new', e('id', '$env.SelectWhen.SelectWhen'), [])))

@@ -9,6 +9,15 @@ import { server } from "./server";
 export async function startEngine(settings?: PicoEngineSettings) {
   const conf = inputToConf(settings);
 
+  conf.log.info("Starting pico-engine", {
+    home: conf.home,
+    port: conf.port,
+    base_url: conf.base_url,
+    log_path: conf.log_path,
+    db_path: conf.db_path,
+    version: conf.version
+  });
+
   await makeDir(conf.home);
 
   const pf = new PicoFramework({
@@ -30,6 +39,28 @@ export async function startEngine(settings?: PicoEngineSettings) {
       // TODO mark it as not installed and raise an error event
       // throw error;
       console.error("TODO raise error", pico.id, rid, version, config, error);
+    },
+
+    onFrameworkEvent(ev) {
+      switch (ev.type) {
+        case "startup":
+          break;
+        case "startupDone":
+          conf.log.debug("pico-framework started");
+          break;
+        case "txnQueued":
+          conf.log.debug(ev.type, {
+            picoId: ev.picoId,
+            txnId: ev.txn.id,
+            txn: ev.txn
+          });
+          break;
+        case "txnStart":
+        case "txnDone":
+        case "txnError":
+          conf.log.debug(ev.type, { picoId: ev.picoId, txnId: ev.txn.id });
+          break;
+      }
     }
   });
 
@@ -47,15 +78,6 @@ export async function startEngine(settings?: PicoEngineSettings) {
     );
   });
   const uiECI = uiChannel ? uiChannel.id : "";
-
-  conf.log.info("Starting pico-engine", {
-    home: conf.home,
-    port: conf.port,
-    base_url: conf.base_url,
-    log_path: conf.log_path,
-    db_path: conf.db_path,
-    version: conf.version
-  });
 
   const app = server(pf, conf, uiECI);
   await new Promise((resolve, reject) =>

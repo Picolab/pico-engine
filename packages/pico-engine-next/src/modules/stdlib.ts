@@ -6,7 +6,7 @@ const stdlib: KrlModule = {
     return left + right;
   }),
 
-  get: krl.function([], function(obj, path) {
+  get: krl.function(["obj", "path"], function(obj, path) {
     return _.get(obj, path, null);
   })
 };
