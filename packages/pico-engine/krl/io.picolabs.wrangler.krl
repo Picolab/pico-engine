@@ -16,11 +16,11 @@ ruleset io.picolabs.wrangler {
     provides skyQuery ,
     rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci, createChannel, newPolicy,//channel
-    children, parent_eci, name, profile, pico, randomPicoName, deleteChild, pico, myself
+    children, parent_eci, name, profile, pico, randomPicoName, deleteChild, pico, myself, isMarkedForDeath
     shares skyQuery ,
     rulesetsInfo,installedRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, eciFromName, nameFromEci,//channel
-    children, parent_eci, name, profile, pico, randomPicoName, pico,  myself, id, MAX_RAND_ENGL_NAMES, test,
+    children, parent_eci, name, profile, pico, randomPicoName, pico,  myself, id, MAX_RAND_ENGL_NAMES, test, isMarkedForDeath,
      __testing
   }
   global {
@@ -127,15 +127,6 @@ ruleset io.picolabs.wrangler {
        (thisPico) => error | (status == 200 && not is_bad_response ) => response_content | error
      }
      
-     // Default domain for responding API events to use
-     D_RESPONSE_DOM = "wrangler"
-     
-     sendNotifyingEvent = defaction(defaultEventType = "", attrs = {}) {
-      responseDomain = event:attr("responseDomain").defaultsTo(D_RESPONSE_DOM);
-      responseType = event:attr("responseType").defaultsTo(defaultEventType);
-      responseHost = event:attr("responseHost").defaultsTo(meta:host);
-      event:send({"eci":ent:eci, "eid":"wrangler", "domain":responseDomain, "type":responseType, "attrs":attrs}, responseHost);
-     }
 
     //returns a list of children that are contained in a given subtree at the starting child. No ordering is guaranteed in the result
     gatherDescendants = function(childID){
@@ -180,6 +171,7 @@ ruleset io.picolabs.wrangler {
                           child{"name"} ==  value || child{"id"} == value
                           }).head()
     }
+    
     /*
     IN: a map that can contain
         an "id" key mapped to a child Pico ID
@@ -223,7 +215,7 @@ ruleset io.picolabs.wrangler {
       }).collect(function(map){map{"id"}})
     }
     
-    isPicoMarkedForDeath = function() {
+    isMarkedForDeath = function() {
       ent:marked_for_death.defaultsTo(false)
     }
 // ********************************************************************************************
@@ -919,7 +911,7 @@ ruleset io.picolabs.wrangler {
     always {
       ent:marked_for_death := true;
       raise wrangler event "delete_children" attributes event:attrs
-                                                                    .put("delete_all", true);
+                                                        .put("delete_all", true);
       raise wrangler event "rulesets_need_to_cleanup" attributes event:attrs;
       raise wrangler event "delete_this_pico_if_ready" attributes event:attrs;
     }  
@@ -949,7 +941,7 @@ ruleset io.picolabs.wrangler {
       domain = event:attr("domain")
     }
     always {
-      ent:needs_to_cleanup := ent:needs_to_cleanup.filter(function(registeredDomain) {
+      ent:registered_for_cleanup := ent:registered_for_cleanup.filter(function(registeredDomain) {
         registeredDomain != domain
       });
     raise wrangler event "delete_this_pico_if_ready"
@@ -962,7 +954,7 @@ ruleset io.picolabs.wrangler {
     pre {
       ready_to_delete = ent:marked_for_death
                         &&  ent:children_being_deleted.defaultsTo([]).length() == 0
-                        &&   ent:needs_to_cleanup.defaultsTo([]).length() == 0;
+                        &&  ent:registered_for_cleanup.defaultsTo([]).length() == 0;
     }
     if ready_to_delete then
       event:send({"eci":parent_eci(), "domain":"wrangler", "type":"child_ready_for_deletion", "attrs":event:attrs

@@ -103,6 +103,13 @@ ent:established [
     inbound = function(key,value){//Rx_Pending
       filterOn(ent:inbound, key, value)
     }
+    
+    // Returns true if this pico has no relationships at the moment
+    hasRelationships = function() {
+      ent:established.defaultsTo([]).length() > 0
+      || ent:inbound.defaultsTo([]).length() > 0
+      || ent:outbound.defaultsTo([]).length() > 0
+    }
 
     /**
     @param array, an array of maps
@@ -183,23 +190,12 @@ ent:established [
     }
   }
   
-  rule done_cleaning_up {
-    select when wrangler subscriptions_cancelled
-    if wrangler:isMarkedForDeath() then
-    noop()
-    fired {
-      raise wrangler event "cleanup_finished" attributes {
-        "domain":meta:rid
-      }
-    }
-  }
-  
   rule cancel_all_subscriptions {
     select when wrangler cancel_subscriptions
     pre {
-      establishedSubIDs = ent:established.map(function(sub){sub{"Id"}})
-      inboundSubIDs = ent:inbound.map(function(inSub){inSub{"Id"}})
-      outboundSubIDs = ent:outbound.map(function(outSub){outSub{"Id"}})
+      establishedSubIDs = ent:established.defaultsTo([]).map(function(sub){sub{"Id"}})
+      inboundSubIDs = ent:inbound.defaultsTo([]).map(function(inSub){inSub{"Id"}})
+      outboundSubIDs = ent:outbound.defaultsTo([]).map(function(outSub){outSub{"Id"}})
     }
     always {
     raise wrangler event "cancel_relationships" attributes event:attrs
@@ -243,6 +239,20 @@ ent:established [
                                                                   .delete("establishedIDs")
                                                                   .delete("inboundIDs")
                                                                   .delete("outboundIDs");
+    }
+  }
+  
+  rule done_cleaning_up {
+    select when wrangler subscription_removed
+             or wrangler outbound_subscription_cancelled
+             or wrangler inbound_subscription_cancelled
+             or wrangler cancel_relationships
+    if wrangler:isMarkedForDeath() && not hasRelationships() then
+    noop()
+    fired {
+      raise wrangler event "cleanup_finished" attributes {
+        "domain":meta:rid
+      }
     }
   }
 
