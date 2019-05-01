@@ -184,7 +184,7 @@ ruleset io.picolabs.wrangler {
     IN: a map that can contain
         an "id" key mapped to a child Pico ID
         a "name" attribute
-        a "delete_all" key mapped to a true value
+        a "delete_all" key mapped to a boolean value
     OUT: A map containing the picos to be deleted
         If "id" is provided the child pico with that ID will be in the map
         If "name" is provided all picos with that name will be in the map
@@ -221,6 +221,10 @@ ruleset io.picolabs.wrangler {
           "eci":engine:listChannels(picoID).filter(function(channel){channel{"name"} == "admin" && channel{type} == "secret"})[0]
         }
       }).collect(function(map){map{"id"}})
+    }
+    
+    isPicoMarkedForDeath = function() {
+      ent:marked_for_death.defaultsTo(false)
     }
 // ********************************************************************************************
 // ***                                      Rulesets                                        ***
@@ -929,7 +933,7 @@ ruleset io.picolabs.wrangler {
     if domain && not ent:marked_for_death then
     noop()
     fired {
-      ent:registered_for_cleanup := ent:registered_for_cleanup.append(domain);
+      ent:registered_for_cleanup := ent:registered_for_cleanup.defaultsTo([]).append(domain);
     }
     else {
       raise wrangler event "cleanup_domain_registration_failure" attributes event:attrs.put(

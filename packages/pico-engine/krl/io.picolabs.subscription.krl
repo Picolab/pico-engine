@@ -165,6 +165,86 @@ ent:established [
       raise wrangler event "wellKnown_Rx_not_created" attributes event:attrs; //exists
     }
   }
+  
+  rule register_for_cleanup {
+    select when wrangler ruleset_added where event:attr("rids") >< meta:rid
+    always {
+      raise wrangler event "ruleset_needs_cleanup_period" attributes {
+        "domain":meta:rid
+      }
+    }
+  }
+  
+  
+  rule cleanup_subscriptions {
+    select when wrangler rulesets_need_to_cleanup
+    always {
+      raise wrangler event "cancel_subscriptions" attributes event:attrs
+    }
+  }
+  
+  rule done_cleaning_up {
+    select when wrangler subscriptions_cancelled
+    if wrangler:isMarkedForDeath() then
+    noop()
+    fired {
+      raise wrangler event "cleanup_finished" attributes {
+        "domain":meta:rid
+      }
+    }
+  }
+  
+  rule cancel_all_subscriptions {
+    select when wrangler cancel_subscriptions
+    pre {
+      establishedSubIDs = ent:established.map(function(sub){sub{"Id"}})
+      inboundSubIDs = ent:inbound.map(function(inSub){inSub{"Id"}})
+      outboundSubIDs = ent:outbound.map(function(outSub){outSub{"Id"}})
+    }
+    always {
+    raise wrangler event "cancel_relationships" attributes event:attrs
+                                                           .put("establishedIDs", establishedSubIDs)
+                                                           .put("inboundIDs", inboundSubIDs)
+                                                           .put("outboundIDs", outboundSubIDs)
+  
+    }      
+  }
+  
+  rule cancel_established {
+    select when wrangler cancel_relationships
+    foreach event:attr("establishedIDs") setting(subID)
+    always {
+      raise wrangler event "subscription_cancellation" attributes event:attrs
+                                                                  .put("Id", subID)
+                                                                  .delete("establishedIDs") //No need to move giant arrays through event chain
+                                                                  .delete("inboundIDs")
+                                                                  .delete("outboundIDs")
+    }
+  }
+  
+  rule cancel_inbound {
+    select when wrangler cancel_relationships
+    foreach event:attr("inboundIDs") setting(subID)
+    always {
+      raise wrangler event "inbound_rejection" attributes event:attrs
+                                                                  .put("Id", subID)
+                                                                  .delete("establishedIDs")
+                                                                  .delete("inboundIDs")
+                                                                  .delete("outboundIDs")
+    }
+  }
+  
+  rule cancel_outbound {
+    select when wrangler cancel_relationships
+    foreach event:attr("outboundIDs") setting(subID)
+    always {
+      raise wrangler event "outbound_cancellation" attributes event:attrs
+                                                                  .put("Id", subID)
+                                                                  .delete("establishedIDs")
+                                                                  .delete("inboundIDs")
+                                                                  .delete("outboundIDs");
+    }
+  }
 
   //START OF A SUBSCRIPTION'S CREATION
   //For the following comments, consider picoA sending the request to picoB
