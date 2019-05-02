@@ -229,6 +229,13 @@ ruleset io.picolabs.wrangler {
       _rids = ( rids.typeof() == "Array" ) => rids | ( rids.typeof() == "String" ) => rids.split(";") | "" ;
       _rids.map(function(rid) {engine:describeRuleset(rid);});
     }
+    
+    //Given a comma-delimited array or normal array returns a normal array
+     gatherGivenArray = function(attr1, attr2) {
+      items = event:attr(attr1).defaultsTo(event:attr(attr2)).defaultsTo("");
+      item_list = (items.typeof() ==  "Array") => items | items => items.split(re#;#) | [];
+      item_list
+    }
 
     installedRulesets = function() {
       engine:listInstalledRIDs(meta:picoId)
@@ -253,6 +260,7 @@ ruleset io.picolabs.wrangler {
        engine:uninstallRuleset(meta:picoId, rids)
       }returns{}
     }
+    
 
 // ********************************************************************************************
 // ***                                      Channels                                        ***
@@ -372,7 +380,7 @@ ruleset io.picolabs.wrangler {
     pico{"eci"}
   }
 
-    createPico = defaction(name, rids){
+    createPico = defaction(name, rids, rids_from_url){
       every{
         engine:newChannel(meta:picoId, name, "children") setting(parent_channel);// new eci for parent to child
         engine:newPico() setting(child);// newpico
@@ -387,6 +395,7 @@ ruleset io.picolabs.wrangler {
              "id" : child{"id"},
              "eci": channel{"id"},
              "rids_to_install": rids.defaultsTo([]).append(config{"connection_rids"}),
+             "rids_from_url": rids_from_url.defaultsTo([]),
              "rs_attrs":event:attrs
             })
             });
@@ -443,74 +452,32 @@ ruleset io.picolabs.wrangler {
 // ***                                                                                      ***
 // ********************************************************************************************
 
-  // rule installRulesetsIfOnEngine {
-  //   select when wrangler install_rulesets_requested
-  //   pre {
-  //     rids = event:attr("rids").defaultsTo(event:attr("rid")).defaultsTo("")
-  //     rid_list = (rids.typeof() ==  "Array") => rids | rids.split(re#;#)
-  //     valid_rids = rid_list.intersection(registeredRulesets())
-  //     invalid_rids = rid_list.difference(valid_rids)
-  //   }
-  //   if(rids !=  "") && valid_rids.length() > 0 then every{
-  //     noop()//installRulesets(valid_rids) setting(rids)
-  //     //send_directive("rulesets installed", { "rids": rids{"rids"} });
-  //   }
-  //   fired {
-  //     //event:attrs.put(["rids"],rids{"rids"});
-  //     // raise wrangler event "ruleset_added"
-  //     //   attributes event:attrs.put(["rids"], rids{"rids"});
-  //   }
-  //   finally {
-  //     raise wrangler event "install_rulesets_error"
-  //       attributes event:attrs.put(["rids"],invalid_rids) if invalid_rids.length() > 0;
-      
-  //   }
-  // }
   
-  // rule installRulesetsIfURLGiven {
-  //   select when wrangler install_rulesets_requested
-  //   pre{
-  //     url = event:attr("url")
-  //     installed_from_engine = event:attr("rids")
-  //     initial_install = event:attr("init").defaultsTo(false) // if this is a new pico
-  //   }
-  //   if url then every {
-  //     noop();//installRulesetByURL(url) setting(rids)
-  //     //send_directive("rulesets installed", { "rids": rids });
-  //   }
-  //   fired{
-  //     raise wrangler event "ruleset_added"
-  //       attributes event:attrs.put({"rids": installed_from_engine.defaultsTo([]).append(rids)});
-  //   }
-  //   finally {
-  //     raise wrangler event "finish_initialization"
-  //       attributes event:attrs if initial_install == true
-  //   }
-  // }
-  
-  // rule installURLRulesets {
-  //   select when wrangler install_rulesets_requested
-  //   foreach event:attr("urls").defaultsTo([]) setting(url)
-  //   every {
-  //     installRulesetByURL(url) setting(rids)
-  //     send_directive("rulesets installed", { "rids": rids });
-  //   }
-  //   fired{
-  //     raise wrangler event "ruleset_added" 
-  //       attributes event:attrs.put({"rids": rids});
-  //   }
-  // }
+  rule installURLRulesets {
+    select when wrangler install_rulesets_requested
+    foreach gatherGivenArray("urls","url") setting(url)
+    pre{
+      url1 = url.klog("URL: ")
+    }
+    every {
+      installRulesetByURL(url) setting(rids)
+      send_directive("rulesets installed", { "rids": rids });
+    }
+    fired{
+      raise wrangler event "ruleset_added" 
+        attributes event:attrs.put("rids", rids);
+    }
+  }
   
     rule installRulesets {
     select when wrangler install_rulesets_requested
     pre {
-      rids = event:attr("rids").defaultsTo(event:attr("rid")).defaultsTo("")
-      rid_list = (rids.typeof() ==  "Array") => rids | rids.split(re#;#)
+      rid_list = gatherGivenArray("rids", "rid").klog("given array is: ")
       valid_rids = rid_list.intersection(registeredRulesets())
       invalid_rids = rid_list.difference(valid_rids)
       initial_install = event:attr("init").defaultsTo(false) // if this is a new pico
     }
-    if(rids !=  "") && valid_rids.length() > 0 && not event:attr("url") then every{
+    if(rids !=  "") && valid_rids.length() > 0 then every{
       installRulesets(valid_rids) setting(rids)
       send_directive("rulesets installed", { "rids": rids{"rids"} });
     }
@@ -518,46 +485,18 @@ ruleset io.picolabs.wrangler {
       raise wrangler event "ruleset_added"
         attributes event:attrs.put(["rids"], rids{"rids"});
     }
-    else {
-      raise wrangler event "install_ruleset_by_url_requested"
-        attributes event:attrs if event:attr("url");
-      error info "could not install rids: no valid rids provided" if not event:attr("url");
-    }
     finally {
       raise wrangler event "install_rulesets_error"
         attributes event:attrs.put(["rids"],invalid_rids) if invalid_rids.length() > 0;
       raise wrangler event "finish_initialization"
-        attributes event:attrs  if initial_install == true && not event:attr("url");
-      
-    }
-  }
-  
-  
-  rule installURLRuleset {
-    select when wrangler install_ruleset_by_url_requested
-    pre{
-      url = event:attr("url")
-      initial_install = event:attr("init").defaultsTo(false) // if this is a new pico
-    }
-    if url then every {
-      installRulesetByURL(url) setting(rids)
-      send_directive("rulesets installed", { "rids": rids });
-    }
-    fired{
-      raise wrangler event "ruleset_added"
-        attributes event:attrs.put({"rids": rids});
-    }
-    finally {
-      raise wrangler event "finish_initialization"
-        attributes event:attrs if initial_install == true
+        attributes event:attrs  if initial_install == true;
     }
   }
 
   rule uninstallRulesets {
     select when wrangler uninstall_rulesets_requested
     pre {
-      rids = event:attr("rids").defaultsTo("")
-      rid_list = rids.typeof() ==  "array" => rids | rids.split(re#;#)
+      rid_list = gatherGivenArray("rids", "rid")
     } every{
       uninstallRulesets(rid_list)
       send_directive("rulesets uninstalled", {"rids":rid_list});
@@ -616,13 +555,13 @@ ruleset io.picolabs.wrangler {
     pre {
       given_name = event:attr("name").defaultsTo("");
       name = given_name.length() == 0 => randomPicoName() | given_name;
-      rids = event:attr("rids").defaultsTo([]);
-      _rids = (rids.typeof() == "Array" => rids | rids.split(re#;#))
+      rids = gatherGivenArray("rids","rid")
+      url_rids = gatherGivenArray("rids_from_url").klog("url rids are:")
 
     }
     // If we have a name and this pico isn't currently trying to destroy itself
-    if (name) && not (ent:marked_for_death) then every {
-      createPico(name,_rids) setting(child)
+    if (name) && not (isMarkedForDeath()) then every {
+      createPico(name, rids, url_rids) setting(child)
       send_directive("Pico_Created", {"pico":child});
     }
     fired {
@@ -643,7 +582,7 @@ ruleset io.picolabs.wrangler {
     select when wrangler child_creation_failure
       send_directive("Pico_Not_Created", {});
     always {
-      error info <<duplicate Pico name, failed to create pico named #{event:attr("name")}>>;
+      error info <<Failed to create pico>>;
     }
   }
 
@@ -651,12 +590,15 @@ ruleset io.picolabs.wrangler {
     select when wrangler child_created
     pre {
       rids_to_install = event:attr("rids_to_install")
+      rids_to_install_from_url = event:attr("rids_from_url")
     }
     if rids_to_install.length() > 0 then
     noop()
     fired {
       raise wrangler event "install_rulesets_requested"
-        attributes event:attrs.put(["rids"], rids_to_install).put("init", true)
+        attributes event:attrs.put("init", true)
+                              .put(["rids"], rids_to_install)
+                              .put(["urls"], rids_to_install_from_url)
     }
     else {
       raise wrangler event "finish_initialization"
