@@ -32,7 +32,7 @@ ruleset io.picolabs.wrangler {
                               { "domain": "wrangler", "type": "child_creation",
                                 "attrs": [ "name" ] },
                               { "domain": "wrangler", "type": "child_deletion",
-                                "attrs": [ "name"] },
+                                "attrs": [ "name","id","delete_all"] },
                               { "domain": "wrangler", "type": "child_deletion",
                               "attrs": [ "id"] },
                               { "domain": "wrangler", "type": "child_deletion",
@@ -46,7 +46,7 @@ ruleset io.picolabs.wrangler {
                               { "domain": "wrangler", "type": "channel_deletion_requested",
                                 "attrs": [ "eci" ] },
                               { "domain": "wrangler", "type": "install_rulesets_requested",
-                                "attrs": [ "rids" ] },
+                                "attrs": [ "rids","url" ] },
                               { "domain": "wrangler", "type": "deletion_requested",
                                 "attrs": [ ] } ] }
                                 
@@ -54,8 +54,8 @@ ruleset io.picolabs.wrangler {
    //engine:listChannels(meta:picoId)[0]
    //engine:getPicoIDByECI("a");
    skyQuery(meta:eci, "io.picolabs.wrangler", "myself");
-   ent:wrangler_children;
-   engine:listChildren().length()
+  // ent:wrangler_children;
+  // engine:listChildren().length()
   }
 // ********************************************************************************************
 // ***                                                                                      ***
@@ -124,7 +124,7 @@ ruleset io.picolabs.wrangler {
                                "skyQueryReturnValue": response_content});
        is_bad_response = (response_content.isnull() || (response_content == "null") || response_error || response_error_str);
        // if HTTP status was OK & the response was not null and there were no errors...
-       (thisPico) => error | (status == 200 && not is_bad_response ) => response_content | error
+       (status == 200 && not is_bad_response && not thisPico) => response_content | error
      }
      
 
@@ -485,6 +485,19 @@ ruleset io.picolabs.wrangler {
   //   finally {
   //     raise wrangler event "finish_initialization"
   //       attributes event:attrs if initial_install == true
+  //   }
+  // }
+  
+  // rule installURLRulesets {
+  //   select when wrangler install_rulesets_requested
+  //   foreach event:attr("urls").defaultsTo([]) setting(url)
+  //   every {
+  //     installRulesetByURL(url) setting(rids)
+  //     send_directive("rulesets installed", { "rids": rids });
+  //   }
+  //   fired{
+  //     raise wrangler event "ruleset_added" 
+  //       attributes event:attrs.put({"rids": rids});
   //   }
   // }
   
