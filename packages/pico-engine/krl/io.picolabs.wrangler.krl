@@ -159,6 +159,7 @@ ruleset io.picolabs.wrangler {
       every {
         engine:removePico(child_to_delete{"id"})
       }
+
       returns
       {
         "updated_children": child_collection{"dont_delete"},
@@ -567,7 +568,6 @@ ruleset io.picolabs.wrangler {
     fired {
       ent:wrangler_children := {} if ent:wrangler_children.isnull(); // this is bypassed when module is used
       ent:wrangler_children{child{"id"}} := child; // this is bypassed when module is used
-      ent:children := children();
       raise wrangler event "new_child_created"
         attributes child.put("rs_attrs",event:attrs);
       
@@ -631,7 +631,7 @@ ruleset io.picolabs.wrangler {
       ent:id := meta:picoId;
       ent:eci := event:attr("eci");
       ent:wrangler_children := {};
-      ent:children := {};
+      //ent:children := {};
       ent:name := "Root Pico"
     }
   }
@@ -792,7 +792,7 @@ ruleset io.picolabs.wrangler {
     always{
       clear ent:children_being_deleted{picoID};
       raise wrangler event "child_deleted"
-        attributes event:attrs;
+        attributes event:attrs.put("codeRanAt", time:now());
       raise wrangler event "delete_this_pico_if_ready" // for parents in the subtree
         attributes event:attrs
     }
@@ -821,7 +821,6 @@ ruleset io.picolabs.wrangler {
          not (picoID >< extraChildren)
       });
       ent:wrangler_children := ent:wrangler_children.put(ghostChildrenMap); // Possible to do root-level map merge?
-      ent:children := children();
     }
   }
   
