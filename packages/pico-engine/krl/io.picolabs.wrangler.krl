@@ -30,7 +30,7 @@ ruleset io.picolabs.wrangler {
                                 {"name":"test" , "args":[]}],
                   "events": [
                               { "domain": "wrangler", "type": "child_creation",
-                                "attrs": [ "name" ] },
+                                "attrs": [ "name" , "rids"] },
                               { "domain": "wrangler", "type": "child_deletion",
                                 "attrs": [ "name","id","delete_all"] },
                               { "domain": "wrangler", "type": "child_deletion",
@@ -389,17 +389,18 @@ ruleset io.picolabs.wrangler {
         engine:installRuleset(child{"id"},config{"os_rids"});// install child OS
         event:send( // introduce child to itself and parent
           { "eci": channel{"id"},
-            "domain": "wrangler", "type": "child_created",
-            "attrs": ({
-              "parent_eci": parent_channel{"id"},
-             "name": name,
-             "id" : child{"id"},
-             "eci": channel{"id"},
-             "rids_to_install": rids.defaultsTo([]).append(config{"connection_rids"}),
-             "rids_from_url": rids_from_url.defaultsTo([]),
-             "rs_attrs":event:attrs
-            })
-            });
+            "domain": "wrangler", 
+            "type": "child_created",
+            "attrs": 
+                event:attrs.put(({
+                "parent_eci": parent_channel{"id"},
+                "name": name,
+                "id" : child{"id"},
+                "eci": channel{"id"},
+                "rids_to_install": rids.defaultsTo([]).append(config{"connection_rids"}),
+                "rids_from_url": rids_from_url.defaultsTo([])
+            }))
+          });
       }
       returns {
        "parent_eci": parent_channel{"id"},
@@ -484,7 +485,7 @@ ruleset io.picolabs.wrangler {
     }
     fired {
       raise wrangler event "ruleset_added"
-        attributes event:attrs.put(["rids"], rids{"rids"});
+        attributes event:attrs.put(["rids"], rids{"rids"})
     }
     finally {
       raise wrangler event "install_rulesets_error"
@@ -792,7 +793,7 @@ ruleset io.picolabs.wrangler {
     always{
       clear ent:children_being_deleted{picoID};
       raise wrangler event "child_deleted"
-        attributes event:attrs.put("codeRanAt", time:now());
+        attributes event:attrs;
       raise wrangler event "delete_this_pico_if_ready" // for parents in the subtree
         attributes event:attrs
     }
@@ -913,8 +914,9 @@ ruleset io.picolabs.wrangler {
       event:send({"eci":parent_eci(), "domain":"wrangler", "type":"child_ready_for_deletion", "attrs":event:attrs
                                                                                                       .put(getPicoMap())
       })
-      
   }
+  
+  
   
     
 
