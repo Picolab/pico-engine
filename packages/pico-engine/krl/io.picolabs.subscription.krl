@@ -71,9 +71,7 @@ ent:established [
   },...,...
 ]
 */
-    // regex to identify proper formatting of a channel ID
-    TYPICAL_CHANNEL_FORMAT = re#^[a-zA-Z0-9]{22}$#
-    
+
     wellknown_Policy = { // we need to restrict what attributes are allowed on this channel, specifically Id.
       "name": "wellknown",
       "event": {
@@ -265,9 +263,8 @@ ent:established [
       channel_name  = event:attr("name").defaultsTo(random:word())
       channel_type  = event:attr("channel_type").defaultsTo("Tx_Rx","Tx_Rx channel_type used.")
       pending_entry = pending_entry().put(["wellKnown_Tx"],event:attr("wellKnown_Tx"))
-      well_known_matches = event:attr("wellKnown_Tx").defaultsTo("").match(TYPICAL_CHANNEL_FORMAT)
     }
-    if( pending_entry{"wellKnown_Tx"} && well_known_matches) then // check if we have someone to send a request to
+    if( pending_entry{"wellKnown_Tx"}) then // check if we have someone to send a request to
       wrangler:createChannel(meta:picoId, channel_name ,channel_type) setting(channel); // create Rx
     fired {
       newBus        = pending_entry.put({ "Rx" : channel{"id"} });
