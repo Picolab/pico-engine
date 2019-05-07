@@ -217,7 +217,17 @@ $(document).ready(function () {
         for (rid in thePicoInp.ruleset) {
           testing.push({ rid: rid, loggingoff: (/logging$/.test(rid) ? true : null) })
         }
-        callback(null, { pico_id: thePicoInp.id, eci: eci, testing: testing })
+        var theChannels = []
+        Object.keys(thePicoInp.channel).forEach(function (id) {
+          var aChannel = get(thePicoInp, ['channel', id], undefined)
+          if (aChannel) {
+            if (aChannel.type === 'secret' && aChannel.name === 'admin') {
+              aChannel.default = true
+            }
+            theChannels.push(aChannel)
+          }
+        })
+        callback(null, { pico_id: thePicoInp.id, eci: eci, testing: testing, channels: theChannels })
       } else if (tabName === 'channels') {
         var theChannels = []
         var thePolicies = get(dbDump, ['policy'])
@@ -451,9 +461,10 @@ $(document).ready(function () {
               let $editAnchor = $label.next('a')
               if ($editAnchor.next('ul').length === 0) {
                 var rid = $label.text()
-                var eci = theDB.eci
+                var default_eci = theDB.eci
+                var eci = $('#channels-'+theDB.pico_id).val()
                 $.getJSON(
-                  '/sky/cloud/' + eci + '/' + rid + '/__testing',
+                  '/sky/cloud/' + default_eci + '/' + rid + '/__testing',
                   function (c) {
                     $editAnchor.after(
                       capTemplate({ eci: eci, rid: rid, capabilities: c })

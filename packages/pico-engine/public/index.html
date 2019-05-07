@@ -336,6 +336,14 @@
     <script id="testing-template" type="text/x-handlebars-template">
       <div style="float:left;width:40%;height:100%">
         Testing
+        {{#if channels}}
+        with channel
+        <select id="channels-{{pico_id}}">
+        {{#each channels}}
+        <option value="{{id}}"{{#if default}} selected{{/if}}>{{name}} {{type}}</option>
+        {{/each}}
+        </select>
+        {{/if}}
         <ul class="testing-rids">
           {{#each testing}}
             <li>
