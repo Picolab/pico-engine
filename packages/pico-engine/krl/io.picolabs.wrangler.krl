@@ -1,7 +1,7 @@
 /* Rules with a public facing point of entry are camelCase, internal rules are snake_case
    For skyQuery and parent-child trees: 
     wrangler is built so that the parent can skyQuery its children for info at any time, 
-    but children only get information from the parent through event-passing to prevent race conditions 
+    but children only get information from their direct parent through event-passing to prevent race conditions 
 */
 ruleset io.picolabs.wrangler {
   meta {
@@ -18,12 +18,12 @@ ruleset io.picolabs.wrangler {
     logging on
     provides skyQuery ,
     rulesetsInfo,installedRulesets, installRulesets, uninstallRulesets,registeredRulesets, //ruleset
-    channel, alwaysEci, eciFromName, nameFromEci, createChannel, newPolicy,//channel
+    channel, alwaysEci, nameFromEci, createChannel, newPolicy,//channel
     children, parent_eci, name, profile, pico, randomPicoName, deleteChild, pico, myself, isMarkedForDeath
     shares skyQuery ,
     rulesetsInfo,installedRulesets,registeredRulesets, //ruleset
-    channel, alwaysEci, eciFromName, nameFromEci,//channel
-    children, parent_eci, name, profile, pico, randomPicoName, pico,  myself, id, MAX_RAND_ENGL_NAMES, test, isMarkedForDeath, getPicoMap,
+    channel, alwaysEci, nameFromEci,//channel
+    children, parent_eci, name, profile, pico, randomPicoName, pico,  myself, id, MAX_RAND_ENGL_NAMES, test, isMarkedForDeath, getPicoMap, timeForCleanup,
      __testing
   }
   global {
@@ -146,6 +146,10 @@ ruleset io.picolabs.wrangler {
     isMarkedForDeath = function() {
       ent:marked_for_death.defaultsTo(false)
     }
+    
+    timeForCleanup = function() {
+      ent:default_timeout
+    }
 // ********************************************************************************************
 // ***                                      Rulesets                                        ***
 // ********************************************************************************************
@@ -208,10 +212,6 @@ ruleset io.picolabs.wrangler {
     nameFromEci = function(eci){ // internal function call
       channel = channel(eci,null,null);
       channel{"name"}
-    }
-    eciFromName = function(name){
-      channel = channel(name,null,null);
-      channel{"id"}
     }
 
     alwaysEci = function(value){   // always return a eci wether given a eci or name
@@ -616,6 +616,7 @@ ruleset io.picolabs.wrangler {
       ent:id := event:attr("id");
       ent:eci := event:attr("eci");
       ent:wrangler_children := {};
+      ent:default_timeout := {"minutes":5}
     }
   }
 
@@ -765,10 +766,36 @@ ruleset io.picolabs.wrangler {
     select when wrangler intent_to_delete_pico
     always {
       ent:marked_for_death := true;
+      raise visual event "update"
+        attributes {}.put("dname","Deleting").put("color", "#000000");
       raise wrangler event "delete_children" attributes event:attrs
                                                         .put("delete_all", true);
       raise wrangler event "rulesets_need_to_cleanup" attributes event:attrs;
+      schedule wrangler event "pico_cleanup_timed_out" 
+        at time:add(time:now(), ent:default_timeout.defaultsTo({"minutes":5}))
+        attributes event:attrs
+        setting(scheduled_timeout);
+      ent:scheduled_timeout_event := scheduled_timeout
     }  
+  }
+  
+  rule setDeletionTimeoutPeriod {
+    select when wrangler set_timeout_before_pico_deleted
+    pre{
+      new_timeout_obj = event:attr("new_timeout")
+    }
+    if time:add(time:now(), new_timeout_obj) then
+    noop()
+    fired {
+      ent:default_timeout := new_timeout_obj;
+      raise wrangler event "timeout_before_pico_deleted_changed" attributes
+        event:attrs.put("new_timeout", new_timeout_obj)
+     } 
+     // function hard-fails, error-checking not possible
+     //else {
+    //   raise wrangler event "timeout_before_pico_deleted_update_failed" attributes
+    //     event:attrs.put("malformed new timeout time")
+    // } 
   }
   
   rule registerForCleanup {
@@ -788,7 +815,6 @@ ruleset io.picolabs.wrangler {
     }
   }
   
-  
   rule cleanupFinished {
     select when wrangler cleanup_finished
     pre {
@@ -800,21 +826,36 @@ ruleset io.picolabs.wrangler {
       });
     }
   }
+  
+  rule cleanup_timed_out {
+    select when wrangler pico_cleanup_timed_out
+    always{
+      raise wrangler event force_children_deletion attributes event:attrs.put({
+        "delete_all":true
+      });
+      ent:registered_for_cleanup := [];
+    }
+  }
     
   rule is_pico_ready_to_delete {
-    select when wrangler intent_to_delete_pico or
-                wrangler cleanup_finished or
-                wrangler child_ready_for_deletion or
-                wrangler delete_this_pico_if_ready
+    select when wrangler intent_to_delete_pico or // if was ready when first asked to be deleted
+                wrangler cleanup_finished or // if a ruleset just finished cleaning up
+                wrangler child_ready_for_deletion or // if we just deleted a child
+                wrangler delete_this_pico_if_ready or // manual trigger
+                wrangler pico_cleanup_timed_out or // if we timed out waiting for cleanup
+                wrangler pico_forcibly_removed // if we timed out waiting for cleanup and needed to delete picos
     pre {
       ready_to_delete = ent:marked_for_death
                         &&  ent:children_being_deleted.defaultsTo([]).length() == 0
                         &&  ent:registered_for_cleanup.defaultsTo([]).length() == 0;
     }
     if ready_to_delete then
+      every {
+      schedule:remove(ent:scheduled_timeout_event)
       event:send({"eci":parent_eci(), "domain":"wrangler", "type":"child_ready_for_deletion", "attrs":event:attrs
                                                                                                       .put(getPicoMap())
       })
+      }
   }
 
 }//end ruleset
