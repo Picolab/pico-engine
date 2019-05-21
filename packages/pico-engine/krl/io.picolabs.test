@@ -1,0 +1,119 @@
+ruleset io.picolabs.test {
+  meta {
+    shares __testing
+  }
+  global {
+    __testing = { "queries":
+      [ { "name": "__testing" }
+      //, { "name": "entry", "args": [ "key" ] }
+      ] , "events":
+      [ //{ "domain": "d1", "type": "t1" }
+      //, { "domain": "d2", "type": "t2", "attrs": [ "a1", "a2" ] }
+      ]
+    }
+    
+    getTestProgress = function() {
+      
+    }
+    
+    tests = {
+      "Pico Creation": {
+        "kickoff_events": [
+          "wrangler:new_child_request"
+        ],
+        "listeners": {
+          "wrangler:child_initialized" : {
+             "expressions": [
+                ["Child name should exist", <<wrangler:children(event:attrs{"name"})>>],
+                ["Pico should only have one child", <<wrangler:children().length() == 1>>]
+              ]
+          }
+        },
+        "meta": [
+          "use module io.picolabs.wrangler alias wrangler"
+        ],
+        "global":[]
+      }
+    }
+    
+    generateRuleset = function(test, testName) {
+      rid = testName;
+      metaBlock = generateMetaBlock(test{"meta"});
+      globalBlock = generateGlobalBlock(test{"global"});
+      rules = generateRules(test{"listeners"});
+      r
+    }
+    
+    generateMetaBlock = function(metaStrings) {
+      metaStrings.join("\n").defaultsTo("");
+      "meta{" + metaStrings +"}"
+    }
+    
+    
+    generateTestRule = function() {
+      
+    }
+    
+    generateTestCompletionCheckRule = function() {
+      
+    }
+    
+    raiseTestCompletionRule = function() {
+      
+    }
+    
+    
+  }
+  
+  /**
+   * tests = [
+     randomPicoName: {
+       randomPicoName should return a random english word if children <= 200: true // true means passed, fail means test failed
+       randomPicoName should return a UUID if children > 200: true
+     }
+     new_child_request: {
+       New child should be created: false
+       ...
+     }
+     ...
+   ]
+   * tests = [
+      randomPicoName: {
+        kickoff_events: [
+          "wrangler:new_child_request"
+        ]
+        listeners: [
+          "wrangler:child_initialized" : {
+           expressions: [
+              "children(event:attrs{"name"})"
+              "children().length() == 1"
+           ]
+            
+          }
+        ]
+      }
+    ]
+   * 
+   */
+   
+   rule record_test_result {
+     select when test record_result
+     
+   }
+   
+  rule runTests {
+    select when tests run_tests
+    pre {
+      test = event:attr("test")
+      krlCode = generateRuleset(tests{"Pico Creation"})
+    }
+    
+  }
+  
+  
+  
+  rule test_randomPicoName {
+    select when test test_random_pico_name
+    
+  }
+}

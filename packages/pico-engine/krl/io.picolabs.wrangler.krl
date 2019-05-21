@@ -285,7 +285,8 @@ ruleset io.picolabs.wrangler {
                                                                   rogueCheck = allowRogue || (not allowRogue && not pico{"rogue"});
                                                                   nameCheck = not name || (name && name == pico{"name"});
                                                                   (rogueCheck && nameCheck)
-                                                                })).values()
+                                                                })
+                                                                ).values()
     }
     
     getChild = function(id) {
@@ -598,7 +599,7 @@ ruleset io.picolabs.wrangler {
       rids_to_install = event:attr("rids_to_install")
       rids_to_install_from_url = event:attr("rids_from_url")
     }
-    if rids_to_install.length() > 0 then
+    if rids_to_install.length() > 0 || rids_to_install_from_url.length() > 0 then
     noop()
     fired {
       raise wrangler event "install_rulesets_requested"
@@ -655,6 +656,7 @@ ruleset io.picolabs.wrangler {
       }).klog("Found these picos to delete: ");
       picoIDArray = picoIDMap.keys();
     }
+    send_directive("pico_ids_to_delete", {"ids":picoIDArray})
     always {
       ent:children_being_deleted := ent:children_being_deleted.defaultsTo({}).put(picoIDMap).klog("Children being deleted is now: ");
       raise wrangler event "send_intent_to_delete" attributes event:attrs.put({
@@ -667,7 +669,7 @@ ruleset io.picolabs.wrangler {
     select when wrangler send_intent_to_delete
     foreach event:attr("picoIDArray") setting (picoID)
     pre {
-      e = ent:wrangler_children.klog("wrangler children is: ")
+      //e = ent:wrangler_children.klog("wrangler children is: ")
       picoEci = ent:wrangler_children{[picoID.klog("target picoID"), "eci"]};
       attrsToSend = event:attrs.delete("picoIDArray")
   
@@ -684,8 +686,9 @@ ruleset io.picolabs.wrangler {
       picoID = event:attr("id");
     }
     every{
-      engine:removePico(event:attr("id"))
+      engine:removePico(picoID)
       deleteChannel(event:attr("parent_eci"))
+      send_directive("pico_deleted",{"pico":picoID})
     }
     always{
       clear ent:children_being_deleted{picoID};
@@ -739,26 +742,27 @@ ruleset io.picolabs.wrangler {
                                             id_array_a.append(id_array_b);
                                           }, []).append(picoIDArray).klog("full flat array")
     }
+    send_directive("pico_ids_to_force_delete", flatArray)
     always {
       raise wrangler event "picos_to_force_delete_ready" attributes event:attrs
                                                                     .put("picoIDArray", flatArray)
     }
   }
     
-    rule delete_each_pico_id {
-      select when wrangler picos_to_force_delete_ready
-      foreach event:attr("picoIDArray") setting (picoID)
-      
-      engine:removePico(picoID)
-      
-      always {
-        clear ent:wrangler_children{picoID};
-        clear ent:children_being_deleted{picoID}; // if was already trying to be deleted through wrangler
-        raise wrangler event "pico_forcibly_removed" attributes event:attrs
-                                                                   .delete("picoIDArray")
-                                                                   .put("id", picoID)
-      }
+  rule delete_each_pico_id {
+    select when wrangler picos_to_force_delete_ready
+    foreach event:attr("picoIDArray") setting (picoID)
+    
+    engine:removePico(picoID)
+    
+    always {
+      clear ent:wrangler_children{picoID};
+      clear ent:children_being_deleted{picoID}; // if was already trying to be deleted through wrangler
+      raise wrangler event "pico_forcibly_removed" attributes event:attrs
+                                                                 .delete("picoIDArray")
+                                                                 .put("id", picoID)
     }
+  }
   
     //-------------------- CHILD PERSPECTIVE  ----------------------
     
@@ -784,7 +788,7 @@ ruleset io.picolabs.wrangler {
     pre{
       new_timeout_obj = event:attr("new_timeout")
     }
-    if time:add(time:now(), new_timeout_obj) then
+    if time:add(time:now(), new_timeout_obj) then // see if it can be used to determine a new time
     noop()
     fired {
       ent:default_timeout := new_timeout_obj;
@@ -838,12 +842,12 @@ ruleset io.picolabs.wrangler {
   }
     
   rule is_pico_ready_to_delete {
-    select when wrangler intent_to_delete_pico or // if was ready when first asked to be deleted
-                wrangler cleanup_finished or // if a ruleset just finished cleaning up
-                wrangler child_ready_for_deletion or // if we just deleted a child
+    select when wrangler intent_to_delete_pico or     // if was ready when first asked to be deleted
+                wrangler cleanup_finished or          // if a ruleset just finished cleaning up
+                wrangler child_ready_for_deletion or  // if we just deleted a child
                 wrangler delete_this_pico_if_ready or // manual trigger
-                wrangler pico_cleanup_timed_out or // if we timed out waiting for cleanup
-                wrangler pico_forcibly_removed // if we timed out waiting for cleanup and needed to delete picos
+                wrangler pico_cleanup_timed_out or    // if we timed out waiting for cleanup
+                wrangler pico_forcibly_removed        // if we timed out waiting for cleanup and needed to delete picos
     pre {
       ready_to_delete = ent:marked_for_death
                         &&  ent:children_being_deleted.defaultsTo([]).length() == 0

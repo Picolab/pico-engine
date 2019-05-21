@@ -254,14 +254,6 @@ testPE('pico-engine', function (t, pe, rootEci) {
           next(null, ted)
         })
     },
-    function (ted, next) { // eciFromName,
-      pe.runQuery(defaultQueryParams('eciFromName', { name: channel.name })
-        , function (err, data) {
-          if (err) return next(err)
-          t.equals(data, channel.id, 'eciFromName')
-          next(null, ted)
-        })
-    },
     function (ted, next) { // nameFromEci,
       pe.runQuery({
         eci: rootEci,

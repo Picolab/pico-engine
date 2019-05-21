@@ -152,6 +152,19 @@ ent:established [
       event:attr("Id") => // add subscription identifier
                  _roles.put(["Id"], event:attr("Id")) | _roles.put(["Id"], random:uuid())
     }
+    
+    doesConfigMatch = function(config) {
+      config{["entries"]}.klog("entries map")
+        .map(function(regs,k) { //See if any of its entries match with an event:attr and its key
+          var = event:attr(k).klog("with event attr from " + k + "\n"); 
+          matches = not var.isnull() => regs.map(function(regex_str){ 
+                                              var.match(regex_str.as("RegExp").klog("matching with ")).klog("function returned ")})
+                                            .any( function(bool){ bool == true }) 
+                                        | false;
+          matches }).klog("resulting map")
+        .values()
+        .any(function(bool){bool})
+    }
 
   }//end global
 
@@ -496,10 +509,7 @@ ent:established [
    * entryVar: [regEx, regEx, ...]
       }*/                                                                         
       matches = ent:autoAcceptConfig.map(function(config, configName) { // For eaech config
-                                      config{["entries"]}.klog("entries map").map(function(regs,k) { //See if any of its entries match with an event:attr and its key
-                                        var = event:attr(k).klog("with event attr from " + k + "\n"); 
-                                        matches = not var.isnull() => regs.map(function(regex_str){ var.match(regex_str.as("RegExp").klog("matching with ")).klog("function returned ")}).any( function(bool){ bool == true }) | false;
-                                        matches }).klog("resulting map").values().any(function(bool){bool})
+                                      doesConfigMatch(config)
                                     }).klog("final map").values().any(function(bool){bool}) // If any did match then we can approve the subscription
     }
     if matches then noop()
@@ -514,7 +524,7 @@ ent:established [
    * event:attr("config"):
    * {
       configName: "name"
-      password: <password>
+      password: <password> (not in production)
       entries: {
         <entries>
       }
@@ -535,18 +545,19 @@ ent:established [
       givenName = givenConfig["configName"]
       configPassword = givenConfig["password"].defaultsTo("")
       
-      hashedPassword = math:hash("sha256", configPassword) // Not meant to be robust, just so you can't easily query it
+      //hashedPassword = math:hash("sha256", configPassword) // Not meant to be robust, just so you can't easily query it
       config = autoAcceptConfig()
       existingConfig = config[givenName].defaultsTo({})
-      passwordMatch = configMatchesPassword(config, givenName, hashedPassword)
+      //passwordMatch = configMatchesPassword(config, givenName, hashedPassword)
       
-      configToAdd = event:attr("delete") => null | givenConfig.put("password", hashedPassword);
+      configToAdd = event:attr("delete") => null | givenConfig//.put("password", hashedPassword);
       
       }
-    if (givenName.klog("configName") && configPassword.klog("configPassword") && passwordMatch.klog("passwordMatch")) then noop()
+    if (givenName.klog("configName")) then noop()// && configPassword.klog("configPassword") && passwordMatch.klog("passwordMatch")) then noop()
     fired {
       ent:autoAcceptConfig{[givenName]} := configToAdd.klog("added config");
       ent:autoAcceptConfig := ent:autoAcceptConfig.delete(givenName) if event:attr("delete");
+      raise wrangler event "auto_accept_config_updated" attributes event:attrs
         // config.put( [event:attr("variable")] ,
         // config{event:attr("variable")}.defaultsTo([]).append([event:attr("regex_str")])); // possible to add the same regex_str multiple times.
     }
