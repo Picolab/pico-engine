@@ -88,7 +88,6 @@ module.exports = function (core) {
     } else {
       cek = sodium.crypto_box_seal_open(encrytpedKey, pk, sk)
     }
-    // return [cek, senderVK, recipient.header.kid];
 
     switch (recipsOuter.alg) {
       case 'Authcrypt':

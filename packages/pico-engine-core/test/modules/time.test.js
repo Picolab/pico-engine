@@ -29,7 +29,7 @@ test('time module', async function (t) {
   )
 
   t.is(
-    await time['new'](ctx, [1967342]),
+    await time['new'](ctx, [1967342000]),
     '1970-01-23T18:29:02.000Z',
     'Year DayOfYear'
   )

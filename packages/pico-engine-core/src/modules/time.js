@@ -49,7 +49,7 @@ module.exports = function (core) {
         }
 
         var dateStr = ktypes.toString(args.date)
-        var d = ktypes.isNumber(args.date) ? new Date(args.date * 1000) : newDate(dateStr, true)
+        var d = ktypes.isNumber(args.date) ? new Date(args.date) : newDate(dateStr, true)
         if (d === null) {
           if (ktypes.isString(args.date)) {
             throw new Error('time:new was given an invalid date string (' + dateStr + ')')
