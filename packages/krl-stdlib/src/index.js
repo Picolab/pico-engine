@@ -606,7 +606,7 @@ stdlib.reduce = async function (ctx, val, iter, dflt) {
     if (noDefault) {
       return head
     }
-    return iter(ctx, [dflt, head])
+    return iter(ctx, [dflt, head, 0, val])
   }
   var acc = dflt
   var isFirst = true

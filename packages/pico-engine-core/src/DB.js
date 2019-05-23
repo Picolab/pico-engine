@@ -16,6 +16,7 @@ var safeJsonCodec = require('level-json-coerce-null')
 var extractRulesetID = require('./extractRulesetID')
 var engineCoreVersion = require('../package.json').version
 var promiseCallback = require('./promiseCallback')
+const sodium = require('libsodium-wrappers')
 
 // NOTE: for now we are going to default to an allow all policy
 // This makes migrating easier while waiting for krl system rulesets to assume policy usage
@@ -297,7 +298,13 @@ module.exports = function (opts) {
   }))
 
   var newID = cuid
-  var genDID = sovrinDID.gen
+  var genDID = function () {
+    const data = sovrinDID.gen()
+    const indyPairs = sodium.crypto_sign_keypair()
+    data.indyPublic = bs58.encode(Buffer.from(indyPairs.publicKey))
+    data.secret.indyPrivate = bs58.encode(Buffer.from(indyPairs.privateKey))
+    return data
+  }
   if (opts.__use_sequential_ids_for_testing) {
     newID = (function () {
       var prefix = opts.__sequential_id_prefix_for_testing || 'id'
@@ -1147,6 +1154,20 @@ module.exports = function (opts) {
         })
       })
     }),
+
+    getChannelSecrets: async function (eci) {
+      let data
+      try {
+        data = await ldb.get(['channel', eci])
+      } catch (err) {
+        if (err.notFound) {
+          err = new levelup.errors.NotFoundError('ECI not found: ' + ktypes.toString(eci))//eslint-disable-line
+          err.notFound = true
+        }
+        throw err
+      }
+      return data
+    },
 
     getChannelAndPolicy: async function (eci) {
       let data

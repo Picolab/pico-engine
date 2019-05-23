@@ -66,12 +66,13 @@ Open an [issue](https://github.com/picolab/pico-engine/issues/new) and tag @fars
 
 ### Bootstrap
 
-The first time you run the system it will create a root Pico and install two rulesets.
+The first time you run the system it will create a root Pico and install three rulesets.
 
-There are two rulesets used by all Picos:
+There are three rulesets used by all Picos:
 
 - `io.picolabs.wrangler` is used by each Pico to keep track of itself and its children
 - `io.picolabs.visual_params` is used by each Pico to keep track of it in the My Picos page
+- `io.picolabs.subscription` is used by each Pico to keep track of its subscriptions to other picos
 
 ### Using the My Picos page
 
@@ -88,7 +89,6 @@ where you can see its source code.
 
 To make your own ruleset, write your code in the box in the
 Engine Rulesets page.
-Use the "validate" button until the code compiles.
 Then use the "register" button to register this version
 of your code with the engine.
 
@@ -120,7 +120,7 @@ The server is configured via some environment variables.
 - `PICO_ENGINE_HOME` - Where the database and other files should be stored. By default it's `~/.pico-engine/`
 - `PICO_ENGINE_HOST` - The public url prefix to reach this engine. This is the `meta:host` value in KRL. By default it's `"http://localhost:8080"`
 
-The `PORT` is the only valued used in setting up the engine’s [nodejs http server](https://nodejs.org/api/net.html#net_server_listen_port_host_backlog_callback). We only specify the `port` so it listens listens to all traffic on that port, it will not filter by host.
+The `PORT` is the only value used in setting up the engine’s [nodejs http server](https://nodejs.org/api/net.html#net_server_listen_port_host_backlog_callback). We only specify the `port` so it listens listens to all traffic on that port, it will not filter by host.
 
 `PICO_ENGINE_HOST` is simply used for `meta:host` which is just a string that indicates the url prefix you want others to use when talking to the engine.
 

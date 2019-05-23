@@ -90,7 +90,7 @@ var setupLogging = function (pe, bunyanLog) {
   }
 
   var logEntry = function (level, message, context) {
-    context = context || {}// "error" events may be missiong context, log it as far as possible
+    context = context || {}// "error" events may be missing context, log it as far as possible
 
     if (!_.isString(message)) {
       if (_.isError(message)) {
@@ -117,7 +117,10 @@ var setupLogging = function (pe, bunyanLog) {
       message += ' arguments ' + toKRLjson(context.query.args)
     }
 
-    bunyanLog[krlLevelToBunyanLevel(level)]({ krl_level: level, context: context }, message)
+    if (/logging$/.test(context.rid)) {
+    } else {
+      bunyanLog[krlLevelToBunyanLevel(level)]({ krl_level: level, context: context }, message)
+    }
 
     var shellLog = ''
     shellLog += '[' + level.toUpperCase() + '] '

@@ -1,9 +1,11 @@
-var _ = require('lodash')
-var test = require('ava')
-var http = require('http')
-var khttp = require('../../src/modules/http')().def
-var ktypes = require('krl-stdlib/types')
-var testErr = require('../helpers/testErr')
+const _ = require('lodash')
+const test = require('ava')
+const http = require('http')
+const ktypes = require('krl-stdlib/types')
+const testErr = require('../helpers/testErr')
+const httpModule = require('../../src/modules/http')
+
+const khttp = httpModule().def
 
 test('http module', async function (t) {
   var server = http.createServer(function (req, res) {
@@ -224,4 +226,63 @@ test('http module', async function (t) {
     await terr(methods[i], {}, errArg, msgSubstring + 'needs a url string')
     await terr(methods[i], {}, typeErrArg, 'Type' + msgSubstring + 'was given null instead of a url string')
   }
+})
+
+test('http autosend', async function (t) {
+  const signaledEvents = []
+
+  const khttp = httpModule({
+    signalEvent (event) {
+      signaledEvents.push(event)
+    }
+  }).def
+
+  const server = http.createServer(function (req, res) {
+    res.end('some response')
+  })
+  server.unref()
+  await new Promise(function (resolve) {
+    server.listen(0, resolve)
+  })
+  const url = 'http://localhost:' + server.address().port
+
+  const data = await khttp.get({}, {
+    url,
+    autosend: {
+      eci: 'some-eci',
+      domain: 'foo',
+      type: 'bar',
+      attrs: { some: 'data' }
+    }
+  })
+
+  t.deepEqual(data, [undefined], 'should not return anything since it\'s async')
+  t.deepEqual(signaledEvents, [], 'should be empty bc the server has not yet responded')
+
+  await new Promise(function (resolve) {
+    setTimeout(resolve, 100)
+  })
+
+  t.is(signaledEvents.length, 1, 'now there should be a response')
+  delete signaledEvents[0].attrs.headers.date
+
+  t.deepEqual(signaledEvents, [{
+    eci: 'some-eci',
+    domain: 'foo',
+    type: 'bar',
+    eid: 'none',
+    attrs: {
+      some: 'data', // merged in from autosend.attrs
+
+      content: 'some response',
+      content_length: 13,
+      content_type: undefined,
+      status_code: 200,
+      status_line: 'OK',
+      headers: {
+        connection: 'close',
+        'content-length': '13'
+      }
+    }
+  }])
 })
