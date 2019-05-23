@@ -24,7 +24,7 @@ module.exports = function (pe, conf) {
     next()
   })
   app.use(express.static(path.resolve(__dirname, '..', 'public')))
-  app.use(bodyParser.json({ type: 'application/json' }))
+  app.use(bodyParser.json({ type: [ 'application/json', 'application/octet-stream', 'application/ssi-agent-wire' ] }))
   app.use(bodyParser.urlencoded({ limit: '512mb', type: 'application/x-www-form-urlencoded', extended: false }))
 
   app.use(function (req, res, next) { // needed by oauthServer

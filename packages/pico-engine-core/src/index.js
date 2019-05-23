@@ -21,6 +21,7 @@ let RulesetRegistry = require('./RulesetRegistry')
 let normalizeKRLArgs = require('./normalizeKRLArgs')
 let promiseCallback = require('./promiseCallback')
 let krlCompiler = require('krl-compiler')
+const sodium = require('libsodium-wrappers')
 
 const rootKRLScope = SymbolTable()
 _.each(krlStdlib, function (fn, fnName) {
@@ -575,6 +576,8 @@ module.exports = function (conf) {
 
   pe.start = async function (systemRulesets) {
     systemRulesets = systemRulesets || []
+
+    await sodium.ready
 
     await db.checkAndRunMigrations()
 
