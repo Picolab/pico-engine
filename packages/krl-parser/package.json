@@ -33,7 +33,7 @@
     "diff-lines": "^1.1.0",
     "faucet": "0.0.1",
     "lodash": "^4.17.4",
-    "onchange": "^5.2.0",
+    "onchange": "^6.0.0",
     "phonetic": "^0.1.1",
     "standard": "^12.0.1",
     "tape": "^4.6.0"

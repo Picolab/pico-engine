@@ -143,7 +143,7 @@ async function putPVar (ldb, keyPrefix, query, val) {
       value: root
     })
   }
-  return dbOps
+  return filterNullOps(dbOps)
 }
 
 async function appendPVar (ldb, keyPrefix, values) {
@@ -193,7 +193,30 @@ async function appendPVar (ldb, keyPrefix, values) {
       value: val
     })
   })
-  return dbOps
+  return filterNullOps(dbOps)
+}
+
+function filterNullOps (ops) {
+  return ops.filter(function (op) {
+    if (op.type === 'put') {
+      if (ktypes.isNull(op.value)) {
+        if (op.key[op.key.length - 2] === 'value') {
+          return false
+        }
+      }
+    }
+    return true
+  }).map(function (op) {
+    if (ktypes.isMap(op.value)) {
+      // remove nulls from nest Maps, so nested Maps behave the same ast top-level Maps
+      op.value = _.pickBy(op.value, notKRLNull)
+    }
+    return op
+  })
+}
+
+function notKRLNull (v) {
+  return !ktypes.isNull(v)
 }
 
 const getPVar = util.promisify(function (ldb, keyPrefix, query, callback) {
@@ -224,6 +247,12 @@ const getPVar = util.promisify(function (ldb, keyPrefix, query, callback) {
       return callback(null, data.value)
     }
     var value = data.type === 'Array' ? [] : {}
+    if (data.type === 'Array') {
+      value = []
+      for (let i = 0; i < data.length; i++) {
+        value.push(null)
+      }
+    }
     dbRange(ldb, {
       prefix: keyPrefix
     }, function (data) {
@@ -1053,6 +1082,7 @@ module.exports = function (opts) {
       var childIDs = await recursivelyGetAllChildrenPicoIDs(pico.id)
       return ldb.batch([pico.id].concat(childIDs).map(function (id) {
         return {
+          type: 'put',
           key: ['pico-status', id],
           value: status
         }
