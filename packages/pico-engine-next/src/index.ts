@@ -81,7 +81,7 @@ export async function startEngine(settings?: PicoEngineSettings) {
 
   const app = server(pf, conf, uiECI);
   await new Promise((resolve, reject) =>
-    app.listen(conf.port, (err: any) => (err ? reject(err) : resolve()))
+    app.listen(conf.port, () => resolve())
   );
 
   conf.log.info(`Listening at ${conf.base_url}`);
