@@ -1,6 +1,6 @@
 {
   "name": "krl-stdlib",
-  "version": "0.49.2",
+  "version": "0.50.0",
   "description": "Standard library for KRL",
   "main": "src/index.js",
   "scripts": {
