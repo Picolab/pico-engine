@@ -249,3 +249,63 @@ svg line.subscription {
 .no-red:active {
   color: rgb(85,26,139);
 }
+#connection-list label {
+  cursor: pointer;
+}
+#connection-list button {
+  cursor: pointer;
+}
+#connection-list input[type="checkbox"]:checked ~ .connection-detail {
+  display: block;
+}
+#connection-list ul {
+  margin: 0px;
+  padding: 0px;
+  list-style-type: none;
+  width: auto;
+}
+.connection-detail {
+  max-width: 40%;
+  width: fit-content;
+  margin-left: 20px;
+  display: none;
+}
+.connection-detail h4 {
+  margin: 0;
+}
+img.icon {
+  display: inline-block;
+  float: left;
+  width: 25px;
+  height: 25px;
+  margin-right: 1em;
+}
+.connection-detail p {
+  margin: 1px;
+  padding: 0.6em;
+  border-radius: 6px;
+  width: fit-content;
+  background: #F5F5F5;
+}
+.connection-detail p span:before {
+  content: '\A';
+  white-space: pre;
+}
+.connection-detail p span {
+  font-size: 0.7em;
+  font-style: italic;
+}
+.connection-detail p.incoming {
+  margin-right: 3em;
+}
+.connection-detail p.outgoing {
+  float: right;
+  text-align: right;
+  margin-left: 3em;
+}
+.connection-detail hr {
+  clear: both;
+  height: 1px;
+  visibility: hidden;
+  margin: -1px 0;
+}

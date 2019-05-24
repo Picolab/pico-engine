@@ -717,10 +717,9 @@ test('DB - persistent variables', async function (t) {
     value: '[Action]'
   })
 
-  t.is(await get('nan', null), null)
+  t.is(await get('nan', null), void 0)
   t.deepEqual(dump.entvars.p.r.nan, {
-    type: 'Null',
-    value: null
+    type: 'Null'
   })
 })
 
@@ -770,6 +769,21 @@ test('DB - persistent variables array/map', async function (t) {
   // initialzed as array should db dump as an array
   await put('qux', null, ['aaa'])
   await tst('qux', 'Array', ['aaa'], '`qux` is an Array')
+
+  // test that a KRL null value removes the key from the map
+  await put('blah', null, { one: 0, two: null })
+  await tst('blah', 'Map', { one: 0 })
+  await put('blah', null, { one: 0, two: void 0 })
+  await tst('blah', 'Map', { one: 0 })
+  await put('blah', null, { one: 0, two: NaN })
+  await tst('blah', 'Map', { one: 0 })
+  // same for nested maps
+  await put('blah', null, { nest: { one: 0, two: null } })
+  await tst('blah', 'Map', { nest: { one: 0 } })
+  await put('blah', null, { nest: { one: 0, two: void 0 } })
+  await tst('blah', 'Map', { nest: { one: 0 } })
+  await put('blah', null, { nest: { one: 0, two: NaN } })
+  await tst('blah', 'Map', { nest: { one: 0 } })
 })
 
 test('DB - persistent variable append to array', async function (t) {
@@ -868,8 +882,8 @@ test('DB - persistent variable append to array', async function (t) {
     'e',
     'f',
     'g',
-    undefined,
-    undefined,
+    null,
+    null,
     'SKIP'
   ])
 
@@ -918,7 +932,6 @@ test('DB - persistent variable append to array', async function (t) {
   await append('bar', ['hi', 'bye'])
   t.deepEqual(await dump('bar'), [
     ' => {"type":"Array","value":[],"length":3}',
-    'value|0 => null',
     'value|1 => "hi"',
     'value|2 => "bye"'
   ])
@@ -926,22 +939,22 @@ test('DB - persistent variable append to array', async function (t) {
   // append to a null ent var
   await put('bar', null, null)
   t.deepEqual(await dump('bar'), [
-    ' => {"type":"Null","value":null}'
+    ' => {"type":"Null"}'
   ])
   await append('bar', ['hi', 'bye'])
   t.deepEqual(await dump('bar'), [
     ' => {"type":"Array","value":[],"length":3}',
-    'value|0 => null',
     'value|1 => "hi"',
     'value|2 => "bye"'
   ])
+  t.deepEqual(await get('bar'), [null, 'hi', 'bye'])
 
   await put('bar', null, null)
   await append('bar', [])
   t.deepEqual(await dump('bar'), [
-    ' => {"type":"Array","value":[],"length":1}',
-    'value|0 => null'
+    ' => {"type":"Array","value":[],"length":1}'
   ])
+  t.deepEqual(await get('bar'), [null])
 
   // append to a scalar
   await put('baz', null, 'blah')

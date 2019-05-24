@@ -118,8 +118,9 @@
               <li>Channels</li>
               <li>Policies</li>
               <li>Subscriptions</li>
-              <li>Logging</li>
+              <li id="loggingTab-{{id}}">Logging</li>
               <li>Testing</li>
+              <li>Agent</li>
             </ul>
             <div class="pico-section"></div>
           </div>
@@ -144,10 +145,11 @@
       </p>
       <p>
         <b>Note: </b>
-        the ECI is the path into your pico and should be treated as a
-        <em>shared secret</em> between the pico and the application using
-        the pico's Event-Query API.
+        This ECI is a <em>non revocable</em> path into your pico and should
+        be treated as a <em>shared secret</em> between the pico and any
+        application using it in this pico's Event-Query API.
         Do not disclose it or check it into a repository like GitHub.
+        Best practice is to create a new revocable ECI for every usage.
       </p>
       <form class="js-ajax-form" action="/sky/event/{{eci}}/31/visual/update" method="GET">
         <input type="text" name="dname" value="{{dname}}" placeholder="display name">
@@ -293,9 +295,6 @@
     <script id="logging-template" type="text/x-handlebars-template">
       <div>
       Logging
-      {{#if error}}
-        <div style="color:red">{{error}}</div>
-      {{/if}}
       {{#if disabled}}
         is disabled.
         To enable, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rid=io.picolabs.logging">install</a> the "io.picolabs.logging" ruleset
@@ -306,6 +305,15 @@
           <input id="logging-on" type="radio" name="status" value="on"{{#if status}} checked=""{{/if}}>
           <label for="logging-on"> On </label>
         </span>
+        <span style="padding-left:1em">
+        {{#if status}}
+          limited to <input id="episode_limit" size="2"> episodes
+          (of {{episode_count}} from the last 12 hours).
+        {{/if}}
+        </span>
+        {{#if error}}
+          <div style="color:red">{{error}}</div>
+        {{/if}}
         <div id="logging-list">
           <p>
             Select an episode to see the log entries for that episode.
@@ -322,17 +330,26 @@
               {{/each}}
             </ul>
           {{/if}}
-        </div>
       {{/if}}
+      </div>
     </script>
     <script id="testing-template" type="text/x-handlebars-template">
       <div style="float:left;width:40%;height:100%">
         Testing
+        {{#if channels}}
+        with channel
+        <select id="channels-{{pico_id}}">
+        {{#each channels}}
+        <option value="{{id}}"{{#if default}} selected{{/if}}>{{name}} {{type}}</option>
+        {{/each}}
+        </select>
+        {{/if}}
         <ul class="testing-rids">
           {{#each testing}}
             <li>
                 <input type="checkbox" id="testing-{{@index}}">
                 <label class="krlrid" for="testing-{{@index}}">{{this.rid}}</label>
+                {{#if loggingoff}}[logging off]{{/if}}
                 <a href="javascript:window.open('ruleset.html#{{this.rid}}','ruleset');void 0">edit</a>
             </li>
           {{/each}}
@@ -513,6 +530,70 @@
             {{/each}}
           </table>
         {{/if}}
+      {{/if}}
+    </script>
+    <script id="agent-template" type="text/x-handlebars-template">
+      <div id="connection-list">
+      {{#if disabled}}
+        To be an agent, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rids=org.sovrin.agent">install</a> the org.sovrin.agent ruleset
+      {{else}}
+        <a href="https://sovrin.org" target="_blank"><img src="img/SovrinIcon.png" alt="Sovrin Icon" class="icon"></a>
+        {{#if ui.wf}}
+          {{#if ui.wf.url}}<a href="{{ui.wf.url}}" target="_blank">{{/if}}{{#if ui.wf.photo}}<img src="{{ui.wf.photo}}" alt="photo" class="icon">{{else}}{{#if ui.wf.url}}<img src="img/blank-profile-picture.png" alt="blank profile picture" class="icon">{{/if}}{{/if}}{{#if ui.wf.url}}</a>{{/if}}
+        {{/if}}
+        <h2>{{ui.name}}</h2>
+        <form class="js-ajax-form" action="/sky/event/{{eci}}/accept/sovrin/new_invitation">
+        <table><tr>
+          <th align="right">Generated Invitation</th>
+          <td><input id="invite" value="{{ui.invitation}}"></td>
+          <td>
+            <button type="button" onclick="$('#invite').select();document.execCommand('copy')">Copy</button>
+            <button type="button" onclick="window.open($('#invite').val(),'invitation')">View</button>
+          </td>
+        </tr><tr>
+          <th align="right">Received Invitation</th>
+          <td><input type="text" name="url" placeholder="paste invitation URL here"></td>
+          <td><button type="submit">Accept</button></td>
+        </tr></table>
+        </form>
+        {{#if ui.connections}}
+          <h3>Connections</h3>
+          <ul>
+          {{#each ui.connections}}
+            <li id="{{my_did}}">
+              <input type="checkbox" id="connection-{{@index}}">
+              <label for="connection-{{@index}}">{{label}}</label>
+              <div class="connection-detail">
+              <h4>My DID: {{my_did}}</h4>
+              <h4>Their DID: {{their_did}}</h4>
+              {{#if messages}}
+              <h4>Messages:</h4>
+              {{#each messages}}
+              <p class="{{from}}"{{#if color}} style="background:rgb({{color}},0.1)"{{/if}}>{{content}}<span>{{sent_time}}</span></p>
+              <hr>
+              {{/each}}
+              {{/if}}
+              <form class="js-ajax-form" action="/sky/event/{{my_did}}/msg/sovrin/send_basicmessage?their_vk={{their_vk}}" style="float:right">
+                <input name="content">
+                <button>Send</button>
+              </form>
+              <br clear="all">
+              <form class="js-ajax-form" action="/sky/event/{{my_did}}/ping/sovrin/trust_ping_requested?their_vk={{their_vk}}">
+                <button>Send Trust Ping</button>
+              </form>
+              <a class="js-ajax-link" href="/sky/event/{{my_did}}/ui/sovrin/connection_expired?their_vk={{their_vk}}">delete connection with {{label}}</a>
+              </div>
+            </li>
+          {{/each}}
+          </ul>
+        {{else}}
+          <h3>No connections</h3>
+        {{/if}}
+        <h3>Technical details</h3>
+        <input type="checkbox" id="connection-technical-details">
+        <label for="connection-technical-details">shown</label>
+        <pre class="connection-detail">{{text}}</pre>
+        </div>
       {{/if}}
     </script>
   </head>

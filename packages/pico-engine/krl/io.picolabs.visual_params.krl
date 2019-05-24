@@ -1,6 +1,6 @@
 ruleset io.picolabs.visual_params {
   meta {
-    provides dname
+    provides dname, colorRGB
     shares dname, visualInfo, style, __testing
   }
   global {
@@ -31,6 +31,9 @@ ruleset io.picolabs.visual_params {
       b = hexdec2(rgb[2]);
       yiq = (r*0.299)+(g*0.587)+(b*0.114);
       yiq < 128 => "#ffffff" | "#000000"
+    }
+    colorRGB = function() {
+      ent:color.lc().extract(colorP).map(function(x){hexdec2(x)})
     }
     style = function() {
       (ent:width => "width:" + ent:width + "px;" | "")

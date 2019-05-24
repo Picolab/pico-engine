@@ -1,18 +1,35 @@
 ruleset io.picolabs.logging {
   meta {
-    shares __testing, getLogs
+    logging off
+    shares __testing, fmtLogs
   }
   global {
     __testing = { "queries": [ { "name": "__testing" },
-                               { "name": "getLogs" } ],
+                               { "name": "fmtLogs" } ],
                   "events": [ { "domain": "picolog", "type": "reset" },
-                              { "domain": "picolog", "type": "begin" },
-                              { "domain": "picolog", "type": "prune",
-                                "attrs": [ "leaving" ] } ] }
-
-    getLogs = function() {
-      { "status": ent:status,
-        "logs": ent:logs }
+                              { "domain": "picolog", "type": "begin" } ] }
+    fmtLogs = function(){
+      episode_line = function(x,i){
+        level = x{"krl_level"}.uc();
+        x{"time"}+" | [" + level + "] "+x{"msg"}
+      };
+      episode = function(log_entries,key){
+        first_line = log_entries[0];
+        {}.put(
+          first_line{"time"}+" | "+first_line{"msg"},
+          log_entries.map(episode_line)
+        )
+      };
+      url = meta:host+"/api/pico/"+meta:picoId+"/logs";
+      http:get(url){"content"}
+        .decode()
+        .filter(function(x){x})
+        .sort(function(a,b){a{"time"} cmp b{"time"}})
+        .collect(function(x){x{"txn_id"}})
+        .map(episode)
+        .values()
+        .reverse()
+        .reduce(function(a,x){a.put(x)},{})
     }
   }
 
@@ -21,16 +38,6 @@ ruleset io.picolabs.logging {
     noop()
     fired {
       ent:status := false;
-      raise picolog event "empty" attributes {}
-    }
-  }
-
-  rule picolog_empty {
-    select when picolog empty
-    noop()
-    fired {
-      ent:logs := {};
-      raise picolog event "emptied" attributes {}
     }
   }
 
@@ -42,26 +49,9 @@ ruleset io.picolabs.logging {
     }
   }
 
-  rule picolog_prune {
-    select when picolog prune
-    pre {
-      episodes = ent:logs.keys()
-      old_size = episodes.length()
-      remove = old_size - event:attr("leaving")
-      keys_to_remove = remove <= 0 || remove > old_size
-                         => []
-                          | episodes.slice(remove - 1)
-    }
-    if keys_to_remove.length() > 0 then noop()
-    fired {
-      ent:logs := ent:logs.filter(function(v,k){not (keys_to_remove >< k)})
-    }
-  }
-
   rule pico_ruleset_added {
     select when wrangler ruleset_added where event:attr("rids") >< meta:rid
     fired {
-      ent:logs := {};
       ent:status := true;
     }
   }
