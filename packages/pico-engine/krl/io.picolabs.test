@@ -1,31 +1,38 @@
 ruleset io.picolabs.test {
   meta {
-    shares __testing
+    shares __testing, test
   }
   global {
     __testing = { "queries":
       [ { "name": "__testing" }
-      //, { "name": "entry", "args": [ "key" ] }
+      , { "name": "test", "args": [] }
       ] , "events":
       [ //{ "domain": "d1", "type": "t1" }
       //, { "domain": "d2", "type": "t2", "attrs": [ "a1", "a2" ] }
       ]
     }
     
+    test = function() {
+      generateTestStartRule(tests{"Pico Creation"})
+    }
+    
     getTestProgress = function() {
       
     }
     
+    rulesetUnderTest = "io.picolabs.wrangler"
+    
     tests = {
       "Pico Creation": {
-        "kickoff_events": [
-          "wrangler:new_child_request"
-        ],
+        "kickoff_events": {
+          "wrangler:new_child_request":{"name":"blue"}
+        },
         "listeners": {
           "wrangler:child_initialized" : {
              "expressions": [
-                ["Child name should exist", <<wrangler:children(event:attrs{"name"})>>],
-                ["Pico should only have one child", <<wrangler:children().length() == 1>>]
+                ["Child name should exist", <<wrangler:children(event:attrs{"name"})>>]
+               ,["Pico should only have one child", <<wrangler:children().length() == 1>>]
+               ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "blue"}>>]
               ]
           }
         },
@@ -37,11 +44,15 @@ ruleset io.picolabs.test {
     }
     
     generateRuleset = function(test, testName) {
-      rid = testName;
+      rid = meta:rid + "." + testName.replace(re# #, "");
       metaBlock = generateMetaBlock(test{"meta"});
       globalBlock = generateGlobalBlock(test{"global"});
       rules = generateRules(test{"listeners"});
-      r
+      rid + "{" + metaBlock + globalBlock + rules + "}"
+    }
+    
+    generateRules = function() {
+      
     }
     
     generateMetaBlock = function(metaStrings) {
@@ -49,17 +60,125 @@ ruleset io.picolabs.test {
       "meta{" + metaStrings +"}"
     }
     
+    generateGlobalBlock = function(globalStrings) {
+      globalStrings.join("\n").defaultsTo("");
+      areTestsCompleteFn = 
+        <<areTestsComplete = function() {
+          ent:running_tests.map(function(event, expressions) {
+            expressions.map(function(testStatus, testExpr) {
+              testStatus == "failed" || testStatus == "passed" || testStatus == "tried_to_run"
+            }).values().all(function(testAttempted) {testAttempted})
+          })
+          .values()
+          .all(function(testAttempted) {testAttempted})
+        }>>;
+        
+      <<global{ 
+        #{globalStrings}
+        #{areTestsCompleteFn}  
+        }>>
+    }
     
-    generateTestRule = function() {
+    /*
+      rule testStart
+        w test_ruleset installed
+        -> create entity var to hold test progress
+        -> raise kickoff events w their attributes
+        -> schedule a timeout for if any tests hard fail
+    */
+    generateTestStartRule = function(test) {
+      testEntityVar = function(listeners) {
+        listenersToTest = listeners.map(function(properties,listener) {
+          exprStatusMap = properties{"expressions"}.map(function(exp_arr){<< "#{exp_arr[1]}" :"pending",>>}).join("\n");
+        <<"#{listener}" : { #{exprStatusMap} },>>
+        }).values().join("");
+        "ent:running_tests := {"+ listenersToTest +"};\n"
+      };
+      
+      raisedEvents = test{"kickoff_events"}.map(function(event_attrs, event){
+        domain_and_event = event.split(re#:#);
+        <<raise #{domain_and_event[0]} event "#{domain_and_event[1]}" attributes event:attrs.put(#{event_attrs.encode()})>>
+      }).values();
+      
+      scheduledTimeout = << schedule test event "test_timed_out" 
+                              at time:add(time:now(), ent:default_timeout.defaultsTo({"seconds":45}))
+                              attributes event:attrs
+                              setting(scheduled_timeout);
+                            ent:scheduled_timeout_event := scheduled_timeout >>;
+                            
+      <<rule testStart { 
+        select when wrangler ruleset_added where rids >< "#{rulesetUnderTest}" 
+          always{ 
+            #{testEntityVar(test{"listeners"})} 
+            #{raisedEvents.join(";\n")} 
+            
+          } 
+        }>> // rule end
+    }
+    
+    
+    /*
+    rule tests_timed_out ?? use test completion check rule?
+      w test_timeout
+      -> send test results
+    */
+    generateTestTimeoutRule = function(test) {
       
     }
     
+    /*
+      rule test_rule_<UUID>
+        w listener event
+        -> set ent:running_tests "tried to run" for relevant expressions
+        -> raise event if expr_sucess
+        -> raise event if expr_failed
+    */
+    generateTestRule = function(listener, listenerName) {
+      domain_and_event = listenerName.split(re#:#);
+      domain = domain_and_event[0];
+      event = domain_and_event[1];
+      
+      raisedEvents = function(expressions) {
+        expressions.map(function(exprPair){
+            expression = exprPair[1];
+            exprDescription = exprPair[0];
+            attrs = <<event:attrs.put("test_description", #{exprDescription}).put("test_listener", #{listenerName})>>;
+            <<raise event test expression_success attributes #{attrs} if #{expression};
+              raise event test expression_failure attributes #{attrs} if not (#{expression});>>
+        }).join("\n")
+      };
+      
+      <<rule test_rule_#{random:uuid()} {
+        select when #{domain} #{event}
+        always {
+          ent:running_tests{#{listenerName}} := ent:running_tests{#{listenerName}}
+                                                                 .map(function(status,expr) {
+                                                                    "tried_to_run"
+                                                                 });
+         #{raisedEvents(listener{"expressions"})}
+        }
+      } >>
+    }
+    
+    /*
+    rule are_tests_done
+      w expression success or expression failure or tests_timed_out
+      -> unschedule timeout
+      -> send test result back
+    */
     generateTestCompletionCheckRule = function() {
+
       
-    }
-    
-    raiseTestCompletionRule = function() {
-      
+      <<rule are_tests_done {
+        select when test expression_success or
+                    test expression_failure or
+                    test test_timed_out
+        if areTestsComplete() || event:type() == "test_timed_out" then
+          event:send();
+        always {
+          ent:tests_completed := true
+        }
+        } >>// end rule
     }
     
     
