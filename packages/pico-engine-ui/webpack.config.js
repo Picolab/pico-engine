@@ -92,11 +92,11 @@ const conf = {
     stats: "minimal",
     hot: true,
     inline: true,
-    port: 9090,
+    port: 8080,
     proxy: {
-      "/c": "http://localhost:8080",
-      "/api": "http://localhost:8080",
-      "/sky": "http://localhost:8080"
+      "/c": "http://localhost:3000",
+      "/api": "http://localhost:3000",
+      "/sky": "http://localhost:3000"
     }
   }
 };

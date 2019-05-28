@@ -6,8 +6,6 @@ import * as modules from "./modules";
 import { KrlLogger } from "./KrlLogger";
 
 export class RulesetEnvironment {
-  // TODO logger
-
   krl = krl;
 
   SelectWhen = SelectWhen;
@@ -31,7 +29,7 @@ export interface KrlCtx {
  *
  * @param ctx
  *
- * NOTE: not using `class` so we can guarantee privacy.
+ * NOTE: not using `class` so we can guarantee encapsulation.
  */
 export function MakeCtx(
   rsCtx: RulesetContext,

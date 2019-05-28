@@ -21,14 +21,14 @@ export interface PicoEngineSettings {
   /**
    * The port number the http server should listen on
    *
-   * Default: 8080
+   * Default: 3000
    */
   port?: number;
 
   /**
    * The base url others should use when addressing your engine.
    *
-   * Default: "http://localhost:8080"
+   * Default: "http://localhost:3000"
    */
   base_url?: string;
 }
@@ -59,7 +59,7 @@ export function inputToConf(input: PicoEngineSettings = {}): PicoEngineConf {
     home = homeDir(".pico-engine") as string;
   }
   if (!port || !_.isInteger(port) || port < 1) {
-    port = 8080;
+    port = 3000;
   }
   if (typeof base_url !== "string") {
     base_url = `http://localhost:${port}`;

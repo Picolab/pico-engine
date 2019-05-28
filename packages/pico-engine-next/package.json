@@ -67,6 +67,7 @@
     "@types/levelup": "^3.1.0",
     "@types/lodash": "^4.14.123",
     "@types/node": "^12.0.2",
+    "ava": "^1.4.1",
     "onchange": "^6.0.0",
     "scriptsp": "^1.1.1",
     "typescript": "^3.3.4000"
