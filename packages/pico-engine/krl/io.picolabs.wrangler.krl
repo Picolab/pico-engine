@@ -379,9 +379,9 @@ ruleset io.picolabs.wrangler {
       });
     }
     
-    // creates a map with a similar shape of ent:wrangler_children using engine calls, given pico IDs for children of this pico.
-    // Will also try and ask those children if they have wrangler installed and use that info instead if they do
-    // assumes the target picos have an admin channel of type secret
+    // Creates a map with a similar shape of ent:wrangler_children using engine calls, given pico IDs for children of this pico.
+    // Will also try and ask those children if they have wrangler installed and use that info instead if they do.
+    // Assumes the target picos have an admin channel of type secret.
     getChildMapFromIDs = function(picoIDs) {
       picoIDs.collect(function(id){id})
              .map(function(picoIDArray){
@@ -742,7 +742,7 @@ ruleset io.picolabs.wrangler {
                                             id_array_a.append(id_array_b);
                                           }, []).append(picoIDArray).klog("full flat array")
     }
-    send_directive("pico_ids_to_force_delete", flatArray)
+    send_directive("pico_ids_to_force_delete", {"pico_ids":flatArray})
     always {
       raise wrangler event "picos_to_force_delete_ready" attributes event:attrs
                                                                     .put("picoIDArray", flatArray)

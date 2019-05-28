@@ -1,19 +1,51 @@
+/* Rules with a public facing point of entry are camelCase, internal rules are snake_case*/
 ruleset io.picolabs.test {
   meta {
     shares __testing, test
+    use module io.picolabs.wrangler alias wrangler
   }
   global {
     __testing = { "queries":
       [ { "name": "__testing" }
       , { "name": "test", "args": [] }
       ] , "events":
-      [ //{ "domain": "d1", "type": "t1" }
+      [ { "domain": "tests", "type": "run_tests"},
+        { "domain": "tests", "type": "unregister_ruleset"}
       //, { "domain": "d2", "type": "t2", "attrs": [ "a1", "a2" ] }
       ]
     }
     
+    
+      //generateTestStartRule(tests{"Pico Creation"})
+      // ent:register_response;
+      // ent:unregister_response
+      // tests{["Pico Creation", "listeners", "wrangler:child_initialized", "expressions"]}[0][1].klog("under test").typeof();
+    
     test = function() {
-      generateTestStartRule(tests{"Pico Creation"})
+      // parsedMap = 
+      // {
+      //   "key1":"value1",
+      //   "key2":"value2",
+      //   "key3":"value3",
+      //   "key4":{"innerKey":"hello"}
+      // };
+      
+      // //indexing with and without hash path works
+      // usedToIndex = parsedMap{<<key1>>};
+      // usedToIndex2 = parsedMap{[<<key4>>, <<innerKey>>]};
+      
+      // // can use .put
+      // usingPut = parsedMap.put(<<key5>>, "changed");
+      
+      // //cant use in literal as a key
+      // parseError =
+      // {
+      //   "key1":<<value1>>,
+      //   "key2":"value2",
+      //   <<key3>>:"value3" // parse error 
+      // };
+      // usingPut
+      0
     }
     
     getTestProgress = function() {
@@ -43,25 +75,38 @@ ruleset io.picolabs.test {
       }
     }
     
-    generateRuleset = function(test, testName) {
-      rid = meta:rid + "." + testName.replace(re# #, "");
-      metaBlock = generateMetaBlock(test{"meta"});
-      globalBlock = generateGlobalBlock(test{"global"});
-      rules = generateRules(test{"listeners"});
-      rid + "{" + metaBlock + globalBlock + rules + "}"
+    testRid = function(testName) {
+      meta:rid + "." + testName.replace(re# #, "");
     }
     
-    generateRules = function() {
-      
+    generateRuleset = function(test, testName) {
+      rid = testRid(testName);
+      metaBlock = generateMetaBlock(test{"meta"}.klog("meta passing")).klog("generated meta block");
+      globalBlock = generateGlobalBlock(test{"global"});
+      rules = generateRules(test);
+      "ruleset " + rid + "{" + metaBlock + globalBlock + rules + "}"
+    }
+    
+    generateRules = function(test) {
+      testStartRule = generateTestStartRule(test);
+      testRules = test{"listeners"}.map(function(listener, listenerName){
+        generateTestRule(listener, listenerName)
+      }).values().join("\n\n");
+      testCompletionCheckRule = generateTestCompletionCheckRule();
+      <<
+        #{testStartRule}
+        #{testRules}
+        #{testCompletionCheckRule}
+      >>
     }
     
     generateMetaBlock = function(metaStrings) {
-      metaStrings.join("\n").defaultsTo("");
-      "meta{" + metaStrings +"}"
+      metaString = metaStrings.join("\n").defaultsTo("").klog("joined array");
+      "meta{" + metaString +"}"
     }
     
     generateGlobalBlock = function(globalStrings) {
-      globalStrings.join("\n").defaultsTo("");
+      globalString = globalStrings.join("\n").defaultsTo("");
       areTestsCompleteFn = 
         <<areTestsComplete = function() {
           ent:running_tests.map(function(event, expressions) {
@@ -74,7 +119,7 @@ ruleset io.picolabs.test {
         }>>;
         
       <<global{ 
-        #{globalStrings}
+        #{globalString}
         #{areTestsCompleteFn}  
         }>>
     }
@@ -89,7 +134,7 @@ ruleset io.picolabs.test {
     generateTestStartRule = function(test) {
       testEntityVar = function(listeners) {
         listenersToTest = listeners.map(function(properties,listener) {
-          exprStatusMap = properties{"expressions"}.map(function(exp_arr){<< "#{exp_arr[1]}" :"pending",>>}).join("\n");
+          exprStatusMap = properties{"expressions"}.map(function(exp_arr){<< <<#{exp_arr[1]}\>\> :"pending",>>}).join("\n");
         <<"#{listener}" : { #{exprStatusMap} },>>
         }).values().join("");
         "ent:running_tests := {"+ listenersToTest +"};\n"
@@ -114,16 +159,6 @@ ruleset io.picolabs.test {
             
           } 
         }>> // rule end
-    }
-    
-    
-    /*
-    rule tests_timed_out ?? use test completion check rule?
-      w test_timeout
-      -> send test results
-    */
-    generateTestTimeoutRule = function(test) {
-      
     }
     
     /*
@@ -174,7 +209,7 @@ ruleset io.picolabs.test {
                     test expression_failure or
                     test test_timed_out
         if areTestsComplete() || event:type() == "test_timed_out" then
-          event:send();
+          event:send({"eci":wrangler:parent_eci(), "domain":"test", "type":"test_report", "attrs": ent:running_tests})
         always {
           ent:tests_completed := true
         }
@@ -216,23 +251,63 @@ ruleset io.picolabs.test {
    */
    
    rule record_test_result {
-     select when test record_result
+     select when tests record_result
      
    }
    
   rule runTests {
     select when tests run_tests
     pre {
-      test = event:attr("test")
-      krlCode = generateRuleset(tests{"Pico Creation"})
+      tests_to_run = event:attr("tests") || tests
     }
-    
+    always {
+      ent:tests_to_run := tests_to_run;
+      raise tests event "run_each_test" attributes event:attrs.put({
+        "tests":tests.keys()
+        })
+    }
+  }
+  
+  rule run_each_test {
+    select when tests run_each_test
+    foreach event:attr("tests") setting (testName)
+    pre {
+      test = ent:tests_to_run{testName}
+      krlCode = generateRuleset(test, testName)
+      rid = testRid(testName)
+    }
+    // a bit of a hack. 
+    http:post(meta:host + "/api/ruleset/register",
+              form = {
+                "src": krlCode
+              }) setting (register_response)
+    always {
+      register_response.klog("ruleset register response");
+      ent:register_response := register_response;
+      raise wrangler event "new_child_request" attributes event:attrs.put({
+        "rids":[rulesetUnderTest, rid],
+        "name":rid
+      })
+    }
+  }
+  
+  rule receive_test_report {
+    select when test test_report
+    pre {
+      
+    }
   }
   
   
   
-  rule test_randomPicoName {
-    select when test test_random_pico_name
-    
+  rule unregister_test_ruleset {
+    select when tests unregister_ruleset
+    pre {
+      rid_to_remove = "io.picolabs.test.PicoCreation"
+    }
+    http:get(meta:host + "/api/ruleset/unregister/" + rid_to_remove) setting(unregister_response)
+    always {
+      ent:unregister_response := unregister_response
+    }
   }
 }
