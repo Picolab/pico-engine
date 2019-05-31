@@ -1,7 +1,15 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { Dispatch, newChannel, delChannel } from "../../Action";
-import { PicoBox, State, PicoState, Channel } from "../../State";
+import { delChannel, Dispatch, newChannel } from "../../Action";
+import { Channel, PicoBox, PicoState, State } from "../../State";
+import {
+  ParseNViewEventPolicy,
+  ParseNViewQueryPolicy,
+  ViewEventPolicy,
+  ViewQueryPolicy,
+  parseEventPolicy,
+  parseQueryPolicy
+} from "../widgets/ChannelPolicies";
 
 interface PropsFromParent {
   pico: PicoBox;
@@ -28,8 +36,8 @@ class Channels extends React.Component<Props, LocalState> {
       expandedChannels: {},
 
       tags: "one, two",
-      eventPolicy: `{\n"allow": [{"domain":"*","name":"*"}],\n"deny": []\n}`,
-      queryPolicy: `{\n"allow": [{"rid":"*","name":"*"}],\n"deny": []\n}`
+      eventPolicy: `allow *:*`,
+      queryPolicy: `allow */*`
     };
 
     this.addChannel = this.addChannel.bind(this);
@@ -37,18 +45,22 @@ class Channels extends React.Component<Props, LocalState> {
   }
 
   isReadyToAdd(): boolean {
-    const { tags, eventPolicy, queryPolicy } = this.state;
     try {
-      JSON.parse(eventPolicy);
-    } catch (err) {
-      return false;
-    }
-    try {
-      JSON.parse(queryPolicy);
+      this.getNewChannData();
     } catch (err) {
       return false;
     }
     return true;
+  }
+
+  getNewChannData(): any {
+    const { tags, eventPolicy, queryPolicy } = this.state;
+
+    return {
+      tags: tags.split(","),
+      eventPolicy: parseEventPolicy(eventPolicy),
+      queryPolicy: parseQueryPolicy(queryPolicy)
+    };
   }
 
   addChannel(e: React.FormEvent) {
@@ -58,15 +70,8 @@ class Channels extends React.Component<Props, LocalState> {
     }
     const { pico } = this.props;
     const { dispatch } = this.props;
-    let { tags, eventPolicy, queryPolicy } = this.state;
-
-    dispatch(
-      newChannel(pico.eci, {
-        tags: tags.split(","),
-        eventPolicy: JSON.parse(eventPolicy),
-        queryPolicy: JSON.parse(queryPolicy)
-      })
-    );
+    const data = this.getNewChannData();
+    dispatch(newChannel(pico.eci, data));
   }
 
   toggleChannel(checked: boolean, eci: string) {
@@ -157,20 +162,22 @@ class Channels extends React.Component<Props, LocalState> {
                 </div>
                 {isOpen ? (
                   <div className="ml-3">
-                    <div className="row">
-                      <div className="col">
-                        Event Policy
-                        <pre>
-                          {JSON.stringify(channel.eventPolicy, undefined, 2)}
-                        </pre>
+                    {channel.familyChannelPicoID ? (
+                      <div className="text-muted">
+                        This is a family channel.
                       </div>
-                      <div className="col">
-                        Query Policy
-                        <pre>
-                          {JSON.stringify(channel.queryPolicy, undefined, 2)}
-                        </pre>
+                    ) : (
+                      <div className="row">
+                        <div className="col">
+                          Event Policy
+                          <ViewEventPolicy policy={channel.eventPolicy} />
+                        </div>
+                        <div className="col">
+                          Query Policy
+                          <ViewQueryPolicy policy={channel.queryPolicy} />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ) : (
                   ""
@@ -184,33 +191,53 @@ class Channels extends React.Component<Props, LocalState> {
         <form onSubmit={this.addChannel}>
           <div className="form-group">
             <label htmlFor="new-chann-tags">Tags</label>
-            <input
-              id="new-chann-tags"
-              type="text"
-              className="form-control"
-              value={this.state.tags}
-              onChange={e => this.setState({ tags: e.target.value })}
-            />
+            <div className="row">
+              <div className="col">
+                <input
+                  id="new-chann-tags"
+                  type="text"
+                  className="form-control"
+                  value={this.state.tags}
+                  onChange={e => this.setState({ tags: e.target.value })}
+                />
+              </div>
+              <div className="col">Tags</div>
+            </div>
           </div>
+
           <div className="form-group">
             <label htmlFor="new-chann-event-policy">Event Policy</label>
-            <textarea
-              id="new-chann-event-policy"
-              rows={3}
-              className="form-control"
-              value={this.state.eventPolicy}
-              onChange={e => this.setState({ eventPolicy: e.target.value })}
-            />
+            <div className="row">
+              <div className="col">
+                <textarea
+                  id="new-chann-event-policy"
+                  rows={3}
+                  className="form-control"
+                  value={this.state.eventPolicy}
+                  onChange={e => this.setState({ eventPolicy: e.target.value })}
+                />
+              </div>
+              <div className="col">
+                <ParseNViewEventPolicy src={this.state.eventPolicy} />
+              </div>
+            </div>
           </div>
           <div className="form-group">
             <label htmlFor="new-chann-query-policy">Query Policy</label>
-            <textarea
-              id="new-chann-query-policy"
-              rows={3}
-              className="form-control"
-              value={this.state.queryPolicy}
-              onChange={e => this.setState({ queryPolicy: e.target.value })}
-            />
+            <div className="row">
+              <div className="col">
+                <textarea
+                  id="new-chann-query-policy"
+                  rows={3}
+                  className="form-control"
+                  value={this.state.queryPolicy}
+                  onChange={e => this.setState({ queryPolicy: e.target.value })}
+                />
+              </div>
+              <div className="col">
+                <ParseNViewQueryPolicy src={this.state.queryPolicy} />
+              </div>
+            </div>
           </div>
           <button
             type="submit"
