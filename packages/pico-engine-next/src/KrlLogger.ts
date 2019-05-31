@@ -25,7 +25,7 @@ function getStream(filePath: string): WriteStream {
 }
 
 export class KrlLogger {
-  private readonly filePath: string;
+  public readonly filePath: string;
   private readonly ctx: string;
   private readonly fileStream: WriteStream;
 
@@ -40,8 +40,12 @@ export class KrlLogger {
     this.ctx = ctx;
     this.fileStream = getStream(filePath);
 
+    const isTest = process.env.NODE_ENV === "test";
+
     const write = (line: string) => {
-      process.stdout.write(line);
+      if (!isTest) {
+        process.stdout.write(line);
+      }
       this.fileStream.write(line);
     };
 

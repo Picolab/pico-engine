@@ -1,31 +1,79 @@
 import leveldown from "leveldown";
+import * as _ from "lodash";
+import * as makeDir from "make-dir";
+import * as path from "path";
 import { PicoFramework } from "pico-framework";
-import { inputToConf, PicoEngineSettings } from "./configuration";
 import { rsNext } from "./io.picolabs.next";
+import { RulesetEnvironment } from "./KrlCtx";
+import { KrlLogger } from "./KrlLogger";
+import { RulesetRegistry } from "./RulesetRegistry";
 import { server } from "./server";
 
-export async function startEngine(
-  settings?: PicoEngineSettings,
-  dontStartHttp?: boolean
-) {
-  const conf = await inputToConf(settings);
+const homeDir = require("home-dir");
+const version = require("../package.json").version;
 
-  conf.log.info("Starting pico-engine", {
-    home: conf.home,
-    port: conf.port,
-    base_url: conf.base_url,
-    log_path: conf.log_path,
-    db_path: conf.db_path,
-    version: conf.version
-  });
+/**
+ * Configuration options that may be set by the user
+ */
+export interface PicoEngineConfiguration {
+  /**
+   * The absolute path to the folder where the engine should store the database and logs.
+   *
+   * Default: "~/.pico-engine/"
+   */
+  home?: string;
+
+  /**
+   * The port number the http server should listen on.
+   *
+   * If you want an available port assigned to you, set it to 0
+   *
+   * Default: 3000
+   */
+  port?: number;
+
+  /**
+   * The base url others should use when addressing your engine.
+   *
+   * Default: "http://localhost:3000"
+   */
+  base_url?: string;
+}
+
+export interface PicoEngine {
+  version: string;
+
+  home: string;
+  port: number;
+  base_url: string;
+
+  pf: PicoFramework;
+  uiECI: string;
+}
+
+export async function startEngine(
+  configuration: PicoEngineConfiguration = {}
+): Promise<PicoEngine> {
+  let home = configuration.home;
+  let port = configuration.port;
+  let base_url = configuration.base_url;
+
+  if (typeof home !== "string") {
+    home = homeDir(".pico-engine") as string;
+  }
+  await makeDir(home);
+
+  const log = new KrlLogger(path.resolve(home, "pico-engine.log"), "");
+  const rsRegistry = new RulesetRegistry(home);
+  const rsEnvironment = new RulesetEnvironment(log);
 
   const pf = new PicoFramework({
-    leveldown: leveldown(conf.db_path) as any,
+    leveldown: leveldown(path.resolve(home, "db")) as any,
 
-    environment: conf.rsEnvironment,
+    environment: rsEnvironment,
 
     rulesetLoader(rid, version) {
-      return conf.rsRegistry.load(rid, version);
+      return rsRegistry.load(rid, version);
     },
 
     onStartupRulesetInitError(pico, rid, version, config, error) {
@@ -39,10 +87,10 @@ export async function startEngine(
         case "startup":
           break;
         case "startupDone":
-          conf.log.debug("pico-framework started");
+          log.debug("pico-framework started");
           break;
         case "txnQueued":
-          conf.log.debug(ev.type, {
+          log.debug(ev.type, {
             picoId: ev.picoId,
             txnId: ev.txn.id,
             txn: ev.txn
@@ -51,7 +99,7 @@ export async function startEngine(
         case "txnStart":
         case "txnDone":
         case "txnError":
-          conf.log.debug(ev.type, { picoId: ev.picoId, txnId: ev.txn.id });
+          log.debug(ev.type, { picoId: ev.picoId, txnId: ev.txn.id });
           break;
       }
     }
@@ -72,17 +120,28 @@ export async function startEngine(
   });
   const uiECI = uiChannel ? uiChannel.id : "";
 
-  const app = server(pf, conf, uiECI);
+  const app = server(pf, uiECI, rsRegistry);
 
-  if (dontStartHttp === true) {
-    // dont start
-  } else {
-    await new Promise((resolve, reject) =>
-      app.listen(conf.port, () => resolve())
-    );
+  if ((!port || !_.isInteger(port) || port < 1) && port !== 0) {
+    port = 3000;
+  }
+  await new Promise(resolve => {
+    const listener = app.listen(port, () => {
+      if (listener) {
+        const addr = listener.address();
+        if (addr && typeof addr !== "string" && _.isInteger(addr.port)) {
+          // Get the actual port i.e. if they set port to 0 nodejs will assign you an available port
+          port = addr.port;
+        }
+      }
+      resolve();
+    });
+  });
+  if (typeof base_url !== "string") {
+    base_url = `http://localhost:${port}`;
   }
 
-  conf.log.info(`Listening at ${conf.base_url}`);
+  log.info(`Listening at ${base_url}`);
 
   pf.event({
     eci: uiECI,
@@ -91,13 +150,18 @@ export async function startEngine(
     data: { attrs: {} },
     time: 0 // TODO remove this typescript requirement
   }).catch(error => {
-    conf.log.error("Error signaling engine:started event", { error });
+    log.error("Error signaling engine:started event", { error });
     // TODO signal all errors engine:error
   });
 
   return {
-    conf,
+    version,
+
+    home,
+    port,
+    base_url,
+
     pf,
-    app
+    uiECI
   };
 }

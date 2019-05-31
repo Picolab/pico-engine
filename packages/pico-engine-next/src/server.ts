@@ -5,7 +5,9 @@ import * as helmet from "helmet";
 import * as _ from "lodash";
 import * as path from "path";
 import { PicoFramework } from "pico-framework";
-import { PicoEngineConf } from "./configuration";
+import { RulesetRegistry } from "./RulesetRegistry";
+
+const engineVersion = require("../package.json").version;
 
 function mergeGetPost(req: Request) {
   // give preference to post body params
@@ -14,8 +16,8 @@ function mergeGetPost(req: Request) {
 
 export function server(
   pf: PicoFramework,
-  conf: PicoEngineConf,
-  uiECI: string
+  uiECI: string,
+  rsRegistry: RulesetRegistry
 ): Express {
   const app = express();
 
@@ -31,11 +33,11 @@ export function server(
   );
 
   app.get("/api/ui-context", function(req, res, next) {
-    res.json({ version: conf.version, eci: uiECI });
+    res.json({ version: engineVersion, eci: uiECI });
   });
 
   app.get("/api/rulesets", function(req, res, next) {
-    conf.rsRegistry
+    rsRegistry
       .list()
       .then(data => {
         res.json({ rulesets: data });
@@ -44,7 +46,7 @@ export function server(
   });
 
   app.get("/api/ruleset/:rid/:version", function(req, res, next) {
-    conf.rsRegistry
+    rsRegistry
       .get(req.params.rid, req.params.version)
       .then(data => {
         res.json(data);
@@ -57,7 +59,7 @@ export function server(
     if (typeof data.krl !== "string") {
       throw new TypeError("Missing krl source");
     }
-    conf.rsRegistry
+    rsRegistry
       .publish(data.krl)
       .then(data => {
         pf.reInitRuleset(data.rid, data.version)

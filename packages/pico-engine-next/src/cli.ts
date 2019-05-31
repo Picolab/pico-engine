@@ -1,7 +1,6 @@
-import { startEngine } from "./index";
-import { PicoEngineSettings } from "./configuration";
+import { PicoEngineConfiguration, startEngine } from "./index";
 
-const env: PicoEngineSettings = {};
+const env: PicoEngineConfiguration = {};
 
 if (process.env.PORT) {
   const port = parseInt(process.env.PORT, 10);
