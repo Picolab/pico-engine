@@ -779,7 +779,8 @@ ruleset io.picolabs.wrangler {
         at time:add(time:now(), ent:default_timeout.defaultsTo({"minutes":5}))
         attributes event:attrs
         setting(scheduled_timeout);
-      ent:scheduled_timeout_event := scheduled_timeout
+      ent:scheduled_timeout_event := scheduled_timeout;
+      ent:saved_attrs := event:attrs
     }  
   }
   
@@ -857,6 +858,7 @@ ruleset io.picolabs.wrangler {
       every {
       schedule:remove(ent:scheduled_timeout_event)
       event:send({"eci":parent_eci(), "domain":"wrangler", "type":"child_ready_for_deletion", "attrs":event:attrs
+                                                                                                      .put(ent:saved_attrs.defaultsTo({}))
                                                                                                       .put(getPicoMap())
       })
       }

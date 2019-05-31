@@ -1,20 +1,23 @@
 /* Rules with a public facing point of entry are camelCase, internal rules are snake_case*/
 ruleset io.picolabs.test {
   meta {
-    shares __testing, test
+    shares __testing, test, getFullReport, getTestsOverview
     use module io.picolabs.wrangler alias wrangler
   }
   global {
     __testing = { "queries":
       [ { "name": "__testing" }
       , { "name": "test", "args": [] }
+      , { "name": "getFullReport", "args": [] }
+      , { "name": "getTestsOverview", "args": [] }
       ] , "events":
       [ { "domain": "tests", "type": "run_tests"},
-        { "domain": "tests", "type": "unregister_ruleset"}
+        { "domain": "tests", "type": "unregister_ruleset", "attrs":["rid_to_remove"]}
       //, { "domain": "d2", "type": "t2", "attrs": [ "a1", "a2" ] }
       ]
     }
-    
+      
+      // dont forget to schedule timeout for all tests
     
       //generateTestStartRule(tests{"Pico Creation"})
       // ent:register_response;
@@ -45,11 +48,62 @@ ruleset io.picolabs.test {
       //   <<key3>>:"value3" // parse error 
       // };
       // usingPut
-      0
+      ent:test_report
     }
     
-    getTestProgress = function() {
+    
+    
+    getNumOfTests = function(tests) {
+      tests
+      .values().klog("test vals")
+      .reduce(function(num, test_b){
+        numTestsInB = test_b{"listeners"}
+                      .keys()
+                      .reduce(function(num, listener_b){
+                        num + test_b{["listeners",listener_b.klog("listener_b"), "expressions"]}.klog("expressions").length()  
+                      },0);
+        num + numTestsInB.klog("number tests found in listener")
+      }, 0);
+    }
+    
+    getFailedTests = function() {
+      ent:test_report.map(function(listeners, testName) {
+                                listeners.values().klog("values")
+                                         .map(function(exprs, event){
+                                              exprs.filter(function(testStatus, expr){
+                                                      testStatus == "failed" || testStatus == "pending" || testStatus == "tried_to_run"
+                                                   })
+                                                  // .map(function(expr, testStatus){ // add descriptions
+                                                  //     ent:tests_to_run{[testName, ]
+                                                  // })
+                                         })
+                     });
+    }
+    
+    getTestsOverview = function() {
+      numTestsToRun = getNumOfTests(ent:tests_to_run);
+      numTestsHaveRun = ent:test_report.values()
+                                       .reduce(function(numTests, listeners){
+                                            numTests + listeners.values()
+                                                                .reduce(function(num, listener){
+                                                                    num + listener.values().length()
+                                                                }, 0)
+                                       }, 0);
+      percentComplete = numTestsToRun == 0 => 100 | numTestsHaveRun.klog("has run")/numTestsToRun.klog("to run") * 100;
+      hasTimedOut = ent:tests_timed_out.defaultsTo(false);
+      failedTests = hasTimedOut || percentComplete >= 100 => getFailedTests() | null;
+      overviewMap = {
+        "percentComplete":percentComplete,
+        "timedOut":hasTimedOut
+      };
       
+      failedTests =>
+      overviewMap.put("failedTests", failedTests) |
+      overviewMap
+    }
+    
+    getFullReport = function() {
+      ent:test_report
     }
     
     rulesetUnderTest = "io.picolabs.wrangler"
@@ -59,12 +113,13 @@ ruleset io.picolabs.test {
         "kickoff_events": {
           "wrangler:new_child_request":{"name":"blue"}
         },
+        "start_state": <<>>,
         "listeners": {
           "wrangler:child_initialized" : {
              "expressions": [
-                ["Child name should exist", <<wrangler:children(event:attrs{"name"})>>]
+                ["Child name should exist", <<not wrangler:children(event:attrs{"name"})>>]
                ,["Pico should only have one child", <<wrangler:children().length() == 1>>]
-               ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "blue"}>>]
+               ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "red"})>>]
               ]
           }
         },
@@ -76,23 +131,23 @@ ruleset io.picolabs.test {
     }
     
     testRid = function(testName) {
-      meta:rid + "." + testName.replace(re# #, "");
+      meta:rid + "." + rulesetUnderTest + "." + testName.replace(re# #, "");
     }
     
     generateRuleset = function(test, testName) {
       rid = testRid(testName);
       metaBlock = generateMetaBlock(test{"meta"}.klog("meta passing")).klog("generated meta block");
       globalBlock = generateGlobalBlock(test{"global"});
-      rules = generateRules(test);
+      rules = generateRules(test, testName);
       "ruleset " + rid + "{" + metaBlock + globalBlock + rules + "}"
     }
     
-    generateRules = function(test) {
+    generateRules = function(test, testName) {
       testStartRule = generateTestStartRule(test);
       testRules = test{"listeners"}.map(function(listener, listenerName){
         generateTestRule(listener, listenerName)
-      }).values().join("\n\n");
-      testCompletionCheckRule = generateTestCompletionCheckRule();
+      }).values().join(" ");
+      testCompletionCheckRule = generateTestCompletionCheckRule(testName);
       <<
         #{testStartRule}
         #{testRules}
@@ -101,7 +156,7 @@ ruleset io.picolabs.test {
     }
     
     generateMetaBlock = function(metaStrings) {
-      metaString = metaStrings.join("\n").defaultsTo("").klog("joined array");
+      metaString = metaStrings.join(" ").defaultsTo("").klog("joined array");
       "meta{" + metaString +"}"
     }
     
@@ -109,7 +164,7 @@ ruleset io.picolabs.test {
       globalString = globalStrings.join("\n").defaultsTo("");
       areTestsCompleteFn = 
         <<areTestsComplete = function() {
-          ent:running_tests.map(function(event, expressions) {
+          ent:running_tests.map(function(expressions, event) {
             expressions.map(function(testStatus, testExpr) {
               testStatus == "failed" || testStatus == "passed" || testStatus == "tried_to_run"
             }).values().all(function(testAttempted) {testAttempted})
@@ -134,15 +189,16 @@ ruleset io.picolabs.test {
     generateTestStartRule = function(test) {
       testEntityVar = function(listeners) {
         listenersToTest = listeners.map(function(properties,listener) {
-          exprStatusMap = properties{"expressions"}.map(function(exp_arr){<< <<#{exp_arr[1]}\>\> :"pending",>>}).join("\n");
-        <<"#{listener}" : { #{exprStatusMap} },>>
-        }).values().join("");
-        "ent:running_tests := {"+ listenersToTest +"};\n"
+          exprStatusMap = "{}" + properties{"expressions"}.map(function(exp_arr){<<.put(<<#{exp_arr[1]}\>\>, "pending")>>}).join("");
+        <<"#{listener}" : #{exprStatusMap}>>
+        }).values().join(",");
+        "ent:running_tests := {"+ listenersToTest +"};
+        "
       };
       
       raisedEvents = test{"kickoff_events"}.map(function(event_attrs, event){
         domain_and_event = event.split(re#:#);
-        <<raise #{domain_and_event[0]} event "#{domain_and_event[1]}" attributes event:attrs.put(#{event_attrs.encode()})>>
+        <<raise #{domain_and_event[0]} event "#{domain_and_event[1]}" attributes {}.put(#{event_attrs.encode()})>>
       }).values();
       
       scheduledTimeout = << schedule test event "test_timed_out" 
@@ -155,7 +211,8 @@ ruleset io.picolabs.test {
         select when wrangler ruleset_added where rids >< "#{rulesetUnderTest}" 
           always{ 
             #{testEntityVar(test{"listeners"})} 
-            #{raisedEvents.join(";\n")} 
+            #{raisedEvents.join(";
+            ")} 
             
           } 
         }>> // rule end
@@ -173,24 +230,26 @@ ruleset io.picolabs.test {
       domain = domain_and_event[0];
       event = domain_and_event[1];
       
-      raisedEvents = function(expressions) {
+      testExprs = function(expressions) {
         expressions.map(function(exprPair){
             expression = exprPair[1];
             exprDescription = exprPair[0];
-            attrs = <<event:attrs.put("test_description", #{exprDescription}).put("test_listener", #{listenerName})>>;
-            <<raise event test expression_success attributes #{attrs} if #{expression};
-              raise event test expression_failure attributes #{attrs} if not (#{expression});>>
-        }).join("\n")
+            attrs = <<event:attrs.put("test_description", <<#{exprDescription}\>\>).put("test_listener", <<#{listenerName}\>\>)>>;
+            <<ent:running_tests{["#{listenerName}", <<#{expression}\>\>]} := "passed" if #{expression};
+              ent:running_tests{["#{listenerName}", <<#{expression}\>\>]} := "failed" if not (#{expression});>>
+        }).join("
+        ")
       };
       
       <<rule test_rule_#{random:uuid()} {
         select when #{domain} #{event}
         always {
-          ent:running_tests{#{listenerName}} := ent:running_tests{#{listenerName}}
+          ent:running_tests{"#{listenerName}"} := ent:running_tests{"#{listenerName}"}
                                                                  .map(function(status,expr) {
                                                                     "tried_to_run"
                                                                  });
-         #{raisedEvents(listener{"expressions"})}
+         raise test event "test_ran" attributes event:attrs;
+         #{testExprs(listener{"expressions"})}
         }
       } >>
     }
@@ -201,15 +260,14 @@ ruleset io.picolabs.test {
       -> unschedule timeout
       -> send test result back
     */
-    generateTestCompletionCheckRule = function() {
+    generateTestCompletionCheckRule = function(testName) {
 
       
       <<rule are_tests_done {
-        select when test expression_success or
-                    test expression_failure or
+        select when test test_ran or
                     test test_timed_out
         if areTestsComplete() || event:type() == "test_timed_out" then
-          event:send({"eci":wrangler:parent_eci(), "domain":"test", "type":"test_report", "attrs": ent:running_tests})
+          event:send({"eci":wrangler:parent_eci(), "domain":"test", "type":"test_report", "attrs": {"testName" : <<#{testName}\>\>, "report":ent:running_tests}})
         always {
           ent:tests_completed := true
         }
@@ -250,21 +308,28 @@ ruleset io.picolabs.test {
    * 
    */
    
-   rule record_test_result {
-     select when tests record_result
-     
-   }
+  // rule record_test_result {
+  //   select when tests record_result
+  //   pre {
+  //     testsName = event:attrs{
+  //   }
+  //   always {
+  //     ent:test_report{
+  //   }
+  // }
    
   rule runTests {
     select when tests run_tests
     pre {
       tests_to_run = event:attr("tests") || tests
     }
-    always {
-      ent:tests_to_run := tests_to_run;
+    //if not ent:tests_to_run then
+    noop()
+    fired {
+      //ent:tests_to_run := tests_to_run;
       raise tests event "run_each_test" attributes event:attrs.put({
         "tests":tests.keys()
-        })
+      })
     }
   }
   
@@ -284,17 +349,40 @@ ruleset io.picolabs.test {
     always {
       register_response.klog("ruleset register response");
       ent:register_response := register_response;
+      raise test event "unable_to_create_test_ruleset" attributes event:attrs.put("test_with_problem", test) if register_response{"status_code"} != 200;
       raise wrangler event "new_child_request" attributes event:attrs.put({
         "rids":[rulesetUnderTest, rid],
         "name":rid
-      })
+      }) if register_response{"status_code"} == 200
     }
   }
   
   rule receive_test_report {
     select when test test_report
     pre {
-      
+      picoReport = event:attrs
+      testName = event:attrs{"testName"}
+      testReport = event:attrs{"report"}
+    }
+    always {
+      ent:test_report{[testName]} := testReport;
+      raise wrangler event "child_deletion" attributes {
+        "name":testRid(testName),
+        //"co_id":meta:rid,
+        "rid":testRid(testName)
+      }
+    }
+  }
+  
+  rule delete_rid_after_child_deleted {
+    select when wrangler child_deleted
+    pre {
+      completedTestRid = event:attrs{"rid"}
+    }
+    if completedTestRid then
+    noop()
+    fired {
+      raise tests event "unregister_ruleset" attributes event:attrs.put("rid_to_remove", completedTestRid)
     }
   }
   
@@ -303,7 +391,7 @@ ruleset io.picolabs.test {
   rule unregister_test_ruleset {
     select when tests unregister_ruleset
     pre {
-      rid_to_remove = "io.picolabs.test.PicoCreation"
+      rid_to_remove = event:attrs{"rid_to_remove"}.klog("trying to remove rid")
     }
     http:get(meta:host + "/api/ruleset/unregister/" + rid_to_remove) setting(unregister_response)
     always {
