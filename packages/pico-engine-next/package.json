@@ -37,7 +37,8 @@
     "start": "npm run dev -s",
     "dev": "scriptsp -r dev:tsc dev:api",
     "dev:tsc": "tsc -w --preserveWatchOutput",
-    "dev:api": "onchange -i -k dist/ -- node dist/cli.js"
+    "dev:api": "onchange -i -k dist/ -- node dist/cli.js",
+    "test": "ava"
   },
   "dependencies": {
     "body-parser": "^1.18.3",
@@ -68,8 +69,20 @@
     "@types/lodash": "^4.14.123",
     "@types/node": "^12.0.2",
     "ava": "^1.4.1",
+    "cuid": "^2.1.6",
     "onchange": "^6.0.0",
     "scriptsp": "^1.1.1",
+    "temp-dir": "^2.0.0",
+    "ts-node": "^8.2.0",
     "typescript": "^3.3.4000"
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
   }
 }

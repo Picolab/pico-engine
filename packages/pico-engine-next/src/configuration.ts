@@ -1,8 +1,9 @@
 import * as _ from "lodash";
+import * as makeDir from "make-dir";
 import * as path from "path";
 import { RulesetEnvironment } from "./KrlCtx";
-import { RulesetRegistry } from "./RulesetRegistry";
 import { KrlLogger } from "./KrlLogger";
+import { RulesetRegistry } from "./RulesetRegistry";
 
 const homeDir = require("home-dir");
 const version = require("../package.json").version;
@@ -50,7 +51,9 @@ export interface PicoEngineConf {
   rsEnvironment: RulesetEnvironment;
 }
 
-export function inputToConf(input: PicoEngineSettings = {}): PicoEngineConf {
+export async function inputToConf(
+  input: PicoEngineSettings = {}
+): Promise<PicoEngineConf> {
   let home = input.home;
   let port = input.port;
   let base_url = input.base_url;
@@ -58,6 +61,8 @@ export function inputToConf(input: PicoEngineSettings = {}): PicoEngineConf {
   if (typeof home !== "string") {
     home = homeDir(".pico-engine") as string;
   }
+  await makeDir(home);
+
   if (!port || !_.isInteger(port) || port < 1) {
     port = 3000;
   }

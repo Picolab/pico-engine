@@ -1,13 +1,14 @@
 import leveldown from "leveldown";
-import * as makeDir from "make-dir";
-import { PicoFramework, RulesetConfig } from "pico-framework";
-import { Pico } from "pico-framework/dist/src/Pico";
+import { PicoFramework } from "pico-framework";
 import { inputToConf, PicoEngineSettings } from "./configuration";
 import { rsNext } from "./io.picolabs.next";
 import { server } from "./server";
 
-export async function startEngine(settings?: PicoEngineSettings) {
-  const conf = inputToConf(settings);
+export async function startEngine(
+  settings?: PicoEngineSettings,
+  dontStartHttp?: boolean
+) {
+  const conf = await inputToConf(settings);
 
   conf.log.info("Starting pico-engine", {
     home: conf.home,
@@ -18,24 +19,16 @@ export async function startEngine(settings?: PicoEngineSettings) {
     version: conf.version
   });
 
-  await makeDir(conf.home);
-
   const pf = new PicoFramework({
     leveldown: leveldown(conf.db_path) as any,
 
     environment: conf.rsEnvironment,
 
-    rulesetLoader(rid: string, version: string) {
+    rulesetLoader(rid, version) {
       return conf.rsRegistry.load(rid, version);
     },
 
-    onStartupRulesetInitError(
-      pico: Pico,
-      rid: string,
-      version: string,
-      config: RulesetConfig,
-      error: any
-    ) {
+    onStartupRulesetInitError(pico, rid, version, config, error) {
       // TODO mark it as not installed and raise an error event
       // throw error;
       console.error("TODO raise error", pico.id, rid, version, config, error);
@@ -80,9 +73,14 @@ export async function startEngine(settings?: PicoEngineSettings) {
   const uiECI = uiChannel ? uiChannel.id : "";
 
   const app = server(pf, conf, uiECI);
-  await new Promise((resolve, reject) =>
-    app.listen(conf.port, () => resolve())
-  );
+
+  if (dontStartHttp === true) {
+    // dont start
+  } else {
+    await new Promise((resolve, reject) =>
+      app.listen(conf.port, () => resolve())
+    );
+  }
 
   conf.log.info(`Listening at ${conf.base_url}`);
 
@@ -96,4 +94,10 @@ export async function startEngine(settings?: PicoEngineSettings) {
     conf.log.error("Error signaling engine:started event", { error });
     // TODO signal all errors engine:error
   });
+
+  return {
+    conf,
+    pf,
+    app
+  };
 }
