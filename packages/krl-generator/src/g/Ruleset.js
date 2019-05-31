@@ -3,6 +3,9 @@ var _ = require('lodash')
 module.exports = function (ast, ind, gen) {
   var src = ''
   src += ind() + 'ruleset ' + gen(ast.rid) + ' {\n'
+  if (ast.version) {
+    src += ind(1) + 'version ' + gen(ast.version) + '\n'
+  }
   if (!_.isEmpty(ast.meta)) {
     src += ind() + gen(ast.meta, 1) + '\n'
   }
