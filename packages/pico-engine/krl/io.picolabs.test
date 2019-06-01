@@ -25,29 +25,6 @@ ruleset io.picolabs.test {
       // tests{["Pico Creation", "listeners", "wrangler:child_initialized", "expressions"]}[0][1].klog("under test").typeof();
     
     test = function() {
-      // parsedMap = 
-      // {
-      //   "key1":"value1",
-      //   "key2":"value2",
-      //   "key3":"value3",
-      //   "key4":{"innerKey":"hello"}
-      // };
-      
-      // //indexing with and without hash path works
-      // usedToIndex = parsedMap{<<key1>>};
-      // usedToIndex2 = parsedMap{[<<key4>>, <<innerKey>>]};
-      
-      // // can use .put
-      // usingPut = parsedMap.put(<<key5>>, "changed");
-      
-      // //cant use in literal as a key
-      // parseError =
-      // {
-      //   "key1":<<value1>>,
-      //   "key2":"value2",
-      //   <<key3>>:"value3" // parse error 
-      // };
-      // usingPut
       ent:test_report
     }
     
@@ -67,17 +44,26 @@ ruleset io.picolabs.test {
     }
     
     getFailedTests = function() {
+      collectedTests = 
       ent:test_report.map(function(listeners, testName) {
-                                listeners.values().klog("values")
+                                         listeners.klog("values")
                                          .map(function(exprs, event){
-                                              exprs.filter(function(testStatus, expr){
+                                             exprs.filter(function(testStatus, expr){
                                                       testStatus == "failed" || testStatus == "pending" || testStatus == "tried_to_run"
-                                                   })
-                                                  // .map(function(expr, testStatus){ // add descriptions
-                                                  //     ent:tests_to_run{[testName, ]
-                                                  // })
+                                                   }).klog("pre-filter")
+                                                  .keys()
+                                                  .map(function(expr){ // add descriptions
+                                                      testStatus = exprs{expr};
+                                                      ent:tests_to_run{[testName, "listeners", event.klog("event"), "expressions"]}.klog("in tests to run").filter(function(exprArray){
+                                                                                                        exprArray[1].klog("expr comparing against") == expr.klog("expr")
+                                                                                                      }).head().append(testStatus)
+                                                  })
                                          })
                      });
+       // filter out ones that dont have failed tests
+       collectedTests.filter(function(listeners, testName) {
+         listeners.values().any(function(listener){listener.length() > 0})
+       })
     }
     
     getTestsOverview = function() {
@@ -94,10 +80,12 @@ ruleset io.picolabs.test {
       failedTests = hasTimedOut || percentComplete >= 100 => getFailedTests() | null;
       overviewMap = {
         "percentComplete":percentComplete,
-        "timedOut":hasTimedOut
+        "timedOut":hasTimedOut,
+        "numTestsRun":numTestsHaveRun,
+        "numTestsToRun":numTestsToRun
       };
       
-      failedTests =>
+      failedTests.values().length() > 0 =>
       overviewMap.put("failedTests", failedTests) |
       overviewMap
     }
@@ -117,9 +105,9 @@ ruleset io.picolabs.test {
         "listeners": {
           "wrangler:child_initialized" : {
              "expressions": [
-                ["Child name should exist", <<not wrangler:children(event:attrs{"name"})>>]
+                ["Child name should exist", <<wrangler:children(event:attrs{"name"})>>]
                ,["Pico should only have one child", <<wrangler:children().length() == 1>>]
-               ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "red"})>>]
+               ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "blue"})>>]
               ]
           }
         },
@@ -232,7 +220,7 @@ ruleset io.picolabs.test {
       
       testExprs = function(expressions) {
         expressions.map(function(exprPair){
-            expression = exprPair[1];
+            expression = exprPair[1].klog("EXPRESSION HERE TOOODODODODODO");
             exprDescription = exprPair[0];
             attrs = <<event:attrs.put("test_description", <<#{exprDescription}\>\>).put("test_listener", <<#{listenerName}\>\>)>>;
             <<ent:running_tests{["#{listenerName}", <<#{expression}\>\>]} := "passed" if #{expression};
@@ -308,16 +296,6 @@ ruleset io.picolabs.test {
    * 
    */
    
-  // rule record_test_result {
-  //   select when tests record_result
-  //   pre {
-  //     testsName = event:attrs{
-  //   }
-  //   always {
-  //     ent:test_report{
-  //   }
-  // }
-   
   rule runTests {
     select when tests run_tests
     pre {
@@ -328,8 +306,9 @@ ruleset io.picolabs.test {
     fired {
       //ent:tests_to_run := tests_to_run;
       raise tests event "run_each_test" attributes event:attrs.put({
-        "tests":tests.keys()
-      })
+        "tests":tests_to_run.klog("running tests").keys()
+      });
+      ent:tests_to_run := tests_to_run
     }
   }
   
@@ -365,7 +344,7 @@ ruleset io.picolabs.test {
       testReport = event:attrs{"report"}
     }
     always {
-      ent:test_report{[testName]} := testReport;
+      ent:test_report{[testName]} := testReport.klog("TEST REPORT UPDATED");
       raise wrangler event "child_deletion" attributes {
         "name":testRid(testName),
         //"co_id":meta:rid,
