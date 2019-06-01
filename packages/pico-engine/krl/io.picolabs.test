@@ -1,4 +1,15 @@
 /* Rules with a public facing point of entry are camelCase, internal rules are snake_case*/
+/*
+  This ruleset is a test harness written in KRL for the purpose of testing other rulesets.
+  
+  It functions by creating a structure of desired information related to the test, then the ruleset
+  creates a pico for each test. 
+  
+  The user designates which events to start off the test, then provide expressions that 
+  evaluate when specified events occur, ensuring that the pico state is in the desired place
+  when that event has occurred.
+
+*/
 ruleset io.picolabs.test {
   meta {
     shares __testing, test, getFullReport, getTestsOverview
@@ -17,8 +28,11 @@ ruleset io.picolabs.test {
       ]
     }
       
-      // dont forget to schedule timeout for all tests
-    
+      /* todo
+           schedule timeout for all tests
+           remove reliance on wrangler for basic version so wrangler can be tested reliably using ruleset
+           add additional functionality, such as a "start state", "chained events", etc
+      */
       //generateTestStartRule(tests{"Pico Creation"})
       // ent:register_response;
       // ent:unregister_response
@@ -102,10 +116,31 @@ ruleset io.picolabs.test {
           "wrangler:new_child_request":{"name":"blue"}
         },
         "start_state": <<>>,
+        "prototype":<<>>,
         "listeners": {
           "wrangler:child_initialized" : {
              "expressions": [
                 ["Child name should exist", <<wrangler:children(event:attrs{"name"})>>]
+               ,["Pico should only have one child", <<wrangler:children().length() == 1>>]
+               ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "blue"})>>]
+              ]
+          }
+        },
+        "meta": [
+          "use module io.picolabs.wrangler alias wrangler"
+        ],
+        "global":[]
+      },
+      "Pico Deletion": {
+        "kickoff_events": {
+          "wrangler:new_child_request":{"name":"blue", "co_id":"test_id"},
+          "wrangler:child_deletion":{"name":"blue", "co_id":"test_id"}
+        },
+        "start_state": <<>>,
+        "listeners": {
+          "wrangler:child_deleted" : {
+             "expressions": [
+                ["Child name should be the requested child ", <<event:attrs{"name"} == "blue">>]
                ,["Pico should only have one child", <<wrangler:children().length() == 1>>]
                ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "blue"})>>]
               ]
