@@ -32,6 +32,7 @@ ruleset io.picolabs.test {
            schedule timeout for all tests
            remove reliance on wrangler for basic version so wrangler can be tested reliably using ruleset
            add additional functionality, such as a "start state", "chained events", etc
+           debounce running tests
       */
       //generateTestStartRule(tests{"Pico Creation"})
       // ent:register_response;
@@ -39,7 +40,14 @@ ruleset io.picolabs.test {
       // tests{["Pico Creation", "listeners", "wrangler:child_initialized", "expressions"]}[0][1].klog("under test").typeof();
     
     test = function() {
-      ent:test_report
+      //ent:register_response
+      
+      my_str = "This is a string";
+      my_str.replace(re# #, "");
+      //"Thisis a string"
+      my_str_2 = "is is is is is";
+      my_str_2.replace(re#is#, "a")
+      //"a is is is is"
     }
     
     
@@ -96,7 +104,8 @@ ruleset io.picolabs.test {
         "percentComplete":percentComplete,
         "timedOut":hasTimedOut,
         "numTestsRun":numTestsHaveRun,
-        "numTestsToRun":numTestsToRun
+        "numTestsToRun":numTestsToRun,
+        "failedToStart":ent:failed_to_start.defaultsTo("None")
       };
       
       failedTests.values().length() > 0 =>
@@ -110,7 +119,7 @@ ruleset io.picolabs.test {
     
     rulesetUnderTest = "io.picolabs.wrangler"
     
-    tests = {
+    wrangler_tests = {
       "Pico Creation": {
         "kickoff_events": {
           "wrangler:new_child_request":{"name":"blue"}
@@ -141,8 +150,73 @@ ruleset io.picolabs.test {
           "wrangler:child_deleted" : {
              "expressions": [
                 ["Child name should be the requested child ", <<event:attrs{"name"} == "blue">>]
-               ,["Pico should only have one child", <<wrangler:children().length() == 1>>]
-               ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "blue"})>>]
+               ,["Correlation ID should be passed along", <<event:attrs{"co_id"} == "test_id">>]
+               ,["No children should exist", <<wrangler:children().length() == 0>>]
+              ]
+          }
+        },
+        "meta": [
+          "use module io.picolabs.wrangler alias wrangler"
+        ],
+        "global":[]
+      },
+      "Channel Creation": {
+        "kickoff_events": {
+          "wrangler:channel_creation_requested":{"name":"blue","type":"typeC", "co_id":"test_id"}
+        },
+        "start_state": <<>>,
+        "listeners": {
+          "wrangler:channel_created" : {
+             "expressions": [
+                ["Channel name in event attr channel map", <<event:attrs{["channel","name"]} == "blue">>]
+               ,["Channel map should have channel ID", <<event:attrs{["channel","id"]}>>]
+               ,["Channel map should have pico ID", <<event:attrs{["channel","pico_id"]}>>]
+               ,["Channel map should have channel type", <<event:attrs{["channel","type"]}>>]
+               ,["Channel map should have policy ID", <<event:attrs{["channel","policy_id"]}>>]
+               ,["Channel map should have sovrin map", <<event:attrs{["channel","sovrin"]}>>]
+               ,["Channel map should have sovrin map with did value", <<event:attrs{["channel","sovrin","did"]}>>]
+               ,["Channel map should have sovrin map with verifyKey", <<event:attrs{["channel","sovrin","verifyKey"]}>>]
+               ,["Channel map should have sovrin map with encryptionPublicKey", <<event:attrs{["channel","sovrin","encryptionPublicKey"]}>>]
+               ,["Channel should exist when queried for", <<wrangler:channel("blue")>>]
+               ,["Correlation identifier should have been passed through", <<event:attrs{"co_id"} == "test_id">>]
+              ]
+          }
+        },
+        "meta": [
+          "use module io.picolabs.wrangler alias wrangler"
+        ],
+        "global":[]
+      },
+      "Ruleset installation from on engine": {
+        "kickoff_events": {
+          "wrangler:install_rulesets_requested":{"rids":"io.picolabs.policy", "co_id":"test_id"}
+        },
+        "start_state": <<>>,
+        "listeners": {
+          "wrangler:ruleset_added" : {
+             "expressions": [
+                ["Installed ruleset should be in rids attribute", <<event:attrs{"rids"}.klog("RIDS ATTR HAS").any(function(rid){rid == "io.picolabs.policy"})>>]
+               ,["Correlation ID should be passed along", <<event:attrs{"co_id"} == "test_id">>]
+               ,["Direct engine query should yield ruleset as installed", <<engine:listInstalledRIDs().any(function(rid){rid == "io.picolabs.policy"})>>]
+              ]
+          }
+        },
+        "meta": [
+          "use module io.picolabs.wrangler alias wrangler"
+        ],
+        "global":[]
+      },
+      "Ruleset installation from URL": {
+        "kickoff_events": {
+          "wrangler:install_rulesets_requested":{"url":"https://github.com/Picolab/Manifold/raw/master/Manifold_krl/io.picolabs.wovyn_base", "co_id":"test_id"}
+        },
+        "start_state": <<>>,
+        "listeners": {
+          "wrangler:ruleset_added" : {
+             "expressions": [
+                ["Installed ruleset should be in rids attribute", <<event:attrs{"rids"}.any(function(rid){rid == "io.picolabs.wovyn_base"})>>]
+               ,["Correlation ID should be passed along", <<event:attrs{"co_id"} == "test_id">>]
+               ,["Direct engine query should yield ruleset as installed", <<engine:listInstalledRIDs().any(function(rid){rid == "io.picolabs.wovyn_base"})>>]
               ]
           }
         },
@@ -151,10 +225,29 @@ ruleset io.picolabs.test {
         ],
         "global":[]
       }
+      // "Multiple Children": {
+      //   "kickoff_events": {
+      //     "wrangler:channel_creation_requested":{"name":"blue","type":"typeC", "co_id":"test_id"}
+      //   },
+      //   "start_state": <<>>,
+      //   "listeners": {
+      //     "wrangler:child_deleted" : {
+      //       "expressions": [
+      //           ["Child name should be the requested child ", <<event:attrs{"name"} == "blue">>]
+      //         ,["Pico should only have one child", <<wrangler:children().length() == 1>>]
+      //         ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "blue"})>>]
+      //         ]
+      //     }
+      //   },
+      //   "meta": [
+      //     "use module io.picolabs.wrangler alias wrangler"
+      //   ],
+      //   "global":[]
+      // }
     }
     
     testRid = function(testName) {
-      meta:rid + "." + rulesetUnderTest + "." + testName.replace(re# #, "");
+      meta:rid + "." + rulesetUnderTest + "." + testName.replace(re# #g, "");
     }
     
     generateRuleset = function(test, testName) {
@@ -170,11 +263,11 @@ ruleset io.picolabs.test {
       testRules = test{"listeners"}.map(function(listener, listenerName){
         generateTestRule(listener, listenerName)
       }).values().join(" ");
-      testCompletionCheckRule = generateTestCompletionCheckRule(testName);
+      testCompletionCheckRules = generateTestCompletionCheckRules(testName);
       <<
         #{testStartRule}
         #{testRules}
-        #{testCompletionCheckRule}
+        #{testCompletionCheckRules}
       >>
     }
     
@@ -225,15 +318,16 @@ ruleset io.picolabs.test {
       }).values();
       
       scheduledTimeout = << schedule test event "test_timed_out" 
-                              at time:add(time:now(), ent:default_timeout.defaultsTo({"seconds":45}))
-                              attributes event:attrs
+                              at time:add(time:now(), ent:default_timeout.defaultsTo({"seconds":20}))
+                              attributes event:attrs.put("tests_timed_out", true)
                               setting(scheduled_timeout);
-                            ent:scheduled_timeout_event := scheduled_timeout >>;
+                            ent:scheduled_timeout_event := scheduled_timeout; >>;
                             
       <<rule testStart { 
         select when wrangler ruleset_added where rids >< "#{rulesetUnderTest}" 
           always{ 
-            #{testEntityVar(test{"listeners"})} 
+            #{testEntityVar(test{"listeners"})}
+            #{scheduledTimeout}
             #{raisedEvents.join(";
             ")} 
             
@@ -283,18 +377,28 @@ ruleset io.picolabs.test {
       -> unschedule timeout
       -> send test result back
     */
-    generateTestCompletionCheckRule = function(testName) {
+    generateTestCompletionCheckRules = function(testName) {
 
       
       <<rule are_tests_done {
+        select when test test_ran
+        if not areTestsComplete() then
+          noop()
+        fired {
+          last
+        }
+        }
+        
+        rule inform_parent_tests_done {
         select when test test_ran or
                     test test_timed_out
-        if areTestsComplete() || event:type() == "test_timed_out" then
-          event:send({"eci":wrangler:parent_eci(), "domain":"test", "type":"test_report", "attrs": {"testName" : <<#{testName}\>\>, "report":ent:running_tests}})
+        if not ent:tests_completed then
+          event:send({"eci":wrangler:parent_eci(), "domain":"test", "type":"test_report", "attrs": {"testName" : <<#{testName}\>\>, "report":ent:running_tests, "timedOut":event:attrs{"tests_timed_out"}}})
         always {
+          schedule:remove(ent:scheduled_timeout_event);
           ent:tests_completed := true
         }
-        } >>// end rule
+        }>>// end rules
     }
     
     
@@ -334,16 +438,20 @@ ruleset io.picolabs.test {
   rule runTests {
     select when tests run_tests
     pre {
-      tests_to_run = event:attr("tests") || tests
+      tests_to_run = event:attr("tests") || wrangler_tests
     }
-    //if not ent:tests_to_run then
+    if not ent:tests_running then
     noop()
     fired {
       //ent:tests_to_run := tests_to_run;
       raise tests event "run_each_test" attributes event:attrs.put({
         "tests":tests_to_run.klog("running tests").keys()
       });
-      ent:tests_to_run := tests_to_run
+      ent:test_report := {};
+      ent:failed_to_start := {};
+      ent:tests_to_run := tests_to_run;
+      ent:tests_timed_out := false;
+      //ent:tests_running := true;
     }
   }
   
@@ -362,8 +470,10 @@ ruleset io.picolabs.test {
               }) setting (register_response)
     always {
       register_response.klog("ruleset register response");
-      ent:register_response := register_response;
-      raise test event "unable_to_create_test_ruleset" attributes event:attrs.put("test_with_problem", test) if register_response{"status_code"} != 200;
+      ent:register_response := register_response if register_response{"status_code"} != 200;
+      raise test event "unable_to_create_test_ruleset" attributes event:attrs.put("test_with_problem", testName)
+                                                                             .put("rid_to_remove", rid)
+                                                                             .put("error", register_response{"content"}.decode(){"error"}) if register_response{"status_code"} != 200;
       raise wrangler event "new_child_request" attributes event:attrs.put({
         "rids":[rulesetUnderTest, rid],
         "name":rid
@@ -377,6 +487,7 @@ ruleset io.picolabs.test {
       picoReport = event:attrs
       testName = event:attrs{"testName"}
       testReport = event:attrs{"report"}
+      timedOut = event:attrs{"timedOut"}
     }
     always {
       ent:test_report{[testName]} := testReport.klog("TEST REPORT UPDATED");
@@ -384,7 +495,19 @@ ruleset io.picolabs.test {
         "name":testRid(testName),
         //"co_id":meta:rid,
         "rid":testRid(testName)
-      }
+      };
+      ent:tests_timed_out := true if timedOut
+    }
+  }
+  
+  rule failed_to_start_test {
+    select when test unable_to_create_test_ruleset
+    pre {
+      testName = event:attrs{"test_with_problem"}
+    }
+    always {
+      ent:failed_to_start := ent:failed_to_start.defaultsTo({}).put(testName, event:attrs{"error"});
+      clear ent:tests_to_run{testName}
     }
   }
   
@@ -404,6 +527,7 @@ ruleset io.picolabs.test {
   
   rule unregister_test_ruleset {
     select when tests unregister_ruleset
+             or test unable_to_create_test_ruleset
     pre {
       rid_to_remove = event:attrs{"rid_to_remove"}.klog("trying to remove rid")
     }
