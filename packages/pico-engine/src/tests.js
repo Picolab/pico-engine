@@ -21,7 +21,7 @@ test.onFinish(function () {
     testTempDir.unlink()
   }
 })
-
+//
 var getHomePath = function () {
   var homepath = path.resolve(testTempDir.path, _.uniqueId())
   fs.mkdirSync(homepath)
@@ -365,7 +365,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eci: rootEci,
         eid: '94',
         domain: 'wrangler',
-        type: 'install_rulesets_requested ',
+        type: 'install_rulesets_requested',
         attrs: { rids: 'io.picolabs.logging' }
       }, function (err, response) {
         if (err) return next(err)
@@ -1231,5 +1231,35 @@ testPE('pico-engine - Wrangler', async function (t, pe, rootEci) {
   t.equals(found, true, 'found correct channel in deepEqual')// redundant check
   channels = data // update channels cache
 
+// Tests run through KRL
+data = await yEvent(rootEci, 'wrangler/install_rulesets_requested', { rids: 'io.picolabs.test'})
+console.log(data)
+data = await yEvent(rootEci, 'tests/run_tests', { ruleset_under_test: 'io.picolabs.wrangler'})
+console.log(data)
+data = await yQuery(rootEci, 'io.picolabs.wrangler', 'installedRulesets', {})
+console.log(data)
+
+function waitForWranglerTestResults() {
+  return new Promise(function (resolve, reject) {
+      (async function waitForWranglerTests(){
+          data = await yQuery(rootEci, 'io.picolabs.wrangler', 'installedRulesets', {})
+          console.log(data)
+          if (data.some(function(rid){rid == 'io.picolabs.test'})) {
+            data = await yQuery(rootEci, 'io.picolabs.test', 'getTestsOverview', {})
+            console.log(data)
+            if (data) return resolve(data);
+          }
+          setTimeout(waitForWranglerTests, 500);
+      })();
+  });
+}
+
+waitForWranglerTestResults().then(function(data){
+  console.log(data)
+})
+
   // TODO rest
 })
+
+
+

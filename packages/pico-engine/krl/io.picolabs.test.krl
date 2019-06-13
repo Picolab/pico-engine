@@ -22,7 +22,7 @@ ruleset io.picolabs.test {
       , { "name": "getFullReport", "args": [] }
       , { "name": "getTestsOverview", "args": [] }
       ] , "events":
-      [ { "domain": "tests", "type": "run_tests"},
+      [ { "domain": "tests", "type": "run_tests", "attrs":["ruleset_under_test"]},
         { "domain": "tests", "type": "unregister_ruleset", "attrs":["rid_to_remove"]}
       //, { "domain": "d2", "type": "t2", "attrs": [ "a1", "a2" ] }
       ]
@@ -41,13 +41,7 @@ ruleset io.picolabs.test {
     
     test = function() {
       //ent:register_response
-      
-      my_str = "This is a string";
-      my_str.replace(re# #, "");
-      //"Thisis a string"
-      my_str_2 = "is is is is is";
-      my_str_2.replace(re#is#, "a")
-      //"a is is is is"
+      engine:listInstalledRIDs()
     }
     
     
@@ -116,8 +110,6 @@ ruleset io.picolabs.test {
     getFullReport = function() {
       ent:test_report
     }
-    
-    rulesetUnderTest = "io.picolabs.wrangler"
     
     wrangler_tests = {
       "Pico Creation": {
@@ -193,12 +185,13 @@ ruleset io.picolabs.test {
         },
         "start_state": <<>>,
         "listeners": {
-          "wrangler:ruleset_added" : {
+          "wrangler:ruleset_added" : { 
              "expressions": [
                 ["Installed ruleset should be in rids attribute", <<event:attrs{"rids"}.klog("RIDS ATTR HAS").any(function(rid){rid == "io.picolabs.policy"})>>]
                ,["Correlation ID should be passed along", <<event:attrs{"co_id"} == "test_id">>]
                ,["Direct engine query should yield ruleset as installed", <<engine:listInstalledRIDs().any(function(rid){rid == "io.picolabs.policy"})>>]
-              ]
+              ],
+              "eventex":<<where not event:attr("parent_eci")>> // Where not parent_eci attr means this wont be triggered by the rule that installs the test ruleset
           }
         },
         "meta": [
@@ -212,11 +205,30 @@ ruleset io.picolabs.test {
         },
         "start_state": <<>>,
         "listeners": {
-          "wrangler:ruleset_added" : {
+          "wrangler:ruleset_added" : { 
              "expressions": [
-                ["Installed ruleset should be in rids attribute", <<event:attrs{"rids"}.any(function(rid){rid == "io.picolabs.wovyn_base"})>>]
+                ["Installed ruleset should be in rids attribute", <<event:attrs{"rids"}.any(function(rid){rid == "wovyn_base"})>>]
                ,["Correlation ID should be passed along", <<event:attrs{"co_id"} == "test_id">>]
-               ,["Direct engine query should yield ruleset as installed", <<engine:listInstalledRIDs().any(function(rid){rid == "io.picolabs.wovyn_base"})>>]
+               ,["Direct engine query should yield ruleset as installed", <<engine:listInstalledRIDs().any(function(rid){rid == "wovyn_base"})>>]
+              ],
+              "eventex":<<where not event:attr("parent_eci")>> // Where not parent_eci attr means this wont be triggered by the rule that installs the test ruleset
+          }
+        },
+        "meta": [
+          "use module io.picolabs.wrangler alias wrangler"
+        ],
+        "global":[]
+      },
+      "Attempt to install invalid ruleset should inform": {
+        "kickoff_events": {
+          "wrangler:install_rulesets_requested":{"rids":"io.picolabs.policy;nonexistent_ruleset_ajsdjdk", "co_id":"test_id"}
+        },
+        "start_state": <<>>,
+        "listeners": {
+          "wrangler:install_rulesets_error" : { 
+             "expressions": [
+                ["Error event should be raised with ruleset(s) that couldn't be installed", <<event:attrs{"rids"}.any(function(rid){rid == "nonexistent_ruleset_ajsdjdk"})>>]
+               ,["Correlation ID should be passed along", <<event:attrs{"co_id"} == "test_id">>]
               ]
           }
         },
@@ -247,7 +259,7 @@ ruleset io.picolabs.test {
     }
     
     testRid = function(testName) {
-      meta:rid + "." + rulesetUnderTest + "." + testName.replace(re# #g, "");
+      meta:rid + "." + ent:ruleset_under_test + "." + testName.replace(re# #g, "");
     }
     
     generateRuleset = function(test, testName) {
@@ -324,8 +336,8 @@ ruleset io.picolabs.test {
                             ent:scheduled_timeout_event := scheduled_timeout; >>;
                             
       <<rule testStart { 
-        select when wrangler ruleset_added where rids >< "#{rulesetUnderTest}" 
-          always{ 
+        select when wrangler ruleset_added where rids >< "#{ent:ruleset_under_test}"
+          always{
             #{testEntityVar(test{"listeners"})}
             #{scheduledTimeout}
             #{raisedEvents.join(";
@@ -346,6 +358,7 @@ ruleset io.picolabs.test {
       domain_and_event = listenerName.split(re#:#);
       domain = domain_and_event[0];
       event = domain_and_event[1];
+      eventex = listener{"eventex"}.defaultsTo("");
       
       testExprs = function(expressions) {
         expressions.map(function(exprPair){
@@ -359,7 +372,7 @@ ruleset io.picolabs.test {
       };
       
       <<rule test_rule_#{random:uuid()} {
-        select when #{domain} #{event}
+        select when #{domain} #{event} #{eventex}
         always {
           ent:running_tests{"#{listenerName}"} := ent:running_tests{"#{listenerName}"}
                                                                  .map(function(status,expr) {
@@ -393,9 +406,11 @@ ruleset io.picolabs.test {
         select when test test_ran or
                     test test_timed_out
         if not ent:tests_completed then
+        every {
           event:send({"eci":wrangler:parent_eci(), "domain":"test", "type":"test_report", "attrs": {"testName" : <<#{testName}\>\>, "report":ent:running_tests, "timedOut":event:attrs{"tests_timed_out"}}})
-        always {
           schedule:remove(ent:scheduled_timeout_event);
+        }
+        always {
           ent:tests_completed := true
         }
         }>>// end rules
@@ -439,6 +454,8 @@ ruleset io.picolabs.test {
     select when tests run_tests
     pre {
       tests_to_run = event:attr("tests") || wrangler_tests
+      rid_to_test = event:attr("ruleset_under_test")
+      
     }
     if not ent:tests_running then
     noop()
@@ -450,7 +467,9 @@ ruleset io.picolabs.test {
       ent:test_report := {};
       ent:failed_to_start := {};
       ent:tests_to_run := tests_to_run;
+      ent:test_picos := [];
       ent:tests_timed_out := false;
+      ent:ruleset_under_test := rid_to_test
       //ent:tests_running := true;
     }
   }
@@ -475,7 +494,7 @@ ruleset io.picolabs.test {
                                                                              .put("rid_to_remove", rid)
                                                                              .put("error", register_response{"content"}.decode(){"error"}) if register_response{"status_code"} != 200;
       raise wrangler event "new_child_request" attributes event:attrs.put({
-        "rids":[rulesetUnderTest, rid],
+        "rids":[ent:ruleset_under_test, rid, "io.picolabs.logging"],
         "name":rid
       }) if register_response{"status_code"} == 200
     }
@@ -488,6 +507,14 @@ ruleset io.picolabs.test {
       testName = event:attrs{"testName"}
       testReport = event:attrs{"report"}
       timedOut = event:attrs{"timedOut"}
+      //Check if any failed, if they did, keep the pico around
+      failed = testReport.map(function(exprs, listener){
+                                exprs.values().any(function(testStatus){
+                                                      testStatus == "failed" || testStatus == "pending" || testStatus == "tried_to_run"
+                                
+                          })})
+                          .values()
+                          .any(function(testFailed){testFailed})
     }
     always {
       ent:test_report{[testName]} := testReport.klog("TEST REPORT UPDATED");
@@ -495,7 +522,7 @@ ruleset io.picolabs.test {
         "name":testRid(testName),
         //"co_id":meta:rid,
         "rid":testRid(testName)
-      };
+      } if not failed;
       ent:tests_timed_out := true if timedOut
     }
   }
@@ -527,7 +554,7 @@ ruleset io.picolabs.test {
   
   rule unregister_test_ruleset {
     select when tests unregister_ruleset
-             or test unable_to_create_test_ruleset
+             //or test unable_to_create_test_ruleset
     pre {
       rid_to_remove = event:attrs{"rid_to_remove"}.klog("trying to remove rid")
     }
@@ -536,4 +563,71 @@ ruleset io.picolabs.test {
       ent:unregister_response := unregister_response
     }
   }
+
+
+  //-------------------- Without Wrangler Branch  ----------------------
+  // Used to test Wrangler, this sequence of rules perform the tests without making any calls/sending any events to Wrangler
+  
+  
+  // rule run_each_test_wout_wrangler {
+  //   select when tests run_each_test_wout_wrangler
+  //   foreach event:attr("tests") setting (testName)
+  //   pre {
+  //     test = ent:tests_to_run{testName}
+  //     krlCode = generateRuleset(test, testName)
+  //     rid = testRid(testName)
+  //     without_wrangler = event:attrs{"without_wrangler"}
+  //   }
+  //   // a bit of a hack. 
+  //   http:post(meta:host + "/api/ruleset/register",
+  //             form = {
+  //               "src": krlCode
+  //             }) setting (register_response)
+  //   always {
+  //     register_response.klog("ruleset register response");
+  //     ent:register_response := register_response if register_response{"status_code"} != 200;
+  //     raise test event "unable_to_create_test_ruleset" attributes event:attrs.put("test_with_problem", testName)
+  //                                                                           .put("rid_to_remove", rid)
+  //                                                                           .put("error", register_response{"content"}.decode(){"error"}) if register_response{"status_code"} != 200;
+  //     raise test event "test_creation" attributes event:attrs.put({
+  //       "rids":[rulesetUnderTest, rid],
+  //       "name":rid
+  //     }) if register_response{"status_code"} == 200;
+  //     ent:a := 1;
+  //   }
+  //   //on final raise wrangler child_sync
+  // }
+  
+  //   rule create_test_pico_wout_wrangler {
+  //   select when test test_creation
+  //   pre {
+  //     requiredRids = event:attrs{"rids"}.append(["io.picolabs.wrangler", "io.picolabs.subscription"])
+  //     picoName = event:attrs{"name"}
+      
+  //   }
+  //     every{
+  //       engine:newChannel(meta:picoId, picoName, "test_child") setting(parent_channel);// new eci for parent to child
+  //       engine:newPico() setting(child);// newpico
+  //       engine:newChannel(child{"id"}, "main", "wrangler"/*"secret"*/) setting(channel);// new child root eci
+  //       engine:installRuleset(child{"id"},requiredRids);// install child OS
+  //       event:send( // introduce child to itself and parent
+  //         { "eci": channel{"id"},
+  //           "domain": "test", 
+  //           "type": "begin_test",
+  //           "attrs": 
+  //               event:attrs.put(({
+  //               "parent_eci": parent_channel{"id"},
+  //               "name": name,
+  //               "id" : child{"id"},
+  //               "eci": channel{"id"},
+  //               "rids_to_install": rids.defaultsTo([]).append(config{"connection_rids"}),
+  //               "rids_from_url": rids_from_url.defaultsTo([])
+  //           }))
+  //         });
+  //     }
+  //     always {
+  //       ent:test_picos := ent:test_picos.append()
+  //     }
+  // }
 }
+  
