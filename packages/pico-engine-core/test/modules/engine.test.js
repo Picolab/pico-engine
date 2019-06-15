@@ -74,6 +74,45 @@ test('engine:getPicoIDByECI', async function (t) {
   t.is(await get('quux'), void 0, 'eci not found')
 })
 
+test('engine:registerRulesetFromSrc', async function (t) {
+  // var tstErr = _.partial(testError, t)
+
+  var engine = kengine({
+    registerRuleset: tick(function (source, a) {
+      return {
+        src: source,
+        metaData: { meta: 'meta' }
+      }
+    })
+  })
+
+  t.is((await engine.def.registerRulesetFromSrc({}, {
+    src: 'ruleset code'
+  }))[0].src, 'ruleset code')
+
+  t.is((await engine.def.registerRulesetFromSrc({}, {
+    src: 'ruleset code',
+    metaData: { meta: 'meta' }
+  }))[0].src, 'ruleset code')
+
+  t.deepEqual((await engine.def.registerRulesetFromSrc({}, {
+    src: 'ruleset code',
+    metaData: { meta: 'meta' }
+  }))[0].metaData, { meta: 'meta' })
+
+  // await tstErr(
+  //   engine.def.registerRulesetFromSrc({}, []),
+  //   'Error: engine:registerRuleset needs a url string',
+  //   'no url is given'
+  // )
+
+  // await tstErr(
+  //   engine.def.registerRulesetFromSrc({}, [_.noop]),
+  //   'TypeError: engine:registerRuleset was given [Function] instead of a url string',
+  //   'wrong url type'
+  // )
+})
+
 test('engine:registerRuleset', async function (t) {
   var tstErr = _.partial(testError, t)
 

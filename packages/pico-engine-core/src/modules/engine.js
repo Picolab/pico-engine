@@ -2,6 +2,7 @@ let _ = require('lodash')
 let bs58 = require('bs58')
 let urllib = require('url')
 let ktypes = require('krl-stdlib/types')
+let krlParser = require('krl-parser')
 let mkKRLfn = require('../mkKRLfn')
 let sovrinDID = require('sovrin-did')
 let mkKRLaction = require('../mkKRLaction')
@@ -126,6 +127,21 @@ module.exports = function (core) {
     listAllEnabledRIDs: mkKRLfn([
     ], function (ctx, args) {
       return core.db.listAllEnabledRIDs()
+    }),
+
+    doesKRLParse: mkKRLfn([
+      'src'
+    ], async function (ctx, args) {
+      let srcGiven = _.has(args, 'src')
+      if (!srcGiven || !ktypes.isString(args.src)) {
+        throw new TypeError('engine:doesKRLParse needs a KRL source string, but was given ' + ktypes.toString(args.src))
+      }
+      try {
+        let ast = krlParser(args.src, {})
+        return { 'parsed': true, 'ast': ast }
+      } catch (err) {
+        return { 'parsed': false, 'errorLoc': err.where }
+      }
     }),
 
     describeRuleset: mkKRLfn([
@@ -314,6 +330,28 @@ module.exports = function (core) {
       for (let rid of rids) {
         await core.unregisterRuleset(rid)
       }
+    }),
+
+    registerRulesetFromSrc: mkKRLaction([
+      'src',
+      'metaData'
+    ], async function (ctx, args) {
+      let srcGiven = _.has(args, 'src')
+      let metaDataGiven = _.has(args, 'metaData')
+      let meta = {}
+
+      if (!srcGiven || !ktypes.isString(args.src)) {
+        throw new TypeError('engine:registerRulesetFromSrc was given ' + ktypes.toString(args.src) + ' instead of a KRL source string')
+      }
+
+      if (metaDataGiven) {
+        if (!ktypes.isMap(args.metaData)) {
+          throw new TypeError('engine:registerRulesetFromSrc was given ' + ktypes.toString(args.meta) + ' instead of a Map')
+        }
+        meta = args.metaData
+      }
+      let data = await core.registerRuleset(args.src, meta)
+      return data
     }),
 
     installRuleset: mkKRLaction([

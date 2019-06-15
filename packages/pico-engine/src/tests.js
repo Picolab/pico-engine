@@ -1230,36 +1230,64 @@ testPE('pico-engine - Wrangler', async function (t, pe, rootEci) {
   }
   t.equals(found, true, 'found correct channel in deepEqual')// redundant check
   channels = data // update channels cache
-
-// Tests run through KRL
-data = await yEvent(rootEci, 'wrangler/install_rulesets_requested', { rids: 'io.picolabs.test'})
-console.log(data)
-data = await yEvent(rootEci, 'tests/run_tests', { ruleset_under_test: 'io.picolabs.wrangler'})
-console.log(data)
-data = await yQuery(rootEci, 'io.picolabs.wrangler', 'installedRulesets', {})
-console.log(data)
-
-function waitForWranglerTestResults() {
-  return new Promise(function (resolve, reject) {
-      (async function waitForWranglerTests(){
-          data = await yQuery(rootEci, 'io.picolabs.wrangler', 'installedRulesets', {})
-          console.log(data)
-          if (data.some(function(rid){rid == 'io.picolabs.test'})) {
-            data = await yQuery(rootEci, 'io.picolabs.test', 'getTestsOverview', {})
-            console.log(data)
-            if (data) return resolve(data);
-          }
-          setTimeout(waitForWranglerTests, 500);
-      })();
-  });
-}
-
-waitForWranglerTestResults().then(function(data){
-  console.log(data)
-})
-
   // TODO rest
 })
 
+// Tests run through KRL
+testPE('pico-engine - Wrangler - KRL tests', async function (t, pe, rootEci) {
+  var yQuery = function (eci, rid, name, args) {
+    return pe.runQuery({
+      eci: eci,
+      rid: rid,
+      name: name,
+      args: args || {}
+    })
+  }
+  var yEvent = function (eci, domainType, attrs, eid) {
+    domainType = domainType.split('/')
+    return pe.signalEvent({
+      eci: eci,
+      eid: eid || '85',
+      domain: domainType[0],
+      type: domainType[1],
+      attrs: attrs || {}
+    })
+  }
 
+  var data
+  data = await yEvent(rootEci, 'wrangler/install_rulesets_requested', { rids: 'io.picolabs.test' })
+  data = await yEvent(rootEci, 'tests/run_tests', { ruleset_under_test: 'io.picolabs.wrangler' })
 
+  function waitForWranglerTestResults () {
+    return new Promise(function (resolve, reject) {
+      (async function waitForWranglerTests () {
+        data = await yQuery(rootEci, 'io.picolabs.test', 'getTestsOverview', {})
+        let percentComplete = data.percentComplete
+        console.log('Running KRL Tests ' + percentComplete.toPrecision(3) + '%')
+        if (percentComplete >= 100) return resolve(data)
+        setTimeout(waitForWranglerTests, 500)
+      })()
+    })
+  }
+
+  waitForWranglerTestResults().then(function (data) {
+    let passed = true
+    if (data.failedToStart.size > 0) {
+      passed = false
+      console.log('\x1b[31m', 'Some tests failed to start!')
+      console.dir(data.failedToStart, { maxArrayLength: null, depth: null })
+    }
+    if (data.timedOut) {
+      passed = false
+      console.log('\x1b[31m', 'Some tests timed out!')
+    }
+    if (data.failedTests) {
+      passed = false
+      console.log('\x1b[31m', 'Failed tests')
+      console.dir(data.failedTests, { maxArrayLength: null, depth: null })
+    }
+    passed ? console.log('\x1b[32m', 'KRL TESTS PASSED') : console.log('\x1b[31m', 'KRL TESTS FAILED')
+  })
+
+  // TODO rest
+})

@@ -40,8 +40,7 @@ ruleset io.picolabs.test {
       // tests{["Pico Creation", "listeners", "wrangler:child_initialized", "expressions"]}[0][1].klog("under test").typeof();
     
     test = function() {
-      //ent:register_response
-      engine:listInstalledRIDs()
+      ent:success_result
     }
     
     
@@ -99,7 +98,7 @@ ruleset io.picolabs.test {
         "timedOut":hasTimedOut,
         "numTestsRun":numTestsHaveRun,
         "numTestsToRun":numTestsToRun,
-        "failedToStart":ent:failed_to_start.defaultsTo("None")
+        "failedToStart":ent:failed_to_start.defaultsTo({})
       };
       
       failedTests.values().length() > 0 =>
@@ -481,22 +480,23 @@ ruleset io.picolabs.test {
       test = ent:tests_to_run{testName}
       krlCode = generateRuleset(test, testName)
       rid = testRid(testName)
+      parseResult = engine:doesKRLParse(krlCode)
     }
-    // a bit of a hack. 
-    http:post(meta:host + "/api/ruleset/register",
-              form = {
-                "src": krlCode
-              }) setting (register_response)
-    always {
-      register_response.klog("ruleset register response");
-      ent:register_response := register_response if register_response{"status_code"} != 200;
-      raise test event "unable_to_create_test_ruleset" attributes event:attrs.put("test_with_problem", testName)
-                                                                             .put("rid_to_remove", rid)
-                                                                             .put("error", register_response{"content"}.decode(){"error"}) if register_response{"status_code"} != 200;
+    if parseResult{"parsed"} then
+      engine:registerRulesetFromSrc(krlCode) setting (register_response)
+    fired {
+      ent:success_result := register_response;
       raise wrangler event "new_child_request" attributes event:attrs.put({
         "rids":[ent:ruleset_under_test, rid, "io.picolabs.logging"],
         "name":rid
-      }) if register_response{"status_code"} == 200
+      })
+    }
+    else {
+      ent:failure_result := parseResult;
+      raise test event "unable_to_create_test_ruleset" attributes event:attrs.put("test_with_problem", testName)
+                                                                       .put("rid_to_remove", rid)
+                                                                       .put("error", parseResult{"errorLoc"});
+
     }
   }
   
@@ -558,7 +558,7 @@ ruleset io.picolabs.test {
     pre {
       rid_to_remove = event:attrs{"rid_to_remove"}.klog("trying to remove rid")
     }
-    http:get(meta:host + "/api/ruleset/unregister/" + rid_to_remove) setting(unregister_response)
+    engine:unregisterRuleset(rid_to_remove) setting(unregister_response)
     always {
       ent:unregister_response := unregister_response
     }
