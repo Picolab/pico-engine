@@ -34,7 +34,7 @@ async function runAction (pe, ctx, domain, id, args) {
 async function testError (t, promise, errMsg, msg) {
   try {
     await promise
-    t.fail('should fail', msg)
+    t.fail('failed because no error thrown in testError', msg)
   } catch (err) {
     t.is(err + '', errMsg, msg)
   }
@@ -75,7 +75,7 @@ test('engine:getPicoIDByECI', async function (t) {
 })
 
 test('engine:registerRulesetFromSrc', async function (t) {
-  // var tstErr = _.partial(testError, t)
+  var tstErr = _.partial(testError, t)
 
   var engine = kengine({
     registerRuleset: tick(function (source, a) {
@@ -100,17 +100,28 @@ test('engine:registerRulesetFromSrc', async function (t) {
     metaData: { meta: 'meta' }
   }))[0].metaData, { meta: 'meta' })
 
-  // await tstErr(
-  //   engine.def.registerRulesetFromSrc({}, []),
-  //   'Error: engine:registerRuleset needs a url string',
-  //   'no url is given'
-  // )
+  await tstErr(
+    engine.def.registerRulesetFromSrc({}, []),
+    'TypeError: engine:registerRulesetFromSrc was given null instead of a KRL source string'
+  )
 
-  // await tstErr(
-  //   engine.def.registerRulesetFromSrc({}, [_.noop]),
-  //   'TypeError: engine:registerRuleset was given [Function] instead of a url string',
-  //   'wrong url type'
-  // )
+  await tstErr(
+    engine.def.registerRulesetFromSrc({}, [_.noop]),
+    'TypeError: engine:registerRulesetFromSrc was given [Function] instead of a KRL source string',
+    'wrong src type'
+  )
+
+  await tstErr(
+    engine.def.registerRulesetFromSrc({}, [{}]),
+    'TypeError: engine:registerRulesetFromSrc was given [Map] instead of a KRL source string',
+    'wrong src type'
+  )
+
+  await tstErr(
+    engine.def.registerRulesetFromSrc({}, { src: 'string', metaData: 'badMeta' }),
+    'TypeError: engine:registerRulesetFromSrc was given null instead of a Map for the metaData',
+    'wrong meta type'
+  )
 })
 
 test('engine:registerRuleset', async function (t) {
@@ -342,6 +353,79 @@ test('engine:listAllEnabledRIDs', async function (t) {
   t.truthy(rids.length > 1, 'should be all the test-rulesets/')
   t.truthy(_.every(rids, _.isString))
   t.truthy(_.includes(rids, 'io.picolabs.engine'))
+})
+
+test('engine:doesKRLParse', async function (t) {
+  var tstErr = _.partial(testError, t)
+
+  var engine = kengine({})
+
+  t.is((await engine.def.doesKRLParse({}, {
+    src: 'ruleset a {}'
+  })).parsed, true)
+
+  t.is((await engine.def.doesKRLParse({}, {
+    src: 'ruleset a {meta{}global{}}'
+  })).parsed, true)
+
+  t.truthy((await engine.def.doesKRLParse({}, {
+    src: 'ruleset a {meta{}global{}}'
+  })).ast)
+
+  t.deepEqual((await engine.def.doesKRLParse({}, {
+    src: `ruleset io.picolabs.hello_world {
+      meta {
+          name "Hello World"
+          description <<
+  A first ruleset for the Quickstart
+          >>
+  
+          author "Phil Windley"
+          logging on
+          shares hello
+      }
+      global {
+          hello = function(obj){
+              msg = "Hello " + obj;
+              msg;
+          }
+      }
+      rule say_hello {
+          select when echo hello
+  
+          send_directive("say", {"something": "Hello World"});
+      }
+  }`
+  })).parsed, true)
+
+  t.falsy((await engine.def.doesKRLParse({}, {
+    src: 'ruleset a {meta{}global{}}'
+  })).errorLoc)
+
+  t.is((await engine.def.doesKRLParse({}, {
+    src: '< bad rid definition >'
+  })).parsed, false)
+
+  t.truthy((await engine.def.doesKRLParse({}, {
+    src: '< bad rid definition >'
+  })).errorLoc, '')
+
+  await tstErr(
+    engine.def.doesKRLParse({}, []),
+    'TypeError: engine:doesKRLParse was given null instead of a KRL source string'
+  )
+
+  await tstErr(
+    engine.def.doesKRLParse({}, [_.noop]),
+    'TypeError: engine:doesKRLParse was given [Function] instead of a KRL source string',
+    'wrong src type'
+  )
+
+  await tstErr(
+    engine.def.doesKRLParse({}, [{}]),
+    'TypeError: engine:doesKRLParse was given [Map] instead of a KRL source string',
+    'wrong src type'
+  )
 })
 
 test('engine:newPico', async function (t) {

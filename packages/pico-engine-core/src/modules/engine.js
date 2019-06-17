@@ -134,7 +134,7 @@ module.exports = function (core) {
     ], async function (ctx, args) {
       let srcGiven = _.has(args, 'src')
       if (!srcGiven || !ktypes.isString(args.src)) {
-        throw new TypeError('engine:doesKRLParse needs a KRL source string, but was given ' + ktypes.toString(args.src))
+        throw new TypeError('engine:doesKRLParse was given ' + ktypes.toString(args.src) + ' instead of a KRL source string')
       }
       try {
         let ast = krlParser(args.src, {})
@@ -346,7 +346,7 @@ module.exports = function (core) {
 
       if (metaDataGiven) {
         if (!ktypes.isMap(args.metaData)) {
-          throw new TypeError('engine:registerRulesetFromSrc was given ' + ktypes.toString(args.meta) + ' instead of a Map')
+          throw new TypeError('engine:registerRulesetFromSrc was given ' + ktypes.toString(args.meta) + ' instead of a Map for the metaData')
         }
         meta = args.metaData
       }
