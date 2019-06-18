@@ -46,6 +46,15 @@ var testPE = function (name, testsFn) {
   })
 }
 
+function readFile (filePath, encoding) {
+  encoding = encoding || 'utf8'
+  return new Promise(function (resolve, reject) {
+    fs.readFile(filePath, encoding, function (err, data) {
+      err ? reject(err) : resolve(data)
+    })
+  })
+}
+
 testPE('pico-engine', function (t, pe, rootEci) {
   var callback
   var promise = new Promise(function (resolve, reject) {
@@ -1135,14 +1144,6 @@ testPE('pico-engine', function (t, pe, rootEci) {
         return response.directives[0].options.pico
       })
   }
-  function readFile (filePath, encoding) {
-    encoding = encoding || 'utf8'
-    return new Promise(function (resolve, reject) {
-      fs.readFile(filePath, encoding, function (err, data) {
-        err ? reject(err) : resolve(data)
-      })
-    })
-  }
   function createSubscription (eci1, eci2, name) {
     return new Promise(function (resolve, reject) {
       var attrs = {
@@ -1255,13 +1256,42 @@ testPE('pico-engine - Wrangler - KRL tests', async function (t, pe, rootEci) {
   }
 
   var data
-  data = await yEvent(rootEci, 'wrangler/install_rulesets_requested', { rids: 'io.picolabs.test' })
-  data = await yEvent(rootEci, 'tests/run_tests', { ruleset_under_test: 'io.picolabs.wrangler' })
+
+  readFile('krl/test/wrangler_tests/wrangler_tests_runner.krl').then(function (data) {
+    return pe.registerRuleset(data)
+  }).then(async function (response) {
+    await yEvent(rootEci, 'wrangler/install_rulesets_requested', { rids: 'io.picolabs.test;wrangler_tests_runner' })
+    await yEvent(rootEci, 'wrangler/run_tests', {})
+    waitForWranglerTestResults().then(function (data) {
+      let passed = true
+      if (data.failedToStart.size > 0) {
+        passed = false
+        console.log('\x1b[31m', 'Some tests failed to start!')
+        console.dir(data.failedToStart, { maxArrayLength: null, depth: null })
+      }
+      if (data.timedOut) {
+        passed = false
+        console.log('\x1b[31m', 'Some tests timed out!')
+      }
+      if (data.failedTests) {
+        passed = false
+        console.log('\x1b[31m', 'Failed tests')
+        console.dir(data.failedTests, { maxArrayLength: null, depth: null })
+      }
+      if (passed) {
+        console.log('\x1b[32m', 'KRL TESTS PASSED')
+      } else {
+        console.log('\x1b[31m', 'KRL TESTS FAILED')
+      }
+    })
+  }).catch(function (err) {
+    t.fail('Unable to register wrangler KRL test runner ruleset ' + err.message)
+  })
 
   function waitForWranglerTestResults () {
     return new Promise(function (resolve, reject) {
       (async function waitForWranglerTests () {
-        data = await yQuery(rootEci, 'io.picolabs.test', 'getTestsOverview', {})
+        data = await yQuery(rootEci, 'wrangler_tests_runner', 'progress', {})
         let percentComplete = data.percentComplete
         console.log('Running KRL Tests ' + percentComplete.toPrecision(3) + '%')
         if (percentComplete >= 100) return resolve(data)
@@ -1269,25 +1299,6 @@ testPE('pico-engine - Wrangler - KRL tests', async function (t, pe, rootEci) {
       })()
     })
   }
-
-  waitForWranglerTestResults().then(function (data) {
-    let passed = true
-    if (data.failedToStart.size > 0) {
-      passed = false
-      console.log('\x1b[31m', 'Some tests failed to start!')
-      console.dir(data.failedToStart, { maxArrayLength: null, depth: null })
-    }
-    if (data.timedOut) {
-      passed = false
-      console.log('\x1b[31m', 'Some tests timed out!')
-    }
-    if (data.failedTests) {
-      passed = false
-      console.log('\x1b[31m', 'Failed tests')
-      console.dir(data.failedTests, { maxArrayLength: null, depth: null })
-    }
-    passed ? console.log('\x1b[32m', 'KRL TESTS PASSED') : console.log('\x1b[31m', 'KRL TESTS FAILED')
-  })
 
   // TODO rest
 })
