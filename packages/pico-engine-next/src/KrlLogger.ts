@@ -1,10 +1,10 @@
 import { LogLevelFn, mkLevel, stringifyPairs, timeFns } from "json-log";
 import * as path from "path";
-import { WriteStream } from "fs";
+
 const rfs = require("rotating-file-stream");
 
-const logStreams: { [filePath: string]: WriteStream } = {};
-function getStream(filePath: string): WriteStream {
+const logStreams: { [filePath: string]: NodeJS.WritableStream } = {};
+export function getRotatingFileStream(filePath: string): NodeJS.WritableStream {
   if (!logStreams[filePath]) {
     const filename = path.basename(filePath);
     logStreams[filePath] = rfs(
@@ -19,15 +19,14 @@ function getStream(filePath: string): WriteStream {
         size: "100M", // rotate every 10 MegaBytes written
         maxFiles: 12
       }
-    ) as WriteStream;
+    ) as NodeJS.WritableStream;
   }
   return logStreams[filePath];
 }
 
 export class KrlLogger {
-  public readonly filePath: string;
   private readonly ctx: string;
-  private readonly fileStream: WriteStream;
+  private readonly fileStream: NodeJS.WritableStream;
 
   readonly error: LogLevelFn;
   readonly warn: LogLevelFn;
@@ -35,10 +34,9 @@ export class KrlLogger {
   readonly klog: LogLevelFn;
   readonly debug: LogLevelFn;
 
-  constructor(filePath: string, ctx: string) {
-    this.filePath = filePath;
+  constructor(fileStream: NodeJS.WritableStream, ctx: string) {
     this.ctx = ctx;
-    this.fileStream = getStream(filePath);
+    this.fileStream = fileStream;
 
     const isTest = process.env.NODE_ENV === "test";
 
@@ -57,6 +55,6 @@ export class KrlLogger {
   }
 
   child(moreCtx: any) {
-    return new KrlLogger(this.filePath, this.ctx + stringifyPairs(moreCtx));
+    return new KrlLogger(this.fileStream, this.ctx + stringifyPairs(moreCtx));
   }
 }

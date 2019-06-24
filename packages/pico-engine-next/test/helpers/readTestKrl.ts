@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-const rsDir = path.resolve(__dirname, "../../../test-rulesets");
+const rsDir = path.resolve(__dirname, "../../../../test-rulesets");
 
 export function readTestKrl(name: string): Promise<string> {
   const fsPath = path.join(rsDir, name);

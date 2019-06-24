@@ -5,7 +5,7 @@ import * as path from "path";
 import { PicoFramework } from "pico-framework";
 import { rsNext } from "./io.picolabs.next";
 import { RulesetEnvironment } from "./KrlCtx";
-import { KrlLogger } from "./KrlLogger";
+import { getRotatingFileStream, KrlLogger } from "./KrlLogger";
 import { RulesetRegistry } from "./RulesetRegistry";
 import { server } from "./server";
 
@@ -64,7 +64,8 @@ export async function startEngine(
   }
   await makeDir(home);
 
-  const log = new KrlLogger(path.resolve(home, "pico-engine.log"), "");
+  const filePath = path.resolve(home, "pico-engine.log");
+  const log = new KrlLogger(getRotatingFileStream(filePath), "");
   const rsRegistry = new RulesetRegistry(home);
   const rsEnvironment = new RulesetEnvironment(log);
 

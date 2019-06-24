@@ -1,6 +1,6 @@
 import test from "ava";
-import { readTestKrl } from "./helpers/readTestKrl";
-import { startTestEngine } from "./helpers/startTestEngine";
+import { readTestKrl } from "../helpers/readTestKrl";
+import { startTestEngine } from "../helpers/startTestEngine";
 
 test("hello-world.krl", async t => {
   const pe = await startTestEngine();
