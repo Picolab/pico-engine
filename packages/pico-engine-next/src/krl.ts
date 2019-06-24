@@ -63,7 +63,7 @@ export default {
 };
 
 export function isNull(val: any): boolean {
-  return val === null || val === void 0;
+  return val === null || val === void 0 || _.isNaN(val);
 }
 
 export function isNumber(val: any): boolean {
@@ -137,7 +137,7 @@ export function typeOf(val: any): string {
   return "JSObject";
 }
 
-export function toString(val: any) {
+export function toString(val: any): string {
   var valType = typeOf(val);
   switch (typeOf(val)) {
     case "String":
@@ -160,4 +160,51 @@ export function toString(val: any) {
       return "re#" + val.source + "#" + flags;
   }
   return "[" + valType + "]";
+}
+
+export function toNumberOrNull(val: any): number | null {
+  switch (typeOf(val)) {
+    case "Null":
+      return 0;
+    case "Boolean":
+      return val ? 1 : 0;
+    case "String":
+      var n = _.toNumber(val);
+      return isNumber(n) ? n : null;
+    case "Number":
+      return val;
+    case "Array":
+    case "Map":
+      return _.size(val);
+    case "RegExp":
+    case "Function":
+    case "Action":
+  }
+  return null;
+}
+
+export function isEqual(left: any, right: any): boolean {
+  left = cleanNulls(left);
+  right = cleanNulls(right);
+  return _.isEqual(left, right);
+}
+
+// returns a clone of val with void 0 and NaN values converted to null
+function cleanNulls(val: any) {
+  if (isNull(val)) {
+    return null;
+  }
+  if (isArray(val)) {
+    return deepClean(val, _.map);
+  }
+  if (isMap(val)) {
+    return deepClean(val, _.mapValues);
+  }
+  return val;
+}
+
+function deepClean(val: any, mapFn: any) {
+  return mapFn(val, function(v: any) {
+    return cleanNulls(v);
+  });
 }

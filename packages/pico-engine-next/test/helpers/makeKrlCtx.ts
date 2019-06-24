@@ -3,7 +3,7 @@ import { PassThrough } from "stream";
 import { KrlCtx, RulesetEnvironment } from "../../src/KrlCtx";
 import { KrlLogger } from "../../src/KrlLogger";
 
-export async function makeKrlCtx(onLine?: (str: string) => void) {
+export async function makeKrlCtx(onLogLine?: (str: string) => void) {
   let krlCtx: KrlCtx | undefined;
 
   const logStream = new PassThrough();
@@ -25,9 +25,9 @@ export async function makeKrlCtx(onLine?: (str: string) => void) {
     throw new Error("KRL ctx was not initialized");
   }
 
-  if (onLine) {
+  if (onLogLine) {
     logStream.on("data", data => {
-      onLine(data.toString());
+      onLogLine(data.toString());
     });
   }
 
