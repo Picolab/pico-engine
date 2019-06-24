@@ -49,6 +49,7 @@ export interface PicoEngine {
 
   pf: PicoFramework;
   uiECI: string;
+  rsRegistry: RulesetRegistry;
 }
 
 export async function startEngine(
@@ -162,6 +163,7 @@ export async function startEngine(
     base_url,
 
     pf,
-    uiECI
+    uiECI,
+    rsRegistry
   };
 }
