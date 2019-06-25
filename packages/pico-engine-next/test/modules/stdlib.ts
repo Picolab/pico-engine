@@ -146,4 +146,144 @@ test("infix operators", async t => {
   t.is(callLib(">=", "a", "a"), true);
   t.is(callLib(">=", "a", "b"), false);
   t.is(callLib(">=", "b", "a"), true);
+
+  var obj = {
+    colors: "many",
+    pi: [3, 1, 4, 1, 5, 9, 3],
+    foo: { bar: { "10": "I like cheese" } }
+  };
+  t.false(callLib("><", obj, "many"));
+  t.true(callLib("><", obj, "pi"));
+  t.false(callLib("><", obj, "bar"));
+  t.deepEqual(
+    obj,
+    {
+      colors: "many",
+      pi: [3, 1, 4, 1, 5, 9, 3],
+      foo: { bar: { "10": "I like cheese" } }
+    },
+    "should not be mutated"
+  );
+  t.true(callLib("><", [5, 6, 7], 6));
+  t.false(callLib("><", [5, 6, 7], 2));
+  t.false(callLib("><", [], null));
+  t.false(callLib("><", {}, void 0));
+  t.true(callLib("><", [void 0], NaN));
+
+  t.true(callLib("like", "wat", /a/));
+  t.false(callLib("like", "wat", /b/));
+  t.false(callLib("like", "wat", "da"));
+  t.true(callLib("like", "wat", "a.*?(a|t)"));
+  t.true(callLib("like", "atruething", true));
+
+  t.is(callLib("cmp", "aab", "abb"), -1);
+  t.is(callLib("cmp", "aab", "aab"), 0);
+  t.is(callLib("cmp", "abb", "aab"), 1);
+  t.is(callLib("cmp", void 0, NaN), 0, '"null" === "null"');
+  t.is(callLib("cmp", "5", "10"), 1);
+  t.is(callLib("cmp", 5, "5"), 0);
+  t.is(callLib("cmp", "10", 5), -1);
+  t.is(callLib("cmp", { "": -0.5 }, { " ": 0.5 }), 0);
+  t.is(callLib("cmp", [], [[""]]), 0);
+  t.is(callLib("cmp", null, 0), 1);
+  t.is(
+    callLib("cmp", 20, 3),
+    -1,
+    "cmp always converts to string then compares"
+  );
+});
+
+test("type operators", async t => {
+  const callLib = await mkCallLib();
+  function libErr(...args: any[]): string {
+    return t.throws(() => (callLib as any).apply(null, args)) + "";
+  }
+  t.is(callLib("as", t), t);
+  t.is(callLib("as", 1, "String"), "1");
+  t.is(callLib("as", 0.32, "String"), "0.32");
+  t.is(callLib("as", 0, "String"), "0");
+  t.is(callLib("as", null, "String"), "null");
+  t.is(callLib("as", void 0, "String"), "null");
+  t.is(callLib("as", NaN, "String"), "null");
+  t.is(callLib("as", true, "String"), "true");
+  t.is(callLib("as", false, "String"), "false");
+  t.is(callLib("as", "str", "String"), "str");
+  t.is(callLib("as", /^a.*b/, "String"), "re#^a.*b#");
+  t.is(callLib("as", /^a.*b/gi, "String"), "re#^a.*b#gi");
+  t.is(callLib("as", [1, 2], "String"), "[Array]");
+  t.is(callLib("as", {}, "String"), "[Map]");
+
+  t.is(callLib("as", "-1.23", "Number"), -1.23);
+  t.is(callLib("as", 42, "Number"), 42);
+  t.is(callLib("as", true, "Number"), 1);
+  t.is(callLib("as", false, "Number"), 0);
+  t.is(callLib("as", null, "Number"), 0);
+  t.is(callLib("as", NaN, "Number"), 0);
+  t.is(callLib("as", void 0, "Number"), 0);
+  t.is(callLib("as", "foo", "Number"), null);
+  t.is(callLib("as", {}, "Number"), 0);
+  t.is(callLib("as", [1, 2], "Number"), 2);
+  t.is(callLib("as", { a: "b", z: "y", c: "d" }, "Number"), 3);
+  t.is(callLib("as", "", "Number"), 0);
+  t.is(callLib("as", "2018-03-07", "Number"), null);
+  t.is(callLib("as", "2018-03-07", "Number"), null);
+  t.is(callLib("as", "1,000", "Number"), null);
+  t.is(callLib("as", "1,000.25", "Number"), null);
+  t.is(callLib("as", "1000.25", "Number"), 1000.25);
+  t.is(callLib("as", " 123 ", "Number"), 123);
+  t.is(callLib("as", " 1 2 ", "Number"), null);
+  t.is(callLib("as", " +5  ", "Number"), 5);
+  t.is(callLib("as", " + 5  ", "Number"), null);
+  t.is(callLib("as", "0xAF", "Number"), 175);
+  t.is(callLib("as", "0o72", "Number"), 58);
+  t.is(callLib("as", "0b01101", "Number"), 13);
+  t.is(callLib("as", "0b02101", "Number"), null);
+
+  t.is(callLib("as", "^a.*z$", "RegExp").source, /^a.*z$/.source);
+  t.is(callLib("as", null, "RegExp").source, "null");
+  t.is(callLib("as", 123, "RegExp").source, "123");
+  t.is(
+    callLib("as", mkKrl.function([], () => null), "RegExp").source,
+    "\\[Function\\]"
+  );
+  t.is(callLib("as", "[Function]", "RegExp").source, "[Function]");
+
+  var testRegex = /^a.*z$/;
+  t.is(callLib("as", testRegex, "RegExp"), testRegex);
+  t.is(callLib("as", "true", "Boolean"), true);
+  t.is(callLib("as", "false", "Boolean"), false);
+  t.is(callLib("as", 0, "Boolean"), false);
+  t.is(
+    libErr("as", "0", "num"),
+    'TypeError: Cannot use the .as("num") operator with 0 (type String)'
+  );
+  t.is(
+    libErr("as", {}, /boolean/),
+    'TypeError: Cannot use the .as("/boolean/") operator with [Map] (type Map)'
+  );
+
+  t.is(callLib("isnull"), true);
+  t.is(callLib("isnull", void 0), true);
+  t.is(callLib("isnull", null), true);
+  t.is(callLib("isnull", NaN), true);
+  t.is(callLib("isnull", false), false);
+  t.is(callLib("isnull", 0), false);
+  t.is(callLib("isnull", ""), false);
+  t.is(callLib("isnull", {}), false);
+
+  t.is(callLib("typeof", ""), "String");
+  t.is(callLib("typeof", "1"), "String");
+  t.is(callLib("typeof", 0), "Number");
+  t.is(callLib("typeof", -0.01), "Number");
+  t.is(callLib("typeof", 10e10), "Number");
+  t.is(callLib("typeof", true), "Boolean");
+  t.is(callLib("typeof", false), "Boolean");
+  t.is(callLib("typeof", void 0), "Null");
+  t.is(callLib("typeof", null), "Null");
+  t.is(callLib("typeof", NaN), "Null");
+  t.is(callLib("typeof", /a/), "RegExp");
+  t.is(callLib("typeof", []), "Array");
+  t.is(callLib("typeof", {}), "Map");
+  t.is(callLib("typeof", mkKrl.function([], () => null)), "Function");
+  t.is(callLib("typeof", mkKrl.action([], () => null)), "Action");
 });
