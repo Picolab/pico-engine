@@ -13,6 +13,18 @@ function ltEqGt(left: any, right: any): 0 | 1 | -1 {
   return a === b ? 0 : a > b ? 1 : -1;
 }
 
+function sprintfBase(val: any, template: string, specifier: string) {
+  return _.join(
+    _.map(template.split(/\\\\/g), function(v) {
+      return v.replace(
+        new RegExp("(^|[^\\\\])" + specifier, "g"),
+        "$1" + val + ""
+      );
+    }),
+    "\\"
+  ).replace(new RegExp("\\\\" + specifier, "g"), specifier);
+}
+
 const stdlib: krl.KrlModule = {
   /////////////////////////////////////////////////////////////////////////////
   // Infix operators
@@ -46,8 +58,8 @@ const stdlib: krl.KrlModule = {
   }),
 
   "*": mkKrl.function(["left", "right"], function(left, right) {
-    var leftNumber = krl.toNumberOrNull(left);
-    var rightNumber = krl.toNumberOrNull(right);
+    const leftNumber = krl.toNumberOrNull(left);
+    const rightNumber = krl.toNumberOrNull(right);
     if (leftNumber === null || rightNumber === null) {
       throw new TypeError(
         krl.toString(left) + " cannot be multiplied by " + krl.toString(right)
@@ -57,8 +69,8 @@ const stdlib: krl.KrlModule = {
   }),
 
   "/": mkKrl.function(["left", "right"], function(left, right) {
-    var leftNumber = krl.toNumberOrNull(left);
-    var rightNumber = krl.toNumberOrNull(right);
+    const leftNumber = krl.toNumberOrNull(left);
+    const rightNumber = krl.toNumberOrNull(right);
     if (leftNumber === null || rightNumber === null) {
       throw new TypeError(
         krl.toString(left) + " cannot be divided by " + krl.toString(right)
@@ -72,8 +84,8 @@ const stdlib: krl.KrlModule = {
   }),
 
   "%": mkKrl.function(["left", "right"], function(left, right) {
-    var leftNumber = krl.toNumberOrNull(left);
-    var rightNumber = krl.toNumberOrNull(right);
+    const leftNumber = krl.toNumberOrNull(left);
+    const rightNumber = krl.toNumberOrNull(right);
     if (leftNumber === null || rightNumber === null) {
       throw new TypeError(
         "Cannot calculate " +
@@ -139,7 +151,7 @@ const stdlib: krl.KrlModule = {
     if (arguments.length < 2) {
       return val;
     }
-    var valType = krl.typeOf(val);
+    const valType = krl.typeOf(val);
     if (valType === type) {
       return val;
     }
@@ -159,7 +171,7 @@ const stdlib: krl.KrlModule = {
       return krl.toNumberOrNull(val);
     }
     if (type === "RegExp") {
-      var regexSrc = krl.toString(val);
+      let regexSrc = krl.toString(val);
       if (valType !== "String" && /^\[[a-z]+\]$/i.test(regexSrc)) {
         regexSrc = regexSrc.replace(/^\[/, "\\[").replace(/\]$/, "\\]");
       }
@@ -183,6 +195,213 @@ const stdlib: krl.KrlModule = {
     return krl.typeOf(val);
   }),
 
+  klog: mkKrl.function(["val", "message"], function(val, message) {
+    this.log.klog(krl.isNull(message) ? "klog" : krl.toString(message), {
+      val
+    });
+    return val;
+  }),
+
+  sprintf: mkKrl.function(["val", "template"], function(val, template) {
+    if (krl.isNull(template)) {
+      return "";
+    }
+    template = krl.toString(template);
+    if (krl.isNumber(val)) {
+      return sprintfBase(val, template, "%d");
+    }
+    if (krl.isString(val)) {
+      return sprintfBase(val, template, "%s");
+    }
+    return template;
+  }),
+
+  /////////////////////////////////////////////////////////////////////////////
+  defaultsTo: mkKrl.function(["val", "defaultVal", "message"], function(
+    val,
+    defaultVal,
+    message
+  ) {
+    if (!krl.isNull(val)) {
+      return val; // not important whether defaultVal is missing
+    }
+    if (!krl.isNull(message)) {
+      this.log.debug(`[DEFAULTSTO] ${krl.toString(message)}`);
+    }
+    return defaultVal;
+  }),
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Number operators
+  chr: mkKrl.function(["val"], function(val) {
+    const code = krl.toNumberOrNull(val);
+    if (code === null) {
+      return null;
+    }
+    return String.fromCharCode(code);
+  }),
+
+  range: mkKrl.function(["val", "end"], function(val, end) {
+    if (arguments.length < 2) {
+      return [];
+    }
+    const startNumber = krl.toNumberOrNull(val);
+    const endNumber = krl.toNumberOrNull(end);
+    if (startNumber === null || endNumber === null) {
+      return [];
+    }
+    if (startNumber < endNumber) {
+      return _.range(startNumber, endNumber + 1);
+    }
+    return _.range(startNumber, endNumber - 1);
+  }),
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Number operators
+  capitalize: mkKrl.function(["val"], function(val) {
+    val = krl.toString(val);
+    if (val.length === 0) {
+      return "";
+    }
+    return val[0].toUpperCase() + val.slice(1);
+  }),
+
+  decode: mkKrl.function(["val"], function(val) {
+    return krl.decode(val);
+  }),
+
+  extract: mkKrl.function(["val", "regex"], function(val, regex) {
+    if (arguments.length < 2) {
+      return [];
+    }
+    val = krl.toString(val);
+    if (!krl.isRegExp(regex)) {
+      regex = new RegExp(krl.toString(regex));
+    }
+    var r = val.match(regex);
+    if (!r) {
+      return [];
+    }
+    if (regex.global) {
+      return r;
+    }
+    return r.slice(1);
+  }),
+
+  lc: mkKrl.function(["val"], function(val) {
+    return krl.toString(val).toLowerCase();
+  }),
+  uc: mkKrl.function(["val"], function(val) {
+    return krl.toString(val).toUpperCase();
+  }),
+
+  match: mkKrl.function(["val", "regex"], function(val, regex) {
+    if (krl.isString(regex)) {
+      regex = new RegExp(regex);
+    } else if (!krl.isRegExp(regex)) {
+      return false;
+    }
+    return regex.test(krl.toString(val));
+  }),
+
+  ord: mkKrl.function(["val"], function(val) {
+    val = krl.toString(val);
+    var code = val.charCodeAt(0);
+    return _.isNaN(code) ? null : code;
+  }),
+
+  split: mkKrl.function(["val", "splitOn"], function(val, splitOn) {
+    val = krl.toString(val);
+    if (!krl.isRegExp(splitOn)) {
+      splitOn = krl.toString(splitOn);
+    }
+    return val.split(splitOn);
+  }),
+
+  substr: mkKrl.function(["val", "start", "len"], function(val, start, len) {
+    val = krl.toString(val);
+    start = krl.toNumberOrNull(start);
+    len = krl.toNumberOrNull(len);
+    if (start === null) {
+      return val;
+    }
+    if (start > val.length) {
+      return "";
+    }
+    var end;
+    if (len === null) {
+      end = val.length;
+    } else if (len > 0) {
+      end = start + len;
+    } else {
+      end = val.length + len;
+    }
+    return val.substring(start, end);
+  }),
+
+  trimLeading: mkKrl.function(["val"], function(val) {
+    return _.trimStart(krl.toString(val));
+  }),
+  trimTrailing: mkKrl.function(["val"], function(val) {
+    return _.trimEnd(krl.toString(val));
+  }),
+  trim: mkKrl.function(["val"], function(val) {
+    return krl.toString(val).trim();
+  }),
+
+  startsWith: mkKrl.function(["val", "target"], function(val, target) {
+    val = krl.toString(val);
+    target = krl.toString(target);
+    return _.startsWith(val, target);
+  }),
+  endsWith: mkKrl.function(["val", "target"], function(val, target) {
+    val = krl.toString(val);
+    target = krl.toString(target);
+    return _.endsWith(val, target);
+  }),
+  contains: mkKrl.function(["val", "target"], function(val, target) {
+    val = krl.toString(val);
+    target = krl.toString(target);
+    return _.includes(val, target);
+  }),
+
+  replace: mkKrl.function(["val", "regex", "replacement"], async function(
+    val,
+    regex,
+    replacement
+  ) {
+    if (arguments.length < 2) {
+      return val;
+    }
+    val = krl.toString(val);
+    if (!krl.isString(regex) && !krl.isRegExp(regex)) {
+      regex = krl.toString(regex);
+    }
+    if (krl.isNull(replacement)) {
+      return val.replace(regex, "");
+    }
+    if (krl.isFunction(replacement)) {
+      regex = stdlib.as(this, [regex, "RegExp"]);
+      var out = "";
+      var lastI = 0;
+      var m;
+      while ((m = regex.exec(val))) {
+        // eslint-disable-line no-cond-assign
+        out +=
+          val.substring(lastI, m.index) +
+          (await replacement(this, m.concat([m.index, val])));
+        lastI = m.index + m[0].length;
+        if (!regex.global) {
+          break;
+        }
+      }
+      out += val.substring(lastI);
+      return out;
+    }
+    return val.replace(regex, krl.toString(replacement));
+  }),
+
+  /////////////////////////////////////////////////////////////////////////////
   get: mkKrl.function(["obj", "path"], function(obj, path) {
     return _.get(obj, path, null);
   })

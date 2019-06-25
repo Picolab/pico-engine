@@ -208,3 +208,14 @@ function deepClean(val: any, mapFn: any) {
     return cleanNulls(v);
   });
 }
+
+export function decode(val: any) {
+  if (!isString(val)) {
+    return val;
+  }
+  try {
+    return JSON.parse(val);
+  } catch (e) {
+    return val;
+  }
+}
