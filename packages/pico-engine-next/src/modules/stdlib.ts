@@ -25,6 +25,28 @@ function sprintfBase(val: any, template: string, specifier: string) {
   ).replace(new RegExp("\\\\" + specifier, "g"), specifier);
 }
 
+async function iterBase(
+  val: any,
+  iter: (item: any, key: any, obj: any) => boolean | Promise<boolean>
+) {
+  var shouldContinue;
+  if (krl.isArray(val)) {
+    var i;
+    for (i = 0; i < val.length; i++) {
+      shouldContinue = await iter(val[i], i, val);
+      if (!shouldContinue) break;
+    }
+  } else {
+    var key;
+    for (key in val) {
+      if (_.has(val, key)) {
+        shouldContinue = await iter(val[key], key, val);
+        if (!shouldContinue) break;
+      }
+    }
+  }
+}
+
 const stdlib: krl.KrlModule = {
   /////////////////////////////////////////////////////////////////////////////
   // Infix operators
@@ -399,6 +421,57 @@ const stdlib: krl.KrlModule = {
       return out;
     }
     return val.replace(regex, krl.toString(replacement));
+  }),
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Collection operators
+  all: mkKrl.function(["val", "iter"], async function(val, iter) {
+    if (!krl.isArrayOrMap(val)) {
+      throw new TypeError("only works on collections");
+    }
+    if (!krl.isFunction(iter)) {
+      return _.size(val) === 0;
+    }
+    let broke = false;
+    await iterBase(val, async (v, k, obj) => {
+      const r = await iter(this, [v, k, obj]);
+      if (!r) {
+        broke = true;
+        return false; // stop
+      }
+      return true;
+    });
+    return !broke;
+  }),
+  notall: mkKrl.function(["val", "iter"], async function(val, iter) {
+    const b = await stdlib.all(this, [val, iter]);
+    return !b;
+  }),
+
+  any: mkKrl.function(["val", "iter"], async function(val, iter) {
+    if (!krl.isArrayOrMap(val)) {
+      throw new TypeError("only works on collections");
+    }
+    var broke = false;
+    await iterBase(val, async (v, k, obj) => {
+      var r = await iter(this, [v, k, obj]);
+      if (r) {
+        broke = true;
+        return false; // stop
+      }
+      return true;
+    });
+    return broke;
+  }),
+  none: mkKrl.function(["val", "iter"], async function(val, iter) {
+    const b = await stdlib.any(this, [val, iter]);
+    return !b;
+  }),
+
+  append: mkKrl.function(["val", "a", "b", "c", "d", "e"], async function(
+    ...args: any[]
+  ) {
+    return _.concat.apply(null, args as any);
   }),
 
   /////////////////////////////////////////////////////////////////////////////

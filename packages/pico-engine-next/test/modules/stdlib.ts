@@ -1,6 +1,6 @@
 import test from "ava";
 import * as _ from "lodash";
-import mkKrl from "../../src/krl";
+import mkKrl, * as krl from "../../src/krl";
 import stdlib from "../../src/modules/stdlib";
 import { makeKrlCtx } from "../helpers/makeKrlCtx";
 
@@ -552,4 +552,79 @@ test("string operators", async t => {
     "000[abc - 333 : ???]wat"
   );
   t.true(didCallCB);
+});
+
+test("collection operators", async t => {
+  const callLib = await mkCallLib();
+  async function libErrAsync(...args: any[]) {
+    const err = await t.throwsAsync((callLib as any).apply(null, args));
+    return err + "";
+  }
+
+  const a = [3, 4, 5];
+  const b = null;
+  const c: number[] = [];
+
+  t.true(await callLib("all", []));
+  t.true(await callLib("all", {}));
+  t.true(await callLib("all", a, mkKrl.function(["x"], x => x < 10)));
+  t.false(await callLib("all", a, mkKrl.function(["x"], x => x > 3)));
+  t.false(await callLib("all", a, mkKrl.function(["x"], x => x > 10)));
+  t.is(await libErrAsync("all", null), "TypeError: only works on collections");
+
+  t.false(await callLib("notall", []));
+  t.false(await callLib("notall", {}));
+  t.false(await callLib("notall", a, mkKrl.function(["x"], x => x < 10)));
+  t.true(await callLib("notall", a, mkKrl.function(["x"], x => x > 3)));
+  t.true(await callLib("notall", a, mkKrl.function(["x"], x => x > 10)));
+  t.is(
+    await libErrAsync("notall", null),
+    "TypeError: only works on collections"
+  );
+
+  t.false(await callLib("any", []));
+  t.false(await callLib("any", {}));
+  t.true(await callLib("any", a, mkKrl.function(["x"], x => x < 10)));
+  t.true(await callLib("any", a, mkKrl.function(["x"], x => x > 3)));
+  t.false(await callLib("any", a, mkKrl.function(["x"], x => x > 10)));
+  t.is(await libErrAsync("any", null), "TypeError: only works on collections");
+
+  t.true(await callLib("none", []));
+  t.true(await callLib("none", {}));
+  t.false(await callLib("none", a, mkKrl.function(["x"], x => x < 10)));
+  t.false(await callLib("none", a, mkKrl.function(["x"], x => x > 3)));
+  t.true(await callLib("none", a, mkKrl.function(["x"], x => x > 10)));
+  t.is(await libErrAsync("none", null), "TypeError: only works on collections");
+
+  t.deepEqual(a, [3, 4, 5], "ensure not mutated");
+
+  t.deepEqual(await callLib("append", ["a", "b"], ["c", "a"]), [
+    "a",
+    "b",
+    "c",
+    "a"
+  ]);
+  t.deepEqual(await callLib("append", ["a", "b"], 10, 11), ["a", "b", 10, 11]);
+  t.deepEqual(await callLib("append", 10, 11), [10, 11]);
+  t.deepEqual(await callLib("append", a, [6]), [3, 4, 5, 6]);
+  t.deepEqual(await callLib("append", a, [[]]), [3, 4, 5, []]);
+  t.deepEqual(a, [3, 4, 5], "should not be mutated");
+  t.deepEqual(await callLib("append", b, []), [null]);
+  t.deepEqual(await callLib("append", b), [null]);
+  t.deepEqual(await callLib("append", c, []), []);
+  t.deepEqual(await callLib("append", c), []);
+  t.deepEqual(await callLib("append", c, [[]]), [[]]);
+  t.deepEqual(c, [], "should not be mutated");
+  t.deepEqual(await callLib("append", ["a"], "b"), ["a", "b"]);
+  t.deepEqual(
+    await callLib("append", [{ 0: "a" }, "b"]),
+    [{ 0: "a" }, "b"],
+    "object that looks like an array, is not auto-magically converted to an array"
+  );
+  t.deepEqual(await callLib("append", [["a"]], "b"), [["a"], "b"]);
+  t.deepEqual(await callLib("append", null, "b"), [null, "b"]);
+  t.deepEqual(await callLib("append", [null], "b"), [null, "b"]);
+  t.deepEqual(await callLib("append", void 0, "b"), [void 0, "b"]);
+  t.deepEqual(await callLib("append", [void 0], "b"), [void 0, "b"]);
+  t.deepEqual(await callLib("append", [], "b"), ["b"]);
 });
