@@ -29,6 +29,9 @@ async function iterBase(
   val: any,
   iter: (item: any, key: any, obj: any) => boolean | Promise<boolean>
 ) {
+  if (!krl.isArrayOrMap(val)) {
+    throw new TypeError("only works on collections");
+  }
   var shouldContinue;
   if (krl.isArray(val)) {
     var i;
@@ -46,6 +49,10 @@ async function iterBase(
     }
   }
 }
+
+const identity = mkKrl.function(["val"], function(val) {
+  return val;
+});
 
 const stdlib: krl.KrlModule = {
   /////////////////////////////////////////////////////////////////////////////
@@ -426,12 +433,6 @@ const stdlib: krl.KrlModule = {
   /////////////////////////////////////////////////////////////////////////////
   // Collection operators
   all: mkKrl.function(["val", "iter"], async function(val, iter) {
-    if (!krl.isArrayOrMap(val)) {
-      throw new TypeError("only works on collections");
-    }
-    if (!krl.isFunction(iter)) {
-      return _.size(val) === 0;
-    }
     let broke = false;
     await iterBase(val, async (v, k, obj) => {
       const r = await iter(this, [v, k, obj]);
@@ -449,9 +450,6 @@ const stdlib: krl.KrlModule = {
   }),
 
   any: mkKrl.function(["val", "iter"], async function(val, iter) {
-    if (!krl.isArrayOrMap(val)) {
-      throw new TypeError("only works on collections");
-    }
     var broke = false;
     await iterBase(val, async (v, k, obj) => {
       var r = await iter(this, [v, k, obj]);
@@ -472,6 +470,188 @@ const stdlib: krl.KrlModule = {
     ...args: any[]
   ) {
     return _.concat.apply(null, args as any);
+  }),
+
+  collect: mkKrl.function(["val", "iter"], async function(val, iter) {
+    if (krl.isNull(iter)) {
+      iter = identity;
+    }
+    const grouped: any = {};
+    await iterBase(val, async (v, k, obj) => {
+      const r = await iter(this, [v, k, obj]);
+      if (!grouped.hasOwnProperty(r)) {
+        grouped[r] = [];
+      }
+      grouped[r].push(v);
+      return true;
+    });
+    return grouped;
+  }),
+
+  filter: mkKrl.function(["val", "iter"], async function(val, iter) {
+    if (krl.isNull(iter)) {
+      iter = identity;
+    }
+    var isArr = krl.isArray(val);
+    var result: any = isArr ? [] : {};
+    await iterBase(val, async (v, k, obj) => {
+      var r = await iter(this, [v, k, obj]);
+      if (r) {
+        if (isArr) {
+          result.push(v);
+        } else {
+          result[k] = v;
+        }
+      }
+      return true;
+    });
+    return result;
+  }),
+
+  map: mkKrl.function(["val", "iter"], async function(val, iter) {
+    if (krl.isNull(iter)) {
+      iter = identity;
+    }
+    const isArr = krl.isArray(val);
+    const result: any = isArr ? [] : {};
+    await iterBase(val, async (v, k, obj) => {
+      const r = await iter(this, [v, k, obj]);
+      if (isArr) {
+        result.push(r);
+      } else {
+        result[k] = r;
+      }
+      return true;
+    });
+    return result;
+  }),
+
+  head: mkKrl.function(["val"], function(val) {
+    if (!krl.isArray(val)) {
+      return val; // head is for arrays; pretend val is a one-value array
+    }
+    return val[0];
+  }),
+  tail: mkKrl.function(["val"], function(val) {
+    if (!krl.isArray(val)) {
+      return [];
+    }
+    return _.tail(val);
+  }),
+
+  index: mkKrl.function(["val", "elm"], function(val, elm) {
+    if (!krl.isArray(val)) {
+      throw new TypeError("only works on Arrays");
+    }
+    return _.findIndex(val, _.partial(krl.isEqual, elm));
+  }),
+
+  join: mkKrl.function(["val", "str"], function(val, str) {
+    if (!krl.isArray(val)) {
+      return krl.toString(val);
+    }
+    val = _.map(val, krl.toString);
+    if (krl.isNull(str)) {
+      str = ",";
+    }
+    return _.join(val, krl.toString(str));
+  }),
+
+  length: mkKrl.function(["val"], function(val) {
+    if (krl.isArrayOrMap(val) || krl.isString(val)) {
+      return _.size(val);
+    }
+    return 0;
+  }),
+
+  isEmpty: mkKrl.function(["val"], function(val) {
+    return _.isEmpty(val);
+  }),
+
+  pairwise: mkKrl.function(["val", "iter"], async function(val, iter) {
+    if (!krl.isArray(val)) {
+      throw new TypeError(
+        "The .pairwise() operator cannot be called on " + krl.toString(val)
+      );
+    }
+    if (val.length < 2) {
+      throw new TypeError("The .pairwise() operator needs a longer array");
+    }
+    if (!krl.isFunction(iter)) {
+      throw new TypeError(
+        "The .pairwise() operator cannot use " +
+          krl.toString(iter) +
+          " as a function"
+      );
+    }
+    val = _.map(val, function(v) {
+      if (krl.isArray(v)) {
+        return v;
+      }
+      return [v];
+    });
+    var maxLen = _.max(_.map(val, _.size)) || 0;
+
+    var r = [];
+
+    var i;
+    var j;
+    var args2;
+    for (i = 0; i < maxLen; i++) {
+      args2 = [];
+      for (j = 0; j < val.length; j++) {
+        args2.push(val[j][i]);
+      }
+      r.push(await iter(this, args2));
+    }
+    return r;
+  }),
+
+  reduce: mkKrl.function(["val", "iter", "dflt"], async function(
+    val,
+    iter,
+    dflt
+  ) {
+    if (!krl.isArray(val)) {
+      throw new TypeError("only works on Arrays");
+    }
+    var noDefault = arguments.length < 3;
+    if (val.length === 0) {
+      return noDefault ? 0 : dflt;
+    }
+    if (!krl.isFunction(iter) && (noDefault || val.length > 1)) {
+      throw new Error(
+        "The .reduce() operator cannot use " +
+          krl.toString(iter) +
+          " as a function"
+      );
+    }
+    if (val.length === 1) {
+      var head = val[0];
+      if (noDefault) {
+        return head;
+      }
+      return iter(this, [dflt, head, 0, val]);
+    }
+    var acc = dflt;
+    var isFirst = true;
+    await iterBase(val, async (v, k, obj) => {
+      if (isFirst && noDefault) {
+        isFirst = false;
+        acc = v;
+        return true; // continue
+      }
+      acc = await iter(this, [acc, v, k, obj]);
+      return true; // continue
+    });
+    return acc;
+  }),
+
+  reverse: mkKrl.function(["val"], function(val) {
+    if (!krl.isArray(val)) {
+      throw new TypeError("only works on Arrays");
+    }
+    return _.reverse(_.cloneDeep(val));
   }),
 
   /////////////////////////////////////////////////////////////////////////////

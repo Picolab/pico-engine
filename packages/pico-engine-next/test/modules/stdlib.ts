@@ -148,7 +148,7 @@ test("infix operators", async t => {
   t.is(callLib(">=", "a", "b"), false);
   t.is(callLib(">=", "b", "a"), true);
 
-  var obj = {
+  const obj = {
     colors: "many",
     pi: [3, 1, 4, 1, 5, 9, 3],
     foo: { bar: { "10": "I like cheese" } }
@@ -560,10 +560,16 @@ test("collection operators", async t => {
     const err = await t.throwsAsync((callLib as any).apply(null, args));
     return err + "";
   }
+  function libErr(...args: any[]): string {
+    return t.throws(() => (callLib as any).apply(null, args)) + "";
+  }
 
   const a = [3, 4, 5];
-  const b = null;
-  const c: number[] = [];
+  const obj = {
+    colors: "many",
+    pi: [3, 1, 4, 1, 5, 9, 3],
+    foo: { bar: { "10": "I like cheese" } }
+  };
 
   t.true(await callLib("all", []));
   t.true(await callLib("all", {}));
@@ -609,12 +615,11 @@ test("collection operators", async t => {
   t.deepEqual(await callLib("append", a, [6]), [3, 4, 5, 6]);
   t.deepEqual(await callLib("append", a, [[]]), [3, 4, 5, []]);
   t.deepEqual(a, [3, 4, 5], "should not be mutated");
-  t.deepEqual(await callLib("append", b, []), [null]);
-  t.deepEqual(await callLib("append", b), [null]);
-  t.deepEqual(await callLib("append", c, []), []);
-  t.deepEqual(await callLib("append", c), []);
-  t.deepEqual(await callLib("append", c, [[]]), [[]]);
-  t.deepEqual(c, [], "should not be mutated");
+  t.deepEqual(await callLib("append", null, []), [null]);
+  t.deepEqual(await callLib("append", null), [null]);
+  t.deepEqual(await callLib("append", [], []), []);
+  t.deepEqual(await callLib("append", []), []);
+  t.deepEqual(await callLib("append", [], [[]]), [[]]);
   t.deepEqual(await callLib("append", ["a"], "b"), ["a", "b"]);
   t.deepEqual(
     await callLib("append", [{ 0: "a" }, "b"]),
@@ -627,4 +632,190 @@ test("collection operators", async t => {
   t.deepEqual(await callLib("append", void 0, "b"), [void 0, "b"]);
   t.deepEqual(await callLib("append", [void 0], "b"), [void 0, "b"]);
   t.deepEqual(await callLib("append", [], "b"), ["b"]);
+
+  var fnDontCall = mkKrl.function([], function() {
+    throw new Error();
+  });
+
+  var collectFn = mkKrl.function(["a"], function(a) {
+    return stdlib["<"](this, [a, 5]) ? "x" : "y";
+  });
+
+  t.deepEqual(await callLib("collect", [7, 4, 3, 5, 2, 1, 6], collectFn), {
+    x: [4, 3, 2, 1],
+    y: [7, 5, 6]
+  });
+  t.is(
+    await libErrAsync("collect", null, collectFn),
+    "TypeError: only works on collections"
+  );
+  t.deepEqual(await callLib("collect", [], fnDontCall), {});
+  t.deepEqual(
+    await callLib("collect", [1, 2, 2, 3, 3, 3]),
+    {
+      1: [1],
+      2: [2, 2],
+      3: [3, 3, 3]
+    },
+    "default to the identity function"
+  );
+
+  t.deepEqual(await callLib("filter", a, mkKrl.function(["x"], x => x < 5)), [
+    3,
+    4
+  ]);
+  t.deepEqual(
+    await callLib("filter", a, mkKrl.function(["x"], x => x > 5)),
+    []
+  );
+  t.deepEqual(
+    await callLib("filter", a, mkKrl.function(["x"], x => x > 5)),
+    []
+  );
+  t.deepEqual(a, [3, 4, 5], "should not be mutated");
+  t.deepEqual(
+    await callLib(
+      "filter",
+      { a: 1, b: 2, c: 3 },
+      mkKrl.function(["x"], x => x % 2 !== 0)
+    ),
+    { a: 1, c: 3 }
+  );
+  t.deepEqual(
+    await callLib(
+      "filter",
+      { a: 1, b: 2, c: 3 },
+      mkKrl.function(["v", "k"], (v, k) => k === "b")
+    ),
+    { b: 2 }
+  );
+
+  t.is(callLib("head", a), 3);
+  t.deepEqual(a, [3, 4, 5], "should not be mutated");
+  t.is(callLib("head", [null, {}]), null);
+  t.is(callLib("head", "string"), "string");
+  t.deepEqual(callLib("head", { "0": null }), { "0": null });
+  t.is(callLib("head", []), void 0);
+
+  t.deepEqual(callLib("tail", a), [4, 5]);
+  t.deepEqual(a, [3, 4, 5], "should not be mutated");
+  t.deepEqual(callLib("tail", { a: 1, b: 2 }), []);
+  t.deepEqual(callLib("tail", "string"), []);
+
+  t.is(callLib("index", a, 5), 2);
+  t.deepEqual(a, [3, 4, 5], "should not be mutated");
+  t.is(callLib("index", [0, null], NaN), 1);
+  t.is(callLib("index", [[[0], 0], [0, [0]], [[0], 0], [0, [0]]], [0, [0]]), 1);
+  t.is(libErr("index", { a: 1 }), "TypeError: only works on Arrays");
+
+  t.is(callLib("join", a, ";"), "3;4;5");
+  t.is(callLib("join", a), "3,4,5", "default to ,");
+  t.deepEqual(a, [3, 4, 5], "should not be mutated");
+  t.is(callLib("join", null), "null");
+  t.is(callLib("join", NaN), "null");
+  t.is(callLib("join", ["<", ">"], /|/), "<re#|#>");
+
+  t.is(callLib("length", a), 3);
+  t.is(callLib("length", [void 0, 7]), 2);
+  t.is(callLib("length", '"'), 1);
+  t.is(callLib("length", /'/), 0);
+  t.is(callLib("length", function() {}), 0);
+
+  t.is(callLib("isEmpty", null), true);
+  t.is(callLib("isEmpty", void 0), true);
+  t.is(callLib("isEmpty", NaN), true);
+  t.is(callLib("isEmpty", 0), true);
+  t.is(callLib("isEmpty", 1), true);
+  t.is(callLib("isEmpty", true), true);
+  t.is(callLib("isEmpty", []), true);
+  t.is(callLib("isEmpty", [1, 2]), false);
+  t.is(callLib("isEmpty", {}), true);
+  t.is(callLib("isEmpty", { a: 1 }), false);
+  t.is(callLib("isEmpty", ""), true);
+  t.is(callLib("isEmpty", " "), false);
+  t.is(callLib("isEmpty", function() {}), true);
+
+  t.deepEqual(await callLib("map", a, mkKrl.function(["x"], x => x + 2)), [
+    5,
+    6,
+    7
+  ]);
+  t.deepEqual(a, [3, 4, 5], "should not be mutated");
+  t.deepEqual(await callLib("map", [3, 4, void 0]), [3, 4, void 0]);
+  t.deepEqual(await callLib("map", [], fnDontCall), []);
+  t.deepEqual(await callLib("map", {}, fnDontCall), {});
+  t.is(await libErrAsync("map", null), "TypeError: only works on collections");
+  t.is(await libErrAsync("map", "012"), "TypeError: only works on collections");
+  t.deepEqual(
+    await callLib(
+      "map",
+      { a: 1, b: 2, c: 3 },
+      mkKrl.function(["v", "k"], (v, k) => v + k)
+    ),
+    { a: "1a", b: "2b", c: "3c" }
+  );
+
+  t.deepEqual(
+    await callLib(
+      "pairwise",
+      [a, [6, 7, 8]],
+      mkKrl.function(["x", "y"], (x, y) => x + y)
+    ),
+    [9, 11, 13]
+  );
+  t.deepEqual(
+    await callLib(
+      "pairwise",
+      [a, "abcdef".split("")],
+      mkKrl.function(["x", "y"], function(x, y) {
+        return stdlib["+"](this, [x, y]);
+      })
+    ),
+    ["3a", "4b", "5c", "nulld", "nulle", "nullf"]
+  );
+  t.deepEqual(a, [3, 4, 5], "should not be mutated");
+  t.deepEqual(await callLib("pairwise", [[], []], fnDontCall), []);
+
+  t.deepEqual(
+    await callLib(
+      "pairwise",
+      [[], 1],
+      mkKrl.function(["l", "r"], (l, r) => [l, r])
+    ),
+    [[void 0, 1]]
+  );
+  t.deepEqual(
+    await libErrAsync("pairwise", {}),
+    "TypeError: The .pairwise() operator cannot be called on [Map]"
+  );
+  t.deepEqual(
+    await libErrAsync("pairwise", [[]]),
+    "TypeError: The .pairwise() operator needs a longer array"
+  );
+  t.deepEqual(
+    await libErrAsync("pairwise", [[], []]),
+    "TypeError: The .pairwise() operator cannot use null as a function"
+  );
+
+  t.is(
+    await callLib("reduce", a, mkKrl.function(["a", "b"], (a, b) => a + b)),
+    12
+  );
+  t.is(
+    await callLib("reduce", a, mkKrl.function(["a", "b"], (a, b) => a + b), 10),
+    22
+  );
+  t.is(
+    await callLib("reduce", a, mkKrl.function(["a", "b"], (a, b) => a - b)),
+    -6
+  );
+  t.deepEqual(a, [3, 4, 5], "should not be mutated");
+  // await ytf("reduce", [[], fnDontCall], 0);
+  t.is(await callLib("reduce", [], fnDontCall), 0);
+  t.is(await callLib("reduce", [], fnDontCall, 0), 0);
+  t.is(await libErrAsync("reduce", 42), "TypeError: only works on Arrays");
+
+  t.deepEqual(await callLib("reverse", a), [5, 4, 3]);
+  t.deepEqual(a, [3, 4, 5], "should not be mutated");
+  t.is(libErr("reverse", 42), "TypeError: only works on Arrays");
 });
