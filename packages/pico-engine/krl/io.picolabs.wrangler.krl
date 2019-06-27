@@ -38,8 +38,6 @@ ruleset io.picolabs.wrangler {
                                 "attrs": [ "name" , "rids"] },
                               { "domain": "wrangler", "type": "child_deletion",
                               "attrs": [ "id","name"] },
-                              { "domain": "wrangler", "type": "force_child_deletion",
-                              "attrs": [ "id", "name"] },
                               { "domain": "wrangler", "type": "child_sync",
                               "attrs": [ ] },
                               { "domain": "wrangler", "type": "channel_creation_requested",
@@ -48,8 +46,9 @@ ruleset io.picolabs.wrangler {
                                 "attrs": [ "eci" ] },
                               { "domain": "wrangler", "type": "install_rulesets_requested",
                                 "attrs": [ "rids","url" ] },
-                              { "domain": "wrangler", "type": "deletion_requested",
-                                "attrs": [ ] } ] }
+                              { "domain": "wrangler", "type": "force_child_deletion",
+                              "attrs": [ "id", "name"] }
+                                ] }
                                 
                                 
 // ********************************************************************************************
@@ -628,7 +627,10 @@ ruleset io.picolabs.wrangler {
       ent:eci := event:attr("eci");
       ent:wrangler_children := {};
       //ent:children := {};
-      ent:name := "Root Pico"
+      ent:name := "Root Pico";
+      raise wrangler event "install_rulesets_requested" attributes {
+        "rid":"io.picolabs.subscription"
+      }
     }
   }
     
