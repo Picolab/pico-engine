@@ -29,10 +29,9 @@ ruleset io.picolabs.wrangler {
   global {
     __testing = { "queries": [  { "name": "channel", "args":["value","collection","filtered"] },
                                 {"name":"skyQuery" , "args":["eci", "mod", "func", "params","_host","_path","_root_url"]},
-                                {"name":"children" , "args":[]},
+                                {"name":"children" , "args":[]}
                                 //{"name":"children" , "args":["name", "allowRogue"]},
-
-                                {"name":"test" , "args":[]}],
+                                ],
                   "events": [
                               { "domain": "wrangler", "type": "child_creation",
                                 "attrs": [ "name" , "rids"] },
