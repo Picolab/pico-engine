@@ -818,4 +818,536 @@ test("collection operators", async t => {
   t.deepEqual(await callLib("reverse", a), [5, 4, 3]);
   t.deepEqual(a, [3, 4, 5], "should not be mutated");
   t.is(libErr("reverse", 42), "TypeError: only works on Arrays");
+
+  const veggies = [
+    "corn",
+    "tomato",
+    "tomato",
+    "tomato",
+    "sprouts",
+    "lettuce",
+    "sprouts"
+  ];
+  t.deepEqual(callLib("slice", veggies, 1, 4), [
+    "tomato",
+    "tomato",
+    "tomato",
+    "sprouts"
+  ]);
+  t.deepEqual(callLib("slice", veggies, 2, 0), ["corn", "tomato", "tomato"]);
+  t.deepEqual(callLib("slice", veggies, 2), ["corn", "tomato", "tomato"]);
+  t.deepEqual(callLib("slice", veggies, 0, 0), ["corn"]);
+  t.deepEqual(callLib("slice", veggies, null, NaN), ["corn"]);
+  t.deepEqual(callLib("slice", [], 0, 0), []);
+  t.is(libErr("slice", { "0": "0" }, 0, 0), "TypeError: only works on Arrays");
+  t.is(
+    libErr("slice", veggies, _.noop),
+    "TypeError: The .slice() operator cannot use [JSObject] as an index"
+  );
+  t.is(
+    libErr("slice", veggies, 1, _.noop),
+    "TypeError: The .slice() operator cannot use [JSObject] as the other index"
+  );
+  t.deepEqual(callLib("slice", veggies, 14), []);
+  t.deepEqual(callLib("slice", veggies, 2, -1), []);
+  t.deepEqual(
+    veggies,
+    ["corn", "tomato", "tomato", "tomato", "sprouts", "lettuce", "sprouts"],
+    "should not be mutated"
+  );
+
+  t.deepEqual(callLib("splice", veggies, 1, 4), ["corn", "lettuce", "sprouts"]);
+  t.deepEqual(callLib("splice", veggies, 2, 0, ["corn", "tomato"]), [
+    "corn",
+    "tomato",
+    "corn",
+    "tomato",
+    "tomato",
+    "tomato",
+    "sprouts",
+    "lettuce",
+    "sprouts"
+  ]);
+  t.deepEqual(callLib("splice", veggies, 2, 0, "liver"), [
+    "corn",
+    "tomato",
+    "liver",
+    "tomato",
+    "tomato",
+    "sprouts",
+    "lettuce",
+    "sprouts"
+  ]);
+  t.deepEqual(callLib("splice", veggies, 2, 2, "liver"), [
+    "corn",
+    "tomato",
+    "liver",
+    "sprouts",
+    "lettuce",
+    "sprouts"
+  ]);
+  t.deepEqual(callLib("splice", veggies, 1, 10), ["corn"]);
+  t.deepEqual(callLib("splice", veggies, 1, 10, "liver"), ["corn", "liver"]);
+  t.deepEqual(callLib("splice", veggies, 1, 10, []), ["corn"]);
+  t.deepEqual(callLib("splice", [], 0, 1), []);
+  t.deepEqual(callLib("splice", [], NaN), []);
+
+  t.deepEqual(libErr("splice"), "TypeError: only works on Arrays");
+  t.is(
+    libErr("splice", veggies, _.noop, 1),
+    "TypeError: The .splice() operator cannot use [JSObject]as an index"
+  );
+  t.is(
+    libErr("splice", veggies, _.noop),
+    "TypeError: The .splice() operator cannot use [JSObject]as an index"
+  );
+  t.deepEqual(callLib("splice", veggies, 0, 0), veggies);
+  t.deepEqual(callLib("splice", veggies, 0, veggies.length), []);
+  t.deepEqual(callLib("splice", veggies, 0, 999), []);
+  t.deepEqual(callLib("splice", veggies, 0, -1), []);
+  t.deepEqual(callLib("splice", veggies, 0, -999), []);
+  t.deepEqual(callLib("splice", veggies, -1, 0), veggies);
+  t.deepEqual(callLib("splice", veggies, -999, 0), veggies);
+
+  t.deepEqual(
+    veggies,
+    ["corn", "tomato", "tomato", "tomato", "sprouts", "lettuce", "sprouts"],
+    "should not be mutated"
+  );
+
+  t.deepEqual(callLib("delete", obj, ["foo", "bar", 10]), {
+    colors: "many",
+    pi: [3, 1, 4, 1, 5, 9, 3],
+    foo: { bar: {} }
+  });
+  t.deepEqual(callLib("delete", { "0": void 0 }, "1"), { "0": void 0 });
+
+  t.is(callLib("encode", { blah: 1 }), '{"blah":1}');
+  t.is(callLib("encode", [1, 2]), "[1,2]");
+  t.is(callLib("encode", 12), "12");
+  t.is(callLib("encode", "12"), '"12"');
+  // all nulls are treated the same
+  t.is(callLib("encode", null), "null");
+  t.is(callLib("encode", NaN), "null");
+  t.is(callLib("encode", void 0), "null");
+  // use .as("String") rules for other types
+  t.is(callLib("encode", mkKrl.action([], () => null)), '"[Action]"');
+  t.is(callLib("encode", /a/gi), '"re#a#gi"');
+  (function(a: string, b: string) {
+    t.is(callLib("encode", arguments), '{"0":"a","1":"b"}');
+  })("a", "b");
+  // testing it nested
+  t.is(
+    callLib("encode", { fn: _.noop, n: NaN, u: void 0 }),
+    '{"fn":"[JSObject]","n":null,"u":null}'
+  );
+
+  // testing indent options
+  t.is(callLib("encode", { a: 1, b: 2 }, 0), '{"a":1,"b":2}');
+  t.is(callLib("encode", { a: 1, b: 2 }, 4), '{\n    "a": 1,\n    "b": 2\n}');
+  t.is(callLib("encode", { a: 1, b: 2 }, "2"), '{\n  "a": 1,\n  "b": 2\n}');
+  t.is(
+    callLib("encode", { a: 1, b: 2 }, null),
+    '{"a":1,"b":2}',
+    "default indent to 0"
+  );
+  t.is(
+    callLib("encode", { a: 1, b: 2 }, _.noop),
+    '{"a":1,"b":2}',
+    "default indent to 0"
+  );
+
+  t.deepEqual(callLib("keys", obj), ["colors", "pi", "foo"]);
+  t.deepEqual(callLib("keys", obj, ["foo", "bar"]), ["10"]);
+  t.deepEqual(callLib("keys", obj, ["pi"]), [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ]);
+  t.deepEqual(callLib("keys", obj, ["foo", "not"]), [], "bad path");
+  t.deepEqual(callLib("keys", ["wat", { da: "heck" }]), ["0", "1"]);
+  t.deepEqual(callLib("keys", null), [], "not a map or array");
+  t.deepEqual(callLib("keys", _.noop), [], "not a map or array");
+  t.deepEqual(callLib("keys", { a: "b" }, "not-found"), [], "bad path");
+
+  t.deepEqual(callLib("values", obj), [
+    "many",
+    [3, 1, 4, 1, 5, 9, 3],
+    { bar: { "10": "I like cheese" } }
+  ]);
+  t.deepEqual(callLib("values", obj, ["foo", "bar"]), ["I like cheese"]);
+  t.deepEqual(callLib("values", obj, ["pi"]), [3, 1, 4, 1, 5, 9, 3]);
+  t.deepEqual(callLib("values", obj, ["foo", "not"]), []);
+  t.deepEqual(callLib("values", ["an", "array"]), ["an", "array"]);
+  t.deepEqual(callLib("values", void 0), [], "not a map or array");
+  t.deepEqual(callLib("values", _.noop), [], "not a map or array");
+
+  t.deepEqual(
+    callLib("intersection", [[2], 2, 1, null], [[2], "1", 2, void 0]),
+    [[2], 2, null]
+  );
+  t.deepEqual(callLib("intersection", [[0], {}], [[1], []]), []);
+  t.deepEqual(callLib("intersection", []), []);
+  t.deepEqual(callLib("intersection", [{}]), []);
+  t.deepEqual(callLib("intersection", {}, [{}]), [{}]);
+
+  t.deepEqual(callLib("union", [2], [1, 2]), [2, 1]);
+  t.deepEqual(callLib("union", [1, 2], [1, 4]), [1, 2, 4]);
+  t.deepEqual(callLib("union", [{ x: 2 }], [{ x: 1 }]), [{ x: 2 }, { x: 1 }]);
+  t.deepEqual(callLib("union", []), []);
+  t.deepEqual(callLib("union", [], { x: 1 }), [{ x: 1 }]);
+  t.deepEqual(callLib("union", { x: 1 }, []), [{ x: 1 }]);
+  t.deepEqual(callLib("union", { x: 1 }), { x: 1 });
+
+  t.deepEqual(callLib("difference", [2, 1], [2, 3]), [1]);
+  t.deepEqual(callLib("difference", [2, 1], 2), [1]);
+  t.deepEqual(
+    callLib("difference", [{ x: 2 }, { x: 1 }], [{ x: 2 }, { x: 3 }]),
+    [{ x: 1 }]
+  );
+  t.deepEqual(callLib("difference", { x: null }, []), [{ x: null }]);
+  t.deepEqual(callLib("difference", { x: null }), { x: null });
+
+  t.deepEqual(callLib("has", [1, 2, 3, 4], [4, 2]), true);
+  t.deepEqual(callLib("has", [1, 2, 3, 4], [4, 5]), false);
+  t.deepEqual(callLib("has", [[null, [_.noop]]], [[void 0, [_.noop]]]), true);
+  t.deepEqual(callLib("has", [], []), true);
+  t.deepEqual(callLib("has", [], null), false);
+  t.deepEqual(callLib("has", []), false);
+
+  t.deepEqual(callLib("once", [1, 2, 1, 3, 4, 4]), [2, 3]);
+  t.deepEqual(callLib("once", { a: void 0 }), { a: void 0 });
+  t.deepEqual(callLib("once", [1, NaN, "a"]), [1, null, "a"]);
+
+  t.deepEqual(callLib("duplicates", [1, 2, 1, 3, 4, 4]), [1, 4]);
+  t.deepEqual(callLib("duplicates", { "0": 1, "1": 1 }), []);
+  t.deepEqual(callLib("duplicates", [1, 3, null, NaN, void 0, 3]), [3, null]);
+
+  t.deepEqual(callLib("unique", [1, 2, 1, [3], [4], [4]]), [1, 2, [3], [4]]);
+  t.deepEqual(callLib("unique", { "0": 1, "1": 1 }), { "0": 1, "1": 1 });
+
+  t.deepEqual(callLib("get", obj, ["foo", "bar", "10"]), "I like cheese");
+  t.deepEqual(callLib("get", obj, "colors"), "many");
+  t.deepEqual(callLib("get", obj, ["pi", 2]), 4);
+  t.deepEqual(
+    callLib("get", ["a", "b", { c: ["d", "e"] }], [2, "c", 1]),
+    "e",
+    "get works on arrays and objects equally"
+  );
+  t.deepEqual(
+    callLib("get", ["a", "b", { c: ["d", "e"] }], ["2", "c", "1"]),
+    "e",
+    "array indices can be strings"
+  );
+
+  t.deepEqual(callLib("set", obj, ["foo", "baz"], "qux"), {
+    colors: "many",
+    pi: [3, 1, 4, 1, 5, 9, 3],
+    foo: {
+      bar: { "10": "I like cheese" },
+      baz: "qux"
+    }
+  });
+  t.deepEqual(callLib("set", obj, "flop", 12), {
+    colors: "many",
+    pi: [3, 1, 4, 1, 5, 9, 3],
+    foo: {
+      bar: { "10": "I like cheese" }
+    },
+    flop: 12
+  });
+  t.deepEqual(callLib("set", obj, "colors", ["R", "G", "B"]), {
+    colors: ["R", "G", "B"],
+    pi: [3, 1, 4, 1, 5, 9, 3],
+    foo: {
+      bar: { "10": "I like cheese" }
+    }
+  });
+  t.deepEqual(
+    callLib("set", obj, ["foo", "bar", "10"], "modified a sub object"),
+    {
+      colors: "many",
+      pi: [3, 1, 4, 1, 5, 9, 3],
+      foo: {
+        bar: { "10": "modified a sub object" }
+      }
+    }
+  );
+  t.deepEqual(callLib("set", obj, ["pi", 4, "a"], "wat?"), {
+    colors: "many",
+    pi: [3, 1, 4, 1, { a: "wat?" }, 9, 3],
+    foo: { bar: { "10": "I like cheese" } }
+  });
+
+  t.deepEqual(callLib("set", ["a", "b", "c"], [1], "wat?"), ["a", "wat?", "c"]);
+  t.deepEqual(callLib("set", ["a", "b", "c"], ["1"], "wat?"), [
+    "a",
+    "wat?",
+    "c"
+  ]);
+  t.deepEqual(callLib("set", [{ a: [{ b: 1 }] }], [0, "a", 0, "b"], "wat?"), [
+    { a: [{ b: "wat?" }] }
+  ]);
+
+  t.deepEqual(callLib("put", { key: 5 }, { foo: "bar" }), {
+    key: 5,
+    foo: "bar"
+  });
+  t.deepEqual(callLib("put", { key: 5 }, [], { foo: "bar" }), {
+    key: 5,
+    foo: "bar"
+  });
+  t.deepEqual(callLib("put", { key: 5 }, ["baz"], { foo: "bar" }), {
+    key: 5,
+    baz: { foo: "bar" }
+  });
+  t.deepEqual(callLib("put", { key: 5 }, ["qux"], "wat?"), {
+    key: 5,
+    qux: "wat?"
+  });
+  t.deepEqual(callLib("put", { key: 5 }, [null], "wat?"), {
+    key: 5,
+    null: "wat?"
+  });
+  t.deepEqual(callLib("put", { key: 5 }, [void 0], "wat?"), {
+    key: 5,
+    null: "wat?"
+  });
+  t.deepEqual(callLib("put", { key: 5 }, [void 0], "wat?"), {
+    key: 5,
+    null: "wat?"
+  });
+  t.deepEqual(callLib("put", { key: 5 }, [NaN], "wat?"), {
+    key: 5,
+    null: "wat?"
+  });
+  t.deepEqual(callLib("put", { key: 5 }, [_.noop], "wat?"), {
+    key: 5,
+    "[JSObject]": "wat?"
+  });
+
+  t.deepEqual(
+    callLib("put", obj, ["foo"], { baz: "qux" }),
+    {
+      colors: "many",
+      pi: [3, 1, 4, 1, 5, 9, 3],
+      foo: { baz: "qux" }
+    },
+    "overwrite at the path, even if to_set and curr val are both maps"
+  );
+  t.deepEqual(callLib("put", obj, ["foo", "bar", 11], "wat?"), {
+    colors: "many",
+    pi: [3, 1, 4, 1, 5, 9, 3],
+    foo: {
+      bar: {
+        "10": "I like cheese",
+        "11": "wat?"
+      }
+    }
+  });
+  t.deepEqual(callLib("put", obj, ["foo", "bar", 10], "no cheese"), {
+    colors: "many",
+    pi: [3, 1, 4, 1, 5, 9, 3],
+    foo: {
+      bar: { "10": "no cheese" }
+    }
+  });
+  t.deepEqual(callLib("put", obj, { flop: 12 }), {
+    colors: "many",
+    pi: [3, 1, 4, 1, 5, 9, 3],
+    foo: { bar: { "10": "I like cheese" } },
+    flop: 12
+  });
+
+  t.deepEqual(callLib("put", {}, ["key1"], "value2"), { key1: "value2" });
+  t.deepEqual(callLib("put", {}, [], { key2: "value3" }), { key2: "value3" });
+  t.deepEqual(callLib("put", { key: 5 }, "foo", { key2: "value3" }), {
+    key: 5,
+    foo: { key2: "value3" }
+  });
+  t.deepEqual(callLib("put", { key: 5 }, "key", 7), { key: 7 });
+  t.deepEqual(callLib("put", { key: 5 }, ["key"], 9), { key: 9 });
+
+  t.deepEqual(
+    callLib("put", 5, ["key"], 9),
+    5,
+    "if val is not a Map or Array, return the val"
+  );
+  t.deepEqual(
+    callLib("put", "wat", ["key"], 9),
+    "wat",
+    "if val is not a Map or Array, return the val"
+  );
+  t.deepEqual(
+    callLib("put", null, ["key"], 9),
+    null,
+    "if val is not a Map or Array, return the val"
+  );
+  t.deepEqual(
+    callLib("put", { a: null, b: void 0 }),
+    { a: null, b: void 0 },
+    "if no arguments, return the val"
+  );
+
+  t.is(
+    JSON.stringify(callLib("put", {}, ["0", "0"], "foo")),
+    '{"0":{"0":"foo"}}',
+    'don\'t use arrays by default, i.e. don\'t do {"0":["foo"]}'
+  );
+  t.is(
+    JSON.stringify(callLib("put", {}, [0, 1], "foo")),
+    '{"0":{"1":"foo"}}',
+    'don\'t do {"0":[null,"foo"]}'
+  );
+  t.is(JSON.stringify(callLib("put", [], [0, 0], "foo")), '[{"0":"foo"}]');
+  t.is(
+    JSON.stringify(callLib("put", [["wat?"]], [0, 0], "foo")),
+    '[["foo"]]',
+    "if the nested value is an array, keep it an array"
+  );
+
+  t.is(
+    JSON.stringify(callLib("put", {}, ["a", "b"], [])),
+    '{"a":{"b":[]}}',
+    "preserve type of to_set"
+  );
+  t.is(
+    JSON.stringify(callLib("put", [], [0], ["foo"])),
+    '[["foo"]]',
+    "preserve type of to_set"
+  );
+  t.is(
+    JSON.stringify(callLib("put", [], [], ["foo"])),
+    '["foo"]',
+    "preserve type of to_set"
+  );
+  t.is(
+    JSON.stringify(callLib("put", {}, "foo", [0])),
+    '{"foo":[0]}',
+    "preserve type of to_set"
+  );
+  t.is(
+    JSON.stringify(callLib("put", {}, "foo", ["bar"])),
+    '{"foo":["bar"]}',
+    "preserve type of to_set"
+  );
+  t.is(
+    JSON.stringify(
+      callLib("put", [{ foo: 1 }, { bar: 2 }], [1, "bar", "baz"], 4)
+    ),
+    '[{"foo":1},{"bar":{"baz":4}}]'
+  );
+
+  t.is(
+    JSON.stringify(callLib("put", { one: [2, 3] }, ["one", 1], 4)),
+    '{"one":[2,4]}',
+    "number index"
+  );
+  t.is(
+    JSON.stringify(callLib("put", { one: [2, 3] }, ["one", "1"], 4)),
+    '{"one":[2,4]}',
+    "Array index can be a string"
+  );
+  t.is(
+    JSON.stringify(callLib("put", { one: [2, 3] }, ["one", "2"], 4)),
+    '{"one":[2,3,4]}',
+    "Array index at the end"
+  );
+  t.is(
+    JSON.stringify(callLib("put", { one: [2, 3] }, ["one", "3"], 4)),
+    '{"one":{"0":2,"1":3,"3":4}}',
+    "convert Array to Map if sparse array is attempted"
+  );
+  t.is(
+    JSON.stringify(callLib("put", { one: [2, 3] }, ["one", "foo"], 4)),
+    '{"one":{"0":2,"1":3,"foo":4}}',
+    "convert Array to Map if non-index path is given"
+  );
+  t.is(
+    JSON.stringify(callLib("put", { one: [2, 3] }, ["one", "foo", "0"], 4)),
+    '{"one":{"0":2,"1":3,"foo":{"0":4}}}',
+    "convert Array to Map if non-index path is given"
+  );
+
+  const toSort = [5, 3, 4, 1, 12];
+  t.deepEqual(callLib("sort", null, "numeric"), null);
+  t.deepEqual(callLib("sort", toSort), [1, 12, 3, 4, 5]);
+  t.deepEqual(callLib("sort", toSort, mkKrl.action([], () => null)), [
+    1,
+    12,
+    3,
+    4,
+    5
+  ]);
+  t.deepEqual(callLib("sort", toSort, "default"), [1, 12, 3, 4, 5]);
+  t.deepEqual(callLib("sort", toSort, "reverse"), [5, 4, 3, 12, 1]);
+  t.deepEqual(callLib("sort", toSort, "numeric"), [1, 3, 4, 5, 12]);
+  t.deepEqual(callLib("sort", toSort, "ciremun"), [12, 5, 4, 3, 1]);
+
+  t.deepEqual(
+    await callLib(
+      "sort",
+      toSort,
+      mkKrl.function(["a", "b"], (a: any, b: any) =>
+        a < b ? -1 : a === b ? 0 : 1
+      )
+    ),
+    [1, 3, 4, 5, 12]
+  );
+  t.deepEqual(
+    await callLib(
+      "sort",
+      toSort,
+      mkKrl.function(["a", "b"], (a: any, b: any) =>
+        a > b ? -1 : a === b ? 0 : 1
+      )
+    ),
+    [12, 5, 4, 3, 1]
+  );
+  t.deepEqual(toSort, [5, 3, 4, 1, 12], "should not be mutated");
+
+  t.deepEqual(
+    await callLib(
+      "sort",
+      [],
+      mkKrl.function(["a", "b"], (a: any, b: any) =>
+        a < b ? -1 : a === b ? 0 : 1
+      )
+    ),
+    []
+  );
+  t.deepEqual(
+    await callLib(
+      "sort",
+      [1],
+      mkKrl.function(["a", "b"], (a: any, b: any) =>
+        a < b ? -1 : a === b ? 0 : 1
+      )
+    ),
+    [1]
+  );
+  t.deepEqual(
+    await callLib(
+      "sort",
+      [2, 1],
+      mkKrl.function(["a", "b"], (a: any, b: any) =>
+        a < b ? -1 : a === b ? 0 : 1
+      )
+    ),
+    [1, 2]
+  );
+  t.deepEqual(
+    await callLib(
+      "sort",
+      [2, 3, 1],
+      mkKrl.function(["a", "b"], (a: any, b: any) =>
+        a < b ? -1 : a === b ? 0 : 1
+      )
+    ),
+    [1, 2, 3]
+  );
 });

@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import mkKrl, * as krl from "../krl";
+import { asyncSort } from "../asyncSort";
 
 function ltEqGt(left: any, right: any): 0 | 1 | -1 {
   let a: any = krl.toNumberOrNull(left);
@@ -53,6 +54,22 @@ async function iterBase(
 const identity = mkKrl.function(["val"], function(val) {
   return val;
 });
+
+// coerce the value into an array of key strings
+function toKeyPath(path: any) {
+  if (!krl.isArray(path)) {
+    path = [path];
+  }
+  return _.map(path, krl.toString);
+}
+
+function isSafeArrayIndex(arr: any[], key: any) {
+  var index = _.parseInt(key, 10);
+  if (_.isNaN(index)) {
+    return false;
+  }
+  return index >= 0 && index <= arr.length; // equal too b/c it's ok to append
+}
 
 const stdlib: krl.KrlModule = {
   /////////////////////////////////////////////////////////////////////////////
@@ -654,9 +671,305 @@ const stdlib: krl.KrlModule = {
     return _.reverse(_.cloneDeep(val));
   }),
 
+  slice: mkKrl.function(["val", "start", "end"], function(val, start, end) {
+    if (!krl.isArray(val)) {
+      throw new TypeError("only works on Arrays");
+    }
+    if (val.length === 0) {
+      return [];
+    }
+    if (arguments.length === 1) {
+      return val;
+    }
+    var firstIndex = krl.toNumberOrNull(start);
+    if (firstIndex === null) {
+      throw new TypeError(
+        "The .slice() operator cannot use " +
+          krl.toString(start) +
+          " as an index"
+      );
+    }
+    if (arguments.length === 2) {
+      if (firstIndex > val.length) {
+        return [];
+      }
+      return _.slice(val, 0, firstIndex + 1);
+    }
+    var secondIndex = krl.toNumberOrNull(end);
+    if (secondIndex === null) {
+      throw new TypeError(
+        "The .slice() operator cannot use " +
+          krl.toString(end) +
+          " as the other index"
+      );
+    }
+    if (firstIndex > secondIndex) {
+      // this is why firstIndex isn't named startIndex
+      var temp = firstIndex;
+      firstIndex = secondIndex;
+      secondIndex = temp;
+    }
+    if (firstIndex >= 0 && secondIndex < val.length) {
+      return _.slice(val, firstIndex, secondIndex + 1);
+    }
+    return [];
+  }),
+
+  splice: mkKrl.function(["val", "start", "nElements", "value"], function(
+    val,
+    start,
+    nElements,
+    value
+  ) {
+    if (!krl.isArray(val)) {
+      throw new TypeError("only works on Arrays");
+    }
+    if (val.length === 0) {
+      return [];
+    }
+    var startIndex = krl.toNumberOrNull(start);
+    if (startIndex === null) {
+      throw new TypeError(
+        "The .splice() operator cannot use " +
+          krl.toString(start) +
+          "as an index"
+      );
+    }
+    startIndex = Math.min(Math.max(startIndex, 0), val.length - 1);
+
+    var nElm = krl.toNumberOrNull(nElements);
+    if (nElm === null) {
+      throw new TypeError(
+        "The .splice() operator cannot use " +
+          krl.toString(nElements) +
+          "as a number of elements"
+      );
+    }
+    if (nElm < 0 || startIndex + nElm > val.length) {
+      nElm = val.length - startIndex;
+    }
+    var part1 = _.slice(val, 0, startIndex);
+    var part2 = _.slice(val, startIndex + nElm);
+    if (arguments.length < 4) {
+      return _.concat(part1, part2);
+    }
+    return _.concat(part1, value, part2);
+  }),
+
+  delete: mkKrl.function(["val", "path"], function(val, path) {
+    path = toKeyPath(path);
+    // TODO optimize
+    var nVal = _.cloneDeep(val);
+    _.unset(nVal, path);
+    return nVal;
+  }),
+
+  encode: mkKrl.function(["val", "indent"], function(val, indent) {
+    return krl.encode(val, indent);
+  }),
+
+  keys: mkKrl.function(["val", "path"], function(val, path) {
+    if (!krl.isArrayOrMap(val)) {
+      return [];
+    }
+    if (path) {
+      path = toKeyPath(path);
+      return _.keys(_.get(val, path));
+    }
+    return _.keys(val);
+  }),
+
+  values: mkKrl.function(["val", "path"], function(val, path) {
+    if (!krl.isArrayOrMap(val)) {
+      return [];
+    }
+    if (path) {
+      path = toKeyPath(path);
+      return _.values(_.get(val, path));
+    }
+    return _.values(val);
+  }),
+
+  intersection: mkKrl.function(["a", "b"], function(a, b) {
+    if (arguments.length < 2) {
+      return [];
+    }
+    if (!krl.isArray(a)) {
+      a = [a];
+    }
+    if (!krl.isArray(b)) {
+      b = [b];
+    }
+    return _.intersectionWith(a, b, krl.isEqual);
+  }),
+
+  union: mkKrl.function(["a", "b"], function(a, b) {
+    if (arguments.length < 2) {
+      return a;
+    }
+    if (!krl.isArray(a)) {
+      a = [a];
+    }
+    if (!krl.isArray(b)) {
+      b = [b];
+    }
+    return _.unionWith(a, b, krl.isEqual);
+  }),
+
+  difference: mkKrl.function(["a", "b"], function(a, b) {
+    if (arguments.length < 2) {
+      return a;
+    }
+    if (!krl.isArray(a)) {
+      a = [a];
+    }
+    if (!krl.isArray(b)) {
+      b = [b];
+    }
+    return _.differenceWith(a, b, krl.isEqual);
+  }),
+
+  has: mkKrl.function(["val", "other"], function(val, other) {
+    if (!krl.isArray(val)) {
+      val = [val];
+    }
+    return stdlib.difference(this, [other, val]).length === 0;
+  }),
+
+  once: mkKrl.function(["val"], function(val) {
+    if (!krl.isArray(val)) {
+      return val;
+    }
+    // TODO optimize
+    val = krl.cleanNulls(val);
+    var r: any[] = [];
+    _.each(_.groupBy(val), function(group) {
+      if (group.length === 1) {
+        r.push(group[0]);
+      }
+    });
+    return r;
+  }),
+
+  duplicates: mkKrl.function(["val"], function(val) {
+    if (!krl.isArray(val)) {
+      return [];
+    }
+    // TODO optimize
+    val = krl.cleanNulls(val);
+    var r: any[] = [];
+    _.each(_.groupBy(val), function(group) {
+      if (group.length > 1) {
+        r.push(group[0]);
+      }
+    });
+    return r;
+  }),
+
+  unique: mkKrl.function(["val"], function(val) {
+    if (!krl.isArray(val)) {
+      return val;
+    }
+    return _.uniqWith(val, krl.isEqual);
+  }),
+
+  put: mkKrl.function(["val", "path", "toSet"], function(val, path, toSet) {
+    if (!krl.isArrayOrMap(val) || arguments.length < 2) {
+      return val;
+    }
+    if (arguments.length < 3) {
+      toSet = path;
+      path = [];
+    }
+    val = _.cloneDeep(val);
+    path = toKeyPath(path);
+    if (_.isEmpty(path)) {
+      if (krl.isMap(toSet)) {
+        if (krl.isMap(val)) {
+          return _.assign({}, val, toSet);
+        }
+      } else if (krl.isArray(toSet)) {
+        if (krl.isArray(val)) {
+          return _.assign([], val, toSet);
+        }
+      }
+      return toSet;
+    }
+    var nVal = val;
+    var nested = nVal;
+    var i, key;
+    for (i = 0; i < path.length; i++) {
+      key = path[i];
+      if (i === path.length - 1) {
+        nested[key] = toSet;
+      } else {
+        if (krl.isMap(nested[key])) {
+          // simply traverse down
+        } else if (krl.isArray(nested[key])) {
+          var nextKey = path[i + 1];
+          if (isSafeArrayIndex(nested[key], nextKey)) {
+            // simply traverse down
+          } else {
+            // convert Array to Map b/c the key is not a safe index
+            nested[key] = _.assign({}, nested[key]);
+          }
+        } else {
+          // need to create a Map to continue
+          nested[key] = {};
+        }
+        nested = nested[key];
+      }
+    }
+    return nVal;
+  }),
+
+  sort: mkKrl.function(["val", "sortBy"], function(val, sortBy) {
+    if (!krl.isArray(val)) {
+      return val;
+    }
+    val = _.cloneDeep(val);
+    var sorters: { [key: string]: (a: any, b: any) => number } = {
+      default: (a: any, b: any) => {
+        return stdlib.cmp(this, [a, b]);
+      },
+      reverse: (a: any, b: any) => {
+        return -stdlib.cmp(this, [a, b]);
+      },
+      numeric: (a: any, b: any) => {
+        return stdlib["<=>"](this, [a, b]);
+      },
+      ciremun: (a: any, b: any) => {
+        return -stdlib["<=>"](this, [a, b]);
+      }
+    };
+    if (_.has(sorters, sortBy)) {
+      return val.sort(sorters[sortBy]);
+    }
+    if (!krl.isFunction(sortBy)) {
+      return val.sort(sorters["default"]);
+    }
+    return asyncSort(val, (a: any, b: any) => {
+      return sortBy(this, [a, b]);
+    });
+  }),
+
   /////////////////////////////////////////////////////////////////////////////
   get: mkKrl.function(["obj", "path"], function(obj, path) {
+    if (!krl.isArrayOrMap(obj)) {
+      return null;
+    }
+    path = toKeyPath(path);
     return _.get(obj, path, null);
+  }),
+
+  set: mkKrl.function(["obj", "path", "val"], function(obj, path, val) {
+    if (!krl.isArrayOrMap(obj)) {
+      return obj;
+    }
+    path = toKeyPath(path);
+    // TODO optimize
+    obj = _.cloneDeep(obj);
+    return _.set(obj, path, val);
   })
 };
 

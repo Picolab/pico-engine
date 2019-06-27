@@ -190,7 +190,7 @@ export function isEqual(left: any, right: any): boolean {
 }
 
 // returns a clone of val with void 0 and NaN values converted to null
-function cleanNulls(val: any) {
+export function cleanNulls(val: any) {
   if (isNull(val)) {
     return null;
   }
@@ -218,4 +218,24 @@ export function decode(val: any) {
   } catch (e) {
     return val;
   }
+}
+
+export function encode(val: any, indent?: any) {
+  indent = _.parseInt(indent, 10) || 0; // default to 0 (no indent)
+  return JSON.stringify(
+    val,
+    function(k, v) {
+      switch (typeOf(v)) {
+        case "Null":
+          return null;
+        case "JSObject":
+        case "RegExp":
+        case "Function":
+        case "Action":
+          return toString(v);
+      }
+      return v;
+    },
+    indent
+  );
 }
