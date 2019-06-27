@@ -23,7 +23,7 @@ ruleset io.picolabs.wrangler {
     shares skyQuery ,
     rulesetsInfo,installedRulesets,registeredRulesets, //ruleset
     channel, alwaysEci, nameFromEci,//channel
-    children, parent_eci, name, profile, pico, randomPicoName, pico,  myself, id, MAX_RAND_ENGL_NAMES, test, isMarkedForDeath, getPicoMap, timeForCleanup,
+    children, parent_eci, name, profile, pico, randomPicoName, pico,  myself, id, MAX_RAND_ENGL_NAMES, isMarkedForDeath, getPicoMap, timeForCleanup,
      __testing
   }
   global {
@@ -37,13 +37,9 @@ ruleset io.picolabs.wrangler {
                               { "domain": "wrangler", "type": "child_creation",
                                 "attrs": [ "name" , "rids"] },
                               { "domain": "wrangler", "type": "child_deletion",
-                                "attrs": [ "name","id","delete_all"] },
-                              { "domain": "wrangler", "type": "child_deletion",
-                              "attrs": [ "id"] },
-                              { "domain": "wrangler", "type": "child_deletion",
-                              "attrs": [ "delete_all"] },
+                              "attrs": [ "id","name"] },
                               { "domain": "wrangler", "type": "force_child_deletion",
-                              "attrs": [ "id", "name","delete_all"] },
+                              "attrs": [ "id", "name"] },
                               { "domain": "wrangler", "type": "child_sync",
                               "attrs": [ ] },
                               { "domain": "wrangler", "type": "channel_creation_requested",
@@ -55,15 +51,7 @@ ruleset io.picolabs.wrangler {
                               { "domain": "wrangler", "type": "deletion_requested",
                                 "attrs": [ ] } ] }
                                 
-  test = function() {
-   //engine:listChannels(meta:picoId)[0]
-   //engine:getPicoIDByECI("a");
-   skyQuery(meta:eci, "io.picolabs.wrangler", "myself");
-  // ent:wrangler_children;
-  // engine:listChildren().length()
-   // engine:listChannels(ent:id)
-    children("");
-  }
+                                
 // ********************************************************************************************
 // ***                                                                                      ***
 // ***                                      FUNCTIONS                                       ***
@@ -103,7 +91,6 @@ ruleset io.picolabs.wrangler {
      skyQuery = function(eci, mod, func, params,_host,_path,_root_url) { // path must start with "/"", _host must include protocol(http:// or https://)
        //.../sky/cloud/<eci>/<rid>/<name>?name0=value0&...&namen=valuen
        thisPico = eci => engine:getPicoIDByECI(eci.defaultsTo("")) == meta:picoId | false;
-       //blue = thisPico.klog("this ran");
        createRootUrl = function (_host,_path){
          host = _host || meta:host;
          path = _path || "/sky/cloud/";
@@ -393,8 +380,8 @@ ruleset io.picolabs.wrangler {
                                                                       channel_a
                                                                      }, null);
                 //channelKeys = grabbedChannels.keys().klog("observed channel map keys are: ");
-                grabbedEci = grabbedChannel.klog("grabbedChannel"){"id"};
-                attemptedMap = skyQuery(grabbedEci.klog("eci attempt is:"), meta:rid, "getPicoMap");
+                grabbedEci = grabbedChannel{"id"};
+                attemptedMap = skyQuery(grabbedEci, meta:rid, "getPicoMap");
                 attemptedMap{"error"}.isnull() => attemptedMap.put("eci", grabbedEci) |
                                                   {
                                                     "id":picoID,
@@ -484,7 +471,7 @@ ruleset io.picolabs.wrangler {
     rule installRulesets {
     select when wrangler install_rulesets_requested
     pre {
-      rid_list = gatherGivenArray("rids", "rid").klog("given array is: ")
+      rid_list = gatherGivenArray("rids", "rid")
       valid_rids = rid_list.intersection(registeredRulesets())
       invalid_rids = rid_list.difference(valid_rids)
       initial_install = event:attr("init").defaultsTo(false) // if this is a new pico
@@ -568,13 +555,13 @@ ruleset io.picolabs.wrangler {
       given_name = event:attr("name").defaultsTo("");
       name = given_name.length() == 0 => randomPicoName() | given_name;
       rids = gatherGivenArray("rids","rid")
-      url_rids = gatherGivenArray("rids_from_url").klog("url rids are:")
+      url_rids = gatherGivenArray("rids_from_url")
 
     }
     // If we have a name and this pico isn't currently trying to destroy itself
     if (name) && not (isMarkedForDeath()) then every {
       createPico(name, rids, url_rids) setting(child)
-      send_directive("Pico_Created", {"pico":child.klog("child: ")});
+      send_directive("Pico_Created", {"pico":child});
     }
     fired {
       ent:wrangler_children{child{"id"}} := child; 
@@ -625,7 +612,7 @@ ruleset io.picolabs.wrangler {
     select when wrangler finish_initialization
       event:send({ "eci"   : event:attr("parent_eci"),
                    "domain": "wrangler", "type": "child_initialized",
-                   "attrs" : event:attrs.klog("event attrs sending back") })
+                   "attrs" : event:attrs })
     always {
       raise visual event "update"
         attributes event:attr("rs_attrs").defaultsTo({}).put("dname",event:attr("name"))
@@ -653,12 +640,12 @@ ruleset io.picolabs.wrangler {
     pre {
       picoIDMap = getPicosToDelete(event:attrs).filter(function(pico,id){
         not pico{"rogue"}  
-      }).klog("Found these picos to delete: ");
+      })//.klog("Found these picos to delete: ");
       picoIDArray = picoIDMap.keys();
     }
     send_directive("pico_ids_to_delete", {"ids":picoIDArray})
     always {
-      ent:children_being_deleted := ent:children_being_deleted.defaultsTo({}).put(picoIDMap).klog("Children being deleted is now: ");
+      ent:children_being_deleted := ent:children_being_deleted.defaultsTo({}).put(picoIDMap);
       raise wrangler event "send_intent_to_delete" attributes event:attrs.put({
         "picoIDArray":picoIDArray
       });
@@ -669,12 +656,11 @@ ruleset io.picolabs.wrangler {
     select when wrangler send_intent_to_delete
     foreach event:attr("picoIDArray") setting (picoID)
     pre {
-      //e = ent:wrangler_children.klog("wrangler children is: ")
-      picoEci = ent:wrangler_children{[picoID.klog("target picoID"), "eci"]};
+      picoEci = ent:wrangler_children{[picoID, "eci"]};
       attrsToSend = event:attrs.delete("picoIDArray")
   
     }
-    event:send({"eci":picoEci.klog("target eci"), "domain":"wrangler", "type":"intent_to_delete_pico", "attrs":attrsToSend});
+    event:send({"eci":picoEci, "domain":"wrangler", "type":"intent_to_delete_pico", "attrs":attrsToSend});
     always {
       clear ent:wrangler_children{picoID}
     }
@@ -712,7 +698,7 @@ ruleset io.picolabs.wrangler {
       //Children that exist but wrangler doesn't know about
       ghostChildren = engineChildren.difference(wranglerChildren);
       
-      ghostChildrenMap = getChildMapFromIDs(ghostChildren).klog("ghost children map is");
+      ghostChildrenMap = getChildMapFromIDs(ghostChildren)
       
       //Children that don't exist but wrangler still has record of
       extraChildren = wranglerChildren.difference(engineChildren)
@@ -737,10 +723,10 @@ ruleset io.picolabs.wrangler {
       picoIDArray = getPicosToDelete(event:attrs, true).keys();
       picoSubtreeArrays = picoIDArray.map(function(picoID) {
         gatherDescendants(picoID)
-      }).klog("picoSubtreeArrays")
+      })
       flatArray = picoSubtreeArrays.reduce(function(id_array_a, id_array_b){
                                             id_array_a.append(id_array_b);
-                                          }, []).append(picoIDArray).klog("full flat array")
+                                          }, []).append(picoIDArray)
     }
     send_directive("pico_ids_to_force_delete", {"pico_ids":flatArray})
     always {
