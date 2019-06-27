@@ -1273,6 +1273,10 @@ testPE('pico-engine - Wrangler - KRL tests', async function (t, pe, rootEci) {
         passed = false
         console.log('\x1b[31m', 'Some tests timed out!')
       }
+      if (data.testBatchTimedOut) {
+        passed = false
+        console.log('\x1b[31m', 'Test batch timed out!')
+      }
       if (data.failedTests) {
         passed = false
         console.log('\x1b[31m', 'Failed tests')

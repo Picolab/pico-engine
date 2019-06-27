@@ -453,14 +453,15 @@ ruleset wrangler_tests_runner {
         "tests": wrangler_tests,
         "ruleset_under_test":"io.picolabs.wrangler"
     };
-    ent:progress_report := tests:getTestsOverview()
+    ent:progress_report := tests:getTestsOverview();
+    ent:full_report := {}
     }
   }
   
   rule receive_progress_update {
     select when tests tests_progress_update
     always {
-      ent:progress_report := tests:getTestsOverview()
+      ent:progress_report := event:attr("testsOverview")
     }
   }
   
@@ -468,7 +469,7 @@ ruleset wrangler_tests_runner {
     select when tests tests_finished
     always {
       ent:full_report := event:attr("fullReport");
-      ent:progress_report := tests:getTestsOverview()
+      ent:progress_report := event:attr("testsOverview")
     }
   }
   

@@ -12,7 +12,7 @@
 */
 ruleset io.picolabs.test {
   meta {
-    shares __testing, test, getFullReport, getTestsOverview
+    shares __testing, test, getFullReport, getTestsOverview, currentTestSession
     provides getFullReport, getTestsOverview
     use module io.picolabs.wrangler alias wrangler
   }
@@ -22,20 +22,19 @@ ruleset io.picolabs.test {
       , { "name": "test", "args": [] }
       , { "name": "getFullReport", "args": [] }
       , { "name": "getTestsOverview", "args": [] }
+      , { "name": "currentTestSession", "args": [] }
       ] , "events":
       [ { "domain": "tests", "type": "run_tests", "attrs":["ruleset_under_test"]},
-        { "domain": "tests", "type": "unregister_ruleset", "attrs":["rid_to_remove"]}
+        { "domain": "tests", "type": "unregister_ruleset", "attrs":["rid_to_remove"]},
+        { "domain": "tests", "type": "delete_test_children", "attrs":[]}
       //, { "domain": "d2", "type": "t2", "attrs": [ "a1", "a2" ] }
       ]
     }
       
       /* todo
-           schedule timeout for all tests
            remove reliance on wrangler for basic version so wrangler can be tested reliably using ruleset
            add additional functionality, such as a "start state", "chained events", etc
-           debounce running tests
            check for duplicate tests for recording tests currently running. Tests wont finish w duplicate tests
-           Bug when all tests fail to create rulesets
       */
 
     
@@ -43,7 +42,9 @@ ruleset io.picolabs.test {
       ent:success_result
     }
     
-    
+    currentTestSession = function() {
+      ent:test_session
+    }
     
     getNumOfTests = function(tests) {
       tests
@@ -81,6 +82,10 @@ ruleset io.picolabs.test {
        })
     }
     
+    haveAllTestsRun = function() {
+      ent:num_test_groups == 0 => 0 | ent:failed_to_start.keys().length() + ent:test_report.values().length() == ent:num_test_groups;
+    }
+    
     getTestsOverview = function() {
       numTestsToRun = getNumOfTests(ent:tests_to_run);
       numTestsHaveRun = ent:test_report.values()
@@ -90,14 +95,18 @@ ruleset io.picolabs.test {
                                                                     num + listener.values().length()
                                                                 }, 0)
                                        }, 0);
-      percentComplete = numTestsToRun == 0 => 100 | numTestsHaveRun.klog("has run")/numTestsToRun.klog("to run") * 100;
-      hasTimedOut = ent:tests_timed_out.defaultsTo(false);
-      failedTests = hasTimedOut || percentComplete >= 100 => getFailedTests() | null;
+      anyTestTimedOut = ent:tests_timed_out.defaultsTo(false);
+      testBatchTimedOut = ent:test_group_timed_out.defaultsTo(false);
+      allTestsRan = haveAllTestsRun();
+      percentComplete = (numTestsToRun == 0 && allTestsRan) || testBatchTimedOut => 100 | numTestsHaveRun.klog("has run")/numTestsToRun.klog("to run") * 100;
+      failedTests = anyTestTimedOut || percentComplete >= 100 => getFailedTests() | null;
       overviewMap = {
         "percentComplete":percentComplete,
-        "timedOut":hasTimedOut,
+        "timedOut":anyTestTimedOut,
+        "testBatchTimedOut":testBatchTimedOut,
         "numTestsRun":numTestsHaveRun,
         "numTestsToRun":numTestsToRun,
+        //"length":<<#{ent:failed_to_start.keys().length() + ent:test_report.values().length()} .. #{ent:num_test_groups}>>,
         "failedToStart":ent:failed_to_start.defaultsTo({})
       };
       
@@ -260,7 +269,7 @@ ruleset io.picolabs.test {
                     test test_timed_out
         if not ent:tests_completed then
         every {
-          event:send({"eci":wrangler:parent_eci(), "domain":"test", "type":"test_report", "attrs": ent:savedAttrs.put({"testName" : <<#{testName}\>\>, "report":ent:running_tests, "timedOut":event:attrs{"tests_timed_out"}})})
+          event:send({"eci":wrangler:parent_eci(), "domain":"test", "type":"test_report", "attrs": ent:savedAttrs.put({"testName" : <<#{testName}\>\>,"picoID":wrangler:myself(){"id"}, "report":ent:running_tests, "timedOut":event:attrs{"tests_timed_out"}})})
           schedule:remove(ent:scheduled_timeout_event);
         }
         always {
@@ -278,7 +287,7 @@ ruleset io.picolabs.test {
       tests_to_run = event:attr("tests")
       rid_to_test = event:attr("ruleset_under_test")
       test_names = tests_to_run.keys()
-      secondsUntilTestsTimeout = 10 * tests_to_run.length() 
+      seconds_until_tests_timeout = 10 * tests_to_run.length() 
       
     }
     if not ent:test_session && tests_to_run then
@@ -287,18 +296,33 @@ ruleset io.picolabs.test {
       raise tests event "run_each_test" attributes event:attrs.put({
         "tests":test_names
       });
+      // Stores the results of all completed tests
       ent:test_report := {};
+      // Stores the tests that failed to start
       ent:failed_to_start := {};
+      // Stores what needs to be run
       ent:tests_to_run := tests_to_run;
+      // Stores the number of test groups given
+      ent:num_test_groups := test_names.length().klog("test name length");
+      //Stores the pico IDs of the picos created to run each test
       ent:test_picos := [];
+      // Flag set to true when *any* the tests time out
       ent:tests_timed_out := false;
+      // Flag set to true when the test batch itself times out
+      ent:test_group_timed_out := false;
+      // Stores RID of the ruleset being tested
       ent:ruleset_under_test := rid_to_test;
+      // Stores the attributes given to this rule so they can be passed back to whatever triggered the tests
       ent:given_attrs := event:attrs;
+      // An ID that determines which test batch is running currently. Is null is no test batch is running
       ent:test_session := random:uuid();
+      
       schedule tests event "tests_timed_out" 
-                              at time:add(time:now(), ent:default_timeout.defaultsTo({"seconds":secondsUntilTestsTimeout}))
-                              attributes event:attrs.put("tests_timed_out", true)
+                              at time:add(time:now(), ent:default_timeout.defaultsTo({"seconds":seconds_until_tests_timeout}))
+                              attributes event:attrs.put("tests_timed_out", true).put("test_session", ent:test_session)
                               setting(scheduled_timeout);
+                              
+      // Stores the EID of the timeout event so it can be cancelled if the tests do not time out.
       ent:scheduled_timeout_event := scheduled_timeout;
     }
     else {
@@ -314,12 +338,12 @@ ruleset io.picolabs.test {
     foreach event:attr("tests") setting (testName)
     pre {
       test = ent:tests_to_run{testName}
-      krlCode = generateRuleset(test, testName)
+      krl_code = generateRuleset(test, testName)
       rid = testRid(testName)
-      parseResult = engine:doesKRLParse(krlCode)
+      parseResult = engine:doesKRLParse(krl_code).klog("parse result")
     }
     if parseResult{"parsed"} then
-      engine:registerRulesetFromSrc(krlCode) setting (register_response)
+      engine:registerRulesetFromSrc(krl_code) setting (register_response)
     fired {
       ent:success_result := register_response;
       raise wrangler event "new_child_request" attributes event:attrs.put({
@@ -340,12 +364,17 @@ ruleset io.picolabs.test {
   rule test_session_timed_out {
     select when tests tests_timed_out
     pre {
-      
+      test_session = event:attr("test_session")
     }
-    always {
+    if ent:test_session == test_session then
+    noop()
+    fired {
       clear ent:test_session;
-      ent:tests_timed_out := true;
-      ent:test_grouo_timed_out := true;
+      ent:test_group_timed_out := true;
+      raise tests event "tests_finished" attributes ent:given_attrs.put({
+        "testsOverview":getTestsOverview(),
+        "fullReport":getFullReport()
+      });
     }
   }
   
@@ -356,6 +385,7 @@ ruleset io.picolabs.test {
       testName = event:attrs{"testName"}
       testReport = event:attrs{"report"}
       timedOut = event:attrs{"timedOut"}
+      picoID = event:attrs{"picoID"}
       testSession = event:attr("testSession")
       //Check if any failed, if they did, keep the pico around
       failed = testReport.map(function(exprs, listener){
@@ -371,7 +401,7 @@ ruleset io.picolabs.test {
     fired {
       ent:test_report{[testName]} := testReport.klog("TEST REPORT UPDATED");
       raise wrangler event "child_deletion" attributes {
-        "name":testRid(testName),
+        "id":picoID,
         //"co_id":meta:rid,
         "rid":testRid(testName)
       } if not failed;
@@ -383,17 +413,17 @@ ruleset io.picolabs.test {
     select when test test_report
     pre {
       testOverview = getTestsOverview()
-      testsDone = testOverview{"numTestsRun"} == testOverview{"numTestsToRun"}
+      testsDone = haveAllTestsRun()
       
     }
     if testsDone then
-      noop()
+      schedule:remove(ent:scheduled_timeout_event);
     fired {
       clear ent:test_session;
       raise tests event "tests_finished" attributes ent:given_attrs.put({
         "testsOverview":getTestsOverview(),
         "fullReport":getFullReport()
-      })
+      });
     }
     finally {
       raise tests event "tests_progress_update" attributes ent:given_attrs.put({
@@ -407,9 +437,14 @@ ruleset io.picolabs.test {
     pre {
       testName = event:attrs{"test_with_problem"}
     }
-    always {
+    if haveAllTestsRun() then
+      schedule:remove(ent:scheduled_timeout_event);
+    fired {
+      clear ent:test_session;
+    }
+    finally {
       ent:failed_to_start := ent:failed_to_start.defaultsTo({}).put(testName, event:attrs{"error"});
-      clear ent:tests_to_run{testName}
+      clear ent:tests_to_run{testName};
     }
   }
   
@@ -436,6 +471,29 @@ ruleset io.picolabs.test {
     engine:unregisterRuleset(rid_to_remove) setting(unregister_response)
     always {
       ent:unregister_response := unregister_response
+    }
+  }
+  
+  rule deleteAllTestChildren {
+    select when tests delete_test_children
+    pre {
+      w_children = wrangler:children()
+      test_children = w_children.filter(function(child){child{"name"}.substr(0, meta:rid.length()) == meta:rid})
+    }
+    always {
+      raise tests event "delete_each_child" attributes {
+        "test_children":test_children
+      }
+    }
+  }
+  
+  rule deleteEachTestChild {
+    select when tests delete_each_child
+    foreach event:attr("test_children") setting(child)
+    always {
+      raise wrangler event "child_deletion" attributes {
+        "id":child{"id"}
+      }
     }
   }
 }
