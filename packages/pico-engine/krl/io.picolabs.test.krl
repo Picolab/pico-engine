@@ -12,7 +12,7 @@
 */
 ruleset io.picolabs.test {
   meta {
-    shares __testing, test, getFullReport, getTestsOverview, currentTestSession
+    shares __testing, getFullReport, getTestsOverview, currentTestSession
     provides getFullReport, getTestsOverview
     use module io.picolabs.wrangler alias wrangler
   }
@@ -25,7 +25,7 @@ ruleset io.picolabs.test {
       , { "name": "currentTestSession", "args": [] }
       ] , "events":
       [ { "domain": "tests", "type": "run_tests", "attrs":["ruleset_under_test"]},
-        { "domain": "tests", "type": "unregister_ruleset", "attrs":["rid_to_remove"]},
+        //{ "domain": "tests", "type": "unregister_ruleset", "attrs":["rid_to_remove"]},
         { "domain": "tests", "type": "delete_test_children", "attrs":[]}
       //, { "domain": "d2", "type": "t2", "attrs": [ "a1", "a2" ] }
       ]
@@ -34,13 +34,8 @@ ruleset io.picolabs.test {
       /* todo
            remove reliance on wrangler for basic version so wrangler can be tested reliably using ruleset
            add additional functionality, such as a "start state", "chained events", etc
-           check for duplicate tests for recording tests currently running. Tests wont finish w duplicate tests
+           Add support for prototypes as test setup
       */
-
-    
-    test = function() {
-      ent:success_result
-    }
     
     currentTestSession = function() {
       ent:test_session
@@ -48,30 +43,30 @@ ruleset io.picolabs.test {
     
     getNumOfTests = function(tests) {
       tests
-      .values().klog("test vals")
+      .values()
       .reduce(function(num, test_b){
         numTestsInB = test_b{"listeners"}
                       .keys()
                       .reduce(function(num, listener_b){
-                        num + test_b{["listeners",listener_b.klog("listener_b"), "expressions"]}.klog("expressions").length()  
+                        num + test_b{["listeners",listener_b, "expressions"]}.length()  
                       },0);
-        num + numTestsInB.klog("number tests found in listener")
+        num + numTestsInB//.klog("number tests found in listener")
       }, 0);
     }
     
     getFailedTests = function() {
       collectedTests = 
       ent:test_report.map(function(listeners, testName) {
-                                         listeners.klog("values")
+                                         listeners
                                          .map(function(exprs, event){
                                              exprs.filter(function(testStatus, expr){
                                                       testStatus == "failed" || testStatus == "pending" || testStatus == "tried_to_run"
-                                                   }).klog("pre-filter")
+                                                   })
                                                   .keys()
                                                   .map(function(expr){ // add descriptions
                                                       testStatus = exprs{expr};
-                                                      ent:tests_to_run{[testName, "listeners", event.klog("event"), "expressions"]}.klog("in tests to run").filter(function(exprArray){
-                                                                                                        exprArray[1].klog("expr comparing against") == expr.klog("expr")
+                                                      ent:tests_to_run{[testName, "listeners", event, "expressions"]}.filter(function(exprArray){
+                                                                                                        exprArray[1] == expr
                                                                                                       }).head().append(testStatus)
                                                   })
                                          })
@@ -98,7 +93,7 @@ ruleset io.picolabs.test {
       anyTestTimedOut = ent:tests_timed_out.defaultsTo(false);
       testBatchTimedOut = ent:test_group_timed_out.defaultsTo(false);
       allTestsRan = haveAllTestsRun();
-      percentComplete = (numTestsToRun == 0 && allTestsRan) || testBatchTimedOut => 100 | numTestsHaveRun.klog("has run")/numTestsToRun.klog("to run") * 100;
+      percentComplete = (numTestsToRun == 0 && allTestsRan) || testBatchTimedOut => 100 | numTestsHaveRun / numTestsToRun * 100;
       failedTests = anyTestTimedOut || percentComplete >= 100 => getFailedTests() | null;
       overviewMap = {
         "percentComplete":percentComplete,
@@ -106,7 +101,6 @@ ruleset io.picolabs.test {
         "testBatchTimedOut":testBatchTimedOut,
         "numTestsRun":numTestsHaveRun,
         "numTestsToRun":numTestsToRun,
-        //"length":<<#{ent:failed_to_start.keys().length() + ent:test_report.values().length()} .. #{ent:num_test_groups}>>,
         "failedToStart":ent:failed_to_start.defaultsTo({})
       };
       
@@ -125,7 +119,7 @@ ruleset io.picolabs.test {
     
     generateRuleset = function(test, testName) {
       rid = testRid(testName);
-      metaBlock = generateMetaBlock(test{"meta"}.klog("meta passing")).klog("generated meta block");
+      metaBlock = generateMetaBlock(test{"meta"});
       globalBlock = generateGlobalBlock(test{"global"});
       rules = generateRules(test, testName);
       "ruleset " + rid + "{" + metaBlock + globalBlock + rules + "}"
@@ -145,7 +139,7 @@ ruleset io.picolabs.test {
     }
     
     generateMetaBlock = function(metaStrings) {
-      metaString = metaStrings.join(" ").defaultsTo("").klog("joined array");
+      metaString = metaStrings.join(" ").defaultsTo("");
       "meta{" + metaString +"}"
     }
     
@@ -224,7 +218,7 @@ ruleset io.picolabs.test {
       
       testExprs = function(expressions) {
         expressions.map(function(exprPair){
-            expression = exprPair[1].klog("EXPRESSION HERE TOOODODODODODO");
+            expression = exprPair[1];
             exprDescription = exprPair[0];
             attrs = <<event:attrs.put("test_description", <<#{exprDescription}\>\>).put("test_listener", <<#{listenerName}\>\>)>>;
             <<ent:running_tests{["#{listenerName}", <<#{expression}\>\>]} := "passed" if #{expression};
@@ -303,7 +297,7 @@ ruleset io.picolabs.test {
       // Stores what needs to be run
       ent:tests_to_run := tests_to_run;
       // Stores the number of test groups given
-      ent:num_test_groups := test_names.length().klog("test name length");
+      ent:num_test_groups := test_names.length();
       //Stores the pico IDs of the picos created to run each test
       ent:test_picos := [];
       // Flag set to true when *any* the tests time out
@@ -340,7 +334,7 @@ ruleset io.picolabs.test {
       test = ent:tests_to_run{testName}
       krl_code = generateRuleset(test, testName)
       rid = testRid(testName)
-      parseResult = engine:doesKRLParse(krl_code).klog("parse result")
+      parseResult = engine:doesKRLParse(krl_code)
     }
     if parseResult{"parsed"} then
       engine:registerRulesetFromSrc(krl_code) setting (register_response)
@@ -399,7 +393,7 @@ ruleset io.picolabs.test {
     if testSession == ent:test_session then
     noop()
     fired {
-      ent:test_report{[testName]} := testReport.klog("TEST REPORT UPDATED");
+      ent:test_report{[testName]} := testReport;
       raise wrangler event "child_deletion" attributes {
         "id":picoID,
         //"co_id":meta:rid,
@@ -466,7 +460,7 @@ ruleset io.picolabs.test {
     select when tests unregister_ruleset
              //or test unable_to_create_test_ruleset
     pre {
-      rid_to_remove = event:attrs{"rid_to_remove"}.klog("trying to remove rid")
+      rid_to_remove = event:attrs{"rid_to_remove"}
     }
     engine:unregisterRuleset(rid_to_remove) setting(unregister_response)
     always {

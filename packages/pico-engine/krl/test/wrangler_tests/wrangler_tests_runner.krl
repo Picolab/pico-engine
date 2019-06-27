@@ -171,7 +171,7 @@ ruleset wrangler_tests_runner {
         "listeners": {
           "wrangler:ruleset_added" : { 
              "expressions": [
-                ["Installed ruleset should be in rids attribute", <<event:attrs{"rids"}.klog("RIDS ATTR HAS").any(function(rid){rid == "io.picolabs.policy"})>>]
+                ["Installed ruleset should be in rids attribute", <<event:attrs{"rids"}.any(function(rid){rid == "io.picolabs.policy"})>>]
                ,["Correlation ID should be passed along", <<event:attrs{"co_id"} == "test_id">>]
                ,["Direct engine query should yield ruleset as installed", <<engine:listInstalledRIDs().any(function(rid){rid == "io.picolabs.policy"})>>]
               ],
