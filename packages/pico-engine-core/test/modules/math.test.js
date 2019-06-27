@@ -75,10 +75,10 @@ test('module - math:*', async function (t) {
   )
   await terr('floor', {}, [], 'Error: math:floor needs a number')
   t.is(
-    await kmath.int({}, [0.46]), 0
+    await kmath.int({}, [10.46]), 10
   )
   t.is(
-    await kmath.int({}, [-0.46]), 0
+    await kmath.int({}, [-10.46]), -10
   )
   await terr('int', {}, [], 'Error: math:int needs a number')
   t.is(

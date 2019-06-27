@@ -17,16 +17,33 @@ ruleset io.picolabs.collection {
                                { "name": "members" } ],
                   "events": [ {"domain": "wrangler", "type": "deletion_imminent"} ] }
     members = function(){
-      Subs:established("Tx_role","member")
+      Subs:established("Tx_role",ent:Tx_role)
     }
-    check_roles = function(){
-      event:attr("Rx_role")=="collection" && event:attr("Tx_role")=="member"
+    check_roles = function(attrs){
+      attrs{"Rx_role"}==ent:Rx_role && attrs{"Tx_role"}==ent:Tx_role
+    }
+  }
+  rule initialize_role_names {
+    select when wrangler ruleset_added where event:attr("rids") >< meta:rid
+    if ent:Tx_role.isnull() && ent:Rx_role.isnull() then noop()
+    fired {
+      ent:Tx_role := "member";
+      ent:Rx_role := "collection"
+    }
+  }
+  rule establish_new_role_names {
+    select when collection new_role_names
+      Tx_role re#(.+)# Rx_role re#(.+)# setting(Tx_role,Rx_role)
+    if ent:Tx_role.isnull() || members().length() == 0 then noop()
+    fired {
+      ent:Tx_role := Tx_role;
+      ent:Rx_role := Rx_role
     }
   }
   rule auto_accept {
     select when wrangler inbound_pending_subscription_added
     pre {
-      acceptable = check_roles();
+      acceptable = check_roles(event:attrs);
     }
     if acceptable then noop();
     fired {
@@ -49,7 +66,7 @@ ruleset io.picolabs.collection {
   rule new_member {
     select when wrangler subscription_added
     pre {
-      pertinent = check_roles();
+      pertinent = check_roles(event:attrs);
     }
     if pertinent then noop();
     fired {
@@ -59,7 +76,7 @@ ruleset io.picolabs.collection {
   rule member_removed {
     select when wrangler subscription_removed
     pre {
-      pertinent = check_roles();
+      pertinent = check_roles(event:attr("bus"));
     }
     if pertinent then noop();
     fired {

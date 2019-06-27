@@ -21,6 +21,7 @@ let RulesetRegistry = require('./RulesetRegistry')
 let normalizeKRLArgs = require('./normalizeKRLArgs')
 let promiseCallback = require('./promiseCallback')
 let krlCompiler = require('krl-compiler')
+const sodium = require('libsodium-wrappers')
 
 const rootKRLScope = SymbolTable()
 _.each(krlStdlib, function (fn, fnName) {
@@ -264,9 +265,29 @@ module.exports = function (conf) {
       throw err
     }
 
+    // have dependants re-load the module they depend on
+    await reInitDependants(rs.rid)
+
     return {
       rid: rs.rid,
       hash: hash
+    }
+  }
+
+  async function reInitDependants (rid, done = []) {
+    if (done.indexOf(rid) < 0) {
+      done.push(rid)
+    }
+    const dependants = core.rsreg.getImmediateDependants(rid)
+    for (const dRid of dependants) {
+      if (done.indexOf(dRid) < 0) { // only run once
+        await initializeRulest(core.rsreg.get(dRid))
+        done.push(dRid)
+      }
+    }
+    // after the first level is done, proceed onward
+    for (const dRid of dependants) {
+      await reInitDependants(dRid, done)
     }
   }
 
@@ -555,6 +576,8 @@ module.exports = function (conf) {
 
   pe.start = async function (systemRulesets) {
     systemRulesets = systemRulesets || []
+
+    await sodium.ready
 
     await db.checkAndRunMigrations()
 

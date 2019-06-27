@@ -895,10 +895,10 @@ test('PicoEngine - io.picolabs.module-used ruleset', async function (t) {
   ])
 
   // Test unregisterRuleset checks
-  let err = await t.throws(pe.unregisterRuleset('io.picolabs.module-defined'))
+  let err = await t.throwsAsync(pe.unregisterRuleset('io.picolabs.module-defined'))
   t.is(err + '', 'Error: "io.picolabs.module-defined" is depended on by "io.picolabs.module-used"')
 
-  err = await t.throws(pe.unregisterRuleset('io.picolabs.module-used'))
+  err = await t.throwsAsync(pe.unregisterRuleset('io.picolabs.module-used'))
   t.is(err + '', 'Error: Unable to unregister "io.picolabs.module-used": it is installed on at least one pico')
 })
 
@@ -1119,9 +1119,9 @@ test('PicoEngine - io.picolabs.http ruleset', async function (t) {
     status_line: 'OK'
   })
 
-  await t.notThrows(query('fnGet', { url: url, qs: { hi: 'fn' } }))
+  await t.notThrowsAsync(query('fnGet', { url: url, qs: { hi: 'fn' } }))
   pe.emitter.once('error', _.noop)
-  t.is('' + await t.throws(query('fnPost')), 'Error: actions can only be called in the rule action block')
+  t.is('' + await t.throwsAsync(query('fnPost')), 'Error: actions can only be called in the rule action block')
 })
 
 test('PicoEngine - io.picolabs.foreach ruleset', async function (t) {
@@ -2129,15 +2129,15 @@ test('PicoEngine - io.picolabs.test-error-messages', async function (t) {
     err = error
   })
 
-  t.is(await t.throws(pe.runQuery(void 0)), err)
+  t.is(await t.throwsAsync(pe.runQuery(void 0)), err)
   t.is(err + '', 'Error: missing query.eci')
   t.is(err.notFound, void 0)
 
-  t.is(await t.throws(pe.runQuery({ eci: null })), err)
+  t.is(await t.throwsAsync(pe.runQuery({ eci: null })), err)
   t.is(err + '', 'Error: missing query.eci')
   t.is(err.notFound, void 0)
 
-  t.is(await t.throws(pe.runQuery({
+  t.is(await t.throwsAsync(pe.runQuery({
     eci: 'foo',
     rid: 'not-an-rid',
     name: 'hello',
@@ -2146,7 +2146,7 @@ test('PicoEngine - io.picolabs.test-error-messages', async function (t) {
   t.is(err + '', 'NotFoundError: ECI not found: foo')
   t.is(err.notFound, true)
 
-  t.is(await t.throws(pe.runQuery({
+  t.is(await t.throwsAsync(pe.runQuery({
     eci: 'id1',
     rid: 'not-an-rid',
     name: 'hello',
@@ -2155,7 +2155,7 @@ test('PicoEngine - io.picolabs.test-error-messages', async function (t) {
   t.is(err + '', 'Error: Pico does not have that rid: not-an-rid')
   t.is(err.notFound, void 0)
 
-  t.is(await t.throws(pe.runQuery({
+  t.is(await t.throwsAsync(pe.runQuery({
     eci: 'id1',
     rid: 'io.picolabs.test-error-messages',
     name: 'zzz',
@@ -2164,7 +2164,7 @@ test('PicoEngine - io.picolabs.test-error-messages', async function (t) {
   t.is(err + '', 'Error: Not shared: zzz')
   t.is(err.notFound, void 0)
 
-  t.is(await t.throws(pe.runQuery({
+  t.is(await t.throwsAsync(pe.runQuery({
     eci: 'id1',
     rid: 'io.picolabs.test-error-messages',
     name: 'somethingNotDefined',
@@ -2174,7 +2174,7 @@ test('PicoEngine - io.picolabs.test-error-messages', async function (t) {
   t.is(err.notFound, true)
 
   /*
-  t.is(await t.throws(pe.runQuery({
+  t.is(await t.throwsAsync(pe.runQuery({
     eci: 'id1',
     rid: 'io.picolabs.test-error-messages',
     name: 'infiniteRecursion'

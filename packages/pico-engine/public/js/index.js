@@ -138,6 +138,14 @@ $(document).ready(function () {
           'color',
           thePicoOut.parent ? '#7FFFD4' : '#87CEFA'
         )
+        if (thePicoOut.color.charAt() != '#') {
+          var colorCode = '#'+$('#'+thePicoInp.id).css('background-color')
+            .match(/rgba?\((\d+),\s*(\d+),\s*(\d+).*\)/)
+            .slice(1).map(function(n){
+              return (Number(n)<16?"0":"")+Number(n).toString(16)
+            }).join('')
+          thePicoOut.color = colorCode
+        }
         callback(null, thePicoOut)
       } else if (tabName === 'rulesets') {
         var theRulesetInp = thePicoInp
@@ -169,12 +177,34 @@ $(document).ready(function () {
         theLoggingOut.eci = eci
         theLoggingOut.pico_id = thePicoInp.id
         if (get(dbDump, ['pico', thePicoInp.id, 'ruleset', 'io.picolabs.logging', 'on'])) {
-          theLoggingOut.status = true
-          $.getJSON('/api/pico/' + thePicoInp.id + '/logs', function (data) {
-            theLoggingOut.logs = groupLogsByEpisode(data)
-            callback(null, theLoggingOut)
-          }).fail(function (err) {
-            theLoggingOut.error = 'Failed to get data'
+          $.getJSON('/api/legacy-ui-get-vars/' + thePicoInp.id + '/io.picolabs.logging', function (data) {
+            var ent_status = data.find(function(o){
+              return o.name === 'status'
+            })
+            theLoggingOut.status = ent_status ? ent_status.val : false
+            if (theLoggingOut.status) {
+              var episode_limit = $('#episode_limit').val() || 10
+              $.getJSON('/sky/cloud/' + eci + '/io.picolabs.logging/fmtLogs?limit='+episode_limit, function (data) {
+                var episode_keys = data ? Object.keys(data) : []
+                theLoggingOut.episode_count = episode_keys.length
+                if (episode_keys.length > episode_limit) {
+                  episode_keys.length = episode_limit
+                }
+                theLoggingOut.logs = {}
+                episode_keys.forEach(function (key) {
+                  theLoggingOut.logs[key] = data[key]
+                })
+                callback(null, theLoggingOut)
+              }).fail(function (err) {
+                theLoggingOut.error = 'Failed to get data'
+                callback(null, theLoggingOut)
+              })
+            } else {
+              callback(null, theLoggingOut)
+            }
+          }).fail(function(err){
+            theLoggingOut.status = false
+            theLoggingOut.error = 'Failed to get status'
             callback(null, theLoggingOut)
           })
         } else {
@@ -185,9 +215,19 @@ $(document).ready(function () {
         var testing = []
         eci = findEciById(thePicoInp.id)
         for (rid in thePicoInp.ruleset) {
-          testing.push({ rid: rid })
+          testing.push({ rid: rid, loggingoff: (/logging$/.test(rid) ? true : null) })
         }
-        callback(null, { pico_id: thePicoInp.id, eci: eci, testing: testing })
+        var theChannels = []
+        Object.keys(thePicoInp.channel).forEach(function (id) {
+          var aChannel = get(thePicoInp, ['channel', id], undefined)
+          if (aChannel) {
+            if (aChannel.type === 'secret' && aChannel.name === 'admin') {
+              aChannel.default = true
+            }
+            theChannels.push(aChannel)
+          }
+        })
+        callback(null, { pico_id: thePicoInp.id, eci: eci, testing: testing, channels: theChannels })
       } else if (tabName === 'channels') {
         var theChannels = []
         var thePolicies = get(dbDump, ['policy'])
@@ -279,12 +319,25 @@ $(document).ready(function () {
         }).fail(function () {
           callback(null, policyUI)
         })
+      } else if (tabName === 'agent') {
+        var agentUI = { disabled: true, eci: eci, pico_id: thePicoInp.id }
+        $.getJSON('/sky/cloud/' + eci + '/org.sovrin.agent/ui', function (ui) {
+          callback(null, {
+            eci: eci,
+            pico_id: thePicoInp.id,
+            ui: ui,
+            text: JSON.stringify(ui, undefined, 2)
+          })
+        }).fail(function () {
+          callback(null, agentUI)
+        })
       } else {
         callback(null, thePicoInp)
       }
     }
 
     var renderTab = function (event) {
+      var whereSpec = location.hash.substring(1).split('-')
       var authenticated = event.data.authenticated
       $(this)
         .parent()
@@ -408,9 +461,10 @@ $(document).ready(function () {
               let $editAnchor = $label.next('a')
               if ($editAnchor.next('ul').length === 0) {
                 var rid = $label.text()
-                var eci = theDB.eci
+                var default_eci = theDB.eci
+                var eci = $('#channels-'+theDB.pico_id).val()
                 $.getJSON(
-                  '/sky/cloud/' + eci + '/' + rid + '/__testing',
+                  '/sky/cloud/' + default_eci + '/' + rid + '/__testing',
                   function (c) {
                     $editAnchor.after(
                       capTemplate({ eci: eci, rid: rid, capabilities: c })
@@ -442,32 +496,60 @@ $(document).ready(function () {
         } else if (tabName === 'policies') {
           d = theDB.pico_id + '-Policies'
           location.hash = d
+        } else if (tabName === 'agent') {
+          d = theDB.pico_id + '-Agent'
+          if (whereSpec.length > 2) {
+            var $theLi = $('li#' + whereSpec[2])
+            $theLi.find('input').first().trigger('click')
+            var theScroller = $theLi.closest('.pico-section').get(0)
+            theScroller.scrollTop = $theLi.outerHeight() - 300
+            setTimeout(function(){
+              $theLi.find('button').first().prev().focus()
+            },300)
+          } else {
+            location.hash = d
+          }
+          $('#connection-list li > input').click(function() {
+            var base_hash = location.hash.substring(0,32)
+            if (this.checked) {
+              location.hash = base_hash + '-' + $(this).parent().attr('id')
+            } else {
+              location.hash = base_hash
+            }
+          })
         } else if (tabName === 'logging') {
+          if (theDB.status) {
+            $('#logging-list').show()
+            if (theDB.logs) {
+              $('#episode_limit').val(Object.keys(theDB.logs).length)
+            }
+          }
+          d = theDB.pico_id + '-Logging'
+          location.hash = d
+          tabId = '#loggingTab-' + theDB.pico_id
           $('#logging-on').click(function () {
             $.getJSON(
               '/sky/event/' + theDB.eci + '/logging-on/picolog/begin',
               function () {
+                $(tabId).trigger('click')
                 $('#logging-list').fadeIn()
               }
             )
           })
-          if (theDB.status) {
-            $('#logging-list').show()
-          }
           $('#logging-off').click(function () {
             $('#logging-list').hide()
             $.getJSON(
-              '/sky/event/' + theDB.eci + '/logging-on/picolog/reset',
-              function () {}
+              '/sky/event/' + theDB.eci + '/logging-off/picolog/reset',
+              function () {
+                $(tabId).trigger('click')
+              }
             )
           })
-          d = theDB.pico_id + '-Logging'
-          location.hash = d
         }
         $theSection.find('.js-ajax-form').submit(function (e) {
           e.preventDefault()
           $.getJSON($(this).attr('action'), formToJSON(this), function () {
-            if (location.hash !== d) {
+            if (location.hash !== d && location.hash.length <= d.length) {
               location.hash = d
             }
             location.reload()
@@ -569,7 +651,8 @@ $(document).ready(function () {
             $pediv.find('button.x').click(fadeAway)
           })
           var $horizMenu = $pediv.find('ul.horiz-menu')
-          if ($horizMenu.find('li.active').length === 0) {
+          if ($horizMenu.find('li.active').length === 0
+            && location.hash.length <= 1) {
             $horizMenu.find('li:first').trigger('click')
           }
         })
@@ -767,38 +850,3 @@ $(document).ready(function () {
     }
   })
 })
-
-function groupLogsByEpisode (logs) {
-  var entries = []
-  logs.forEach(function (entry) {
-    if (entry) {
-      entries.push({
-        txn_id: entry.txn_id,
-        msg: entry.time + ' [' + (entry.krl_level + '').toUpperCase() + '] ' + entry.msg,
-        time: new Date(entry.time)
-      })
-    }
-  })
-  entries.sort(function (a, b) {
-    return a.time.getTime() - b.time.getTime()
-  })
-  var groups = {}
-  entries.forEach(function (entry) {
-    if (!groups[entry.txn_id]) {
-      groups[entry.txn_id] = []
-    }
-    groups[entry.txn_id].push(entry.msg)
-  })
-  var groupByHead = {}
-  Object.keys(groups).forEach(function (txnId) {
-    var head = groups[txnId][0].replace(/\[EPISODE_START\]/, '|')
-    groupByHead[head] = groups[txnId]
-  })
-  var groupsSorted = {}
-  var groupOrder = Object.keys(groupByHead)
-  groupOrder.sort().reverse()
-  groupOrder.forEach(function (header) {
-    groupsSorted[header] = groupByHead[header]
-  })
-  return groupsSorted
-}

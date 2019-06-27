@@ -1,3 +1,21 @@
+# 0.50.0 - May 23, 2019
+
+Pico Sovrin Agents are now available!
+
+* New KRL module: `indy:*`
+* New UI tab for Agent Picos
+* Added `meta:rulesetLogging` to indicate the ruleset `logging` setting. Defaults to `false`
+* `time:now(date)` can be given the number of milliseconds since the UNIX epoch.
+* Bugfix: `.reduce()` on a single item properly gives all 4 arguments to the reducer function.
+* Added `autosend` to `http:*` to send an event when the http response is received.
+* Updated leveldb modules.
+
+# 0.49.2 - February 22, 2019
+
+* added additional `math:*` functions - see [437](https://github.com/Picolab/pico-engine/issues/437)
+* reregister modules - see [442](https://github.com/Picolab/pico-engine/issues/442)
+* allow dangling commas for Arrays and Maps - see [438](https://github.com/Picolab/pico-engine/issues/438)
+
 # 0.49.1 - February 8, 2019
 
 * logging tab now streams from log files - see [435](https://github.com/Picolab/pico-engine/issues/435)

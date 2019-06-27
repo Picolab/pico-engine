@@ -32,8 +32,7 @@ test.cb('migration - pvar_index', function (t) {
   put('v1', [1, 2, 3, 'ok'])
   put('v2', 'hi')
   put('v3', true)
-  put('v4', void 0)
-  put('v5', 123.45)
+  put('v4', 123.45)
 
   ldb.batch(dbOps, function (err) {
     if (err) return t.end(err)
@@ -71,10 +70,6 @@ test.cb('migration - pvar_index', function (t) {
           value: true
         })
         t.deepEqual(entvars.v4, {
-          type: 'Null',
-          value: null
-        })
-        t.deepEqual(entvars.v5, {
           type: 'Number',
           value: 123.45
         })

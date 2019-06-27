@@ -120,6 +120,17 @@ module.exports = function () {
           }
         })
       })
+    },
+    getImmediateDependants: function (rid) {
+      const dependants = []
+      _.each(rulesets, function (rs) {
+        _.each(rs.modules_used, function (info) {
+          if (info.rid === rid) {
+            dependants.push(rs.rid)
+          }
+        })
+      })
+      return dependants
     }
   })
 }

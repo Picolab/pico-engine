@@ -1306,7 +1306,7 @@ Argument_list_body ->
 ################################################################################
 # Literal Datastructures
 
-Array -> %tok_OPEN_SQARE Expression_list %tok_CLSE_SQARE {%
+Array -> %tok_OPEN_SQARE Expression_list %tok_COMMA:? %tok_CLSE_SQARE {%
   function(data){
     return {
       loc: mkLoc(data),
@@ -1316,7 +1316,7 @@ Array -> %tok_OPEN_SQARE Expression_list %tok_CLSE_SQARE {%
   }
 %}
 
-Map -> %tok_OPEN_CURLY Map_body %tok_CLSE_CURLY {%
+Map -> %tok_OPEN_CURLY Map_body %tok_COMMA:? %tok_CLSE_CURLY {%
   function(data){
     return {
       loc: mkLoc(data),

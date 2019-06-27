@@ -143,7 +143,7 @@ module.exports = function (core) {
           throw new Error('math:int needs a number')
         }
 
-        return _.floor(Math.abs(args.number), 0)
+        return args.number >= 0 ? _.floor(args.number, 0) : _.ceil(args.number, 0)
       }),
 
       round: mkKRLfn([
