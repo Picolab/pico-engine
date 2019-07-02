@@ -13,14 +13,10 @@ module.exports = function (ast, comp, e) {
     if (ast.object.type === 'DomainIdentifier' &&
             (ast.object.domain === 'ent')
     ) {
-      return e('acall', e('id', 'ctx.modules.get'), [
-        e('id', 'ctx'),
-        e('str', ast.object.domain),
-        e('obj', {
-          key: e('str', ast.object.value),
-          path: comp(ast.property)
-        })
-      ], ast.loc)
+      return e('acall', e('id', '$ctx.rsCtx.getEnt'), [
+        e('str', ast.object.value),
+        comp(ast.property)
+      ])
     }
     if (ast.object.type === 'DomainIdentifier' &&
       ast.object.domain === 'event' &&

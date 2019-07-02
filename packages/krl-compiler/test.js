@@ -18,6 +18,7 @@ test.cb('compiler', function (t) {
 
     // TODO test all
     basenames = [
+      'scope',
       'hello-world',
       'chevron'
     ]

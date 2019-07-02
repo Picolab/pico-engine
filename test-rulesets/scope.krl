@@ -27,6 +27,7 @@ ruleset io.picolabs.scope {
         mapped = [1, 2, 3].map(function(n){
             n + g1;
         })
+        send_directive = custom:send_directive
     }
     rule eventOr {
         select when scope eventOr0 name re#^(.*)$# setting(name0)

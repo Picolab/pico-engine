@@ -12,10 +12,9 @@ module.exports = function (ast, comp, e) {
   if (ast.where) {
     // inject attrs as varibles in the scope
 
-    fnBody.push(e('var', 'event_attrs', e('acall',
-      e('id', 'ctx.modules.get'),
-      [e('id', 'ctx'), e('str', 'event'), e('str', 'attrs')]
-    )))
+    fnBody.push(e('var', 'event_attrs',
+      e('id', '$event.data.attrs')
+    ))
     var attrKeys = e('call', e('id', 'Object.keys'), [e('id', 'event_attrs')])
     fnBody.push(e(';', e('call', e('.', attrKeys, e('id', 'forEach')), [
       e('fn', ['attr'], [

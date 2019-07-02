@@ -20,7 +20,5 @@ module.exports = function (ast, comp, e) {
       multiplier = timePeriodInMs[key]
     }
   }
-  return e('asyncfn', ['ctx'], [
-    e('return', e('*', comp(ast.expression), e('num', multiplier)))
-  ])
+  return e('*', comp(ast.expression), e('num', multiplier))
 }
