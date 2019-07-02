@@ -604,6 +604,7 @@ $(document).ready(function () {
       document.title = $('body h1').html()
       if (data.picos && data.picos[0]) {
         $('#user-logout span').html(data.picos[0].dname)
+        document.title = data.picos[0].dname
       }
       $('div.pico')
         .resizable({

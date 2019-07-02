@@ -6,8 +6,14 @@ ruleset io.picolabs.logging {
   global {
     __testing = { "queries": [ { "name": "__testing" },
                                { "name": "fmtLogs" } ],
-                  "events": [ { "domain": "picolog", "type": "reset" },
+                  "events": [ { "domain": "picolog", "type": "credentials", "attrs": [ "username", "password" ] },
+                              { "domain": "picolog", "type": "no_credentials" },
+                              { "domain": "picolog", "type": "reset" },
                               { "domain": "picolog", "type": "begin" } ] }
+    cred = function(){
+      ent:user.isnull() || ent:pass.isnull() => null |
+      { "username": ent:user, "password": ent:pass}
+    }
     fmtLogs = function(){
       episode_line = function(x,i){
         level = x{"krl_level"}.uc();
@@ -21,7 +27,7 @@ ruleset io.picolabs.logging {
         )
       };
       url = meta:host+"/api/pico/"+meta:picoId+"/logs";
-      http:get(url){"content"}
+      http:get(url, auth=cred()){"content"}
         .decode()
         .filter(function(x){x})
         .sort(function(a,b){a{"time"} cmp b{"time"}})
@@ -53,6 +59,24 @@ ruleset io.picolabs.logging {
     select when wrangler ruleset_added where event:attr("rids") >< meta:rid
     fired {
       ent:status := true;
+    }
+  }
+
+  rule take_notice_of_credentials {
+    select when picolog credentials
+      username re#^(.+)$#
+      password re#^(.+)$#
+      setting(username,password)
+    fired {
+      ent:user := username;
+      ent:pass := password
+    }
+  }
+  rule clear_credentials {
+    select when picolog no_credentials
+    fired {
+      clear ent:user;
+      clear ent:pass
     }
   }
 }

@@ -394,7 +394,7 @@ ruleset io.picolabs.wrangler {
   rule uninstallRulesets {
     select when wrangler uninstall_rulesets_requested
     pre {
-      rids = event:attr("rids").defaultsTo("")
+      rids = event:attr("rids").defaultsTo(event:attr("rid")).defaultsTo("")
       rid_list = rids.typeof() ==  "array" => rids | rids.split(re#;#)
     } every{
       uninstallRulesets(rid_list)
