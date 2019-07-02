@@ -11,9 +11,8 @@ module.exports = function (ast, comp, e) {
     // "foo".bar(baz)
     // bar("foo",baz)
 
-    return e('acall', e('id', 'ctx.applyFn'), [
-      comp(ast.callee.property),
-      e('id', 'ctx'),
+    return e('acall', comp(ast.callee.property), [
+      e('id', '$ctx'),
       comp(_.assign({}, ast.args, {
         // inject left-hand of the dot as the first argument
         args: [ast.callee.object].concat(ast.args.args)
@@ -45,9 +44,8 @@ module.exports = function (ast, comp, e) {
     }
   }
 
-  return e('acall', e('id', 'ctx.applyFn'), [
-    comp(ast.callee),
-    e('id', 'ctx'),
+  return e('acall', comp(ast.callee), [
+    e('id', '$ctx'),
     comp(ast.args)
   ])
 }

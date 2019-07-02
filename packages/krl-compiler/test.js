@@ -60,8 +60,7 @@ test.cb('compiler', function (t) {
   })
 })
 
-// TODO unskip
-test.skip('compiler errors', function (t) {
+test('compiler errors', function (t) {
   var tstFail = function (src, errorMsg) {
     try {
       compiler(src)
@@ -94,7 +93,7 @@ test.skip('compiler errors', function (t) {
     compiler('ruleset a{meta{keys b {"one":function(){}}}}')
     t.fail('meta key maps can only have strings')
   } catch (err) {
-    t.is(err + '', 'Error: A ruleset key that is Map, can only use Strings as values')
+    t.is(err + '', 'Error: RulesetMetaProperty not supported: keys')
   }
 
   tstFail(
@@ -174,25 +173,19 @@ test.skip('compiler errors', function (t) {
     'ruleset a{rule b{select when a b always{ent:v:=ent:v.put("k",1)}}}',
     'Performance Hint: to leverage indexes use `ent:v{key} := value` instead of .put(key, value)'
   )
-  tstWarn(
-    'ruleset a{rule b{select when a b always{app:hi:=app:hi.put("k",1)}}}',
-    'Performance Hint: to leverage indexes use `app:hi{key} := value` instead of .put(key, value)'
-  )
   // if different ent vars, don't hint
   t.is(compiler('ruleset a{rule b{select when a b always{ent:hi:=ent:ih.put("k",1)}}}').warnings.length, 0)
-  t.is(compiler('ruleset a{rule b{select when a b always{ent:hi:=app:hi.put("k",1)}}}').warnings.length, 0)
   // if already has subpath don't hint
   t.is(compiler('ruleset a{rule b{select when a b always{ent:v{"a"}:=ent:v.put("k",1)}}}').warnings.length, 0)
 })
 
-// TODO unskip
-test.skip('special cases', function (t) {
+test('special cases', function (t) {
   // args shouldn't be dependent on each other and cause strange duplication
   var js = compiler('foo(1).bar(baz(2))').code
   var expected = ''
-  expected += 'await ctx.applyFn(ctx.scope.get("bar"), ctx, [\n'
-  expected += '  await ctx.applyFn(ctx.scope.get("foo"), ctx, [1]),\n'
-  expected += '  await ctx.applyFn(ctx.scope.get("baz"), ctx, [2])\n'
+  expected += 'await bar($ctx, [\n'
+  expected += '  await foo($ctx, [1]),\n'
+  expected += '  await baz($ctx, [2])\n'
   expected += ']);'
   t.is(js, expected)
 })

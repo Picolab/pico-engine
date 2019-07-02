@@ -11,7 +11,7 @@ module.exports = function (ast, comp, e) {
     return e('get', comp(ast.object), comp(ast.property))
   } else if (ast.method === 'path') {
     if (ast.object.type === 'DomainIdentifier' &&
-            (ast.object.domain === 'ent' || ast.object.domain === 'app')
+            (ast.object.domain === 'ent')
     ) {
       return e('acall', e('id', 'ctx.modules.get'), [
         e('id', 'ctx'),
