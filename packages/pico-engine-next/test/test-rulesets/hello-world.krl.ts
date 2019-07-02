@@ -3,20 +3,7 @@ import { readTestKrl } from "../helpers/readTestKrl";
 import { startTestEngine } from "../helpers/startTestEngine";
 
 test("hello-world.krl", async t => {
-  const pe = await startTestEngine();
-
-  const chann = await pe.pf.rootPico.newChannel({
-    tags: ["allow-all"],
-    eventPolicy: {
-      allow: [{ domain: "*", name: "*" }],
-      deny: []
-    },
-    queryPolicy: {
-      allow: [{ rid: "*", name: "*" }],
-      deny: []
-    }
-  });
-  const eci = chann.id;
+  const { pe, eci } = await startTestEngine();
 
   let err = await t.throwsAsync(
     pe.pf.query({

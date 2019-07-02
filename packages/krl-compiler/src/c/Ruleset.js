@@ -42,16 +42,24 @@ module.exports = function (ast, comp, e) {
 
   const queries = {}
   for (const share of shares) {
-    queries[share] = e('fn', ['$args'], [
-      e('return', e('call', e('id', jsIdent(share)), [e('id', '$ctx'), e('id', '$args')]))
-    ])
     const annotation = comp.scope.get(share)
-    testingJSON.queries.push({
-      name: share,
-      args: annotation && annotation.type === 'Function'
-        ? annotation.params
-        : []
-    })
+    if (annotation && annotation.type === 'Function') {
+      queries[share] = e('fn', ['$args'], [
+        e('return', e('call', e('id', jsIdent(share)), [e('id', '$ctx'), e('id', '$args')]))
+      ])
+      testingJSON.queries.push({
+        name: share,
+        args: annotation.params
+      })
+    } else {
+      queries[share] = e('fn', ['$args'], [
+        e('return', e('id', jsIdent(share)))
+      ])
+      testingJSON.queries.push({
+        name: share,
+        args: []
+      })
+    }
   }
   queries['__testing'] = e('fn', [], [e('return', e('json', testingJSON))])
 

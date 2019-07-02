@@ -17,7 +17,10 @@ test.cb('compiler', function (t) {
     }))
 
     // TODO test all
-    basenames = ['hello-world']
+    basenames = [
+      'hello-world',
+      'chevron'
+    ]
 
     λ.each(basenames, function (basename, next) {
       var jsFile = path.join(filesDir, basename) + '.js'
