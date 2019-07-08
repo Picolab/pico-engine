@@ -1,14 +1,19 @@
 import * as cuid from "cuid";
 import * as path from "path";
 import * as tempDir from "temp-dir";
-import { startEngine } from "../../src/index";
+import { startEngine, PicoEngineConfiguration } from "../../src/index";
 import { readTestKrl } from "./readTestKrl";
 
-export async function startTestEngine(testFiles: string[] = []) {
-  const pe = await startEngine({
-    home: path.resolve(tempDir, "pico-engine", cuid()),
-    port: 0
-  });
+export async function startTestEngine(
+  testFiles: string[] = [],
+  conf?: PicoEngineConfiguration
+) {
+  const pe = await startEngine(
+    Object.assign({}, conf || {}, {
+      home: path.resolve(tempDir, "pico-engine", cuid()),
+      port: 0
+    })
+  );
 
   const chann = await pe.pf.rootPico.newChannel({
     tags: ["allow-all"],

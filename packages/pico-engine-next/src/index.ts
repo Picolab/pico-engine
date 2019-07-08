@@ -8,6 +8,7 @@ import { RulesetEnvironment } from "./KrlCtx";
 import { getRotatingFileStream, KrlLogger } from "./KrlLogger";
 import { RulesetRegistry } from "./RulesetRegistry";
 import { server } from "./server";
+import { KrlModule } from "./krl";
 
 const homeDir = require("home-dir");
 const version = require("../package.json").version;
@@ -38,6 +39,11 @@ export interface PicoEngineConfiguration {
    * Default: "http://localhost:3000"
    */
   base_url?: string;
+
+  /**
+   * Provide any custom krl modules
+   */
+  modules?: { [domain: string]: KrlModule };
 }
 
 export interface PicoEngine {
@@ -68,6 +74,12 @@ export async function startEngine(
   const log = new KrlLogger(getRotatingFileStream(filePath), "");
   const rsRegistry = new RulesetRegistry(home);
   const rsEnvironment = new RulesetEnvironment(log);
+
+  if (configuration.modules) {
+    _.each(configuration.modules, function(mod, domain) {
+      rsEnvironment.modules[domain] = mod;
+    });
+  }
 
   const pf = new PicoFramework({
     leveldown: leveldown(path.resolve(home, "db")) as any,
