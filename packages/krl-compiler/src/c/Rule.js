@@ -1,5 +1,6 @@
 var _ = require('lodash')
 var declarationBlock = require('../utils/declarationBlock')
+const jsIdent = require('../utils/jsIdent')
 
 function Rule (ast, comp, e) {
   // TODO use symbol-table to store ast.name.value
@@ -11,9 +12,23 @@ function Rule (ast, comp, e) {
     throw comp.error(ast.loc, 'rule ' + ast.name.value + ' is missing a `select`')
   }
 
+  comp.scope.set('$selectVars', [])
+
   const selectWhenRule = comp(ast.select)
 
   var ruleBody = []
+
+  const selectVars = _.uniq(comp.scope.get('$selectVars'))
+  _.each(selectVars, function (selectVar) {
+    ruleBody.push(e('var', jsIdent(selectVar), e('get', e('id', '$state.setting'), e('str', selectVar))))
+  })
+  ruleBody.push(e(';', e('=', e('id', 'this.rule.state'), e('call', e('id', 'Object.assign'), [
+    e('obj', {}),
+    e('id', '$state'),
+    e('obj', {
+      setting: e('obj', {})
+    })
+  ]))))
 
   if (!_.isEmpty(ast.prelude)) {
     ruleBody = ruleBody.concat(declarationBlock(ast.prelude, comp))

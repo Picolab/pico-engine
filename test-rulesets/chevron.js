@@ -8,6 +8,8 @@ module.exports = {
   "init": async function ($rsCtx, $env) {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const reduce = $stdlib.reduce;
+    const map = $stdlib.map;
     const a = 1;
     const b = 2;
     const c = "<h1>some<b>html</b></h1>";

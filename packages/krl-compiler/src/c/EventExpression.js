@@ -34,6 +34,7 @@ module.exports = function (ast, comp, e) {
   if (!_.isEmpty(ast.event_attrs)) {
     // select when domain type <attr> re#..#
     fnBody.push(e('var', 'matches', e('array', [])))
+    fnBody.push(e('var', 'setting', e('obj', {})))
     fnBody.push(e('var', 'm'))
     fnBody.push(e('var', 'j'))
     _.each(ast.event_attrs, function (a) {
@@ -43,12 +44,20 @@ module.exports = function (ast, comp, e) {
 
       // m = regex.exec(attr string or "")
       var key = e('string', a.key.value, a.key.loc)
-      var attr = e('call', id('getAttrString'), [id('ctx', a.key.loc), key], a.key.loc)
+      var attr = e('get', id('$event.data.attrs'), key, a.key.loc)
       var regexExec = e('.', comp(a.value), id('exec', a.value.loc), a.value.loc)
-      fnBody.push(e(';', e('=', id('m'), e('call', regexExec, [attr], a.value.loc), a.value.loc)))
+      fnBody.push(e(';', e('=', id('m'), e('call', regexExec, [
+        e('?', e('==', attr, e('null', a.key.loc)), e('str', '', a.key.loc), e('call', e('id', '$stdlib.as', a.key.loc), [
+          e('id', '$ctx', a.key.loc),
+          e('array', [
+            attr,
+            e('str', 'String', a.key.loc)
+          ], a.key.loc)
+        ], a.key.loc))
+      ], a.value.loc), a.value.loc)))
 
       // if !m, then the EventExpression doesn't match
-      fnBody.push(e('if', e('!', id('m')), e('return', e('false'))))
+      fnBody.push(e('if', e('!', id('m')), e('return', e('obj', { match: e(false) }))))
 
       // append to matches
       var init = e('=', id('j'), e('number', 1))
@@ -62,15 +71,21 @@ module.exports = function (ast, comp, e) {
   }
 
   _.each(ast.setting, function (s, i) {
-    fnBody.push(e(';',
-      e('call', e('id', 'setting', s.loc), [
-        e('str', s.value, s.loc),
-        e('get', e('id', 'matches', s.loc), e('num', i, s.loc), s.loc)
-      ], s.loc), s.loc))
+    fnBody.push(
+      e(';',
+        e('=',
+          e('get', e('id', 'setting', s.loc), e('str', s.value, s.loc), s.loc),
+          e('get', e('id', 'matches', s.loc), e('num', i, s.loc), s.loc),
+          s.loc
+        ),
+        s.loc
+      )
+    )
+    comp.scope.get('$selectVars').push(s.value)
   })
 
   if (ast.where) {
-    fnBody.push(e('if', e('!', comp(ast.where)), e('return', e('false'))))
+    fnBody.push(e('if', e('!', comp(ast.where)), e('return', e('obj', { match: e(false) }))))
   }
 
   if (ast.aggregator) {
@@ -99,7 +114,16 @@ module.exports = function (ast, comp, e) {
   ]
 
   if (fnBody.length > 0) {
-    fnBody.push(e('return', e('obj', { match: e(true) })))
+    fnBody.push(e('return', e('obj', {
+      match: e(true),
+      state: e('obj', {
+        setting: e('call', e('id', 'Object.assign'), [
+          e('obj', {}),
+          e('||', e('id', '$state.setting'), e('obj', {})),
+          e('id', 'setting')
+        ])
+      })
+    })))
     ee.push(e('asyncfn', ['$event', '$state'], fnBody))
   }
 

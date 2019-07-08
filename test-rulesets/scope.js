@@ -15,6 +15,8 @@ module.exports = {
   "init": async function ($rsCtx, $env) {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const reduce = $stdlib.reduce;
+    const map = $stdlib.map;
     const g0 = "global 0";
     const g1 = 1;
     const getVals = $env.krl.function([], async function () {
@@ -65,27 +67,44 @@ module.exports = {
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.or($env.SelectWhen.e("scope:eventOr0", async function ($event, $state) {
       var matches = [];
+      var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]));
       if (!m)
-        return false;
+        return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting("name0", matches[0]);
-      return { "match": true };
+      setting["name0"] = matches[0];
+      return {
+        "match": true,
+        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+      };
     }), $env.SelectWhen.e("scope:eventOr1", async function ($event, $state) {
       var matches = [];
+      var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]));
       if (!m)
-        return false;
+        return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting("name1", matches[0]);
-      return { "match": true };
+      setting["name1"] = matches[0];
+      return {
+        "match": true,
+        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+      };
     })), async function ($event, $state) {
+      var name0 = $state.setting["name0"];
+      var name1 = $state.setting["name1"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       var fired = true;
       if (fired) {
         await send_directive($ctx, [
@@ -103,27 +122,44 @@ module.exports = {
     });
     $rs.when($env.SelectWhen.and($env.SelectWhen.e("scope:eventAnd0", async function ($event, $state) {
       var matches = [];
+      var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]));
       if (!m)
-        return false;
+        return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting("name0", matches[0]);
-      return { "match": true };
+      setting["name0"] = matches[0];
+      return {
+        "match": true,
+        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+      };
     }), $env.SelectWhen.e("scope:eventAnd1", async function ($event, $state) {
       var matches = [];
+      var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]));
       if (!m)
-        return false;
+        return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting("name1", matches[0]);
-      return { "match": true };
+      setting["name1"] = matches[0];
+      return {
+        "match": true,
+        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+      };
     })), async function ($event, $state) {
+      var name0 = $state.setting["name0"];
+      var name1 = $state.setting["name1"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       var fired = true;
       if (fired) {
         await send_directive($ctx, [
@@ -141,27 +177,44 @@ module.exports = {
     });
     $rs.when($env.SelectWhen.within(1 * 1000, $env.SelectWhen.and($env.SelectWhen.or($env.SelectWhen.e("scope:eventWithin0"), $env.SelectWhen.e("scope:eventWithin1", async function ($event, $state) {
       var matches = [];
+      var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]));
       if (!m)
-        return false;
+        return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting("name1", matches[0]);
-      return { "match": true };
+      setting["name1"] = matches[0];
+      return {
+        "match": true,
+        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+      };
     })), $env.SelectWhen.or($env.SelectWhen.e("scope:eventWithin2", async function ($event, $state) {
       var matches = [];
+      var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]));
       if (!m)
-        return false;
+        return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting("name2", matches[0]);
-      return { "match": true };
+      setting["name2"] = matches[0];
+      return {
+        "match": true,
+        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+      };
     }), $env.SelectWhen.e("scope:eventWithin3")))), async function ($event, $state) {
+      var name1 = $state.setting["name1"];
+      var name2 = $state.setting["name2"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       var fired = true;
       if (fired) {
         await send_directive($ctx, [
@@ -179,16 +232,25 @@ module.exports = {
     });
     $rs.when($env.SelectWhen.e("scope:prelude", async function ($event, $state) {
       var matches = [];
+      var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
+      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]));
       if (!m)
-        return false;
+        return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting("name", matches[0]);
-      return { "match": true };
+      setting["name"] = matches[0];
+      return {
+        "match": true,
+        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+      };
     }), async function ($event, $state) {
+      var name = $state.setting["name"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       const p0 = "prelude 0";
       const p1 = "prelude 1";
       var fired = true;
@@ -212,6 +274,7 @@ module.exports = {
       await $ctx.rsCtx.putEnt("ent_var_p1", p1);
     });
     $rs.when($env.SelectWhen.e("scope:functions"), async function ($event, $state) {
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       const g0 = "overrided g0!";
       const inc5 = await incByN($ctx, [5]);
       var fired = true;
