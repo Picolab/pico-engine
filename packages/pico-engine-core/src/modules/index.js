@@ -25,10 +25,15 @@ var normalizeId = function (domain, id) {
   if (_.has(id, 'key') && ktypes.isString(id.key)) {
     return {
       var_name: id.key,
-      query: id.path
+      query: ktypes.isArray(id.path)
+        ? id.path
+        : [id.path]
     }
   }
-  return { var_name: ktypes.toString(id) }
+  return {
+    var_name: ktypes.toString(id),
+    query: []
+  }
 }
 
 module.exports = function (core, thirdPartyModules) {
