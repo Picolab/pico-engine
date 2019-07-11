@@ -1,127 +1,140 @@
 module.exports = {
   "rid": "io.picolabs.guard-conditions",
+  "version": "draft",
   "meta": { "shares": ["getB"] },
-  "global": async function (ctx) {
-    ctx.scope.set("getB", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "b");
-    }));
-  },
-  "rules": {
-    "foo": {
-      "name": "foo",
-      "select": {
-        "graph": {
-          "foo": {
-            "a": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "b"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("b", matches[0]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "foo",
-            { "b": ctx.scope.get("b") }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (await ctx.applyFn(ctx.scope.get("match"), ctx, [
-            ctx.scope.get("b"),
-            new RegExp("foo", "")
-          ]))
-          await ctx.modules.set(ctx, "ent", "b", ctx.scope.get("b"));
-      }
-    },
-    "bar": {
-      "name": "bar",
-      "select": {
-        "graph": { "bar": { "a": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var foreach0_pairs = toPairs([
-          1,
-          2,
-          3
+  "init": async function ($rsCtx, $env) {
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const match = $stdlib.match;
+    const split = $stdlib.split;
+    const reduce = $stdlib.reduce;
+    const range = $stdlib.range;
+    const map = $stdlib.map;
+    const getB = $env.krl.function([], async function () {
+      return await $ctx.rsCtx.getEnt("b");
+    });
+    const send_directive = $ctx.module("custom")["send_directive"];
+    const $rs = new $env.SelectWhen.SelectWhen();
+    $rs.when($env.SelectWhen.e("foo:a", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec($event.data.attrs["b"] == null ? "" : $stdlib.as($ctx, [
+        $event.data.attrs["b"],
+        "String"
+      ]));
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      setting["b"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var b = $state.setting["b"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var fired = true;
+      if (fired) {
+        await send_directive($ctx, [
+          "foo",
+          { "b": b }
         ]);
-        var foreach0_len = foreach0_pairs.length;
-        var foreach0_i;
-        for (foreach0_i = 0; foreach0_i < foreach0_len; foreach0_i++) {
-          var foreach_is_final = foreach0_i === foreach0_len - 1;
-          ctx.scope.set("x", foreach0_pairs[foreach0_i][1]);
-          var fired = true;
-          if (fired) {
-            await runAction(ctx, void 0, "send_directive", [
-              "bar",
-              {
-                "x": ctx.scope.get("x"),
-                "b": await ctx.modules.get(ctx, "ent", "b")
-              }
-            ], []);
-          }
-          if (fired)
-            ctx.emit("debug", "fired");
-          else
-            ctx.emit("debug", "not fired");
-          if (typeof foreach_is_final === "undefined" || foreach_is_final)
-            await ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
-        }
       }
-    },
-    "on_final_no_foreach": {
-      "name": "on_final_no_foreach",
-      "select": {
-        "graph": { "on_final_no_foreach": { "a": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("x", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["x"]));
+      if (fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if (await match($ctx, [
+          b,
+          new RegExp("foo", "")
+        ]))
+        await $ctx.rsCtx.putEnt("b", b);
+    });
+    $rs.when($env.SelectWhen.e("bar:a"), async function ($event, $state) {
+      let $foreach0_pairs = $env.krl.toPairs([
+        1,
+        2,
+        3
+      ]);
+      let $foreach0_len = $foreach0_pairs.length;
+      let $foreach0_i;
+      for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
+        let $foreach_is_final = $foreach0_i === $foreach0_len - 1;
+        let x = $foreach0_pairs[$foreach0_i][1];
         var fired = true;
         if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "on_final_no_foreach",
-            { "x": ctx.scope.get("x") }
-          ], []);
+          await send_directive($ctx, [
+            "bar",
+            {
+              "x": x,
+              "b": await $ctx.rsCtx.getEnt("b")
+            }
+          ]);
         }
         if (fired)
-          ctx.emit("debug", "fired");
+          $ctx.log.debug("fired");
         else
-          ctx.emit("debug", "not fired");
-        if (typeof foreach_is_final === "undefined" || foreach_is_final)
-          await ctx.modules.set(ctx, "ent", "b", ctx.scope.get("x"));
+          $ctx.log.debug("not fired");
+        if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
+          await $ctx.rsCtx.putEnt("b", x);
       }
-    }
+    });
+    $rs.when($env.SelectWhen.e("on_final_no_foreach:a"), async function ($event, $state) {
+      const x = await $stdlib["get"]($ctx, [
+        $event.data.attrs,
+        "x"
+      ]);
+      var fired = true;
+      if (fired) {
+        await send_directive($ctx, [
+          "on_final_no_foreach",
+          { "x": x }
+        ]);
+      }
+      if (fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
+        await $ctx.rsCtx.putEnt("b", x);
+    });
+    return {
+      "event": async function (event) {
+        await $rs.send(event);
+      },
+      "query": {
+        "getB": function ($args) {
+          return getB($ctx, $args);
+        },
+        "__testing": function () {
+          return {
+            "queries": [{
+                "name": "getB",
+                "args": []
+              }],
+            "events": [
+              {
+                "domain": "foo",
+                "name": "a",
+                "attrs": []
+              },
+              {
+                "domain": "bar",
+                "name": "a",
+                "attrs": []
+              },
+              {
+                "domain": "on_final_no_foreach",
+                "name": "a",
+                "attrs": ["x"]
+              }
+            ]
+          };
+        }
+      }
+    };
   }
 };

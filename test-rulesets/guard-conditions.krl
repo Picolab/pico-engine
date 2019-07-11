@@ -6,6 +6,7 @@ ruleset io.picolabs.guard-conditions {
         getB = function(){
             ent:b;
         }
+        send_directive = custom:send_directive
     }
     rule foo {
         select when foo a b re#^(.*)$# setting(b)
@@ -33,7 +34,7 @@ ruleset io.picolabs.guard-conditions {
         select when on_final_no_foreach a
 
         pre {
-            x = event:attr("x")
+            x = event:attrs{"x"}
         }
 
         send_directive("on_final_no_foreach", {"x": x});

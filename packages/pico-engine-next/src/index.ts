@@ -49,6 +49,8 @@ export interface PicoEngineConfiguration {
    * Trust event.time input. Used for testing
    */
   useEventInputTime?: boolean;
+
+  log?: KrlLogger;
 }
 
 export interface PicoEngine {
@@ -76,7 +78,9 @@ export async function startEngine(
   await makeDir(home);
 
   const filePath = path.resolve(home, "pico-engine.log");
-  const log = new KrlLogger(getRotatingFileStream(filePath), "");
+  const log = configuration.log
+    ? configuration.log
+    : new KrlLogger(getRotatingFileStream(filePath), "");
   const rsRegistry = new RulesetRegistry(home);
   const rsEnvironment = new RulesetEnvironment(log);
 

@@ -20,7 +20,10 @@ test.cb('compiler', function (t) {
     basenames = [
       'scope',
       'hello-world',
-      'chevron'
+      'chevron',
+      'log',
+      'guard-conditions',
+      'foreach'
     ]
 
     λ.each(basenames, function (basename, next) {

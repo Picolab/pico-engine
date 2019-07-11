@@ -3,9 +3,9 @@ module.exports = function (ast, comp, e) {
     return e('if',
       e('||',
         // if not inside a foreach, consider it true
-        e('===', e('typeof', e('id', 'foreach_is_final')), e('string', 'undefined')),
+        e('===', e('typeof', e('id', '$foreach_is_final')), e('string', 'undefined')),
         // inside a foreach `foreach_is_final` is defined
-        e('id', 'foreach_is_final')
+        e('id', '$foreach_is_final')
       ),
       comp(ast.statement)
     )

@@ -1,19 +1,20 @@
-var _ = require('lodash')
+const _ = require('lodash')
+const jsIdent = require('../utils/jsIdent')
 
-var mkId = function (e, i, key) {
-  return e('id', 'foreach' + i + '_' + key)
+function mkId (e, i, key) {
+  return e('id', '$foreach' + i + '_' + key)
 }
 
-var mkIsFinal = function (e, nIndexes) {
-  var mkEq = function (i) {
+function mkIsFinal (e, nIndexes) {
+  function mkEq (i) {
     return e(
       '===',
       mkId(e, i, 'i'),
       e('-', mkId(e, i, 'len'), e('number', 1))
     )
   }
-  var curr = mkEq(0)
-  var i = 1
+  let curr = mkEq(0)
+  let i = 1
   while (i < nIndexes) {
     curr = e('&&', curr, mkEq(i))
     i++
@@ -22,19 +23,19 @@ var mkIsFinal = function (e, nIndexes) {
 }
 
 module.exports = function (ast, comp, e, context) {
-  var id = function (key) {
+  function id (key) {
     return mkId(e, context.foreach_i, key)
   }
 
-  var stmts = []
+  let stmts = []
 
-  var body = []
+  let body = []
   if (context.foreach_n_left === 0) {
     // the last loop
-    body.push(e('var', 'foreach_is_final', mkIsFinal(e, context.foreach_i + 1)))
+    body.push(e('let', '$foreach_is_final', mkIsFinal(e, context.foreach_i + 1)))
   }
   _.each(ast.setting, function (set, i) {
-    var val
+    let val
     if (i === 0) {
       val = e('get', e('get', id('pairs'), id('i')), e('number', 1))// value
     } else if (i === 1) {
@@ -42,16 +43,13 @@ module.exports = function (ast, comp, e, context) {
     } else {
       val = e('nil')
     }
-    body.push(e(';', e('call', e('id', 'ctx.scope.set'), [
-      e('string', set.value, set.loc),
-      val
-    ])))
+    body.push(e('let', jsIdent(set.value), val, set.loc))
   })
   body = body.concat(context.foreach_body)
 
-  stmts.push(e('var', id('pairs'), e('call', e('id', 'toPairs'), [comp(ast.expression)])))
-  stmts.push(e('var', id('len'), e('.', id('pairs'), e('id', 'length'))))
-  stmts.push(e('var', id('i')))
+  stmts.push(e('let', id('pairs'), e('call', e('id', '$env.krl.toPairs'), [comp(ast.expression)])))
+  stmts.push(e('let', id('len'), e('.', id('pairs'), e('id', 'length'))))
+  stmts.push(e('let', id('i')))
   stmts.push(e('for',
     e('=', id('i'), e('number', 0)),
     e('<', id('i'), id('len')),

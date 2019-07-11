@@ -59,7 +59,23 @@ export default {
   function: krlFunctionMaker("function"),
   action: krlFunctionMaker("action"),
   postlude: krlFunctionMaker("postlude"),
-  property: krlProperty
+  property: krlProperty,
+
+  /**
+   * used by `foreach` in krl
+   * Array's use index numbers, maps use key strings
+   */
+  toPairs: function toPairs(v: any) {
+    if (isArray(v)) {
+      var pairs = [];
+      var i;
+      for (i = 0; i < v.length; i++) {
+        pairs.push([i, v[i]]);
+      }
+      return pairs;
+    }
+    return _.toPairs(v);
+  }
 };
 
 export function isNull(val: any): boolean {

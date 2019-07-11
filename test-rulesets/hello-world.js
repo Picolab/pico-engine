@@ -13,7 +13,10 @@ module.exports = {
   "init": async function ($rsCtx, $env) {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const match = $stdlib.match;
+    const split = $stdlib.split;
     const reduce = $stdlib.reduce;
+    const range = $stdlib.range;
     const map = $stdlib.map;
     const hello = $env.krl.function(["name"], async function (name = "default") {
       const msg = await $stdlib["+"]($ctx, [

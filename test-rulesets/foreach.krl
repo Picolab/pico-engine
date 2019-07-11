@@ -6,6 +6,7 @@ ruleset io.picolabs.foreach {
         doubleThis = function(arr){
             [arr, arr];
         }
+        send_directive = custom:send_directive
     }
     rule basic {
         select when foreach basic
@@ -54,8 +55,8 @@ ruleset io.picolabs.foreach {
     }
     rule final {
         select when foreach final
-        foreach event:attr("x").split(",") setting(x)
-            foreach event:attr("y").split(",") setting(y)
+        foreach event:attrs{"x"}.split(",") setting(x)
+            foreach event:attrs{"y"}.split(",") setting(y)
 
         send_directive("final", {
             "x": x,
@@ -74,8 +75,8 @@ ruleset io.picolabs.foreach {
         select when foreach final_raised
 
         send_directive("final_raised", {
-            "x": event:attr("x"),
-            "y": event:attr("y")
+            "x": event:attrs{"x"},
+            "y": event:attrs{"y"}
         });
     }
     rule key_vs_index {
