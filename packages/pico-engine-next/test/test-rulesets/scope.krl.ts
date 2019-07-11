@@ -12,7 +12,8 @@ test("scope.krl", async t => {
           directives.push({ name, options });
         })
       }
-    }
+    },
+    useEventInputTime: true
   });
 
   async function signal(domainName: string, attrs: any = {}, time: number = 0) {
@@ -90,7 +91,7 @@ test("scope.krl", async t => {
       {
         name: "eventWithin",
         options: {
-          name1: "111", // FIXME should be void 0
+          name1: void 0,
           name2: "222"
         }
       }

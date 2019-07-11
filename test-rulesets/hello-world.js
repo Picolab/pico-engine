@@ -27,7 +27,6 @@ module.exports = {
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("say:hello"), async function ($event, $state) {
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
       var fired = true;
       if (fired)
         $ctx.log.debug("fired");

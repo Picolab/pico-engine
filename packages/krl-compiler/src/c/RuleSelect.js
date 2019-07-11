@@ -8,7 +8,16 @@ module.exports = function (ast, comp, e) {
   if (ast.within) {
     return e('call', e('id', '$env.SelectWhen.within'), [
       comp(ast.within),
-      selectWhenRule
+      selectWhenRule,
+      e('fn', ['$event', '$state'], [
+        e('return', e('call', e('id', 'Object.assign'), [
+          e('obj', {}),
+          e('id', '$state'),
+          e('obj', {
+            setting: e('obj', {})
+          })
+        ]))
+      ])
     ])
   }
 

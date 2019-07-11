@@ -44,6 +44,11 @@ export interface PicoEngineConfiguration {
    * Provide any custom krl modules
    */
   modules?: { [domain: string]: KrlModule };
+
+  /**
+   * Trust event.time input. Used for testing
+   */
+  useEventInputTime?: boolean;
 }
 
 export interface PicoEngine {
@@ -116,7 +121,9 @@ export async function startEngine(
           log.debug(ev.type, { picoId: ev.picoId, txnId: ev.txn.id });
           break;
       }
-    }
+    },
+
+    useEventInputTime: configuration.useEventInputTime
   });
 
   pf.addRuleset(rsNext);

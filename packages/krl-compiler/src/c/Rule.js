@@ -22,13 +22,15 @@ function Rule (ast, comp, e) {
   _.each(selectVars, function (selectVar) {
     ruleBody.push(e('var', jsIdent(selectVar), e('get', e('id', '$state.setting'), e('str', selectVar))))
   })
-  ruleBody.push(e(';', e('=', e('id', 'this.rule.state'), e('call', e('id', 'Object.assign'), [
-    e('obj', {}),
-    e('id', '$state'),
-    e('obj', {
-      setting: e('obj', {})
-    })
-  ]))))
+  if (_.size(selectVars) > 0) {
+    ruleBody.push(e(';', e('=', e('id', 'this.rule.state'), e('call', e('id', 'Object.assign'), [
+      e('obj', {}),
+      e('id', '$state'),
+      e('obj', {
+        setting: e('obj', {})
+      })
+    ]))))
+  }
 
   if (!_.isEmpty(ast.prelude)) {
     ruleBody = ruleBody.concat(declarationBlock(ast.prelude, comp))

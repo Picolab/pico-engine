@@ -116,13 +116,17 @@ module.exports = function (ast, comp, e) {
   if (fnBody.length > 0) {
     fnBody.push(e('return', e('obj', {
       match: e(true),
-      state: e('obj', {
-        setting: e('call', e('id', 'Object.assign'), [
-          e('obj', {}),
-          e('||', e('id', '$state.setting'), e('obj', {})),
-          e('id', 'setting')
-        ])
-      })
+      state: e('call', e('id', 'Object.assign'), [
+        e('obj', {}),
+        e('id', '$state'),
+        e('obj', {
+          setting: e('call', e('id', 'Object.assign'), [
+            e('obj', {}),
+            e('||', e('id', '$state.setting'), e('obj', {})),
+            e('id', 'setting')
+          ])
+        })
+      ])
     })))
     ee.push(e('asyncfn', ['$event', '$state'], fnBody))
   }

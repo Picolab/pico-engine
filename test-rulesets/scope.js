@@ -81,7 +81,7 @@ module.exports = {
       setting["name0"] = matches[0];
       return {
         "match": true,
-        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), $env.SelectWhen.e("scope:eventOr1", async function ($event, $state) {
       var matches = [];
@@ -99,7 +99,7 @@ module.exports = {
       setting["name1"] = matches[0];
       return {
         "match": true,
-        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), async function ($event, $state) {
       var name0 = $state.setting["name0"];
@@ -136,7 +136,7 @@ module.exports = {
       setting["name0"] = matches[0];
       return {
         "match": true,
-        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), $env.SelectWhen.e("scope:eventAnd1", async function ($event, $state) {
       var matches = [];
@@ -154,7 +154,7 @@ module.exports = {
       setting["name1"] = matches[0];
       return {
         "match": true,
-        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), async function ($event, $state) {
       var name0 = $state.setting["name0"];
@@ -191,7 +191,7 @@ module.exports = {
       setting["name1"] = matches[0];
       return {
         "match": true,
-        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), $env.SelectWhen.or($env.SelectWhen.e("scope:eventWithin2", async function ($event, $state) {
       var matches = [];
@@ -209,9 +209,11 @@ module.exports = {
       setting["name2"] = matches[0];
       return {
         "match": true,
-        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), $env.SelectWhen.e("scope:eventWithin3")))), async function ($event, $state) {
+    }), $env.SelectWhen.e("scope:eventWithin3"))), function ($event, $state) {
+      return Object.assign({}, $state, { "setting": {} });
+    }), async function ($event, $state) {
       var name1 = $state.setting["name1"];
       var name2 = $state.setting["name2"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
@@ -246,7 +248,7 @@ module.exports = {
       setting["name"] = matches[0];
       return {
         "match": true,
-        "state": { "setting": Object.assign({}, $state.setting || {}, setting) }
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state) {
       var name = $state.setting["name"];
@@ -274,7 +276,6 @@ module.exports = {
       await $ctx.rsCtx.putEnt("ent_var_p1", p1);
     });
     $rs.when($env.SelectWhen.e("scope:functions"), async function ($event, $state) {
-      this.rule.state = Object.assign({}, $state, { "setting": {} });
       const g0 = "overrided g0!";
       const inc5 = await incByN($ctx, [5]);
       var fired = true;
