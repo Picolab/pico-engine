@@ -6,7 +6,7 @@ module.exports = {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const match = $stdlib["match"];
-    const getB = $env.krl.function([], async function () {
+    const getB = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("b");
     });
     const send_directive = $ctx.module("custom")["send_directive"];

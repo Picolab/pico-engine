@@ -1,5 +1,5 @@
 import test from "ava";
-import krl from "../../src/krl";
+import * as krl from "../../src/krl";
 import { startTestEngine } from "../helpers/startTestEngine";
 
 test("guard-conditions.krl", async t => {
@@ -8,7 +8,7 @@ test("guard-conditions.krl", async t => {
   const { pe, eci } = await startTestEngine(["guard-conditions.krl"], {
     modules: {
       custom: {
-        send_directive: krl.function(["name", "options"], (name, options) => {
+        send_directive: krl.Function(["name", "options"], (name, options) => {
           directives.push({ name, options });
         })
       }

@@ -1,6 +1,6 @@
 import { RulesetContext } from "pico-framework";
 import * as SelectWhen from "select-when";
-import krl, { KrlModule } from "./krl";
+import * as krl from "./krl";
 import { KrlLogger } from "./KrlLogger";
 import * as modules from "./modules";
 
@@ -9,7 +9,7 @@ export class RulesetEnvironment {
 
   SelectWhen = SelectWhen;
 
-  modules: { [domain: string]: KrlModule } = modules;
+  modules: { [domain: string]: krl.Module } = modules;
 
   constructor(public log: KrlLogger) {}
 
@@ -34,5 +34,5 @@ export class RulesetEnvironment {
 export interface KrlCtx {
   rsCtx: RulesetContext;
   log: KrlLogger;
-  module(domain: string): KrlModule | null;
+  module(domain: string): krl.Module | null;
 }

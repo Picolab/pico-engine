@@ -7,7 +7,7 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const range = $stdlib["range"];
     const split = $stdlib["split"];
-    const doubleThis = $env.krl.function(["arr"], async function (arr) {
+    const doubleThis = $env.krl.Function(["arr"], async function (arr) {
       return [
         arr,
         arr

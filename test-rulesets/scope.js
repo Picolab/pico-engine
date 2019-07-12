@@ -19,14 +19,14 @@ module.exports = {
     const map = $stdlib["map"];
     const g0 = "global 0";
     const g1 = 1;
-    const getVals = $env.krl.function([], async function () {
+    const getVals = $env.krl.Function([], async function () {
       return {
         "name": await $ctx.rsCtx.getEnt("ent_var_name"),
         "p0": await $ctx.rsCtx.getEnt("ent_var_p0"),
         "p1": await $ctx.rsCtx.getEnt("ent_var_p1")
       };
     });
-    const add = $env.krl.function([
+    const add = $env.krl.Function([
       "a",
       "b"
     ], async function (a, b) {
@@ -35,15 +35,15 @@ module.exports = {
         b
       ]);
     });
-    const sum = $env.krl.function(["arr"], async function (arr) {
+    const sum = $env.krl.Function(["arr"], async function (arr) {
       return await reduce($ctx, [
         arr,
         add,
         0
       ]);
     });
-    const incByN = $env.krl.function(["n"], async function (n) {
-      return $env.krl.function(["a"], async function (a) {
+    const incByN = $env.krl.Function(["n"], async function (n) {
+      return $env.krl.Function(["a"], async function (a) {
         return await $stdlib["+"]($ctx, [
           a,
           n
@@ -56,7 +56,7 @@ module.exports = {
         2,
         3
       ],
-      $env.krl.function(["n"], async function (n) {
+      $env.krl.Function(["n"], async function (n) {
         return await $stdlib["+"]($ctx, [
           n,
           g1

@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 import { KrlCtx } from "./KrlCtx";
 
-export interface KrlModule {
+export interface Module {
   [name: string]: (ctx: KrlCtx, args?: any) => any;
 }
 
@@ -44,7 +44,11 @@ function krlFunctionMaker(krlTypeName: string) {
   };
 }
 
-function krlProperty(fn: (this: KrlCtx) => any) {
+export const Function = krlFunctionMaker("function");
+export const Action = krlFunctionMaker("action");
+export const Postlude = krlFunctionMaker("postlude");
+
+export function Property(fn: (this: KrlCtx) => any) {
   const wrapped = function(ctx: KrlCtx) {
     return fn.apply(ctx);
   };
@@ -55,28 +59,21 @@ function krlProperty(fn: (this: KrlCtx) => any) {
   return wrapped;
 }
 
-export default {
-  function: krlFunctionMaker("function"),
-  action: krlFunctionMaker("action"),
-  postlude: krlFunctionMaker("postlude"),
-  property: krlProperty,
-
-  /**
-   * used by `foreach` in krl
-   * Array's use index numbers, maps use key strings
-   */
-  toPairs: function toPairs(v: any) {
-    if (isArray(v)) {
-      var pairs = [];
-      var i;
-      for (i = 0; i < v.length; i++) {
-        pairs.push([i, v[i]]);
-      }
-      return pairs;
+/**
+ * used by `foreach` in krl
+ * Array's use index numbers, maps use key strings
+ */
+export function toPairs(v: any) {
+  if (isArray(v)) {
+    var pairs = [];
+    var i;
+    for (i = 0; i < v.length; i++) {
+      pairs.push([i, v[i]]);
     }
-    return _.toPairs(v);
+    return pairs;
   }
-};
+  return _.toPairs(v);
+}
 
 export function isNull(val: any): boolean {
   return val === null || val === void 0 || _.isNaN(val);

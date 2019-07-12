@@ -13,14 +13,14 @@ module.exports = {
   "init": async function ($rsCtx, $env) {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const hello = $env.krl.function(["name"], async function (name = "default") {
+    const hello = $env.krl.Function(["name"], async function (name = "default") {
       const msg = await $stdlib["+"]($ctx, [
         "Hello ",
         name
       ]);
       return msg;
     });
-    const said = $env.krl.function([], async function () {
+    const said = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("said");
     });
     const $rs = new $env.SelectWhen.SelectWhen();

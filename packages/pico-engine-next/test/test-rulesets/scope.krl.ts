@@ -1,6 +1,6 @@
 import test from "ava";
 import { startTestEngine } from "../helpers/startTestEngine";
-import krl from "../../src/krl";
+import * as krl from "../../src/krl";
 
 test("scope.krl", async t => {
   let directives: any[] = [];
@@ -8,7 +8,7 @@ test("scope.krl", async t => {
   const { pe, eci } = await startTestEngine(["scope.krl"], {
     modules: {
       custom: {
-        send_directive: krl.function(["name", "options"], (name, options) => {
+        send_directive: krl.Function(["name", "options"], (name, options) => {
           directives.push({ name, options });
         })
       }

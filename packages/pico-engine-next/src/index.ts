@@ -8,7 +8,7 @@ import { RulesetEnvironment } from "./KrlCtx";
 import { getRotatingFileStream, KrlLogger } from "./KrlLogger";
 import { RulesetRegistry } from "./RulesetRegistry";
 import { server } from "./server";
-import { KrlModule } from "./krl";
+import * as krl from "./krl";
 
 const homeDir = require("home-dir");
 const version = require("../package.json").version;
@@ -43,7 +43,7 @@ export interface PicoEngineConfiguration {
   /**
    * Provide any custom krl modules
    */
-  modules?: { [domain: string]: KrlModule };
+  modules?: { [domain: string]: krl.Module };
 
   /**
    * Trust event.time input. Used for testing

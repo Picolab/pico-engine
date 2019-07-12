@@ -1,35 +1,35 @@
-import krl, { KrlModule } from "../krl";
+import * as krl from "../krl";
 
-const ctx: KrlModule = {
-  rid: krl.property(function rid() {
+const ctx: krl.Module = {
+  rid: krl.Property(function rid() {
     return this.rsCtx.ruleset.rid;
   }),
 
-  rid_version: krl.property(function rid_version() {
+  rid_version: krl.Property(function rid_version() {
     return this.rsCtx.ruleset.version;
   }),
 
-  rid_config: krl.property(function rid_config() {
+  rid_config: krl.Property(function rid_config() {
     return this.rsCtx.ruleset.config;
   }),
 
-  parent: krl.property(function parent() {
+  parent: krl.Property(function parent() {
     return this.rsCtx.pico().parent;
   }),
 
-  children: krl.property(function children() {
+  children: krl.Property(function children() {
     return this.rsCtx.pico().children;
   }),
 
-  channels: krl.property(function channels() {
+  channels: krl.Property(function channels() {
     return this.rsCtx.pico().channels;
   }),
 
-  rulesets: krl.property(function rulesets() {
+  rulesets: krl.Property(function rulesets() {
     return this.rsCtx.pico().rulesets;
   }),
 
-  raiseEvent: krl.postlude(["domain", "name", "attrs"], function raiseEvent(
+  raiseEvent: krl.Postlude(["domain", "name", "attrs"], function raiseEvent(
     domain: string,
     name: string,
     attrs: any

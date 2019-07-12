@@ -1,6 +1,6 @@
 import test from "ava";
 import * as _ from "lodash";
-import mkKrl, * as krl from "../../src/krl";
+import * as krl from "../../src/krl";
 import stdlib from "../../src/modules/stdlib";
 import { makeKrlCtx } from "../helpers/makeKrlCtx";
 
@@ -111,12 +111,12 @@ test("infix operators", async t => {
   );
 
   t.is(
-    callLib("<=>", mkKrl.function([], () => null), "[Function]"),
+    callLib("<=>", krl.Function([], () => null), "[Function]"),
     0,
     "Functions drop down to string compare"
   );
   t.is(
-    callLib("<=>", mkKrl.action([], () => null), "[Action]"),
+    callLib("<=>", krl.Action([], () => null), "[Action]"),
     0,
     "Actions drop down to string compare"
   );
@@ -244,7 +244,7 @@ test("type operators", async t => {
   t.is(callLib("as", null, "RegExp").source, "null");
   t.is(callLib("as", 123, "RegExp").source, "123");
   t.is(
-    callLib("as", mkKrl.function([], () => null), "RegExp").source,
+    callLib("as", krl.Function([], () => null), "RegExp").source,
     "\\[Function\\]"
   );
   t.is(callLib("as", "[Function]", "RegExp").source, "[Function]");
@@ -285,8 +285,8 @@ test("type operators", async t => {
   t.is(callLib("typeof", /a/), "RegExp");
   t.is(callLib("typeof", []), "Array");
   t.is(callLib("typeof", {}), "Map");
-  t.is(callLib("typeof", mkKrl.function([], () => null)), "Function");
-  t.is(callLib("typeof", mkKrl.action([], () => null)), "Action");
+  t.is(callLib("typeof", krl.Function([], () => null)), "Function");
+  t.is(callLib("typeof", krl.Action([], () => null)), "Action");
 });
 
 test("klog", async t => {
@@ -493,7 +493,7 @@ test("string operators", async t => {
       "replace",
       "start 1 then 2? 3-42 end",
       /(\d+)/g,
-      mkKrl.function(["match"], function(match) {
+      krl.Function(["match"], function(match) {
         return parseInt(match, 10) * 2 + "";
       })
     ),
@@ -506,7 +506,7 @@ test("string operators", async t => {
       "replace",
       "1 2 3",
       /(\d)/g,
-      mkKrl.function(["match", "p1", "offset", "string"], function(
+      krl.Function(["match", "p1", "offset", "string"], function(
         match,
         p1,
         offset,
@@ -530,7 +530,7 @@ test("string operators", async t => {
       "replace",
       "000abc333???wat",
       /([a-z]+)(\d*)([^\w]*)/,
-      mkKrl.function(["match", "p1", "p2", "p3", "offset", "string"], function(
+      krl.Function(["match", "p1", "p2", "p3", "offset", "string"], function(
         match,
         p1,
         p2,
@@ -573,16 +573,16 @@ test("collection operators", async t => {
 
   t.true(await callLib("all", []));
   t.true(await callLib("all", {}));
-  t.true(await callLib("all", a, mkKrl.function(["x"], x => x < 10)));
-  t.false(await callLib("all", a, mkKrl.function(["x"], x => x > 3)));
-  t.false(await callLib("all", a, mkKrl.function(["x"], x => x > 10)));
+  t.true(await callLib("all", a, krl.Function(["x"], x => x < 10)));
+  t.false(await callLib("all", a, krl.Function(["x"], x => x > 3)));
+  t.false(await callLib("all", a, krl.Function(["x"], x => x > 10)));
   t.is(await libErrAsync("all", null), "TypeError: only works on collections");
 
   t.false(await callLib("notall", []));
   t.false(await callLib("notall", {}));
-  t.false(await callLib("notall", a, mkKrl.function(["x"], x => x < 10)));
-  t.true(await callLib("notall", a, mkKrl.function(["x"], x => x > 3)));
-  t.true(await callLib("notall", a, mkKrl.function(["x"], x => x > 10)));
+  t.false(await callLib("notall", a, krl.Function(["x"], x => x < 10)));
+  t.true(await callLib("notall", a, krl.Function(["x"], x => x > 3)));
+  t.true(await callLib("notall", a, krl.Function(["x"], x => x > 10)));
   t.is(
     await libErrAsync("notall", null),
     "TypeError: only works on collections"
@@ -590,16 +590,16 @@ test("collection operators", async t => {
 
   t.false(await callLib("any", []));
   t.false(await callLib("any", {}));
-  t.true(await callLib("any", a, mkKrl.function(["x"], x => x < 10)));
-  t.true(await callLib("any", a, mkKrl.function(["x"], x => x > 3)));
-  t.false(await callLib("any", a, mkKrl.function(["x"], x => x > 10)));
+  t.true(await callLib("any", a, krl.Function(["x"], x => x < 10)));
+  t.true(await callLib("any", a, krl.Function(["x"], x => x > 3)));
+  t.false(await callLib("any", a, krl.Function(["x"], x => x > 10)));
   t.is(await libErrAsync("any", null), "TypeError: only works on collections");
 
   t.true(await callLib("none", []));
   t.true(await callLib("none", {}));
-  t.false(await callLib("none", a, mkKrl.function(["x"], x => x < 10)));
-  t.false(await callLib("none", a, mkKrl.function(["x"], x => x > 3)));
-  t.true(await callLib("none", a, mkKrl.function(["x"], x => x > 10)));
+  t.false(await callLib("none", a, krl.Function(["x"], x => x < 10)));
+  t.false(await callLib("none", a, krl.Function(["x"], x => x > 3)));
+  t.true(await callLib("none", a, krl.Function(["x"], x => x > 10)));
   t.is(await libErrAsync("none", null), "TypeError: only works on collections");
 
   t.deepEqual(a, [3, 4, 5], "ensure not mutated");
@@ -633,11 +633,11 @@ test("collection operators", async t => {
   t.deepEqual(await callLib("append", [void 0], "b"), [void 0, "b"]);
   t.deepEqual(await callLib("append", [], "b"), ["b"]);
 
-  var fnDontCall = mkKrl.function([], function() {
+  var fnDontCall = krl.Function([], function() {
     throw new Error();
   });
 
-  var collectFn = mkKrl.function(["a"], function(a) {
+  var collectFn = krl.Function(["a"], function(a) {
     return stdlib["<"](this, [a, 5]) ? "x" : "y";
   });
 
@@ -660,24 +660,18 @@ test("collection operators", async t => {
     "default to the identity function"
   );
 
-  t.deepEqual(await callLib("filter", a, mkKrl.function(["x"], x => x < 5)), [
+  t.deepEqual(await callLib("filter", a, krl.Function(["x"], x => x < 5)), [
     3,
     4
   ]);
-  t.deepEqual(
-    await callLib("filter", a, mkKrl.function(["x"], x => x > 5)),
-    []
-  );
-  t.deepEqual(
-    await callLib("filter", a, mkKrl.function(["x"], x => x > 5)),
-    []
-  );
+  t.deepEqual(await callLib("filter", a, krl.Function(["x"], x => x > 5)), []);
+  t.deepEqual(await callLib("filter", a, krl.Function(["x"], x => x > 5)), []);
   t.deepEqual(a, [3, 4, 5], "should not be mutated");
   t.deepEqual(
     await callLib(
       "filter",
       { a: 1, b: 2, c: 3 },
-      mkKrl.function(["x"], x => x % 2 !== 0)
+      krl.Function(["x"], x => x % 2 !== 0)
     ),
     { a: 1, c: 3 }
   );
@@ -685,7 +679,7 @@ test("collection operators", async t => {
     await callLib(
       "filter",
       { a: 1, b: 2, c: 3 },
-      mkKrl.function(["v", "k"], (v, k) => k === "b")
+      krl.Function(["v", "k"], (v, k) => k === "b")
     ),
     { b: 2 }
   );
@@ -735,7 +729,7 @@ test("collection operators", async t => {
   t.is(callLib("isEmpty", " "), false);
   t.is(callLib("isEmpty", function() {}), true);
 
-  t.deepEqual(await callLib("map", a, mkKrl.function(["x"], x => x + 2)), [
+  t.deepEqual(await callLib("map", a, krl.Function(["x"], x => x + 2)), [
     5,
     6,
     7
@@ -750,7 +744,7 @@ test("collection operators", async t => {
     await callLib(
       "map",
       { a: 1, b: 2, c: 3 },
-      mkKrl.function(["v", "k"], (v, k) => v + k)
+      krl.Function(["v", "k"], (v, k) => v + k)
     ),
     { a: "1a", b: "2b", c: "3c" }
   );
@@ -759,7 +753,7 @@ test("collection operators", async t => {
     await callLib(
       "pairwise",
       [a, [6, 7, 8]],
-      mkKrl.function(["x", "y"], (x, y) => x + y)
+      krl.Function(["x", "y"], (x, y) => x + y)
     ),
     [9, 11, 13]
   );
@@ -767,7 +761,7 @@ test("collection operators", async t => {
     await callLib(
       "pairwise",
       [a, "abcdef".split("")],
-      mkKrl.function(["x", "y"], function(x, y) {
+      krl.Function(["x", "y"], function(x, y) {
         return stdlib["+"](this, [x, y]);
       })
     ),
@@ -780,7 +774,7 @@ test("collection operators", async t => {
     await callLib(
       "pairwise",
       [[], 1],
-      mkKrl.function(["l", "r"], (l, r) => [l, r])
+      krl.Function(["l", "r"], (l, r) => [l, r])
     ),
     [[void 0, 1]]
   );
@@ -798,15 +792,15 @@ test("collection operators", async t => {
   );
 
   t.is(
-    await callLib("reduce", a, mkKrl.function(["a", "b"], (a, b) => a + b)),
+    await callLib("reduce", a, krl.Function(["a", "b"], (a, b) => a + b)),
     12
   );
   t.is(
-    await callLib("reduce", a, mkKrl.function(["a", "b"], (a, b) => a + b), 10),
+    await callLib("reduce", a, krl.Function(["a", "b"], (a, b) => a + b), 10),
     22
   );
   t.is(
-    await callLib("reduce", a, mkKrl.function(["a", "b"], (a, b) => a - b)),
+    await callLib("reduce", a, krl.Function(["a", "b"], (a, b) => a - b)),
     -6
   );
   t.deepEqual(a, [3, 4, 5], "should not be mutated");
@@ -931,7 +925,7 @@ test("collection operators", async t => {
   t.is(callLib("encode", NaN), "null");
   t.is(callLib("encode", void 0), "null");
   // use .as("String") rules for other types
-  t.is(callLib("encode", mkKrl.action([], () => null)), '"[Action]"');
+  t.is(callLib("encode", krl.Action([], () => null)), '"[Action]"');
   t.is(callLib("encode", /a/gi), '"re#a#gi"');
   (function(a: string, b: string) {
     t.is(callLib("encode", arguments), '{"0":"a","1":"b"}');
@@ -1276,7 +1270,7 @@ test("collection operators", async t => {
   const toSort = [5, 3, 4, 1, 12];
   t.deepEqual(callLib("sort", null, "numeric"), null);
   t.deepEqual(callLib("sort", toSort), [1, 12, 3, 4, 5]);
-  t.deepEqual(callLib("sort", toSort, mkKrl.action([], () => null)), [
+  t.deepEqual(callLib("sort", toSort, krl.Action([], () => null)), [
     1,
     12,
     3,
@@ -1292,7 +1286,7 @@ test("collection operators", async t => {
     await callLib(
       "sort",
       toSort,
-      mkKrl.function(["a", "b"], (a: any, b: any) =>
+      krl.Function(["a", "b"], (a: any, b: any) =>
         a < b ? -1 : a === b ? 0 : 1
       )
     ),
@@ -1302,7 +1296,7 @@ test("collection operators", async t => {
     await callLib(
       "sort",
       toSort,
-      mkKrl.function(["a", "b"], (a: any, b: any) =>
+      krl.Function(["a", "b"], (a: any, b: any) =>
         a > b ? -1 : a === b ? 0 : 1
       )
     ),
@@ -1314,7 +1308,7 @@ test("collection operators", async t => {
     await callLib(
       "sort",
       [],
-      mkKrl.function(["a", "b"], (a: any, b: any) =>
+      krl.Function(["a", "b"], (a: any, b: any) =>
         a < b ? -1 : a === b ? 0 : 1
       )
     ),
@@ -1324,7 +1318,7 @@ test("collection operators", async t => {
     await callLib(
       "sort",
       [1],
-      mkKrl.function(["a", "b"], (a: any, b: any) =>
+      krl.Function(["a", "b"], (a: any, b: any) =>
         a < b ? -1 : a === b ? 0 : 1
       )
     ),
@@ -1334,7 +1328,7 @@ test("collection operators", async t => {
     await callLib(
       "sort",
       [2, 1],
-      mkKrl.function(["a", "b"], (a: any, b: any) =>
+      krl.Function(["a", "b"], (a: any, b: any) =>
         a < b ? -1 : a === b ? 0 : 1
       )
     ),
@@ -1344,7 +1338,7 @@ test("collection operators", async t => {
     await callLib(
       "sort",
       [2, 3, 1],
-      mkKrl.function(["a", "b"], (a: any, b: any) =>
+      krl.Function(["a", "b"], (a: any, b: any) =>
         a < b ? -1 : a === b ? 0 : 1
       )
     ),

@@ -1,11 +1,11 @@
 import test from "ava";
 import * as _ from "lodash";
-import mkKrl, * as krl from "../src/krl";
+import * as krl from "../src/krl";
 
 test("KRL function args", async t => {
   let lastArgs: any;
 
-  const fn = mkKrl.function(["a", "b", "c"], function() {
+  const fn = krl.Function(["a", "b", "c"], function() {
     lastArgs = _.toArray(arguments);
   });
 

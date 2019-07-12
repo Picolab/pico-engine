@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import mkKrl, * as krl from "../krl";
+import * as krl from "../krl";
 import { asyncSort } from "../asyncSort";
 
 function ltEqGt(left: any, right: any): 0 | 1 | -1 {
@@ -51,7 +51,7 @@ async function iterBase(
   }
 }
 
-const identity = mkKrl.function(["val"], function(val) {
+const identity = krl.Function(["val"], function(val) {
   return val;
 });
 
@@ -71,10 +71,10 @@ function isSafeArrayIndex(arr: any[], key: any) {
   return index >= 0 && index <= arr.length; // equal too b/c it's ok to append
 }
 
-const stdlib: krl.KrlModule = {
+const stdlib: krl.Module = {
   /////////////////////////////////////////////////////////////////////////////
   // Infix operators
-  "+": mkKrl.function(["left", "right"], function(left, right) {
+  "+": krl.Function(["left", "right"], function(left, right) {
     if (arguments.length < 2) {
       return left;
     }
@@ -86,7 +86,7 @@ const stdlib: krl.KrlModule = {
     return krl.toString(left) + krl.toString(right);
   }),
 
-  "-": mkKrl.function(["left", "right"], function(left, right) {
+  "-": krl.Function(["left", "right"], function(left, right) {
     const leftNumber = krl.toNumberOrNull(left);
     if (arguments.length < 2) {
       if (leftNumber === null) {
@@ -103,7 +103,7 @@ const stdlib: krl.KrlModule = {
     return leftNumber - rightNumber;
   }),
 
-  "*": mkKrl.function(["left", "right"], function(left, right) {
+  "*": krl.Function(["left", "right"], function(left, right) {
     const leftNumber = krl.toNumberOrNull(left);
     const rightNumber = krl.toNumberOrNull(right);
     if (leftNumber === null || rightNumber === null) {
@@ -114,7 +114,7 @@ const stdlib: krl.KrlModule = {
     return leftNumber * rightNumber;
   }),
 
-  "/": mkKrl.function(["left", "right"], function(left, right) {
+  "/": krl.Function(["left", "right"], function(left, right) {
     const leftNumber = krl.toNumberOrNull(left);
     const rightNumber = krl.toNumberOrNull(right);
     if (leftNumber === null || rightNumber === null) {
@@ -129,7 +129,7 @@ const stdlib: krl.KrlModule = {
     return leftNumber / rightNumber;
   }),
 
-  "%": mkKrl.function(["left", "right"], function(left, right) {
+  "%": krl.Function(["left", "right"], function(left, right) {
     const leftNumber = krl.toNumberOrNull(left);
     const rightNumber = krl.toNumberOrNull(right);
     if (leftNumber === null || rightNumber === null) {
@@ -146,30 +146,30 @@ const stdlib: krl.KrlModule = {
     return leftNumber % rightNumber;
   }),
 
-  "==": mkKrl.function(["left", "right"], function(left, right) {
+  "==": krl.Function(["left", "right"], function(left, right) {
     return krl.isEqual(left, right);
   }),
-  "!=": mkKrl.function(["left", "right"], function(left, right) {
+  "!=": krl.Function(["left", "right"], function(left, right) {
     return !krl.isEqual(left, right);
   }),
 
-  "<=>": mkKrl.function(["left", "right"], function(left, right) {
+  "<=>": krl.Function(["left", "right"], function(left, right) {
     return ltEqGt(left, right);
   }),
-  "<": mkKrl.function(["left", "right"], function(left, right) {
+  "<": krl.Function(["left", "right"], function(left, right) {
     return ltEqGt(left, right) < 0;
   }),
-  ">": mkKrl.function(["left", "right"], function(left, right) {
+  ">": krl.Function(["left", "right"], function(left, right) {
     return ltEqGt(left, right) > 0;
   }),
-  "<=": mkKrl.function(["left", "right"], function(left, right) {
+  "<=": krl.Function(["left", "right"], function(left, right) {
     return ltEqGt(left, right) <= 0;
   }),
-  ">=": mkKrl.function(["left", "right"], function(left, right) {
+  ">=": krl.Function(["left", "right"], function(left, right) {
     return ltEqGt(left, right) >= 0;
   }),
 
-  "><": mkKrl.function(["left", "right"], function(left, right): boolean {
+  "><": krl.Function(["left", "right"], function(left, right): boolean {
     if (krl.isArray(left)) {
       return _.findIndex(left, _.partial(krl.isEqual, right)) >= 0;
     } else if (krl.isMap(left)) {
@@ -178,14 +178,14 @@ const stdlib: krl.KrlModule = {
     throw new TypeError(">< only works with Array or Map");
   }),
 
-  like: mkKrl.function(["val", "regex"], function(val, regex): boolean {
+  like: krl.Function(["val", "regex"], function(val, regex): boolean {
     if (!krl.isRegExp(regex)) {
       regex = new RegExp(krl.toString(regex));
     }
     return regex.test(krl.toString(val));
   }),
 
-  cmp: mkKrl.function(["left", "right"], function(left, right): -1 | 0 | 1 {
+  cmp: krl.Function(["left", "right"], function(left, right): -1 | 0 | 1 {
     left = krl.toString(left);
     right = krl.toString(right);
     return left === right ? 0 : left > right ? 1 : -1;
@@ -193,7 +193,7 @@ const stdlib: krl.KrlModule = {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  as: mkKrl.function(["val", "type"], function(val, type) {
+  as: krl.Function(["val", "type"], function(val, type) {
     if (arguments.length < 2) {
       return val;
     }
@@ -234,21 +234,21 @@ const stdlib: krl.KrlModule = {
     );
   }),
 
-  isnull: mkKrl.function(["val"], function(val) {
+  isnull: krl.Function(["val"], function(val) {
     return krl.isNull(val);
   }),
-  typeof: mkKrl.function(["val"], function(val) {
+  typeof: krl.Function(["val"], function(val) {
     return krl.typeOf(val);
   }),
 
-  klog: mkKrl.function(["val", "message"], function(val, message) {
+  klog: krl.Function(["val", "message"], function(val, message) {
     this.log.klog(krl.isNull(message) ? "klog" : krl.toString(message), {
       val
     });
     return val;
   }),
 
-  sprintf: mkKrl.function(["val", "template"], function(val, template) {
+  sprintf: krl.Function(["val", "template"], function(val, template) {
     if (krl.isNull(template)) {
       return "";
     }
@@ -263,7 +263,7 @@ const stdlib: krl.KrlModule = {
   }),
 
   /////////////////////////////////////////////////////////////////////////////
-  defaultsTo: mkKrl.function(["val", "defaultVal", "message"], function(
+  defaultsTo: krl.Function(["val", "defaultVal", "message"], function(
     val,
     defaultVal,
     message
@@ -279,7 +279,7 @@ const stdlib: krl.KrlModule = {
 
   /////////////////////////////////////////////////////////////////////////////
   // Number operators
-  chr: mkKrl.function(["val"], function(val) {
+  chr: krl.Function(["val"], function(val) {
     const code = krl.toNumberOrNull(val);
     if (code === null) {
       return null;
@@ -287,7 +287,7 @@ const stdlib: krl.KrlModule = {
     return String.fromCharCode(code);
   }),
 
-  range: mkKrl.function(["val", "end"], function(val, end) {
+  range: krl.Function(["val", "end"], function(val, end) {
     if (arguments.length < 2) {
       return [];
     }
@@ -304,7 +304,7 @@ const stdlib: krl.KrlModule = {
 
   /////////////////////////////////////////////////////////////////////////////
   // Number operators
-  capitalize: mkKrl.function(["val"], function(val) {
+  capitalize: krl.Function(["val"], function(val) {
     val = krl.toString(val);
     if (val.length === 0) {
       return "";
@@ -312,11 +312,11 @@ const stdlib: krl.KrlModule = {
     return val[0].toUpperCase() + val.slice(1);
   }),
 
-  decode: mkKrl.function(["val"], function(val) {
+  decode: krl.Function(["val"], function(val) {
     return krl.decode(val);
   }),
 
-  extract: mkKrl.function(["val", "regex"], function(val, regex) {
+  extract: krl.Function(["val", "regex"], function(val, regex) {
     if (arguments.length < 2) {
       return [];
     }
@@ -334,14 +334,14 @@ const stdlib: krl.KrlModule = {
     return r.slice(1);
   }),
 
-  lc: mkKrl.function(["val"], function(val) {
+  lc: krl.Function(["val"], function(val) {
     return krl.toString(val).toLowerCase();
   }),
-  uc: mkKrl.function(["val"], function(val) {
+  uc: krl.Function(["val"], function(val) {
     return krl.toString(val).toUpperCase();
   }),
 
-  match: mkKrl.function(["val", "regex"], function(val, regex) {
+  match: krl.Function(["val", "regex"], function(val, regex) {
     if (krl.isString(regex)) {
       regex = new RegExp(regex);
     } else if (!krl.isRegExp(regex)) {
@@ -350,13 +350,13 @@ const stdlib: krl.KrlModule = {
     return regex.test(krl.toString(val));
   }),
 
-  ord: mkKrl.function(["val"], function(val) {
+  ord: krl.Function(["val"], function(val) {
     val = krl.toString(val);
     var code = val.charCodeAt(0);
     return _.isNaN(code) ? null : code;
   }),
 
-  split: mkKrl.function(["val", "splitOn"], function(val, splitOn) {
+  split: krl.Function(["val", "splitOn"], function(val, splitOn) {
     val = krl.toString(val);
     if (!krl.isRegExp(splitOn)) {
       splitOn = krl.toString(splitOn);
@@ -364,7 +364,7 @@ const stdlib: krl.KrlModule = {
     return val.split(splitOn);
   }),
 
-  substr: mkKrl.function(["val", "start", "len"], function(val, start, len) {
+  substr: krl.Function(["val", "start", "len"], function(val, start, len) {
     val = krl.toString(val);
     start = krl.toNumberOrNull(start);
     len = krl.toNumberOrNull(len);
@@ -385,33 +385,33 @@ const stdlib: krl.KrlModule = {
     return val.substring(start, end);
   }),
 
-  trimLeading: mkKrl.function(["val"], function(val) {
+  trimLeading: krl.Function(["val"], function(val) {
     return _.trimStart(krl.toString(val));
   }),
-  trimTrailing: mkKrl.function(["val"], function(val) {
+  trimTrailing: krl.Function(["val"], function(val) {
     return _.trimEnd(krl.toString(val));
   }),
-  trim: mkKrl.function(["val"], function(val) {
+  trim: krl.Function(["val"], function(val) {
     return krl.toString(val).trim();
   }),
 
-  startsWith: mkKrl.function(["val", "target"], function(val, target) {
+  startsWith: krl.Function(["val", "target"], function(val, target) {
     val = krl.toString(val);
     target = krl.toString(target);
     return _.startsWith(val, target);
   }),
-  endsWith: mkKrl.function(["val", "target"], function(val, target) {
+  endsWith: krl.Function(["val", "target"], function(val, target) {
     val = krl.toString(val);
     target = krl.toString(target);
     return _.endsWith(val, target);
   }),
-  contains: mkKrl.function(["val", "target"], function(val, target) {
+  contains: krl.Function(["val", "target"], function(val, target) {
     val = krl.toString(val);
     target = krl.toString(target);
     return _.includes(val, target);
   }),
 
-  replace: mkKrl.function(["val", "regex", "replacement"], async function(
+  replace: krl.Function(["val", "regex", "replacement"], async function(
     val,
     regex,
     replacement
@@ -449,7 +449,7 @@ const stdlib: krl.KrlModule = {
 
   /////////////////////////////////////////////////////////////////////////////
   // Collection operators
-  all: mkKrl.function(["val", "iter"], async function(val, iter) {
+  all: krl.Function(["val", "iter"], async function(val, iter) {
     let broke = false;
     await iterBase(val, async (v, k, obj) => {
       const r = await iter(this, [v, k, obj]);
@@ -461,12 +461,12 @@ const stdlib: krl.KrlModule = {
     });
     return !broke;
   }),
-  notall: mkKrl.function(["val", "iter"], async function(val, iter) {
+  notall: krl.Function(["val", "iter"], async function(val, iter) {
     const b = await stdlib.all(this, [val, iter]);
     return !b;
   }),
 
-  any: mkKrl.function(["val", "iter"], async function(val, iter) {
+  any: krl.Function(["val", "iter"], async function(val, iter) {
     var broke = false;
     await iterBase(val, async (v, k, obj) => {
       var r = await iter(this, [v, k, obj]);
@@ -478,18 +478,18 @@ const stdlib: krl.KrlModule = {
     });
     return broke;
   }),
-  none: mkKrl.function(["val", "iter"], async function(val, iter) {
+  none: krl.Function(["val", "iter"], async function(val, iter) {
     const b = await stdlib.any(this, [val, iter]);
     return !b;
   }),
 
-  append: mkKrl.function(["val", "a", "b", "c", "d", "e"], async function(
+  append: krl.Function(["val", "a", "b", "c", "d", "e"], async function(
     ...args: any[]
   ) {
     return _.concat.apply(null, args as any);
   }),
 
-  collect: mkKrl.function(["val", "iter"], async function(val, iter) {
+  collect: krl.Function(["val", "iter"], async function(val, iter) {
     if (krl.isNull(iter)) {
       iter = identity;
     }
@@ -505,7 +505,7 @@ const stdlib: krl.KrlModule = {
     return grouped;
   }),
 
-  filter: mkKrl.function(["val", "iter"], async function(val, iter) {
+  filter: krl.Function(["val", "iter"], async function(val, iter) {
     if (krl.isNull(iter)) {
       iter = identity;
     }
@@ -525,7 +525,7 @@ const stdlib: krl.KrlModule = {
     return result;
   }),
 
-  map: mkKrl.function(["val", "iter"], async function(val, iter) {
+  map: krl.Function(["val", "iter"], async function(val, iter) {
     if (krl.isNull(iter)) {
       iter = identity;
     }
@@ -543,27 +543,27 @@ const stdlib: krl.KrlModule = {
     return result;
   }),
 
-  head: mkKrl.function(["val"], function(val) {
+  head: krl.Function(["val"], function(val) {
     if (!krl.isArray(val)) {
       return val; // head is for arrays; pretend val is a one-value array
     }
     return val[0];
   }),
-  tail: mkKrl.function(["val"], function(val) {
+  tail: krl.Function(["val"], function(val) {
     if (!krl.isArray(val)) {
       return [];
     }
     return _.tail(val);
   }),
 
-  index: mkKrl.function(["val", "elm"], function(val, elm) {
+  index: krl.Function(["val", "elm"], function(val, elm) {
     if (!krl.isArray(val)) {
       throw new TypeError("only works on Arrays");
     }
     return _.findIndex(val, _.partial(krl.isEqual, elm));
   }),
 
-  join: mkKrl.function(["val", "str"], function(val, str) {
+  join: krl.Function(["val", "str"], function(val, str) {
     if (!krl.isArray(val)) {
       return krl.toString(val);
     }
@@ -574,18 +574,18 @@ const stdlib: krl.KrlModule = {
     return _.join(val, krl.toString(str));
   }),
 
-  length: mkKrl.function(["val"], function(val) {
+  length: krl.Function(["val"], function(val) {
     if (krl.isArrayOrMap(val) || krl.isString(val)) {
       return _.size(val);
     }
     return 0;
   }),
 
-  isEmpty: mkKrl.function(["val"], function(val) {
+  isEmpty: krl.Function(["val"], function(val) {
     return _.isEmpty(val);
   }),
 
-  pairwise: mkKrl.function(["val", "iter"], async function(val, iter) {
+  pairwise: krl.Function(["val", "iter"], async function(val, iter) {
     if (!krl.isArray(val)) {
       throw new TypeError(
         "The .pairwise() operator cannot be called on " + krl.toString(val)
@@ -624,7 +624,7 @@ const stdlib: krl.KrlModule = {
     return r;
   }),
 
-  reduce: mkKrl.function(["val", "iter", "dflt"], async function(
+  reduce: krl.Function(["val", "iter", "dflt"], async function(
     val,
     iter,
     dflt
@@ -664,14 +664,14 @@ const stdlib: krl.KrlModule = {
     return acc;
   }),
 
-  reverse: mkKrl.function(["val"], function(val) {
+  reverse: krl.Function(["val"], function(val) {
     if (!krl.isArray(val)) {
       throw new TypeError("only works on Arrays");
     }
     return _.reverse(_.cloneDeep(val));
   }),
 
-  slice: mkKrl.function(["val", "start", "end"], function(val, start, end) {
+  slice: krl.Function(["val", "start", "end"], function(val, start, end) {
     if (!krl.isArray(val)) {
       throw new TypeError("only works on Arrays");
     }
@@ -715,7 +715,7 @@ const stdlib: krl.KrlModule = {
     return [];
   }),
 
-  splice: mkKrl.function(["val", "start", "nElements", "value"], function(
+  splice: krl.Function(["val", "start", "nElements", "value"], function(
     val,
     start,
     nElements,
@@ -756,7 +756,7 @@ const stdlib: krl.KrlModule = {
     return _.concat(part1, value, part2);
   }),
 
-  delete: mkKrl.function(["val", "path"], function(val, path) {
+  delete: krl.Function(["val", "path"], function(val, path) {
     path = toKeyPath(path);
     // TODO optimize
     var nVal = _.cloneDeep(val);
@@ -764,11 +764,11 @@ const stdlib: krl.KrlModule = {
     return nVal;
   }),
 
-  encode: mkKrl.function(["val", "indent"], function(val, indent) {
+  encode: krl.Function(["val", "indent"], function(val, indent) {
     return krl.encode(val, indent);
   }),
 
-  keys: mkKrl.function(["val", "path"], function(val, path) {
+  keys: krl.Function(["val", "path"], function(val, path) {
     if (!krl.isArrayOrMap(val)) {
       return [];
     }
@@ -779,7 +779,7 @@ const stdlib: krl.KrlModule = {
     return _.keys(val);
   }),
 
-  values: mkKrl.function(["val", "path"], function(val, path) {
+  values: krl.Function(["val", "path"], function(val, path) {
     if (!krl.isArrayOrMap(val)) {
       return [];
     }
@@ -790,7 +790,7 @@ const stdlib: krl.KrlModule = {
     return _.values(val);
   }),
 
-  intersection: mkKrl.function(["a", "b"], function(a, b) {
+  intersection: krl.Function(["a", "b"], function(a, b) {
     if (arguments.length < 2) {
       return [];
     }
@@ -803,7 +803,7 @@ const stdlib: krl.KrlModule = {
     return _.intersectionWith(a, b, krl.isEqual);
   }),
 
-  union: mkKrl.function(["a", "b"], function(a, b) {
+  union: krl.Function(["a", "b"], function(a, b) {
     if (arguments.length < 2) {
       return a;
     }
@@ -816,7 +816,7 @@ const stdlib: krl.KrlModule = {
     return _.unionWith(a, b, krl.isEqual);
   }),
 
-  difference: mkKrl.function(["a", "b"], function(a, b) {
+  difference: krl.Function(["a", "b"], function(a, b) {
     if (arguments.length < 2) {
       return a;
     }
@@ -829,14 +829,14 @@ const stdlib: krl.KrlModule = {
     return _.differenceWith(a, b, krl.isEqual);
   }),
 
-  has: mkKrl.function(["val", "other"], function(val, other) {
+  has: krl.Function(["val", "other"], function(val, other) {
     if (!krl.isArray(val)) {
       val = [val];
     }
     return stdlib.difference(this, [other, val]).length === 0;
   }),
 
-  once: mkKrl.function(["val"], function(val) {
+  once: krl.Function(["val"], function(val) {
     if (!krl.isArray(val)) {
       return val;
     }
@@ -851,7 +851,7 @@ const stdlib: krl.KrlModule = {
     return r;
   }),
 
-  duplicates: mkKrl.function(["val"], function(val) {
+  duplicates: krl.Function(["val"], function(val) {
     if (!krl.isArray(val)) {
       return [];
     }
@@ -866,14 +866,14 @@ const stdlib: krl.KrlModule = {
     return r;
   }),
 
-  unique: mkKrl.function(["val"], function(val) {
+  unique: krl.Function(["val"], function(val) {
     if (!krl.isArray(val)) {
       return val;
     }
     return _.uniqWith(val, krl.isEqual);
   }),
 
-  put: mkKrl.function(["val", "path", "toSet"], function(val, path, toSet) {
+  put: krl.Function(["val", "path", "toSet"], function(val, path, toSet) {
     if (!krl.isArrayOrMap(val) || arguments.length < 2) {
       return val;
     }
@@ -923,7 +923,7 @@ const stdlib: krl.KrlModule = {
     return nVal;
   }),
 
-  sort: mkKrl.function(["val", "sortBy"], function(val, sortBy) {
+  sort: krl.Function(["val", "sortBy"], function(val, sortBy) {
     if (!krl.isArray(val)) {
       return val;
     }
@@ -954,7 +954,7 @@ const stdlib: krl.KrlModule = {
   }),
 
   /////////////////////////////////////////////////////////////////////////////
-  get: mkKrl.function(["obj", "path"], function(obj, path) {
+  get: krl.Function(["obj", "path"], function(obj, path) {
     if (!krl.isArrayOrMap(obj)) {
       return null;
     }
@@ -962,7 +962,7 @@ const stdlib: krl.KrlModule = {
     return _.get(obj, path, null);
   }),
 
-  set: mkKrl.function(["obj", "path", "val"], function(obj, path, val) {
+  set: krl.Function(["obj", "path", "val"], function(obj, path, val) {
     if (!krl.isArrayOrMap(obj)) {
       return obj;
     }
