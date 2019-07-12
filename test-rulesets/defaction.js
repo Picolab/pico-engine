@@ -1,5 +1,6 @@
 module.exports = {
   "rid": "io.picolabs.defaction",
+  "version": "draft",
   "meta": {
     "shares": [
       "getSettingVal",
@@ -7,459 +8,456 @@ module.exports = {
       "echoAction"
     ]
   },
-  "global": async function (ctx) {
-    ctx.scope.set("foo", ctx.mkAction(["a"], async function (ctx, args, runAction) {
-      ctx.scope.set("a", args["a"]);
-      ctx.scope.set("b", 2);
-      var fired = true;
-      if (fired) {
-        await runAction(ctx, void 0, "send_directive", [
-          "foo",
-          {
-            "a": ctx.scope.get("a"),
-            "b": await ctx.applyFn(ctx.scope.get("+"), ctx, [
-              ctx.scope.get("b"),
-              3
-            ])
-          }
-        ], []);
-      }
-      return [];
-    }));
-    ctx.scope.set("bar", ctx.mkAction([
-      "one",
-      "two",
-      "three"
-    ], async function (ctx, args, runAction) {
-      ctx.scope.set("one", args["one"]);
-      ctx.scope.set("two", args.hasOwnProperty("two") ? args["two"] : await ctx.applyFn(ctx.scope.get("get"), ctx, [
-        await ctx.applyFn(ctx.scope.get("add"), ctx, [
-          1,
-          1
-        ]),
-        [
-          "options",
-          "resp"
-        ]
-      ]));
-      ctx.scope.set("three", args.hasOwnProperty("three") ? args["three"] : "3 by default");
-      var fired = true;
-      if (fired) {
-        await runAction(ctx, void 0, "send_directive", [
-          "bar",
-          {
-            "a": ctx.scope.get("one"),
-            "b": ctx.scope.get("two"),
-            "c": ctx.scope.get("three")
-          }
-        ], ["dir"]);
-      }
-      return [ctx.scope.get("dir")];
-    }));
-    ctx.scope.set("getSettingVal", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "setting_val");
-    }));
-    ctx.scope.set("chooser", ctx.mkAction(["val"], async function (ctx, args, runAction) {
-      ctx.scope.set("val", args["val"]);
-      var fired = true;
-      if (fired) {
-        switch (ctx.scope.get("val")) {
-        case "asdf":
-          await runAction(ctx, void 0, "foo", [ctx.scope.get("val")], []);
-          break;
-        case "fdsa":
-          await runAction(ctx, void 0, "bar", [
-            ctx.scope.get("val"),
-            "ok",
-            "done"
-          ], []);
-          break;
-        }
-      }
-      return [];
-    }));
-    ctx.scope.set("ifAnotB", ctx.mkAction([
+  "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const noop = $stdlib["noop"];
+    const send_directive = $ctx.module("custom")["send_directive"];
+    const add = $env.krl.Function([
       "a",
       "b"
-    ], async function (ctx, args, runAction) {
-      ctx.scope.set("a", args["a"]);
-      ctx.scope.set("b", args["b"]);
-      var fired = ctx.scope.get("a") && !ctx.scope.get("b");
-      if (fired) {
-        await runAction(ctx, void 0, "send_directive", ["yes a"], []);
-        await runAction(ctx, void 0, "send_directive", ["not b"], []);
-      }
-      return [];
-    }));
-    ctx.scope.set("echoAction", ctx.mkAction([
-      "a",
-      "b",
-      "c"
-    ], async function (ctx, args, runAction) {
-      ctx.scope.set("a", args["a"]);
-      ctx.scope.set("b", args["b"]);
-      ctx.scope.set("c", args["c"]);
-      var fired = true;
-      if (fired) {
-        await runAction(ctx, void 0, "noop", [], []);
-      }
-      return [
-        ctx.scope.get("a"),
-        ctx.scope.get("b"),
-        ctx.scope.get("c")
-      ];
-    }));
-    ctx.scope.set("complexAction", ctx.mkAction([
-      "a",
-      "b"
-    ], async function (ctx, args, runAction) {
-      ctx.scope.set("a", args["a"]);
-      ctx.scope.set("b", args["b"]);
-      ctx.scope.set("c", 100);
-      ctx.scope.set("d", await ctx.applyFn(ctx.scope.get("+"), ctx, [
-        ctx.scope.get("c"),
-        ctx.scope.get("b")
-      ]));
-      var fired = await ctx.applyFn(ctx.scope.get(">"), ctx, [
-        ctx.scope.get("c"),
-        0
-      ]);
-      if (fired) {
-        await runAction(ctx, void 0, "send_directive", [
-          await ctx.applyFn(ctx.scope.get("+"), ctx, [
-            "wat:",
-            ctx.scope.get("a")
-          ]),
-          { "b": ctx.scope.get("b") }
-        ], ["dir"]);
-      }
-      return [await ctx.applyFn(ctx.scope.get("+"), ctx, [
-          await ctx.applyFn(ctx.scope.get("+"), ctx, [
-            await ctx.applyFn(ctx.scope.get("get"), ctx, [
-              ctx.scope.get("dir"),
-              ["name"]
-            ]),
-            " "
-          ]),
-          ctx.scope.get("d")
-        ])];
-    }));
-    ctx.scope.set("add", ctx.mkFunction([
-      "a",
-      "b"
-    ], async function (ctx, args) {
-      ctx.scope.set("a", args["a"]);
-      ctx.scope.set("b", args["b"]);
+    ], async function (a, b) {
       return {
         "type": "directive",
         "name": "add",
         "options": {
-          "resp": await ctx.applyFn(ctx.scope.get("+"), ctx, [
-            ctx.scope.get("a"),
-            ctx.scope.get("b")
+          "resp": await $stdlib["+"]($ctx, [
+            a,
+            b
           ])
         }
       };
-    }));
-  },
-  "rules": {
-    "foo": {
-      "name": "foo",
-      "select": {
-        "graph": { "defa": { "foo": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "foo", ["bar"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "bar": {
-      "name": "bar",
-      "select": {
-        "graph": { "defa": { "bar": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "bar", {
-            "0": "baz",
-            "two": "qux",
-            "three": "quux"
-          }, []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "bar_setting": {
-      "name": "bar_setting",
-      "select": {
-        "graph": { "defa": { "bar_setting": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "bar", {
-            "0": "baz",
-            "two": "qux",
-            "three": "quux"
-          }, ["val"]);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.set(ctx, "ent", "setting_val", ctx.scope.get("val"));
-        }
-      }
-    },
-    "chooser": {
-      "name": "chooser",
-      "select": {
-        "graph": { "defa": { "chooser": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "chooser", [await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["val"])], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "ifAnotB": {
-      "name": "ifAnotB",
-      "select": {
-        "graph": { "defa": { "ifAnotB": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "ifAnotB", [
-            await ctx.applyFn(ctx.scope.get("=="), ctx, [
-              await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["a"]),
-              "true"
-            ]),
-            await ctx.applyFn(ctx.scope.get("=="), ctx, [
-              await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["b"]),
-              "true"
+    });
+    const foo = $env.krl.Action(["a"], async function (a) {
+      const b = 2;
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "foo",
+          {
+            "a": a,
+            "b": await $stdlib["+"]($ctx, [
+              b,
+              3
             ])
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
+          }
+        ]);
       }
-    },
-    "add": {
-      "name": "add",
-      "select": {
-        "graph": { "defa": { "add": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "add", [
+    });
+    const bar = $env.krl.Action([
+      "one",
+      "two",
+      "three"
+    ], async function (one, two = $default, three = "3 by default") {
+      if (two == $default) {
+        two = await $stdlib["get"]($ctx, [
+          await add($ctx, [
             1,
-            2
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
+            1
+          ]),
+          [
+            "options",
+            "resp"
+          ]
+        ]);
       }
-    },
-    "returns": {
-      "name": "returns",
-      "select": {
-        "graph": { "defa": { "returns": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "echoAction", [
-            "where",
-            "in",
-            "the"
-          ], [
-            "a",
-            "b",
-            "c"
+      var $fired = true;
+      if ($fired) {
+        dir = await $env.krl.assertAction(send_directive)($ctx, [
+          "bar",
+          {
+            "a": one,
+            "b": two,
+            "c": three
+          }
+        ]);
+      }
+      return dir;
+    });
+    const getSettingVal = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("setting_val");
+    });
+    const chooser = $env.krl.Action(["val"], async function (val) {
+      var $fired = true;
+      if ($fired) {
+        switch (val) {
+        case "asdf":
+          await $env.krl.assertAction(foo)($ctx, [val]);
+          break;
+        case "fdsa":
+          await $env.krl.assertAction(bar)($ctx, [
+            val,
+            "ok",
+            "done"
           ]);
-          await runAction(ctx, void 0, "complexAction", [
-            await ctx.applyFn(ctx.scope.get("+"), ctx, [
-              await ctx.applyFn(ctx.scope.get("+"), ctx, [
-                ctx.scope.get("a"),
-                ctx.scope.get("b")
-              ]),
-              ctx.scope.get("c")
+          break;
+        }
+      }
+    });
+    const ifAnotB = $env.krl.Action([
+      "a",
+      "b"
+    ], async function (a, b) {
+      var $fired = a && !b;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["yes a"]);
+        await $env.krl.assertAction(send_directive)($ctx, ["not b"]);
+      }
+    });
+    const echoAction = $env.krl.Action([
+      "a",
+      "b",
+      "c"
+    ], async function (a, b, c) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(noop)($ctx, []);
+      }
+      return [
+        a,
+        b,
+        c
+      ];
+    });
+    const complexAction = $env.krl.Action([
+      "a",
+      "b"
+    ], async function (a, b) {
+      const c = 100;
+      const d = await $stdlib["+"]($ctx, [
+        c,
+        b
+      ]);
+      var $fired = await $stdlib[">"]($ctx, [
+        c,
+        0
+      ]);
+      if ($fired) {
+        dir = await $env.krl.assertAction(send_directive)($ctx, [
+          await $stdlib["+"]($ctx, [
+            "wat:",
+            a
+          ]),
+          { "b": b }
+        ]);
+      }
+      return await $stdlib["+"]($ctx, [
+        await $stdlib["+"]($ctx, [
+          await $stdlib["get"]($ctx, [
+            dir,
+            ["name"]
+          ]),
+          " "
+        ]),
+        d
+      ]);
+    });
+    const $rs = new $env.SelectWhen.SelectWhen();
+    $rs.when($env.SelectWhen.e("defa:foo"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(foo)($ctx, ["bar"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("defa:bar"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(bar)($ctx, {
+          "0": "baz",
+          "two": "qux",
+          "three": "quux"
+        });
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("defa:bar_setting"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        val = await $env.krl.assertAction(bar)($ctx, {
+          "0": "baz",
+          "two": "qux",
+          "three": "quux"
+        });
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("setting_val", val);
+      }
+    });
+    $rs.when($env.SelectWhen.e("defa:chooser"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(chooser)($ctx, [await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "val"
+          ])]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("defa:ifAnotB"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(ifAnotB)($ctx, [
+          await $stdlib["=="]($ctx, [
+            await $stdlib["get"]($ctx, [
+              $event.data.attrs,
+              "a"
             ]),
-            333
-          ], ["d"]);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.set(ctx, "ent", "setting_val", [
-            ctx.scope.get("a"),
-            ctx.scope.get("b"),
-            ctx.scope.get("c"),
-            ctx.scope.get("d")
-          ]);
-        }
+            "true"
+          ]),
+          await $stdlib["=="]($ctx, [
+            await $stdlib["get"]($ctx, [
+              $event.data.attrs,
+              "b"
+            ]),
+            "true"
+          ])
+        ]);
       }
-    },
-    "scope": {
-      "name": "scope",
-      "select": {
-        "graph": { "defa": { "scope": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("defa:add"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(add)($ctx, [
+          1,
+          2
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("defa:returns"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        abc = await $env.krl.assertAction(echoAction)($ctx, [
+          "where",
+          "in",
+          "the"
+        ]);
+        d = await $env.krl.assertAction(complexAction)($ctx, [
+          await $stdlib["+"]($ctx, [
+            await $stdlib["+"]($ctx, [
+              await $stdlib["get"]($ctx, [
+                abc,
+                [0]
+              ]),
+              await $stdlib["get"]($ctx, [
+                abc,
+                [1]
+              ])
+            ]),
+            await $stdlib["get"]($ctx, [
+              abc,
+              [2]
+            ])
+          ]),
+          333
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("setting_val", [
+          await $stdlib["get"]($ctx, [
+            abc,
+            [0]
+          ]),
+          await $stdlib["get"]($ctx, [
+            abc,
+            [1]
+          ]),
+          await $stdlib["get"]($ctx, [
+            abc,
+            [2]
+          ]),
+          d
+        ]);
+      }
+    });
+    $rs.when($env.SelectWhen.e("defa:scope"), async function ($event, $state) {
+      const noop = $env.krl.Action([], async function () {
+        var $fired = true;
+        if ($fired) {
+          await $env.krl.assertAction(noop)($ctx, []);
         }
+        return "did something!";
+      });
+      const send_directive = $env.krl.Action([], async function () {
+        var $fired = true;
+        if ($fired) {
+          foo = await $env.krl.assertAction(noop)($ctx, []);
+        }
+        return await $stdlib["+"]($ctx, [
+          "send wat? noop returned: ",
+          foo
+        ]);
+      });
+      const echoAction = $env.krl.Action([], async function () {
+        var $fired = true;
+        if ($fired) {
+          await $env.krl.assertAction(noop)($ctx, []);
+        }
+        return [
+          "aint",
+          "no",
+          "echo"
+        ];
+      });
+      var $fired = true;
+      if ($fired) {
+        abc = await $env.krl.assertAction(echoAction)($ctx, [
+          "where",
+          "in",
+          "the"
+        ]);
+        d = await $env.krl.assertAction(noop)($ctx, []);
+        e = await $env.krl.assertAction(send_directive)($ctx, []);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("setting_val", [
+          await $stdlib["get"]($ctx, [
+            abc,
+            [0]
+          ]),
+          await $stdlib["get"]($ctx, [
+            abc,
+            [1]
+          ]),
+          await $stdlib["get"]($ctx, [
+            abc,
+            [2]
+          ]),
+          d,
+          e
+        ]);
+      }
+    });
+    $rs.when($env.SelectWhen.e("defa:trying_to_use_action_as_fn"), async function ($event, $state) {
+      const val = await foo($ctx, [100]);
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "trying_to_use_action_as_fn",
+          { "val": val }
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    return {
+      "event": async function (event) {
+        await $rs.send(event);
       },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("noop", ctx.mkAction([], async function (ctx, args, runAction) {
-          var fired = true;
-          if (fired) {
-            await runAction(ctx, void 0, "noop", [], []);
-          }
-          return ["did something!"];
-        }));
-        ctx.scope.set("send_directive", ctx.mkAction([], async function (ctx, args, runAction) {
-          var fired = true;
-          if (fired) {
-            await runAction(ctx, void 0, "noop", [], ["foo"]);
-          }
-          return [await ctx.applyFn(ctx.scope.get("+"), ctx, [
-              "send wat? noop returned: ",
-              ctx.scope.get("foo")
-            ])];
-        }));
-        ctx.scope.set("echoAction", ctx.mkAction([], async function (ctx, args, runAction) {
-          var fired = true;
-          if (fired) {
-            await runAction(ctx, void 0, "noop", [], []);
-          }
-          return [
-            "aint",
-            "no",
-            "echo"
-          ];
-        }));
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "echoAction", [
-            "where",
-            "in",
-            "the"
-          ], [
-            "a",
-            "b",
-            "c"
-          ]);
-          await runAction(ctx, void 0, "noop", [], ["d"]);
-          await runAction(ctx, void 0, "send_directive", [], ["e"]);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.set(ctx, "ent", "setting_val", [
-            ctx.scope.get("a"),
-            ctx.scope.get("b"),
-            ctx.scope.get("c"),
-            ctx.scope.get("d"),
-            ctx.scope.get("e")
-          ]);
+      "query": {
+        "getSettingVal": function ($args) {
+          return getSettingVal($ctx, $args);
+        },
+        "add": function ($args) {
+          return add($ctx, $args);
+        },
+        "echoAction": function ($args) {
+          return echoAction;
+        },
+        "__testing": function () {
+          return {
+            "queries": [
+              {
+                "name": "getSettingVal",
+                "args": []
+              },
+              {
+                "name": "add",
+                "args": [
+                  "a",
+                  "b"
+                ]
+              },
+              {
+                "name": "echoAction",
+                "args": []
+              }
+            ],
+            "events": [
+              {
+                "domain": "defa",
+                "name": "foo",
+                "attrs": []
+              },
+              {
+                "domain": "defa",
+                "name": "bar",
+                "attrs": []
+              },
+              {
+                "domain": "defa",
+                "name": "bar_setting",
+                "attrs": []
+              },
+              {
+                "domain": "defa",
+                "name": "chooser",
+                "attrs": ["val"]
+              },
+              {
+                "domain": "defa",
+                "name": "ifAnotB",
+                "attrs": [
+                  "a",
+                  "b"
+                ]
+              },
+              {
+                "domain": "defa",
+                "name": "add",
+                "attrs": []
+              },
+              {
+                "domain": "defa",
+                "name": "returns",
+                "attrs": []
+              },
+              {
+                "domain": "defa",
+                "name": "scope",
+                "attrs": []
+              },
+              {
+                "domain": "defa",
+                "name": "trying_to_use_action_as_fn",
+                "attrs": []
+              }
+            ]
+          };
         }
       }
-    },
-    "trying_to_use_action_as_fn": {
-      "name": "trying_to_use_action_as_fn",
-      "select": {
-        "graph": { "defa": { "trying_to_use_action_as_fn": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("val", await ctx.applyFn(ctx.scope.get("foo"), ctx, [100]));
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "trying_to_use_action_as_fn",
-            { "val": ctx.scope.get("val") }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    }
+    };
   }
 };

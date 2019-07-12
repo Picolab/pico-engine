@@ -3,6 +3,14 @@ ruleset io.picolabs.defaction {
         shares getSettingVal, add, echoAction
     }
     global {
+        send_directive = custom:send_directive
+        add = function(a, b){
+            {
+                "type": "directive",
+                "name": "add",
+                "options": {"resp": a + b}
+            };
+        }
         foo = defaction(a){
             b = 2;
 
@@ -23,7 +31,7 @@ ruleset io.picolabs.defaction {
                 "c": three
             }) setting(dir);
 
-            return dir;
+            dir;
         }
         getSettingVal = function(){
             ent:setting_val;
@@ -51,7 +59,7 @@ ruleset io.picolabs.defaction {
 
             noop();
 
-            returns a, b, c;
+            [a, b, c];
         }
         complexAction = defaction(a, b){
             c = 100;
@@ -60,14 +68,7 @@ ruleset io.picolabs.defaction {
             if c > 0 then
                 send_directive("wat:" + a, {"b": b}) setting(dir);
 
-            return dir["name"] + " " + d;
-        }
-        add = function(a, b){
-            {
-                "type": "directive",
-                "name": "add",
-                "options": {"resp": a + b}
-            };
+            dir["name"] + " " + d;
         }
     }
     rule foo {
@@ -100,12 +101,12 @@ ruleset io.picolabs.defaction {
     rule chooser {
         select when defa chooser
 
-        chooser(event:attr("val"));
+        chooser(event:attrs{"val"});
     }
     rule ifAnotB {
         select when defa ifAnotB
 
-        ifAnotB(event:attr("a") == "true", event:attr("b") == "true");
+        ifAnotB(event:attrs{"a"} == "true", event:attrs{"b"} == "true");
     }
     rule add {
         select when defa add
@@ -116,13 +117,13 @@ ruleset io.picolabs.defaction {
         select when defa returns
 
         every {
-            echoAction("where", "in", "the") setting(a, b, c);
+            echoAction("where", "in", "the") setting(abc);
 
-            complexAction(a + b + c, 333) setting(d);
+            complexAction(abc[0] + abc[1] + abc[2], 333) setting(d);
         }
 
         fired {
-            ent:setting_val := [a, b, c, d]
+            ent:setting_val := [abc[0], abc[1], abc[2], d]
         }
     }
     rule scope {
@@ -133,24 +134,24 @@ ruleset io.picolabs.defaction {
 
                 noop();
 
-                return "did something!";
+                "did something!";
             }
             send_directive = defaction(){
 
                 noop() setting(foo);
 
-                return "send wat? noop returned: " + foo;
+                "send wat? noop returned: " + foo;
             }
             echoAction = defaction(){
 
                 noop();
 
-                returns "aint", "no", "echo";
+                ["aint", "no", "echo"];
             }
         }
 
         every {
-            echoAction("where", "in", "the") setting(a, b, c);
+            echoAction("where", "in", "the") setting(abc);
 
             noop() setting(d);
 
@@ -158,7 +159,7 @@ ruleset io.picolabs.defaction {
         }
 
         fired {
-            ent:setting_val := [a, b, c, d, e]
+            ent:setting_val := [abc[0], abc[1], abc[2], d, e]
         }
     }
     rule trying_to_use_action_as_fn {

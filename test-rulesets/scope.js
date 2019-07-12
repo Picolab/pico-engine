@@ -13,6 +13,7 @@ module.exports = {
     ]
   },
   "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const reduce = $stdlib["reduce"];
@@ -107,7 +108,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await send_directive($ctx, [
+        await $env.krl.assertAction(send_directive)($ctx, [
           "eventOr",
           {
             "name0": name0,
@@ -162,7 +163,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await send_directive($ctx, [
+        await $env.krl.assertAction(send_directive)($ctx, [
           "eventAnd",
           {
             "name0": name0,
@@ -219,7 +220,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await send_directive($ctx, [
+        await $env.krl.assertAction(send_directive)($ctx, [
           "eventWithin",
           {
             "name1": name1,
@@ -257,7 +258,7 @@ module.exports = {
       const p1 = "prelude 1";
       var $fired = true;
       if ($fired) {
-        await send_directive($ctx, [
+        await $env.krl.assertAction(send_directive)($ctx, [
           "say",
           {
             "name": name,
@@ -280,7 +281,7 @@ module.exports = {
       const inc5 = await incByN($ctx, [5]);
       var $fired = true;
       if ($fired) {
-        await send_directive($ctx, [
+        await $env.krl.assertAction(send_directive)($ctx, [
           "say",
           {
             "add_one_two": await add($ctx, [

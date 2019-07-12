@@ -23,7 +23,8 @@ test.cb('compiler', function (t) {
       'chevron',
       'log',
       'guard-conditions',
-      'foreach'
+      'foreach',
+      'defaction'
     ]
 
     λ.each(basenames, function (basename, next) {

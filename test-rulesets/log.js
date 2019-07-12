@@ -2,6 +2,7 @@ module.exports = {
   "rid": "io.picolabs.log",
   "version": "draft",
   "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const $rs = new $env.SelectWhen.SelectWhen();

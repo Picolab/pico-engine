@@ -1,7 +1,13 @@
 var _ = require('lodash')
 
 module.exports = function (ast, comp, e) {
-  var body = comp(ast.params)
+  var body = []
+
+  comp.scope.push()
+
+  // compile the params first, so params get defined in comp.scope before the action body compiles
+  const { params, defaultSetups } = comp(ast.params)
+  body = body.concat(defaultSetups)
 
   _.each(ast.body, function (d) {
     body.push(comp(d))
@@ -9,23 +15,33 @@ module.exports = function (ast, comp, e) {
 
   body = body.concat(comp(ast.action_block))
 
-  body.push(e('return', e('array', _.map(ast.returns, function (ret) {
-    return comp(ret)
-  }))))
+  if (ast.return) {
+    body.push(e('return', comp(ast.return)))
+  }
 
+  comp.scope.pop()
+
+  var paramNames = []
   var paramOrder = e('array', _.map(ast.params.params, function (p) {
+    paramNames.push(p.id.value)
     return e('string', p.id.value, p.id.loc)
   }), ast.params.loc)
 
-  return e(';', e('call', e('id', 'ctx.scope.set'), [
-    e('str', ast.id.value, ast.id.loc),
-    e('call', e('id', 'ctx.mkAction'), [
-      paramOrder,
-      e('asyncfn', [
-        'ctx',
-        'args',
-        'runAction'
-      ], body)
-    ])
-  ]))
+  const estree = e('call', e('id', '$env.krl.Action'), [
+    paramOrder,
+    {
+      type: 'FunctionExpression',
+      params: params,
+      body: {
+        type: 'BlockStatement',
+        body: body
+      },
+      async: true
+    }
+  ])
+  estree.$$Annotation = {
+    type: 'Action',
+    params: paramNames
+  }
+  return estree
 }

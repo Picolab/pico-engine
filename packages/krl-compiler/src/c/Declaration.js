@@ -1,4 +1,3 @@
-const callStdLibFn = require('../utils/callStdLibFn')
 const jsIdent = require('../utils/jsIdent')
 
 module.exports = function (ast, comp, e) {

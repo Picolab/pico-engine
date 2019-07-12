@@ -17,6 +17,9 @@ test("KRL function args", async t => {
 
   fn(null as any, undefined);
   t.deepEqual(lastArgs, []);
+
+  fn(null as any, { "0": "A1", c: 3 });
+  t.deepEqual(lastArgs, ["A1", void 0, 3]);
 });
 
 test("isMap", async t => {

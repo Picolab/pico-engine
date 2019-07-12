@@ -3,6 +3,7 @@ module.exports = {
   "version": "draft",
   "meta": { "name": "testing foreach" },
   "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const range = $stdlib["range"];
@@ -28,7 +29,7 @@ module.exports = {
         let x = $foreach0_pairs[$foreach0_i][1];
         var $fired = true;
         if ($fired) {
-          await send_directive($ctx, [
+          await $env.krl.assertAction(send_directive)($ctx, [
             "basic",
             { "x": x }
           ]);
@@ -53,7 +54,7 @@ module.exports = {
         let k = $foreach0_pairs[$foreach0_i][0];
         var $fired = true;
         if ($fired) {
-          await send_directive($ctx, [
+          await $env.krl.assertAction(send_directive)($ctx, [
             "map",
             {
               "k": k,
@@ -89,7 +90,7 @@ module.exports = {
           let y = $foreach1_pairs[$foreach1_i][1];
           var $fired = true;
           if ($fired) {
-            await send_directive($ctx, [
+            await $env.krl.assertAction(send_directive)($ctx, [
               "nested",
               {
                 "x": x,
@@ -134,7 +135,7 @@ module.exports = {
             ]);
             var $fired = true;
             if ($fired) {
-              await send_directive($ctx, [
+              await $env.krl.assertAction(send_directive)($ctx, [
                 "scope",
                 {
                   "foo": foo,
@@ -177,7 +178,7 @@ module.exports = {
           let y = $foreach1_pairs[$foreach1_i][1];
           var $fired = true;
           if ($fired) {
-            await send_directive($ctx, [
+            await $env.krl.assertAction(send_directive)($ctx, [
               "final",
               {
                 "x": x,
@@ -202,7 +203,7 @@ module.exports = {
     $rs.when($env.SelectWhen.e("foreach:final_raised"), async function ($event, $state) {
       var $fired = true;
       if ($fired) {
-        await send_directive($ctx, [
+        await $env.krl.assertAction(send_directive)($ctx, [
           "final_raised",
           {
             "x": await $stdlib["get"]($ctx, [
@@ -244,7 +245,7 @@ module.exports = {
           let i = $foreach1_pairs[$foreach1_i][0];
           var $fired = true;
           if ($fired) {
-            await send_directive($ctx, [
+            await $env.krl.assertAction(send_directive)($ctx, [
               "key_vs_index",
               {
                 "a": a,

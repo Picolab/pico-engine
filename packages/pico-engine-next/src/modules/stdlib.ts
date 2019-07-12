@@ -970,7 +970,9 @@ const stdlib: krl.Module = {
     // TODO optimize
     obj = _.cloneDeep(obj);
     return _.set(obj, path, val);
-  })
+  }),
+
+  noop: krl.ActionFunction([], () => null)
 };
 
 export default stdlib;

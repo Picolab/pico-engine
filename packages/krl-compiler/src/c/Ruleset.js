@@ -19,17 +19,17 @@ module.exports = function (ast, comp, e) {
     })
   }
 
-  const esBody_global = declarationBlock(ast.global, comp)
+  const esBodyGlobal = declarationBlock(ast.global, comp)
 
-  const esBody_rules = []
-  esBody_rules.push(e('const', '$rs', e('new', e('id', '$env.SelectWhen.SelectWhen'), [])))
+  const esBodyRules = []
+  esBodyRules.push(e('const', '$rs', e('new', e('id', '$env.SelectWhen.SelectWhen'), [])))
   const rulesObj = {}
   _.each(ast.rules, function (rule) {
     if (rulesObj[rule.name.value]) {
       throw comp.error(rule.name.loc, 'Duplicate rule name: ' + rule.name.value)
     }
     rulesObj[rule.name.value] = true
-    esBody_rules.push(comp(rule))
+    esBodyRules.push(comp(rule))
   })
 
   const testingJSON = {
@@ -61,6 +61,7 @@ module.exports = function (ast, comp, e) {
   queries['__testing'] = e('fn', [], [e('return', e('json', testingJSON))])
 
   let esBody = []
+  esBody.push(e('const', '$default', e('call', e('id', 'Symbol'), [e('str', 'default')])))
   esBody.push(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
   esBody.push(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
 
@@ -68,8 +69,8 @@ module.exports = function (ast, comp, e) {
     esBody.push(e('const', jsIdent(id), e('get', e('id', '$stdlib', ast.loc), e('str', id, ast.loc), ast.loc), ast.loc))
   })
 
-  esBody = esBody.concat(esBody_global)
-  esBody = esBody.concat(esBody_rules)
+  esBody = esBody.concat(esBodyGlobal)
+  esBody = esBody.concat(esBodyRules)
 
   esBody.push(e('return', e('obj', {
     event: e('asyncfn', ['event'], [

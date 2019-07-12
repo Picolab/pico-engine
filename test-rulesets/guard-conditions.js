@@ -3,6 +3,7 @@ module.exports = {
   "version": "draft",
   "meta": { "shares": ["getB"] },
   "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const match = $stdlib["match"];
@@ -34,7 +35,7 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await send_directive($ctx, [
+        await $env.krl.assertAction(send_directive)($ctx, [
           "foo",
           { "b": b }
         ]);
@@ -62,7 +63,7 @@ module.exports = {
         let x = $foreach0_pairs[$foreach0_i][1];
         var $fired = true;
         if ($fired) {
-          await send_directive($ctx, [
+          await $env.krl.assertAction(send_directive)($ctx, [
             "bar",
             {
               "x": x,
@@ -85,7 +86,7 @@ module.exports = {
       ]);
       var $fired = true;
       if ($fired) {
-        await send_directive($ctx, [
+        await $env.krl.assertAction(send_directive)($ctx, [
           "on_final_no_foreach",
           { "x": x }
         ]);

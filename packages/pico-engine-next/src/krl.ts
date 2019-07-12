@@ -20,6 +20,11 @@ function krlNamedArgs(paramOrder: string[]) {
             params.push(void 0);
           }
           params.push(args[paramName]);
+        } else if (_.has(args, i)) {
+          while (params.length < i) {
+            params.push(void 0);
+          }
+          params.push(args[i]);
         }
       }
     }
@@ -47,6 +52,15 @@ function krlFunctionMaker(krlTypeName: string) {
 export const Function = krlFunctionMaker("function");
 export const Action = krlFunctionMaker("action");
 export const Postlude = krlFunctionMaker("postlude");
+
+export function ActionFunction(
+  paramOrder: string[],
+  fn: (this: KrlCtx, ...args: any[]) => any
+) {
+  const act = Action(paramOrder, fn);
+  (act as any)["$krl_function"] = true;
+  return act;
+}
 
 export function Property(fn: (this: KrlCtx) => any) {
   const wrapped = function(ctx: KrlCtx) {
@@ -121,6 +135,13 @@ export function isFunction(val: any): boolean {
 
 export function isAction(val: any): boolean {
   return _.isFunction(val) && (val as any)["$krl_action"] === true;
+}
+
+export function assertAction(val: any) {
+  if (isAction(val)) {
+    return val;
+  }
+  throw new TypeError(toString(val) + " is not an action");
 }
 
 export function isPostlude(val: any): boolean {

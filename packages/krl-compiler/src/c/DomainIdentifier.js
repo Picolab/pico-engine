@@ -7,6 +7,9 @@ module.exports = function (ast, comp, e) {
   if (ast.domain === 'event' && ast.value === 'attrs') {
     return e('id', '$event.data.attrs')
   }
+  if (ast.domain === 'event' && ast.value === 'attr') {
+    throw comp.error(ast.loc, 'event:attr(key) is not supported. Use event:attrs{key} instead')
+  }
   return e('get', e('call', e('id', '$ctx.module'), [
     e('str', ast.domain)
   ]), e('str', ast.value))

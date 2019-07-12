@@ -316,7 +316,7 @@ test('ActionBlock', function (t) {
     var ast = normalizeAST(rmLoc(parser(src)))
     var expAst = normalizeAST(expected)
 
-    t.deepEquals(ast.global[0].action_block, expAst)
+    t.deepEquals(ast.global[0].right.action_block, expAst)
     t.deepEquals(ast.rules[0].action_block, expAst)
   }
 
@@ -2073,18 +2073,17 @@ test('GuardCondition', function (t) {
 
 test('DefAction', function (t) {
   var tstDA = function (daSrc, expected) {
-    var src = 'ruleset rs{global{' + daSrc + '}rule r1{pre{' + daSrc + '}}}'
+    var src = 'ruleset rs{global{a=' + daSrc + '}rule r1{pre{a=' + daSrc + '}}}'
     var ast = normalizeAST(rmLoc(parser(src)))
     var expAst = normalizeAST(expected)
 
-    t.deepEquals(ast.global, expAst)
-    t.deepEquals(ast.rules[0].prelude, expAst)
+    t.deepEquals(ast.global[0].right, expAst[0])
+    t.deepEquals(ast.rules[0].prelude[0].right, expAst[0])
   }
 
-  tstDA('a = defaction(){send_directive("foo")}', [
+  tstDA('defaction(){send_directive("foo")}', [
     {
       type: 'DefAction',
-      id: mk.id('a'),
       params: mk.params([]),
       body: [],
       action_block: {
@@ -2096,14 +2095,13 @@ test('DefAction', function (t) {
           mk.action(null, 'send_directive', [mk('foo')])
         ]
       },
-      returns: []
+      return: null
     }
   ])
 
-  tstDA('a = defaction(b, c){d = 2 e = 3 every { notify("foo", f = 4, g=5) noop()}}', [
+  tstDA('defaction(b, c){d = 2 e = 3 every { notify("foo", f = 4, g=5) noop()}}', [
     {
       type: 'DefAction',
-      id: mk.id('a'),
       params: mk.params(['b', 'c']),
       body: [
         mk.declare('=', mk.id('d'), mk(2)),
@@ -2123,14 +2121,13 @@ test('DefAction', function (t) {
           mk.action(null, 'noop')
         ]
       },
-      returns: []
+      return: null
     }
   ])
 
-  tstDA('a = defaction(){d = 2; noop()}', [// semi-colon after single declaration
+  tstDA('defaction(){d = 2; noop()}', [// semi-colon after single declaration
     {
       type: 'DefAction',
-      id: mk.id('a'),
       params: mk.params([]),
       body: [
         mk.declare('=', mk.id('d'), mk(2))
@@ -2144,14 +2141,13 @@ test('DefAction', function (t) {
           mk.action(null, 'noop', [])
         ]
       },
-      returns: []
+      return: null
     }
   ])
 
-  tstDA('a = defaction(b, c){if b || c then blah();}', [
+  tstDA('defaction(b, c){if b || c then blah();}', [
     {
       type: 'DefAction',
-      id: mk.id('a'),
       params: mk.params(['b', 'c']),
       body: [],
       action_block: {
@@ -2163,14 +2159,13 @@ test('DefAction', function (t) {
           mk.action(null, 'blah')
         ]
       },
-      returns: []
+      return: null
     }
   ])
 
-  tstDA('a = defaction(){if b && c then every{foo() bar()}}', [
+  tstDA('defaction(){if b && c then every{foo() bar()}}', [
     {
       type: 'DefAction',
-      id: mk.id('a'),
       params: mk.params([]),
       body: [],
       action_block: {
@@ -2183,14 +2178,13 @@ test('DefAction', function (t) {
           mk.action(null, 'bar')
         ]
       },
-      returns: []
+      return: null
     }
   ])
 
-  tstDA('a = defaction(){choose b(c){one => foo() two => bar()}}', [
+  tstDA('defaction(){choose b(c){one => foo() two => bar()}}', [
     {
       type: 'DefAction',
-      id: mk.id('a'),
       params: mk.params([]),
       body: [],
       action_block: {
@@ -2203,14 +2197,13 @@ test('DefAction', function (t) {
           mk.action('two', 'bar')
         ]
       },
-      returns: []
+      return: null
     }
   ])
 
-  tstDA('a = defaction(b){c = b + 1 noop() return c}', [
+  tstDA('defaction(b){c = b + 1 noop() c}', [
     {
       type: 'DefAction',
-      id: mk.id('a'),
       params: mk.params(['b']),
       body: [
         mk.declare('=', mk.id('c'), mk.op('+', mk.id('b'), mk(1)))
@@ -2224,58 +2217,9 @@ test('DefAction', function (t) {
           mk.action(null, 'noop')
         ]
       },
-      returns: [mk.id('c')]
+      return: mk.id('c')
     }
   ])
-
-  var tstReturn = function (src, expected) {
-    tstDA('a = defaction(){noop()' + src + '}', [
-      {
-        type: 'DefAction',
-        id: mk.id('a'),
-        params: mk.params([]),
-        body: [],
-        action_block: {
-          type: 'ActionBlock',
-          condition: null,
-          block_type: 'every',
-          discriminant: null,
-          actions: [
-            mk.action(null, 'noop')
-          ]
-        },
-        returns: expected
-      }
-    ])
-  }
-
-  tstReturn('return a', [mk.id('a')])
-  tstReturn('returns foo, 1 + bar, baz()', [
-    mk.id('foo'),
-    mk.op('+', mk(1), mk.id('bar')),
-    mk.app(mk.id('baz'))
-  ])
-
-  tstReturn('return semi;', [mk.id('semi')])
-
-  try {
-    tstReturn('return ', [])
-    t.fail('no empty return')
-  } catch (e) {
-    t.ok(true, 'no empty return')
-  }
-  try {
-    tstReturn('returns ', [])
-    t.fail('no empty return')
-  } catch (e) {
-    t.ok(true, 'no empty return')
-  }
-  try {
-    tstReturn('returns a, b,', [])
-    t.fail('no dangling comma')
-  } catch (e) {
-    t.ok(true, 'no dangling comma')
-  }
 
   t.end()
 })
@@ -2397,7 +2341,7 @@ test('Action setting', function (t) {
 
     // test it also in defaction
     src = 'ruleset rs{global{a=defaction(){' + srcAction + '}}}'
-    ast = parser(src).global[0].action_block.actions[0]
+    ast = parser(src).global[0].right.action_block.actions[0]
     t.deepEquals(normalizeAST(rmLoc(ast)), normalizeAST(expected))
   }
 
@@ -2572,7 +2516,7 @@ test('Parameters', function (t) {
     var ast = normalizeAST(rmLoc(parser(src)))
     var expAst = mk.params(normalizeAST(expected))
 
-    t.deepEquals(ast.global[0].params, expAst)
+    t.deepEquals(ast.global[0].right.params, expAst)
     t.deepEquals(ast.global[1].right.params, expAst)
   }
 

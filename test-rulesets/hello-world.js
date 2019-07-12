@@ -11,6 +11,7 @@ module.exports = {
     ]
   },
   "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const hello = $env.krl.Function(["name"], async function (name = "default") {

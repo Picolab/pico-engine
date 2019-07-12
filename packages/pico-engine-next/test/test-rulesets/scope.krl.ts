@@ -8,7 +8,7 @@ test("scope.krl", async t => {
   const { pe, eci } = await startTestEngine(["scope.krl"], {
     modules: {
       custom: {
-        send_directive: krl.Function(["name", "options"], (name, options) => {
+        send_directive: krl.Action(["name", "options"], (name, options) => {
           directives.push({ name, options });
         })
       }

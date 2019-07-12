@@ -6,7 +6,8 @@ module.exports = function (ast, comp, e) {
   comp.scope.push()
 
   // compile the params first, so params get defined in comp.scope before the function body compiles
-  const params = comp(ast.params)
+  const { params, defaultSetups } = comp(ast.params)
+  body = body.concat(defaultSetups)
 
   _.each(ast.body, function (part, i) {
     if (i < (ast.body.length - 1)) {

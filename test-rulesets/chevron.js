@@ -6,6 +6,7 @@ module.exports = {
     "shares": ["d"]
   },
   "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const a = 1;

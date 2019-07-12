@@ -364,8 +364,6 @@ var tok_provides = tok("SYMBOL", "provides");
 var tok_push = tok("SYMBOL", "push");
 var tok_raise = tok("SYMBOL", "raise");
 var tok_repeat = tok("SYMBOL", "repeat");
-var tok_return = tok("SYMBOL", "return");
-var tok_returns = tok("SYMBOL", "returns");
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
 var tok_sample = tok("SYMBOL", "sample");
@@ -557,7 +555,7 @@ var grammar = {
     {"name": "RulesetID_list", "symbols": ["RulesetID_list", tok_COMMA, "RulesetID"], "postprocess": concatArr(2)},
     {"name": "OnOrOff", "symbols": [tok_on], "postprocess": booleanAST(true )},
     {"name": "OnOrOff", "symbols": [tok_off], "postprocess": booleanAST(false)},
-    {"name": "RulesetGlobal", "symbols": [tok_global, tok_OPEN_CURLY, "DeclarationOrDefActionList", tok_CLSE_CURLY], "postprocess": getN(2)},
+    {"name": "RulesetGlobal", "symbols": [tok_global, tok_OPEN_CURLY, "DeclarationList", tok_CLSE_CURLY], "postprocess": getN(2)},
     {"name": "Rule$ebnf$1$subexpression$1", "symbols": [tok_is, "Rule_state"]},
     {"name": "Rule$ebnf$1", "symbols": ["Rule$ebnf$1$subexpression$1"], "postprocess": id},
     {"name": "Rule$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
@@ -634,7 +632,7 @@ var grammar = {
           };
         }
         },
-    {"name": "RulePrelude", "symbols": [tok_pre, tok_OPEN_CURLY, "DeclarationOrDefActionList", tok_CLSE_CURLY], "postprocess": getN(2)},
+    {"name": "RulePrelude", "symbols": [tok_pre, tok_OPEN_CURLY, "DeclarationList", tok_CLSE_CURLY], "postprocess": getN(2)},
     {"name": "EventExpression", "symbols": ["event_exp_or"], "postprocess": id},
     {"name": "event_exp_or", "symbols": ["event_exp_and"], "postprocess": id},
     {"name": "event_exp_or", "symbols": ["event_exp_or", tok_or, "event_exp_and"], "postprocess": infixEventOp},
@@ -1033,16 +1031,6 @@ var grammar = {
           };
         }
         },
-    {"name": "DeclarationOrDefActionList$ebnf$1", "symbols": []},
-    {"name": "DeclarationOrDefActionList$ebnf$1$subexpression$1$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
-    {"name": "DeclarationOrDefActionList$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "DeclarationOrDefActionList$ebnf$1$subexpression$1", "symbols": ["DeclarationOrDefAction", "DeclarationOrDefActionList$ebnf$1$subexpression$1$ebnf$1"]},
-    {"name": "DeclarationOrDefActionList$ebnf$1", "symbols": ["DeclarationOrDefActionList$ebnf$1", "DeclarationOrDefActionList$ebnf$1$subexpression$1"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
-    {"name": "DeclarationOrDefActionList", "symbols": ["DeclarationOrDefActionList$ebnf$1"], "postprocess":  function(d){
-            return d[0].map(function(dec){
-                return dec[0];
-            });
-        } },
     {"name": "DeclarationList", "symbols": [], "postprocess": noopArr},
     {"name": "DeclarationList", "symbols": ["declaration_list_body"], "postprocess": id},
     {"name": "declaration_list_body$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
@@ -1051,28 +1039,6 @@ var grammar = {
     {"name": "declaration_list_body$ebnf$2", "symbols": [tok_SEMI], "postprocess": id},
     {"name": "declaration_list_body$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "declaration_list_body", "symbols": ["declaration_list_body", "Declaration", "declaration_list_body$ebnf$2"], "postprocess": concatArr(1)},
-    {"name": "DeclarationOrDefAction", "symbols": ["Declaration"], "postprocess": id},
-    {"name": "DeclarationOrDefAction", "symbols": ["DefAction"], "postprocess": id},
-    {"name": "DefAction$ebnf$1$subexpression$1$subexpression$1", "symbols": [tok_return]},
-    {"name": "DefAction$ebnf$1$subexpression$1$subexpression$1", "symbols": [tok_returns]},
-    {"name": "DefAction$ebnf$1$subexpression$1$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
-    {"name": "DefAction$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "DefAction$ebnf$1$subexpression$1", "symbols": ["DefAction$ebnf$1$subexpression$1$subexpression$1", "Expression_list_body", "DefAction$ebnf$1$subexpression$1$ebnf$1"]},
-    {"name": "DefAction$ebnf$1", "symbols": ["DefAction$ebnf$1$subexpression$1"], "postprocess": id},
-    {"name": "DefAction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "DefAction", "symbols": ["Identifier", tok_EQ, tok_defaction, "Parameters", tok_OPEN_CURLY, "DeclarationList", "ActionBlock", "DefAction$ebnf$1", tok_CLSE_CURLY], "postprocess": 
-        function(data){
-          return {
-            loc: mkLoc(data),
-            type: "DefAction",
-            id: data[0],
-            params: data[3],
-            body: data[5],
-            action_block: data[6],
-            returns: (data[7] && data[7][1]) || [],
-          };
-        }
-        },
     {"name": "left_side_of_declaration", "symbols": ["MemberExpression"], "postprocess": id},
     {"name": "Statement_list", "symbols": [], "postprocess": noopArr},
     {"name": "Statement_list$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
@@ -1138,6 +1104,7 @@ var grammar = {
     {"name": "PrimaryExpression", "symbols": ["Literal"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": [tok_OPEN_PAREN, "Expression", tok_CLSE_PAREN], "postprocess": getN(1)},
     {"name": "PrimaryExpression", "symbols": ["Function"], "postprocess": id},
+    {"name": "PrimaryExpression", "symbols": ["DefAction"], "postprocess": id},
     {"name": "PrimaryExpression", "symbols": ["Application"], "postprocess": id},
     {"name": "Literal", "symbols": ["String"], "postprocess": id},
     {"name": "Literal", "symbols": ["Number"], "postprocess": id},
@@ -1162,6 +1129,23 @@ var grammar = {
             type: "Function",
             params: data[1],
             body: data[3]
+          };
+        }
+        },
+    {"name": "DefAction$ebnf$1$subexpression$1$ebnf$1", "symbols": [tok_SEMI], "postprocess": id},
+    {"name": "DefAction$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "DefAction$ebnf$1$subexpression$1", "symbols": ["Expression", "DefAction$ebnf$1$subexpression$1$ebnf$1"]},
+    {"name": "DefAction$ebnf$1", "symbols": ["DefAction$ebnf$1$subexpression$1"], "postprocess": id},
+    {"name": "DefAction$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "DefAction", "symbols": [tok_defaction, "Parameters", tok_OPEN_CURLY, "DeclarationList", "ActionBlock", "DefAction$ebnf$1", tok_CLSE_CURLY], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: "DefAction",
+            params: data[1],
+            body: data[3],
+            action_block: data[4],
+            return: data[5] && data[5][0],
           };
         }
         },

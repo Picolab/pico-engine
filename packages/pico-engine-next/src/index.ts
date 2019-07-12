@@ -4,11 +4,11 @@ import * as makeDir from "make-dir";
 import * as path from "path";
 import { PicoFramework } from "pico-framework";
 import { rsNext } from "./io.picolabs.next";
+import * as krl from "./krl";
 import { RulesetEnvironment } from "./KrlCtx";
 import { getRotatingFileStream, KrlLogger } from "./KrlLogger";
 import { RulesetRegistry } from "./RulesetRegistry";
 import { server } from "./server";
-import * as krl from "./krl";
 
 const homeDir = require("home-dir");
 const version = require("../package.json").version;

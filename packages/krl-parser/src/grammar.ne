@@ -360,8 +360,6 @@ var tok_provides = tok("SYMBOL", "provides");
 var tok_push = tok("SYMBOL", "push");
 var tok_raise = tok("SYMBOL", "raise");
 var tok_repeat = tok("SYMBOL", "repeat");
-var tok_return = tok("SYMBOL", "return");
-var tok_returns = tok("SYMBOL", "returns");
 var tok_ruleset = tok("SYMBOL", "ruleset");
 var tok_rule = tok("SYMBOL", "rule");
 var tok_sample = tok("SYMBOL", "sample");
@@ -550,7 +548,7 @@ RulesetID_list -> RulesetID {% idArr %}
 OnOrOff -> %tok_on  {% booleanAST(true ) %}
          | %tok_off {% booleanAST(false) %}
 
-RulesetGlobal -> %tok_global %tok_OPEN_CURLY DeclarationOrDefActionList %tok_CLSE_CURLY {% getN(2) %}
+RulesetGlobal -> %tok_global %tok_OPEN_CURLY DeclarationList %tok_CLSE_CURLY {% getN(2) %}
 
 ################################################################################
 #
@@ -629,7 +627,7 @@ RuleForEach -> %tok_foreach Expression %tok_setting %tok_OPEN_PAREN Identifier_l
   }
 %}
 
-RulePrelude -> %tok_pre %tok_OPEN_CURLY DeclarationOrDefActionList %tok_CLSE_CURLY {% getN(2) %}
+RulePrelude -> %tok_pre %tok_OPEN_CURLY DeclarationList %tok_CLSE_CURLY {% getN(2) %}
 
 ################################################################################
 #
@@ -1062,42 +1060,12 @@ IdentifierDeclaration -> Identifier %tok_EQ Expression {%
   }
 %}
 
-DeclarationOrDefActionList -> (DeclarationOrDefAction %tok_SEMI:?):*
-{% function(d){
-    return d[0].map(function(dec){
-        return dec[0];
-    });
-} %}
-
 DeclarationList ->
       null {% noopArr %}
     | declaration_list_body {% id %}
 
 declaration_list_body -> Declaration %tok_SEMI:? {% idArr %}
     | declaration_list_body Declaration %tok_SEMI:? {% concatArr(1) %}
-
-DeclarationOrDefAction ->
-      Declaration {% id %}
-    | DefAction {% id %}
-
-DefAction -> Identifier %tok_EQ %tok_defaction Parameters %tok_OPEN_CURLY
-  DeclarationList
-  ActionBlock
-  ((%tok_return | %tok_returns) Expression_list_body %tok_SEMI:?):?
-%tok_CLSE_CURLY
-{%
-  function(data){
-    return {
-      loc: mkLoc(data),
-      type: "DefAction",
-      id: data[0],
-      params: data[3],
-      body: data[5],
-      action_block: data[6],
-      returns: (data[7] && data[7][1]) || [],
-    };
-  }
-%}
 
 
 # Later we may add destructuring
@@ -1188,6 +1156,7 @@ PrimaryExpression ->
     | Literal {% id %}
     | %tok_OPEN_PAREN Expression %tok_CLSE_PAREN {% getN(1) %}
     | Function {% id %}
+    | DefAction {% id %}
     | Application {% id %}
 
 Literal ->
@@ -1226,6 +1195,24 @@ Function -> %tok_function Parameters %tok_OPEN_CURLY Statement_list %tok_CLSE_CU
       type: "Function",
       params: data[1],
       body: data[3]
+    };
+  }
+%}
+
+DefAction -> %tok_defaction Parameters %tok_OPEN_CURLY
+  DeclarationList
+  ActionBlock
+  (Expression %tok_SEMI:?):?
+%tok_CLSE_CURLY
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: "DefAction",
+      params: data[1],
+      body: data[3],
+      action_block: data[4],
+      return: data[5] && data[5][0],
     };
   }
 %}
