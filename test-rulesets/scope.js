@@ -15,11 +15,8 @@ module.exports = {
   "init": async function ($rsCtx, $env) {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const match = $stdlib.match;
-    const split = $stdlib.split;
-    const reduce = $stdlib.reduce;
-    const range = $stdlib.range;
-    const map = $stdlib.map;
+    const reduce = $stdlib["reduce"];
+    const map = $stdlib["map"];
     const g0 = "global 0";
     const g1 = 1;
     const getVals = $env.krl.function([], async function () {
@@ -108,8 +105,8 @@ module.exports = {
       var name0 = $state.setting["name0"];
       var name1 = $state.setting["name1"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var fired = true;
-      if (fired) {
+      var $fired = true;
+      if ($fired) {
         await send_directive($ctx, [
           "eventOr",
           {
@@ -118,7 +115,7 @@ module.exports = {
           }
         ]);
       }
-      if (fired)
+      if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
@@ -163,8 +160,8 @@ module.exports = {
       var name0 = $state.setting["name0"];
       var name1 = $state.setting["name1"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var fired = true;
-      if (fired) {
+      var $fired = true;
+      if ($fired) {
         await send_directive($ctx, [
           "eventAnd",
           {
@@ -173,7 +170,7 @@ module.exports = {
           }
         ]);
       }
-      if (fired)
+      if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
@@ -220,8 +217,8 @@ module.exports = {
       var name1 = $state.setting["name1"];
       var name2 = $state.setting["name2"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var fired = true;
-      if (fired) {
+      var $fired = true;
+      if ($fired) {
         await send_directive($ctx, [
           "eventWithin",
           {
@@ -230,7 +227,7 @@ module.exports = {
           }
         ]);
       }
-      if (fired)
+      if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
@@ -258,8 +255,8 @@ module.exports = {
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       const p0 = "prelude 0";
       const p1 = "prelude 1";
-      var fired = true;
-      if (fired) {
+      var $fired = true;
+      if ($fired) {
         await send_directive($ctx, [
           "say",
           {
@@ -270,7 +267,7 @@ module.exports = {
           }
         ]);
       }
-      if (fired)
+      if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
@@ -281,8 +278,8 @@ module.exports = {
     $rs.when($env.SelectWhen.e("scope:functions"), async function ($event, $state) {
       const g0 = "overrided g0!";
       const inc5 = await incByN($ctx, [5]);
-      var fired = true;
-      if (fired) {
+      var $fired = true;
+      if ($fired) {
         await send_directive($ctx, [
           "say",
           {
@@ -295,7 +292,7 @@ module.exports = {
           }
         ]);
       }
-      if (fired)
+      if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");

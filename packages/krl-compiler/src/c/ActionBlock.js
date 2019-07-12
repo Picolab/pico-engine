@@ -7,7 +7,7 @@ module.exports = function (ast, comp, e) {
     ? comp(ast.condition)
     : e('true')
 
-  body.push(e('var', 'fired', condition))
+  body.push(e('var', '$fired', condition))
 
   var ifBody = []
 
@@ -42,7 +42,7 @@ module.exports = function (ast, comp, e) {
     throw new Error('ActionBlock.blockType = "' + blockType + '" not supported')
   }
 
-  body.push(e('if', e('id', 'fired'), e('block', ifBody)))
+  body.push(e('if', e('id', '$fired'), e('block', ifBody)))
 
   return body
 }

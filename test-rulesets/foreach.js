@@ -5,11 +5,8 @@ module.exports = {
   "init": async function ($rsCtx, $env) {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const match = $stdlib.match;
-    const split = $stdlib.split;
-    const reduce = $stdlib.reduce;
-    const range = $stdlib.range;
-    const map = $stdlib.map;
+    const range = $stdlib["range"];
+    const split = $stdlib["split"];
     const doubleThis = $env.krl.function(["arr"], async function (arr) {
       return [
         arr,
@@ -29,14 +26,14 @@ module.exports = {
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
         let $foreach_is_final = $foreach0_i === $foreach0_len - 1;
         let x = $foreach0_pairs[$foreach0_i][1];
-        var fired = true;
-        if (fired) {
+        var $fired = true;
+        if ($fired) {
           await send_directive($ctx, [
             "basic",
             { "x": x }
           ]);
         }
-        if (fired)
+        if ($fired)
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
@@ -54,8 +51,8 @@ module.exports = {
         let $foreach_is_final = $foreach0_i === $foreach0_len - 1;
         let v = $foreach0_pairs[$foreach0_i][1];
         let k = $foreach0_pairs[$foreach0_i][0];
-        var fired = true;
-        if (fired) {
+        var $fired = true;
+        if ($fired) {
           await send_directive($ctx, [
             "map",
             {
@@ -64,7 +61,7 @@ module.exports = {
             }
           ]);
         }
-        if (fired)
+        if ($fired)
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
@@ -90,8 +87,8 @@ module.exports = {
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
           let $foreach_is_final = $foreach0_i === $foreach0_len - 1 && $foreach1_i === $foreach1_len - 1;
           let y = $foreach1_pairs[$foreach1_i][1];
-          var fired = true;
-          if (fired) {
+          var $fired = true;
+          if ($fired) {
             await send_directive($ctx, [
               "nested",
               {
@@ -100,7 +97,7 @@ module.exports = {
               }
             ]);
           }
-          if (fired)
+          if ($fired)
             $ctx.log.debug("fired");
           else
             $ctx.log.debug("not fired");
@@ -135,8 +132,8 @@ module.exports = {
               foo,
               bar
             ]);
-            var fired = true;
-            if (fired) {
+            var $fired = true;
+            if ($fired) {
               await send_directive($ctx, [
                 "scope",
                 {
@@ -146,7 +143,7 @@ module.exports = {
                 }
               ]);
             }
-            if (fired)
+            if ($fired)
               $ctx.log.debug("fired");
             else
               $ctx.log.debug("not fired");
@@ -178,8 +175,8 @@ module.exports = {
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
           let $foreach_is_final = $foreach0_i === $foreach0_len - 1 && $foreach1_i === $foreach1_len - 1;
           let y = $foreach1_pairs[$foreach1_i][1];
-          var fired = true;
-          if (fired) {
+          var $fired = true;
+          if ($fired) {
             await send_directive($ctx, [
               "final",
               {
@@ -188,7 +185,7 @@ module.exports = {
               }
             ]);
           }
-          if (fired)
+          if ($fired)
             $ctx.log.debug("fired");
           else
             $ctx.log.debug("not fired");
@@ -203,8 +200,8 @@ module.exports = {
       }
     });
     $rs.when($env.SelectWhen.e("foreach:final_raised"), async function ($event, $state) {
-      var fired = true;
-      if (fired) {
+      var $fired = true;
+      if ($fired) {
         await send_directive($ctx, [
           "final_raised",
           {
@@ -219,7 +216,7 @@ module.exports = {
           }
         ]);
       }
-      if (fired)
+      if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
@@ -245,8 +242,8 @@ module.exports = {
           let $foreach_is_final = $foreach0_i === $foreach0_len - 1 && $foreach1_i === $foreach1_len - 1;
           let b = $foreach1_pairs[$foreach1_i][1];
           let i = $foreach1_pairs[$foreach1_i][0];
-          var fired = true;
-          if (fired) {
+          var $fired = true;
+          if ($fired) {
             await send_directive($ctx, [
               "key_vs_index",
               {
@@ -257,7 +254,7 @@ module.exports = {
               }
             ]);
           }
-          if (fired)
+          if ($fired)
             $ctx.log.debug("fired");
           else
             $ctx.log.debug("not fired");

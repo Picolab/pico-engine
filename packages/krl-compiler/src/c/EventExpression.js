@@ -81,6 +81,7 @@ module.exports = function (ast, comp, e) {
         s.loc
       )
     )
+    comp.scope.set(s.value, { type: 'String' })
     comp.scope.get('$selectVars').push(s.value)
   })
 

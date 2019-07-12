@@ -1,5 +1,11 @@
 const jsIdent = require('../utils/jsIdent')
 
 module.exports = function (ast, comp, e, context) {
-  return e('id', jsIdent(ast.value))
+  const id = ast.value
+  if (!comp.scope.has(id)) {
+    if (!comp.idsOutOfScope[id]) {
+      comp.idsOutOfScope[id] = ast
+    }
+  }
+  return e('id', jsIdent(id))
 }

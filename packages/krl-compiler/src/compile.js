@@ -108,6 +108,7 @@ module.exports = function (ast, options) {
   }
 
   var scope = SymbolTableStack()
+  var idsOutOfScope = {}
   var eventScope = (function () {
     const map = {}
     return {
@@ -162,6 +163,7 @@ module.exports = function (ast, options) {
     comp.warn = warn
     comp.scope = scope
     comp.eventScope = eventScope
+    comp.idsOutOfScope = idsOutOfScope
 
     var estree
     try {

@@ -32,16 +32,22 @@ function Rule (ast, comp, e) {
     ]))))
   }
 
+  _.each(ast.foreach, function (foreach) {
+    _.each(foreach.setting, function (set, i) {
+      comp.scope.set(set.value, { type: 'Unknown' })
+    })
+  })
+
   if (!_.isEmpty(ast.prelude)) {
     ruleBody = ruleBody.concat(declarationBlock(ast.prelude, comp))
   }
   if (ast.action_block) {
     ruleBody = ruleBody.concat(comp(ast.action_block))
   } else {
-    ruleBody.push(e('var', 'fired', e('true')))
+    ruleBody.push(e('var', '$fired', e('true')))
   }
 
-  ruleBody.push(e('if', e('id', 'fired'),
+  ruleBody.push(e('if', e('id', '$fired'),
     e(';', e('call', e('id', '$ctx.log.debug'), [
       e('str', 'fired')
     ])),

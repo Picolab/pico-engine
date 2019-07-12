@@ -5,11 +5,7 @@ module.exports = {
   "init": async function ($rsCtx, $env) {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const match = $stdlib.match;
-    const split = $stdlib.split;
-    const reduce = $stdlib.reduce;
-    const range = $stdlib.range;
-    const map = $stdlib.map;
+    const match = $stdlib["match"];
     const getB = $env.krl.function([], async function () {
       return await $ctx.rsCtx.getEnt("b");
     });
@@ -36,14 +32,14 @@ module.exports = {
     }), async function ($event, $state) {
       var b = $state.setting["b"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
-      var fired = true;
-      if (fired) {
+      var $fired = true;
+      if ($fired) {
         await send_directive($ctx, [
           "foo",
           { "b": b }
         ]);
       }
-      if (fired)
+      if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
@@ -64,8 +60,8 @@ module.exports = {
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
         let $foreach_is_final = $foreach0_i === $foreach0_len - 1;
         let x = $foreach0_pairs[$foreach0_i][1];
-        var fired = true;
-        if (fired) {
+        var $fired = true;
+        if ($fired) {
           await send_directive($ctx, [
             "bar",
             {
@@ -74,7 +70,7 @@ module.exports = {
             }
           ]);
         }
-        if (fired)
+        if ($fired)
           $ctx.log.debug("fired");
         else
           $ctx.log.debug("not fired");
@@ -87,14 +83,14 @@ module.exports = {
         $event.data.attrs,
         "x"
       ]);
-      var fired = true;
-      if (fired) {
+      var $fired = true;
+      if ($fired) {
         await send_directive($ctx, [
           "on_final_no_foreach",
           { "x": x }
         ]);
       }
-      if (fired)
+      if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");

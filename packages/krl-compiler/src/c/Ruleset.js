@@ -19,25 +19,17 @@ module.exports = function (ast, comp, e) {
     })
   }
 
-  const initBody = declarationBlock(ast.global, comp)
+  const esBody_global = declarationBlock(ast.global, comp)
 
-  initBody.unshift(e('const', 'map', e('id', '$stdlib.map')))
-  initBody.unshift(e('const', 'range', e('id', '$stdlib.range')))
-  initBody.unshift(e('const', 'reduce', e('id', '$stdlib.reduce')))
-  initBody.unshift(e('const', 'split', e('id', '$stdlib.split')))
-  initBody.unshift(e('const', 'match', e('id', '$stdlib.match')))
-  initBody.unshift(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
-  initBody.unshift(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
-
-  initBody.push(e('const', '$rs', e('new', e('id', '$env.SelectWhen.SelectWhen'), [])))
-
+  const esBody_rules = []
+  esBody_rules.push(e('const', '$rs', e('new', e('id', '$env.SelectWhen.SelectWhen'), [])))
   const rulesObj = {}
   _.each(ast.rules, function (rule) {
     if (rulesObj[rule.name.value]) {
       throw comp.error(rule.name.loc, 'Duplicate rule name: ' + rule.name.value)
     }
     rulesObj[rule.name.value] = true
-    initBody.push(comp(rule))
+    esBody_rules.push(comp(rule))
   })
 
   const testingJSON = {
@@ -68,14 +60,25 @@ module.exports = function (ast, comp, e) {
   }
   queries['__testing'] = e('fn', [], [e('return', e('json', testingJSON))])
 
-  initBody.push(e('return', e('obj', {
+  let esBody = []
+  esBody.push(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
+  esBody.push(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
+
+  _.each(comp.idsOutOfScope, function (ast, id) {
+    esBody.push(e('const', jsIdent(id), e('get', e('id', '$stdlib', ast.loc), e('str', id, ast.loc), ast.loc), ast.loc))
+  })
+
+  esBody = esBody.concat(esBody_global)
+  esBody = esBody.concat(esBody_rules)
+
+  esBody.push(e('return', e('obj', {
     event: e('asyncfn', ['event'], [
       e(';', e('acall', e('id', '$rs.send'), [e('id', 'event')]))
     ]),
     query: e('obj', queries)
   })))
 
-  rs.init = e('asyncfn', ['$rsCtx', '$env'], initBody)
+  rs.init = e('asyncfn', ['$rsCtx', '$env'], esBody)
 
   return [
     e(';', e('=', e('id', 'module.exports'),

@@ -1,14 +1,23 @@
 const jsIdent = require('../utils/jsIdent')
 
 module.exports = function (ast, comp, e) {
-  const argId = e('id', jsIdent(ast.id.value), ast.id.loc)
+  let annotation = { type: 'Unknown' }
+
+  let estree = e('id', jsIdent(ast.id.value), ast.id.loc)
 
   if (ast['default']) {
-    return {
+    const dflt = comp(ast['default'])
+    if (dflt.$$Annotation) {
+      annotation = dflt.$$Annotation
+    }
+    estree = {
       type: 'AssignmentPattern',
-      left: argId,
+      left: estree,
       right: comp(ast['default'])
     }
   }
-  return argId
+
+  comp.scope.set(ast.id.value, annotation)
+
+  return estree
 }

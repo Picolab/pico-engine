@@ -4,6 +4,10 @@ module.exports = function (ast, comp, e) {
   var body = []
 
   comp.scope.push()
+
+  // compile the params first, so params get defined in comp.scope before the function body compiles
+  const params = comp(ast.params)
+
   _.each(ast.body, function (part, i) {
     if (i < (ast.body.length - 1)) {
       return body.push(comp(part))
@@ -26,7 +30,7 @@ module.exports = function (ast, comp, e) {
     paramOrder,
     {
       type: 'FunctionExpression',
-      params: comp(ast.params),
+      params: params,
       body: {
         type: 'BlockStatement',
         body: body
