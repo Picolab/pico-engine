@@ -79,12 +79,8 @@ test("defaction.krl", async t => {
     { type: "directive", name: "add", options: { resp: 3 } }
   );
 
-  // try {
-  //   await signal("defa", "add");
-  //   t.fail();
-  // } catch (err) {
-  //   t.is(err + "", "TypeError: [Function] is not an action");
-  // }
+  let err = await t.throwsAsync(signal("defa", "add"));
+  t.is(err + "", "TypeError: [Function] is not an action");
 
   t.deepEqual(await signal("defa", "returns"), [
     { name: "wat:whereinthe", options: { b: 333 } }
@@ -96,33 +92,19 @@ test("defaction.krl", async t => {
     "wat:whereinthe 433"
   ]);
 
-  // t.deepEqual(await signal("defa", "scope"), []);
-});
+  t.deepEqual(await signal("defa", "scope"), []);
 
-/*
-      query('getSettingVal'),
-      ['aint', 'no', 'echo', null, 'send wat? noop returned: null']
-    ],
-    function (next) {
-      pe.emitter.once('error', function (err, info) {
-        t.is(err + '', 'Error: actions can only be called in the rule action block')
-        t.is(info.eci, 'id1')
-      })
-      signal('defa', 'trying_to_use_action_as_fn')(function (err) {
-        t.is(err + '', 'Error: actions can only be called in the rule action block')
-        next()
-      })
-    },
-    function (next) {
-      pe.emitter.once('error', function (err, info) {
-        t.is(err + '', 'Error: actions can only be called in the rule action block')
-        t.is(info.eci, 'id1')
-      })
-      query('echoAction')(function (err) {
-        t.is(err + '', 'Error: actions can only be called in the rule action block')
-        next()
-      })
-    }
-  ])
-})
-*/
+  t.deepEqual(await query("getSettingVal"), [
+    "aint",
+    "no",
+    "echo",
+    "did something!",
+    "send wat? noop returned: null"
+  ]);
+
+  err = await t.throwsAsync(signal("defa", "trying_to_use_action_as_fn"));
+  t.is(err + "", "TypeError: [Action] is not a function");
+
+  err = await t.throwsAsync(query("echoAction"));
+  t.is(err + "", "TypeError: [Action] is not a function");
+});

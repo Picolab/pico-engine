@@ -133,6 +133,13 @@ export function isFunction(val: any): boolean {
   return _.isFunction(val) && (val as any)["$krl_function"] === true;
 }
 
+export function assertFunction(val: any) {
+  if (isFunction(val)) {
+    return val;
+  }
+  throw new TypeError(toString(val) + " is not a function");
+}
+
 export function isAction(val: any): boolean {
   return _.isFunction(val) && (val as any)["$krl_action"] === true;
 }

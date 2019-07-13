@@ -37,7 +37,7 @@ module.exports = {
       ]);
     });
     const sum = $env.krl.Function(["arr"], async function (arr) {
-      return await reduce($ctx, [
+      return await $env.krl.assertFunction(reduce)($ctx, [
         arr,
         add,
         0
@@ -51,7 +51,7 @@ module.exports = {
         ]);
       });
     });
-    const mapped = await map($ctx, [
+    const mapped = await $env.krl.assertFunction(map)($ctx, [
       [
         1,
         2,
@@ -278,17 +278,17 @@ module.exports = {
     });
     $rs.when($env.SelectWhen.e("scope:functions"), async function ($event, $state) {
       const g0 = "overrided g0!";
-      const inc5 = await incByN($ctx, [5]);
+      const inc5 = await $env.krl.assertFunction(incByN)($ctx, [5]);
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, [
           "say",
           {
-            "add_one_two": await add($ctx, [
+            "add_one_two": await $env.krl.assertFunction(add)($ctx, [
               1,
               2
             ]),
-            "inc5_3": await inc5($ctx, [3]),
+            "inc5_3": await $env.krl.assertFunction(inc5)($ctx, [3]),
             "g0": g0
           }
         ]);

@@ -106,7 +106,7 @@ module.exports = {
       }
     });
     $rs.when($env.SelectWhen.e("foreach:scope"), async function ($event, $state) {
-      let $foreach0_pairs = $env.krl.toPairs(await doubleThis($ctx, [[
+      let $foreach0_pairs = $env.krl.toPairs(await $env.krl.assertFunction(doubleThis)($ctx, [[
           1,
           2,
           3
@@ -120,7 +120,7 @@ module.exports = {
         let $foreach1_i;
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
           let foo = $foreach1_pairs[$foreach1_i][1];
-          let $foreach2_pairs = $env.krl.toPairs(await range($ctx, [
+          let $foreach2_pairs = $env.krl.toPairs(await $env.krl.assertFunction(range)($ctx, [
             0,
             foo
           ]));
@@ -153,7 +153,7 @@ module.exports = {
       }
     });
     $rs.when($env.SelectWhen.e("foreach:final"), async function ($event, $state) {
-      let $foreach0_pairs = $env.krl.toPairs(await split($ctx, [
+      let $foreach0_pairs = $env.krl.toPairs(await $env.krl.assertFunction(split)($ctx, [
         await $stdlib["get"]($ctx, [
           $event.data.attrs,
           "x"
@@ -164,7 +164,7 @@ module.exports = {
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
         let x = $foreach0_pairs[$foreach0_i][1];
-        let $foreach1_pairs = $env.krl.toPairs(await split($ctx, [
+        let $foreach1_pairs = $env.krl.toPairs(await $env.krl.assertFunction(split)($ctx, [
           await $stdlib["get"]($ctx, [
             $event.data.attrs,
             "y"

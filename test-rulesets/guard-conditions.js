@@ -44,7 +44,7 @@ module.exports = {
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      if (await match($ctx, [
+      if (await $env.krl.assertFunction(match)($ctx, [
           b,
           new RegExp("foo", "")
         ]))

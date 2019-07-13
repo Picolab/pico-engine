@@ -21,7 +21,7 @@ module.exports = function (ast, comp, e) {
         throw comp.error(action.loc, 'all actions inside a `choose` block need a label')
       }
       return e('case', e('string', action.label.value, action.label.loc), [
-        e(';', comp(action), action.loc),
+        comp(action),
         e('break', action.loc)
       ], action.loc)
     })))
@@ -30,14 +30,14 @@ module.exports = function (ast, comp, e) {
       e('*', e('call', e('id', 'Math.random'), []), e('number', _.size(ast.actions)))
     ]), _.map(ast.actions, function (action, i) {
       return e('case', e('number', i, action.loc), [
-        e(';', comp(action), action.loc),
+        comp(action),
         e('break', action.loc)
       ], action.loc)
     })))
   } else if (blockType === 'every') {
-    ifBody = ifBody.concat(_.map(ast.actions, function (action) {
-      return e(';', comp(action))
-    }))
+    _.map(ast.actions, function (action) {
+      ifBody.push(comp(action))
+    })
   } else {
     throw new Error('ActionBlock.blockType = "' + blockType + '" not supported')
   }

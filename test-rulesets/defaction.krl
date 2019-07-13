@@ -130,7 +130,7 @@ ruleset io.picolabs.defaction {
         select when defa scope
 
         pre {
-            noop = defaction(){
+            something = defaction(){
 
                 noop();
 
@@ -153,7 +153,7 @@ ruleset io.picolabs.defaction {
         every {
             echoAction("where", "in", "the") setting(abc);
 
-            noop() setting(d);
+            something() setting(d);
 
             send_directive() setting(e);
         }

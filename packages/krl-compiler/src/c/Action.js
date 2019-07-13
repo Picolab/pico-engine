@@ -33,15 +33,16 @@ module.exports = function (ast, comp, e) {
 
   if (_.size(ast.setting) === 1) {
     const id = ast.setting[0]
-    estree = e('=',
+    comp.scope.set(id.value, { type: 'Unknown' })
+
+    return e('var',
       e('id', jsIdent(id.value), id.loc),
       estree,
       id.loc
     )
-    comp.scope.set(id.value, { type: 'Unknown' })
   } else if (_.size(ast.setting) > 1) {
     throw comp.error(ast.setting[1].loc, 'Actions only return on value')
+  } else {
+    return e(';', estree, ast.loc)
   }
-
-  return estree
 }
