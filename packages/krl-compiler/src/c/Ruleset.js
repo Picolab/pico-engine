@@ -48,6 +48,8 @@ module.exports = function (ast, comp, e) {
         name: share,
         args: annotation.params
       })
+    } else if (annotation && annotation.type === 'Action') {
+      throw comp.error(annotation.loc, 'Actions cannot be used queries: ' + share)
     } else {
       queries[share] = e('fn', ['$args'], [
         e('return', e('id', jsIdent(share)))

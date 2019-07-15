@@ -4,8 +4,7 @@ module.exports = {
   "meta": {
     "shares": [
       "getSettingVal",
-      "add",
-      "echoAction"
+      "add"
     ]
   },
   "init": async function ($rsCtx, $env) {
@@ -383,9 +382,6 @@ module.exports = {
         "add": function ($args) {
           return add($ctx, $args);
         },
-        "echoAction": function ($args) {
-          return echoAction;
-        },
         "__testing": function () {
           return {
             "queries": [
@@ -399,10 +395,6 @@ module.exports = {
                   "a",
                   "b"
                 ]
-              },
-              {
-                "name": "echoAction",
-                "args": []
               }
             ],
             "events": [

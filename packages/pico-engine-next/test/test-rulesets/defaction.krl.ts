@@ -106,5 +106,8 @@ test("defaction.krl", async t => {
   t.is(err + "", "TypeError: [Action] is not a function");
 
   err = await t.throwsAsync(query("echoAction"));
-  t.is(err + "", "TypeError: [Action] is not a function");
+  t.is(
+    err + "",
+    'Error: Ruleset io.picolabs.defaction does not have query function "echoAction"'
+  );
 });

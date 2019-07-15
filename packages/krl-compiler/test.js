@@ -155,17 +155,14 @@ test('compiler errors', function (t) {
     'add.foo',
     'DEPRECATED use `{}` or `[]` instead of `.`'
   )
-  tstWarn(
+  tstFail(
     'event:attrs()',
-    'DEPRECATED change `event:attrs()` to `event:attrs`'
+    'Error: `event:attrs` is a Map, not a Function. Use `event:attrs{key}` instead'
   )
-  tstWarn(
-    'keys:foo()',
-    'DEPRECATED change `keys:foo()` to `keys:foo`'
-  )
-  tstWarn(
-    'keys:foo("hi")',
-    'DEPRECATED change `keys:foo(name)` to `keys:foo{name}`'
+
+  tstFail(
+    'ruleset a{meta{shares hello}global {hello = defaction(){noop()}}}',
+    'Error: Actions cannot be used queries: hello'
   )
 
   tstWarn(
@@ -191,9 +188,9 @@ test('special cases', function (t) {
   // args shouldn't be dependent on each other and cause strange duplication
   var js = compiler('foo(1).bar(baz(2))').code
   var expected = ''
-  expected += 'await bar($ctx, [\n'
-  expected += '  await foo($ctx, [1]),\n'
-  expected += '  await baz($ctx, [2])\n'
+  expected += 'await $env.krl.assertFunction(bar)($ctx, [\n'
+  expected += '  await $env.krl.assertFunction(foo)($ctx, [1]),\n'
+  expected += '  await $env.krl.assertFunction(baz)($ctx, [2])\n'
   expected += ']);'
   t.is(js, expected)
 })

@@ -1,6 +1,6 @@
 ruleset io.picolabs.defaction {
     meta {
-        shares getSettingVal, add, echoAction
+        shares getSettingVal, add
     }
     global {
         send_directive = custom:send_directive

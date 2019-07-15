@@ -2,6 +2,12 @@ var _ = require('lodash')
 var callStdLibFn = require('../utils/callStdLibFn')
 
 module.exports = function (ast, comp, e) {
+  if (ast.callee.type === 'DomainIdentifier' &&
+    ast.callee.domain === 'event' &&
+            ast.callee.value === 'attrs'
+  ) {
+    throw comp.error(ast.callee.loc, '`event:attrs` is a Map, not a Function. Use `event:attrs{key}` instead')
+  }
   let callee
   let args
 
