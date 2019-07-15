@@ -3,6 +3,7 @@ ruleset io.picolabs.expressions {
         shares obj, path1, path2, index1, index2, paramFnTest
     }
     global {
+        send_directive = custom:send_directive
         cond_exp_1 = true => 1 |
             2
         cond_exp_2 = false => 1 |
@@ -11,8 +12,6 @@ ruleset io.picolabs.expressions {
             "a": 1,
             "b": {"c": [2, 3, 4, {"d": {"e": 5}}, 6, 7]}
         }
-        obj{["b", "c", 3, "d", "e"]} = "changed 5"
-        obj["a"] = "changed 1"
         path1 = obj{["b", "c", 3, "d"]}
         path2 = obj{["b", "c", 5]}
         index1 = obj["a"]

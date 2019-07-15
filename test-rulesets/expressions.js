@@ -1,5 +1,6 @@
 module.exports = {
   "rid": "io.picolabs.expressions",
+  "version": "draft",
   "meta": {
     "shares": [
       "obj",
@@ -10,10 +11,14 @@ module.exports = {
       "paramFnTest"
     ]
   },
-  "global": async function (ctx) {
-    ctx.scope.set("cond_exp_1", true ? 1 : 2);
-    ctx.scope.set("cond_exp_2", false ? 1 : 2);
-    ctx.scope.set("obj", {
+  "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const send_directive = $ctx.module("custom")["send_directive"];
+    const cond_exp_1 = true ? 1 : 2;
+    const cond_exp_2 = false ? 1 : 2;
+    const obj = {
       "a": 1,
       "b": {
         "c": [
@@ -25,105 +30,151 @@ module.exports = {
           7
         ]
       }
-    });
-    ctx.scope.set("obj", await ctx.applyFn(ctx.scope.get("set"), ctx, [
-      ctx.scope.get("obj"),
-      [
-        "b",
-        "c",
-        3,
-        "d",
-        "e"
-      ],
-      "changed 5"
-    ]));
-    ctx.scope.set("obj", await ctx.applyFn(ctx.scope.get("set"), ctx, [
-      ctx.scope.get("obj"),
-      ["a"],
-      "changed 1"
-    ]));
-    ctx.scope.set("path1", await ctx.applyFn(ctx.scope.get("get"), ctx, [
-      ctx.scope.get("obj"),
+    };
+    const path1 = await $stdlib["get"]($ctx, [
+      obj,
       [
         "b",
         "c",
         3,
         "d"
       ]
-    ]));
-    ctx.scope.set("path2", await ctx.applyFn(ctx.scope.get("get"), ctx, [
-      ctx.scope.get("obj"),
+    ]);
+    const path2 = await $stdlib["get"]($ctx, [
+      obj,
       [
         "b",
         "c",
         5
       ]
-    ]));
-    ctx.scope.set("index1", await ctx.applyFn(ctx.scope.get("get"), ctx, [
-      ctx.scope.get("obj"),
+    ]);
+    const index1 = await $stdlib["get"]($ctx, [
+      obj,
       ["a"]
-    ]));
-    ctx.scope.set("index2", await ctx.applyFn(ctx.scope.get("get"), ctx, [
-      await ctx.applyFn(ctx.scope.get("get"), ctx, [
-        await ctx.applyFn(ctx.scope.get("get"), ctx, [
-          ctx.scope.get("obj"),
+    ]);
+    const index2 = await $stdlib["get"]($ctx, [
+      await $stdlib["get"]($ctx, [
+        await $stdlib["get"]($ctx, [
+          obj,
           ["b"]
         ]),
         ["c"]
       ]),
       [1]
-    ]));
-    ctx.scope.set("not_true", !true);
-    ctx.scope.set("not_null", !void 0);
-    ctx.scope.set("true_or_false", true || false);
-    ctx.scope.set("true_and_false", true && false);
-    ctx.scope.set("incByN", ctx.mkFunction(["n"], async function (ctx, args) {
-      ctx.scope.set("n", args["n"]);
-      return ctx.mkFunction(["a"], async function (ctx, args) {
-        ctx.scope.set("a", args["a"]);
-        return await ctx.applyFn(ctx.scope.get("+"), ctx, [
-          ctx.scope.get("a"),
-          ctx.scope.get("n")
+    ]);
+    const not_true = !true;
+    const not_null = !void 0;
+    const true_or_false = true || false;
+    const true_and_false = true && false;
+    const incByN = $env.krl.Function(["n"], async function (n) {
+      return $env.krl.Function(["a"], async function (a) {
+        return await $stdlib["+"]($ctx, [
+          a,
+          n
         ]);
       });
-    }));
-    ctx.scope.set("paramFn", ctx.mkFunction([
+    });
+    const paramFn = $env.krl.Function([
       "foo",
       "bar",
       "baz",
       "qux"
-    ], async function (ctx, args) {
-      ctx.scope.set("foo", args.hasOwnProperty("foo") ? args["foo"] : await ctx.applyFn(ctx.scope.get("incByN"), ctx, [3]));
-      ctx.scope.set("bar", args.hasOwnProperty("bar") ? args["bar"] : await ctx.applyFn(ctx.scope.get("foo"), ctx, [1]));
-      ctx.scope.set("baz", args.hasOwnProperty("baz") ? args["baz"] : await ctx.applyFn(ctx.scope.get("+"), ctx, [
-        ctx.scope.get("bar"),
-        2
-      ]));
-      ctx.scope.set("qux", args.hasOwnProperty("qux") ? args["qux"] : await ctx.applyFn(ctx.scope.get("+"), ctx, [
-        ctx.scope.get("baz"),
-        "?"
-      ]));
+    ], async function (foo = $default, bar = $default, baz = $default, qux = $default) {
+      if (foo == $default) {
+        foo = await $env.krl.assertFunction(incByN)($ctx, [3]);
+      }
+      if (bar == $default) {
+        bar = await $env.krl.assertFunction(foo)($ctx, [1]);
+      }
+      if (baz == $default) {
+        baz = await $stdlib["+"]($ctx, [
+          bar,
+          2
+        ]);
+      }
+      if (qux == $default) {
+        qux = await $stdlib["+"]($ctx, [
+          baz,
+          "?"
+        ]);
+      }
       return [
-        ctx.scope.get("bar"),
-        ctx.scope.get("baz"),
-        ctx.scope.get("qux")
+        bar,
+        baz,
+        qux
       ];
-    }));
-    ctx.scope.set("paramFnTest", ctx.mkFunction([], async function (ctx, args) {
+    });
+    const paramFnTest = $env.krl.Function([], async function () {
       return [
-        await ctx.applyFn(ctx.scope.get("paramFn"), ctx, []),
-        await ctx.applyFn(ctx.scope.get("paramFn"), ctx, [
-          await ctx.applyFn(ctx.scope.get("incByN"), ctx, [100]),
+        await $env.krl.assertFunction(paramFn)($ctx, []),
+        await $env.krl.assertFunction(paramFn)($ctx, [
+          await $env.krl.assertFunction(incByN)($ctx, [100]),
           "one"
         ]),
-        await ctx.applyFn(ctx.scope.get("paramFn"), ctx, [
+        await $env.krl.assertFunction(paramFn)($ctx, [
           void 0,
           3,
           4,
           5
         ])
       ];
-    }));
-  },
-  "rules": {}
+    });
+    const $rs = new $env.SelectWhen.SelectWhen();
+    return {
+      "event": async function (event) {
+        await $rs.send(event);
+      },
+      "query": {
+        "obj": function ($args) {
+          return obj;
+        },
+        "path1": function ($args) {
+          return path1;
+        },
+        "path2": function ($args) {
+          return path2;
+        },
+        "index1": function ($args) {
+          return index1;
+        },
+        "index2": function ($args) {
+          return index2;
+        },
+        "paramFnTest": function ($args) {
+          return paramFnTest($ctx, $args);
+        },
+        "__testing": function () {
+          return {
+            "queries": [
+              {
+                "name": "obj",
+                "args": []
+              },
+              {
+                "name": "path1",
+                "args": []
+              },
+              {
+                "name": "path2",
+                "args": []
+              },
+              {
+                "name": "index1",
+                "args": []
+              },
+              {
+                "name": "index2",
+                "args": []
+              },
+              {
+                "name": "paramFnTest",
+                "args": []
+              }
+            ],
+            "events": []
+          };
+        }
+      }
+    };
+  }
 };
