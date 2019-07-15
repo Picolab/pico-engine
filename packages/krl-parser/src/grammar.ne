@@ -337,8 +337,6 @@ var tok_global = tok("SYMBOL", "global");
 var tok_if = tok("SYMBOL", "if");
 var tok_inactive = tok("SYMBOL", "inactive");
 var tok_is = tok("SYMBOL", "is");
-var tok_key = tok("SYMBOL", "key");
-var tok_keys = tok("SYMBOL", "keys");
 var tok_like = tok("SYMBOL", "like");
 var tok_last = tok("SYMBOL", "last");
 var tok_log = tok("SYMBOL", "log");
@@ -452,8 +450,6 @@ ruleset_meta_prop ->
     | %tok_description Chevron {% metaProp2part %}
     | %tok_author      String {% metaProp2part %}
     | %tok_logging     OnOrOff {% metaProp2part %}
-    | KEYs Keyword (String | Map)
-      {% metaProp(function(data){return [data[1], data[2][0]]}) %}
     | %tok_use %tok_module RulesetID
         (%tok_version String):?
         (%tok_alias Identifier):?
@@ -478,49 +474,11 @@ ruleset_meta_prop ->
       {% metaProp(function(d){return {
         ids: d[1]
       }}, true) %}
-    | PROVIDEs ProvidesOperator Identifier_list_body %tok_to RulesetID_list
-      {% metaProp(function(d){return {
-        operator: d[1],
-        ids: d[2],
-        rulesets: d[4]
-      }}, true) %}
     | SHAREs Identifier_list_body
       {% metaProp(function(d){return {
         ids: d[1]
       }}, true) %}
 
-ProvidesOperator -> %tok_keys {%
-  function(data){
-    var d = data[0];
-    return {
-      loc: d.loc,
-      type: 'Keyword',
-      value: d.src
-    };
-  }
-%}
-
-Keyword -> %tok_SYMBOL {%
-  function(data){
-    var d = data[0];
-    return {
-      loc: d.loc,
-      type: 'Keyword',
-      value: d.src
-    };
-  }
-%}
-
-KEYs -> (%tok_key | %tok_keys) {%
-  function(data){
-    var d = data[0][0];
-    return {
-      loc: d.loc,
-      type: "Keyword",
-      value: "keys"
-    };
-  }
-%}
 PROVIDEs -> (%tok_provides | %tok_provide) {%
   function(data){
     var d = data[0][0];

@@ -1375,16 +1375,6 @@ test('Ruleset meta', function (t) {
     mk.meta('author', mk('bob'))
   ])
 
-  testMeta('keys one "one string"\n keys two {"some": "map"}', [
-    mk.meta('keys', [mk.key('one'), mk('one string')]),
-    mk.meta('keys', [mk.key('two'), mk({ 'some': mk('map') })])
-  ])
-  // "key" is the same as "keys"
-  testMeta('key one "one string"\n key two {"some": "map"}', [
-    mk.meta('keys', [mk.key('one'), mk('one string')]),
-    mk.meta('keys', [mk.key('two'), mk({ 'some': mk('map') })])
-  ])
-
   testMeta('logging on', [mk.meta('logging', mk(true))])
   testMeta('logging off', [mk.meta('logging', mk(false))])
 
@@ -1427,22 +1417,13 @@ test('Ruleset meta', function (t) {
 
   testMeta([
     'provide x, y, z',
-    'provides x, y, z',
-    'provides keys s3, gmail to com.google, io.picolabs'
+    'provides x, y, z'
   ].join('\n'), [
     mk.meta('provides', {
       ids: [mk.id('x'), mk.id('y'), mk.id('z')]
     }),
     mk.meta('provides', {
       ids: [mk.id('x'), mk.id('y'), mk.id('z')]
-    }),
-    mk.meta('provides', {
-      operator: mk.key('keys'),
-      ids: [mk.id('s3'), mk.id('gmail')],
-      rulesets: [
-        { type: 'RulesetID', value: 'com.google' },
-        { type: 'RulesetID', value: 'io.picolabs' }
-      ]
     })
   ])
 

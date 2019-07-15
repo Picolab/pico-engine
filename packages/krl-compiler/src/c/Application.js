@@ -1,5 +1,4 @@
 var _ = require('lodash')
-var callStdLibFn = require('../utils/callStdLibFn')
 
 module.exports = function (ast, comp, e) {
   if (ast.callee.type === 'DomainIdentifier' &&

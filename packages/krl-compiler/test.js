@@ -18,13 +18,13 @@ test.cb('compiler', function (t) {
 
     // TODO test all
     basenames = [
-      'scope',
-      'hello-world',
       'chevron',
-      'log',
-      'guard-conditions',
+      'defaction',
       'foreach',
-      'defaction'
+      'guard-conditions',
+      'hello-world',
+      'log',
+      'scope'
     ]
 
     λ.each(basenames, function (basename, next) {
@@ -101,7 +101,7 @@ test('compiler errors', function (t) {
     compiler('ruleset a{meta{keys b {"one":function(){}}}}')
     t.fail('meta key maps can only have strings')
   } catch (err) {
-    t.is(err + '', 'Error: RulesetMetaProperty not supported: keys')
+    t.is((err + '').split('\n')[0], 'Error: No possible parsings')
   }
 
   tstFail(
