@@ -6,7 +6,7 @@ module.exports = {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.e("log:levels"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("log:levels"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired)
         $ctx.log.debug("fired");

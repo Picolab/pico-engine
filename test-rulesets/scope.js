@@ -102,7 +102,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    })), async function ($event, $state) {
+    })), async function ($event, $state, $last) {
       var name0 = $state.setting["name0"];
       var name1 = $state.setting["name1"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
@@ -157,7 +157,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    })), async function ($event, $state) {
+    })), async function ($event, $state, $last) {
       var name0 = $state.setting["name0"];
       var name1 = $state.setting["name1"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
@@ -214,7 +214,7 @@ module.exports = {
       };
     }), $env.SelectWhen.e("scope:eventWithin3"))), function ($event, $state) {
       return Object.assign({}, $state, { "setting": {} });
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var name1 = $state.setting["name1"];
       var name2 = $state.setting["name2"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
@@ -251,7 +251,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var name = $state.setting["name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       const p0 = "prelude 0";
@@ -276,7 +276,7 @@ module.exports = {
       await $ctx.rsCtx.putEnt("ent_var_p0", p0);
       await $ctx.rsCtx.putEnt("ent_var_p1", p1);
     });
-    $rs.when($env.SelectWhen.e("scope:functions"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("scope:functions"), async function ($event, $state, $last) {
       const g0 = "overrided g0!";
       const inc5 = await $env.krl.assertFunction(incByN)($ctx, [5]);
       var $fired = true;

@@ -55,10 +55,10 @@
     "levelup": "^4.0.1",
     "lodash": "^4.17.11",
     "make-dir": "^3.0.0",
-    "pico-framework": "^0.2.5",
+    "pico-framework": "^0.2.7",
     "request": "^2.88.0",
     "rotating-file-stream": "^1.4.1",
-    "select-when": "^0.1.4"
+    "select-when": "^0.1.5"
   },
   "devDependencies": {
     "@types/abstract-leveldown": "^5.0.1",

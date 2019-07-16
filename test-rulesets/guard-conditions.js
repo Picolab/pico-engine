@@ -30,7 +30,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var b = $state.setting["b"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
@@ -50,7 +50,7 @@ module.exports = {
         ]))
         await $ctx.rsCtx.putEnt("b", b);
     });
-    $rs.when($env.SelectWhen.e("bar:a"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("bar:a"), async function ($event, $state, $last) {
       let $foreach0_pairs = $env.krl.toPairs([
         1,
         2,
@@ -79,7 +79,7 @@ module.exports = {
           await $ctx.rsCtx.putEnt("b", x);
       }
     });
-    $rs.when($env.SelectWhen.e("on_final_no_foreach:a"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("on_final_no_foreach:a"), async function ($event, $state, $last) {
       const x = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "x"

@@ -153,7 +153,7 @@ module.exports = {
       ]);
     });
     const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.e("defa:foo"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("defa:foo"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(foo)($ctx, ["bar"]);
@@ -163,7 +163,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("defa:bar"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("defa:bar"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(bar)($ctx, {
@@ -177,7 +177,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("defa:bar_setting"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("defa:bar_setting"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         var val = await $env.krl.assertAction(bar)($ctx, {
@@ -194,7 +194,7 @@ module.exports = {
         await $ctx.rsCtx.putEnt("setting_val", val);
       }
     });
-    $rs.when($env.SelectWhen.e("defa:chooser"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("defa:chooser"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(chooser)($ctx, [await $stdlib["get"]($ctx, [
@@ -207,7 +207,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("defa:ifAnotB"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("defa:ifAnotB"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(ifAnotB)($ctx, [
@@ -232,7 +232,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("defa:add"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("defa:add"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(add)($ctx, [
@@ -245,7 +245,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("defa:returns"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("defa:returns"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         var abc = await $env.krl.assertAction(echoAction)($ctx, [
@@ -295,7 +295,7 @@ module.exports = {
         ]);
       }
     });
-    $rs.when($env.SelectWhen.e("defa:scope"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("defa:scope"), async function ($event, $state, $last) {
       const something = $env.krl.Action([], async function () {
         var $fired = true;
         if ($fired) {
@@ -357,7 +357,7 @@ module.exports = {
         ]);
       }
     });
-    $rs.when($env.SelectWhen.e("defa:trying_to_use_action_as_fn"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("defa:trying_to_use_action_as_fn"), async function ($event, $state, $last) {
       const val = await $env.krl.assertFunction(foo)($ctx, [100]);
       var $fired = true;
       if ($fired) {

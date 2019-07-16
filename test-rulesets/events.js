@@ -49,7 +49,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var my_name = $state.setting["my_name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
@@ -91,7 +91,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var number = $state.setting["number"];
       var name = $state.setting["name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
@@ -110,7 +110,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("events:get"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("events:get"), async function ($event, $state, $last) {
       const thing = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "thing"
@@ -127,14 +127,14 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("events:noop"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("events:noop"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("events:noop2"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("events:noop2"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(noop)($ctx, []);
@@ -162,7 +162,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var my_name = $state.setting["my_name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = my_name;
@@ -192,7 +192,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var my_name = $state.setting["my_name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
@@ -228,7 +228,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var thing = $state.setting["thing"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
@@ -271,7 +271,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var thing = $state.setting["thing"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = await $stdlib["=="]($ctx, [
@@ -302,7 +302,7 @@ module.exports = {
         await $ctx.rsCtx.putEnt("on_choose_fired", false);
       }
     });
-    $rs.when($env.SelectWhen.e("events:on_every"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("events:on_every"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["on_every - one"]);
@@ -313,7 +313,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("events:on_sample"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("events:on_sample"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         switch (Math.floor(Math.random() * 3)) {
@@ -333,7 +333,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("events:on_sample_if"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("events:on_sample_if"), async function ($event, $state, $last) {
       var $fired = await $stdlib["=="]($ctx, [
         await $stdlib["get"]($ctx, [
           $event.data.attrs,
@@ -372,7 +372,7 @@ module.exports = {
         "match": true,
         "state": $state
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["select_where"]);
@@ -395,7 +395,7 @@ module.exports = {
         "match": true,
         "state": $state
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["where_match_0"]);
@@ -418,7 +418,7 @@ module.exports = {
         "match": true,
         "state": $state
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["where_match_null"]);
@@ -441,7 +441,7 @@ module.exports = {
         "match": true,
         "state": $state
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["where_match_false"]);
@@ -464,7 +464,7 @@ module.exports = {
         "match": true,
         "state": $state
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["where_match_empty_str"]);
@@ -497,7 +497,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var a = $state.setting["a"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
@@ -532,7 +532,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var global0 = $state.setting["global0"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
@@ -561,7 +561,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["implicit_match_0"]);
@@ -588,7 +588,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["implicit_match_null"]);
@@ -615,7 +615,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["implicit_match_false"]);
@@ -642,7 +642,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["implicit_match_empty_str"]);
@@ -669,7 +669,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired)
         $ctx.log.debug("fired");
@@ -700,7 +700,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var my_name = $state.setting["my_name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
@@ -739,7 +739,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var my_name = $state.setting["my_name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
@@ -770,7 +770,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var my_name = $state.setting["my_name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
@@ -800,7 +800,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var my_name = $state.setting["my_name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
@@ -830,7 +830,7 @@ module.exports = {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
-    }), async function ($event, $state) {
+    }), async function ($event, $state, $last) {
       var my_name = $state.setting["my_name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       const rid = "io.picolabs.events";
@@ -843,7 +843,7 @@ module.exports = {
         await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name });
       }
     });
-    $rs.when($env.SelectWhen.e("events:event_eid"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("events:event_eid"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, [

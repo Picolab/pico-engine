@@ -78,7 +78,7 @@ function Rule (ast, comp, e) {
 
   return e(';', e('call', e('id', '$rs.when'), [
     selectWhenRule,
-    e('asyncfn', ['$event', '$state'], ruleBody)
+    e('asyncfn', ['$event', '$state', '$last'], ruleBody)
   ]))
 }
 

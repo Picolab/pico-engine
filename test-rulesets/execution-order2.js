@@ -12,7 +12,7 @@ module.exports = {
       return await $ctx.rsCtx.getEnt("order");
     });
     const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.e("execution_order:reset_order"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("execution_order:reset_order"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["2 - reset_order"]);
@@ -23,7 +23,7 @@ module.exports = {
         $ctx.log.debug("not fired");
       await $ctx.rsCtx.putEnt("order", []);
     });
-    $rs.when($env.SelectWhen.or($env.SelectWhen.e("execution_order:foo"), $env.SelectWhen.e("execution_order:bar")), async function ($event, $state) {
+    $rs.when($env.SelectWhen.or($env.SelectWhen.e("execution_order:foo"), $env.SelectWhen.e("execution_order:bar")), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["2 - foo_or_bar"]);
@@ -37,7 +37,7 @@ module.exports = {
         "2 - foo_or_bar"
       ]));
     });
-    $rs.when($env.SelectWhen.e("execution_order:foo"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("execution_order:foo"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["2 - foo"]);
@@ -51,7 +51,7 @@ module.exports = {
         "2 - foo"
       ]));
     });
-    $rs.when($env.SelectWhen.e("execution_order:bar"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("execution_order:bar"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, ["2 - bar"]);

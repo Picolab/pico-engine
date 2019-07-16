@@ -16,7 +16,7 @@ module.exports = {
       ];
     });
     const $rs = new $env.SelectWhen.SelectWhen();
-    $rs.when($env.SelectWhen.e("foreach:basic"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("foreach:basic"), async function ($event, $state, $last) {
       let $foreach0_pairs = $env.krl.toPairs([
         1,
         2,
@@ -40,7 +40,7 @@ module.exports = {
           $ctx.log.debug("not fired");
       }
     });
-    $rs.when($env.SelectWhen.e("foreach:map"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("foreach:map"), async function ($event, $state, $last) {
       let $foreach0_pairs = $env.krl.toPairs({
         "a": 1,
         "b": 2,
@@ -68,7 +68,7 @@ module.exports = {
           $ctx.log.debug("not fired");
       }
     });
-    $rs.when($env.SelectWhen.e("foreach:nested"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("foreach:nested"), async function ($event, $state, $last) {
       let $foreach0_pairs = $env.krl.toPairs([
         1,
         2,
@@ -105,7 +105,7 @@ module.exports = {
         }
       }
     });
-    $rs.when($env.SelectWhen.e("foreach:scope"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("foreach:scope"), async function ($event, $state, $last) {
       let $foreach0_pairs = $env.krl.toPairs(await $env.krl.assertFunction(doubleThis)($ctx, [[
           1,
           2,
@@ -152,7 +152,7 @@ module.exports = {
         }
       }
     });
-    $rs.when($env.SelectWhen.e("foreach:final"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("foreach:final"), async function ($event, $state, $last) {
       let $foreach0_pairs = $env.krl.toPairs(await $env.krl.assertFunction(split)($ctx, [
         await $stdlib["get"]($ctx, [
           $event.data.attrs,
@@ -198,7 +198,7 @@ module.exports = {
         }
       }
     });
-    $rs.when($env.SelectWhen.e("foreach:final_raised"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("foreach:final_raised"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, [
@@ -220,7 +220,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
-    $rs.when($env.SelectWhen.e("foreach:key_vs_index"), async function ($event, $state) {
+    $rs.when($env.SelectWhen.e("foreach:key_vs_index"), async function ($event, $state, $last) {
       let $foreach0_pairs = $env.krl.toPairs({
         "foo": "bar",
         "baz": "qux"

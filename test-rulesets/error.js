@@ -1,130 +1,198 @@
 module.exports = {
   "rid": "io.picolabs.error",
+  "version": "draft",
   "meta": { "shares": ["getErrors"] },
-  "global": async function (ctx) {
-    ctx.scope.set("getErrors", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "error_log");
-    }));
-  },
-  "rules": {
-    "error_handle": {
-      "name": "error_handle",
-      "select": {
-        "graph": { "system": { "error": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
+  "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const append = $stdlib["append"];
+    const send_directive = $stdlib["send_directive"];
+    const getErrors = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("error_log");
+    });
+    const $rs = new $env.SelectWhen.SelectWhen();
+    $rs.when($env.SelectWhen.e("system:error"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("error_log", await $env.krl.assertFunction(append)($ctx, [
+          await $ctx.rsCtx.getEnt("error_log"),
+          $event.data.attrs
+        ]));
+      }
+    });
+    $rs.when($env.SelectWhen.e("error:continue_on_error"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["continue_on_errorA"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.raiseEvent("system", "error", {
+        "level": "debug",
+        "data": "continue_on_errorA debug",
+        "rid": $ctx.rsCtx.ruleset.rid,
+        "rule_name": "continue_on_errorA",
+        "genus": "user"
+      }, $ctx.rsCtx.ruleset.rid);
+      await $ctx.rsCtx.raiseEvent("system", "error", {
+        "level": "info",
+        "data": "continue_on_errorA info",
+        "rid": $ctx.rsCtx.ruleset.rid,
+        "rule_name": "continue_on_errorA",
+        "genus": "user"
+      }, $ctx.rsCtx.ruleset.rid);
+      await $ctx.rsCtx.raiseEvent("system", "error", {
+        "level": "warn",
+        "data": "continue_on_errorA warn",
+        "rid": $ctx.rsCtx.ruleset.rid,
+        "rule_name": "continue_on_errorA",
+        "genus": "user"
+      }, $ctx.rsCtx.ruleset.rid);
+    });
+    $rs.when($env.SelectWhen.e("error:continue_on_error"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["continue_on_errorB"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.raiseEvent("system", "error", {
+        "level": "debug",
+        "data": "continue_on_errorB debug",
+        "rid": $ctx.rsCtx.ruleset.rid,
+        "rule_name": "continue_on_errorB",
+        "genus": "user"
+      }, $ctx.rsCtx.ruleset.rid);
+      await $ctx.rsCtx.raiseEvent("system", "error", {
+        "level": "info",
+        "data": "continue_on_errorB info",
+        "rid": $ctx.rsCtx.ruleset.rid,
+        "rule_name": "continue_on_errorB",
+        "genus": "user"
+      }, $ctx.rsCtx.ruleset.rid);
+      await $ctx.rsCtx.raiseEvent("system", "error", {
+        "level": "warn",
+        "data": "continue_on_errorB warn",
+        "rid": $ctx.rsCtx.ruleset.rid,
+        "rule_name": "continue_on_errorB",
+        "genus": "user"
+      }, $ctx.rsCtx.ruleset.rid);
+    });
+    $rs.when($env.SelectWhen.e("error:stop_on_error"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["stop_on_errorA"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      {
+        $last();
+        $ctx.rsCtx.clearSchedule();
+        await $ctx.rsCtx.raiseEvent("system", "error", {
+          "level": "error",
+          "data": "stop_on_errorA 1",
+          "rid": $ctx.rsCtx.ruleset.rid,
+          "rule_name": "stop_on_errorA",
+          "genus": "user"
+        }, $ctx.rsCtx.ruleset.rid);
+        return;
+      }
+      {
+        $last();
+        $ctx.rsCtx.clearSchedule();
+        await $ctx.rsCtx.raiseEvent("system", "error", {
+          "level": "error",
+          "data": "stop_on_errorA 2 this should not fire b/c the first error stops execution",
+          "rid": $ctx.rsCtx.ruleset.rid,
+          "rule_name": "stop_on_errorA",
+          "genus": "user"
+        }, $ctx.rsCtx.ruleset.rid);
+        return;
+      }
+    });
+    $rs.when($env.SelectWhen.e("error:stop_on_error"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["stop_on_errorB"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      {
+        $last();
+        $ctx.rsCtx.clearSchedule();
+        await $ctx.rsCtx.raiseEvent("system", "error", {
+          "level": "error",
+          "data": "stop_on_errorB 3 this should not fire b/c the first error clears the schedule",
+          "rid": $ctx.rsCtx.ruleset.rid,
+          "rule_name": "stop_on_errorB",
+          "genus": "user"
+        }, $ctx.rsCtx.ruleset.rid);
+        return;
+      }
+    });
+    return {
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.append(ctx, "ent", "error_log", [await ctx.modules.get(ctx, "event", "attrs")]);
+      "query": {
+        "getErrors": function ($args) {
+          return getErrors($ctx, $args);
+        },
+        "__testing": function () {
+          return {
+            "queries": [{
+                "name": "getErrors",
+                "args": []
+              }],
+            "events": [
+              {
+                "domain": "system",
+                "name": "error",
+                "attrs": []
+              },
+              {
+                "domain": "error",
+                "name": "continue_on_error",
+                "attrs": []
+              },
+              {
+                "domain": "error",
+                "name": "continue_on_error",
+                "attrs": []
+              },
+              {
+                "domain": "error",
+                "name": "stop_on_error",
+                "attrs": []
+              },
+              {
+                "domain": "error",
+                "name": "stop_on_error",
+                "attrs": []
+              }
+            ]
+          };
         }
       }
-    },
-    "continue_on_errorA": {
-      "name": "continue_on_errorA",
-      "select": {
-        "graph": { "error": { "continue_on_error": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["continue_on_errorA"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.raiseError(ctx, "debug", "continue_on_errorA debug");
-        await ctx.raiseError(ctx, "info", "continue_on_errorA info");
-        await ctx.raiseError(ctx, "warn", "continue_on_errorA warn");
-      }
-    },
-    "continue_on_errorB": {
-      "name": "continue_on_errorB",
-      "select": {
-        "graph": { "error": { "continue_on_error": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["continue_on_errorB"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.raiseError(ctx, "debug", "continue_on_errorB debug");
-        await ctx.raiseError(ctx, "info", "continue_on_errorB info");
-        await ctx.raiseError(ctx, "warn", "continue_on_errorB warn");
-      }
-    },
-    "stop_on_errorA": {
-      "name": "stop_on_errorA",
-      "select": {
-        "graph": { "error": { "stop_on_error": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["stop_on_errorA"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        return await ctx.raiseError(ctx, "error", "stop_on_errorA 1");
-        return await ctx.raiseError(ctx, "error", "stop_on_errorA 2 this should not fire b/c the first error stops execution");
-      }
-    },
-    "stop_on_errorB": {
-      "name": "stop_on_errorB",
-      "select": {
-        "graph": { "error": { "stop_on_error": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["stop_on_errorB"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        return await ctx.raiseError(ctx, "error", "stop_on_errorB 3 this should not fire b/c the first error clears the schedule");
-      }
-    }
+    };
   }
 };

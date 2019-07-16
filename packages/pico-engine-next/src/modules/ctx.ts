@@ -30,13 +30,17 @@ const ctx: krl.Module = {
     return this.rsCtx.pico().rulesets;
   }),
 
-  raiseEvent: krl.Postlude(["domain", "name", "attrs"], function raiseEvent(
-    domain: string,
-    name: string,
-    attrs: any
-  ) {
-    return this.rsCtx.raiseEvent(domain, name, attrs);
-  }),
+  raiseEvent: krl.Postlude(
+    ["domain", "name", "attrs", "forRid"],
+    function raiseEvent(
+      domain: string,
+      name: string,
+      attrs: any,
+      forRid?: string
+    ) {
+      return this.rsCtx.raiseEvent(domain, name, attrs, forRid);
+    }
+  ),
 
   event: krl.Action(
     ["eci", "domain", "name", "attrs", "host"],
