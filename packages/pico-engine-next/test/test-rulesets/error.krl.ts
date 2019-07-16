@@ -1,29 +1,10 @@
 import test from "ava";
-import { cleanDirectives } from "../../src/KrlCtx";
 import { startTestEngine } from "../helpers/startTestEngine";
 
 test("error.krl", async t => {
-  const { pe, eci } = await startTestEngine(["error.krl"]);
+  const { signal, mkQuery } = await startTestEngine(["error.krl"]);
 
-  async function signal(domain: string, name: string, attrs: any = {}) {
-    const resp = await pe.pf.eventWait({
-      eci,
-      domain,
-      name,
-      data: { attrs },
-      time: 0
-    });
-    return cleanDirectives(resp.responses);
-  }
-
-  function query(name: string, args: any = {}) {
-    return pe.pf.query({
-      eci,
-      rid: "io.picolabs.error",
-      name,
-      args
-    });
-  }
+  const query = mkQuery("io.picolabs.error");
 
   t.deepEqual(await query("getErrors"), null);
 

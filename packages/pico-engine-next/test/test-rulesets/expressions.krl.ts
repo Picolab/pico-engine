@@ -2,16 +2,9 @@ import test from "ava";
 import { startTestEngine } from "../helpers/startTestEngine";
 
 test("expressions.krl", async t => {
-  const { pe, eci } = await startTestEngine(["expressions.krl"]);
+  const { mkQuery } = await startTestEngine(["expressions.krl"]);
 
-  function query(name: string, args: any = {}) {
-    return pe.pf.query({
-      eci,
-      rid: "io.picolabs.expressions",
-      name,
-      args
-    });
-  }
+  const query = mkQuery("io.picolabs.expressions");
 
   t.deepEqual(await query("obj"), {
     a: 1,

@@ -1,20 +1,8 @@
 import test from "ava";
-import { cleanDirectives } from "../../src/KrlCtx";
 import { startTestEngine } from "../helpers/startTestEngine";
 
 test("foreach.krl", async t => {
-  const { pe, eci } = await startTestEngine(["foreach.krl"]);
-
-  async function signal(domain: string, name: string, attrs: any = {}) {
-    const resp = await pe.pf.eventWait({
-      eci,
-      domain,
-      name,
-      data: { attrs },
-      time: 0
-    });
-    return cleanDirectives(resp.responses);
-  }
+  const { signal } = await startTestEngine(["foreach.krl"]);
 
   t.deepEqual(await signal("foreach", "basic"), [
     { name: "basic", options: { x: 1 } },

@@ -1,7 +1,8 @@
 import * as cuid from "cuid";
 import * as path from "path";
 import * as tempDir from "temp-dir";
-import { startEngine, PicoEngineConfiguration } from "../../src/index";
+import { PicoEngineConfiguration, startEngine } from "../../src/index";
+import { cleanDirectives } from "../../src/KrlCtx";
 import { readTestKrl } from "./readTestKrl";
 
 export async function startTestEngine(
@@ -36,5 +37,32 @@ export async function startTestEngine(
     })
   );
 
-  return { pe, eci };
+  async function signal(
+    domain: string,
+    name: string,
+    attrs: any = {},
+    time: number = 0
+  ) {
+    const resp = await pe.pf.eventWait({
+      eci,
+      domain,
+      name,
+      data: { attrs },
+      time
+    });
+    return cleanDirectives(resp.responses);
+  }
+
+  function mkQuery(rid: string) {
+    return function(name: string, args: any = {}) {
+      return pe.pf.query({
+        eci,
+        rid,
+        name,
+        args
+      });
+    };
+  }
+
+  return { pe, eci, signal, mkQuery };
 }
