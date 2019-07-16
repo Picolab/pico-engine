@@ -1,4 +1,5 @@
 var _ = require('lodash')
+var jsIdent = require('../utils/jsIdent')
 
 module.exports = function (ast, comp, e) {
   // FYI the graph allready vetted the domain and type
@@ -8,28 +9,6 @@ module.exports = function (ast, comp, e) {
   }
 
   var fnBody = []
-
-  if (ast.where) {
-    // inject attrs as varibles in the scope
-
-    fnBody.push(e('var', 'event_attrs',
-      e('id', '$event.data.attrs')
-    ))
-    var attrKeys = e('call', e('id', 'Object.keys'), [e('id', 'event_attrs')])
-    fnBody.push(e(';', e('call', e('.', attrKeys, e('id', 'forEach')), [
-      e('fn', ['attr'], [
-
-        // don't stomp over global scope
-        e('if', e('!', e('call', e('id', 'ctx.scope.has'), [e('id', 'attr')])),
-
-          e(';', e('call', e('id', 'ctx.scope.set'), [
-            e('id', 'attr'),
-            e('get', e('id', 'event_attrs'), e('id', 'attr'))
-          ]))
-        )
-      ])
-    ])))
-  }
 
   if (!_.isEmpty(ast.event_attrs)) {
     // select when domain type <attr> re#..#
@@ -44,16 +23,15 @@ module.exports = function (ast, comp, e) {
 
       // m = regex.exec(attr string or "")
       var key = e('string', a.key.value, a.key.loc)
-      var attr = e('get', id('$event.data.attrs'), key, a.key.loc)
       var regexExec = e('.', comp(a.value), id('exec', a.value.loc), a.value.loc)
       fnBody.push(e(';', e('=', id('m'), e('call', regexExec, [
-        e('?', e('==', attr, e('null', a.key.loc)), e('str', '', a.key.loc), e('call', e('id', '$stdlib.as', a.key.loc), [
+        e('?', e('call', e('id', 'Object.prototype.hasOwnProperty.call'), [id('$event.data.attrs'), key]), e('call', e('id', '$stdlib.as', a.key.loc), [
           e('id', '$ctx', a.key.loc),
           e('array', [
-            attr,
+            e('get', id('$event.data.attrs'), key, a.key.loc),
             e('str', 'String', a.key.loc)
           ], a.key.loc)
-        ], a.key.loc))
+        ], a.key.loc), e('str', '', a.key.loc))
       ], a.value.loc), a.value.loc)))
 
       // if !m, then the EventExpression doesn't match
@@ -72,7 +50,8 @@ module.exports = function (ast, comp, e) {
 
   _.each(ast.setting, function (s, i) {
     fnBody.push(
-      e(';',
+      e('var',
+        jsIdent(s.value),
         e('=',
           e('get', e('id', 'setting', s.loc), e('str', s.value, s.loc), s.loc),
           e('get', e('id', 'matches', s.loc), e('num', i, s.loc), s.loc),
@@ -117,17 +96,19 @@ module.exports = function (ast, comp, e) {
   if (fnBody.length > 0) {
     fnBody.push(e('return', e('obj', {
       match: e(true),
-      state: e('call', e('id', 'Object.assign'), [
-        e('obj', {}),
-        e('id', '$state'),
-        e('obj', {
-          setting: e('call', e('id', 'Object.assign'), [
-            e('obj', {}),
-            e('||', e('id', '$state.setting'), e('obj', {})),
-            e('id', 'setting')
-          ])
-        })
-      ])
+      state: _.isEmpty(ast.event_attrs)
+        ? e('id', '$state')
+        : e('call', e('id', 'Object.assign'), [
+          e('obj', {}),
+          e('id', '$state'),
+          e('obj', {
+            setting: e('call', e('id', 'Object.assign'), [
+              e('obj', {}),
+              e('||', e('id', '$state.setting'), e('obj', {})),
+              e('id', 'setting')
+            ])
+          })
+        ])
     })))
     ee.push(e('asyncfn', ['$event', '$state'], fnBody))
   }

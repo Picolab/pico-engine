@@ -17,15 +17,15 @@ module.exports = {
       var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec($event.data.attrs["b"] == null ? "" : $stdlib.as($ctx, [
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "b") ? $stdlib.as($ctx, [
         $event.data.attrs["b"],
         "String"
-      ]));
+      ]) : "");
       if (!m)
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting["b"] = matches[0];
+      var b = setting["b"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -99,8 +99,13 @@ module.exports = {
         await $ctx.rsCtx.putEnt("b", x);
     });
     return {
-      "event": async function (event) {
-        await $rs.send(event);
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
+        }
       },
       "query": {
         "getB": function ($args) {

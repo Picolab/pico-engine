@@ -75,8 +75,21 @@ module.exports = function (ast, comp, e) {
   esBody = esBody.concat(esBodyRules)
 
   esBody.push(e('return', e('obj', {
-    event: e('asyncfn', ['event'], [
-      e(';', e('acall', e('id', '$rs.send'), [e('id', 'event')]))
+    event: e('asyncfn', ['event', 'eid'], [
+      e(';', e('call', e('id', '$ctx.setEvent'), [e('call', e('id', 'Object.assign'), [
+        e('obj', {}),
+        e('id', 'event'),
+        e('obj', { eid: e('id', 'eid') })
+      ])])),
+      {
+        type: 'TryStatement',
+        block: e('block', [
+          e(';', e('acall', e('id', '$rs.send'), [e('id', 'event')]))
+        ]),
+        finalizer: e('block', [
+          e(';', e('call', e('id', '$ctx.setEvent'), [e('null')]))
+        ])
+      }
     ]),
     query: e('obj', queries)
   })))

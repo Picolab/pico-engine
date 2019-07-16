@@ -121,8 +121,13 @@ module.exports = {
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     return {
-      "event": async function (event) {
-        await $rs.send(event);
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
+        }
       },
       "query": {
         "obj": function ($args) {

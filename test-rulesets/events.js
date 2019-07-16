@@ -1,5 +1,6 @@
 module.exports = {
   "rid": "io.picolabs.events",
+  "version": "draft",
   "meta": {
     "shares": [
       "getOnChooseFired",
@@ -8,1205 +9,1051 @@ module.exports = {
       "getSentName"
     ]
   },
-  "global": async function (ctx) {
-    ctx.scope.set("getOnChooseFired", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "on_choose_fired");
-    }));
-    ctx.scope.set("getNoActionFired", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "no_action_fired");
-    }));
-    ctx.scope.set("getSentAttrs", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "sent_attrs");
-    }));
-    ctx.scope.set("getSentName", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "sent_name");
-    }));
-    ctx.scope.set("global0", "g zero");
-    ctx.scope.set("global1", "g one");
-  },
-  "rules": {
-    "set_attr": {
-      "name": "set_attr",
-      "select": {
-        "graph": {
-          "events": {
-            "bind": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("my_name", matches[0]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "bound",
-            { "name": ctx.scope.get("my_name") }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "set_attr2": {
-      "name": "set_attr2",
-      "select": {
-        "graph": {
-          "events": {
-            "set_attr2": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("[Nn]0*(\\d*)", "").exec(getAttrString(ctx, "number"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                m = new RegExp("(.*)", "").exec(getAttrString(ctx, "name"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("number", matches[0]);
-                setting("name", matches[1]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "set_attr2",
-            {
-              "number": ctx.scope.get("number"),
-              "name": ctx.scope.get("name")
-            }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "get_attr": {
-      "name": "get_attr",
-      "select": {
-        "graph": { "events": { "get": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("thing", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["thing"]));
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "get",
-            { "thing": ctx.scope.get("thing") }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "noop": {
-      "name": "noop",
-      "select": {
-        "graph": { "events": { "noop": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "noop2": {
-      "name": "noop2",
-      "select": {
-        "graph": { "events": { "noop2": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "noop", [], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "ifthen": {
-      "name": "ifthen",
-      "select": {
-        "graph": {
-          "events": {
-            "ifthen": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("my_name", matches[0]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = ctx.scope.get("my_name");
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["ifthen"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "on_fired": {
-      "name": "on_fired",
-      "select": {
-        "graph": {
-          "events": {
-            "on_fired": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("my_name", matches[0]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "on_fired",
-            { "previous_name": await ctx.modules.get(ctx, "ent", "on_fired_prev_name") }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.set(ctx, "ent", "on_fired_prev_name", ctx.scope.get("my_name"));
-        }
-      }
-    },
-    "on_choose": {
-      "name": "on_choose",
-      "select": {
-        "graph": {
-          "events": {
-            "on_choose": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "thing"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("thing", matches[0]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          switch (ctx.scope.get("thing")) {
-          case "one":
-            await runAction(ctx, void 0, "send_directive", ["on_choose - one"], []);
-            break;
-          case "two":
-            await runAction(ctx, void 0, "send_directive", ["on_choose - two"], []);
-            break;
-          }
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.set(ctx, "ent", "on_choose_fired", true);
-        }
-        if (!fired) {
-          await ctx.modules.set(ctx, "ent", "on_choose_fired", false);
-        }
-      }
-    },
-    "on_choose_if": {
-      "name": "on_choose_if",
-      "select": {
-        "graph": {
-          "events": {
-            "on_choose_if": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "thing"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("thing", matches[0]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = await ctx.applyFn(ctx.scope.get("=="), ctx, [
-          await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["fire"]),
-          "yes"
+  "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const noop = $stdlib["noop"];
+    const match = $stdlib["match"];
+    const send_directive = $ctx.module("custom")["send_directive"];
+    const getOnChooseFired = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("on_choose_fired");
+    });
+    const getNoActionFired = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("no_action_fired");
+    });
+    const getSentAttrs = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("sent_attrs");
+    });
+    const getSentName = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("sent_name");
+    });
+    const global0 = "g zero";
+    const global1 = "g one";
+    const $rs = new $env.SelectWhen.SelectWhen();
+    $rs.when($env.SelectWhen.e("events:bind", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var my_name = setting["my_name"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var my_name = $state.setting["my_name"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "bound",
+          { "name": my_name }
         ]);
-        if (fired) {
-          switch (ctx.scope.get("thing")) {
-          case "one":
-            await runAction(ctx, void 0, "send_directive", ["on_choose_if - one"], []);
-            break;
-          case "two":
-            await runAction(ctx, void 0, "send_directive", ["on_choose_if - two"], []);
-            break;
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:set_attr2", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("[Nn]0*(\\d*)", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "number") ? $stdlib.as($ctx, [
+        $event.data.attrs["number"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      m = new RegExp("(.*)", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var number = setting["number"] = matches[0];
+      var name = setting["name"] = matches[1];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var number = $state.setting["number"];
+      var name = $state.setting["name"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "set_attr2",
+          {
+            "number": number,
+            "name": name
           }
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.set(ctx, "ent", "on_choose_fired", true);
-        }
-        if (!fired) {
-          await ctx.modules.set(ctx, "ent", "on_choose_fired", false);
-        }
-      }
-    },
-    "on_every": {
-      "name": "on_every",
-      "select": {
-        "graph": { "events": { "on_every": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["on_every - one"], []);
-          await runAction(ctx, void 0, "send_directive", ["on_every - two"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "on_sample": {
-      "name": "on_sample",
-      "select": {
-        "graph": { "events": { "on_sample": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          switch (Math.floor(Math.random() * 3)) {
-          case 0:
-            await runAction(ctx, void 0, "send_directive", ["on_sample - one"], []);
-            break;
-          case 1:
-            await runAction(ctx, void 0, "send_directive", ["on_sample - two"], []);
-            break;
-          case 2:
-            await runAction(ctx, void 0, "send_directive", ["on_sample - three"], []);
-            break;
-          }
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "on_sample_if": {
-      "name": "on_sample_if",
-      "select": {
-        "graph": { "events": { "on_sample_if": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = await ctx.applyFn(ctx.scope.get("=="), ctx, [
-          await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["fire"]),
-          "yes"
         ]);
-        if (fired) {
-          switch (Math.floor(Math.random() * 3)) {
-          case 0:
-            await runAction(ctx, void 0, "send_directive", ["on_sample - one"], []);
-            break;
-          case 1:
-            await runAction(ctx, void 0, "send_directive", ["on_sample - two"], []);
-            break;
-          case 2:
-            await runAction(ctx, void 0, "send_directive", ["on_sample - three"], []);
-            break;
-          }
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
       }
-    },
-    "select_where": {
-      "name": "select_where",
-      "select": {
-        "graph": {
-          "events": {
-            "select_where": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var event_attrs = await ctx.modules.get(ctx, "event", "attrs");
-                Object.keys(event_attrs).forEach(function (attr) {
-                  if (!ctx.scope.has(attr))
-                    ctx.scope.set(attr, event_attrs[attr]);
-                });
-                if (!await ctx.applyFn(ctx.scope.get("match"), ctx, [
-                    ctx.scope.get("something"),
-                    new RegExp("^wat", "")
-                  ]))
-                  return false;
-                return true;
-              }
-            }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:get"), async function ($event, $state) {
+      const thing = await $stdlib["get"]($ctx, [
+        $event.data.attrs,
+        "thing"
+      ]);
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "get",
+          { "thing": thing }
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:noop"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:noop2"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(noop)($ctx, []);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:ifthen", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var my_name = setting["my_name"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var my_name = $state.setting["my_name"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = my_name;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["ifthen"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:on_fired", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var my_name = setting["my_name"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var my_name = $state.setting["my_name"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "on_fired",
+          { "previous_name": await $ctx.rsCtx.getEnt("on_fired_prev_name") }
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("on_fired_prev_name", my_name);
+      }
+    });
+    $rs.when($env.SelectWhen.e("events:on_choose", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "thing") ? $stdlib.as($ctx, [
+        $event.data.attrs["thing"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var thing = setting["thing"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var thing = $state.setting["thing"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired) {
+        switch (thing) {
+        case "one":
+          await $env.krl.assertAction(send_directive)($ctx, ["on_choose - one"]);
+          break;
+        case "two":
+          await $env.krl.assertAction(send_directive)($ctx, ["on_choose - two"]);
+          break;
+        }
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("on_choose_fired", true);
+      }
+      if (!$fired) {
+        await $ctx.rsCtx.putEnt("on_choose_fired", false);
+      }
+    });
+    $rs.when($env.SelectWhen.e("events:on_choose_if", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "thing") ? $stdlib.as($ctx, [
+        $event.data.attrs["thing"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var thing = setting["thing"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var thing = $state.setting["thing"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = await $stdlib["=="]($ctx, [
+        await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "fire"
+        ]),
+        "yes"
+      ]);
+      if ($fired) {
+        switch (thing) {
+        case "one":
+          await $env.krl.assertAction(send_directive)($ctx, ["on_choose_if - one"]);
+          break;
+        case "two":
+          await $env.krl.assertAction(send_directive)($ctx, ["on_choose_if - two"]);
+          break;
+        }
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("on_choose_fired", true);
+      }
+      if (!$fired) {
+        await $ctx.rsCtx.putEnt("on_choose_fired", false);
+      }
+    });
+    $rs.when($env.SelectWhen.e("events:on_every"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["on_every - one"]);
+        await $env.krl.assertAction(send_directive)($ctx, ["on_every - two"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:on_sample"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        switch (Math.floor(Math.random() * 3)) {
+        case 0:
+          await $env.krl.assertAction(send_directive)($ctx, ["on_sample - one"]);
+          break;
+        case 1:
+          await $env.krl.assertAction(send_directive)($ctx, ["on_sample - two"]);
+          break;
+        case 2:
+          await $env.krl.assertAction(send_directive)($ctx, ["on_sample - three"]);
+          break;
+        }
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:on_sample_if"), async function ($event, $state) {
+      var $fired = await $stdlib["=="]($ctx, [
+        await $stdlib["get"]($ctx, [
+          $event.data.attrs,
+          "fire"
+        ]),
+        "yes"
+      ]);
+      if ($fired) {
+        switch (Math.floor(Math.random() * 3)) {
+        case 0:
+          await $env.krl.assertAction(send_directive)($ctx, ["on_sample - one"]);
+          break;
+        case 1:
+          await $env.krl.assertAction(send_directive)($ctx, ["on_sample - two"]);
+          break;
+        case 2:
+          await $env.krl.assertAction(send_directive)($ctx, ["on_sample - three"]);
+          break;
+        }
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:select_where", async function ($event, $state) {
+      if (!await $env.krl.assertFunction(match)($ctx, [
+          await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "something"
+          ]),
+          new RegExp("^wat", "")
+        ]))
+        return { "match": false };
+      return {
+        "match": true,
+        "state": $state
+      };
+    }), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["select_where"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:where_match_0", async function ($event, $state) {
+      if (!await $env.krl.assertFunction(match)($ctx, [
+          await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "something"
+          ]),
+          new RegExp("0", "")
+        ]))
+        return { "match": false };
+      return {
+        "match": true,
+        "state": $state
+      };
+    }), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["where_match_0"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:where_match_null", async function ($event, $state) {
+      if (!await $env.krl.assertFunction(match)($ctx, [
+          await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "something"
+          ]),
+          new RegExp("null", "")
+        ]))
+        return { "match": false };
+      return {
+        "match": true,
+        "state": $state
+      };
+    }), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["where_match_null"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:where_match_false", async function ($event, $state) {
+      if (!await $env.krl.assertFunction(match)($ctx, [
+          await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "something"
+          ]),
+          new RegExp("false", "")
+        ]))
+        return { "match": false };
+      return {
+        "match": true,
+        "state": $state
+      };
+    }), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["where_match_false"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:where_match_empty_str", async function ($event, $state) {
+      if (!await $env.krl.assertFunction(match)($ctx, [
+          await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "something"
+          ]),
+          new RegExp("(?:)", "")
+        ]))
+        return { "match": false };
+      return {
+        "match": true,
+        "state": $state
+      };
+    }), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["where_match_empty_str"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:where_after_setting", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("(.*)", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "a") ? $stdlib.as($ctx, [
+        $event.data.attrs["a"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var a = setting["a"] = matches[0];
+      if (!await $stdlib["=="]($ctx, [
+          a,
+          "one"
+        ]))
+        return { "match": false };
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var a = $state.setting["a"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["where_after_setting"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:where_using_global", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("(.*)", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "a") ? $stdlib.as($ctx, [
+        $event.data.attrs["a"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var global0 = setting["global0"] = matches[0];
+      if (!await $stdlib["=="]($ctx, [
+          global0,
+          global1
+        ]))
+        return { "match": false };
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var global0 = $state.setting["global0"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["where_using_global"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:implicit_match_0", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("0", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "something") ? $stdlib.as($ctx, [
+        $event.data.attrs["something"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["implicit_match_0"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:implicit_match_null", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("null", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "something") ? $stdlib.as($ctx, [
+        $event.data.attrs["something"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["implicit_match_null"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:implicit_match_false", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("false", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "something") ? $stdlib.as($ctx, [
+        $event.data.attrs["something"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["implicit_match_false"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:implicit_match_empty_str", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("(?:)", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "something") ? $stdlib.as($ctx, [
+        $event.data.attrs["something"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["implicit_match_empty_str"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:no_action", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^yes$", "i").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "fired") ? $stdlib.as($ctx, [
+        $event.data.attrs["fired"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("no_action_fired", true);
+      }
+      if (!$fired) {
+        await $ctx.rsCtx.putEnt("no_action_fired", false);
+      }
+    });
+    $rs.when($env.SelectWhen.e("events:action_send", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var my_name = setting["my_name"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var my_name = $state.setting["my_name"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction($ctx.module("ctx")["event"])($ctx, {
+          "eci": $event.eci,
+          "domain": "events",
+          "name": "store_sent_name",
+          "attrs": {
+            "name": my_name,
+            "empty": [],
+            "r": new RegExp("hi", "i")
           }
+        });
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:store_sent_name", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var my_name = setting["my_name"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var my_name = $state.setting["my_name"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("sent_attrs", $event.data.attrs);
+        await $ctx.rsCtx.putEnt("sent_name", my_name);
+      }
+    });
+    $rs.when($env.SelectWhen.e("events:raise_set_name", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var my_name = setting["my_name"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var my_name = $state.setting["my_name"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name });
+      }
+    });
+    $rs.when($env.SelectWhen.e("events:raise_set_name_attr", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var my_name = setting["my_name"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var my_name = $state.setting["my_name"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name });
+      }
+    });
+    $rs.when($env.SelectWhen.e("events:raise_set_name_rid", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
+        $event.data.attrs["name"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var my_name = setting["my_name"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state) {
+      var my_name = $state.setting["my_name"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      const rid = "io.picolabs.events";
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name });
+      }
+    });
+    $rs.when($env.SelectWhen.e("events:event_eid"), async function ($event, $state) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "event_eid",
+          { "eid": $ctx.module("event")["eid"]($ctx) }
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    null;
+    return {
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
+        }
+      },
+      "query": {
+        "getOnChooseFired": function ($args) {
+          return getOnChooseFired($ctx, $args);
         },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["select_where"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "where_match_0": {
-      "name": "where_match_0",
-      "select": {
-        "graph": {
-          "events": {
-            "where_match_0": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var event_attrs = await ctx.modules.get(ctx, "event", "attrs");
-                Object.keys(event_attrs).forEach(function (attr) {
-                  if (!ctx.scope.has(attr))
-                    ctx.scope.set(attr, event_attrs[attr]);
-                });
-                if (!await ctx.applyFn(ctx.scope.get("match"), ctx, [
-                    ctx.scope.get("something"),
-                    new RegExp("0", "")
-                  ]))
-                  return false;
-                return true;
-              }
-            }
-          }
+        "getNoActionFired": function ($args) {
+          return getNoActionFired($ctx, $args);
         },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["where_match_0"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "where_match_null": {
-      "name": "where_match_null",
-      "select": {
-        "graph": {
-          "events": {
-            "where_match_null": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var event_attrs = await ctx.modules.get(ctx, "event", "attrs");
-                Object.keys(event_attrs).forEach(function (attr) {
-                  if (!ctx.scope.has(attr))
-                    ctx.scope.set(attr, event_attrs[attr]);
-                });
-                if (!await ctx.applyFn(ctx.scope.get("match"), ctx, [
-                    ctx.scope.get("something"),
-                    new RegExp("null", "")
-                  ]))
-                  return false;
-                return true;
-              }
-            }
-          }
+        "getSentAttrs": function ($args) {
+          return getSentAttrs($ctx, $args);
         },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["where_match_null"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "where_match_false": {
-      "name": "where_match_false",
-      "select": {
-        "graph": {
-          "events": {
-            "where_match_false": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var event_attrs = await ctx.modules.get(ctx, "event", "attrs");
-                Object.keys(event_attrs).forEach(function (attr) {
-                  if (!ctx.scope.has(attr))
-                    ctx.scope.set(attr, event_attrs[attr]);
-                });
-                if (!await ctx.applyFn(ctx.scope.get("match"), ctx, [
-                    ctx.scope.get("something"),
-                    new RegExp("false", "")
-                  ]))
-                  return false;
-                return true;
-              }
-            }
-          }
+        "getSentName": function ($args) {
+          return getSentName($ctx, $args);
         },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["where_match_false"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "where_match_empty_str": {
-      "name": "where_match_empty_str",
-      "select": {
-        "graph": {
-          "events": {
-            "where_match_empty_str": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var event_attrs = await ctx.modules.get(ctx, "event", "attrs");
-                Object.keys(event_attrs).forEach(function (attr) {
-                  if (!ctx.scope.has(attr))
-                    ctx.scope.set(attr, event_attrs[attr]);
-                });
-                if (!await ctx.applyFn(ctx.scope.get("match"), ctx, [
-                    await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["something"]),
-                    new RegExp("(?:)", "")
-                  ]))
-                  return false;
-                return true;
+        "__testing": function () {
+          return {
+            "queries": [
+              {
+                "name": "getOnChooseFired",
+                "args": []
+              },
+              {
+                "name": "getNoActionFired",
+                "args": []
+              },
+              {
+                "name": "getSentAttrs",
+                "args": []
+              },
+              {
+                "name": "getSentName",
+                "args": []
               }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["where_match_empty_str"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "where_after_setting": {
-      "name": "where_after_setting",
-      "select": {
-        "graph": {
-          "events": {
-            "where_after_setting": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var event_attrs = await ctx.modules.get(ctx, "event", "attrs");
-                Object.keys(event_attrs).forEach(function (attr) {
-                  if (!ctx.scope.has(attr))
-                    ctx.scope.set(attr, event_attrs[attr]);
-                });
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("(.*)", "").exec(getAttrString(ctx, "a"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("a", matches[0]);
-                if (!await ctx.applyFn(ctx.scope.get("=="), ctx, [
-                    ctx.scope.get("a"),
-                    "one"
-                  ]))
-                  return false;
-                return true;
+            ],
+            "events": [
+              {
+                "domain": "events",
+                "name": "bind",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "set_attr2",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "get",
+                "attrs": ["thing"]
+              },
+              {
+                "domain": "events",
+                "name": "noop",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "noop2",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "ifthen",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "on_fired",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "on_choose",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "on_choose_if",
+                "attrs": ["fire"]
+              },
+              {
+                "domain": "events",
+                "name": "on_every",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "on_sample",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "on_sample_if",
+                "attrs": ["fire"]
+              },
+              {
+                "domain": "events",
+                "name": "select_where",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "where_match_0",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "where_match_null",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "where_match_false",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "where_match_empty_str",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "where_after_setting",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "where_using_global",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "implicit_match_0",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "implicit_match_null",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "implicit_match_false",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "implicit_match_empty_str",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "no_action",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "action_send",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "store_sent_name",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "raise_set_name",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "raise_set_name_attr",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "raise_set_name_rid",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "event_eid",
+                "attrs": []
               }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["where_after_setting"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "where_using_global": {
-      "name": "where_using_global",
-      "select": {
-        "graph": {
-          "events": {
-            "where_using_global": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var event_attrs = await ctx.modules.get(ctx, "event", "attrs");
-                Object.keys(event_attrs).forEach(function (attr) {
-                  if (!ctx.scope.has(attr))
-                    ctx.scope.set(attr, event_attrs[attr]);
-                });
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("(.*)", "").exec(getAttrString(ctx, "a"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("global0", matches[0]);
-                if (!await ctx.applyFn(ctx.scope.get("=="), ctx, [
-                    ctx.scope.get("global0"),
-                    ctx.scope.get("global1")
-                  ]))
-                  return false;
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["where_using_global"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "implicit_match_0": {
-      "name": "implicit_match_0",
-      "select": {
-        "graph": {
-          "events": {
-            "implicit_match_0": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("0", "").exec(getAttrString(ctx, "something"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["implicit_match_0"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "implicit_match_null": {
-      "name": "implicit_match_null",
-      "select": {
-        "graph": {
-          "events": {
-            "implicit_match_null": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("null", "").exec(getAttrString(ctx, "something"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["implicit_match_null"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "implicit_match_false": {
-      "name": "implicit_match_false",
-      "select": {
-        "graph": {
-          "events": {
-            "implicit_match_false": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("false", "").exec(getAttrString(ctx, "something"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["implicit_match_false"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "implicit_match_empty_str": {
-      "name": "implicit_match_empty_str",
-      "select": {
-        "graph": {
-          "events": {
-            "implicit_match_empty_str": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("(?:)", "").exec(getAttrString(ctx, "something"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["implicit_match_empty_str"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "no_action": {
-      "name": "no_action",
-      "select": {
-        "graph": {
-          "events": {
-            "no_action": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^yes$", "i").exec(getAttrString(ctx, "fired"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.set(ctx, "ent", "no_action_fired", true);
-        }
-        if (!fired) {
-          await ctx.modules.set(ctx, "ent", "no_action_fired", false);
+            ]
+          };
         }
       }
-    },
-    "action_send": {
-      "name": "action_send",
-      "select": {
-        "graph": {
-          "events": {
-            "action_send": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("my_name", matches[0]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, "event", "send", [{
-              "eci": await ctx.modules.get(ctx, "meta", "eci"),
-              "eid": "0",
-              "domain": "events",
-              "type": "store_sent_name",
-              "attrs": {
-                "name": ctx.scope.get("my_name"),
-                "empty": [],
-                "r": new RegExp("hi", "i")
-              }
-            }], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "store_sent_name": {
-      "name": "store_sent_name",
-      "select": {
-        "graph": {
-          "events": {
-            "store_sent_name": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("my_name", matches[0]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.set(ctx, "ent", "sent_attrs", await ctx.modules.get(ctx, "event", "attrs"));
-          await ctx.modules.set(ctx, "ent", "sent_name", ctx.scope.get("my_name"));
-        }
-      }
-    },
-    "raise_set_name": {
-      "name": "raise_set_name",
-      "select": {
-        "graph": {
-          "events": {
-            "raise_set_name": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("my_name", matches[0]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.raiseEvent({
-            "domain": "events",
-            "type": "store_sent_name",
-            "attributes": { "name": ctx.scope.get("my_name") },
-            "for_rid": undefined
-          });
-        }
-      }
-    },
-    "raise_set_name_attr": {
-      "name": "raise_set_name_attr",
-      "select": {
-        "graph": {
-          "events": {
-            "raise_set_name_attr": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("my_name", matches[0]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.raiseEvent({
-            "domain": "events",
-            "type": "store_sent_name",
-            "attributes": { "name": ctx.scope.get("my_name") },
-            "for_rid": undefined
-          });
-        }
-      }
-    },
-    "raise_set_name_rid": {
-      "name": "raise_set_name_rid",
-      "select": {
-        "graph": {
-          "events": {
-            "raise_set_name_rid": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "name"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("my_name", matches[0]);
-                return true;
-              }
-            }
-          }
-        },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("rid", "io.picolabs.events");
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.raiseEvent({
-            "domain": "events",
-            "type": "store_sent_name",
-            "attributes": { "name": ctx.scope.get("my_name") },
-            "for_rid": ctx.scope.get("rid")
-          });
-        }
-      }
-    },
-    "event_eid": {
-      "name": "event_eid",
-      "select": {
-        "graph": { "events": { "event_eid": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "event_eid",
-            { "eid": await ctx.modules.get(ctx, "event", "eid") }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "ignored": {
-      "name": "ignored",
-      "rule_state": "inactive"
-    }
+    };
   }
 };

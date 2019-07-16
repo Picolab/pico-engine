@@ -20,6 +20,9 @@ test.cb('compiler', function (t) {
     basenames = [
       'chevron',
       'defaction',
+      // 'error',
+      // 'event-exp',
+      'events',
       'execution-order2',
       'execution-order',
       'expressions',

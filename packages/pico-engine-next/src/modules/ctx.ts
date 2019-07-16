@@ -1,3 +1,4 @@
+import * as request from "request";
 import * as krl from "../krl";
 
 const ctx: krl.Module = {
@@ -35,7 +36,43 @@ const ctx: krl.Module = {
     attrs: any
   ) {
     return this.rsCtx.raiseEvent(domain, name, attrs);
-  })
+  }),
+
+  event: krl.Action(
+    ["eci", "domain", "name", "attrs", "host"],
+    async function event(eci, domain, name, attrs = {}, host) {
+      if (host) {
+        const url = `${host}/c/${eci}/event/${domain}/${name}`;
+
+        request(
+          {
+            method: "POST",
+            url,
+            headers: { "content-type": "application/json" },
+            body: krl.encode(attrs)
+          },
+          (err, res, body) => {
+            if (err) {
+              this.log.error(err + ""); // TODO better handling
+            }
+            // ignore
+          }
+        );
+        return;
+      }
+
+      // fire-n-forget event not eventWait
+      const eid = await this.rsCtx.event({
+        eci,
+        domain,
+        name,
+        data: { attrs },
+        time: 0
+      });
+
+      return eid;
+    }
+  )
 };
 
 export default ctx;

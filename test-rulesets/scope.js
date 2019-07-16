@@ -71,15 +71,15 @@ module.exports = {
       var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
         $event.data.attrs["name"],
         "String"
-      ]));
+      ]) : "");
       if (!m)
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting["name0"] = matches[0];
+      var name0 = setting["name0"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -89,15 +89,15 @@ module.exports = {
       var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
         $event.data.attrs["name"],
         "String"
-      ]));
+      ]) : "");
       if (!m)
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting["name1"] = matches[0];
+      var name1 = setting["name1"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -126,15 +126,15 @@ module.exports = {
       var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
         $event.data.attrs["name"],
         "String"
-      ]));
+      ]) : "");
       if (!m)
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting["name0"] = matches[0];
+      var name0 = setting["name0"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -144,15 +144,15 @@ module.exports = {
       var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
         $event.data.attrs["name"],
         "String"
-      ]));
+      ]) : "");
       if (!m)
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting["name1"] = matches[0];
+      var name1 = setting["name1"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -181,15 +181,15 @@ module.exports = {
       var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
         $event.data.attrs["name"],
         "String"
-      ]));
+      ]) : "");
       if (!m)
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting["name1"] = matches[0];
+      var name1 = setting["name1"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -199,15 +199,15 @@ module.exports = {
       var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
         $event.data.attrs["name"],
         "String"
-      ]));
+      ]) : "");
       if (!m)
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting["name2"] = matches[0];
+      var name2 = setting["name2"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -238,15 +238,15 @@ module.exports = {
       var setting = {};
       var m;
       var j;
-      m = new RegExp("^(.*)$", "").exec($event.data.attrs["name"] == null ? "" : $stdlib.as($ctx, [
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "name") ? $stdlib.as($ctx, [
         $event.data.attrs["name"],
         "String"
-      ]));
+      ]) : "");
       if (!m)
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      setting["name"] = matches[0];
+      var name = setting["name"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -299,8 +299,13 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     return {
-      "event": async function (event) {
-        await $rs.send(event);
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
+        }
       },
       "query": {
         "g0": function ($args) {

@@ -9,7 +9,7 @@ module.exports = function (ast, comp, e) {
     throw new Error('Unsuported RuleAction.action')
   }
 
-  let actionFn = comp(ast.action)
+  let actionFn = comp(ast.action, { isGoingToBeApplied: true })
 
   let actionType = actionFn.$$Annotation
     ? actionFn.$$Annotation.type

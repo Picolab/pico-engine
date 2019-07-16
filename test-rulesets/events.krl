@@ -3,6 +3,7 @@ ruleset io.picolabs.events {
         shares getOnChooseFired, getNoActionFired, getSentAttrs, getSentName
     }
     global {
+        send_directive = custom:send_directive
         getOnChooseFired = function(){
             ent:on_choose_fired;
         }
@@ -38,7 +39,7 @@ ruleset io.picolabs.events {
         select when events get
 
         pre {
-            thing = event:attr("thing")
+            thing = event:attrs{"thing"}
         }
 
         send_directive("get", {"thing": thing});
@@ -86,7 +87,7 @@ ruleset io.picolabs.events {
     rule on_choose_if {
         select when events on_choose_if thing re#^(.*)$# setting(thing)
 
-        if event:attr("fire") == "yes" then
+        if event:attrs{"fire"} == "yes" then
         choose thing {
             one =>
                 send_directive("on_choose_if - one");
@@ -124,7 +125,7 @@ ruleset io.picolabs.events {
     rule on_sample_if {
         select when events on_sample_if
 
-        if event:attr("fire") == "yes" then
+        if event:attrs{"fire"} == "yes" then
         sample {
             send_directive("on_sample - one");
 
@@ -134,27 +135,27 @@ ruleset io.picolabs.events {
         }
     }
     rule select_where {
-        select when events select_where where something.match(re#^wat#)
+        select when events select_where where event:attrs{"something"}.match(re#^wat#)
 
         send_directive("select_where");
     }
     rule where_match_0 {
-        select when events where_match_0 where something.match(re#0#)
+        select when events where_match_0 where event:attrs{"something"}.match(re#0#)
 
         send_directive("where_match_0");
     }
     rule where_match_null {
-        select when events where_match_null where something.match(re#null#)
+        select when events where_match_null where event:attrs{"something"}.match(re#null#)
 
         send_directive("where_match_null");
     }
     rule where_match_false {
-        select when events where_match_false where something.match(re#false#)
+        select when events where_match_false where event:attrs{"something"}.match(re#false#)
 
         send_directive("where_match_false");
     }
     rule where_match_empty_str {
-        select when events where_match_empty_str where event:attr("something").match(re##)
+        select when events where_match_empty_str where event:attrs{"something"}.match(re##)
 
         send_directive("where_match_empty_str");
     }
@@ -199,17 +200,16 @@ ruleset io.picolabs.events {
     rule action_send {
         select when events action_send name re#^(.*)$# setting(my_name)
 
-        event:send({
-            "eci": meta:eci,
-            "eid": "0",
-            "domain": "events",
-            "type": "store_sent_name",
-            "attrs": {
+        ctx:event(
+            eci = event:eci,
+            domain = "events",
+            name = "store_sent_name",
+            attrs = {
                 "name": my_name,
                 "empty": [],
                 "r": re#hi#i
             }
-        });
+        );
     }
     rule store_sent_name {
         select when events store_sent_name name re#^(.*)$# setting(my_name)

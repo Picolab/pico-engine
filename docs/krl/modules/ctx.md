@@ -54,6 +54,13 @@ Raise an event to yourself. This event does not use a channel, only runs on the 
 - `name` - String - The event name.
 - `attrs` - Map - The event attributes.
 
+## ctx:eventWait(eci, domain, name, attrs = {})
+
+- `eci` - String - Which channel to signal the event to.
+- `domain` - String - The event domain.
+- `name` - String - The event name.
+- `attrs` - Map - The event attributes.
+
 ## ctx:eventQuery(eci, domain, name, attrs, rid, qname, args = {})
 
 Signal an event then query immediately after the event finished processing.
