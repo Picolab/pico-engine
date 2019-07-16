@@ -246,13 +246,13 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var name = setting["name"] = matches[0];
+      var $name$ = setting["name"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      var name = $state.setting["name"];
+      var $name$ = $state.setting["name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       const p0 = "prelude 0";
       const p1 = "prelude 1";
@@ -261,7 +261,7 @@ module.exports = {
         await $env.krl.assertAction(send_directive)($ctx, [
           "say",
           {
-            "name": name,
+            "name": $name$,
             "p0": p0,
             "p1": p1,
             "g0": g0
@@ -272,7 +272,7 @@ module.exports = {
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("ent_var_name", name);
+      await $ctx.rsCtx.putEnt("ent_var_name", $name$);
       await $ctx.rsCtx.putEnt("ent_var_p0", p0);
       await $ctx.rsCtx.putEnt("ent_var_p1", p1);
     });

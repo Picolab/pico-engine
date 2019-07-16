@@ -14,10 +14,10 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const hello = $env.krl.Function(["name"], async function (name = "default") {
+    const hello = $env.krl.Function(["name"], async function ($name$ = "default") {
       const msg = await $stdlib["+"]($ctx, [
         "Hello ",
-        name
+        $name$
       ]);
       return msg;
     });

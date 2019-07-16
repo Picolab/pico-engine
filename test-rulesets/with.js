@@ -1,5 +1,6 @@
 module.exports = {
   "rid": "io.picolabs.with",
+  "version": "draft",
   "meta": {
     "shares": [
       "add",
@@ -7,35 +8,78 @@ module.exports = {
       "foo"
     ]
   },
-  "global": async function (ctx) {
-    ctx.scope.set("add", ctx.mkFunction([
+  "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const add = $env.krl.Function([
       "a",
       "b"
-    ], async function (ctx, args) {
-      ctx.scope.set("a", args["a"]);
-      ctx.scope.set("b", args["b"]);
-      return await ctx.applyFn(ctx.scope.get("+"), ctx, [
-        ctx.scope.get("a"),
-        ctx.scope.get("b")
+    ], async function (a, b) {
+      return await $stdlib["+"]($ctx, [
+        a,
+        b
       ]);
-    }));
-    ctx.scope.set("inc", ctx.mkFunction(["n"], async function (ctx, args) {
-      ctx.scope.set("n", args["n"]);
-      return await ctx.applyFn(ctx.scope.get("add"), ctx, {
+    });
+    const inc = $env.krl.Function(["n"], async function (n) {
+      return await $env.krl.assertFunction(add)($ctx, {
         "0": 1,
-        "b": ctx.scope.get("n")
+        "b": n
       });
-    }));
-    ctx.scope.set("foo", ctx.mkFunction(["a"], async function (ctx, args) {
-      ctx.scope.set("a", args["a"]);
-      return await ctx.applyFn(ctx.scope.get("add"), ctx, {
-        "a": await ctx.applyFn(ctx.scope.get("*"), ctx, [
-          ctx.scope.get("a"),
+    });
+    const foo = $env.krl.Function(["a"], async function (a) {
+      return await $env.krl.assertFunction(add)($ctx, {
+        "b": a,
+        "a": await $stdlib["*"]($ctx, [
+          a,
           2
-        ]),
-        "b": ctx.scope.get("a")
+        ])
       });
-    }));
-  },
-  "rules": {}
+    });
+    const $rs = new $env.SelectWhen.SelectWhen();
+    return {
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
+        }
+        return $ctx.drainDirectives();
+      },
+      "query": {
+        "add": function ($args) {
+          return add($ctx, $args);
+        },
+        "inc": function ($args) {
+          return inc($ctx, $args);
+        },
+        "foo": function ($args) {
+          return foo($ctx, $args);
+        },
+        "__testing": function () {
+          return {
+            "queries": [
+              {
+                "name": "add",
+                "args": [
+                  "a",
+                  "b"
+                ]
+              },
+              {
+                "name": "inc",
+                "args": ["n"]
+              },
+              {
+                "name": "foo",
+                "args": ["a"]
+              }
+            ],
+            "events": []
+          };
+        }
+      }
+    };
+  }
 };

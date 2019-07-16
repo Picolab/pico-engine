@@ -11,8 +11,8 @@ ruleset io.picolabs.with {
         }
         foo = function(a){
             add(
-                a = a * 2,
                 b = a,
+                a = a * 2,
             );
         }
     }

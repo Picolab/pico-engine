@@ -86,14 +86,14 @@ module.exports = {
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
       var number = setting["number"] = matches[0];
-      var name = setting["name"] = matches[1];
+      var $name$ = setting["name"] = matches[1];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
       var number = $state.setting["number"];
-      var name = $state.setting["name"];
+      var $name$ = $state.setting["name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
@@ -101,7 +101,7 @@ module.exports = {
           "set_attr2",
           {
             "number": number,
-            "name": name
+            "name": $name$
           }
         ]);
       }

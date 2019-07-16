@@ -1,4 +1,5 @@
+const toId = require('to-js-identifier')
+
 module.exports = function jsIdent (id) {
-  // TODO normalize and ensure it's JS only
-  return id
+  return toId(id)
 }
