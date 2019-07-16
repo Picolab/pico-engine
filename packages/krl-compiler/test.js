@@ -20,6 +20,9 @@ test.cb('compiler', function (t) {
     basenames = [
       'chevron',
       'defaction',
+      'execution-order2',
+      'execution-order',
+      'expressions',
       'foreach',
       'guard-conditions',
       'hello-world',

@@ -3,6 +3,7 @@ ruleset io.picolabs.execution-order {
         shares getOrder
     }
     global {
+        send_directive = custom:send_directive
         getOrder = function(){
             ent:order;
         }

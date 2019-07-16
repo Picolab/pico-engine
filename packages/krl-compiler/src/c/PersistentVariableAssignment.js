@@ -22,12 +22,12 @@ module.exports = function (ast, comp, e) {
         comp.warn(ast.right.callee.object.loc, 'Performance Hint: to leverage indexes use `' + leftPVar + '{key} := value` instead of .put(key, value)')
       } else if (ast.right.callee.property.type === 'Identifier' && ast.right.callee.property.value === 'append') {
         // Use the optimized append
-        return e(';', e('acall', e('id', 'ctx.modules.append'), [
-          e('id', 'ctx'),
-          e('str', ast.left.domain, ast.left.loc),
-          e('str', ast.left.value, ast.left.loc),
-          e('array', comp(ast.right.args.args))
-        ]))
+        // TODO return e(';', e('acall', e('id', 'ctx.modules.append'), [
+        // TODO   e('id', 'ctx'),
+        // TODO   e('str', ast.left.domain, ast.left.loc),
+        // TODO   e('str', ast.left.value, ast.left.loc),
+        // TODO   e('array', comp(ast.right.args.args))
+        // TODO ]))
       }
     }
   }
