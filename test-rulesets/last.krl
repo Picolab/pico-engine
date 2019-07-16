@@ -8,7 +8,7 @@ ruleset io.picolabs.last {
         send_directive("foo");
 
         fired {
-            last if event:attr("stop") == "foo"
+            last if event:attrs{"stop"} == "foo"
         }
     }
     rule bar {
@@ -17,7 +17,7 @@ ruleset io.picolabs.last {
         send_directive("bar");
 
         fired {
-            last if event:attr("stop") == "bar"
+            last if event:attrs{"stop"} == "bar"
         }
     }
     rule baz {

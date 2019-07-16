@@ -29,6 +29,8 @@ test.cb('compiler', function (t) {
       'foreach',
       'guard-conditions',
       'hello-world',
+      'last2',
+      'last',
       'log',
       'scope'
     ]

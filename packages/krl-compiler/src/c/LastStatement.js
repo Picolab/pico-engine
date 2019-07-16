@@ -1,3 +1,3 @@
 module.exports = function (ast, comp, e) {
-  return e(';', e('call', e('id', 'ctx.stopRulesetExecution'), [e('id', 'ctx')]))
+  return e('return',  e('call', e('id', '$last'), []))
 }

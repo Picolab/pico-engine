@@ -1,111 +1,115 @@
 module.exports = {
   "rid": "io.picolabs.last",
+  "version": "draft",
   "meta": { "name": "testing postlude `last` statement" },
-  "rules": {
-    "foo": {
-      "name": "foo",
-      "select": {
-        "graph": { "last": { "all": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
+  "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const send_directive = $stdlib["send_directive"];
+    const $rs = new $env.SelectWhen.SelectWhen();
+    $rs.when($env.SelectWhen.e("last:all"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["foo"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        if (await $stdlib["=="]($ctx, [
+            await $stdlib["get"]($ctx, [
+              $event.data.attrs,
+              "stop"
+            ]),
+            "foo"
+          ]))
+          return $last();
+      }
+    });
+    $rs.when($env.SelectWhen.e("last:all"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["bar"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        if (await $stdlib["=="]($ctx, [
+            await $stdlib["get"]($ctx, [
+              $event.data.attrs,
+              "stop"
+            ]),
+            "bar"
+          ]))
+          return $last();
+      }
+    });
+    $rs.when($env.SelectWhen.e("last:all"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["baz"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        return $last();
+      }
+    });
+    $rs.when($env.SelectWhen.e("last:all"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, ["qux"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    return {
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["foo"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          if (await ctx.applyFn(ctx.scope.get("=="), ctx, [
-              await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
-              "foo"
-            ]))
-            ctx.stopRulesetExecution(ctx);
+      "query": {
+        "__testing": function () {
+          return {
+            "queries": [],
+            "events": [
+              {
+                "domain": "last",
+                "name": "all",
+                "attrs": ["stop"]
+              },
+              {
+                "domain": "last",
+                "name": "all",
+                "attrs": ["stop"]
+              },
+              {
+                "domain": "last",
+                "name": "all",
+                "attrs": []
+              },
+              {
+                "domain": "last",
+                "name": "all",
+                "attrs": []
+              }
+            ]
+          };
         }
       }
-    },
-    "bar": {
-      "name": "bar",
-      "select": {
-        "graph": { "last": { "all": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["bar"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          if (await ctx.applyFn(ctx.scope.get("=="), ctx, [
-              await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["stop"]),
-              "bar"
-            ]))
-            ctx.stopRulesetExecution(ctx);
-        }
-      }
-    },
-    "baz": {
-      "name": "baz",
-      "select": {
-        "graph": { "last": { "all": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["baz"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          ctx.stopRulesetExecution(ctx);
-        }
-      }
-    },
-    "qux": {
-      "name": "qux",
-      "select": {
-        "graph": { "last": { "all": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", ["qux"], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    }
+    };
   }
 };
