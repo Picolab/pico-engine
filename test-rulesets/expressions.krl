@@ -3,7 +3,6 @@ ruleset io.picolabs.expressions {
         shares obj, path1, path2, index1, index2, paramFnTest
     }
     global {
-        send_directive = custom:send_directive
         cond_exp_1 = true => 1 |
             2
         cond_exp_2 = false => 1 |

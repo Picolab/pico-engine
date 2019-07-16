@@ -6,8 +6,8 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const send_directive = $stdlib["send_directive"];
     const append = $stdlib["append"];
-    const send_directive = $ctx.module("custom")["send_directive"];
     const getOrder = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("order");
     });
@@ -73,6 +73,7 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
       "query": {
         "getOrder": function ($args) {

@@ -89,7 +89,8 @@ module.exports = function (ast, comp, e) {
         finalizer: e('block', [
           e(';', e('call', e('id', '$ctx.setEvent'), [e('null')]))
         ])
-      }
+      },
+      e('return', e('call', e('id', '$ctx.drainDirectives'), []))
     ]),
     query: e('obj', queries)
   })))

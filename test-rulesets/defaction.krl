@@ -3,7 +3,6 @@ ruleset io.picolabs.defaction {
         shares getSettingVal, add
     }
     global {
-        send_directive = custom:send_directive
         add = function(a, b){
             {
                 "type": "directive",

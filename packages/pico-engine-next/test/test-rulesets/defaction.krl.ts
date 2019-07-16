@@ -1,32 +1,19 @@
 import test from "ava";
+import { cleanDirectives } from "../../src/KrlCtx";
 import { startTestEngine } from "../helpers/startTestEngine";
-import * as krl from "../../src/krl";
 
 test("defaction.krl", async t => {
-  let directives: any[] = [];
-
-  const { pe, eci } = await startTestEngine(["defaction.krl"], {
-    modules: {
-      custom: {
-        send_directive: krl.Action(["name", "options"], (name, options) => {
-          const directive = { name, options };
-          directives.push(directive);
-          return directive;
-        })
-      }
-    }
-  });
+  const { pe, eci } = await startTestEngine(["defaction.krl"]);
 
   async function signal(domain: string, name: string, attrs: any = {}) {
-    directives = [];
-    await pe.pf.eventWait({
+    const resp = await pe.pf.eventWait({
       eci,
       domain,
       name,
       data: { attrs },
       time: 0
     });
-    return directives;
+    return cleanDirectives(resp.responses);
   }
 
   function query(name: string, args: any = {}) {
@@ -68,8 +55,8 @@ test("defaction.krl", async t => {
   t.deepEqual(await signal("defa", "chooser", {}), []);
 
   t.deepEqual(await signal("defa", "ifAnotB", { a: "true", b: "false" }), [
-    { name: "yes a", options: undefined },
-    { name: "not b", options: undefined }
+    { name: "yes a", options: {} },
+    { name: "not b", options: {} }
   ]);
 
   t.deepEqual(await signal("defa", "ifAnotB", { a: "true", b: "true" }), []);

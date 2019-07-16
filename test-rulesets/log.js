@@ -28,6 +28,7 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
       "query": {
         "__testing": function () {

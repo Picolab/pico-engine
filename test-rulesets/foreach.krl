@@ -6,7 +6,6 @@ ruleset io.picolabs.foreach {
         doubleThis = function(arr){
             [arr, arr];
         }
-        send_directive = custom:send_directive
     }
     rule basic {
         select when foreach basic

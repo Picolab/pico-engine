@@ -11,8 +11,8 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const send_directive = $stdlib["send_directive"];
     const noop = $stdlib["noop"];
-    const send_directive = $ctx.module("custom")["send_directive"];
     const add = $env.krl.Function([
       "a",
       "b"
@@ -379,6 +379,7 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
       "query": {
         "getSettingVal": function ($args) {

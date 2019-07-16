@@ -1,32 +1,22 @@
 import test from "ava";
+import { cleanDirectives } from "../../src/KrlCtx";
 import { startTestEngine } from "../helpers/startTestEngine";
-import * as krl from "../../src/krl";
 
 test("scope.krl", async t => {
-  let directives: any[] = [];
-
   const { pe, eci } = await startTestEngine(["scope.krl"], {
-    modules: {
-      custom: {
-        send_directive: krl.Action(["name", "options"], (name, options) => {
-          directives.push({ name, options });
-        })
-      }
-    },
     useEventInputTime: true
   });
 
   async function signal(domainName: string, attrs: any = {}, time: number = 0) {
     const [domain, name] = domainName.split(":");
-    directives = [];
-    await pe.pf.eventWait({
+    const resp = await pe.pf.eventWait({
       eci,
       domain,
       name,
       data: { attrs },
       time
     });
-    return directives;
+    return cleanDirectives(resp.responses);
   }
 
   function query(name: string, args: any = {}) {

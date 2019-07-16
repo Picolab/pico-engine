@@ -6,7 +6,6 @@ ruleset io.picolabs.guard-conditions {
         getB = function(){
             ent:b;
         }
-        send_directive = custom:send_directive
     }
     rule foo {
         select when foo a b re#^(.*)$# setting(b)

@@ -44,6 +44,7 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
       "query": {
         "hello": function ($args) {

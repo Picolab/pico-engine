@@ -3,7 +3,6 @@ ruleset io.picolabs.events {
         shares getOnChooseFired, getNoActionFired, getSentAttrs, getSentName
     }
     global {
-        send_directive = custom:send_directive
         getOnChooseFired = function(){
             ent:on_choose_fired;
         }

@@ -1,30 +1,19 @@
 import test from "ava";
-import * as krl from "../../src/krl";
+import { cleanDirectives } from "../../src/KrlCtx";
 import { startTestEngine } from "../helpers/startTestEngine";
 
 test("foreach.krl", async t => {
-  let directives: any[] = [];
-
-  const { pe, eci } = await startTestEngine(["foreach.krl"], {
-    modules: {
-      custom: {
-        send_directive: krl.Action(["name", "options"], (name, options) => {
-          directives.push({ name, options });
-        })
-      }
-    }
-  });
+  const { pe, eci } = await startTestEngine(["foreach.krl"]);
 
   async function signal(domain: string, name: string, attrs: any = {}) {
-    directives = [];
-    await pe.pf.eventWait({
+    const resp = await pe.pf.eventWait({
       eci,
       domain,
       name,
       data: { attrs },
       time: 0
     });
-    return directives;
+    return cleanDirectives(resp.responses);
   }
 
   t.deepEqual(await signal("foreach", "basic"), [

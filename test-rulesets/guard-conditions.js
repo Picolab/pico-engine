@@ -6,11 +6,11 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const send_directive = $stdlib["send_directive"];
     const match = $stdlib["match"];
     const getB = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("b");
     });
-    const send_directive = $ctx.module("custom")["send_directive"];
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("foo:a", async function ($event, $state) {
       var matches = [];
@@ -106,6 +106,7 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
       "query": {
         "getB": function ($args) {

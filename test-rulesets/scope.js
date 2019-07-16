@@ -18,6 +18,7 @@ module.exports = {
     const $stdlib = $ctx.module("stdlib");
     const reduce = $stdlib["reduce"];
     const map = $stdlib["map"];
+    const send_directive = $stdlib["send_directive"];
     const g0 = "global 0";
     const g1 = 1;
     const getVals = $env.krl.Function([], async function () {
@@ -64,7 +65,6 @@ module.exports = {
         ]);
       })
     ]);
-    const send_directive = $ctx.module("custom")["send_directive"];
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.or($env.SelectWhen.e("scope:eventOr0", async function ($event, $state) {
       var matches = [];
@@ -306,6 +306,7 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
       "query": {
         "g0": function ($args) {

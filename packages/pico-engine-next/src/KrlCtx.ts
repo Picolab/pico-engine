@@ -1,4 +1,5 @@
-import { RulesetContext, PicoEvent } from "pico-framework";
+import * as _ from "lodash";
+import { PicoEvent, RulesetContext } from "pico-framework";
 import * as SelectWhen from "select-when";
 import * as krl from "./krl";
 import { KrlLogger } from "./KrlLogger";
@@ -6,6 +7,15 @@ import * as modules from "./modules";
 
 export interface CurrentPicoEvent extends PicoEvent {
   eid: string;
+}
+
+export interface Directive {
+  name: string;
+  options: { [name: string]: any };
+}
+
+export function cleanDirectives(responses: any[]): Directive[] {
+  return _.compact(_.flattenDeep(responses));
 }
 
 export class RulesetEnvironment {
@@ -27,17 +37,29 @@ export class RulesetEnvironment {
 
     let currentEvent: CurrentPicoEvent | null = null;
 
+    let directives: Directive[] = [];
+
     return {
       rsCtx,
       log,
-      module(domain: string) {
+      module(domain) {
         return environment.modules[domain] || null;
       },
       getEvent() {
         return currentEvent;
       },
-      setEvent(event: CurrentPicoEvent | null) {
+      setEvent(event) {
         currentEvent = event;
+      },
+      addDirective(name, options) {
+        const directive: Directive = { name, options: options || {} };
+        directives.push(directive);
+        return directive;
+      },
+      drainDirectives() {
+        const tmp = directives;
+        directives = [];
+        return tmp;
       }
     };
   }
@@ -49,4 +71,6 @@ export interface KrlCtx {
   module(domain: string): krl.Module | null;
   getEvent(): CurrentPicoEvent | null;
   setEvent(event: CurrentPicoEvent | null): void;
+  addDirective(name: string, options: { [name: string]: any }): Directive;
+  drainDirectives(): Directive[];
 }

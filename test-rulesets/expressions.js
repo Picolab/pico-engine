@@ -15,7 +15,6 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive = $ctx.module("custom")["send_directive"];
     const cond_exp_1 = true ? 1 : 2;
     const cond_exp_2 = false ? 1 : 2;
     const obj = {
@@ -128,6 +127,7 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
       "query": {
         "obj": function ($args) {

@@ -6,6 +6,7 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const send_directive = $stdlib["send_directive"];
     const range = $stdlib["range"];
     const split = $stdlib["split"];
     const doubleThis = $env.krl.Function(["arr"], async function (arr) {
@@ -14,7 +15,6 @@ module.exports = {
         arr
       ];
     });
-    const send_directive = $ctx.module("custom")["send_directive"];
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("foreach:basic"), async function ($event, $state) {
       let $foreach0_pairs = $env.krl.toPairs([
@@ -268,6 +268,7 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
       "query": {
         "__testing": function () {

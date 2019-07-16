@@ -972,7 +972,11 @@ const stdlib: krl.Module = {
     return _.set(obj, path, val);
   }),
 
-  noop: krl.ActionFunction([], () => null)
+  noop: krl.ActionFunction([], () => null),
+
+  send_directive: krl.Action(["name", "options"], function(name, options) {
+    return this.addDirective(name, options);
+  })
 };
 
 export default stdlib;

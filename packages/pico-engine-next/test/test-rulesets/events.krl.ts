@@ -1,30 +1,19 @@
 import test from "ava";
-import * as krl from "../../src/krl";
+import { cleanDirectives } from "../../src/KrlCtx";
 import { startTestEngine } from "../helpers/startTestEngine";
 
 test("events.krl", async t => {
-  let directives: any[] = [];
-
-  const { pe, eci } = await startTestEngine(["events.krl"], {
-    modules: {
-      custom: {
-        send_directive: krl.Action(["name", "options"], (name, options) => {
-          directives.push({ name, options: options || {} });
-        })
-      }
-    }
-  });
+  const { pe, eci } = await startTestEngine(["events.krl"]);
 
   async function signal(domain: string, name: string, attrs: any = {}) {
-    directives = [];
-    await pe.pf.eventWait({
+    const resp = await pe.pf.eventWait({
       eci,
       domain,
       name,
       data: { attrs },
       time: 0
     });
-    return directives;
+    return cleanDirectives(resp.responses);
   }
 
   function query(name: string, args: any = {}) {
@@ -223,15 +212,14 @@ test("events.krl", async t => {
   t.deepEqual(await query("getSentName"), "Raised-3");
 
   /////////////////////////////////////////////////////////////////////////////
-  directives = [];
-  let eventResp = await pe.pf.eventWait({
+  const resp2 = await pe.pf.eventWait({
     eci,
     domain: "events",
     name: "event_eid",
     data: { attrs: {} },
     time: 0
   });
-  t.deepEqual(directives, [
-    { name: "event_eid", options: { eid: eventResp.eid } }
+  t.deepEqual(cleanDirectives(resp2.responses), [
+    { name: "event_eid", options: { eid: resp2.eid } }
   ]);
 });

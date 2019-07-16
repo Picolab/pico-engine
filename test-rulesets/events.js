@@ -13,9 +13,9 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const send_directive = $stdlib["send_directive"];
     const noop = $stdlib["noop"];
     const match = $stdlib["match"];
-    const send_directive = $ctx.module("custom")["send_directive"];
     const getOnChooseFired = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("on_choose_fired");
     });
@@ -865,6 +865,7 @@ module.exports = {
         } finally {
           $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
       "query": {
         "getOnChooseFired": function ($args) {
