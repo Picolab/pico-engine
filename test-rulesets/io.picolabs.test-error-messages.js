@@ -14,7 +14,6 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const infiniteRecursion = $stdlib["infiniteRecursion"];
     const hello = $env.krl.Function(["obj"], async function (obj) {
       return await $stdlib["+"]($ctx, [
         "Hello ",

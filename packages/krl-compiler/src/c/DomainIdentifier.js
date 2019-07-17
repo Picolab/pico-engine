@@ -22,10 +22,5 @@ module.exports = function (ast, comp, e, context) {
     return mod
   }
 
-  if (ast.domain === 'custom') {
-    // TODO remove
-    return mod
-  }
-
   return e('call', mod, [e('id', '$ctx')])
 }

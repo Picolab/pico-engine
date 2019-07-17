@@ -1,44 +1,64 @@
 module.exports = {
   "rid": "io.picolabs.js-module",
+  "version": "draft",
   "meta": { "shares": ["qFn"] },
-  "global": async function (ctx) {
-    ctx.scope.set("qFn", ctx.mkFunction(["a"], async function (ctx, args) {
-      ctx.scope.set("a", args["a"]);
-      return await ctx.applyFn(await ctx.modules.get(ctx, "myJsModule", "fun0"), ctx, {
-        "0": ctx.scope.get("a"),
+  "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const send_directive = $stdlib["send_directive"];
+    const qFn = $env.krl.Function(["a"], async function (a) {
+      return await $env.krl.assertFunction($ctx.module("myJsModule")["fun0"])($ctx, {
+        "0": a,
         "b": 2
       });
-    }));
-  },
-  "rules": {
-    "action": {
-      "name": "action",
-      "select": {
-        "graph": { "js_module": { "action": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, "myJsModule", "act", {
-            "0": 100,
-            "b": 30
-          }, ["val"]);
-          await runAction(ctx, void 0, "send_directive", [
-            "resp",
-            { "val": ctx.scope.get("val") }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
+    });
+    const $rs = new $env.SelectWhen.SelectWhen();
+    $rs.when($env.SelectWhen.e("js_module:action"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        var val = await $env.krl.assertAction($ctx.module("myJsModule")["act"])($ctx, {
+          "0": 100,
+          "b": 30
+        });
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "resp",
+          { "val": val }
+        ]);
       }
-    }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    return {
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
+        }
+        return $ctx.drainDirectives();
+      },
+      "query": {
+        "qFn": function ($args) {
+          return qFn($ctx, $args);
+        },
+        "__testing": function () {
+          return {
+            "queries": [{
+                "name": "qFn",
+                "args": ["a"]
+              }],
+            "events": [{
+                "domain": "js_module",
+                "name": "action",
+                "attrs": []
+              }]
+          };
+        }
+      }
+    };
   }
 };

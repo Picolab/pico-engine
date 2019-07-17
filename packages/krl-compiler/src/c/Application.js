@@ -24,6 +24,9 @@ module.exports = function (ast, comp, e) {
       // inject left-hand of the dot as the first argument
       args: [ast.callee.object].concat(ast.args.args)
     }))
+  } else if (ast.callee.type === 'DomainIdentifier') {
+    callee = comp(ast.callee, { isGoingToBeApplied: true })
+    args = comp(ast.args)
   } else {
     callee = comp(ast.callee)
     args = comp(ast.args)
