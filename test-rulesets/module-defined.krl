@@ -23,7 +23,7 @@ ruleset io.picolabs.module-defined {
 
             send_directive("getInfoAction", getInfo());
 
-            return {"name": getInfo()["name"]};
+            {"name": getInfo()["name"]};
         }
         sayHello = function(name){
             <<hello #{name}.>>;

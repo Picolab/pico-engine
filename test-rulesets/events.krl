@@ -204,10 +204,10 @@ ruleset io.picolabs.events {
             domain = "events",
             name = "store_sent_name",
             attrs = {
-                "name": my_name,
-                "empty": [],
-                "r": re#hi#i
-            }
+            "name": my_name,
+            "empty": [],
+            "r": re#hi#i
+        },
         );
     }
     rule store_sent_name {
