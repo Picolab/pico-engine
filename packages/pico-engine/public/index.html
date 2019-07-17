@@ -544,13 +544,22 @@
         <h2>{{ui.name}}</h2>
         <form class="js-ajax-form" action="/sky/event/{{eci}}/accept/sovrin/new_invitation">
         <table><tr>
-          <th align="right">Generated Invitation</th>
+          <th align="right">Local Invitation</th>
           <td><input id="invite" value="{{ui.invitation}}"></td>
           <td>
             <button type="button" onclick="$('#invite').select();document.execCommand('copy')">Copy</button>
             <button type="button" onclick="window.open($('#invite').val(),'invitation')">View</button>
           </td>
         </tr><tr>
+{{#if ui.routerUI.invitationViaRouter}}
+          <th align="right">Invitation via {{ui.routerUI.routerName}}</th>
+          <td><input id="inviteVia" value="{{ui.routerUI.invitationViaRouter}}"></td>
+          <td>
+            <button type="button" onclick="$('#inviteVia').select();document.execCommand('copy')">Copy</button>
+            <button type="button" onclick="window.open($('#inviteVia').val(),'invitation')">View</button>
+          </td>
+        </tr><tr>
+{{/if}}
           <th align="right">Received Invitation</th>
           <td><input type="text" name="url" placeholder="paste invitation URL here"></td>
           <td><button type="submit">Accept</button></td>
@@ -562,7 +571,7 @@
           {{#each ui.connections}}
             <li id="{{my_did}}">
               <input type="checkbox" id="connection-{{@index}}">
-              <label for="connection-{{@index}}">{{label}}</label>
+              <label for="connection-{{@index}}">{{label}}{{#if their_routing}} (via {{routerName}}){{/if}}</label>
               <div class="connection-detail">
               <h4>My DID: {{my_did}}</h4>
               <h4>Their DID: {{their_did}}</h4>

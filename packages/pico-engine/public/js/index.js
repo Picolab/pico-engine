@@ -498,6 +498,13 @@ $(document).ready(function () {
           d = theDB.pico_id + '-Policies'
           location.hash = d
         } else if (tabName === 'agent') {
+          if (theDB.ui && theDB.ui.routerUI && theDB.ui.routerUI.routerName) {
+            for (var ic=0; ic < theDB.ui.connections.length; ++ic) {
+              if (theDB.ui.connections[ic].their_routing.length) {
+                theDB.ui.connections[ic].routerName = theDB.ui.routerUI.routerName
+              }
+            }
+          }
           theDB.text = JSON.stringify(theDB.ui, undefined, 2)
           d = theDB.pico_id + '-Agent'
           if (whereSpec.length > 2) {
