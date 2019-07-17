@@ -326,7 +326,6 @@ $(document).ready(function () {
             eci: eci,
             pico_id: thePicoInp.id,
             ui: ui,
-            text: JSON.stringify(ui, undefined, 2)
           })
         }).fail(function () {
           callback(null, agentUI)
@@ -374,7 +373,6 @@ $(document).ready(function () {
           theDB.authenticatedOwner = theDB.isOwner
           theDB.passwordAuthenticated = theDB.pswdAuth
         }
-        $theSection.html(tabTemplate(theDB))
         var d = ''
         if (tabName === 'rulesets') {
           d = theDB.pico_id + '-Rulesets'
@@ -497,6 +495,7 @@ $(document).ready(function () {
           d = theDB.pico_id + '-Policies'
           location.hash = d
         } else if (tabName === 'agent') {
+          theDB.text = JSON.stringify(theDB.ui, undefined, 2)
           d = theDB.pico_id + '-Agent'
           if (whereSpec.length > 2) {
             var $theLi = $('li#' + whereSpec[2])
@@ -546,6 +545,7 @@ $(document).ready(function () {
             )
           })
         }
+        $theSection.html(tabTemplate(theDB))
         $theSection.find('.js-ajax-form').submit(function (e) {
           e.preventDefault()
           $.getJSON($(this).attr('action'), formToJSON(this), function () {
