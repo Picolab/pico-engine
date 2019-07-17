@@ -13,9 +13,19 @@ module.exports = function (ast, comp, e) {
     if (ast.object.type === 'DomainIdentifier' &&
             (ast.object.domain === 'ent')
     ) {
-      return e('acall', e('id', '$ctx.rsCtx.getEnt'), [
-        e('str', ast.object.value),
-        comp(ast.property)
+      // TODO use optimized version
+      // TODO return e('acall', e('id', '$ctx.rsCtx.getEnt'), [
+      // TODO   e('str', ast.object.value),
+      // TODO   comp(ast.property)
+      // TODO ])
+      return e('acall', e('id', '$stdlib.get'), [
+        e('id', '$ctx'),
+        e('array', [
+          e('acall', e('id', '$ctx.rsCtx.getEnt'), [
+            e('str', ast.object.value)
+          ]),
+          comp(ast.property)
+        ])
       ])
     }
     if (ast.object.type === 'DomainIdentifier' &&

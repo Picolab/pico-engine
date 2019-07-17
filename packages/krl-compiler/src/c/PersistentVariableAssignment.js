@@ -37,10 +37,21 @@ module.exports = function (ast, comp, e) {
   var key = e('str', ast.left.value, ast.left.loc)
 
   if (ast.path_expression) {
-    key = e('obj', {
-      key: key,
-      path: comp(ast.path_expression)
-    })
+    // TODO use optimized version
+    // TODO key = e('obj', {
+    // TODO   key: key
+    // TODO })
+    return e(';', e('acall', e('id', '$ctx.rsCtx.putEnt'), [
+      key,
+      e('acall', e('id', '$stdlib.set'), [
+        e('id', '$ctx'),
+        e('array', [
+          e('acall', e('id', '$ctx.rsCtx.getEnt'), [key]),
+          comp(ast.path_expression),
+          valueToStore
+        ])
+      ])
+    ]))
   }
 
   return e(';', e('acall', e('id', '$ctx.rsCtx.putEnt'), [

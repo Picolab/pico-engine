@@ -32,6 +32,7 @@ test.cb('compiler', function (t) {
       'last2',
       'last',
       'log',
+      'persistent',
       'scope'
     ]
 

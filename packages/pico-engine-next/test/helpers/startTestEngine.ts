@@ -4,6 +4,19 @@ import * as tempDir from "temp-dir";
 import { PicoEngineConfiguration, startEngine } from "../../src/index";
 import { cleanDirectives } from "../../src/KrlCtx";
 import { readTestKrl } from "./readTestKrl";
+import { ChannelConfig } from "pico-framework";
+
+export const allowAllChannelConf: ChannelConfig = {
+  tags: ["allow-all"],
+  eventPolicy: {
+    allow: [{ domain: "*", name: "*" }],
+    deny: []
+  },
+  queryPolicy: {
+    allow: [{ rid: "*", name: "*" }],
+    deny: []
+  }
+};
 
 export async function startTestEngine(
   testFiles: string[] = [],
@@ -16,17 +29,7 @@ export async function startTestEngine(
     })
   );
 
-  const chann = await pe.pf.rootPico.newChannel({
-    tags: ["allow-all"],
-    eventPolicy: {
-      allow: [{ domain: "*", name: "*" }],
-      deny: []
-    },
-    queryPolicy: {
-      allow: [{ rid: "*", name: "*" }],
-      deny: []
-    }
-  });
+  const chann = await pe.pf.rootPico.newChannel(allowAllChannelConf);
   const eci = chann.id;
 
   await Promise.all(
@@ -37,21 +40,25 @@ export async function startTestEngine(
     })
   );
 
-  async function signal(
-    domain: string,
-    name: string,
-    attrs: any = {},
-    time: number = 0
-  ) {
-    const resp = await pe.pf.eventWait({
-      eci,
-      domain,
-      name,
-      data: { attrs },
-      time
-    });
-    return cleanDirectives(resp.responses);
+  function mkSignal(eci: string) {
+    return async function(
+      domain: string,
+      name: string,
+      attrs: any = {},
+      time: number = 0
+    ) {
+      const resp = await pe.pf.eventWait({
+        eci,
+        domain,
+        name,
+        data: { attrs },
+        time
+      });
+      return cleanDirectives(resp.responses);
+    };
   }
+
+  const signal = mkSignal(eci);
 
   function mkQuery(rid: string) {
     return function(name: string, args: any = {}) {
@@ -64,5 +71,5 @@ export async function startTestEngine(
     };
   }
 
-  return { pe, eci, signal, mkQuery };
+  return { pe, eci, signal, mkSignal, mkQuery };
 }
