@@ -320,14 +320,17 @@ $(document).ready(function () {
           callback(null, policyUI)
         })
       } else if (tabName === 'agent') {
-        var agentUI = { disabled: true, eci: eci, pico_id: thePicoInp.id }
+        var agentUI = { eci: eci, pico_id: thePicoInp.id }
         $.getJSON('/sky/cloud/' + eci + '/org.sovrin.agent/ui', function (ui) {
-          callback(null, {
-            eci: eci,
-            pico_id: thePicoInp.id,
-            ui: ui,
+          agentUI.ui = ui
+          $.getJSON('/sky/cloud/'+eci+'/org.sovrin.edge/ui',function(rui){
+            agentUI.ui.routerUI = rui
+            callback(null, agentUI)
+          }).fail(function(){
+            callback(null, agentUI)
           })
         }).fail(function () {
+          agentUI.disabled = true 
           callback(null, agentUI)
         })
       } else {
