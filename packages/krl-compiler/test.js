@@ -33,7 +33,9 @@ test.cb('compiler', function (t) {
       'last',
       'log',
       'persistent',
-      'scope'
+      'scope',
+      'within',
+      'with'
     ]
 
     λ.each(basenames, function (basename, next) {

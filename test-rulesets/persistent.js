@@ -20,7 +20,10 @@ module.exports = {
       return await $ctx.rsCtx.getEnt("user");
     });
     const getUserFirstname = $env.krl.Function([], async function () {
-      return await $ctx.rsCtx.getEnt("user", ["firstname"]);
+      return await $stdlib.get($ctx, [
+        await $ctx.rsCtx.getEnt("user"),
+        ["firstname"]
+      ]);
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("store:name", async function ($event, $state) {
@@ -105,7 +108,7 @@ module.exports = {
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await ctx.modules.del(ctx, "ent", "user");
+      await $ctx.rsCtx.delEnt("user");
     });
     return {
       "event": async function (event, eid) {

@@ -17,6 +17,7 @@ var compByType = _.fromPairs(_.map([
   'DomainIdentifier',
   'ErrorStatement',
   'EventExpression',
+  'EventGroupOperator',
   'EventOperator',
   'EventWithin',
   'ExpressionStatement',
