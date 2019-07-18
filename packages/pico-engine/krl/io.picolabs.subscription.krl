@@ -490,6 +490,41 @@ ent:established [
       raise wrangler event "outbound_subscription_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
     }
   }
+  
+  rule sendEventToSubCheck {
+    select when wrangler send_event_on_subs
+    pre {
+      subID = event:attr("subID")
+      Tx_role = event:attr("Tx_role")
+      Rx_role = event:attr("Rx_role")
+      establishedWithID = subID => established("Id", subID) | []
+      establishedWithTx_role = Tx_role => established("Tx_role", Tx_role) | []
+      establishedWithRx_role = Rx_role => established("Rx_role", Rx_role) | []
+      subs = establishedWithID.append(establishedWithTx_role).append(establishedWithRx_role)
+    }
+    if subs.length() > 0 && event:attr("domain") && event:attr("type") then
+    noop()
+    fired {
+      raise wrangler event "send_event_to_subs" attributes event:attrs.put("subs", subs.klog("subs is"))
+    } else {
+      raise wrangler event "failed_to_send_event_to_sub" attributes {
+        "foundSubsToSendTo":subs.length() > 0,
+        "domainGiven":event:attr("domain").as("Boolean"),
+        "typeGiven":event:attr("type").as("Boolean"),
+      }
+    }
+  }
+  
+  /*Given a valid Sub ID get the name of the other pico*/
+  rule send_event_to_subs {
+    select when wrangler send_event_to_subs
+    foreach event:attr("subs") setting (sub)
+    pre {
+      tx = sub{"Tx"}                                                                       // Get the "Tx" channel to send our query to
+      host = sub{"Tx_host"}                                                                // See if the pico is on a different host. If it isn't use this engine's host
+    }
+    event:send({"eci":tx, "domain":event:attr("domain"), "type":event:attr("type"), "attrs":event:attr("attrs").defaultsTo({})}, host)
+  }
 
   rule autoAccept {
     select when wrangler inbound_pending_subscription_added
