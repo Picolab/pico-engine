@@ -33,10 +33,10 @@ ruleset wrangler_tests_runner {
         "prototype":<<>>,
         "listeners": {
           "wrangler:child_initialized" : {
-             "expressions": [
+              "expressions": [
                 ["Child name should exist", <<wrangler:children(event:attrs{"name"})>>]
-               ,["Pico should only have one child", <<wrangler:children().length() == 1>>]
-               ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "blue"})>>]
+                ,["Pico should only have one child", <<wrangler:children().length() == 1>>]
+                ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "blue"})>>]
               ]
           }
         },
@@ -53,10 +53,10 @@ ruleset wrangler_tests_runner {
         "prototype":<<>>,
         "listeners": {
           "wrangler:child_initialized" : {
-             "expressions": [
+              "expressions": [
                 ["Child name should exist", <<wrangler:children(event:attrs{"name"})>>]
-               ,["Pico should only have one child", <<wrangler:children().length() == 1>>]
-               ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "blue"})>>]
+                ,["Pico should only have one child", <<wrangler:children().length() == 1>>]
+                ,["Child name should be blue", <<wrangler:children().any(function(child){child{"name"} == "blue"})>>]
               ]
           }
         },
@@ -183,26 +183,26 @@ ruleset wrangler_tests_runner {
         ],
         "global":[]
       },
-      "Ruleset installation from URL": {
-        "kickoff_events": {
-          "wrangler:install_rulesets_requested":{"url":"https://github.com/Picolab/Manifold/raw/master/Manifold_krl/io.picolabs.wovyn_base", "co_id":"test_id"}
-        },
-        "start_state": <<>>,
-        "listeners": {
-          "wrangler:ruleset_added" : { 
-             "expressions": [
-                ["Installed ruleset should be in rids attribute", <<event:attrs{"rids"}.any(function(rid){rid == "wovyn_base"})>>]
-               ,["Correlation ID should be passed along", <<event:attrs{"co_id"} == "test_id">>]
-               ,["Direct engine query should yield ruleset as installed", <<engine:listInstalledRIDs().any(function(rid){rid == "wovyn_base"})>>]
-              ],
-              "eventex":<<where not event:attr("parent_eci")>> // Where not parent_eci attr means this wont be triggered by the rule that installs the test ruleset
-          }
-        },
-        "meta": [
-          "use module io.picolabs.wrangler alias wrangler"
-        ],
-        "global":[]
-      },
+      // "Ruleset installation from URL": {
+      //   "kickoff_events": {
+      //     "wrangler:install_rulesets_requested":{"url":"https://github.com/Picolab/Manifold/raw/master/Manifold_krl/io.picolabs.wovyn_base", "co_id":"test_id"}
+      //   },
+      //   "start_state": <<>>,
+      //   "listeners": {
+      //     "wrangler:ruleset_added" : { 
+      //       "expressions": [
+      //           ["Installed ruleset should be in rids attribute", <<event:attrs{"rids"}.any(function(rid){rid == "wovyn_base"})>>]
+      //         ,["Correlation ID should be passed along", <<event:attrs{"co_id"} == "test_id">>]
+      //         ,["Direct engine query should yield ruleset as installed", <<engine:listInstalledRIDs().any(function(rid){rid == "wovyn_base"})>>]
+      //         ],
+      //         "eventex":<<where not event:attr("parent_eci")>> // Where not parent_eci attr means this wont be triggered by the rule that installs the test ruleset
+      //     }
+      //   },
+      //   "meta": [
+      //     "use module io.picolabs.wrangler alias wrangler"
+      //   ],
+      //   "global":[]
+      // },
       "Attempt to install invalid ruleset should inform": {
         "kickoff_events": {
           "wrangler:install_rulesets_requested":{"rids":"io.picolabs.policy;nonexistent_ruleset_ajsdjdk", "co_id":"test_id"}
@@ -464,7 +464,7 @@ ruleset wrangler_tests_runner {
       ent:progress_report := event:attr("testsOverview")
     }
   }
-  
+
   rule tests_finished {
     select when tests tests_finished
     always {
