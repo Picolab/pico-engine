@@ -505,7 +505,7 @@ ent:established [
     if subs.length() > 0 && event:attr("domain") && event:attr("type") then
     noop()
     fired {
-      raise wrangler event "send_event_to_subs" attributes event:attrs.put("subs", subs.klog("subs is"))
+      raise wrangler event "send_event_to_subs" attributes event:attrs.put("subs", subs)
     } else {
       raise wrangler event "failed_to_send_event_to_sub" attributes {
         "foundSubsToSendTo":subs.length() > 0,
