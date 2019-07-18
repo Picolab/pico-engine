@@ -515,7 +515,6 @@ ent:established [
     }
   }
   
-  /*Given a valid Sub ID get the name of the other pico*/
   rule send_event_to_subs {
     select when wrangler send_event_to_subs
     foreach event:attr("subs") setting (sub)
