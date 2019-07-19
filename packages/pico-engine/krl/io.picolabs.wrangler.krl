@@ -562,7 +562,8 @@ ruleset io.picolabs.wrangler {
       send_directive("Pico_Created", {"pico":child});
     }
     fired {
-      ent:wrangler_children{child{"id"}} := child; 
+      ent:wrangler_children{child{"id"}} := child;
+      raise wrangler event "new_child_created" attributes event:attrs.put(child)
     }
     else{
       raise wrangler event "child_creation_failure"
