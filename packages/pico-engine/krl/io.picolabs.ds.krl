@@ -72,8 +72,8 @@ ruleset io.picolabs.ds {
   rule updateDomain {
     select when wrangler ds_assign_map_to_domain
     pre {
-      domain = event:attr("domain").klog("DOMAIN IS")
-      newMap = event:attr("map").klog("MAP IS")
+      domain = event:attr("domain")
+      newMap = event:attr("map")
       domainIsString = domain.typeof() == "String"
       newMapIsMap = newMap.typeof() == "Map"
     }
