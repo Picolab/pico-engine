@@ -74,6 +74,16 @@ $(document).ready(function () {
   }
   var capTemplate = Handlebars.compile($('#capabilities-template').html())
   var rulesetVarsTemplate = Handlebars.compile($('#rulesets-template-vars').html())
+  var uiTemplate = Handlebars.compile($('#the-template').html())
+  var aboutTemplate = Handlebars.compile($('#about-template').html())
+  var rulesetsTemplate = Handlebars.compile($('#rulesets-template').html())
+  var channelsTemplate = Handlebars.compile($('#channels-template').html())
+  var policiesTemplate = Handlebars.compile($('#policies-template').html())
+  var subscriptionsTemplate = Handlebars.compile($('#subscriptions-template').html())
+  var loggingTemplate = Handlebars.compile($('#logging-template').html())
+  var testingTemplate = Handlebars.compile($('#testing-template').html())
+  var agentTemplate = Handlebars.compile($('#agent-template').html())
+
   $.getJSON('/api/legacy-ui-data-dump', function (dbDump) {
     var dragstop = function (event, ui) {
       var nodeId = ui.helper[0].getAttribute('id')
@@ -351,9 +361,6 @@ $(document).ready(function () {
         .html()
         .toLowerCase()
         .trim()
-      var tabTemplate = Handlebars.compile(
-        $('#' + tabName + '-template').html()
-      )
       var $theSection = $(this)
         .parent()
         .next('.pico-section')
@@ -378,6 +385,7 @@ $(document).ready(function () {
         }
         var d = ''
         if (tabName === 'rulesets') {
+          $theSection.html(rulesetsTemplate(theDB))
           d = theDB.pico_id + '-Rulesets'
           location.hash = d
           $theSection.on('change', '.js-toggle-pvars', function (e) {
@@ -455,6 +463,7 @@ $(document).ready(function () {
             })
           })
         } else if (tabName === 'testing') {
+          $theSection.html(testingTemplate(theDB))
           $('.testing-rids li input').change(function (e) {
             $('#test-results pre').html('')
             if (this.checked) {
@@ -479,6 +488,7 @@ $(document).ready(function () {
           })
           location.hash = theDB.pico_id + '-Testing'
         } else if (tabName === 'about') {
+          $theSection.html(aboutTemplate(theDB))
           $theSection
             .find('.use-minicolors')
             .minicolors({
@@ -489,12 +499,15 @@ $(document).ready(function () {
           d = theDB.pico_id + '-About'
           location.hash = d
         } else if (tabName === 'channels') {
+          $theSection.html(channelsTemplate(theDB))
           d = theDB.pico_id + '-Channels'
           location.hash = d
         } else if (tabName === 'subscriptions') {
+          $theSection.html(subscriptionsTemplate(theDB))
           d = theDB.pico_id + '-Subscriptions'
           location.hash = d
         } else if (tabName === 'policies') {
+          $theSection.html(policiesTemplate(theDB))
           d = theDB.pico_id + '-Policies'
           location.hash = d
         } else if (tabName === 'agent') {
@@ -506,6 +519,7 @@ $(document).ready(function () {
             }
           }
           theDB.text = JSON.stringify(theDB.ui, undefined, 2)
+          $theSection.html(agentTemplate(theDB))
           d = theDB.pico_id + '-Agent'
           if (whereSpec.length > 2) {
             var $theLi = $('li#' + whereSpec[2])
@@ -527,6 +541,7 @@ $(document).ready(function () {
             }
           })
         } else if (tabName === 'logging') {
+          $theSection.html(loggingTemplate(theDB))
           if (theDB.status) {
             $('#logging-list').show()
             if (theDB.logs) {
@@ -555,7 +570,6 @@ $(document).ready(function () {
             )
           })
         }
-        $theSection.html(tabTemplate(theDB))
         $theSection.find('.js-ajax-form').submit(function (e) {
           e.preventDefault()
           $.getJSON($(this).attr('action'), formToJSON(this), function () {
@@ -599,7 +613,6 @@ $(document).ready(function () {
         })
       })
     }
-    var mpl = Handlebars.compile($('#the-template').html())
     var findEciById = function (id) {
       return dbDump.pico[id].admin_eci
     }
@@ -610,7 +623,7 @@ $(document).ready(function () {
       if (authenticated) {
         data.authenticated = true
       }
-      $('body').html(mpl(data))
+      $('body').html(uiTemplate(data))
       document.title = $('body h1').html()
       if (data.picos && data.picos[0]) {
         $('#user-logout span').html(data.picos[0].dname)
