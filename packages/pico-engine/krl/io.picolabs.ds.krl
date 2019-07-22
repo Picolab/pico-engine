@@ -14,7 +14,8 @@ ruleset io.picolabs.ds {
       , { "name": "allDomainData", "args": [ "domain" ] }
       , { "name": "viewStore", "args": [] }
       ] , "events":
-      [ { "domain": "wrangler", "type": "ds_update", "attrs":["domain","key","value"] }
+      [ { "domain": "wrangler", "type": "ds_update", "attrs":["domain","key","value"] },
+        { "domain": "wrangler", "type": "ds_clear_data", "attrs":["domain","key"] }
       //, { "domain": "d2", "type": "t2", "attrs": [ "a1", "a2" ] }
       ]
     }
@@ -40,6 +41,28 @@ ruleset io.picolabs.ds {
     }
   }
   
+  rule validateUpdateDataParams {
+    select when wrangler ds_update or
+                wrangler ds_clear_data
+    pre {
+      domain = event:attr("domain")
+      key = event:attr("key")
+      keyIsString = key && key.typeof() == "String"
+      domainIsString = domain && domain.typeof() == "String"
+    }
+    if keyIsString && domainIsString then
+    noop()
+    notfired {
+      raise wrangler event "unable_to_update_ds" attributes event:attrs.put({
+        "domainGiven": domain.as("Boolean"),
+        "keyGiven": key.as("Boolean"),
+        "keyIsString": keyIsString,
+        "domainIsString": domainIsString
+      });
+      last;
+    }
+  }
+  
   rule updateData {
     select when wrangler ds_update
     pre {
@@ -58,14 +81,24 @@ ruleset io.picolabs.ds {
        "key":key,
        "value":value
      })
-    } else {
-      raise wrangler event "unable_to_update_ds" attributes event:attrs.put({
-        "domainGiven": domain.as("Boolean"),
-        "keyGiven": key.as("Boolean"),
-        "valueGiven": value.as("Boolean"),
-        "keyIsString": keyIsString,
-        "domainIsString": domainIsString
-      })
+    }
+  }
+  
+  /*For use with testing tab. Setting the value to null in updateData works as well*/
+  rule clearData {
+    select when wrangler ds_clear_data
+    pre {
+      domain = event:attr("domain")
+      key = event:attr("key")
+      value = event:attr("value")
+    }
+    always {
+      clear ent:ds{[domain, key]};
+      raise wrangler event "ds_updated" attributes event:attrs.put({
+       "domain":domain,
+       "key":key,
+       "value":null
+     })
     }
   }
   
@@ -86,5 +119,6 @@ ruleset io.picolabs.ds {
       })
     }
   }
+
   
 }
