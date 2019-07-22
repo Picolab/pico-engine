@@ -46,7 +46,7 @@ ruleset io.picolabs.ds {
       domain = event:attr("domain")
       key = event:attr("key")
       value = event:attr("value")
-      keyIsString = key && value.typeof() == "String"
+      keyIsString = key && key.typeof() == "String"
       domainIsString = domain && domain.typeof() == "String"
     }
     if keyIsString && domainIsString then
