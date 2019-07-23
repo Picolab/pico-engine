@@ -86,20 +86,21 @@ ruleset io.picolabs.wrangler {
      QUERY_SELF_INVALID_HTTP_MAP = {"status_code": 400, 
                                     "status_line":"HTTP/1.1 400 Pico should not query itself",
                                     "content": "{\"error\":\"Pico should not query itself\"}"};
-     skyQuery = function(eci, mod, func, params,_host,_path,_root_url) { // path must start with "/"", _host must include protocol(http:// or https://)
-       //.../sky/cloud/<eci>/<rid>/<name>?name0=value0&...&namen=valuen
-       thisPico = eci => engine:getPicoIDByECI(eci.defaultsTo("")) == meta:picoId | false;
-       createRootUrl = function (_host,_path){
+                                    
+                                    
+     buildWebHook = function(eci, mod, func, _host, _path, _root_url) {
+         createRootUrl = function (_host,_path){
          host = _host || meta:host;
          path = _path || "/sky/cloud/";
          root_url = host+path;
          root_url
        };
        root_url = _root_url || createRootUrl(_host,_path);
-       web_hook = root_url + eci + "/"+mod+"/" + func;
-
-       response = (not thisPico) => http:get(web_hook, {}.put(params)) | QUERY_SELF_INVALID_HTTP_MAP;
-       status = response{"status_code"};// pass along the status
+       root_url + eci + "/"+mod+"/" + func;
+     }
+     
+     processHTTPResponse = function(response) {
+      status = response{"status_code"};// pass along the status
        error_info = {
          "error": "sky query request was unsuccesful.",
          "httpStatus": {
@@ -116,7 +117,16 @@ ruleset io.picolabs.wrangler {
                                "skyQueryReturnValue": response_content});
        is_bad_response = (response_content.isnull() || (response_content == "null") || response_error || response_error_str);
        // if HTTP status was OK & the response was not null and there were no errors...
-       (status == 200 && not is_bad_response && not thisPico) => response_content | error
+       (status == 200 && not is_bad_response) => response_content | error
+     }
+     
+     skyQuery = function(eci, mod, func, params,_host,_path,_root_url) { // path must start with "/"", _host must include protocol(http:// or https://)
+       //.../sky/cloud/<eci>/<rid>/<name>?name0=value0&...&namen=valuen
+       thisPico = eci => engine:getPicoIDByECI(eci.defaultsTo("")) == meta:picoId | false;
+       web_hook = buildWebHook(eci, mod, func, _host, _path, _root_url);
+
+       response = (not thisPico) => http:get(web_hook, {}.put(params)) | QUERY_SELF_INVALID_HTTP_MAP;
+       processHTTPResponse(response)
      }
     
     getPicoMap = function() {
@@ -434,6 +444,21 @@ ruleset io.picolabs.wrangler {
     
 
   }
+  
+  // ********************************************************************************************
+// ***                                                                                      ***
+// ***                                      Utility                                         ***
+// ***                                                                                      ***
+// ********************************************************************************************
+
+  rule asyncSkyQuery {
+    select when wrangler asyncSkyQuery 
+    pre {
+      
+    }
+  }
+
+
 // ********************************************************************************************
 // ***                                                                                      ***
 // ***                                      System                                          ***
