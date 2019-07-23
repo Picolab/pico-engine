@@ -21,7 +21,7 @@ test.onFinish(function () {
     testTempDir.unlink()
   }
 })
-
+//
 var getHomePath = function () {
   var homepath = path.resolve(testTempDir.path, _.uniqueId())
   fs.mkdirSync(homepath)
@@ -43,6 +43,15 @@ var testPE = function (name, testsFn) {
       })
       .then(t.end)
       .catch(t.end)
+  })
+}
+
+function readFile (filePath, encoding) {
+  encoding = encoding || 'utf8'
+  return new Promise(function (resolve, reject) {
+    fs.readFile(filePath, encoding, function (err, data) {
+      err ? reject(err) : resolve(data)
+    })
   })
 }
 
@@ -254,14 +263,6 @@ testPE('pico-engine', function (t, pe, rootEci) {
           next(null, ted)
         })
     },
-    function (ted, next) { // eciFromName,
-      pe.runQuery(defaultQueryParams('eciFromName', { name: channel.name })
-        , function (err, data) {
-          if (err) return next(err)
-          t.equals(data, channel.id, 'eciFromName')
-          next(null, ted)
-        })
-    },
     function (ted, next) { // nameFromEci,
       pe.runQuery({
         eci: rootEci,
@@ -373,7 +374,7 @@ testPE('pico-engine', function (t, pe, rootEci) {
         eci: rootEci,
         eid: '94',
         domain: 'wrangler',
-        type: 'install_rulesets_requested ',
+        type: 'install_rulesets_requested',
         attrs: { rids: 'io.picolabs.logging' }
       }, function (err, response) {
         if (err) return next(err)
@@ -515,6 +516,59 @@ testPE('pico-engine', function (t, pe, rootEci) {
           }
         }
         t.equals(found > 0, false, 'correct rulesets un-installed')
+        next()
+      })
+    },
+    function (next) { // Create a new pico with parameters to install prexisting rulesets
+      pe.signalEvent({
+        eci: rootEci,
+        eid: '94',
+        domain: 'wrangler',
+        type: 'child_creation',
+        attrs: { rids: 'io.picolabs.logging;io.picolabs.policy', name: 'testRulesetsPico' }
+      }, function (err, response) {
+        if (err) return next(err)
+        t.deepEqual('Pico_Created', response.directives[0].name, 'New pico should be created')
+        next(null, response.directives[0].options.pico.eci)
+      })
+    },
+    function (createdPicoECI, next) {
+      pe.runQuery({
+        eci: createdPicoECI,
+        rid: 'io.picolabs.wrangler',
+        name: 'installedRulesets',
+        args: {}
+      }, function (err, data) {
+        if (err) return next(err)
+        t.deepEqual(data.includes('io.picolabs.logging'), true, 'new pico should have passed in ruleset installed')
+        t.deepEqual(data.includes('io.picolabs.policy'), true, 'new pico should have passed in ruleset installed')
+        next()
+      })
+    },
+    function (next) { // create a new pico with parameters to install mix of prexisting and nonexistent rulesets
+      pe.signalEvent({
+        eci: rootEci,
+        eid: '94',
+        domain: 'wrangler',
+        type: 'child_creation',
+        attrs: { rids: 'io.picolabs.logging;io.picolabs.policy;nonexistent_ruleset_asdaeg', name: 'testMixRulesetsPico' }
+      }, function (err, response) {
+        if (err) return next(err)
+        t.deepEqual('Pico_Created', response.directives[0].name, 'New pico should be created')
+        next(null, response.directives[0].options.pico.eci)
+      })
+    },
+    function (createdPicoECI, next) {
+      pe.runQuery({
+        eci: createdPicoECI,
+        rid: 'io.picolabs.wrangler',
+        name: 'installedRulesets',
+        args: {}
+      }, function (err, data) {
+        if (err) return next(err)
+        t.deepEqual(data.includes('io.picolabs.logging'), true, 'new pico should have passed in ruleset installed')
+        t.deepEqual(data.includes('io.picolabs.policy'), true, 'new pico should have passed in ruleset installed')
+        t.deepEqual(data.includes('nonexistent_ruleset_asdaeg'), false, 'new pico will not have the nonexistent ruleset installed')
         next()
       })
     },
@@ -661,20 +715,21 @@ testPE('pico-engine', function (t, pe, rootEci) {
         next()
       })
     },
-    function (next) { // create duplicate child
-      pe.signalEvent({
-        eci: rootEci,
-        eid: '84',
-        domain: 'wrangler',
-        type: 'new_child_request',
-        attrs: { name: 'ted' }
-      }, function (err, response) {
-        // console.log("children",response);
-        if (err) return next(err)
-        t.deepEqual(response.directives[0].name, 'Pico_Not_Created', "The name is not unique, therefore don't create the child")
-        next()
-      })
-    },
+    // NAMES DO NOT HAVE TO BE UNIQUE ANYMORE
+    // function (next) { // create duplicate child
+    //   pe.signalEvent({
+    //     eci: rootEci,
+    //     eid: '84',
+    //     domain: 'wrangler',
+    //     type: 'new_child_request',
+    //     attrs: { name: 'ted' }
+    //   }, function (err, response) {
+    //     // console.log("children",response);
+    //     if (err) return next(err)
+    //     t.deepEqual(response.directives[0].name, 'Pico_Not_Created', "The name is not unique, therefore don't create the child")
+    //     next()
+    //   })
+    // },
     function (next) { // create child with no name(random)
       pe.signalEvent({
         eci: rootEci,
@@ -1089,14 +1144,6 @@ testPE('pico-engine', function (t, pe, rootEci) {
         return response.directives[0].options.pico
       })
   }
-  function readFile (filePath, encoding) {
-    encoding = encoding || 'utf8'
-    return new Promise(function (resolve, reject) {
-      fs.readFile(filePath, encoding, function (err, data) {
-        err ? reject(err) : resolve(data)
-      })
-    })
-  }
   function createSubscription (eci1, eci2, name) {
     return new Promise(function (resolve, reject) {
       var attrs = {
@@ -1184,6 +1231,78 @@ testPE('pico-engine - Wrangler', async function (t, pe, rootEci) {
   }
   t.equals(found, true, 'found correct channel in deepEqual')// redundant check
   channels = data // update channels cache
+  // TODO rest
+})
+
+// Tests run through KRL
+testPE('pico-engine - Wrangler - KRL tests', async function (t, pe, rootEci) {
+  var yQuery = function (eci, rid, name, args) {
+    return pe.runQuery({
+      eci: eci,
+      rid: rid,
+      name: name,
+      args: args || {}
+    })
+  }
+  var yEvent = function (eci, domainType, attrs, eid) {
+    domainType = domainType.split('/')
+    return pe.signalEvent({
+      eci: eci,
+      eid: eid || '85',
+      domain: domainType[0],
+      type: domainType[1],
+      attrs: attrs || {}
+    })
+  }
+
+  var data
+
+  readFile('krl/test/wrangler_tests/wrangler_tests_runner.krl').then(function (data) {
+    return pe.registerRuleset(data)
+  }).then(async function (response) {
+    await yEvent(rootEci, 'wrangler/install_rulesets_requested', { rids: 'io.picolabs.test;wrangler_tests_runner' })
+    await yEvent(rootEci, 'wrangler/run_tests', {})
+    waitForWranglerTestResults().then(function (data) {
+      let passed = true
+      if (data.failedToStart.size > 0) {
+        passed = false
+        console.log('\x1b[31m', 'Some tests failed to start!')
+        console.dir(data.failedToStart, { maxArrayLength: null, depth: null })
+      }
+      if (data.timedOut) {
+        passed = false
+        console.log('\x1b[31m', 'Some tests timed out!')
+      }
+      if (data.testBatchTimedOut) {
+        passed = false
+        console.log('\x1b[31m', 'Test batch timed out!')
+      }
+      if (data.failedTests) {
+        passed = false
+        console.log('\x1b[31m', 'Failed tests')
+        console.dir(data.failedTests, { maxArrayLength: null, depth: null })
+      }
+      if (passed) {
+        console.log('\x1b[32m', 'KRL TESTS PASSED')
+      } else {
+        console.log('\x1b[31m', 'KRL TESTS FAILED')
+      }
+    })
+  }).catch(function (err) {
+    t.fail('Unable to register wrangler KRL test runner ruleset ' + err.message)
+  })
+
+  function waitForWranglerTestResults () {
+    return new Promise(function (resolve, reject) {
+      (async function waitForWranglerTests () {
+        data = await yQuery(rootEci, 'wrangler_tests_runner', 'progress', {})
+        let percentComplete = data.percentComplete
+        console.log('Running KRL Tests ' + percentComplete.toPrecision(3) + '%')
+        if (percentComplete >= 100) return resolve(data)
+        setTimeout(waitForWranglerTests, 500)
+      })()
+    })
+  }
 
   // TODO rest
 })

@@ -36,6 +36,7 @@
     "bytewise": "^1.1.0",
     "comment-regex": "^1.0.0",
     "cuid": "^2.1.4",
+    "krl-parser": "^0.50.0",
     "dependency-graph": "^0.8.0",
     "encoding-down": "^6.0.1",
     "krl-compiler": "^0.50.0",

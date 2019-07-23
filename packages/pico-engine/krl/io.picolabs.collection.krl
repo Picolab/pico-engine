@@ -15,7 +15,8 @@ ruleset io.picolabs.collection {
   global {
     __testing = { "queries": [ { "name": "__testing" },
                                { "name": "members" } ],
-                  "events": [ {"domain": "wrangler", "type": "deletion_imminent"} ] }
+                  "events": [ {"domain": "wrangler", "type": "send_event_to_collection_members", "attrs":["domain","type"]} 
+                            ] }
     members = function(){
       Subs:established("Tx_role",ent:Tx_role)
     }
@@ -54,15 +55,14 @@ ruleset io.picolabs.collection {
         attributes { "Rx": event:attr("Rx") }
     }
   }
-  rule delete_member_subscriptions {
-    select when wrangler deletion_imminent
-    foreach members() setting(subs)
-    fired {
-      raise wrangler event "subscription_cancellation"
-        attributes { "Rx": subs{"Rx"}, "Tx": subs{"Tx"} };
-      raise wrangler event "ready_for_deletion" on final;
+  
+  rule send_to_all_members {
+    select when wrangler send_event_to_collection_members
+    always {
+      raise wrangler event "send_event_on_subs" attributes event:attrs.put("Rx_role", ent:Rx_role)
     }
   }
+ 
   rule new_member {
     select when wrangler subscription_added
     pre {
