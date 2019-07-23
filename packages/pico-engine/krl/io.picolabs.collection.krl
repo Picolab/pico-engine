@@ -15,7 +15,8 @@ ruleset io.picolabs.collection {
   global {
     __testing = { "queries": [ { "name": "__testing" },
                                { "name": "members" } ],
-                  "events": [ {"domain": "wrangler", "type": "deletion_imminent"} ] }
+                  "events": [// {"domain": "wrangler", "type": "deletion_imminent"} 
+                            ] }
     members = function(){
       Subs:established("Tx_role",ent:Tx_role)
     }
