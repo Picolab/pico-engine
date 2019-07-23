@@ -554,7 +554,7 @@ ruleset io.picolabs.wrangler {
       name = given_name.length() == 0 => randomPicoName() | given_name;
       rids = gatherGivenArray("rids","rid")
       url_rids = gatherGivenArray("rids_from_url")
-
+      target_notify_rid = event:attr("notify_rid")
     }
     // If we have a name and this pico isn't currently trying to destroy itself
     if (name) && not (isMarkedForDeath()) then every {
@@ -563,7 +563,8 @@ ruleset io.picolabs.wrangler {
     }
     fired {
       ent:wrangler_children{child{"id"}} := child;
-      raise wrangler event "new_child_created" attributes event:attrs.put(child)
+      raise wrangler event "new_child_created" attributes event:attrs.put(child) if not target_notify_rid;
+      raise wrangler event "new_child_created" for target_notify_rid attributes event:attrs.put(child) if target_notify_rid
     }
     else{
       raise wrangler event "child_creation_failure"
