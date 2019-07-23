@@ -323,7 +323,7 @@ ent:established [
       pending_entry = pending_entry().put(["Tx"],event:attr("Tx"))
     }
     if( pending_entry{"Tx"} ) then
-      wrangler:createChannel(meta:picoId, event:attr("name") ,event:attr("channel_type")) setting(channel); // create Rx
+      wrangler:createChannel(meta:picoId, event:attr("channel_name") ,event:attr("channel_type")) setting(channel); // create Rx
     fired {
       Rx = channel{"id"};
       newBus       = pending_entry.put({"Rx" : Rx,
