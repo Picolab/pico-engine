@@ -62,7 +62,7 @@ ruleset io.picolabs.owner_authentication {
     fired{
       // ent:password := event:attr("rs_attrs"){"password"}.klog("Password being saved: ");
       raise owner event "pwd_needs_encoding"
-        attributes { "password": event:attr("rs_attrs"){"password"} };
+        attributes { "password": event:attr("password") };
     }else{
       // if no parent create root default password. this is a security hole....
       raise owner event "pwd_needs_encoding" attributes { "password": "toor" };
