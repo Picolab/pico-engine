@@ -2336,8 +2336,8 @@ test('PicoEngine - io.picolabs.persistent-index', async function (t) {
     [query('getBarKey', { key: 'aaa' }), 'blah'],
     [query('getFooKey', { key: '404' }), null],
     [query('getBarKey', { key: '404' }), null],
-    [query('getFooKey', {}), { aaa: 'blah', bbb: 'wat' }],
-    [query('getBarKey', {}), { aaa: 'blah', bbb: 'wat' }],
+    [query('getFooKey', {}), null],
+    [query('getBarKey', {}), null],
 
     [signal('pindex', 'delfoo', { key: 'aaa' }), []],
     [signal('pindex', 'delbar', { key: 'aaa' }), []],
