@@ -1,3 +1,17 @@
+# 0.51.0 - July 26, 2019
+
+* added `engine:registerRulesetFromSrc` - see [456](https://github.com/Picolab/pico-engine/issues/456)
+* added `engine:doesKRLParse` - see [456](https://github.com/Picolab/pico-engine/issues/456)
+* added `io.picolabs.test` for testing KRL rulesets - see [456](https://github.com/Picolab/pico-engine/issues/456)
+* added `io.picolabs.ds` and `io.picolabs.wrangler.profile` for general purpose datastore and replacement for `io.picolabs.pds` - see [456](https://github.com/Picolab/pico-engine/issues/456)
+* updated `io.picolabs.collection` - see [456](https://github.com/Picolab/pico-engine/issues/456)
+* use owner pico name as title - see [457](https://github.com/Picolab/pico-engine/issues/457)
+* fixed `ent:map{..}` semantics to match `map{..}` - see [458](https://github.com/Picolab/pico-engine/issues/458)
+
+### BREAKING CHANGES
+
+* Wrangler API changes - see [Picolab/wrangler#139](https://github.com/Picolab/wrangler/issues/139) and [456](https://github.com/Picolab/pico-engine/issues/456)
+
 # 0.50.0 - May 23, 2019
 
 Pico Sovrin Agents are now available!
