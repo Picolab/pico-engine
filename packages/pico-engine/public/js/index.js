@@ -226,7 +226,7 @@ $(document).ready(function () {
         var testing = []
         eci = findEciById(thePicoInp.id)
         for (rid in thePicoInp.ruleset) {
-          testing.push({ rid: rid, loggingoff: (/logging$/.test(rid) ? true : null) })
+          testing.push({ rid: rid })
         }
         var theChannels = []
         Object.keys(thePicoInp.channel).forEach(function (id) {
