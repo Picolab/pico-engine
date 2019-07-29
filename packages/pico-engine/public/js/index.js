@@ -512,9 +512,9 @@ $(document).ready(function () {
           d = theDB.pico_id + '-Policies'
           location.hash = d
         } else if (tabName === 'agent') {
-          if (theDB.ui && theDB.ui.routerUI && theDB.ui.routerUI.routerName) {
+          if (theDB.ui && theDB.ui.routerUI && theDB.ui.routerUI.routerName && theDB.ui.connections) {
             for (var ic=0; ic < theDB.ui.connections.length; ++ic) {
-              if (theDB.ui.connections[ic].their_routing.length) {
+              if (theDB.ui.connections[ic].their_routing && theDB.ui.connections[ic].their_routing.length) {
                 theDB.ui.connections[ic].routerName = theDB.ui.routerUI.routerName
               }
             }
