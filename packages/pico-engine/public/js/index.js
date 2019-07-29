@@ -194,8 +194,9 @@ $(document).ready(function () {
             theLoggingOut.status = ent_status ? ent_status.val : false
             if (theLoggingOut.status) {
               var episode_limit = $('#episode_limit').val() || 10
-              $.getJSON('/sky/cloud/' + eci + '/io.picolabs.logging/fmtLogs?limit='+episode_limit, function (data) {
-                var episode_keys = data ? Object.keys(data) : []
+              $.getJSON('/api/pico/' + thePicoInp.id + '/logs', function (data) {
+                var episodes = groupLogsByEpisode(data)
+                var episode_keys = episodes ? Object.keys(episodes) : []
                 theLoggingOut.episode_count = episode_keys.length
                 if (episode_keys.length > episode_limit) {
                   episode_keys.length = episode_limit
@@ -874,3 +875,38 @@ $(document).ready(function () {
     }
   })
 })
+
+function groupLogsByEpisode (logs) {
+  var entries = []
+  logs.forEach(function (entry) {
+    if (entry) {
+      entries.push({
+        txn_id: entry.txn_id,
+        msg: entry.time + ' [' + (entry.krl_level + '').toUpperCase() + '] ' + entry.msg,
+        time: new Date(entry.time)
+      })
+    }
+  })
+  entries.sort(function (a, b) {
+    return a.time.getTime() - b.time.getTime()
+  })
+  var groups = {}
+  entries.forEach(function (entry) {
+    if (!groups[entry.txn_id]) {
+      groups[entry.txn_id] = []
+    }
+    groups[entry.txn_id].push(entry.msg)
+  })
+  var groupByHead = {}
+  Object.keys(groups).forEach(function (txnId) {
+    var head = groups[txnId][0].replace(/\[EPISODE_START\]/, '|')
+    groupByHead[head] = groups[txnId]
+  })
+  var groupsSorted = {}
+  var groupOrder = Object.keys(groupByHead)
+  groupOrder.sort().reverse()
+  groupOrder.forEach(function (header) {
+    groupsSorted[header] = groupByHead[header]
+  })
+  return groupsSorted
+}
