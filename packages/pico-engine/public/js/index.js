@@ -628,7 +628,9 @@ $(document).ready(function () {
       document.title = $('body h1').html()
       if (data.picos && data.picos[0]) {
         $('#user-logout span').html(data.picos[0].dname)
-        document.title = data.picos[0].dname
+        if (authenticated) {
+          document.title = data.picos[0].dname
+        }
       }
       $('div.pico')
         .resizable({
@@ -658,13 +660,16 @@ $(document).ready(function () {
             left: $(this).css('left')
           }
           var $pediv = $(this).next('.pico-edit')
+          var prevTitle = document.title
           var fadeAway = function (ev) {
+            document.title = prevTitle
             $pediv.find('button.x').remove()
             $pediv.animate(fadeOutOptions, 200)
             $pediv.fadeOut(200)
             ev.stopPropagation()
             location.hash = ''
           }
+          document.title = $(this).text()
           $pediv.fadeIn(200)
           $pediv.animate({
             width: '95%',
