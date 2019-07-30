@@ -247,7 +247,7 @@ test("event-exp.krl", async t => {
           a: ["1", "2", "3", "4", "5"],
           b: ["2", "3", "4", "5", "6"],
           c: ["three", "four", "five", "six", "seven"],
-          d: [null, null, null, null, null]
+          d: [undefined, undefined, undefined, undefined, undefined]
         }
       }
     ],

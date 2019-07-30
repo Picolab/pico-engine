@@ -6,11 +6,6 @@ module.exports = {
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
     const send_directive = $stdlib["send_directive"];
-    const m = $stdlib["m"];
-    const a = $stdlib["a"];
-    const b = $stdlib["b"];
-    const c = $stdlib["c"];
-    const d = $stdlib["d"];
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.before($env.SelectWhen.e("ee_before:a"), $env.SelectWhen.e("ee_before:b")), async function ($event, $state, $last) {
       var $fired = true;
@@ -229,7 +224,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      await aggregateEvent(ctx, "max", [[
+      $state = await $ctx.aggregateEvent($state, "max", [[
           "m",
           matches[0]
         ]]);
@@ -238,6 +233,8 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), async function ($event, $state, $last) {
+      var m = $state.setting["m"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, [
@@ -263,7 +260,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      await aggregateEvent(ctx, "min", [[
+      $state = await $ctx.aggregateEvent($state, "min", [[
           "m",
           matches[0]
         ]]);
@@ -272,6 +269,8 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), async function ($event, $state, $last) {
+      var m = $state.setting["m"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, [
@@ -297,7 +296,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      await aggregateEvent(ctx, "sum", [[
+      $state = await $ctx.aggregateEvent($state, "sum", [[
           "m",
           matches[0]
         ]]);
@@ -306,6 +305,8 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), async function ($event, $state, $last) {
+      var m = $state.setting["m"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, [
@@ -331,7 +332,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      await aggregateEvent(ctx, "avg", [[
+      $state = await $ctx.aggregateEvent($state, "avg", [[
           "m",
           matches[0]
         ]]);
@@ -340,6 +341,8 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), async function ($event, $state, $last) {
+      var m = $state.setting["m"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, [
@@ -365,7 +368,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      await aggregateEvent(ctx, "push", [[
+      $state = await $ctx.aggregateEvent($state, "push", [[
           "m",
           matches[0]
         ]]);
@@ -374,6 +377,8 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), async function ($event, $state, $last) {
+      var m = $state.setting["m"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, [
@@ -407,7 +412,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      await aggregateEvent(ctx, "push", [
+      $state = await $ctx.aggregateEvent($state, "push", [
         [
           "a",
           matches[0]
@@ -430,6 +435,11 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), async function ($event, $state, $last) {
+      var a = $state.setting["a"];
+      var b = $state.setting["b"];
+      var c = $state.setting["c"];
+      var d = $state.setting["d"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, [
@@ -468,7 +478,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      await aggregateEvent(ctx, "sum", [
+      $state = await $ctx.aggregateEvent($state, "sum", [
         [
           "a",
           matches[0]
@@ -483,6 +493,9 @@ module.exports = {
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), async function ($event, $state, $last) {
+      var a = $state.setting["a"];
+      var b = $state.setting["b"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, [
