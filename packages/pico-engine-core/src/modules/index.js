@@ -15,7 +15,8 @@ var subModules = {
   meta: require('./meta'),
   schedule: require('./schedule'),
   time: require('./time'),
-  random: require('./random')
+  random: require('./random'),
+  telnet: require('./telnet')
 }
 
 var normalizeId = function (domain, id) {
