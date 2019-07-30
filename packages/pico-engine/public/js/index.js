@@ -203,7 +203,7 @@ $(document).ready(function () {
                 }
                 theLoggingOut.logs = {}
                 episode_keys.forEach(function (key) {
-                  theLoggingOut.logs[key] = data[key]
+                  theLoggingOut.logs[key] = episodes[key]
                 })
                 callback(null, theLoggingOut)
               }).fail(function (err) {
