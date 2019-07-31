@@ -1,5 +1,6 @@
 module.exports = {
   "rid": "io.picolabs.http",
+  "version": "draft",
   "meta": {
     "shares": [
       "getResp",
@@ -8,24 +9,31 @@ module.exports = {
       "fnPost"
     ]
   },
-  "global": async function (ctx) {
-    ctx.scope.set("getResp", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "resp");
-    }));
-    ctx.scope.set("getLastPostEvent", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "last_post_event");
-    }));
-    ctx.scope.set("fmtResp", ctx.mkFunction(["r"], async function (ctx, args) {
-      ctx.scope.set("r", args["r"]);
-      return await ctx.applyFn(ctx.scope.get("delete"), ctx, [
-        await ctx.applyFn(ctx.scope.get("delete"), ctx, [
-          await ctx.applyFn(ctx.scope.get("delete"), ctx, [
-            await ctx.applyFn(ctx.scope.get("delete"), ctx, [
-              await ctx.applyFn(ctx.scope.get("set"), ctx, [
-                ctx.scope.get("r"),
+  "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const $delete$ = $stdlib["delete"];
+    const set = $stdlib["set"];
+    const decode = $stdlib["decode"];
+    const url = $stdlib["url"];
+    const send_directive = $stdlib["send_directive"];
+    const getResp = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("resp");
+    });
+    const getLastPostEvent = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("last_post_event");
+    });
+    const fmtResp = $env.krl.Function(["r"], async function (r) {
+      return await $env.krl.assertFunction($delete$)($ctx, [
+        await $env.krl.assertFunction($delete$)($ctx, [
+          await $env.krl.assertFunction($delete$)($ctx, [
+            await $env.krl.assertFunction($delete$)($ctx, [
+              await $env.krl.assertFunction(set)($ctx, [
+                r,
                 "content",
-                await ctx.applyFn(ctx.scope.get("decode"), ctx, [await ctx.applyFn(ctx.scope.get("get"), ctx, [
-                    ctx.scope.get("r"),
+                await $env.krl.assertFunction(decode)($ctx, [await $stdlib["get"]($ctx, [
+                    r,
                     ["content"]
                   ])])
               ]),
@@ -47,236 +55,255 @@ module.exports = {
           "content-length"
         ]
       ]);
-    }));
-    ctx.scope.set("doPost", ctx.mkAction([
+    });
+    const doPost = $env.krl.Action([
       "base_url",
       "to",
       "msg"
-    ], async function (ctx, args, runAction) {
-      ctx.scope.set("base_url", args["base_url"]);
-      ctx.scope.set("to", args["to"]);
-      ctx.scope.set("msg", args["msg"]);
-      var fired = true;
-      if (fired) {
-        await runAction(ctx, "http", "post", {
-          "0": await ctx.applyFn(ctx.scope.get("+"), ctx, [
-            ctx.scope.get("url"),
+    ], async function (base_url, to, msg) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
+          "0": await $stdlib["+"]($ctx, [
+            url,
             "/msg.json"
           ]),
           "from": {
-            "To": ctx.scope.get("to"),
-            "Msg": ctx.scope.get("msg")
+            "To": to,
+            "Msg": msg
           }
-        }, []);
+        });
       }
-      return [];
-    }));
-    ctx.scope.set("fnGet", ctx.mkFunction([
+    });
+    const fnGet = $env.krl.Function([
       "url",
       "qs"
-    ], async function (ctx, args) {
-      ctx.scope.set("url", args["url"]);
-      ctx.scope.set("qs", args["qs"]);
-      return await ctx.applyFn(await ctx.modules.get(ctx, "http", "get"), ctx, {
-        "0": ctx.scope.get("url"),
-        "qs": ctx.scope.get("qs")
+    ], async function (url, qs) {
+      return await $env.krl.assertFunction($ctx.module("http")["get"])($ctx, {
+        "0": url,
+        "qs": qs
       });
-    }));
-    ctx.scope.set("fnPost", ctx.mkFunction([
+    });
+    const fnPost = $env.krl.Function([
       "url",
       "json"
-    ], async function (ctx, args) {
-      ctx.scope.set("url", args["url"]);
-      ctx.scope.set("json", args["json"]);
-      return await ctx.applyFn(await ctx.modules.get(ctx, "http", "post"), ctx, {
-        "0": ctx.scope.get("url"),
-        "json": ctx.scope.get("json")
+    ], async function (url, json) {
+      return await $env.krl.assertFunction($ctx.module("http")["post"])($ctx, {
+        "0": url,
+        "json": json
       });
-    }));
-  },
-  "rules": {
-    "http_get": {
-      "name": "http_get",
-      "select": {
-        "graph": { "http_test": { "get": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
+    });
+    const $rs = new $env.SelectWhen.SelectWhen();
+    $rs.when($env.SelectWhen.e("http_test:get"), async function ($event, $state, $last) {
+      const url = await $stdlib["get"]($ctx, [
+        $event.data.attrs,
+        "url"
+      ]);
+      var $fired = true;
+      if ($fired) {
+        var resp = await $env.krl.assertAction($ctx.module("http")["get"])($ctx, {
+          "0": url,
+          "qs": { "foo": "bar" },
+          "headers": { "baz": "quix" }
+        });
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("resp", await $env.krl.assertFunction(fmtResp)($ctx, [resp]));
+      }
+    });
+    $rs.when($env.SelectWhen.e("http_test:post"), async function ($event, $state, $last) {
+      const url = await $stdlib["get"]($ctx, [
+        $event.data.attrs,
+        "url"
+      ]);
+      var $fired = true;
+      if ($fired) {
+        var resp = await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
+          "0": url,
+          "json": {
+            "foo": "bar",
+            "baz": doPost
+          }
+        });
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "resp.content.body",
+          await $env.krl.assertFunction(decode)($ctx, [await $stdlib["get"]($ctx, [
+              await $env.krl.assertFunction(decode)($ctx, [await $stdlib["get"]($ctx, [
+                  resp,
+                  ["content"]
+                ])]),
+              ["body"]
+            ])])
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("http_test:post_action"), async function ($event, $state, $last) {
+      const url = await $stdlib["get"]($ctx, [
+        $event.data.attrs,
+        "url"
+      ]);
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(doPost)($ctx, [
+          url,
+          "bob",
+          "foobar"
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("http_test:post_setting"), async function ($event, $state, $last) {
+      const url = await $stdlib["get"]($ctx, [
+        $event.data.attrs,
+        "url"
+      ]);
+      var $fired = true;
+      if ($fired) {
+        var resp = await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
+          "0": url,
+          "qs": { "foo": "bar" },
+          "form": { "baz": "qux" }
+        });
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("resp", await $env.krl.assertFunction(fmtResp)($ctx, [resp]));
+      }
+    });
+    $rs.when($env.SelectWhen.e("http_test:autoraise"), async function ($event, $state, $last) {
+      const url = await $stdlib["get"]($ctx, [
+        $event.data.attrs,
+        "url"
+      ]);
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
+          "0": url,
+          "qs": { "foo": "bar" },
+          "form": { "baz": "qux" },
+          "autoraise": "foobar"
+        });
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("http:post"), async function ($event, $state, $last) {
+      const resp = await $env.krl.assertFunction(fmtResp)($ctx, [$event.data.attrs]);
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "http_post_event_handler",
+          { "attrs": resp }
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.putEnt("last_post_event", resp);
+      }
+    });
+    return {
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, "http", "get", {
-            "0": ctx.scope.get("url"),
-            "qs": { "foo": "bar" },
-            "headers": { "baz": "quix" }
-          }, ["resp"]);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.set(ctx, "ent", "resp", await ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [ctx.scope.get("resp")]));
+      "query": {
+        "getResp": function ($args) {
+          return getResp($ctx, $args);
+        },
+        "getLastPostEvent": function ($args) {
+          return getLastPostEvent($ctx, $args);
+        },
+        "fnGet": function ($args) {
+          return fnGet($ctx, $args);
+        },
+        "fnPost": function ($args) {
+          return fnPost($ctx, $args);
+        },
+        "__testing": function () {
+          return {
+            "queries": [
+              {
+                "name": "getResp",
+                "args": []
+              },
+              {
+                "name": "getLastPostEvent",
+                "args": []
+              },
+              {
+                "name": "fnGet",
+                "args": [
+                  "url",
+                  "qs"
+                ]
+              },
+              {
+                "name": "fnPost",
+                "args": [
+                  "url",
+                  "json"
+                ]
+              }
+            ],
+            "events": [
+              {
+                "domain": "http_test",
+                "name": "get",
+                "attrs": ["url"]
+              },
+              {
+                "domain": "http_test",
+                "name": "post",
+                "attrs": ["url"]
+              },
+              {
+                "domain": "http_test",
+                "name": "post_action",
+                "attrs": ["url"]
+              },
+              {
+                "domain": "http_test",
+                "name": "post_setting",
+                "attrs": ["url"]
+              },
+              {
+                "domain": "http_test",
+                "name": "autoraise",
+                "attrs": ["url"]
+              },
+              {
+                "domain": "http",
+                "name": "post",
+                "attrs": []
+              }
+            ]
+          };
         }
       }
-    },
-    "http_post": {
-      "name": "http_post",
-      "select": {
-        "graph": { "http_test": { "post": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, "http", "post", {
-            "0": ctx.scope.get("url"),
-            "json": {
-              "foo": "bar",
-              "baz": ctx.scope.get("doPost")
-            }
-          }, ["resp"]);
-          await runAction(ctx, void 0, "send_directive", [
-            "resp.content.body",
-            await ctx.applyFn(ctx.scope.get("decode"), ctx, [await ctx.applyFn(ctx.scope.get("get"), ctx, [
-                await ctx.applyFn(ctx.scope.get("decode"), ctx, [await ctx.applyFn(ctx.scope.get("get"), ctx, [
-                    ctx.scope.get("resp"),
-                    ["content"]
-                  ])]),
-                ["body"]
-              ])])
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "http_post_action": {
-      "name": "http_post_action",
-      "select": {
-        "graph": { "http_test": { "post_action": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "doPost", [
-            ctx.scope.get("url"),
-            "bob",
-            "foobar"
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "http_post_setting": {
-      "name": "http_post_setting",
-      "select": {
-        "graph": { "http_test": { "post_setting": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, "http", "post", {
-            "0": ctx.scope.get("url"),
-            "qs": { "foo": "bar" },
-            "form": { "baz": "qux" }
-          }, ["resp"]);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.set(ctx, "ent", "resp", await ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [ctx.scope.get("resp")]));
-        }
-      }
-    },
-    "http_autorase": {
-      "name": "http_autorase",
-      "select": {
-        "graph": { "http_test": { "autoraise": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("url", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["url"]));
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, "http", "post", {
-            "0": ctx.scope.get("url"),
-            "qs": { "foo": "bar" },
-            "form": { "baz": "qux" },
-            "autoraise": "foobar"
-          }, []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-      }
-    },
-    "http_post_event_handler": {
-      "name": "http_post_event_handler",
-      "select": {
-        "graph": { "http": { "post": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("resp", await ctx.applyFn(ctx.scope.get("fmtResp"), ctx, [await ctx.modules.get(ctx, "event", "attrs")]));
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "http_post_event_handler",
-            { "attrs": ctx.scope.get("resp") }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        if (fired) {
-          await ctx.modules.set(ctx, "ent", "last_post_event", ctx.scope.get("resp"));
-        }
-      }
-    }
+    };
   }
 };

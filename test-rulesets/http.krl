@@ -34,7 +34,7 @@ ruleset io.picolabs.http {
         select when http_test get
 
         pre {
-            url = event:attr("url")
+            url = event:attrs{"url"}
         }
 
         http:get(
@@ -51,7 +51,7 @@ ruleset io.picolabs.http {
         select when http_test post
 
         pre {
-            url = event:attr("url")
+            url = event:attrs{"url"}
         }
 
         every {
@@ -67,7 +67,7 @@ ruleset io.picolabs.http {
         select when http_test post_action
 
         pre {
-            url = event:attr("url")
+            url = event:attrs{"url"}
         }
 
         doPost(url, "bob", "foobar");
@@ -76,7 +76,7 @@ ruleset io.picolabs.http {
         select when http_test post_setting
 
         pre {
-            url = event:attr("url")
+            url = event:attrs{"url"}
         }
 
         http:post(
@@ -93,7 +93,7 @@ ruleset io.picolabs.http {
         select when http_test autoraise
 
         pre {
-            url = event:attr("url")
+            url = event:attrs{"url"}
         }
 
         http:post(

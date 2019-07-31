@@ -58,7 +58,7 @@
     "pico-framework": "^0.2.7",
     "request": "^2.88.0",
     "rotating-file-stream": "^1.4.1",
-    "select-when": "^0.1.5"
+    "select-when": "^0.1.7"
   },
   "devDependencies": {
     "@types/abstract-leveldown": "^5.0.1",
