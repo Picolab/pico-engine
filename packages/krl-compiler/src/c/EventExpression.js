@@ -70,19 +70,24 @@ module.exports = function (ast, comp, e) {
 
   if (ast.aggregator) {
     fnBody.push(e(';',
-      e('acall',
-        e('id', 'aggregateEvent', ast.aggregator.loc),
-        [
-          e('id', 'ctx', ast.aggregator.loc),
-          e('string', ast.aggregator.op, ast.aggregator.loc),
-          e('array', _.map(ast.aggregator.args, function (a, i) {
-            return e('array', [
-              e('string', a.value, a.loc),
-              e('get', e('id', 'matches', a.loc), e('num', i, a.loc), a.loc)
-            ], a.loc)
-          }), ast.aggregator.loc)
-        ],
-        ast.aggregator.loc
+      e('=',
+        e('id', '$state', ast.aggregator.loc),
+        e('acall',
+          e('id', '$ctx.aggregateEvent', ast.aggregator.loc),
+          [
+            e('id', '$state', ast.aggregator.loc),
+            e('string', ast.aggregator.op, ast.aggregator.loc),
+            e('array', _.map(ast.aggregator.args, function (a, i) {
+              comp.scope.set(a.value, { type: 'Unkown' })
+              comp.scope.get('$selectVars').push(a.value)
+              return e('array', [
+                e('string', a.value, a.loc),
+                e('get', e('id', 'matches', a.loc), e('num', i, a.loc), a.loc)
+              ], a.loc)
+            }), ast.aggregator.loc)
+          ],
+          ast.aggregator.loc
+        ), ast.aggregator.loc
       ), ast.aggregator.loc))
   }
 
@@ -90,7 +95,6 @@ module.exports = function (ast, comp, e) {
 
   const ee = [
     e('str', `${ast.event_domain.value}:${ast.event_type.value}`)
-
   ]
 
   if (fnBody.length > 0) {
