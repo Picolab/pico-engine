@@ -3,6 +3,7 @@
   - [Standard Library](/krl/stdlib)
   - [Modules](/krl/modules)
   - [ctx](/krl/modules/ctx)
+  - [event](/krl/modules/event)
   - [http](/krl/modules/http)
   - [math](/krl/modules/math)
   - [schedule](/krl/modules/schedule)
