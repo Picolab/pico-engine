@@ -332,6 +332,7 @@ $(document).ready(function () {
         })
       } else if (tabName === 'agent') {
         var agentUI = { eci: eci, pico_id: thePicoInp.id }
+        $.getJSON('/sky/event/' + eci + '/poll_router/edge/poll_all_needed')
         $.getJSON('/sky/cloud/' + eci + '/org.sovrin.agent/ui', function (ui) {
           agentUI.ui = ui
           $.getJSON('/sky/cloud/'+eci+'/org.sovrin.edge/ui',function(rui){
