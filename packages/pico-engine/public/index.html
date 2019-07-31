@@ -572,14 +572,13 @@
               <input type="checkbox" id="connection-{{@index}}">
               <label for="connection-{{@index}}">{{label}}{{#if their_routing}} (via {{routerName}}){{/if}}</label>
               <div class="connection-detail">
-              <h4>My DID: {{my_did}}</h4>
-              <h4>Their DID: {{their_did}}</h4>
               {{#if messages}}
-              <h4>Messages:</h4>
+              <div class="agent-basic-messages">
               {{#each messages}}
               <p class="{{from}}"{{#if color}} style="background:rgb({{color}},0.1)"{{/if}}>{{content}}<span>{{sent_time}}</span></p>
               <hr>
               {{/each}}
+              </div>
               {{/if}}
               <form class="js-ajax-form" action="/sky/event/{{my_did}}/msg/sovrin/send_basicmessage?their_vk={{their_vk}}" style="float:right">
                 <input name="content">

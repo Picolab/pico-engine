@@ -309,3 +309,9 @@ img.icon {
   visibility: hidden;
   margin: -1px 0;
 }
+.agent-basic-messages {
+  border: 1px solid silver;
+  padding: 2px 4px;
+  margin: 1px 3px 5px 3px;
+  border-radius: 6px;
+}
