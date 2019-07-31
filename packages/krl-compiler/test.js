@@ -35,6 +35,7 @@ test.cb('compiler', function (t) {
       'operators',
       'persistent',
       'scope',
+      'select-where',
       'within',
       'with'
     ]

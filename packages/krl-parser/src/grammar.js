@@ -544,6 +544,7 @@ var grammar = {
           //if select and nothing until postlude it's likely an ambiguity
           // where the select aggregator looks like the rule action
           if(ast.select
+            && ast.select.kind === "when"
             && ast.select.event.type === "EventGroupOperator"
             && ast.select.event.event
             && ast.select.event.event.type === "EventExpression"
@@ -580,6 +581,16 @@ var grammar = {
           };
         }
         },
+    {"name": "RuleSelect", "symbols": [tok_select, tok_where, "Expression"], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: "RuleSelect",
+            kind: "where",
+            expression: data[2]
+          };
+        }
+          },
     {"name": "RuleForEach", "symbols": [tok_foreach, "Expression", tok_setting, tok_OPEN_PAREN, "Identifier_list", tok_CLSE_PAREN], "postprocess": 
         function(data){
           return {

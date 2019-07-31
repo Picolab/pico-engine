@@ -1,5 +1,6 @@
 module.exports = {
   "rid": "io.picolabs.module-used",
+  "version": "draft",
   "meta": {
     "use": [
       {
@@ -12,7 +13,7 @@ module.exports = {
         "rid": "io.picolabs.module-defined",
         "alias": "my_module_conf",
         "with": async function (ctx) {
-          ctx.scope.set("configured_name", "Jim");
+          const configured_name = "Jim";
         }
       }
     ],
@@ -22,183 +23,179 @@ module.exports = {
       "dfltName"
     ]
   },
-  "global": async function (ctx) {
-    ctx.scope.set("now", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.applyFn(await ctx.modules.get(ctx, "time", "now"), ctx, []);
-    }));
-    ctx.scope.set("getEntVal", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "val");
-    }));
-    ctx.scope.set("dfltName", await ctx.applyFn(await ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []));
-  },
-  "rules": {
-    "dflt_name": {
-      "name": "dflt_name",
-      "select": {
-        "graph": { "module_used": { "dflt_name": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "dflt_name",
-            { "name": await ctx.applyFn(await ctx.modules.get(ctx, "my_module_dflt", "getName"), ctx, []) }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
+  "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const send_directive = $stdlib["send_directive"];
+    const now = $env.krl.Function([], async function () {
+      return await $env.krl.assertFunction($ctx.module("time")["now"])($ctx, []);
+    });
+    const getEntVal = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("val");
+    });
+    const dfltName = await $env.krl.assertFunction($ctx.module("my_module_dflt")["getName"])($ctx, []);
+    const $rs = new $env.SelectWhen.SelectWhen();
+    $rs.when($env.SelectWhen.e("module_used:dflt_name"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "dflt_name",
+          { "name": await $env.krl.assertFunction($ctx.module("my_module_dflt")["getName"])($ctx, []) }
+        ]);
       }
-    },
-    "conf_name": {
-      "name": "conf_name",
-      "select": {
-        "graph": { "module_used": { "conf_name": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "conf_name",
-            { "name": await ctx.applyFn(await ctx.modules.get(ctx, "my_module_conf", "getName"), ctx, []) }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("module_used:conf_name"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "conf_name",
+          { "name": await $env.krl.assertFunction($ctx.module("my_module_conf")["getName"])($ctx, []) }
+        ]);
       }
-    },
-    "dflt_info": {
-      "name": "dflt_info",
-      "select": {
-        "graph": { "module_used": { "dflt_info": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "dflt_info",
-            { "info": await ctx.applyFn(await ctx.modules.get(ctx, "my_module_dflt", "getInfo"), ctx, []) }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("module_used:dflt_info"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "dflt_info",
+          { "info": await $env.krl.assertFunction($ctx.module("my_module_dflt")["getInfo"])($ctx, []) }
+        ]);
       }
-    },
-    "conf_info": {
-      "name": "conf_info",
-      "select": {
-        "graph": { "module_used": { "conf_info": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "conf_info",
-            { "info": await ctx.applyFn(await ctx.modules.get(ctx, "my_module_conf", "getInfo"), ctx, []) }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("module_used:conf_info"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "conf_info",
+          { "info": await $env.krl.assertFunction($ctx.module("my_module_conf")["getInfo"])($ctx, []) }
+        ]);
       }
-    },
-    "dflt_getInfoAction": {
-      "name": "dflt_getInfoAction",
-      "select": {
-        "graph": { "module_used": { "dflt_getInfoAction": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, "my_module_dflt", "getInfoAction", [], ["info"]);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "val", ctx.scope.get("info"));
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("module_used:dflt_getInfoAction"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        var info = await $env.krl.assertAction($ctx.module("my_module_dflt")["getInfoAction"])($ctx, []);
       }
-    },
-    "conf_getInfoAction": {
-      "name": "conf_getInfoAction",
-      "select": {
-        "graph": { "module_used": { "conf_getInfoAction": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, "my_module_conf", "getInfoAction", [], ["info"]);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "val", ctx.scope.get("info"));
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.putEnt("val", info);
+    });
+    $rs.when($env.SelectWhen.e("module_used:conf_getInfoAction"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        var info = await $env.krl.assertAction($ctx.module("my_module_conf")["getInfoAction"])($ctx, []);
       }
-    },
-    "sayHelloWithOperator": {
-      "name": "sayHelloWithOperator",
-      "select": {
-        "graph": { "module_used": { "sayHelloWithOperator": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [await ctx.applyFn(await ctx.modules.get(ctx, "my_module_dflt", "sayHello"), ctx, ["bob"])], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.putEnt("val", info);
+    });
+    $rs.when($env.SelectWhen.e("module_used:sayHelloWithOperator"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [await $env.krl.assertFunction($ctx.module("my_module_dflt")["sayHello"]($ctx))($ctx, ["bob"])]);
       }
-    }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    return {
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
+        }
+        return $ctx.drainDirectives();
+      },
+      "query": {
+        "now": function ($args) {
+          return now($ctx, $args);
+        },
+        "getEntVal": function ($args) {
+          return getEntVal($ctx, $args);
+        },
+        "dfltName": function ($args) {
+          return dfltName;
+        },
+        "__testing": function () {
+          return {
+            "queries": [
+              {
+                "name": "now",
+                "args": []
+              },
+              {
+                "name": "getEntVal",
+                "args": []
+              },
+              {
+                "name": "dfltName",
+                "args": []
+              }
+            ],
+            "events": [
+              {
+                "domain": "module_used",
+                "name": "dflt_name",
+                "attrs": []
+              },
+              {
+                "domain": "module_used",
+                "name": "conf_name",
+                "attrs": []
+              },
+              {
+                "domain": "module_used",
+                "name": "dflt_info",
+                "attrs": []
+              },
+              {
+                "domain": "module_used",
+                "name": "conf_info",
+                "attrs": []
+              },
+              {
+                "domain": "module_used",
+                "name": "dflt_getInfoAction",
+                "attrs": []
+              },
+              {
+                "domain": "module_used",
+                "name": "conf_getInfoAction",
+                "attrs": []
+              },
+              {
+                "domain": "module_used",
+                "name": "sayHelloWithOperator",
+                "attrs": []
+              }
+            ]
+          };
+        }
+      }
+    };
   }
 };

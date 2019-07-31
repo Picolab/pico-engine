@@ -538,6 +538,7 @@ Rule -> %tok_rule Identifier (%tok_is Rule_state):? %tok_OPEN_CURLY
     //if select and nothing until postlude it's likely an ambiguity
     // where the select aggregator looks like the rule action
     if(ast.select
+      && ast.select.kind === "when"
       && ast.select.event.type === "EventGroupOperator"
       && ast.select.event.event
       && ast.select.event.event.type === "EventExpression"
@@ -573,6 +574,17 @@ RuleSelect -> %tok_select %tok_when EventExpression EventWithin:? {%
     };
   }
 %}
+  | %tok_select %tok_where Expression {%
+    function(data){
+      return {
+        loc: mkLoc(data),
+        type: "RuleSelect",
+        kind: "where",
+        expression: data[2]
+      };
+    }
+  %}
+
 
 RuleForEach -> %tok_foreach Expression %tok_setting %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN {%
   function(data){

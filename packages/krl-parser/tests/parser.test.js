@@ -1318,6 +1318,30 @@ test('EventExpression', function (t) {
   t.end()
 })
 
+test('select where', function (t) {
+  function testWhere (src, expected) {
+    var ast = normalizeAST(rmLoc(parseRuleBody(src)))
+    t.deepEquals(ast.select, normalizeAST(expected))
+  }
+
+  testWhere('select where true', {
+    type: 'RuleSelect',
+    kind: 'where',
+    expression: mk(true)
+  })
+
+  testWhere('select where event:domain == something()', {
+    type: 'RuleSelect',
+    kind: 'where',
+    expression: mk.op('==',
+      mk.dID('event', 'domain'),
+      mk.app(mk.id('something'), [])
+    )
+  })
+
+  t.end()
+})
+
 test('RulesetID', function (t) {
   var testName = function (name, isValid) {
     try {
