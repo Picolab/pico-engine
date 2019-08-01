@@ -1,26 +1,33 @@
-var _ = require('lodash')
+const _ = require('lodash')
+const jsIdent = require('../utils/jsIdent')
 
 module.exports = function (ast, comp, e) {
-  var args = {
+  const args = {
+    eci: e('id', '$event.eci'),
     domain: e('string', ast.event_domain.value, ast.event_domain.loc),
-    type: comp(ast.event_type),
-    attributes: ast.event_attrs ? comp(ast.event_attrs) : e('nil')
+    name: comp(ast.event_type),
+    attrs: ast.event_attrs ? comp(ast.event_attrs) : e('nil')
   }
 
+  let addFunction
   if (_.has(ast, 'at')) {
-    args.at = comp(ast.at)
-  }
-  if (_.has(ast, 'timespec')) {
+    args.time = comp(ast.at)
+    addFunction = 'at'
+  } else if (_.has(ast, 'timespec')) {
     args.timespec = comp(ast.timespec)
+    addFunction = 'repeat'
+  } else {
+    throw comp.error(ast.loc, 'error')
   }
 
-  var moduleCall = e('acall', e('id', 'ctx.scheduleEvent'), [e('obj', args)])
+  var moduleCall = e('acall', e('get', e('call', e('id', '$ctx.module'), [e('str', 'schedule')]), e('str', addFunction)), [e('id', '$ctx'), e('obj', args)])
 
   if (ast.setting) {
-    return e(';', e('call', e('id', 'ctx.scope.set', ast.setting.loc), [
-      e('str', ast.setting.value, ast.setting.loc),
-      moduleCall
-    ], ast.setting.loc))
+    return e('var',
+      e('id', jsIdent(ast.setting.value), ast.setting.loc),
+      moduleCall,
+      ast.setting.loc
+    )
   } else {
     return e(';', moduleCall)
   }

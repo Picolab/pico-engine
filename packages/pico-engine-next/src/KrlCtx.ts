@@ -92,6 +92,10 @@ export class RulesetEnvironment {
           aggregates: newAggregates,
           setting: Object.assign({}, state.setting, newSetting)
         });
+      },
+
+      updateScheduler() {
+        // TODO update the clocks
       }
     };
   }
@@ -106,6 +110,7 @@ export interface KrlCtx {
   addDirective(name: string, options: { [name: string]: any }): Directive;
   drainDirectives(): Directive[];
   aggregateEvent(state: any, op: string, pairs: [string, string][]): any;
+  updateScheduler(): void;
 }
 
 function toFloat(v: any) {

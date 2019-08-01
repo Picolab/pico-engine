@@ -36,6 +36,7 @@ test.cb('compiler', function (t) {
       'persistent',
       'scope',
       'select-where',
+      'schedule',
       'within',
       'with'
     ]
