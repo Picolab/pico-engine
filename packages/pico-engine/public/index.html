@@ -564,6 +564,15 @@
           <td><button type="submit">Accept</button></td>
         </tr></table>
         </form>
+          <h3>Inbound router: {{#if ui.routerUI}}<span title="{{ui.routerUI.routerHost}} {{ui.routerUI.routerRequestECI}}">{{ui.routerUI.routerName}}</span>{{/if}}</h3>
+          {{#unless ui.routerUI.routerName}}
+            <form class="js-ajax-form" action="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rids=org.sovrin.edge">
+              <input name="host" placeholder="router host">
+              <input name="eci" placeholder="router request eci">
+              <input name="label" placeholder="router label">
+              <button type="submit">Configure</button>
+            </form>
+          {{/unless}}
         {{#if ui.connections}}
           <h3>Connections</h3>
           <ul>
