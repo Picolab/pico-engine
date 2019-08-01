@@ -61,6 +61,21 @@
             background: #d9edf7;
             border: 1px solid #bce8f1;
         }
+
+        .ruleset-list-item-dark {
+            color:white;
+        }
+
+        .ruleset-list-item-dark:hover {
+            background: #529fd8;
+            color:black;
+        }
+
+        .ruleset-list-item-dark.active {
+            background:#2c638d;
+            color:white;
+        }
+
     </style>
 </head>
 <body>
@@ -187,6 +202,7 @@
 
     editor.$blockScrolling = Infinity;
     editor.setDisplayIndentGuides(false);
+    var themePicker = document.getElementById("krl-editor-theme-picker")
     KRL_EDITOR.themePicker("krl-editor-theme-picker");
 
     var areaLeftTemplate = Handlebars.compile(document.getElementById("area-left-template").innerHTML);
@@ -285,6 +301,12 @@
             }));
         }else{
             $areaRight.html("");
+        }
+
+        if (localStorage["KRL_EDITOR-theme-isdark"] == "true") {
+            setDarkTheme()
+        } else {
+            setLightTheme()
         }
     };
 
@@ -447,6 +469,28 @@
             fetchData();
         });
     });
+
+    themePicker.addEventListener("change", function(event) {
+        render();
+    })
+
+    var setLightTheme = function() {
+        let ridList = document.getElementsByClassName("ruleset-list-item")
+        console.log("Tried to set light theme")
+        for (var i = 0; i < ridList.length; i++) {
+            ridList[i].classList.remove("ruleset-list-item-dark")
+        }
+        document.body.style.backgroundColor = "#f2f2f2"
+    }
+
+    var setDarkTheme = function() {
+        let ridList = document.getElementsByClassName("ruleset-list-item")
+        console.log("Tried to set dark theme")
+        for (var i = 0; i < ridList.length; i++) {
+            ridList[i].classList.add("ruleset-list-item-dark")
+        }
+        document.body.style.backgroundColor = "#141414"
+    }
 
     var fetchData = function(callback){
         $errorMessage.text("");

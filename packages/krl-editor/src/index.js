@@ -66,9 +66,9 @@ var setTheme = function(theme){
     theme = themes_index[theme]
         ? theme
         : "chrome";
-
     selected_theme = theme;
     localStorage["KRL_EDITOR-theme"] = theme;
+    localStorage["KRL_EDITOR-theme-isdark"] = themes_grouped.dark.includes(theme)
 
     editors.forEach(function(editor){
         editor.setTheme("ace/theme/" + theme);
