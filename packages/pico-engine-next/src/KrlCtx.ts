@@ -5,7 +5,6 @@ import * as krl from "./krl";
 import { KrlLogger } from "./KrlLogger";
 import * as modules from "./modules";
 import { ScheduledEvent } from "./modules/schedule";
-import { Scheduler } from "./Scheduler";
 
 export interface CurrentPicoEvent extends PicoEvent {
   eid: string;

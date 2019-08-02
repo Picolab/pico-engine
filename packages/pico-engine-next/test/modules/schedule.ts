@@ -1,6 +1,6 @@
 import test from "ava";
 import * as _ from "lodash";
-import { Scheduler } from "../src/Scheduler";
+import { Scheduler } from "../../src/modules/schedule";
 
 test("Scheduler - at", async t => {
   let timeoutHandler: any = null;

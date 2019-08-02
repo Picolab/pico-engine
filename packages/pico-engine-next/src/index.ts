@@ -7,9 +7,8 @@ import { rsNext } from "./io.picolabs.next";
 import * as krl from "./krl";
 import { RulesetEnvironment } from "./KrlCtx";
 import { getRotatingFileStream, KrlLogger } from "./KrlLogger";
-import { ScheduledEvent } from "./modules/schedule";
+import { schedulerStartup } from "./modules/schedule";
 import { RulesetRegistry } from "./RulesetRegistry";
-import { Scheduler } from "./Scheduler";
 import { server } from "./server";
 
 const homeDir = require("home-dir");
@@ -134,62 +133,10 @@ export async function startEngine(
 
   pf.addRuleset(rsNext);
 
-  const scheduler = new Scheduler();
-
-  function addScheduledEvent(rid: string, sEvent: ScheduledEvent) {
-    if (sEvent.type === "at") {
-      scheduler.addFuture(sEvent.id, sEvent.time, async () => {
-        const pico = pf.getPico(sEvent.event.eci);
-        if (pico) {
-          // TODO wrap in pico transaction
-          const schedule = (await pico.getEnt(rid, "_schedule")) || {};
-          const job = schedule[sEvent.id];
-          if (job) {
-            await pico.putEnt(rid, "_schedule", _.omit(schedule, sEvent.id));
-            pico.event(sEvent.event);
-          }
-        }
-      });
-    } else if (sEvent.type === "repeat") {
-      scheduler.addCron(sEvent.id, sEvent.timespec, async () => {
-        let found = false;
-        const pico = pf.getPico(sEvent.event.eci);
-        if (pico) {
-          // TODO wrap in pico transaction
-          const schedule = (await pico.getEnt(rid, "_schedule")) || {};
-          const job = schedule[sEvent.id];
-          if (job) {
-            found = true;
-            pico.event(sEvent.event);
-          }
-        }
-        if (!found) {
-          scheduler.remove(sEvent.id);
-        }
-      });
-    }
-  }
-
-  rsEnvironment.addScheduledEvent = addScheduledEvent;
-  rsEnvironment.removeScheduledEvent = id => scheduler.remove(id);
-
-  await new Promise((resolve, reject) => {
-    const s = pf.db.createReadStream({
-      gte: ["entvar"],
-      lte: ["entvar", undefined] // charwise sorts with null at the bottom and undefined at the top
-    });
-    s.on("error", reject);
-    s.on("end", () => resolve());
-    s.on("data", data => {
-      if (data.key[3] === "_schedule") {
-        const rid = data.key[2];
-        const value: { [id: string]: ScheduledEvent } = data.value;
-        for (const sEvent of Object.values(value)) {
-          addScheduledEvent(rid, sEvent);
-        }
-      }
-    });
-  });
+  const schdlr = schedulerStartup(pf);
+  rsEnvironment.addScheduledEvent = schdlr.addScheduledEvent;
+  rsEnvironment.removeScheduledEvent = schdlr.removeScheduledEvent;
+  await schdlr.start();
 
   await pf.start();
   await pf.rootPico.install("io.picolabs.next", "0.0.0");
