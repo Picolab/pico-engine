@@ -19,7 +19,7 @@ interface ScheduledEvent_repeat extends ScheduledEvent_base {
   timespec: string;
 }
 
-type ScheduledEvent = ScheduledEvent_at | ScheduledEvent_repeat;
+export type ScheduledEvent = ScheduledEvent_at | ScheduledEvent_repeat;
 
 async function addToSchedule(
   ctx: KrlCtx,
@@ -28,7 +28,7 @@ async function addToSchedule(
   const schedule = (await ctx.rsCtx.getEnt("_schedule")) || {};
   schedule[sEvent.id] = sEvent;
   await ctx.rsCtx.putEnt("_schedule", schedule);
-  ctx.updateScheduler();
+  ctx.scheduleEvent(sEvent);
   return sEvent;
 }
 
@@ -90,12 +90,16 @@ const schedule: krl.Module = {
       "_schedule",
       _.omit(this.rsCtx.getEnt("_schedule") || {}, id)
     );
-    this.updateScheduler();
+    this.removeScheduledEvent(id);
   }),
 
   clear: krl.Action([], async function() {
+    const schedule = (await this.rsCtx.getEnt("_schedule")) || {};
+    const ids = Object.keys(schedule);
     await this.rsCtx.delEnt("_schedule");
-    this.updateScheduler();
+    for (const id of ids) {
+      this.removeScheduledEvent(id);
+    }
   })
 };
 

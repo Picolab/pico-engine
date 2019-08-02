@@ -48,21 +48,26 @@ export class Scheduler {
     this.update();
   }
 
-  removeFuture(id: string) {
-    this.futures = this.futures.filter(future => {
-      return future.id !== id;
-    });
-    this.update();
-  }
-
   addCron(id: string, timespec: string, handler: () => void) {
     this.crons[id] = this.scheduleJob(timespec, handler);
   }
 
-  removeCron(id: string) {
+  remove(id: string) {
     if (this.crons[id]) {
       this.crons[id].cancel();
       delete this.crons[id];
+    } else {
+      let found = false;
+      this.futures = this.futures.filter(future => {
+        if (future.id === id) {
+          found = true;
+          return false;
+        }
+        return true;
+      });
+      if (found) {
+        this.update();
+      }
     }
   }
 

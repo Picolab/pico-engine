@@ -44,7 +44,7 @@ test("Scheduler - at", async t => {
   scheduler.addFuture("quux", 800, () => log.push("quux"));
   scheduler.addFuture("missed", 800, () => log.push("missed"));
   scheduler.addFuture("future", 123456, () => log.push("future"));
-  scheduler.removeFuture("missed");
+  scheduler.remove("missed");
   t.deepEqual(log, []);
   timeoutHandler();
   t.deepEqual(log, ["quux"]);
@@ -85,8 +85,8 @@ test("Scheduler - cron", async t => {
   addCron("three");
 
   cronHandlers["three"]();
-  scheduler.removeCron("two");
-  scheduler.removeCron("too");
+  scheduler.remove("two");
+  scheduler.remove("too");
 
   t.deepEqual(log, ["run three", "canceled two"]);
 });

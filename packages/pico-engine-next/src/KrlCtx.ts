@@ -4,6 +4,8 @@ import * as SelectWhen from "select-when";
 import * as krl from "./krl";
 import { KrlLogger } from "./KrlLogger";
 import * as modules from "./modules";
+import { ScheduledEvent } from "./modules/schedule";
+import { Scheduler } from "./Scheduler";
 
 export interface CurrentPicoEvent extends PicoEvent {
   eid: string;
@@ -24,6 +26,9 @@ export class RulesetEnvironment {
   SelectWhen = SelectWhen;
 
   modules: { [domain: string]: krl.Module } = modules;
+
+  public addScheduledEvent?: (rid: string, sEvent: ScheduledEvent) => void;
+  public removeScheduledEvent?: (id: string) => void;
 
   constructor(public log: KrlLogger) {}
 
@@ -94,8 +99,16 @@ export class RulesetEnvironment {
         });
       },
 
-      updateScheduler() {
-        // TODO update the clocks
+      scheduleEvent(sEvent) {
+        if (environment.addScheduledEvent) {
+          environment.addScheduledEvent(rsCtx.ruleset.rid, sEvent);
+        }
+      },
+
+      removeScheduledEvent(id) {
+        if (environment.removeScheduledEvent) {
+          environment.removeScheduledEvent(id);
+        }
       }
     };
   }
@@ -110,7 +123,8 @@ export interface KrlCtx {
   addDirective(name: string, options: { [name: string]: any }): Directive;
   drainDirectives(): Directive[];
   aggregateEvent(state: any, op: string, pairs: [string, string][]): any;
-  updateScheduler(): void;
+  scheduleEvent(sEvent: ScheduledEvent): void;
+  removeScheduledEvent(id: string): void;
 }
 
 function toFloat(v: any) {
