@@ -55,6 +55,7 @@
     "levelup": "^4.0.1",
     "lodash": "^4.17.11",
     "make-dir": "^3.0.0",
+    "node-schedule": "^1.3.2",
     "pico-framework": "^0.2.7",
     "request": "^2.88.0",
     "rotating-file-stream": "^1.4.1",
