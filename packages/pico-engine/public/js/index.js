@@ -74,6 +74,16 @@ $(document).ready(function () {
   }
   var capTemplate = Handlebars.compile($('#capabilities-template').html())
   var rulesetVarsTemplate = Handlebars.compile($('#rulesets-template-vars').html())
+  var uiTemplate = Handlebars.compile($('#the-template').html())
+  var aboutTemplate = Handlebars.compile($('#about-template').html())
+  var rulesetsTemplate = Handlebars.compile($('#rulesets-template').html())
+  var channelsTemplate = Handlebars.compile($('#channels-template').html())
+  var policiesTemplate = Handlebars.compile($('#policies-template').html())
+  var subscriptionsTemplate = Handlebars.compile($('#subscriptions-template').html())
+  var loggingTemplate = Handlebars.compile($('#logging-template').html())
+  var testingTemplate = Handlebars.compile($('#testing-template').html())
+  var agentTemplate = Handlebars.compile($('#agent-template').html())
+
   $.getJSON('/api/legacy-ui-data-dump', function (dbDump) {
     var dragstop = function (event, ui) {
       var nodeId = ui.helper[0].getAttribute('id')
@@ -184,15 +194,16 @@ $(document).ready(function () {
             theLoggingOut.status = ent_status ? ent_status.val : false
             if (theLoggingOut.status) {
               var episode_limit = $('#episode_limit').val() || 10
-              $.getJSON('/sky/cloud/' + eci + '/io.picolabs.logging/fmtLogs?limit='+episode_limit, function (data) {
-                var episode_keys = data ? Object.keys(data) : []
+              $.getJSON('/api/pico/' + thePicoInp.id + '/logs', function (data) {
+                var episodes = groupLogsByEpisode(data)
+                var episode_keys = episodes ? Object.keys(episodes) : []
                 theLoggingOut.episode_count = episode_keys.length
                 if (episode_keys.length > episode_limit) {
                   episode_keys.length = episode_limit
                 }
                 theLoggingOut.logs = {}
                 episode_keys.forEach(function (key) {
-                  theLoggingOut.logs[key] = data[key]
+                  theLoggingOut.logs[key] = episodes[key]
                 })
                 callback(null, theLoggingOut)
               }).fail(function (err) {
@@ -215,7 +226,7 @@ $(document).ready(function () {
         var testing = []
         eci = findEciById(thePicoInp.id)
         for (rid in thePicoInp.ruleset) {
-          testing.push({ rid: rid, loggingoff: (/logging$/.test(rid) ? true : null) })
+          testing.push({ rid: rid })
         }
         var theChannels = []
         Object.keys(thePicoInp.channel).forEach(function (id) {
@@ -320,16 +331,21 @@ $(document).ready(function () {
           callback(null, policyUI)
         })
       } else if (tabName === 'agent') {
-        var agentUI = { disabled: true, eci: eci, pico_id: thePicoInp.id }
-        $.getJSON('/sky/cloud/' + eci + '/org.sovrin.agent/ui', function (ui) {
-          callback(null, {
-            eci: eci,
-            pico_id: thePicoInp.id,
-            ui: ui,
-            text: JSON.stringify(ui, undefined, 2)
+        var agentUI = { eci: eci, pico_id: thePicoInp.id }
+        $.getJSON('/sky/event/' + eci + '/poll_router/edge/poll_all_needed',
+        function(){
+          $.getJSON('/sky/cloud/' + eci + '/org.sovrin.agent/ui',function(ui){
+            agentUI.ui = ui
+            $.getJSON('/sky/cloud/'+eci+'/org.sovrin.edge/ui',function(rui){
+              agentUI.ui.routerUI = rui
+              callback(null, agentUI)
+            }).fail(function(){
+              callback(null, agentUI)
+            })
+          }).fail(function () {
+            agentUI.disabled = true
+            callback(null, agentUI)
           })
-        }).fail(function () {
-          callback(null, agentUI)
         })
       } else {
         callback(null, thePicoInp)
@@ -349,9 +365,6 @@ $(document).ready(function () {
         .html()
         .toLowerCase()
         .trim()
-      var tabTemplate = Handlebars.compile(
-        $('#' + tabName + '-template').html()
-      )
       var $theSection = $(this)
         .parent()
         .next('.pico-section')
@@ -374,9 +387,9 @@ $(document).ready(function () {
           theDB.authenticatedOwner = theDB.isOwner
           theDB.passwordAuthenticated = theDB.pswdAuth
         }
-        $theSection.html(tabTemplate(theDB))
         var d = ''
         if (tabName === 'rulesets') {
+          $theSection.html(rulesetsTemplate(theDB))
           d = theDB.pico_id + '-Rulesets'
           location.hash = d
           $theSection.on('change', '.js-toggle-pvars', function (e) {
@@ -454,6 +467,7 @@ $(document).ready(function () {
             })
           })
         } else if (tabName === 'testing') {
+          $theSection.html(testingTemplate(theDB))
           $('.testing-rids li input').change(function (e) {
             $('#test-results pre').html('')
             if (this.checked) {
@@ -478,6 +492,7 @@ $(document).ready(function () {
           })
           location.hash = theDB.pico_id + '-Testing'
         } else if (tabName === 'about') {
+          $theSection.html(aboutTemplate(theDB))
           $theSection
             .find('.use-minicolors')
             .minicolors({
@@ -488,15 +503,27 @@ $(document).ready(function () {
           d = theDB.pico_id + '-About'
           location.hash = d
         } else if (tabName === 'channels') {
+          $theSection.html(channelsTemplate(theDB))
           d = theDB.pico_id + '-Channels'
           location.hash = d
         } else if (tabName === 'subscriptions') {
+          $theSection.html(subscriptionsTemplate(theDB))
           d = theDB.pico_id + '-Subscriptions'
           location.hash = d
         } else if (tabName === 'policies') {
+          $theSection.html(policiesTemplate(theDB))
           d = theDB.pico_id + '-Policies'
           location.hash = d
         } else if (tabName === 'agent') {
+          if (theDB.ui && theDB.ui.routerUI && theDB.ui.routerUI.routerName && theDB.ui.connections) {
+            for (var ic=0; ic < theDB.ui.connections.length; ++ic) {
+              if (theDB.ui.connections[ic].their_routing && theDB.ui.connections[ic].their_routing.length) {
+                theDB.ui.connections[ic].routerName = theDB.ui.routerUI.routerName
+              }
+            }
+          }
+          theDB.text = JSON.stringify(theDB.ui, undefined, 2)
+          $theSection.html(agentTemplate(theDB))
           d = theDB.pico_id + '-Agent'
           if (whereSpec.length > 2) {
             var $theLi = $('li#' + whereSpec[2])
@@ -518,6 +545,7 @@ $(document).ready(function () {
             }
           })
         } else if (tabName === 'logging') {
+          $theSection.html(loggingTemplate(theDB))
           if (theDB.status) {
             $('#logging-list').show()
             if (theDB.logs) {
@@ -589,7 +617,6 @@ $(document).ready(function () {
         })
       })
     }
-    var mpl = Handlebars.compile($('#the-template').html())
     var findEciById = function (id) {
       return dbDump.pico[id].admin_eci
     }
@@ -600,11 +627,13 @@ $(document).ready(function () {
       if (authenticated) {
         data.authenticated = true
       }
-      $('body').html(mpl(data))
+      $('body').html(uiTemplate(data))
       document.title = $('body h1').html()
       if (data.picos && data.picos[0]) {
         $('#user-logout span').html(data.picos[0].dname)
-        document.title = data.picos[0].dname
+        if (authenticated) {
+          document.title = data.picos[0].dname
+        }
       }
       $('div.pico')
         .resizable({
@@ -634,13 +663,16 @@ $(document).ready(function () {
             left: $(this).css('left')
           }
           var $pediv = $(this).next('.pico-edit')
+          var prevTitle = document.title
           var fadeAway = function (ev) {
+            document.title = prevTitle
             $pediv.find('button.x').remove()
             $pediv.animate(fadeOutOptions, 200)
             $pediv.fadeOut(200)
             ev.stopPropagation()
             location.hash = ''
           }
+          document.title = $(this).text()
           $pediv.fadeIn(200)
           $pediv.animate({
             width: '95%',
@@ -851,3 +883,38 @@ $(document).ready(function () {
     }
   })
 })
+
+function groupLogsByEpisode (logs) {
+  var entries = []
+  logs.forEach(function (entry) {
+    if (entry) {
+      entries.push({
+        txn_id: entry.txn_id,
+        msg: entry.time + ' [' + (entry.krl_level + '').toUpperCase() + '] ' + entry.msg,
+        time: new Date(entry.time)
+      })
+    }
+  })
+  entries.sort(function (a, b) {
+    return a.time.getTime() - b.time.getTime()
+  })
+  var groups = {}
+  entries.forEach(function (entry) {
+    if (!groups[entry.txn_id]) {
+      groups[entry.txn_id] = []
+    }
+    groups[entry.txn_id].push(entry.msg)
+  })
+  var groupByHead = {}
+  Object.keys(groups).forEach(function (txnId) {
+    var head = groups[txnId][0].replace(/\[EPISODE_START\]/, '|')
+    groupByHead[head] = groups[txnId]
+  })
+  var groupsSorted = {}
+  var groupOrder = Object.keys(groupByHead)
+  groupOrder.sort().reverse()
+  groupOrder.forEach(function (header) {
+    groupsSorted[header] = groupByHead[header]
+  })
+  return groupsSorted
+}

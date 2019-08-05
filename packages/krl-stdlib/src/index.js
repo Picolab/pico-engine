@@ -889,6 +889,9 @@ stdlib['get'] = function (ctx, obj, path) {
     return null
   }
   path = toKeyPath(path)
+  if (path.length === 0) {
+    return obj
+  }
   return _.get(obj, path, null)
 }
 
@@ -897,6 +900,9 @@ stdlib['set'] = function (ctx, obj, path, val) {
     return obj
   }
   path = toKeyPath(path)
+  if (path.length === 0) {
+    return val
+  }
   // TODO optimize
   obj = _.cloneDeep(obj)
   return _.set(obj, path, val)

@@ -34,7 +34,7 @@ ruleset io.picolabs.subscription {
                               { "domain": "wrangler", "type": "outbound_cancellation",
                                 "attrs": [ "Id" ] },
                               { "domain": "wrangler", "type": "autoAcceptConfigUpdate",
-                                "attrs": [ "variable", "regex_str" ] } ]}
+                                "attrs": [ "configName", "password", "regexMap","delete" ] } ]}
 /*
 ent:inbound [
   {
@@ -71,6 +71,7 @@ ent:established [
   },...,...
 ]
 */
+
     wellknown_Policy = { // we need to restrict what attributes are allowed on this channel, specifically Id.
       "name": "wellknown",
       "event": {
@@ -84,6 +85,13 @@ ent:established [
     autoAcceptConfig = function(){
       ent:autoAcceptConfig.defaultsTo({})
     }
+    configMatchesPassword = function(config, entryName, hashedPassword) {
+      doesntExist = config{[entryName]}.isnull();
+      passwordMatched = config{[entryName, "password"]} == hashedPassword;
+      
+      doesntExist || passwordMatched
+    }
+    
     established = function(key,value){
       filterOn(ent:established, key, value)
     }
@@ -92,6 +100,13 @@ ent:established [
     }
     inbound = function(key,value){//Rx_Pending
       filterOn(ent:inbound, key, value)
+    }
+    
+    // Returns true if this pico has no relationships at the moment
+    hasRelationships = function() {
+      ent:established.defaultsTo([]).length() > 0
+      || ent:inbound.defaultsTo([]).length() > 0
+      || ent:outbound.defaultsTo([]).length() > 0
     }
 
     /**
@@ -137,6 +152,19 @@ ent:established [
       event:attr("Id") => // add subscription identifier
                  _roles.put(["Id"], event:attr("Id")) | _roles.put(["Id"], random:uuid())
     }
+    
+    doesConfigMatch = function(config) {
+      config{["entries"]}.klog("entries map")
+        .map(function(regs,k) { //See if any of its entries match with an event:attr and its key
+          var = event:attr(k).klog("with event attr from " + k + "\n"); 
+          matches = not var.isnull() => regs.map(function(regex_str){ 
+                                              var.match(regex_str.as("RegExp").klog("matching with ")).klog("function returned ")})
+                                            .any( function(bool){ bool == true }) 
+                                        | false;
+          matches }).klog("resulting map")
+        .values()
+        .any(function(bool){bool})
+    }
 
   }//end global
 
@@ -155,6 +183,89 @@ ent:established [
       raise wrangler event "wellKnown_Rx_not_created" attributes event:attrs; //exists
     }
   }
+  
+  rule register_for_cleanup {
+    select when wrangler ruleset_added where event:attr("rids") >< meta:rid
+    always {
+      raise wrangler event "ruleset_needs_cleanup_period" attributes {
+        "domain":meta:rid
+      }
+    }
+  }
+  
+  
+  rule cleanup_subscriptions {
+    select when wrangler rulesets_need_to_cleanup
+    always {
+      raise wrangler event "cancel_subscriptions" attributes event:attrs
+    }
+  }
+  
+  rule cancel_all_subscriptions {
+    select when wrangler cancel_subscriptions
+    pre {
+      establishedSubIDs = ent:established.defaultsTo([]).map(function(sub){sub{"Id"}})
+      inboundSubIDs = ent:inbound.defaultsTo([]).map(function(inSub){inSub{"Id"}})
+      outboundSubIDs = ent:outbound.defaultsTo([]).map(function(outSub){outSub{"Id"}})
+    }
+    always {
+    raise wrangler event "cancel_relationships" attributes event:attrs
+                                                           .put("establishedIDs", establishedSubIDs)
+                                                           .put("inboundIDs", inboundSubIDs)
+                                                           .put("outboundIDs", outboundSubIDs)
+  
+    }      
+  }
+  
+  rule cancel_established {
+    select when wrangler cancel_relationships
+    foreach event:attr("establishedIDs") setting(subID)
+    always {
+      raise wrangler event "subscription_cancellation" attributes event:attrs
+                                                                  .put("Id", subID)
+                                                                  .delete("establishedIDs") //No need to move giant arrays through event chain
+                                                                  .delete("inboundIDs")
+                                                                  .delete("outboundIDs")
+    }
+  }
+  
+  rule cancel_inbound {
+    select when wrangler cancel_relationships
+    foreach event:attr("inboundIDs") setting(subID)
+    always {
+      raise wrangler event "inbound_rejection" attributes event:attrs
+                                                                  .put("Id", subID)
+                                                                  .delete("establishedIDs")
+                                                                  .delete("inboundIDs")
+                                                                  .delete("outboundIDs")
+    }
+  }
+  
+  rule cancel_outbound {
+    select when wrangler cancel_relationships
+    foreach event:attr("outboundIDs") setting(subID)
+    always {
+      raise wrangler event "outbound_cancellation" attributes event:attrs
+                                                                  .put("Id", subID)
+                                                                  .delete("establishedIDs")
+                                                                  .delete("inboundIDs")
+                                                                  .delete("outboundIDs");
+    }
+  }
+  
+  rule done_cleaning_up {
+    select when wrangler subscription_removed
+             or wrangler outbound_subscription_cancelled
+             or wrangler inbound_subscription_cancelled
+             or wrangler cancel_relationships
+    if wrangler:isMarkedForDeath() && not hasRelationships() then
+    noop()
+    fired {
+      raise wrangler event "cleanup_finished" attributes {
+        "domain":meta:rid
+      }
+    }
+  }
 
   //START OF A SUBSCRIPTION'S CREATION
   //For the following comments, consider picoA sending the request to picoB
@@ -166,7 +277,7 @@ ent:established [
       channel_type  = event:attr("channel_type").defaultsTo("Tx_Rx","Tx_Rx channel_type used.")
       pending_entry = pending_entry().put(["wellKnown_Tx"],event:attr("wellKnown_Tx"))
     }
-    if( pending_entry{"wellKnown_Tx"} ) then // check if we have someone to send a request to
+    if( pending_entry{"wellKnown_Tx"}) then // check if we have someone to send a request to
       wrangler:createChannel(meta:picoId, channel_name ,channel_type) setting(channel); // create Rx
     fired {
       newBus        = pending_entry.put({ "Rx" : channel{"id"} });
@@ -181,7 +292,7 @@ ent:established [
       raise wrangler event "outbound_pending_subscription_added" attributes event:attrs// API event
     }
     else {
-      raise wrangler event "no_wellKnown_Tx_failure" attributes  event:attrs // API event
+      raise wrangler event "wellKnown_Tx_format_failure" attributes  event:attrs // API event
     }
   }//end createMySubscription rule
 
@@ -212,7 +323,7 @@ ent:established [
       pending_entry = pending_entry().put(["Tx"],event:attr("Tx"))
     }
     if( pending_entry{"Tx"} ) then
-      wrangler:createChannel(meta:picoId, event:attr("name") ,event:attr("channel_type")) setting(channel); // create Rx
+      wrangler:createChannel(meta:picoId, event:attr("channel_name") ,event:attr("channel_type")) setting(channel); // create Rx
     fired {
       Rx = channel{"id"};
       newBus       = pending_entry.put({"Rx" : Rx,
@@ -379,17 +490,61 @@ ent:established [
       raise wrangler event "outbound_subscription_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
     }
   }
+  
+  rule sendEventToSubCheck {
+    select when wrangler send_event_on_subs
+    pre {
+      subID = event:attr("subID")
+      Tx_role = event:attr("Tx_role")
+      Rx_role = event:attr("Rx_role")
+      establishedWithID = subID => established("Id", subID) | []
+      establishedWithTx_role = Tx_role => established("Tx_role", Tx_role) | []
+      establishedWithRx_role = Rx_role => established("Rx_role", Rx_role) | []
+      subs = establishedWithID.append(establishedWithTx_role).append(establishedWithRx_role)
+    }
+    if subs.length() > 0 && event:attr("domain") && event:attr("type") then
+    noop()
+    fired {
+      raise wrangler event "send_event_to_subs" attributes event:attrs.put("subs", subs)
+    } else {
+      raise wrangler event "failed_to_send_event_to_sub" attributes event:attrs.put({
+        "foundSubsToSendTo":subs.length() > 0,
+        "domainGiven":event:attr("domain").as("Boolean"),
+        "typeGiven":event:attr("type").as("Boolean"),
+      })
+    }
+  }
+  
+  rule send_event_to_subs {
+    select when wrangler send_event_to_subs
+    foreach event:attr("subs") setting (sub)
+    pre {
+      tx = sub{"Tx"}                                                                       // Get the "Tx" channel to send our query to
+      host = sub{"Tx_host"}                                                                // See if the pico is on a different host. If it isn't use this engine's host
+    }
+    event:send({"eci":tx, "domain":event:attr("domain"), "type":event:attr("type"), "attrs":event:attr("attrs").defaultsTo({})}, host)
+  }
 
   rule autoAccept {
     select when wrangler inbound_pending_subscription_added
     pre{
-      /*autoAcceptConfig{
-        var : [regex_str,..,..]
-      }*/
-      matches = ent:autoAcceptConfig.map(function(regs,k) {
-                              var = event:attr(k);
-                              matches = not var.isnull() => regs.map(function(regex_str){ var.match(regex_str)}).any( function(bool){ bool == true }) | false;
-                              matches }).values().any( function(bool){ bool == true })
+      /*
+      autoAcceptConfig{
+        configName : {
+          configName: "name"
+          password: "<hashedPassword>"
+          entries: {
+            <entries>
+          }
+        }
+        . . .
+   * entry:
+   * 
+   * entryVar: [regEx, regEx, ...]
+      }*/                                                                         
+      matches = ent:autoAcceptConfig.map(function(config, configName) { // For eaech config
+                                      doesConfigMatch(config)
+                                    }).klog("final map").values().any(function(bool){bool}) // If any did match then we can approve the subscription
     }
     if matches then noop()
     fired {
@@ -398,12 +553,47 @@ ent:established [
     }// else ...
   }
 
-  rule autoAcceptConfigUpdate { // consider single time use password
+  /**
+   * 
+   * event:attr("config"):
+   * {
+      configName: "name"
+      password: <password> (not in production)
+      entries: {
+        <entries>
+      }
+     }
+   * entry:
+   * 
+   * entryVar: [regEx, regEx, ...]
+   * 
+   */
+  rule autoAcceptConfigUpdate {
     select when wrangler autoAcceptConfigUpdate
-    pre{ config = autoAcceptConfig() }
-    if (event:attr("variable") && event:attr("regex_str") ) then noop()
+    pre { 
+      givenConfig = event:attr("config").defaultsTo({
+        "configName": event:attr("configName"),
+        "password": event:attr("password"),
+        "entries": event:attr("regexMap").decode()
+      });
+      givenName = givenConfig["configName"]
+      configPassword = givenConfig["password"].defaultsTo("")
+      
+      //hashedPassword = math:hash("sha256", configPassword) // Not meant to be robust, just so you can't easily query it
+      config = autoAcceptConfig()
+      existingConfig = config[givenName].defaultsTo({})
+      //passwordMatch = configMatchesPassword(config, givenName, hashedPassword)
+      
+      configToAdd = event:attr("delete") => null | givenConfig//.put("password", hashedPassword);
+      
+      }
+    if (givenName.klog("configName")) then noop()// && configPassword.klog("configPassword") && passwordMatch.klog("passwordMatch")) then noop()
     fired {
-      ent:autoAcceptConfig := config.put([event:attr("variable")],config{event:attr("variable")}.defaultsTo([]).append([event:attr("regex_str")])); // possible to add the same regex_str multiple times.
+      ent:autoAcceptConfig{[givenName]} := configToAdd.klog("added config");
+      ent:autoAcceptConfig := ent:autoAcceptConfig.delete(givenName) if event:attr("delete");
+      raise wrangler event "auto_accept_config_updated" attributes event:attrs
+        // config.put( [event:attr("variable")] ,
+        // config{event:attr("variable")}.defaultsTo([]).append([event:attr("regex_str")])); // possible to add the same regex_str multiple times.
     }
     else {
       raise wrangler event "autoAcceptConfigUpdate_failure" attributes event:attrs // API event

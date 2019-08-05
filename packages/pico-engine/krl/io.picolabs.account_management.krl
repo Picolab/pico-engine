@@ -169,7 +169,7 @@ rule create_admin{
     select when owner token_created event_type re#account#
     pre{
       a=event:attrs.klog("all attrs: ")
-      rs_attrs = event:attr("rs_attrs"){"rs_attrs"};
+      rs_attrs = event:attr("rs_attrs");
       new_owner = {"eci": event:attr("eci")}
     }
     fired{

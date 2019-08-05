@@ -922,9 +922,15 @@ test('collection operators', async function (t) {
   tf('get', [obj, ['foo', 'bar', '10']], 'I like cheese')
   tf('get', [obj, 'colors'], 'many')
   tf('get', [obj, ['pi', 2]], 4)
+  tf('get', [obj, []], obj)
+  tf('get', [obj, null], null)
   assertObjNotMutated()
   tf('get', [['a', 'b', { 'c': ['d', 'e'] }], [2, 'c', 1]], 'e', 'get works on arrays and objects equally')
   tf('get', [['a', 'b', { 'c': ['d', 'e'] }], ['2', 'c', '1']], 'e', 'array indices can be strings')
+  tf('get', [{ 'null': 3, 'undefined': 4 }, null], 3)
+  tf('get', [{ 'null': 3, 'undefined': 4 }, NaN], 3, 'using KRL toString you get "null"')
+  tf('get', [{ 'null': 3, 'undefined': 4 }, undefined], 3)
+  tf('get', [{ 'null': 3, 'undefined': 4 }, 'undefined'], 4)
 
   tf('set', [obj, ['foo', 'baz'], 'qux'], {
     'colors': 'many',
@@ -961,6 +967,10 @@ test('collection operators', async function (t) {
     'pi': [3, 1, 4, 1, { a: 'wat?' }, 9, 3],
     'foo': { 'bar': { '10': 'I like cheese' } }
   })
+  tf('set', [obj, [], { a: 1, b: 2 }], { a: 1, b: 2 })
+  tf('set', [obj, null, { a: 1, b: 2 }], Object.assign({}, obj, {
+    'null': { a: 1, b: 2 }
+  }))
   assertObjNotMutated()
 
   tf('set', [['a', 'b', 'c'], [1], 'wat?'], ['a', 'wat?', 'c'])
