@@ -167,7 +167,7 @@
 </script>
 <script id="area-right-template" type="text/x-handlebars-template">
     <div style="height:45px"></div>
-    <div style="font-family:monospace">
+    <div class="text-muted" style="font-family:monospace">
         {{rs_version.rid}}
     </div>
     {{#if rs_version.url}}
@@ -183,7 +183,7 @@
     {{#if history}}
         <h4 class="text-muted">History</h4>
         {{#each history}}
-            <div>
+            <div class="text-muted">
                 {{timestamp}}
             </div>
         {{/each}}
@@ -482,19 +482,35 @@
 
     var setLightTheme = function() {
         let ridList = document.getElementsByClassName("ruleset-list-item")
+        let textList = document.getElementsByClassName("text-muted")
+        
         console.log("Tried to set light theme")
+
         for (var i = 0; i < ridList.length; i++) {
             ridList[i].classList.remove("ruleset-list-item-dark")
         }
+
+        for (var i = 0; i < textList.length; i++) {
+            textList[i].classList.remove("text-muted-dark")
+        }
+
         document.body.style.backgroundColor = "#f2f2f2"
     }
 
     var setDarkTheme = function() {
         let ridList = document.getElementsByClassName("ruleset-list-item")
+        let textList = document.getElementsByClassName("text-muted")
+
         console.log("Tried to set dark theme")
+
         for (var i = 0; i < ridList.length; i++) {
             ridList[i].classList.add("ruleset-list-item-dark")
         }
+
+        for (var i = 0; i < textList.length; i++) {
+            textList[i].classList.add("text-muted-dark")
+        }
+
         document.body.style.backgroundColor = "#141414"
     }
 
