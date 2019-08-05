@@ -294,6 +294,12 @@ test('select when', function (t) {
     mk.eventOp('or', [mk.ee('d', 'b'), mk.ee('d', 'c')])
   ]))
 
+  src = 'select when d:a and (d b or d:c)'
+  asertRuleAST(src, mk.eventOp('and', [
+    mk.ee('d', 'a'),
+    mk.eventOp('or', [mk.ee('d', 'b'), mk.ee('d', 'c')])
+  ]))
+
   t.end()
 })
 

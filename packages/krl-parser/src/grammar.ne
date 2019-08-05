@@ -672,7 +672,7 @@ event_exp_base -> %tok_OPEN_PAREN EventExpression %tok_CLSE_PAREN {% getN(1) %}
     | IndividualEventExpression {% id %}
 
 IndividualEventExpression ->
-    Identifier Identifier
+    Identifier %tok_COLON:? Identifier
     (event_exp_attribute_pair:+ (%tok_setting %tok_OPEN_PAREN Identifier_list_body %tok_CLSE_PAREN):?):?
     (%tok_where event_exp_where):? {%
   function(data){
@@ -680,16 +680,16 @@ IndividualEventExpression ->
       type: 'EventExpression',
       loc: mkLoc(data),
       event_domain: data[0],
-      event_type: data[1],
-      event_attrs: (data[2] && data[2][0]) || [],
-      setting: (data[2] && data[2][1] && data[2][1][2]) || [],
-      where: data[3] && data[3][1],
+      event_type: data[2],
+      event_attrs: (data[3] && data[3][0]) || [],
+      setting: (data[3] && data[3][1] && data[3][1][2]) || [],
+      where: data[4] && data[4][1],
       aggregator: null//this is set by EventAggregator
     };
   }
 %}
 ## DEPRECATED
-    | Identifier Identifier event_exp_attribute_pair:* %tok_where event_exp_where %tok_setting %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN {%
+    | Identifier %tok_COLON:? Identifier event_exp_attribute_pair:* %tok_where event_exp_where %tok_setting %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN {%
   function(data){
     return {
       deprecated: "Move the `where` clause to be after the `setting`",
@@ -697,16 +697,16 @@ IndividualEventExpression ->
       type: 'EventExpression',
       loc: mkLoc(data),
       event_domain: data[0],
-      event_type: data[1],
-      event_attrs: data[2],
-      where: data[4],
-      setting: data[7],
+      event_type: data[2],
+      event_attrs: data[3],
+      where: data[5],
+      setting: data[8],
       aggregator: null//this is set by EventAggregator
     };
   }
 %}
 ## DEPRECATED
-    | Identifier Identifier %tok_setting %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN {%
+    | Identifier %tok_COLON:? Identifier %tok_setting %tok_OPEN_PAREN Identifier_list %tok_CLSE_PAREN {%
   function(data){
     return {
       deprecated: "What are you `setting`? There are no attribute matches",
@@ -714,10 +714,10 @@ IndividualEventExpression ->
       type: 'EventExpression',
       loc: mkLoc(data),
       event_domain: data[0],
-      event_type: data[1],
+      event_type: data[2],
       event_attrs: [],
       where: null,
-      setting: data[4],
+      setting: data[5],
       aggregator: null//this is set by EventAggregator
     };
   }
