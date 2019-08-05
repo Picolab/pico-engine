@@ -281,15 +281,17 @@ ent:established [
       wrangler:createChannel(meta:picoId, channel_name ,channel_type) setting(channel); // create Rx
     fired {
       newBus        = pending_entry.put({ "Rx" : channel{"id"} });
+      fullNewBus    = newBus.put(
+                                  {  "channel_name": channel_name,
+                                     "channel_type": channel_type,
+                                     "verify_key"  : channel{"sovrin"}{"verifyKey"},
+                                     "public_key"  : channel{"sovrin"}{"encryptionPublicKey"}
+                                   }
+                                 );
       ent:outbound := outbound().append( newBus );
       raise wrangler event "subscription_request_needed"
-        attributes event:attrs.put(newBus.put(
-                                              {  "channel_name": channel_name,
-                                                 "channel_type": channel_type,
-                                                 "verify_key"  : channel{"sovrin"}{"verifyKey"},
-                                                 "public_key"  : channel{"sovrin"}{"encryptionPublicKey"}
-                                                 }));
-      raise wrangler event "outbound_pending_subscription_added" attributes event:attrs// API event
+        attributes event:attrs.put(fullNewBus);
+      raise wrangler event "outbound_pending_subscription_added" attributes event:attrs.put(fullNewBus)// API event
     }
     else {
       raise wrangler event "wellKnown_Tx_format_failure" attributes  event:attrs // API event
@@ -355,7 +357,7 @@ ent:established [
                     })
           }, bus{"Tx_host"})
     always {
-      raise wrangler event "inbound_pending_subscription_approved" attributes event:attrs.put(["bus"],bus)
+      raise wrangler event "inbound_pending_subscription_approved" attributes event:attrs.put("Id", bus{"Id"}).put(["bus"],bus)
     }
   }
 
@@ -370,7 +372,10 @@ ent:established [
                                   .delete(["wellKnown_Tx"])
       index    = indexOfId(outbound, bus{"Id"})
     }
-    always{
+    // If we haven't already moved the bus out of outbound
+    if index >= 0 then
+    noop()
+    fired {
       ent:established := established().append(bus);
       ent:outbound    := outbound.splice(index,1);
       raise wrangler event "subscription_added" attributes event:attrs.put(["bus"], bus) // API event
@@ -383,7 +388,10 @@ ent:established [
       inbound = inbound()
       index   = indexOfId(inbound,event:attr("Id"))
     }
-    always {
+    // If we havent already moved the bus out of inbound
+    if index >= 0 then
+    noop()
+    fired {
       ent:established := established().append( event:attr("bus") );
       ent:inbound     := inbound.splice(index,1);
       raise wrangler event "subscription_added" attributes event:attrs // API event
@@ -451,8 +459,9 @@ ent:established [
       bus   = findBus(buses)
       index = indexOfId(buses, bus{"Id"})
     }
+    if index >= 0 then
       engine:removeChannel(bus{"Rx"})
-    always {
+    fired {
       ent:inbound := buses.splice(index,1);
       raise wrangler event "inbound_subscription_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
     }
@@ -484,8 +493,9 @@ ent:established [
       bus   = findBus(buses)
       index = indexOfId(buses,bus{"Id"})
     }
+    if index >= 0 then
       engine:removeChannel(bus{"Rx"})
-    always {
+    fired {
       ent:outbound := buses.splice(index,1);
       raise wrangler event "outbound_subscription_cancelled" attributes event:attrs.put({ "bus" : bus }) // API event
     }
