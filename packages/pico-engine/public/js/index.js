@@ -332,17 +332,20 @@ $(document).ready(function () {
         })
       } else if (tabName === 'agent') {
         var agentUI = { eci: eci, pico_id: thePicoInp.id }
-        $.getJSON('/sky/cloud/' + eci + '/org.sovrin.agent/ui', function (ui) {
-          agentUI.ui = ui
-          $.getJSON('/sky/cloud/'+eci+'/org.sovrin.edge/ui',function(rui){
-            agentUI.ui.routerUI = rui
-            callback(null, agentUI)
-          }).fail(function(){
+        $.getJSON('/sky/event/' + eci + '/poll_router/edge/poll_all_needed',
+        function(){
+          $.getJSON('/sky/cloud/' + eci + '/org.sovrin.agent/ui',function(ui){
+            agentUI.ui = ui
+            $.getJSON('/sky/cloud/'+eci+'/org.sovrin.edge/ui',function(rui){
+              agentUI.ui.routerUI = rui
+              callback(null, agentUI)
+            }).fail(function(){
+              callback(null, agentUI)
+            })
+          }).fail(function () {
+            agentUI.disabled = true
             callback(null, agentUI)
           })
-        }).fail(function () {
-          agentUI.disabled = true 
-          callback(null, agentUI)
         })
       } else {
         callback(null, thePicoInp)

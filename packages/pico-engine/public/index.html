@@ -564,6 +564,15 @@
           <td><button type="submit">Accept</button></td>
         </tr></table>
         </form>
+          <h3>Inbound router: {{#if ui.routerUI}}<span title="{{ui.routerUI.routerHost}} {{ui.routerUI.routerRequestECI}}">{{ui.routerUI.routerName}}</span>{{/if}}</h3>
+          {{#unless ui.routerUI.routerName}}
+            <form class="js-ajax-form" action="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rids=org.sovrin.edge">
+              <input name="host" placeholder="router host">
+              <input name="eci" placeholder="router request eci">
+              <input name="label" placeholder="router label">
+              <button type="submit">Configure</button>
+            </form>
+          {{/unless}}
         {{#if ui.connections}}
           <h3>Connections</h3>
           <ul>
@@ -572,14 +581,13 @@
               <input type="checkbox" id="connection-{{@index}}">
               <label for="connection-{{@index}}">{{label}}{{#if their_routing}} (via {{routerName}}){{/if}}</label>
               <div class="connection-detail">
-              <h4>My DID: {{my_did}}</h4>
-              <h4>Their DID: {{their_did}}</h4>
               {{#if messages}}
-              <h4>Messages:</h4>
+              <div class="agent-basic-messages">
               {{#each messages}}
               <p class="{{from}}"{{#if color}} style="background:rgb({{color}},0.1)"{{/if}}>{{content}}<span>{{sent_time}}</span></p>
               <hr>
               {{/each}}
+              </div>
               {{/if}}
               <form class="js-ajax-form" action="/sky/event/{{my_did}}/msg/sovrin/send_basicmessage?their_vk={{their_vk}}" style="float:right">
                 <input name="content">
