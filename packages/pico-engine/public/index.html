@@ -561,7 +561,12 @@
 {{/if}}
           <th align="right">Received Invitation</th>
           <td><input type="text" name="url" placeholder="paste invitation URL here"></td>
-          <td><button type="submit">Accept</button></td>
+          <td>
+            <button>Accept</button>
+          {{#if ui.routerUI}}
+            <input type="checkbox" name="need_router_connection" value="true"> via inbound router
+          {{/if}}
+          </td>
         </tr></table>
         </form>
           <h3>Inbound router: {{#if ui.routerUI}}<span title="{{ui.routerUI.routerHost}} {{ui.routerUI.routerRequestECI}}">{{ui.routerUI.routerName}}</span>{{else}}<a href="#" onclick="$(this).parent().next('form').toggle()" style="font-size:75%">not configured</a>{{/if}}</h3>
