@@ -931,8 +931,21 @@ RaiseEventStatement -> %tok_raise Identifier %tok_event Expression
       event_domain: data[1],
       event_type: data[3],
       event_attrs: (data[5] && data[5][1]) || null,
-
       for_rid: data[4] ? data[4][1] : null,
+    };
+  }
+%}
+    | %tok_raise %tok_event Expression
+  (%tok_for Expression):?
+  (%tok_attributes Expression):?
+{%
+  function(data){
+    return {
+      loc: mkLoc(data),
+      type: "RaiseEventStatement",
+      event_domainAndType: data[2],
+      event_attrs: (data[4] && data[4][1]) || null,
+      for_rid: data[3] ? data[3][1] : null,
     };
   }
 %}
