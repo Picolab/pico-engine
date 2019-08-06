@@ -243,6 +243,13 @@ ruleset io.picolabs.events {
                 attributes {"name": my_name}
         }
     }
+    rule raise_dynamic {
+        select when events raise_dynamic domainType re#^(.*)$# setting(domainType)
+        fired {
+            raise event domainType
+                attributes event:attrs
+        }
+    }
     rule event_eid {
         select when events event_eid
 

@@ -1179,6 +1179,49 @@ module.exports = {
         }
       }
     },
+    "raise_dynamic": {
+      "name": "raise_dynamic",
+      "select": {
+        "graph": {
+          "events": {
+            "raise_dynamic": {
+              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
+                var matches = [];
+                var m;
+                var j;
+                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "domainType"));
+                if (!m)
+                  return false;
+                for (j = 1; j < m.length; j++)
+                  matches.push(m[j]);
+                setting("domainType", matches[0]);
+                return true;
+              }
+            }
+          }
+        },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": async function (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (fired) {
+          await ctx.raiseEvent({
+            "domainAndType": ctx.scope.get("domainType"),
+            "attributes": await ctx.modules.get(ctx, "event", "attrs"),
+            "for_rid": undefined
+          });
+        }
+      }
+    },
     "event_eid": {
       "name": "event_eid",
       "select": {

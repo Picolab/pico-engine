@@ -1940,6 +1940,72 @@ test('raise event', function (t) {
     }
   ])
 
+  // dynamic event domain and type
+
+  testPostlude('raise event "foo:bar"', [
+    {
+      type: 'RaiseEventStatement',
+      event_domainAndType: mk('foo:bar'),
+      for_rid: null,
+      event_attrs: null
+    }
+  ])
+
+  testPostlude('raise event "foo:bar" for "some.rid.ok"', [
+    {
+      type: 'RaiseEventStatement',
+      event_domainAndType: mk('foo:bar'),
+      for_rid: mk('some.rid.ok'),
+      event_attrs: null
+    }
+  ])
+
+  testPostlude('raise event "foo:bar" attributes {"a":1,"b":2}', [
+    {
+      type: 'RaiseEventStatement',
+      event_domainAndType: mk('foo:bar'),
+      for_rid: null,
+      event_attrs: mk({ a: mk(1), b: mk(2) })
+    }
+  ])
+
+  testPostlude('raise event "foo:bar" for "some.rid.ok" attributes {"a":1,"b":2}', [
+    {
+      type: 'RaiseEventStatement',
+      event_domainAndType: mk('foo:bar'),
+      for_rid: mk('some.rid.ok'),
+      event_attrs: mk({ a: mk(1), b: mk(2) })
+    }
+  ])
+
+  testPostlude('raise event event', [
+    {
+      type: 'RaiseEventStatement',
+      event_domainAndType: mk.id('event'),
+      for_rid: null,
+      event_attrs: null
+    }
+  ])
+
+  testPostlude('raise event event attributes', [
+    {
+      type: 'RaiseEventStatement',
+      event_domain: mk.id('event'),
+      event_type: mk.id('attributes'),
+      for_rid: null,
+      event_attrs: null
+    }
+  ])
+
+  testPostlude('raise event event attributes {}', [
+    {
+      type: 'RaiseEventStatement',
+      event_domainAndType: mk.id('event'),
+      for_rid: null,
+      event_attrs: mk({})
+    }
+  ])
+
   t.end()
 })
 

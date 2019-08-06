@@ -923,8 +923,24 @@ var grammar = {
             event_domain: data[1],
             event_type: data[3],
             event_attrs: (data[5] && data[5][1]) || null,
-        
             for_rid: data[4] ? data[4][1] : null,
+          };
+        }
+        },
+    {"name": "RaiseEventStatement$ebnf$3$subexpression$1", "symbols": [tok_for, "Expression"]},
+    {"name": "RaiseEventStatement$ebnf$3", "symbols": ["RaiseEventStatement$ebnf$3$subexpression$1"], "postprocess": id},
+    {"name": "RaiseEventStatement$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RaiseEventStatement$ebnf$4$subexpression$1", "symbols": [tok_attributes, "Expression"]},
+    {"name": "RaiseEventStatement$ebnf$4", "symbols": ["RaiseEventStatement$ebnf$4$subexpression$1"], "postprocess": id},
+    {"name": "RaiseEventStatement$ebnf$4", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "RaiseEventStatement", "symbols": [tok_raise, tok_event, "Expression", "RaiseEventStatement$ebnf$3", "RaiseEventStatement$ebnf$4"], "postprocess": 
+        function(data){
+          return {
+            loc: mkLoc(data),
+            type: "RaiseEventStatement",
+            event_domainAndType: data[2],
+            event_attrs: (data[4] && data[4][1]) || null,
+            for_rid: data[3] ? data[3][1] : null,
           };
         }
         },
