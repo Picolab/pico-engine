@@ -1,3 +1,10 @@
+# 0.51.1 - August 6, 2019
+
+* dynamic raise statement - see [460](https://github.com/Picolab/pico-engine/pull/460) and [15](https://github.com/Picolab/pico-engine/issues/15)
+* optional colon for domain:type in event expressions - see [18150b01](https://github.com/Picolab/pico-engine/commit/18150b01)
+* faster logging - see [4cf96486](https://github.com/Picolab/pico-engine/commit/4cf96486)
+* UI and agent improvements
+
 # 0.51.0 - July 26, 2019
 
 * added `engine:registerRulesetFromSrc` - see [456](https://github.com/Picolab/pico-engine/issues/456)
