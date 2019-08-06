@@ -843,6 +843,36 @@ module.exports = {
         await $ctx.rsCtx.raiseEvent("events", "store_sent_name", { "name": my_name });
       }
     });
+    $rs.when($env.SelectWhen.e("events:raise_dynamic", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "domainType") ? $stdlib.as($ctx, [
+        $event.data.attrs["domainType"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var domainType = setting["domainType"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state, $last) {
+      var domainType = $state.setting["domainType"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.raiseEvent();
+      }
+    });
     $rs.when($env.SelectWhen.e("events:event_eid"), async function ($event, $state, $last) {
       var $fired = true;
       if ($fired) {
@@ -1044,6 +1074,11 @@ module.exports = {
               {
                 "domain": "events",
                 "name": "raise_set_name_rid",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "raise_dynamic",
                 "attrs": []
               },
               {

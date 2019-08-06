@@ -640,7 +640,7 @@ ruleset io.picolabs.wrangler {
                    "attrs" : event:attrs })
     always {
       raise visual event "update"
-        attributes event:attr("rs_attrs").defaultsTo({}).put("dname",event:attr("name"))
+        attributes event:attrs.put("dname",event:attr("name"))
     }
   }
   

@@ -129,19 +129,28 @@ module.exports = async function processEvent (core, ctx) {
       var event = {
         eci: ctx.event.eci, // raise event is always to the same pico
         eid: ctx.event.eid, // inherit from parent event to aid in debugging
-        domain: revent.domain,
-        type: revent.type,
         attrs: revent.attributes,
         for_rid: revent.for_rid,
         txn_id: ctx.event.txn_id, // inherit from parent event
         timestamp: new Date()
+      }
+      let domainTypeLog
+      if (revent.domainAndType) {
+        const parts = ktypes.toString(revent.domainAndType).replace(/\s+/g, '').split(':')
+        event.domain = parts[0]
+        event.type = parts.slice(1).join(':')
+        domainTypeLog = parts.join('/')
+      } else {
+        event.domain = revent.domain
+        event.type = revent.type
+        domainTypeLog = event.domain + '/' + event.type
       }
       // must make a new ctx for this raise b/c it's a different event
       var raiseCtx = core.mkCTX({
         event: event,
         pico_id: ctx.pico_id// raise event is always to the same pico
       })
-      raiseCtx.emit('debug', 'adding raised event to schedule: ' + revent.domain + '/' + revent.type)
+      raiseCtx.emit('debug', 'adding raised event to schedule: ' + domainTypeLog)
       await addEventToSchedule(raiseCtx)
     },
     raiseError: function (ctx, level, data) {
