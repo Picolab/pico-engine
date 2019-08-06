@@ -516,8 +516,10 @@ $(document).ready(function () {
           location.hash = d
         } else if (tabName === 'agent') {
           if (theDB.ui && theDB.ui.routerUI && theDB.ui.routerUI.routerName && theDB.ui.connections) {
+            var toSuffix = " to " + theDB.ui.name
             for (var ic=0; ic < theDB.ui.connections.length; ++ic) {
-              if (theDB.ui.connections[ic].their_routing && theDB.ui.connections[ic].their_routing.length) {
+              var rConnName = theDB.ui.connections[ic].label + toSuffix
+              if (theDB.ui.routerUI.routerConnections && theDB.ui.routerUI.routerConnections[rConnName]) {
                 theDB.ui.connections[ic].routerName = theDB.ui.routerUI.routerName
               }
             }
