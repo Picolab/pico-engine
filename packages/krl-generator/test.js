@@ -7,10 +7,10 @@ const test = require('ava')
 
 const filesDir = path.resolve(__dirname, '../../test-rulesets')
 
-test('generator', async function(t){
+test('generator', async function (t) {
   const files = await fs.promises.readdir(filesDir)
 
-  for(const file of files){
+  for (const file of files) {
     if (!/\.krl$/.test(file)) {
       continue
     }
