@@ -332,17 +332,20 @@ $(document).ready(function () {
         })
       } else if (tabName === 'agent') {
         var agentUI = { eci: eci, pico_id: thePicoInp.id }
-        $.getJSON('/sky/cloud/' + eci + '/org.sovrin.agent/ui', function (ui) {
-          agentUI.ui = ui
-          $.getJSON('/sky/cloud/'+eci+'/org.sovrin.edge/ui',function(rui){
-            agentUI.ui.routerUI = rui
-            callback(null, agentUI)
-          }).fail(function(){
+        $.getJSON('/sky/event/' + eci + '/poll_router/edge/poll_all_needed',
+        function(){
+          $.getJSON('/sky/cloud/' + eci + '/org.sovrin.agent/ui',function(ui){
+            agentUI.ui = ui
+            $.getJSON('/sky/cloud/'+eci+'/org.sovrin.edge/ui',function(rui){
+              agentUI.ui.routerUI = rui
+              callback(null, agentUI)
+            }).fail(function(){
+              callback(null, agentUI)
+            })
+          }).fail(function () {
+            agentUI.disabled = true
             callback(null, agentUI)
           })
-        }).fail(function () {
-          agentUI.disabled = true 
-          callback(null, agentUI)
         })
       } else {
         callback(null, thePicoInp)
@@ -513,8 +516,10 @@ $(document).ready(function () {
           location.hash = d
         } else if (tabName === 'agent') {
           if (theDB.ui && theDB.ui.routerUI && theDB.ui.routerUI.routerName && theDB.ui.connections) {
+            var toSuffix = " to " + theDB.ui.name
             for (var ic=0; ic < theDB.ui.connections.length; ++ic) {
-              if (theDB.ui.connections[ic].their_routing && theDB.ui.connections[ic].their_routing.length) {
+              var rConnName = theDB.ui.connections[ic].label + toSuffix
+              if (theDB.ui.routerUI.routerConnections && theDB.ui.routerUI.routerConnections[rConnName]) {
                 theDB.ui.connections[ic].routerName = theDB.ui.routerUI.routerName
               }
             }

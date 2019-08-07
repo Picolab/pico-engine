@@ -439,6 +439,16 @@ test('PicoEngine - io.picolabs.events ruleset', async function (t) {
     [query('getSentName'), 'Raised-3'],
 
     /// ///////////////////////////////////////////////////////////////////////
+    // Testing raise event <domainAndType>
+    [signal('events', 'raise_dynamic', { domainType: 'events:store_sent_name', name: 'Mr. Dynamic' }), []],
+    [query('getSentName'), 'Mr. Dynamic'],
+
+    [
+      signal('events', 'raise_dynamic', { domainType: 'events:get', thing: 'something?' }),
+      [{ name: 'get', options: { thing: 'something?' } }]
+    ],
+
+    /// ///////////////////////////////////////////////////////////////////////
     [
       signal('events', 'event_eid', {}, void 0, 'some eid for this test'),
       [{ name: 'event_eid', options: { eid: 'some eid for this test' } }]
