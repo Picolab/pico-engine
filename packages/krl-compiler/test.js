@@ -20,8 +20,8 @@ test.cb('compiler', function (t) {
       var jsFile = path.join(filesDir, basename) + '.js'
       var krlFile = path.join(filesDir, basename) + '.krl'
       λ.concurrent({
-        js: λ.curry(fs.readFile, jsFile, 'utf-8'),
-        krl: λ.curry(fs.readFile, krlFile, 'utf-8')
+        js: λ.curry(fs.readFile, jsFile, 'utf8'),
+        krl: λ.curry(fs.readFile, krlFile, 'utf8')
       }, function (err, srcs) {
         if (err) return t.end(err)
 
