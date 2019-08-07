@@ -1,6 +1,6 @@
 {
   "name": "pico-engine-next",
-  "version": "0.50.0",
+  "version": "0.51.1",
   "description": "An implementation of the pico-engine targeting node.js",
   "repository": {
     "type": "git",
@@ -48,8 +48,8 @@
     "helmet": "^3.16.0",
     "home-dir": "^1.0.0",
     "json-log": "^3.0.1",
-    "krl-compiler": "^0.50.0",
-    "krl-stdlib": "^0.50.0",
+    "krl-compiler": "^0.51.1",
+    "krl-stdlib": "^0.51.0",
     "level-json-coerce-null": "^1.0.1",
     "leveldown": "^5.0.2",
     "levelup": "^4.0.1",

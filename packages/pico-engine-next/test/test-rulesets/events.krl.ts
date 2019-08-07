@@ -194,6 +194,26 @@ test("events.krl", async t => {
   t.deepEqual(await query("getSentName"), "Raised-3");
 
   /////////////////////////////////////////////////////////////////////////////
+  // Testing raise event <domainAndType>
+
+  t.deepEqual(
+    await signal("events", "raise_dynamic", {
+      domainType: "events:store_sent_name",
+      name: "Mr. Dynamic"
+    }),
+    []
+  );
+  t.deepEqual(await query("getSentName"), "Mr. Dynamic");
+
+  t.deepEqual(
+    await signal("events", "raise_dynamic", {
+      domainType: "events:get",
+      thing: "something?"
+    }),
+    [{ name: "get", options: { thing: "something?" } }]
+  );
+
+  /////////////////////////////////////////////////////////////////////////////
   const resp2 = await pe.pf.eventWait({
     eci,
     domain: "events",

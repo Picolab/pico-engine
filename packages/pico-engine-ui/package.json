@@ -1,6 +1,6 @@
 {
   "name": "pico-engine-ui",
-  "version": "0.50.0",
+  "version": "0.51.1",
   "description": "React UI for pico-engine",
   "repository": {
     "type": "git",
@@ -20,7 +20,7 @@
     "ace-builds": "^1.4.3",
     "bootstrap": "^4.3.1",
     "immer": "^3.1.1",
-    "krl-compiler": "^0.50.0",
+    "krl-compiler": "^0.51.1",
     "react": "^16.8.5",
     "react-dom": "^16.8.5",
     "react-redux": "^7.0.2",

@@ -870,7 +870,10 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.raiseEvent();
+        {
+          let $parts = $env.krl.toString(domainType).replace(/\s+/g, "").split(":");
+          await $ctx.rsCtx.raiseEvent($parts[0], $parts.slice(1).join(":"), $event.data.attrs);
+        }
       }
     });
     $rs.when($env.SelectWhen.e("events:event_eid"), async function ($event, $state, $last) {
