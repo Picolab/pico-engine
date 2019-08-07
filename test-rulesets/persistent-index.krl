@@ -1,6 +1,6 @@
 ruleset io.picolabs.persistent-index {
     meta {
-        shares getFoo, getFooKey, getBar, getBarKey, getBaz, getMaplist
+        shares getFoo, getFooKey, getBaz, getMaplist
     }
     global {
         getFoo = function(){
@@ -8,12 +8,6 @@ ruleset io.picolabs.persistent-index {
         }
         getFooKey = function(key){
             ent:foo{key};
-        }
-        getBar = function(){
-            app:bar;
-        }
-        getBarKey = function(key){
-            app:bar{key};
         }
         getBaz = function(){
             ent:baz;
@@ -32,8 +26,8 @@ ruleset io.picolabs.persistent-index {
         select when pindex putfoo
 
         pre {
-            key = event:attr("key")
-            value = event:attr("value")
+            key = event:attrs{"key"}
+            value = event:attrs{"value"}
         }
         always {
             ent:foo{key} := value
@@ -43,7 +37,7 @@ ruleset io.picolabs.persistent-index {
         select when pindex delfoo
 
         pre {
-            key = event:attr("key")
+            key = event:attrs{"key"}
         }
         always {
             clear ent:foo{key}
@@ -53,39 +47,6 @@ ruleset io.picolabs.persistent-index {
         select when pindex nukefoo
         always {
             clear ent:foo
-        }
-    }
-    rule setbar {
-        select when pindex setbar
-        always {
-            app:bar := event:attrs
-        }
-    }
-    rule putbar {
-        select when pindex putbar
-
-        pre {
-            key = event:attr("key")
-            value = event:attr("value")
-        }
-        always {
-            app:bar{key} := value
-        }
-    }
-    rule delbar {
-        select when pindex delbar
-
-        pre {
-            key = event:attr("key")
-        }
-        always {
-            clear app:bar{key}
-        }
-    }
-    rule nukebar {
-        select when pindex nukebar
-        always {
-            clear app:bar
         }
     }
     rule putbaz {

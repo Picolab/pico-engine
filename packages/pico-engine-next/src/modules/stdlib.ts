@@ -964,7 +964,7 @@ const stdlib: krl.Module = {
 
   set: krl.Function(["obj", "path", "val"], function(obj, path, val) {
     if (!krl.isArrayOrMap(obj)) {
-      return obj;
+      obj = {};
     }
     path = toKeyPath(path);
     // TODO optimize

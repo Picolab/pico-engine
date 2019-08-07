@@ -1,297 +1,213 @@
 module.exports = {
   "rid": "io.picolabs.persistent-index",
+  "version": "draft",
   "meta": {
     "shares": [
       "getFoo",
       "getFooKey",
-      "getBar",
-      "getBarKey",
       "getBaz",
       "getMaplist"
     ]
   },
-  "global": async function (ctx) {
-    ctx.scope.set("getFoo", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "foo");
-    }));
-    ctx.scope.set("getFooKey", ctx.mkFunction(["key"], async function (ctx, args) {
-      ctx.scope.set("key", args["key"]);
-      return await ctx.modules.get(ctx, "ent", {
-        "key": "foo",
-        "path": ctx.scope.get("key")
-      });
-    }));
-    ctx.scope.set("getBar", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "app", "bar");
-    }));
-    ctx.scope.set("getBarKey", ctx.mkFunction(["key"], async function (ctx, args) {
-      ctx.scope.set("key", args["key"]);
-      return await ctx.modules.get(ctx, "app", {
-        "key": "bar",
-        "path": ctx.scope.get("key")
-      });
-    }));
-    ctx.scope.set("getBaz", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "baz");
-    }));
-    ctx.scope.set("getMaplist", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.modules.get(ctx, "ent", "maplist");
-    }));
-  },
-  "rules": {
-    "setfoo": {
-      "name": "setfoo",
-      "select": {
-        "graph": { "pindex": { "setfoo": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
+  "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const getFoo = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("foo");
+    });
+    const getFooKey = $env.krl.Function(["key"], async function (key) {
+      return await $stdlib.get($ctx, [
+        await $ctx.rsCtx.getEnt("foo"),
+        key
+      ]);
+    });
+    const getBaz = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("baz");
+    });
+    const getMaplist = $env.krl.Function([], async function () {
+      return await $ctx.rsCtx.getEnt("maplist");
+    });
+    const $rs = new $env.SelectWhen.SelectWhen();
+    $rs.when($env.SelectWhen.e("pindex:setfoo"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.putEnt("foo", $event.data.attrs);
+    });
+    $rs.when($env.SelectWhen.e("pindex:putfoo"), async function ($event, $state, $last) {
+      const key = await $stdlib["get"]($ctx, [
+        $event.data.attrs,
+        "key"
+      ]);
+      const value = await $stdlib["get"]($ctx, [
+        $event.data.attrs,
+        "value"
+      ]);
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.putEnt("foo", await $stdlib.set($ctx, [
+        await $ctx.rsCtx.getEnt("foo"),
+        key,
+        value
+      ]));
+    });
+    $rs.when($env.SelectWhen.e("pindex:delfoo"), async function ($event, $state, $last) {
+      const key = await $stdlib["get"]($ctx, [
+        $event.data.attrs,
+        "key"
+      ]);
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.putEnt("foo", await $stdlib.delete($ctx, [
+        await $ctx.rsCtx.getEnt("foo"),
+        key
+      ]));
+    });
+    $rs.when($env.SelectWhen.e("pindex:nukefoo"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.delEnt("foo");
+    });
+    $rs.when($env.SelectWhen.e("pindex:putbaz"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.putEnt("baz", await $stdlib.set($ctx, [
+        await $ctx.rsCtx.getEnt("baz"),
+        [
+          "one",
+          "two"
+        ],
+        "three"
+      ]));
+    });
+    $rs.when($env.SelectWhen.e("pindex:setmaplist"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.putEnt("maplist", [
+        { "id": "one" },
+        { "id": "two" },
+        { "id": "three" }
+      ]);
+    });
+    $rs.when($env.SelectWhen.e("pindex:putmaplist"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.putEnt("maplist", await $stdlib.set($ctx, [
+        await $ctx.rsCtx.getEnt("maplist"),
+        [
+          1,
+          "other"
+        ],
+        "thing"
+      ]));
+    });
+    return {
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
         }
+        return $ctx.drainDirectives();
       },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "foo", await ctx.modules.get(ctx, "event", "attrs"));
-      }
-    },
-    "putfoo": {
-      "name": "putfoo",
-      "select": {
-        "graph": { "pindex": { "putfoo": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
+      "query": {
+        "getFoo": function ($args) {
+          return getFoo($ctx, $args);
+        },
+        "getFooKey": function ($args) {
+          return getFooKey($ctx, $args);
+        },
+        "getBaz": function ($args) {
+          return getBaz($ctx, $args);
+        },
+        "getMaplist": function ($args) {
+          return getMaplist($ctx, $args);
+        },
+        "__testing": function () {
+          return {
+            "queries": [
+              {
+                "name": "getFoo",
+                "args": []
+              },
+              {
+                "name": "getFooKey",
+                "args": ["key"]
+              },
+              {
+                "name": "getBaz",
+                "args": []
+              },
+              {
+                "name": "getMaplist",
+                "args": []
+              }
+            ],
+            "events": [
+              {
+                "domain": "pindex",
+                "name": "setfoo",
+                "attrs": []
+              },
+              {
+                "domain": "pindex",
+                "name": "putfoo",
+                "attrs": [
+                  "key",
+                  "value"
+                ]
+              },
+              {
+                "domain": "pindex",
+                "name": "delfoo",
+                "attrs": ["key"]
+              },
+              {
+                "domain": "pindex",
+                "name": "nukefoo",
+                "attrs": []
+              },
+              {
+                "domain": "pindex",
+                "name": "putbaz",
+                "attrs": []
+              },
+              {
+                "domain": "pindex",
+                "name": "setmaplist",
+                "attrs": []
+              },
+              {
+                "domain": "pindex",
+                "name": "putmaplist",
+                "attrs": []
+              }
+            ]
+          };
         }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("key", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["key"]));
-        ctx.scope.set("value", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["value"]));
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", {
-          "key": "foo",
-          "path": ctx.scope.get("key")
-        }, ctx.scope.get("value"));
       }
-    },
-    "delfoo": {
-      "name": "delfoo",
-      "select": {
-        "graph": { "pindex": { "delfoo": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("key", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["key"]));
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.del(ctx, "ent", {
-          "key": "foo",
-          "path": ctx.scope.get("key")
-        });
-      }
-    },
-    "nukefoo": {
-      "name": "nukefoo",
-      "select": {
-        "graph": { "pindex": { "nukefoo": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.del(ctx, "ent", "foo");
-      }
-    },
-    "setbar": {
-      "name": "setbar",
-      "select": {
-        "graph": { "pindex": { "setbar": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "app", "bar", await ctx.modules.get(ctx, "event", "attrs"));
-      }
-    },
-    "putbar": {
-      "name": "putbar",
-      "select": {
-        "graph": { "pindex": { "putbar": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("key", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["key"]));
-        ctx.scope.set("value", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["value"]));
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "app", {
-          "key": "bar",
-          "path": ctx.scope.get("key")
-        }, ctx.scope.get("value"));
-      }
-    },
-    "delbar": {
-      "name": "delbar",
-      "select": {
-        "graph": { "pindex": { "delbar": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        ctx.scope.set("key", await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["key"]));
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.del(ctx, "app", {
-          "key": "bar",
-          "path": ctx.scope.get("key")
-        });
-      }
-    },
-    "nukebar": {
-      "name": "nukebar",
-      "select": {
-        "graph": { "pindex": { "nukebar": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.del(ctx, "app", "bar");
-      }
-    },
-    "putbaz": {
-      "name": "putbaz",
-      "select": {
-        "graph": { "pindex": { "putbaz": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", {
-          "key": "baz",
-          "path": [
-            "one",
-            "two"
-          ]
-        }, "three");
-      }
-    },
-    "setmaplist": {
-      "name": "setmaplist",
-      "select": {
-        "graph": { "pindex": { "setmaplist": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "maplist", [
-          { "id": "one" },
-          { "id": "two" },
-          { "id": "three" }
-        ]);
-      }
-    },
-    "putmaplist": {
-      "name": "putmaplist",
-      "select": {
-        "graph": { "pindex": { "putmaplist": { "expr_0": true } } },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
-        }
-      },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", {
-          "key": "maplist",
-          "path": [
-            1,
-            "other"
-          ]
-        }, "thing");
-      }
-    }
+    };
   }
 };
