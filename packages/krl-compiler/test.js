@@ -27,7 +27,7 @@ test.cb('compiler', function (t) {
 
         var compiled
         try {
-          compiled = compiler(srcs.krl).code
+          compiled = compiler(srcs.krl.replace(/\r\n?/g, '\n')).code
         } catch (e) {
           console.log(krlFile)
           console.log(e.stack)
