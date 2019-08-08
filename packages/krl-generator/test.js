@@ -14,7 +14,8 @@ test('generator', async function (t) {
     if (!/\.krl$/.test(file)) {
       continue
     }
-    const src = await fs.promises.readFile(path.resolve(filesDir, file), 'utf8')
+    let src = await fs.promises.readFile(path.resolve(filesDir, file), 'utf8')
+    src = src.replace(/\r\n?/g, '\n')
     const expected = _.filter(src.split('\n'), function (line) {
       return line.trim().indexOf('//') !== 0
     }).join('\n').trim()

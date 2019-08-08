@@ -34,7 +34,7 @@ test.cb('compiler', function (t) {
           process.exit(1)// end asap, so they can easily see the error
         }
         compiled = compiled.trim()
-        var expected = srcs.js.trim()
+        var expected = srcs.js.replace(/\r\n?/g, '\n').trim()
 
         if (compiled === expected) {
           t.true(true)
