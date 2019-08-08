@@ -569,7 +569,7 @@
           </td>
         </tr></table>
         </form>
-          <h3>Inbound router: {{#if ui.routerUI}}<span title="{{ui.routerUI.routerHost}} {{ui.routerUI.routerRequestECI}}">{{ui.routerUI.routerName}}</span>{{else}}<a href="#" onclick="$(this).parent().next('form').toggle()" style="font-size:75%">not configured</a>{{/if}}</h3>
+          <h3>Inbound router: {{#if ui.routerUI}}<span title="{{ui.routerUI.routerHost}} {{ui.routerUI.routerRequestECI}}">{{ui.routerUI.routerName}}</span> {{#if ui.routerUI.unused}}<a class="js-ajax-link" href="/sky/event/{{eci}}/remove-router/edge/router_removal_requested">del</a>{{/if}}{{else}}<a href="#" onclick="$(this).parent().next('form').toggle()" style="font-size:75%">not configured</a>{{/if}}</h3>
           {{#unless ui.routerUI.routerName}}
             <form class="js-ajax-form" action="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rids=org.sovrin.edge" style="display:none">
               <input name="host" placeholder="router host">
