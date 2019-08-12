@@ -586,6 +586,7 @@
               <input type="checkbox" id="connection-{{@index}}">
               <label for="connection-{{@index}}">{{label}}{{#if routerName}} (via {{routerName}}){{/if}}</label>
               <div class="connection-detail">
+              {{#if error}}<p>{{error}}</p>{{/if}}
               {{#if messages}}
               <div class="agent-basic-messages">
               {{#each messages}}
