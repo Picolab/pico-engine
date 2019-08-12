@@ -175,6 +175,10 @@ test("events.krl", async t => {
 
   /////////////////////////////////////////////////////////////////////////////
   // Testing raise <domain> event
+  t.deepEqual(await signal("events", "raise_basic"), [
+    { name: "event_attrs", options: { attrs: {} } }
+  ]);
+
   t.deepEqual(await signal("events", "raise_set_name", { name: "Raised" }), []);
   t.deepEqual(await query("getSentAttrs"), { name: "Raised" });
   t.deepEqual(await query("getSentName"), "Raised");
