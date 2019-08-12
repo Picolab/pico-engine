@@ -515,14 +515,19 @@ $(document).ready(function () {
           d = theDB.pico_id + '-Policies'
           location.hash = d
         } else if (tabName === 'agent') {
-          if (theDB.ui && theDB.ui.routerUI && theDB.ui.routerUI.routerName && theDB.ui.connections) {
-            var toSuffix = " to " + theDB.ui.name
-            for (var ic=0; ic < theDB.ui.connections.length; ++ic) {
-              var rConnName = theDB.ui.connections[ic].label + toSuffix
-              if (theDB.ui.routerUI.routerConnections && theDB.ui.routerUI.routerConnections[rConnName]) {
-                theDB.ui.connections[ic].routerName = theDB.ui.routerUI.routerName
+          var routerUsedCount = 0
+          if (theDB.ui && theDB.ui.routerUI) {
+            if (theDB.ui.routerUI.routerName && theDB.ui.connections) {
+              var toSuffix = " to " + theDB.ui.name
+              for (var ic=0; ic < theDB.ui.connections.length; ++ic) {
+                var rConnName = theDB.ui.connections[ic].label + toSuffix
+                if (theDB.ui.routerUI.routerConnections && theDB.ui.routerUI.routerConnections[rConnName]) {
+                  theDB.ui.connections[ic].routerName = theDB.ui.routerUI.routerName
+                  ++routerUsedCount
+                }
               }
             }
+            theDB.ui.routerUI.unused = routerUsedCount == 0
           }
           theDB.text = JSON.stringify(theDB.ui, undefined, 2)
           $theSection.html(agentTemplate(theDB))

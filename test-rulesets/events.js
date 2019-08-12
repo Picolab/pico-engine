@@ -752,6 +752,16 @@ module.exports = {
         await $ctx.rsCtx.putEnt("sent_name", my_name);
       }
     });
+    $rs.when($env.SelectWhen.e("events:raise_basic"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        await $ctx.rsCtx.raiseEvent("events", "event_attrs", undefined);
+      }
+    });
     $rs.when($env.SelectWhen.e("events:raise_set_name", async function ($event, $state) {
       var matches = [];
       var setting = {};
@@ -882,6 +892,19 @@ module.exports = {
         await $env.krl.assertAction(send_directive)($ctx, [
           "event_eid",
           { "eid": $ctx.module("event")["eid"]($ctx) }
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("events:event_attrs"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "event_attrs",
+          { "attrs": $event.data.attrs }
         ]);
       }
       if ($fired)
@@ -1066,6 +1089,11 @@ module.exports = {
               },
               {
                 "domain": "events",
+                "name": "raise_basic",
+                "attrs": []
+              },
+              {
+                "domain": "events",
                 "name": "raise_set_name",
                 "attrs": []
               },
@@ -1087,6 +1115,11 @@ module.exports = {
               {
                 "domain": "events",
                 "name": "event_eid",
+                "attrs": []
+              },
+              {
+                "domain": "events",
+                "name": "event_attrs",
                 "attrs": []
               }
             ]

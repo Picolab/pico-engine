@@ -2,6 +2,7 @@ var _ = require('lodash')
 var ktypes = require('krl-stdlib/types')
 var runKRL = require('./runKRL')
 var runAction = require('./runAction')
+var cleanEvent = require('./cleanEvent')
 var selectRulesToEval = require('./selectRulesToEval')
 
 async function scheduleEvent (core, ctx, args) {
@@ -129,10 +130,7 @@ module.exports = async function processEvent (core, ctx) {
       var event = {
         eci: ctx.event.eci, // raise event is always to the same pico
         eid: ctx.event.eid, // inherit from parent event to aid in debugging
-        attrs: revent.attributes,
-        for_rid: revent.for_rid,
-        txn_id: ctx.event.txn_id, // inherit from parent event
-        timestamp: new Date()
+        attrs: revent.attributes
       }
       let domainTypeLog
       if (revent.domainAndType) {
@@ -145,6 +143,11 @@ module.exports = async function processEvent (core, ctx) {
         event.type = revent.type
         domainTypeLog = event.domain + '/' + event.type
       }
+      event = Object.assign({}, cleanEvent(event), {
+        for_rid: revent.for_rid,
+        txn_id: ctx.event.txn_id, // inherit from parent event
+        timestamp: new Date()
+      })
       // must make a new ctx for this raise b/c it's a different event
       var raiseCtx = core.mkCTX({
         event: event,
