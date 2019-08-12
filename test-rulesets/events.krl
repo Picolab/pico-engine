@@ -218,6 +218,12 @@ ruleset io.picolabs.events {
             ent:sent_name := my_name
         }
     }
+    rule raise_basic {
+        select when events raise_basic
+        fired {
+            raise events event "event_attrs"
+        }
+    }
     rule raise_set_name {
         select when events raise_set_name name re#^(.*)$# setting(my_name)
         fired {
@@ -254,6 +260,11 @@ ruleset io.picolabs.events {
         select when events event_eid
 
         send_directive("event_eid", {"eid": event:eid});
+    }
+    rule event_attrs {
+        select when events event_attrs
+
+        send_directive("event_attrs", {"attrs": event:attrs});
     }
     rule ignored is inactive {
         select when events ignored

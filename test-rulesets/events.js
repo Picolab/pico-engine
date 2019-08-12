@@ -1046,6 +1046,33 @@ module.exports = {
         }
       }
     },
+    "raise_basic": {
+      "name": "raise_basic",
+      "select": {
+        "graph": { "events": { "raise_basic": { "expr_0": true } } },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": async function (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (fired) {
+          await ctx.raiseEvent({
+            "domain": "events",
+            "type": "event_attrs",
+            "attributes": undefined,
+            "for_rid": undefined
+          });
+        }
+      }
+    },
     "raise_set_name": {
       "name": "raise_set_name",
       "select": {
@@ -1239,6 +1266,31 @@ module.exports = {
           await runAction(ctx, void 0, "send_directive", [
             "event_eid",
             { "eid": await ctx.modules.get(ctx, "event", "eid") }
+          ], []);
+        }
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+      }
+    },
+    "event_attrs": {
+      "name": "event_attrs",
+      "select": {
+        "graph": { "events": { "event_attrs": { "expr_0": true } } },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": async function (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired) {
+          await runAction(ctx, void 0, "send_directive", [
+            "event_attrs",
+            { "attrs": await ctx.modules.get(ctx, "event", "attrs") }
           ], []);
         }
         if (fired)
