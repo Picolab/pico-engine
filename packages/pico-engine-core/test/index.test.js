@@ -426,6 +426,10 @@ test('PicoEngine - io.picolabs.events ruleset', async function (t) {
 
     /// ///////////////////////////////////////////////////////////////////////
     // Testing raise <domain> event
+    [signal('events', 'raise_basic'), [
+      { name: 'event_attrs', options: { attrs: {} } }
+    ]],
+
     [signal('events', 'raise_set_name', { name: 'Raised' }), []],
     [query('getSentAttrs'), { name: 'Raised' }],
     [query('getSentName'), 'Raised'],
