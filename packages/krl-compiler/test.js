@@ -20,21 +20,21 @@ test.cb('compiler', function (t) {
       var jsFile = path.join(filesDir, basename) + '.js'
       var krlFile = path.join(filesDir, basename) + '.krl'
       λ.concurrent({
-        js: λ.curry(fs.readFile, jsFile, 'utf-8'),
-        krl: λ.curry(fs.readFile, krlFile, 'utf-8')
+        js: λ.curry(fs.readFile, jsFile, 'utf8'),
+        krl: λ.curry(fs.readFile, krlFile, 'utf8')
       }, function (err, srcs) {
         if (err) return t.end(err)
 
         var compiled
         try {
-          compiled = compiler(srcs.krl).code
+          compiled = compiler(srcs.krl.replace(/\r\n?/g, '\n')).code
         } catch (e) {
           console.log(krlFile)
           console.log(e.stack)
           process.exit(1)// end asap, so they can easily see the error
         }
         compiled = compiled.trim()
-        var expected = srcs.js.trim()
+        var expected = srcs.js.replace(/\r\n?/g, '\n').trim()
 
         if (compiled === expected) {
           t.true(true)
