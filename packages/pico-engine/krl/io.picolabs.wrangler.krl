@@ -553,19 +553,23 @@ ruleset io.picolabs.wrangler {
   rule deleteChannel {
     select when wrangler channel_deletion_requested
     pre {
-
-    }
-    every {
-      deleteChannel( alwaysEci(event:attr("eci")
+      eci = alwaysEci(event:attr("eci")
                      .defaultsTo(event:attr("name")
-                     .defaultsTo("")))) setting(channel);
+                     .defaultsTo("")))
+    }
+    if eci then
+    every {
+      deleteChannel(eci) setting(channel);
       send_directive("channel_deleted", channel);
     }
-    always {
-     raise wrangler event "channel_deleted" // API event
+    fired {
+      raise wrangler event "channel_deleted" // API event
            attributes event:attrs.put(["channel"],channel)
-         }
+    } else {
+     raise wrangler event "channel_deletion_failed" attributes event:attrs.put(
+       "reason","No channel found for info given")
     }
+  }
 
 
 // ********************************************************************************************
@@ -849,7 +853,7 @@ ruleset io.picolabs.wrangler {
   rule cleanup_timed_out {
     select when wrangler pico_cleanup_timed_out
     always{
-      raise wrangler event force_children_deletion attributes event:attrs.put({
+      raise wrangler event "force_children_deletion" attributes event:attrs.put({
         "delete_all":true
       });
       ent:registered_for_cleanup := [];
