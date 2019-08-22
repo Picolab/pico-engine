@@ -286,3 +286,62 @@ test('http autosend', async function (t) {
     }
   }])
 })
+
+test('http redirects', async function (t) {
+  const khttp = httpModule().def
+
+  const server = http.createServer(function (req, res) {
+    if (req.url === '/redir') {
+      res.writeHead(302, {
+        'Location': '/other'
+      })
+      res.end()
+    }
+    res.end('some response')
+  })
+  server.unref()
+  await new Promise(function (resolve) {
+    server.listen(0, resolve)
+  })
+  const url = 'http://localhost:' + server.address().port
+
+  let data = await khttp.get({}, {
+    url: url + '/redir'
+  })
+
+  t.is(data.length, 1)
+  data = data[0]
+  delete data.headers.date
+  t.deepEqual(data, {
+    content: 'some response',
+    content_length: 13,
+    content_type: undefined,
+    headers: {
+      connection: 'close',
+      'content-length': '13'
+    },
+    status_code: 200,
+    status_line: 'OK'
+  })
+
+  data = await khttp.get({}, {
+    url: url + '/redir',
+    dontFollowRedirect: true
+  })
+
+  t.is(data.length, 1)
+  data = data[0]
+  delete data.headers.date
+  t.deepEqual(data, {
+    content: '',
+    content_length: 0,
+    content_type: undefined,
+    headers: {
+      connection: 'close',
+      location: '/other',
+      'transfer-encoding': 'chunked'
+    },
+    status_code: 302,
+    status_line: 'Found'
+  })
+})

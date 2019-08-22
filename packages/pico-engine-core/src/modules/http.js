@@ -38,6 +38,9 @@ async function httpBase (method, ctx, args) {
   } else if (_.has(args, 'form')) {
     opts.form = ensureMap(args.form)
   }
+  if (args.dontFollowRedirect) {
+    opts.followRedirect = false
+  }
 
   let res = await requestP(opts)
 
@@ -71,7 +74,8 @@ function mkMethod (core, method, canAlsoBeUsedAsAFunction) {
     'form',
     'parseJSON',
     'autoraise',
-    'autosend'
+    'autosend',
+    'dontFollowRedirect'
   ], async function (ctx, args) {
     if (!_.has(args, 'url')) {
       throw new Error('http:' + method.toLowerCase() + ' needs a url string')
