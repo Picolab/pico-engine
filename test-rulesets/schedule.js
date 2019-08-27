@@ -87,12 +87,12 @@ module.exports = {
           ctx.emit("debug", "not fired");
         if (fired) {
           ctx.scope.set("foo", await ctx.scheduleEvent({
-            "domain": "schedule",
-            "type": "push_log",
             "attributes": {
               "from": "in_5min",
               "name": await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["name"])
             },
+            "domain": "schedule",
+            "type": "push_log",
             "at": await ctx.applyFn(await ctx.modules.get(ctx, "time", "add"), ctx, [
               await ctx.applyFn(await ctx.modules.get(ctx, "time", "now"), ctx, []),
               { "minutes": 5 }
@@ -124,12 +124,12 @@ module.exports = {
           ctx.emit("debug", "not fired");
         if (fired) {
           ctx.scope.set("foo", await ctx.scheduleEvent({
-            "domain": "schedule",
-            "type": "push_log",
             "attributes": {
               "from": "every_1min",
               "name": await ctx.applyFn(await ctx.modules.get(ctx, "event", "attr"), ctx, ["name"])
             },
+            "domain": "schedule",
+            "type": "push_log",
             "timespec": "* */1 * * * *"
           }));
           await ctx.modules.append(ctx, "ent", "log", [{ "scheduled every_1min": ctx.scope.get("foo") }]);
@@ -156,6 +156,84 @@ module.exports = {
           ctx.emit("debug", "fired");
         else
           ctx.emit("debug", "not fired");
+      }
+    },
+    "dynamic_at": {
+      "name": "dynamic_at",
+      "select": {
+        "graph": { "schedule": { "dynamic_at": { "expr_0": true } } },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": async function (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (fired) {
+          ctx.scope.set("foo", await ctx.scheduleEvent({
+            "attributes": {
+              "from": "dynamic_at",
+              "name": await ctx.applyFn(ctx.scope.get("get"), ctx, [
+                await ctx.modules.get(ctx, "event", "attrs"),
+                "name"
+              ])
+            },
+            "domainAndType": await ctx.applyFn(ctx.scope.get("get"), ctx, [
+              await ctx.modules.get(ctx, "event", "attrs"),
+              "dn"
+            ]),
+            "at": await ctx.applyFn(ctx.scope.get("get"), ctx, [
+              await ctx.modules.get(ctx, "event", "attrs"),
+              "at"
+            ])
+          }));
+          await ctx.modules.append(ctx, "ent", "log", [{ "scheduled dynamic_at": ctx.scope.get("foo") }]);
+        }
+      }
+    },
+    "dynamic_repeat": {
+      "name": "dynamic_repeat",
+      "select": {
+        "graph": { "schedule": { "dynamic_repeat": { "expr_0": true } } },
+        "state_machine": {
+          "start": [[
+              "expr_0",
+              "end"
+            ]]
+        }
+      },
+      "body": async function (ctx, runAction, toPairs) {
+        var fired = true;
+        if (fired)
+          ctx.emit("debug", "fired");
+        else
+          ctx.emit("debug", "not fired");
+        if (fired) {
+          ctx.scope.set("foo", await ctx.scheduleEvent({
+            "attributes": {
+              "from": "dynamic_repeat",
+              "name": await ctx.applyFn(ctx.scope.get("get"), ctx, [
+                await ctx.modules.get(ctx, "event", "attrs"),
+                "name"
+              ])
+            },
+            "domainAndType": await ctx.applyFn(ctx.scope.get("get"), ctx, [
+              await ctx.modules.get(ctx, "event", "attrs"),
+              "dn"
+            ]),
+            "timespec": await ctx.applyFn(ctx.scope.get("get"), ctx, [
+              await ctx.modules.get(ctx, "event", "attrs"),
+              "timespec"
+            ])
+          }));
+          await ctx.modules.append(ctx, "ent", "log", [{ "scheduled dynamic_repeat": ctx.scope.get("foo") }]);
+        }
       }
     }
   }

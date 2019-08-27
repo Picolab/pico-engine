@@ -1,9 +1,15 @@
 module.exports = function (ast, ind, gen) {
   var src = ''
   src += ind() + 'schedule '
-  src += gen(ast.event_domain)
-  src += ' event '
-  src += gen(ast.event_type)
+
+  if (ast.event_domainAndType) {
+    src += 'event '
+    src += gen(ast.event_domainAndType)
+  } else {
+    src += gen(ast.event_domain)
+    src += ' event '
+    src += gen(ast.event_type)
+  }
 
   if (ast.at) {
     src += '\n' + ind(1) + 'at ' + gen(ast.at)

@@ -65,4 +65,30 @@ ruleset io.picolabs.schedule {
 
         schedule:remove(event:attr("id"));
     }
+    rule dynamic_at {
+        select when schedule dynamic_at
+        fired {
+            schedule event event:attrs{"dn"}
+                at event:attrs{"at"}
+                attributes {
+                    "from": "dynamic_at",
+                    "name": event:attrs{"name"}
+                }
+                setting(foo);
+            ent:log := ent:log.append({"scheduled dynamic_at": foo})
+        }
+    }
+    rule dynamic_repeat {
+        select when schedule dynamic_repeat
+        fired {
+            schedule event event:attrs{"dn"}
+                repeat event:attrs{"timespec"}
+                attributes {
+                    "from": "dynamic_repeat",
+                    "name": event:attrs{"name"}
+                }
+                setting(foo);
+            ent:log := ent:log.append({"scheduled dynamic_repeat": foo})
+        }
+    }
 }

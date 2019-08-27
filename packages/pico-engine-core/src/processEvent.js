@@ -177,14 +177,20 @@ module.exports = async function processEvent (core, ctx) {
       })
     },
     scheduleEvent: function (sevent) {
-      return scheduleEvent(core, ctx, {
-        domain: sevent.domain,
-        type: sevent.type,
+      const event = {
         attributes: sevent.attributes,
-
         at: sevent.at,
         timespec: sevent.timespec
-      })
+      }
+      if (sevent.domainAndType) {
+        const parts = ktypes.toString(sevent.domainAndType).replace(/\s+/g, '').split(':')
+        event.domain = parts[0]
+        event.type = parts.slice(1).join(':')
+      } else {
+        event.domain = sevent.domain
+        event.type = sevent.type
+      }
+      return scheduleEvent(core, ctx, event)
     },
     addActionResponse: function (ctx, type, val) {
       var resp = toResponse(ctx, type, val)
