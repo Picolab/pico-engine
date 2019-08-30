@@ -93,21 +93,21 @@ $(function(){
 <style type="text/css">
 pre { margin-left:20px; }
 body { display:none; }
-div { padding:10px; float:right; border:1px solid silver; }
+div { padding:10px; float:right; border:1px solid silver; margin-left:20px; }
 div form { padding-left:40px; }
 </style>
 </head>
 <body>
-<h1>DID resolution</h1>
 <div>
 <h2>NPE which this resolver will try</h2>
 <ul id="servers"></ul>
 <form class="js-ajax-form" method="POST"
   action="/sky/event/ECI/null/did/npe_added">
-<input type="text" name="server" placeholder="npe host:port" required="">
+<input type="text" name="server" placeholder="host:port" required="">
 <button type="submit">add</button>
 </form>
 </div>
+<h1>DID resolution</h1>
 <p>
 This is a proof of concept, through simulation.
 </p>
@@ -152,10 +152,10 @@ From Firefox, visit Preferences->Applications.
 <h2>How it works</h2>
 <p>
 While the resolution itself is done by this page,
-with the help of the DID resolution simulator pico,
 the list of NPE to try is maintained in a pico you choose,
 which also determines which NPE hosts the
 pico identified by the ECI/DID.
+Call this the DID resolution simulator pico.
 </p>
 <p>
 You might choose the Root Pico to serve this role,
@@ -163,7 +163,7 @@ or some other pico, such as your Owner Pico.
 You must add the ruleset
 <code>io.picolabs.did_simulation</code>
 to your DID resolution simulator pico.
-You may be prompted for an ECI for the DID resolution simulator pico.
+You will be prompted for an ECI of the DID resolution simulator pico.
 </p>
 <p>
 To avoid being prompted each time,
