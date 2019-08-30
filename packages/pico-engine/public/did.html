@@ -73,7 +73,15 @@ $(function(){
         location.reload()
       }).fail(function(obj) { alert("error"); alert(JSON.stringify(obj)); })
     })
-  }).fail(function(obj) { alert("error"); alert(JSON.stringify(obj)); });
+  })
+  .fail(function(obj){
+    if (obj && obj.responseJSON && obj.responseJSON.error) {
+      $("body").html(obj.responseJSON.error).show()
+    } else {
+      alert("error");
+      alert(JSON.stringify(obj));
+    }
+  });
   var formToJSON = function (form) {
     var json = {}
     $.each($(form).serializeArray(), function (key, elm) {
