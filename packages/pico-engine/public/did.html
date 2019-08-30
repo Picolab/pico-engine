@@ -75,8 +75,11 @@ $(function(){
     })
   })
   .fail(function(obj){
+    var steps = $("#steps").html()
     if (obj && obj.responseJSON && obj.responseJSON.error) {
-      $("body").html(obj.responseJSON.error).show()
+      $("body").html(obj.responseJSON.error+steps).show()
+    } else if (obj.status && obj.statusText) {
+      $("body").html(obj.status + ": " + obj.statusText+steps).show()
     } else {
       alert("error");
       alert(JSON.stringify(obj));
@@ -187,6 +190,19 @@ of your DID resolution simulator pico.
 It is highly recommended that you create an ECI for this
 purpose rather than using one of the existing channel identifiers.
 </p>
+<div id="steps" style="display:none">
+<h1>DID resolution</h1>
+<p>
+To use your pico engine to perform (simulated) DID resolution, you must:
+</p>
+<ol>
+<li>Designate a pico as the DID resolution simulator pico</li>
+<li>Give this pico a channel for this purpose</li>
+<li>Keep the ECI of that channel handy in your clipboard</li>
+<li>Install the <code>io.picolabs.did_simulation</code> ruleset into the pico</li>
+<li>Refresh this page, being ready to paste in the ECI when prompted</li>
+</ol>
+</div>
 </body>
 </html>
 
