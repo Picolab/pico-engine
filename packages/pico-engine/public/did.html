@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-<title>DID redirection</title>
+<title>DID resolution</title>
 <script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
 <script src="js/did-simulator-eci.js" type="text/javascript"></script>
 <script type="text/javascript">
@@ -10,7 +10,7 @@ $(function(){
   var this_npe = location.hostname+(location.port ? ":"+location.port : "");
   var did_sim_eci = window.did_simulator_eci;
   if(!did_sim_eci) {
-    did_sim_eci = prompt("Enter an ECI for the DID Simulator Pico");
+    did_sim_eci = prompt("Enter an ECI for the DID resolution simulator pico");
   }
   var servers = [];
   var base_url = "/sky/cloud/"+did_sim_eci+"/io.picolabs.did_simulation";
@@ -69,9 +69,9 @@ div form { padding-left:40px; }
 </style>
 </head>
 <body>
-<h1>DID redirection</h1>
+<h1>DID resolution</h1>
 <div>
-<h2>List of NPE which this redirector will try</h2>
+<h2>NPE which this resolver will try</h2>
 <ul id="servers"></ul>
 <form method="POST" onsubmit="alert('not yet implemented');return false">
 <input type="text" name="server" placeholder="npe host:port">
@@ -80,23 +80,29 @@ div form { padding-left:40px; }
 </div>
 <p>
 This is a proof of concept, through simulation.
-Soon, browsers will understand the <code>did</code> scheme directly.
-They will use the DID to find the DDO on Sovrin and the DDO
-will provide a list of endpoints for your browser to try.
+</p>
+<p>
+When browsers understand
+<a href="https://w3c-ccg.github.io/did-spec/">the <code>did</code> scheme</a>
+directly, they will use the DID to find the DID Document on the Sovrin ledger
+and the DID Document will provide a list of endpoints for your browser.
+</p>
+<p>
 Until then, we can use this simulator,
 which will try a series of Node Pico Engines (NPE)
-until it finds one which hosts your pico.
+until it finds the one which hosts your pico.
 </p>
-<h2>Register a protocol handler</h2>
+<h2>Register a browser protocol handler</h2>
 <p>
-In Chrome and Firefox, you can register a handler for a "new" protocol.
+In Chrome and Firefox, you can register a handler for an experimental protocol.
 Click on the link below to register this page
 as a handler for <code>web+did</code>.
 </p>
-<pre><a id="rph" href='javascript:navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc");void 0'>navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc")</a></pre>
+<pre><a id="rph" href='javascript:navigator.registerProtocolHandler("web+did",location+"?url=%s","DID poc");void 0'>navigator.registerProtocolHandler("web+did","<script>document.write(location)</script>?url=%s","DID poc")</a></pre>
 <p>
-Your browser will warn you that your NPE wants to 
-handle the "web+did" protocol, which you must allow.
+Your browser will warn that you want this page to 
+handle the "web+did" protocol, which you must allow
+for this simulation to work.
 </p>
 <h2>Using your protocol handler</h2>
 <p>
@@ -115,19 +121,19 @@ From Firefox, visit Preferences->Applications.
 </p>
 <h2>How it works</h2>
 <p>
-While the redirection itself is done by this page,
+While the resolution itself is done by this page,
+with the help of the DID resolution simulator pico,
 the list of NPE to try is maintained in a pico you choose,
 which also determines which NPE hosts the
 pico identified by the ECI/DID.
-We will call this pico the "DID Simulator Pico".
 </p>
 <p>
 You might choose the Root Pico to serve this role,
 or some other pico, such as your Owner Pico.
 You must add the ruleset
 <code>io.picolabs.did_simulation</code>
-to your DID Simulator Pico.
-You may be prompted for an ECI for the DID Simulator Pico.
+to your DID resolution simulator pico.
+You may be prompted for an ECI for the DID resolution simulator pico.
 </p>
 <p>
 To avoid being prompted each time,
@@ -139,7 +145,7 @@ using this format
 <p>
 replacing <code>"J1GbuLGCzstypfQLadBCwV"</code> with the actual ECI.
 You can create an ECI for this purpose in the "Channels" tab
-of your DID Simulator Pico.
+of your DID resolution simulator pico.
 It is highly recommended that you create an ECI for this
 purpose rather than using one of the existing channel identifiers.
 </p>
