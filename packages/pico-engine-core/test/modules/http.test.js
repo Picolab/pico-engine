@@ -237,8 +237,15 @@ test('http autosend', async function (t) {
     }
   }).def
 
+  // so we can wait for the server response
+  let serverRespond
+  let serverResponse = new Promise(resolve => {
+    serverRespond = resolve
+  })
+
   const server = http.createServer(function (req, res) {
     res.end('some response')
+    serverRespond()
   })
   server.unref()
   await new Promise(function (resolve) {
@@ -259,9 +266,9 @@ test('http autosend', async function (t) {
   t.deepEqual(data, [undefined], 'should not return anything since it\'s async')
   t.deepEqual(signaledEvents, [], 'should be empty bc the server has not yet responded')
 
-  await new Promise(function (resolve) {
-    setTimeout(resolve, 100)
-  })
+  await serverResponse
+  // wait for pico engine to do it's thing
+  await new Promise(resolve => setTimeout(resolve, 200))
 
   t.is(signaledEvents.length, 1, 'now there should be a response')
   delete signaledEvents[0].attrs.headers.date
