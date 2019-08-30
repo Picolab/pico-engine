@@ -57,8 +57,37 @@ $(function(){
             + '/did.html?url=%s","DID poc")';
     $("#rph").attr("href",'javascript:'+rph+';void 0');
     $("#rph").text(rph);
-    $("#servers").html("<li>"+servers.join("</li><li>")+"</li>");
+    $("#servers").html("<li>"+servers.join("</li><li>")+"</li>")
+    $("#servers li")
+      .each(function(i,o){
+        var server = $(o).text()
+        if(i){
+          var link = ' <a class="js-ajax-link" href="/sky/event/ECI/null/did/npe_removed?server='+server+'">del</a>'
+          $(o).html(server+link)
+        }
+      })
+    $('.js-ajax-link').click(function (e) {
+      e.preventDefault()
+      var href = $(this).attr('href').replace(/ECI/,did_sim_eci)
+      $.getJSON(href, {}, function () {
+        location.reload()
+      }).fail(function(obj) { alert("error"); alert(JSON.stringify(obj)); })
+    })
   }).fail(function(obj) { alert("error"); alert(JSON.stringify(obj)); });
+  var formToJSON = function (form) {
+    var json = {}
+    $.each($(form).serializeArray(), function (key, elm) {
+      json[elm.name] = elm.value
+    })
+    return json
+  }
+  $('.js-ajax-form').submit(function (e) {
+    e.preventDefault()
+    var action = $(this).attr('action').replace(/ECI/,did_sim_eci)
+    $.getJSON(action, formToJSON(this), function () {
+      location.reload()
+    }).fail(function(obj) { alert("error"); alert(JSON.stringify(obj)); })
+  })
 });
 </script>
 <style type="text/css">
@@ -73,8 +102,9 @@ div form { padding-left:40px; }
 <div>
 <h2>NPE which this resolver will try</h2>
 <ul id="servers"></ul>
-<form method="POST" onsubmit="alert('not yet implemented');return false">
-<input type="text" name="server" placeholder="npe host:port">
+<form class="js-ajax-form" method="POST"
+  action="/sky/event/ECI/null/did/npe_added">
+<input type="text" name="server" placeholder="npe host:port" required="">
 <button type="submit">add</button>
 </form>
 </div>
