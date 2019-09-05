@@ -8,9 +8,12 @@
 <script type="text/javascript">
 $(function(){
   var this_npe = location.hostname+(location.port ? ":"+location.port : "");
-  var did_sim_eci = window.did_simulator_eci;
+  var did_sim_eci = window.did_simulator_eci
+    || localStorage.getItem('did_simulator_eci')
+    || sessionStorage.getItem('did_simulator_eci');
   if(!did_sim_eci) {
     did_sim_eci = prompt("Enter an ECI for the DID resolution simulator pico");
+    sessionStorage.setItem('did_simulator_eci',did_sim_eci);
   }
   var servers = [];
   var base_url = "/sky/cloud/"+did_sim_eci+"/io.picolabs.did_simulation";
@@ -174,22 +177,25 @@ or some other pico, such as your Owner Pico.
 You must add the ruleset
 <code>io.picolabs.did_simulation</code>
 to your DID resolution simulator pico.
-You will be prompted for an ECI of the DID resolution simulator pico.
+You need to create an ECI in the "Channels" tab
+of your DID resolution simulator pico.
+You will be prompted for this ECI.
 </p>
 <p>
-To avoid being prompted each time,
-you may create a file named <code>did-simulator-eci.js</code>
+To avoid being prompted each time, you may do one of two things:
+<ol>
+<li>You may create a file named <code>did-simulator-eci.js</code>
 in the <code>public/js</code> folder of this NPE
 using this format
 </p>
 <pre><code>window.did_simulator_eci = "J1GbuLGCzstypfQLadBCwV";</code></pre>
 <p>
 replacing <code>"J1GbuLGCzstypfQLadBCwV"</code> with the actual ECI.
-You can create an ECI for this purpose in the "Channels" tab
-of your DID resolution simulator pico.
-It is highly recommended that you create an ECI for this
-purpose rather than using one of the existing channel identifiers.
 </p>
+</li>
+<li>You may set a local storage
+data item named "did_simulator_eci" to the ECI.</li>
+</ol>
 <div id="steps" style="display:none">
 <h1>DID resolution</h1>
 <p>
