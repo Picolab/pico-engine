@@ -1,0 +1,35 @@
+{
+  "name": "pico-engine-browser",
+  "version": "0.51.1",
+  "description": "An implementation of the pico-engine targeting web browsers",
+  "main": "src/index.js",
+  "files": [
+    "dest/pico-engine.js"
+  ],
+  "scripts": {
+    "test": "standard"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Picolab/pico-engine.git"
+  },
+  "keywords": [
+    "pico-engine",
+    "krl",
+    "KRE",
+    "IoT"
+  ],
+  "author": "Picolab",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Picolab/pico-engine/issues"
+  },
+  "homepage": "https://github.com/Picolab/pico-engine#readme",
+  "dependencies": {
+    "krl-compiler": "^0.51.1",
+    "pico-engine-core": "^0.51.1"
+  },
+  "devDependencies": {
+    "standard": "^12.0.1"
+  }
+}

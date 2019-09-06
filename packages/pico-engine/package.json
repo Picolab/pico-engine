@@ -1,7 +1,7 @@
 {
   "name": "pico-engine",
   "version": "0.51.1",
-  "description": "An implementation of the pico-engine targetting node.js",
+  "description": "An implementation of the pico-engine targeting node.js",
   "main": "src/index.js",
   "bin": {
     "pico-engine": "bin/pico-engine"
