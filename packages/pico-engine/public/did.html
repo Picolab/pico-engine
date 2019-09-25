@@ -13,7 +13,9 @@ $(function(){
     || sessionStorage.getItem('did_simulator_eci');
   if(!did_sim_eci) {
     did_sim_eci = prompt("Enter an ECI for the DID resolution simulator pico");
-    sessionStorage.setItem('did_simulator_eci',did_sim_eci);
+    if(did_sim_eci){
+      sessionStorage.setItem('did_simulator_eci',did_sim_eci);
+    }
   }
   var servers = [];
   var base_url = "/sky/cloud/"+did_sim_eci+"/io.picolabs.did_simulation";
