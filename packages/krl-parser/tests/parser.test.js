@@ -2550,6 +2550,26 @@ test('schedule event', function (t) {
     }
   ])
 
+  testPostlude('schedule event "foo:bar" at "sometime"', [
+    {
+      type: 'ScheduleEventStatement',
+      at: mk('sometime'),
+      event_domainAndType: mk('foo:bar'),
+      event_attrs: null,
+      setting: null
+    }
+  ])
+
+  testPostlude('schedule event "foo:bar" repeat "5 0 * * *"', [
+    {
+      type: 'ScheduleEventStatement',
+      timespec: mk('5 0 * * *'),
+      event_domainAndType: mk('foo:bar'),
+      event_attrs: null,
+      setting: null
+    }
+  ])
+
   t.end()
 })
 

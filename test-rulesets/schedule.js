@@ -62,8 +62,6 @@ module.exports = {
       if ($fired) {
         var foo = await $ctx.module("schedule")["at"]($ctx, {
           "eci": $event.eci,
-          "domain": "schedule",
-          "name": "push_log",
           "attrs": {
             "from": "in_5min",
             "name": await $stdlib["get"]($ctx, [
@@ -71,6 +69,8 @@ module.exports = {
               "name"
             ])
           },
+          "domain": "schedule",
+          "name": "push_log",
           "time": await $env.krl.assertFunction($ctx.module("time")["add"])($ctx, [
             await $env.krl.assertFunction($ctx.module("time")["now"])($ctx, []),
             { "minutes": 5 }
@@ -94,8 +94,6 @@ module.exports = {
       if ($fired) {
         var foo = await $ctx.module("schedule")["repeat"]($ctx, {
           "eci": $event.eci,
-          "domain": "schedule",
-          "name": "push_log",
           "attrs": {
             "from": "every_1min",
             "name": await $stdlib["get"]($ctx, [
@@ -103,6 +101,8 @@ module.exports = {
               "name"
             ])
           },
+          "domain": "schedule",
+          "name": "push_log",
           "timespec": "* */1 * * * *"
         });
         await $ctx.rsCtx.putEnt("log", await $env.krl.assertFunction(append)($ctx, [
@@ -123,6 +123,68 @@ module.exports = {
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("schedule:dynamic_at"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        var foo = await $ctx.module("schedule")["at"]($ctx, {
+          "eci": $event.eci,
+          "attrs": {
+            "from": "dynamic_at",
+            "name": await $stdlib["get"]($ctx, [
+              $event.data.attrs,
+              "name"
+            ])
+          },
+          "domainAndType": await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "dn"
+          ]),
+          "time": await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "at"
+          ])
+        });
+        await $ctx.rsCtx.putEnt("log", await $env.krl.assertFunction(append)($ctx, [
+          await $ctx.rsCtx.getEnt("log"),
+          { "scheduled dynamic_at": foo }
+        ]));
+      }
+    });
+    $rs.when($env.SelectWhen.e("schedule:dynamic_repeat"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      if ($fired) {
+        var foo = await $ctx.module("schedule")["repeat"]($ctx, {
+          "eci": $event.eci,
+          "attrs": {
+            "from": "dynamic_repeat",
+            "name": await $stdlib["get"]($ctx, [
+              $event.data.attrs,
+              "name"
+            ])
+          },
+          "domainAndType": await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "dn"
+          ]),
+          "timespec": await $stdlib["get"]($ctx, [
+            $event.data.attrs,
+            "timespec"
+          ])
+        });
+        await $ctx.rsCtx.putEnt("log", await $env.krl.assertFunction(append)($ctx, [
+          await $ctx.rsCtx.getEnt("log"),
+          { "scheduled dynamic_repeat": foo }
+        ]));
+      }
     });
     return {
       "event": async function (event, eid) {
@@ -178,6 +240,24 @@ module.exports = {
                 "domain": "schedule",
                 "name": "rm_from_schedule",
                 "attrs": ["id"]
+              },
+              {
+                "domain": "schedule",
+                "name": "dynamic_at",
+                "attrs": [
+                  "name",
+                  "dn",
+                  "at"
+                ]
+              },
+              {
+                "domain": "schedule",
+                "name": "dynamic_repeat",
+                "attrs": [
+                  "name",
+                  "dn",
+                  "timespec"
+                ]
               }
             ]
           };

@@ -237,8 +237,15 @@ test('http autosend', async function (t) {
     }
   }).def
 
+  // so we can wait for the server response
+  let serverRespond
+  let serverResponse = new Promise(resolve => {
+    serverRespond = resolve
+  })
+
   const server = http.createServer(function (req, res) {
     res.end('some response')
+    serverRespond()
   })
   server.unref()
   await new Promise(function (resolve) {
@@ -259,9 +266,9 @@ test('http autosend', async function (t) {
   t.deepEqual(data, [undefined], 'should not return anything since it\'s async')
   t.deepEqual(signaledEvents, [], 'should be empty bc the server has not yet responded')
 
-  await new Promise(function (resolve) {
-    setTimeout(resolve, 100)
-  })
+  await serverResponse
+  // wait for pico engine to do it's thing
+  await new Promise(resolve => setTimeout(resolve, 200))
 
   t.is(signaledEvents.length, 1, 'now there should be a response')
   delete signaledEvents[0].attrs.headers.date
@@ -285,4 +292,63 @@ test('http autosend', async function (t) {
       }
     }
   }])
+})
+
+test('http redirects', async function (t) {
+  const khttp = httpModule().def
+
+  const server = http.createServer(function (req, res) {
+    if (req.url === '/redir') {
+      res.writeHead(302, {
+        'Location': '/other'
+      })
+      res.end()
+    }
+    res.end('some response')
+  })
+  server.unref()
+  await new Promise(function (resolve) {
+    server.listen(0, resolve)
+  })
+  const url = 'http://localhost:' + server.address().port
+
+  let data = await khttp.get({}, {
+    url: url + '/redir'
+  })
+
+  t.is(data.length, 1)
+  data = data[0]
+  delete data.headers.date
+  t.deepEqual(data, {
+    content: 'some response',
+    content_length: 13,
+    content_type: undefined,
+    headers: {
+      connection: 'close',
+      'content-length': '13'
+    },
+    status_code: 200,
+    status_line: 'OK'
+  })
+
+  data = await khttp.get({}, {
+    url: url + '/redir',
+    dontFollowRedirect: true
+  })
+
+  t.is(data.length, 1)
+  data = data[0]
+  delete data.headers.date
+  t.deepEqual(data, {
+    content: '',
+    content_length: 0,
+    content_type: undefined,
+    headers: {
+      connection: 'close',
+      location: '/other',
+      'transfer-encoding': 'chunked'
+    },
+    status_code: 302,
+    status_line: 'Found'
+  })
 })

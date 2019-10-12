@@ -161,6 +161,23 @@ ruleset wrangler_tests_runner {
           "use module io.picolabs.wrangler alias wrangler"
         ],
         "global":[]
+      },      
+      "Channel Deletion of nonexistent channel": {
+        "kickoff_events": {
+          "wrangler:channel_deletion_requested":{"id":"asdasd", "co_id":"test_id"}
+        },
+        "start_state": <<>>,
+        "listeners": {
+          "wrangler:channel_deletion_failed" : {
+             "expressions": [
+               ["Correlation identifier should have been passed through", <<event:attrs{"co_id"} == "test_id">>],
+              ]
+          }
+        },
+        "meta": [
+          "use module io.picolabs.wrangler alias wrangler"
+        ],
+        "global":[]
       },
       
       "Ruleset installation from on engine": {

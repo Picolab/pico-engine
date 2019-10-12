@@ -920,51 +920,36 @@ RaiseEventStatement -> %tok_raise Identifier %tok_event Expression
   }
 %}
 
-ScheduleEventStatement ->
-      ScheduleEventStatement_at {% id %}
-    | ScheduleEventStatement_repeat {% id %}
-
-ScheduleEventStatement_at -> %tok_schedule Identifier %tok_event Expression
-  %tok_at Expression
+ScheduleEventStatement -> %tok_schedule Identifier:? %tok_event Expression
+  (%tok_at | %tok_repeat) Expression
   (%tok_attributes Expression):?
   (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
 {%
   function(data){
-    return {
+    var ast = {
       loc: mkLoc(data),
       type: "ScheduleEventStatement",
-
-      at: data[5],
-
-      event_domain: data[1],
-      event_type: data[3],
       event_attrs: (data[6] && data[6][1]) || null,
-
       setting: (data[7] && data[7][2]) || null,
     };
+    if(data[1]){
+      ast.event_domain = data[1];
+      ast.event_type = data[3];
+    }else{
+      ast.event_domainAndType = data[3];
+    }
+    switch(data[4][0].src){
+      case 'at':
+        ast.at = data[5];
+        break;
+      case 'repeat':
+        ast.timespec = data[5];
+        break;
+    }
+    return ast;
   }
 %}
 
-ScheduleEventStatement_repeat -> %tok_schedule Identifier %tok_event Expression
-  %tok_repeat Expression
-  (%tok_attributes Expression):?
-  (%tok_setting %tok_OPEN_PAREN Identifier %tok_CLSE_PAREN):?
-{%
-  function(data){
-    return {
-      loc: mkLoc(data),
-      type: "ScheduleEventStatement",
-
-      timespec: data[5],
-
-      event_domain: data[1],
-      event_type: data[3],
-      event_attrs: (data[6] && data[6][1]) || null,
-
-      setting: (data[7] && data[7][2]) || null,
-    };
-  }
-%}
 
 LogStatement -> %tok_log %tok_LOG_or_ERROR_LEVEL_ENUM Expression
 {%

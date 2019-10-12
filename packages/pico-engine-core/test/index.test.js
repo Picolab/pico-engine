@@ -1978,6 +1978,39 @@ test('PicoEngine - io.picolabs.schedule rulesets', async function (t) {
         timespec: '* */1 * * * *',
         event: mkEvent('init1/1234/schedule/push_log', { from: 'every_1min', name: 'baz' })
       }
+    ]],
+    [signal('schedule', 'rm_from_schedule', { id: 'id2' }), []], // remove a cron
+    [query('listScheduled'), []],
+    clearLog,
+
+    // /////////////////////////////////////////////////////////////////////////
+    // dynamic domain:type
+    [signal('schedule', 'dynamic_at', {
+      dn: 'schedule:push_log',
+      at: (new Date(Date.now() + 10000)).toISOString(),
+      name: 'AAA'
+    }), []],
+    [signal('schedule', 'dynamic_repeat', {
+      dn: 'schedule:push_log',
+      timespec: '* * */2 * * *',
+      name: 'BBB'
+    }), []],
+    [query('getLog'), [
+      { 'scheduled dynamic_at': 'id5' },
+      { 'scheduled dynamic_repeat': 'id6' }
+    ]],
+    triggerTimeout(),
+    [query('getLog'), [
+      { 'scheduled dynamic_at': 'id5' },
+      { 'scheduled dynamic_repeat': 'id6' },
+      { from: 'dynamic_at', name: 'AAA' }
+    ]],
+    triggerCron('id6'),
+    [query('getLog'), [
+      { 'scheduled dynamic_at': 'id5' },
+      { 'scheduled dynamic_repeat': 'id6' },
+      { from: 'dynamic_at', name: 'AAA' },
+      { from: 'dynamic_repeat', name: 'BBB' }
     ]]
   ])
 })

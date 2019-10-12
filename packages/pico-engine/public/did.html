@@ -2,15 +2,20 @@
 <html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-<title>DID redirection</title>
+<title>DID resolution</title>
 <script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
 <script src="js/did-simulator-eci.js" type="text/javascript"></script>
 <script type="text/javascript">
 $(function(){
   var this_npe = location.hostname+(location.port ? ":"+location.port : "");
-  var did_sim_eci = window.did_simulator_eci;
+  var did_sim_eci = window.did_simulator_eci
+    || localStorage.getItem('did_simulator_eci')
+    || sessionStorage.getItem('did_simulator_eci');
   if(!did_sim_eci) {
-    did_sim_eci = prompt("Enter an ECI for the DID Simulator Pico");
+    did_sim_eci = prompt("Enter an ECI for the DID resolution simulator pico");
+    if(did_sim_eci){
+      sessionStorage.setItem('did_simulator_eci',did_sim_eci);
+    }
   }
   var servers = [];
   var base_url = "/sky/cloud/"+did_sim_eci+"/io.picolabs.did_simulation";
@@ -57,46 +62,93 @@ $(function(){
             + '/did.html?url=%s","DID poc")';
     $("#rph").attr("href",'javascript:'+rph+';void 0');
     $("#rph").text(rph);
-    $("#servers").html("<li>"+servers.join("</li><li>")+"</li>");
-  }).fail(function(obj) { alert("error"); alert(JSON.stringify(obj)); });
+    $("#servers").html("<li>"+servers.join("</li><li>")+"</li>")
+    $("#servers li")
+      .each(function(i,o){
+        var server = $(o).text()
+        if(i){
+          var link = ' <a class="js-ajax-link" href="/sky/event/ECI/null/did/npe_removed?server='+server+'">del</a>'
+          $(o).html(server+link)
+        }
+      })
+    $('.js-ajax-link').click(function (e) {
+      e.preventDefault()
+      var href = $(this).attr('href').replace(/ECI/,did_sim_eci)
+      $.getJSON(href, {}, function () {
+        location.reload()
+      }).fail(function(obj) { alert("error"); alert(JSON.stringify(obj)); })
+    })
+  })
+  .fail(function(obj){
+    var steps = $("#steps").html()
+    if (obj && obj.responseJSON && obj.responseJSON.error) {
+      $("body").html(obj.responseJSON.error+steps).show()
+    } else if (obj.status && obj.statusText) {
+      $("body").html(obj.status + ": " + obj.statusText+steps).show()
+    } else {
+      alert("error");
+      alert(JSON.stringify(obj));
+    }
+  });
+  var formToJSON = function (form) {
+    var json = {}
+    $.each($(form).serializeArray(), function (key, elm) {
+      json[elm.name] = elm.value
+    })
+    return json
+  }
+  $('.js-ajax-form').submit(function (e) {
+    e.preventDefault()
+    var action = $(this).attr('action').replace(/ECI/,did_sim_eci)
+    $.getJSON(action, formToJSON(this), function () {
+      location.reload()
+    }).fail(function(obj) { alert("error"); alert(JSON.stringify(obj)); })
+  })
 });
 </script>
 <style type="text/css">
 pre { margin-left:20px; }
 body { display:none; }
-div { padding:10px; float:right; border:1px solid silver; }
+div { padding:10px; float:right; border:1px solid silver; margin-left:20px; }
 div form { padding-left:40px; }
 </style>
 </head>
 <body>
-<h1>DID redirection</h1>
 <div>
-<h2>List of NPE which this redirector will try</h2>
+<h2>NPE which this resolver will try</h2>
 <ul id="servers"></ul>
-<form method="POST" onsubmit="alert('not yet implemented');return false">
-<input type="text" name="server" placeholder="npe host:port">
+<form class="js-ajax-form" method="POST"
+  action="/sky/event/ECI/null/did/npe_added">
+<input type="text" name="server" placeholder="host:port" required="">
 <button type="submit">add</button>
 </form>
 </div>
+<h1>DID resolution</h1>
 <p>
 This is a proof of concept, through simulation.
-Soon, browsers will understand the <code>did</code> scheme directly.
-They will use the DID to find the DDO on Sovrin and the DDO
-will provide a list of endpoints for your browser to try.
+</p>
+<p>
+When browsers understand
+<a href="https://w3c-ccg.github.io/did-spec/">the <code>did</code> scheme</a>
+directly, they will use the DID to find the DID Document on the Sovrin ledger
+and the DID Document will provide a list of endpoints for your browser.
+</p>
+<p>
 Until then, we can use this simulator,
 which will try a series of Node Pico Engines (NPE)
-until it finds one which hosts your pico.
+until it finds the one which hosts your pico.
 </p>
-<h2>Register a protocol handler</h2>
+<h2>Register a browser protocol handler</h2>
 <p>
-In Chrome and Firefox, you can register a handler for a "new" protocol.
+In Chrome and Firefox, you can register a handler for an experimental protocol.
 Click on the link below to register this page
 as a handler for <code>web+did</code>.
 </p>
-<pre><a id="rph" href='javascript:navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc");void 0'>navigator.registerProtocolHandler("web+did","http://localhost:8080/did.html?url=%s","DID poc")</a></pre>
+<pre><a id="rph"></a></pre>
 <p>
-Your browser will warn you that your NPE wants to 
-handle the "web+did" protocol, which you must allow.
+Your browser will warn that you want this page to 
+handle the "web+did" protocol, which you must allow
+for this simulation to work.
 </p>
 <h2>Using your protocol handler</h2>
 <p>
@@ -115,34 +167,50 @@ From Firefox, visit Preferences->Applications.
 </p>
 <h2>How it works</h2>
 <p>
-While the redirection itself is done by this page,
+While the resolution itself is done by this page,
 the list of NPE to try is maintained in a pico you choose,
 which also determines which NPE hosts the
 pico identified by the ECI/DID.
-We will call this pico the "DID Simulator Pico".
+Call this the DID resolution simulator pico.
 </p>
 <p>
 You might choose the Root Pico to serve this role,
 or some other pico, such as your Owner Pico.
 You must add the ruleset
 <code>io.picolabs.did_simulation</code>
-to your DID Simulator Pico.
-You may be prompted for an ECI for the DID Simulator Pico.
+to your DID resolution simulator pico.
+You need to create an ECI in the "Channels" tab
+of your DID resolution simulator pico.
+You will be prompted for this ECI.
 </p>
 <p>
-To avoid being prompted each time,
-you may create a file named <code>did-simulator-eci.js</code>
+To avoid being prompted each time, you may do one of two things:
+<ol>
+<li>You may create a file named <code>did-simulator-eci.js</code>
 in the <code>public/js</code> folder of this NPE
 using this format
 </p>
 <pre><code>window.did_simulator_eci = "J1GbuLGCzstypfQLadBCwV";</code></pre>
 <p>
 replacing <code>"J1GbuLGCzstypfQLadBCwV"</code> with the actual ECI.
-You can create an ECI for this purpose in the "Channels" tab
-of your DID Simulator Pico.
-It is highly recommended that you create an ECI for this
-purpose rather than using one of the existing channel identifiers.
 </p>
+</li>
+<li>You may set a local storage
+data item named "did_simulator_eci" to the ECI.</li>
+</ol>
+<div id="steps" style="display:none">
+<h1>DID resolution</h1>
+<p>
+To use your pico engine to perform (simulated) DID resolution, you must:
+</p>
+<ol>
+<li>Designate a pico as the DID resolution simulator pico</li>
+<li>Give this pico a channel for this purpose</li>
+<li>Keep the ECI of that channel handy in your clipboard</li>
+<li>Install the <code>io.picolabs.did_simulation</code> ruleset into the pico</li>
+<li>Refresh this page, being ready to paste in the ECI when prompted</li>
+</ol>
+</div>
 </body>
 </html>
 
