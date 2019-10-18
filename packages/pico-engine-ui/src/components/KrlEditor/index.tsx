@@ -1,6 +1,7 @@
-import * as React from "react";
 import * as ace from "ace-builds";
 import "ace-builds/webpack-resolver";
+import * as React from "react";
+import { useEffect, useRef, useState } from "react";
 import "./mode-krl";
 
 ace.config.loadModule("ace/ext/searchbox", () => null);
@@ -57,35 +58,24 @@ export const themes: { [group: string]: string[] } = {
   ]
 };
 
-class KrlEditor extends React.Component<Props> {
-  private mountDiv = React.createRef<HTMLDivElement>();
+export default function KrlEditor(props: Props) {
+  const mountDiv = useRef<HTMLDivElement>(null);
+  const [editor, setEditor] = useState<ace.Ace.Editor | null>(null);
 
-  private editor?: ace.Ace.Editor;
+  useEffect(() => {
+    if (!mountDiv.current) return;
 
-  constructor(props: Props) {
-    super(props);
-  }
-
-  componentDidMount() {
-    if (!this.mountDiv.current) {
-      return;
-    }
-    this.editor = ace.edit(this.mountDiv.current, {
+    const editor = ace.edit(mountDiv.current, {
       tabSize: 2,
       useSoftTabs: true
     });
-    this.editor.getSession().setMode("ace/mode/krl");
-    this.editor.setDisplayIndentGuides(false);
-    if (this.props.theme) {
-      this.editor.setTheme("ace/theme/" + this.props.theme);
-    }
-    if (this.props.src) {
-      this.editor.getSession().setValue(this.props.src);
-    }
-    this.editor.setReadOnly(this.props.readOnly === true);
+    setEditor(editor);
+
+    editor.getSession().setMode("ace/mode/krl");
+    editor.setDisplayIndentGuides(false);
 
     let lastStatus = "ok";
-    (this.editor.getSession() as any).on(
+    (editor.getSession() as any).on(
       "changeAnnotation",
       (ignore: any, f: any) => {
         var ann = f.$annotations[0];
@@ -97,52 +87,36 @@ class KrlEditor extends React.Component<Props> {
           return;
         }
         lastStatus = msg;
-        const { onStatus } = this.props;
-        if (onStatus) {
-          onStatus(msg);
+        if (props.onStatus) {
+          props.onStatus(msg);
         }
       }
     );
 
-    (this.editor.getSession() as any).on("change", () => {
-      const { onValue } = this.props;
-      if (this.editor && onValue) {
-        const krl = this.editor.getSession().getValue();
-        onValue(krl);
+    (editor.getSession() as any).on("change", () => {
+      if (editor && props.onValue) {
+        const krl = editor.getSession().getValue();
+        props.onValue(krl);
       }
     });
-  }
 
-  componentWillUnmount() {
-    if (this.editor) {
-      this.editor.destroy();
-    }
-  }
+    return () => editor.destroy();
+  }, [!!mountDiv.current]);
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (!this.editor) {
-      return;
-    }
-    if (
-      this.props.theme !== nextProps.theme &&
-      typeof nextProps.theme === "string"
-    ) {
-      this.editor.setTheme("ace/theme/" + nextProps.theme);
-    }
-    const oldSrc = this.props.src || "";
-    const nextSrc = nextProps.src || "";
-    if (oldSrc !== nextSrc) {
-      this.editor.getSession().setValue(nextSrc);
-    }
+  useEffect(() => {
+    if (!editor) return;
+    editor.getSession().setValue(props.src || "");
+  }, [!!editor, props.src || ""]);
 
-    if (this.props.readOnly !== nextProps.readOnly) {
-      this.editor.setReadOnly(nextProps.readOnly === true);
-    }
-  }
+  useEffect(() => {
+    if (!editor || !props.theme) return;
+    editor.setTheme("ace/theme/" + props.theme);
+  }, [!!editor, props.theme]);
 
-  render() {
-    return <div ref={this.mountDiv} className="flex-grow-1" />;
-  }
+  useEffect(() => {
+    if (!editor) return;
+    editor.setReadOnly(props.readOnly === true);
+  }, [!!editor, props.readOnly === true]);
+
+  return <div ref={mountDiv} className="flex-grow-1" />;
 }
-
-export default KrlEditor;
