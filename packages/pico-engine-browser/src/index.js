@@ -1,9 +1,13 @@
 require('util.promisify/shim')()
-var PicoEngineCore = require('pico-engine-core')
-var leveljs = require('level-js')
-var fs = require('fs')
+let PicoEngineCore = require('pico-engine-core')
+let leveljs = require('level-js')
+let levelup = require('levelup')
+let fs = require('fs')
+let krlCompiler = require('krl-compiler')
+let crypto = require('crypto')
 
-var builtInRulesets = [
+/* eslint-disable */
+let builtInRulesets = [
   {
     src: fs.readFileSync(__dirname + '/../../pico-engine/krl/io.picolabs.wrangler.krl', 'utf8'),
     meta: { url: 'pico-engine.js/io.picolabs.wrangler.krl' }
@@ -17,9 +21,36 @@ var builtInRulesets = [
     meta: { url: 'pico-engine.js/io.picolabs.subscription.krl' }
   }
 ]
+/* eslint-enable */
+
+let cacheDB = levelup(leveljs('pico-engine-ruleset-cache'))
+
+async function compileAndLoadRuleset (rsInfo) {
+  let shasum = crypto.createHash('sha256')
+  shasum.update(rsInfo.src)
+  let hash = shasum.digest('hex')
+
+  let jsSrc
+  try {
+    let data = await cacheDB.get(hash)
+    jsSrc = data.toString()
+  } catch (err) {
+    if (!err.notFound) {
+      throw err
+    }
+  }
+  if (!jsSrc) {
+    jsSrc = krlCompiler(rsInfo.src, {
+      inline_source_map: true
+    }).code
+    await cacheDB.put(hash, jsSrc)
+  }
+
+  return eval(jsSrc)// eslint-disable-line no-eval
+}
 
 window.PicoEngine = async function PicoEngine (name) {
-  var pe = PicoEngineCore({
+  let pe = PicoEngineCore({
     host: 'browser',
     db: {
       db: leveljs(name || 'pico-engine')
@@ -29,7 +60,8 @@ window.PicoEngine = async function PicoEngine (name) {
       'io.picolabs.wrangler',
       'io.picolabs.visual_params',
       'io.picolabs.subscription'
-    ]
+    ],
+    compileAndLoadRuleset: compileAndLoadRuleset
   })
 
   await pe.start(builtInRulesets)
