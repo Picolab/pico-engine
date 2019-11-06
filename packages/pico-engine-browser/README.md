@@ -17,13 +17,12 @@ To build it
 npm run build
 ```
 
-The output is `dist/pico-engine.js`
-
+The output is `dist/pico-engine.js` and  `dist/pico-engine.min.js`
 
 ## How to use it
 
 ```html
-<script src="pico-engine.js"></script>
+<script src="pico-engine.min.js"></script>
 <script>
 async function main(){
   // start it up

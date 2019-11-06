@@ -24,7 +24,6 @@ let builtInRulesets = [
 ]
 /* eslint-enable */
 
-
 window.PicoEngine = async function PicoEngine (dbName, cacheDbName) {
   dbName = dbName || 'pico-engine'
   cacheDbName = cacheDbName || (dbName + '-ruleset-cache')
@@ -35,7 +34,7 @@ window.PicoEngine = async function PicoEngine (dbName, cacheDbName) {
     let shasum = crypto.createHash('sha256')
     shasum.update(rsInfo.src)
     let hash = shasum.digest('hex')
-    let key = krlCompilerVersion + '-' + hash;
+    let key = krlCompilerVersion + '-' + hash
 
     let jsSrc
     try {
