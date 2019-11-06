@@ -4,6 +4,7 @@ let leveljs = require('level-js')
 let levelup = require('levelup')
 let fs = require('fs')
 let krlCompiler = require('krl-compiler')
+let krlCompilerVersion = require('krl-compiler/package.json').version
 let crypto = require('crypto')
 
 /* eslint-disable */
@@ -23,37 +24,42 @@ let builtInRulesets = [
 ]
 /* eslint-enable */
 
-let cacheDB = levelup(leveljs('pico-engine-ruleset-cache'))
 
-async function compileAndLoadRuleset (rsInfo) {
-  let shasum = crypto.createHash('sha256')
-  shasum.update(rsInfo.src)
-  let hash = shasum.digest('hex')
+window.PicoEngine = async function PicoEngine (dbName, cacheDbName) {
+  dbName = dbName || 'pico-engine'
+  cacheDbName = cacheDbName || (dbName + '-ruleset-cache')
 
-  let jsSrc
-  try {
-    let data = await cacheDB.get(hash)
-    jsSrc = data.toString()
-  } catch (err) {
-    if (!err.notFound) {
-      throw err
+  let cacheDB = levelup(leveljs(cacheDbName))
+
+  async function compileAndLoadRuleset (rsInfo) {
+    let shasum = crypto.createHash('sha256')
+    shasum.update(rsInfo.src)
+    let hash = shasum.digest('hex')
+    let key = krlCompilerVersion + '-' + hash;
+
+    let jsSrc
+    try {
+      let data = await cacheDB.get(key)
+      jsSrc = data.toString()
+    } catch (err) {
+      if (!err.notFound) {
+        throw err
+      }
     }
-  }
-  if (!jsSrc) {
-    jsSrc = krlCompiler(rsInfo.src, {
-      inline_source_map: true
-    }).code
-    await cacheDB.put(hash, jsSrc)
+    if (!jsSrc) {
+      jsSrc = krlCompiler(rsInfo.src, {
+        inline_source_map: true
+      }).code
+      await cacheDB.put(key, jsSrc)
+    }
+
+    return eval(jsSrc)// eslint-disable-line no-eval
   }
 
-  return eval(jsSrc)// eslint-disable-line no-eval
-}
-
-window.PicoEngine = async function PicoEngine (name) {
   let pe = PicoEngineCore({
     host: 'browser',
     db: {
-      db: leveljs(name || 'pico-engine')
+      db: leveljs(dbName)
     },
     // RIDs that will be automatically installed on the root pico
     rootRIDs: [
