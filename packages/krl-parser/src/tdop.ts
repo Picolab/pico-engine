@@ -15,8 +15,8 @@ class ParseError extends Error {
 
 interface State {
   tokens: Token[];
-  token_i: number;
-  curr?: {
+  curr: {
+    token_i: number;
     rule: Rule;
     token: Token;
   };
@@ -27,7 +27,7 @@ interface Rule {
 
   nud?: (state: State, token: Token) => ast.Node;
 
-  lbp?: number;
+  lbp: number;
   led?: (state: State, token: Token, left: ast.Node) => ast.Node;
 
   sta?: (state: State) => ast.Node;
@@ -35,21 +35,24 @@ interface Rule {
 
 const rules: { [id: string]: Rule } = {};
 
-function defRule(id: string, rule: Omit<Rule, "id">) {
-  rules[id] = { id, ...rule };
+function defRule(id: string, rule: Omit<Omit<Rule, "id">, "lbp">) {
+  rules[id] = { id, lbp: 0, ...rule };
 
   if (!rules[id].lbp) {
     rules[id].lbp = 0;
   }
 }
 
-function advance(state: State) {
+function advanceBase(
+  tokens: Token[],
+  token_i: number
+): { token_i: number; token: Token; rule: Rule } {
   // get next token
   let token: Token | null = null;
   let found = false;
-  while (state.token_i < state.tokens.length) {
-    token = state.tokens[state.token_i];
-    state.token_i += 1;
+  while (token_i < tokens.length) {
+    token = tokens[token_i];
+    token_i += 1;
 
     if (token.type === "MISSING-CLOSE") {
       throw new ParseError("Missing close " + token.missingClose, token);
@@ -62,22 +65,24 @@ function advance(state: State) {
       token.type === "LINE-COMMENT" ||
       token.type === "BLOCK-COMMENT"
     ) {
-      break;
+      continue;
     }
-  }
-  if (!token) return;
 
-  if (!found && state.token_i >= state.tokens.length) {
-    let srcLen = state.tokens[state.tokens.length - 1].loc.end;
-    state.curr = {
-      rule: rules["(end)"],
+    found = true;
+    break;
+  }
+
+  if (!token || (!found && token_i >= tokens.length)) {
+    const index = tokens[tokens.length - 1].loc.end;
+    return {
+      token_i: tokens.length,
       token: {
         type: "WHITESPACE",
         src: "",
-        loc: { start: srcLen, end: srcLen }
-      }
+        loc: { start: index, end: index }
+      },
+      rule: rules["(end)"]
     };
-    return;
   }
 
   let rule: Rule | null = null;
@@ -88,10 +93,39 @@ function advance(state: State) {
   }
 
   if (!rule) {
-    throw new ParseError("Unhandled token", token);
+    throw new ParseError(
+      "Unhandled token" + JSON.stringify(Object.keys(rules)),
+      token
+    );
   }
 
-  state.curr = { rule, token };
+  return { token_i, token, rule };
+}
+
+function advance(state: State) {
+  state.curr = advanceBase(state.tokens, state.curr.token_i);
+}
+
+function expression(state: State, rbp: number): ast.Node {
+  let prev = state.curr;
+  advance(state);
+  if (!prev.rule.nud) {
+    throw new ParseError("Expected an expression", prev.token);
+  }
+  let left = prev.rule.nud(state, prev.token);
+
+  while (rbp < state.curr.rule.lbp) {
+    prev = state.curr;
+    advance(state);
+    if (!prev.rule.led) {
+      throw new ParseError(
+        "Rule does not have a .led " + prev.rule.id,
+        prev.token
+      );
+    }
+    left = prev.rule.led(state, prev.token, left);
+  }
+  return left;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,6 +142,33 @@ defRule("NUMBER", {
   }
 });
 
+defRule("STRING", {
+  nud(state, token) {
+    return {
+      loc: token.loc,
+      type: "String",
+      value: token.src
+        .replace(/(^")|("$)/g, "")
+        .replace(/\\"/g, '"')
+        .replace(/\\\\/g, "\\")
+    };
+  }
+});
+
+defRule("REGEXP", {
+  nud(state, token) {
+    const pattern = token.src
+      .substring(3, token.src.lastIndexOf("#"))
+      .replace(/\\#/g, "#");
+    const modifiers = token.src.substring(token.src.lastIndexOf("#") + 1);
+    return {
+      loc: token.loc,
+      type: "RegExp",
+      value: new RegExp(pattern, modifiers)
+    };
+  }
+});
+
 ///////////////////////////////////////////////////////////////////////////////
 
 export function parse(
@@ -116,20 +177,27 @@ export function parse(
 ): ast.Node {
   let state: State = {
     tokens: tokens,
-    token_i: 0,
-    curr: void 0
+    curr: advanceBase(tokens, 0)
   };
 
-  advance(state);
   const tree = entryParse(state);
 
   if (!state.curr) {
     throw new Error("Nothing was parsed");
   }
   if (state.curr.rule.id !== "(end)") {
-    throw new ParseError("Expected `(end)`", state.curr.token);
+    throw new ParseError(
+      "Expected `(end)` but was " + state.curr.rule.id,
+      state.curr.token
+    );
   }
   advance(state);
 
   return tree;
+}
+
+export function parseExpression(tokens: Token[]): ast.Node {
+  return parse(tokens, function(state) {
+    return expression(state, 0);
+  });
 }

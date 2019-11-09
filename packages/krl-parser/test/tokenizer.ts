@@ -1,7 +1,7 @@
 import test from "ava";
 import tokenizer from "../src/tokenizer";
 
-test("ruleset - eid, qid", async t => {
+test("tokenizer", async t => {
   t.deepEqual(tokenizer(""), []);
 
   function tst(src: string, expected: string[]) {
@@ -174,6 +174,7 @@ test("ruleset - eid, qid", async t => {
   tst("re#regex#", ["[REGEXP]re#regex#"]);
   tst("re#regex#iok", ["[REGEXP]re#regex#i", "[SYMBOL]ok"]);
   tst("re#regex#gok", ["[REGEXP]re#regex#g", "[SYMBOL]ok"]);
+  tst("re#regex#ig", ["[REGEXP]re#regex#ig"]);
   tst("re#regex#igok", ["[REGEXP]re#regex#ig", "[SYMBOL]ok"]);
   tst("re#regex#giok", ["[REGEXP]re#regex#gi", "[SYMBOL]ok"]);
   tst("re#\\##", ["[REGEXP]re#\\##"]);

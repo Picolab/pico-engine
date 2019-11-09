@@ -42,4 +42,9 @@ export interface String extends BaseNode {
   value: string;
 }
 
-export type Node = Number | String;
+export interface KrlRegExp extends BaseNode {
+  type: "RegExp";
+  value: RegExp;
+}
+
+export type Node = Number | String | KrlRegExp;
