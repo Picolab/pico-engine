@@ -11,7 +11,10 @@ test("ruleset - eid, qid", async t => {
     for (let i = 0; i < tokens.length; i++) {
       const tok = tokens[i];
       if (i < tokens.length - 1) {
-        t.is(tok.src, src.substring(tok.index, tokens[i + 1].index));
+        t.is(tok.src, src.substring(tok.loc.start, tok.loc.end));
+        t.is(tok.src, src.substring(tok.loc.start, tokens[i + 1].loc.start));
+      } else {
+        t.is(tok.src, src.substring(tok.loc.start, src.length));
       }
     }
     t.deepEqual(tokens.map(tok => "[" + tok.type + "]" + tok.src), expected);
@@ -195,11 +198,11 @@ test("ruleset - eid, qid", async t => {
     "[RAW]}"
   ]);
 
-  tst("/*/", ["[ILLEGAL]/*/"]);
+  tst("/*/", ["[MISSING-CLOSE]/*/"]);
   tst("/**/", ["[BLOCK-COMMENT]/**/"]);
 
-  tst('"one', ['[ILLEGAL]"one']);
-  tst("re#one", ["[ILLEGAL]re#one"]);
+  tst('"one', ['[MISSING-CLOSE]"one']);
+  tst("re#one", ["[MISSING-CLOSE]re#one"]);
 
   tst("a&&b", ["[SYMBOL]a", "[RAW]&&", "[SYMBOL]b"]);
 

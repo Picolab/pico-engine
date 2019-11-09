@@ -1,24 +1,4 @@
-export type TokenType =
-  | "WHITESPACE"
-  | "LINE-COMMENT"
-  | "BLOCK-COMMENT"
-  | "SYMBOL"
-  | "NUMBER"
-  | "STRING"
-  | "REGEXP"
-  | "CHEVRON-OPEN"
-  | "CHEVRON-STRING"
-  | "CHEVRON-BEESTING-OPEN"
-  | "CHEVRON-BEESTING-CLOSE"
-  | "CHEVRON-CLOSE"
-  | "RAW"
-  | "ILLEGAL";
-
-export interface Token {
-  type: TokenType;
-  src: string;
-  index: number;
-}
+import { Token, TokenType } from "./types";
 
 const rawToks = [
   "<=>",
@@ -61,11 +41,12 @@ export default function tokenizer(src: string): Token[] {
   let c = src[0];
   let nextIndex = 0;
 
-  function pushTok(value: string, type: TokenType) {
+  function pushTok(value: string, type: TokenType, missingClose?: string) {
     tokens.push({
       type: type,
       src: value,
-      index: nextIndex
+      loc: { start: nextIndex, end: nextIndex + value.length },
+      missingClose
     });
     nextIndex = nextIndex + value.length;
     buff = "";
@@ -146,7 +127,7 @@ export default function tokenizer(src: string): Token[] {
           pushTok(buff + "*/", "BLOCK-COMMENT");
           advance(2);
         } else {
-          pushTok(buff, "ILLEGAL");
+          pushTok(buff, "MISSING-CLOSE", "*/");
         }
 
         continue;
@@ -186,7 +167,7 @@ export default function tokenizer(src: string): Token[] {
         pushTok(buff + '"', "STRING");
         advance(1);
       } else {
-        pushTok(buff, "ILLEGAL");
+        pushTok(buff, "MISSING-CLOSE", '"');
       }
 
       continue;
@@ -207,7 +188,7 @@ export default function tokenizer(src: string): Token[] {
         pushTok(buff + "#", "REGEXP");
         advance(1);
       } else {
-        pushTok(buff, "ILLEGAL");
+        pushTok(buff, "MISSING-CLOSE", "#");
       }
 
       continue;
