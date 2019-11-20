@@ -128,9 +128,79 @@ function expression(state: State, rbp: number): ast.Node {
   return left;
 }
 
+function assertSymbol(state: State, src: string) {
+  if (state.curr.rule.id !== "SYMBOL" || state.curr.token.src !== src) {
+    throw new ParseError("Expected: " + src, state.curr.token);
+  }
+}
+
+function rulesetID(state: State): ast.RulesetID {
+  if (state.curr.rule.id !== "SYMBOL") {
+    throw new ParseError("Expected RulesetID", state.curr.token);
+  }
+
+  const parts: string[] = [];
+  parts.push(state.curr.token.src);
+
+  let start = state.curr.token.loc.start;
+  let end = state.curr.token.loc.end;
+
+  advance(state);
+
+  while (true) {
+    if (state.curr.token.type !== "RAW" || state.curr.token.src !== ".") {
+      break;
+    }
+    // TODO advance with no skips
+    advance(state);
+    if (state.curr.rule.id !== "SYMBOL") {
+      throw new ParseError("Expected RulesetID", state.curr.token);
+    }
+    parts.push(state.curr.rule.id);
+    parts.push(state.curr.token.src);
+    // TODO advance with no skips
+    advance(state);
+  }
+
+  return {
+    loc: { start, end },
+    type: "RulesetID",
+    value: parts.join(".")
+  };
+}
+
+function ruleset(state: State): ast.Ruleset {
+  assertSymbol(state, "ruleset");
+  const start = state.curr.token.loc.start;
+  advance(state);
+
+  const rid = rulesetID(state);
+
+  if (state.curr.rule.id !== "{" || state.curr.token.src !== "{") {
+    throw new ParseError("Expected: {", state.curr.token);
+  }
+  advance(state);
+
+  // TODO ruleset body
+
+  const end = state.curr.token.loc.end;
+  advance(state);
+
+  return {
+    loc: { start, end },
+    type: "Ruleset",
+    rid
+  };
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 defRule("(end)", {});
+
+defRule("{", {});
+defRule("}", {});
+
+defRule("SYMBOL", {});
 
 defRule("NUMBER", {
   nud(state, token) {
@@ -199,5 +269,11 @@ export function parse(
 export function parseExpression(tokens: Token[]): ast.Node {
   return parse(tokens, function(state) {
     return expression(state, 0);
+  });
+}
+
+export function parseRuleset(tokens: Token[]): ast.Node {
+  return parse(tokens, function(state) {
+    return ruleset(state);
   });
 }

@@ -47,4 +47,18 @@ export interface KrlRegExp extends BaseNode {
   value: RegExp;
 }
 
-export type Node = Number | String | KrlRegExp;
+export interface RulesetID extends BaseNode {
+  type: "RulesetID";
+  value: string;
+}
+
+export interface Ruleset extends BaseNode {
+  type: "Ruleset";
+  rid: RulesetID;
+
+  // meta: void 0,
+  // global: [],
+  // rules: []
+}
+
+export type Node = Number | String | KrlRegExp | Ruleset | RulesetID;

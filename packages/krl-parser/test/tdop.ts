@@ -1,9 +1,9 @@
 import test from "ava";
-import { parseExpression } from "../src/tdop";
+import { parseExpression, parseRuleset } from "../src/tdop";
 import tokenizer from "../src/tokenizer";
 import * as ast from "../src/types";
 
-function rmLoc({ loc, ...rest }: ast.Node): Omit<ast.Node, "loc"> {
+function rmLoc({ loc, ...rest }: ast.Node): any {
   return { ...rest };
 }
 
@@ -65,5 +65,18 @@ test("parser - basic expression", async t => {
   t.deepEqual(parseE("re##"), {
     type: "RegExp",
     value: new RegExp("", "")
+  });
+});
+
+test("ruleset", async t => {
+  t.deepEqual(parseRuleset(tokenizer("ruleset rs {\n}")), {
+    type: "Ruleset",
+    loc: { start: 0, end: 14 },
+
+    rid: { type: "RulesetID", value: "rs", loc: { start: 8, end: 10 } }
+
+    // meta: void 0,
+    // global: [],
+    // rules: []
   });
 });
