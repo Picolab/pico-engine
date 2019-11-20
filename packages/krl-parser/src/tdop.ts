@@ -25,7 +25,7 @@ interface State {
 interface Rule {
   id: string;
 
-  nud?: (state: State, token: Token) => ast.Node;
+  nud?: (state: State) => ast.Node;
 
   lbp: number;
   led?: (state: State, token: Token, left: ast.Node) => ast.Node;
@@ -106,16 +106,15 @@ function advance(state: State) {
   state.curr = advanceBase(state.tokens, state.curr.token_i + 1);
 }
 
-function expression(state: State, rbp: number): ast.Node {
-  let prev = state.curr;
-  advance(state);
-  if (!prev.rule.nud) {
-    throw new ParseError("Expected an expression", prev.token);
+function expression(state: State, rbp: number = 0): ast.Node {
+  if (!state.curr.rule.nud) {
+    throw new ParseError("Expected an expression", state.curr.token);
   }
-  let left = prev.rule.nud(state, prev.token);
+  let left = state.curr.rule.nud(state);
+  advance(state);
 
   while (rbp < state.curr.rule.lbp) {
-    prev = state.curr;
+    let prev = state.curr;
     advance(state);
     if (!prev.rule.led) {
       throw new ParseError(
@@ -128,10 +127,11 @@ function expression(state: State, rbp: number): ast.Node {
   return left;
 }
 
-function assertSymbol(state: State, src: string) {
-  if (state.curr.rule.id !== "SYMBOL" || state.curr.token.src !== src) {
-    throw new ParseError("Expected: " + src, state.curr.token);
+function chomp(state: State, type: string, src: string) {
+  if (state.curr.token.type !== type || state.curr.token.src !== src) {
+    throw new ParseError("Expected `" + src + "`", state.curr.token);
   }
+  advance(state);
 }
 
 function rulesetID(state: State): ast.RulesetID {
@@ -175,26 +175,84 @@ function rulesetID(state: State): ast.RulesetID {
 }
 
 function ruleset(state: State): ast.Ruleset {
-  assertSymbol(state, "ruleset");
   const start = state.curr.token.loc.start;
-  advance(state);
+  chomp(state, "SYMBOL", "ruleset");
 
   const rid = rulesetID(state);
 
-  if (state.curr.rule.id !== "{" || state.curr.token.src !== "{") {
-    throw new ParseError("Expected: {", state.curr.token);
-  }
-  advance(state);
+  chomp(state, "RAW", "{");
 
-  // TODO ruleset body
+  const meta = rulesetMeta(state);
+
+  // RulesetGlobal:?
+  // Rule:*
 
   const end = state.curr.token.loc.end;
-  advance(state);
+  chomp(state, "RAW", "}");
 
   return {
     loc: { start, end },
     type: "Ruleset",
-    rid
+    rid,
+    meta
+  };
+}
+
+function rulesetMeta(state: State): ast.RulesetMeta | null {
+  if (state.curr.rule.id !== "SYMBOL" || state.curr.token.src !== "meta") {
+    return null;
+  }
+  const start = state.curr.token.loc.start;
+  advance(state);
+  chomp(state, "RAW", "{");
+
+  const properties: ast.RulesetMetaProperty[] = [];
+
+  let prop: ast.RulesetMetaProperty | null = null;
+  while ((prop = rulesetMetaProperty(state))) {
+    properties.push(prop);
+  }
+
+  const end = state.curr.token.loc.end;
+  chomp(state, "RAW", "}");
+
+  return {
+    loc: { start, end },
+    type: "RulesetMeta",
+    properties
+  };
+}
+
+function rulesetMetaProperty(state: State): ast.RulesetMetaProperty | null {
+  if (state.curr.rule.id !== "SYMBOL") {
+    return null;
+  }
+
+  const key: ast.Keyword = {
+    loc: state.curr.token.loc,
+    type: "Keyword",
+    value: state.curr.token.src
+  };
+
+  let value: ast.Node | null = null;
+
+  switch (state.curr.token.src) {
+    case "name":
+    case "description":
+    case "author":
+      advance(state);
+      value = expression(state, 0);
+      break;
+  }
+
+  if (!value) {
+    return null;
+  }
+  return {
+    loc: { start: key.loc.start, end: value.loc.end },
+    type: "RulesetMetaProperty",
+    key,
+    value
   };
 }
 
@@ -209,21 +267,21 @@ defRule("}", {});
 defRule("SYMBOL", {});
 
 defRule("NUMBER", {
-  nud(state, token) {
+  nud(state) {
     return {
-      loc: token.loc,
+      loc: state.curr.token.loc,
       type: "Number",
-      value: parseFloat(token.src) || 0
+      value: parseFloat(state.curr.token.src) || 0
     };
   }
 });
 
 defRule("STRING", {
-  nud(state, token) {
+  nud(state) {
     return {
-      loc: token.loc,
+      loc: state.curr.token.loc,
       type: "String",
-      value: token.src
+      value: state.curr.token.src
         .replace(/(^")|("$)/g, "")
         .replace(/\\"/g, '"')
         .replace(/\\\\/g, "\\")
@@ -231,8 +289,54 @@ defRule("STRING", {
   }
 });
 
+defRule("CHEVRON-OPEN", {
+  nud(state) {
+    const start = state.curr.token.loc.start;
+    advance(state);
+
+    const value: ast.Node[] = [];
+
+    while (true) {
+      if (state.curr.token.type === "CHEVRON-STRING") {
+        value.push({
+          loc: state.curr.token.loc,
+          type: "String",
+          value: state.curr.token.src
+            .replace(/\\>/g, ">")
+            .replace(/\\#{/g, "#{")
+            .replace(/\\\\/g, "\\")
+        });
+        advance(state);
+      } else if (state.curr.token.type === "CHEVRON-BEESTING-OPEN") {
+        advance(state);
+        value.push(expression(state));
+        chomp(state, "CHEVRON-BEESTING-CLOSE", "}");
+      } else {
+        break;
+      }
+    }
+
+    const end = state.curr.token.loc.end;
+    // don't `chomp` b/c .nud should not advance beyond itself
+    if (state.curr.token.type !== "CHEVRON-CLOSE") {
+      throw new ParseError("Expected `>>`", state.curr.token);
+    }
+
+    return {
+      loc: { start, end },
+      type: "Chevron",
+      value
+    };
+  }
+});
+defRule("CHEVRON-STRING", {});
+defRule("CHEVRON-BEESTING-OPEN", {});
+defRule("CHEVRON-BEESTING-CLOSE", {});
+defRule("CHEVRON-CLOSE", {});
+
 defRule("REGEXP", {
-  nud(state, token) {
+  nud(state) {
+    const token = state.curr.token;
     const pattern = token.src
       .substring(3, token.src.lastIndexOf("#"))
       .replace(/\\#/g, "#");

@@ -42,6 +42,16 @@ export interface String extends BaseNode {
   value: string;
 }
 
+export interface Chevron extends BaseNode {
+  type: "Chevron";
+  value: Node[];
+}
+
+export interface Keyword extends BaseNode {
+  type: "Keyword";
+  value: string;
+}
+
 export interface KrlRegExp extends BaseNode {
   type: "RegExp";
   value: RegExp;
@@ -55,10 +65,29 @@ export interface RulesetID extends BaseNode {
 export interface Ruleset extends BaseNode {
   type: "Ruleset";
   rid: RulesetID;
-
-  // meta: void 0,
+  meta: RulesetMeta | null;
   // global: [],
   // rules: []
 }
 
-export type Node = Number | String | KrlRegExp | Ruleset | RulesetID;
+export interface RulesetMeta extends BaseNode {
+  type: "RulesetMeta";
+  properties: RulesetMetaProperty[];
+}
+
+export interface RulesetMetaProperty extends BaseNode {
+  type: "RulesetMetaProperty";
+  key: Keyword;
+  value: Node;
+}
+
+export type Node =
+  | Number
+  | String
+  | Chevron
+  | Keyword
+  | KrlRegExp
+  | Ruleset
+  | RulesetID
+  | RulesetMeta
+  | RulesetMetaProperty;
