@@ -80,3 +80,58 @@ test("ruleset", async t => {
     // rules: []
   });
 });
+
+test("rulesetID", async t => {
+  function parseRID(src: string) {
+    try {
+      const node = parseRuleset(tokenizer(`ruleset ${src} {}`)).rid;
+      if (
+        Object.keys(node)
+          .sort()
+          .join(",") === "loc,type,value" &&
+        node.type === "RulesetID" &&
+        node.value === src &&
+        node.loc.start === 8 &&
+        node.loc.end === 8 + src.length
+      ) {
+        return true;
+      }
+      return node;
+    } catch (err) {
+      return `${err}|${err.token.type}|${err.token.src}|${err.token.loc.start}`;
+    }
+  }
+
+  t.deepEqual(parseRID("rs"), true);
+  t.deepEqual(parseRID("one.two.three"), true);
+
+  t.deepEqual(
+    parseRID("one.two."),
+    "ParseError: RulesetID cannot end with a `.`\nValid ruleset IDs are reverse domain name. i.e. `io.picolabs.some.cool.name`|WHITESPACE| |16"
+  );
+
+  t.deepEqual(parseRID("1"), "ParseError: Expected RulesetID|NUMBER|1|8");
+
+  t.deepEqual(parseRID("io.picolabs.some-thing"), true);
+  t.deepEqual(parseRID("A.B-b9.c"), true);
+  t.deepEqual(parseRID("function.not.ent.app.keys"), true);
+
+  t.deepEqual(parseRID("1.2.3"), "ParseError: Expected RulesetID|NUMBER|1.2|8");
+  t.deepEqual(parseRID(".wat"), "ParseError: Expected RulesetID|RAW|.|8");
+  t.deepEqual(
+    parseRID("io. picolabs"),
+    "ParseError: RulesetID cannot end with a `.`\nValid ruleset IDs are reverse domain name. i.e. `io.picolabs.some.cool.name`|WHITESPACE| |11",
+    "no spaces"
+  );
+  t.deepEqual(
+    parseRID("some -thing"),
+    "ParseError: Expected: {|RAW|-|13",
+    "no spaces"
+  );
+  t.deepEqual(
+    parseRID("some- thing"),
+    "ParseError: RulesetID cannot end with a `-`\nValid ruleset IDs are reverse domain name. i.e. `io.picolabs.some.cool.name`|WHITESPACE| |13",
+    "no spaces"
+  );
+  t.deepEqual(parseRID("some-thing"), true);
+});

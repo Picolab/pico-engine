@@ -52,7 +52,6 @@ function advanceBase(
   let found = false;
   while (token_i < tokens.length) {
     token = tokens[token_i];
-    token_i += 1;
 
     if (token.type === "MISSING-CLOSE") {
       throw new ParseError("Missing close " + token.missingClose, token);
@@ -65,6 +64,7 @@ function advanceBase(
       token.type === "LINE-COMMENT" ||
       token.type === "BLOCK-COMMENT"
     ) {
+      token_i += 1;
       continue;
     }
 
@@ -94,7 +94,7 @@ function advanceBase(
 
   if (!rule) {
     throw new ParseError(
-      "Unhandled token" + JSON.stringify(Object.keys(rules)),
+      "Unhandled token. Available rules: " + JSON.stringify(Object.keys(rules)),
       token
     );
   }
@@ -103,7 +103,7 @@ function advanceBase(
 }
 
 function advance(state: State) {
-  state.curr = advanceBase(state.tokens, state.curr.token_i);
+  state.curr = advanceBase(state.tokens, state.curr.token_i + 1);
 }
 
 function expression(state: State, rbp: number): ast.Node {
@@ -138,34 +138,39 @@ function rulesetID(state: State): ast.RulesetID {
   if (state.curr.rule.id !== "SYMBOL") {
     throw new ParseError("Expected RulesetID", state.curr.token);
   }
-
-  const parts: string[] = [];
-  parts.push(state.curr.token.src);
-
+  let rid = state.curr.token.src;
   let start = state.curr.token.loc.start;
   let end = state.curr.token.loc.end;
 
-  advance(state);
-
   while (true) {
-    if (state.curr.token.type !== "RAW" || state.curr.token.src !== ".") {
+    const nextT = state.tokens[state.curr.token_i + 1];
+    if (nextT.type !== "RAW" || (nextT.src !== "." && nextT.src !== "-")) {
       break;
     }
-    // TODO advance with no skips
-    advance(state);
-    if (state.curr.rule.id !== "SYMBOL") {
-      throw new ParseError("Expected RulesetID", state.curr.token);
+    rid += nextT.src;
+    const nextNextT = state.tokens[state.curr.token_i + 2];
+    if (nextNextT.type !== "SYMBOL") {
+      throw new ParseError(
+        "RulesetID cannot end with a `" +
+          nextT.src +
+          "`\nValid ruleset IDs are reverse domain name. i.e. `io.picolabs.some.cool.name`",
+        nextNextT
+      );
     }
-    parts.push(state.curr.rule.id);
-    parts.push(state.curr.token.src);
-    // TODO advance with no skips
-    advance(state);
+    state.curr = {
+      token_i: state.curr.token_i + 2,
+      token: state.tokens[state.curr.token_i + 2],
+      rule: rules.SYMBOL
+    };
+    rid += state.curr.token.src;
+    end = state.curr.token.loc.end;
   }
+  advance(state);
 
   return {
     loc: { start, end },
     type: "RulesetID",
-    value: parts.join(".")
+    value: rid
   };
 }
 
@@ -196,7 +201,8 @@ function ruleset(state: State): ast.Ruleset {
 ///////////////////////////////////////////////////////////////////////////////
 
 defRule("(end)", {});
-
+defRule(".", {});
+defRule("-", {});
 defRule("{", {});
 defRule("}", {});
 
@@ -241,10 +247,10 @@ defRule("REGEXP", {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-export function parse(
+export function parse<OUT>(
   tokens: Token[],
-  entryParse: (state: State) => ast.Node
-): ast.Node {
+  entryParse: (state: State) => OUT
+): OUT {
   let state: State = {
     tokens: tokens,
     curr: advanceBase(tokens, 0)
@@ -266,13 +272,13 @@ export function parse(
   return tree;
 }
 
-export function parseExpression(tokens: Token[]): ast.Node {
+export function parseExpression(tokens: Token[]) {
   return parse(tokens, function(state) {
     return expression(state, 0);
   });
 }
 
-export function parseRuleset(tokens: Token[]): ast.Node {
+export function parseRuleset(tokens: Token[]) {
   return parse(tokens, function(state) {
     return ruleset(state);
   });
