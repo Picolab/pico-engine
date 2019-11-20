@@ -303,18 +303,30 @@ test.only("Ruleset meta", t => {
     ]
   );
 
-  // testMeta('keys one "one string"\n keys two {"some": "map"}', [
-  //   mk.meta('keys', [mk.key('one'), mk('one string')]),
-  //   mk.meta('keys', [mk.key('two'), mk({ 'some': mk('map') })])
-  // ])
-  // // "key" is the same as "keys"
-  // testMeta('key one "one string"\n key two {"some": "map"}', [
-  //   mk.meta('keys', [mk.key('one'), mk('one string')]),
-  //   mk.meta('keys', [mk.key('two'), mk({ 'some': mk('map') })])
-  // ])
+  t.deepEqual(parseMeta("logging on"), [
+    { key: "logging", value: { type: "Boolean", value: true } }
+  ]);
 
-  // testMeta('logging on', [mk.meta('logging', mk(true))])
-  // testMeta('logging off', [mk.meta('logging', mk(false))])
+  t.deepEqual(parseMeta("logging off"), [
+    { key: "logging", value: { type: "Boolean", value: false } }
+  ]);
+
+  t.deepEqual(parseMeta('key one "one string"\n keys two 1234'), [
+    {
+      key: "keys",
+      value: [
+        { type: "Keyword", value: "one" },
+        { type: "String", value: "one string" }
+      ]
+    },
+    {
+      key: "keys",
+      value: [
+        { type: "Keyword", value: "two" },
+        { type: "Number", value: 1234 }
+      ]
+    }
+  ]);
 
   // testMeta([
   //   'use module com.blah',

@@ -104,6 +104,7 @@ function advanceBase(
 
 function advance(state: State) {
   state.curr = advanceBase(state.tokens, state.curr.token_i + 1);
+  return state;
 }
 
 function expression(state: State, rbp: number = 0): ast.Node {
@@ -234,22 +235,72 @@ function rulesetMetaProperty(state: State): ast.RulesetMetaProperty | null {
     value: state.curr.token.src
   };
 
-  let value: ast.Node | null = null;
+  let value: ast.Node | ast.Node[] | null = null;
 
   switch (state.curr.token.src) {
     case "name":
     case "description":
     case "author":
       advance(state);
-      value = expression(state, 0);
+      value = expression(state);
       break;
+
+    case "logging":
+      state = advance(state);
+      if (
+        state.curr.token.type === "SYMBOL" &&
+        (state.curr.token.src === "on" || state.curr.token.src === "off")
+      ) {
+        value = {
+          loc: state.curr.token.loc,
+          type: "Boolean",
+          value: state.curr.token.src === "on"
+        };
+        state = advance(state);
+      } else {
+        throw new ParseError("Expected `on` or `off`", state.curr.token);
+      }
+      break;
+
+    case "key":
+    case "keys":
+      key.value = "keys";
+      state = advance(state);
+
+      if (state.curr.token.type !== "SYMBOL") {
+        throw new ParseError("Expected key name", state.curr.token);
+      }
+      value = [
+        {
+          loc: state.curr.token.loc,
+          type: "Keyword",
+          value: state.curr.token.src
+        }
+      ];
+      state = advance(state);
+      value.push(expression(state));
+      break;
+
+    default:
+      throw new ParseError(
+        `Unsupported meta key: ${state.curr.token.src}`,
+        state.curr.token
+      );
   }
 
   if (!value) {
     return null;
   }
+  let end = key.loc.end;
+  if (Array.isArray(value)) {
+    if (value.length > 0) {
+      end = value[value.length - 1].loc.end;
+    }
+  } else {
+    end = value.loc.end;
+  }
   return {
-    loc: { start: key.loc.start, end: value.loc.end },
+    loc: { start: key.loc.start, end },
     type: "RulesetMetaProperty",
     key,
     value

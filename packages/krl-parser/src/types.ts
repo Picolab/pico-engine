@@ -37,6 +37,11 @@ export interface Number extends BaseNode {
   value: number;
 }
 
+export interface Boolean extends BaseNode {
+  type: "Boolean";
+  value: true | false;
+}
+
 export interface String extends BaseNode {
   type: "String";
   value: string;
@@ -78,11 +83,12 @@ export interface RulesetMeta extends BaseNode {
 export interface RulesetMetaProperty extends BaseNode {
   type: "RulesetMetaProperty";
   key: Keyword;
-  value: Node;
+  value: Node | Node[];
 }
 
 export type Node =
   | Number
+  | Boolean
   | String
   | Chevron
   | Keyword
