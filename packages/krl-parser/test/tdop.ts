@@ -1,6 +1,7 @@
 import test from "ava";
 import { parseExpression, parseRuleset } from "../src/tdop";
 import tokenizer from "../src/tokenizer";
+const mk = require("./helpers/astMaker");
 
 function rmLoc(node: any): any {
   if (Array.isArray(node)) {
@@ -248,9 +249,7 @@ test.only("Ruleset meta", t => {
           .join(",") === "loc,properties,type" &&
         node.type === "RulesetMeta"
       ) {
-        return node.properties.map(p => {
-          return { key: p.key.value, value: rmLoc(p.value) };
-        });
+        return node.properties.map(rmLoc);
       }
       return node;
     } catch (err) {
@@ -267,7 +266,7 @@ test.only("Ruleset meta", t => {
     type: "RulesetMeta",
     properties: [
       {
-        loc: { start: 16, end: 26 },
+        loc: { start: 16, end: 20 },
         type: "RulesetMetaProperty",
         key: { loc: { start: 16, end: 20 }, type: "Keyword", value: "name" },
         value: { loc: { start: 21, end: 26 }, type: "String", value: "two" }
@@ -275,154 +274,134 @@ test.only("Ruleset meta", t => {
     ]
   });
 
-  t.deepEqual(parseMeta('\n  name "two"\n  '), [
-    {
-      key: "name",
-      value: { type: "String", value: "two" }
-    }
-  ]);
+  t.deepEqual(parseMeta('\n  name "two"\n  '), [mk.meta("name", mk("two"))]);
 
   t.deepEqual(
     parseMeta('name "blah" description <<\n  wat? ok\n  >>\nauthor "bob"'),
     [
-      {
-        key: "name",
-        value: { type: "String", value: "blah" }
-      },
-      {
-        key: "description",
-        value: {
-          type: "Chevron",
-          value: [{ type: "String", value: "\n  wat? ok\n  " }]
-        }
-      },
-      {
-        key: "author",
-        value: { type: "String", value: "bob" }
-      }
+      mk.meta("name", mk("blah")),
+      mk.meta("description", {
+        type: "Chevron",
+        value: [{ type: "String", value: "\n  wat? ok\n  " }]
+      }),
+      mk.meta("author", mk("bob"))
     ]
   );
 
-  t.deepEqual(parseMeta("logging on"), [
-    { key: "logging", value: { type: "Boolean", value: true } }
-  ]);
+  t.deepEqual(parseMeta("logging on"), [mk.meta("logging", mk(true))]);
 
-  t.deepEqual(parseMeta("logging off"), [
-    { key: "logging", value: { type: "Boolean", value: false } }
-  ]);
+  t.deepEqual(parseMeta("logging off"), [mk.meta("logging", mk(false))]);
 
   t.deepEqual(parseMeta('key one "one string"\n keys two 1234'), [
-    {
-      key: "keys",
-      value: [
-        { type: "Keyword", value: "one" },
-        { type: "String", value: "one string" }
-      ]
-    },
-    {
-      key: "keys",
-      value: [
-        { type: "Keyword", value: "two" },
-        { type: "Number", value: 1234 }
-      ]
-    }
+    mk.meta("keys", [
+      { type: "Keyword", value: "one" },
+      { type: "String", value: "one string" }
+    ]),
+    mk.meta("keys", [
+      { type: "Keyword", value: "two" },
+      { type: "Number", value: 1234 }
+    ])
   ]);
 
-  // testMeta([
-  //   'use module com.blah',
-  //   'use module com.blah version "2" alias blah with one = 2 three = 4'
-  // ].join('\n'), [
-  //   mk.meta('use', {
-  //     kind: 'module',
-  //     rid: { type: 'RulesetID', value: 'com.blah' },
-  //     version: null,
-  //     alias: null,
-  //     'with': null
-  //   }),
-  //   mk.meta('use', {
-  //     kind: 'module',
-  //     rid: { type: 'RulesetID', value: 'com.blah' },
-  //     version: mk('2'),
-  //     alias: mk.id('blah'),
-  //     'with': [
-  //       mk.declare('=', mk.id('one'), mk(2)),
-  //       mk.declare('=', mk.id('three'), mk(4))
-  //     ]
-  //   })
-  // ])
+  t.deepEqual(
+    parseMeta(
+      [
+        "use module com.blah",
+        'use module com.blah version "2" alias blah with one = 2 three = 4'
+      ].join("\n")
+    ),
+    [
+      mk.meta("use", {
+        kind: "module",
+        rid: { type: "RulesetID", value: "com.blah" },
+        version: null,
+        alias: null,
+        with: null
+      }),
+      mk.meta("use", {
+        kind: "module",
+        rid: { type: "RulesetID", value: "com.blah" },
+        version: mk("2"),
+        alias: mk.id("blah"),
+        with: [
+          mk.declare("=", mk.id("one"), mk(2)),
+          mk.declare("=", mk.id("three"), mk(4))
+        ]
+      })
+    ]
+  );
 
-  // testMeta([
-  //   'errors to com.blah',
-  //   'errors to com.blah version "2"'
-  // ].join('\n'), [
-  //   mk.meta('errors', {
-  //     rid: { type: 'RulesetID', value: 'com.blah' },
-  //     version: null
-  //   }),
-  //   mk.meta('errors', {
-  //     rid: { type: 'RulesetID', value: 'com.blah' },
-  //     version: mk('2')
-  //   })
-  // ])
+  t.deepEqual(
+    parseMeta(
+      ["errors to com.blah", 'errors to com.blah version "2"'].join("\n")
+    ),
+    [
+      mk.meta("errors", {
+        rid: { type: "RulesetID", value: "com.blah" },
+        version: null
+      }),
+      mk.meta("errors", {
+        rid: { type: "RulesetID", value: "com.blah" },
+        version: mk("2")
+      })
+    ]
+  );
 
-  // testMeta([
-  //   'provide x, y, z',
-  //   'provides x, y, z',
-  //   'provides keys s3, gmail to com.google, io.picolabs'
-  // ].join('\n'), [
-  //   mk.meta('provides', {
-  //     ids: [mk.id('x'), mk.id('y'), mk.id('z')]
-  //   }),
-  //   mk.meta('provides', {
-  //     ids: [mk.id('x'), mk.id('y'), mk.id('z')]
-  //   }),
-  //   mk.meta('provides', {
-  //     operator: mk.key('keys'),
-  //     ids: [mk.id('s3'), mk.id('gmail')],
-  //     rulesets: [
-  //       { type: 'RulesetID', value: 'com.google' },
-  //       { type: 'RulesetID', value: 'io.picolabs' }
-  //     ]
-  //   })
-  // ])
+  t.deepEqual(parseMeta("configure using a = 1"), [
+    mk.meta("configure", {
+      declarations: [mk.declare("=", mk.id("a"), mk(1))]
+    })
+  ]);
+  t.deepEqual(parseMeta("configure using a = 1 b = 2"), [
+    mk.meta("configure", {
+      declarations: [
+        mk.declare("=", mk.id("a"), mk(1)),
+        mk.declare("=", mk.id("b"), mk(2))
+      ]
+    })
+  ]);
 
-  // testMeta([
-  //   'share x, y, z',
-  //   'shares x, y, z'
-  // ].join('\n'), [
-  //   mk.meta('shares', {
-  //     ids: [mk.id('x'), mk.id('y'), mk.id('z')]
-  //   }),
-  //   mk.meta('shares', {
-  //     ids: [mk.id('x'), mk.id('y'), mk.id('z')]
-  //   })
-  // ])
+  t.deepEqual(
+    parseMeta(`
+      provide x, y, z
+      provides x, y, z
+      provides keys s3, gmail to com.google, io.picolabs
+    `),
+    [
+      mk.meta("provides", {
+        ids: [mk.id("x"), mk.id("y"), mk.id("z")]
+      }),
+      mk.meta("provides", {
+        ids: [mk.id("x"), mk.id("y"), mk.id("z")]
+      }),
+      mk.meta("provides", {
+        operator: mk.key("keys"),
+        ids: [mk.id("s3"), mk.id("gmail")],
+        rulesets: [
+          { type: "RulesetID", value: "com.google" },
+          { type: "RulesetID", value: "io.picolabs" }
+        ]
+      })
+    ]
+  );
 
-  // testMeta('configure using a = 1', [{
-  //   type: 'RulesetMetaProperty',
-  //   key: mk.key('configure'),
-  //   value: {
-  //     declarations: [
-  //       mk.declare('=', mk.id('a'), mk(1))
-  //     ]
-  //   }
-  // }])
-  // testMeta('configure using a = 1 b = 2', [{
-  //   type: 'RulesetMetaProperty',
-  //   key: mk.key('configure'),
-  //   value: {
-  //     declarations: [
-  //       mk.declare('=', mk.id('a'), mk(1)),
-  //       mk.declare('=', mk.id('b'), mk(2))
-  //     ]
-  //   }
-  // }])
+  t.deepEqual(
+    parseMeta(`
+      share x, y, z
+      shares x, y, z
+    `),
+    [
+      mk.meta("shares", {
+        ids: [mk.id("x"), mk.id("y"), mk.id("z")]
+      }),
+      mk.meta("shares", {
+        ids: [mk.id("x"), mk.id("y"), mk.id("z")]
+      })
+    ]
+  );
 
-  // try {
-  //   testMeta('index wat', [])
-  //   t.fail('should throw')
-  // } catch (e) {
-  //   t.ok(true, 'meta{ index ...} should only allow DomainIdentifiers')
-  // }
-  // t.end()
+  t.deepEqual(
+    parseMeta("foo bar"),
+    "ParseError: Unsupported meta key: foo|SYMBOL|foo|16"
+  );
 });

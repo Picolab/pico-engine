@@ -128,11 +128,38 @@ function expression(state: State, rbp: number = 0): ast.Node {
   return left;
 }
 
-function chomp(state: State, type: string, src: string) {
+function chomp(state: State, type: ast.TokenType, src: string) {
   if (state.curr.token.type !== type || state.curr.token.src !== src) {
     throw new ParseError("Expected `" + src + "`", state.curr.token);
   }
   advance(state);
+}
+
+function chompMaybe(state: State, type: ast.TokenType, src: string): boolean {
+  if (state.curr.token.type !== type || state.curr.token.src !== src) {
+    return false;
+  }
+  advance(state);
+  return true;
+}
+
+function chompString(state: State): ast.String {
+  if (state.curr.token.type !== "STRING") {
+    throw new ParseError("Expected String", state.curr.token);
+  }
+  const node = expression(state);
+  return node as ast.String;
+}
+
+function chompIdentifier(state: State): ast.Identifier {
+  if (state.curr.token.type !== "SYMBOL") {
+    throw new ParseError("Expected Identifier", state.curr.token);
+  }
+  const node = expression(state);
+  if (node.type !== "Identifier") {
+    throw new ParseError("Expected Identifier", state.curr.token);
+  }
+  return node;
 }
 
 function rulesetID(state: State): ast.RulesetID {
@@ -229,24 +256,24 @@ function rulesetMetaProperty(state: State): ast.RulesetMetaProperty | null {
     return null;
   }
 
+  const keyToken = state.curr.token;
   const key: ast.Keyword = {
     loc: state.curr.token.loc,
     type: "Keyword",
     value: state.curr.token.src
   };
+  state = advance(state);
 
-  let value: ast.Node | ast.Node[] | null = null;
+  let value: any = null;
 
-  switch (state.curr.token.src) {
+  switch (key.value) {
     case "name":
     case "description":
     case "author":
-      advance(state);
       value = expression(state);
       break;
 
     case "logging":
-      state = advance(state);
       if (
         state.curr.token.type === "SYMBOL" &&
         (state.curr.token.src === "on" || state.curr.token.src === "off")
@@ -265,7 +292,6 @@ function rulesetMetaProperty(state: State): ast.RulesetMetaProperty | null {
     case "key":
     case "keys":
       key.value = "keys";
-      state = advance(state);
 
       if (state.curr.token.type !== "SYMBOL") {
         throw new ParseError("Expected key name", state.curr.token);
@@ -281,41 +307,183 @@ function rulesetMetaProperty(state: State): ast.RulesetMetaProperty | null {
       value.push(expression(state));
       break;
 
+    case "use":
+      {
+        chomp(state, "SYMBOL", "module");
+
+        const rid = rulesetID(state);
+        let version = null;
+        if (chompMaybe(state, "SYMBOL", "version")) {
+          version = chompString(state);
+        }
+        let alias = null;
+        if (chompMaybe(state, "SYMBOL", "alias")) {
+          alias = chompIdentifier(state);
+        }
+        let withExpr = null;
+        if (chompMaybe(state, "SYMBOL", "with")) {
+          withExpr = withExprBody(state);
+        }
+        value = {
+          kind: "module",
+          rid,
+          version,
+          alias,
+          with: withExpr
+        };
+      }
+      break;
+
+    case "errors":
+      {
+        chomp(state, "SYMBOL", "to");
+        const rid = rulesetID(state);
+        let version = null;
+        if (chompMaybe(state, "SYMBOL", "version")) {
+          version = chompString(state);
+        }
+        value = { rid, version };
+      }
+      break;
+
+    case "configure":
+      {
+        chomp(state, "SYMBOL", "using");
+        const declarations = withExprBody(state);
+        value = { declarations };
+      }
+      break;
+
+    case "provide":
+    case "provides":
+      key.value = "provides";
+      {
+        if (chompMaybe(state, "SYMBOL", "keys")) {
+          const operator: ast.Keyword = {
+            loc: state.curr.token.loc,
+            type: "Keyword",
+            value: "keys"
+          };
+          const ids = identifierList(state);
+          chomp(state, "SYMBOL", "to");
+          const rulesets = rulesetIDList(state);
+          value = { operator, ids, rulesets };
+        } else {
+          const ids = identifierList(state);
+          value = { ids };
+        }
+      }
+      break;
+
+    case "share":
+    case "shares":
+      key.value = "shares";
+      value = { ids: identifierList(state) };
+      break;
+
     default:
-      throw new ParseError(
-        `Unsupported meta key: ${state.curr.token.src}`,
-        state.curr.token
-      );
+      throw new ParseError(`Unsupported meta key: ${key.value}`, keyToken);
   }
 
   if (!value) {
     return null;
   }
-  let end = key.loc.end;
-  if (Array.isArray(value)) {
-    if (value.length > 0) {
-      end = value[value.length - 1].loc.end;
-    }
-  } else {
-    end = value.loc.end;
-  }
   return {
-    loc: { start: key.loc.start, end },
+    loc: key.loc,
     type: "RulesetMetaProperty",
     key,
     value
   };
 }
 
+function withExprBody(state: State): ast.Declaration[] {
+  const declarations: ast.Declaration[] = [];
+
+  while (true) {
+    if (
+      state.curr.token.type !== "SYMBOL" ||
+      reserved_identifiers.hasOwnProperty(state.curr.token.src)
+    ) {
+      break;
+    }
+    const left = chompIdentifier(state);
+    chomp(state, "RAW", "=");
+    const right = expression(state);
+
+    chompMaybe(state, "SYMBOL", "and");
+
+    declarations.push({
+      loc: { start: left.loc.start, end: right.loc.end },
+      type: "Declaration",
+      op: "=",
+      left,
+      right
+    });
+  }
+
+  return declarations;
+}
+
+function identifierList(state: State): ast.Identifier[] {
+  const ids: ast.Identifier[] = [];
+
+  while (true) {
+    const id = chompIdentifier(state);
+    ids.push(id);
+    if (!chompMaybe(state, "RAW", ",")) {
+      break;
+    }
+  }
+
+  return ids;
+}
+
+function rulesetIDList(state: State): ast.RulesetID[] {
+  const rids: ast.RulesetID[] = [];
+
+  while (true) {
+    const rid = rulesetID(state);
+    rids.push(rid);
+    if (!chompMaybe(state, "RAW", ",")) {
+      break;
+    }
+  }
+
+  return rids;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 defRule("(end)", {});
 defRule(".", {});
+defRule(",", {});
 defRule("-", {});
 defRule("{", {});
 defRule("}", {});
+defRule("=", {});
 
-defRule("SYMBOL", {});
+var reserved_identifiers = {
+  defaction: true,
+  function: true,
+  not: true,
+  setting: true,
+  null: true,
+  true: true,
+  false: true
+};
+
+defRule("SYMBOL", {
+  nud(state) {
+    if (reserved_identifiers.hasOwnProperty(state.curr.token.src)) {
+      throw new ParseError("Reserved word", state.curr.token);
+    }
+    return {
+      loc: state.curr.token.loc,
+      type: "Identifier",
+      value: state.curr.token.src
+    };
+  }
+});
 
 defRule("NUMBER", {
   nud(state) {
