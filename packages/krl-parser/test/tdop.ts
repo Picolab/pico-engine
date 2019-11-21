@@ -1,6 +1,7 @@
 import test from "ava";
 import { parseExpression, parseRuleset } from "../src/tdop";
 import tokenizer from "../src/tokenizer";
+import * as ast from "../src/types";
 const mk = require("./helpers/astMaker");
 
 function rmLoc(node: any): any {
@@ -19,6 +20,21 @@ function rmLoc(node: any): any {
 
 function parseE(src: string) {
   return rmLoc(parseExpression(tokenizer(src)));
+}
+
+function parseRulesetBody(src: string, map?: (node: ast.Ruleset) => any) {
+  try {
+    const node = parseRuleset(tokenizer(`ruleset a{${src}}`));
+    return rmLoc(map ? map(node) : node);
+  } catch (err) {
+    return `${err}|${err.token.type}|${err.token.src}|${err.token.loc.start}`;
+  }
+}
+
+function parseRuleBody(src: string, map?: (node: any) => any) {
+  return parseRulesetBody(`rule a{${src}}`, n =>
+    map ? map(n.rules[0]) : n.rules[0]
+  );
 }
 
 test("parser - basic expression", t => {
@@ -199,8 +215,8 @@ test("ruleset", t => {
         type: "Rule",
         name: { type: "Identifier", value: "r1", loc: { start: 20, end: 22 } },
         rule_state: "active",
-        select: null
-        // foreach: [],
+        select: null,
+        foreach: []
         // prelude: [],
         // action_block: null,
         // postlude: null
@@ -210,8 +226,8 @@ test("ruleset", t => {
         type: "Rule",
         name: { type: "Identifier", value: "r2", loc: { start: 33, end: 35 } },
         rule_state: "active",
-        select: null
-        // foreach: [],
+        select: null,
+        foreach: []
         // prelude: [],
         // action_block: null,
         // postlude: null
@@ -443,15 +459,14 @@ test("Ruleset meta", t => {
   );
 });
 
-test("select when", t => {
-  function parseRuleBody(src: string) {
-    try {
-      const node = parseRuleset(tokenizer(`ruleset a{rule a{${src}}}`));
-      return rmLoc(node.rules[0]);
-    } catch (err) {
-      return `${err}|${err.token.type}|${err.token.src}|${err.token.loc.start}`;
-    }
+test("Rule", t => {
+  function ruleState(src: string) {
+    return parseRulesetBody(src, n => n.rules[0].rule_state);
   }
+  t.is(ruleState("rule r1{}"), "active");
+  t.is(ruleState("rule r1 is active{}"), "active");
+  t.is(ruleState("rule r1 is inactive{}"), "inactive");
+  t.is(ruleState("rule r1   is    inactive   {}"), "inactive");
 
   t.deepEqual(parseRuleBody("select when d t").select, {
     type: "RuleSelect",
@@ -471,14 +486,10 @@ test("select when", t => {
 
 test("select when ... within", t => {
   function parseSelect(src: string) {
-    try {
-      const node = parseRuleset(
-        tokenizer(`ruleset a{rule a{select when ${src}}}`)
-      ) as any;
-      return rmLoc(node.rules[0].select);
-    } catch (err) {
-      return `${err}|${err.token.type}|${err.token.src}|${err.token.loc.start}`;
-    }
+    return parseRulesetBody(
+      `rule a{select when ${src}}`,
+      n => n.rules[0].select
+    );
   }
 
   t.deepEqual(parseSelect("a a within 5 minutes"), {
@@ -532,4 +543,44 @@ test("select when ... within", t => {
   //     time_period: "hour"
   //   }
   // });
+});
+
+test("select when ... foreach ...", t => {
+  var tst = function(src: string, expected: any) {
+    var ast = parseRuleBody(src, r => r.foreach);
+    t.deepEqual(ast, expected);
+  };
+
+  tst("select when a b foreach [1,2,3] setting(c)", [
+    {
+      type: "RuleForEach",
+      expression: mk([1, 2, 3]),
+      setting: [mk.id("c")]
+    }
+  ]);
+
+  tst("select when a b foreach c setting(d, e)", [
+    {
+      type: "RuleForEach",
+      expression: mk.id("c"),
+      setting: [mk.id("d"), mk.id("e")]
+    }
+  ]);
+
+  var src = "";
+  src += "select when a b\n";
+  src += "foreach [1,2,3] setting(x)\n";
+  src += '  foreach ["a", "b", "c"] setting(y)';
+  tst(src, [
+    {
+      type: "RuleForEach",
+      expression: mk([1, 2, 3]),
+      setting: [mk.id("x")]
+    },
+    {
+      type: "RuleForEach",
+      expression: mk(["a", "b", "c"]),
+      setting: [mk.id("y")]
+    }
+  ]);
 });

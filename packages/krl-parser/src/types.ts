@@ -62,6 +62,16 @@ export interface KrlRegExp extends BaseNode {
   value: RegExp;
 }
 
+export const RESERVED_WORDS_ENUM = {
+  defaction: true,
+  function: true,
+  not: true,
+  setting: true,
+  null: true,
+  true: true,
+  false: true
+};
+
 export interface Identifier extends BaseNode {
   type: "Identifier";
   value: string;
@@ -72,6 +82,11 @@ export interface Declaration extends BaseNode {
   op: "=";
   left: Node;
   right: Node;
+}
+
+export interface Array extends BaseNode {
+  type: "Array";
+  value: Node[];
 }
 
 export interface RulesetID extends BaseNode {
@@ -103,7 +118,7 @@ export interface Rule extends BaseNode {
   name: Identifier;
   rule_state: "active" | "inactive";
   select: RuleSelect | null;
-  //   foreach: data[5] || [],
+  foreach: RuleForEach[];
   //   prelude: data[6] || [],
   //   action_block: data[7],
   //   postlude: data[8]
@@ -149,6 +164,12 @@ export interface EventWithin extends BaseNode {
   time_period: keyof typeof TIME_PERIOD_ENUM;
 }
 
+export interface RuleForEach extends BaseNode {
+  type: "RuleForEach";
+  expression: Node;
+  setting: Identifier[];
+}
+
 export type Node =
   | Number
   | Boolean
@@ -157,6 +178,8 @@ export type Node =
   | Keyword
   | KrlRegExp
   | Identifier
+  | Declaration
+  | Array
   | Ruleset
   | RulesetID
   | RulesetMeta
@@ -165,4 +188,4 @@ export type Node =
   | RuleSelect
   | EventExpression
   | EventWithin
-  | Declaration;
+  | RuleForEach;

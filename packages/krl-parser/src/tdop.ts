@@ -413,7 +413,7 @@ function withExprBody(state: State): ast.Declaration[] {
   while (true) {
     if (
       state.curr.token.type !== "SYMBOL" ||
-      reserved_identifiers.hasOwnProperty(state.curr.token.src)
+      ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)
     ) {
       break;
     }
@@ -459,7 +459,7 @@ function declarationList(state: State): ast.Declaration[] {
   while (true) {
     if (
       state.curr.token.type !== "SYMBOL" ||
-      reserved_identifiers.hasOwnProperty(state.curr.token.src)
+      ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)
     ) {
       break;
     }
@@ -504,6 +504,7 @@ function rulesetRule(state: State): ast.Rule | null {
       (state.curr.token.src === "active" || state.curr.token.src === "inactive")
     ) {
       rule_state = state.curr.token.src;
+      advance(state);
     } else {
       throw new ParseError("Expected active and inactive", state.curr.token);
     }
@@ -555,7 +556,30 @@ function rulesetRule(state: State): ast.Rule | null {
     };
   }
 
-  //   RuleForEach:*
+  const foreach: ast.RuleForEach[] = [];
+  while (true) {
+    const start = state.curr.token.loc.start;
+    if (!chompMaybe(state, "SYMBOL", "foreach")) {
+      break;
+    }
+
+    const expr = expression(state);
+
+    chomp(state, "SYMBOL", "setting");
+    chomp(state, "RAW", "(");
+
+    const setting = identifierList(state);
+    const end = state.curr.token.loc.end;
+    chomp(state, "RAW", ")");
+
+    foreach.push({
+      loc: { start, end },
+      type: "RuleForEach",
+      expression: expr,
+      setting
+    });
+  }
+
   //   RulePrelude:?
   //   ActionBlock:?
   //   RulePostlude:?
@@ -568,8 +592,8 @@ function rulesetRule(state: State): ast.Rule | null {
     type: "Rule",
     name,
     rule_state,
-    select
-    //   foreach: data[5] || [],
+    select,
+    foreach
     //   prelude: data[6] || [],
     //   action_block: data[7],
     //   postlude: data[8]
@@ -601,21 +625,42 @@ defRule(",", {});
 defRule("-", {});
 defRule("{", {});
 defRule("}", {});
+defRule("(", {});
+defRule(")", {});
 defRule("=", {});
 
-const reserved_identifiers = {
-  defaction: true,
-  function: true,
-  not: true,
-  setting: true,
-  null: true,
-  true: true,
-  false: true
-};
+defRule("[", {
+  nud(state) {
+    const { start } = state.curr.token.loc;
+    advance(state);
+
+    const value: ast.Node[] = [];
+    while (state.curr.rule.id !== "]") {
+      const val = expression(state);
+      value.push(val);
+      if (state.curr.rule.id !== ",") {
+        break;
+      }
+      advance(state);
+    }
+
+    const { end } = state.curr.token.loc;
+    if (state.curr.token.type !== "RAW" || state.curr.token.src !== "]") {
+      throw new ParseError("Expected `]`", state.curr.token);
+    }
+
+    return {
+      loc: { start, end },
+      type: "Array",
+      value
+    };
+  }
+});
+defRule("]", {});
 
 defRule("SYMBOL", {
   nud(state) {
-    if (reserved_identifiers.hasOwnProperty(state.curr.token.src)) {
+    if (ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)) {
       throw new ParseError("Reserved word", state.curr.token);
     }
     return {
