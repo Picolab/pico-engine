@@ -119,9 +119,9 @@ export interface Rule extends BaseNode {
   rule_state: "active" | "inactive";
   select: RuleSelect | null;
   foreach: RuleForEach[];
-  //   prelude: data[6] || [],
-  //   action_block: data[7],
-  //   postlude: data[8]
+  prelude: Declaration[];
+  action_block: ActionBlock | null;
+  postlude: RulePostlude | null;
 }
 
 export interface RuleSelect extends BaseNode {
@@ -170,6 +170,21 @@ export interface RuleForEach extends BaseNode {
   setting: Identifier[];
 }
 
+export interface ActionBlock extends BaseNode {
+  type: "ActionBlock";
+  // condition:get(data, condition_path, null),
+  // block_type:get(data, type_path, "every"),
+  // discriminant:get(data, discriminant_path, null),//i.e. `choose <expr> {...}`
+  // actions:flatten([get(data, actions_path, null)]),
+}
+
+export interface RulePostlude extends BaseNode {
+  type: "RulePostlude";
+  // fired: get(data, fired_i, null),
+  // notfired: get(data, notfired_i, null),
+  // always: get(data, always_i, null),
+}
+
 export type Node =
   | Number
   | Boolean
@@ -188,4 +203,6 @@ export type Node =
   | RuleSelect
   | EventExpression
   | EventWithin
-  | RuleForEach;
+  | RuleForEach
+  | ActionBlock
+  | RulePostlude;

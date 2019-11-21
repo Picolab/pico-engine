@@ -216,10 +216,10 @@ test("ruleset", t => {
         name: { type: "Identifier", value: "r1", loc: { start: 20, end: 22 } },
         rule_state: "active",
         select: null,
-        foreach: []
-        // prelude: [],
-        // action_block: null,
-        // postlude: null
+        foreach: [],
+        prelude: [],
+        action_block: null,
+        postlude: null
       },
       {
         loc: { start: 28, end: 38 },
@@ -227,10 +227,10 @@ test("ruleset", t => {
         name: { type: "Identifier", value: "r2", loc: { start: 33, end: 35 } },
         rule_state: "active",
         select: null,
-        foreach: []
-        // prelude: [],
-        // action_block: null,
-        // postlude: null
+        foreach: [],
+        prelude: [],
+        action_block: null,
+        postlude: null
       }
     ]
   });

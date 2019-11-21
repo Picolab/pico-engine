@@ -580,9 +580,18 @@ function rulesetRule(state: State): ast.Rule | null {
     });
   }
 
-  //   RulePrelude:?
-  //   ActionBlock:?
-  //   RulePostlude:?
+  let prelude: ast.Declaration[] = [];
+  if (chompMaybe(state, "SYMBOL", "pre")) {
+    chomp(state, "RAW", "{");
+    prelude = declarationList(state);
+    chomp(state, "RAW", "}");
+  }
+
+  let action_block: ast.ActionBlock | null = null;
+  // TODO
+
+  let postlude: ast.RulePostlude | null = null;
+  // TODO
 
   const end = state.curr.token.loc.end;
   chomp(state, "RAW", "}");
@@ -593,10 +602,10 @@ function rulesetRule(state: State): ast.Rule | null {
     name,
     rule_state,
     select,
-    foreach
-    //   prelude: data[6] || [],
-    //   action_block: data[7],
-    //   postlude: data[8]
+    foreach,
+    prelude,
+    action_block,
+    postlude
   };
 }
 
