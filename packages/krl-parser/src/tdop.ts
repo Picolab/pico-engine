@@ -509,9 +509,52 @@ function rulesetRule(state: State): ast.Rule | null {
     }
   }
 
-  chompMaybe(state, "RAW", "{");
+  chomp(state, "RAW", "{");
 
-  //   RuleSelect:?
+  const selectStart = state.curr.token.loc.start;
+  let select: ast.RuleSelect | null = null;
+  if (chompMaybe(state, "SYMBOL", "select")) {
+    chomp(state, "SYMBOL", "when");
+    const event = eventExpression(state);
+
+    const withinStart = state.curr.token.loc.start;
+    let within: ast.EventWithin | null = null;
+    if (chompMaybe(state, "SYMBOL", "within")) {
+      const expr = expression(state);
+
+      if (
+        state.curr.token.type !== "SYMBOL" ||
+        !ast.TIME_PERIOD_ENUM.hasOwnProperty(state.curr.token.src)
+      ) {
+        throw new ParseError(
+          `Expected time period: [${Object.keys(ast.TIME_PERIOD_ENUM).join(
+            ","
+          )}]`,
+          state.curr.token
+        );
+      }
+      const time_period = state.curr.token
+        .src as keyof typeof ast.TIME_PERIOD_ENUM;
+      const end = state.curr.token.loc.end;
+      advance(state);
+
+      within = {
+        loc: { start: withinStart, end },
+        type: "EventWithin",
+        expression: expr,
+        time_period
+      };
+    }
+
+    select = {
+      loc: { start: selectStart, end: state.curr.token.loc.end },
+      type: "RuleSelect",
+      kind: "when",
+      event,
+      within
+    };
+  }
+
   //   RuleForEach:*
   //   RulePrelude:?
   //   ActionBlock:?
@@ -524,12 +567,29 @@ function rulesetRule(state: State): ast.Rule | null {
     loc: { start, end },
     type: "Rule",
     name,
-    rule_state
-    //   select: data[4],
+    rule_state,
+    select
     //   foreach: data[5] || [],
     //   prelude: data[6] || [],
     //   action_block: data[7],
     //   postlude: data[8]
+  };
+}
+
+function eventExpression(state: State): ast.EventExpression {
+  const start = state.curr.token.loc.start;
+  const event_domain = chompIdentifier(state);
+  const event_type = chompIdentifier(state);
+
+  return {
+    loc: { start, end: 0 },
+    type: "EventExpression",
+    event_domain,
+    event_type,
+    event_attrs: [],
+    where: null,
+    setting: [],
+    aggregator: null
   };
 }
 

@@ -198,8 +198,8 @@ test("ruleset", t => {
         loc: { start: 15, end: 25 },
         type: "Rule",
         name: { type: "Identifier", value: "r1", loc: { start: 20, end: 22 } },
-        rule_state: "active"
-        // select: null,
+        rule_state: "active",
+        select: null
         // foreach: [],
         // prelude: [],
         // action_block: null,
@@ -209,8 +209,8 @@ test("ruleset", t => {
         loc: { start: 28, end: 38 },
         type: "Rule",
         name: { type: "Identifier", value: "r2", loc: { start: 33, end: 35 } },
-        rule_state: "active"
-        // select: null,
+        rule_state: "active",
+        select: null
         // foreach: [],
         // prelude: [],
         // action_block: null,
@@ -441,4 +441,95 @@ test("Ruleset meta", t => {
     parseMeta("foo bar"),
     "ParseError: Unsupported meta key: foo|SYMBOL|foo|16"
   );
+});
+
+test("select when", t => {
+  function parseRuleBody(src: string) {
+    try {
+      const node = parseRuleset(tokenizer(`ruleset a{rule a{${src}}}`));
+      return rmLoc(node.rules[0]);
+    } catch (err) {
+      return `${err}|${err.token.type}|${err.token.src}|${err.token.loc.start}`;
+    }
+  }
+
+  t.deepEqual(parseRuleBody("select when d t").select, {
+    type: "RuleSelect",
+    kind: "when",
+    event: {
+      type: "EventExpression",
+      event_domain: { type: "Identifier", value: "d" },
+      event_type: { type: "Identifier", value: "t" },
+      event_attrs: [],
+      where: null,
+      setting: [],
+      aggregator: null
+    },
+    within: null
+  });
+});
+
+test("select when ... within", t => {
+  function parseSelect(src: string) {
+    try {
+      const node = parseRuleset(
+        tokenizer(`ruleset a{rule a{select when ${src}}}`)
+      ) as any;
+      return rmLoc(node.rules[0].select);
+    } catch (err) {
+      return `${err}|${err.token.type}|${err.token.src}|${err.token.loc.start}`;
+    }
+  }
+
+  t.deepEqual(parseSelect("a a within 5 minutes"), {
+    type: "RuleSelect",
+    kind: "when",
+    event: mk.ee("a", "a"),
+    within: {
+      type: "EventWithin",
+      expression: mk(5),
+      time_period: "minutes"
+    }
+  });
+
+  t.deepEqual(
+    parseSelect("a a within 5 foobar"),
+    "ParseError: Expected time period: [day,days,hour,hours,minute,minutes,month,months,second,seconds,week,weeks,year,years]|SYMBOL|foobar|42"
+  );
+
+  // t.deepEqual(parseSelect("a a before b b within 5 minutes"), {
+  //   type: "RuleSelect",
+  //   kind: "when",
+  //   event: mk.eventOp("before", [mk.ee("a", "a"), mk.ee("b", "b")]),
+  //   within: {
+  //     type: "EventWithin",
+  //     expression: mk(5),
+  //     time_period: "minutes"
+  //   }
+  // });
+
+  // t.deepEqual(parseSelect("a a before b b within 1 + 3 minutes"), {
+  //   type: "RuleSelect",
+  //   kind: "when",
+  //   event: mk.eventOp("before", [mk.ee("a", "a"), mk.ee("b", "b")]),
+  //   within: {
+  //     type: "EventWithin",
+  //     expression: mk.op("+", mk(1), mk(3)),
+  //     time_period: "minutes"
+  //   }
+  // });
+
+  // t.deepEqual(parseSelect("a a or (b b and c c) within 1 hour"), {
+  //   type: "RuleSelect",
+  //   kind: "when",
+  //   event: mk.eventOp("or", [
+  //     mk.ee("a", "a"),
+  //     mk.eventOp("and", [mk.ee("b", "b"), mk.ee("c", "c")])
+  //   ]),
+  //   within: {
+  //     type: "EventWithin",
+  //     expression: mk(1),
+  //     time_period: "hour"
+  //   }
+  // });
 });
