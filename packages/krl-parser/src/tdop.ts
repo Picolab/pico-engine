@@ -212,8 +212,18 @@ function ruleset(state: State): ast.Ruleset {
 
   const meta = rulesetMeta(state);
 
-  // RulesetGlobal:?
-  // Rule:*
+  let global: ast.Declaration[] = [];
+  if (chompMaybe(state, "SYMBOL", "global")) {
+    chomp(state, "RAW", "{");
+    global = declarationList(state);
+    chomp(state, "RAW", "}");
+  }
+
+  const rules: ast.Rule[] = [];
+  let rule: ast.Rule | null = null;
+  while ((rule = rulesetRule(state))) {
+    rules.push(rule);
+  }
 
   const end = state.curr.token.loc.end;
   chomp(state, "RAW", "}");
@@ -222,16 +232,17 @@ function ruleset(state: State): ast.Ruleset {
     loc: { start, end },
     type: "Ruleset",
     rid,
-    meta
+    meta,
+    global,
+    rules
   };
 }
 
 function rulesetMeta(state: State): ast.RulesetMeta | null {
-  if (state.curr.rule.id !== "SYMBOL" || state.curr.token.src !== "meta") {
+  const start = state.curr.token.loc.start;
+  if (!chompMaybe(state, "SYMBOL", "meta")) {
     return null;
   }
-  const start = state.curr.token.loc.start;
-  advance(state);
   chomp(state, "RAW", "{");
 
   const properties: ast.RulesetMetaProperty[] = [];
@@ -406,19 +417,9 @@ function withExprBody(state: State): ast.Declaration[] {
     ) {
       break;
     }
-    const left = chompIdentifier(state);
-    chomp(state, "RAW", "=");
-    const right = expression(state);
+    declarations.push(declaration(state));
 
     chompMaybe(state, "SYMBOL", "and");
-
-    declarations.push({
-      loc: { start: left.loc.start, end: right.loc.end },
-      type: "Declaration",
-      op: "=",
-      left,
-      right
-    });
   }
 
   return declarations;
@@ -452,6 +453,86 @@ function rulesetIDList(state: State): ast.RulesetID[] {
   return rids;
 }
 
+function declarationList(state: State): ast.Declaration[] {
+  const declarations: ast.Declaration[] = [];
+
+  while (true) {
+    if (
+      state.curr.token.type !== "SYMBOL" ||
+      reserved_identifiers.hasOwnProperty(state.curr.token.src)
+    ) {
+      break;
+    }
+    declarations.push(declaration(state));
+  }
+
+  return declarations;
+}
+
+function declarationOrDefAction(state: State): ast.Declaration {
+  // TODO also DefAction
+  return declaration(state);
+}
+
+function declaration(state: State): ast.Declaration {
+  const left = chompIdentifier(state);
+  chomp(state, "RAW", "=");
+  const right = expression(state);
+
+  return {
+    loc: { start: left.loc.start, end: right.loc.end },
+    type: "Declaration",
+    op: "=",
+    left,
+    right
+  };
+}
+
+function rulesetRule(state: State): ast.Rule | null {
+  const start = state.curr.token.loc.start;
+  if (!chompMaybe(state, "SYMBOL", "rule")) {
+    return null;
+  }
+
+  const name = chompIdentifier(state);
+
+  let rule_state: "active" | "inactive" = "active";
+
+  if (chompMaybe(state, "SYMBOL", "is")) {
+    if (
+      state.curr.token.type === "SYMBOL" &&
+      (state.curr.token.src === "active" || state.curr.token.src === "inactive")
+    ) {
+      rule_state = state.curr.token.src;
+    } else {
+      throw new ParseError("Expected active and inactive", state.curr.token);
+    }
+  }
+
+  chompMaybe(state, "RAW", "{");
+
+  //   RuleSelect:?
+  //   RuleForEach:*
+  //   RulePrelude:?
+  //   ActionBlock:?
+  //   RulePostlude:?
+
+  const end = state.curr.token.loc.end;
+  chomp(state, "RAW", "}");
+
+  return {
+    loc: { start, end },
+    type: "Rule",
+    name,
+    rule_state
+    //   select: data[4],
+    //   foreach: data[5] || [],
+    //   prelude: data[6] || [],
+    //   action_block: data[7],
+    //   postlude: data[8]
+  };
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 defRule("(end)", {});
@@ -462,7 +543,7 @@ defRule("{", {});
 defRule("}", {});
 defRule("=", {});
 
-var reserved_identifiers = {
+const reserved_identifiers = {
   defaction: true,
   function: true,
   not: true,

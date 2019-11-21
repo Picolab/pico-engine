@@ -76,8 +76,8 @@ export interface Ruleset extends BaseNode {
   type: "Ruleset";
   rid: RulesetID;
   meta: RulesetMeta | null;
-  // global: [],
-  // rules: []
+  global: Declaration[];
+  rules: Rule[];
 }
 
 export interface RulesetMeta extends BaseNode {
@@ -89,6 +89,17 @@ export interface RulesetMetaProperty extends BaseNode {
   type: "RulesetMetaProperty";
   key: Keyword;
   value: any;
+}
+
+export interface Rule extends BaseNode {
+  type: "Rule";
+  name: Identifier;
+  rule_state: "active" | "inactive";
+  //   select: data[4],
+  //   foreach: data[5] || [],
+  //   prelude: data[6] || [],
+  //   action_block: data[7],
+  //   postlude: data[8]
 }
 
 export interface Declaration extends BaseNode {
@@ -110,4 +121,5 @@ export type Node =
   | RulesetID
   | RulesetMeta
   | RulesetMetaProperty
+  | Rule
   | Declaration;

@@ -177,9 +177,46 @@ test("ruleset", t => {
     type: "Ruleset",
     loc: { start: 0, end: 14 },
     rid: { type: "RulesetID", value: "rs", loc: { start: 8, end: 10 } },
-    meta: null
-    // global: [],
-    // rules: []
+    meta: null,
+    global: [],
+    rules: []
+  });
+
+  let src = "";
+  src += "ruleset rs {\n";
+  src += "  rule r1 {}\n";
+  src += "  rule r2 {}\n";
+  src += "}";
+  t.deepEqual(parseRuleset(tokenizer(src)), {
+    loc: { start: 0, end: 40 },
+    type: "Ruleset",
+    rid: { type: "RulesetID", value: "rs", loc: { start: 8, end: 10 } },
+    meta: null,
+    global: [],
+    rules: [
+      {
+        loc: { start: 15, end: 25 },
+        type: "Rule",
+        name: { type: "Identifier", value: "r1", loc: { start: 20, end: 22 } },
+        rule_state: "active"
+        // select: null,
+        // foreach: [],
+        // prelude: [],
+        // action_block: null,
+        // postlude: null
+      },
+      {
+        loc: { start: 28, end: 38 },
+        type: "Rule",
+        name: { type: "Identifier", value: "r2", loc: { start: 33, end: 35 } },
+        rule_state: "active"
+        // select: null,
+        // foreach: [],
+        // prelude: [],
+        // action_block: null,
+        // postlude: null
+      }
+    ]
   });
 });
 
@@ -238,7 +275,7 @@ test("rulesetID", t => {
   t.deepEqual(parseRID("some-thing"), true);
 });
 
-test.only("Ruleset meta", t => {
+test("Ruleset meta", t => {
   function parseMeta(src: string) {
     try {
       const node = parseRuleset(tokenizer(`ruleset rs{meta{${src}}}`)).meta;
