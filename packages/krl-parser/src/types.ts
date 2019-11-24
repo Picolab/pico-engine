@@ -115,6 +115,17 @@ export interface Array extends BaseNode {
   value: Node[];
 }
 
+export interface Map extends BaseNode {
+  type: "Map";
+  value: MapKeyValuePair[];
+}
+
+export interface MapKeyValuePair extends BaseNode {
+  type: "MapKeyValuePair";
+  key: String;
+  value: Node;
+}
+
 export interface Arguments extends BaseNode {
   type: "Arguments";
   args: Node[];
@@ -306,6 +317,8 @@ export type Node =
   | InfixOperator
   | Application
   | Array
+  | Map
+  | MapKeyValuePair
   | Arguments
   | NamedArgument
   | Ruleset

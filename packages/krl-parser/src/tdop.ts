@@ -918,13 +918,34 @@ function postludeStatementCore(state: State): ast.Node {
 
       case "raise":
       case "schedule":
-      case "log":
-      case "error":
         // raise    | RaiseEventStatement {% id %}
         // schedule | ScheduleEventStatement {% id %}
-        // log      | LogStatement {% id %}
-        // error    | ErrorStatement {% id %}
         break;
+      case "log": {
+        const loc = state.curr.token.loc;
+        advance(state);
+        const level = logOrErrorLevel(state);
+        const expr = expression(state);
+        return {
+          loc,
+          type: "LogStatement",
+          level,
+          expression: expr
+        };
+      }
+      case "error": {
+        const loc = state.curr.token.loc;
+        advance(state);
+        const level = logOrErrorLevel(state);
+        const expr = expression(state);
+        return {
+          loc,
+          type: "ErrorStatement",
+          level,
+          expression: expr
+        };
+      }
+
       case "last": {
         const loc = state.curr.token.loc;
         advance(state);
@@ -941,6 +962,21 @@ function postludeStatementCore(state: State): ast.Node {
   }
 
   return statement(state);
+}
+
+function logOrErrorLevel(state: State): keyof typeof ast.LEVEL_ENUM {
+  if (
+    state.curr.token.type === "SYMBOL" &&
+    ast.LEVEL_ENUM.hasOwnProperty(state.curr.token.src)
+  ) {
+    const level = state.curr.token.src as any;
+    advance(state);
+    return level;
+  }
+  throw new ParseError(
+    "Expected " + Object.keys(ast.LEVEL_ENUM).join(" or "),
+    state.curr.token
+  );
 }
 
 function statement(state: State): ast.Statement {
@@ -1028,7 +1064,40 @@ defRule(",", {});
 defRule(";", {});
 defRule(":", {});
 defRule("-", {});
-defRule("{", {});
+defRule("{", {
+  nud(state) {
+    const { start } = state.curr.token.loc;
+    advance(state);
+
+    const value: ast.MapKeyValuePair[] = [];
+    while (state.curr.rule.id !== "}") {
+      const key = chompString(state);
+      chomp(state, "RAW", ":");
+      const val = expression(state);
+      value.push({
+        loc: { start: key.loc.start, end: val.loc.end },
+        type: "MapKeyValuePair",
+        key,
+        value: val
+      });
+      if (state.curr.rule.id !== ",") {
+        break;
+      }
+      advance(state);
+    }
+
+    const { end } = state.curr.token.loc;
+    if (state.curr.token.type !== "RAW" || state.curr.token.src !== "}") {
+      throw new ParseError("Expected `}`", state.curr.token);
+    }
+
+    return {
+      loc: { start, end },
+      type: "Map",
+      value
+    };
+  }
+});
 defRule("}", {});
 defRule("(", {
   nud(state) {

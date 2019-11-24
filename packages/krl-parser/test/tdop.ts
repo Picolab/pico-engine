@@ -707,7 +707,8 @@ test("ActionBlock", function(t) {
 
   tstActionBlock(
     "if foo == 2 then choose { noop() }",
-    "ParseError: Expected an expression|RAW|{|62"
+    "ParseError: Expected String|SYMBOL|noop|64"
+    //"ParseError: Expected an expression|RAW|{|62"
   );
 
   src = "if foo == 2 then\n";
@@ -958,3 +959,135 @@ test("LastStatement", t => {
     }
   ]);
 });
+
+test("LogStatement", t => {
+  const testPostlude = makeTestPostlude(t);
+
+  testPostlude('log info "foo"', [
+    {
+      type: "LogStatement",
+      level: "info",
+      expression: mk("foo")
+    }
+  ]);
+
+  testPostlude('log error {"baz": [1, 2]}', [
+    {
+      type: "LogStatement",
+      level: "error",
+      expression: mk({ baz: mk([1, 2]) })
+    }
+  ]);
+});
+
+test("ErrorStatement", t => {
+  const testPostlude = makeTestPostlude(t);
+
+  testPostlude('error error "foo"', [
+    {
+      type: "ErrorStatement",
+      level: "error",
+      expression: mk("foo")
+    }
+  ]);
+
+  testPostlude('error warn {"baz": [1, 2]}', [
+    {
+      type: "ErrorStatement",
+      level: "warn",
+      expression: mk({ baz: mk([1, 2]) })
+    }
+  ]);
+
+  testPostlude("error info info", [
+    {
+      type: "ErrorStatement",
+      level: "info",
+      expression: mk.id("info")
+    }
+  ]);
+
+  testPostlude("error debug debug()", [
+    {
+      type: "ErrorStatement",
+      level: "debug",
+      expression: mk.app(mk.id("debug"))
+    }
+  ]);
+});
+
+// test("GuardCondition", t => {
+//   const testPost = makeTestPostlude(t);
+
+//   testPost('raise domain event "type" on final', [
+//     {
+//       type: "GuardCondition",
+//       condition: "on final",
+//       statement: {
+//         type: "RaiseEventStatement",
+//         event_domain: mk.id("domain"),
+//         event_type: mk("type"),
+//         for_rid: null,
+//         event_attrs: null
+//       }
+//     }
+//   ]);
+
+//   testPost("ent:foo := bar on final", [
+//     {
+//       type: "GuardCondition",
+//       condition: "on final",
+//       statement: {
+//         type: "PersistentVariableAssignment",
+//         op: ":=",
+//         left: mk.dID("ent", "foo"),
+//         path_expression: null,
+//         right: mk.id("bar")
+//       }
+//     }
+//   ]);
+
+//   testPost("foo = bar on final", [
+//     {
+//       type: "GuardCondition",
+//       condition: "on final",
+//       statement: mk.declare("=", mk.id("foo"), mk.id("bar"))
+//     }
+//   ]);
+
+//   testPost("foo = bar if baz > 0", [
+//     {
+//       type: "GuardCondition",
+//       condition: mk.op(">", mk.id("baz"), mk(0)),
+//       statement: mk.declare("=", mk.id("foo"), mk.id("bar"))
+//     }
+//   ]);
+
+//   testPost("ent:foo := bar if baz > 0", [
+//     {
+//       type: "GuardCondition",
+//       condition: mk.op(">", mk.id("baz"), mk(0)),
+//       statement: {
+//         type: "PersistentVariableAssignment",
+//         op: ":=",
+//         left: mk.dID("ent", "foo"),
+//         path_expression: null,
+//         right: mk.id("bar")
+//       }
+//     }
+//   ]);
+
+//   testPost('raise domain event "type" if baz > 0', [
+//     {
+//       type: "GuardCondition",
+//       condition: mk.op(">", mk.id("baz"), mk(0)),
+//       statement: {
+//         type: "RaiseEventStatement",
+//         event_domain: mk.id("domain"),
+//         event_type: mk("type"),
+//         for_rid: null,
+//         event_attrs: null
+//       }
+//     }
+//   ]);
+// });
