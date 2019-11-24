@@ -77,6 +77,12 @@ export interface Identifier extends BaseNode {
   value: string;
 }
 
+export interface DomainIdentifier extends BaseNode {
+  type: "DomainIdentifier";
+  value: Identifier;
+  domain: Identifier;
+}
+
 export interface Declaration extends BaseNode {
   type: "Declaration";
   op: "=";
@@ -84,9 +90,33 @@ export interface Declaration extends BaseNode {
   right: Node;
 }
 
+export interface InfixOperator extends BaseNode {
+  type: "InfixOperator";
+  op: string;
+  left: Node;
+  right: Node;
+}
+
+export interface Application extends BaseNode {
+  type: "Application";
+  callee: Node;
+  args: Arguments;
+}
+
 export interface Array extends BaseNode {
   type: "Array";
   value: Node[];
+}
+
+export interface Arguments extends BaseNode {
+  type: "Arguments";
+  args: Node[];
+}
+
+export interface NamedArgument extends BaseNode {
+  type: "NamedArgument";
+  id: Identifier;
+  value: Node;
 }
 
 export interface RulesetID extends BaseNode {
@@ -172,10 +202,18 @@ export interface RuleForEach extends BaseNode {
 
 export interface ActionBlock extends BaseNode {
   type: "ActionBlock";
-  // condition:get(data, condition_path, null),
-  // block_type:get(data, type_path, "every"),
-  // discriminant:get(data, discriminant_path, null),//i.e. `choose <expr> {...}`
-  // actions:flatten([get(data, actions_path, null)]),
+  condition: Node | null;
+  block_type: "every" | "sample" | "choose";
+  discriminant: Node | null;
+  actions: Action[];
+}
+
+export interface Action extends BaseNode {
+  type: "Action";
+  label: Identifier | null;
+  action: Identifier | DomainIdentifier;
+  args: Arguments;
+  setting: Identifier[];
 }
 
 export interface RulePostlude extends BaseNode {
@@ -194,7 +232,11 @@ export type Node =
   | KrlRegExp
   | Identifier
   | Declaration
+  | InfixOperator
+  | Application
   | Array
+  | Arguments
+  | NamedArgument
   | Ruleset
   | RulesetID
   | RulesetMeta
@@ -205,4 +247,5 @@ export type Node =
   | EventWithin
   | RuleForEach
   | ActionBlock
+  | Action
   | RulePostlude;

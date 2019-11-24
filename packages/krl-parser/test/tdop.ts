@@ -584,3 +584,183 @@ test("select when ... foreach ...", t => {
     }
   ]);
 });
+
+test("ActionBlock", function(t) {
+  var tstActionBlock = function(abSrc: string, expected: any) {
+    var src = "rule r1{select when foo bar " + abSrc + "}";
+
+    t.deepEqual(
+      parseRulesetBody(src, rs => rs.rules[0].action_block),
+      expected
+    );
+  };
+
+  var src = 'send_directive("say")';
+  tstActionBlock(src, {
+    type: "ActionBlock",
+    condition: null,
+    block_type: "every",
+    discriminant: null,
+    actions: [mk.action(null, "send_directive", [mk("say")])]
+  });
+
+  src = 'foo("say", bar = "hello world")';
+  tstActionBlock(src, {
+    type: "ActionBlock",
+    condition: null,
+    block_type: "every",
+    discriminant: null,
+    actions: [
+      mk.action(null, "foo", [mk("say"), mk.arg("bar", mk("hello world"))])
+    ]
+  });
+
+  src = "hello(\n";
+  src += "  foo = 1,\n";
+  src += "  bar = 2,\n";
+  src += "  baz = 3,\n";
+  src += ")";
+  tstActionBlock(src, {
+    type: "ActionBlock",
+    condition: null,
+    block_type: "every",
+    discriminant: null,
+    actions: [
+      mk.action(null, "hello", [
+        mk.arg("foo", mk(1)),
+        mk.arg("bar", mk(2)),
+        mk.arg("baz", mk(3))
+      ])
+    ]
+  });
+
+  src = "if true then blah()";
+  tstActionBlock(src, {
+    type: "ActionBlock",
+    condition: mk(true),
+    block_type: "every",
+    discriminant: null,
+    actions: [mk.action(null, "blah")]
+  });
+
+  src = "lbl=>blah()";
+  tstActionBlock(src, {
+    type: "ActionBlock",
+    condition: null,
+    block_type: "every",
+    discriminant: null,
+    actions: [mk.action("lbl", "blah")]
+  });
+
+  src = "every {";
+  src += " one=>blah(1)";
+  src += " two => blah(2)";
+  src += " noop()";
+  src += "}";
+  tstActionBlock(src, {
+    type: "ActionBlock",
+    condition: null,
+    block_type: "every",
+    discriminant: null,
+    actions: [
+      mk.action("one", "blah", [mk(1)]),
+      mk.action("two", "blah", [mk(2)]),
+      mk.action(null, "noop")
+    ]
+  });
+
+  src = "choose exp() {\n";
+  src += "  one => blah(1)\n";
+  src += "  two => blah(2)\n";
+  src += "}";
+  tstActionBlock(src, {
+    type: "ActionBlock",
+    condition: null,
+    block_type: "choose",
+    discriminant: mk.app(mk.id("exp")),
+    actions: [
+      mk.action("one", "blah", [mk(1)]),
+      mk.action("two", "blah", [mk(2)])
+    ]
+  });
+
+  src = "if foo == 2 then every {\n";
+  src += "  one => blah(1)\n";
+  src += "  two => blah(2)\n";
+  src += "}";
+  tstActionBlock(src, {
+    type: "ActionBlock",
+    condition: mk.op("==", mk.id("foo"), mk(2)),
+    block_type: "every",
+    discriminant: null,
+    actions: [
+      mk.action("one", "blah", [mk(1)]),
+      mk.action("two", "blah", [mk(2)])
+    ]
+  });
+
+  src = "if foo == 2 then {\n";
+  src += "  one => blah(1)\n";
+  src += "  two => blah(2)\n";
+  src += "}";
+  tstActionBlock(src, "ParseError: Expected `}`|RAW|{|55");
+
+  tstActionBlock(
+    "if foo == 2 then choose { noop() }",
+    "ParseError: Expected an expression|RAW|{|62"
+  );
+
+  src = "if foo == 2 then\n";
+  src += "choose bar() {\n";
+  src += "  one => blah(1)\n";
+  src += "  two => blah(2)\n";
+  src += "}";
+  tstActionBlock(src, {
+    type: "ActionBlock",
+    condition: mk.op("==", mk.id("foo"), mk(2)),
+    block_type: "choose",
+    discriminant: mk.app(mk.id("bar")),
+    actions: [
+      mk.action("one", "blah", [mk(1)]),
+      mk.action("two", "blah", [mk(2)])
+    ]
+  });
+
+  src = "if foo == 2 then sample {\n";
+  src += "  one => blah(1)\n";
+  src += "  two => blah(2)\n";
+  src += "}";
+  tstActionBlock(src, {
+    type: "ActionBlock",
+    condition: mk.op("==", mk.id("foo"), mk(2)),
+    block_type: "sample",
+    discriminant: null,
+    actions: [
+      mk.action("one", "blah", [mk(1)]),
+      mk.action("two", "blah", [mk(2)])
+    ]
+  });
+
+  src = "sample {\n";
+  src += "  one => blah(1)\n";
+  src += "  two => blah(2)\n";
+  src += "}";
+  tstActionBlock(src, {
+    type: "ActionBlock",
+    condition: null,
+    block_type: "sample",
+    discriminant: null,
+    actions: [
+      mk.action("one", "blah", [mk(1)]),
+      mk.action("two", "blah", [mk(2)])
+    ]
+  });
+
+  tstActionBlock("choose b(c){one => foo() two => bar()}", {
+    type: "ActionBlock",
+    condition: null,
+    block_type: "choose",
+    discriminant: mk.app(mk.id("b"), [mk.id("c")]),
+    actions: [mk.action("one", "foo", []), mk.action("two", "bar", [])]
+  });
+});

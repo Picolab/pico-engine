@@ -35,7 +35,7 @@ interface Rule {
 
 const rules: { [id: string]: Rule } = {};
 
-function defRule(id: string, rule: Omit<Omit<Rule, "id">, "lbp">) {
+function defRule(id: string, rule: Partial<Omit<Rule, "id">>) {
   rules[id] = { id, lbp: 0, ...rule };
 
   if (!rules[id].lbp) {
@@ -152,14 +152,36 @@ function chompString(state: State): ast.String {
 }
 
 function chompIdentifier(state: State): ast.Identifier {
-  if (state.curr.token.type !== "SYMBOL") {
+  if (
+    state.curr.token.type !== "SYMBOL" &&
+    ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)
+  ) {
     throw new ParseError("Expected Identifier", state.curr.token);
   }
-  const node = expression(state);
-  if (node.type !== "Identifier") {
-    throw new ParseError("Expected Identifier", state.curr.token);
+  const id: ast.Identifier = {
+    loc: state.curr.token.loc,
+    type: "Identifier",
+    value: state.curr.token.src
+  };
+  advance(state);
+  return id;
+}
+
+function chompIdentifier_or_DomainIdentifier(
+  state: State
+): ast.Identifier | ast.DomainIdentifier {
+  let domain = chompIdentifier(state);
+  if (!chompMaybe(state, "RAW", ":")) {
+    return domain;
   }
-  return node;
+  let value = chompIdentifier(state);
+
+  return {
+    loc: { start: domain.loc.start, end: value.loc.end },
+    type: "DomainIdentifier",
+    domain,
+    value
+  };
 }
 
 function rulesetID(state: State): ast.RulesetID {
@@ -588,7 +610,20 @@ function rulesetRule(state: State): ast.Rule | null {
   }
 
   let action_block: ast.ActionBlock | null = null;
-  // TODO
+
+  if (state.curr.token.type === "SYMBOL") {
+    switch (state.curr.token.src) {
+      case "fired":
+      case "notfired":
+      case "else":
+      case "finally":
+      case "always":
+        break; // postlude
+      default:
+        action_block = actionBlock(state);
+        break;
+    }
+  }
 
   let postlude: ast.RulePostlude | null = null;
   // TODO
@@ -626,6 +661,160 @@ function eventExpression(state: State): ast.EventExpression {
   };
 }
 
+function actionBlock(state: State): ast.ActionBlock {
+  let { start, end } = state.curr.token.loc;
+
+  let condition: ast.Node | null = null;
+  if (chompMaybe(state, "SYMBOL", "if")) {
+    condition = expression(state);
+    chomp(state, "SYMBOL", "then");
+  }
+
+  let block_type: "every" | "sample" | "choose" = "every";
+  let discriminant: ast.Node | null = null;
+  let actions: ast.Action[] = [];
+
+  if (state.curr.token.type === "SYMBOL") {
+    switch (state.curr.token.src) {
+      case "every":
+      case "sample":
+        block_type = state.curr.token.src;
+        advance(state);
+        actions = actionList(state);
+        break;
+      case "choose":
+        block_type = state.curr.token.src;
+        advance(state);
+        discriminant = expression(state);
+        actions = actionList(state);
+        break;
+      default:
+        actions.push(action(state));
+        break;
+    }
+  }
+
+  return {
+    loc: { start, end },
+    type: "ActionBlock",
+    condition,
+    block_type,
+    discriminant,
+    actions
+  };
+}
+
+function actionList(state: State): ast.Action[] {
+  let actions: ast.Action[] = [];
+
+  chomp(state, "RAW", "{");
+  while (state.curr.token_i < state.tokens.length) {
+    if (state.curr.token.type === "RAW" && state.curr.token.src === "}") {
+      break;
+    }
+    actions.push(action(state));
+  }
+  chomp(state, "RAW", "}");
+
+  return actions;
+}
+
+function action(state: State): ast.Action {
+  let { start, end } = state.curr.token.loc;
+
+  let label: ast.Identifier | null = null;
+  let action = chompIdentifier_or_DomainIdentifier(state);
+  if (action.type === "Identifier" && chompMaybe(state, "RAW", "=>")) {
+    label = action;
+    action = chompIdentifier_or_DomainIdentifier(state);
+  }
+
+  const args = chompArguments(state);
+  end = args.loc.end;
+
+  let setting: ast.Identifier[] = [];
+  if (chompMaybe(state, "SYMBOL", "setting")) {
+    chomp(state, "RAW", "(");
+    setting = identifierList(state);
+    end = state.curr.token.loc.end;
+    chomp(state, "RAW", ")");
+  }
+
+  return {
+    loc: { start, end },
+    type: "Action",
+    label,
+    action,
+    args,
+    setting
+  };
+}
+
+function chompArguments(state: State): ast.Arguments {
+  const start = state.curr.token.loc.start;
+  chomp(state, "RAW", "(");
+  return chompArgumentsBase(state, start);
+}
+
+function chompArgumentsBase(state: State, start: number): ast.Arguments {
+  const args: ast.Node[] = [];
+
+  while (state.curr.token_i < state.tokens.length) {
+    if (state.curr.token.type === "RAW" && state.curr.token.src === ")") {
+      break;
+    }
+
+    let arg: ast.Node | null = expression(state);
+
+    if (
+      arg.type === "Identifier" &&
+      state.curr.token.type === "RAW" &&
+      state.curr.token.src === "="
+    ) {
+      chomp(state, "RAW", "=");
+      const end = state.curr.token.loc.end;
+      const value = expression(state);
+      args.push({
+        loc: { start: arg.loc.start, end },
+        type: "NamedArgument",
+        id: arg,
+        value
+      });
+    } else {
+      args.push(arg);
+    }
+
+    if (!chompMaybe(state, "RAW", ",")) {
+      break;
+    }
+  }
+
+  const end = state.curr.token.loc.end;
+  chomp(state, "RAW", ")");
+  return {
+    loc: { start, end },
+    type: "Arguments",
+    args
+  };
+}
+
+function infix(op: string, bp: number) {
+  defRule(op, {
+    lbp: bp,
+    led(state, token, left) {
+      var right = expression(state, bp);
+
+      return {
+        loc: token.loc,
+        type: "InfixOperator",
+        op,
+        left,
+        right
+      };
+    }
+  });
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 defRule("(end)", {});
@@ -634,9 +823,23 @@ defRule(",", {});
 defRule("-", {});
 defRule("{", {});
 defRule("}", {});
-defRule("(", {});
+defRule("(", {
+  lbp: 80,
+  led(state, token, left) {
+    const args = chompArgumentsBase(state, token.loc.start);
+    return {
+      loc: { start: left.loc.start, end: args.loc.end },
+      type: "Application",
+      callee: left,
+      args
+    };
+  }
+});
 defRule(")", {});
 defRule("=", {});
+defRule("=>", {});
+
+infix("==", 40);
 
 defRule("[", {
   nud(state) {
@@ -666,6 +869,18 @@ defRule("[", {
   }
 });
 defRule("]", {});
+
+defRule("true", {
+  nud(state) {
+    return { loc: state.curr.token.loc, type: "Boolean", value: true };
+  }
+});
+
+defRule("false", {
+  nud(state) {
+    return { loc: state.curr.token.loc, type: "Boolean", value: false };
+  }
+});
 
 defRule("SYMBOL", {
   nud(state) {
