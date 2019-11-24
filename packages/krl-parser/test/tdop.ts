@@ -764,3 +764,117 @@ test("ActionBlock", function(t) {
     actions: [mk.action("one", "foo", []), mk.action("two", "bar", [])]
   });
 });
+
+test("RulePostlude", t => {
+  var testPost = function(postlude: string, expected: any) {
+    var src = "rule r1{select when foo bar " + postlude + "}";
+
+    t.deepEqual(
+      parseRulesetBody(src, rs => rs.rules[0].postlude),
+      expected
+    );
+  };
+
+  // test location
+  var src = "ruleset rs{rule r1{always{one();two()}}}";
+  t.deepEqual(parseRuleset(tokenizer(src)).rules[0].postlude, {
+    loc: { start: 19, end: 38 },
+    type: "RulePostlude",
+    fired: null,
+    notfired: null,
+    always: [
+      {
+        loc: { start: 26, end: 31 },
+        type: "ExpressionStatement",
+        expression: {
+          loc: { start: 26, end: 31 },
+          type: "Application",
+          callee: {
+            loc: { start: 26, end: 29 },
+            type: "Identifier",
+            value: "one"
+          },
+          args: {
+            loc: { start: 29, end: 31 },
+            type: "Arguments",
+            args: []
+          }
+        }
+      },
+      {
+        loc: { start: 32, end: 37 },
+        type: "ExpressionStatement",
+        expression: {
+          loc: { start: 32, end: 37 },
+          type: "Application",
+          callee: {
+            loc: { start: 32, end: 35 },
+            type: "Identifier",
+            value: "two"
+          },
+          args: {
+            loc: { start: 35, end: 37 },
+            type: "Arguments",
+            args: []
+          }
+        }
+      }
+    ]
+  });
+
+  testPost("fired{}", {
+    type: "RulePostlude",
+    fired: [],
+    notfired: null,
+    always: null
+  });
+
+  testPost("fired{}else{}", {
+    type: "RulePostlude",
+    fired: [],
+    notfired: [],
+    always: null
+  });
+
+  testPost("fired{}else{}finally{}", {
+    type: "RulePostlude",
+    fired: [],
+    notfired: [],
+    always: []
+  });
+
+  testPost("fired{}finally{}", {
+    type: "RulePostlude",
+    fired: [],
+    notfired: null,
+    always: []
+  });
+
+  testPost("notfired{}", {
+    type: "RulePostlude",
+    fired: null,
+    notfired: [],
+    always: null
+  });
+
+  testPost("notfired{}else{}", {
+    type: "RulePostlude",
+    fired: [],
+    notfired: [],
+    always: null
+  });
+
+  testPost("notfired{}else{}finally{}", {
+    type: "RulePostlude",
+    fired: [],
+    notfired: [],
+    always: []
+  });
+
+  testPost("notfired{}finally{}", {
+    type: "RulePostlude",
+    fired: null,
+    notfired: [],
+    always: []
+  });
+});

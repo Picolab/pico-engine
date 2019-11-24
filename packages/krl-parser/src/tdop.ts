@@ -107,6 +107,40 @@ function advance(state: State) {
   return state;
 }
 
+function lookahead(state: State, n: number): Token[] {
+  let token: Token | null = null;
+  let found: Token[] = [];
+  let i = state.curr.token_i;
+  while (i < state.tokens.length && found.length < n) {
+    token = state.tokens[i];
+
+    if (token.type === "MISSING-CLOSE") {
+      throw new ParseError("Missing close " + token.missingClose, token);
+    }
+    if (token.type === "ILLEGAL") {
+      throw new ParseError("Unsupported characters", token);
+    }
+    if (
+      token.type === "WHITESPACE" ||
+      token.type === "LINE-COMMENT" ||
+      token.type === "BLOCK-COMMENT"
+    ) {
+      i++;
+      continue;
+    }
+
+    found.push(token);
+  }
+
+  return found;
+}
+
+function easyLookahead(state: State, n: number): string {
+  return lookahead(state, n)
+    .map(tok => (tok.type === "RAW" ? tok.src : tok.type))
+    .join("");
+}
+
 function expression(state: State, rbp: number = 0): ast.Node {
   if (!state.curr.rule.nud) {
     throw new ParseError("Expected an expression", state.curr.token);
@@ -625,8 +659,7 @@ function rulesetRule(state: State): ast.Rule | null {
     }
   }
 
-  let postlude: ast.RulePostlude | null = null;
-  // TODO
+  let postlude = rulePostlude(state);
 
   const end = state.curr.token.loc.end;
   chomp(state, "RAW", "}");
@@ -750,6 +783,111 @@ function action(state: State): ast.Action {
   };
 }
 
+function rulePostlude(state: State): ast.RulePostlude | null {
+  let { start, end } = state.curr.token.loc;
+
+  let fired: ast.Node[] | null = null;
+  let notfired: ast.Node[] | null = null;
+  let always: ast.Node[] | null = null;
+
+  if (chompMaybe(state, "SYMBOL", "always")) {
+    always = getPostludeStmts();
+  } else if (chompMaybe(state, "SYMBOL", "fired")) {
+    fired = getPostludeStmts();
+    if (chompMaybe(state, "SYMBOL", "else")) {
+      notfired = getPostludeStmts();
+    }
+    if (chompMaybe(state, "SYMBOL", "finally")) {
+      always = getPostludeStmts();
+    }
+  } else if (chompMaybe(state, "SYMBOL", "notfired")) {
+    notfired = getPostludeStmts();
+    if (chompMaybe(state, "SYMBOL", "else")) {
+      fired = getPostludeStmts();
+    }
+    if (chompMaybe(state, "SYMBOL", "finally")) {
+      always = getPostludeStmts();
+    }
+  }
+
+  if (fired === null && notfired === null && always === null) {
+    return null;
+  }
+
+  return {
+    loc: { start, end },
+    type: "RulePostlude",
+    fired,
+    notfired,
+    always
+  };
+
+  function getPostludeStmts() {
+    const ret = postludeStatements(state);
+    end = ret.end;
+    return ret.stmts;
+  }
+}
+
+function postludeStatements(state: State): { stmts: ast.Node[]; end: number } {
+  const stmts: ast.Node[] = [];
+
+  chomp(state, "RAW", "{");
+  while (state.curr.token_i < state.tokens.length) {
+    if (state.curr.token.type === "RAW" && state.curr.token.src === "}") {
+      break;
+    }
+    stmts.push(postludeStatement(state));
+
+    chompMaybe(state, "RAW", ";");
+  }
+
+  const end = state.curr.token.loc.end;
+  chomp(state, "RAW", "}");
+
+  return { stmts, end };
+}
+
+function postludeStatement(state: State): ast.Node {
+  if (state.curr.token.type === "SYMBOL") {
+    switch (state.curr.token.src) {
+      case "clear":
+      case "raise":
+      case "schedule":
+      case "log":
+      case "error":
+      case "last":
+      // clear    | ClearPersistentVariable {% id %}
+      // raise    | RaiseEventStatement {% id %}
+      // schedule | ScheduleEventStatement {% id %}
+      // log      | LogStatement {% id %}
+      // error    | ErrorStatement {% id %}
+      // last     | LastStatement {% id %}
+    }
+  }
+
+  switch (easyLookahead(state, 4)) {
+    case "SYMBOL:SYMBOL:=":
+    case "SYMBOL:SYMBOL{":
+      // PersistentVariableAssignment
+      break;
+  }
+
+  return statement(state);
+}
+
+function statement(state: State): ast.Statement {
+  if (easyLookahead(state, 2) === "SYMBOL=") {
+    return declaration(state);
+  }
+  let exp = expression(state);
+  return {
+    loc: exp.loc,
+    type: "ExpressionStatement",
+    expression: exp
+  };
+}
+
 function chompArguments(state: State): ast.Arguments {
   const start = state.curr.token.loc.start;
   chomp(state, "RAW", "(");
@@ -820,6 +958,7 @@ function infix(op: string, bp: number) {
 defRule("(end)", {});
 defRule(".", {});
 defRule(",", {});
+defRule(";", {});
 defRule("-", {});
 defRule("{", {});
 defRule("}", {});

@@ -90,6 +90,13 @@ export interface Declaration extends BaseNode {
   right: Node;
 }
 
+export interface ExpressionStatement extends BaseNode {
+  type: "ExpressionStatement";
+  expression: Node;
+}
+
+export type Statement = Declaration | ExpressionStatement;
+
 export interface InfixOperator extends BaseNode {
   type: "InfixOperator";
   op: string;
@@ -218,9 +225,66 @@ export interface Action extends BaseNode {
 
 export interface RulePostlude extends BaseNode {
   type: "RulePostlude";
-  // fired: get(data, fired_i, null),
-  // notfired: get(data, notfired_i, null),
-  // always: get(data, always_i, null),
+  fired: Node[] | null;
+  notfired: Node[] | null;
+  always: Node[] | null;
+}
+
+export interface PersistentVariableAssignment extends BaseNode {
+  type: "PersistentVariableAssignment";
+  op: ":=";
+  left: DomainIdentifier;
+  path_expression: Node | null;
+  right: Node;
+}
+
+export interface ClearPersistentVariable extends BaseNode {
+  type: "ClearPersistentVariable";
+  variable: DomainIdentifier;
+  path_expression: Node | null;
+}
+
+export interface RaiseEventStatement extends BaseNode {
+  type: "RaiseEventStatement";
+  event_domain?: Node;
+  event_type?: Node;
+  event_domainAndType?: Node;
+  event_attrs: Node | null;
+  for_rid: Node | null;
+}
+
+export interface ScheduleEventStatement extends BaseNode {
+  type: "ScheduleEventStatement";
+  event_domain?: Identifier;
+  event_type?: Node;
+  event_domainAndType?: Node;
+  event_attrs: Node | null;
+  setting: Identifier | null;
+  at?: Node;
+  timespec?: Node;
+}
+
+export const LEVEL_ENUM = {
+  error: true,
+  warn: true,
+  info: true,
+  debug: true
+};
+
+export interface LogStatement extends BaseNode {
+  type: "LogStatement";
+  level: keyof typeof LEVEL_ENUM;
+  expression: Node;
+}
+
+export interface ErrorStatement extends BaseNode {
+  type: "ErrorStatement";
+  level: keyof typeof LEVEL_ENUM;
+  expression: Node;
+}
+
+export interface LastStatement extends BaseNode {
+  type: "LastStatement";
 }
 
 export type Node =
@@ -232,6 +296,7 @@ export type Node =
   | KrlRegExp
   | Identifier
   | Declaration
+  | ExpressionStatement
   | InfixOperator
   | Application
   | Array
@@ -248,4 +313,11 @@ export type Node =
   | RuleForEach
   | ActionBlock
   | Action
-  | RulePostlude;
+  | RulePostlude
+  | PersistentVariableAssignment
+  | ClearPersistentVariable
+  | RaiseEventStatement
+  | ScheduleEventStatement
+  | LogStatement
+  | ErrorStatement
+  | LastStatement;
