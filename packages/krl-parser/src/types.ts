@@ -79,8 +79,8 @@ export interface Identifier extends BaseNode {
 
 export interface DomainIdentifier extends BaseNode {
   type: "DomainIdentifier";
-  value: Identifier;
-  domain: Identifier;
+  value: string;
+  domain: string;
 }
 
 export interface Declaration extends BaseNode {
@@ -230,6 +230,12 @@ export interface RulePostlude extends BaseNode {
   always: Node[] | null;
 }
 
+export interface GuardCondition extends BaseNode {
+  type: "GuardCondition";
+  condition: "on final" | Node;
+  statement: Node;
+}
+
 export interface PersistentVariableAssignment extends BaseNode {
   type: "PersistentVariableAssignment";
   op: ":=";
@@ -314,6 +320,7 @@ export type Node =
   | ActionBlock
   | Action
   | RulePostlude
+  | GuardCondition
   | PersistentVariableAssignment
   | ClearPersistentVariable
   | RaiseEventStatement

@@ -201,6 +201,18 @@ function chompIdentifier(state: State): ast.Identifier {
   return id;
 }
 
+function chompDomainIdentifier(state: State): ast.DomainIdentifier {
+  let domain = chompIdentifier(state);
+  chomp(state, "RAW", ":");
+  let value = chompIdentifier(state);
+  return {
+    loc: { start: domain.loc.start, end: value.loc.end },
+    type: "DomainIdentifier",
+    domain: domain.value,
+    value: value.value
+  };
+}
+
 function chompIdentifier_or_DomainIdentifier(
   state: State
 ): ast.Identifier | ast.DomainIdentifier {
@@ -213,8 +225,8 @@ function chompIdentifier_or_DomainIdentifier(
   return {
     loc: { start: domain.loc.start, end: value.loc.end },
     type: "DomainIdentifier",
-    domain,
-    value
+    domain: domain.value,
+    value: value.value
   };
 }
 
@@ -848,21 +860,76 @@ function postludeStatements(state: State): { stmts: ast.Node[]; end: number } {
   return { stmts, end };
 }
 
+function pathExpression(state: State): ast.Node | null {
+  if (!chompMaybe(state, "RAW", "{")) return null;
+  const expr = expression(state);
+  chomp(state, "RAW", "}");
+  return expr;
+}
+
 function postludeStatement(state: State): ast.Node {
+  const stmt = postludeStatementCore(state);
+
+  const [on, final] = lookahead(state, 2);
+  if (
+    on.type === "SYMBOL" &&
+    on.src === "on" &&
+    final.type === "SYMBOL" &&
+    final.src === "final"
+  ) {
+    chomp(state, "SYMBOL", "on");
+    const end = state.curr.token.loc.end;
+    chomp(state, "SYMBOL", "final");
+    return {
+      loc: { start: stmt.loc.start, end },
+      type: "GuardCondition",
+      condition: "on final",
+      statement: stmt
+    };
+  }
+
+  if (chompMaybe(state, "SYMBOL", "if")) {
+    const condition = expression(state);
+    return {
+      loc: { start: stmt.loc.start, end: condition.loc.end },
+      type: "GuardCondition",
+      condition,
+      statement: stmt
+    };
+  }
+
+  return stmt;
+}
+
+function postludeStatementCore(state: State): ast.Node {
   if (state.curr.token.type === "SYMBOL") {
     switch (state.curr.token.src) {
-      case "clear":
+      case "clear": {
+        advance(state);
+        const pvar = chompDomainIdentifier(state);
+        const path = pathExpression(state);
+        return {
+          loc: pvar.loc,
+          type: "ClearPersistentVariable",
+          variable: pvar,
+          path_expression: path
+        };
+      }
+
       case "raise":
       case "schedule":
       case "log":
       case "error":
-      case "last":
-      // clear    | ClearPersistentVariable {% id %}
-      // raise    | RaiseEventStatement {% id %}
-      // schedule | ScheduleEventStatement {% id %}
-      // log      | LogStatement {% id %}
-      // error    | ErrorStatement {% id %}
-      // last     | LastStatement {% id %}
+        // raise    | RaiseEventStatement {% id %}
+        // schedule | ScheduleEventStatement {% id %}
+        // log      | LogStatement {% id %}
+        // error    | ErrorStatement {% id %}
+        break;
+      case "last": {
+        const loc = state.curr.token.loc;
+        advance(state);
+        return { loc, type: "LastStatement" };
+      }
     }
   }
 
@@ -959,10 +1026,23 @@ defRule("(end)", {});
 defRule(".", {});
 defRule(",", {});
 defRule(";", {});
+defRule(":", {});
 defRule("-", {});
 defRule("{", {});
 defRule("}", {});
 defRule("(", {
+  nud(state) {
+    advance(state);
+    const e = expression(state, 0);
+    if (state.curr.token.type !== "RAW" || state.curr.token.src !== ")") {
+      throw new ParseError(
+        "Expected `)` to close expression group",
+        state.curr.token
+      );
+    }
+    return e;
+  },
+
   lbp: 80,
   led(state, token, left) {
     const args = chompArgumentsBase(state, token.loc.start);

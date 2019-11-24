@@ -878,3 +878,83 @@ test("RulePostlude", t => {
     always: []
   });
 });
+
+function makeTestPostlude(t: any) {
+  return function(srcCore: string, expected: any) {
+    var src = "rule a{ fired{" + srcCore + "}}";
+
+    t.deepEqual(
+      parseRulesetBody(
+        src,
+        rs => rs.rules[0].postlude && rs.rules[0].postlude.fired
+      ),
+      expected
+    );
+  };
+}
+
+test("ClearPersistentVariable", t => {
+  var testPostlude = makeTestPostlude(t);
+
+  testPostlude("clear ent:foo", [
+    {
+      type: "ClearPersistentVariable",
+      variable: mk.dID("ent", "foo"),
+      path_expression: null
+    }
+  ]);
+
+  testPostlude("clear app:bar", [
+    {
+      type: "ClearPersistentVariable",
+      variable: mk.dID("app", "bar"),
+      path_expression: null
+    }
+  ]);
+
+  testPostlude("clear app:bar{key}", [
+    {
+      type: "ClearPersistentVariable",
+      variable: mk.dID("app", "bar"),
+      path_expression: mk.id("key")
+    }
+  ]);
+
+  testPostlude("clear app:bar{[key]}", [
+    {
+      type: "ClearPersistentVariable",
+      variable: mk.dID("app", "bar"),
+      path_expression: { type: "Array", value: [mk.id("key")] }
+    }
+  ]);
+});
+
+test("LastStatement", t => {
+  var testPostlude = makeTestPostlude(t);
+
+  testPostlude("last", [
+    {
+      type: "LastStatement"
+    }
+  ]);
+
+  testPostlude("last if(x==4)", [
+    {
+      type: "GuardCondition",
+      condition: mk.op("==", mk.id("x"), mk(4)),
+      statement: {
+        type: "LastStatement"
+      }
+    }
+  ]);
+
+  testPostlude("last if x == 4", [
+    {
+      type: "GuardCondition",
+      condition: mk.op("==", mk.id("x"), mk(4)),
+      statement: {
+        type: "LastStatement"
+      }
+    }
+  ]);
+});
