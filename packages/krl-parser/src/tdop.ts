@@ -1056,11 +1056,23 @@ function postludeStatementCore(state: State): ast.Node {
 
   switch (easyLookahead(state, 4)) {
     case "SYMBOL:SYMBOL:=":
-    case "SYMBOL:SYMBOL{":
-      // PersistentVariableAssignment
-      //
-      // DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression
-      break;
+    case "SYMBOL:SYMBOL{": {
+      const loc = state.curr.token.loc;
+
+      const left = chompDomainIdentifier(state);
+      const path_expression = pathExpression(state);
+      chomp(state, "RAW", ":=");
+      const right = expression(state);
+
+      return {
+        loc,
+        type: "PersistentVariableAssignment",
+        op: ":=",
+        left,
+        path_expression,
+        right
+      };
+    }
   }
 
   return statement(state);
@@ -1165,6 +1177,7 @@ defRule(".", {});
 defRule(",", {});
 defRule(";", {});
 defRule(":", {});
+defRule(":=", {});
 defRule("-", {});
 defRule("{", {
   nud(state) {

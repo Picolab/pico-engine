@@ -1250,19 +1250,19 @@ test("GuardCondition", t => {
     }
   ]);
 
-  //   testPost("ent:foo := bar on final", [
-  //     {
-  //       type: "GuardCondition",
-  //       condition: "on final",
-  //       statement: {
-  //         type: "PersistentVariableAssignment",
-  //         op: ":=",
-  //         left: mk.dID("ent", "foo"),
-  //         path_expression: null,
-  //         right: mk.id("bar")
-  //       }
-  //     }
-  //   ]);
+  testPost("ent:foo := bar on final", [
+    {
+      type: "GuardCondition",
+      condition: "on final",
+      statement: {
+        type: "PersistentVariableAssignment",
+        op: ":=",
+        left: mk.dID("ent", "foo"),
+        path_expression: null,
+        right: mk.id("bar")
+      }
+    }
+  ]);
 
   testPost("foo = bar on final", [
     {
@@ -1280,19 +1280,19 @@ test("GuardCondition", t => {
     }
   ]);
 
-  //   testPost("ent:foo := bar if baz > 0", [
-  //     {
-  //       type: "GuardCondition",
-  //       condition: mk.op(">", mk.id("baz"), mk(0)),
-  //       statement: {
-  //         type: "PersistentVariableAssignment",
-  //         op: ":=",
-  //         left: mk.dID("ent", "foo"),
-  //         path_expression: null,
-  //         right: mk.id("bar")
-  //       }
-  //     }
-  //   ]);
+  testPost("ent:foo := bar if baz > 0", [
+    {
+      type: "GuardCondition",
+      condition: mk.op(">", mk.id("baz"), mk(0)),
+      statement: {
+        type: "PersistentVariableAssignment",
+        op: ":=",
+        left: mk.dID("ent", "foo"),
+        path_expression: null,
+        right: mk.id("bar")
+      }
+    }
+  ]);
 
   testPost('raise domain event "type" if baz > 0', [
     {
@@ -1305,6 +1305,30 @@ test("GuardCondition", t => {
         for_rid: null,
         event_attrs: null
       }
+    }
+  ]);
+});
+
+test("PersistentVariableAssignment", t => {
+  const testPostlude = makeTestPostlude(t);
+
+  testPostlude("ent:name := 1", [
+    {
+      type: "PersistentVariableAssignment",
+      op: ":=",
+      left: mk.dID("ent", "name"),
+      path_expression: null,
+      right: mk(1)
+    }
+  ]);
+
+  testPostlude('ent:user{["firstname"]} := "bob"', [
+    {
+      type: "PersistentVariableAssignment",
+      op: ":=",
+      left: mk.dID("ent", "user"),
+      path_expression: mk(["firstname"]),
+      right: mk("bob")
     }
   ]);
 });
