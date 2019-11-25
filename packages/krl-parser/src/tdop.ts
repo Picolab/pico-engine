@@ -36,7 +36,8 @@ interface Rule {
 const rules: { [id: string]: Rule } = {};
 
 function defRule(id: string, rule: Partial<Omit<Rule, "id">>) {
-  rules[id] = { id, lbp: 0, ...rule };
+  const base: Rule = rules[id] || { id, lbp: 0 };
+  rules[id] = { ...base, ...rule };
 }
 
 function advanceBase(
@@ -225,7 +226,7 @@ function chompIdentifier_or_DomainIdentifier(
 }
 
 function rulesetID(state: State): ast.RulesetID {
-  if (state.curr.rule.id !== "SYMBOL") {
+  if (state.curr.token.type !== "SYMBOL") {
     throw new ParseError("Expected RulesetID", state.curr.token);
   }
   let rid = state.curr.token.src;
@@ -733,7 +734,7 @@ function actionBlock(state: State): ast.ActionBlock {
       case "choose":
         block_type = state.curr.token.src;
         advance(state);
-        discriminant = expression(state);
+        discriminant = expression(state, 100);
         actions = actionList(state);
         break;
       default:
@@ -1110,6 +1111,46 @@ function statement(state: State): ast.Statement {
   };
 }
 
+function parameters(state: State): ast.Parameters {
+  const start = state.curr.token.loc.start;
+  const params: ast.Parameter[] = [];
+  chomp(state, "RAW", "(");
+  while (state.curr.token_i < state.tokens.length) {
+    if (state.curr.token.type === "RAW" && state.curr.token.src === ")") {
+      break;
+    }
+    params.push(parameter(state));
+
+    if (chompMaybe(state, "RAW", ",")) {
+      continue;
+    } else {
+      break;
+    }
+  }
+  const end = state.curr.token.loc.end;
+  chomp(state, "RAW", ")");
+
+  return {
+    loc: { start, end },
+    type: "Parameters",
+    params
+  };
+}
+
+function parameter(state: State): ast.Parameter {
+  const id = chompIdentifier(state);
+  let dflt: ast.Node | null = null;
+  if (chompMaybe(state, "RAW", "=")) {
+    dflt = expression(state);
+  }
+  return {
+    loc: id.loc,
+    type: "Parameter",
+    id,
+    default: dflt
+  };
+}
+
 function chompArguments(state: State): ast.Arguments {
   const start = state.curr.token.loc.start;
   chomp(state, "RAW", "(");
@@ -1175,10 +1216,35 @@ function infix(op: string, bp: number) {
   });
 }
 
+function prefix(op: string, rbp: number) {
+  defRule(op, {
+    nud(state) {
+      const loc = state.curr.token.loc;
+      const op = state.curr.token.src;
+      advance(state);
+      const arg = expression(state, rbp);
+
+      return { loc, type: "UnaryOperator", op, arg };
+    }
+  });
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 defRule("(end)", {});
-defRule(".", {});
+defRule(".", {
+  lbp: 80,
+  led(state, token, left): ast.MemberExpression {
+    const property = chompIdentifier_or_DomainIdentifier(state);
+    return {
+      loc: { start: left.loc.start, end: property.loc.end },
+      type: "MemberExpression",
+      object: left,
+      method: "dot",
+      property
+    };
+  }
+});
 defRule(",", {});
 defRule(";", {});
 defRule(":", {});
@@ -1216,6 +1282,20 @@ defRule("{", {
       type: "Map",
       value
     };
+  },
+
+  lbp: 80,
+  led(state, token, left) {
+    const property = expression(state, 0);
+    const end = state.curr.token.loc.end;
+    chomp(state, "RAW", "}");
+    return {
+      loc: { start: left.loc.start, end },
+      type: "MemberExpression",
+      object: left,
+      method: "path",
+      property
+    };
   }
 });
 defRule("}", {});
@@ -1232,7 +1312,7 @@ defRule("(", {
     return e;
   },
 
-  lbp: 80,
+  lbp: 90,
   led(state, token, left) {
     const args = chompArgumentsBase(state, token.loc.start);
     return {
@@ -1245,7 +1325,26 @@ defRule("(", {
 });
 defRule(")", {});
 defRule("=", {});
-defRule("=>", {});
+defRule("|", {});
+defRule("=>", {
+  lbp: 10,
+  led(state, token, left) {
+    const consequent = expression(state, 10);
+    chomp(state, "RAW", "|");
+    const alternate = expression(state, 0);
+    return {
+      loc: { start: left.loc.start, end: alternate.loc.end },
+      type: "ConditionalExpression",
+      test: left,
+      consequent,
+      alternate
+    };
+  }
+});
+
+infix("||", 20);
+
+infix("&&", 30);
 
 infix("==", 40);
 infix("!=", 40);
@@ -1253,6 +1352,21 @@ infix("<", 40);
 infix("<=", 40);
 infix(">", 40);
 infix(">=", 40);
+infix("like", 40);
+infix("><", 40);
+infix("<=>", 40);
+infix("cmp", 40);
+
+infix("+", 50);
+infix("-", 50);
+
+infix("*", 60);
+infix("/", 60);
+infix("%", 60);
+
+prefix("+", 70);
+prefix("-", 70);
+prefix("not", 70);
 
 defRule("[", {
   nud(state) {
@@ -1279,9 +1393,51 @@ defRule("[", {
       type: "Array",
       value
     };
+  },
+
+  lbp: 80,
+  led(state, token, left) {
+    const property = expression(state, 0);
+    const end = state.curr.token.loc.end;
+    chomp(state, "RAW", "]");
+    return {
+      loc: { start: left.loc.start, end },
+      type: "MemberExpression",
+      object: left,
+      method: "index",
+      property
+    };
   }
 });
 defRule("]", {});
+
+defRule("function", {
+  nud(state) {
+    const loc = state.curr.token.loc;
+    advance(state);
+
+    const params = parameters(state);
+
+    const body: ast.Statement[] = [];
+    chomp(state, "RAW", "{");
+    while (state.curr.token_i < state.tokens.length) {
+      if (state.curr.token.type === "RAW" && state.curr.token.src === "}") {
+        break;
+      }
+      body.push(statement(state));
+
+      chompMaybe(state, "RAW", ";");
+    }
+    chomp(state, "RAW", "}");
+
+    return {
+      loc,
+      type: "Function",
+      params,
+      body
+    };
+  }
+});
 
 defRule("true", {
   nud(state) {

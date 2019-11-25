@@ -104,6 +104,43 @@ export interface InfixOperator extends BaseNode {
   right: Node;
 }
 
+export interface UnaryOperator extends BaseNode {
+  type: "UnaryOperator";
+  op: string;
+  arg: Node;
+}
+
+interface ConditionalExpression extends BaseNode {
+  type: "ConditionalExpression";
+  test: Node;
+  consequent: Node;
+  alternate: Node;
+}
+
+export interface MemberExpression extends BaseNode {
+  type: "MemberExpression";
+  object: Node;
+  method: "index" | "dot" | "path";
+  property: Node;
+}
+
+export interface Function extends BaseNode {
+  type: "Function";
+  params: Parameters;
+  body: Statement[];
+}
+
+export interface Parameters extends BaseNode {
+  type: "Parameters";
+  params: Parameter[];
+}
+
+export interface Parameter extends BaseNode {
+  type: "Parameter";
+  id: Identifier;
+  default: Node | null;
+}
+
 export interface Application extends BaseNode {
   type: "Application";
   callee: Node;
@@ -312,9 +349,16 @@ export type Node =
   | Keyword
   | KrlRegExp
   | Identifier
+  | DomainIdentifier
   | Declaration
   | ExpressionStatement
   | InfixOperator
+  | UnaryOperator
+  | ConditionalExpression
+  | MemberExpression
+  | Function
+  | Parameters
+  | Parameter
   | Application
   | Array
   | Map

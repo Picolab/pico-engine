@@ -114,78 +114,391 @@ test("parser - basic expression", t => {
       { type: "String", value: "three" }
     ]
   });
+});
 
-  // testLiteral('', {
-  //   type: 'Chevron',
-  //   value: [
-  //     { type: 'String', value: 'one' },
-  //     { type: 'Map',
-  //       value: [
-  //         {
-  //           type: 'MapKeyValuePair',
-  //           key: { type: 'String', value: 'one' },
-  //           value: { type: 'Number', value: 2 }
-  //         }
-  //       ] },
-  //     { type: 'String', value: 'three' }
-  //   ]
-  // })
+test("literals", function(t) {
+  var testLiteral = function(src: string, expected: any) {
+    const node = rmLoc(parseExpression(tokenizer(src)));
+    t.deepEqual(rmLoc(node), expected);
+  };
 
-  // testLiteral('<< This #{ x{"flip"} } that >>', {
-  //   type: 'Chevron',
-  //   value: [
-  //     { type: 'String', value: ' This ' },
-  //     {
-  //       type: 'MemberExpression',
-  //       object: mk.id('x'),
-  //       property: mk('flip'),
-  //       method: 'path'
-  //     },
-  //     { type: 'String', value: ' that ' }
-  //   ]
-  // })
+  testLiteral('"one"', { type: "String", value: "one" });
+  testLiteral('"one\ntwo"', { type: "String", value: "one\ntwo" });
+  testLiteral('"one\\"two"', { type: "String", value: 'one"two' });
 
-  // testLiteral('<< double <<with>\\>in >>', {
-  //   type: 'Chevron',
-  //   value: [
-  //     { type: 'String', value: ' double <<with>>in ' }
-  //   ]
-  // })
+  testLiteral("123", { type: "Number", value: 123 });
+  testLiteral("-1", mk.unary("-", { type: "Number", value: 1 }));
+  testLiteral("1.5", { type: "Number", value: 1.5 });
+  testLiteral("+1.5", mk.unary("+", { type: "Number", value: 1.5 }));
+  testLiteral("-.50", mk.unary("-", { type: "Number", value: 0.5 }));
+  testLiteral("-0.0", mk.unary("-", { type: "Number", value: 0 }));
 
-  // testLiteral('<<one#{<<two#{three}>>}>>', {
-  //   type: 'Chevron',
-  //   value: [
-  //     { type: 'String', value: 'one' },
-  //     { type: 'Chevron',
-  //       value: [
-  //         { type: 'String', value: 'two' },
-  //         { type: 'Identifier', value: 'three' }
-  //       ] }
-  //   ]
-  // })
+  testLiteral("true", { type: "Boolean", value: true });
+  testLiteral("false", { type: "Boolean", value: false });
+
+  testLiteral("[]", { type: "Array", value: [] });
+  testLiteral('["one"]', {
+    type: "Array",
+    value: [{ type: "String", value: "one" }]
+  });
+  testLiteral("[  1,  false ]", {
+    type: "Array",
+    value: [
+      { type: "Number", value: 1 },
+      { type: "Boolean", value: false }
+    ]
+  });
+
+  // allow dangling comma
+  testLiteral("[ 1, ]", {
+    type: "Array",
+    value: [{ type: "Number", value: 1 }]
+  });
+  testLiteral('{ "one" : "two", }', {
+    type: "Map",
+    value: [
+      {
+        type: "MapKeyValuePair",
+        key: { type: "String", value: "one" },
+        value: { type: "String", value: "two" }
+      }
+    ]
+  });
+
+  testLiteral("{}", { type: "Map", value: [] });
+  testLiteral('{ "one" : "two" }', {
+    type: "Map",
+    value: [
+      {
+        type: "MapKeyValuePair",
+        key: { type: "String", value: "one" },
+        value: { type: "String", value: "two" }
+      }
+    ]
+  });
+  testLiteral('{"1":2,"3":true,"5":[]}', {
+    type: "Map",
+    value: [
+      {
+        type: "MapKeyValuePair",
+        key: { type: "String", value: "1" },
+        value: { type: "Number", value: 2 }
+      },
+      {
+        type: "MapKeyValuePair",
+        key: { type: "String", value: "3" },
+        value: { type: "Boolean", value: true }
+      },
+      {
+        type: "MapKeyValuePair",
+        key: { type: "String", value: "5" },
+        value: { type: "Array", value: [] }
+      }
+    ]
+  });
+
+  testLiteral("re#one#", { type: "RegExp", value: /one/ });
+  testLiteral("re#one#i", { type: "RegExp", value: /one/i });
+  testLiteral("re#one#ig", { type: "RegExp", value: /one/gi });
+  testLiteral("re#^one(/two)? .* $#ig", {
+    type: "RegExp",
+    value: /^one(\/two)? .* $/gi
+  });
+  testLiteral("re#\\# else\\\\#ig", { type: "RegExp", value: /# else\\/gi });
+  testLiteral("re#/ok/g#ig", { type: "RegExp", value: /\/ok\/g/gi });
+  testLiteral("re##", { type: "RegExp", value: new RegExp("", "") });
+
+  testLiteral("<<>>", {
+    type: "Chevron",
+    value: []
+  });
+  testLiteral("<<\n  hello\n  >>", {
+    type: "Chevron",
+    value: [{ type: "String", value: "\n  hello\n  " }]
+  });
+  testLiteral("<<#{1}>>", {
+    type: "Chevron",
+    value: [{ type: "Number", value: 1 }]
+  });
+
+  testLiteral("<<one#{2}three>>", {
+    type: "Chevron",
+    value: [
+      { type: "String", value: "one" },
+      { type: "Number", value: 2 },
+      { type: "String", value: "three" }
+    ]
+  });
+
+  testLiteral('<<one#{{"one":2}}three>>', {
+    type: "Chevron",
+    value: [
+      { type: "String", value: "one" },
+      {
+        type: "Map",
+        value: [
+          {
+            type: "MapKeyValuePair",
+            key: { type: "String", value: "one" },
+            value: { type: "Number", value: 2 }
+          }
+        ]
+      },
+      { type: "String", value: "three" }
+    ]
+  });
+
+  testLiteral('<< This #{ x{"flip"} } that >>', {
+    type: "Chevron",
+    value: [
+      { type: "String", value: " This " },
+      {
+        type: "MemberExpression",
+        object: mk.id("x"),
+        property: mk("flip"),
+        method: "path"
+      },
+      { type: "String", value: " that " }
+    ]
+  });
+
+  testLiteral("<< double <<with>\\>in >>", {
+    type: "Chevron",
+    value: [{ type: "String", value: " double <<with>>in " }]
+  });
+
+  testLiteral("<<one#{<<two#{three}>>}>>", {
+    type: "Chevron",
+    value: [
+      { type: "String", value: "one" },
+      {
+        type: "Chevron",
+        value: [
+          { type: "String", value: "two" },
+          { type: "Identifier", value: "three" }
+        ]
+      }
+    ]
+  });
 
   // testLiteral('<<one#{{"two":function(){<<#{three{four}}five>>}}}>>', {
-  //   type: 'Chevron',
+  //   type: "Chevron",
   //   value: [
-  //     { type: 'String', value: 'one' },
-  //     mk({ two: {
-  //       type: 'Function',
-  //       params: mk.params([]),
-  //       body: [
-  //         {
-  //           type: 'ExpressionStatement',
-  //           expression: {
-  //             type: 'Chevron',
-  //             value: [
-  //               mk.get(mk.id('three'), mk.id('four'), 'path'),
-  //               { type: 'String', value: 'five' }
-  //             ]
+  //     { type: "String", value: "one" },
+  //     mk({
+  //       two: {
+  //         type: "Function",
+  //         params: mk.params([]),
+  //         body: [
+  //           {
+  //             type: "ExpressionStatement",
+  //             expression: {
+  //               type: "Chevron",
+  //               value: [
+  //                 mk.get(mk.id("three"), mk.id("four"), "path"),
+  //                 { type: "String", value: "five" }
+  //               ]
+  //             }
   //           }
-  //         }
-  //       ]
-  //     } })
+  //         ]
+  //       }
+  //     })
   //   ]
-  // })
+  // });
+});
+
+test("expressions", function(t) {
+  function testExp(src: string, expected: any) {
+    const node = rmLoc(parseExpression(tokenizer(src)));
+    t.deepEqual(rmLoc(node), expected);
+  }
+
+  testExp("one()", {
+    type: "Application",
+    callee: { type: "Identifier", value: "one" },
+    args: { type: "Arguments", args: [] }
+  });
+  testExp("one ( 1 , 2 )", mk.app(mk.id("one"), [mk(1), mk(2)]));
+  testExp("one (1,2)", mk.app(mk.id("one"), [mk(1), mk(2)]));
+  testExp(
+    "one(1, 2, a = 3, b = 4)",
+    mk.app(mk.id("one"), [mk(1), mk(2), mk.arg("a", mk(3)), mk.arg("b", mk(4))])
+  );
+
+  testExp('1 + "two"', {
+    type: "InfixOperator",
+    op: "+",
+    left: { type: "Number", value: 1 },
+    right: { type: "String", value: "two" }
+  });
+
+  testExp("1 like re#one#i", {
+    type: "InfixOperator",
+    op: "like",
+    left: { type: "Number", value: 1 },
+    right: { type: "RegExp", value: /one/i }
+  });
+
+  testExp("a => b | c", {
+    type: "ConditionalExpression",
+    test: { type: "Identifier", value: "a" },
+    consequent: { type: "Identifier", value: "b" },
+    alternate: { type: "Identifier", value: "c" }
+  });
+
+  testExp("a => b | c => d | e", {
+    type: "ConditionalExpression",
+    test: { type: "Identifier", value: "a" },
+    consequent: { type: "Identifier", value: "b" },
+    alternate: {
+      type: "ConditionalExpression",
+      test: { type: "Identifier", value: "c" },
+      consequent: { type: "Identifier", value: "d" },
+      alternate: { type: "Identifier", value: "e" }
+    }
+  });
+
+  testExp("a=>b|c=>d|e", {
+    type: "ConditionalExpression",
+    test: { type: "Identifier", value: "a" },
+    consequent: { type: "Identifier", value: "b" },
+    alternate: {
+      type: "ConditionalExpression",
+      test: { type: "Identifier", value: "c" },
+      consequent: { type: "Identifier", value: "d" },
+      alternate: { type: "Identifier", value: "e" }
+    }
+  });
+
+  testExp("function (){}", {
+    type: "Function",
+    params: mk.params([]),
+    body: []
+  });
+  testExp("function(a){b}", {
+    type: "Function",
+    params: mk.params(["a"]),
+    body: [
+      {
+        type: "ExpressionStatement",
+        expression: mk.id("b")
+      }
+    ]
+  });
+
+  // Declarations are not expressions
+  let err = t.throws(() => testExp('a = "one"', {}));
+  t.is(err + "", "ParseError: Expected `(end)` but was =");
+
+  testExp("a[1]", {
+    type: "MemberExpression",
+    object: mk.id("a"),
+    property: mk(1),
+    method: "index"
+  });
+
+  testExp("matrix[i][j]", {
+    type: "MemberExpression",
+    object: {
+      type: "MemberExpression",
+      object: mk.id("matrix"),
+      property: mk.id("i"),
+      method: "index"
+    },
+    property: mk.id("j"),
+    method: "index"
+  });
+
+  testExp('foo{"bar"}', {
+    type: "MemberExpression",
+    object: mk.id("foo"),
+    property: mk("bar"),
+    method: "path"
+  });
+
+  testExp(
+    'foo{"bar"}()',
+    mk.app({
+      type: "MemberExpression",
+      object: mk.id("foo"),
+      property: mk("bar"),
+      method: "path"
+    })
+  );
+
+  testExp("one.two", {
+    type: "MemberExpression",
+    object: mk.id("one"),
+    property: mk.id("two"),
+    method: "dot"
+  });
+
+  testExp(
+    "one.two()",
+    mk.app({
+      type: "MemberExpression",
+      object: mk.id("one"),
+      property: mk.id("two"),
+      method: "dot"
+    })
+  );
+
+  testExp("one().two", {
+    type: "MemberExpression",
+    object: mk.app(mk.id("one")),
+    property: mk.id("two"),
+    method: "dot"
+  });
+
+  testExp(
+    "one().two()",
+    mk.app({
+      type: "MemberExpression",
+      object: mk.app(mk.id("one")),
+      property: mk.id("two"),
+      method: "dot"
+    })
+  );
+
+  testExp(
+    "1.isnull()",
+    mk.app({
+      type: "MemberExpression",
+      object: mk(1),
+      property: mk.id("isnull"),
+      method: "dot"
+    })
+  );
+
+  testExp("not a", mk.unary("not", mk.id("a")));
+  testExp("nota", mk.id("nota"));
+  // testExp(
+  //   "not not a || b",
+  //   mk.op("||", mk.unary("not", mk.unary("not", mk.id("a"))), mk.id("b"))
+  // );
+  // testExp(
+  //   "not (not a || b)",
+  //   mk.unary("not", mk.op("||", mk.unary("not", mk.id("a")), mk.id("b")))
+  // );
+
+  testExp("function(a){b = 1;a = 1;}", {
+    type: "Function",
+    params: mk.params(["a"]),
+    body: [
+      mk.declare("=", mk.id("b"), mk(1)),
+      mk.declare("=", mk.id("a"), mk(1))
+      // Parser will allow this to end with a Declaration
+      // The compiler will catch this and give a better error message
+    ]
+  });
+  testExp("function(a){b = 1;a(b);}", {
+    type: "Function",
+    params: mk.params(["a"]),
+    body: [
+      mk.declare("=", mk.id("b"), mk(1)),
+      mk.estmt(mk.app(mk.id("a"), [mk.id("b")]))
+    ]
+  });
 });
 
 test("ruleset", t => {
@@ -710,7 +1023,7 @@ test("ActionBlock", function(t) {
     ]
   });
 
-  src = "choose exp() {\n";
+  src = "choose (exp()) {\n";
   src += "  one => blah(1)\n";
   src += "  two => blah(2)\n";
   src += "}";
@@ -753,7 +1066,7 @@ test("ActionBlock", function(t) {
   );
 
   src = "if foo == 2 then\n";
-  src += "choose bar() {\n";
+  src += "choose (bar()) {\n";
   src += "  one => blah(1)\n";
   src += "  two => blah(2)\n";
   src += "}";
@@ -798,7 +1111,7 @@ test("ActionBlock", function(t) {
     ]
   });
 
-  tstActionBlock("choose b(c){one => foo() two => bar()}", {
+  tstActionBlock("choose (b(c)){one => foo() two => bar()}", {
     type: "ActionBlock",
     condition: null,
     block_type: "choose",
