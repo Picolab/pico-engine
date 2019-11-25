@@ -37,10 +37,6 @@ const rules: { [id: string]: Rule } = {};
 
 function defRule(id: string, rule: Partial<Omit<Rule, "id">>) {
   rules[id] = { id, lbp: 0, ...rule };
-
-  if (!rules[id].lbp) {
-    rules[id].lbp = 0;
-  }
 }
 
 function advanceBase(
@@ -185,7 +181,7 @@ function chompString(state: State): ast.String {
 
 function chompIdentifier(state: State): ast.Identifier {
   if (
-    state.curr.token.type !== "SYMBOL" &&
+    state.curr.token.type !== "SYMBOL" ||
     ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)
   ) {
     throw new ParseError("Expected Identifier", state.curr.token);
@@ -426,7 +422,7 @@ function rulesetMetaProperty(state: State): ast.RulesetMetaProperty | null {
     case "configure":
       {
         chomp(state, "SYMBOL", "using");
-        const declarations = withExprBody(state);
+        const declarations = declarationList(state);
         value = { declarations };
       }
       break;
@@ -476,16 +472,25 @@ function rulesetMetaProperty(state: State): ast.RulesetMetaProperty | null {
 function withExprBody(state: State): ast.Declaration[] {
   const declarations: ast.Declaration[] = [];
 
+  let sawAnAnd = false;
   while (true) {
     if (
-      state.curr.token.type !== "SYMBOL" ||
-      ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)
+      !sawAnAnd &&
+      (state.curr.token.type !== "SYMBOL" ||
+        ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src))
     ) {
       break;
     }
     declarations.push(declaration(state));
 
-    chompMaybe(state, "SYMBOL", "and");
+    sawAnAnd = chompMaybe(state, "SYMBOL", "and");
+  }
+
+  if (declarations.length === 0) {
+    throw new ParseError(
+      "Expected declarations after `with`",
+      state.curr.token
+    );
   }
 
   return declarations;

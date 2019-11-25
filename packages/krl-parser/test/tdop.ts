@@ -459,6 +459,47 @@ test("Ruleset meta", t => {
   );
 });
 
+test("with", function(t) {
+  function tst(src: string, expected: any) {
+    const node = parseRulesetBody(
+      `meta{use module m ${src}}`,
+      rs => rs.meta && rs.meta.properties[0].value["with"]
+    );
+    t.deepEqual(node, expected);
+  }
+
+  tst("with", "ParseError: Expected declarations after `with`|RAW|}|32");
+
+  tst('with a = "b"', [mk.declare("=", mk.id("a"), mk("b"))]);
+  tst('with a = "b" c = "d"', [
+    mk.declare("=", mk.id("a"), mk("b")),
+    mk.declare("=", mk.id("c"), mk("d"))
+  ]);
+  tst('with a = "b" and = "d"', "ParseError: Expected Identifier|RAW|=|45");
+  tst('with a = "b" and c = "d"', [
+    mk.declare("=", mk.id("a"), mk("b")),
+    mk.declare("=", mk.id("c"), mk("d"))
+  ]);
+  tst('with a = "b" and c = "d" and e = 1', [
+    mk.declare("=", mk.id("a"), mk("b")),
+    mk.declare("=", mk.id("c"), mk("d")),
+    mk.declare("=", mk.id("e"), mk(1))
+  ]);
+
+  tst('with a = "b" and c = "d" e = 1', [
+    mk.declare("=", mk.id("a"), mk("b")),
+    mk.declare("=", mk.id("c"), mk("d")),
+    mk.declare("=", mk.id("e"), mk(1))
+  ]);
+  tst('with a = "b" c = "d" and e = 1', [
+    mk.declare("=", mk.id("a"), mk("b")),
+    mk.declare("=", mk.id("c"), mk("d")),
+    mk.declare("=", mk.id("e"), mk(1))
+  ]);
+
+  tst('with a = "b" with c = "d"', "ParseError: Expected `=`|SYMBOL|c|46");
+});
+
 test("Rule", t => {
   function ruleState(src: string) {
     return parseRulesetBody(src, n => n.rules[0].rule_state);
@@ -763,6 +804,44 @@ test("ActionBlock", function(t) {
     block_type: "choose",
     discriminant: mk.app(mk.id("b"), [mk.id("c")]),
     actions: [mk.action("one", "foo", []), mk.action("two", "bar", [])]
+  });
+});
+
+test("Action setting", t => {
+  var testAction = function(abSrc: string, expected: any) {
+    var src = "rule r1{select when foo bar " + abSrc + "}";
+
+    t.deepEqual(
+      parseRulesetBody(
+        src,
+        rs => rs.rules[0].action_block && rs.rules[0].action_block.actions[0]
+      ),
+      expected
+    );
+  };
+
+  testAction('http:post("url", qs = {"foo": "bar"})', {
+    type: "Action",
+    label: null,
+    action: mk.dID("http", "post"),
+    args: mk.args([mk("url"), mk.arg("qs", mk({ foo: mk("bar") }))]),
+    setting: []
+  });
+
+  testAction('http:post("url") setting(resp)', {
+    type: "Action",
+    label: null,
+    action: mk.dID("http", "post"),
+    args: mk.args([mk("url")]),
+    setting: [mk.id("resp")]
+  });
+
+  testAction('http:post("url", qs = {"foo": "bar"}) setting(resp)', {
+    type: "Action",
+    label: null,
+    action: mk.dID("http", "post"),
+    args: mk.args([mk("url"), mk.arg("qs", mk({ foo: mk("bar") }))]),
+    setting: [mk.id("resp")]
   });
 });
 
