@@ -121,15 +121,13 @@ function lookahead(state: State, n: number): Token[] {
       throw new ParseError("Unsupported characters", token);
     }
     if (
-      token.type === "WHITESPACE" ||
-      token.type === "LINE-COMMENT" ||
-      token.type === "BLOCK-COMMENT"
+      token.type !== "WHITESPACE" &&
+      token.type !== "LINE-COMMENT" &&
+      token.type !== "BLOCK-COMMENT"
     ) {
-      i++;
-      continue;
+      found.push(token);
     }
-
-    found.push(token);
+    i++;
   }
 
   return found;
@@ -916,7 +914,47 @@ function postludeStatementCore(state: State): ast.Node {
         };
       }
 
-      case "raise":
+      case "raise": {
+        const loc = state.curr.token.loc;
+        state = advance(state);
+
+        let event_domain: ast.Node | undefined;
+        let event_type: ast.Node | undefined;
+        let event_domainAndType: ast.Node | undefined;
+
+        if (chompMaybe(state, "SYMBOL", "event")) {
+          event_domainAndType = expression(state);
+        } else {
+          event_domain = chompIdentifier(state);
+          chomp(state, "SYMBOL", "event");
+          event_type = expression(state);
+        }
+
+        let for_rid: ast.Node | null = null;
+        if (chompMaybe(state, "SYMBOL", "for")) {
+          for_rid = expression(state);
+        }
+
+        let event_attrs: ast.Node | null = null;
+        if (chompMaybe(state, "SYMBOL", "attributes")) {
+          event_attrs = expression(state);
+        }
+
+        const node: ast.RaiseEventStatement = {
+          loc,
+          type: "RaiseEventStatement",
+          event_attrs,
+          for_rid
+        };
+
+        if (event_domainAndType) {
+          node.event_domainAndType = event_domainAndType;
+        } else {
+          node.event_type = event_type;
+          node.event_domain = event_domain;
+        }
+        return node;
+      }
       case "schedule":
         // raise    | RaiseEventStatement {% id %}
         // schedule | ScheduleEventStatement {% id %}
@@ -1128,6 +1166,11 @@ defRule("=", {});
 defRule("=>", {});
 
 infix("==", 40);
+infix("!=", 40);
+infix("<", 40);
+infix("<=", 40);
+infix(">", 40);
+infix(">=", 40);
 
 defRule("[", {
   nud(state) {

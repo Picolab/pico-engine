@@ -1016,78 +1016,171 @@ test("ErrorStatement", t => {
   ]);
 });
 
-// test("GuardCondition", t => {
-//   const testPost = makeTestPostlude(t);
+test("raise event", t => {
+  const testPostlude = makeTestPostlude(t);
 
-//   testPost('raise domain event "type" on final', [
-//     {
-//       type: "GuardCondition",
-//       condition: "on final",
-//       statement: {
-//         type: "RaiseEventStatement",
-//         event_domain: mk.id("domain"),
-//         event_type: mk("type"),
-//         for_rid: null,
-//         event_attrs: null
-//       }
-//     }
-//   ]);
+  testPostlude('raise domain event "type"', [
+    {
+      type: "RaiseEventStatement",
+      event_domain: mk.id("domain"),
+      event_type: mk("type"),
+      for_rid: null,
+      event_attrs: null
+    }
+  ]);
 
-//   testPost("ent:foo := bar on final", [
-//     {
-//       type: "GuardCondition",
-//       condition: "on final",
-//       statement: {
-//         type: "PersistentVariableAssignment",
-//         op: ":=",
-//         left: mk.dID("ent", "foo"),
-//         path_expression: null,
-//         right: mk.id("bar")
-//       }
-//     }
-//   ]);
+  testPostlude('raise domain event "type" for "io.picolabs.test"', [
+    {
+      type: "RaiseEventStatement",
+      event_domain: mk.id("domain"),
+      event_type: mk("type"),
+      for_rid: mk("io.picolabs.test"),
+      event_attrs: null
+    }
+  ]);
 
-//   testPost("foo = bar on final", [
-//     {
-//       type: "GuardCondition",
-//       condition: "on final",
-//       statement: mk.declare("=", mk.id("foo"), mk.id("bar"))
-//     }
-//   ]);
+  testPostlude('raise domain event "type" attributes {"a":1,"b":2}', [
+    {
+      type: "RaiseEventStatement",
+      event_domain: mk.id("domain"),
+      event_type: mk("type"),
+      for_rid: null,
+      event_attrs: mk({ a: mk(1), b: mk(2) })
+    }
+  ]);
 
-//   testPost("foo = bar if baz > 0", [
-//     {
-//       type: "GuardCondition",
-//       condition: mk.op(">", mk.id("baz"), mk(0)),
-//       statement: mk.declare("=", mk.id("foo"), mk.id("bar"))
-//     }
-//   ]);
+  // dynamic event domain and type
 
-//   testPost("ent:foo := bar if baz > 0", [
-//     {
-//       type: "GuardCondition",
-//       condition: mk.op(">", mk.id("baz"), mk(0)),
-//       statement: {
-//         type: "PersistentVariableAssignment",
-//         op: ":=",
-//         left: mk.dID("ent", "foo"),
-//         path_expression: null,
-//         right: mk.id("bar")
-//       }
-//     }
-//   ]);
+  testPostlude('raise event "foo:bar"', [
+    {
+      type: "RaiseEventStatement",
+      event_domainAndType: mk("foo:bar"),
+      for_rid: null,
+      event_attrs: null
+    }
+  ]);
 
-//   testPost('raise domain event "type" if baz > 0', [
-//     {
-//       type: "GuardCondition",
-//       condition: mk.op(">", mk.id("baz"), mk(0)),
-//       statement: {
-//         type: "RaiseEventStatement",
-//         event_domain: mk.id("domain"),
-//         event_type: mk("type"),
-//         for_rid: null,
-//         event_attrs: null
-//       }
-//     }
-//   ]);
-// });
+  testPostlude('raise event "foo:bar" for "some.rid.ok"', [
+    {
+      type: "RaiseEventStatement",
+      event_domainAndType: mk("foo:bar"),
+      for_rid: mk("some.rid.ok"),
+      event_attrs: null
+    }
+  ]);
+
+  testPostlude('raise event "foo:bar" attributes {"a":1,"b":2}', [
+    {
+      type: "RaiseEventStatement",
+      event_domainAndType: mk("foo:bar"),
+      for_rid: null,
+      event_attrs: mk({ a: mk(1), b: mk(2) })
+    }
+  ]);
+
+  testPostlude(
+    'raise event "foo:bar" for "some.rid.ok" attributes {"a":1,"b":2}',
+    [
+      {
+        type: "RaiseEventStatement",
+        event_domainAndType: mk("foo:bar"),
+        for_rid: mk("some.rid.ok"),
+        event_attrs: mk({ a: mk(1), b: mk(2) })
+      }
+    ]
+  );
+
+  testPostlude("raise event event", [
+    {
+      type: "RaiseEventStatement",
+      event_domainAndType: mk.id("event"),
+      for_rid: null,
+      event_attrs: null
+    }
+  ]);
+
+  testPostlude("raise event event attributes {}", [
+    {
+      type: "RaiseEventStatement",
+      event_domainAndType: mk.id("event"),
+      for_rid: null,
+      event_attrs: mk({})
+    }
+  ]);
+});
+
+test("GuardCondition", t => {
+  const testPost = makeTestPostlude(t);
+
+  testPost('raise domain event "type" on final', [
+    {
+      type: "GuardCondition",
+      condition: "on final",
+      statement: {
+        type: "RaiseEventStatement",
+        event_domain: mk.id("domain"),
+        event_type: mk("type"),
+        for_rid: null,
+        event_attrs: null
+      }
+    }
+  ]);
+
+  //   testPost("ent:foo := bar on final", [
+  //     {
+  //       type: "GuardCondition",
+  //       condition: "on final",
+  //       statement: {
+  //         type: "PersistentVariableAssignment",
+  //         op: ":=",
+  //         left: mk.dID("ent", "foo"),
+  //         path_expression: null,
+  //         right: mk.id("bar")
+  //       }
+  //     }
+  //   ]);
+
+  testPost("foo = bar on final", [
+    {
+      type: "GuardCondition",
+      condition: "on final",
+      statement: mk.declare("=", mk.id("foo"), mk.id("bar"))
+    }
+  ]);
+
+  testPost("foo = bar if baz > 0", [
+    {
+      type: "GuardCondition",
+      condition: mk.op(">", mk.id("baz"), mk(0)),
+      statement: mk.declare("=", mk.id("foo"), mk.id("bar"))
+    }
+  ]);
+
+  //   testPost("ent:foo := bar if baz > 0", [
+  //     {
+  //       type: "GuardCondition",
+  //       condition: mk.op(">", mk.id("baz"), mk(0)),
+  //       statement: {
+  //         type: "PersistentVariableAssignment",
+  //         op: ":=",
+  //         left: mk.dID("ent", "foo"),
+  //         path_expression: null,
+  //         right: mk.id("bar")
+  //       }
+  //     }
+  //   ]);
+
+  testPost('raise domain event "type" if baz > 0', [
+    {
+      type: "GuardCondition",
+      condition: mk.op(">", mk.id("baz"), mk(0)),
+      statement: {
+        type: "RaiseEventStatement",
+        event_domain: mk.id("domain"),
+        event_type: mk("type"),
+        for_rid: null,
+        event_attrs: null
+      }
+    }
+  ]);
+});
