@@ -263,7 +263,7 @@ export interface ClearPersistentVariable extends BaseNode {
 
 export interface RaiseEventStatement extends BaseNode {
   type: "RaiseEventStatement";
-  event_domain?: Node;
+  event_domain?: Identifier;
   event_type?: Node;
   event_domainAndType?: Node;
   event_attrs: Node | null;

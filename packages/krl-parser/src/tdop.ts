@@ -918,7 +918,7 @@ function postludeStatementCore(state: State): ast.Node {
         const loc = state.curr.token.loc;
         state = advance(state);
 
-        let event_domain: ast.Node | undefined;
+        let event_domain: ast.Identifier | undefined;
         let event_type: ast.Node | undefined;
         let event_domainAndType: ast.Node | undefined;
 
@@ -955,10 +955,71 @@ function postludeStatementCore(state: State): ast.Node {
         }
         return node;
       }
-      case "schedule":
-        // raise    | RaiseEventStatement {% id %}
-        // schedule | ScheduleEventStatement {% id %}
-        break;
+
+      case "schedule": {
+        const loc = state.curr.token.loc;
+        state = advance(state);
+
+        let event_domain: ast.Identifier | undefined;
+        let event_type: ast.Node | undefined;
+        let event_domainAndType: ast.Node | undefined;
+        let event_attrs: ast.Node | null = null;
+        let at: ast.Node | undefined;
+        let timespec: ast.Node | undefined;
+        let setting: ast.Identifier | null = null;
+
+        if (chompMaybe(state, "SYMBOL", "event")) {
+          event_domainAndType = expression(state);
+        } else {
+          event_domain = chompIdentifier(state);
+          chomp(state, "SYMBOL", "event");
+          event_type = expression(state);
+        }
+
+        if (
+          state.curr.token.type === "SYMBOL" &&
+          state.curr.token.src === "at"
+        ) {
+          advance(state);
+          at = expression(state);
+        } else if (
+          state.curr.token.type === "SYMBOL" &&
+          state.curr.token.src === "repeat"
+        ) {
+          advance(state);
+          timespec = expression(state);
+        } else {
+          throw new ParseError("Expected `at` or `repeat`", state.curr.token);
+        }
+
+        if (chompMaybe(state, "SYMBOL", "attributes")) {
+          event_attrs = expression(state);
+        }
+
+        if (chompMaybe(state, "SYMBOL", "setting")) {
+          chomp(state, "RAW", "(");
+          setting = chompIdentifier(state);
+          chomp(state, "RAW", ")");
+        }
+
+        const node: ast.ScheduleEventStatement = {
+          loc,
+          type: "ScheduleEventStatement",
+          event_attrs,
+          setting
+        };
+
+        if (event_domainAndType) {
+          node.event_domainAndType = event_domainAndType;
+        } else {
+          node.event_type = event_type;
+          node.event_domain = event_domain;
+        }
+        if (at) node.at = at;
+        if (timespec) node.timespec = timespec;
+        return node;
+      }
+
       case "log": {
         const loc = state.curr.token.loc;
         advance(state);
@@ -971,6 +1032,7 @@ function postludeStatementCore(state: State): ast.Node {
           expression: expr
         };
       }
+
       case "error": {
         const loc = state.curr.token.loc;
         advance(state);
@@ -996,6 +1058,8 @@ function postludeStatementCore(state: State): ast.Node {
     case "SYMBOL:SYMBOL:=":
     case "SYMBOL:SYMBOL{":
       // PersistentVariableAssignment
+      //
+      // DomainIdentifier (%tok_OPEN_CURLY Expression %tok_CLSE_CURLY):? %tok_COLON_EQ Expression
       break;
   }
 

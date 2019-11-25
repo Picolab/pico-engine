@@ -1109,6 +1109,130 @@ test("raise event", t => {
   ]);
 });
 
+test("schedule event", t => {
+  const testPostlude = makeTestPostlude(t);
+
+  testPostlude('schedule domain event "type" at "time"', [
+    {
+      type: "ScheduleEventStatement",
+      at: mk("time"),
+      event_domain: mk.id("domain"),
+      event_type: mk("type"),
+      event_attrs: null,
+      setting: null
+    }
+  ]);
+
+  testPostlude(
+    'schedule domain event "type" at "time" attributes {"a":1,"b":2}',
+    [
+      {
+        type: "ScheduleEventStatement",
+        at: mk("time"),
+        event_domain: mk.id("domain"),
+        event_type: mk("type"),
+        event_attrs: mk({ a: mk(1), b: mk(2) }),
+        setting: null
+      }
+    ]
+  );
+
+  testPostlude('schedule domain event "type" at "time" setting(foo)', [
+    {
+      type: "ScheduleEventStatement",
+      at: mk("time"),
+      event_domain: mk.id("domain"),
+      event_type: mk("type"),
+      event_attrs: null,
+      setting: mk.id("foo")
+    }
+  ]);
+
+  testPostlude(
+    'schedule domain event "type" at "time" attributes {} setting(foo)',
+    [
+      {
+        type: "ScheduleEventStatement",
+        at: mk("time"),
+        event_domain: mk.id("domain"),
+        event_type: mk("type"),
+        event_attrs: mk({}),
+        setting: mk.id("foo")
+      }
+    ]
+  );
+
+  testPostlude('schedule domain event "type" repeat "5 0 * * *"', [
+    {
+      type: "ScheduleEventStatement",
+      timespec: mk("5 0 * * *"),
+      event_domain: mk.id("domain"),
+      event_type: mk("type"),
+      event_attrs: null,
+      setting: null
+    }
+  ]);
+
+  testPostlude(
+    'schedule domain event "type" repeat "5 0 * * *" attributes {"a":1,"b":2}',
+    [
+      {
+        type: "ScheduleEventStatement",
+        timespec: mk("5 0 * * *"),
+        event_domain: mk.id("domain"),
+        event_type: mk("type"),
+        event_attrs: mk({ a: mk(1), b: mk(2) }),
+        setting: null
+      }
+    ]
+  );
+
+  testPostlude('schedule domain event "type" repeat "5 0 * * *" setting(foo)', [
+    {
+      type: "ScheduleEventStatement",
+      timespec: mk("5 0 * * *"),
+      event_domain: mk.id("domain"),
+      event_type: mk("type"),
+      event_attrs: null,
+      setting: mk.id("foo")
+    }
+  ]);
+
+  testPostlude(
+    'schedule domain event "type" repeat "5 0 * * *" attributes {} setting(foo)',
+    [
+      {
+        type: "ScheduleEventStatement",
+        timespec: mk("5 0 * * *"),
+        event_domain: mk.id("domain"),
+        event_type: mk("type"),
+        event_attrs: mk({}),
+        setting: mk.id("foo")
+      }
+    ]
+  );
+
+  testPostlude('schedule event "foo:bar" at "sometime"', [
+    {
+      type: "ScheduleEventStatement",
+      at: mk("sometime"),
+      event_domainAndType: mk("foo:bar"),
+      event_attrs: null,
+      setting: null
+    }
+  ]);
+
+  testPostlude('schedule event "foo:bar" repeat "5 0 * * *"', [
+    {
+      type: "ScheduleEventStatement",
+      timespec: mk("5 0 * * *"),
+      event_domainAndType: mk("foo:bar"),
+      event_attrs: null,
+      setting: null
+    }
+  ]);
+});
+
 test("GuardCondition", t => {
   const testPost = makeTestPostlude(t);
 
