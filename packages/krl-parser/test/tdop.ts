@@ -119,7 +119,7 @@ test("parser - basic expression", t => {
 test("literals", function(t) {
   var testLiteral = function(src: string, expected: any) {
     const node = rmLoc(parseExpression(tokenizer(src)));
-    t.deepEqual(rmLoc(node), expected);
+    t.deepEqual(node, expected);
   };
 
   testLiteral('"one"', { type: "String", value: "one" });
@@ -281,36 +281,36 @@ test("literals", function(t) {
     ]
   });
 
-  // testLiteral('<<one#{{"two":function(){<<#{three{four}}five>>}}}>>', {
-  //   type: "Chevron",
-  //   value: [
-  //     { type: "String", value: "one" },
-  //     mk({
-  //       two: {
-  //         type: "Function",
-  //         params: mk.params([]),
-  //         body: [
-  //           {
-  //             type: "ExpressionStatement",
-  //             expression: {
-  //               type: "Chevron",
-  //               value: [
-  //                 mk.get(mk.id("three"), mk.id("four"), "path"),
-  //                 { type: "String", value: "five" }
-  //               ]
-  //             }
-  //           }
-  //         ]
-  //       }
-  //     })
-  //   ]
-  // });
+  testLiteral('<<one#{{"two":function(){<<#{three{four}}five>>}}}>>', {
+    type: "Chevron",
+    value: [
+      { type: "String", value: "one" },
+      mk({
+        two: {
+          type: "Function",
+          params: mk.params([]),
+          body: [
+            {
+              type: "ExpressionStatement",
+              expression: {
+                type: "Chevron",
+                value: [
+                  mk.get(mk.id("three"), mk.id("four"), "path"),
+                  { type: "String", value: "five" }
+                ]
+              }
+            }
+          ]
+        }
+      })
+    ]
+  });
 });
 
 test("expressions", function(t) {
   function testExp(src: string, expected: any) {
     const node = rmLoc(parseExpression(tokenizer(src)));
-    t.deepEqual(rmLoc(node), expected);
+    t.deepEqual(node, expected);
   }
 
   testExp("one()", {
@@ -472,14 +472,14 @@ test("expressions", function(t) {
 
   testExp("not a", mk.unary("not", mk.id("a")));
   testExp("nota", mk.id("nota"));
-  // testExp(
-  //   "not not a || b",
-  //   mk.op("||", mk.unary("not", mk.unary("not", mk.id("a"))), mk.id("b"))
-  // );
-  // testExp(
-  //   "not (not a || b)",
-  //   mk.unary("not", mk.op("||", mk.unary("not", mk.id("a")), mk.id("b")))
-  // );
+  testExp(
+    "not not a || b",
+    mk.op("||", mk.unary("not", mk.unary("not", mk.id("a"))), mk.id("b"))
+  );
+  testExp(
+    "not (not a || b)",
+    mk.unary("not", mk.op("||", mk.unary("not", mk.id("a")), mk.id("b")))
+  );
 
   testExp("function(a){b = 1;a = 1;}", {
     type: "Function",
@@ -499,6 +499,41 @@ test("expressions", function(t) {
       mk.estmt(mk.app(mk.id("a"), [mk.id("b")]))
     ]
   });
+});
+
+test("operator precedence", function(t) {
+  function testPrec(src: string, expected: string) {
+    const node = parseExpression(tokenizer(src));
+    t.is(lispify(node), expected);
+
+    function lispify(ast: any): string {
+      if (Array.isArray(ast)) {
+        return ast.map(lispify).join(" ");
+      } else if (ast.type === "InfixOperator") {
+        return (
+          "(" +
+          ast.op +
+          " " +
+          lispify(ast.left) +
+          " " +
+          lispify(ast.right) +
+          ")"
+        );
+      }
+      return ast.value + "";
+    }
+  }
+
+  testPrec("a + b", "(+ a b)");
+  testPrec("a+b+c", "(+ (+ a b) c)");
+  testPrec("a+b*c", "(+ a (* b c))");
+
+  testPrec("a || b && c", "(|| a (&& b c))");
+  testPrec("(a || b) && c", "(&& (|| a b) c)");
+
+  testPrec("a && b cmp c", "(&& a (cmp b c))");
+
+  testPrec("a * b < c && d", "(&& (< (* a b) c) d)");
 });
 
 test("ruleset", t => {

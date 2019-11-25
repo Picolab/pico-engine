@@ -25,7 +25,7 @@ interface State {
 interface Rule {
   id: string;
 
-  nud?: (state: State) => ast.Node;
+  nud?: (state: State, token: Token) => ast.Node;
 
   lbp: number;
   led?: (state: State, token: Token, left: ast.Node) => ast.Node;
@@ -137,14 +137,15 @@ function easyLookahead(state: State, n: number): string {
 }
 
 function expression(state: State, rbp: number = 0): ast.Node {
-  if (!state.curr.rule.nud) {
-    throw new ParseError("Expected an expression", state.curr.token);
+  let prev = state.curr;
+  if (!prev.rule.nud) {
+    throw new ParseError("Expected an expression", prev.token);
   }
-  let left = state.curr.rule.nud(state);
-  advance(state);
+  state = advance(state);
+  let left = prev.rule.nud(state, prev.token);
 
   while (rbp < state.curr.rule.lbp) {
-    let prev = state.curr;
+    prev = state.curr;
     advance(state);
     if (!prev.rule.led) {
       throw new ParseError(
@@ -1218,10 +1219,9 @@ function infix(op: string, bp: number) {
 
 function prefix(op: string, rbp: number) {
   defRule(op, {
-    nud(state) {
-      const loc = state.curr.token.loc;
-      const op = state.curr.token.src;
-      advance(state);
+    nud(state, token) {
+      const loc = token.loc;
+      const op = token.src;
       const arg = expression(state, rbp);
 
       return { loc, type: "UnaryOperator", op, arg };
@@ -1251,9 +1251,8 @@ defRule(":", {});
 defRule(":=", {});
 defRule("-", {});
 defRule("{", {
-  nud(state) {
-    const { start } = state.curr.token.loc;
-    advance(state);
+  nud(state, token) {
+    const { start } = token.loc;
 
     const value: ast.MapKeyValuePair[] = [];
     while (state.curr.rule.id !== "}") {
@@ -1273,9 +1272,7 @@ defRule("{", {
     }
 
     const { end } = state.curr.token.loc;
-    if (state.curr.token.type !== "RAW" || state.curr.token.src !== "}") {
-      throw new ParseError("Expected `}`", state.curr.token);
-    }
+    chomp(state, "RAW", "}");
 
     return {
       loc: { start, end },
@@ -1300,15 +1297,9 @@ defRule("{", {
 });
 defRule("}", {});
 defRule("(", {
-  nud(state) {
-    advance(state);
+  nud(state, token) {
     const e = expression(state, 0);
-    if (state.curr.token.type !== "RAW" || state.curr.token.src !== ")") {
-      throw new ParseError(
-        "Expected `)` to close expression group",
-        state.curr.token
-      );
-    }
+    chomp(state, "RAW", ")");
     return e;
   },
 
@@ -1369,9 +1360,8 @@ prefix("-", 70);
 prefix("not", 70);
 
 defRule("[", {
-  nud(state) {
-    const { start } = state.curr.token.loc;
-    advance(state);
+  nud(state, token) {
+    const { start } = token.loc;
 
     const value: ast.Node[] = [];
     while (state.curr.rule.id !== "]") {
@@ -1384,9 +1374,7 @@ defRule("[", {
     }
 
     const { end } = state.curr.token.loc;
-    if (state.curr.token.type !== "RAW" || state.curr.token.src !== "]") {
-      throw new ParseError("Expected `]`", state.curr.token);
-    }
+    chomp(state, "RAW", "]");
 
     return {
       loc: { start, end },
@@ -1412,9 +1400,8 @@ defRule("[", {
 defRule("]", {});
 
 defRule("function", {
-  nud(state) {
-    const loc = state.curr.token.loc;
-    advance(state);
+  nud(state, token) {
+    const loc = token.loc;
 
     const params = parameters(state);
 
@@ -1440,46 +1427,46 @@ defRule("function", {
 });
 
 defRule("true", {
-  nud(state) {
-    return { loc: state.curr.token.loc, type: "Boolean", value: true };
+  nud(state, token) {
+    return { loc: token.loc, type: "Boolean", value: true };
   }
 });
 
 defRule("false", {
-  nud(state) {
-    return { loc: state.curr.token.loc, type: "Boolean", value: false };
+  nud(state, token) {
+    return { loc: token.loc, type: "Boolean", value: false };
   }
 });
 
 defRule("SYMBOL", {
-  nud(state) {
-    if (ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)) {
-      throw new ParseError("Reserved word", state.curr.token);
+  nud(state, token) {
+    if (ast.RESERVED_WORDS_ENUM.hasOwnProperty(token.src)) {
+      throw new ParseError("Reserved word", token);
     }
     return {
-      loc: state.curr.token.loc,
+      loc: token.loc,
       type: "Identifier",
-      value: state.curr.token.src
+      value: token.src
     };
   }
 });
 
 defRule("NUMBER", {
-  nud(state) {
+  nud(state, token) {
     return {
-      loc: state.curr.token.loc,
+      loc: token.loc,
       type: "Number",
-      value: parseFloat(state.curr.token.src) || 0
+      value: parseFloat(token.src) || 0
     };
   }
 });
 
 defRule("STRING", {
-  nud(state) {
+  nud(state, token) {
     return {
-      loc: state.curr.token.loc,
+      loc: token.loc,
       type: "String",
-      value: state.curr.token.src
+      value: token.src
         .replace(/(^")|("$)/g, "")
         .replace(/\\"/g, '"')
         .replace(/\\\\/g, "\\")
@@ -1488,9 +1475,8 @@ defRule("STRING", {
 });
 
 defRule("CHEVRON-OPEN", {
-  nud(state) {
-    const start = state.curr.token.loc.start;
-    advance(state);
+  nud(state, token) {
+    const start = token.loc.start;
 
     const value: ast.Node[] = [];
 
@@ -1515,10 +1501,7 @@ defRule("CHEVRON-OPEN", {
     }
 
     const end = state.curr.token.loc.end;
-    // don't `chomp` b/c .nud should not advance beyond itself
-    if (state.curr.token.type !== "CHEVRON-CLOSE") {
-      throw new ParseError("Expected `>>`", state.curr.token);
-    }
+    chomp(state, "CHEVRON-CLOSE", ">>");
 
     return {
       loc: { start, end },
@@ -1533,8 +1516,7 @@ defRule("CHEVRON-BEESTING-CLOSE", {});
 defRule("CHEVRON-CLOSE", {});
 
 defRule("REGEXP", {
-  nud(state) {
-    const token = state.curr.token;
+  nud(state, token) {
     const pattern = token.src
       .substring(3, token.src.lastIndexOf("#"))
       .replace(/\\#/g, "#");
