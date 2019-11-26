@@ -220,14 +220,19 @@ export interface RuleSelect extends BaseNode {
   within: EventWithin | null;
 }
 
-export interface EventExpression extends BaseNode {
+export type EventExpression =
+  | EventExpressionBase
+  | EventOperator
+  | EventGroupOperator;
+
+export interface EventExpressionBase extends BaseNode {
   type: "EventExpression";
   event_domain: Identifier;
   event_type: Identifier;
   event_attrs: AttributeMatch[];
   setting: Identifier[];
   where: Node | null;
-  aggregator: null;
+  aggregator: EventAggregator | null;
   deprecated?: string;
 }
 
@@ -235,6 +240,33 @@ export interface AttributeMatch extends BaseNode {
   type: "AttributeMatch";
   key: Identifier;
   value: KrlRegExp;
+}
+
+export interface EventOperator extends BaseNode {
+  type: "EventOperator";
+  op:
+    | "or"
+    | "and"
+    | "before"
+    | "then"
+    | "after"
+    | "between"
+    | "not between"
+    | "any";
+  args: (EventExpression | Number)[];
+}
+
+export interface EventGroupOperator extends BaseNode {
+  type: "EventGroupOperator";
+  op: "count" | "repeat";
+  n: Number;
+  event: EventExpression;
+}
+
+export interface EventAggregator extends BaseNode {
+  type: "EventAggregator";
+  op: "max" | "min" | "sum" | "avg" | "push";
+  args: Identifier[];
 }
 
 export const TIME_PERIOD_ENUM = {
@@ -383,8 +415,11 @@ export type Node =
   | RulesetMetaProperty
   | Rule
   | RuleSelect
-  | EventExpression
+  | EventExpressionBase
   | AttributeMatch
+  | EventOperator
+  | EventGroupOperator
+  | EventAggregator
   | EventWithin
   | RuleForEach
   | ActionBlock

@@ -30,13 +30,20 @@ interface Rule {
   lbp: number;
   led?: (state: State, token: Token, left: ast.Node) => ast.Node;
 
-  sta?: (state: State) => ast.Node;
+  // event expression
+  event_nud?: (state: State, token: Token) => ast.EventExpression;
+  event_lbp: number;
+  event_led?: (
+    state: State,
+    token: Token,
+    left: ast.EventExpression
+  ) => ast.EventExpression;
 }
 
 const rules: { [id: string]: Rule } = {};
 
 function defRule(id: string, rule: Partial<Omit<Rule, "id">>) {
-  const base: Rule = rules[id] || { id, lbp: 0 };
+  const base: Rule = rules[id] || { id, lbp: 0, event_lbp: 0 };
   rules[id] = { ...base, ...rule };
 }
 
@@ -179,6 +186,36 @@ function chompString(state: State): ast.String {
   }
   const node = expression(state);
   return node as ast.String;
+}
+
+function chompPositiveInteger(state: State): ast.Number {
+  if (
+    state.curr.token.type === "NUMBER" &&
+    /^[0-9]+$/.test(state.curr.token.src)
+  ) {
+    const value = parseInt(state.curr.token.src, 10);
+    if (value >= 0 && value === value) {
+      advance(state);
+      return { loc: state.curr.token.loc, type: "Number", value };
+    }
+  }
+  throw new ParseError("Expected a positive integer", state.curr.token);
+}
+
+function chompWord(
+  state: State,
+  expectedWhat: string = "word"
+): ast.Identifier {
+  if (state.curr.token.type !== "SYMBOL") {
+    throw new ParseError("Expected " + expectedWhat, state.curr.token);
+  }
+  const id: ast.Identifier = {
+    loc: state.curr.token.loc,
+    type: "Identifier", // TODO update the compiler etc. to support Word instead of overloading Identifier
+    value: state.curr.token.src
+  };
+  advance(state);
+  return id;
 }
 
 function chompIdentifier(state: State): ast.Identifier {
@@ -694,52 +731,26 @@ function rulesetRule(state: State): ast.Rule | null {
   };
 }
 
-function eventExpression(state: State): ast.EventExpression {
-  const start = state.curr.token.loc.start;
-  const event_domain = chompIdentifier(state);
-  chompMaybe(state, "RAW", ":");
-  const event_type = chompIdentifier(state);
-  const event_attrs = attributeMatches(state);
-  let setting: ast.Identifier[] = [];
-  let where: ast.Node | null = null;
-  let deprecated: string | null = null;
-
-  if (chompMaybe(state, "SYMBOL", "where")) {
-    // DEPRECATED, should happen after setting
-    where = expression(state);
+function eventExpression(state: State, rbp: number = 0): ast.EventExpression {
+  let prev = state.curr;
+  if (!prev.rule.event_nud) {
+    throw new ParseError("Expected an event expression", prev.token);
   }
+  state = advance(state);
+  let left = prev.rule.event_nud(state, prev.token);
 
-  if (chompMaybe(state, "SYMBOL", "setting")) {
-    if (event_attrs.length === 0) {
-      deprecated = "What are you `setting`? There are no attribute matches";
+  while (rbp < state.curr.rule.event_lbp) {
+    prev = state.curr;
+    advance(state);
+    if (!prev.rule.event_led) {
+      throw new ParseError(
+        "Rule does not have a .event_led " + prev.rule.id,
+        prev.token
+      );
     }
-    if (where) {
-      deprecated = "Move the `where` clause to be after the `setting`";
-    }
-    chomp(state, "RAW", "(");
-    setting = identifierList(state);
-    chomp(state, "RAW", ")");
+    left = prev.rule.event_led(state, prev.token, left);
   }
-
-  if (!where && chompMaybe(state, "SYMBOL", "where")) {
-    where = expression(state);
-  }
-
-  const node: ast.EventExpression = {
-    loc: { start, end: 0 },
-    type: "EventExpression",
-    event_domain,
-    event_type,
-    event_attrs,
-    setting,
-    where,
-    aggregator: null
-  };
-
-  if (deprecated) {
-    node.deprecated = deprecated;
-  }
-  return node;
+  return left;
 }
 
 function attributeMatches(state: State): ast.AttributeMatch[] {
@@ -758,14 +769,7 @@ function attributeMatch(state: State): ast.AttributeMatch | null {
   if (ahead[0].type !== "SYMBOL" || ahead[1].type !== "REGEXP") {
     return null;
   }
-
-  let key: ast.Identifier = {
-    loc: state.curr.token.loc,
-    type: "Identifier",
-    value: state.curr.token.src
-  };
-  advance(state); // don't use chompIdentifier b/c reserved words don't apply here
-
+  const key = chompWord(state, "Attribute");
   const value = expression(state) as ast.KrlRegExp;
 
   return {
@@ -1294,6 +1298,94 @@ function prefix(op: string, rbp: number) {
   });
 }
 
+function infixEventOperator(op: ast.EventOperator["op"], bp: number) {
+  defRule(op, {
+    event_lbp: bp,
+    event_led(state, token, left): ast.EventOperator {
+      const right = eventExpression(state, bp);
+      return {
+        loc: token.loc,
+        type: "EventOperator",
+        op,
+        args: [left, right]
+      };
+    }
+  });
+}
+
+function defVariableArityEventExpression(
+  op: ast.EventOperator["op"],
+  hasCount: boolean = false
+) {
+  defRule(op, {
+    event_nud(state, token) {
+      const args: (ast.EventExpression | ast.Number)[] = [];
+
+      if (hasCount) {
+        args.push(chompPositiveInteger(state));
+      }
+
+      chomp(state, "RAW", "(");
+      while (true) {
+        const arg = eventExpression(state);
+        args.push(arg);
+        if (!chompMaybe(state, "RAW", ",")) {
+          break;
+        }
+      }
+      chomp(state, "RAW", ")");
+
+      return {
+        loc: token.loc,
+        type: "EventOperator",
+        op,
+        args
+      };
+    }
+  });
+}
+
+function defAggregatorEventExpression(op: ast.EventGroupOperator["op"]) {
+  defRule(op, {
+    event_nud(state, token) {
+      const num = chompPositiveInteger(state);
+
+      chomp(state, "RAW", "(");
+      const event = eventExpressionBase(state, chompWord(state, "Domain"));
+      chomp(state, "RAW", ")");
+
+      if (state.curr.token.type === "SYMBOL") {
+        switch (state.curr.token.src) {
+          case "max":
+          case "min":
+          case "sum":
+          case "avg":
+          case "push":
+            event.aggregator = {
+              loc: state.curr.token.loc,
+              type: "EventAggregator",
+              op: state.curr.token.src,
+              args: []
+            };
+            advance(state);
+            chomp(state, "RAW", "(");
+            event.aggregator.args = identifierList(state);
+            chomp(state, "RAW", ")");
+            break;
+        }
+      }
+
+      return {
+        loc: token.loc,
+        type: "EventGroupOperator",
+        op,
+        n: num,
+        event
+      };
+    }
+  });
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 defRule("(end)", {});
@@ -1377,6 +1469,12 @@ defRule("(", {
       callee: left,
       args
     };
+  },
+
+  event_nud(state, token) {
+    const e = eventExpression(state, 0);
+    chomp(state, "RAW", ")");
+    return e;
   }
 });
 defRule(")", {});
@@ -1423,6 +1521,59 @@ infix("%", 60);
 prefix("+", 70);
 prefix("-", 70);
 prefix("not", 70);
+
+// Event Expressions
+infixEventOperator("or", 20);
+
+infixEventOperator("and", 30);
+
+infixEventOperator("before", 40);
+infixEventOperator("then", 40);
+infixEventOperator("after", 40);
+
+defRule("between", {
+  event_lbp: 50,
+  event_led(state, token, left): ast.EventOperator {
+    chomp(state, "RAW", "(");
+    const one = eventExpression(state);
+    chomp(state, "RAW", ",");
+    const two = eventExpression(state);
+    chomp(state, "RAW", ")");
+    return {
+      loc: token.loc,
+      type: "EventOperator",
+      op: "between",
+      args: [left, one, two]
+    };
+  }
+});
+
+defRule("not", {
+  event_lbp: 50,
+  event_led(state, token, left): ast.EventOperator {
+    chomp(state, "SYMBOL", "between");
+    chomp(state, "RAW", "(");
+    const one = eventExpression(state);
+    chomp(state, "RAW", ",");
+    const two = eventExpression(state);
+    chomp(state, "RAW", ")");
+    return {
+      loc: token.loc,
+      type: "EventOperator",
+      op: "not between",
+      args: [left, one, two]
+    };
+  }
+});
+
+defVariableArityEventExpression("any", true);
+defVariableArityEventExpression("and");
+defVariableArityEventExpression("or");
+defVariableArityEventExpression("before");
+defVariableArityEventExpression("then");
+defVariableArityEventExpression("after");
+defAggregatorEventExpression("count");
+defAggregatorEventExpression("repeat");
 
 defRule("[", {
   nud(state, token) {
@@ -1509,6 +1660,55 @@ defRule("null", {
   }
 });
 
+function eventExpressionBase(
+  state: State,
+  event_domain: ast.Identifier
+): ast.EventExpressionBase {
+  chompMaybe(state, "RAW", ":");
+  const event_type = chompWord(state, "Type");
+  const event_attrs = attributeMatches(state);
+  let setting: ast.Identifier[] = [];
+  let where: ast.Node | null = null;
+  let deprecated: string | null = null;
+
+  if (chompMaybe(state, "SYMBOL", "where")) {
+    // DEPRECATED, should happen after setting
+    where = expression(state);
+  }
+
+  if (chompMaybe(state, "SYMBOL", "setting")) {
+    if (event_attrs.length === 0) {
+      deprecated = "What are you `setting`? There are no attribute matches";
+    }
+    if (where) {
+      deprecated = "Move the `where` clause to be after the `setting`";
+    }
+    chomp(state, "RAW", "(");
+    setting = identifierList(state);
+    chomp(state, "RAW", ")");
+  }
+
+  if (!where && chompMaybe(state, "SYMBOL", "where")) {
+    where = expression(state);
+  }
+
+  const node: ast.EventExpressionBase = {
+    loc: { start: event_domain.loc.start, end: event_type.loc.end },
+    type: "EventExpression",
+    event_domain,
+    event_type,
+    event_attrs,
+    setting,
+    where,
+    aggregator: null
+  };
+
+  if (deprecated) {
+    node.deprecated = deprecated;
+  }
+  return node;
+}
+
 defRule("SYMBOL", {
   nud(state, token) {
     if (ast.RESERVED_WORDS_ENUM.hasOwnProperty(token.src)) {
@@ -1519,6 +1719,15 @@ defRule("SYMBOL", {
       type: "Identifier",
       value: token.src
     };
+  },
+
+  event_nud(state, token) {
+    const event_domain: ast.Identifier = {
+      loc: token.loc,
+      type: "Identifier",
+      value: token.src
+    };
+    return eventExpressionBase(state, event_domain);
   }
 });
 
