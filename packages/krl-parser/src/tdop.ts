@@ -513,13 +513,19 @@ function withExprBody(state: State): ast.Declaration[] {
 
   let sawAnAnd = false;
   while (true) {
-    if (
-      !sawAnAnd &&
-      (state.curr.token.type !== "SYMBOL" ||
-        ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src))
-    ) {
-      break;
+    if (!sawAnAnd) {
+      if (
+        state.curr.token.type !== "SYMBOL" ||
+        ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)
+      ) {
+        break;
+      }
+      const next = lookahead(state, 2)[1];
+      if (!next || next.type !== "RAW" || next.src !== "=") {
+        break;
+      }
     }
+
     declarations.push(declaration(state));
 
     sawAnAnd = chompMaybe(state, "SYMBOL", "and");

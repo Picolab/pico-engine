@@ -861,7 +861,33 @@ test("with", function(t) {
     mk.declare("=", mk.id("e"), mk(1))
   ]);
 
-  tst('with a = "b" with c = "d"', "ParseError: Expected `=`|SYMBOL|c|46");
+  tst(
+    'with a = "b" with c = "d"',
+    "ParseError: Unsupported meta key: with|SYMBOL|with|41"
+  );
+
+  t.deepEqual(
+    parseRulesetBody(
+      `meta{use module m with a = "b" and c = "d"
+            shares one, two}`,
+      rs => rs.meta && rs.meta.properties
+    ),
+    [
+      mk.meta("use", {
+        kind: "module",
+        rid: { type: "RulesetID", value: "m" },
+        version: null,
+        alias: null,
+        with: [
+          mk.declare("=", mk.id("a"), mk("b")),
+          mk.declare("=", mk.id("c"), mk("d"))
+        ]
+      }),
+      mk.meta("shares", {
+        ids: [mk.id("one"), mk.id("two")]
+      })
+    ]
+  );
 });
 
 test("Rule", t => {
