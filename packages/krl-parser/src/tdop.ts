@@ -47,6 +47,23 @@ function defRule(id: string, rule: Partial<Omit<Rule, "id">>) {
   rules[id] = { ...base, ...rule };
 }
 
+function checkSignificantToken(token: Token): boolean {
+  if (token.type === "MISSING-CLOSE") {
+    throw new ParseError("Missing close " + token.missingClose, token);
+  }
+  if (token.type === "ILLEGAL") {
+    throw new ParseError("Unsupported characters", token);
+  }
+  if (
+    token.type === "WHITESPACE" ||
+    token.type === "LINE-COMMENT" ||
+    token.type === "BLOCK-COMMENT"
+  ) {
+    return false;
+  }
+  return true;
+}
+
 function advanceBase(
   tokens: Token[],
   token_i: number
@@ -57,23 +74,12 @@ function advanceBase(
   while (token_i < tokens.length) {
     token = tokens[token_i];
 
-    if (token.type === "MISSING-CLOSE") {
-      throw new ParseError("Missing close " + token.missingClose, token);
-    }
-    if (token.type === "ILLEGAL") {
-      throw new ParseError("Unsupported characters", token);
-    }
-    if (
-      token.type === "WHITESPACE" ||
-      token.type === "LINE-COMMENT" ||
-      token.type === "BLOCK-COMMENT"
-    ) {
-      token_i += 1;
-      continue;
+    if (checkSignificantToken(token)) {
+      found = true;
+      break;
     }
 
-    found = true;
-    break;
+    token_i += 1;
   }
 
   if (!token || (!found && token_i >= tokens.length)) {
@@ -118,17 +124,7 @@ function lookahead(state: State, n: number): Token[] {
   while (i < state.tokens.length && found.length < n) {
     token = state.tokens[i];
 
-    if (token.type === "MISSING-CLOSE") {
-      throw new ParseError("Missing close " + token.missingClose, token);
-    }
-    if (token.type === "ILLEGAL") {
-      throw new ParseError("Unsupported characters", token);
-    }
-    if (
-      token.type !== "WHITESPACE" &&
-      token.type !== "LINE-COMMENT" &&
-      token.type !== "BLOCK-COMMENT"
-    ) {
+    if (checkSignificantToken(token)) {
       found.push(token);
     }
     i++;
@@ -818,7 +814,7 @@ function actionBlock(state: State): ast.ActionBlock {
       case "choose":
         block_type = state.curr.token.src;
         advance(state);
-        discriminant = expression(state, 100);
+        discriminant = expression(state, 80);
         actions = actionList(state);
         break;
       default:

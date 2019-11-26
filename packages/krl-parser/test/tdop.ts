@@ -1374,7 +1374,7 @@ test("ActionBlock", function(t) {
     ]
   });
 
-  src = "choose (exp()) {\n";
+  src = "choose exp() {\n";
   src += "  one => blah(1)\n";
   src += "  two => blah(2)\n";
   src += "}";
@@ -1417,7 +1417,7 @@ test("ActionBlock", function(t) {
   );
 
   src = "if foo == 2 then\n";
-  src += "choose (bar()) {\n";
+  src += "choose bar() {\n";
   src += "  one => blah(1)\n";
   src += "  two => blah(2)\n";
   src += "}";
@@ -1462,7 +1462,7 @@ test("ActionBlock", function(t) {
     ]
   });
 
-  tstActionBlock("choose (b(c)){one => foo() two => bar()}", {
+  tstActionBlock("choose b(c){one => foo() two => bar()}", {
     type: "ActionBlock",
     condition: null,
     block_type: "choose",
@@ -2188,7 +2188,7 @@ test("DefAction", t => {
     }
   ]);
 
-  tstDA("a = defaction(){choose (b(c)) {one => foo() two => bar()}}", [
+  tstDA("a = defaction(){choose b(c) {one => foo() two => bar()}}", [
     {
       type: "DefAction",
       id: mk.id("a"),
@@ -2287,4 +2287,70 @@ test("Parameters", t => {
     mk.param("b", mk("wat")),
     mk.param("c", mk.op("+", mk.id("b"), mk(" da")))
   ]);
+});
+
+test("potentially ambiguous cases", t => {
+  t.deepEqual(
+    rmLoc(
+      parse(
+        tokenizer(`function(){
+          one = 1;
+          {"two":one}
+        }`)
+      )
+    ),
+    [
+      mk.estmt({
+        type: "Function",
+        params: mk.params([]),
+        body: [
+          mk.declare("=", mk.id("one"), mk(1)),
+          mk.estmt(mk({ two: mk.id("one") }))
+        ]
+      })
+    ]
+  );
+
+  t.deepEqual(
+    rmLoc(
+      parse(
+        tokenizer(`function(){
+          one = 1;
+          [index]
+        }`)
+      )
+    ),
+    [
+      mk.estmt({
+        type: "Function",
+        params: mk.params([]),
+        body: [
+          mk.declare("=", mk.id("one"), mk(1)),
+          mk.estmt({ type: "Array", value: [mk.id("index")] })
+        ]
+      })
+    ]
+  );
+
+  t.deepEqual(
+    parseRuleBody("choose one{noop()}", rule => rule.action_block),
+    {
+      type: "ActionBlock",
+      block_type: "choose",
+      condition: null,
+      discriminant: mk.id("one"),
+      actions: [mk.action(null, "noop", [])]
+    }
+  );
+
+  t.deepEqual(
+    parseRuleBody("choose (one{noop()}) {noop()}", rule => rule.action_block),
+    {
+      type: "ActionBlock",
+      block_type: "choose",
+      condition: null,
+      discriminant: mk.get(mk.id("one"), mk.app(mk.id("noop")), "path"),
+      actions: [mk.action(null, "noop", [])]
+    }
+  );
 });
