@@ -1,23 +1,10 @@
 import test from "ava";
-import { parseExpression, parseRuleset } from "../src/tdop";
+import { parseExpression, parseRuleset, parse } from "../src/tdop";
 import tokenizer from "../src/tokenizer";
 import * as ast from "../src/types";
 const normalizeAST = require("./helpers/normalizeASTForTestCompare");
 const mk = require("./helpers/astMaker");
-
-function rmLoc(node: any): any {
-  if (Array.isArray(node)) {
-    return node.map(rmLoc);
-  }
-  if (Object.prototype.toString.call(node) === "[object Object]") {
-    const cleanNode: any = {};
-    for (const key of Object.keys(node)) {
-      if (key !== "loc") cleanNode[key] = rmLoc(node[key]);
-    }
-    return cleanNode;
-  }
-  return node;
-}
+const rmLoc = require("./helpers/rmLoc");
 
 function parseE(src: string) {
   return rmLoc(parseExpression(tokenizer(src)));
@@ -515,6 +502,18 @@ test("expressions", function(t) {
       mk.estmt(mk.app(mk.id("a"), [mk.id("b")]))
     ]
   });
+
+  t.deepEqual(rmLoc(parse(tokenizer("foo(1).bar(baz(2))"))), [
+    mk.estmt(
+      mk.app(mk.get(mk.app(mk.id("foo"), [mk(1)]), mk.id("bar"), "dot"), [
+        mk.app(mk.id("baz"), [mk(2)])
+      ])
+    )
+  ]);
+
+  t.deepEqual(rmLoc(parse(tokenizer(`"str".trim()`))), [
+    mk.estmt(mk.app(mk.get(mk("str"), mk.id("trim"), "dot"), []))
+  ]);
 });
 
 test("operator precedence", function(t) {

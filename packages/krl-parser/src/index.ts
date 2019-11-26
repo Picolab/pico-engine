@@ -1,4 +1,4 @@
-import { parseRuleset } from "../src/tdop";
+import { parse } from "../src/tdop";
 import tokenizer from "../src/tokenizer";
 const lineColumn = require("line-column");
 const excerptAtLineCol = require("excerpt-at-line-col");
@@ -19,7 +19,7 @@ function parseKRL(src: string, opts?: { filename?: string }) {
 
   try {
     const tokens = tokenizer(src);
-    const tree = parseRuleset(tokens);
+    const tree = parse(tokens);
     return tree;
   } catch (e) {
     if (e && e.token && e.token.loc) {

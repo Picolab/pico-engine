@@ -1884,7 +1884,7 @@ defRule("REGEXP", {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-export function parse<OUT>(
+function parseCore<OUT>(
   tokens: Token[],
   entryParse: (state: State) => OUT
 ): OUT {
@@ -1909,14 +1909,31 @@ export function parse<OUT>(
   return tree;
 }
 
-export function parseExpression(tokens: Token[]) {
-  return parse(tokens, function(state) {
-    return expression(state, 0);
+export function parse(tokens: Token[]): ast.Ruleset | ast.Statement[] {
+  return parseCore(tokens, state => {
+    if (
+      state.curr.token.type === "SYMBOL" &&
+      state.curr.token.src === "ruleset"
+    ) {
+      return ruleset(state);
+    }
+
+    const statements: ast.Statement[] = [];
+    while (state.curr.token_i < state.tokens.length) {
+      if (state.curr.rule.id === "(end)") {
+        break;
+      }
+      statements.push(statement(state));
+      chompMaybe(state, "RAW", ";");
+    }
+    return statements;
   });
 }
 
+export function parseExpression(tokens: Token[]) {
+  return parseCore(tokens, expression);
+}
+
 export function parseRuleset(tokens: Token[]) {
-  return parse(tokens, function(state) {
-    return ruleset(state);
-  });
+  return parseCore(tokens, ruleset);
 }
