@@ -1110,41 +1110,41 @@ test("select when ... within", t => {
     "ParseError: Expected time period: [day,days,hour,hours,minute,minutes,month,months,second,seconds,week,weeks,year,years]|SYMBOL|foobar|42"
   );
 
-  // t.deepEqual(parseSelect("a a before b b within 5 minutes"), {
-  //   type: "RuleSelect",
-  //   kind: "when",
-  //   event: mk.eventOp("before", [mk.ee("a", "a"), mk.ee("b", "b")]),
-  //   within: {
-  //     type: "EventWithin",
-  //     expression: mk(5),
-  //     time_period: "minutes"
-  //   }
-  // });
+  t.deepEqual(parseSelect("a a before b b within 5 minutes"), {
+    type: "RuleSelect",
+    kind: "when",
+    event: mk.eventOp("before", [mk.ee("a", "a"), mk.ee("b", "b")]),
+    within: {
+      type: "EventWithin",
+      expression: mk(5),
+      time_period: "minutes"
+    }
+  });
 
-  // t.deepEqual(parseSelect("a a before b b within 1 + 3 minutes"), {
-  //   type: "RuleSelect",
-  //   kind: "when",
-  //   event: mk.eventOp("before", [mk.ee("a", "a"), mk.ee("b", "b")]),
-  //   within: {
-  //     type: "EventWithin",
-  //     expression: mk.op("+", mk(1), mk(3)),
-  //     time_period: "minutes"
-  //   }
-  // });
+  t.deepEqual(parseSelect("a a before b b within 1 + 3 minutes"), {
+    type: "RuleSelect",
+    kind: "when",
+    event: mk.eventOp("before", [mk.ee("a", "a"), mk.ee("b", "b")]),
+    within: {
+      type: "EventWithin",
+      expression: mk.op("+", mk(1), mk(3)),
+      time_period: "minutes"
+    }
+  });
 
-  // t.deepEqual(parseSelect("a a or (b b and c c) within 1 hour"), {
-  //   type: "RuleSelect",
-  //   kind: "when",
-  //   event: mk.eventOp("or", [
-  //     mk.ee("a", "a"),
-  //     mk.eventOp("and", [mk.ee("b", "b"), mk.ee("c", "c")])
-  //   ]),
-  //   within: {
-  //     type: "EventWithin",
-  //     expression: mk(1),
-  //     time_period: "hour"
-  //   }
-  // });
+  t.deepEqual(parseSelect("a a or (b b and c c) within 1 hour"), {
+    type: "RuleSelect",
+    kind: "when",
+    event: mk.eventOp("or", [
+      mk.ee("a", "a"),
+      mk.eventOp("and", [mk.ee("b", "b"), mk.ee("c", "c")])
+    ]),
+    within: {
+      type: "EventWithin",
+      expression: mk(1),
+      time_period: "hour"
+    }
+  });
 });
 
 test("select when ... foreach ...", t => {
