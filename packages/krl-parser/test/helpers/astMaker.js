@@ -1,28 +1,26 @@
-var _ = require("lodash");
-
 // do NOT use if v is/has a chevron
 var mk = function(v) {
-  if (_.isNumber(v)) {
+  if (typeof v === "number") {
     return { type: "Number", value: v };
   } else if (v === true || v === false) {
     return { type: "Boolean", value: v };
-  } else if (_.isString(v)) {
+  } else if (typeof v === "string") {
     return { type: "String", value: v };
-  } else if (_.isRegExp(v)) {
+  } else if (Array.isArray(v)) {
+    return { type: "Array", value: v.map(mk) };
+  } else if (v instanceof RegExp) {
     return { type: "RegExp", value: v };
-  } else if (_.isPlainObject(v)) {
+  } else if (Object.prototype.toString.call(v) === "[object Object]") {
     return {
       type: "Map",
-      value: _.map(v, function(val, key) {
+      value: Object.keys(v).map(function(key) {
         return {
           type: "MapKeyValuePair",
           key: { type: "String", value: key },
-          value: val
+          value: v[key]
         };
       })
     };
-  } else if (_.isArray(v)) {
-    return { type: "Array", value: _.map(v, mk) };
   }
   return v;
 };
@@ -136,8 +134,8 @@ mk.param = function(id, dflt) {
 mk.params = function(params) {
   return {
     type: "Parameters",
-    params: _.map(params, function(param) {
-      if (_.isString(param)) {
+    params: params.map(function(param) {
+      if (typeof param === "string") {
         return mk.param(param);
       }
       return param;

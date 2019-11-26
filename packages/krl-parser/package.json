@@ -9,9 +9,11 @@
   ],
   "scripts": {
     "prepublish": "npm run build",
-    "build": "rm -rf dist && tsc",
     "start": "ava -w",
-    "test": "ava"
+    "test": "ava",
+    "build": "npm run build:ts -s && npm run build:spec -s",
+    "build:ts": "rm -rf dist && tsc",
+    "build:spec": "node specBuilder.js > spec.md"
   },
   "repository": {
     "type": "git",
@@ -30,25 +32,12 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "ava": "^2.4.0",
-    "diff-lines": "^1.1.0",
-    "faucet": "0.0.1",
-    "lodash": "^4.17.4",
-    "onchange": "^6.0.0",
-    "phonetic": "^0.1.1",
-    "standard": "^12.0.1",
-    "tape": "^4.6.0",
     "ts-node": "^8.4.1",
     "typescript": "^3.7.2"
   },
-  "standard": {
-    "ignore": [
-      "grammar.js"
-    ]
-  },
   "dependencies": {
     "excerpt-at-line-col": "^1.0.0",
-    "line-column": "^1.0.2",
-    "nearley": "2.16.0"
+    "line-column": "^1.0.2"
   },
   "ava": {
     "compileEnhancements": false,

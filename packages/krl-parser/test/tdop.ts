@@ -2,7 +2,7 @@ import test from "ava";
 import { parseExpression, parseRuleset, parse } from "../src/tdop";
 import tokenizer from "../src/tokenizer";
 import * as ast from "../src/types";
-const normalizeAST = require("./helpers/normalizeASTForTestCompare");
+const normalizeAST = require("./helpers/normalizeAST");
 const mk = require("./helpers/astMaker");
 const rmLoc = require("./helpers/rmLoc");
 
