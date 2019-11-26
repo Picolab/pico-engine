@@ -1772,6 +1772,15 @@ defRule("SYMBOL", {
     if (ast.RESERVED_WORDS_ENUM.hasOwnProperty(token.src)) {
       throw new ParseError("Reserved word", token);
     }
+    if (chompMaybe(state, "RAW", ":")) {
+      const value = chompIdentifier(state);
+      return {
+        loc: { start: token.loc.start, end: value.loc.end },
+        type: "DomainIdentifier",
+        domain: token.src,
+        value: value.value
+      };
+    }
     return {
       loc: token.loc,
       type: "Identifier",

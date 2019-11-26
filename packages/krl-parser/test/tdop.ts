@@ -138,6 +138,9 @@ test("literals", function(t) {
   testLiteral("false", { type: "Boolean", value: false });
   testLiteral("null", { type: "Null" });
 
+  testLiteral("foo", mk.id("foo"));
+  testLiteral("ent:foo", mk.dID("ent", "foo"));
+
   testLiteral("[]", { type: "Array", value: [] });
   testLiteral('["one"]', {
     type: "Array",
@@ -384,6 +387,17 @@ test("expressions", function(t) {
       {
         type: "ExpressionStatement",
         expression: mk.id("b")
+      }
+    ]
+  });
+
+  testExp("function(){ent:foo}", {
+    type: "Function",
+    params: mk.params([]),
+    body: [
+      {
+        type: "ExpressionStatement",
+        expression: mk.dID("ent", "foo")
       }
     ]
   });
@@ -1083,6 +1097,70 @@ test("EventExpression", t => {
   testEE(
     "after (a b, c d)",
     mk.eventOp("after", [mk.ee("a", "b"), mk.ee("c", "d")])
+  );
+});
+
+test("select when", t => {
+  function asertRuleAST(src: string, expected: any) {
+    const node = parseRuleBody(src, rule => rule.select && rule.select.event);
+    t.deepEqual(node, expected);
+  }
+
+  var src = "select when d t";
+  asertRuleAST(src, {
+    type: "EventExpression",
+    event_domain: { type: "Identifier", value: "d" },
+    event_type: { type: "Identifier", value: "t" },
+    event_attrs: [],
+    where: null,
+    setting: [],
+    aggregator: null
+  });
+
+  src = "select when d a or d b";
+  asertRuleAST(
+    src,
+    mk.eventOp("or", [
+      {
+        type: "EventExpression",
+        event_domain: { type: "Identifier", value: "d" },
+        event_type: { type: "Identifier", value: "a" },
+        event_attrs: [],
+        where: null,
+        setting: [],
+        aggregator: null
+      },
+      {
+        type: "EventExpression",
+        event_domain: { type: "Identifier", value: "d" },
+        event_type: { type: "Identifier", value: "b" },
+        event_attrs: [],
+        where: null,
+        setting: [],
+        aggregator: null
+      }
+    ])
+  );
+
+  src = "select when d a and d b";
+  asertRuleAST(src, mk.eventOp("and", [mk.ee("d", "a"), mk.ee("d", "b")]));
+
+  src = "select when d a and (d b or d c)";
+  asertRuleAST(
+    src,
+    mk.eventOp("and", [
+      mk.ee("d", "a"),
+      mk.eventOp("or", [mk.ee("d", "b"), mk.ee("d", "c")])
+    ])
+  );
+
+  src = "select when d:a and (d b or d:c)";
+  asertRuleAST(
+    src,
+    mk.eventOp("and", [
+      mk.ee("d", "a"),
+      mk.eventOp("or", [mk.ee("d", "b"), mk.ee("d", "c")])
+    ])
   );
 });
 
@@ -2151,4 +2229,37 @@ test("DefAction", t => {
   tstReturn("returns ", []);
 
   tstReturn("returns a, b,", [mk.id("a"), mk.id("b")]);
+});
+
+test("Parameters", t => {
+  function tstParams(paramsSrc: string, expected: any) {
+    var src = "global{";
+    src += " a = defaction(" + paramsSrc + "){noop()}; ";
+    src += " b = function(" + paramsSrc + "){}; ";
+    src += "}";
+
+    const node = parseRulesetBody(src);
+    if (typeof node === "string") {
+      t.is(node, expected);
+    }
+
+    var expAst = mk.params(expected);
+
+    t.deepEqual(node.global[0].params, expAst);
+    t.deepEqual(node.global[1].right.params, expAst);
+  }
+
+  tstParams(" asdf ", [mk.param("asdf")]);
+
+  tstParams("a, b, c", [mk.param("a"), mk.param("b"), mk.param("c")]);
+
+  tstParams("\n    foo,\n    bar,\n    ", [mk.param("foo"), mk.param("bar")]);
+
+  tstParams("a, b = 2", [mk.param("a"), mk.param("b", mk(2))]);
+
+  tstParams('a, b = "wat", c = b + " da"', [
+    mk.param("a"),
+    mk.param("b", mk("wat")),
+    mk.param("c", mk.op("+", mk.id("b"), mk(" da")))
+  ]);
 });
