@@ -697,17 +697,82 @@ function rulesetRule(state: State): ast.Rule | null {
 function eventExpression(state: State): ast.EventExpression {
   const start = state.curr.token.loc.start;
   const event_domain = chompIdentifier(state);
+  chompMaybe(state, "RAW", ":");
   const event_type = chompIdentifier(state);
+  const event_attrs = attributeMatches(state);
+  let setting: ast.Identifier[] = [];
+  let where: ast.Node | null = null;
+  let deprecated: string | null = null;
 
-  return {
+  if (chompMaybe(state, "SYMBOL", "where")) {
+    // DEPRECATED, should happen after setting
+    where = expression(state);
+  }
+
+  if (chompMaybe(state, "SYMBOL", "setting")) {
+    if (event_attrs.length === 0) {
+      deprecated = "What are you `setting`? There are no attribute matches";
+    }
+    if (where) {
+      deprecated = "Move the `where` clause to be after the `setting`";
+    }
+    chomp(state, "RAW", "(");
+    setting = identifierList(state);
+    chomp(state, "RAW", ")");
+  }
+
+  if (!where && chompMaybe(state, "SYMBOL", "where")) {
+    where = expression(state);
+  }
+
+  const node: ast.EventExpression = {
     loc: { start, end: 0 },
     type: "EventExpression",
     event_domain,
     event_type,
-    event_attrs: [],
-    where: null,
-    setting: [],
+    event_attrs,
+    setting,
+    where,
     aggregator: null
+  };
+
+  if (deprecated) {
+    node.deprecated = deprecated;
+  }
+  return node;
+}
+
+function attributeMatches(state: State): ast.AttributeMatch[] {
+  const matches: ast.AttributeMatch[] = [];
+
+  let match: ast.AttributeMatch | null = null;
+  while ((match = attributeMatch(state))) {
+    matches.push(match);
+  }
+
+  return matches;
+}
+
+function attributeMatch(state: State): ast.AttributeMatch | null {
+  const ahead = lookahead(state, 2);
+  if (ahead[0].type !== "SYMBOL" || ahead[1].type !== "REGEXP") {
+    return null;
+  }
+
+  let key: ast.Identifier = {
+    loc: state.curr.token.loc,
+    type: "Identifier",
+    value: state.curr.token.src
+  };
+  advance(state); // don't use chompIdentifier b/c reserved words don't apply here
+
+  const value = expression(state) as ast.KrlRegExp;
+
+  return {
+    loc: { start: key.loc.start, end: value.loc.end },
+    type: "AttributeMatch",
+    key,
+    value
   };
 }
 
@@ -1435,6 +1500,12 @@ defRule("true", {
 defRule("false", {
   nud(state, token) {
     return { loc: token.loc, type: "Boolean", value: false };
+  }
+});
+
+defRule("null", {
+  nud(state, token) {
+    return { loc: token.loc, type: "Null" };
   }
 });
 

@@ -42,6 +42,10 @@ export interface Boolean extends BaseNode {
   value: true | false;
 }
 
+export interface Null extends BaseNode {
+  type: "Null";
+}
+
 export interface String extends BaseNode {
   type: "String";
   value: string;
@@ -220,10 +224,17 @@ export interface EventExpression extends BaseNode {
   type: "EventExpression";
   event_domain: Identifier;
   event_type: Identifier;
-  event_attrs: [];
-  where: null;
-  setting: [];
+  event_attrs: AttributeMatch[];
+  setting: Identifier[];
+  where: Node | null;
   aggregator: null;
+  deprecated?: string;
+}
+
+export interface AttributeMatch extends BaseNode {
+  type: "AttributeMatch";
+  key: Identifier;
+  value: KrlRegExp;
 }
 
 export const TIME_PERIOD_ENUM = {
@@ -344,6 +355,7 @@ export interface LastStatement extends BaseNode {
 export type Node =
   | Number
   | Boolean
+  | Null
   | String
   | Chevron
   | Keyword
@@ -372,6 +384,7 @@ export type Node =
   | Rule
   | RuleSelect
   | EventExpression
+  | AttributeMatch
   | EventWithin
   | RuleForEach
   | ActionBlock
