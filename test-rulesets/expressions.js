@@ -26,22 +26,6 @@ module.exports = {
         ]
       }
     });
-    ctx.scope.set("obj", await ctx.applyFn(ctx.scope.get("set"), ctx, [
-      ctx.scope.get("obj"),
-      [
-        "b",
-        "c",
-        3,
-        "d",
-        "e"
-      ],
-      "changed 5"
-    ]));
-    ctx.scope.set("obj", await ctx.applyFn(ctx.scope.get("set"), ctx, [
-      ctx.scope.get("obj"),
-      ["a"],
-      "changed 1"
-    ]));
     ctx.scope.set("path1", await ctx.applyFn(ctx.scope.get("get"), ctx, [
       ctx.scope.get("obj"),
       [

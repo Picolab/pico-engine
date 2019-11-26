@@ -112,23 +112,6 @@ test('compiler errors', function (t) {
   )
 
   tstFail(
-    'ruleset a{global{ent:foo=1}}',
-    'Error: Cannot declare DomainIdentifier'
-  )
-  tstFail(
-    'ruleset a{global{null=1}}',
-    'Error: Cannot declare Null'
-  )
-  tstFail(
-    'ruleset a{global{true=1}}',
-    'Error: Cannot declare Boolean'
-  )
-  tstFail(
-    'ruleset a{global{"hi"=1}}',
-    'Error: Cannot declare String'
-  )
-
-  tstFail(
     'ruleset a{global{b=function(c,d,c){1}}}',
     'Error: Duplicate parameter: c'
   )

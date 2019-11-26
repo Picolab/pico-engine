@@ -11,7 +11,7 @@
     "prepublish": "npm run build",
     "build": "rm -rf dist && tsc",
     "start": "ava -w",
-    "test": "ava && node tests/ambiguityFinder.js"
+    "test": "ava"
   },
   "repository": {
     "type": "git",
