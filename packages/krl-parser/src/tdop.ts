@@ -573,21 +573,29 @@ function declarationList(state: State): ast.Declaration[] {
     ) {
       break;
     }
+    const next = lookahead(state, 2)[1];
+    if (!next || next.type !== "RAW" || next.src !== "=") {
+      break;
+    }
     declarations.push(declaration(state));
+
+    chompMaybe(state, "RAW", ";");
   }
 
   return declarations;
-}
-
-function declarationOrDefAction(state: State): ast.Declaration {
-  // TODO also DefAction
-  return declaration(state);
 }
 
 function declaration(state: State): ast.Declaration {
   const left = chompIdentifier(state);
   chomp(state, "RAW", "=");
   const right = expression(state);
+
+  if (right.type === "DefAction") {
+    // TODO remove this legacy pattern
+    let legacyDefaction: any = right;
+    legacyDefaction.id = left;
+    return legacyDefaction;
+  }
 
   return {
     loc: { start: left.loc.start, end: right.loc.end },
@@ -858,6 +866,8 @@ function action(state: State): ast.Action {
     end = state.curr.token.loc.end;
     chomp(state, "RAW", ")");
   }
+
+  chompMaybe(state, "RAW", ";");
 
   return {
     loc: { start, end },
@@ -1638,6 +1648,54 @@ defRule("function", {
       type: "Function",
       params,
       body
+    };
+  }
+});
+
+defRule("defaction", {
+  nud(state, token): ast.DefAction {
+    const loc = token.loc;
+
+    const params = parameters(state);
+
+    chomp(state, "RAW", "{");
+
+    const body = declarationList(state);
+
+    const action_block = actionBlock(state);
+
+    let returns: ast.Node[] = [];
+
+    if (
+      chompMaybe(state, "SYMBOL", "return") ||
+      chompMaybe(state, "SYMBOL", "returns")
+    ) {
+      while (state.curr.token_i < state.tokens.length) {
+        if (state.curr.token.type === "RAW" && state.curr.token.src === "}") {
+          break;
+        }
+        if (chompMaybe(state, "RAW", ";")) {
+          break;
+        }
+        const val = expression(state);
+        returns.push(val);
+        if (state.curr.rule.id !== ",") {
+          break;
+        }
+        advance(state);
+      }
+      chompMaybe(state, "RAW", ";");
+    }
+
+    chomp(state, "RAW", "}");
+
+    return {
+      loc,
+      type: "DefAction",
+      params,
+      body,
+      action_block,
+      returns
     };
   }
 });

@@ -90,7 +90,7 @@ export interface DomainIdentifier extends BaseNode {
 export interface Declaration extends BaseNode {
   type: "Declaration";
   op: "=";
-  left: Node;
+  left: Identifier;
   right: Node;
 }
 
@@ -132,6 +132,14 @@ export interface Function extends BaseNode {
   type: "Function";
   params: Parameters;
   body: Statement[];
+}
+
+export interface DefAction extends BaseNode {
+  type: "DefAction";
+  params: Parameters;
+  body: Declaration[];
+  action_block: ActionBlock;
+  returns: Node[];
 }
 
 export interface Parameters extends BaseNode {
@@ -401,6 +409,7 @@ export type Node =
   | ConditionalExpression
   | MemberExpression
   | Function
+  | DefAction
   | Parameters
   | Parameter
   | Application

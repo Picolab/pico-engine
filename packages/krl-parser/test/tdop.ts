@@ -1972,3 +1972,183 @@ test("PersistentVariableAssignment", t => {
     }
   ]);
 });
+
+test("DefAction", t => {
+  function tstDA(src: string, expected: any) {
+    const node = parseRulesetBody(
+      "global{" + src + "}rule r1{pre{" + src + "}}"
+    );
+    if (typeof node === "string") {
+      t.is(node, expected);
+      return;
+    }
+    t.deepEqual(node.global, expected);
+    t.deepEqual(node.rules[0].prelude, expected);
+  }
+
+  tstDA('a = defaction(){send_directive("foo")}', [
+    {
+      type: "DefAction",
+      id: mk.id("a"),
+      params: mk.params([]),
+      body: [],
+      action_block: {
+        type: "ActionBlock",
+        condition: null,
+        block_type: "every",
+        discriminant: null,
+        actions: [mk.action(null, "send_directive", [mk("foo")])]
+      },
+      returns: []
+    }
+  ]);
+
+  tstDA(
+    'a = defaction(b, c){d = 2 e = 3 every { notify("foo", f = 4, g=5) noop()}}',
+    [
+      {
+        type: "DefAction",
+        id: mk.id("a"),
+        params: mk.params(["b", "c"]),
+        body: [
+          mk.declare("=", mk.id("d"), mk(2)),
+          mk.declare("=", mk.id("e"), mk(3))
+        ],
+        action_block: {
+          type: "ActionBlock",
+          condition: null,
+          block_type: "every",
+          discriminant: null,
+          actions: [
+            mk.action(null, "notify", [
+              mk("foo"),
+              mk.arg("f", mk(4)),
+              mk.arg("g", mk(5))
+            ]),
+            mk.action(null, "noop")
+          ]
+        },
+        returns: []
+      }
+    ]
+  );
+
+  tstDA("a = defaction(){d = 2; noop()}", [
+    // semi-colon after single declaration
+    {
+      type: "DefAction",
+      id: mk.id("a"),
+      params: mk.params([]),
+      body: [mk.declare("=", mk.id("d"), mk(2))],
+      action_block: {
+        type: "ActionBlock",
+        condition: null,
+        block_type: "every",
+        discriminant: null,
+        actions: [mk.action(null, "noop", [])]
+      },
+      returns: []
+    }
+  ]);
+
+  tstDA("a = defaction(b, c){if b || c then blah();}", [
+    {
+      type: "DefAction",
+      id: mk.id("a"),
+      params: mk.params(["b", "c"]),
+      body: [],
+      action_block: {
+        type: "ActionBlock",
+        condition: mk.op("||", mk.id("b"), mk.id("c")),
+        block_type: "every",
+        discriminant: null,
+        actions: [mk.action(null, "blah")]
+      },
+      returns: []
+    }
+  ]);
+
+  tstDA("a = defaction(){if b && c then every{foo() bar()}}", [
+    {
+      type: "DefAction",
+      id: mk.id("a"),
+      params: mk.params([]),
+      body: [],
+      action_block: {
+        type: "ActionBlock",
+        condition: mk.op("&&", mk.id("b"), mk.id("c")),
+        block_type: "every",
+        discriminant: null,
+        actions: [mk.action(null, "foo"), mk.action(null, "bar")]
+      },
+      returns: []
+    }
+  ]);
+
+  tstDA("a = defaction(){choose (b(c)) {one => foo() two => bar()}}", [
+    {
+      type: "DefAction",
+      id: mk.id("a"),
+      params: mk.params([]),
+      body: [],
+      action_block: {
+        type: "ActionBlock",
+        condition: null,
+        block_type: "choose",
+        discriminant: mk.app(mk.id("b"), [mk.id("c")]),
+        actions: [mk.action("one", "foo"), mk.action("two", "bar")]
+      },
+      returns: []
+    }
+  ]);
+
+  tstDA("a = defaction(b){c = b + 1 noop() return c}", [
+    {
+      type: "DefAction",
+      id: mk.id("a"),
+      params: mk.params(["b"]),
+      body: [mk.declare("=", mk.id("c"), mk.op("+", mk.id("b"), mk(1)))],
+      action_block: {
+        type: "ActionBlock",
+        condition: null,
+        block_type: "every",
+        discriminant: null,
+        actions: [mk.action(null, "noop")]
+      },
+      returns: [mk.id("c")]
+    }
+  ]);
+
+  var tstReturn = function(src: string, expected: any) {
+    tstDA("a = defaction(){noop()" + src + "}", [
+      {
+        type: "DefAction",
+        id: mk.id("a"),
+        params: mk.params([]),
+        body: [],
+        action_block: {
+          type: "ActionBlock",
+          condition: null,
+          block_type: "every",
+          discriminant: null,
+          actions: [mk.action(null, "noop")]
+        },
+        returns: expected
+      }
+    ]);
+  };
+
+  tstReturn("return a", [mk.id("a")]);
+  tstReturn("returns foo, 1 + bar, baz()", [
+    mk.id("foo"),
+    mk.op("+", mk(1), mk.id("bar")),
+    mk.app(mk.id("baz"))
+  ]);
+
+  tstReturn("return semi;", [mk.id("semi")]);
+
+  tstReturn("return ", []);
+  tstReturn("returns ", []);
+
+  tstReturn("returns a, b,", [mk.id("a"), mk.id("b")]);
+});
