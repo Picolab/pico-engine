@@ -53,7 +53,7 @@ var examples = {
         "  }",
         "",
         "  fired {",
-        "    FIRED",
+        '    raise event "it:fired"',
         "  }",
         "}"
       ].join("\n")

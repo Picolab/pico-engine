@@ -127,7 +127,7 @@ rule hello {
   }
 
   fired {
-    FIRED
+    raise event "it:fired"
   }
 }
 {
@@ -193,8 +193,10 @@ rule hello {
     "type": "RulePostlude",
     "fired": [
       {
-        "type": "ExpressionStatement",
-        "expression": FIRED
+        "type": "RaiseEventStatement",
+        "event_attrs": null,
+        "for_rid": null,
+        "event_domainAndType": {value: "it:fired", type:"String"}
       }
     ],
     "notfired": null,
@@ -512,12 +514,8 @@ function(A, B = 3){
       }
     ]
   },
-  "body": [
-    {
-      "type": "ExpressionStatement",
-      "expression": C
-    }
-  ]
+  "body": [  ],
+  "return": C
 }
 
 A(B,C)

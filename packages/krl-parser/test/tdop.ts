@@ -281,18 +281,14 @@ test("literals", function(t) {
         two: {
           type: "Function",
           params: mk.params([]),
-          body: [
-            {
-              type: "ExpressionStatement",
-              expression: {
-                type: "Chevron",
-                value: [
-                  mk.get(mk.id("three"), mk.id("four"), "path"),
-                  { type: "String", value: "five" }
-                ]
-              }
-            }
-          ]
+          body: [],
+          return: {
+            type: "Chevron",
+            value: [
+              mk.get(mk.id("three"), mk.id("four"), "path"),
+              { type: "String", value: "five" }
+            ]
+          }
         }
       })
     ]
@@ -362,35 +358,25 @@ test("expressions", function(t) {
     }
   });
 
-  testExp("function (){}", {
-    type: "Function",
-    params: mk.params([]),
-    body: []
-  });
+  let err = t.throws(() => testExp("function (){}", {}));
+  t.is(err + "", "ParseError: Expected the function return expression");
+
   testExp("function(a){b}", {
     type: "Function",
     params: mk.params(["a"]),
-    body: [
-      {
-        type: "ExpressionStatement",
-        expression: mk.id("b")
-      }
-    ]
+    body: [],
+    return: mk.id("b")
   });
 
   testExp("function(){ent:foo}", {
     type: "Function",
     params: mk.params([]),
-    body: [
-      {
-        type: "ExpressionStatement",
-        expression: mk.dID("ent", "foo")
-      }
-    ]
+    body: [],
+    return: mk.dID("ent", "foo")
   });
 
   // Declarations are not expressions
-  let err = t.throws(() => testExp('a = "one"', {}));
+  err = t.throws(() => testExp('a = "one"', {}));
   t.is(err + "", "ParseError: Expected `(end)` but was =");
 
   testExp("a[1]", {
@@ -484,23 +470,14 @@ test("expressions", function(t) {
     mk.unary("not", mk.op("||", mk.unary("not", mk.id("a")), mk.id("b")))
   );
 
-  testExp("function(a){b = 1;a = 1;}", {
-    type: "Function",
-    params: mk.params(["a"]),
-    body: [
-      mk.declare("=", mk.id("b"), mk(1)),
-      mk.declare("=", mk.id("a"), mk(1))
-      // Parser will allow this to end with a Declaration
-      // The compiler will catch this and give a better error message
-    ]
-  });
+  err = t.throws(() => testExp("function(a){b = 1;a = 1;}", {}));
+  t.is(err + "", "ParseError: Expected the function return expression");
+
   testExp("function(a){b = 1;a(b);}", {
     type: "Function",
     params: mk.params(["a"]),
-    body: [
-      mk.declare("=", mk.id("b"), mk(1)),
-      mk.estmt(mk.app(mk.id("a"), [mk.id("b")]))
-    ]
+    body: [mk.declare("=", mk.id("b"), mk(1))],
+    return: mk.app(mk.id("a"), [mk.id("b")])
   });
 
   t.deepEqual(rmLoc(parse(tokenizer("foo(1).bar(baz(2))"))), [
@@ -1520,44 +1497,56 @@ test("RulePostlude", t => {
   };
 
   // test location
-  var src = "ruleset rs{rule r1{always{one();two()}}}";
+  var src = "ruleset rs{rule r1{always{aaa=one();bbb=two()}}}";
   t.deepEqual(parseRuleset(tokenizer(src)).rules[0].postlude, {
-    loc: { start: 19, end: 38 },
+    loc: { start: 19, end: 46 },
     type: "RulePostlude",
     fired: null,
     notfired: null,
     always: [
       {
-        loc: { start: 26, end: 31 },
-        type: "ExpressionStatement",
-        expression: {
-          loc: { start: 26, end: 31 },
+        loc: { start: 26, end: 35 },
+        type: "Declaration",
+        op: "=",
+        left: {
+          loc: { start: 26, end: 29 },
+          type: "Identifier",
+          value: "aaa"
+        },
+        right: {
+          loc: { start: 30, end: 35 },
           type: "Application",
           callee: {
-            loc: { start: 26, end: 29 },
+            loc: { start: 30, end: 33 },
             type: "Identifier",
             value: "one"
           },
           args: {
-            loc: { start: 29, end: 31 },
+            loc: { start: 33, end: 35 },
             type: "Arguments",
             args: []
           }
         }
       },
       {
-        loc: { start: 32, end: 37 },
-        type: "ExpressionStatement",
-        expression: {
-          loc: { start: 32, end: 37 },
+        loc: { start: 36, end: 45 },
+        type: "Declaration",
+        op: "=",
+        left: {
+          loc: { start: 36, end: 39 },
+          type: "Identifier",
+          value: "bbb"
+        },
+        right: {
+          loc: { start: 40, end: 45 },
           type: "Application",
           callee: {
-            loc: { start: 32, end: 35 },
+            loc: { start: 40, end: 43 },
             type: "Identifier",
             value: "two"
           },
           args: {
-            loc: { start: 35, end: 37 },
+            loc: { start: 43, end: 45 },
             type: "Arguments",
             args: []
           }
@@ -2260,7 +2249,7 @@ test("Parameters", t => {
   function tstParams(paramsSrc: string, expected: any) {
     var src = "global{";
     src += " a = defaction(" + paramsSrc + "){noop()}; ";
-    src += " b = function(" + paramsSrc + "){}; ";
+    src += " b = function(" + paramsSrc + "){null}; ";
     src += "}";
 
     const node = parseRulesetBody(src);
@@ -2303,10 +2292,8 @@ test("potentially ambiguous cases", t => {
       mk.estmt({
         type: "Function",
         params: mk.params([]),
-        body: [
-          mk.declare("=", mk.id("one"), mk(1)),
-          mk.estmt(mk({ two: mk.id("one") }))
-        ]
+        body: [mk.declare("=", mk.id("one"), mk(1))],
+        return: mk({ two: mk.id("one") })
       })
     ]
   );
@@ -2324,10 +2311,8 @@ test("potentially ambiguous cases", t => {
       mk.estmt({
         type: "Function",
         params: mk.params([]),
-        body: [
-          mk.declare("=", mk.id("one"), mk(1)),
-          mk.estmt({ type: "Array", value: [mk.id("index")] })
-        ]
+        body: [mk.declare("=", mk.id("one"), mk(1))],
+        return: { type: "Array", value: [mk.id("index")] }
       })
     ]
   );

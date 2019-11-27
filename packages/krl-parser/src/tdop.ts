@@ -25,10 +25,10 @@ interface State {
 interface Rule {
   id: string;
 
-  nud?: (state: State, token: Token) => ast.Node;
+  nud?: (state: State, token: Token) => ast.Expression;
 
   lbp: number;
-  led?: (state: State, token: Token, left: ast.Node) => ast.Node;
+  led?: (state: State, token: Token, left: ast.Expression) => ast.Expression;
 
   // event expression
   event_nud?: (state: State, token: Token) => ast.EventExpression;
@@ -139,10 +139,14 @@ function easyLookahead(state: State, n: number): string {
     .join("");
 }
 
-function expression(state: State, rbp: number = 0): ast.Node {
+function expression(
+  state: State,
+  rbp: number = 0,
+  errorMessage: string = "Expected an expression"
+): ast.Expression {
   let prev = state.curr;
   if (!prev.rule.nud) {
-    throw new ParseError("Expected an expression", prev.token);
+    throw new ParseError(errorMessage, prev.token);
   }
   state = advance(state);
   let left = prev.rule.nud(state, prev.token);
@@ -793,14 +797,14 @@ function attributeMatch(state: State): ast.AttributeMatch | null {
 function actionBlock(state: State): ast.ActionBlock {
   let { start, end } = state.curr.token.loc;
 
-  let condition: ast.Node | null = null;
+  let condition: ast.Expression | null = null;
   if (chompMaybe(state, "SYMBOL", "if")) {
     condition = expression(state);
     chomp(state, "SYMBOL", "then");
   }
 
   let block_type: "every" | "sample" | "choose" = "every";
-  let discriminant: ast.Node | null = null;
+  let discriminant: ast.Expression | null = null;
   let actions: ast.Action[] = [];
 
   if (state.curr.token.type === "SYMBOL") {
@@ -884,9 +888,9 @@ function action(state: State): ast.Action {
 function rulePostlude(state: State): ast.RulePostlude | null {
   let { start, end } = state.curr.token.loc;
 
-  let fired: ast.Node[] | null = null;
-  let notfired: ast.Node[] | null = null;
-  let always: ast.Node[] | null = null;
+  let fired: ast.PostludeStatement[] | null = null;
+  let notfired: ast.PostludeStatement[] | null = null;
+  let always: ast.PostludeStatement[] | null = null;
 
   if (chompMaybe(state, "SYMBOL", "always")) {
     always = getPostludeStmts();
@@ -927,8 +931,10 @@ function rulePostlude(state: State): ast.RulePostlude | null {
   }
 }
 
-function postludeStatements(state: State): { stmts: ast.Node[]; end: number } {
-  const stmts: ast.Node[] = [];
+function postludeStatements(
+  state: State
+): { stmts: ast.PostludeStatement[]; end: number } {
+  const stmts: ast.PostludeStatement[] = [];
 
   chomp(state, "RAW", "{");
   while (state.curr.token_i < state.tokens.length) {
@@ -946,14 +952,14 @@ function postludeStatements(state: State): { stmts: ast.Node[]; end: number } {
   return { stmts, end };
 }
 
-function pathExpression(state: State): ast.Node | null {
+function pathExpression(state: State): ast.Expression | null {
   if (!chompMaybe(state, "RAW", "{")) return null;
   const expr = expression(state);
   chomp(state, "RAW", "}");
   return expr;
 }
 
-function postludeStatement(state: State): ast.Node {
+function postludeStatement(state: State): ast.PostludeStatement {
   const stmt = postludeStatementCore(state);
 
   const [on, final] = lookahead(state, 2);
@@ -987,7 +993,7 @@ function postludeStatement(state: State): ast.Node {
   return stmt;
 }
 
-function postludeStatementCore(state: State): ast.Node {
+function postludeStatementCore(state: State): ast.PostludeStatement {
   if (state.curr.token.type === "SYMBOL") {
     switch (state.curr.token.src) {
       case "clear": {
@@ -1007,8 +1013,8 @@ function postludeStatementCore(state: State): ast.Node {
         state = advance(state);
 
         let event_domain: ast.Identifier | undefined;
-        let event_type: ast.Node | undefined;
-        let event_domainAndType: ast.Node | undefined;
+        let event_type: ast.Expression | undefined;
+        let event_domainAndType: ast.Expression | undefined;
 
         if (chompMaybe(state, "SYMBOL", "event")) {
           event_domainAndType = expression(state);
@@ -1018,12 +1024,12 @@ function postludeStatementCore(state: State): ast.Node {
           event_type = expression(state);
         }
 
-        let for_rid: ast.Node | null = null;
+        let for_rid: ast.Expression | null = null;
         if (chompMaybe(state, "SYMBOL", "for")) {
           for_rid = expression(state);
         }
 
-        let event_attrs: ast.Node | null = null;
+        let event_attrs: ast.Expression | null = null;
         if (chompMaybe(state, "SYMBOL", "attributes")) {
           event_attrs = expression(state);
         }
@@ -1049,11 +1055,11 @@ function postludeStatementCore(state: State): ast.Node {
         state = advance(state);
 
         let event_domain: ast.Identifier | undefined;
-        let event_type: ast.Node | undefined;
-        let event_domainAndType: ast.Node | undefined;
-        let event_attrs: ast.Node | null = null;
-        let at: ast.Node | undefined;
-        let timespec: ast.Node | undefined;
+        let event_type: ast.Expression | undefined;
+        let event_domainAndType: ast.Expression | undefined;
+        let event_attrs: ast.Expression | null = null;
+        let at: ast.Expression | undefined;
+        let timespec: ast.Expression | undefined;
         let setting: ast.Identifier | null = null;
 
         if (chompMaybe(state, "SYMBOL", "event")) {
@@ -1163,7 +1169,7 @@ function postludeStatementCore(state: State): ast.Node {
     }
   }
 
-  return statement(state);
+  return declaration(state);
 }
 
 function logOrErrorLevel(state: State): keyof typeof ast.LEVEL_ENUM {
@@ -1179,18 +1185,6 @@ function logOrErrorLevel(state: State): keyof typeof ast.LEVEL_ENUM {
     "Expected " + Object.keys(ast.LEVEL_ENUM).join(" or "),
     state.curr.token
   );
-}
-
-function statement(state: State): ast.Statement {
-  if (easyLookahead(state, 2) === "SYMBOL=") {
-    return declaration(state);
-  }
-  let exp = expression(state);
-  return {
-    loc: exp.loc,
-    type: "ExpressionStatement",
-    expression: exp
-  };
 }
 
 function parameters(state: State): ast.Parameters {
@@ -1221,7 +1215,7 @@ function parameters(state: State): ast.Parameters {
 
 function parameter(state: State): ast.Parameter {
   const id = chompIdentifier(state);
-  let dflt: ast.Node | null = null;
+  let dflt: ast.Expression | null = null;
   if (chompMaybe(state, "RAW", "=")) {
     dflt = expression(state);
   }
@@ -1240,14 +1234,14 @@ function chompArguments(state: State): ast.Arguments {
 }
 
 function chompArgumentsBase(state: State, start: number): ast.Arguments {
-  const args: ast.Node[] = [];
+  const args: (ast.Expression | ast.NamedArgument)[] = [];
 
   while (state.curr.token_i < state.tokens.length) {
     if (state.curr.token.type === "RAW" && state.curr.token.src === ")") {
       break;
     }
 
-    let arg: ast.Node | null = expression(state);
+    let arg = expression(state);
 
     if (
       arg.type === "Identifier" &&
@@ -1260,7 +1254,7 @@ function chompArgumentsBase(state: State, start: number): ast.Arguments {
       args.push({
         loc: { start: arg.loc.start, end },
         type: "NamedArgument",
-        id: arg,
+        id: arg as ast.Identifier,
         value
       });
     } else {
@@ -1591,7 +1585,7 @@ defRule("[", {
   nud(state, token) {
     const { start } = token.loc;
 
-    const value: ast.Node[] = [];
+    const value: ast.Expression[] = [];
     while (state.curr.rule.id !== "]") {
       const val = expression(state);
       value.push(val);
@@ -1633,23 +1627,22 @@ defRule("function", {
 
     const params = parameters(state);
 
-    const body: ast.Statement[] = [];
     chomp(state, "RAW", "{");
-    while (state.curr.token_i < state.tokens.length) {
-      if (state.curr.token.type === "RAW" && state.curr.token.src === "}") {
-        break;
-      }
-      body.push(statement(state));
-
-      chompMaybe(state, "RAW", ";");
-    }
+    const body = declarationList(state);
+    const returnExpr = expression(
+      state,
+      0,
+      "Expected the function return expression"
+    );
+    chompMaybe(state, "RAW", ";");
     chomp(state, "RAW", "}");
 
     return {
       loc,
       type: "Function",
       params,
-      body
+      body,
+      return: returnExpr
     };
   }
 });
@@ -1666,7 +1659,7 @@ defRule("defaction", {
 
     const action_block = actionBlock(state);
 
-    let returns: ast.Node[] = [];
+    let returns: ast.Expression[] = [];
 
     if (
       chompMaybe(state, "SYMBOL", "return") ||
@@ -1728,7 +1721,7 @@ function eventExpressionBase(
   const event_type = chompWord(state, "Type");
   const event_attrs = attributeMatches(state);
   let setting: ast.Identifier[] = [];
-  let where: ast.Node | null = null;
+  let where: ast.Expression | null = null;
   let deprecated: string | null = null;
 
   if (chompMaybe(state, "SYMBOL", "where")) {
@@ -1827,7 +1820,7 @@ defRule("CHEVRON-OPEN", {
   nud(state, token) {
     const start = token.loc.start;
 
-    const value: ast.Node[] = [];
+    const value: ast.Expression[] = [];
 
     while (true) {
       if (state.curr.token.type === "CHEVRON-STRING") {
@@ -1919,7 +1912,18 @@ export function parse(tokens: Token[]): ast.Ruleset | ast.Statement[] {
       if (state.curr.rule.id === "(end)") {
         break;
       }
-      statements.push(statement(state));
+
+      if (easyLookahead(state, 2) === "SYMBOL=") {
+        statements.push(declaration(state));
+      } else {
+        let exp = expression(state);
+        statements.push({
+          loc: exp.loc,
+          type: "ExpressionStatement",
+          expression: exp
+        });
+      }
+
       chompMaybe(state, "RAW", ";");
     }
     return statements;

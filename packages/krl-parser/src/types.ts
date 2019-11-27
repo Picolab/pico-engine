@@ -53,7 +53,7 @@ export interface String extends BaseNode {
 
 export interface Chevron extends BaseNode {
   type: "Chevron";
-  value: Node[];
+  value: Expression[];
 }
 
 export interface Keyword extends BaseNode {
@@ -91,12 +91,12 @@ export interface Declaration extends BaseNode {
   type: "Declaration";
   op: "=";
   left: Identifier;
-  right: Node;
+  right: Expression;
 }
 
 export interface ExpressionStatement extends BaseNode {
   type: "ExpressionStatement";
-  expression: Node;
+  expression: Expression;
 }
 
 export type Statement = Declaration | ExpressionStatement;
@@ -104,34 +104,35 @@ export type Statement = Declaration | ExpressionStatement;
 export interface InfixOperator extends BaseNode {
   type: "InfixOperator";
   op: string;
-  left: Node;
-  right: Node;
+  left: Expression;
+  right: Expression;
 }
 
 export interface UnaryOperator extends BaseNode {
   type: "UnaryOperator";
   op: string;
-  arg: Node;
+  arg: Expression;
 }
 
-interface ConditionalExpression extends BaseNode {
+export interface ConditionalExpression extends BaseNode {
   type: "ConditionalExpression";
-  test: Node;
-  consequent: Node;
-  alternate: Node;
+  test: Expression;
+  consequent: Expression;
+  alternate: Expression;
 }
 
 export interface MemberExpression extends BaseNode {
   type: "MemberExpression";
-  object: Node;
+  object: Expression;
   method: "index" | "dot" | "path";
-  property: Node;
+  property: Expression;
 }
 
 export interface Function extends BaseNode {
   type: "Function";
   params: Parameters;
-  body: Statement[];
+  body: Declaration[];
+  return: Expression;
 }
 
 export interface DefAction extends BaseNode {
@@ -139,7 +140,7 @@ export interface DefAction extends BaseNode {
   params: Parameters;
   body: Declaration[];
   action_block: ActionBlock;
-  returns: Node[];
+  returns: Expression[];
 }
 
 export interface Parameters extends BaseNode {
@@ -150,18 +151,18 @@ export interface Parameters extends BaseNode {
 export interface Parameter extends BaseNode {
   type: "Parameter";
   id: Identifier;
-  default: Node | null;
+  default: Expression | null;
 }
 
 export interface Application extends BaseNode {
   type: "Application";
-  callee: Node;
+  callee: Expression;
   args: Arguments;
 }
 
 export interface Array extends BaseNode {
   type: "Array";
-  value: Node[];
+  value: Expression[];
 }
 
 export interface Map extends BaseNode {
@@ -172,18 +173,18 @@ export interface Map extends BaseNode {
 export interface MapKeyValuePair extends BaseNode {
   type: "MapKeyValuePair";
   key: String;
-  value: Node;
+  value: Expression;
 }
 
 export interface Arguments extends BaseNode {
   type: "Arguments";
-  args: Node[];
+  args: (NamedArgument | Expression)[];
 }
 
 export interface NamedArgument extends BaseNode {
   type: "NamedArgument";
   id: Identifier;
-  value: Node;
+  value: Expression;
 }
 
 export interface RulesetID extends BaseNode {
@@ -239,7 +240,7 @@ export interface EventExpressionBase extends BaseNode {
   event_type: Identifier;
   event_attrs: AttributeMatch[];
   setting: Identifier[];
-  where: Node | null;
+  where: Expression | null;
   aggregator: EventAggregator | null;
   deprecated?: string;
 }
@@ -296,21 +297,21 @@ export const TIME_PERIOD_ENUM = {
 
 export interface EventWithin extends BaseNode {
   type: "EventWithin";
-  expression: Node;
+  expression: Expression;
   time_period: keyof typeof TIME_PERIOD_ENUM;
 }
 
 export interface RuleForEach extends BaseNode {
   type: "RuleForEach";
-  expression: Node;
+  expression: Expression;
   setting: Identifier[];
 }
 
 export interface ActionBlock extends BaseNode {
   type: "ActionBlock";
-  condition: Node | null;
+  condition: Expression | null;
   block_type: "every" | "sample" | "choose";
-  discriminant: Node | null;
+  discriminant: Expression | null;
   actions: Action[];
 }
 
@@ -324,49 +325,49 @@ export interface Action extends BaseNode {
 
 export interface RulePostlude extends BaseNode {
   type: "RulePostlude";
-  fired: Node[] | null;
-  notfired: Node[] | null;
-  always: Node[] | null;
+  fired: PostludeStatement[] | null;
+  notfired: PostludeStatement[] | null;
+  always: PostludeStatement[] | null;
 }
 
 export interface GuardCondition extends BaseNode {
   type: "GuardCondition";
-  condition: "on final" | Node;
-  statement: Node;
+  condition: "on final" | Expression;
+  statement: PostludeStatement;
 }
 
 export interface PersistentVariableAssignment extends BaseNode {
   type: "PersistentVariableAssignment";
   op: ":=";
   left: DomainIdentifier;
-  path_expression: Node | null;
-  right: Node;
+  path_expression: Expression | null;
+  right: Expression;
 }
 
 export interface ClearPersistentVariable extends BaseNode {
   type: "ClearPersistentVariable";
   variable: DomainIdentifier;
-  path_expression: Node | null;
+  path_expression: Expression | null;
 }
 
 export interface RaiseEventStatement extends BaseNode {
   type: "RaiseEventStatement";
   event_domain?: Identifier;
-  event_type?: Node;
-  event_domainAndType?: Node;
-  event_attrs: Node | null;
-  for_rid: Node | null;
+  event_type?: Expression;
+  event_domainAndType?: Expression;
+  event_attrs: Expression | null;
+  for_rid: Expression | null;
 }
 
 export interface ScheduleEventStatement extends BaseNode {
   type: "ScheduleEventStatement";
   event_domain?: Identifier;
-  event_type?: Node;
-  event_domainAndType?: Node;
-  event_attrs: Node | null;
+  event_type?: Expression;
+  event_domainAndType?: Expression;
+  event_attrs: Expression | null;
   setting: Identifier | null;
-  at?: Node;
-  timespec?: Node;
+  at?: Expression;
+  timespec?: Expression;
 }
 
 export const LEVEL_ENUM = {
@@ -379,18 +380,48 @@ export const LEVEL_ENUM = {
 export interface LogStatement extends BaseNode {
   type: "LogStatement";
   level: keyof typeof LEVEL_ENUM;
-  expression: Node;
+  expression: Expression;
 }
 
 export interface ErrorStatement extends BaseNode {
   type: "ErrorStatement";
   level: keyof typeof LEVEL_ENUM;
-  expression: Node;
+  expression: Expression;
 }
 
 export interface LastStatement extends BaseNode {
   type: "LastStatement";
 }
+
+export type PostludeStatement =
+  | GuardCondition
+  | PersistentVariableAssignment
+  | ClearPersistentVariable
+  | RaiseEventStatement
+  | ScheduleEventStatement
+  | LogStatement
+  | ErrorStatement
+  | LastStatement
+  | Declaration;
+
+export type Expression =
+  | Number
+  | Boolean
+  | Null
+  | String
+  | Chevron
+  | KrlRegExp
+  | Identifier
+  | DomainIdentifier
+  | InfixOperator
+  | UnaryOperator
+  | ConditionalExpression
+  | MemberExpression
+  | Function
+  | DefAction
+  | Application
+  | Array
+  | Map;
 
 export type Node =
   | Number

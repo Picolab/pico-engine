@@ -83,11 +83,11 @@ test('compiler errors', function (t) {
     compiler('function(){a = 1}')
     t.fail('function must end with an expression')
   } catch (err) {
-    t.is(err + '', 'Error: function must end with an expression')
+    t.is(err + '', 'ParseError: Expected the function return expression')
   }
 
   try {
-    compiler('ruleset a{meta{keys b {"one":function(){}}}}')
+    compiler('ruleset a{meta{keys b {"one":function(){null}}}}')
     t.fail('meta key maps can only have strings')
   } catch (err) {
     t.is(err + '', 'Error: A ruleset key that is Map, can only use Strings as values')
