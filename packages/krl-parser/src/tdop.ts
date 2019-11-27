@@ -596,13 +596,6 @@ function declaration(state: State): ast.Declaration {
   chomp(state, "RAW", "=");
   const right = expression(state);
 
-  if (right.type === "DefAction") {
-    // TODO remove this legacy pattern
-    let legacyDefaction: any = right;
-    legacyDefaction.id = left;
-    return legacyDefaction;
-  }
-
   return {
     loc: { start: left.loc.start, end: right.loc.end },
     type: "Declaration",

@@ -17,15 +17,12 @@ module.exports = function (ast, comp, e) {
     return e('string', p.id.value, p.id.loc)
   }), ast.params.loc)
 
-  return e(';', e('call', e('id', 'ctx.scope.set'), [
-    e('str', ast.id.value, ast.id.loc),
-    e('call', e('id', 'ctx.mkAction'), [
-      paramOrder,
-      e('asyncfn', [
-        'ctx',
-        'args',
-        'runAction'
-      ], body)
-    ])
-  ]))
+  return e('call', e('id', 'ctx.mkAction'), [
+    paramOrder,
+    e('asyncfn', [
+      'ctx',
+      'args',
+      'runAction'
+    ], body)
+  ])
 }

@@ -2079,9 +2079,8 @@ test("DefAction", t => {
   }
 
   tstDA('a = defaction(){send_directive("foo")}', [
-    {
+    mk.declare("=", mk.id("a"), {
       type: "DefAction",
-      id: mk.id("a"),
       params: mk.params([]),
       body: [],
       action_block: {
@@ -2092,15 +2091,14 @@ test("DefAction", t => {
         actions: [mk.action(null, "send_directive", [mk("foo")])]
       },
       returns: []
-    }
+    })
   ]);
 
   tstDA(
     'a = defaction(b, c){d = 2 e = 3 every { notify("foo", f = 4, g=5) noop()}}',
     [
-      {
+      mk.declare("=", mk.id("a"), {
         type: "DefAction",
-        id: mk.id("a"),
         params: mk.params(["b", "c"]),
         body: [
           mk.declare("=", mk.id("d"), mk(2)),
@@ -2121,15 +2119,14 @@ test("DefAction", t => {
           ]
         },
         returns: []
-      }
+      })
     ]
   );
 
   tstDA("a = defaction(){d = 2; noop()}", [
     // semi-colon after single declaration
-    {
+    mk.declare("=", mk.id("a"), {
       type: "DefAction",
-      id: mk.id("a"),
       params: mk.params([]),
       body: [mk.declare("=", mk.id("d"), mk(2))],
       action_block: {
@@ -2140,13 +2137,12 @@ test("DefAction", t => {
         actions: [mk.action(null, "noop", [])]
       },
       returns: []
-    }
+    })
   ]);
 
   tstDA("a = defaction(b, c){if b || c then blah();}", [
-    {
+    mk.declare("=", mk.id("a"), {
       type: "DefAction",
-      id: mk.id("a"),
       params: mk.params(["b", "c"]),
       body: [],
       action_block: {
@@ -2157,13 +2153,12 @@ test("DefAction", t => {
         actions: [mk.action(null, "blah")]
       },
       returns: []
-    }
+    })
   ]);
 
   tstDA("a = defaction(){if b && c then every{foo() bar()}}", [
-    {
+    mk.declare("=", mk.id("a"), {
       type: "DefAction",
-      id: mk.id("a"),
       params: mk.params([]),
       body: [],
       action_block: {
@@ -2174,13 +2169,12 @@ test("DefAction", t => {
         actions: [mk.action(null, "foo"), mk.action(null, "bar")]
       },
       returns: []
-    }
+    })
   ]);
 
   tstDA("a = defaction(){choose b(c) {one => foo() two => bar()}}", [
-    {
+    mk.declare("=", mk.id("a"), {
       type: "DefAction",
-      id: mk.id("a"),
       params: mk.params([]),
       body: [],
       action_block: {
@@ -2191,13 +2185,12 @@ test("DefAction", t => {
         actions: [mk.action("one", "foo"), mk.action("two", "bar")]
       },
       returns: []
-    }
+    })
   ]);
 
   tstDA("a = defaction(b){c = b + 1 noop() return c}", [
-    {
+    mk.declare("=", mk.id("a"), {
       type: "DefAction",
-      id: mk.id("a"),
       params: mk.params(["b"]),
       body: [mk.declare("=", mk.id("c"), mk.op("+", mk.id("b"), mk(1)))],
       action_block: {
@@ -2208,14 +2201,13 @@ test("DefAction", t => {
         actions: [mk.action(null, "noop")]
       },
       returns: [mk.id("c")]
-    }
+    })
   ]);
 
   var tstReturn = function(src: string, expected: any) {
     tstDA("a = defaction(){noop()" + src + "}", [
-      {
+      mk.declare("=", mk.id("a"), {
         type: "DefAction",
-        id: mk.id("a"),
         params: mk.params([]),
         body: [],
         action_block: {
@@ -2226,7 +2218,7 @@ test("DefAction", t => {
           actions: [mk.action(null, "noop")]
         },
         returns: expected
-      }
+      })
     ]);
   };
 
@@ -2259,7 +2251,7 @@ test("Parameters", t => {
 
     var expAst = mk.params(expected);
 
-    t.deepEqual(node.global[0].params, expAst);
+    t.deepEqual(node.global[0].right.params, expAst);
     t.deepEqual(node.global[1].right.params, expAst);
   }
 
