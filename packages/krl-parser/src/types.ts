@@ -69,6 +69,7 @@ export interface KrlRegExp extends BaseNode {
 export const RESERVED_WORDS_ENUM = {
   defaction: true,
   function: true,
+  return: true,
   not: true,
   setting: true,
   null: true,

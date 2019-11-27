@@ -491,6 +491,9 @@ defRule("function", {
 
     chomp(state, "RAW", "{");
     const body = declarationList(state);
+
+    chompMaybe(state, "SYMBOL", "return");
+
     const returnExpr = expression(
       state,
       0,

@@ -5,6 +5,10 @@ import * as ast from "../src/types";
 const mk = require("./helpers/astMaker");
 const rmLoc = require("./helpers/rmLoc");
 
+function parseIt(src: string) {
+  return rmLoc(parse(tokenizer(src)));
+}
+
 function parseE(src: string) {
   return rmLoc(parseExpression(tokenizer(src)));
 }
@@ -517,6 +521,19 @@ test("operator precedence", function(t) {
   testPrec("a && b cmp c", "(&& a (cmp b c))");
 
   testPrec("a * b < c && d", "(&& (< (* a b) c) d)");
+});
+
+test("function return", function(t) {
+  t.throws(() => parseIt("function(a){b = c [i]}"));
+
+  t.deepEqual(parseIt("function(a){b = c return [i]}"), [
+    {
+      type: "Function",
+      params: mk.params(["a"]),
+      body: [mk.declare("=", mk.id("b"), mk.id("c"))],
+      return: { type: "Array", value: [mk.id("i")] }
+    }
+  ]);
 });
 
 test("DefAction", t => {
