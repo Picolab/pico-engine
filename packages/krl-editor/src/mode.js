@@ -19,7 +19,7 @@ var KRLHighlightRules = function(options) {
 
         "keyword":
             "ruleset|meta|global|rule|pre|always|fired|notfired|finally|" +
-            "function|defaction|setting|" +
+            "function|return|defaction|setting|" +
             "if|then|else|choose|every|" + // conditionals
             "raise|attributes", // raise
 
