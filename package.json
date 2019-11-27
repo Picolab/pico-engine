@@ -10,7 +10,8 @@
     "setup": "npm i --no-package-lock && npm run bootstrap",
     "publish": "lerna publish",
     "start": "cd packages/pico-engine && npm start",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "build": "cd packages/krl-parser && npm run build && cd ../krl-editor && npm run build"
   },
   "devDependencies": {
     "lerna": "^3.2.1"

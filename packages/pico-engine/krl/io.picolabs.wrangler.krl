@@ -337,9 +337,9 @@ ruleset io.picolabs.wrangler {
     
     //deprecated
     picoFromName = function(value){
-      return = children().defaultsTo([]).filter(function(child){
+      ret = children().defaultsTo([]).filter(function(child){
                                               (child{"name"} ==  value || child{"id"} == value)});
-      return.head().defaultsTo("Error")//no pico exists for given name
+      ret.head().defaultsTo("Error")//no pico exists for given name
     }
     
     //deprecated
