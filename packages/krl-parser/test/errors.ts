@@ -1,6 +1,12 @@
 import test from "ava";
 import { parse } from "../src/krl";
 import tokenizer from "../src/tokenizer";
+const mk = require("./helpers/astMaker");
+const rmLoc = require("./helpers/rmLoc");
+
+function parseIt(src: string) {
+  return rmLoc(parse(tokenizer(src)));
+}
 
 test("error messages", t => {
   function parseErr(src: string) {
@@ -46,5 +52,60 @@ test("error messages", t => {
   t.is(
     parseErr("function(){a = one {path}}"),
     "ParseError: Expected the function return expression|RAW|}|25"
+  );
+});
+
+test("potentially ambiguous cases", t => {
+  t.deepEqual(
+    parseIt(`function(){
+              one = 1;
+              {"two":one}
+            }`),
+    [
+      {
+        type: "Function",
+        params: mk.params([]),
+        body: [mk.declare("=", mk.id("one"), mk(1))],
+        return: mk({ two: mk.id("one") })
+      }
+    ]
+  );
+
+  t.deepEqual(
+    parseIt(`function(){
+              one = 1;
+              [index]
+            }`),
+    [
+      {
+        type: "Function",
+        params: mk.params([]),
+        body: [mk.declare("=", mk.id("one"), mk(1))],
+        return: { type: "Array", value: [mk.id("index")] }
+      }
+    ]
+  );
+
+  t.deepEqual(
+    parseIt("ruleset a{rule b{choose one{noop()}}}").rules[0].action_block,
+    {
+      type: "ActionBlock",
+      block_type: "choose",
+      condition: null,
+      discriminant: mk.id("one"),
+      actions: [mk.action(null, "noop", [])]
+    }
+  );
+
+  t.deepEqual(
+    parseIt("ruleset a{rule b{choose (one{noop()}) {noop()}}}").rules[0]
+      .action_block,
+    {
+      type: "ActionBlock",
+      block_type: "choose",
+      condition: null,
+      discriminant: mk.get(mk.id("one"), mk.app(mk.id("noop")), "path"),
+      actions: [mk.action(null, "noop", [])]
+    }
   );
 });
