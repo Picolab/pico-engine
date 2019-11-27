@@ -481,15 +481,13 @@ test("expressions", function(t) {
   });
 
   t.deepEqual(rmLoc(parse(tokenizer("foo(1).bar(baz(2))"))), [
-    mk.estmt(
-      mk.app(mk.get(mk.app(mk.id("foo"), [mk(1)]), mk.id("bar"), "dot"), [
-        mk.app(mk.id("baz"), [mk(2)])
-      ])
-    )
+    mk.app(mk.get(mk.app(mk.id("foo"), [mk(1)]), mk.id("bar"), "dot"), [
+      mk.app(mk.id("baz"), [mk(2)])
+    ])
   ]);
 
   t.deepEqual(rmLoc(parse(tokenizer(`"str".trim()`))), [
-    mk.estmt(mk.app(mk.get(mk("str"), mk.id("trim"), "dot"), []))
+    mk.app(mk.get(mk("str"), mk.id("trim"), "dot"), [])
   ]);
 });
 
@@ -2281,12 +2279,12 @@ test("potentially ambiguous cases", t => {
       )
     ),
     [
-      mk.estmt({
+      {
         type: "Function",
         params: mk.params([]),
         body: [mk.declare("=", mk.id("one"), mk(1))],
         return: mk({ two: mk.id("one") })
-      })
+      }
     ]
   );
 
@@ -2300,12 +2298,12 @@ test("potentially ambiguous cases", t => {
       )
     ),
     [
-      mk.estmt({
+      {
         type: "Function",
         params: mk.params([]),
         body: [mk.declare("=", mk.id("one"), mk(1))],
         return: { type: "Array", value: [mk.id("index")] }
-      })
+      }
     ]
   );
 

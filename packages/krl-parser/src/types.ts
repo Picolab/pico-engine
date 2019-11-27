@@ -94,13 +94,6 @@ export interface Declaration extends BaseNode {
   right: Expression;
 }
 
-export interface ExpressionStatement extends BaseNode {
-  type: "ExpressionStatement";
-  expression: Expression;
-}
-
-export type Statement = Declaration | ExpressionStatement;
-
 export interface InfixOperator extends BaseNode {
   type: "InfixOperator";
   op: string;
@@ -434,7 +427,6 @@ export type Node =
   | Identifier
   | DomainIdentifier
   | Declaration
-  | ExpressionStatement
   | InfixOperator
   | UnaryOperator
   | ConditionalExpression

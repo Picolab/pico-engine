@@ -206,9 +206,6 @@ Object.keys(examples).forEach(function(head) {
           }
           ast = normalizeAST(rmLoc(ast));
           ast = Array.isArray(ast) && ast.length === 1 ? ast[0] : ast;
-          if (ast.type === "ExpressionStatement") {
-            ast = ast.expression;
-          }
           return src + "\n" + printAST(ast, 0, 2);
         })
         .join("\n\n") +

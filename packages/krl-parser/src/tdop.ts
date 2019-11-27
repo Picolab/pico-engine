@@ -1891,7 +1891,9 @@ function parseCore<OUT>(
   return tree;
 }
 
-export function parse(tokens: Token[]): ast.Ruleset | ast.Statement[] {
+export function parse(
+  tokens: Token[]
+): ast.Ruleset | (ast.Declaration | ast.Expression)[] {
   return parseCore(tokens, state => {
     if (
       state.curr.token.type === "SYMBOL" &&
@@ -1900,7 +1902,7 @@ export function parse(tokens: Token[]): ast.Ruleset | ast.Statement[] {
       return ruleset(state);
     }
 
-    const statements: ast.Statement[] = [];
+    const statements: (ast.Declaration | ast.Expression)[] = [];
     while (state.curr.token_i < state.tokens.length) {
       if (state.curr.rule.id === "(end)") {
         break;
@@ -1909,12 +1911,7 @@ export function parse(tokens: Token[]): ast.Ruleset | ast.Statement[] {
       if (easyLookahead(state, 2) === "SYMBOL=") {
         statements.push(declaration(state));
       } else {
-        let exp = expression(state);
-        statements.push({
-          loc: exp.loc,
-          type: "ExpressionStatement",
-          expression: exp
-        });
+        statements.push(expression(state));
       }
 
       chompMaybe(state, "RAW", ";");

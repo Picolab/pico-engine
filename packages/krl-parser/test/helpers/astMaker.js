@@ -121,9 +121,6 @@ mk.meta = function(key, value) {
     value: value
   };
 };
-mk.estmt = function(e) {
-  return { type: "ExpressionStatement", expression: e };
-};
 mk.param = function(id, dflt) {
   return {
     type: "Parameter",
