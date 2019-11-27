@@ -1,5 +1,5 @@
 import test from "ava";
-import { parseExpression, parseRuleset, parse } from "../src/tdop";
+import { parseExpression, parseRuleset, parse } from "../src/krl";
 import tokenizer from "../src/tokenizer";
 import * as ast from "../src/types";
 const normalizeAST = require("./helpers/normalizeAST");

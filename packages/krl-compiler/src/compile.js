@@ -137,6 +137,14 @@ module.exports = function (ast, options) {
 
   var body = compile(ast)
   body = _.isArray(body) ? body : [body]
+
+  body = body.map(function (estree) {
+    if (!/Statement/.test(estree.type)) {
+      return mkTree(';', estree, estree.loc)
+    }
+    return estree
+  })
+
   return {
     body: body,
     warnings: warnings
