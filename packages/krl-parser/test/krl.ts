@@ -813,7 +813,7 @@ test("with", function(t) {
     mk.declare("=", mk.id("a"), mk("b")),
     mk.declare("=", mk.id("c"), mk("d"))
   ]);
-  tst('with a = "b" and = "d"', "ParseError: Expected Identifier|RAW|=|45");
+  tst('with a = "b" and = "d"', "ParseError: Expected a declaration|RAW|=|45");
   tst('with a = "b" and c = "d"', [
     mk.declare("=", mk.id("a"), mk("b")),
     mk.declare("=", mk.id("c"), mk("d"))

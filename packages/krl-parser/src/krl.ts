@@ -68,12 +68,12 @@ function chompWord(
   return id;
 }
 
-function chompIdentifier(state: State): ast.Identifier {
+function chompIdentifierMaybe(state: State): ast.Identifier | null {
   if (
     state.curr.token.type !== "SYMBOL" ||
     ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)
   ) {
-    throw new ParseError("Expected Identifier", state.curr.token);
+    return null;
   }
   const id: ast.Identifier = {
     loc: state.curr.token.loc,
@@ -81,6 +81,14 @@ function chompIdentifier(state: State): ast.Identifier {
     value: state.curr.token.src
   };
   advance(state);
+  return id;
+}
+
+function chompIdentifier(state: State): ast.Identifier {
+  const id = chompIdentifierMaybe(state);
+  if (!id) {
+    throw new ParseError("Expected Identifier", state.curr.token);
+  }
   return id;
 }
 
@@ -130,7 +138,7 @@ function identifierList(state: State): ast.Identifier[] {
 function declarationList(state: State): ast.Declaration[] {
   const declarations: ast.Declaration[] = [];
 
-  while (true) {
+  while (state.curr.token_i < state.tokens.length) {
     if (
       state.curr.token.type !== "SYMBOL" ||
       ast.RESERVED_WORDS_ENUM.hasOwnProperty(state.curr.token.src)
@@ -150,8 +158,14 @@ function declarationList(state: State): ast.Declaration[] {
 }
 
 function declaration(state: State): ast.Declaration {
-  const left = chompIdentifier(state);
-  chomp(state, "RAW", "=");
+  const leftToken = state.curr.token;
+  const left = chompIdentifierMaybe(state);
+  if (!left) {
+    throw new ParseError("Expected a declaration", state.curr.token);
+  }
+  if (!chompMaybe(state, "RAW", "=")) {
+    throw new ParseError("Expected a declaration", leftToken);
+  }
   const right = expression(state);
 
   return {
@@ -717,7 +731,9 @@ function ruleset(state: State): ast.Ruleset {
   if (chompMaybe(state, "SYMBOL", "global")) {
     chomp(state, "RAW", "{");
     global = declarationList(state);
-    chomp(state, "RAW", "}");
+    if (!chompMaybe(state, "RAW", "}")) {
+      throw new ParseError("Expected a declaration", state.curr.token);
+    }
   }
 
   const rules: ast.Rule[] = [];
@@ -1051,7 +1067,9 @@ function rulesetRule(state: State): ast.Rule | null {
   if (chompMaybe(state, "SYMBOL", "pre")) {
     chomp(state, "RAW", "{");
     prelude = declarationList(state);
-    chomp(state, "RAW", "}");
+    if (!chompMaybe(state, "RAW", "}")) {
+      throw new ParseError("Expected a declaration", state.curr.token);
+    }
   }
 
   let action_block: ast.ActionBlock | null = null;
@@ -1306,7 +1324,11 @@ function postludeStatementCore(state: State): ast.PostludeStatement {
         if (chompMaybe(state, "SYMBOL", "event")) {
           event_domainAndType = expression(state);
         } else {
-          event_domain = chompIdentifier(state);
+          let id = chompIdentifierMaybe(state);
+          if (!id) {
+            throw new ParseError("Expected `event`", state.curr.token);
+          }
+          event_domain = id;
           chomp(state, "SYMBOL", "event");
           event_type = expression(state);
         }
@@ -1435,25 +1457,21 @@ function postludeStatementCore(state: State): ast.PostludeStatement {
     }
   }
 
-  switch (easyLookahead(state, 4)) {
-    case "SYMBOL:SYMBOL:=":
-    case "SYMBOL:SYMBOL{": {
-      const loc = state.curr.token.loc;
+  if (easyLookahead(state, 3) === "SYMBOL:SYMBOL") {
+    const left = chompDomainIdentifier(state);
+    const path_expression = pathExpression(state);
+    const loc = state.curr.token.loc;
+    chomp(state, "RAW", ":=");
+    const right = expression(state);
 
-      const left = chompDomainIdentifier(state);
-      const path_expression = pathExpression(state);
-      chomp(state, "RAW", ":=");
-      const right = expression(state);
-
-      return {
-        loc,
-        type: "PersistentVariableAssignment",
-        op: ":=",
-        left,
-        path_expression,
-        right
-      };
-    }
+    return {
+      loc,
+      type: "PersistentVariableAssignment",
+      op: ":=",
+      left,
+      path_expression,
+      right
+    };
   }
 
   return declaration(state);
