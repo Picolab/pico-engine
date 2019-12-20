@@ -1346,7 +1346,7 @@ function defAggregatorEventExpression(op) {
         event_nud(state, token) {
             const num = chompPositiveInteger(state);
             chomp(state, "RAW", "(");
-            const event = eventExpressionBase(state, chompWord(state, "Domain"));
+            const event = eventExpressionBase(state, chompWord(state, "a bare word for the event domain"));
             chomp(state, "RAW", ")");
             if (state.curr.token.type === "SYMBOL") {
                 switch (state.curr.token.src) {
@@ -1379,8 +1379,8 @@ function defAggregatorEventExpression(op) {
     });
 }
 function eventExpressionBase(state, event_domain) {
-    chompMaybe(state, "RAW", ":");
-    const event_type = chompWord(state, "Type");
+    const hadColon = chompMaybe(state, "RAW", ":");
+    const event_type = chompWord(state, hadColon ? "a bare word for the event type" : "`:`");
     const event_attrs = attributeMatches(state);
     let setting = [];
     let where = null;

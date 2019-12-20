@@ -100,13 +100,21 @@ var KRLHighlightRules = function(options) {
                 regex: "(ruleset)(\\s+)([a-zA-Z0-9_.-]+)",
                 token: ["keyword", "text", "variable"]
             }, {
-                regex: "(rule)(\\s+)(" + identifierRe + ")(\\s+)(is)(\\s+)(inactive|active)",
+                regex: "rule\\s+" + identifierRe + "\\s+is\\s+inactive",
+                token: "comment",
+                // TODO comment out the entire rule body
+            }, {
+                regex: "(rule)(\\s+)(" + identifierRe + ")(\\s+)(is)(\\s+)(active)",
                 token: ["keyword", "text", "variable", "text", "keyword", "text", "constant.language"]
             }, {
                 regex: "(rule)(\\s+)(" + identifierRe + ")(\\s+)",
                 token: ["keyword", "text", "variable", "text"]
             }, {
                 regex: "(select)(\\s+)(when)(\\s+)(" + identifierRe + ")(\\s+)(" + identifierRe + ")",
+                token: ["keyword", "text", "keyword", "text", "variable", "text", "variable"]
+                //TODO state machine to handle EventExpressions
+            }, {
+                regex: "(select)(\\s+)(when)(\\s+)(" + identifierRe + ")(\\s*:\\s*)(" + identifierRe + ")",
                 token: ["keyword", "text", "keyword", "text", "variable", "text", "variable"]
                 //TODO state machine to handle EventExpressions
             }, {

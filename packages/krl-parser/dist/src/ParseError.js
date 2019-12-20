@@ -9,7 +9,7 @@ class ParseError extends Error {
         this.token = token;
     }
     setupWhere(src, filename) {
-        const { line, col } = lineColumn(src, this.token.loc.start);
+        const { line, col } = lineColumn(src, Math.min(this.token.loc.start, src.length - 1));
         this.where = {
             filename,
             line,
