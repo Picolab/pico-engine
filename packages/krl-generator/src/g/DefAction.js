@@ -2,9 +2,7 @@ var _ = require('lodash')
 
 module.exports = function (ast, ind, gen) {
   var src = ''
-  src += ind()
-  src += gen(ast.id)
-  src += ' = defaction('
+  src += 'defaction('
   src += gen(ast.params)
   src += '){\n'
 

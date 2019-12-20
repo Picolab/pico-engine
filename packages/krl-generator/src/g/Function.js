@@ -6,13 +6,16 @@ module.exports = function (ast, ind, gen) {
   src += '){\n'
 
   var body = _.map(ast.body, function (stmt) {
-    return gen(stmt, 1)
-  }).join(';\n')
+    return gen(stmt, 1) + ';'
+  }).join('\n')
+  src += body
+
   if (body.length > 0) {
-    body += ';'
+    src += '\n'
   }
 
-  src += body
+  src += ind(1) + gen(ast.return, 1) + ';'
+
   src += '\n' + ind() + '}'
 
   return src

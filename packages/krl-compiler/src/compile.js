@@ -17,7 +17,6 @@ var compByType = {
   'ErrorStatement': require('./c/ErrorStatement'),
   'EventExpression': require('./c/EventExpression'),
   'EventWithin': require('./c/EventWithin'),
-  'ExpressionStatement': require('./c/ExpressionStatement'),
   'Function': require('./c/Function'),
   'GuardCondition': require('./c/GuardCondition'),
   'Identifier': require('./c/Identifier'),
@@ -137,7 +136,15 @@ module.exports = function (ast, options) {
   }
 
   var body = compile(ast)
-  body = _.isArray(body) ? body : []
+  body = _.isArray(body) ? body : [body]
+
+  body = body.map(function (estree) {
+    if (!/Statement/.test(estree.type)) {
+      return mkTree(';', estree, estree.loc)
+    }
+    return estree
+  })
+
   return {
     body: body,
     warnings: warnings

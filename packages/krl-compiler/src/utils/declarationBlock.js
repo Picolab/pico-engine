@@ -4,9 +4,7 @@ module.exports = function (astList, comp) {
   var usedIDs = {}
   return _.map(astList, function (ast) {
     var id
-    if (ast.type === 'DefAction') {
-      id = ast.id.value
-    } else if (ast.type === 'Declaration') {
+    if (ast.type === 'Declaration') {
       if (ast.left.type === 'Identifier') {
         id = ast.left.value
       }

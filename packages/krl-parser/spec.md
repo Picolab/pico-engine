@@ -29,7 +29,7 @@ ruleset io.picolabs.hello {
     "type": "RulesetID",
     "value": "io.picolabs.hello"
   },
-  "meta": undefined,
+  "meta": null,
   "global": [  ],
   "rules": [  ]
 }
@@ -127,7 +127,7 @@ rule hello {
   }
 
   fired {
-    FIRED
+    raise event "it:fired"
   }
 }
 {
@@ -193,8 +193,10 @@ rule hello {
     "type": "RulePostlude",
     "fired": [
       {
-        "type": "ExpressionStatement",
-        "expression": FIRED
+        "type": "RaiseEventStatement",
+        "event_attrs": null,
+        "for_rid": null,
+        "event_domainAndType": {value: "it:fired", type:"String"}
       }
     ],
     "notfired": null,
@@ -326,8 +328,8 @@ thing
 ent:name
 {
   "type": "DomainIdentifier",
-  "value": "name",
-  "domain": "ent"
+  "domain": "ent",
+  "value": "name"
 }
 
 true
@@ -380,8 +382,8 @@ re#^My name is (.*)#i
     {
       "type": "MemberExpression",
       "object": {value: "x", type:"Identifier"},
-      "property": {value: "flip", type:"String"},
-      "method": "path"
+      "method": "path",
+      "property": {value: "flip", type:"String"}
     },
     {value: " that ", type:"String"}
   ]
@@ -512,12 +514,8 @@ function(A, B = 3){
       }
     ]
   },
-  "body": [
-    {
-      "type": "ExpressionStatement",
-      "expression": C
-    }
-  ]
+  "body": [  ],
+  "return": C
 }
 
 A(B,C)
@@ -540,24 +538,24 @@ matrix[i][j]
   "object": {
     "type": "MemberExpression",
     "object": {value: "matrix", type:"Identifier"},
-    "property": {value: "i", type:"Identifier"},
-    "method": "index"
+    "method": "index",
+    "property": {value: "i", type:"Identifier"}
   },
-  "property": {value: "j", type:"Identifier"},
-  "method": "index"
+  "method": "index",
+  "property": {value: "j", type:"Identifier"}
 }
 
 some_hash{["some", "path"]}
 {
   "type": "MemberExpression",
   "object": {value: "some_hash", type:"Identifier"},
+  "method": "path",
   "property": {
     "type": "Array",
     "value": [
       {value: "some", type:"String"},
       {value: "path", type:"String"}
     ]
-  },
-  "method": "path"
+  }
 }
 ```
