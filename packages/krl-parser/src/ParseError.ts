@@ -21,7 +21,10 @@ export class ParseError extends Error {
   };
 
   setupWhere(src: string, filename: string) {
-    const { line, col } = lineColumn(src, this.token.loc.start);
+    const { line, col } = lineColumn(
+      src,
+      Math.min(this.token.loc.start, src.length - 1)
+    );
 
     this.where = {
       filename,

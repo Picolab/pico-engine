@@ -1,8 +1,10 @@
 import test from "ava";
 import { parse } from "../src/krl";
 import tokenizer from "../src/tokenizer";
+import { ParseError } from "../src/ParseError";
 const mk = require("./helpers/astMaker");
 const rmLoc = require("./helpers/rmLoc");
+const parseKRL = require("../src/index");
 
 function parseIt(src: string) {
   return rmLoc(parse(tokenizer(src)));
@@ -108,4 +110,29 @@ test("potentially ambiguous cases", t => {
       actions: [mk.action(null, "noop", [])]
     }
   );
+});
+
+test("closing brace errors", t => {
+  let err = t.throws(() => parseKRL(`ruleset a{`)) as ParseError;
+  t.is(err + "", "ParseError: Expected `}`");
+  t.deepEqual(err.token, {
+    loc: {
+      end: 10,
+      start: 10
+    },
+    src: "",
+    type: "WHITESPACE"
+  });
+  t.deepEqual(err.where, {
+    col: 10,
+    excerpt: `
+ruleset a{
+         ^`.trim(),
+    excerptOneLine: `
+ruleset a{
+         ^`.trim(),
+    filename: "",
+    line: 1,
+    locationString: ":1:10"
+  });
 });
