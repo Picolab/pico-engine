@@ -392,7 +392,32 @@ test("select when", t => {
     t.deepEqual(node, expected);
   }
 
+  t.is(parseRuleBody(`select`), "ParseError: Expected `when`|RAW|}|23");
+
+  t.is(
+    parseRuleBody(`select when`),
+    "ParseError: Expected an event expression|RAW|}|28"
+  );
+
+  t.is(parseRuleBody(`select when foo`), "ParseError: Expected `:`|RAW|}|32");
+
+  t.is(
+    parseRuleBody(`select when foo:`),
+    "ParseError: Expected a bare word for the event type|RAW|}|33"
+  );
+
   var src = "select when d t";
+  asertRuleAST(src, {
+    type: "EventExpression",
+    event_domain: { type: "Identifier", value: "d" },
+    event_type: { type: "Identifier", value: "t" },
+    event_attrs: [],
+    where: null,
+    setting: [],
+    aggregator: null
+  });
+
+  var src = "select when d:t";
   asertRuleAST(src, {
     type: "EventExpression",
     event_domain: { type: "Identifier", value: "d" },
