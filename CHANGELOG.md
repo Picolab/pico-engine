@@ -1,3 +1,9 @@
+# 0.52.0 - December 20, 2019
+
+* New KRL parser - see [464](https://github.com/Picolab/pico-engine/pull/464) for change notes
+* Ability to run Pico Engine in a web browser - see [pico-engine-browser](https://github.com/Picolab/pico-engine/tree/master/packages/pico-engine-browser)
+* Allow Agent UI to remove router - see [22ff28b7](https://github.com/Picolab/pico-engine/commit/22ff28b7)
+
 # 0.51.1 - August 6, 2019
 
 * dynamic raise statement - see [460](https://github.com/Picolab/pico-engine/pull/460) and [15](https://github.com/Picolab/pico-engine/issues/15)
