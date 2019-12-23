@@ -1,3 +1,7 @@
+# 0.52.1 - December 23, 2019
+
+* Fixing KRL editor to use the new parser
+
 # 0.52.0 - December 20, 2019
 
 * New KRL parser - see [464](https://github.com/Picolab/pico-engine/pull/464) for change notes
