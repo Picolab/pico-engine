@@ -162,7 +162,7 @@
     {{#if history}}
         <h4 class="text-muted">History</h4>
         {{#each history}}
-            <div>
+            <div title="{{src}}">
                 {{timestamp}}
             </div>
         {{/each}}
@@ -272,9 +272,7 @@
             var history = [];
             if(rs.by_hash){
                 Object.keys(rs.by_hash).forEach(function(hash){
-                    history.push({
-                        timestamp: rs.by_hash[hash].timestamp,
-                    });
+                    history.push(rs.by_hash[hash]);
                 });
             }
 
