@@ -1,6 +1,6 @@
 {
   "name": "krl-generator",
-  "version": "0.52.0",
+  "version": "0.52.2",
   "description": "Generate KRL code given krl-ast as input. (pretty printer)",
   "main": "src/index.js",
   "scripts": {
@@ -25,7 +25,7 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
     "ava": "^2.2.0",
-    "krl-parser": "^0.52.0",
+    "krl-parser": "^0.52.2",
     "standard": "^12.0.1"
   },
   "dependencies": {
