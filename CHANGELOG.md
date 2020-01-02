@@ -1,3 +1,7 @@
+# 0.52.2 - January 2, 2019
+
+* Ability to view and diff ruleset versions
+
 # 0.52.1 - December 23, 2019
 
 * Fixing KRL editor to use the new parser
