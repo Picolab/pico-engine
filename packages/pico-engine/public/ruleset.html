@@ -162,7 +162,7 @@
     {{#if history}}
         <h4 class="text-muted">History</h4>
         {{#each history}}
-            <div title="{{src}}">
+            <div>
             {{#unless @last}}
                 <a href="/mergely.html?rid={{rid}}&v1={{@index}}&v2=$" target="_blank">{{timestamp}}</a>
             {{else}}
