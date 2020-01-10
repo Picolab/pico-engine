@@ -947,10 +947,20 @@ function actionBlock(state) {
                 discriminant = expression(state, 80);
                 actions = actionList(state);
                 break;
+            case "always":
+            case "fired":
+            case "notfired":
+                break; // postlude
             default:
                 actions.push(action(state));
                 break;
         }
+    }
+    if (condition && actions.length === 0) {
+        if (state.curr.token.type === "RAW" && state.curr.token.src === "{") {
+            throw new ParseError_1.ParseError("Expected `every`, `sample`, or `choose`", state.curr.token);
+        }
+        throw new ParseError_1.ParseError("Expected an action after `if ... then`", state.curr.token);
     }
     return {
         loc: { start, end },

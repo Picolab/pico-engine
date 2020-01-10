@@ -634,6 +634,30 @@ test("ActionBlock", function(t) {
     actions: [mk.action(null, "blah")]
   });
 
+  src = "if true then";
+  tstActionBlock(
+    src,
+    "ParseError: Expected an action after `if ... then`|RAW|}|50"
+  );
+
+  src = "if true then fired {}";
+  tstActionBlock(
+    src,
+    "ParseError: Expected an action after `if ... then`|SYMBOL|fired|51"
+  );
+
+  src = "if true then notfired {}";
+  tstActionBlock(
+    src,
+    "ParseError: Expected an action after `if ... then`|SYMBOL|notfired|51"
+  );
+
+  src = "if true then always {}";
+  tstActionBlock(
+    src,
+    "ParseError: Expected an action after `if ... then`|SYMBOL|always|51"
+  );
+
   src = "lbl=>blah()";
   tstActionBlock(src, {
     type: "ActionBlock",
@@ -694,7 +718,10 @@ test("ActionBlock", function(t) {
   src += "  one => blah(1)\n";
   src += "  two => blah(2)\n";
   src += "}";
-  tstActionBlock(src, "ParseError: Expected `}`|RAW|{|55");
+  tstActionBlock(
+    src,
+    "ParseError: Expected `every`, `sample`, or `choose`|RAW|{|55"
+  );
 
   tstActionBlock(
     "if foo == 2 then choose { noop() }",
