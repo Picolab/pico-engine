@@ -740,8 +740,15 @@ $(document).ready(function () {
       rootPico.eci = findEciById(k)
       break
     }
+    var agents = false
+    dbDump.enabledRIDs.forEach(function (rid) {
+      if (rid === "org.sovrin.agent") {
+        agents = true
+      }
+    })
     var doMainPage = function (ownerPico, authenticated) {
       var dbGraph = {}
+      dbGraph.agents = agents
       dbGraph.title = getV(ownerPico, 'title', 'My Picos')
       dbGraph.descr = getV(
         ownerPico,
