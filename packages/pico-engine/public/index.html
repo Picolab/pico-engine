@@ -590,7 +590,7 @@
               {{#if messages}}
                 <div class="agent-basic-messages">
                 {{#each messages}}
-                  <p class="{{from}}"{{#if color}} style="background:rgb({{color}},0.1)"{{/if}}>{{content}}<span>{{sent_time}}</span></p>
+                  <p class="{{from}}"{{#if color}} style="background:rgb({{color}},0.1)"{{/if}}>{{#if content.comment}}{{content.comment}}{{else}}{{content}}{{/if}}<span>{{sent_time}}</span></p>
                   <hr>
                 {{/each}}
                 </div>
