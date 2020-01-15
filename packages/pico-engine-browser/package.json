@@ -1,6 +1,6 @@
 {
   "name": "pico-engine-browser",
-  "version": "0.52.2",
+  "version": "0.52.3",
   "description": "An implementation of the pico-engine targeting web browsers",
   "main": "src/index.js",
   "files": [
@@ -29,9 +29,9 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "dependencies": {
-    "krl-compiler": "^0.52.2",
+    "krl-compiler": "^0.52.3",
     "level-js": "^4.0.1",
-    "pico-engine-core": "^0.52.2",
+    "pico-engine-core": "^0.52.3",
     "util.promisify": "^1.0.0"
   },
   "devDependencies": {
