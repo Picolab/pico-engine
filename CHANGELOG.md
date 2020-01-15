@@ -1,3 +1,8 @@
+# 0.52.3 - January 15, 2019
+
+* Agent tab improvements - see [more](https://github.com/Picolab/pico-engine/compare/f7c5c421..b9eb840b)
+* Parse error for when no action is after if..then - see [c6ba1ec2](https://github.com/Picolab/pico-engine/commit/c6ba1ec2)
+
 # 0.52.2 - January 2, 2019
 
 * Ability to view and diff ruleset versions
