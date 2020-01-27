@@ -280,8 +280,8 @@
       </table>
       <p></p>
       <form class="js-ajax-form" action="/sky/event/{{eci}}/0/wrangler/channel_creation_requested" method="GET">
-        <input type="text" name="name" placeholder="name...">
-        <input type="text" name="type" placeholder="type...">
+        <input type="text" name="name" placeholder="name..." required>
+        <input type="text" name="type" placeholder="type..." required>
         {{#if policy}}
           <select name="policy_id">
             {{#each policy}}
@@ -475,9 +475,9 @@
                     {{/each}}
                   </select>
                 </td>
-                <td><input type="text" name="Rx_role"></td>
-                <td><input type="text" name="Tx_role"></td>
-                <td><input type="text" name="name"></td>
+                <td><input type="text" name="Rx_role" required></td>
+                <td><input type="text" name="Tx_role" required></td>
+                <td><input type="text" name="name" required></td>
                 <td><input type="text" name="channel_type" value="subscription"></td>
               </tr>
             </table>
