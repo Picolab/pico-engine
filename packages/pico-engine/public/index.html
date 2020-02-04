@@ -387,7 +387,7 @@
         <ul class="testing-events">
           {{#each capabilities.events}}
             <li>
-              <form class="js-test sky-event" action="/sky/event/{{../eci}}/__testing/{{this.domain}}/{{this.type}}">
+              <form class="js-test sky-event" action="/sky/event/{{../eci}}/__testing/{{this.domain}}/{{this.type}}" method="post">
                 {{#if this.attrs}}
                   {{#each this.attrs}}
                     <input type="text" name="{{this}}" placeholder="{{this}}">

@@ -612,8 +612,13 @@ $(document).ready(function () {
         var $theResultsPre = $theSection.find('div#test-results pre')
         $theSection.off('submit').on('submit', 'form.js-test', function (e) {
           e.preventDefault()
-          $.getJSON($(this).attr('action'), formToJSON(this), function (ans) {
-            $theResultsPre.html(JSON.stringify(ans, undefined, 2).escapeHTML())
+          $.ajax($(this).attr('action'), {
+            type: $(this).attr('method'),
+            data: formToJSON(this),
+            success: function (ans) {
+              $theResultsPre.html(JSON.stringify(ans,undefined,2).escapeHTML())
+            },
+            dataType: 'json'
           }).fail(function (err) {
             $theResultsPre.html(
               '<span style="color:red">' +
