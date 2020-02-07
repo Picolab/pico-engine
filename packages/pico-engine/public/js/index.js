@@ -607,7 +607,8 @@ $(document).ready(function () {
           if (location.hash !== d) {
             location.hash = d
           }
-          location.reload()
+          $(this).closest('.pico-edit').find('button.x').click()
+          $('#'+d.substr(0,25)).click()
         })
         var $theResultsPre = $theSection.find('div#test-results pre')
         $theSection.off('submit').on('submit', 'form.js-test', function (e) {
