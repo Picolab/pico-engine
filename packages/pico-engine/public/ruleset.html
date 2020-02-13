@@ -160,14 +160,15 @@
         </button>
     {{/if}}
     {{#if history}}
-        <h4 class="text-muted">History</h4>
+        <h4 class="text-muted">History (most recent first)</h4>
         {{#each history}}
             <div>
-            {{#unless @last}}
-                <a href="/mergely.html?rid={{rid}}&v1={{@index}}&v2=$" target="_blank">{{timestamp}}</a>
+            {{#unless @first}}
+                <a href="/mergely.html?rid={{rid}}&v1={{@index}}&v2=0" target="_blank">{{timestamp}}</a>
             {{else}}
                 {{timestamp}}
             {{/unless}}
+            {{#if url}} <a href="{{url}}" target="_blank">src</a>{{/if}}
             </div>
         {{/each}}
     {{/if}}
@@ -275,7 +276,7 @@
         if(rs){
             var history = [];
             if(rs.by_hash){
-                Object.keys(rs.by_hash).forEach(function(hash){
+                Object.keys(rs.by_hash).reverse().forEach(function(hash){
                     history.push(rs.by_hash[hash]);
                 });
             }

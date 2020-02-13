@@ -30,7 +30,7 @@ $(document).ready(function () {
         var rs = data.r[rid];
         var history = [];
         if(rs.by_hash){
-          Object.keys(rs.by_hash).forEach(function(hash){
+          Object.keys(rs.by_hash).reverse().forEach(function(hash){
             history.push(rs.by_hash[hash]);
           });
         }
@@ -47,9 +47,23 @@ $(document).ready(function () {
           $('#mergely').mergely('rhs',history[v2].src);
         }
       }
+      if(v2<=0 || v2-v1!=-1) {
+        $('#next').toggleClass('not-pertinent');
+      }
+      if(v1>=history.length-1 || v2-v1!=-1) {
+        $('#prev').toggleClass('not-pertinent');
+      }
       window.next_diff = function(){
-        if(v2>=history.length-1) return;
-        if(v2-v1!=1) return;
+        if(v2<=0) return;
+        if(v2-v1!=-1) return;
+        location = location.pathname
+          + "?rid=" + rid
+          + "&v1=" + (parseFloat(v1)-1)
+          + "&v2=" + (parseFloat(v2)-1);
+      }
+      window.prev_diff = function(){
+        if(v1>=history.length-1) return;
+        if(v2-v1!=-1) return;
         location = location.pathname
           + "?rid=" + rid
           + "&v1=" + (parseFloat(v1)+1)
@@ -59,9 +73,17 @@ $(document).ready(function () {
   }
 });
 </script>
+<style type="text/css">
+.not-pertinent {
+  visibility: hidden;
+}
+</style>
   </head>
   <body style="margin-top:0">
-<div style="float:right">
+<div id="prev" style="float:left">
+  <a href="#" onclick="event.preventDefault();prev_diff();void 0">&lt;</a>
+</div>
+<div id="next" style="float:right">
   <a href="#" onclick="event.preventDefault();next_diff();void 0">></a>
 </div>
 <div class="mergely-full-screen-8" style="top:1em">
