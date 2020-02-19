@@ -120,7 +120,7 @@
               <li>Subscriptions</li>
               <li id="loggingTab-{{id}}">Logging</li>
               <li>Testing</li>
-              <li>Agent</li>
+              {{#if ../agents}}<li>Agent</li>{{/if}}
             </ul>
             <div class="pico-section"></div>
           </div>
@@ -280,8 +280,8 @@
       </table>
       <p></p>
       <form class="js-ajax-form" action="/sky/event/{{eci}}/0/wrangler/channel_creation_requested" method="GET">
-        <input type="text" name="name" placeholder="name...">
-        <input type="text" name="type" placeholder="type...">
+        <input type="text" name="name" placeholder="name..." required>
+        <input type="text" name="type" placeholder="type..." required>
         {{#if policy}}
           <select name="policy_id">
             {{#each policy}}
@@ -387,7 +387,7 @@
         <ul class="testing-events">
           {{#each capabilities.events}}
             <li>
-              <form class="js-test sky-event" action="/sky/event/{{../eci}}/__testing/{{this.domain}}/{{this.type}}">
+              <form class="js-test sky-event" action="/sky/event/{{../eci}}/__testing/{{this.domain}}/{{this.type}}" method="post">
                 {{#if this.attrs}}
                   {{#each this.attrs}}
                     <input type="text" name="{{this}}" placeholder="{{this}}">
@@ -403,7 +403,7 @@
     <script id="subscriptions-template" type="text/x-handlebars-template">
       {{#if disabled}}
         Subscriptions are disabled.
-        To enable, install the "io.picolabs.subscription" ruleset
+        To enable, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rid=io.picolabs.subscription">install</a> the "io.picolabs.subscription" ruleset
       {{else}}
         <p>Subscriptions are enabled at {{wellKnown_Rx}}.</p>
         {{#if established}}
@@ -475,9 +475,9 @@
                     {{/each}}
                   </select>
                 </td>
-                <td><input type="text" name="Rx_role"></td>
-                <td><input type="text" name="Tx_role"></td>
-                <td><input type="text" name="name"></td>
+                <td><input type="text" name="Rx_role" required></td>
+                <td><input type="text" name="Tx_role" required></td>
+                <td><input type="text" name="name" required></td>
                 <td><input type="text" name="channel_type" value="subscription"></td>
               </tr>
             </table>
@@ -588,12 +588,12 @@
               <div class="connection-detail">
               {{#if error}}<p>{{error}}</p>{{/if}}
               {{#if messages}}
-              <div class="agent-basic-messages">
-              {{#each messages}}
-              <p class="{{from}}"{{#if color}} style="background:rgb({{color}},0.1)"{{/if}}>{{content}}<span>{{sent_time}}</span></p>
-              <hr>
-              {{/each}}
-              </div>
+                <div class="agent-basic-messages">
+                {{#each messages}}
+                  <p class="{{from}}"{{#if color}} style="background:rgb({{color}},0.1)"{{/if}}>{{#if content.comment}}{{content.comment}}{{else}}{{content}}{{/if}}<span>{{sent_time}}</span></p>
+                  <hr>
+                {{/each}}
+                </div>
               {{/if}}
               <form class="js-ajax-form" action="/sky/event/{{my_did}}/msg/sovrin/send_basicmessage?their_vk={{their_vk}}" style="float:right">
                 <input name="content">
@@ -615,8 +615,8 @@
         <input type="checkbox" id="connection-technical-details">
         <label for="connection-technical-details">shown</label>
         <pre class="connection-detail">{{text}}</pre>
-        </div>
       {{/if}}
+      </div>
     </script>
   </head>
   <body>

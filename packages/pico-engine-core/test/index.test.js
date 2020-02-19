@@ -929,13 +929,13 @@ test('PicoEngine - io.picolabs.expressions ruleset', async function (t) {
     [
       query('obj'),
       {
-        a: 'changed 1',
-        b: { c: [2, 3, 4, { d: { e: 'changed 5' } }, 6, 7] }
+        a: 1,
+        b: { c: [2, 3, 4, { d: { e: 5 } }, 6, 7] }
       }
     ],
     [
       query('path1'),
-      { e: 'changed 5' }
+      { e: 5 }
     ],
     [
       query('path2'),
@@ -943,7 +943,7 @@ test('PicoEngine - io.picolabs.expressions ruleset', async function (t) {
     ],
     [
       query('index1'),
-      'changed 1'
+      1
     ],
     [
       query('index2'),

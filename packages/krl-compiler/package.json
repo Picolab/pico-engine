@@ -1,6 +1,6 @@
 {
   "name": "krl-compiler",
-  "version": "0.51.1",
+  "version": "0.52.3",
   "description": "KRL compiler",
   "main": "src/index.js",
   "bin": {
@@ -40,7 +40,7 @@
     "escodegen": "^1.11.1",
     "estree-builder": "^1.10.0",
     "estree-loc": "^2.0.0",
-    "krl-parser": "^0.51.1",
+    "krl-parser": "^0.52.3",
     "lodash": "^4.17.4",
     "minimist": "^1.2.0",
     "symbol-table": "^1.3.1",

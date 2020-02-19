@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>compare</title>
+    <meta charset="UTF-8">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/codemirror.min.js"></script>
+<link rel="stylesheet" media="all" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/codemirror.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.32.0/addon/search/searchcursor.min.js"></script>
+<script src="mergely/mergely.js" type="text/javascript"></script>
+<link rel="stylesheet" media="all" href="mergely/mergely.css" />
+<script src="js/picoAPI.js" type="text/javascript"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+  $('#mergely').mergely();
+  var args = location.search.substring(1).split('&');
+  var argsMap = {};
+  for(i=0; i<args.length; ++i){
+    var arg = args[i].split('=');
+    argsMap[arg[0]] = arg[1];
+  }
+  var rid = argsMap.rid;
+  if(rid) {
+    document.title = rid;
+    picoAPI("/api/ruleset-page", {}, "GET", function(err, data){
+      if(err){
+        alert("Failed to get ruleset-page from api");
+      } else {
+        //alert('pico-engine version '+data.version);
+        var rs = data.r[rid];
+        var history = [];
+        if(rs.by_hash){
+          Object.keys(rs.by_hash).reverse().forEach(function(hash){
+            history.push(rs.by_hash[hash]);
+          });
+        }
+        var v1 = argsMap.v1==='$' ? history.length-1 : argsMap.v1;
+        var v2 = argsMap.v2==='$' ? history.length-1 : argsMap.v2;
+        for(var i=0; i<history.length; ++i){
+          if(argsMap.v1===history[i].timestamp) v1 = i;
+          if(argsMap.v2===history[i].timestamp) v2 = i;
+        }
+        if(0<=v1 && v1<= history.length-1){
+          $('#mergely').mergely('lhs',history[v1].src);
+        }
+        if(0<=v2 && v2<= history.length-1){
+          $('#mergely').mergely('rhs',history[v2].src);
+        }
+      }
+      if(v2<=0 || v2-v1!=-1) {
+        $('#next').toggleClass('not-pertinent');
+      }
+      if(v1>=history.length-1 || v2-v1!=-1) {
+        $('#prev').toggleClass('not-pertinent');
+      }
+      window.next_diff = function(){
+        if(v2<=0) return;
+        if(v2-v1!=-1) return;
+        location = location.pathname
+          + "?rid=" + rid
+          + "&v1=" + (parseFloat(v1)-1)
+          + "&v2=" + (parseFloat(v2)-1);
+      }
+      window.prev_diff = function(){
+        if(v1>=history.length-1) return;
+        if(v2-v1!=-1) return;
+        location = location.pathname
+          + "?rid=" + rid
+          + "&v1=" + (parseFloat(v1)+1)
+          + "&v2=" + (parseFloat(v2)+1);
+      }
+    });
+  }
+});
+</script>
+<style type="text/css">
+.not-pertinent {
+  visibility: hidden;
+}
+</style>
+  </head>
+  <body style="margin-top:0">
+<div id="prev" style="float:left">
+  <a href="#" onclick="event.preventDefault();prev_diff();void 0">&lt;</a>
+</div>
+<div id="next" style="float:right">
+  <a href="#" onclick="event.preventDefault();next_diff();void 0">></a>
+</div>
+<div class="mergely-full-screen-8" style="top:1em">
+  <div class="mergely-resizer">
+    <div id="mergely"></div>
+  </div>
+</div>
+  </body>
+</html>

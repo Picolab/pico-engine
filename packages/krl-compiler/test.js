@@ -108,11 +108,11 @@ test('compiler errors', function (t) {
     compiler('function(){a = 1}')
     t.fail('function must end with an expression')
   } catch (err) {
-    t.is(err + '', 'Error: function must end with an expression')
+    t.is(err + '', 'ParseError: Expected the function return expression')
   }
 
   try {
-    compiler('ruleset a{meta{keys b {"one":function(){}}}}')
+    compiler('ruleset a{meta{keys b {"one":function(){null}}}}')
     t.fail('meta key maps can only have strings')
   } catch (err) {
     t.is((err + '').split('\n')[0], 'Error: No possible parsings')
@@ -134,23 +134,6 @@ test('compiler errors', function (t) {
   tstWarn(
     'ruleset a{global{act=defaction(){noop()};act=1}}',
     'Duplicate declaration: act'
-  )
-
-  tstFail(
-    'ruleset a{global{ent:foo=1}}',
-    'Error: Cannot declare DomainIdentifier'
-  )
-  tstFail(
-    'ruleset a{global{null=1}}',
-    'Error: Cannot declare Null'
-  )
-  tstFail(
-    'ruleset a{global{true=1}}',
-    'Error: Cannot declare Boolean'
-  )
-  tstFail(
-    'ruleset a{global{"hi"=1}}',
-    'Error: Cannot declare String'
   )
 
   tstFail(

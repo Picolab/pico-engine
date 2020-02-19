@@ -6,12 +6,13 @@
     "out": "lerna clean --yes && lerna exec -- npm i && rm -rf packages/*/package-lock.json && lerna exec --bail=false -- npm out",
     "clean": "lerna clean --yes",
     "clean-setup": "lerna clean --yes && rm -rf node_modules/ package-lock.json && npm run setup -s",
-    "bootstrap": "lerna bootstrap --hoist --no-ci --nohoist=@types/* --nohoist=pico-framework",
+    "bootstrap": "lerna bootstrap --hoist --no-ci --nohoist=browserify --nohoist=@types/* --nohoist=pico-framework",
     "setup": "npm i --no-package-lock && npm run bootstrap",
-    "publish": "lerna publish",
+    "publish": "npm run build && lerna publish",
     "start": "cd packages/pico-engine && npm start",
     "test": "lerna run test",
-    "docs": "docsify serve ./docs"
+    "docs": "docsify serve ./docs",
+    "build": "cd packages/krl-parser && npm run build && cd ../pico-engine-browser && npm run build"
   },
   "devDependencies": {
     "docsify-cli": "^4.3.0",

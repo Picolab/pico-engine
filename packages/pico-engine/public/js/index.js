@@ -607,13 +607,19 @@ $(document).ready(function () {
           if (location.hash !== d) {
             location.hash = d
           }
-          location.reload()
+          $(this).closest('.pico-edit').find('button.x').click()
+          $('#'+d.substr(0,25)).click()
         })
         var $theResultsPre = $theSection.find('div#test-results pre')
         $theSection.off('submit').on('submit', 'form.js-test', function (e) {
           e.preventDefault()
-          $.getJSON($(this).attr('action'), formToJSON(this), function (ans) {
-            $theResultsPre.html(JSON.stringify(ans, undefined, 2).escapeHTML())
+          $.ajax($(this).attr('action'), {
+            type: $(this).attr('method'),
+            data: formToJSON(this),
+            success: function (ans) {
+              $theResultsPre.html(JSON.stringify(ans,undefined,2).escapeHTML())
+            },
+            dataType: 'json'
           }).fail(function (err) {
             $theResultsPre.html(
               '<span style="color:red">' +
@@ -740,8 +746,15 @@ $(document).ready(function () {
       rootPico.eci = findEciById(k)
       break
     }
+    var agents = false
+    dbDump.enabledRIDs.forEach(function (rid) {
+      if (rid === "org.sovrin.agent") {
+        agents = true
+      }
+    })
     var doMainPage = function (ownerPico, authenticated) {
       var dbGraph = {}
+      dbGraph.agents = agents
       dbGraph.title = getV(ownerPico, 'title', 'My Picos')
       dbGraph.descr = getV(
         ownerPico,

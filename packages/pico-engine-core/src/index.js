@@ -46,7 +46,7 @@ function applyFn (fn, ctx, args) {
     throw new Error('actions can only be called in the rule action block')
   }
   if (!ktypes.isFunction(fn)) {
-    throw new Error('Not a function')
+    throw new Error(ktypes.typeOf(fn) + ' is not a function')
   }
   return fn(ctx, args)
 }

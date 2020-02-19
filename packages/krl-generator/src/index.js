@@ -20,7 +20,6 @@ var genByType = _.fromPairs(_.map([
   'EventGroupOperator',
   'EventOperator',
   'EventWithin',
-  'ExpressionStatement',
   'Function',
   'GuardCondition',
   'Identifier',

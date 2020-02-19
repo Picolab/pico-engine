@@ -1,18 +1,19 @@
 {
   "name": "krl-parser",
-  "version": "0.51.1",
+  "version": "0.52.3",
   "description": "Parse KRL source code into an AST",
-  "main": "src/index.js",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "files": [
-    "src/"
+    "dist/src"
   ],
   "scripts": {
-    "start": "onchange 'src/' 'tests/' -e 'src/grammar.js' -i -- npm run test-all-but-ambiguityFinder -s",
-    "test": "npm run test-all-but-ambiguityFinder -s && node tests/ambiguityFinder.js",
-    "test-all-but-ambiguityFinder": "standard && npm run build -s && node tests | faucet",
-    "build": "npm run build:grammar -s && npm run build:spec -s",
-    "build:grammar": "nearleyc src/grammar.ne > src/grammar.js",
-    "build:spec": "node tests/genSpec.js > spec.md"
+    "prepublish": "npm run build",
+    "start": "ava -w",
+    "test": "ava",
+    "build": "npm run build:ts -s && npm run build:spec -s",
+    "build:ts": "rm -rf dist && tsc",
+    "build:spec": "node specBuilder.js > spec.md"
   },
   "repository": {
     "type": "git",
@@ -30,22 +31,27 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
-    "diff-lines": "^1.1.0",
-    "faucet": "0.0.1",
-    "lodash": "^4.17.4",
-    "onchange": "^6.0.0",
-    "phonetic": "^0.1.1",
-    "standard": "^12.0.1",
-    "tape": "^4.6.0"
-  },
-  "standard": {
-    "ignore": [
-      "grammar.js"
-    ]
+    "ava": "^2.4.0",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.7.2"
   },
   "dependencies": {
     "excerpt-at-line-col": "^1.0.0",
-    "line-column": "^1.0.2",
-    "nearley": "2.16.0"
+    "line-column": "^1.0.2"
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "files": [
+      "test/**/*"
+    ],
+    "helpers": [
+      "test/helpers/**/*"
+    ]
   }
 }

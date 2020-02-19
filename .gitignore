@@ -8,3 +8,5 @@ did-simulator-eci.js
 package-lock.json
 yarn.lock
 .ok
+.vscode
+agent.html

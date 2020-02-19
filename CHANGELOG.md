@@ -1,3 +1,22 @@
+# 0.52.3 - January 15, 2019
+
+* Agent tab improvements - see [more](https://github.com/Picolab/pico-engine/compare/f7c5c421..b9eb840b)
+* Parse error for when no action is after if..then - see [c6ba1ec2](https://github.com/Picolab/pico-engine/commit/c6ba1ec2)
+
+# 0.52.2 - January 2, 2019
+
+* Ability to view and diff ruleset versions
+
+# 0.52.1 - December 23, 2019
+
+* Fixing KRL editor to use the new parser
+
+# 0.52.0 - December 20, 2019
+
+* New KRL parser - see [464](https://github.com/Picolab/pico-engine/pull/464) for change notes
+* Ability to run Pico Engine in a web browser - see [pico-engine-browser](https://github.com/Picolab/pico-engine/tree/master/packages/pico-engine-browser)
+* Allow Agent UI to remove router - see [22ff28b7](https://github.com/Picolab/pico-engine/commit/22ff28b7)
+
 # 0.51.1 - August 6, 2019
 
 * dynamic raise statement - see [460](https://github.com/Picolab/pico-engine/pull/460) and [15](https://github.com/Picolab/pico-engine/issues/15)
