@@ -524,7 +524,16 @@ defRule("defaction", {
 
     const action_block = actionBlock(state);
 
-    let returnExpr: ast.Expression | null = null;
+    if (chompMaybe(state, "RAW", "}")) {
+      return {
+        loc,
+        type: "DefAction",
+        params,
+        body,
+        action_block,
+        return: null
+      };
+    }
 
     if (chompMaybe(state, "SYMBOL", "returns")) {
       throw new ParseError(
@@ -533,17 +542,17 @@ defRule("defaction", {
       );
     }
 
-    if (chompMaybe(state, "SYMBOL", "return")) {
-      returnExpr = expression(state);
+    chomp(state, "SYMBOL", "return");
 
-      if (state.curr.token.type === "RAW" && state.curr.token.src === ",") {
-        throw new ParseError(
-          "defaction can only return one value",
-          state.curr.token
-        );
-      }
-      chompMaybe(state, "RAW", ";");
+    const returnExpr = expression(state);
+
+    if (state.curr.token.type === "RAW" && state.curr.token.src === ",") {
+      throw new ParseError(
+        "defaction can only return one value",
+        state.curr.token
+      );
     }
+    chompMaybe(state, "RAW", ";");
 
     chomp(state, "RAW", "}");
 

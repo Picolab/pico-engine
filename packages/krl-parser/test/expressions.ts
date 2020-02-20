@@ -715,6 +715,11 @@ test("DefAction", t => {
     "a = defaction(){noop() returns a }",
     "ParseError: defaction can only return one value|SYMBOL|a|48"
   );
+
+  tstDA(
+    "a = defaction(){noop() expr }",
+    "ParseError: Expected `return`|SYMBOL|expr|40"
+  );
 });
 
 test("Parameters", t => {

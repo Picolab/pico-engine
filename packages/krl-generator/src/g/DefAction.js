@@ -16,7 +16,7 @@ module.exports = function (ast, ind, gen) {
   src += gen(ast.action_block, 1)
 
   if (ast.return) {
-    src += '\n' + ind(1) + gen(ast.return, 1) + ';'
+    src += '\n' + ind(1) + 'return ' + gen(ast.return, 1) + ';'
   }
 
   src = _.trimEnd(src)
