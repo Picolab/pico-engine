@@ -1,7 +1,7 @@
 # 0.52.4 - February 20, 2020
 
 * Improvements to ruleset editor and agent tab - see [more](https://github.com/Picolab/pico-engine/compare/73156ecd..90020b00)
-* Better error: <type> is not a function - see [697a386b](https://github.com/Picolab/pico-engine/commit/697a386b)
+* Better error: &lt;type> is not a function - see [697a386b](https://github.com/Picolab/pico-engine/commit/697a386b)
 
 
 # 0.52.3 - January 15, 2020
