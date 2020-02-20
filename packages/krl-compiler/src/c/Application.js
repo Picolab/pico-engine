@@ -27,6 +27,12 @@ module.exports = function (ast, comp, e) {
   } else if (ast.callee.type === 'DomainIdentifier') {
     callee = comp(ast.callee, { isGoingToBeApplied: true })
     args = comp(ast.args)
+    if (ast.callee.domain === 'event' && ast.callee.value === 'attr') {
+      let arg0 = ast.args.args[0]
+      if (arg0 && arg0.type === 'String') {
+        comp.eventScope.addAttr(arg0.value)
+      }
+    }
   } else {
     callee = comp(ast.callee)
     args = comp(ast.args)

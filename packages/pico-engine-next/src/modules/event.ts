@@ -19,6 +19,14 @@ const event: krl.Module = {
   name: eventProperty(event => event.name),
   attrs: eventProperty(event => event.data.attrs),
 
+  attr: krl.Function(["name"], function(name) {
+    let event = this.getEvent();
+    if (event) {
+      return event.data.attrs[name];
+    }
+    return null;
+  }),
+
   eid: eventProperty(event => event.eid),
   time: eventProperty(event => event.time)
 };

@@ -111,10 +111,7 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("events:get"), async function ($event, $state, $last) {
-      const thing = await $stdlib["get"]($ctx, [
-        $event.data.attrs,
-        "thing"
-      ]);
+      const thing = await $env.krl.assertFunction($ctx.module("event")["attr"])($ctx, ["thing"]);
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction(send_directive)($ctx, [

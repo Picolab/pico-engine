@@ -11,7 +11,7 @@ module.exports = function (ast, comp, e, context) {
     return e('id', '$event.eci')
   }
   if (ast.domain === 'event' && ast.value === 'attr') {
-    throw comp.error(ast.loc, 'event:attr(key) is not supported. Use event:attrs{key} instead')
+    comp.warn(ast.loc, 'event:attr(key) is deprecated. Use event:attrs{key} instead')
   }
 
   const mod = e('get', e('call', e('id', '$ctx.module'), [

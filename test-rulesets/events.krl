@@ -38,7 +38,7 @@ ruleset io.picolabs.events {
         select when events get
 
         pre {
-            thing = event:attrs{"thing"}
+            thing = event:attr("thing")
         }
 
         send_directive("get", {"thing": thing});
