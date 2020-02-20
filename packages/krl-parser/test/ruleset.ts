@@ -404,11 +404,17 @@ test("Rule", t => {
 
 test("select when", t => {
   function asertRuleAST(src: string, expected: any) {
-    const node = parseRuleBody(src, rule => rule.select && rule.select.event);
+    const node = parseRuleBody(
+      src,
+      rule => rule.select && rule.select.kind === "when" && rule.select.event
+    );
     t.deepEqual(node, expected);
   }
 
-  t.is(parseRuleBody(`select`), "ParseError: Expected `when`|RAW|}|23");
+  t.is(
+    parseRuleBody(`select`),
+    "ParseError: Expected `when` or `where`|RAW|}|23"
+  );
 
   t.is(
     parseRuleBody(`select when`),
@@ -488,6 +494,17 @@ test("select when", t => {
       mk.ee("d", "a"),
       mk.eventOp("or", [mk.ee("d", "b"), mk.ee("d", "c")])
     ])
+  );
+});
+
+test("select where ...", t => {
+  t.deepEqual(
+    parseRulesetBody(`rule a{select where true}`, n => n.rules[0].select),
+    {
+      type: "RuleSelect",
+      kind: "where",
+      expression: mk(true)
+    }
   );
 });
 

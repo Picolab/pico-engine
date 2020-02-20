@@ -168,12 +168,18 @@ export interface Rule extends BaseNode {
     action_block: ActionBlock | null;
     postlude: RulePostlude | null;
 }
-export interface RuleSelect extends BaseNode {
+export interface RuleSelect_when extends BaseNode {
     type: "RuleSelect";
     kind: "when";
     event: EventExpression;
     within: EventWithin | null;
 }
+export interface RuleSelect_where extends BaseNode {
+    type: "RuleSelect";
+    kind: "where";
+    expression: Expression;
+}
+export declare type RuleSelect = RuleSelect_when | RuleSelect_where;
 export declare type EventExpression = EventExpressionBase | EventOperator | EventGroupOperator;
 export interface EventExpressionBase extends BaseNode {
     type: "EventExpression";

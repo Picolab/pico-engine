@@ -217,12 +217,20 @@ export interface Rule extends BaseNode {
   postlude: RulePostlude | null;
 }
 
-export interface RuleSelect extends BaseNode {
+export interface RuleSelect_when extends BaseNode {
   type: "RuleSelect";
   kind: "when";
   event: EventExpression;
   within: EventWithin | null;
 }
+
+export interface RuleSelect_where extends BaseNode {
+  type: "RuleSelect";
+  kind: "where";
+  expression: Expression;
+}
+
+export type RuleSelect = RuleSelect_when | RuleSelect_where;
 
 export type EventExpression =
   | EventExpressionBase

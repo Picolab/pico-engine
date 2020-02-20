@@ -1005,45 +1005,55 @@ function rulesetRule(state: State): ast.Rule | null {
   const selectStart = state.curr.token.loc.start;
   let select: ast.RuleSelect | null = null;
   if (chompMaybe(state, "SYMBOL", "select")) {
-    chomp(state, "SYMBOL", "when");
-    const event = eventExpression(state);
+    if (chompMaybe(state, "SYMBOL", "when")) {
+      const event = eventExpression(state);
 
-    const withinStart = state.curr.token.loc.start;
-    let within: ast.EventWithin | null = null;
-    if (chompMaybe(state, "SYMBOL", "within")) {
-      const expr = expression(state);
+      const withinStart = state.curr.token.loc.start;
+      let within: ast.EventWithin | null = null;
+      if (chompMaybe(state, "SYMBOL", "within")) {
+        const expr = expression(state);
 
-      if (
-        state.curr.token.type !== "SYMBOL" ||
-        !ast.TIME_PERIOD_ENUM.hasOwnProperty(state.curr.token.src)
-      ) {
-        throw new ParseError(
-          `Expected time period: [${Object.keys(ast.TIME_PERIOD_ENUM).join(
-            ","
-          )}]`,
-          state.curr.token
-        );
+        if (
+          state.curr.token.type !== "SYMBOL" ||
+          !ast.TIME_PERIOD_ENUM.hasOwnProperty(state.curr.token.src)
+        ) {
+          throw new ParseError(
+            `Expected time period: [${Object.keys(ast.TIME_PERIOD_ENUM).join(
+              ","
+            )}]`,
+            state.curr.token
+          );
+        }
+        const time_period = state.curr.token
+          .src as keyof typeof ast.TIME_PERIOD_ENUM;
+        const end = state.curr.token.loc.end;
+        advance(state);
+
+        within = {
+          loc: { start: withinStart, end },
+          type: "EventWithin",
+          expression: expr,
+          time_period
+        };
       }
-      const time_period = state.curr.token
-        .src as keyof typeof ast.TIME_PERIOD_ENUM;
-      const end = state.curr.token.loc.end;
-      advance(state);
 
-      within = {
-        loc: { start: withinStart, end },
-        type: "EventWithin",
-        expression: expr,
-        time_period
+      select = {
+        loc: { start: selectStart, end: state.curr.token.loc.end },
+        type: "RuleSelect",
+        kind: "when",
+        event,
+        within
       };
+    } else if (chompMaybe(state, "SYMBOL", "where")) {
+      select = {
+        loc: { start: selectStart, end: state.curr.token.loc.end },
+        type: "RuleSelect",
+        kind: "where",
+        expression: expression(state)
+      };
+    } else {
+      throw new ParseError("Expected `when` or `where`", state.curr.token);
     }
-
-    select = {
-      loc: { start: selectStart, end: state.curr.token.loc.end },
-      type: "RuleSelect",
-      kind: "when",
-      event,
-      within
-    };
   }
 
   const foreach: ast.RuleForEach[] = [];
