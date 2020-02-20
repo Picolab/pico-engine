@@ -134,7 +134,7 @@ export interface DefAction extends BaseNode {
   params: Parameters;
   body: Declaration[];
   action_block: ActionBlock;
-  returns: Expression[];
+  return: Expression | null;
 }
 
 export interface Parameters extends BaseNode {
@@ -189,6 +189,7 @@ export interface RulesetID extends BaseNode {
 export interface Ruleset extends BaseNode {
   type: "Ruleset";
   rid: RulesetID;
+  version: String | null;
   meta: RulesetMeta | null;
   global: Declaration[];
   rules: Rule[];

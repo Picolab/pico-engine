@@ -25,6 +25,7 @@ test("ruleset", t => {
     type: "Ruleset",
     loc: { start: 0, end: 14 },
     rid: { type: "RulesetID", value: "rs", loc: { start: 8, end: 10 } },
+    version: null,
     meta: null,
     global: [],
     rules: []
@@ -39,6 +40,7 @@ test("ruleset", t => {
     loc: { start: 0, end: 40 },
     type: "Ruleset",
     rid: { type: "RulesetID", value: "rs", loc: { start: 8, end: 10 } },
+    version: null,
     meta: null,
     global: [],
     rules: [
@@ -65,6 +67,20 @@ test("ruleset", t => {
         postlude: null
       }
     ]
+  });
+
+  t.deepEqual(parseRuleset(tokenizer('ruleset rs {version "some-version"}')), {
+    type: "Ruleset",
+    loc: { start: 0, end: 35 },
+    rid: { type: "RulesetID", value: "rs", loc: { start: 8, end: 10 } },
+    version: {
+      type: "String",
+      value: "some-version",
+      loc: { start: 20, end: 34 }
+    },
+    meta: null,
+    global: [],
+    rules: []
   });
 });
 

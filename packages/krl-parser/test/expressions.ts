@@ -561,7 +561,7 @@ test("DefAction", t => {
         discriminant: null,
         actions: [mk.action(null, "send_directive", [mk("foo")])]
       },
-      returns: []
+      return: null
     })
   ]);
 
@@ -589,7 +589,7 @@ test("DefAction", t => {
             mk.action(null, "noop")
           ]
         },
-        returns: []
+        return: null
       })
     ]
   );
@@ -607,7 +607,7 @@ test("DefAction", t => {
         discriminant: null,
         actions: [mk.action(null, "noop", [])]
       },
-      returns: []
+      return: null
     })
   ]);
 
@@ -623,7 +623,7 @@ test("DefAction", t => {
         discriminant: null,
         actions: [mk.action(null, "blah")]
       },
-      returns: []
+      return: null
     })
   ]);
 
@@ -639,7 +639,7 @@ test("DefAction", t => {
         discriminant: null,
         actions: [mk.action(null, "foo"), mk.action(null, "bar")]
       },
-      returns: []
+      return: null
     })
   ]);
 
@@ -655,7 +655,7 @@ test("DefAction", t => {
         discriminant: mk.app(mk.id("b"), [mk.id("c")]),
         actions: [mk.action("one", "foo"), mk.action("two", "bar")]
       },
-      returns: []
+      return: null
     })
   ]);
 
@@ -671,7 +671,7 @@ test("DefAction", t => {
         discriminant: null,
         actions: [mk.action(null, "noop")]
       },
-      returns: [mk.id("c")]
+      return: mk.id("c")
     })
   ]);
 
@@ -688,24 +688,33 @@ test("DefAction", t => {
           discriminant: null,
           actions: [mk.action(null, "noop")]
         },
-        returns: expected
+        return: expected
       })
     ]);
   };
 
-  tstReturn("return a", [mk.id("a")]);
-  tstReturn("returns foo, 1 + bar, baz()", [
-    mk.id("foo"),
-    mk.op("+", mk(1), mk.id("bar")),
-    mk.app(mk.id("baz"))
-  ]);
+  tstReturn("return a", mk.id("a"));
+  tstReturn("return [foo, 1 + bar, baz()]", {
+    type: "Array",
+    value: [mk.id("foo"), mk.op("+", mk(1), mk.id("bar")), mk.app(mk.id("baz"))]
+  });
 
-  tstReturn("return semi;", [mk.id("semi")]);
+  tstReturn("return semi;", mk.id("semi"));
 
-  tstReturn("return ", []);
-  tstReturn("returns ", []);
+  tstDA(
+    "a = defaction(){noop() return }",
+    "ParseError: Expected an expression|RAW|}|47"
+  );
 
-  tstReturn("returns a, b,", [mk.id("a"), mk.id("b")]);
+  tstDA(
+    "a = defaction(){noop() return a, b }",
+    "ParseError: defaction can only return one value|RAW|,|48"
+  );
+
+  tstDA(
+    "a = defaction(){noop() returns a }",
+    "ParseError: defaction can only return one value|SYMBOL|a|48"
+  );
 });
 
 test("Parameters", t => {

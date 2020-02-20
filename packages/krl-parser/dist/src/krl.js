@@ -431,22 +431,14 @@ defRule("defaction", {
         chomp(state, "RAW", "{");
         const body = declarationList(state);
         const action_block = actionBlock(state);
-        let returns = [];
-        if (chompMaybe(state, "SYMBOL", "return") ||
-            chompMaybe(state, "SYMBOL", "returns")) {
-            while (state.curr.token_i < state.tokens.length) {
-                if (state.curr.token.type === "RAW" && state.curr.token.src === "}") {
-                    break;
-                }
-                if (chompMaybe(state, "RAW", ";")) {
-                    break;
-                }
-                const val = expression(state);
-                returns.push(val);
-                if (state.curr.rule.id !== ",") {
-                    break;
-                }
-                advance(state);
+        let returnExpr = null;
+        if (chompMaybe(state, "SYMBOL", "returns")) {
+            throw new ParseError_1.ParseError("defaction can only return one value", state.curr.token);
+        }
+        if (chompMaybe(state, "SYMBOL", "return")) {
+            returnExpr = expression(state);
+            if (state.curr.token.type === "RAW" && state.curr.token.src === ",") {
+                throw new ParseError_1.ParseError("defaction can only return one value", state.curr.token);
             }
             chompMaybe(state, "RAW", ";");
         }
@@ -457,7 +449,7 @@ defRule("defaction", {
             params,
             body,
             action_block,
-            returns
+            return: returnExpr
         };
     }
 });
@@ -610,6 +602,10 @@ function ruleset(state) {
     chomp(state, "SYMBOL", "ruleset");
     const rid = rulesetID(state);
     chomp(state, "RAW", "{");
+    let version = null;
+    if (chompMaybe(state, "SYMBOL", "version")) {
+        version = chompString(state);
+    }
     const meta = rulesetMeta(state);
     let global = [];
     if (chompMaybe(state, "SYMBOL", "global")) {
@@ -630,6 +626,7 @@ function ruleset(state) {
         loc: { start, end },
         type: "Ruleset",
         rid,
+        version,
         meta,
         global,
         rules

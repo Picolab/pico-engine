@@ -30,7 +30,7 @@ ruleset io.picolabs.defaction {
                 "c": three
             }) setting(dir);
 
-            dir;
+            return dir;
         }
         getSettingVal = function(){
             ent:setting_val;
@@ -58,7 +58,7 @@ ruleset io.picolabs.defaction {
 
             noop();
 
-            [a, b, c];
+            return [a, b, c];
         }
         complexAction = defaction(a, b){
             c = 100;
@@ -67,7 +67,7 @@ ruleset io.picolabs.defaction {
             if c > 0 then
                 send_directive("wat:" + a, {"b": b}) setting(dir);
 
-            dir["name"] + " " + d;
+            return dir["name"] + " " + d;
         }
     }
     rule foo {
@@ -133,19 +133,19 @@ ruleset io.picolabs.defaction {
 
                 noop();
 
-                "did something!";
+                return "did something!";
             }
             send_directive = defaction(){
 
                 noop() setting(foo);
 
-                "send wat? noop returned: " + foo;
+                return "send wat? noop returned: " + foo;
             }
             echoAction = defaction(){
 
                 noop();
 
-                ["aint", "no", "echo"];
+                return ["aint", "no", "echo"];
             }
         }
 

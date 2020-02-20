@@ -115,7 +115,7 @@ test('compiler errors', function (t) {
     compiler('ruleset a{meta{keys b {"one":function(){null}}}}')
     t.fail('meta key maps can only have strings')
   } catch (err) {
-    t.is((err + '').split('\n')[0], 'Error: No possible parsings')
+    t.is((err + '').split('\n')[0], 'Error: RulesetMetaProperty not supported: keys')
   }
 
   tstFail(
@@ -185,10 +185,10 @@ test('special cases', function (t) {
   // args shouldn't be dependent on each other and cause strange duplication
   var js = compiler('foo(1).bar(baz(2))').code
   var expected = ''
-  expected += 'await $env.krl.assertFunction(bar)($ctx, [\n'
+  expected += '(await $env.krl.assertFunction(bar)($ctx, [\n'
   expected += '  await $env.krl.assertFunction(foo)($ctx, [1]),\n'
   expected += '  await $env.krl.assertFunction(baz)($ctx, [2])\n'
-  expected += ']);'
+  expected += ']))'
   t.is(js, expected)
 })
 

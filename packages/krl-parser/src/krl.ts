@@ -524,25 +524,23 @@ defRule("defaction", {
 
     const action_block = actionBlock(state);
 
-    let returns: ast.Expression[] = [];
+    let returnExpr: ast.Expression | null = null;
 
-    if (
-      chompMaybe(state, "SYMBOL", "return") ||
-      chompMaybe(state, "SYMBOL", "returns")
-    ) {
-      while (state.curr.token_i < state.tokens.length) {
-        if (state.curr.token.type === "RAW" && state.curr.token.src === "}") {
-          break;
-        }
-        if (chompMaybe(state, "RAW", ";")) {
-          break;
-        }
-        const val = expression(state);
-        returns.push(val);
-        if (state.curr.rule.id !== ",") {
-          break;
-        }
-        advance(state);
+    if (chompMaybe(state, "SYMBOL", "returns")) {
+      throw new ParseError(
+        "defaction can only return one value",
+        state.curr.token
+      );
+    }
+
+    if (chompMaybe(state, "SYMBOL", "return")) {
+      returnExpr = expression(state);
+
+      if (state.curr.token.type === "RAW" && state.curr.token.src === ",") {
+        throw new ParseError(
+          "defaction can only return one value",
+          state.curr.token
+        );
       }
       chompMaybe(state, "RAW", ";");
     }
@@ -555,7 +553,7 @@ defRule("defaction", {
       params,
       body,
       action_block,
-      returns
+      return: returnExpr
     };
   }
 });
@@ -728,6 +726,11 @@ function ruleset(state: State): ast.Ruleset {
 
   chomp(state, "RAW", "{");
 
+  let version: ast.String | null = null;
+  if (chompMaybe(state, "SYMBOL", "version")) {
+    version = chompString(state);
+  }
+
   const meta = rulesetMeta(state);
 
   let global: ast.Declaration[] = [];
@@ -752,6 +755,7 @@ function ruleset(state: State): ast.Ruleset {
     loc: { start, end },
     type: "Ruleset",
     rid,
+    version,
     meta,
     global,
     rules

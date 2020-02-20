@@ -17,6 +17,8 @@ var compByType = {
   'DomainIdentifier': require('./c/DomainIdentifier'),
   'ErrorStatement': require('./c/ErrorStatement'),
   'EventExpression': require('./c/EventExpression'),
+  'EventGroupOperator': require('./c/EventGroupOperator'),
+  'EventOperator': require('./c/EventOperator'),
   'EventWithin': require('./c/EventWithin'),
   'Function': require('./c/Function'),
   'GuardCondition': require('./c/GuardCondition'),

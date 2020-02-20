@@ -10,13 +10,14 @@ module.exports = function (ast, comp, e) {
   body = body.concat(defaultSetups)
 
   _.each(ast.body, function (part, i) {
-    return body.push(comp(part))
+    body.push(comp(part))
   })
+
+  body.push(e('return', comp(ast.return)))
+
   comp.scope.pop()
 
   var paramNames = []
-  body.push(e('return', comp(ast.return)))
-
   var paramOrder = e('array', _.map(ast.params.params, function (p) {
     paramNames.push(p.id.value)
     return e('string', p.id.value, p.id.loc)
