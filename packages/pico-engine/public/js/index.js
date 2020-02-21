@@ -330,8 +330,19 @@ $(document).ready(function () {
         }).fail(function () {
           callback(null, policyUI)
         })
-      } else if (tabName === 'agent') {
+      } else if (tabName === 'agent') { // Deprecated
+        var agentECI
+        Object.keys(thePicoInp.channel).forEach(function (id) {
+          var aChannel = get(thePicoInp, ['channel', id], undefined)
+          if (aChannel) {
+            if (aChannel.type === 'sovrin' && aChannel.name === 'agent') {
+              agentECI = aChannel.id
+              eci = agentECI
+            }
+          }
+        })
         var agentUI = { eci: eci, pico_id: thePicoInp.id }
+        agentUI.agentECI = agentECI
         $.getJSON('/sky/event/' + eci + '/poll_router/edge/poll_all_needed',
         function(){
           $.getJSON('/sky/cloud/' + eci + '/org.sovrin.agent/ui',function(ui){
