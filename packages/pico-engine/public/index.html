@@ -533,7 +533,7 @@
     </script>
     <script id="agent-template" type="text/x-handlebars-template">
       <p>
-      Deprecated{{#if agentECI}} -- use <a href="/agent.html#{{agentECI}}" target="_blank">Pico Agent UI</a>{{/if}}
+      Deprecated{{#if agentECI}}{{#unless disabled}} -- use <a href="/agent.html#{{agentECI}}" target="_blank">Pico Agent UI</a>{{/unless}}{{/if}}
       </p>
       <div id="connection-list">
       {{#if disabled}}
