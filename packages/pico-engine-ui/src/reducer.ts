@@ -159,48 +159,6 @@ function producer(state: State, action: Action): void {
       });
       return;
 
-    case "GET_RULESETS_START":
-      state.rulesets_apiSt = apiCallStatus.init();
-      return;
-    case "GET_RULESETS_OK":
-      state.rulesets_apiSt = apiCallStatus.ok();
-      for (const rid of Object.keys(action.data)) {
-        for (const version of action.data[rid]) {
-          setupRulesetState(state, rid, version);
-        }
-      }
-      return;
-    case "GET_RULESETS_ERROR":
-      state.rulesets_apiSt = apiCallStatus.error(action.error);
-      return;
-
-    case "GET_RULESET_START":
-      updateRuleset(state, action.rid, action.version, rs => {
-        rs.krl_apiSt = apiCallStatus.waiting();
-      });
-      return;
-    case "GET_RULESET_OK":
-      updateRuleset(state, action.rid, action.version, rs => {
-        rs.krl_apiSt = apiCallStatus.ok();
-        rs.krl = action.data.krl;
-      });
-      return;
-    case "GET_RULESET_ERROR":
-      updateRuleset(state, action.rid, action.version, rs => {
-        rs.krl_apiSt = apiCallStatus.error(action.error);
-      });
-      return;
-
-    case "REGISTER_RULESET_START":
-      state.rulesetPage.register_apiSt = apiCallStatus.waiting();
-      return;
-    case "REGISTER_RULESET_OK":
-      state.rulesetPage.register_apiSt = apiCallStatus.ok();
-      return;
-    case "REGISTER_RULESET_ERROR":
-      state.rulesetPage.register_apiSt = apiCallStatus.error(action.error);
-      return;
-
     case "INSTALL_RULESET_START":
       updatePico(state, action.eci, pico => {
         pico.install_apiSt = apiCallStatus.waiting();
@@ -304,29 +262,6 @@ function producer(state: State, action: Action): void {
       });
       return;
 
-    case "CHANGE_NEWRULESET_RID":
-      state.rulesetPage.newRuleset_ridInput = action.value;
-      return;
-
-    case "MAKE_NEWRULESET_START":
-      state.rulesetPage.newRuleset_apiSt = apiCallStatus.waiting();
-      return;
-    case "MAKE_NEWRULESET_OK":
-      state.rulesetPage.newRuleset_ridInput = "";
-      state.rulesetPage.newRuleset_apiSt = apiCallStatus.ok();
-      return;
-    case "MAKE_NEWRULESET_ERROR":
-      state.rulesetPage.newRuleset_apiSt = apiCallStatus.error(action.error);
-      return;
-
-    case "KRL_SET_THEME":
-      state.rulesetPage.theme = action.theme;
-      localStorage["krl-editor-theme"] = action.theme;
-      return;
-    case "KRL_SET_STATUS":
-      state.rulesetPage.status = action.status;
-      return;
-
     case "SET_TESTING_ECI":
       updatePico(state, action.eci, pico => {
         pico.testingECI = action.testingECI;
@@ -382,27 +317,4 @@ function updatePicoTesting(
     }
     update(pico.testing[rid]);
   });
-}
-
-function setupRulesetState(state: State, rid: string, version: string) {
-  if (!state.rulesets[rid]) {
-    state.rulesets[rid] = {};
-  }
-  if (!state.rulesets[rid][version]) {
-    state.rulesets[rid][version] = {
-      rid,
-      version,
-      krl_apiSt: apiCallStatus.init(),
-      krl: null
-    };
-  }
-}
-function updateRuleset(
-  state: State,
-  rid: string,
-  version: string,
-  update: (rs: RulesetState) => void
-) {
-  setupRulesetState(state, rid, version);
-  update(state.rulesets[rid][version]);
 }

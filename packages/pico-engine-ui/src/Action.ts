@@ -282,92 +282,6 @@ interface GET_PICODETAILS_ERROR {
   error: string;
 }
 
-export function getRulesets(): AsyncAction {
-  return function(dispatch, getState) {
-    dispatch({ type: "GET_RULESETS_START" });
-    apiGet(`/api/rulesets`)
-      .then(data => {
-        dispatch({ type: "GET_RULESETS_OK", data: data.rulesets });
-      })
-      .catch(err => {
-        dispatch({ type: "GET_RULESETS_ERROR", error: err + "" });
-      });
-  };
-}
-interface GET_RULESETS_START {
-  type: "GET_RULESETS_START";
-}
-interface GET_RULESETS_OK {
-  type: "GET_RULESETS_OK";
-  data: { [rid: string]: string[] };
-}
-interface GET_RULESETS_ERROR {
-  type: "GET_RULESETS_ERROR";
-  error: string;
-}
-
-export function getRuleset(rid: string, version: string): AsyncAction {
-  return function(dispatch, getState) {
-    dispatch({ type: "GET_RULESET_START", rid, version });
-    apiGet(`/api/ruleset/${rid}/${version}`)
-      .then(data => {
-        dispatch({ type: "GET_RULESET_OK", rid, version, data });
-      })
-      .catch(err => {
-        dispatch({ type: "GET_RULESET_ERROR", rid, version, error: err + "" });
-      });
-  };
-}
-interface GET_RULESET_START {
-  type: "GET_RULESET_START";
-  rid: string;
-  version: string;
-}
-interface GET_RULESET_OK {
-  type: "GET_RULESET_OK";
-  rid: string;
-  version: string;
-  data: { krl: string };
-}
-interface GET_RULESET_ERROR {
-  type: "GET_RULESET_ERROR";
-  rid: string;
-  version: string;
-  error: string;
-}
-
-export function registerRuleset(krl: string): AsyncAction {
-  return function(dispatch, getState) {
-    dispatch({ type: "REGISTER_RULESET_START" });
-    apiPost(`/api/ruleset`, { krl })
-      .then(data => {
-        dispatch({ type: "REGISTER_RULESET_OK", data });
-        dispatch(getRulesets());
-      })
-      .catch(err => {
-        dispatch({
-          type: "REGISTER_RULESET_ERROR",
-          error: err + ""
-        });
-      });
-  };
-}
-interface REGISTER_RULESET_START {
-  type: "REGISTER_RULESET_START";
-}
-interface REGISTER_RULESET_OK {
-  type: "REGISTER_RULESET_OK";
-  data: {
-    rid: string;
-    version: string;
-    krl: string;
-  };
-}
-interface REGISTER_RULESET_ERROR {
-  type: "REGISTER_RULESET_ERROR";
-  error: string;
-}
-
 export function installRuleset(
   eci: string,
   rid: string,
@@ -574,54 +488,6 @@ interface TEST_RESULT_ERROR {
   error: string;
 }
 
-export function changeNewRulesetRid(value: string): Action {
-  return { type: "CHANGE_NEWRULESET_RID", value };
-}
-interface CHANGE_NEWRULESET_RID {
-  type: "CHANGE_NEWRULESET_RID";
-  value: string;
-}
-
-export function makeNewRuleset(rid: string): AsyncAction {
-  return function(dispatch, getState) {
-    dispatch({ type: "MAKE_NEWRULESET_START" });
-    apiPost(`/api/new-ruleset`, { rid })
-      .then(data => {
-        dispatch({ type: "MAKE_NEWRULESET_OK", rid: data.rid });
-      })
-      .catch(err => {
-        dispatch({ type: "MAKE_NEWRULESET_ERROR", error: err + "" });
-      });
-  };
-}
-interface MAKE_NEWRULESET_START {
-  type: "MAKE_NEWRULESET_START";
-}
-interface MAKE_NEWRULESET_OK {
-  type: "MAKE_NEWRULESET_OK";
-  rid: string;
-}
-interface MAKE_NEWRULESET_ERROR {
-  type: "MAKE_NEWRULESET_ERROR";
-  error: string;
-}
-
-export function krlSetTheme(theme: string): Action {
-  return { type: "KRL_SET_THEME", theme };
-}
-interface KRL_SET_THEME {
-  type: "KRL_SET_THEME";
-  theme: string;
-}
-
-export function krlSetStatus(status: string): Action {
-  return { type: "KRL_SET_STATUS", status };
-}
-interface KRL_SET_STATUS {
-  type: "KRL_SET_STATUS";
-  status: string;
-}
-
 export function setTestingECI(eci: string, testingECI: string): Action {
   return { type: "SET_TESTING_ECI", eci, testingECI };
 }
@@ -654,15 +520,6 @@ export type Action =
   | GET_PICODETAILS_START
   | GET_PICODETAILS_OK
   | GET_PICODETAILS_ERROR
-  | GET_RULESETS_START
-  | GET_RULESETS_OK
-  | GET_RULESETS_ERROR
-  | GET_RULESET_START
-  | GET_RULESET_OK
-  | GET_RULESET_ERROR
-  | REGISTER_RULESET_START
-  | REGISTER_RULESET_OK
-  | REGISTER_RULESET_ERROR
   | INSTALL_RULESET_START
   | INSTALL_RULESET_OK
   | INSTALL_RULESET_ERROR
@@ -681,10 +538,4 @@ export type Action =
   | TEST_RESULT_CLEAR
   | TEST_RESULT_OK
   | TEST_RESULT_ERROR
-  | CHANGE_NEWRULESET_RID
-  | MAKE_NEWRULESET_START
-  | MAKE_NEWRULESET_OK
-  | MAKE_NEWRULESET_ERROR
-  | KRL_SET_THEME
-  | KRL_SET_STATUS
   | SET_TESTING_ECI;

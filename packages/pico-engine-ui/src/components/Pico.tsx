@@ -12,7 +12,7 @@ import About from "./PicoTabs/About";
 import Channels from "./PicoTabs/Channels";
 import Logging from "./PicoTabs/Logging";
 import Rulesets from "./PicoTabs/Rulesets";
-import Subscriptions from "./PicoTabs/Subscriptions";
+
 import Testing from "./PicoTabs/Testing";
 
 /**
@@ -102,7 +102,6 @@ class Pico extends React.Component<Props> {
                 {this.returnTabLink("Rulesets", "rulesets")}
                 {this.returnTabLink("Channels", "channels")}
 
-                {this.returnTabLink("Subscriptions", "subscriptions")}
                 {this.returnTabLink("Logging", "logging")}
                 {this.returnTabLink("Testing", "testing")}
               </ul>
@@ -166,9 +165,6 @@ class Pico extends React.Component<Props> {
 
       case "channels":
         return <Channels pico={pico} />;
-
-      case "subscriptions":
-        return <Subscriptions pico={pico} />;
 
       case "logging":
         return <Logging pico={pico} />;

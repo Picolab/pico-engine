@@ -22,83 +22,64 @@ interface Props {
   match: { params: { [name: string]: string } };
 }
 
-class PicosPage extends React.Component<Props> {
-  constructor(props: Props) {
-    super(props);
+const PicosPage: React.FC<Props> = props => {
+  const { uiContext_apiSt, uiContext, picoBoxes, match, channelLines } = props;
 
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
-  }
+  const openEci: string | undefined = match.params.eci;
+  const openTab: string | undefined = match.params.tab;
 
-  onMouseMove(e: React.MouseEvent) {
-    if (this.props.isDraggingSomething) {
-      this.props.dispatch(picosMouseMove(e.clientX, e.clientY));
+  function onMouseMove(e: React.MouseEvent) {
+    if (props.isDraggingSomething) {
+      props.dispatch(picosMouseMove(e.clientX, e.clientY));
     }
   }
 
-  onMouseUp(e: React.MouseEvent) {
-    if (this.props.isDraggingSomething) {
-      this.props.dispatch(picosMouseUp());
+  function onMouseUp(e: React.MouseEvent) {
+    if (props.isDraggingSomething) {
+      props.dispatch(picosMouseUp());
     }
   }
 
-  render() {
-    const {
-      uiContext_apiSt,
-      uiContext,
-      picoBoxes,
-      match,
-      channelLines
-    } = this.props;
+  return (
+    <div id="picos-page" onMouseMove={onMouseMove} onMouseUp={onMouseUp}>
+      <div className="container-fluid">
+        <h1>pico-engine NEXT</h1>
+        {uiContext ? `version: ${uiContext.version}` : ""}
+        {uiContext_apiSt.waiting ? "Loading..." : ""}
+        {uiContext_apiSt.error ? (
+          <div className="alert alert-danger">{uiContext_apiSt.error}</div>
+        ) : (
+          ""
+        )}
+      </div>
 
-    const openEci: string | undefined = match.params.eci;
-    const openTab: string | undefined = match.params.tab;
+      {picoBoxes.map(pico => {
+        return (
+          <Pico
+            key={pico.eci}
+            pico={pico}
+            openEci={openEci}
+            openTab={openTab}
+          />
+        );
+      })}
 
-    return (
-      <div
-        id="picos-page"
-        onMouseMove={this.onMouseMove}
-        onMouseUp={this.onMouseUp}
-      >
-        <div className="container-fluid">
-          <h1>pico-engine NEXT</h1>
-          {uiContext ? `version: ${uiContext.version}` : ""}
-          {uiContext_apiSt.waiting ? "Loading..." : ""}
-          {uiContext_apiSt.error ? (
-            <div className="alert alert-danger">{uiContext_apiSt.error}</div>
-          ) : (
-            ""
-          )}
-        </div>
-
-        {picoBoxes.map(pico => {
+      <svg id="picos-svg">
+        {channelLines.map((line, i) => {
           return (
-            <Pico
-              key={pico.eci}
-              pico={pico}
-              openEci={openEci}
-              openTab={openTab}
+            <line
+              key={i}
+              x1={line.from.x}
+              y1={line.from.y}
+              x2={line.to.x}
+              y2={line.to.y}
             />
           );
         })}
-
-        <svg id="picos-svg">
-          {channelLines.map((line, i) => {
-            return (
-              <line
-                key={i}
-                x1={line.from.x}
-                y1={line.from.y}
-                x2={line.to.x}
-                y2={line.to.y}
-              />
-            );
-          })}
-        </svg>
-      </div>
-    );
-  }
-}
+      </svg>
+    </div>
+  );
+};
 
 export default connect((state: State) => {
   const picoBoxes = Object.values(state.picos)
