@@ -532,6 +532,9 @@
       {{/if}}
     </script>
     <script id="agent-template" type="text/x-handlebars-template">
+      <p>
+      Deprecated{{#if agentECI}}{{#unless disabled}} -- use <a href="/agent.html#{{agentECI}}" target="_blank">Pico Agent UI</a>{{/unless}}{{/if}}
+      </p>
       <div id="connection-list">
       {{#if disabled}}
         To be an agent, <a class="js-ajax-link" href="/sky/event/{{eci}}/add-ruleset/wrangler/install_rulesets_requested?rids=org.sovrin.agent">install</a> the org.sovrin.agent ruleset
