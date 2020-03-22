@@ -1,61 +1,30 @@
 import * as React from "react";
-import { connect } from "react-redux";
-import { delChannel, Dispatch, newChannel } from "../../Action";
-import { Channel, PicoBox, PicoState, State } from "../../State";
+import { apiGet, apiPost } from "../../Action";
+import { Channel, PicoBox, PicoDetails } from "../../State";
+import useAsyncAction from "../../useAsyncAction";
+import useAsyncLoader from "../../useAsyncLoader";
 import {
+  parseEventPolicy,
   ParseNViewEventPolicy,
   ParseNViewQueryPolicy,
+  parseQueryPolicy,
   ViewEventPolicy,
-  ViewQueryPolicy,
-  parseEventPolicy,
-  parseQueryPolicy
+  ViewQueryPolicy
 } from "../widgets/ChannelPolicies";
 
-interface PropsFromParent {
+interface Props {
   pico: PicoBox;
 }
 
-interface Props extends PropsFromParent {
-  dispatch: Dispatch;
-  picoState?: PicoState;
-}
+const Channels: React.FC<Props> = ({ pico }) => {
+  const [expandedChannels, setExpandedChannels] = React.useState<{
+    [eci: string]: boolean;
+  }>({});
+  const [tags, setTags] = React.useState<string>("one, two");
+  const [eventPolicy, setEventPolicy] = React.useState<string>("allow *:*");
+  const [queryPolicy, setQueryPolicy] = React.useState<string>("allow */*");
 
-interface LocalState {
-  expandedChannels: { [eci: string]: boolean };
-
-  tags: string;
-  eventPolicy: string;
-  queryPolicy: string;
-}
-
-class Channels extends React.Component<Props, LocalState> {
-  constructor(props: Props) {
-    super(props);
-
-    this.state = {
-      expandedChannels: {},
-
-      tags: "one, two",
-      eventPolicy: `allow *:*`,
-      queryPolicy: `allow */*`
-    };
-
-    this.addChannel = this.addChannel.bind(this);
-    this.toggleChannel = this.toggleChannel.bind(this);
-  }
-
-  isReadyToAdd(): boolean {
-    try {
-      this.getNewChannData();
-    } catch (err) {
-      return false;
-    }
-    return true;
-  }
-
-  getNewChannData(): any {
-    const { tags, eventPolicy, queryPolicy } = this.state;
-
+  function getNewChannData(): any {
     return {
       tags: tags.split(","),
       eventPolicy: parseEventPolicy(eventPolicy),
@@ -63,203 +32,212 @@ class Channels extends React.Component<Props, LocalState> {
     };
   }
 
-  addChannel(e: React.FormEvent) {
-    e.preventDefault();
-    if (!this.isReadyToAdd()) {
-      return;
+  function isReadyToAdd(): boolean {
+    try {
+      getNewChannData();
+    } catch (err) {
+      return false;
     }
-    const { pico } = this.props;
-    const { dispatch } = this.props;
-    const data = this.getNewChannData();
-    dispatch(newChannel(pico.eci, data));
+    return true;
   }
 
-  toggleChannel(checked: boolean, eci: string) {
-    const map = Object.assign({}, this.state.expandedChannels);
-    if (checked) {
-      map[eci] = true;
-    } else {
-      delete map[eci];
-    }
-    this.setState({ expandedChannels: map });
-  }
+  const picoDetails = useAsyncLoader<PicoDetails | null>(null, () =>
+    apiGet(`/c/${pico.eci}/query/io.picolabs.next/pico`)
+  );
 
-  delChannel(eci: string) {
-    const { dispatch, pico } = this.props;
-    dispatch(delChannel(pico.eci, eci));
-  }
+  const addChannel = useAsyncAction<{ eci: string; data: any }>(
+    ({ eci, data }) =>
+      apiPost(
+        `/c/${eci}/event/engine-ui/new-channel/query/io.picolabs.next/pico`,
+        data
+      ).then(d => picoDetails.setData(d))
+  );
 
-  render() {
-    const { pico, picoState } = this.props;
-    const { expandedChannels } = this.state;
+  const delChannel = useAsyncAction<string>(eci =>
+    apiPost(
+      `/c/${pico.eci}/event/engine-ui/del-channel/query/io.picolabs.next/pico`,
+      { eci }
+    ).then(d => picoDetails.setData(d))
+  );
 
-    const waiting: boolean = picoState
-      ? picoState.addChannel_apiSt.waiting || picoState.delChannel_apiSt.waiting
-      : true;
+  React.useEffect(() => {
+    picoDetails.load();
+  }, [pico.eci]);
 
-    const newChannelError: string | null | undefined = picoState
-      ? picoState.addChannel_apiSt.error
-      : null;
+  const waiting: boolean =
+    picoDetails.waiting || delChannel.waiting || addChannel.waiting;
 
-    const delChannelError: string | null | undefined = picoState
-      ? picoState.delChannel_apiSt.error
-      : null;
+  const channels: Channel[] =
+    (picoDetails.data && picoDetails.data.channels) || [];
 
-    const channels: Channel[] =
-      (picoState && picoState.details && picoState.details.channels) || [];
+  return (
+    <div>
+      <h3>Channels</h3>
+      {delChannel.error ? (
+        <span className="text-danger">{delChannel.error}</span>
+      ) : (
+        ""
+      )}
+      {channels.length === 0 ? (
+        <div className="text-muted">- no channels -</div>
+      ) : (
+        channels.map(channel => {
+          const isOpen = !!expandedChannels[channel.id];
+          return (
+            <div key={channel.id}>
+              <div>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id={`chann-${channel.id}`}
+                    onChange={e => {
+                      const eci = channel.id;
+                      const map = Object.assign({}, expandedChannels);
+                      if (e.target.checked) {
+                        map[eci] = true;
+                      } else {
+                        delete map[eci];
+                      }
+                      setExpandedChannels(map);
+                    }}
+                    checked={isOpen}
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor={`chann-${channel.id}`}
+                  >
+                    <span className="text-mono">{channel.id}</span>
+                  </label>
+                  {channel.tags.map((tag, i) => {
+                    return (
+                      <span key={i} className="badge badge-secondary ml-1">
+                        {tag}
+                      </span>
+                    );
+                  })}
+                  <button
+                    className="btn btn-link btn-sm"
+                    type="button"
+                    onClick={e => {
+                      e.preventDefault();
+                      delChannel.act(channel.id);
+                    }}
+                    disabled={waiting}
+                  >
+                    delete
+                  </button>
+                </div>
+              </div>
+              {isOpen ? (
+                <div className="ml-3">
+                  {channel.familyChannelPicoID ? (
+                    <div className="text-muted">This is a family channel.</div>
+                  ) : (
+                    <div className="row">
+                      <div className="col">
+                        Event Policy
+                        <ViewEventPolicy policy={channel.eventPolicy} />
+                      </div>
+                      <div className="col">
+                        Query Policy
+                        <ViewQueryPolicy policy={channel.queryPolicy} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                ""
+              )}
+            </div>
+          );
+        })
+      )}
+      <hr />
+      <h3>New Channel</h3>
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+          if (!isReadyToAdd()) {
+            return;
+          }
+          const data = getNewChannData();
+          addChannel.act({ eci: pico.eci, data });
+        }}
+      >
+        <div className="form-group">
+          <label htmlFor="new-chann-tags">Tags</label>
+          <div className="row">
+            <div className="col">
+              <input
+                id="new-chann-tags"
+                type="text"
+                className="form-control"
+                value={tags}
+                onChange={e => setTags(e.target.value)}
+              />
+            </div>
+            <div className="col">
+              {tags.split(",").map((tag, i) => {
+                return (
+                  <span key={i} className="badge badge-secondary ml-1">
+                    {tag.trim()}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
-    return (
-      <div>
-        <h3>Channels</h3>
-        {delChannelError ? (
-          <span className="text-danger">{delChannelError}</span>
+        <div className="form-group">
+          <label htmlFor="new-chann-event-policy">Event Policy</label>
+          <div className="row">
+            <div className="col">
+              <textarea
+                id="new-chann-event-policy"
+                rows={3}
+                className="form-control"
+                value={eventPolicy}
+                onChange={e => setEventPolicy(e.target.value)}
+              />
+            </div>
+            <div className="col">
+              <ParseNViewEventPolicy src={eventPolicy} />
+            </div>
+          </div>
+        </div>
+        <div className="form-group">
+          <label htmlFor="new-chann-query-policy">Query Policy</label>
+          <div className="row">
+            <div className="col">
+              <textarea
+                id="new-chann-query-policy"
+                rows={3}
+                className="form-control"
+                value={queryPolicy}
+                onChange={e => setQueryPolicy(e.target.value)}
+              />
+            </div>
+            <div className="col">
+              <ParseNViewQueryPolicy src={queryPolicy} />
+            </div>
+          </div>
+        </div>
+        <button
+          type="submit"
+          className="btn btn-outline-primary"
+          disabled={waiting || !isReadyToAdd()}
+        >
+          Add
+        </button>
+        {addChannel.error ? (
+          <span className="text-danger">{addChannel.error}</span>
         ) : (
           ""
         )}
-        {channels.length === 0 ? (
-          <div className="text-muted">- no channels -</div>
-        ) : (
-          channels.map(channel => {
-            const isOpen = !!expandedChannels[channel.id];
-            return (
-              <div key={channel.id}>
-                <div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`chann-${channel.id}`}
-                      onChange={e =>
-                        this.toggleChannel(e.target.checked, channel.id)
-                      }
-                      checked={isOpen}
-                    />
-                    <label
-                      className="form-check-label"
-                      htmlFor={`chann-${channel.id}`}
-                    >
-                      <span className="text-mono">{channel.id}</span>
-                    </label>
-                    {channel.tags.map((tag, i) => {
-                      return (
-                        <span key={i} className="badge badge-secondary ml-1">
-                          {tag}
-                        </span>
-                      );
-                    })}
-                    <button
-                      className="btn btn-link btn-sm"
-                      type="button"
-                      onClick={e => {
-                        e.preventDefault();
-                        this.delChannel(channel.id);
-                      }}
-                      disabled={waiting}
-                    >
-                      delete
-                    </button>
-                  </div>
-                </div>
-                {isOpen ? (
-                  <div className="ml-3">
-                    {channel.familyChannelPicoID ? (
-                      <div className="text-muted">
-                        This is a family channel.
-                      </div>
-                    ) : (
-                      <div className="row">
-                        <div className="col">
-                          Event Policy
-                          <ViewEventPolicy policy={channel.eventPolicy} />
-                        </div>
-                        <div className="col">
-                          Query Policy
-                          <ViewQueryPolicy policy={channel.queryPolicy} />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  ""
-                )}
-              </div>
-            );
-          })
-        )}
-        <hr />
-        <h3>New Channel</h3>
-        <form onSubmit={this.addChannel}>
-          <div className="form-group">
-            <label htmlFor="new-chann-tags">Tags</label>
-            <div className="row">
-              <div className="col">
-                <input
-                  id="new-chann-tags"
-                  type="text"
-                  className="form-control"
-                  value={this.state.tags}
-                  onChange={e => this.setState({ tags: e.target.value })}
-                />
-              </div>
-              <div className="col">Tags</div>
-            </div>
-          </div>
+      </form>
+    </div>
+  );
+};
 
-          <div className="form-group">
-            <label htmlFor="new-chann-event-policy">Event Policy</label>
-            <div className="row">
-              <div className="col">
-                <textarea
-                  id="new-chann-event-policy"
-                  rows={3}
-                  className="form-control"
-                  value={this.state.eventPolicy}
-                  onChange={e => this.setState({ eventPolicy: e.target.value })}
-                />
-              </div>
-              <div className="col">
-                <ParseNViewEventPolicy src={this.state.eventPolicy} />
-              </div>
-            </div>
-          </div>
-          <div className="form-group">
-            <label htmlFor="new-chann-query-policy">Query Policy</label>
-            <div className="row">
-              <div className="col">
-                <textarea
-                  id="new-chann-query-policy"
-                  rows={3}
-                  className="form-control"
-                  value={this.state.queryPolicy}
-                  onChange={e => this.setState({ queryPolicy: e.target.value })}
-                />
-              </div>
-              <div className="col">
-                <ParseNViewQueryPolicy src={this.state.queryPolicy} />
-              </div>
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="btn btn-outline-primary"
-            disabled={waiting || !this.isReadyToAdd()}
-          >
-            Add
-          </button>
-          {newChannelError ? (
-            <span className="text-danger">{newChannelError}</span>
-          ) : (
-            ""
-          )}
-        </form>
-      </div>
-    );
-  }
-}
-
-export default connect((state: State, props: PropsFromParent) => {
-  const picoState = state.picos[props.pico.eci];
-  return {
-    picoState
-  };
-})(Channels);
+export default Channels;

@@ -1,62 +1,82 @@
 import * as React from "react";
-import { connect } from "react-redux";
-import { Dispatch, picosMouseMove, picosMouseUp } from "../Action";
-import { PicoBox, State } from "../State";
+import { apiSavePicoBox } from "../Action";
+import picoPageStore from "../stores/picoPageStore";
 import Pico from "./Pico";
 
-type XY = { x: number; y: number };
-type LineXYs = { from: XY; to: XY };
-
 interface Props {
-  dispatch: Dispatch;
-
-  uiContext_apiSt: State["uiContext_apiSt"];
-  uiContext: State["uiContext"];
-
-  isDraggingSomething: boolean;
-
-  picoBoxes: PicoBox[];
-  channelLines: LineXYs[];
-
   // react-router
   match: { params: { [name: string]: string } };
 }
 
 const PicosPage: React.FC<Props> = props => {
-  const { uiContext_apiSt, uiContext, picoBoxes, match, channelLines } = props;
+  const { match } = props;
 
   const openEci: string | undefined = match.params.eci;
   const openTab: string | undefined = match.params.tab;
 
+  const picoPage = picoPageStore.use();
+
+  React.useEffect(() => {
+    picoPageStore.fetchAll();
+  }, []);
+
   function onMouseMove(e: React.MouseEvent) {
-    if (props.isDraggingSomething) {
-      props.dispatch(picosMouseMove(e.clientX, e.clientY));
+    if (!picoPage.picoMoving) return;
+
+    switch (picoPage.picoMoving.action) {
+      case "moving": {
+        picoPageStore.updateBox(picoPage.picoMoving.eci, {
+          x: e.clientX - (picoPage.picoMoving.relX || 0),
+          y: e.clientY - (picoPage.picoMoving.relY || 0)
+        });
+        break;
+      }
+      case "resizing": {
+        const box = picoPage.picoBoxes[picoPage.picoMoving.eci];
+        if (box) {
+          picoPageStore.updateBox(picoPage.picoMoving.eci, {
+            width: Math.max(0, e.clientX - box.x),
+            height: Math.max(0, e.clientY - box.y)
+          });
+        }
+        break;
+      }
     }
   }
 
   function onMouseUp(e: React.MouseEvent) {
-    if (props.isDraggingSomething) {
-      props.dispatch(picosMouseUp());
+    if (!picoPage.picoMoving) return;
+
+    const box = picoPage.picoBoxes[picoPage.picoMoving.eci];
+    if (box) {
+      apiSavePicoBox(box.eci, {
+        x: box.x,
+        y: box.y,
+        width: box.width,
+        height: box.height
+      });
     }
+
+    picoPageStore.setPicoMoving(null);
   }
 
   return (
     <div id="picos-page" onMouseMove={onMouseMove} onMouseUp={onMouseUp}>
       <div className="container-fluid">
         <h1>pico-engine NEXT</h1>
-        {uiContext ? `version: ${uiContext.version}` : ""}
-        {uiContext_apiSt.waiting ? "Loading..." : ""}
-        {uiContext_apiSt.error ? (
-          <div className="alert alert-danger">{uiContext_apiSt.error}</div>
+        {picoPage.uiContext ? `version: ${picoPage.uiContext.version}` : ""}
+        {picoPage.loading ? "Loading..." : ""}
+        {picoPage.error ? (
+          <div className="alert alert-danger">{picoPage.error}</div>
         ) : (
           ""
         )}
       </div>
 
-      {picoBoxes.map(pico => {
+      {Object.values(picoPage.picoBoxes).map(pico => {
         return (
           <Pico
-            key={pico.eci}
+            key={pico.eci + pico.x + pico.y + pico.width + pico.height}
             pico={pico}
             openEci={openEci}
             openTab={openTab}
@@ -65,7 +85,7 @@ const PicosPage: React.FC<Props> = props => {
       })}
 
       <svg id="picos-svg">
-        {channelLines.map((line, i) => {
+        {picoPage.channelLines.map((line, i) => {
           return (
             <line
               key={i}
@@ -81,33 +101,4 @@ const PicosPage: React.FC<Props> = props => {
   );
 };
 
-export default connect((state: State) => {
-  const picoBoxes = Object.values(state.picos)
-    .map(p => p.box)
-    .filter(b => !!b) as PicoBox[];
-
-  const picoXYs: { [eci: string]: XY } = {};
-  for (const box of picoBoxes) {
-    picoXYs[box.eci] = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-  }
-  const channelLines: LineXYs[] = [];
-  for (const box of picoBoxes) {
-    const from = picoXYs[box.eci];
-    for (const eci of box.children) {
-      const to = picoXYs[eci];
-      if (from && to) {
-        channelLines.push({ from, to });
-      }
-    }
-  }
-
-  return {
-    uiContext_apiSt: state.uiContext_apiSt,
-    uiContext: state.uiContext,
-
-    isDraggingSomething: !!state.pico_moving || !!state.pico_resizing,
-
-    picoBoxes,
-    channelLines
-  };
-})(PicosPage);
+export default PicosPage;

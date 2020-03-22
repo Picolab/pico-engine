@@ -1,27 +1,16 @@
 import * as React from "react";
-import { connect } from "react-redux";
+import { apiGet, apiPost } from "../../Action";
 import {
-  Dispatch,
-  getTesting,
-  sendTestQuery,
-  sendTestEvent,
-  setTestingECI
-} from "../../Action";
-import { PicoBox, State, PicoState, PicoRuleset, Channel } from "../../State";
-import { Link } from "react-router-dom";
+  Channel,
+  PicoBox,
+  PicoDetails,
+  PicoRuleset,
+  TestingSchema
+} from "../../State";
+import useAsyncLoader from "../../useAsyncLoader";
 
-interface PropsFromParent {
+interface Props {
   pico: PicoBox;
-}
-
-interface Props extends PropsFromParent {
-  dispatch: Dispatch;
-  rulesets: State["rulesets"];
-  picoState?: PicoState;
-}
-
-interface LocalState {
-  expandedRIDs: { [rid: string]: boolean };
 }
 
 function serializeFormAttrsOrArgs(e: React.FormEvent<HTMLFormElement>) {
@@ -42,235 +31,254 @@ function serializeFormAttrsOrArgs(e: React.FormEvent<HTMLFormElement>) {
   return attrs;
 }
 
-class Testing extends React.Component<Props, LocalState> {
-  constructor(props: Props) {
-    super(props);
+const Testing: React.FC<Props> = ({ pico }) => {
+  const picoDetails = useAsyncLoader<PicoDetails | null>(null, () =>
+    apiGet(`/c/${pico.eci}/query/io.picolabs.next/pico`)
+  );
 
-    this.state = {
-      expandedRIDs: {}
+  const [testingECI, setTestingECI] = React.useState<string>(pico.eci);
+  const [testError, setTestError] = React.useState<string | null>(null);
+  const [isTesting, setIsTesting] = React.useState<boolean>(false);
+  const [testResult, setTestResult] = React.useState<string | null>(null);
+
+  const [testingSchema, setTestingSchema] = React.useState<{
+    [rid: string]: {
+      waiting?: boolean;
+      error?: string | null;
+      schema?: TestingSchema;
     };
+  }>({});
 
-    this.sendTestEvent = this.sendTestEvent.bind(this);
-    this.setTestingECI = this.setTestingECI.bind(this);
-  }
+  const [expandedRIDs, setExpandedRIDs] = React.useState<{
+    [rid: string]: boolean;
+  }>({});
 
-  toggleRid(checked: boolean, rid: string) {
-    const { pico, dispatch } = this.props;
-    const map = Object.assign({}, this.state.expandedRIDs);
-    if (checked) {
-      map[rid] = true;
-      dispatch(getTesting(pico.eci, rid));
-    } else {
-      delete map[rid];
+  React.useEffect(() => {
+    picoDetails.load();
+    setTestingSchema({});
+  }, [pico.eci]);
+
+  async function getTestingSchema(rid: string) {
+    setTestingSchema({
+      ...testingSchema,
+      [rid]: { waiting: true, error: null }
+    });
+    try {
+      const schema = await apiGet(`/c/${pico.eci}/query/${rid}/__testing`);
+      setTestingSchema({
+        ...testingSchema,
+        [rid]: { schema }
+      });
+    } catch (err) {
+      setTestingSchema({
+        ...testingSchema,
+        [rid]: { error: err + "" }
+      });
     }
-    this.setState({ expandedRIDs: map });
   }
 
-  sendTestQuery(rid: string, name: string) {
-    return (e: React.FormEvent<HTMLFormElement>) => {
+  function sendTestQuery(rid: string, name: string) {
+    return async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       const args = serializeFormAttrsOrArgs(e);
-      const { pico, dispatch } = this.props;
-      dispatch(sendTestQuery(pico.eci, this.getTestingECI(), rid, name, args));
+      setIsTesting(true);
+      setTestError(null);
+      setTestResult(null);
+      try {
+        const data = await apiPost(
+          `/c/${testingECI}/query/${rid}/${name}`,
+          args
+        );
+        setTestResult(JSON.stringify(data, undefined, 2));
+      } catch (err) {
+        setTestError(err + "");
+      } finally {
+        setIsTesting(false);
+      }
     };
   }
 
-  sendTestEvent(domain: string, name: string) {
-    return (e: React.FormEvent<HTMLFormElement>) => {
+  function sendTestEvent(domain: string, name: string) {
+    return async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       const attrs = serializeFormAttrsOrArgs(e);
-      const { pico, dispatch } = this.props;
-      dispatch(
-        sendTestEvent(pico.eci, this.getTestingECI(), domain, name, attrs)
-      );
+      setIsTesting(true);
+      setTestError(null);
+      setTestResult(null);
+      try {
+        const data = await apiPost(
+          `/c/${testingECI}/event-wait/${domain}/${name}`,
+          attrs
+        );
+        setTestResult(JSON.stringify(data, undefined, 2));
+      } catch (err) {
+        setTestError(err + "");
+      } finally {
+        setIsTesting(false);
+      }
     };
   }
 
-  setTestingECI(e: React.ChangeEvent<HTMLSelectElement>) {
-    const { pico, dispatch } = this.props;
-    dispatch(setTestingECI(pico.eci, e.target.value));
-  }
+  const rulesets: PicoRuleset[] = picoDetails.data
+    ? picoDetails.data.rulesets
+    : [];
 
-  getTestingECI() {
-    const { pico, picoState } = this.props;
-    const testingECI = picoState && picoState.testingECI;
-    return testingECI || pico.eci;
-  }
+  const channels: Channel[] =
+    (picoDetails.data && picoDetails.data.channels) || [];
 
-  render() {
-    const { picoState } = this.props;
-    const { expandedRIDs } = this.state;
+  return (
+    <div>
+      <div className="row">
+        <div className="col">
+          <h3>Testing</h3>
+          <div className="mt-3 mb-3">
+            <form className="form-inline">
+              <label>ECI:</label>
+              <select
+                className="form-control form-control-sm ml-2 text-mono"
+                value={testingECI}
+                onChange={e => setTestingECI(e.target.value)}
+              >
+                {channels.map(channel => {
+                  const label =
+                    channel.id +
+                    " " +
+                    channel.tags.map(tag => `#${tag}`).join(" ");
+                  return (
+                    <option key={channel.id} value={channel.id}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
+            </form>
+          </div>
 
-    const rulesets: PicoRuleset[] =
-      picoState && picoState.details ? picoState.details.rulesets : [];
-
-    const channels: Channel[] =
-      (picoState && picoState.details && picoState.details.channels) || [];
-
-    return (
-      <div>
-        <div className="row">
-          <div className="col">
-            <h3>Testing</h3>
-            <div className="mt-3 mb-3">
-              <form className="form-inline">
-                <label>ECI:</label>
-                <select
-                  className="form-control form-control-sm ml-2 text-mono"
-                  value={this.getTestingECI()}
-                  onChange={this.setTestingECI}
-                >
-                  {channels.map(channel => {
-                    const label =
-                      channel.id +
-                      " " +
-                      channel.tags.map(tag => `#${tag}`).join(" ");
-                    return (
-                      <option key={channel.id} value={channel.id}>
-                        {label}
-                      </option>
-                    );
-                  })}
-                </select>
-              </form>
-            </div>
-
-            {rulesets.map(rs => {
-              const isOpen = !!expandedRIDs[rs.rid];
-              const testing = picoState && picoState.testing[rs.rid];
-              return (
-                <div key={rs.rid}>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`rid-${rs.rid}`}
-                      onChange={e => this.toggleRid(e.target.checked, rs.rid)}
-                      checked={isOpen}
-                    />
-                    <label
-                      className="form-check-label"
-                      htmlFor={`rid-${rs.rid}`}
-                    >
-                      {rs.rid}
-                    </label>
-                    <Link
-                      to={`/rulesets/${rs.rid}/${rs.version}`}
-                      className="btn btn-link btn-sm"
-                    >
-                      edit
-                    </Link>
-                  </div>
-                  {isOpen && testing ? (
-                    <div>
-                      {testing.schema_apiSt.error ? (
-                        <span className="text-danger">
-                          {testing.schema_apiSt.error}
-                        </span>
-                      ) : (
-                        ""
-                      )}
-                      {testing.schema ? (
-                        <div className="pl-4">
-                          {(testing.schema.queries || []).map(q => {
-                            return (
-                              <form
-                                key={q.name}
-                                onSubmit={this.sendTestQuery(rs.rid, q.name)}
-                                className="border border-primary p-2"
-                              >
-                                <div>
-                                  {(q.args || []).map(arg => {
-                                    return (
-                                      <input
-                                        key={arg}
-                                        name={arg}
-                                        placeholder={arg}
-                                      />
-                                    );
-                                  })}
-                                </div>
-                                <button
-                                  type="submit"
-                                  className="btn btn-sm btn-primary"
-                                >
-                                  {q.name}
-                                </button>
-                              </form>
-                            );
-                          })}
-                          {(testing.schema.events || []).map(e => {
-                            const doname = `${e.domain}:${e.name}`;
-
-                            return (
-                              <form
-                                key={doname}
-                                onSubmit={this.sendTestEvent(e.domain, e.name)}
-                                className="border border-warning p-2"
-                              >
-                                <div>
-                                  {(e.attrs || []).map(attr => {
-                                    return (
-                                      <input
-                                        key={attr}
-                                        name={attr}
-                                        placeholder={attr}
-                                      />
-                                    );
-                                  })}
-                                </div>
-                                <button
-                                  type="submit"
-                                  className="btn btn-sm btn-warning"
-                                >
-                                  {doname}
-                                </button>
-                              </form>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        ""
-                      )}
-                      {testing.schema_apiSt.waiting ? "Loading..." : ""}
-                    </div>
-                  ) : (
-                    ""
-                  )}
+          {rulesets.map(rs => {
+            const isOpen = !!expandedRIDs[rs.rid];
+            const testing = testingSchema[rs.rid] || null;
+            return (
+              <div key={rs.rid}>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id={`rid-${rs.rid}`}
+                    onChange={e => {
+                      const map = Object.assign({}, expandedRIDs);
+                      if (e.target.checked) {
+                        map[rs.rid] = true;
+                        getTestingSchema(rs.rid);
+                      } else {
+                        delete map[rs.rid];
+                      }
+                      setExpandedRIDs(map);
+                    }}
+                    checked={isOpen}
+                  />
+                  <label className="form-check-label" htmlFor={`rid-${rs.rid}`}>
+                    {rs.rid}
+                  </label>
                 </div>
-              );
-            })}
-          </div>
-          <div className="col">
-            <div className="float-right">
-              <span className="text-muted">Legend:</span>
-              <span className="badge badge-primary ml-1">query</span>
-              <span className="badge badge-warning ml-1">event</span>
-            </div>
-            <h3>Results</h3>
+                {isOpen && testing ? (
+                  <div>
+                    {testing.error ? (
+                      <span className="text-danger">{testing.error}</span>
+                    ) : (
+                      ""
+                    )}
+                    {testing.schema ? (
+                      <div className="pl-4">
+                        {(testing.schema.queries || []).map(q => {
+                          return (
+                            <form
+                              key={q.name}
+                              onSubmit={sendTestQuery(rs.rid, q.name)}
+                              className="border border-primary p-2"
+                            >
+                              <div>
+                                {(q.args || []).map(arg => {
+                                  return (
+                                    <input
+                                      key={arg}
+                                      name={arg}
+                                      placeholder={arg}
+                                    />
+                                  );
+                                })}
+                              </div>
+                              <button
+                                type="submit"
+                                className="btn btn-sm btn-primary"
+                              >
+                                {q.name}
+                              </button>
+                            </form>
+                          );
+                        })}
+                        {(testing.schema.events || []).map(e => {
+                          const doname = `${e.domain}:${e.name}`;
 
-            {picoState && picoState.testResult_error ? (
-              <span className="text-danger">{picoState.testResult_error}</span>
-            ) : (
-              ""
-            )}
-
-            <pre>
-              {picoState && picoState.hasOwnProperty("testResult")
-                ? JSON.stringify(picoState.testResult, undefined, 2)
-                : ""}
-            </pre>
+                          return (
+                            <form
+                              key={doname}
+                              onSubmit={sendTestEvent(e.domain, e.name)}
+                              className="border border-warning p-2"
+                            >
+                              <div>
+                                {(e.attrs || []).map(attr => {
+                                  return (
+                                    <input
+                                      key={attr}
+                                      name={attr}
+                                      placeholder={attr}
+                                    />
+                                  );
+                                })}
+                              </div>
+                              <button
+                                type="submit"
+                                className="btn btn-sm btn-warning"
+                              >
+                                {doname}
+                              </button>
+                            </form>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                    {testing.waiting ? "Loading..." : ""}
+                  </div>
+                ) : (
+                  ""
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div className="col">
+          <div className="float-right">
+            <span className="text-muted">Legend:</span>
+            <span className="badge badge-primary ml-1">query</span>
+            <span className="badge badge-warning ml-1">event</span>
           </div>
+          <h3>Results</h3>
+
+          {isTesting ? (
+            "Testing..."
+          ) : testError ? (
+            <span className="text-danger">{testError}</span>
+          ) : testResult ? (
+            <pre>{testResult}</pre>
+          ) : (
+            ""
+          )}
         </div>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default connect((state: State, props: PropsFromParent) => {
-  const picoState = state.picos[props.pico.eci];
-  return {
-    picoState,
-    rulesets: state.rulesets
-  };
-})(Testing);
+export default Testing;

@@ -54,12 +54,6 @@ const conf = {
     ]
   },
 
-  resolveLoader: {
-    alias: {
-      "ace-webworker-loader": path.join(__dirname, "ace-webworker-loader.js")
-    }
-  },
-
   resolve: {
     extensions: [".ts", ".tsx", ".json", ".js", ".jsx"]
   },

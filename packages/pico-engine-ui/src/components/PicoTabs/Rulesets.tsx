@@ -1,44 +1,34 @@
 import * as React from "react";
-import { connect } from "react-redux";
 import { Link } from "react-router-dom";
-import { Dispatch, installRuleset, uninstallRuleset } from "../../Action";
-import { PicoBox, PicoState, State } from "../../State";
+import { apiGet, apiPost } from "../../Action";
+import { PicoBox, PicoDetails } from "../../State";
+import useAsyncAction from "../../useAsyncAction";
+import useAsyncLoader from "../../useAsyncLoader";
 
-interface PropsFromParent {
+interface Props {
   pico: PicoBox;
 }
 
-interface Props extends PropsFromParent {
-  dispatch: Dispatch;
-  rulesets: State["rulesets"];
-  picoState?: PicoState;
-}
+const Rulesets: React.FC<Props> = ({ pico }) => {
+  const [rid, setRid] = React.useState<string | null>(null);
+  const [version, setVersion] = React.useState<string | null>(null);
+  const [config, setConfig] = React.useState<string>("{}");
 
-interface LocalState {
-  rid: string | null;
-  version: string | null;
-  config: string;
-}
-
-class Rulesets extends React.Component<Props, LocalState> {
-  constructor(props: Props) {
-    super(props);
-    this.install = this.install.bind(this);
-
-    this.state = {
-      rid: null,
-      version: null,
-      config: "{}"
+  // TODO
+  // TODO
+  const availRulesets: {
+    // TODO
+    [rid: string]: {
+      // TODO
+      [version: string]: true;
     };
-  }
+  } = {};
 
-  isReadyToInstall() {
-    const { rid, version, config } = this.state;
-    const { rulesets } = this.props;
+  function isReadyToInstall(): boolean {
     if (!rid || !version) {
       return false;
     }
-    if (!rulesets[rid] && !rulesets[rid][version]) {
+    if (!availRulesets[rid] && !availRulesets[rid][version]) {
       return false;
     }
     try {
@@ -49,139 +39,145 @@ class Rulesets extends React.Component<Props, LocalState> {
     return true;
   }
 
-  install(e: React.FormEvent) {
-    e.preventDefault();
-    const { rid, version, config } = this.state;
-    const { pico, dispatch } = this.props;
-    if (this.isReadyToInstall() && rid && version) {
-      dispatch(installRuleset(pico.eci, rid, version, JSON.parse(config)));
-    }
-  }
+  const install = useAsyncAction<{
+    eci: string;
+    rid: string;
+    version: string;
+    config: any;
+  }>(params =>
+    apiPost(
+      `/c/${params.eci}/event/engine-ui/install/query/io.picolabs.next/pico`,
+      {
+        rid: params.rid,
+        version: params.version,
+        config: params.config
+      }
+    ).then(d => null)
+  );
 
-  uninstall(rid: string) {
-    const { pico, dispatch } = this.props;
-    dispatch(uninstallRuleset(pico.eci, rid));
-  }
+  const uninstall = useAsyncAction<{
+    eci: string;
+    rid: string;
+  }>(({ eci, rid }) =>
+    apiPost(`/c/${eci}/event/engine-ui/uninstall/query/io.picolabs.next/pico`, {
+      rid
+    }).then(d => null)
+  );
 
-  render() {
-    const { pico, rulesets, picoState } = this.props;
+  const picoDetails = useAsyncLoader<PicoDetails | null>(null, () =>
+    apiGet(`/c/${pico.eci}/query/io.picolabs.next/pico`)
+  );
 
-    const installError = (picoState && picoState.install_apiSt.error) || null;
+  React.useEffect(() => {
+    picoDetails.load();
+  }, [pico.eci]);
 
-    const uninstallError =
-      (picoState && picoState.uninstall_apiSt.error) || null;
-
-    const waiting = picoState
-      ? picoState.install_apiSt.waiting || picoState.uninstall_apiSt.waiting
-      : true;
-
-    return (
-      <div>
-        <h3>Installed Rulesets</h3>
-        {uninstallError ? (
-          <div className="alert alert-danger">
-            Uninstall error: {uninstallError}
+  return (
+    <div>
+      <h3>Installed Rulesets</h3>
+      {uninstall.error ? (
+        <div className="alert alert-danger">
+          Uninstall error: {uninstall.error}
+        </div>
+      ) : (
+        ""
+      )}
+      {picoDetails.data && picoDetails.data.rulesets.length > 0 ? (
+        <ul>
+          {picoDetails.data.rulesets.map(rs => {
+            return (
+              <li key={rs.rid} className="text-mono">
+                {rs.rid}@{rs.version}
+                {" " + JSON.stringify(rs.config)}
+                <button
+                  className="btn btn-link btn-sm"
+                  type="button"
+                  onClick={e => {
+                    e.preventDefault();
+                    uninstall.act({ eci: pico.eci, rid: rs.rid });
+                  }}
+                  disabled={picoDetails.waiting || uninstall.waiting}
+                >
+                  uninstall
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <span className="text-muted">- no rulesets -</span>
+      )}
+      <hr />
+      Install Ruleset:
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+          if (isReadyToInstall() && rid && version) {
+            install.act({
+              eci: pico.eci,
+              rid,
+              version,
+              config: JSON.parse(config)
+            });
+          }
+        }}
+      >
+        <div className="form-row mb-2">
+          <div className="col-auto">
+            <select
+              className="form-control"
+              value={rid || "--"}
+              onChange={e => setRid(e.target.value)}
+            >
+              <option value="--" />
+              {Object.keys(availRulesets).map(rid => (
+                <option key={rid} value={rid}>
+                  {rid}
+                </option>
+              ))}
+            </select>
           </div>
+          <div className="col-auto">
+            <select
+              className="form-control"
+              disabled={!availRulesets[rid || ""]}
+              value={version || "--"}
+              onChange={e => setVersion(e.target.value)}
+            >
+              <option value="--" />
+              {Object.keys(availRulesets[rid || ""] || {}).map(version => (
+                <option key={version} value={version}>
+                  {version}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="form-group">
+          <textarea
+            rows={3}
+            className="form-control"
+            value={config}
+            onChange={e => setConfig(e.target.value)}
+          />
+        </div>
+        <button
+          type="submit"
+          className="btn btn-outline-primary"
+          disabled={
+            picoDetails.waiting || install.waiting || !isReadyToInstall()
+          }
+        >
+          Install
+        </button>
+        {install.error ? (
+          <span className="text-danger">{install.error}</span>
         ) : (
           ""
         )}
-        {picoState &&
-        picoState.details &&
-        picoState.details.rulesets.length > 0 ? (
-          <ul>
-            {picoState.details.rulesets.map(rs => {
-              return (
-                <li key={rs.rid} className="text-mono">
-                  <Link to={`/rulesets/${rs.rid}/${rs.version}`}>
-                    {rs.rid}@{rs.version}
-                  </Link>
-                  {" " + JSON.stringify(rs.config)}
-                  <button
-                    className="btn btn-link btn-sm"
-                    type="button"
-                    onClick={e => {
-                      e.preventDefault();
-                      this.uninstall(rs.rid);
-                    }}
-                    disabled={waiting}
-                  >
-                    uninstall
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <span className="text-muted">- no rulesets -</span>
-        )}
-        <hr />
-        Install Ruleset:
-        <form onSubmit={this.install}>
-          <div className="form-row mb-2">
-            <div className="col-auto">
-              <select
-                className="form-control"
-                value={this.state.rid || "--"}
-                onChange={e => this.setState({ rid: e.target.value })}
-              >
-                <option value="--" />
-                {Object.keys(rulesets).map(rid => (
-                  <option key={rid} value={rid}>
-                    {rid}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-auto">
-              <select
-                className="form-control"
-                disabled={!rulesets[this.state.rid || ""]}
-                value={this.state.version || "--"}
-                onChange={e => this.setState({ version: e.target.value })}
-              >
-                <option value="--" />
-                {Object.keys(rulesets[this.state.rid || ""] || {}).map(
-                  version => (
-                    <option key={version} value={version}>
-                      {version}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-          </div>
-          <div className="form-group">
-            <textarea
-              rows={3}
-              className="form-control"
-              value={this.state.config}
-              onChange={e => this.setState({ config: e.target.value })}
-            />
-          </div>
-          <button
-            type="submit"
-            className="btn btn-outline-primary"
-            disabled={waiting || !this.isReadyToInstall()}
-          >
-            Install
-          </button>
-          {installError ? (
-            <span className="text-danger">{installError}</span>
-          ) : (
-            ""
-          )}
-        </form>
-        <hr />
-        <Link to="/rulesets">Engine Rulesets</Link>
-      </div>
-    );
-  }
-}
+      </form>
+    </div>
+  );
+};
 
-export default connect((state: State, props: PropsFromParent) => {
-  const picoState = state.picos[props.pico.eci];
-  return {
-    picoState,
-    rulesets: state.rulesets
-  };
-})(Rulesets);
+export default Rulesets;
