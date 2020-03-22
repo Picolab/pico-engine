@@ -1,12 +1,9 @@
 import * as React from "react";
 import { apiGet, apiPost } from "../../api";
-import {
-  Channel,
-  PicoBox,
-  PicoDetails,
-  PicoRuleset,
-  TestingSchema
-} from "../../State";
+import { Channel } from "../../types/Channel";
+import { PicoBox } from "../../types/PicoBox";
+import { PicoDetails, PicoRuleset } from "../../types/PicoDetails";
+import { TestingSchema } from "../../types/TestingSchema";
 import useAsyncLoader from "../../useAsyncLoader";
 import ErrorStatus from "../widgets/ErrorStatus";
 

@@ -4,7 +4,7 @@ import {
   EventPolicyRule,
   QueryPolicy,
   QueryPolicyRule
-} from "../../State";
+} from "../../types/Channel";
 
 type ParsedRule<T> = { kind: "allow" | "deny"; rule: T };
 

@@ -1,6 +1,8 @@
 import * as React from "react";
 import { apiGet, apiPost } from "../../api";
-import { Channel, PicoBox, PicoDetails } from "../../State";
+import { Channel } from "../../types/Channel";
+import { PicoBox } from "../../types/PicoBox";
+import { PicoDetails } from "../../types/PicoDetails";
 import useAsyncAction from "../../useAsyncAction";
 import useAsyncLoader from "../../useAsyncLoader";
 import {

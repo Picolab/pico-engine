@@ -1,5 +1,6 @@
 import * as React from "react";
-import { apiGet } from "../api";
+import { apiGet, getAllPicoBoxes } from "../api";
+import { PicoBox } from "../types/PicoBox";
 
 interface UiContext {
   version: string;
@@ -11,33 +12,6 @@ export interface PicoMoving {
   action: "moving" | "resizing";
   relX: number;
   relY: number;
-}
-
-export interface PicoBox {
-  eci: string;
-  parent: string | null;
-  children: string[];
-
-  name: string;
-  backgroundColor: string;
-
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-async function getAllPicoBoxes(eci: string): Promise<PicoBox[]> {
-  let results: PicoBox[] = [];
-
-  const pico = await apiGet(`/c/${eci}/query/io.picolabs.next/box`);
-  results.push(pico);
-
-  for (const eci of pico.children) {
-    results = results.concat(await getAllPicoBoxes(eci));
-  }
-
-  return results;
 }
 
 type XY = { x: number; y: number };

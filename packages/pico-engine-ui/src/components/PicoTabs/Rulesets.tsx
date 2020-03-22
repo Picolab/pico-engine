@@ -1,6 +1,7 @@
 import * as React from "react";
 import { apiGet, apiPost } from "../../api";
-import { PicoBox, PicoDetails } from "../../State";
+import { PicoBox } from "../../types/PicoBox";
+import { PicoDetails } from "../../types/PicoDetails";
 import useAsyncAction from "../../useAsyncAction";
 import useAsyncLoader from "../../useAsyncLoader";
 import ErrorStatus from "../widgets/ErrorStatus";

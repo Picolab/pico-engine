@@ -1,5 +1,5 @@
 import * as React from "react";
-import { PicoBox } from "../../State";
+import { PicoBox } from "../../types/PicoBox";
 
 interface Props {
   pico: PicoBox;

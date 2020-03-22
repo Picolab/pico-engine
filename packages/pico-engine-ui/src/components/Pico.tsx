@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Link, NavLink } from "react-router-dom";
-import picoPageStore, { PicoBox } from "../stores/picoPageStore";
+import picoPageStore from "../stores/picoPageStore";
+import { PicoBox } from "../types/PicoBox";
 import About from "./PicoTabs/About";
 import Channels from "./PicoTabs/Channels";
 import Logging from "./PicoTabs/Logging";

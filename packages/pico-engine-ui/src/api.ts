@@ -1,4 +1,4 @@
-import { PicoBox } from "./State";
+import { PicoBox } from "./types/PicoBox";
 
 function apiResponse(resp: Promise<Response>) {
   return resp
@@ -45,4 +45,17 @@ export function apiSavePicoBox(
     `/c/${eci}/event/engine-ui/box/query/io.picolabs.next/box`,
     toUpdate
   );
+}
+
+export async function getAllPicoBoxes(eci: string): Promise<PicoBox[]> {
+  let results: PicoBox[] = [];
+
+  const pico = await apiGet(`/c/${eci}/query/io.picolabs.next/box`);
+  results.push(pico);
+
+  for (const eci of pico.children) {
+    results = results.concat(await getAllPicoBoxes(eci));
+  }
+
+  return results;
 }

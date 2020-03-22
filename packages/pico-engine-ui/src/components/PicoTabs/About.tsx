@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 import { apiGet, apiPost, apiSavePicoBox } from "../../api";
-import { PicoBox } from "../../State";
 import picoPageStore from "../../stores/picoPageStore";
+import { PicoBox } from "../../types/PicoBox";
 import useAsyncAction from "../../useAsyncAction";
 
 function getRefVal(ref: React.MutableRefObject<HTMLInputElement | null>) {
@@ -12,6 +12,7 @@ function getRefVal(ref: React.MutableRefObject<HTMLInputElement | null>) {
 interface Props {
   pico: PicoBox;
 }
+
 const About: React.FC<Props> = ({ pico }) => {
   const input_name = React.useRef<HTMLInputElement | null>(null);
   const input_backgroundColor = React.useRef<HTMLInputElement | null>(null);
