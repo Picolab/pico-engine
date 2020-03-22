@@ -1,9 +1,9 @@
 import * as React from "react";
-import { Link } from "react-router-dom";
-import { apiGet, apiPost } from "../../Action";
+import { apiGet, apiPost } from "../../api";
 import { PicoBox, PicoDetails } from "../../State";
 import useAsyncAction from "../../useAsyncAction";
 import useAsyncLoader from "../../useAsyncLoader";
+import ErrorStatus from "../widgets/ErrorStatus";
 
 interface Props {
   pico: PicoBox;
@@ -75,13 +75,8 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
   return (
     <div>
       <h3>Installed Rulesets</h3>
-      {uninstall.error ? (
-        <div className="alert alert-danger">
-          Uninstall error: {uninstall.error}
-        </div>
-      ) : (
-        ""
-      )}
+      <ErrorStatus error={picoDetails.error} />
+      <ErrorStatus error={uninstall.error} />
       {picoDetails.data && picoDetails.data.rulesets.length > 0 ? (
         <ul>
           {picoDetails.data.rulesets.map(rs => {
@@ -170,11 +165,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
         >
           Install
         </button>
-        {install.error ? (
-          <span className="text-danger">{install.error}</span>
-        ) : (
-          ""
-        )}
+        <ErrorStatus error={install.error} />
       </form>
     </div>
   );

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { apiGet, apiPost } from "../../Action";
+import { apiGet, apiPost } from "../../api";
 import {
   Channel,
   PicoBox,
@@ -8,6 +8,7 @@ import {
   TestingSchema
 } from "../../State";
 import useAsyncLoader from "../../useAsyncLoader";
+import ErrorStatus from "../widgets/ErrorStatus";
 
 interface Props {
   pico: PicoBox;
@@ -182,11 +183,7 @@ const Testing: React.FC<Props> = ({ pico }) => {
                 </div>
                 {isOpen && testing ? (
                   <div>
-                    {testing.error ? (
-                      <span className="text-danger">{testing.error}</span>
-                    ) : (
-                      ""
-                    )}
+                    <ErrorStatus error={testing.error} />
                     {testing.schema ? (
                       <div className="pl-4">
                         {(testing.schema.queries || []).map(q => {
@@ -266,15 +263,9 @@ const Testing: React.FC<Props> = ({ pico }) => {
           </div>
           <h3>Results</h3>
 
-          {isTesting ? (
-            "Testing..."
-          ) : testError ? (
-            <span className="text-danger">{testError}</span>
-          ) : testResult ? (
-            <pre>{testResult}</pre>
-          ) : (
-            ""
-          )}
+          <ErrorStatus error={testError} />
+
+          {isTesting ? "Testing..." : testResult ? <pre>{testResult}</pre> : ""}
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { apiGet, apiPost } from "../../Action";
+import { apiGet, apiPost } from "../../api";
 import { Channel, PicoBox, PicoDetails } from "../../State";
 import useAsyncAction from "../../useAsyncAction";
 import useAsyncLoader from "../../useAsyncLoader";
@@ -11,6 +11,7 @@ import {
   ViewEventPolicy,
   ViewQueryPolicy
 } from "../widgets/ChannelPolicies";
+import ErrorStatus from "../widgets/ErrorStatus";
 
 interface Props {
   pico: PicoBox;
@@ -73,11 +74,9 @@ const Channels: React.FC<Props> = ({ pico }) => {
   return (
     <div>
       <h3>Channels</h3>
-      {delChannel.error ? (
-        <span className="text-danger">{delChannel.error}</span>
-      ) : (
-        ""
-      )}
+      <ErrorStatus error={picoDetails.error} />
+      <ErrorStatus error={delChannel.error} />
+
       {channels.length === 0 ? (
         <div className="text-muted">- no channels -</div>
       ) : (
@@ -230,11 +229,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
         >
           Add
         </button>
-        {addChannel.error ? (
-          <span className="text-danger">{addChannel.error}</span>
-        ) : (
-          ""
-        )}
+        <ErrorStatus error={addChannel.error} />
       </form>
     </div>
   );

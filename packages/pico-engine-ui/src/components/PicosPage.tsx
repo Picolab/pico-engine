@@ -1,5 +1,5 @@
 import * as React from "react";
-import { apiSavePicoBox } from "../Action";
+import { apiSavePicoBox } from "../api";
 import picoPageStore from "../stores/picoPageStore";
 import Pico from "./Pico";
 

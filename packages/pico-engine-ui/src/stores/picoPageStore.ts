@@ -1,5 +1,5 @@
 import * as React from "react";
-import { apiGet } from "../Action";
+import { apiGet } from "../api";
 
 interface UiContext {
   version: string;
