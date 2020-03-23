@@ -10,24 +10,31 @@ test("RulesetRegistry", async t => {
   const dir = path.resolve(tempDir, "pico-engine", cuid());
   await makeDir(dir);
 
-  const krl0 = `ruleset rid.hello { }`;
-  const krl1 = `ruleset rid.hello { version "1.0.0" }`;
-  await fs.promises.writeFile(path.resolve(dir, "krl0.krl"), krl0);
-  await fs.promises.writeFile(path.resolve(dir, "krl1.krl"), krl1);
+  await fs.promises.writeFile(
+    path.resolve(dir, "krl0.krl"),
+    `ruleset rid.hello { }`
+  );
 
-  const url0 = fileUrl(path.resolve(dir, "krl0.krl"));
-  const url1 = fileUrl(path.resolve(dir, "krl1.krl"));
-
-  console.log(url0);
-  console.log(url1);
+  const file0 = path.resolve(dir, "krl0.krl");
+  const url0 = fileUrl(file0);
 
   const rsReg = new RulesetRegistry(dir);
 
-  const rs = await rsReg.load(url0);
+  let rs = await rsReg.load(url0);
   t.is(rs.ruleset.rid, "rid.hello");
   t.is(rs.ruleset.version, "draft");
 
-  t.is(1, 1);
+  await fs.promises.writeFile(file0, `ruleset rid.hello { version "1.0.0" }`);
+  t.is((await rsReg.load(url0)).ruleset.version, "draft");
+  t.is((await rsReg.flush(url0)).ruleset.version, "1.0.0");
+  t.is((await rsReg.load(url0)).ruleset.version, "1.0.0");
+
+  t.deepEqual(await rsReg.picoRulesetUrls("p0"), []);
+  await rsReg.subscribe("p0", url0);
+  t.deepEqual(await rsReg.picoRulesetUrls("p0"), [url0]);
+  t.deepEqual(await rsReg.picoRulesetUrls("p1"), []);
+  await rsReg.unsubscribe("p0", url0);
+  t.deepEqual(await rsReg.picoRulesetUrls("p0"), []);
 });
 
 function fileUrl(str: string) {
