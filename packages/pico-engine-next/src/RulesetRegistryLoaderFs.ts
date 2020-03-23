@@ -6,17 +6,33 @@ import * as path from "path";
 import { Ruleset } from "pico-framework";
 import * as urlLib from "url";
 import { dbRange } from "./dbRange";
-import {
-  RulesetRegistryLoader,
-  DbUrlRuleset,
-  DbPicoRuleset
-} from "./RulesetRegistry";
+import { RulesetRegistryLoader, CachedRuleset } from "./RulesetRegistry";
 const krlCompiler = require("krl-compiler");
 const krlCompilerVersion = require("krl-compiler/package.json").version;
 const charwise = require("charwise");
 const encode = require("encoding-down");
 const safeJsonCodec = require("level-json-coerce-null");
 const request = require("request");
+
+interface DbPicoRuleset {
+  picoId: string;
+  rid: string;
+  version: string;
+  url: string;
+}
+
+interface DbUrlRuleset {
+  url: string;
+  krl: string;
+  hash: string;
+  flushed: Date;
+  rid: string;
+  version: string;
+  compiler: {
+    version: string;
+    warnings: any[];
+  };
+}
 
 export function RulesetRegistryLoaderFs(
   engineHomeDir: string
@@ -29,6 +45,55 @@ export function RulesetRegistryLoaderFs(
       valueEncoding: safeJsonCodec
     })
   );
+
+  async function compileAndLoad(
+    url: string,
+    krl: string,
+    hash: string
+  ): Promise<{
+    ruleset: Ruleset;
+    compiler: { version: string; warnings: any[] };
+  }> {
+    const jsFile = path.resolve(
+      rulesetDir,
+      krlCompilerVersion,
+      hash.substr(0, 2),
+      hash.substr(2, 2),
+      hash + ".js"
+    );
+
+    let compileWarnings: any[] = [];
+
+    if (await fsExist(jsFile)) {
+      // already compiled
+    } else {
+      const out = krlCompiler(krl, {
+        parser_options: {
+          // TODO filename: urlLib.parse(url).path
+        },
+        inline_source_map: true
+      });
+      if (typeof out.rid !== "string") {
+        throw new Error("Compile failed, missing rid");
+      }
+      compileWarnings = out.warnings;
+      await makeDir(path.dirname(jsFile));
+      await new Promise((resolve, reject) => {
+        fs.writeFile(jsFile, out.code, { encoding: "utf8" }, err =>
+          err ? reject(err) : resolve()
+        );
+      });
+    }
+
+    const ruleset: Ruleset = require(jsFile);
+    ruleset.version =
+      typeof ruleset.version === "string" ? ruleset.version : "draft";
+
+    return {
+      ruleset,
+      compiler: { version: krlCompilerVersion, warnings: compileWarnings }
+    };
+  }
 
   return {
     fetchKrl,
@@ -50,7 +115,8 @@ export function RulesetRegistryLoaderFs(
           }
         }
       );
-      const rulesets: DbUrlRuleset[] = [];
+
+      const toLoad: DbUrlRuleset[] = [];
       await dbRange(
         db,
         {
@@ -59,9 +125,26 @@ export function RulesetRegistryLoaderFs(
         async (data, stop) => {
           const val: DbUrlRuleset = data.value;
           if (urls.has(val.url)) {
-            rulesets.push(val);
+            toLoad.push(val);
           }
         }
+      );
+
+      const errors: { url: string; error: string }[] = [];
+      const rulesets: CachedRuleset[] = [];
+      await Promise.all(
+        toLoad.map(async val => {
+          try {
+            const { ruleset } = await compileAndLoad(
+              val.url,
+              val.krl,
+              val.hash
+            );
+            rulesets.push({ ...val, ruleset });
+          } catch (error) {
+            errors.push({ url: val.url, error });
+          }
+        })
       );
       return rulesets;
     },
@@ -74,50 +157,10 @@ export function RulesetRegistryLoaderFs(
         rid,
         version
       ])) as DbPicoRuleset;
-      return data;
+      return data.url;
     },
 
-    async compileAndLoad(url, krl, hash) {
-      const jsFile = path.resolve(
-        rulesetDir,
-        krlCompilerVersion,
-        hash.substr(0, 2),
-        hash.substr(2, 2),
-        hash + ".js"
-      );
-
-      let compileWarnings: any[] = [];
-
-      if (await fsExist(jsFile)) {
-        // already compiled
-      } else {
-        const out = krlCompiler(krl, {
-          parser_options: {
-            // TODO filename: urlLib.parse(url).path
-          },
-          inline_source_map: true
-        });
-        if (typeof out.rid !== "string") {
-          throw new Error("Compile failed, missing rid");
-        }
-        compileWarnings = out.warnings;
-        await makeDir(path.dirname(jsFile));
-        await new Promise((resolve, reject) => {
-          fs.writeFile(jsFile, out.code, { encoding: "utf8" }, err =>
-            err ? reject(err) : resolve()
-          );
-        });
-      }
-
-      const ruleset: Ruleset = require(jsFile);
-      ruleset.version =
-        typeof ruleset.version === "string" ? ruleset.version : "draft";
-
-      return {
-        ruleset,
-        compiler: { version: krlCompilerVersion, warnings: compileWarnings }
-      };
-    },
+    compileAndLoad,
 
     async hasPicoUrl(picoId, url) {
       try {
@@ -131,16 +174,17 @@ export function RulesetRegistryLoaderFs(
       }
     },
 
-    async addPicoUrl(picoId, value) {
+    async addPicoUrl(picoId, url, rid, version) {
+      const value: DbPicoRuleset = { picoId, url, rid, version };
       await db.batch([
         {
           type: "put",
-          key: ["pico", picoId, "rid-version", value.rid, value.version],
+          key: ["pico", picoId, "rid-version", rid, version],
           value
         },
         {
           type: "put",
-          key: ["pico", picoId, "url", value.url],
+          key: ["pico", picoId, "url", url],
           value
         }
       ]);

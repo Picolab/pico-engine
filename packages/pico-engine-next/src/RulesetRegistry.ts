@@ -1,14 +1,7 @@
 import * as crypto from "crypto";
 import { Ruleset, RulesetLoader } from "pico-framework";
 
-export interface DbPicoRuleset {
-  picoId: string;
-  rid: string;
-  version: string;
-  url: string;
-}
-
-export interface DbUrlRuleset {
+export interface CachedRuleset {
   url: string;
   krl: string;
   hash: string;
@@ -19,9 +12,6 @@ export interface DbUrlRuleset {
     version: string;
     warnings: any[];
   };
-}
-
-export interface CachedRuleset extends DbUrlRuleset {
   ruleset: Ruleset;
 }
 
@@ -37,16 +27,17 @@ export interface RulesetRegistryLoader {
     compiler: { version: string; warnings: any[] };
   }>;
 
-  save(data: DbUrlRuleset): Promise<void>;
-  getAllUsed(): Promise<DbUrlRuleset[]>;
+  save(data: CachedRuleset): Promise<void>;
+  getAllUsed(): Promise<CachedRuleset[]>;
 
-  getPicoUrl(
-    picoId: string,
-    rid: string,
-    version: string
-  ): Promise<DbPicoRuleset>;
+  getPicoUrl(picoId: string, rid: string, version: string): Promise<string>;
   hasPicoUrl(picoId: string, url: string): Promise<boolean>;
-  addPicoUrl(picoId: string, value: DbPicoRuleset): Promise<void>;
+  addPicoUrl(
+    picoId: string,
+    url: string,
+    rid: string, // rid and version so it can setup indexes
+    version: string
+  ): Promise<void>;
   delPicoUrl(picoId: string, url: string): Promise<void>;
   getPicoURLs(picoId: string): Promise<string[]>;
 }
@@ -56,7 +47,7 @@ export class RulesetRegistry {
     [url: string]: CachedRuleset;
   } = {};
 
-  private startupP: Promise<{ url: string; error: string }[]>;
+  private startupP: Promise<void>;
 
   constructor(private regLoader: RulesetRegistryLoader) {
     this.startupP = this.startup();
@@ -67,27 +58,14 @@ export class RulesetRegistry {
 
     const toLoad = await this.regLoader.getAllUsed();
 
-    const errors: { url: string; error: string }[] = [];
-    await Promise.all(
-      toLoad.map(async val => {
-        try {
-          const { ruleset } = await this.regLoader.compileAndLoad(
-            val.url,
-            val.krl,
-            val.hash
-          );
-          this.rulesetCache[val.url] = { ...val, ruleset };
-        } catch (error) {
-          errors.push({ url: val.url, error });
-        }
-      })
-    );
-    return errors;
+    for (const val of toLoad) {
+      this.rulesetCache[val.url] = val;
+    }
   }
 
   loader: RulesetLoader = async (picoId, rid, version) => {
-    const data = await this.regLoader.getPicoUrl(picoId, rid, version);
-    const rs = await this.load(data.url);
+    const url = await this.regLoader.getPicoUrl(picoId, rid, version);
+    const rs = await this.load(url);
     return rs.ruleset;
   };
 
@@ -98,12 +76,12 @@ export class RulesetRegistry {
 
     const rs = await this.load(url);
 
-    await this.regLoader.addPicoUrl(picoId, {
+    await this.regLoader.addPicoUrl(
       picoId,
-      rid: rs.ruleset.rid,
-      version: rs.ruleset.version,
-      url
-    });
+      url,
+      rs.ruleset.rid,
+      rs.ruleset.version
+    );
   }
 
   unsubscribe(picoId: string, url: string) {
@@ -162,21 +140,19 @@ export class RulesetRegistry {
       hash
     );
 
-    const toSave: DbUrlRuleset = {
+    const toSave: CachedRuleset = {
       url,
       krl,
       hash,
       flushed: new Date(),
       rid: ruleset.rid,
       version: ruleset.version,
-      compiler
+      compiler,
+      ruleset
     };
 
     await this.regLoader.save(toSave);
 
-    return (this.rulesetCache[url] = {
-      ...toSave,
-      ruleset
-    });
+    return (this.rulesetCache[url] = toSave);
   }
 }

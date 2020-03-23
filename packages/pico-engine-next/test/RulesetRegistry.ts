@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as makeDir from "make-dir";
 import * as path from "path";
 import * as tempDir from "temp-dir";
-import { RulesetRegistry } from "../src/RulesetRegistry";
+import { RulesetRegistry, RulesetRegistryLoader } from "../src/RulesetRegistry";
 import { RulesetRegistryLoaderFs } from "../src/RulesetRegistryLoaderFs";
 
 test("RulesetRegistry", async t => {
