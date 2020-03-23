@@ -96,14 +96,19 @@ export async function startEngine(
 
     environment: rsEnvironment,
 
-    rulesetLoader(rid, version) {
-      return rsRegistry.load(rid, version);
-    },
+    rulesetLoader: rsRegistry.loader,
 
-    onStartupRulesetInitError(pico, rid, version, config, error) {
+    onStartupRulesetInitError(picoId, rs, config, error) {
       // TODO mark it as not installed and raise an error event
       // throw error;
-      console.error("TODO raise error", pico.id, rid, version, config, error);
+      console.error(
+        "TODO raise error",
+        picoId,
+        rs.rid,
+        rs.version,
+        config,
+        error
+      );
     },
 
     onFrameworkEvent(ev) {
@@ -131,15 +136,13 @@ export async function startEngine(
     useEventInputTime: configuration.useEventInputTime
   });
 
-  pf.addRuleset(rsNext);
-
   const schdlr = schedulerStartup(pf);
   rsEnvironment.addScheduledEvent = schdlr.addScheduledEvent;
   rsEnvironment.removeScheduledEvent = schdlr.removeScheduledEvent;
   await schdlr.start();
 
   await pf.start();
-  await pf.rootPico.install("io.picolabs.next", "0.0.0");
+  await pf.rootPico.install(rsNext);
   const uiChannel = await Object.values(pf.rootPico.channels).find(chann => {
     return (
       "engine,ui" ===
@@ -151,7 +154,7 @@ export async function startEngine(
   });
   const uiECI = uiChannel ? uiChannel.id : "";
 
-  const app = server(pf, uiECI, rsRegistry);
+  const app = server(pf, uiECI);
 
   if ((!port || !_.isInteger(port) || port < 1) && port !== 0) {
     port = 3000;

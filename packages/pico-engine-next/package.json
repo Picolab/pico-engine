@@ -56,7 +56,7 @@
     "lodash": "^4.17.11",
     "make-dir": "^3.0.0",
     "node-schedule": "^1.3.2",
-    "pico-framework": "^0.2.8",
+    "pico-framework": "^0.3.0",
     "request": "^2.88.0",
     "rotating-file-stream": "^1.4.1",
     "select-when": "^0.1.7"

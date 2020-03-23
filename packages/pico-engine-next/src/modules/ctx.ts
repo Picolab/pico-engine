@@ -27,7 +27,26 @@ const ctx: krl.Module = {
   }),
 
   rulesets: krl.Property(function rulesets() {
+    // TODO include rulesets fetched, but not installed
     return this.rsCtx.pico().rulesets;
+  }),
+
+  install: krl.Action(["rid", "version", "config"], function(
+    rid: string,
+    version: string,
+    config: any
+  ) {
+    // TODO
+  }),
+
+  fetchRuleset: krl.Action(["url"], async function fetchRuleset(url: string) {
+    // TODO
+  }),
+
+  releaseRuleset: krl.Action(["url"], async function releaseRuleset(
+    url: string
+  ) {
+    // TODO
   }),
 
   raiseEvent: krl.Postlude(
