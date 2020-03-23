@@ -1,3 +1,4 @@
+import { RulesetConfig } from "pico-framework";
 import * as request from "request";
 import * as krl from "../krl";
 
@@ -26,27 +27,82 @@ const ctx: krl.Module = {
     return this.rsCtx.pico().channels;
   }),
 
-  rulesets: krl.Property(function rulesets() {
-    // TODO include rulesets fetched, but not installed
-    return this.rsCtx.pico().rulesets;
+  rulesets: krl.Property(async function rulesets() {
+    const pico = this.rsCtx.pico();
+    const urls = await this.rsRegistry.picoRulesetUrls(pico.id);
+
+    interface RulesetListResult {
+      rid: string;
+      version: string;
+      installed: boolean;
+      config: RulesetConfig | null;
+      url: string | null;
+      flushed: Date | null;
+    }
+
+    const map: { [rid_at_version: string]: RulesetListResult } = {};
+
+    await Promise.all(
+      urls.map(async url => {
+        const rs = await this.rsRegistry.load(url);
+        const key = `${rs.rid}@${rs.version}`;
+        map[key] = {
+          rid: rs.rid,
+          version: rs.version,
+          installed: false,
+          config: null,
+          url,
+          flushed: rs.flushed
+        };
+      })
+    );
+
+    for (const rs of pico.rulesets) {
+      const key = `${rs.rid}@${rs.version}`;
+      if (!map[key]) {
+        map[key] = {
+          rid: rs.rid,
+          version: rs.version,
+          installed: false,
+          config: null,
+          url: null,
+          flushed: null
+        };
+      }
+      map[key].installed = true;
+      map[key].config = rs.config;
+    }
+
+    return Object.values(map);
   }),
 
-  install: krl.Action(["rid", "version", "config"], function(
+  install: krl.Action(["rid", "version", "config"], async function install(
     rid: string,
     version: string,
     config: any
   ) {
-    // TODO
+    const pico = this.rsCtx.pico();
+    const rs = await this.rsRegistry.loader(pico.id, rid, version);
+    await this.rsCtx.install(rs, config);
   }),
 
-  fetchRuleset: krl.Action(["url"], async function fetchRuleset(url: string) {
-    // TODO
+  uninstall: krl.Action(["rid"], async function uninstall(rid: string) {
+    await this.rsCtx.uninstall(rid);
+  }),
+
+  flushRuleset: krl.Action(["url"], async function flushRuleset(url: string) {
+    await this.rsRegistry.flush(url);
+    await this.rsRegistry.subscribe(this.rsCtx.pico().id, url);
+  }),
+
+  addRuleset: krl.Action(["url"], async function addRuleset(url: string) {
+    await this.rsRegistry.subscribe(this.rsCtx.pico().id, url);
   }),
 
   releaseRuleset: krl.Action(["url"], async function releaseRuleset(
     url: string
   ) {
-    // TODO
+    await this.rsRegistry.unsubscribe(this.rsCtx.pico().id, url);
   }),
 
   raiseEvent: krl.Postlude(

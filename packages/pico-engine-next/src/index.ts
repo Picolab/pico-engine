@@ -84,7 +84,7 @@ export async function startEngine(
     ? configuration.log
     : new KrlLogger(getRotatingFileStream(filePath), "");
   const rsRegistry = new RulesetRegistry(RulesetRegistryLoaderFs(home));
-  const rsEnvironment = new RulesetEnvironment(log);
+  const rsEnvironment = new RulesetEnvironment(log, rsRegistry);
 
   if (configuration.modules) {
     _.each(configuration.modules, function(mod, domain) {

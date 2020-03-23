@@ -5,6 +5,7 @@ import * as krl from "./krl";
 import { KrlLogger } from "./KrlLogger";
 import * as modules from "./modules";
 import { ScheduledEvent } from "./modules/schedule";
+import { RulesetRegistry } from "./RulesetRegistry";
 
 export interface CurrentPicoEvent extends PicoEvent {
   eid: string;
@@ -29,7 +30,7 @@ export class RulesetEnvironment {
   public addScheduledEvent?: (rid: string, sEvent: ScheduledEvent) => void;
   public removeScheduledEvent?: (id: string) => void;
 
-  constructor(public log: KrlLogger) {}
+  constructor(public log: KrlLogger, public rsRegistry: RulesetRegistry) {}
 
   mkCtx(rsCtx: RulesetContext): KrlCtx {
     const log = this.log.child({
@@ -46,6 +47,7 @@ export class RulesetEnvironment {
     return {
       rsCtx,
       log,
+      rsRegistry: this.rsRegistry,
       module(domain) {
         return environment.modules[domain] || null;
       },
@@ -116,6 +118,7 @@ export class RulesetEnvironment {
 export interface KrlCtx {
   rsCtx: RulesetContext;
   log: KrlLogger;
+  rsRegistry: RulesetRegistry;
   module(domain: string): krl.Module | null;
   getEvent(): CurrentPicoEvent | null;
   setEvent(event: CurrentPicoEvent | null): void;
