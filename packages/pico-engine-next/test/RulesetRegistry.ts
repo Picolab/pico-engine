@@ -5,6 +5,7 @@ import * as makeDir from "make-dir";
 import * as path from "path";
 import * as tempDir from "temp-dir";
 import { RulesetRegistry } from "../src/RulesetRegistry";
+import { RulesetRegistryLoaderFs } from "../src/RulesetRegistryLoaderFs";
 
 test("RulesetRegistry", async t => {
   const dir = path.resolve(tempDir, "pico-engine", cuid());
@@ -18,7 +19,7 @@ test("RulesetRegistry", async t => {
   const file0 = path.resolve(dir, "krl0.krl");
   const url0 = fileUrl(file0);
 
-  const rsReg = new RulesetRegistry(dir);
+  const rsReg = new RulesetRegistry(RulesetRegistryLoaderFs(dir));
 
   let rs = await rsReg.load(url0);
   t.is(rs.ruleset.rid, "rid.hello");

@@ -9,6 +9,7 @@ import { RulesetEnvironment } from "./KrlCtx";
 import { getRotatingFileStream, KrlLogger } from "./KrlLogger";
 import { schedulerStartup } from "./modules/schedule";
 import { RulesetRegistry } from "./RulesetRegistry";
+import { RulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
 import { server } from "./server";
 
 const homeDir = require("home-dir");
@@ -82,7 +83,7 @@ export async function startEngine(
   const log = configuration.log
     ? configuration.log
     : new KrlLogger(getRotatingFileStream(filePath), "");
-  const rsRegistry = new RulesetRegistry(home);
+  const rsRegistry = new RulesetRegistry(RulesetRegistryLoaderFs(home));
   const rsEnvironment = new RulesetEnvironment(log);
 
   if (configuration.modules) {
