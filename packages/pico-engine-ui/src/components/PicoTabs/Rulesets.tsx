@@ -47,7 +47,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
     config: any;
   }>(params =>
     apiPost(
-      `/c/${params.eci}/event/engine-ui/install/query/io.picolabs.next/pico`,
+      `/c/${params.eci}/event/engine_ui/install/query/io.picolabs.next/pico`,
       {
         rid: params.rid,
         version: params.version,
@@ -60,7 +60,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
     eci: string;
     rid: string;
   }>(({ eci, rid }) =>
-    apiPost(`/c/${eci}/event/engine-ui/uninstall/query/io.picolabs.next/pico`, {
+    apiPost(`/c/${eci}/event/engine_ui/uninstall/query/io.picolabs.next/pico`, {
       rid
     }).then(d => null)
   );

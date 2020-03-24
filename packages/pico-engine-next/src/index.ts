@@ -153,13 +153,13 @@ export async function startEngine(
     tags: ["engine", "ui"],
     eventPolicy: {
       allow: [
-        { domain: "engine-ui", name: "box" },
-        { domain: "engine-ui", name: "new" },
-        { domain: "engine-ui", name: "del" },
-        { domain: "engine-ui", name: "install" },
-        { domain: "engine-ui", name: "uninstall" },
-        { domain: "engine-ui", name: "new-channel" },
-        { domain: "engine-ui", name: "del-channel" },
+        { domain: "engine_ui", name: "box" },
+        { domain: "engine_ui", name: "new" },
+        { domain: "engine_ui", name: "del" },
+        { domain: "engine_ui", name: "install" },
+        { domain: "engine_ui", name: "uninstall" },
+        { domain: "engine_ui", name: "new-channel" },
+        { domain: "engine_ui", name: "del-channel" },
         { domain: "engine", name: "started" }
       ],
       deny: []

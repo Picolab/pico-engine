@@ -42,7 +42,7 @@ export function apiSavePicoBox(
   }
 ): Promise<PicoBox> {
   return apiPost(
-    `/c/${eci}/event/engine-ui/box/query/io.picolabs.next/box`,
+    `/c/${eci}/event/engine_ui/box/query/io.picolabs.next/box`,
     toUpdate
   );
 }

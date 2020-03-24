@@ -35,7 +35,7 @@ const About: React.FC<Props> = ({ pico }) => {
     name: string;
     backgroundColor: string;
   }>(({ eci, name, backgroundColor }) =>
-    apiPost(`/c/${eci}/event/engine-ui/new/query/io.picolabs.next/box`, {
+    apiPost(`/c/${eci}/event/engine_ui/new/query/io.picolabs.next/box`, {
       name,
       backgroundColor
     }).then(d => {
@@ -44,7 +44,7 @@ const About: React.FC<Props> = ({ pico }) => {
   );
 
   const delPico = useAsyncAction<string>(eci =>
-    apiGet(`/c/${pico.eci}/event-wait/engine-ui/del?eci=${eci}`).then(d => {
+    apiGet(`/c/${pico.eci}/event-wait/engine_ui/del?eci=${eci}`).then(d => {
       picoPageStore.fetchAll();
       return null;
     })

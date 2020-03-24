@@ -37,4 +37,15 @@ ruleset io.picolabs.next {
       }
     }
   }
+  rule box {
+    select when engine_ui box
+    always {
+      ent:x := event:attrs["x"].as("Number") if event:attrs >< "x"
+      ent:y := event:attrs["y"].as("Number") if event:attrs  >< "y"
+      ent:width := event:attrs["width"].as("Number") if event:attrs >< "width"
+      ent:height := event:attrs["height"].as("Number") if event:attrs  >< "height"
+      ent:name := event:attrs["name"].as("String") if event:attrs  >< "name"
+      ent:backgroundColor := event:attrs["backgroundColor"].as("String") if event:attrs  >< "backgroundColor"
+    }
+  }
 }
