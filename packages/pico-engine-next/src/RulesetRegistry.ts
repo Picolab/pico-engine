@@ -49,6 +49,8 @@ export class RulesetRegistry {
 
   private startupP: Promise<void>;
 
+  normalizePicoId: (id: string) => string = id => id;
+
   constructor(private regLoader: RulesetRegistryLoader) {
     this.startupP = this.startup();
   }
@@ -64,12 +66,14 @@ export class RulesetRegistry {
   }
 
   loader: RulesetLoader = async (picoId, rid, version) => {
+    picoId = this.normalizePicoId(picoId);
     const url = await this.regLoader.getPicoUrl(picoId, rid, version);
     const rs = await this.load(url);
     return rs.ruleset;
   };
 
   async subscribe(picoId: string, url: string) {
+    picoId = this.normalizePicoId(picoId);
     if (await this.regLoader.hasPicoUrl(picoId, url)) {
       return;
     }
@@ -85,10 +89,12 @@ export class RulesetRegistry {
   }
 
   unsubscribe(picoId: string, url: string) {
+    picoId = this.normalizePicoId(picoId);
     return this.regLoader.delPicoUrl(picoId, url);
   }
 
   picoRulesetUrls(picoId: string): Promise<string[]> {
+    picoId = this.normalizePicoId(picoId);
     return this.regLoader.getPicoURLs(picoId);
   }
 

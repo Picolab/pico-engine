@@ -1,10 +1,11 @@
 import {
-  RulesetConfig,
+  ChannelConfig,
+  cleanChannelTags,
   EventPolicy,
   QueryPolicy,
-  cleanChannelTags,
-  ChannelConfig
+  RulesetConfig
 } from "pico-framework";
+import { NewPicoRuleset } from "pico-framework/dist/src/Pico";
 import * as request from "request";
 import * as krl from "../krl";
 
@@ -36,6 +37,38 @@ const ctx: krl.Module = {
 
   children: krl.Property(function children() {
     return this.rsCtx.pico().children;
+  }),
+
+  newPico: krl.Action(["rulesets"], async function newPico(rulesets: any) {
+    if (!Array.isArray(rulesets)) {
+      throw new TypeError(
+        "ctx:newPico expects an array of {url, installed, config}"
+      );
+    }
+    const toInstall: NewPicoRuleset[] = [];
+    const urls: string[] = [];
+    for (const rs of rulesets) {
+      if (!rs || typeof rs.url !== "string") {
+        throw new TypeError(
+          "ctx:newPico expects an array of {url, installed, config}"
+        );
+      }
+      urls.push(rs.url);
+      if (rs.installed) {
+        const result = await this.rsRegistry.load(rs.url);
+        toInstall.push({
+          rs: result.ruleset,
+          config: rs.config || {}
+        });
+      }
+    }
+    const newEci = await this.rsCtx.newPico({
+      rulesets: toInstall
+    });
+    for (const url of urls) {
+      await this.rsRegistry.subscribe(newEci, url);
+    }
+    return newEci;
   }),
 
   channels: krl.Property(function channels() {
@@ -191,7 +224,36 @@ const ctx: krl.Module = {
     }
   ),
 
-  query: krl.Action(["eci", "rid", "name", "args"], async function query(
+  eventQuery: krl.Action(
+    ["eci", "domain", "name", "attrs", "rid", "queryName", "args"],
+    async function event(
+      eci,
+      domain,
+      name,
+      attrs = {},
+      rid,
+      queryName,
+      args = {}
+    ) {
+      return this.rsCtx.eventQuery(
+        {
+          eci,
+          domain,
+          name,
+          data: { attrs },
+          time: 0
+        },
+        {
+          eci,
+          rid,
+          name: queryName,
+          args
+        }
+      );
+    }
+  ),
+
+  query: krl.Function(["eci", "rid", "name", "args"], async function query(
     eci,
     rid,
     name,

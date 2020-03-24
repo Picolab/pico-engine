@@ -77,4 +77,39 @@ ruleset io.picolabs.next {
       ent:backgroundColor := event:attrs["backgroundColor"].as("String") if event:attrs  >< "backgroundColor"
     }
   }
+  rule new {
+    select when engine_ui new
+    pre {
+      name = event:attrs["name"] || ent:name
+      backgroundColor = event:attrs["backgroundColor"] || ent:backgroundColor
+      rulesets = ctx:rulesets
+        .map(function(rs){
+          return {
+            "url": rs["url"],
+            "installed": rs["installed"],
+            "config": rs["config"]
+          }
+        })
+        .filter(function(rs){rs["url"].typeof() == "String"})
+    }
+    every {
+      ctx:newPico(rulesets) setting(newEci)
+      ctx:eventQuery(
+        eci=newEci,
+        domain="engine_ui",
+        name="setup",
+        rid="io.picolabs.next",
+        queryName="uiECI"
+      ) setting(newUiECI)
+      ctx:event(
+        eci=newUiECI,
+        domain="engine_ui",
+        name="box",
+        attrs={
+          "name": name,
+          "backgroundColor": backgroundColor
+        }
+      )
+    }
+  }
 }

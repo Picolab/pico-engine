@@ -137,6 +137,17 @@ export async function startEngine(
     useEventInputTime: configuration.useEventInputTime
   });
 
+  function eciToPicoId(eci: string): string {
+    try {
+      const pico = pf.getPico(eci);
+      return pico.id;
+    } catch (err) {
+      return eci;
+    }
+  }
+
+  rsRegistry.normalizePicoId = eciToPicoId;
+
   const schdlr = schedulerStartup(pf);
   rsEnvironment.addScheduledEvent = schdlr.addScheduledEvent;
   rsEnvironment.removeScheduledEvent = schdlr.removeScheduledEvent;
@@ -148,15 +159,14 @@ export async function startEngine(
   await rsRegistry.subscribe(pf.rootPico.id, url);
   const { ruleset } = await rsRegistry.flush(url);
   await pf.rootPico.install(ruleset);
-  let uiChannel = pf.rootPico.toReadOnly().channels.find(chann => {
-    return (
+  let uiChannel = pf.rootPico.toReadOnly().channels.find(
+    chann =>
       "engine,ui" ===
       chann.tags
         .slice(0)
         .sort()
         .join(",")
-    );
-  });
+  );
   if (!uiChannel) {
     uiChannel = (
       await pf.rootPico.newChannel({
