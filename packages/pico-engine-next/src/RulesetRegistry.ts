@@ -48,6 +48,10 @@ export class RulesetRegistry {
     return rs.ruleset;
   };
 
+  getCached(url: string): CachedRuleset | null {
+    return this.rulesetCache[url] || null;
+  }
+
   async load(url: string): Promise<CachedRuleset> {
     if (this.rulesetCache[url]) {
       return this.rulesetCache[url];

@@ -10,8 +10,17 @@ export interface PicoDetails {
 export interface PicoRuleset {
   rid: string;
   version: string;
-  installed: boolean;
-  config: { [name: string]: any } | null;
-  url: string | null;
-  flushed: Date | null;
+  config: any;
+  url: string;
+  meta: RulesetCtxInfoMeta | null;
+}
+
+interface RulesetCtxInfoMeta {
+  krl: string;
+  hash: string;
+  flushed: Date;
+  compiler: {
+    version: string;
+    warnings: any[];
+  };
 }

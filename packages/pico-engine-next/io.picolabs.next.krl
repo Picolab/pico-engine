@@ -7,7 +7,7 @@ ruleset io.picolabs.next {
     uiECI = function(){
       return ctx:channels
         .filter(function(c){c["tags"].sort().join(",") == "engine,ui"})
-        .map(function(c){c.id})
+        .map(function(c){c["id"]})
         .head()
     }
     getOtherUiECI = function(eci){
@@ -33,7 +33,7 @@ ruleset io.picolabs.next {
         "parent": getOtherUiECI(ctx:parent),
         "children": ctx:children.map(getOtherUiECI),
         "channels": ctx:channels,
-        "rulesets": ctx:rulesets()
+        "rulesets": ctx:rulesets
       }
     }
   }
@@ -49,6 +49,7 @@ ruleset io.picolabs.next {
           { "domain": "engine_ui", "name": "del" },
           { "domain": "engine_ui", "name": "install" },
           { "domain": "engine_ui", "name": "uninstall" },
+          { "domain": "engine_ui", "name": "flush" },
           { "domain": "engine_ui", "name": "new-channel" },
           { "domain": "engine_ui", "name": "del-channel" },
           { "domain": "engine", "name": "started" }
@@ -121,5 +122,13 @@ ruleset io.picolabs.next {
   rule install {
     select when engine_ui install
     ctx:install(url=event:attrs["url"], config=event:attrs["config"])
+  }
+  rule uninstall {
+    select when engine_ui uninstall
+    ctx:uninstall(rid=event:attrs["rid"])
+  }
+  rule flush {
+    select when engine_ui flush
+    ctx:flush(url=event:attrs["url"])
   }
 }

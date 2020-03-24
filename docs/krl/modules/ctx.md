@@ -10,6 +10,10 @@ Get the ruleset id (rid) string.
 
 The ruleset version string.
 
+## ctx:rid_url
+
+The ruleset url string.
+
 ## ctx:rid_config
 
 The configuration Map when the ruleset was installed onto the pico.
@@ -28,7 +32,7 @@ A list of all channels this pico owns.
 
 TODO channel schema
 
-## ctx:rulesets()
+## ctx:rulesets
 
 A list of all the rulesets the pico has installed
 

@@ -155,7 +155,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
         })
       )}
       <hr />
-      <h3>New Channel</h3>
+      <h4>New Channel</h4>
       <form
         onSubmit={e => {
           e.preventDefault();

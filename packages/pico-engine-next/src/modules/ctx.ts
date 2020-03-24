@@ -1,3 +1,4 @@
+import * as normalizeUrl from "normalize-url";
 import {
   ChannelConfig,
   cleanChannelTags,
@@ -8,7 +9,6 @@ import {
 import { NewPicoRuleset } from "pico-framework/dist/src/Pico";
 import * as request from "request";
 import * as krl from "../krl";
-import * as normalizeUrl from "normalize-url";
 
 interface RulesetCtxInfo {
   rid: string;
@@ -114,20 +114,26 @@ const ctx: krl.Module = {
     }
   ),
 
-  rulesets: krl.Function([], async function rulesets(): Promise<
-    RulesetCtxInfo[]
-  > {
+  rulesets: krl.Property(function rulesets(): RulesetCtxInfo[] {
     const pico = this.rsCtx.pico();
 
     const results: RulesetCtxInfo[] = [];
 
     for (const rs of pico.rulesets) {
+      const cached = this.rsRegistry.getCached(rs.config.url);
       results.push({
         rid: rs.rid,
         version: rs.version,
         url: rs.config.url,
         config: rs.config.config,
-        meta: null // TODO
+        meta: cached
+          ? {
+              krl: cached.krl,
+              hash: cached.hash,
+              flushed: cached.flushed,
+              compiler: cached.compiler
+            }
+          : null
       });
     }
 
