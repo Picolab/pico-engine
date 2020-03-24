@@ -23,7 +23,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
   const [expandedChannels, setExpandedChannels] = React.useState<{
     [eci: string]: boolean;
   }>({});
-  const [tags, setTags] = React.useState<string>("one, two");
+  const [tags, setTags] = React.useState<string>("");
   const [eventPolicy, setEventPolicy] = React.useState<string>("allow *:*");
   const [queryPolicy, setQueryPolicy] = React.useState<string>("allow */*");
 
@@ -51,14 +51,14 @@ const Channels: React.FC<Props> = ({ pico }) => {
   const addChannel = useAsyncAction<{ eci: string; data: any }>(
     ({ eci, data }) =>
       apiPost(
-        `/c/${eci}/event/engine_ui/new-channel/query/io.picolabs.next/pico`,
+        `/c/${eci}/event/engine_ui/new_channel/query/io.picolabs.next/pico`,
         data
       ).then(d => picoDetails.setData(d))
   );
 
   const delChannel = useAsyncAction<string>(eci =>
     apiPost(
-      `/c/${pico.eci}/event/engine_ui/del-channel/query/io.picolabs.next/pico`,
+      `/c/${pico.eci}/event/engine_ui/del_channel/query/io.picolabs.next/pico`,
       { eci }
     ).then(d => picoDetails.setData(d))
   );

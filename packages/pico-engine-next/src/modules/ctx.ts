@@ -82,17 +82,26 @@ const ctx: krl.Module = {
     return this.rsCtx.pico().channels;
   }),
 
-  // TODO newChannel
-  // TODO putChannel
-  // TODO delChannel
+  newChannel: krl.Action(
+    ["tags", "eventPolicy", "queryPolicy"],
+    async function newChannel(tags, eventPolicy, queryPolicy) {
+      const conf: ChannelConfig = { tags, eventPolicy, queryPolicy };
+      const chann = await this.rsCtx.newChannel(conf);
+      return chann;
+    }
+  ),
+
+  putChannel: krl.Action(
+    ["eci", "tags", "eventPolicy", "queryPolicy"],
+    async function putChannel(eci, tags, eventPolicy, queryPolicy) {
+      const conf: ChannelConfig = { tags, eventPolicy, queryPolicy };
+      await this.rsCtx.putChannel(eci, conf);
+    }
+  ),
 
   upsertChannel: krl.Action(
     ["tags", "eventPolicy", "queryPolicy"],
-    async function upsertChannel(
-      tags: string[],
-      eventPolicy?: EventPolicy,
-      queryPolicy?: QueryPolicy
-    ) {
+    async function upsertChannel(tags, eventPolicy, queryPolicy) {
       tags = cleanChannelTags(tags);
       tags.sort();
       const search = tags.join(",");
@@ -113,6 +122,10 @@ const ctx: krl.Module = {
       }
     }
   ),
+
+  delChannel: krl.Action(["eci"], async function delChannel(eci) {
+    await this.rsCtx.delChannel(eci);
+  }),
 
   rulesets: krl.Property(function rulesets(): RulesetCtxInfo[] {
     const pico = this.rsCtx.pico();

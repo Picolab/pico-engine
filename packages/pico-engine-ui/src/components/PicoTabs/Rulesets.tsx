@@ -198,6 +198,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
             className="form-control"
             value={url}
             onChange={e => setUrl(e.target.value)}
+            disabled={picoDetails.waiting || install.waiting}
           />
         </div>
         <div className="form-group">
@@ -208,6 +209,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
             className="form-control"
             value={config}
             onChange={e => setConfig(e.target.value)}
+            disabled={picoDetails.waiting || install.waiting}
           />
         </div>
         <button

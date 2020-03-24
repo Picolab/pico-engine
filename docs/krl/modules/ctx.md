@@ -87,7 +87,7 @@ Example:
 
 ```krl
 ctx:newPico([
-    {"rid": "foo.bar.baz", "version": "0.1.2", "config": {"some": "config"}}
+    {"url": "http://.../ruleset.krl", "config": {"some": "config"}}
 ])
 ```
 
@@ -99,11 +99,17 @@ Delete a child pico.
 
 ## ctx:newChannel(tags, eventPolicy, queryPolicy)
 
-TODO
+- `tags` - String[] - An array of tags to organize your channels
+- `eventPolicy` - EventPolicy - Your event allow/deny rules
+- `queryPolicy` - QueryPolicy - Your query allow/deny rules
 
 ## ctx:putChannel(eci, tags, eventPolicy, queryPolicy)
 
 Same as newChannel except you provide the eci you whish to modify. Channels can only be modified by their owners.
+
+## ctx:upsertChannel(tags, eventPolicy, queryPolicy)
+
+If there is a channel with the same tags it will update it. Otherwise it will create a new channel.
 
 ## ctx:delChannel(eci)
 

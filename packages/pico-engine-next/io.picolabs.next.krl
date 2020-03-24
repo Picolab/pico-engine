@@ -50,8 +50,8 @@ ruleset io.picolabs.next {
           { "domain": "engine_ui", "name": "install" },
           { "domain": "engine_ui", "name": "uninstall" },
           { "domain": "engine_ui", "name": "flush" },
-          { "domain": "engine_ui", "name": "new-channel" },
-          { "domain": "engine_ui", "name": "del-channel" },
+          { "domain": "engine_ui", "name": "new_channel" },
+          { "domain": "engine_ui", "name": "del_channel" },
           { "domain": "engine", "name": "started" }
         ],
         "deny": []
@@ -70,19 +70,19 @@ ruleset io.picolabs.next {
   rule box {
     select when engine_ui box
     always {
-      ent:x := event:attrs["x"].as("Number") if event:attrs >< "x"
-      ent:y := event:attrs["y"].as("Number") if event:attrs  >< "y"
-      ent:width := event:attrs["width"].as("Number") if event:attrs >< "width"
-      ent:height := event:attrs["height"].as("Number") if event:attrs  >< "height"
-      ent:name := event:attrs["name"].as("String") if event:attrs  >< "name"
-      ent:backgroundColor := event:attrs["backgroundColor"].as("String") if event:attrs  >< "backgroundColor"
+      ent:x := event:attrs{"x"}.as("Number") if event:attrs >< "x"
+      ent:y := event:attrs{"y"}.as("Number") if event:attrs  >< "y"
+      ent:width := event:attrs{"width"}.as("Number") if event:attrs >< "width"
+      ent:height := event:attrs{"height"}.as("Number") if event:attrs  >< "height"
+      ent:name := event:attrs{"name"}.as("String") if event:attrs  >< "name"
+      ent:backgroundColor := event:attrs{"backgroundColor"}.as("String") if event:attrs  >< "backgroundColor"
     }
   }
   rule new {
     select when engine_ui new
     pre {
-      name = event:attrs["name"] || ent:name
-      backgroundColor = event:attrs["backgroundColor"] || ent:backgroundColor
+      name = event:attrs{"name"} || ent:name
+      backgroundColor = event:attrs{"backgroundColor"} || ent:backgroundColor
     }
     every {
       ctx:newPico(rulesets=[
@@ -109,7 +109,7 @@ ruleset io.picolabs.next {
   rule del {
     select when engine_ui del
     pre {
-      delUiEci = event:attrs["eci"] 
+      delUiEci = event:attrs{"eci"} 
       delEci = ctx:children
         .filter(function(eci){
           other = getOtherUiECI(eci)
@@ -121,14 +121,26 @@ ruleset io.picolabs.next {
   }
   rule install {
     select when engine_ui install
-    ctx:install(url=event:attrs["url"], config=event:attrs["config"])
+    ctx:install(url=event:attrs{"url"}, config=event:attrs{"config"})
   }
   rule uninstall {
     select when engine_ui uninstall
-    ctx:uninstall(rid=event:attrs["rid"])
+    ctx:uninstall(rid=event:attrs{"rid"})
   }
   rule flush {
     select when engine_ui flush
-    ctx:flush(url=event:attrs["url"])
+    ctx:flush(url=event:attrs{"url"})
+  }
+  rule new_channel {
+    select when engine_ui new_channel
+    ctx:newChannel(
+      tags=event:attrs{"tags"},
+      eventPolicy=event:attrs{"eventPolicy"},
+      queryPolicy=event:attrs{"queryPolicy"}
+    )
+  }
+  rule del_channel {
+    select when engine_ui del_channel
+    ctx:delChannel(event:attrs{"eci"})
   }
 }
