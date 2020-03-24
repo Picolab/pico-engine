@@ -5,14 +5,23 @@ import * as makeDir from "make-dir";
 import * as path from "path";
 import { Ruleset } from "pico-framework";
 import * as urlLib from "url";
-import { dbRange } from "./dbRange";
-import { RulesetRegistryLoader, CachedRuleset } from "./RulesetRegistry";
+import { RulesetRegistryLoader } from "./RulesetRegistry";
 const krlCompiler = require("krl-compiler");
 const krlCompilerVersion = require("krl-compiler/package.json").version;
 const charwise = require("charwise");
 const encode = require("encoding-down");
 const safeJsonCodec = require("level-json-coerce-null");
 const request = require("request");
+
+function getUrlFilename(url: string): string | null {
+  try {
+    const parsed = urlLib.parse(url);
+    if (parsed.pathname) {
+      return path.basename(parsed.pathname);
+    }
+  } catch (err) {}
+  return null;
+}
 
 interface DbUrlRuleset {
   url: string;
@@ -62,7 +71,7 @@ export function RulesetRegistryLoaderFs(
     } else {
       const out = krlCompiler(krl, {
         parser_options: {
-          // TODO filename: urlLib.parse(url).path
+          filename: getUrlFilename(url)
         },
         inline_source_map: true
       });
@@ -91,11 +100,36 @@ export function RulesetRegistryLoaderFs(
   return {
     fetchKrl,
 
-    async save(data) {
-      await db.put(["url", data.url], data);
+    async save({ ruleset, ...rest }) {
+      let toWrite: DbUrlRuleset = rest;
+      await db.put(["url", toWrite.url], toWrite);
     },
 
-    compileAndLoad
+    compileAndLoad,
+
+    async attemptLoad(url: string) {
+      let fromDb: DbUrlRuleset;
+      try {
+        fromDb = (await db.get(["url", url])) as DbUrlRuleset;
+      } catch (err) {
+        if (err.notFound) {
+          return null;
+        }
+        throw err;
+      }
+
+      const { ruleset, compiler } = await compileAndLoad(
+        fromDb.url,
+        fromDb.krl,
+        fromDb.hash
+      );
+
+      return {
+        ...fromDb,
+        ruleset,
+        compiler
+      };
+    }
   };
 }
 

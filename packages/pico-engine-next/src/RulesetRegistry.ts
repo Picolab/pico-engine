@@ -1,4 +1,5 @@
 import * as crypto from "crypto";
+import * as pMemoize from "p-memoize";
 import { Ruleset, RulesetLoader } from "pico-framework";
 
 export interface CachedRuleset {
@@ -28,6 +29,8 @@ export interface RulesetRegistryLoader {
   }>;
 
   save(data: CachedRuleset): Promise<void>;
+
+  attemptLoad(url: string): Promise<CachedRuleset | null>;
 }
 
 export class RulesetRegistry {
@@ -35,7 +38,17 @@ export class RulesetRegistry {
     [url: string]: CachedRuleset;
   } = {};
 
-  constructor(private regLoader: RulesetRegistryLoader) {}
+  public load: (url: string) => Promise<CachedRuleset>;
+  public flush: (url: string) => Promise<CachedRuleset>;
+
+  constructor(private regLoader: RulesetRegistryLoader) {
+    this.load = pMemoize((url: string) => this.loadBase(url), {
+      maxAge: 100
+    });
+    this.flush = pMemoize((url: string) => this.flushBase(url), {
+      maxAge: 100
+    });
+  }
 
   loader: RulesetLoader = async (picoId, rid, version, config) => {
     const url = config && config["url"];
@@ -52,32 +65,16 @@ export class RulesetRegistry {
     return this.rulesetCache[url] || null;
   }
 
-  async load(url: string): Promise<CachedRuleset> {
+  private async loadBase(url: string): Promise<CachedRuleset> {
     if (this.rulesetCache[url]) {
       return this.rulesetCache[url];
     }
-    // TODO db cache first, then fallback on flush
-    return this.flush(url);
-  }
-
-  // To batch flushes for the same url within the same time window
-  private flushers: {
-    [url: string]: {
-      finished: boolean;
-      p: Promise<CachedRuleset>;
-    };
-  } = {};
-
-  async flush(url: string): Promise<CachedRuleset> {
-    if (this.flushers[url] && !this.flushers[url].finished) {
-      return this.flushers[url].p;
+    const data = await this.regLoader.attemptLoad(url);
+    if (data) {
+      this.rulesetCache[url] = data;
+      return this.rulesetCache[url];
     }
-    const flushP = this.flushBase(url);
-    this.flushers[url] = { finished: false, p: flushP };
-    flushP.finally(() => {
-      this.flushers[url].finished = true;
-    });
-    return flushP;
+    return this.flush(url);
   }
 
   private async flushBase(url: string): Promise<CachedRuleset> {

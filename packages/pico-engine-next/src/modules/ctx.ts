@@ -1,11 +1,5 @@
 import * as normalizeUrl from "normalize-url";
-import {
-  ChannelConfig,
-  cleanChannelTags,
-  EventPolicy,
-  QueryPolicy,
-  RulesetConfig
-} from "pico-framework";
+import { ChannelConfig, cleanChannelTags, RulesetConfig } from "pico-framework";
 import { NewPicoRuleset } from "pico-framework/dist/src/Pico";
 import * as request from "request";
 import * as krl from "../krl";
