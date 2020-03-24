@@ -148,31 +148,32 @@ export async function startEngine(
   await rsRegistry.subscribe(pf.rootPico.id, url);
   const { ruleset } = await rsRegistry.flush(url);
   await pf.rootPico.install(ruleset);
-
-  const uiChannel = await upsertChannel(pf.rootPico, {
-    tags: ["engine", "ui"],
-    eventPolicy: {
-      allow: [
-        { domain: "engine_ui", name: "box" },
-        { domain: "engine_ui", name: "new" },
-        { domain: "engine_ui", name: "del" },
-        { domain: "engine_ui", name: "install" },
-        { domain: "engine_ui", name: "uninstall" },
-        { domain: "engine_ui", name: "new-channel" },
-        { domain: "engine_ui", name: "del-channel" },
-        { domain: "engine", name: "started" }
-      ],
-      deny: []
-    },
-    queryPolicy: {
-      allow: [
-        { rid: "*", name: "__testing" },
-        { rid: "io.picolabs.next", name: "uiECI" },
-        { rid: "io.picolabs.next", name: "box" },
-        { rid: "io.picolabs.next", name: "pico" }
-      ],
-      deny: []
-    }
+  let uiChannel = pf.rootPico.toReadOnly().channels.find(chann => {
+    return (
+      "engine,ui" ===
+      chann.tags
+        .slice(0)
+        .sort()
+        .join(",")
+    );
+  });
+  if (!uiChannel) {
+    uiChannel = (
+      await pf.rootPico.newChannel({
+        tags: ["engine", "ui"],
+        eventPolicy: {
+          allow: [{ domain: "engine_ui", name: "setup" }],
+          deny: []
+        }
+      })
+    ).toReadOnly();
+  }
+  await pf.eventWait({
+    eci: uiChannel.id,
+    domain: "engine_ui",
+    name: "setup",
+    data: { attrs: {} },
+    time: 0
   });
 
   const uiECI = uiChannel.id;
@@ -222,33 +223,4 @@ export async function startEngine(
     uiECI,
     rsRegistry
   };
-}
-
-async function upsertChannel(
-  pico: Pico,
-  conf: ChannelConfig
-): Promise<ChannelReadOnly> {
-  if (!conf.tags || conf.tags.length === 0) {
-    throw new TypeError("upsertChannel needs tags set");
-  }
-  const searchTags = conf.tags
-    .slice(0)
-    .sort()
-    .join(",");
-  let uiChannel = pico.toReadOnly().channels.find(chann => {
-    return (
-      searchTags ===
-      chann.tags
-        .slice(0)
-        .sort()
-        .join(",")
-    );
-  });
-  if (uiChannel) {
-    await pico.putChannel(uiChannel.id, conf);
-  } else {
-    const r = await pico.newChannel(conf);
-    uiChannel = r.toReadOnly();
-  }
-  return uiChannel;
 }

@@ -37,6 +37,35 @@ ruleset io.picolabs.next {
       }
     }
   }
+  rule setup {
+    select when engine_ui setup
+    ctx:upsertChannel(
+      tags = ["engine", "ui"],
+      eventPolicy = {
+        "allow": [
+          { "domain": "engine_ui", "name": "setup" },
+          { "domain": "engine_ui", "name": "box" },
+          { "domain": "engine_ui", "name": "new" },
+          { "domain": "engine_ui", "name": "del" },
+          { "domain": "engine_ui", "name": "install" },
+          { "domain": "engine_ui", "name": "uninstall" },
+          { "domain": "engine_ui", "name": "new-channel" },
+          { "domain": "engine_ui", "name": "del-channel" },
+          { "domain": "engine", "name": "started" }
+        ],
+        "deny": []
+      },
+      queryPolicy = {
+        "allow": [
+          { "rid": "*", "name": "__testing" },
+          { "rid": "io.picolabs.next", "name": "uiECI" },
+          { "rid": "io.picolabs.next", "name": "box" },
+          { "rid": "io.picolabs.next", "name": "pico" }
+        ],
+        "deny": []
+      }
+    )
+  }
   rule box {
     select when engine_ui box
     always {

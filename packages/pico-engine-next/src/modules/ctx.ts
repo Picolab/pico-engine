@@ -1,4 +1,10 @@
-import { RulesetConfig } from "pico-framework";
+import {
+  RulesetConfig,
+  EventPolicy,
+  QueryPolicy,
+  cleanChannelTags,
+  ChannelConfig
+} from "pico-framework";
 import * as request from "request";
 import * as krl from "../krl";
 
@@ -35,6 +41,38 @@ const ctx: krl.Module = {
   channels: krl.Property(function channels() {
     return this.rsCtx.pico().channels;
   }),
+
+  // TODO newChannel
+  // TODO putChannel
+  // TODO delChannel
+
+  upsertChannel: krl.Action(
+    ["tags", "eventPolicy", "queryPolicy"],
+    async function upsertChannel(
+      tags: string[],
+      eventPolicy?: EventPolicy,
+      queryPolicy?: QueryPolicy
+    ) {
+      tags = cleanChannelTags(tags);
+      tags.sort();
+      const search = tags.join(",");
+      const channel = this.rsCtx.pico().channels.find(c => {
+        return (
+          search ===
+          c.tags
+            .slice(0)
+            .sort()
+            .join(",")
+        );
+      });
+      const conf: ChannelConfig = { tags, eventPolicy, queryPolicy };
+      if (channel) {
+        await this.rsCtx.putChannel(channel.id, conf);
+      } else {
+        await this.rsCtx.newChannel(conf);
+      }
+    }
+  ),
 
   rulesets: krl.Property(async function rulesets(): Promise<RulesetCtxInfo[]> {
     const pico = this.rsCtx.pico();
