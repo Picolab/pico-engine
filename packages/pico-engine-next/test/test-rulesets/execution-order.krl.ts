@@ -1,9 +1,8 @@
 import test from "ava";
-import { readTestKrl } from "../helpers/readTestKrl";
 import { startTestEngine } from "../helpers/startTestEngine";
 
 test("execution-order.krl", async t => {
-  const { pe, signal, mkQuery } = await startTestEngine([
+  const { pe, signal, mkQuery, installTestFile } = await startTestEngine([
     "execution-order.krl"
   ]);
 
@@ -52,10 +51,7 @@ test("execution-order.krl", async t => {
     { name: "reset_order", options: {} }
   ]);
 
-  const { rid, version } = await pe.rsRegistry.publish(
-    await readTestKrl("execution-order2.krl")
-  );
-  await pe.pf.rootPico.install(rid, version);
+  await installTestFile(pe.pf.rootPico, "execution-order2.krl");
 
   t.deepEqual(await signal("execution_order", "reset_order"), [
     { name: "reset_order", options: {} },

@@ -1,16 +1,19 @@
 import test from "ava";
 import {
-  startTestEngine,
-  allowAllChannelConf
+  allowAllChannelConf,
+  startTestEngine
 } from "../helpers/startTestEngine";
+import { toTestKrlURL } from "../helpers/toTestKrlURL";
 
 test("persistent.krl", async t => {
-  const { pe, signal, mkSignal } = await startTestEngine(["persistent.krl"], {
+  const { pe, mkSignal } = await startTestEngine(["persistent.krl"], {
     useEventInputTime: true
   });
   async function mkPico() {
+    const rs = await pe.rsRegistry.load(toTestKrlURL("persistent.krl"));
+
     const familyEci = await pe.pf.rootPico.newPico({
-      rulesets: [{ rid: "io.picolabs.persistent", version: "draft" }]
+      rulesets: [{ rs: rs.ruleset }]
     });
     const pico = pe.pf.getPico(familyEci);
     const chann = await pico.newChannel(allowAllChannelConf);

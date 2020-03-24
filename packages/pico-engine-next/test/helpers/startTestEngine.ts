@@ -1,10 +1,11 @@
 import * as cuid from "cuid";
 import * as path from "path";
+import { ChannelConfig } from "pico-framework";
+import { Pico } from "pico-framework/dist/src/Pico";
 import * as tempDir from "temp-dir";
 import { PicoEngineConfiguration, startEngine } from "../../src/index";
 import { cleanDirectives } from "../../src/KrlCtx";
-import { readTestKrl } from "./readTestKrl";
-import { ChannelConfig } from "pico-framework";
+import { toTestKrlURL } from "./toTestKrlURL";
 
 export const allowAllChannelConf: ChannelConfig = {
   tags: ["allow-all"],
@@ -32,11 +33,16 @@ export async function startTestEngine(
   const chann = await pe.pf.rootPico.newChannel(allowAllChannelConf);
   const eci = chann.id;
 
+  async function installTestFile(pico: Pico, file: string) {
+    const url = toTestKrlURL(file);
+    const rs = await pe.rsRegistry.load(url);
+    await pe.rsRegistry.subscribe(pico.id, url);
+    await pico.install(rs.ruleset);
+  }
+
   await Promise.all(
     testFiles.map(async file => {
-      const krl = await readTestKrl(file);
-      const { rid, version } = await pe.rsRegistry.publish(krl);
-      await pe.pf.rootPico.install(rid, version);
+      await installTestFile(pe.pf.rootPico, file);
     })
   );
 
@@ -71,5 +77,5 @@ export async function startTestEngine(
     };
   }
 
-  return { pe, eci, signal, mkSignal, mkQuery };
+  return { pe, eci, signal, mkSignal, mkQuery, installTestFile };
 }

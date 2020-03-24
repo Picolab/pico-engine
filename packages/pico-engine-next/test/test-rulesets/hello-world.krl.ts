@@ -1,9 +1,8 @@
 import test from "ava";
-import { readTestKrl } from "../helpers/readTestKrl";
 import { startTestEngine } from "../helpers/startTestEngine";
 
 test("hello-world.krl", async t => {
-  const { pe, eci } = await startTestEngine();
+  const { pe, eci, installTestFile } = await startTestEngine();
 
   let err = await t.throwsAsync(
     pe.pf.query({
@@ -15,9 +14,6 @@ test("hello-world.krl", async t => {
   );
   t.is(err + "", "Error: Pico doesn't have io.picolabs.hello_world installed.");
 
-  const krl = await readTestKrl("hello-world.krl");
-  await pe.rsRegistry.publish(krl);
-
   err = await t.throwsAsync(
     pe.pf.query({
       eci,
@@ -28,7 +24,7 @@ test("hello-world.krl", async t => {
   );
   t.is(err + "", "Error: Pico doesn't have io.picolabs.hello_world installed.");
 
-  await pe.pf.rootPico.install("io.picolabs.hello_world", "0.0.0");
+  await installTestFile(pe.pf.rootPico, "hello-world.krl");
 
   t.is(
     await pe.pf.query({

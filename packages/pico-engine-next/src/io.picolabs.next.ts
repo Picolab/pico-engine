@@ -87,7 +87,7 @@ export const rsNext: Ruleset = {
 
           case "engine-ui:new":
             const childEci = await ctx.newPico({
-              rulesets: [{ rid: "io.picolabs.next", version: "0.0.0" }]
+              rulesets: [{ rs: rsNext }]
             });
             if (childEci) {
               const childEciUI = await ctx.query({
@@ -129,8 +129,7 @@ export const rsNext: Ruleset = {
 
           case "engine-ui:install":
             if (event.data) {
-              const attrs = event.data.attrs;
-              await ctx.install(attrs.rid, attrs.version, attrs.config);
+              throw "TODO ctx:install";
             }
             return;
 

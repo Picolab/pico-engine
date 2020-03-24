@@ -4,8 +4,9 @@ import * as fs from "fs";
 import * as makeDir from "make-dir";
 import * as path from "path";
 import * as tempDir from "temp-dir";
-import { RulesetRegistry, RulesetRegistryLoader } from "../src/RulesetRegistry";
+import { RulesetRegistry } from "../src/RulesetRegistry";
 import { RulesetRegistryLoaderFs } from "../src/RulesetRegistryLoaderFs";
+import { toFileUrl } from "../src/utils/toFileUrl";
 
 test("RulesetRegistry", async t => {
   const dir = path.resolve(tempDir, "pico-engine", cuid());
@@ -17,7 +18,7 @@ test("RulesetRegistry", async t => {
   );
 
   const file0 = path.resolve(dir, "krl0.krl");
-  const url0 = fileUrl(file0);
+  const url0 = toFileUrl(file0);
 
   const rsReg = new RulesetRegistry(RulesetRegistryLoaderFs(dir));
 
@@ -37,11 +38,3 @@ test("RulesetRegistry", async t => {
   await rsReg.unsubscribe("p0", url0);
   t.deepEqual(await rsReg.picoRulesetUrls("p0"), []);
 });
-
-function fileUrl(str: string) {
-  var pathName = path.resolve(str).replace(/\\/g, "/");
-  if (pathName[0] !== "/") {
-    pathName = "/" + pathName; // for windows
-  }
-  return encodeURI("file://" + pathName);
-}
