@@ -10,5 +10,8 @@ export interface PicoDetails {
 export interface PicoRuleset {
   rid: string;
   version: string;
-  config: { [name: string]: any };
+  installed: boolean;
+  config: { [name: string]: any } | null;
+  url: string | null;
+  flushed: Date | null;
 }

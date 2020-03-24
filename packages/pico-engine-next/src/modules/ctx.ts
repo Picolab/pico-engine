@@ -2,6 +2,15 @@ import { RulesetConfig } from "pico-framework";
 import * as request from "request";
 import * as krl from "../krl";
 
+interface RulesetCtxInfo {
+  rid: string;
+  version: string;
+  installed: boolean;
+  config: RulesetConfig | null;
+  url: string | null;
+  flushed: Date | null;
+}
+
 const ctx: krl.Module = {
   rid: krl.Property(function rid() {
     return this.rsCtx.ruleset.rid;
@@ -27,20 +36,11 @@ const ctx: krl.Module = {
     return this.rsCtx.pico().channels;
   }),
 
-  rulesets: krl.Property(async function rulesets() {
+  rulesets: krl.Property(async function rulesets(): Promise<RulesetCtxInfo[]> {
     const pico = this.rsCtx.pico();
     const urls = await this.rsRegistry.picoRulesetUrls(pico.id);
 
-    interface RulesetListResult {
-      rid: string;
-      version: string;
-      installed: boolean;
-      config: RulesetConfig | null;
-      url: string | null;
-      flushed: Date | null;
-    }
-
-    const map: { [rid_at_version: string]: RulesetListResult } = {};
+    const map: { [rid_at_version: string]: RulesetCtxInfo } = {};
 
     await Promise.all(
       urls.map(async url => {
@@ -151,7 +151,21 @@ const ctx: krl.Module = {
 
       return eid;
     }
-  )
+  ),
+
+  query: krl.Action(["eci", "rid", "name", "args"], async function query(
+    eci,
+    rid,
+    name,
+    args = {}
+  ) {
+    return this.rsCtx.query({
+      eci,
+      rid,
+      name,
+      args
+    });
+  })
 };
 
 export default ctx;

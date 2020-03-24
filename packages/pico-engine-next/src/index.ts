@@ -2,8 +2,8 @@ import leveldown from "leveldown";
 import * as _ from "lodash";
 import * as makeDir from "make-dir";
 import * as path from "path";
-import { PicoFramework } from "pico-framework";
-import { rsNext } from "./io.picolabs.next";
+import { ChannelConfig, ChannelReadOnly, PicoFramework } from "pico-framework";
+import { Pico } from "pico-framework/dist/src/Pico";
 import * as krl from "./krl";
 import { RulesetEnvironment } from "./KrlCtx";
 import { getRotatingFileStream, KrlLogger } from "./KrlLogger";
@@ -11,6 +11,7 @@ import { schedulerStartup } from "./modules/schedule";
 import { RulesetRegistry } from "./RulesetRegistry";
 import { RulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
 import { server } from "./server";
+import { toFileUrl } from "./utils/toFileUrl";
 
 const homeDir = require("home-dir");
 const version = require("../package.json").version;
@@ -101,7 +102,6 @@ export async function startEngine(
 
     onStartupRulesetInitError(picoId, rs, config, error) {
       // TODO mark it as not installed and raise an error event
-      // throw error;
       console.error(
         "TODO raise error",
         picoId,
@@ -143,17 +143,39 @@ export async function startEngine(
   await schdlr.start();
 
   await pf.start();
-  await pf.rootPico.install(rsNext);
-  const uiChannel = await Object.values(pf.rootPico.channels).find(chann => {
-    return (
-      "engine,ui" ===
-      chann.tags
-        .slice(0)
-        .sort()
-        .join(",")
-    );
+
+  const url = toFileUrl(path.resolve(__dirname, "..", "io.picolabs.next.krl"));
+  await rsRegistry.subscribe(pf.rootPico.id, url);
+  const { ruleset } = await rsRegistry.flush(url);
+  await pf.rootPico.install(ruleset);
+
+  const uiChannel = await upsertChannel(pf.rootPico, {
+    tags: ["engine", "ui"],
+    eventPolicy: {
+      allow: [
+        { domain: "engine-ui", name: "box" },
+        { domain: "engine-ui", name: "new" },
+        { domain: "engine-ui", name: "del" },
+        { domain: "engine-ui", name: "install" },
+        { domain: "engine-ui", name: "uninstall" },
+        { domain: "engine-ui", name: "new-channel" },
+        { domain: "engine-ui", name: "del-channel" },
+        { domain: "engine", name: "started" }
+      ],
+      deny: []
+    },
+    queryPolicy: {
+      allow: [
+        { rid: "*", name: "__testing" },
+        { rid: "io.picolabs.next", name: "uiECI" },
+        { rid: "io.picolabs.next", name: "box" },
+        { rid: "io.picolabs.next", name: "pico" }
+      ],
+      deny: []
+    }
   });
-  const uiECI = uiChannel ? uiChannel.id : "";
+
+  const uiECI = uiChannel.id;
 
   const app = server(pf, uiECI);
 
@@ -200,4 +222,33 @@ export async function startEngine(
     uiECI,
     rsRegistry
   };
+}
+
+async function upsertChannel(
+  pico: Pico,
+  conf: ChannelConfig
+): Promise<ChannelReadOnly> {
+  if (!conf.tags || conf.tags.length === 0) {
+    throw new TypeError("upsertChannel needs tags set");
+  }
+  const searchTags = conf.tags
+    .slice(0)
+    .sort()
+    .join(",");
+  let uiChannel = pico.toReadOnly().channels.find(chann => {
+    return (
+      searchTags ===
+      chann.tags
+        .slice(0)
+        .sort()
+        .join(",")
+    );
+  });
+  if (uiChannel) {
+    await pico.putChannel(uiChannel.id, conf);
+  } else {
+    const r = await pico.newChannel(conf);
+    uiChannel = r.toReadOnly();
+  }
+  return uiChannel;
 }
