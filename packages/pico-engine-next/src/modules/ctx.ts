@@ -8,14 +8,24 @@ import {
 import { NewPicoRuleset } from "pico-framework/dist/src/Pico";
 import * as request from "request";
 import * as krl from "../krl";
+import * as normalizeUrl from "normalize-url";
 
 interface RulesetCtxInfo {
   rid: string;
   version: string;
-  installed: boolean;
   config: RulesetConfig | null;
-  url: string | null;
-  flushed: Date | null;
+  url: string;
+  meta: RulesetCtxInfoMeta | null;
+}
+
+interface RulesetCtxInfoMeta {
+  krl: string;
+  hash: string;
+  flushed: Date;
+  compiler: {
+    version: string;
+    warnings: any[];
+  };
 }
 
 const ctx: krl.Module = {
@@ -27,8 +37,12 @@ const ctx: krl.Module = {
     return this.rsCtx.ruleset.version;
   }),
 
+  rid_url: krl.Property(function rid_url() {
+    return this.rsCtx.ruleset.config["url"];
+  }),
+
   rid_config: krl.Property(function rid_config() {
-    return this.rsCtx.ruleset.config;
+    return this.rsCtx.ruleset.config["config"];
   }),
 
   parent: krl.Property(function parent() {
@@ -39,36 +53,29 @@ const ctx: krl.Module = {
     return this.rsCtx.pico().children;
   }),
 
-  newPico: krl.Action(["rulesets"], async function newPico(rulesets: any) {
+  newPico: krl.Action(["rulesets"], async function newPico(rulesets) {
     if (!Array.isArray(rulesets)) {
-      throw new TypeError(
-        "ctx:newPico expects an array of {url, installed, config}"
-      );
+      throw new TypeError("ctx:newPico expects an array of {url, config}");
     }
     const toInstall: NewPicoRuleset[] = [];
-    const urls: string[] = [];
     for (const rs of rulesets) {
-      if (!rs || typeof rs.url !== "string") {
-        throw new TypeError(
-          "ctx:newPico expects an array of {url, installed, config}"
-        );
-      }
-      urls.push(rs.url);
-      if (rs.installed) {
-        const result = await this.rsRegistry.load(rs.url);
-        toInstall.push({
-          rs: result.ruleset,
+      const result = await this.rsRegistry.load(rs.url);
+      toInstall.push({
+        rs: result.ruleset,
+        config: {
+          url: rs.url,
           config: rs.config || {}
-        });
-      }
+        }
+      });
     }
     const newEci = await this.rsCtx.newPico({
       rulesets: toInstall
     });
-    for (const url of urls) {
-      await this.rsRegistry.subscribe(newEci, url);
-    }
     return newEci;
+  }),
+
+  delPico: krl.Action(["eci"], async function delPico(eci) {
+    await this.rsCtx.delPico(eci);
   }),
 
   channels: krl.Property(function channels() {
@@ -107,73 +114,42 @@ const ctx: krl.Module = {
     }
   ),
 
-  rulesets: krl.Property(async function rulesets(): Promise<RulesetCtxInfo[]> {
+  rulesets: krl.Function([], async function rulesets(): Promise<
+    RulesetCtxInfo[]
+  > {
     const pico = this.rsCtx.pico();
-    const urls = await this.rsRegistry.picoRulesetUrls(pico.id);
 
-    const map: { [rid_at_version: string]: RulesetCtxInfo } = {};
-
-    await Promise.all(
-      urls.map(async url => {
-        const rs = await this.rsRegistry.load(url);
-        const key = `${rs.rid}@${rs.version}`;
-        map[key] = {
-          rid: rs.rid,
-          version: rs.version,
-          installed: false,
-          config: null,
-          url,
-          flushed: rs.flushed
-        };
-      })
-    );
+    const results: RulesetCtxInfo[] = [];
 
     for (const rs of pico.rulesets) {
-      const key = `${rs.rid}@${rs.version}`;
-      if (!map[key]) {
-        map[key] = {
-          rid: rs.rid,
-          version: rs.version,
-          installed: false,
-          config: null,
-          url: null,
-          flushed: null
-        };
-      }
-      map[key].installed = true;
-      map[key].config = rs.config;
+      results.push({
+        rid: rs.rid,
+        version: rs.version,
+        url: rs.config.url,
+        config: rs.config.config,
+        meta: null // TODO
+      });
     }
 
-    return Object.values(map);
+    return results;
   }),
 
-  install: krl.Action(["rid", "version", "config"], async function install(
-    rid: string,
-    version: string,
-    config: any
-  ) {
-    const pico = this.rsCtx.pico();
-    const rs = await this.rsRegistry.loader(pico.id, rid, version);
-    await this.rsCtx.install(rs, config);
+  install: krl.Action(["url", "config"], async function install(url, config) {
+    url = normalizeUrl(url);
+    const rs = await this.rsRegistry.flush(url);
+    await this.rsCtx.install(rs.ruleset, {
+      url: url,
+      config: config || {}
+    });
   }),
 
-  uninstall: krl.Action(["rid"], async function uninstall(rid: string) {
+  uninstall: krl.Action(["rid"], async function uninstall(rid) {
     await this.rsCtx.uninstall(rid);
   }),
 
-  flushRuleset: krl.Action(["url"], async function flushRuleset(url: string) {
+  flush: krl.Action(["url"], async function flush(url) {
+    url = normalizeUrl(url);
     await this.rsRegistry.flush(url);
-    await this.rsRegistry.subscribe(this.rsCtx.pico().id, url);
-  }),
-
-  addRuleset: krl.Action(["url"], async function addRuleset(url: string) {
-    await this.rsRegistry.subscribe(this.rsCtx.pico().id, url);
-  }),
-
-  releaseRuleset: krl.Action(["url"], async function releaseRuleset(
-    url: string
-  ) {
-    await this.rsRegistry.unsubscribe(this.rsCtx.pico().id, url);
   }),
 
   raiseEvent: krl.Postlude(

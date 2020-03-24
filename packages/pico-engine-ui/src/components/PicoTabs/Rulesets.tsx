@@ -11,25 +11,11 @@ interface Props {
 }
 
 const Rulesets: React.FC<Props> = ({ pico }) => {
-  const [rid, setRid] = React.useState<string | null>(null);
-  const [version, setVersion] = React.useState<string | null>(null);
+  const [url, setUrl] = React.useState<string>("");
   const [config, setConfig] = React.useState<string>("{}");
 
-  // TODO
-  // TODO
-  const availRulesets: {
-    // TODO
-    [rid: string]: {
-      // TODO
-      [version: string]: true;
-    };
-  } = {};
-
   function isReadyToInstall(): boolean {
-    if (!rid || !version) {
-      return false;
-    }
-    if (!availRulesets[rid] && !availRulesets[rid][version]) {
+    if (url.trim().length === 0) {
       return false;
     }
     try {
@@ -42,15 +28,13 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
 
   const install = useAsyncAction<{
     eci: string;
-    rid: string;
-    version: string;
+    url: string;
     config: any;
   }>(params =>
     apiPost(
       `/c/${params.eci}/event/engine_ui/install/query/io.picolabs.next/pico`,
       {
-        rid: params.rid,
-        version: params.version,
+        url: params.url,
         config: params.config
       }
     ).then(d => null)
@@ -108,46 +92,21 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
       <form
         onSubmit={e => {
           e.preventDefault();
-          if (isReadyToInstall() && rid && version) {
+          if (isReadyToInstall() && url) {
             install.act({
               eci: pico.eci,
-              rid,
-              version,
+              url,
               config: JSON.parse(config)
             });
           }
         }}
       >
-        <div className="form-row mb-2">
-          <div className="col-auto">
-            <select
-              className="form-control"
-              value={rid || "--"}
-              onChange={e => setRid(e.target.value)}
-            >
-              <option value="--" />
-              {Object.keys(availRulesets).map(rid => (
-                <option key={rid} value={rid}>
-                  {rid}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-auto">
-            <select
-              className="form-control"
-              disabled={!availRulesets[rid || ""]}
-              value={version || "--"}
-              onChange={e => setVersion(e.target.value)}
-            >
-              <option value="--" />
-              {Object.keys(availRulesets[rid || ""] || {}).map(version => (
-                <option key={version} value={version}>
-                  {version}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="form-group mb-2">
+          <input
+            className="form-control"
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+          />
         </div>
         <div className="form-group">
           <textarea

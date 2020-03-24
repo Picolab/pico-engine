@@ -100,16 +100,9 @@ export async function startEngine(
 
     rulesetLoader: rsRegistry.loader,
 
-    onStartupRulesetInitError(picoId, rs, config, error) {
+    onStartupRulesetInitError(picoId, rid, version, config, error) {
       // TODO mark it as not installed and raise an error event
-      console.error(
-        "TODO raise error",
-        picoId,
-        rs.rid,
-        rs.version,
-        config,
-        error
-      );
+      console.error("TODO raise error", picoId, rid, version, config, error);
     },
 
     onFrameworkEvent(ev) {
@@ -137,17 +130,6 @@ export async function startEngine(
     useEventInputTime: configuration.useEventInputTime
   });
 
-  function eciToPicoId(eci: string): string {
-    try {
-      const pico = pf.getPico(eci);
-      return pico.id;
-    } catch (err) {
-      return eci;
-    }
-  }
-
-  rsRegistry.normalizePicoId = eciToPicoId;
-
   const schdlr = schedulerStartup(pf);
   rsEnvironment.addScheduledEvent = schdlr.addScheduledEvent;
   rsEnvironment.removeScheduledEvent = schdlr.removeScheduledEvent;
@@ -156,9 +138,8 @@ export async function startEngine(
   await pf.start();
 
   const url = toFileUrl(path.resolve(__dirname, "..", "io.picolabs.next.krl"));
-  await rsRegistry.subscribe(pf.rootPico.id, url);
   const { ruleset } = await rsRegistry.flush(url);
-  await pf.rootPico.install(ruleset);
+  await pf.rootPico.install(ruleset, { url, config: {} });
   let uiChannel = pf.rootPico.toReadOnly().channels.find(
     chann =>
       "engine,ui" ===

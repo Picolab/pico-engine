@@ -28,7 +28,7 @@ export async function makeKrlCtx(onLogLine?: (str: string) => void) {
     }
   };
   await pf.start();
-  await pf.rootPico.install(tstCtxRs);
+  await pf.rootPico.install(tstCtxRs, { url: "tstCtxRs" });
   if (!krlCtx) {
     throw new Error("KRL ctx was not initialized");
   }

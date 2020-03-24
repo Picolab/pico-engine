@@ -28,7 +28,7 @@ A list of all channels this pico owns.
 
 TODO channel schema
 
-## ctx:rulesets
+## ctx:rulesets()
 
 A list of all the rulesets the pico has installed
 
@@ -105,12 +105,11 @@ Same as newChannel except you provide the eci you whish to modify. Channels can 
 
 Delete a channel. Only the owner pico can delete their channel.
 
-## ctx:install(rid, version, config = {})
+## ctx:install(url, config = {})
 
 Install a ruleset.
 
-- `rid` - String - The id of the ruleset you wish to install.
-- `version` - String - Which version of that ruleset. Versions that contain "draft" will be updated immediately.
+- `url` - String - The url to the ruleset you wish to install.
 - `config` - Map - Any configuration data the ruleset may want.
 
 ## ctx:uninstall(rid)
@@ -118,3 +117,9 @@ Install a ruleset.
 Uninstall a ruleset.
 
 - `rid` - String - The id of the ruleset you wish to uninstall.
+
+## ctx:flush(url)
+
+Flush a ruleset by fetching the url and reloading it.
+
+- `url` - String - The url to the ruleset you wish to flush.

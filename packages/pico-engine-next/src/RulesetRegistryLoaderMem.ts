@@ -3,13 +3,6 @@ import { CachedRuleset, RulesetRegistryLoader } from "./RulesetRegistry";
 const krlCompiler = require("krl-compiler");
 const krlCompilerVersion = require("krl-compiler/package.json").version;
 
-interface DbPicoRuleset {
-  picoId: string;
-  rid: string;
-  version: string;
-  url: string;
-}
-
 export function RulesetRegistryLoaderMem(
   fetchKrl: (url: string) => Promise<string>
 ): RulesetRegistryLoader {
@@ -37,8 +30,6 @@ export function RulesetRegistryLoaderMem(
   }
 
   const urlData: { [url: string]: CachedRuleset } = {};
-  const perPicoRidV: { [pico_rid_at_v: string]: DbPicoRuleset } = {};
-  const perPicoUrl: { [pico_url: string]: DbPicoRuleset } = {};
 
   return {
     fetchKrl,
@@ -47,46 +38,6 @@ export function RulesetRegistryLoaderMem(
       urlData[data.url] = data;
     },
 
-    async getAllUsed() {
-      return [];
-    },
-
-    async getPicoUrl(picoId, rid, version) {
-      const key = `${picoId}-${rid}@${version}`;
-      if (perPicoRidV[key]) {
-        return perPicoRidV[key].url;
-      }
-      throw new Error(`Not found ${key}`);
-    },
-
-    compileAndLoad,
-
-    async hasPicoUrl(picoId, url) {
-      return !!perPicoUrl[`${picoId}-${url}`];
-    },
-
-    async addPicoUrl(picoId, url, rid, version) {
-      const data = { picoId, url, rid, version };
-      perPicoRidV[`${picoId}-${rid}@${version}`] = data;
-      perPicoUrl[`${picoId}-${url}`] = data;
-    },
-
-    async delPicoUrl(picoId, url) {
-      let data: DbPicoRuleset | null = perPicoUrl[`${picoId}-${url}`] || null;
-      if (data) {
-        delete perPicoRidV[`${picoId}-${data.rid}@${data.version}`];
-        delete perPicoUrl[`${picoId}-${url}`];
-      }
-    },
-
-    async getPicoURLs(picoId) {
-      const urls: string[] = [];
-      for (const val of Object.values(perPicoUrl)) {
-        if (val.picoId === picoId) {
-          urls.push(val.url);
-        }
-      }
-      return urls;
-    }
+    compileAndLoad
   };
 }

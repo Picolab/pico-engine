@@ -33,7 +33,7 @@ ruleset io.picolabs.next {
         "parent": getOtherUiECI(ctx:parent),
         "children": ctx:children.map(getOtherUiECI),
         "channels": ctx:channels,
-        "rulesets": ctx:rulesets
+        "rulesets": ctx:rulesets()
       }
     }
   }
@@ -82,18 +82,11 @@ ruleset io.picolabs.next {
     pre {
       name = event:attrs["name"] || ent:name
       backgroundColor = event:attrs["backgroundColor"] || ent:backgroundColor
-      rulesets = ctx:rulesets
-        .map(function(rs){
-          return {
-            "url": rs["url"],
-            "installed": rs["installed"],
-            "config": rs["config"]
-          }
-        })
-        .filter(function(rs){rs["url"].typeof() == "String"})
     }
     every {
-      ctx:newPico(rulesets) setting(newEci)
+      ctx:newPico(rulesets=[
+        { "url": ctx:rid_url, "config": {} }
+      ]) setting(newEci)
       ctx:eventQuery(
         eci=newEci,
         domain="engine_ui",
@@ -111,5 +104,22 @@ ruleset io.picolabs.next {
         }
       )
     }
+  }
+  rule del {
+    select when engine_ui del
+    pre {
+      delUiEci = event:attrs["eci"] 
+      delEci = ctx:children
+        .filter(function(eci){
+          other = getOtherUiECI(eci)
+          return other == delUiEci
+        })
+        .head()
+    }
+    ctx:delPico(delEci)
+  }
+  rule install {
+    select when engine_ui install
+    ctx:install(url=event:attrs["url"], config=event:attrs["config"])
   }
 }

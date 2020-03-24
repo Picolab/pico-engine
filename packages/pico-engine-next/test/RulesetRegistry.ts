@@ -30,11 +30,4 @@ test("RulesetRegistry", async t => {
   t.is((await rsReg.load(url0)).ruleset.version, "draft");
   t.is((await rsReg.flush(url0)).ruleset.version, "1.0.0");
   t.is((await rsReg.load(url0)).ruleset.version, "1.0.0");
-
-  t.deepEqual(await rsReg.picoRulesetUrls("p0"), []);
-  await rsReg.subscribe("p0", url0);
-  t.deepEqual(await rsReg.picoRulesetUrls("p0"), [url0]);
-  t.deepEqual(await rsReg.picoRulesetUrls("p1"), []);
-  await rsReg.unsubscribe("p0", url0);
-  t.deepEqual(await rsReg.picoRulesetUrls("p0"), []);
 });

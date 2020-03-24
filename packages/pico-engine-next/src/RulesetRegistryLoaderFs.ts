@@ -14,13 +14,6 @@ const encode = require("encoding-down");
 const safeJsonCodec = require("level-json-coerce-null");
 const request = require("request");
 
-interface DbPicoRuleset {
-  picoId: string;
-  rid: string;
-  version: string;
-  url: string;
-}
-
 interface DbUrlRuleset {
   url: string;
   krl: string;
@@ -102,131 +95,7 @@ export function RulesetRegistryLoaderFs(
       await db.put(["url", data.url], data);
     },
 
-    async getAllUsed() {
-      const urls = new Set<string>();
-      await dbRange(
-        db,
-        {
-          prefix: ["pico"]
-        },
-        (data, stop) => {
-          if ("url" === data.key[2]) {
-            urls.add(data.key[3]);
-          }
-        }
-      );
-
-      const toLoad: DbUrlRuleset[] = [];
-      await dbRange(
-        db,
-        {
-          prefix: ["url"]
-        },
-        async (data, stop) => {
-          const val: DbUrlRuleset = data.value;
-          if (urls.has(val.url)) {
-            toLoad.push(val);
-          }
-        }
-      );
-
-      const errors: { url: string; error: string }[] = [];
-      const rulesets: CachedRuleset[] = [];
-      await Promise.all(
-        toLoad.map(async val => {
-          try {
-            const { ruleset } = await compileAndLoad(
-              val.url,
-              val.krl,
-              val.hash
-            );
-            rulesets.push({ ...val, ruleset });
-          } catch (error) {
-            errors.push({ url: val.url, error });
-          }
-        })
-      );
-      return rulesets;
-    },
-
-    async getPicoUrl(picoId, rid, version) {
-      const data: DbPicoRuleset = (await db.get([
-        "pico",
-        picoId,
-        "rid-version",
-        rid,
-        version
-      ])) as DbPicoRuleset;
-      return data.url;
-    },
-
-    compileAndLoad,
-
-    async hasPicoUrl(picoId, url) {
-      try {
-        await db.get(["pico", picoId, "url", url]);
-        return true;
-      } catch (err) {
-        if (err.notFound) {
-          return false;
-        }
-        throw err;
-      }
-    },
-
-    async addPicoUrl(picoId, url, rid, version) {
-      const value: DbPicoRuleset = { picoId, url, rid, version };
-      await db.batch([
-        {
-          type: "put",
-          key: ["pico", picoId, "rid-version", rid, version],
-          value
-        },
-        {
-          type: "put",
-          key: ["pico", picoId, "url", url],
-          value
-        }
-      ]);
-    },
-
-    async delPicoUrl(picoId, url) {
-      let data: DbPicoRuleset;
-      try {
-        data = (await db.get(["pico", picoId, "url", url])) as DbPicoRuleset;
-      } catch (err) {
-        if (err.notFound) {
-          return;
-        }
-        throw err;
-      }
-      await db.batch([
-        {
-          type: "del",
-          key: ["pico", picoId, "rid-version", data.rid, data.version]
-        },
-        {
-          type: "del",
-          key: ["pico", picoId, "url", url]
-        }
-      ]);
-    },
-
-    async getPicoURLs(picoId) {
-      const urls: string[] = [];
-      await dbRange(
-        db,
-        {
-          prefix: ["pico", picoId]
-        },
-        (data, stop) => {
-          if ("url" === data.key[2]) {
-            urls.push(data.key[3]);
-          }
-        }
-      );
-      return urls;
-    }
+    compileAndLoad
   };
 }
 

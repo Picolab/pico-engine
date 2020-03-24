@@ -36,8 +36,7 @@ export async function startTestEngine(
   async function installTestFile(pico: Pico, file: string) {
     const url = toTestKrlURL(file);
     const rs = await pe.rsRegistry.load(url);
-    await pe.rsRegistry.subscribe(pico.id, url);
-    await pico.install(rs.ruleset);
+    await pico.install(rs.ruleset, { url });
   }
 
   await Promise.all(

@@ -28,18 +28,6 @@ export interface RulesetRegistryLoader {
   }>;
 
   save(data: CachedRuleset): Promise<void>;
-  getAllUsed(): Promise<CachedRuleset[]>;
-
-  getPicoUrl(picoId: string, rid: string, version: string): Promise<string>;
-  hasPicoUrl(picoId: string, url: string): Promise<boolean>;
-  addPicoUrl(
-    picoId: string,
-    url: string,
-    rid: string, // rid and version so it can setup indexes
-    version: string
-  ): Promise<void>;
-  delPicoUrl(picoId: string, url: string): Promise<void>;
-  getPicoURLs(picoId: string): Promise<string[]>;
 }
 
 export class RulesetRegistry {
@@ -47,63 +35,24 @@ export class RulesetRegistry {
     [url: string]: CachedRuleset;
   } = {};
 
-  private startupP: Promise<void>;
+  constructor(private regLoader: RulesetRegistryLoader) {}
 
-  normalizePicoId: (id: string) => string = id => id;
-
-  constructor(private regLoader: RulesetRegistryLoader) {
-    this.startupP = this.startup();
-  }
-
-  async startup() {
-    if (this.startupP) return this.startupP;
-
-    const toLoad = await this.regLoader.getAllUsed();
-
-    for (const val of toLoad) {
-      this.rulesetCache[val.url] = val;
+  loader: RulesetLoader = async (picoId, rid, version, config) => {
+    const url = config && config["url"];
+    if (typeof url !== "string") {
+      throw new Error(
+        `Unable to get url for pico ruleset ${picoId}-${rid}@${version}`
+      );
     }
-  }
-
-  loader: RulesetLoader = async (picoId, rid, version) => {
-    picoId = this.normalizePicoId(picoId);
-    const url = await this.regLoader.getPicoUrl(picoId, rid, version);
     const rs = await this.load(url);
     return rs.ruleset;
   };
 
-  async subscribe(picoId: string, url: string) {
-    picoId = this.normalizePicoId(picoId);
-    if (await this.regLoader.hasPicoUrl(picoId, url)) {
-      return;
-    }
-
-    const rs = await this.load(url);
-
-    await this.regLoader.addPicoUrl(
-      picoId,
-      url,
-      rs.ruleset.rid,
-      rs.ruleset.version
-    );
-  }
-
-  unsubscribe(picoId: string, url: string) {
-    picoId = this.normalizePicoId(picoId);
-    return this.regLoader.delPicoUrl(picoId, url);
-  }
-
-  picoRulesetUrls(picoId: string): Promise<string[]> {
-    picoId = this.normalizePicoId(picoId);
-    return this.regLoader.getPicoURLs(picoId);
-  }
-
   async load(url: string): Promise<CachedRuleset> {
-    await this.startupP; // make sure the cached is warmed up
-
     if (this.rulesetCache[url]) {
       return this.rulesetCache[url];
     }
+    // TODO db cache first, then fallback on flush
     return this.flush(url);
   }
 
@@ -116,8 +65,6 @@ export class RulesetRegistry {
   } = {};
 
   async flush(url: string): Promise<CachedRuleset> {
-    await this.startupP; // make sure the cached is warmed up
-
     if (this.flushers[url] && !this.flushers[url].finished) {
       return this.flushers[url].p;
     }
