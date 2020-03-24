@@ -1,7 +1,7 @@
 ruleset io.picolabs.next {
   version "0.0.0"
   meta {
-    shares box, uiECI, pico
+    shares box, uiECI, pico, logs
   }
   global {
     uiECI = function(){
@@ -36,6 +36,9 @@ ruleset io.picolabs.next {
         "rulesets": ctx:rulesets
       }
     }
+    logs = function(){
+      return ctx:logs()
+    }
   }
   rule setup {
     select when engine_ui setup
@@ -61,7 +64,8 @@ ruleset io.picolabs.next {
           { "rid": "*", "name": "__testing" },
           { "rid": "io.picolabs.next", "name": "uiECI" },
           { "rid": "io.picolabs.next", "name": "box" },
-          { "rid": "io.picolabs.next", "name": "pico" }
+          { "rid": "io.picolabs.next", "name": "pico" },
+          { "rid": "io.picolabs.next", "name": "logs" }
         ],
         "deny": []
       }

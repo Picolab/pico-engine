@@ -1,6 +1,7 @@
 import * as _ from "lodash";
 import { PicoEvent, RulesetContext } from "pico-framework";
 import * as SelectWhen from "select-when";
+import { getPicoLogs, PicoLogEntry } from "./getPicoLogs";
 import * as krl from "./krl";
 import { KrlLogger } from "./KrlLogger";
 import * as modules from "./modules";
@@ -30,11 +31,16 @@ export class RulesetEnvironment {
   public addScheduledEvent?: (rid: string, sEvent: ScheduledEvent) => void;
   public removeScheduledEvent?: (id: string) => void;
 
-  constructor(public log: KrlLogger, public rsRegistry: RulesetRegistry) {}
+  constructor(
+    public log: KrlLogger,
+    public rsRegistry: RulesetRegistry,
+    public logFilePath: string
+  ) {}
 
   mkCtx(rsCtx: RulesetContext): KrlCtx {
+    const picoId = rsCtx.pico().id;
     const log = this.log.child({
-      picoId: rsCtx.pico().id,
+      picoId,
       rid: rsCtx.ruleset.rid
     });
 
@@ -43,6 +49,8 @@ export class RulesetEnvironment {
     let currentEvent: CurrentPicoEvent | null = null;
 
     let directives: Directive[] = [];
+
+    const logFilePath = this.logFilePath;
 
     return {
       rsCtx,
@@ -110,6 +118,10 @@ export class RulesetEnvironment {
         if (environment.removeScheduledEvent) {
           environment.removeScheduledEvent(id);
         }
+      },
+
+      getPicoLogs() {
+        return getPicoLogs(logFilePath, picoId);
       }
     };
   }
@@ -127,6 +139,7 @@ export interface KrlCtx {
   aggregateEvent(state: any, op: string, pairs: [string, string][]): any;
   scheduleEvent(sEvent: ScheduledEvent): void;
   removeScheduledEvent(id: string): void;
+  getPicoLogs(): Promise<PicoLogEntry[]>;
 }
 
 function toFloat(v: any) {

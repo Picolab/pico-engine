@@ -254,6 +254,11 @@ const ctx: krl.Module = {
       name,
       args
     });
+  }),
+
+  logs: krl.Function([], async function logs() {
+    const entries = await this.getPicoLogs();
+    return entries;
   })
 };
 

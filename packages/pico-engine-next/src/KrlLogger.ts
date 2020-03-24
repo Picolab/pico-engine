@@ -3,6 +3,14 @@ import * as path from "path";
 
 const rfs = require("rotating-file-stream");
 
+export const krlLogLevelCodeToHuman: { [level: string]: string } = {
+  "10": "error",
+  "20": "warn",
+  "30": "info",
+  "40": "klog",
+  "50": "debug"
+};
+
 const logStreams: { [filePath: string]: NodeJS.WritableStream } = {};
 export function getRotatingFileStream(filePath: string): NodeJS.WritableStream {
   if (!logStreams[filePath]) {

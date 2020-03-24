@@ -80,12 +80,12 @@ export async function startEngine(
   }
   await makeDir(home);
 
-  const filePath = path.resolve(home, "pico-engine.log");
+  const logFilePath = path.resolve(home, "pico-engine.log");
   const log = configuration.log
     ? configuration.log
-    : new KrlLogger(getRotatingFileStream(filePath), "");
+    : new KrlLogger(getRotatingFileStream(logFilePath), "");
   const rsRegistry = new RulesetRegistry(RulesetRegistryLoaderFs(home));
-  const rsEnvironment = new RulesetEnvironment(log, rsRegistry);
+  const rsEnvironment = new RulesetEnvironment(log, rsRegistry, logFilePath);
 
   if (configuration.modules) {
     _.each(configuration.modules, function(mod, domain) {
@@ -102,7 +102,13 @@ export async function startEngine(
 
     onStartupRulesetInitError(picoId, rid, version, config, error) {
       // TODO mark it as not installed and raise an error event
-      console.error("TODO raise error", picoId, rid, version, config, error);
+      log.error("onStartupRulesetInitError", {
+        picoId,
+        rid,
+        rulesetVersion: version,
+        rulesetConfig: config,
+        error
+      });
     },
 
     onFrameworkEvent(ev) {
