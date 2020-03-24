@@ -27,7 +27,14 @@ test("RulesetRegistry", async t => {
   t.is(rs.ruleset.version, "draft");
 
   await fs.promises.writeFile(file0, `ruleset rid.hello { version "1.0.0" }`);
+  await sleep(200);
   t.is((await rsReg.load(url0)).ruleset.version, "draft");
+  await sleep(200);
   t.is((await rsReg.flush(url0)).ruleset.version, "1.0.0");
+  await sleep(200);
   t.is((await rsReg.load(url0)).ruleset.version, "1.0.0");
 });
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

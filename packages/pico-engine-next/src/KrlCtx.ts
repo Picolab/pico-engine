@@ -31,11 +31,7 @@ export class RulesetEnvironment {
   public addScheduledEvent?: (rid: string, sEvent: ScheduledEvent) => void;
   public removeScheduledEvent?: (id: string) => void;
 
-  constructor(
-    public log: KrlLogger,
-    public rsRegistry: RulesetRegistry,
-    public logFilePath: string
-  ) {}
+  constructor(public log: KrlLogger, public rsRegistry: RulesetRegistry) {}
 
   mkCtx(rsCtx: RulesetContext): KrlCtx {
     const picoId = rsCtx.pico().id;
@@ -49,8 +45,6 @@ export class RulesetEnvironment {
     let currentEvent: CurrentPicoEvent | null = null;
 
     let directives: Directive[] = [];
-
-    const logFilePath = this.logFilePath;
 
     return {
       rsCtx,
@@ -121,7 +115,7 @@ export class RulesetEnvironment {
       },
 
       getPicoLogs() {
-        return getPicoLogs(logFilePath, picoId);
+        return log.getPicoLogs(picoId);
       }
     };
   }

@@ -14,7 +14,7 @@
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "scripts": {
     "start": "webpack-dev-server",
-    "build": "rm -rf ../pico-engine-next/www && NODE_ENV=production webpack && cp src/img/favicon* ../pico-engine-next/www/."
+    "build": "rm -f ../pico-engine-next/www/index* && NODE_ENV=production webpack"
   },
   "dependencies": {
     "bootstrap": "^4.3.1",

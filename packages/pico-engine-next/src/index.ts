@@ -83,9 +83,9 @@ export async function startEngine(
   const logFilePath = path.resolve(home, "pico-engine.log");
   const log = configuration.log
     ? configuration.log
-    : new KrlLogger(getRotatingFileStream(logFilePath), "");
+    : new KrlLogger(getRotatingFileStream(logFilePath), "", logFilePath);
   const rsRegistry = new RulesetRegistry(RulesetRegistryLoaderFs(home));
-  const rsEnvironment = new RulesetEnvironment(log, rsRegistry, logFilePath);
+  const rsEnvironment = new RulesetEnvironment(log, rsRegistry);
 
   if (configuration.modules) {
     _.each(configuration.modules, function(mod, domain) {
