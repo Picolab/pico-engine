@@ -8,12 +8,17 @@ module.exports = function (ast, comp, e) {
     version: ast.version ? comp(ast.version) : e('str', 'draft')
   }
   const shares = []
+  const provides = []
   if (ast.meta) {
     rs.meta = comp(ast.meta)
     _.each(ast.meta.properties, function (prop) {
       if (prop.key.value === 'shares') {
         _.each(prop.value.ids, function (id) {
           shares.push(id.value)
+        })
+      } else if (prop.key.value === 'provides') {
+        _.each(prop.value.ids, function (id) {
+          provides.push(id)
         })
       }
     })
@@ -74,7 +79,7 @@ module.exports = function (ast, comp, e) {
   esBody = esBody.concat(esBodyGlobal)
   esBody = esBody.concat(esBodyRules)
 
-  esBody.push(e('return', e('obj', {
+  const returnObj = {
     event: e('asyncfn', ['event', 'eid'], [
       e(';', e('call', e('id', '$ctx.setEvent'), [e('call', e('id', 'Object.assign'), [
         e('obj', {}),
@@ -93,7 +98,21 @@ module.exports = function (ast, comp, e) {
       e('return', e('call', e('id', '$ctx.drainDirectives'), []))
     ]),
     query: e('obj', queries)
-  })))
+  }
+
+  if (provides.length > 0) {
+    const provideObj = {}
+    for (const provide of provides) {
+      const annotation = comp.scope.get(provide.value)
+      if (!annotation) {
+        throw comp.error(provide.loc, 'Trying to provide: ' + provide.value + ' but it\'s not defined in global')
+      }
+      provideObj[provide.value] = e('id', jsIdent(provide.value))
+    }
+    returnObj.provides = e('obj', provideObj)
+  }
+
+  esBody.push(e('return', e('obj', returnObj)))
 
   rs.init = e('asyncfn', ['$rsCtx', '$env'], esBody)
 

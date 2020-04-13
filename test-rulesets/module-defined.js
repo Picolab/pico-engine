@@ -1,5 +1,6 @@
 module.exports = {
   "rid": "io.picolabs.module-defined",
+  "version": "draft",
   "meta": {
     "provides": [
       "getInfo",
@@ -8,113 +9,140 @@ module.exports = {
     ],
     "shares": ["getInfo"],
     "configure": async function (ctx) {
-      ctx.scope.set("configured_name", "Bob");
+      const configured_name = "Bob";
     }
   },
-  "global": async function (ctx) {
-    ctx.scope.set("privateFn", ctx.mkFunction([], async function (ctx, args) {
-      return await ctx.applyFn(ctx.scope.get("+"), ctx, [
-        await ctx.applyFn(ctx.scope.get("+"), ctx, [
-          await ctx.applyFn(ctx.scope.get("+"), ctx, [
+  "init": async function ($rsCtx, $env) {
+    const $default = Symbol("default");
+    const $ctx = $env.mkCtx($rsCtx);
+    const $stdlib = $ctx.module("stdlib");
+    const send_directive = $stdlib["send_directive"];
+    const privateFn = $env.krl.Function([], async function () {
+      return await $stdlib["+"]($ctx, [
+        await $stdlib["+"]($ctx, [
+          await $stdlib["+"]($ctx, [
             "privateFn = name: ",
-            ctx.scope.get("configured_name")
+            configured_name
           ]),
           " memo: "
         ]),
-        await ctx.modules.get(ctx, "ent", "memo")
+        await $ctx.rsCtx.getEnt("memo")
       ]);
-    }));
-    ctx.scope.set("getName", ctx.mkFunction([], async function (ctx, args) {
-      return ctx.scope.get("configured_name");
-    }));
-    ctx.scope.set("getInfo", ctx.mkFunction([], async function (ctx, args) {
+    });
+    const getName = $env.krl.Function([], async function () {
+      return configured_name;
+    });
+    const getInfo = $env.krl.Function([], async function () {
       return {
-        "name": await ctx.applyFn(ctx.scope.get("getName"), ctx, []),
-        "memo": await ctx.modules.get(ctx, "ent", "memo"),
-        "privateFn": await ctx.applyFn(ctx.scope.get("privateFn"), ctx, [])
+        "name": await $env.krl.assertFunction(getName)($ctx, []),
+        "memo": await $ctx.rsCtx.getEnt("memo"),
+        "privateFn": await $env.krl.assertFunction(privateFn)($ctx, [])
       };
-    }));
-    ctx.scope.set("getInfoAction", ctx.mkAction([], async function (ctx, args, runAction) {
-      var fired = true;
-      if (fired) {
-        await runAction(ctx, void 0, "send_directive", [
+    });
+    const getInfoAction = $env.krl.Action([], async function () {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
           "getInfoAction",
-          await ctx.applyFn(ctx.scope.get("getInfo"), ctx, [])
-        ], []);
+          await $env.krl.assertFunction(getInfo)($ctx, [])
+        ]);
       }
-      return [{
-          "name": await ctx.applyFn(ctx.scope.get("get"), ctx, [
-            await ctx.applyFn(ctx.scope.get("getInfo"), ctx, []),
-            ["name"]
-          ])
-        }];
-    }));
-    ctx.scope.set("sayHello", ctx.mkFunction(["name"], async function (ctx, args) {
-      ctx.scope.set("name", args["name"]);
-      return "hello " + await ctx.applyFn(ctx.scope.get("as"), ctx, [
-        ctx.scope.get("name"),
+      return {
+        "name": await $stdlib["get"]($ctx, [
+          await $env.krl.assertFunction(getInfo)($ctx, []),
+          ["name"]
+        ])
+      };
+    });
+    const sayHello = $env.krl.Function(["name"], async function ($name$) {
+      return "hello " + await $stdlib["as"]($ctx, [
+        $name$,
         "String"
       ]) + ".";
-    }));
-  },
-  "rules": {
-    "store_memo": {
-      "name": "store_memo",
-      "select": {
-        "graph": {
-          "module_defined": {
-            "store_memo": {
-              "expr_0": async function (ctx, aggregateEvent, getAttrString, setting) {
-                var matches = [];
-                var m;
-                var j;
-                m = new RegExp("^(.*)$", "").exec(getAttrString(ctx, "memo"));
-                if (!m)
-                  return false;
-                for (j = 1; j < m.length; j++)
-                  matches.push(m[j]);
-                setting("text", matches[0]);
-                return true;
-              }
-            }
+    });
+    const $rs = new $env.SelectWhen.SelectWhen();
+    $rs.when($env.SelectWhen.e("module_defined:store_memo", async function ($event, $state) {
+      var matches = [];
+      var setting = {};
+      var m;
+      var j;
+      m = new RegExp("^(.*)$", "").exec(Object.prototype.hasOwnProperty.call($event.data.attrs, "memo") ? $stdlib.as($ctx, [
+        $event.data.attrs["memo"],
+        "String"
+      ]) : "");
+      if (!m)
+        return { "match": false };
+      for (j = 1; j < m.length; j++)
+        matches.push(m[j]);
+      var text = setting["text"] = matches[0];
+      return {
+        "match": true,
+        "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
+      };
+    }), async function ($event, $state, $last) {
+      var text = $state.setting["text"];
+      this.rule.state = Object.assign({}, $state, { "setting": {} });
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive)($ctx, [
+          "store_memo",
+          {
+            "name": configured_name,
+            "memo_to_store": text
           }
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+      await $ctx.rsCtx.putEnt("memo", await $stdlib["+"]($ctx, [
+        await $stdlib["+"]($ctx, [
+          await $stdlib["+"]($ctx, [
+            await $stdlib["+"]($ctx, [
+              "[\"",
+              text
+            ]),
+            "\" by "
+          ]),
+          configured_name
+        ]),
+        "]"
+      ]));
+    });
+    return {
+      "event": async function (event, eid) {
+        $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
+        try {
+          await $rs.send(event);
+        } finally {
+          $ctx.setEvent(null);
+        }
+        return $ctx.drainDirectives();
+      },
+      "query": {
+        "getInfo": function ($args) {
+          return getInfo($ctx, $args);
         },
-        "state_machine": {
-          "start": [[
-              "expr_0",
-              "end"
-            ]]
+        "__testing": function () {
+          return {
+            "queries": [{
+                "name": "getInfo",
+                "args": []
+              }],
+            "events": [{
+                "domain": "module_defined",
+                "name": "store_memo",
+                "attrs": []
+              }]
+          };
         }
       },
-      "body": async function (ctx, runAction, toPairs) {
-        var fired = true;
-        if (fired) {
-          await runAction(ctx, void 0, "send_directive", [
-            "store_memo",
-            {
-              "name": ctx.scope.get("configured_name"),
-              "memo_to_store": ctx.scope.get("text")
-            }
-          ], []);
-        }
-        if (fired)
-          ctx.emit("debug", "fired");
-        else
-          ctx.emit("debug", "not fired");
-        await ctx.modules.set(ctx, "ent", "memo", await ctx.applyFn(ctx.scope.get("+"), ctx, [
-          await ctx.applyFn(ctx.scope.get("+"), ctx, [
-            await ctx.applyFn(ctx.scope.get("+"), ctx, [
-              await ctx.applyFn(ctx.scope.get("+"), ctx, [
-                "[\"",
-                ctx.scope.get("text")
-              ]),
-              "\" by "
-            ]),
-            ctx.scope.get("configured_name")
-          ]),
-          "]"
-        ]));
+      "provides": {
+        "getInfo": getInfo,
+        "getName": getName,
+        "getInfoAction": getInfoAction
       }
-    }
+    };
   }
 };

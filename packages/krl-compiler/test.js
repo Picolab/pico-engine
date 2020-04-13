@@ -16,31 +16,6 @@ test.cb('compiler', function (t) {
       return path.basename(path.basename(file, '.krl'), '.js')
     }))
 
-    // TODO test all
-    basenames = [
-      'chevron',
-      'defaction',
-      'error',
-      'event-exp',
-      'events',
-      'execution-order2',
-      'execution-order',
-      'expressions',
-      'foreach',
-      'guard-conditions',
-      'hello-world',
-      'last2',
-      'last',
-      'log',
-      'operators',
-      'persistent',
-      'scope',
-      'select-where',
-      'schedule',
-      'within',
-      'with'
-    ]
-
     λ.each(basenames, function (basename, next) {
       var jsFile = path.join(filesDir, basename) + '.js'
       var krlFile = path.join(filesDir, basename) + '.krl'
@@ -179,6 +154,11 @@ test('compiler errors', function (t) {
   t.is(compiler('ruleset a{rule b{select when a b always{ent:hi:=ent:ih.put("k",1)}}}').warnings.length, 0)
   // if already has subpath don't hint
   t.is(compiler('ruleset a{rule b{select when a b always{ent:v{"a"}:=ent:v.put("k",1)}}}').warnings.length, 0)
+
+  tstFail(
+    'ruleset a {meta{provides foo}}',
+    'Error: Trying to provide: foo but it\'s not defined in global'
+  )
 })
 
 test('special cases', function (t) {

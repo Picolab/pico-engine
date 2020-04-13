@@ -50,6 +50,12 @@ var propTypes = {
     return e('arr', _.map(ids, function (id) {
       return e('str', id.value, id.loc)
     }))
+  },
+  'provides': function (props, comp, e) {
+    var ids = _.uniqBy(_.flatten(_.map(props, 'value.ids')), 'value')
+    return e('arr', _.map(ids, function (id) {
+      return e('str', id.value, id.loc)
+    }))
   }
 }
 
