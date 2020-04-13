@@ -8,14 +8,13 @@ module.exports = {
       "getInfoAction"
     ],
     "shares": ["getInfo"],
-    "configure": async function (ctx) {
-      const configured_name = "Bob";
-    }
+    "configure": ["configured_name"]
   },
   "init": async function ($rsCtx, $env) {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    const configured_name = $env.configure("configured_name", "Bob");
     const send_directive = $stdlib["send_directive"];
     const privateFn = $env.krl.Function([], async function () {
       return await $stdlib["+"]($ctx, [

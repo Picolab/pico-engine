@@ -2,20 +2,20 @@ var _ = require('lodash')
 
 var propTypes = {
   'name': function (props, comp, e) {
-    if (_.size(props) !== 1) {
-      throw new Error('only 1 meta.name allowed')
+    if (_.size(props) > 1) {
+      throw comp.error(props[1].loc, 'only 1 meta.name allowed')
     }
     return comp(_.head(props).value)
   },
   'description': function (props, comp, e) {
-    if (_.size(props) !== 1) {
-      throw new Error('only 1 meta.description allowed')
+    if (_.size(props) > 1) {
+      throw comp.error(props[1].loc, 'only 1 meta.description allowed')
     }
     return comp(_.head(props).value)
   },
   'author': function (props, comp, e) {
-    if (_.size(props) !== 1) {
-      throw new Error('only 1 meta.author allowed')
+    if (_.size(props) > 1) {
+      throw comp.error(props[1].loc, 'only 1 meta.author allowed')
     }
     return comp(_.head(props).value)
   },
@@ -39,11 +39,15 @@ var propTypes = {
     }))
   },
   'configure': function (props, comp, e) {
-    if (_.size(props) !== 1) {
-      throw new Error('only 1 meta.configure allowed')
+    const ids = []
+    for (const ast of props) {
+      for (const dec of ast.value.declarations) {
+        ids.push(dec.left)
+      }
     }
-    var ast = _.head(props)
-    return e('asyncfn', ['ctx'], comp(ast.value.declarations), ast.value.loc)
+    return e('arr', _.map(ids, function (id) {
+      return e('str', id.value, id.loc)
+    }))
   },
   'shares': function (props, comp, e) {
     var ids = _.uniqBy(_.flatten(_.map(props, 'value.ids')), 'value')
@@ -62,21 +66,21 @@ var propTypes = {
 module.exports = function (ast, comp, e) {
   return e('obj', _.mapValues(_.groupBy(ast.properties, function (p) {
     if (p.type !== 'RulesetMetaProperty') {
-      throw new Error('RulesetMeta.properties should all be RulesetMetaProperty ast nodes')
+      throw comp.error(p.loc, 'RulesetMeta.properties should all be RulesetMetaProperty ast nodes')
     }
     if (p.key.type !== 'Keyword') {
-      throw new Error('RulesetMetaProperty.key should a Keyword')
+      throw comp.error(p.key.loc, 'RulesetMetaProperty.key should a Keyword')
     }
     if (_.has(p.value, 'operator')) {
       if (p.value.operator.type !== 'Keyword') {
-        throw new Error('RulesetMetaProperty.operator should a Keyword')
+        throw comp.error(p.value.operator.loc, 'RulesetMetaProperty.operator should a Keyword')
       }
       return p.key.value + '_' + p.value.operator.value
     }
     return p.key.value
   }), function (props, key) {
     if (!_.has(propTypes, key)) {
-      throw new Error('RulesetMetaProperty not supported: ' + key)
+      throw comp.error(props[0].loc, 'RulesetMetaProperty not supported: ' + key)
     }
     return propTypes[key](props, comp, e)
   }))

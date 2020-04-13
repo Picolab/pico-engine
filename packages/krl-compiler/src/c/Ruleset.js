@@ -9,6 +9,7 @@ module.exports = function (ast, comp, e) {
   }
   const shares = []
   const provides = []
+  const configure = []
   if (ast.meta) {
     rs.meta = comp(ast.meta)
     _.each(ast.meta.properties, function (prop) {
@@ -20,8 +21,26 @@ module.exports = function (ast, comp, e) {
         _.each(prop.value.ids, function (id) {
           provides.push(id)
         })
+      } else if (prop.key.value === 'configure') {
+        for (const dec of prop.value.declarations) {
+          configure.push(dec)
+        }
       }
     })
+  }
+
+  let esBody = []
+  esBody.push(e('const', '$default', e('call', e('id', 'Symbol'), [e('str', 'default')])))
+  esBody.push(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
+  esBody.push(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
+
+  for (const conf of configure) {
+    const estree = comp(conf.right)
+    comp.scope.set(conf.left.value, estree.$$Annotation || { type: 'Unknown' })
+    esBody.push(e('const', jsIdent(conf.left.value), e('call', e('id', '$env.configure', conf.loc), [
+      e('str', conf.left.value, conf.left.loc),
+      estree
+    ], conf.loc), conf.left.loc))
   }
 
   const esBodyGlobal = declarationBlock(ast.global, comp)
@@ -66,11 +85,6 @@ module.exports = function (ast, comp, e) {
     }
   }
   queries['__testing'] = e('fn', [], [e('return', e('json', testingJSON))])
-
-  let esBody = []
-  esBody.push(e('const', '$default', e('call', e('id', 'Symbol'), [e('str', 'default')])))
-  esBody.push(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
-  esBody.push(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
 
   _.each(comp.idsOutOfScope, function (ast, id) {
     esBody.push(e('const', jsIdent(id), e('get', e('id', '$stdlib', ast.loc), e('str', id, ast.loc), ast.loc), ast.loc))
