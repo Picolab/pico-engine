@@ -4,6 +4,10 @@ import { startTestEngine } from "../helpers/startTestEngine";
 test("module-used.krl", async (t) => {
   const { signal, mkQuery, pe, installTestFile } = await startTestEngine();
 
+  let err = await t.throwsAsync(
+    installTestFile(pe.pf.rootPico, "module-used.krl")
+  );
+  t.is(err + "", "Error: Module not found: io.picolabs.module-defined");
   await installTestFile(pe.pf.rootPico, "module-defined.krl");
   await installTestFile(pe.pf.rootPico, "module-used.krl");
 
@@ -115,5 +119,9 @@ test("module-used.krl", async (t) => {
   t.deepEqual(await queryUsed("getEntVal"), { name: "Jim" });
 
   // Test unregisterRuleset checks
-  // TODO
+  err = await t.throwsAsync(signal("module_used", "uninstall"));
+  t.is(
+    err + "",
+    "Error: Cannot uninstall io.picolabs.module-defined because io.picolabs.module-used depends on it"
+  );
 });

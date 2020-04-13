@@ -30,6 +30,13 @@ export class RulesetEnvironment {
 
   modules: { [domain: string]: krl.Module } = modules;
 
+  picoRidUses: {
+    [picoId: string]: { [rid: string]: { [usesRid: string]: true } };
+  } = {};
+  picoRidUsedBy: {
+    [picoId: string]: { [rid: string]: { [usedByRid: string]: true } };
+  } = {};
+
   public addScheduledEvent?: (rid: string, sEvent: ScheduledEvent) => void;
   public removeScheduledEvent?: (id: string) => void;
   public picoFramework?: PicoFramework;
@@ -149,6 +156,27 @@ export class RulesetEnvironment {
           alias = rid;
         }
         myModules[alias] = module;
+        _.set(environment.picoRidUses, [pico.id, rsCtx.ruleset.rid, rid], true);
+        _.set(
+          environment.picoRidUsedBy,
+          [pico.id, rid, rsCtx.ruleset.rid],
+          true
+        );
+      },
+
+      uninstall(rid: string) {
+        const usedBy = Object.keys(
+          _.get(environment.picoRidUsedBy, [pico.id, rid], {})
+        );
+        if (usedBy.length > 0) {
+          throw new Error(
+            `Cannot uninstall ${rid} because ${usedBy.join(
+              " and "
+            )} depends on it`
+          );
+        }
+        _.unset(environment.picoRidUses, [pico.id, rid]);
+        return rsCtx.uninstall(rid);
       },
     };
   }
@@ -208,6 +236,7 @@ export interface KrlCtx {
     alias?: string | null,
     configure?: { [name: string]: any }
   ): Promise<void>;
+  uninstall(rid: string): Promise<void>;
 }
 
 function toFloat(v: any) {

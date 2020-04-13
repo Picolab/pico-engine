@@ -58,12 +58,12 @@ const ctx: krl.Module = {
         rs: result.ruleset,
         config: {
           url: rs.url,
-          config: rs.config || {}
-        }
+          config: rs.config || {},
+        },
       });
     }
     const newEci = await this.rsCtx.newPico({
-      rulesets: toInstall
+      rulesets: toInstall,
     });
     return newEci;
   }),
@@ -99,14 +99,8 @@ const ctx: krl.Module = {
       tags = cleanChannelTags(tags);
       tags.sort();
       const search = tags.join(",");
-      const channel = this.rsCtx.pico().channels.find(c => {
-        return (
-          search ===
-          c.tags
-            .slice(0)
-            .sort()
-            .join(",")
-        );
+      const channel = this.rsCtx.pico().channels.find((c) => {
+        return search === c.tags.slice(0).sort().join(",");
       });
       const conf: ChannelConfig = { tags, eventPolicy, queryPolicy };
       if (channel) {
@@ -138,9 +132,9 @@ const ctx: krl.Module = {
               krl: cached.krl,
               hash: cached.hash,
               flushed: cached.flushed,
-              compiler: cached.compiler
+              compiler: cached.compiler,
             }
-          : null
+          : null,
       });
     }
 
@@ -152,12 +146,12 @@ const ctx: krl.Module = {
     const rs = await this.rsRegistry.flush(url);
     await this.rsCtx.install(rs.ruleset, {
       url: url,
-      config: config || {}
+      config: config || {},
     });
   }),
 
   uninstall: krl.Action(["rid"], async function uninstall(rid) {
-    await this.rsCtx.uninstall(rid);
+    await this.uninstall(rid);
   }),
 
   flush: krl.Action(["url"], async function flush(url) {
@@ -188,7 +182,7 @@ const ctx: krl.Module = {
             method: "POST",
             url,
             headers: { "content-type": "application/json" },
-            body: krl.encode(attrs)
+            body: krl.encode(attrs),
           },
           (err, res, body) => {
             if (err) {
@@ -206,7 +200,7 @@ const ctx: krl.Module = {
         domain,
         name,
         data: { attrs },
-        time: 0
+        time: 0,
       });
 
       return eid;
@@ -230,13 +224,13 @@ const ctx: krl.Module = {
           domain,
           name,
           data: { attrs },
-          time: 0
+          time: 0,
         },
         {
           eci,
           rid,
           name: queryName,
-          args
+          args,
         }
       );
     }
@@ -252,14 +246,14 @@ const ctx: krl.Module = {
       eci,
       rid,
       name,
-      args
+      args,
     });
   }),
 
   logs: krl.Function([], async function logs() {
     const entries = await this.getPicoLogs();
     return entries;
-  })
+  }),
 };
 
 export default ctx;

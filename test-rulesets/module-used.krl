@@ -62,4 +62,9 @@ ruleset io.picolabs.module-used {
 
         send_directive("bob".my_module_dflt:sayHello());
     }
+    rule uninstall {
+        select when module_used uninstall
+
+        ctx:uninstall("io.picolabs.module-defined")
+    }
 }

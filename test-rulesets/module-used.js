@@ -120,6 +120,16 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
     });
+    $rs.when($env.SelectWhen.e("module_used:uninstall"), async function ($event, $state, $last) {
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction($ctx.module("ctx")["uninstall"])($ctx, ["io.picolabs.module-defined"]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
     return {
       "event": async function (event, eid) {
         $ctx.setEvent(Object.assign({}, event, { "eid": eid }));
@@ -190,6 +200,11 @@ module.exports = {
               {
                 "domain": "module_used",
                 "name": "sayHelloWithOperator",
+                "attrs": []
+              },
+              {
+                "domain": "module_used",
+                "name": "uninstall",
                 "attrs": []
               }
             ]

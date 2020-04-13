@@ -11,24 +11,23 @@ export const allowAllChannelConf: ChannelConfig = {
   tags: ["allow-all"],
   eventPolicy: {
     allow: [{ domain: "*", name: "*" }],
-    deny: []
+    deny: [],
   },
   queryPolicy: {
     allow: [{ rid: "*", name: "*" }],
-    deny: []
-  }
+    deny: [],
+  },
 };
 
 export async function startTestEngine(
   testFiles: string[] = [],
-  conf?: PicoEngineConfiguration
+  conf: PicoEngineConfiguration = {}
 ) {
-  const pe = await startEngine(
-    Object.assign({}, conf || {}, {
-      home: path.resolve(tempDir, "pico-engine", cuid()),
-      port: 0
-    })
-  );
+  const pe = await startEngine({
+    ...conf,
+    home: path.resolve(tempDir, "pico-engine", cuid()),
+    port: 0,
+  });
 
   const chann = await pe.pf.rootPico.newChannel(allowAllChannelConf);
   const eci = chann.id;
@@ -40,13 +39,13 @@ export async function startTestEngine(
   }
 
   await Promise.all(
-    testFiles.map(async file => {
+    testFiles.map(async (file) => {
       await installTestFile(pe.pf.rootPico, file);
     })
   );
 
   function mkSignal(eci: string) {
-    return async function(
+    return async function (
       domain: string,
       name: string,
       attrs: any = {},
@@ -57,7 +56,7 @@ export async function startTestEngine(
         domain,
         name,
         data: { attrs },
-        time
+        time,
       });
       return cleanDirectives(resp.responses);
     };
@@ -66,12 +65,12 @@ export async function startTestEngine(
   const signal = mkSignal(eci);
 
   function mkQuery(rid: string) {
-    return function(name: string, args: any = {}) {
+    return function (name: string, args: any = {}) {
       return pe.pf.query({
         eci,
         rid,
         name,
-        args
+        args,
       });
     };
   }
