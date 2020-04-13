@@ -33,7 +33,9 @@ var propTypes = {
         obj.version = comp(ast.version)
       }
       if (ast['with']) {
-        obj['with'] = e('asyncfn', ['ctx'], comp(ast['with']), ast['with'].loc)
+        obj['with'] = e('arr', ast['with'].map(dec => {
+          return e('str', dec.left.value, dec.left.loc)
+        }))
       }
       return e('obj', obj, ast.loc)
     }))

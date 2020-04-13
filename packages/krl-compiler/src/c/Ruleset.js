@@ -7,9 +7,14 @@ module.exports = function (ast, comp, e) {
     rid: comp(ast.rid),
     version: ast.version ? comp(ast.version) : e('str', 'draft')
   }
+
+  let esBody = []
+  esBody.push(e('const', '$default', e('call', e('id', 'Symbol'), [e('str', 'default')])))
+  esBody.push(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
+  esBody.push(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
+
   const shares = []
   const provides = []
-  const configure = []
   if (ast.meta) {
     rs.meta = comp(ast.meta)
     _.each(ast.meta.properties, function (prop) {
@@ -23,24 +28,35 @@ module.exports = function (ast, comp, e) {
         })
       } else if (prop.key.value === 'configure') {
         for (const dec of prop.value.declarations) {
-          configure.push(dec)
+          const estree = comp(dec.right)
+          comp.scope.set(dec.left.value, estree.$$Annotation || { type: 'Unknown' })
+          esBody.push(e('const', jsIdent(dec.left.value), e('call', e('id', '$env.configure', dec.loc), [
+            e('str', dec.left.value, dec.left.loc),
+            estree
+          ], dec.loc), dec.left.loc))
         }
+      } else if (prop.key.value === 'use') {
+        const ast = prop.value
+        if (ast.kind !== 'module') {
+          throw comp.error(ast.loc, `use ${ast.kind} is not supported`)
+        }
+        const args = [
+          e('str', ast.rid.value, ast.rid.loc),
+          ast.version ? comp(ast.version) : e('null', ast.rid.loc),
+          ast.alias
+            ? e('str', ast.alias.value, ast.alias.loc)
+            : e('str', ast.rid.value, ast.rid.loc)
+        ]
+        if (ast['with']) {
+          const withObj = {}
+          for (const dec of ast['with']) {
+            withObj[dec.left.value] = comp(dec.right)
+          }
+          args.push(e('obj', withObj, ast.loc))
+        }
+        esBody.push(e(';', e('call', e('id', '$env.useModule', prop.loc), args, prop.loc), prop.loc))
       }
     })
-  }
-
-  let esBody = []
-  esBody.push(e('const', '$default', e('call', e('id', 'Symbol'), [e('str', 'default')])))
-  esBody.push(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
-  esBody.push(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
-
-  for (const conf of configure) {
-    const estree = comp(conf.right)
-    comp.scope.set(conf.left.value, estree.$$Annotation || { type: 'Unknown' })
-    esBody.push(e('const', jsIdent(conf.left.value), e('call', e('id', '$env.configure', conf.loc), [
-      e('str', conf.left.value, conf.left.loc),
-      estree
-    ], conf.loc), conf.left.loc))
   }
 
   const esBodyGlobal = declarationBlock(ast.global, comp)

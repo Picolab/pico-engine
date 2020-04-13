@@ -12,9 +12,7 @@ module.exports = {
         "kind": "module",
         "rid": "io.picolabs.module-defined",
         "alias": "my_module_conf",
-        "with": async function (ctx) {
-          const configured_name = "Jim";
-        }
+        "with": ["configured_name"]
       }
     ],
     "shares": [
@@ -27,6 +25,8 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
+    $env.useModule("io.picolabs.module-defined", null, "my_module_dflt");
+    $env.useModule("io.picolabs.module-defined", null, "my_module_conf", { "configured_name": "Jim" });
     const send_directive = $stdlib["send_directive"];
     const now = $env.krl.Function([], async function () {
       return await $env.krl.assertFunction($ctx.module("time")["now"])($ctx, []);
