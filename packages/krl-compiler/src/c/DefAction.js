@@ -4,6 +4,7 @@ module.exports = function (ast, comp, e) {
   var body = []
 
   comp.scope.push()
+  comp.scope.set('$$is_inside_fn_or_action_body$$', true)
 
   // compile the params first, so params get defined in comp.scope before the action body compiles
   const { params, defaultSetups } = comp(ast.params)

@@ -88,7 +88,7 @@ export async function startEngine(
   const rsEnvironment = new RulesetEnvironment(log, rsRegistry);
 
   if (configuration.modules) {
-    _.each(configuration.modules, function(mod, domain) {
+    _.each(configuration.modules, function (mod, domain) {
       rsEnvironment.modules[domain] = mod;
     });
   }
@@ -107,7 +107,7 @@ export async function startEngine(
         rid,
         rulesetVersion: version,
         rulesetConfig: config,
-        error
+        error,
       });
     },
 
@@ -122,7 +122,7 @@ export async function startEngine(
           log.debug(ev.type, {
             picoId: ev.picoId,
             txnId: ev.txn.id,
-            txn: ev.txn
+            txn: ev.txn,
           });
           break;
         case "txnStart":
@@ -133,12 +133,13 @@ export async function startEngine(
       }
     },
 
-    useEventInputTime: configuration.useEventInputTime
+    useEventInputTime: configuration.useEventInputTime,
   });
 
   const schdlr = schedulerStartup(pf);
   rsEnvironment.addScheduledEvent = schdlr.addScheduledEvent;
   rsEnvironment.removeScheduledEvent = schdlr.removeScheduledEvent;
+  rsEnvironment.picoFramework = pf;
   await schdlr.start();
 
   await pf.start();
@@ -146,22 +147,19 @@ export async function startEngine(
   const url = toFileUrl(path.resolve(__dirname, "..", "io.picolabs.next.krl"));
   const { ruleset } = await rsRegistry.flush(url);
   await pf.rootPico.install(ruleset, { url, config: {} });
-  let uiChannel = pf.rootPico.toReadOnly().channels.find(
-    chann =>
-      "engine,ui" ===
-      chann.tags
-        .slice(0)
-        .sort()
-        .join(",")
-  );
+  let uiChannel = pf.rootPico
+    .toReadOnly()
+    .channels.find(
+      (chann) => "engine,ui" === chann.tags.slice(0).sort().join(",")
+    );
   if (!uiChannel) {
     uiChannel = (
       await pf.rootPico.newChannel({
         tags: ["engine", "ui"],
         eventPolicy: {
           allow: [{ domain: "engine_ui", name: "setup" }],
-          deny: []
-        }
+          deny: [],
+        },
       })
     ).toReadOnly();
   }
@@ -170,7 +168,7 @@ export async function startEngine(
     domain: "engine_ui",
     name: "setup",
     data: { attrs: {} },
-    time: 0
+    time: 0,
   });
 
   const uiECI = uiChannel.id;
@@ -180,7 +178,7 @@ export async function startEngine(
   if ((!port || !_.isInteger(port) || port < 1) && port !== 0) {
     port = 3000;
   }
-  await new Promise(resolve => {
+  await new Promise((resolve) => {
     const listener = app.listen(port, () => {
       if (listener) {
         const addr = listener.address();
@@ -203,8 +201,8 @@ export async function startEngine(
     domain: "engine",
     name: "started",
     data: { attrs: {} },
-    time: 0 // TODO remove this typescript requirement
-  }).catch(error => {
+    time: 0, // TODO remove this typescript requirement
+  }).catch((error) => {
     log.error("Error signaling engine:started event", { error });
     // TODO signal all errors engine:error
   });
@@ -218,6 +216,6 @@ export async function startEngine(
 
     pf,
     uiECI,
-    rsRegistry
+    rsRegistry,
   };
 }

@@ -14,8 +14,8 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const configured_name = $env.configure("configured_name", "Bob");
     const send_directive = $stdlib["send_directive"];
+    const configured_name = $ctx.configure("configured_name", "Bob");
     const privateFn = $env.krl.Function([], async function () {
       return await $stdlib["+"]($ctx, [
         await $stdlib["+"]($ctx, [
@@ -41,7 +41,7 @@ module.exports = {
     const getInfoAction = $env.krl.Action([], async function () {
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive)(this, [
           "getInfoAction",
           await $env.krl.assertFunction(getInfo)($ctx, [])
         ]);

@@ -32,7 +32,7 @@ module.exports = {
       const b = 2;
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive)(this, [
           "foo",
           {
             "a": a,
@@ -63,7 +63,7 @@ module.exports = {
       }
       var $fired = true;
       if ($fired) {
-        var dir = await $env.krl.assertAction(send_directive)($ctx, [
+        var dir = await $env.krl.assertAction(send_directive)(this, [
           "bar",
           {
             "a": one,
@@ -82,10 +82,10 @@ module.exports = {
       if ($fired) {
         switch (val) {
         case "asdf":
-          await $env.krl.assertAction(foo)($ctx, [val]);
+          await $env.krl.assertAction(foo)(this, [val]);
           break;
         case "fdsa":
-          await $env.krl.assertAction(bar)($ctx, [
+          await $env.krl.assertAction(bar)(this, [
             val,
             "ok",
             "done"
@@ -100,8 +100,8 @@ module.exports = {
     ], async function (a, b) {
       var $fired = a && !b;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["yes a"]);
-        await $env.krl.assertAction(send_directive)($ctx, ["not b"]);
+        await $env.krl.assertAction(send_directive)(this, ["yes a"]);
+        await $env.krl.assertAction(send_directive)(this, ["not b"]);
       }
     });
     const echoAction = $env.krl.Action([
@@ -111,7 +111,7 @@ module.exports = {
     ], async function (a, b, c) {
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(noop)($ctx, []);
+        await $env.krl.assertAction(noop)(this, []);
       }
       return [
         a,
@@ -133,7 +133,7 @@ module.exports = {
         0
       ]);
       if ($fired) {
-        var dir = await $env.krl.assertAction(send_directive)($ctx, [
+        var dir = await $env.krl.assertAction(send_directive)(this, [
           await $stdlib["+"]($ctx, [
             "wat:",
             a
@@ -299,14 +299,14 @@ module.exports = {
       const something = $env.krl.Action([], async function () {
         var $fired = true;
         if ($fired) {
-          await $env.krl.assertAction(noop)($ctx, []);
+          await $env.krl.assertAction(noop)(this, []);
         }
         return "did something!";
       });
       const send_directive = $env.krl.Action([], async function () {
         var $fired = true;
         if ($fired) {
-          var foo = await $env.krl.assertAction(noop)($ctx, []);
+          var foo = await $env.krl.assertAction(noop)(this, []);
         }
         return await $stdlib["+"]($ctx, [
           "send wat? noop returned: ",
@@ -316,7 +316,7 @@ module.exports = {
       const echoAction = $env.krl.Action([], async function () {
         var $fired = true;
         if ($fired) {
-          await $env.krl.assertAction(noop)($ctx, []);
+          await $env.krl.assertAction(noop)(this, []);
         }
         return [
           "aint",

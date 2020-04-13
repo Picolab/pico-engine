@@ -8,13 +8,9 @@ module.exports = function (ast, comp, e) {
     version: ast.version ? comp(ast.version) : e('str', 'draft')
   }
 
-  let esBody = []
-  esBody.push(e('const', '$default', e('call', e('id', 'Symbol'), [e('str', 'default')])))
-  esBody.push(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
-  esBody.push(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
-
   const shares = []
   const provides = []
+  const esBodyModules = []
   if (ast.meta) {
     rs.meta = comp(ast.meta)
     _.each(ast.meta.properties, function (prop) {
@@ -30,7 +26,7 @@ module.exports = function (ast, comp, e) {
         for (const dec of prop.value.declarations) {
           const estree = comp(dec.right)
           comp.scope.set(dec.left.value, estree.$$Annotation || { type: 'Unknown' })
-          esBody.push(e('const', jsIdent(dec.left.value), e('call', e('id', '$env.configure', dec.loc), [
+          esBodyModules.push(e('const', jsIdent(dec.left.value), e('call', e('id', '$ctx.configure', dec.loc), [
             e('str', dec.left.value, dec.left.loc),
             estree
           ], dec.loc), dec.left.loc))
@@ -42,10 +38,9 @@ module.exports = function (ast, comp, e) {
         }
         const args = [
           e('str', ast.rid.value, ast.rid.loc),
-          ast.version ? comp(ast.version) : e('null', ast.rid.loc),
           ast.alias
             ? e('str', ast.alias.value, ast.alias.loc)
-            : e('str', ast.rid.value, ast.rid.loc)
+            : e('null', ast.rid.loc)
         ]
         if (ast['with']) {
           const withObj = {}
@@ -54,7 +49,7 @@ module.exports = function (ast, comp, e) {
           }
           args.push(e('obj', withObj, ast.loc))
         }
-        esBody.push(e(';', e('call', e('id', '$env.useModule', prop.loc), args, prop.loc), prop.loc))
+        esBodyModules.push(e(';', e('acall', e('id', '$ctx.useModule', prop.loc), args, prop.loc), prop.loc))
       }
     })
   }
@@ -102,10 +97,15 @@ module.exports = function (ast, comp, e) {
   }
   queries['__testing'] = e('fn', [], [e('return', e('json', testingJSON))])
 
+  let esBody = []
+  esBody.push(e('const', '$default', e('call', e('id', 'Symbol'), [e('str', 'default')])))
+  esBody.push(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
+  esBody.push(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
   _.each(comp.idsOutOfScope, function (ast, id) {
     esBody.push(e('const', jsIdent(id), e('get', e('id', '$stdlib', ast.loc), e('str', id, ast.loc), ast.loc), ast.loc))
   })
 
+  esBody = esBody.concat(esBodyModules)
   esBody = esBody.concat(esBodyGlobal)
   esBody = esBody.concat(esBodyRules)
 

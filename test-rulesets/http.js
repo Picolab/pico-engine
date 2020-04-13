@@ -63,7 +63,7 @@ module.exports = {
     ], async function (base_url, to, msg) {
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
+        await $env.krl.assertAction($ctx.module("http")["post"])(this, {
           "0": await $stdlib["+"]($ctx, [
             url,
             "/msg.json"

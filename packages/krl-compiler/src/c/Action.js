@@ -27,7 +27,9 @@ module.exports = function (ast, comp, e) {
   }
 
   let estree = e('acall', actionFn, [
-    e('id', '$ctx'),
+    comp.scope.has('$$is_inside_fn_or_action_body$$')
+      ? e('this')
+      : e('id', '$ctx'),
     comp(ast.args)
   ])
 

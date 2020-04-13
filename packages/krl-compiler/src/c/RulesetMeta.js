@@ -29,9 +29,6 @@ var propTypes = {
           ? e('str', ast.alias.value, ast.alias.loc)
           : e('str', ast.rid.value, ast.rid.loc)
       }
-      if (ast.version) {
-        obj.version = comp(ast.version)
-      }
       if (ast['with']) {
         obj['with'] = e('arr', ast['with'].map(dec => {
           return e('str', dec.left.value, dec.left.loc)
