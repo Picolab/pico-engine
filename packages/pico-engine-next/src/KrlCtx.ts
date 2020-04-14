@@ -3,10 +3,10 @@ import * as normalizeUrl from "normalize-url";
 import {
   PicoEvent,
   PicoFramework,
-  RulesetContext,
   RulesetConfig,
+  RulesetContext,
 } from "pico-framework";
-import { Pico, NewPicoRuleset } from "pico-framework/dist/src/Pico";
+import { NewPicoRuleset, Pico } from "pico-framework/dist/src/Pico";
 import { createRulesetContext } from "pico-framework/dist/src/RulesetContext";
 import * as SelectWhen from "select-when";
 import { PicoLogEntry } from "./getPicoLogs";
@@ -67,8 +67,8 @@ export class RulesetEnvironment {
     const myModules: { [domain: string]: krl.Module } = {};
 
     return {
-      rsCtx,
       log,
+      rsCtx,
       module(domain) {
         if (myModules[domain]) {
           return myModules[domain];
@@ -237,8 +237,13 @@ export class RulesetEnvironment {
       },
 
       async install(url, config) {
+        if (typeof url !== "string") {
+          throw new TypeError(
+            "Expected string for url but got " + krl.typeOf(url)
+          );
+        }
         url = normalizeUrl(url);
-        const rs = await rsRegistry.flush(url);
+        const rs = await rsRegistry.load(url);
         await rsCtx.install(rs.ruleset, {
           url: url,
           config: config || {},
@@ -246,6 +251,11 @@ export class RulesetEnvironment {
       },
 
       uninstall(rid: string) {
+        if (typeof rid !== "string") {
+          throw new TypeError(
+            "Expected string for rid but got " + krl.typeOf(rid)
+          );
+        }
         const usedBy = Object.keys(
           _.get(environment.picoRidUsedBy, [pico.id, rid], {})
         );
@@ -261,23 +271,24 @@ export class RulesetEnvironment {
       },
 
       async flush(url: string) {
+        if (typeof url !== "string") {
+          throw new TypeError(
+            "Expected string for url but got " + krl.typeOf(url)
+          );
+        }
         url = normalizeUrl(url);
         const rs = await rsRegistry.flush(url);
-        let pfPico: Pico;
-        try {
-          pfPico = (environment.picoFramework as any).getPico(picoId);
-        } catch (err) {
-          throw new Error("PicoFramework not yet setup");
+        if (environment.picoFramework) {
+          environment.picoFramework.reInitRuleset(rs.ruleset);
         }
-        pfPico.reInitRuleset(rs.ruleset);
       },
     };
   }
 }
 
 export interface KrlCtx {
-  rsCtx: RulesetContext;
   log: KrlLogger;
+  rsCtx: RulesetContext;
   module(domain: string): krl.Module | null;
   getEvent(): CurrentPicoEvent | null;
   setEvent(event: CurrentPicoEvent | null): void;

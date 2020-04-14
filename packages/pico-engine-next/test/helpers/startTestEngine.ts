@@ -21,12 +21,11 @@ export const allowAllChannelConf: ChannelConfig = {
 
 export async function startTestEngine(
   testFiles: string[] = [],
-  conf: PicoEngineConfiguration = {},
-  home?: string // set same home if you want to reload state
+  conf: PicoEngineConfiguration = {}
 ) {
   const pe = await startEngine({
     ...conf,
-    home: home || path.resolve(tempDir, "pico-engine", cuid()),
+    home: conf.home || path.resolve(tempDir, "pico-engine", cuid()),
     port: 0,
   });
 
@@ -39,11 +38,10 @@ export async function startTestEngine(
     await pico.install(rs.ruleset, { url });
   }
 
-  await Promise.all(
-    testFiles.map(async (file) => {
-      await installTestFile(pe.pf.rootPico, file);
-    })
-  );
+  // order matters
+  for (const file of testFiles) {
+    await installTestFile(pe.pf.rootPico, file);
+  }
 
   function mkSignal(eci: string) {
     return async function (

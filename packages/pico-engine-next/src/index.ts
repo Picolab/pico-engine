@@ -153,6 +153,7 @@ export async function startEngine(
 
   const url = toFileUrl(path.resolve(__dirname, "..", "io.picolabs.next.krl"));
   const { ruleset } = await rsRegistry.flush(url);
+  pf.reInitRuleset(ruleset);
   await pf.rootPico.install(ruleset, { url, config: {} });
   let uiChannel = pf.rootPico
     .toReadOnly()
