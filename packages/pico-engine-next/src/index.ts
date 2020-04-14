@@ -3,10 +3,9 @@ import * as _ from "lodash";
 import * as makeDir from "make-dir";
 import * as path from "path";
 import { PicoFramework } from "pico-framework";
+import { startPicoEngineCore } from "./core";
 import * as krl from "./krl";
-import { RulesetEnvironment } from "./KrlCtx";
 import { getRotatingFileStream, KrlLogger } from "./KrlLogger";
-import { schedulerStartup } from "./modules/schedule";
 import { RulesetRegistry } from "./RulesetRegistry";
 import { RulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
 import { RulesetRegistryLoaderMem } from "./RulesetRegistryLoaderMem";
@@ -86,70 +85,16 @@ export async function startEngine(
   const log = configuration.log
     ? configuration.log
     : new KrlLogger(getRotatingFileStream(logFilePath), "", logFilePath);
-  const rsRegistry = new RulesetRegistry(
-    configuration.__test__memFetchKrl
-      ? RulesetRegistryLoaderMem(configuration.__test__memFetchKrl)
-      : RulesetRegistryLoaderFs(home)
-  );
 
-  const rsEnvironment = new RulesetEnvironment(log, rsRegistry);
-
-  if (configuration.modules) {
-    _.each(configuration.modules, function (mod, domain) {
-      rsEnvironment.modules[domain] = mod;
-    });
-  }
-
-  const pf = new PicoFramework({
+  const { rsRegistry, pf } = await startPicoEngineCore({
     leveldown: leveldown(path.resolve(home, "db")) as any,
-
-    environment: rsEnvironment,
-
-    rulesetLoader: rsRegistry.loader,
-
-    onStartupRulesetInitError(picoId, rid, version, config, error) {
-      // TODO mark it as not installed and raise an error event
-      log.error("onStartupRulesetInitError", {
-        picoId,
-        rid,
-        rulesetVersion: version,
-        rulesetConfig: config,
-        error,
-      });
-    },
-
-    onFrameworkEvent(ev) {
-      switch (ev.type) {
-        case "startup":
-          break;
-        case "startupDone":
-          log.debug("pico-framework started");
-          break;
-        case "txnQueued":
-          log.debug(ev.type, {
-            picoId: ev.picoId,
-            txnId: ev.txn.id,
-            txn: ev.txn,
-          });
-          break;
-        case "txnStart":
-        case "txnDone":
-        case "txnError":
-          log.debug(ev.type, { picoId: ev.picoId, txnId: ev.txn.id });
-          break;
-      }
-    },
-
+    rsRegLoader: configuration.__test__memFetchKrl
+      ? RulesetRegistryLoaderMem(configuration.__test__memFetchKrl)
+      : RulesetRegistryLoaderFs(home),
+    log,
+    modules: configuration.modules,
     useEventInputTime: configuration.useEventInputTime,
   });
-
-  const schdlr = schedulerStartup(pf);
-  rsEnvironment.addScheduledEvent = schdlr.addScheduledEvent;
-  rsEnvironment.removeScheduledEvent = schdlr.removeScheduledEvent;
-  rsEnvironment.picoFramework = pf;
-  await schdlr.start();
-
-  await pf.start();
 
   const url = toFileUrl(path.resolve(__dirname, "..", "io.picolabs.next.krl"));
   const { ruleset } = await rsRegistry.flush(url);

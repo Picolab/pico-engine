@@ -3,43 +3,54 @@ import * as cuid from "cuid";
 import * as path from "path";
 import * as tempDir from "temp-dir";
 import { PicoEngineConfiguration } from "../src";
-import { startTestEngine } from "./helpers/startTestEngine";
+import {
+  startTestEngine,
+  allowAllChannelConf,
+  mkSignalBase,
+} from "./helpers/startTestEngine";
+import { startPicoEngineCore, PicoEngineCoreConfiguration } from "../src/core";
+import { PassThrough } from "stream";
+import { KrlLogger } from "../src/KrlLogger";
+import { RulesetRegistryLoaderMem } from "../src/RulesetRegistryLoaderMem";
+const memdown = require("memdown");
 
 test("use-module install order", async (t) => {
   const krlUrls: { [url: string]: string } = {
     "mem://main": `ruleset main {
       rule install {
         select when main:install
-        ctx:install(event:attrs{"url"})
+        every {
+          ctx:install(event:attrs{"url"})
+        }
+        
       }
     }`,
     "mem://aaa": `ruleset aaa{meta{use module bbb}}`,
     "mem://bbb": `ruleset bbb{}`,
     "mem://ccc": `ruleset ccc{meta{use module bbb}}`,
   };
-  const peConf: PicoEngineConfiguration = {
-    home: path.resolve(tempDir, "pico-engine", cuid()),
-    async __test__memFetchKrl(url) {
-      if (/io.picolabs.next.krl/.test(url)) {
-        return krlUrls["mem://main"];
-      }
-      return krlUrls[url];
-    },
+  const conf: PicoEngineCoreConfiguration = {
+    leveldown: memdown(),
+    rsRegLoader: RulesetRegistryLoaderMem(async (url) => krlUrls[url]),
+    log: new KrlLogger(new PassThrough(), ""),
   };
 
-  const pe0 = await startTestEngine([], peConf);
+  let pe = await startPicoEngineCore(conf);
+  const chann = await pe.pf.rootPico.newChannel(allowAllChannelConf);
+  const { ruleset } = await pe.rsRegistry.flush("mem://main");
+  await pe.pf.rootPico.install(ruleset, { url: "mem://main", config: {} });
+  const eci = chann.id;
+  let signal = mkSignalBase(pe.pf)(eci);
 
   let err = await t.throwsAsync(
-    pe0.signal("main", "install", { url: "mem://aaa" })
+    signal("main", "install", { url: "mem://aaa" })
   );
   t.is("" + err, "Error: Module not found: bbb");
-  err = await t.throwsAsync(
-    pe0.signal("main", "install", { url: "mem://ccc" })
-  );
+  err = await t.throwsAsync(signal("main", "install", { url: "mem://ccc" }));
   t.is("" + err, "Error: Module not found: bbb");
-  t.deepEqual(await pe0.signal("main", "install", { url: "mem://bbb" }), []);
-  t.deepEqual(await pe0.signal("main", "install", { url: "mem://aaa" }), []);
-  t.deepEqual(await pe0.signal("main", "install", { url: "mem://ccc" }), []);
+  t.deepEqual(await signal("main", "install", { url: "mem://bbb" }), []);
+  t.deepEqual(await signal("main", "install", { url: "mem://aaa" }), []);
+  t.deepEqual(await signal("main", "install", { url: "mem://ccc" }), []);
 
-  // TODO re-start the engine to test load order
+  pe = await startPicoEngineCore(conf);
 });

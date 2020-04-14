@@ -1,6 +1,6 @@
 import * as cuid from "cuid";
 import * as path from "path";
-import { ChannelConfig } from "pico-framework";
+import { ChannelConfig, PicoFramework } from "pico-framework";
 import { Pico } from "pico-framework/dist/src/Pico";
 import * as tempDir from "temp-dir";
 import { PicoEngineConfiguration, startEngine } from "../../src/index";
@@ -18,6 +18,26 @@ export const allowAllChannelConf: ChannelConfig = {
     deny: [],
   },
 };
+
+export function mkSignalBase(pf: PicoFramework) {
+  return function (eci: string) {
+    return async function (
+      domain: string,
+      name: string,
+      attrs: any = {},
+      time: number = 0
+    ) {
+      const resp = await pf.eventWait({
+        eci,
+        domain,
+        name,
+        data: { attrs },
+        time,
+      });
+      return cleanDirectives(resp.responses);
+    };
+  };
+}
 
 export async function startTestEngine(
   testFiles: string[] = [],
@@ -43,24 +63,7 @@ export async function startTestEngine(
     await installTestFile(pe.pf.rootPico, file);
   }
 
-  function mkSignal(eci: string) {
-    return async function (
-      domain: string,
-      name: string,
-      attrs: any = {},
-      time: number = 0
-    ) {
-      const resp = await pe.pf.eventWait({
-        eci,
-        domain,
-        name,
-        data: { attrs },
-        time,
-      });
-      return cleanDirectives(resp.responses);
-    };
-  }
-
+  const mkSignal = mkSignalBase(pe.pf);
   const signal = mkSignal(eci);
 
   function mkQuery(rid: string) {
