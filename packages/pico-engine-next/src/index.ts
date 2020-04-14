@@ -2,14 +2,14 @@ import leveldown from "leveldown";
 import * as _ from "lodash";
 import * as makeDir from "make-dir";
 import * as path from "path";
-import { ChannelConfig, ChannelReadOnly, PicoFramework } from "pico-framework";
-import { Pico } from "pico-framework/dist/src/Pico";
+import { PicoFramework } from "pico-framework";
 import * as krl from "./krl";
 import { RulesetEnvironment } from "./KrlCtx";
 import { getRotatingFileStream, KrlLogger } from "./KrlLogger";
 import { schedulerStartup } from "./modules/schedule";
 import { RulesetRegistry } from "./RulesetRegistry";
 import { RulesetRegistryLoaderFs } from "./RulesetRegistryLoaderFs";
+import { RulesetRegistryLoaderMem } from "./RulesetRegistryLoaderMem";
 import { server } from "./server";
 import { toFileUrl } from "./utils/toFileUrl";
 
@@ -54,6 +54,8 @@ export interface PicoEngineConfiguration {
   useEventInputTime?: boolean;
 
   log?: KrlLogger;
+
+  __test__memFetchKrl?: (url: string) => Promise<string>;
 }
 
 export interface PicoEngine {
@@ -84,7 +86,12 @@ export async function startEngine(
   const log = configuration.log
     ? configuration.log
     : new KrlLogger(getRotatingFileStream(logFilePath), "", logFilePath);
-  const rsRegistry = new RulesetRegistry(RulesetRegistryLoaderFs(home));
+  const rsRegistry = new RulesetRegistry(
+    configuration.__test__memFetchKrl
+      ? RulesetRegistryLoaderMem(configuration.__test__memFetchKrl)
+      : RulesetRegistryLoaderFs(home)
+  );
+
   const rsEnvironment = new RulesetEnvironment(log, rsRegistry);
 
   if (configuration.modules) {

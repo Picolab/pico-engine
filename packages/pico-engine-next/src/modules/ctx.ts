@@ -1,26 +1,6 @@
-import * as normalizeUrl from "normalize-url";
-import { ChannelConfig, cleanChannelTags, RulesetConfig } from "pico-framework";
-import { NewPicoRuleset } from "pico-framework/dist/src/Pico";
+import { ChannelConfig, cleanChannelTags } from "pico-framework";
 import * as request from "request";
 import * as krl from "../krl";
-
-interface RulesetCtxInfo {
-  rid: string;
-  version: string;
-  config: RulesetConfig | null;
-  url: string;
-  meta: RulesetCtxInfoMeta | null;
-}
-
-interface RulesetCtxInfoMeta {
-  krl: string;
-  hash: string;
-  flushed: Date;
-  compiler: {
-    version: string;
-    warnings: any[];
-  };
-}
 
 const ctx: krl.Module = {
   rid: krl.Property(function rid() {
@@ -47,25 +27,8 @@ const ctx: krl.Module = {
     return this.rsCtx.pico().children;
   }),
 
-  newPico: krl.Action(["rulesets"], async function newPico(rulesets) {
-    if (!Array.isArray(rulesets)) {
-      throw new TypeError("ctx:newPico expects an array of {url, config}");
-    }
-    const toInstall: NewPicoRuleset[] = [];
-    for (const rs of rulesets) {
-      const result = await this.rsRegistry.load(rs.url);
-      toInstall.push({
-        rs: result.ruleset,
-        config: {
-          url: rs.url,
-          config: rs.config || {},
-        },
-      });
-    }
-    const newEci = await this.rsCtx.newPico({
-      rulesets: toInstall,
-    });
-    return newEci;
+  newPico: krl.Action(["rulesets"], function newPico(rulesets) {
+    return this.newPico(rulesets);
   }),
 
   delPico: krl.Action(["eci"], async function delPico(eci) {
@@ -115,48 +78,20 @@ const ctx: krl.Module = {
     await this.rsCtx.delChannel(eci);
   }),
 
-  rulesets: krl.Property(function rulesets(): RulesetCtxInfo[] {
-    const pico = this.rsCtx.pico();
-
-    const results: RulesetCtxInfo[] = [];
-
-    for (const rs of pico.rulesets) {
-      const cached = this.rsRegistry.getCached(rs.config.url);
-      results.push({
-        rid: rs.rid,
-        version: rs.version,
-        url: rs.config.url,
-        config: rs.config.config,
-        meta: cached
-          ? {
-              krl: cached.krl,
-              hash: cached.hash,
-              flushed: cached.flushed,
-              compiler: cached.compiler,
-            }
-          : null,
-      });
-    }
-
-    return results;
+  rulesets: krl.Property(function rulesets() {
+    return this.rulesets();
   }),
 
-  install: krl.Action(["url", "config"], async function install(url, config) {
-    url = normalizeUrl(url);
-    const rs = await this.rsRegistry.flush(url);
-    await this.rsCtx.install(rs.ruleset, {
-      url: url,
-      config: config || {},
-    });
+  install: krl.Action(["url", "config"], function install(url, config) {
+    return this.install(url, config);
   }),
 
-  uninstall: krl.Action(["rid"], async function uninstall(rid) {
-    await this.uninstall(rid);
+  uninstall: krl.Action(["rid"], function uninstall(rid) {
+    return this.uninstall(rid);
   }),
 
-  flush: krl.Action(["url"], async function flush(url) {
-    url = normalizeUrl(url);
-    await this.rsRegistry.flush(url);
+  flush: krl.Action(["url"], function flush(url) {
+    return this.flush(url);
   }),
 
   raiseEvent: krl.Postlude(

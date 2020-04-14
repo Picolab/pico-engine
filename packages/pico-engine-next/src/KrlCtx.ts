@@ -1,6 +1,13 @@
 import * as _ from "lodash";
-import { PicoEvent, PicoFramework, RulesetContext } from "pico-framework";
-import { Pico } from "pico-framework/dist/src/Pico";
+import * as normalizeUrl from "normalize-url";
+import {
+  PicoEvent,
+  PicoFramework,
+  RulesetContext,
+  RulesetConfig,
+} from "pico-framework";
+import { Pico, NewPicoRuleset } from "pico-framework/dist/src/Pico";
+import { createRulesetContext } from "pico-framework/dist/src/RulesetContext";
 import * as SelectWhen from "select-when";
 import { PicoLogEntry } from "./getPicoLogs";
 import * as krl from "./krl";
@@ -8,7 +15,6 @@ import { KrlLogger } from "./KrlLogger";
 import * as modules from "./modules";
 import { ScheduledEvent } from "./modules/schedule";
 import { RulesetRegistry } from "./RulesetRegistry";
-import { createRulesetContext } from "pico-framework/dist/src/RulesetContext";
 
 export interface CurrentPicoEvent extends PicoEvent {
   eid: string;
@@ -52,6 +58,7 @@ export class RulesetEnvironment {
     });
 
     const environment = this;
+    const rsRegistry = this.rsRegistry;
 
     let currentEvent: CurrentPicoEvent | null = null;
 
@@ -62,7 +69,6 @@ export class RulesetEnvironment {
     return {
       rsCtx,
       log,
-      rsRegistry: this.rsRegistry,
       module(domain) {
         if (myModules[domain]) {
           return myModules[domain];
@@ -143,15 +149,34 @@ export class RulesetEnvironment {
       },
 
       async useModule(rid, alias, configure) {
-        const module = await environment.getRulesetModule(
-          pico.id,
-          rid,
-          configure || {},
-          rsCtx
+        let pfPico: Pico;
+        const picoFramework = environment.picoFramework;
+        if (!picoFramework) {
+          throw new Error("PicoFramework not yet setup");
+        }
+        try {
+          pfPico = picoFramework.getPico(picoId);
+        } catch (err) {
+          throw new Error("PicoFramework not yet setup");
+        }
+        const ruleset = rsRegistry.getCached(
+          pfPico.rulesets[rid]?.config?.url || ""
         );
-        if (!module) {
+        if (!ruleset) {
           throw new Error(`Module not found: ${rid}`);
         }
+        const rsI = await ruleset.ruleset.init(
+          createRulesetContext(picoFramework, pfPico, {
+            rid: ruleset.rid,
+            version: ruleset.version,
+            config: {
+              ...rsCtx.ruleset.config,
+              _krl_module_config: configure,
+            },
+          }),
+          environment
+        );
+        const module: krl.Module = (rsI as any).provides || {};
         if (!alias) {
           alias = rid;
         }
@@ -162,6 +187,62 @@ export class RulesetEnvironment {
           [pico.id, rid, rsCtx.ruleset.rid],
           true
         );
+      },
+
+      async newPico(rulesets) {
+        if (!Array.isArray(rulesets)) {
+          throw new TypeError("ctx:newPico expects an array of {url, config}");
+        }
+        const toInstall: NewPicoRuleset[] = [];
+        for (const rs of rulesets) {
+          const result = await rsRegistry.load(rs.url);
+          toInstall.push({
+            rs: result.ruleset,
+            config: {
+              url: rs.url,
+              config: rs.config || {},
+            },
+          });
+        }
+        const newEci = await rsCtx.newPico({
+          rulesets: toInstall,
+        });
+        return newEci;
+      },
+
+      rulesets() {
+        const pico = rsCtx.pico();
+
+        const results: RulesetCtxInfo[] = [];
+
+        for (const rs of pico.rulesets) {
+          const cached = rsRegistry.getCached(rs.config.url);
+          results.push({
+            rid: rs.rid,
+            version: rs.version,
+            url: rs.config.url,
+            config: rs.config.config,
+            meta: cached
+              ? {
+                  krl: cached.krl,
+                  hash: cached.hash,
+                  flushed: cached.flushed,
+                  compiler: cached.compiler,
+                }
+              : null,
+          });
+        }
+
+        return results;
+      },
+
+      async install(url, config) {
+        url = normalizeUrl(url);
+        const rs = await rsRegistry.flush(url);
+        await rsCtx.install(rs.ruleset, {
+          url: url,
+          config: config || {},
+        });
       },
 
       uninstall(rid: string) {
@@ -178,49 +259,25 @@ export class RulesetEnvironment {
         _.unset(environment.picoRidUses, [pico.id, rid]);
         return rsCtx.uninstall(rid);
       },
-    };
-  }
 
-  private async getRulesetModule(
-    picoId: string,
-    rid: string,
-    configure: { [name: string]: any },
-    rsCtx: RulesetContext
-  ): Promise<krl.Module | null> {
-    if (!this.picoFramework) return null;
-    let pico: Pico;
-    try {
-      pico = this.picoFramework.getPico(picoId);
-    } catch (err) {
-      return null;
-    }
-    const rs = pico.rulesets[rid];
-    if (!rs) {
-      return null;
-    }
-    const ruleset = this.rsRegistry.getCached(rs.config?.url || "");
-    if (!ruleset) {
-      return null;
-    }
-    const rsI = await ruleset.ruleset.init(
-      createRulesetContext(this.picoFramework, pico, {
-        rid: ruleset.rid,
-        version: ruleset.version,
-        config: {
-          ...rsCtx.ruleset.config,
-          _krl_module_config: configure,
-        },
-      }),
-      this
-    );
-    return (rsI as any).provides || {};
+      async flush(url: string) {
+        url = normalizeUrl(url);
+        const rs = await rsRegistry.flush(url);
+        let pfPico: Pico;
+        try {
+          pfPico = (environment.picoFramework as any).getPico(picoId);
+        } catch (err) {
+          throw new Error("PicoFramework not yet setup");
+        }
+        pfPico.reInitRuleset(rs.ruleset);
+      },
+    };
   }
 }
 
 export interface KrlCtx {
   rsCtx: RulesetContext;
   log: KrlLogger;
-  rsRegistry: RulesetRegistry;
   module(domain: string): krl.Module | null;
   getEvent(): CurrentPicoEvent | null;
   setEvent(event: CurrentPicoEvent | null): void;
@@ -236,7 +293,13 @@ export interface KrlCtx {
     alias?: string | null,
     configure?: { [name: string]: any }
   ): Promise<void>;
+
+  newPico(rulesets: { url: string; config: any }[]): Promise<string>;
+
+  rulesets(): RulesetCtxInfo[];
+  install(url: string, config: RulesetConfig): Promise<void>;
   uninstall(rid: string): Promise<void>;
+  flush(url: string): Promise<void>;
 }
 
 function toFloat(v: any) {
@@ -273,3 +336,21 @@ const aggregators: { [op: string]: (vals: any[]) => any } = {
     return values;
   },
 };
+
+interface RulesetCtxInfo {
+  rid: string;
+  version: string;
+  config: RulesetConfig | null;
+  url: string;
+  meta: RulesetCtxInfoMeta | null;
+}
+
+interface RulesetCtxInfoMeta {
+  krl: string;
+  hash: string;
+  flushed: Date;
+  compiler: {
+    version: string;
+    warnings: any[];
+  };
+}

@@ -43,10 +43,10 @@ export class RulesetRegistry {
 
   constructor(private regLoader: RulesetRegistryLoader) {
     this.load = pMemoize((url: string) => this.loadBase(url), {
-      maxAge: 100
+      maxAge: 100,
     });
     this.flush = pMemoize((url: string) => this.flushBase(url), {
-      maxAge: 100
+      maxAge: 100,
     });
   }
 
@@ -102,7 +102,7 @@ export class RulesetRegistry {
       rid: ruleset.rid,
       version: ruleset.version,
       compiler,
-      ruleset
+      ruleset,
     };
 
     await this.regLoader.save(toSave);

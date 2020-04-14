@@ -21,11 +21,12 @@ export const allowAllChannelConf: ChannelConfig = {
 
 export async function startTestEngine(
   testFiles: string[] = [],
-  conf: PicoEngineConfiguration = {}
+  conf: PicoEngineConfiguration = {},
+  home?: string // set same home if you want to reload state
 ) {
   const pe = await startEngine({
     ...conf,
-    home: path.resolve(tempDir, "pico-engine", cuid()),
+    home: home || path.resolve(tempDir, "pico-engine", cuid()),
     port: 0,
   });
 
