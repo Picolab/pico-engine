@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/Picolab/pico-engine.svg)](https://travis-ci.org/Picolab/pico-engine)
 [![Node version](https://img.shields.io/node/v/pico-engine.svg)](https://nodejs.org/en/download/)
 
-An implementation of the [pico-engine](http://www.windley.com/archives/2016/03/rebuilding_krl.shtml) hosted on node.js
+An implementation of the [pico-engine](http://www.windley.com/archives/2016/03/rebuilding_krl.shtml) hosted on node.js 
 
 ## Getting Started / Installing / Configuration
 
