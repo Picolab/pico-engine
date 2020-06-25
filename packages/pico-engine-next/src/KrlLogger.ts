@@ -6,7 +6,7 @@ const through2 = require("through2");
 
 const rfs = require("rotating-file-stream");
 
-const krlLogLevelCodeToHuman: { [level: string]: string } = {
+export const krlLogLevelCodeToHuman: { [level: string]: string } = {
   "10": "error",
   "20": "warn",
   "30": "info",
