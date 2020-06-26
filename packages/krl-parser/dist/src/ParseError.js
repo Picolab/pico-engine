@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ParseError = void 0;
 const lineColumn = require("line-column");
 const excerptAtLineCol = require("excerpt-at-line-col");
 class ParseError extends Error {
