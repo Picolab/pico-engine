@@ -23,7 +23,7 @@ function logDetailsToHuman(entry: any): string {
       const query = entry.txn.query;
       const args = query.args || {};
       delete args._headers;
-      return `QUERY ${query.eci}/${query.rid}/${query.name} ${JSON.stringify(
+      return `QUERY ${query.eci} ${query.rid}/${query.name} ${JSON.stringify(
         args
       )}`;
     }
@@ -31,7 +31,7 @@ function logDetailsToHuman(entry: any): string {
       const event = entry.txn.event;
       const attrs = event.data?.attrs || {};
       delete attrs._headers;
-      return `EVENT ${event.eci}/${event.domain}/${event.name} ${JSON.stringify(
+      return `EVENT ${event.eci} ${event.domain}:${event.name} ${JSON.stringify(
         attrs
       )}`;
     }
