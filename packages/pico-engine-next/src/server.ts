@@ -39,7 +39,7 @@ export function server(pf: PicoFramework, uiECI: string): Express {
       data: { attrs: mergeGetPost(req) },
       time: 0 // TODO remove this typescript requirement
     })
-      .then(function(data) {
+      .then(data => {
         res.json(data);
       })
       .catch(next);
@@ -53,8 +53,26 @@ export function server(pf: PicoFramework, uiECI: string): Express {
       data: { attrs: mergeGetPost(req) },
       time: 0 // TODO remove this typescript requirement
     })
-      .then(() => {
-        res.json({ ok: true });
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
+  });
+
+  app.all("/sky/event/:eci/:eid/:domain/:type", function(req, res, next) {
+    const attrs = mergeGetPost(req);
+    if (req.params.eid !== "none" && !attrs.hasOwnProperty("__eid")) {
+      attrs.__eid = req.params.eid;
+    }
+    pf.eventWait({
+      eci: req.params.eci,
+      domain: req.params.domain,
+      name: req.params["type"],
+      data: { attrs },
+      time: 0 // TODO remove this typescript requirement
+    })
+      .then(data => {
+        res.json(data);
       })
       .catch(next);
   });
@@ -80,7 +98,7 @@ export function server(pf: PicoFramework, uiECI: string): Express {
         args: attrs
       }
     )
-      .then(function(data) {
+      .then(data => {
         res.json(data);
       })
       .catch(next);
@@ -93,7 +111,20 @@ export function server(pf: PicoFramework, uiECI: string): Express {
       name: req.params.name,
       args: mergeGetPost(req)
     })
-      .then(function(data) {
+      .then(data => {
+        res.json(data);
+      })
+      .catch(next);
+  });
+
+  app.all("/sky/cloud/:eci/:rid/:function", function(req, res, next) {
+    pf.query({
+      eci: req.params.eci,
+      rid: req.params.rid,
+      name: req.params["function"],
+      args: mergeGetPost(req)
+    })
+      .then(data => {
         res.json(data);
       })
       .catch(next);
