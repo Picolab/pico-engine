@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.LEVEL_ENUM = exports.TIME_PERIOD_ENUM = exports.RESERVED_WORDS_ENUM = void 0;
 exports.RESERVED_WORDS_ENUM = {
     defaction: true,
     function: true,

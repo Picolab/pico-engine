@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.easyLookahead = exports.lookahead = exports.advanceBase = void 0;
 const ParseError_1 = require("./ParseError");
 function checkSignificantToken(token) {
     if (token.type === "MISSING-CLOSE") {
