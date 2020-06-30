@@ -164,7 +164,28 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
                       </div>
                       <div>
                         <b className="text-muted">Compiler warnings:</b>{" "}
-                        {JSON.stringify(ruleset.meta.compiler.warnings)}
+                        {Array.isArray(ruleset.meta.compiler.warnings) ? (
+                          <ul>
+                            {ruleset.meta.compiler.warnings.map((warning) => {
+                              let message = "";
+                              if (
+                                warning &&
+                                typeof warning.message === "string"
+                              ) {
+                                message = `${
+                                  warning.loc?.start
+                                    ? `${warning.loc.start.line}:${warning.loc.start.column}: `
+                                    : ""
+                                }${warning.message}`;
+                              } else {
+                                message = JSON.stringify(warning);
+                              }
+                              return <li>{message}</li>;
+                            })}
+                          </ul>
+                        ) : (
+                          <span></span>
+                        )}
                       </div>
                     </div>
                   )}
