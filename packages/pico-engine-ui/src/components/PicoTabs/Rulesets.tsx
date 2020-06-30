@@ -37,14 +37,14 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
     eci: string;
     url: string;
     config: any;
-  }>(params =>
+  }>((params) =>
     apiPost(
       `/c/${params.eci}/event/engine_ui/install/query/io.picolabs.next/pico`,
       {
         url: params.url,
-        config: params.config
+        config: params.config,
       }
-    ).then(d => {
+    ).then((d) => {
       picoDetails.setData(d);
       setUrl("");
       setConfig("{}");
@@ -56,8 +56,8 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
     rid: string;
   }>(({ eci, rid }) =>
     apiPost(`/c/${eci}/event/engine_ui/uninstall/query/io.picolabs.next/pico`, {
-      rid
-    }).then(d => {
+      rid,
+    }).then((d) => {
       picoDetails.setData(d);
     })
   );
@@ -67,8 +67,8 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
     url: string;
   }>(({ eci, url }) =>
     apiPost(`/c/${eci}/event/engine_ui/flush/query/io.picolabs.next/pico`, {
-      url
-    }).then(d => {
+      url,
+    }).then((d) => {
       picoDetails.setData(d);
     })
   );
@@ -81,9 +81,8 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
     <div>
       <h3>Installed Rulesets</h3>
       <ErrorStatus error={picoDetails.error} />
-      <ErrorStatus error={uninstall.error} />
       {picoDetails.data && picoDetails.data.rulesets.length > 0 ? (
-        picoDetails.data.rulesets.map(ruleset => {
+        picoDetails.data.rulesets.map((ruleset) => {
           const key = `${ruleset.rid}-${ruleset.version}`;
           const id = `id-rid-${key}`;
           const isOpen = !!expandedRulesets[key];
@@ -95,7 +94,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
                     className="form-check-input"
                     type="checkbox"
                     id={id}
-                    onChange={e => {
+                    onChange={(e) => {
                       const map = Object.assign({}, expandedRulesets);
                       if (e.target.checked) {
                         map[key] = true;
@@ -119,7 +118,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
                     <button
                       className="btn btn-outline-primary btn-sm"
                       type="button"
-                      onClick={e => {
+                      onClick={(e) => {
                         e.preventDefault();
                         flush.act({ eci: pico.eci, url: ruleset.url });
                       }}
@@ -130,7 +129,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
                     <button
                       className="btn btn-outline-danger btn-sm"
                       type="button"
-                      onClick={e => {
+                      onClick={(e) => {
                         e.preventDefault();
                         uninstall.act({ eci: pico.eci, rid: ruleset.rid });
                       }}
@@ -138,6 +137,8 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
                     >
                       uninstall
                     </button>
+                    <ErrorStatus error={flush.error} />
+                    <ErrorStatus error={uninstall.error} />
                   </div>
                   <div>
                     <a href={ruleset.url} target="_blank">
@@ -180,13 +181,13 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
       <hr />
       <h4>Install Ruleset</h4>
       <form
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           if (isReadyToInstall() && url) {
             install.act({
               eci: pico.eci,
               url,
-              config: JSON.parse(config)
+              config: JSON.parse(config),
             });
           }
         }}
@@ -197,7 +198,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
             id="new-rs-url"
             className="form-control"
             value={url}
-            onChange={e => setUrl(e.target.value)}
+            onChange={(e) => setUrl(e.target.value)}
             disabled={picoDetails.waiting || install.waiting}
           />
         </div>
@@ -208,7 +209,7 @@ const Rulesets: React.FC<Props> = ({ pico }) => {
             rows={3}
             className="form-control"
             value={config}
-            onChange={e => setConfig(e.target.value)}
+            onChange={(e) => setConfig(e.target.value)}
             disabled={picoDetails.waiting || install.waiting}
           />
         </div>
