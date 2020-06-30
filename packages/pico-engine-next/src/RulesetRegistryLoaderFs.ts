@@ -137,13 +137,14 @@ function fetchKrl(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const urlParsed = urlLib.parse(url);
     if (urlParsed.protocol === "file:") {
-      fs.readFile(decodeURI(urlParsed.path || ""), { flag: "rs+" }, function(
-        err,
-        data
-      ) {
-        if (err) reject(err);
-        else resolve(data.toString());
-      });
+      fs.readFile(
+        decodeURI(urlParsed.path || ""),
+        { flag: "rs", encoding: "utf8" },
+        function(err, data) {
+          if (err) reject(err);
+          else resolve(data.toString());
+        }
+      );
     } else {
       request(url, function(err: any, resp: any, body: any) {
         if (err) {
