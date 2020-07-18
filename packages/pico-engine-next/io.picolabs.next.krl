@@ -125,7 +125,10 @@ ruleset io.picolabs.next {
   }
   rule install {
     select when engine_ui install
-    ctx:install(url=event:attrs{"url"}, config=event:attrs{"config"})
+    every {
+      ctx:flush(url=event:attrs{"url"})
+      ctx:install(url=event:attrs{"url"}, config=event:attrs{"config"})
+    }
   }
   rule uninstall {
     select when engine_ui uninstall
