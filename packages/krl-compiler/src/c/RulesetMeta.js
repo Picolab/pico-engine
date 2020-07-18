@@ -19,6 +19,14 @@ var propTypes = {
     }
     return comp(_.head(props).value)
   },
+  'logging': function (props, comp, e) {
+    if (_.size(props) > 1) {
+      throw comp.error(props[1].loc, 'only 1 meta.logging allowed')
+    }
+    const prop = _.head(props)
+    comp.warn(prop.loc, 'DEPRECATED meta.logging is no longer needed, logging is always on')
+    return comp(prop.value)
+  },
   'use': function (props, comp, e) {
     return e('arr', _.map(props, function (prop) {
       var ast = prop.value
