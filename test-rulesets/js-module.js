@@ -42,8 +42,13 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "qFn": function ($args) {
-          return qFn($ctx, $args);
+        "qFn": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return qFn($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

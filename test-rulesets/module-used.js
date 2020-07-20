@@ -141,14 +141,29 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "now": function ($args) {
-          return now($ctx, $args);
+        "now": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return now($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "getEntVal": function ($args) {
-          return getEntVal($ctx, $args);
+        "getEntVal": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getEntVal($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "dfltName": function ($args) {
-          return dfltName;
+        "dfltName": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return dfltName;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

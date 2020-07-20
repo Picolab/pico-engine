@@ -147,14 +147,29 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "results": function ($args) {
-          return results;
+        "results": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return results;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "returnMapAfterKlog": function ($args) {
-          return returnMapAfterKlog($ctx, $args);
+        "returnMapAfterKlog": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return returnMapAfterKlog($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "returnArrayAfterKlog": function ($args) {
-          return returnArrayAfterKlog($ctx, $args);
+        "returnArrayAfterKlog": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return returnArrayAfterKlog($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

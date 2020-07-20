@@ -48,14 +48,29 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "add": function ($args) {
-          return add($ctx, $args);
+        "add": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return add($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "inc": function ($args) {
-          return inc($ctx, $args);
+        "inc": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return inc($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "foo": function ($args) {
-          return foo($ctx, $args);
+        "foo": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return foo($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

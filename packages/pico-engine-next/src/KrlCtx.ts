@@ -3,6 +3,7 @@ import * as normalizeUrl from "normalize-url";
 import {
   PicoEvent,
   PicoFramework,
+  PicoQuery,
   RulesetConfig,
   RulesetContext,
 } from "pico-framework";
@@ -18,6 +19,10 @@ import { RulesetRegistry } from "./RulesetRegistry";
 
 export interface CurrentPicoEvent extends PicoEvent {
   eid: string;
+}
+
+export interface CurrentPicoQuery extends PicoQuery {
+  qid: string;
 }
 
 export interface Directive {
@@ -52,21 +57,20 @@ export class RulesetEnvironment {
   mkCtx(rsCtx: RulesetContext): KrlCtx {
     const pico = rsCtx.pico();
     const picoId = pico.id;
-    const log = this.log.child({
-      picoId,
-      rid: rsCtx.ruleset.rid,
-    });
+    const logCtxBase = { picoId, rid: rsCtx.ruleset.rid };
+    let log = this.log.child(logCtxBase);
 
     const environment = this;
     const rsRegistry = this.rsRegistry;
 
     let currentEvent: CurrentPicoEvent | null = null;
+    let currentQuery: CurrentPicoQuery | null = null;
 
     let directives: Directive[] = [];
 
     const myModules: { [domain: string]: krl.Module } = {};
 
-    return {
+    const krlCtx: KrlCtx = {
       log,
       rsCtx,
       module(domain) {
@@ -79,7 +83,19 @@ export class RulesetEnvironment {
         return currentEvent;
       },
       setEvent(event) {
+        krlCtx.log = log = this.log.child(
+          event ? { ...logCtxBase, txnId: event.eid } : logCtxBase
+        );
         currentEvent = event;
+      },
+      getQuery() {
+        return currentQuery;
+      },
+      setQuery(query) {
+        krlCtx.log = log = this.log.child(
+          query ? { ...logCtxBase, txnId: query.qid } : logCtxBase
+        );
+        currentQuery = query;
       },
       addDirective(name, options) {
         const directive: Directive = { name, options: options || {} };
@@ -283,6 +299,7 @@ export class RulesetEnvironment {
         }
       },
     };
+    return krlCtx;
   }
 }
 
@@ -292,6 +309,8 @@ export interface KrlCtx {
   module(domain: string): krl.Module | null;
   getEvent(): CurrentPicoEvent | null;
   setEvent(event: CurrentPicoEvent | null): void;
+  getQuery(): CurrentPicoQuery | null;
+  setQuery(query: CurrentPicoQuery | null): void;
   addDirective(name: string, options: { [name: string]: any }): Directive;
   drainDirectives(): Directive[];
   aggregateEvent(state: any, op: string, pairs: [string, string][]): any;

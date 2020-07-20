@@ -76,8 +76,13 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getOrder": function ($args) {
-          return getOrder($ctx, $args);
+        "getOrder": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getOrder($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

@@ -130,23 +130,53 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "obj": function ($args) {
-          return obj;
+        "obj": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return obj;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "path1": function ($args) {
-          return path1;
+        "path1": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return path1;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "path2": function ($args) {
-          return path2;
+        "path2": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return path2;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "index1": function ($args) {
-          return index1;
+        "index1": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return index1;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "index2": function ($args) {
-          return index2;
+        "index2": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return index2;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "paramFnTest": function ($args) {
-          return paramFnTest($ctx, $args);
+        "paramFnTest": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return paramFnTest($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

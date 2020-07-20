@@ -309,23 +309,53 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "g0": function ($args) {
-          return g0;
+        "g0": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return g0;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "g1": function ($args) {
-          return g1;
+        "g1": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return g1;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "getVals": function ($args) {
-          return getVals($ctx, $args);
+        "getVals": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getVals($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "add": function ($args) {
-          return add($ctx, $args);
+        "add": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return add($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "sum": function ($args) {
-          return sum($ctx, $args);
+        "sum": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return sum($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "mapped": function ($args) {
-          return mapped;
+        "mapped": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return mapped;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

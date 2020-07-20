@@ -14,7 +14,6 @@ ruleset io.picolabs.next {
       return eci => ctx:query(eci, ctx:rid, "uiECI") | null
     }
     box = function(){
-      msg = "Hello " + name;
       return {
         "eci": uiECI(),
         "parent": getOtherUiECI(ctx:parent),

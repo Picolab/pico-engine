@@ -382,11 +382,21 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getSettingVal": function ($args) {
-          return getSettingVal($ctx, $args);
+        "getSettingVal": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getSettingVal($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "add": function ($args) {
-          return add($ctx, $args);
+        "add": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return add($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

@@ -197,11 +197,21 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getLog": function ($args) {
-          return getLog($ctx, $args);
+        "getLog": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getLog($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "listScheduled": function ($args) {
-          return listScheduled($ctx, $args);
+        "listScheduled": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return listScheduled($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

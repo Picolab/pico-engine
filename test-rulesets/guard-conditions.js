@@ -109,8 +109,13 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getB": function ($args) {
-          return getB($ctx, $args);
+        "getB": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getB($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

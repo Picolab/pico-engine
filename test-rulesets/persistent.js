@@ -121,14 +121,29 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getName": function ($args) {
-          return getName($ctx, $args);
+        "getName": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getName($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "getUser": function ($args) {
-          return getUser($ctx, $args);
+        "getUser": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getUser($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "getUserFirstname": function ($args) {
-          return getUserFirstname($ctx, $args);
+        "getUserFirstname": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getUserFirstname($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

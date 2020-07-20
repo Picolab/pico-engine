@@ -921,17 +921,37 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getOnChooseFired": function ($args) {
-          return getOnChooseFired($ctx, $args);
+        "getOnChooseFired": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getOnChooseFired($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "getNoActionFired": function ($args) {
-          return getNoActionFired($ctx, $args);
+        "getNoActionFired": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getNoActionFired($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "getSentAttrs": function ($args) {
-          return getSentAttrs($ctx, $args);
+        "getSentAttrs": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getSentAttrs($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "getSentName": function ($args) {
-          return getSentName($ctx, $args);
+        "getSentName": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getSentName($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

@@ -154,8 +154,13 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getErrors": function ($args) {
-          return getErrors($ctx, $args);
+        "getErrors": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getErrors($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

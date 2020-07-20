@@ -120,8 +120,13 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getInfo": function ($args) {
-          return getInfo($ctx, $args);
+        "getInfo": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getInfo($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

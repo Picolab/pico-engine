@@ -47,11 +47,21 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "hello": function ($args) {
-          return hello($ctx, $args);
+        "hello": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return hello($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "said": function ($args) {
-          return said($ctx, $args);
+        "said": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return said($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

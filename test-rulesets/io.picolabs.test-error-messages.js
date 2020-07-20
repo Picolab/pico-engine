@@ -36,17 +36,37 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "hello": function ($args) {
-          return hello($ctx, $args);
+        "hello": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return hello($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "null_val": function ($args) {
-          return null_val;
+        "null_val": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return null_val;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "somethingNotDefined": function ($args) {
-          return somethingNotDefined;
+        "somethingNotDefined": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return somethingNotDefined;
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "infiniteRecursion": function ($args) {
-          return infiniteRecursion($ctx, $args);
+        "infiniteRecursion": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return infiniteRecursion($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

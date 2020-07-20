@@ -133,17 +133,37 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getFoo": function ($args) {
-          return getFoo($ctx, $args);
+        "getFoo": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getFoo($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "getFooKey": function ($args) {
-          return getFooKey($ctx, $args);
+        "getFooKey": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getFooKey($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "getBaz": function ($args) {
-          return getBaz($ctx, $args);
+        "getBaz": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getBaz($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "getMaplist": function ($args) {
-          return getMaplist($ctx, $args);
+        "getMaplist": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getMaplist($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {

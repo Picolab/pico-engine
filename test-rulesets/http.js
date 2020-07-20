@@ -231,17 +231,37 @@ module.exports = {
         return $ctx.drainDirectives();
       },
       "query": {
-        "getResp": function ($args) {
-          return getResp($ctx, $args);
+        "getResp": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getResp($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "getLastPostEvent": function ($args) {
-          return getLastPostEvent($ctx, $args);
+        "getLastPostEvent": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return getLastPostEvent($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "fnGet": function ($args) {
-          return fnGet($ctx, $args);
+        "fnGet": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return fnGet($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
-        "fnPost": function ($args) {
-          return fnPost($ctx, $args);
+        "fnPost": function (query, qid) {
+          $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
+          try {
+            return fnPost($ctx, query.args);
+          } finally {
+            $ctx.setQuery(null);
+          }
         },
         "__testing": function () {
           return {
