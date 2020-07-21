@@ -44,7 +44,7 @@ export function RulesetRegistryLoaderFs(
   const db = level(
     encode(leveldown(path.resolve(engineHomeDir, "rulesets-db")), {
       keyEncoding: charwise,
-      valueEncoding: safeJsonCodec
+      valueEncoding: safeJsonCodec,
     })
   );
 
@@ -71,9 +71,9 @@ export function RulesetRegistryLoaderFs(
     } else {
       const out = krlCompiler(krl, {
         parser_options: {
-          filename: getUrlFilename(url)
+          filename: getUrlFilename(url),
         },
-        inline_source_map: true
+        inline_source_map: true,
       });
       if (typeof out.rid !== "string") {
         throw new Error("Compile failed, missing rid");
@@ -81,7 +81,7 @@ export function RulesetRegistryLoaderFs(
       compileWarnings = out.warnings;
       await makeDir(path.dirname(jsFile));
       await new Promise((resolve, reject) => {
-        fs.writeFile(jsFile, out.code, { encoding: "utf8" }, err =>
+        fs.writeFile(jsFile, out.code, { encoding: "utf8" }, (err) =>
           err ? reject(err) : resolve()
         );
       });
@@ -93,7 +93,7 @@ export function RulesetRegistryLoaderFs(
 
     return {
       ruleset,
-      compiler: { version: krlCompilerVersion, warnings: compileWarnings }
+      compiler: { version: krlCompilerVersion, warnings: compileWarnings },
     };
   }
 
@@ -127,9 +127,9 @@ export function RulesetRegistryLoaderFs(
       return {
         ...fromDb,
         ruleset,
-        compiler
+        compiler,
       };
-    }
+    },
   };
 }
 
@@ -138,15 +138,15 @@ function fetchKrl(url: string): Promise<string> {
     const urlParsed = urlLib.parse(url);
     if (urlParsed.protocol === "file:") {
       fs.readFile(
-        decodeURI(urlParsed.path || ""),
+        decodeURI(urlParsed.path || "").replace(/^\/([a-z]:\/)/i, "$1"),
         { flag: "rs", encoding: "utf8" },
-        function(err, data) {
+        function (err, data) {
           if (err) reject(err);
           else resolve(data.toString());
         }
       );
     } else {
-      request(url, function(err: any, resp: any, body: any) {
+      request(url, function (err: any, resp: any, body: any) {
         if (err) {
           return reject(err);
         }
@@ -163,7 +163,7 @@ function fetchKrl(url: string): Promise<string> {
 
 function fsExist(filePath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
-    fs.stat(filePath, function(err, stats) {
+    fs.stat(filePath, function (err, stats) {
       if (err) {
         if (err.code === "ENOENT") {
           return resolve(false);
