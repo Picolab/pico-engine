@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "npm test -- -w",
-    "test": "standard && ava"
+    "test": "ava"
   },
   "repository": {
     "type": "git",
@@ -23,10 +23,24 @@
   },
   "homepage": "https://github.com/Picolab/pico-engine#readme",
   "devDependencies": {
-    "ava": "^1.2.1",
-    "standard": "^12.0.1"
+    "@types/lodash": "^4.14.123",
+    "@types/node": "^14.0.24",
+    "ava": "^1.4.1",
+    "ts-node": "^8.2.0",
+    "typescript": "^3.3.4000"
   },
   "dependencies": {
-    "lodash": "^4.17.4"
+    "json-log": "^3.0.1",
+    "lodash": "^4.17.4",
+    "pico-framework": "^0.4.2"
+  },
+  "ava": {
+    "compileEnhancements": false,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
   }
 }
