@@ -83,6 +83,12 @@ body {
       user-select: text;
     }
   }
+
+  .pico-logging-tab {
+    pre {
+      margin-bottom: 0;
+    }
+  }
 }
 
 svg#picos-svg {
@@ -95,32 +101,5 @@ svg#picos-svg {
   line {
     stroke: #000000;
     stroke-width: 5px;
-  }
-}
-
-#rulesets-page {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  .ruleset-list {
-    .nav-link {
-      font-size: 12px;
-      padding: 2px 4px 2px 20px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: #000;
-
-      &:hover {
-        background: #e3e3e3;
-      }
-      border: 1px solid transparent;
-      &.active {
-        background: #d9edf7;
-        border-color: #bce8f1;
-      }
-    }
   }
 }

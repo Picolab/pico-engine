@@ -55,7 +55,7 @@ async function getLogs(eci: string): Promise<LogEntryGroup[]> {
     const entry: LogEntry = {
       txnId: result.txnId,
       time: new Date(result.time),
-      msg: ""
+      msg: "",
     };
     entry.msg = `${entry.time.toISOString().split("T")[1]} [${result.level}] ${
       result.msg
@@ -66,7 +66,7 @@ async function getLogs(eci: string): Promise<LogEntryGroup[]> {
         txnId: entry.txnId,
         time: entry.time,
         header: entry.txnId,
-        entries: []
+        entries: [],
       };
     }
     if (groupBy[entry.txnId].time > entry.time) {
@@ -78,7 +78,7 @@ async function getLogs(eci: string): Promise<LogEntryGroup[]> {
   groups.sort((a, b) => {
     return b.time.getTime() - a.time.getTime();
   });
-  return groups.map(group => {
+  return groups.map((group) => {
     group.entries.sort((a, b) => {
       return a.time.getTime() - b.time.getTime();
     });
@@ -100,7 +100,7 @@ const LogGroupUi: React.FC<{ group: LogEntryGroup }> = ({ group }) => {
           className="form-check-input"
           type="checkbox"
           id={id}
-          onChange={e => setOpen(e.target.checked)}
+          onChange={(e) => setOpen(e.target.checked)}
           checked={open}
         />
         <label className="form-check-label" htmlFor={id}>
@@ -132,12 +132,12 @@ export default function Logging({ pico }: Props) {
   }, [pico.eci]);
 
   return (
-    <div>
+    <div className="pico-logging-tab">
       <h3>Logging</h3>
       <ErrorStatus error={picoLogs.error} />
       {picoLogs.waiting && "Loading..."}
 
-      {picoLogs.data.map(group => {
+      {picoLogs.data.map((group) => {
         return <LogGroupUi key={group.txnId} group={group} />;
       })}
     </div>

@@ -11,7 +11,7 @@ import {
   ParseNViewQueryPolicy,
   parseQueryPolicy,
   ViewEventPolicy,
-  ViewQueryPolicy
+  ViewQueryPolicy,
 } from "../widgets/ChannelPolicies";
 import ErrorStatus from "../widgets/ErrorStatus";
 
@@ -31,7 +31,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
     return {
       tags: tags.split(","),
       eventPolicy: parseEventPolicy(eventPolicy),
-      queryPolicy: parseQueryPolicy(queryPolicy)
+      queryPolicy: parseQueryPolicy(queryPolicy),
     };
   }
 
@@ -53,14 +53,14 @@ const Channels: React.FC<Props> = ({ pico }) => {
       apiPost(
         `/c/${eci}/event/engine_ui/new_channel/query/io.picolabs.next/pico`,
         data
-      ).then(d => picoDetails.setData(d))
+      ).then((d) => picoDetails.setData(d))
   );
 
-  const delChannel = useAsyncAction<string>(eci =>
+  const delChannel = useAsyncAction<string>((eci) =>
     apiPost(
       `/c/${pico.eci}/event/engine_ui/del_channel/query/io.picolabs.next/pico`,
       { eci }
-    ).then(d => picoDetails.setData(d))
+    ).then((d) => picoDetails.setData(d))
   );
 
   React.useEffect(() => {
@@ -82,8 +82,10 @@ const Channels: React.FC<Props> = ({ pico }) => {
       {channels.length === 0 ? (
         <div className="text-muted">- no channels -</div>
       ) : (
-        channels.map(channel => {
+        channels.map((channel) => {
           const isOpen = !!expandedChannels[channel.id];
+          const canDelete =
+            !channel.familyChannelPicoID && !channel.tags.includes("system");
           return (
             <div key={channel.id}>
               <div>
@@ -92,7 +94,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
                     className="form-check-input"
                     type="checkbox"
                     id={`chann-${channel.id}`}
-                    onChange={e => {
+                    onChange={(e) => {
                       const eci = channel.id;
                       const map = Object.assign({}, expandedChannels);
                       if (e.target.checked) {
@@ -117,17 +119,19 @@ const Channels: React.FC<Props> = ({ pico }) => {
                       </span>
                     );
                   })}
-                  <button
-                    className="btn btn-link btn-sm"
-                    type="button"
-                    onClick={e => {
-                      e.preventDefault();
-                      delChannel.act(channel.id);
-                    }}
-                    disabled={waiting}
-                  >
-                    delete
-                  </button>
+                  {canDelete && (
+                    <button
+                      className="btn btn-link btn-sm"
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        delChannel.act(channel.id);
+                      }}
+                      disabled={waiting}
+                    >
+                      delete
+                    </button>
+                  )}
                 </div>
               </div>
               {isOpen ? (
@@ -157,7 +161,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
       <hr />
       <h4>New Channel</h4>
       <form
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           if (!isReadyToAdd()) {
             return;
@@ -175,7 +179,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
                 type="text"
                 className="form-control"
                 value={tags}
-                onChange={e => setTags(e.target.value)}
+                onChange={(e) => setTags(e.target.value)}
               />
             </div>
             <div className="col">
@@ -199,7 +203,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
                 rows={3}
                 className="form-control"
                 value={eventPolicy}
-                onChange={e => setEventPolicy(e.target.value)}
+                onChange={(e) => setEventPolicy(e.target.value)}
               />
             </div>
             <div className="col">
@@ -216,7 +220,7 @@ const Channels: React.FC<Props> = ({ pico }) => {
                 rows={3}
                 className="form-control"
                 value={queryPolicy}
-                onChange={e => setQueryPolicy(e.target.value)}
+                onChange={(e) => setQueryPolicy(e.target.value)}
               />
             </div>
             <div className="col">
