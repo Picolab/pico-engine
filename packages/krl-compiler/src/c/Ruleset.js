@@ -1,6 +1,5 @@
 var _ = require('lodash')
 var declarationBlock = require('../utils/declarationBlock')
-const jsIdent = require('../utils/jsIdent')
 
 module.exports = function (ast, comp, e) {
   var rs = {
@@ -26,7 +25,7 @@ module.exports = function (ast, comp, e) {
         for (const dec of prop.value.declarations) {
           const estree = comp(dec.right)
           comp.scope.set(dec.left.value, estree.$$Annotation || { type: 'Unknown' })
-          esBodyModules.push(e('const', jsIdent(dec.left.value), e('call', e('id', '$ctx.configure', dec.loc), [
+          esBodyModules.push(e('const', comp.jsId(dec.left.value), e('call', e('id', '$ctx.configure', dec.loc), [
             e('str', dec.left.value, dec.left.loc),
             estree
           ], dec.loc), dec.left.loc))
@@ -88,8 +87,8 @@ module.exports = function (ast, comp, e) {
           type: 'TryStatement',
           block: e('block', [
             annotation && annotation.type === 'Function'
-              ? e('return', e('call', e('id', jsIdent(share)), [e('id', '$ctx'), e('id', 'query.args')]))
-              : e('return', e('id', jsIdent(share)))
+              ? e('return', e('call', e('id', comp.jsId(share)), [e('id', '$ctx'), e('id', 'query.args')]))
+              : e('return', e('id', comp.jsId(share)))
           ]),
           finalizer: e('block', [
             e(';', e('call', e('id', '$ctx.setQuery'), [e('null')]))
@@ -111,7 +110,7 @@ module.exports = function (ast, comp, e) {
   esBody.push(e('const', '$ctx', e('call', e('id', '$env.mkCtx'), [e('id', '$rsCtx')])))
   esBody.push(e('const', '$stdlib', e('call', e('id', '$ctx.module'), [e('str', 'stdlib')])))
   _.each(comp.idsOutOfScope, function (ast, id) {
-    esBody.push(e('const', jsIdent(id), e('get', e('id', '$stdlib', ast.loc), e('str', id, ast.loc), ast.loc), ast.loc))
+    esBody.push(e('const', comp.jsId(id), e('get', e('id', '$stdlib', ast.loc), e('str', id, ast.loc), ast.loc), ast.loc))
   })
 
   esBody = esBody.concat(esBodyModules)
@@ -146,7 +145,7 @@ module.exports = function (ast, comp, e) {
       if (!annotation) {
         throw comp.error(provide.loc, 'Trying to provide: ' + provide.value + ' but it\'s not defined in global')
       }
-      provideObj[provide.value] = e('id', jsIdent(provide.value))
+      provideObj[provide.value] = e('id', comp.jsId(provide.value))
     }
     returnObj.provides = e('obj', provideObj)
   }

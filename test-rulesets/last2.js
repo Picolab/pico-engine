@@ -6,12 +6,13 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive = $stdlib["send_directive"];
+    const send_directive1 = $stdlib["send_directive"];
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("last:all"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "foo" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["last2 foo"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["last2 foo"]);
       }
       if ($fired)
         $ctx.log.debug("fired");

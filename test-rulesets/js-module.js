@@ -6,24 +6,25 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive = $stdlib["send_directive"];
-    const qFn = $env.krl.Function(["a"], async function (a) {
+    const send_directive1 = $stdlib["send_directive"];
+    const qFn1 = $env.krl.Function(["a"], async function (a2) {
       return await $env.krl.assertFunction($ctx.module("myJsModule")["fun0"])($ctx, {
-        "0": a,
+        "0": a2,
         "b": 2
       });
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("js_module:action"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "action" });
       var $fired = true;
       if ($fired) {
-        var val = await $env.krl.assertAction($ctx.module("myJsModule")["act"])($ctx, {
+        var val2 = await $env.krl.assertAction($ctx.module("myJsModule")["act"])($ctx, {
           "0": 100,
           "b": 30
         });
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "resp",
-          { "val": val }
+          { "val": val2 }
         ]);
       }
       if ($fired)
@@ -45,7 +46,7 @@ module.exports = {
         "qFn": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return qFn($ctx, query.args);
+            return qFn1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

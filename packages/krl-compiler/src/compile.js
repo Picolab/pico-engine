@@ -1,5 +1,6 @@
 var _ = require('lodash')
 var mkTree = require('estree-builder')
+var toJsIdentifier = require('to-js-identifier')
 var SymbolTableStack = require('symbol-table/stack')
 
 var compByType = {
@@ -162,6 +163,12 @@ module.exports = function (ast, options) {
     comp.scope = scope
     comp.eventScope = eventScope
     comp.idsOutOfScope = idsOutOfScope
+    comp.jsId = function (krlId) {
+      if (!scope.has(krlId)) {
+        return toJsIdentifier(krlId) + 1
+      }
+      return toJsIdentifier(krlId) + scope.getItsHeight(krlId)
+    }
 
     var estree
     try {

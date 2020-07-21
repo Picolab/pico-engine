@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const jsIdent = require('../utils/jsIdent')
 
 function mkId (e, i, key) {
   return e('id', '$foreach' + i + '_' + key)
@@ -43,7 +42,8 @@ module.exports = function (ast, comp, e, context) {
     } else {
       val = e('nil')
     }
-    body.push(e('let', jsIdent(set.value), val, set.loc))
+    comp.scope.set(set.value, { type: 'Unknown' })
+    body.push(e('let', comp.jsId(set.value), val, set.loc))
   })
   body = body.concat(context.foreach_body)
 

@@ -6,16 +6,17 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive = $stdlib["send_directive"];
-    const append = $stdlib["append"];
-    const getOrder = $env.krl.Function([], async function () {
+    const send_directive1 = $stdlib["send_directive"];
+    const append1 = $stdlib["append"];
+    const getOrder1 = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("order");
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("execution_order:reset_order"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "reset_order" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["2 - reset_order"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["2 - reset_order"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -24,43 +25,46 @@ module.exports = {
       await $ctx.rsCtx.putEnt("order", []);
     });
     $rs.when($env.SelectWhen.or($env.SelectWhen.e("execution_order:foo"), $env.SelectWhen.e("execution_order:bar")), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "foo_or_bar" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["2 - foo_or_bar"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["2 - foo_or_bar"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await $env.krl.assertFunction(append)($ctx, [
+      await $ctx.rsCtx.putEnt("order", await $env.krl.assertFunction(append1)($ctx, [
         await $ctx.rsCtx.getEnt("order"),
         "2 - foo_or_bar"
       ]));
     });
     $rs.when($env.SelectWhen.e("execution_order:foo"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "foo" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["2 - foo"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["2 - foo"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await $env.krl.assertFunction(append)($ctx, [
+      await $ctx.rsCtx.putEnt("order", await $env.krl.assertFunction(append1)($ctx, [
         await $ctx.rsCtx.getEnt("order"),
         "2 - foo"
       ]));
     });
     $rs.when($env.SelectWhen.e("execution_order:bar"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "bar" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["2 - bar"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["2 - bar"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("order", await $env.krl.assertFunction(append)($ctx, [
+      await $ctx.rsCtx.putEnt("order", await $env.krl.assertFunction(append1)($ctx, [
         await $ctx.rsCtx.getEnt("order"),
         "2 - bar"
       ]));
@@ -79,7 +83,7 @@ module.exports = {
         "getOrder": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getOrder($ctx, query.args);
+            return getOrder1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

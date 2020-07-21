@@ -53,7 +53,7 @@ test("io.picolabs.test-error-messages.krl", async t => {
       args: { obj: "Bob" }
     })
   );
-  t.is(err + "", "ReferenceError: somethingNotDefined is not defined");
+  t.is(err + "", "ReferenceError: somethingNotDefined1 is not defined");
 
   err = await t.throwsAsync(
     pe.pf.query({

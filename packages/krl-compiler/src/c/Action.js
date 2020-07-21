@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const jsIdent = require('../utils/jsIdent')
 
 module.exports = function (ast, comp, e) {
   if (!ast.action) {
@@ -38,7 +37,7 @@ module.exports = function (ast, comp, e) {
     comp.scope.set(id.value, { type: 'Unknown' })
 
     return e('var',
-      e('id', jsIdent(id.value), id.loc),
+      e('id', comp.jsId(id.value), id.loc),
       estree,
       id.loc
     )

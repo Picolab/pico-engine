@@ -11,10 +11,7 @@ test("log.krl", async t => {
   logStream.on("data", data => {
     const json = JSON.parse(data.toString().trim());
     if (json.rid === "io.picolabs.log") {
-      delete json.rid;
-      delete json.time;
-      delete json.picoId;
-      lines.push(json);
+      lines.push({ level: json.level, msg: json.msg });
     }
   });
 
@@ -31,6 +28,8 @@ test("log.krl", async t => {
   });
 
   t.deepEqual(lines, [
+    { level: 50, msg: "event added to schedule" },
+    { level: 50, msg: "rule selected" },
     { level: 50, msg: "fired" },
     { level: 30, msg: "hello default" },
     { level: 10, msg: "hello error" },

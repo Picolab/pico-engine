@@ -6,29 +6,31 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const append = $stdlib["append"];
-    const send_directive = $stdlib["send_directive"];
-    const getErrors = $env.krl.Function([], async function () {
+    const append1 = $stdlib["append"];
+    const send_directive1 = $stdlib["send_directive"];
+    const getErrors1 = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("error_log");
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("system:error"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "error_handle" });
       var $fired = true;
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("error_log", await $env.krl.assertFunction(append)($ctx, [
+        await $ctx.rsCtx.putEnt("error_log", await $env.krl.assertFunction(append1)($ctx, [
           await $ctx.rsCtx.getEnt("error_log"),
           $event.data.attrs
         ]));
       }
     });
     $rs.when($env.SelectWhen.e("error:continue_on_error"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "continue_on_errorA" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["continue_on_errorA"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["continue_on_errorA"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -57,9 +59,10 @@ module.exports = {
       }, $ctx.rsCtx.ruleset.rid);
     });
     $rs.when($env.SelectWhen.e("error:continue_on_error"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "continue_on_errorB" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["continue_on_errorB"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["continue_on_errorB"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -88,9 +91,10 @@ module.exports = {
       }, $ctx.rsCtx.ruleset.rid);
     });
     $rs.when($env.SelectWhen.e("error:stop_on_error"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "stop_on_errorA" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["stop_on_errorA"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["stop_on_errorA"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -122,9 +126,10 @@ module.exports = {
       }
     });
     $rs.when($env.SelectWhen.e("error:stop_on_error"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "stop_on_errorB" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["stop_on_errorB"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["stop_on_errorB"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -157,7 +162,7 @@ module.exports = {
         "getErrors": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getErrors($ctx, query.args);
+            return getErrors1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

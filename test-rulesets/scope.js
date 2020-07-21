@@ -16,52 +16,52 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const reduce = $stdlib["reduce"];
-    const map = $stdlib["map"];
-    const send_directive = $stdlib["send_directive"];
-    const g0 = "global 0";
-    const g1 = 1;
-    const getVals = $env.krl.Function([], async function () {
+    const reduce1 = $stdlib["reduce"];
+    const map1 = $stdlib["map"];
+    const send_directive1 = $stdlib["send_directive"];
+    const g01 = "global 0";
+    const g11 = 1;
+    const getVals1 = $env.krl.Function([], async function () {
       return {
         "name": await $ctx.rsCtx.getEnt("ent_var_name"),
         "p0": await $ctx.rsCtx.getEnt("ent_var_p0"),
         "p1": await $ctx.rsCtx.getEnt("ent_var_p1")
       };
     });
-    const add = $env.krl.Function([
+    const add1 = $env.krl.Function([
       "a",
       "b"
-    ], async function (a, b) {
+    ], async function (a2, b2) {
       return await $stdlib["+"]($ctx, [
-        a,
-        b
+        a2,
+        b2
       ]);
     });
-    const sum = $env.krl.Function(["arr"], async function (arr) {
-      return await $env.krl.assertFunction(reduce)($ctx, [
-        arr,
-        add,
+    const sum1 = $env.krl.Function(["arr"], async function (arr2) {
+      return await $env.krl.assertFunction(reduce1)($ctx, [
+        arr2,
+        add1,
         0
       ]);
     });
-    const incByN = $env.krl.Function(["n"], async function (n) {
-      return $env.krl.Function(["a"], async function (a) {
+    const incByN1 = $env.krl.Function(["n"], async function (n2) {
+      return $env.krl.Function(["a"], async function (a3) {
         return await $stdlib["+"]($ctx, [
-          a,
-          n
+          a3,
+          n2
         ]);
       });
     });
-    const mapped = await $env.krl.assertFunction(map)($ctx, [
+    const mapped1 = await $env.krl.assertFunction(map1)($ctx, [
       [
         1,
         2,
         3
       ],
-      $env.krl.Function(["n"], async function (n) {
+      $env.krl.Function(["n"], async function (n2) {
         return await $stdlib["+"]($ctx, [
-          n,
-          g1
+          n2,
+          g11
         ]);
       })
     ]);
@@ -79,7 +79,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var name0 = setting["name0"] = matches[0];
+      var name02 = setting["name0"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -97,22 +97,23 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var name1 = setting["name1"] = matches[0];
+      var name12 = setting["name1"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), async function ($event, $state, $last) {
-      var name0 = $state.setting["name0"];
-      var name1 = $state.setting["name1"];
+      $ctx.log.debug("rule selected", { "rule_name": "eventOr" });
+      var name02 = $state.setting["name0"];
+      var name12 = $state.setting["name1"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "eventOr",
           {
-            "name0": name0,
-            "name1": name1
+            "name0": name02,
+            "name1": name12
           }
         ]);
       }
@@ -134,7 +135,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var name0 = setting["name0"] = matches[0];
+      var name02 = setting["name0"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -152,22 +153,23 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var name1 = setting["name1"] = matches[0];
+      var name12 = setting["name1"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     })), async function ($event, $state, $last) {
-      var name0 = $state.setting["name0"];
-      var name1 = $state.setting["name1"];
+      $ctx.log.debug("rule selected", { "rule_name": "eventAnd" });
+      var name02 = $state.setting["name0"];
+      var name12 = $state.setting["name1"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "eventAnd",
           {
-            "name0": name0,
-            "name1": name1
+            "name0": name02,
+            "name1": name12
           }
         ]);
       }
@@ -189,7 +191,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var name1 = setting["name1"] = matches[0];
+      var name12 = setting["name1"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -207,7 +209,7 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var name2 = setting["name2"] = matches[0];
+      var name22 = setting["name2"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
@@ -215,16 +217,17 @@ module.exports = {
     }), $env.SelectWhen.e("scope:eventWithin3"))), function ($event, $state) {
       return Object.assign({}, $state, { "setting": {} });
     }), async function ($event, $state, $last) {
-      var name1 = $state.setting["name1"];
-      var name2 = $state.setting["name2"];
+      $ctx.log.debug("rule selected", { "rule_name": "eventWithin" });
+      var name12 = $state.setting["name1"];
+      var name22 = $state.setting["name2"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "eventWithin",
           {
-            "name1": name1,
-            "name2": name2
+            "name1": name12,
+            "name2": name22
           }
         ]);
       }
@@ -246,25 +249,26 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var $name$ = setting["name"] = matches[0];
+      var $name$2 = setting["name"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      var $name$ = $state.setting["name"];
+      $ctx.log.debug("rule selected", { "rule_name": "prelude_scope" });
+      var $name$2 = $state.setting["name"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
-      const p0 = "prelude 0";
-      const p1 = "prelude 1";
+      const p02 = "prelude 0";
+      const p12 = "prelude 1";
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "say",
           {
-            "name": $name$,
-            "p0": p0,
-            "p1": p1,
-            "g0": g0
+            "name": $name$2,
+            "p0": p02,
+            "p1": p12,
+            "g0": g01
           }
         ]);
       }
@@ -272,25 +276,70 @@ module.exports = {
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("ent_var_name", $name$);
-      await $ctx.rsCtx.putEnt("ent_var_p0", p0);
-      await $ctx.rsCtx.putEnt("ent_var_p1", p1);
+      await $ctx.rsCtx.putEnt("ent_var_name", $name$2);
+      await $ctx.rsCtx.putEnt("ent_var_p0", p02);
+      await $ctx.rsCtx.putEnt("ent_var_p1", p12);
     });
     $rs.when($env.SelectWhen.e("scope:functions"), async function ($event, $state, $last) {
-      const g0 = "overrided g0!";
-      const inc5 = await $env.krl.assertFunction(incByN)($ctx, [5]);
+      $ctx.log.debug("rule selected", { "rule_name": "functions" });
+      const g02 = "overrided g0!";
+      const inc52 = await $env.krl.assertFunction(incByN1)($ctx, [5]);
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "say",
           {
-            "add_one_two": await $env.krl.assertFunction(add)($ctx, [
+            "add_one_two": await $env.krl.assertFunction(add1)($ctx, [
               1,
               2
             ]),
-            "inc5_3": await $env.krl.assertFunction(inc5)($ctx, [3]),
-            "g0": g0
+            "inc5_3": await $env.krl.assertFunction(inc52)($ctx, [3]),
+            "g0": g02
           }
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("scope:shadow"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "shadow" });
+      const add2 = await $env.krl.assertFunction(add1)($ctx, [
+        1,
+        2
+      ]);
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive1)($ctx, [
+          "say",
+          { "add": add2 }
+        ]);
+      }
+      if ($fired)
+        $ctx.log.debug("fired");
+      else
+        $ctx.log.debug("not fired");
+    });
+    $rs.when($env.SelectWhen.e("scope:recur"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "recur" });
+      const fact2 = $env.krl.Function(["n"], async function (n3) {
+        return await $stdlib["<="]($ctx, [
+          n3,
+          1
+        ]) ? 1 : await $stdlib["*"]($ctx, [
+          n3,
+          await $env.krl.assertFunction(fact2)($ctx, [await $stdlib["-"]($ctx, [
+              n3,
+              1
+            ])])
+        ]);
+      });
+      var $fired = true;
+      if ($fired) {
+        await $env.krl.assertAction(send_directive1)($ctx, [
+          "say",
+          { "fact5": await $env.krl.assertFunction(fact2)($ctx, [5]) }
         ]);
       }
       if ($fired)
@@ -312,7 +361,7 @@ module.exports = {
         "g0": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return g0;
+            return g01;
           } finally {
             $ctx.setQuery(null);
           }
@@ -320,7 +369,7 @@ module.exports = {
         "g1": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return g1;
+            return g11;
           } finally {
             $ctx.setQuery(null);
           }
@@ -328,7 +377,7 @@ module.exports = {
         "getVals": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getVals($ctx, query.args);
+            return getVals1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -336,7 +385,7 @@ module.exports = {
         "add": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return add($ctx, query.args);
+            return add1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -344,7 +393,7 @@ module.exports = {
         "sum": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return sum($ctx, query.args);
+            return sum1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -352,7 +401,7 @@ module.exports = {
         "mapped": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return mapped;
+            return mapped1;
           } finally {
             $ctx.setQuery(null);
           }
@@ -437,6 +486,16 @@ module.exports = {
               {
                 "domain": "scope",
                 "name": "functions",
+                "attrs": []
+              },
+              {
+                "domain": "scope",
+                "name": "shadow",
+                "attrs": []
+              },
+              {
+                "domain": "scope",
+                "name": "recur",
                 "attrs": []
               }
             ]

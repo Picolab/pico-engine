@@ -9,14 +9,14 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const a = 1;
-    const b = 2;
-    const c = "<h1>some<b>html</b></h1>";
-    const d = "\n            hi " + await $stdlib["as"]($ctx, [
-      a,
+    const a1 = 1;
+    const b1 = 2;
+    const c1 = "<h1>some<b>html</b></h1>";
+    const d1 = "\n            hi " + await $stdlib["as"]($ctx, [
+      a1,
       "String"
     ]) + " + " + await $stdlib["as"]($ctx, [
-      b,
+      b1,
       "String"
     ]) + " = " + await $stdlib["as"]($ctx, [
       await $stdlib["+"]($ctx, [
@@ -25,11 +25,11 @@ module.exports = {
       ]),
       "String"
     ]) + "\n            " + await $stdlib["as"]($ctx, [
-      c,
+      c1,
       "String"
     ]) + "\n        ";
-    const e = "static";
-    const f = "";
+    const e1 = "static";
+    const f1 = "";
     const $rs = new $env.SelectWhen.SelectWhen();
     return {
       "event": async function (event, eid) {
@@ -45,7 +45,7 @@ module.exports = {
         "d": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return d;
+            return d1;
           } finally {
             $ctx.setQuery(null);
           }

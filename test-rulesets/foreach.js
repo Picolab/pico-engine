@@ -6,13 +6,13 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive = $stdlib["send_directive"];
-    const range = $stdlib["range"];
-    const split = $stdlib["split"];
-    const doubleThis = $env.krl.Function(["arr"], async function (arr) {
+    const send_directive1 = $stdlib["send_directive"];
+    const range1 = $stdlib["range"];
+    const split1 = $stdlib["split"];
+    const doubleThis1 = $env.krl.Function(["arr"], async function (arr2) {
       return [
-        arr,
-        arr
+        arr2,
+        arr2
       ];
     });
     const $rs = new $env.SelectWhen.SelectWhen();
@@ -26,12 +26,13 @@ module.exports = {
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
         let $foreach_is_final = $foreach0_i === $foreach0_len - 1;
-        let x = $foreach0_pairs[$foreach0_i][1];
+        let x2 = $foreach0_pairs[$foreach0_i][1];
+        $ctx.log.debug("rule selected", { "rule_name": "basic" });
         var $fired = true;
         if ($fired) {
-          await $env.krl.assertAction(send_directive)($ctx, [
+          await $env.krl.assertAction(send_directive1)($ctx, [
             "basic",
-            { "x": x }
+            { "x": x2 }
           ]);
         }
         if ($fired)
@@ -50,15 +51,16 @@ module.exports = {
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
         let $foreach_is_final = $foreach0_i === $foreach0_len - 1;
-        let v = $foreach0_pairs[$foreach0_i][1];
-        let k = $foreach0_pairs[$foreach0_i][0];
+        let v2 = $foreach0_pairs[$foreach0_i][1];
+        let k2 = $foreach0_pairs[$foreach0_i][0];
+        $ctx.log.debug("rule selected", { "rule_name": "map" });
         var $fired = true;
         if ($fired) {
-          await $env.krl.assertAction(send_directive)($ctx, [
+          await $env.krl.assertAction(send_directive1)($ctx, [
             "map",
             {
-              "k": k,
-              "v": v
+              "k": k2,
+              "v": v2
             }
           ]);
         }
@@ -77,7 +79,7 @@ module.exports = {
       let $foreach0_len = $foreach0_pairs.length;
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
-        let x = $foreach0_pairs[$foreach0_i][1];
+        let x2 = $foreach0_pairs[$foreach0_i][1];
         let $foreach1_pairs = $env.krl.toPairs([
           "a",
           "b",
@@ -87,14 +89,15 @@ module.exports = {
         let $foreach1_i;
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
           let $foreach_is_final = $foreach0_i === $foreach0_len - 1 && $foreach1_i === $foreach1_len - 1;
-          let y = $foreach1_pairs[$foreach1_i][1];
+          let y2 = $foreach1_pairs[$foreach1_i][1];
+          $ctx.log.debug("rule selected", { "rule_name": "nested" });
           var $fired = true;
           if ($fired) {
-            await $env.krl.assertAction(send_directive)($ctx, [
+            await $env.krl.assertAction(send_directive1)($ctx, [
               "nested",
               {
-                "x": x,
-                "y": y
+                "x": x2,
+                "y": y2
               }
             ]);
           }
@@ -106,7 +109,7 @@ module.exports = {
       }
     });
     $rs.when($env.SelectWhen.e("foreach:scope"), async function ($event, $state, $last) {
-      let $foreach0_pairs = $env.krl.toPairs(await $env.krl.assertFunction(doubleThis)($ctx, [[
+      let $foreach0_pairs = $env.krl.toPairs(await $env.krl.assertFunction(doubleThis1)($ctx, [[
           1,
           2,
           3
@@ -114,33 +117,34 @@ module.exports = {
       let $foreach0_len = $foreach0_pairs.length;
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
-        let arr = $foreach0_pairs[$foreach0_i][1];
-        let $foreach1_pairs = $env.krl.toPairs(arr);
+        let arr2 = $foreach0_pairs[$foreach0_i][1];
+        let $foreach1_pairs = $env.krl.toPairs(arr2);
         let $foreach1_len = $foreach1_pairs.length;
         let $foreach1_i;
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
-          let foo = $foreach1_pairs[$foreach1_i][1];
-          let $foreach2_pairs = $env.krl.toPairs(await $env.krl.assertFunction(range)($ctx, [
+          let foo2 = $foreach1_pairs[$foreach1_i][1];
+          let $foreach2_pairs = $env.krl.toPairs(await $env.krl.assertFunction(range1)($ctx, [
             0,
-            foo
+            foo2
           ]));
           let $foreach2_len = $foreach2_pairs.length;
           let $foreach2_i;
           for ($foreach2_i = 0; $foreach2_i < $foreach2_len; $foreach2_i++) {
             let $foreach_is_final = $foreach0_i === $foreach0_len - 1 && $foreach1_i === $foreach1_len - 1 && $foreach2_i === $foreach2_len - 1;
-            let bar = $foreach2_pairs[$foreach2_i][1];
-            const baz = await $stdlib["*"]($ctx, [
-              foo,
-              bar
+            let bar2 = $foreach2_pairs[$foreach2_i][1];
+            $ctx.log.debug("rule selected", { "rule_name": "scope" });
+            const baz2 = await $stdlib["*"]($ctx, [
+              foo2,
+              bar2
             ]);
             var $fired = true;
             if ($fired) {
-              await $env.krl.assertAction(send_directive)($ctx, [
+              await $env.krl.assertAction(send_directive1)($ctx, [
                 "scope",
                 {
-                  "foo": foo,
-                  "bar": bar,
-                  "baz": baz
+                  "foo": foo2,
+                  "bar": bar2,
+                  "baz": baz2
                 }
               ]);
             }
@@ -153,7 +157,7 @@ module.exports = {
       }
     });
     $rs.when($env.SelectWhen.e("foreach:final"), async function ($event, $state, $last) {
-      let $foreach0_pairs = $env.krl.toPairs(await $env.krl.assertFunction(split)($ctx, [
+      let $foreach0_pairs = $env.krl.toPairs(await $env.krl.assertFunction(split1)($ctx, [
         await $stdlib["get"]($ctx, [
           $event.data.attrs,
           "x"
@@ -163,8 +167,8 @@ module.exports = {
       let $foreach0_len = $foreach0_pairs.length;
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
-        let x = $foreach0_pairs[$foreach0_i][1];
-        let $foreach1_pairs = $env.krl.toPairs(await $env.krl.assertFunction(split)($ctx, [
+        let x2 = $foreach0_pairs[$foreach0_i][1];
+        let $foreach1_pairs = $env.krl.toPairs(await $env.krl.assertFunction(split1)($ctx, [
           await $stdlib["get"]($ctx, [
             $event.data.attrs,
             "y"
@@ -175,14 +179,15 @@ module.exports = {
         let $foreach1_i;
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
           let $foreach_is_final = $foreach0_i === $foreach0_len - 1 && $foreach1_i === $foreach1_len - 1;
-          let y = $foreach1_pairs[$foreach1_i][1];
+          let y2 = $foreach1_pairs[$foreach1_i][1];
+          $ctx.log.debug("rule selected", { "rule_name": "final" });
           var $fired = true;
           if ($fired) {
-            await $env.krl.assertAction(send_directive)($ctx, [
+            await $env.krl.assertAction(send_directive1)($ctx, [
               "final",
               {
-                "x": x,
-                "y": y
+                "x": x2,
+                "y": y2
               }
             ]);
           }
@@ -192,16 +197,17 @@ module.exports = {
             $ctx.log.debug("not fired");
           if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
             await $ctx.rsCtx.raiseEvent("foreach", "final_raised", {
-              "x": x,
-              "y": y
+              "x": x2,
+              "y": y2
             });
         }
       }
     });
     $rs.when($env.SelectWhen.e("foreach:final_raised"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "final_raised" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "final_raised",
           {
             "x": await $stdlib["get"]($ctx, [
@@ -228,8 +234,8 @@ module.exports = {
       let $foreach0_len = $foreach0_pairs.length;
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
-        let a = $foreach0_pairs[$foreach0_i][1];
-        let k = $foreach0_pairs[$foreach0_i][0];
+        let a2 = $foreach0_pairs[$foreach0_i][1];
+        let k2 = $foreach0_pairs[$foreach0_i][0];
         let $foreach1_pairs = $env.krl.toPairs([
           "one",
           "two",
@@ -239,17 +245,18 @@ module.exports = {
         let $foreach1_i;
         for ($foreach1_i = 0; $foreach1_i < $foreach1_len; $foreach1_i++) {
           let $foreach_is_final = $foreach0_i === $foreach0_len - 1 && $foreach1_i === $foreach1_len - 1;
-          let b = $foreach1_pairs[$foreach1_i][1];
-          let i = $foreach1_pairs[$foreach1_i][0];
+          let b2 = $foreach1_pairs[$foreach1_i][1];
+          let i2 = $foreach1_pairs[$foreach1_i][0];
+          $ctx.log.debug("rule selected", { "rule_name": "key_vs_index" });
           var $fired = true;
           if ($fired) {
-            await $env.krl.assertAction(send_directive)($ctx, [
+            await $env.krl.assertAction(send_directive1)($ctx, [
               "key_vs_index",
               {
-                "a": a,
-                "k": k,
-                "b": b,
-                "i": i
+                "a": a2,
+                "k": k2,
+                "b": b2,
+                "i": i2
               }
             ]);
           }

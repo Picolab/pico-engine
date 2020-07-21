@@ -14,18 +14,19 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const hello = $env.krl.Function(["name"], async function ($name$ = "default") {
-      const msg = await $stdlib["+"]($ctx, [
+    const hello1 = $env.krl.Function(["name"], async function ($name$2 = "default") {
+      const msg2 = await $stdlib["+"]($ctx, [
         "Hello ",
-        $name$
+        $name$2
       ]);
-      return msg;
+      return msg2;
     });
-    const said = $env.krl.Function([], async function () {
+    const said1 = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("said");
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("say:hello"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "say_hello" });
       var $fired = true;
       if ($fired)
         $ctx.log.debug("fired");
@@ -50,7 +51,7 @@ module.exports = {
         "hello": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return hello($ctx, query.args);
+            return hello1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -58,7 +59,7 @@ module.exports = {
         "said": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return said($ctx, query.args);
+            return said1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

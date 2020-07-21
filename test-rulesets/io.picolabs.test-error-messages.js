@@ -14,15 +14,15 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const hello = $env.krl.Function(["obj"], async function (obj) {
+    const hello1 = $env.krl.Function(["obj"], async function (obj2) {
       return await $stdlib["+"]($ctx, [
         "Hello ",
-        obj
+        obj2
       ]);
     });
-    const null_val = void 0;
-    const infiniteRecursion = $env.krl.Function([], async function () {
-      return await $env.krl.assertFunction(infiniteRecursion)($ctx, []);
+    const null_val1 = void 0;
+    const infiniteRecursion1 = $env.krl.Function([], async function () {
+      return await $env.krl.assertFunction(infiniteRecursion1)($ctx, []);
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     return {
@@ -39,7 +39,7 @@ module.exports = {
         "hello": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return hello($ctx, query.args);
+            return hello1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -47,7 +47,7 @@ module.exports = {
         "null_val": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return null_val;
+            return null_val1;
           } finally {
             $ctx.setQuery(null);
           }
@@ -55,7 +55,7 @@ module.exports = {
         "somethingNotDefined": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return somethingNotDefined;
+            return somethingNotDefined1;
           } finally {
             $ctx.setQuery(null);
           }
@@ -63,7 +63,7 @@ module.exports = {
         "infiniteRecursion": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return infiniteRecursion($ctx, query.args);
+            return infiniteRecursion1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

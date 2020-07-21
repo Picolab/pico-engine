@@ -14,48 +14,48 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive = $stdlib["send_directive"];
-    const configured_name = $ctx.configure("configured_name", "Bob");
-    const privateFn = $env.krl.Function([], async function () {
+    const send_directive1 = $stdlib["send_directive"];
+    const configured_name1 = $ctx.configure("configured_name", "Bob");
+    const privateFn1 = $env.krl.Function([], async function () {
       return await $stdlib["+"]($ctx, [
         await $stdlib["+"]($ctx, [
           await $stdlib["+"]($ctx, [
             "privateFn = name: ",
-            configured_name
+            configured_name1
           ]),
           " memo: "
         ]),
         await $ctx.rsCtx.getEnt("memo")
       ]);
     });
-    const getName = $env.krl.Function([], async function () {
-      return configured_name;
+    const getName1 = $env.krl.Function([], async function () {
+      return configured_name1;
     });
-    const getInfo = $env.krl.Function([], async function () {
+    const getInfo1 = $env.krl.Function([], async function () {
       return {
-        "name": await $env.krl.assertFunction(getName)($ctx, []),
+        "name": await $env.krl.assertFunction(getName1)($ctx, []),
         "memo": await $ctx.rsCtx.getEnt("memo"),
-        "privateFn": await $env.krl.assertFunction(privateFn)($ctx, [])
+        "privateFn": await $env.krl.assertFunction(privateFn1)($ctx, [])
       };
     });
-    const getInfoAction = $env.krl.Action([], async function () {
+    const getInfoAction1 = $env.krl.Action([], async function () {
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)(this, [
+        await $env.krl.assertAction(send_directive1)(this, [
           "getInfoAction",
-          await $env.krl.assertFunction(getInfo)($ctx, [])
+          await $env.krl.assertFunction(getInfo1)($ctx, [])
         ]);
       }
       return {
         "name": await $stdlib["get"]($ctx, [
-          await $env.krl.assertFunction(getInfo)($ctx, []),
+          await $env.krl.assertFunction(getInfo1)($ctx, []),
           ["name"]
         ])
       };
     });
-    const sayHello = $env.krl.Function(["name"], async function ($name$) {
+    const sayHello1 = $env.krl.Function(["name"], async function ($name$2) {
       return "hello " + await $stdlib["as"]($ctx, [
-        $name$,
+        $name$2,
         "String"
       ]) + ".";
     });
@@ -73,21 +73,22 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var text = setting["text"] = matches[0];
+      var text2 = setting["text"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      var text = $state.setting["text"];
+      $ctx.log.debug("rule selected", { "rule_name": "store_memo" });
+      var text2 = $state.setting["text"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "store_memo",
           {
-            "name": configured_name,
-            "memo_to_store": text
+            "name": configured_name1,
+            "memo_to_store": text2
           }
         ]);
       }
@@ -100,11 +101,11 @@ module.exports = {
           await $stdlib["+"]($ctx, [
             await $stdlib["+"]($ctx, [
               "[\"",
-              text
+              text2
             ]),
             "\" by "
           ]),
-          configured_name
+          configured_name1
         ]),
         "]"
       ]));
@@ -123,7 +124,7 @@ module.exports = {
         "getInfo": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getInfo($ctx, query.args);
+            return getInfo1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -143,9 +144,9 @@ module.exports = {
         }
       },
       "provides": {
-        "getInfo": getInfo,
-        "getName": getName,
-        "getInfoAction": getInfoAction
+        "getInfo": getInfo1,
+        "getName": getName1,
+        "getInfoAction": getInfoAction1
       }
     };
   }

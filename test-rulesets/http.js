@@ -13,27 +13,27 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const $delete$ = $stdlib["delete"];
-    const set = $stdlib["set"];
-    const decode = $stdlib["decode"];
-    const url = $stdlib["url"];
-    const send_directive = $stdlib["send_directive"];
-    const getResp = $env.krl.Function([], async function () {
+    const $delete$1 = $stdlib["delete"];
+    const set1 = $stdlib["set"];
+    const decode1 = $stdlib["decode"];
+    const url1 = $stdlib["url"];
+    const send_directive1 = $stdlib["send_directive"];
+    const getResp1 = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("resp");
     });
-    const getLastPostEvent = $env.krl.Function([], async function () {
+    const getLastPostEvent1 = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("last_post_event");
     });
-    const fmtResp = $env.krl.Function(["r"], async function (r) {
-      return await $env.krl.assertFunction($delete$)($ctx, [
-        await $env.krl.assertFunction($delete$)($ctx, [
-          await $env.krl.assertFunction($delete$)($ctx, [
-            await $env.krl.assertFunction($delete$)($ctx, [
-              await $env.krl.assertFunction(set)($ctx, [
-                r,
+    const fmtResp1 = $env.krl.Function(["r"], async function (r2) {
+      return await $env.krl.assertFunction($delete$1)($ctx, [
+        await $env.krl.assertFunction($delete$1)($ctx, [
+          await $env.krl.assertFunction($delete$1)($ctx, [
+            await $env.krl.assertFunction($delete$1)($ctx, [
+              await $env.krl.assertFunction(set1)($ctx, [
+                r2,
                 "content",
-                await $env.krl.assertFunction(decode)($ctx, [await $stdlib["get"]($ctx, [
-                    r,
+                await $env.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
+                    r2,
                     ["content"]
                   ])])
               ]),
@@ -56,53 +56,54 @@ module.exports = {
         ]
       ]);
     });
-    const doPost = $env.krl.Action([
+    const doPost1 = $env.krl.Action([
       "base_url",
       "to",
       "msg"
-    ], async function (base_url, to, msg) {
+    ], async function (base_url2, to2, msg2) {
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction($ctx.module("http")["post"])(this, {
           "0": await $stdlib["+"]($ctx, [
-            url,
+            url1,
             "/msg.json"
           ]),
           "from": {
-            "To": to,
-            "Msg": msg
+            "To": to2,
+            "Msg": msg2
           }
         });
       }
     });
-    const fnGet = $env.krl.Function([
+    const fnGet1 = $env.krl.Function([
       "url",
       "qs"
-    ], async function (url, qs) {
+    ], async function (url2, qs2) {
       return await $env.krl.assertFunction($ctx.module("http")["get"])($ctx, {
-        "0": url,
-        "qs": qs
+        "0": url2,
+        "qs": qs2
       });
     });
-    const fnPost = $env.krl.Function([
+    const fnPost1 = $env.krl.Function([
       "url",
       "json"
-    ], async function (url, json) {
+    ], async function (url2, json2) {
       return await $env.krl.assertFunction($ctx.module("http")["post"])($ctx, {
-        "0": url,
-        "json": json
+        "0": url2,
+        "json": json2
       });
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("http_test:get"), async function ($event, $state, $last) {
-      const url = await $stdlib["get"]($ctx, [
+      $ctx.log.debug("rule selected", { "rule_name": "http_get" });
+      const url2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "url"
       ]);
       var $fired = true;
       if ($fired) {
-        var resp = await $env.krl.assertAction($ctx.module("http")["get"])($ctx, {
-          "0": url,
+        var resp2 = await $env.krl.assertAction($ctx.module("http")["get"])($ctx, {
+          "0": url2,
           "qs": { "foo": "bar" },
           "headers": { "baz": "quix" }
         });
@@ -112,28 +113,29 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("resp", await $env.krl.assertFunction(fmtResp)($ctx, [resp]));
+        await $ctx.rsCtx.putEnt("resp", await $env.krl.assertFunction(fmtResp1)($ctx, [resp2]));
       }
     });
     $rs.when($env.SelectWhen.e("http_test:post"), async function ($event, $state, $last) {
-      const url = await $stdlib["get"]($ctx, [
+      $ctx.log.debug("rule selected", { "rule_name": "http_post" });
+      const url2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "url"
       ]);
       var $fired = true;
       if ($fired) {
-        var resp = await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
-          "0": url,
+        var resp2 = await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
+          "0": url2,
           "json": {
             "foo": "bar",
-            "baz": doPost
+            "baz": doPost1
           }
         });
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "resp.content.body",
-          await $env.krl.assertFunction(decode)($ctx, [await $stdlib["get"]($ctx, [
-              await $env.krl.assertFunction(decode)($ctx, [await $stdlib["get"]($ctx, [
-                  resp,
+          await $env.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
+              await $env.krl.assertFunction(decode1)($ctx, [await $stdlib["get"]($ctx, [
+                  resp2,
                   ["content"]
                 ])]),
               ["body"]
@@ -146,14 +148,15 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("http_test:post_action"), async function ($event, $state, $last) {
-      const url = await $stdlib["get"]($ctx, [
+      $ctx.log.debug("rule selected", { "rule_name": "http_post_action" });
+      const url2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "url"
       ]);
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(doPost)($ctx, [
-          url,
+        await $env.krl.assertAction(doPost1)($ctx, [
+          url2,
           "bob",
           "foobar"
         ]);
@@ -164,14 +167,15 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("http_test:post_setting"), async function ($event, $state, $last) {
-      const url = await $stdlib["get"]($ctx, [
+      $ctx.log.debug("rule selected", { "rule_name": "http_post_setting" });
+      const url2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "url"
       ]);
       var $fired = true;
       if ($fired) {
-        var resp = await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
-          "0": url,
+        var resp2 = await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
+          "0": url2,
           "qs": { "foo": "bar" },
           "form": { "baz": "qux" }
         });
@@ -181,18 +185,19 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("resp", await $env.krl.assertFunction(fmtResp)($ctx, [resp]));
+        await $ctx.rsCtx.putEnt("resp", await $env.krl.assertFunction(fmtResp1)($ctx, [resp2]));
       }
     });
     $rs.when($env.SelectWhen.e("http_test:autoraise"), async function ($event, $state, $last) {
-      const url = await $stdlib["get"]($ctx, [
+      $ctx.log.debug("rule selected", { "rule_name": "http_autorase" });
+      const url2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "url"
       ]);
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction($ctx.module("http")["post"])($ctx, {
-          "0": url,
+          "0": url2,
           "qs": { "foo": "bar" },
           "form": { "baz": "qux" },
           "autoraise": "foobar"
@@ -204,12 +209,13 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("http:post"), async function ($event, $state, $last) {
-      const resp = await $env.krl.assertFunction(fmtResp)($ctx, [$event.data.attrs]);
+      $ctx.log.debug("rule selected", { "rule_name": "http_post_event_handler" });
+      const resp2 = await $env.krl.assertFunction(fmtResp1)($ctx, [$event.data.attrs]);
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "http_post_event_handler",
-          { "attrs": resp }
+          { "attrs": resp2 }
         ]);
       }
       if ($fired)
@@ -217,7 +223,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("last_post_event", resp);
+        await $ctx.rsCtx.putEnt("last_post_event", resp2);
       }
     });
     return {
@@ -234,7 +240,7 @@ module.exports = {
         "getResp": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getResp($ctx, query.args);
+            return getResp1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -242,7 +248,7 @@ module.exports = {
         "getLastPostEvent": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getLastPostEvent($ctx, query.args);
+            return getLastPostEvent1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -250,7 +256,7 @@ module.exports = {
         "fnGet": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return fnGet($ctx, query.args);
+            return fnGet1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -258,7 +264,7 @@ module.exports = {
         "fnPost": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return fnPost($ctx, query.args);
+            return fnPost1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const jsIdent = require('../utils/jsIdent')
 
 module.exports = function (ast, comp, e) {
   const args = {
@@ -28,8 +27,9 @@ module.exports = function (ast, comp, e) {
   var moduleCall = e('acall', e('get', e('call', e('id', '$ctx.module'), [e('str', 'schedule')]), e('str', addFunction)), [e('id', '$ctx'), e('obj', args)])
 
   if (ast.setting) {
+    comp.scope.set(ast.setting.value, { type: 'Unknown' })
     return e('var',
-      e('id', jsIdent(ast.setting.value), ast.setting.loc),
+      e('id', comp.jsId(ast.setting.value), ast.setting.loc),
       moduleCall,
       ast.setting.loc
     )

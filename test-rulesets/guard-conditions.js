@@ -6,9 +6,9 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive = $stdlib["send_directive"];
-    const match = $stdlib["match"];
-    const getB = $env.krl.Function([], async function () {
+    const send_directive1 = $stdlib["send_directive"];
+    const match1 = $stdlib["match"];
+    const getB1 = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("b");
     });
     const $rs = new $env.SelectWhen.SelectWhen();
@@ -25,30 +25,31 @@ module.exports = {
         return { "match": false };
       for (j = 1; j < m.length; j++)
         matches.push(m[j]);
-      var b = setting["b"] = matches[0];
+      var b2 = setting["b"] = matches[0];
       return {
         "match": true,
         "state": Object.assign({}, $state, { "setting": Object.assign({}, $state.setting || {}, setting) })
       };
     }), async function ($event, $state, $last) {
-      var b = $state.setting["b"];
+      $ctx.log.debug("rule selected", { "rule_name": "foo" });
+      var b2 = $state.setting["b"];
       this.rule.state = Object.assign({}, $state, { "setting": {} });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "foo",
-          { "b": b }
+          { "b": b2 }
         ]);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      if (await $env.krl.assertFunction(match)($ctx, [
-          b,
+      if (await $env.krl.assertFunction(match1)($ctx, [
+          b2,
           new RegExp("foo", "")
         ]))
-        await $ctx.rsCtx.putEnt("b", b);
+        await $ctx.rsCtx.putEnt("b", b2);
     });
     $rs.when($env.SelectWhen.e("bar:a"), async function ($event, $state, $last) {
       let $foreach0_pairs = $env.krl.toPairs([
@@ -60,13 +61,14 @@ module.exports = {
       let $foreach0_i;
       for ($foreach0_i = 0; $foreach0_i < $foreach0_len; $foreach0_i++) {
         let $foreach_is_final = $foreach0_i === $foreach0_len - 1;
-        let x = $foreach0_pairs[$foreach0_i][1];
+        let x2 = $foreach0_pairs[$foreach0_i][1];
+        $ctx.log.debug("rule selected", { "rule_name": "bar" });
         var $fired = true;
         if ($fired) {
-          await $env.krl.assertAction(send_directive)($ctx, [
+          await $env.krl.assertAction(send_directive1)($ctx, [
             "bar",
             {
-              "x": x,
+              "x": x2,
               "b": await $ctx.rsCtx.getEnt("b")
             }
           ]);
@@ -76,19 +78,20 @@ module.exports = {
         else
           $ctx.log.debug("not fired");
         if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
-          await $ctx.rsCtx.putEnt("b", x);
+          await $ctx.rsCtx.putEnt("b", x2);
       }
     });
     $rs.when($env.SelectWhen.e("on_final_no_foreach:a"), async function ($event, $state, $last) {
-      const x = await $stdlib["get"]($ctx, [
+      $ctx.log.debug("rule selected", { "rule_name": "on_final_no_foreach" });
+      const x2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "x"
       ]);
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "on_final_no_foreach",
-          { "x": x }
+          { "x": x2 }
         ]);
       }
       if ($fired)
@@ -96,7 +99,7 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if (typeof $foreach_is_final === "undefined" || $foreach_is_final)
-        await $ctx.rsCtx.putEnt("b", x);
+        await $ctx.rsCtx.putEnt("b", x2);
     });
     return {
       "event": async function (event, eid) {
@@ -112,7 +115,7 @@ module.exports = {
         "getB": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getB($ctx, query.args);
+            return getB1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

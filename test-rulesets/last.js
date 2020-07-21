@@ -6,12 +6,13 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive = $stdlib["send_directive"];
+    const send_directive1 = $stdlib["send_directive"];
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("last:all"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "foo" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["foo"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["foo"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -29,9 +30,10 @@ module.exports = {
       }
     });
     $rs.when($env.SelectWhen.e("last:all"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "bar" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["bar"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["bar"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -49,9 +51,10 @@ module.exports = {
       }
     });
     $rs.when($env.SelectWhen.e("last:all"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "baz" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["baz"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["baz"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -62,9 +65,10 @@ module.exports = {
       }
     });
     $rs.when($env.SelectWhen.e("last:all"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "qux" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["qux"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["qux"]);
       }
       if ($fired)
         $ctx.log.debug("fired");

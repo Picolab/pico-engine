@@ -1,5 +1,4 @@
 var _ = require('lodash')
-var jsIdent = require('../utils/jsIdent')
 
 module.exports = function (ast, comp, e) {
   // FYI the graph allready vetted the domain and type
@@ -49,9 +48,11 @@ module.exports = function (ast, comp, e) {
   }
 
   _.each(ast.setting, function (s, i) {
+    comp.scope.set(s.value, { type: 'String' })
+    comp.scope.get('$selectVars').push(s.value)
     fnBody.push(
       e('var',
-        jsIdent(s.value),
+        comp.jsId(s.value),
         e('=',
           e('get', e('id', 'setting', s.loc), e('str', s.value, s.loc), s.loc),
           e('get', e('id', 'matches', s.loc), e('num', i, s.loc), s.loc),
@@ -60,8 +61,6 @@ module.exports = function (ast, comp, e) {
         s.loc
       )
     )
-    comp.scope.set(s.value, { type: 'String' })
-    comp.scope.get('$selectVars').push(s.value)
   })
 
   if (ast.where) {

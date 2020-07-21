@@ -102,4 +102,25 @@ ruleset io.picolabs.scope {
             "g0": g0
         });
     }
+    rule shadow {
+        select when scope shadow
+
+        pre {
+            add = add(1, 2)
+        }
+
+        send_directive("say", {"add": add});
+    }
+    rule recur {
+        select when scope recur
+
+        pre {
+            fact = function(n){
+                n <= 1 => 1 |
+                    n * fact(n - 1);
+            }
+        }
+
+        send_directive("say", {"fact5": fact(5)});
+    }
 }

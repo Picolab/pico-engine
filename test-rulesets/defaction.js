@@ -11,47 +11,47 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive = $stdlib["send_directive"];
-    const noop = $stdlib["noop"];
-    const add = $env.krl.Function([
+    const send_directive1 = $stdlib["send_directive"];
+    const noop1 = $stdlib["noop"];
+    const add1 = $env.krl.Function([
       "a",
       "b"
-    ], async function (a, b) {
+    ], async function (a2, b2) {
       return {
         "type": "directive",
         "name": "add",
         "options": {
           "resp": await $stdlib["+"]($ctx, [
-            a,
-            b
+            a2,
+            b2
           ])
         }
       };
     });
-    const foo = $env.krl.Action(["a"], async function (a) {
-      const b = 2;
+    const foo1 = $env.krl.Action(["a"], async function (a2) {
+      const b2 = 2;
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)(this, [
+        await $env.krl.assertAction(send_directive1)(this, [
           "foo",
           {
-            "a": a,
+            "a": a2,
             "b": await $stdlib["+"]($ctx, [
-              b,
+              b2,
               3
             ])
           }
         ]);
       }
     });
-    const bar = $env.krl.Action([
+    const bar1 = $env.krl.Action([
       "one",
       "two",
       "three"
-    ], async function (one, two = $default, three = "3 by default") {
-      if (two == $default) {
-        two = await $stdlib["get"]($ctx, [
-          await $env.krl.assertFunction(add)($ctx, [
+    ], async function (one2, two2 = $default, three2 = "3 by default") {
+      if (two2 == $default) {
+        two2 = await $stdlib["get"]($ctx, [
+          await $env.krl.assertFunction(add1)($ctx, [
             1,
             1
           ]),
@@ -63,30 +63,30 @@ module.exports = {
       }
       var $fired = true;
       if ($fired) {
-        var dir = await $env.krl.assertAction(send_directive)(this, [
+        var dir2 = await $env.krl.assertAction(send_directive1)(this, [
           "bar",
           {
-            "a": one,
-            "b": two,
-            "c": three
+            "a": one2,
+            "b": two2,
+            "c": three2
           }
         ]);
       }
-      return dir;
+      return dir2;
     });
-    const getSettingVal = $env.krl.Function([], async function () {
+    const getSettingVal1 = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("setting_val");
     });
-    const chooser = $env.krl.Action(["val"], async function (val) {
+    const chooser1 = $env.krl.Action(["val"], async function (val2) {
       var $fired = true;
       if ($fired) {
-        switch (val) {
+        switch (val2) {
         case "asdf":
-          await $env.krl.assertAction(foo)(this, [val]);
+          await $env.krl.assertAction(foo1)(this, [val2]);
           break;
         case "fdsa":
-          await $env.krl.assertAction(bar)(this, [
-            val,
+          await $env.krl.assertAction(bar1)(this, [
+            val2,
             "ok",
             "done"
           ]);
@@ -94,69 +94,70 @@ module.exports = {
         }
       }
     });
-    const ifAnotB = $env.krl.Action([
+    const ifAnotB1 = $env.krl.Action([
       "a",
       "b"
-    ], async function (a, b) {
-      var $fired = a && !b;
+    ], async function (a2, b2) {
+      var $fired = a2 && !b2;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)(this, ["yes a"]);
-        await $env.krl.assertAction(send_directive)(this, ["not b"]);
+        await $env.krl.assertAction(send_directive1)(this, ["yes a"]);
+        await $env.krl.assertAction(send_directive1)(this, ["not b"]);
       }
     });
-    const echoAction = $env.krl.Action([
+    const echoAction1 = $env.krl.Action([
       "a",
       "b",
       "c"
-    ], async function (a, b, c) {
+    ], async function (a2, b2, c2) {
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(noop)(this, []);
+        await $env.krl.assertAction(noop1)(this, []);
       }
       return [
-        a,
-        b,
-        c
+        a2,
+        b2,
+        c2
       ];
     });
-    const complexAction = $env.krl.Action([
+    const complexAction1 = $env.krl.Action([
       "a",
       "b"
-    ], async function (a, b) {
-      const c = 100;
-      const d = await $stdlib["+"]($ctx, [
-        c,
-        b
+    ], async function (a2, b2) {
+      const c2 = 100;
+      const d2 = await $stdlib["+"]($ctx, [
+        c2,
+        b2
       ]);
       var $fired = await $stdlib[">"]($ctx, [
-        c,
+        c2,
         0
       ]);
       if ($fired) {
-        var dir = await $env.krl.assertAction(send_directive)(this, [
+        var dir2 = await $env.krl.assertAction(send_directive1)(this, [
           await $stdlib["+"]($ctx, [
             "wat:",
-            a
+            a2
           ]),
-          { "b": b }
+          { "b": b2 }
         ]);
       }
       return await $stdlib["+"]($ctx, [
         await $stdlib["+"]($ctx, [
           await $stdlib["get"]($ctx, [
-            dir,
+            dir2,
             ["name"]
           ]),
           " "
         ]),
-        d
+        d2
       ]);
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("defa:foo"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "foo" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(foo)($ctx, ["bar"]);
+        await $env.krl.assertAction(foo1)($ctx, ["bar"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -164,9 +165,10 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("defa:bar"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "bar" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(bar)($ctx, {
+        await $env.krl.assertAction(bar1)($ctx, {
           "0": "baz",
           "two": "qux",
           "three": "quux"
@@ -178,9 +180,10 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("defa:bar_setting"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "bar_setting" });
       var $fired = true;
       if ($fired) {
-        var val = await $env.krl.assertAction(bar)($ctx, {
+        var val2 = await $env.krl.assertAction(bar1)($ctx, {
           "0": "baz",
           "two": "qux",
           "three": "quux"
@@ -191,13 +194,14 @@ module.exports = {
       else
         $ctx.log.debug("not fired");
       if ($fired) {
-        await $ctx.rsCtx.putEnt("setting_val", val);
+        await $ctx.rsCtx.putEnt("setting_val", val2);
       }
     });
     $rs.when($env.SelectWhen.e("defa:chooser"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "chooser" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(chooser)($ctx, [await $stdlib["get"]($ctx, [
+        await $env.krl.assertAction(chooser1)($ctx, [await $stdlib["get"]($ctx, [
             $event.data.attrs,
             "val"
           ])]);
@@ -208,9 +212,10 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("defa:ifAnotB"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "ifAnotB" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(ifAnotB)($ctx, [
+        await $env.krl.assertAction(ifAnotB1)($ctx, [
           await $stdlib["=="]($ctx, [
             await $stdlib["get"]($ctx, [
               $event.data.attrs,
@@ -233,9 +238,10 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("defa:add"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "add" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(add)($ctx, [
+        await $env.krl.assertAction(add1)($ctx, [
           1,
           2
         ]);
@@ -246,27 +252,28 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("defa:returns"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "returns" });
       var $fired = true;
       if ($fired) {
-        var abc = await $env.krl.assertAction(echoAction)($ctx, [
+        var abc2 = await $env.krl.assertAction(echoAction1)($ctx, [
           "where",
           "in",
           "the"
         ]);
-        var d = await $env.krl.assertAction(complexAction)($ctx, [
+        var d2 = await $env.krl.assertAction(complexAction1)($ctx, [
           await $stdlib["+"]($ctx, [
             await $stdlib["+"]($ctx, [
               await $stdlib["get"]($ctx, [
-                abc,
+                abc2,
                 [0]
               ]),
               await $stdlib["get"]($ctx, [
-                abc,
+                abc2,
                 [1]
               ])
             ]),
             await $stdlib["get"]($ctx, [
-              abc,
+              abc2,
               [2]
             ])
           ]),
@@ -280,43 +287,44 @@ module.exports = {
       if ($fired) {
         await $ctx.rsCtx.putEnt("setting_val", [
           await $stdlib["get"]($ctx, [
-            abc,
+            abc2,
             [0]
           ]),
           await $stdlib["get"]($ctx, [
-            abc,
+            abc2,
             [1]
           ]),
           await $stdlib["get"]($ctx, [
-            abc,
+            abc2,
             [2]
           ]),
-          d
+          d2
         ]);
       }
     });
     $rs.when($env.SelectWhen.e("defa:scope"), async function ($event, $state, $last) {
-      const something = $env.krl.Action([], async function () {
+      $ctx.log.debug("rule selected", { "rule_name": "scope" });
+      const something2 = $env.krl.Action([], async function () {
         var $fired = true;
         if ($fired) {
-          await $env.krl.assertAction(noop)(this, []);
+          await $env.krl.assertAction(noop1)(this, []);
         }
         return "did something!";
       });
-      const send_directive = $env.krl.Action([], async function () {
+      const send_directive2 = $env.krl.Action([], async function () {
         var $fired = true;
         if ($fired) {
-          var foo = await $env.krl.assertAction(noop)(this, []);
+          var foo3 = await $env.krl.assertAction(noop1)(this, []);
         }
         return await $stdlib["+"]($ctx, [
           "send wat? noop returned: ",
-          foo
+          foo3
         ]);
       });
-      const echoAction = $env.krl.Action([], async function () {
+      const echoAction2 = $env.krl.Action([], async function () {
         var $fired = true;
         if ($fired) {
-          await $env.krl.assertAction(noop)(this, []);
+          await $env.krl.assertAction(noop1)(this, []);
         }
         return [
           "aint",
@@ -326,13 +334,13 @@ module.exports = {
       });
       var $fired = true;
       if ($fired) {
-        var abc = await $env.krl.assertAction(echoAction)($ctx, [
+        var abc2 = await $env.krl.assertAction(echoAction2)($ctx, [
           "where",
           "in",
           "the"
         ]);
-        var d = await $env.krl.assertAction(something)($ctx, []);
-        var e = await $env.krl.assertAction(send_directive)($ctx, []);
+        var d2 = await $env.krl.assertAction(something2)($ctx, []);
+        var e2 = await $env.krl.assertAction(send_directive2)($ctx, []);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -341,29 +349,30 @@ module.exports = {
       if ($fired) {
         await $ctx.rsCtx.putEnt("setting_val", [
           await $stdlib["get"]($ctx, [
-            abc,
+            abc2,
             [0]
           ]),
           await $stdlib["get"]($ctx, [
-            abc,
+            abc2,
             [1]
           ]),
           await $stdlib["get"]($ctx, [
-            abc,
+            abc2,
             [2]
           ]),
-          d,
-          e
+          d2,
+          e2
         ]);
       }
     });
     $rs.when($env.SelectWhen.e("defa:trying_to_use_action_as_fn"), async function ($event, $state, $last) {
-      const val = await $env.krl.assertFunction(foo)($ctx, [100]);
+      $ctx.log.debug("rule selected", { "rule_name": "trying_to_use_action_as_fn" });
+      const val2 = await $env.krl.assertFunction(foo1)($ctx, [100]);
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "trying_to_use_action_as_fn",
-          { "val": val }
+          { "val": val2 }
         ]);
       }
       if ($fired)
@@ -385,7 +394,7 @@ module.exports = {
         "getSettingVal": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getSettingVal($ctx, query.args);
+            return getSettingVal1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -393,7 +402,7 @@ module.exports = {
         "add": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return add($ctx, query.args);
+            return add1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

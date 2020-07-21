@@ -13,23 +13,24 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const getFoo = $env.krl.Function([], async function () {
+    const getFoo1 = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("foo");
     });
-    const getFooKey = $env.krl.Function(["key"], async function (key) {
+    const getFooKey1 = $env.krl.Function(["key"], async function (key2) {
       return await $stdlib.get($ctx, [
         await $ctx.rsCtx.getEnt("foo"),
-        key
+        key2
       ]);
     });
-    const getBaz = $env.krl.Function([], async function () {
+    const getBaz1 = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("baz");
     });
-    const getMaplist = $env.krl.Function([], async function () {
+    const getMaplist1 = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("maplist");
     });
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("pindex:setfoo"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "setfoo" });
       var $fired = true;
       if ($fired)
         $ctx.log.debug("fired");
@@ -38,11 +39,12 @@ module.exports = {
       await $ctx.rsCtx.putEnt("foo", $event.data.attrs);
     });
     $rs.when($env.SelectWhen.e("pindex:putfoo"), async function ($event, $state, $last) {
-      const key = await $stdlib["get"]($ctx, [
+      $ctx.log.debug("rule selected", { "rule_name": "putfoo" });
+      const key2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "key"
       ]);
-      const value = await $stdlib["get"]($ctx, [
+      const value2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "value"
       ]);
@@ -53,12 +55,13 @@ module.exports = {
         $ctx.log.debug("not fired");
       await $ctx.rsCtx.putEnt("foo", await $stdlib.set($ctx, [
         await $ctx.rsCtx.getEnt("foo"),
-        key,
-        value
+        key2,
+        value2
       ]));
     });
     $rs.when($env.SelectWhen.e("pindex:delfoo"), async function ($event, $state, $last) {
-      const key = await $stdlib["get"]($ctx, [
+      $ctx.log.debug("rule selected", { "rule_name": "delfoo" });
+      const key2 = await $stdlib["get"]($ctx, [
         $event.data.attrs,
         "key"
       ]);
@@ -69,10 +72,11 @@ module.exports = {
         $ctx.log.debug("not fired");
       await $ctx.rsCtx.putEnt("foo", await $stdlib.delete($ctx, [
         await $ctx.rsCtx.getEnt("foo"),
-        key
+        key2
       ]));
     });
     $rs.when($env.SelectWhen.e("pindex:nukefoo"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "nukefoo" });
       var $fired = true;
       if ($fired)
         $ctx.log.debug("fired");
@@ -81,6 +85,7 @@ module.exports = {
       await $ctx.rsCtx.delEnt("foo");
     });
     $rs.when($env.SelectWhen.e("pindex:putbaz"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "putbaz" });
       var $fired = true;
       if ($fired)
         $ctx.log.debug("fired");
@@ -96,6 +101,7 @@ module.exports = {
       ]));
     });
     $rs.when($env.SelectWhen.e("pindex:setmaplist"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "setmaplist" });
       var $fired = true;
       if ($fired)
         $ctx.log.debug("fired");
@@ -108,6 +114,7 @@ module.exports = {
       ]);
     });
     $rs.when($env.SelectWhen.e("pindex:putmaplist"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "putmaplist" });
       var $fired = true;
       if ($fired)
         $ctx.log.debug("fired");
@@ -136,7 +143,7 @@ module.exports = {
         "getFoo": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getFoo($ctx, query.args);
+            return getFoo1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -144,7 +151,7 @@ module.exports = {
         "getFooKey": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getFooKey($ctx, query.args);
+            return getFooKey1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -152,7 +159,7 @@ module.exports = {
         "getBaz": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getBaz($ctx, query.args);
+            return getBaz1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -160,7 +167,7 @@ module.exports = {
         "getMaplist": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getMaplist($ctx, query.args);
+            return getMaplist1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }

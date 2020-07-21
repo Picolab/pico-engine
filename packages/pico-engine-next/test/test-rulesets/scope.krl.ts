@@ -106,4 +106,21 @@ test("scope.krl", async t => {
     }
   ]);
   t.deepEqual(await query("mapped"), [2, 3, 4]);
+
+  t.deepEqual(await signal("scope", "shadow"), [
+    {
+      name: "say",
+      options: {
+        add: 3
+      }
+    }
+  ]);
+  t.deepEqual(await signal("scope", "recur"), [
+    {
+      name: "say",
+      options: {
+        fact5: 120
+      }
+    }
+  ]);
 });

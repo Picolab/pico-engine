@@ -25,21 +25,22 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive = $stdlib["send_directive"];
+    const send_directive1 = $stdlib["send_directive"];
     await $ctx.useModule("io.picolabs.module-defined", "my_module_dflt");
     await $ctx.useModule("io.picolabs.module-defined", "my_module_conf", { "configured_name": "Jim" });
-    const now = $env.krl.Function([], async function () {
+    const now1 = $env.krl.Function([], async function () {
       return await $env.krl.assertFunction($ctx.module("time")["now"])($ctx, []);
     });
-    const getEntVal = $env.krl.Function([], async function () {
+    const getEntVal1 = $env.krl.Function([], async function () {
       return await $ctx.rsCtx.getEnt("val");
     });
-    const dfltName = await $env.krl.assertFunction($ctx.module("my_module_dflt")["getName"])($ctx, []);
+    const dfltName1 = await $env.krl.assertFunction($ctx.module("my_module_dflt")["getName"])($ctx, []);
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("module_used:dflt_name"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "dflt_name" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "dflt_name",
           { "name": await $env.krl.assertFunction($ctx.module("my_module_dflt")["getName"])($ctx, []) }
         ]);
@@ -50,9 +51,10 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("module_used:conf_name"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "conf_name" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "conf_name",
           { "name": await $env.krl.assertFunction($ctx.module("my_module_conf")["getName"])($ctx, []) }
         ]);
@@ -63,9 +65,10 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("module_used:dflt_info"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "dflt_info" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "dflt_info",
           { "info": await $env.krl.assertFunction($ctx.module("my_module_dflt")["getInfo"])($ctx, []) }
         ]);
@@ -76,9 +79,10 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("module_used:conf_info"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "conf_info" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "conf_info",
           { "info": await $env.krl.assertFunction($ctx.module("my_module_conf")["getInfo"])($ctx, []) }
         ]);
@@ -89,31 +93,34 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("module_used:dflt_getInfoAction"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "dflt_getInfoAction" });
       var $fired = true;
       if ($fired) {
-        var info = await $env.krl.assertAction($ctx.module("my_module_dflt")["getInfoAction"])($ctx, []);
+        var info2 = await $env.krl.assertAction($ctx.module("my_module_dflt")["getInfoAction"])($ctx, []);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("val", info);
+      await $ctx.rsCtx.putEnt("val", info2);
     });
     $rs.when($env.SelectWhen.e("module_used:conf_getInfoAction"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "conf_getInfoAction" });
       var $fired = true;
       if ($fired) {
-        var info = await $env.krl.assertAction($ctx.module("my_module_conf")["getInfoAction"])($ctx, []);
+        var info2 = await $env.krl.assertAction($ctx.module("my_module_conf")["getInfoAction"])($ctx, []);
       }
       if ($fired)
         $ctx.log.debug("fired");
       else
         $ctx.log.debug("not fired");
-      await $ctx.rsCtx.putEnt("val", info);
+      await $ctx.rsCtx.putEnt("val", info2);
     });
     $rs.when($env.SelectWhen.e("module_used:sayHelloWithOperator"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "sayHelloWithOperator" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [await $env.krl.assertFunction($ctx.module("my_module_dflt")["sayHello"]($ctx))($ctx, ["bob"])]);
+        await $env.krl.assertAction(send_directive1)($ctx, [await $env.krl.assertFunction($ctx.module("my_module_dflt")["sayHello"]($ctx))($ctx, ["bob"])]);
       }
       if ($fired)
         $ctx.log.debug("fired");
@@ -121,6 +128,7 @@ module.exports = {
         $ctx.log.debug("not fired");
     });
     $rs.when($env.SelectWhen.e("module_used:uninstall"), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "uninstall" });
       var $fired = true;
       if ($fired) {
         await $env.krl.assertAction($ctx.module("ctx")["uninstall"])($ctx, ["io.picolabs.module-defined"]);
@@ -144,7 +152,7 @@ module.exports = {
         "now": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return now($ctx, query.args);
+            return now1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -152,7 +160,7 @@ module.exports = {
         "getEntVal": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return getEntVal($ctx, query.args);
+            return getEntVal1($ctx, query.args);
           } finally {
             $ctx.setQuery(null);
           }
@@ -160,7 +168,7 @@ module.exports = {
         "dfltName": function (query, qid) {
           $ctx.setQuery(Object.assign({}, query, { "qid": qid }));
           try {
-            return dfltName;
+            return dfltName1;
           } finally {
             $ctx.setQuery(null);
           }

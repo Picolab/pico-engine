@@ -65,6 +65,6 @@ ruleset io.picolabs.module-used {
     rule uninstall {
         select when module_used uninstall
 
-        ctx:uninstall("io.picolabs.module-defined")
+        ctx:uninstall("io.picolabs.module-defined");
     }
 }

@@ -1,6 +1,5 @@
 var _ = require('lodash')
 var declarationBlock = require('../utils/declarationBlock')
-const jsIdent = require('../utils/jsIdent')
 
 function Rule (ast, comp, e) {
   // TODO use symbol-table to store ast.name.value
@@ -25,7 +24,7 @@ function Rule (ast, comp, e) {
 
   const selectVars = _.uniq(comp.scope.get('$selectVars'))
   _.each(selectVars, function (selectVar) {
-    ruleBody.push(e('var', jsIdent(selectVar), e('get', e('id', '$state.setting'), e('str', selectVar))))
+    ruleBody.push(e('var', comp.jsId(selectVar), e('get', e('id', '$state.setting'), e('str', selectVar))))
   })
   if (_.size(selectVars) > 0) {
     ruleBody.push(e(';', e('=', e('id', 'this.rule.state'), e('call', e('id', 'Object.assign'), [

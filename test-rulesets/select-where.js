@@ -5,7 +5,7 @@ module.exports = {
     const $default = Symbol("default");
     const $ctx = $env.mkCtx($rsCtx);
     const $stdlib = $ctx.module("stdlib");
-    const send_directive = $stdlib["send_directive"];
+    const send_directive1 = $stdlib["send_directive"];
     const $rs = new $env.SelectWhen.SelectWhen();
     $rs.when($env.SelectWhen.e("*", async function ($event, $state) {
       return {
@@ -13,9 +13,10 @@ module.exports = {
         "state": $state
       };
     }), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "all" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, [
+        await $env.krl.assertAction(send_directive1)($ctx, [
           "all",
           {
             "domain": $ctx.module("event")["domain"]($ctx),
@@ -41,6 +42,7 @@ module.exports = {
         "state": $state
       };
     }), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "set_watcher" });
       var $fired = true;
       if ($fired)
         $ctx.log.debug("fired");
@@ -60,9 +62,10 @@ module.exports = {
         "state": $state
       };
     }), async function ($event, $state, $last) {
+      $ctx.log.debug("rule selected", { "rule_name": "watcher" });
       var $fired = true;
       if ($fired) {
-        await $env.krl.assertAction(send_directive)($ctx, ["watcher matched!"]);
+        await $env.krl.assertAction(send_directive1)($ctx, ["watcher matched!"]);
       }
       if ($fired)
         $ctx.log.debug("fired");
