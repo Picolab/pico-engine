@@ -88,6 +88,20 @@ export async function startPicoEngineCore(
         case "txnError":
           log.debug(ev.type, { picoId: ev.picoId, txnId: ev.txn.id });
           break;
+        case "eventScheduleAdded":
+          log.debug("event added to schedule", {
+            picoId: ev.picoId,
+            txnId: ev.txn.id,
+            rid: ev.rid,
+            event: ev.event,
+          });
+          break;
+        case "eventScheduleCleared":
+          log.debug("schedule cleared", {
+            picoId: ev.picoId,
+            txnId: ev.txn.id,
+          });
+          break;
       }
     },
 

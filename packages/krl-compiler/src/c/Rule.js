@@ -16,7 +16,12 @@ function Rule (ast, comp, e) {
 
   const selectWhenRule = comp(ast.select)
 
-  var ruleBody = []
+  var ruleBody = [
+    e(';', e('call', e('id', '$ctx.log.debug'), [
+      e('str', 'rule selected'),
+      e('obj', { rule_name: e('str', ast.name.value) })
+    ]))
+  ]
 
   const selectVars = _.uniq(comp.scope.get('$selectVars'))
   _.each(selectVars, function (selectVar) {
